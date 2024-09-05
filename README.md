@@ -1,23 +1,18 @@
 
-<h1 align="center"><a href="https://bluewavelabs.ca" target="_blank">BlueWave TrustCenter</a></h1>
+<h1 align="center"><a href="https://bluewavelabs.ca" target="_blank">VerifyWise</a></h1>
 
-BlueWave TrustCenter is an open-source platform designed to demonstrate security and compliance measures to prospective clients, automating time-consuming security assessments that often arise during sales.
+VerifyWise is an open-source AI governance platform designed to help businesses harness the power of artificial intelligence safely and responsibly. Our platform ensures compliance and robust AI management without compromising on security.
 
-This application is currently in design stage, using Figma. The designs will be ready by end of August, and development will begin in September.
+We are democratizing AI best practices with an open-source solution that can be hosted on-premises, giving you complete control over your AI governance.
 
-## Features
+This application is currently in the design stage. The designs and workflows will be ready by end of September.
 
-- **Completely open source**: deployable on your servers
-- **Knowledge base**: Houses a comprehensive repository of security documents and FAQs.
-- **Self-service portal:** Enables customers to access necessary documents without direct vendor interaction.
-- **Access control:** Automates access permissions based on user domains and agreements.
-- **Customizable trust center:** Offers a tailored trust center experience for different customer needs.
-- **Analytics dashboard:** Provides insights into document access and user interactions.
-- **User-friendly interface:** Designed for ease of use, ensuring quick navigation and document retrieval.
+## Screenshots
 
-## Tech stack
+### Compliance tracker
 
-- [ReactJs](https://react.dev/)
-- [MUI (React framework)](https://mui.com/)
-- [Node.js](https://nodejs.org/en)
-- [MongoDB](https://mongodb.com)
+<img width="1574" alt="Compliance tracker" src="https://github.com/user-attachments/assets/b7fa9fa7-0b39-4498-b701-e03d42010382">
+
+### Assessment tracker
+
+<img width="1574" alt="Assessment tracker" src="https://github.com/user-attachments/assets/6c8c5ca4-7bc6-40ee-a408-04efb59ceee0">

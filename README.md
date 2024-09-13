@@ -12,13 +12,20 @@ We are democratizing AI best practices with an open-source solution that can be 
 
 ## Features
 
-- **Assessment Tracker**: Allows for structured reviews of AI governance capabilities and risk assessments.
-- **Compliance Tracker**: Monitors adherence to internal policies and external regulations.
-- **AI Registry**: A centralized system for tracking all AI projects, including details, owners, systems used, risk categorization, and policy compliance.
-- **AI Governance Dashboard**: Provides visibility into AI risks and benefits, offering analysis and insights on the status, progress, and compliance of AI initiatives.
-- **AI Policy Center**: Helps create and maintain up-to-date AI policies in line with changing regulations, standards, and guidelines.
-- **AI Risk Center**: Enables tracking and mitigation of AI-related risks, including incident management and real-time notifications.
-
+- Option to host the application on-premises or in a private cloud
+- Open source with a permissive license (AGPLv3)
+- End-to-end encryption for data in transit and at rest to ensure data security
+- Full access to the source code for transparency, security audits, and customization
+- Docker deployment
+- User registration, authentication and role-based access control (RBAC) support. 
+- Key metrics, visualizations, and real-time reporting capabilities.
+- Major features:
+  - Multiple projects
+  - Compliance tracker
+  - Assessment tracker
+  - Vendors
+  - Risks
+ 
 ## Who is it for? 
 
 VerifyWise is designed for:

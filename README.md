@@ -5,7 +5,7 @@ VerifyWise is an open-source AI governance platform designed to help businesses 
 
 We are democratizing AI best practices with an open-source solution that can be hosted on-premises, giving you complete control over your AI governance.
 
-This application is currently in the design stage. The designs and workflows will be ready by end of September.
+This application is currently in the design stage. The designs and workflows are [available for everyone](https://www.figma.com/design/o4xu4PeC5bo1Ii4dyom6vQ/VerifyWise?node-id=0-1&t=Ty2Jh4S8QgHGrqon-1)
 
 ## Features
 

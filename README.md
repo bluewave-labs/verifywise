@@ -35,7 +35,3 @@ The platform makes AI governance easier for organizations. It helps them manage 
 ### Compliance tracker
 
 <img width="1574" alt="Compliance tracker" src="https://github.com/user-attachments/assets/b7fa9fa7-0b39-4498-b701-e03d42010382">
-
-### Assessment tracker
-
-<img width="1574" alt="Assessment tracker" src="https://github.com/user-attachments/assets/6c8c5ca4-7bc6-40ee-a408-04efb59ceee0">

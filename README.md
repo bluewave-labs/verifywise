@@ -11,7 +11,7 @@ We are democratizing AI best practices with an open-source solution that can be 
 
 ## Quick links
 
-- This application is currently in the design stage. The designs and workflows are [available for everyone](https://www.figma.com/design/o4xu4PeC5bo1Ii4dyom6vQ/VerifyWise?node-id=0-1&t=Ty2Jh4S8QgHGrqon-1)
+- This application is currently in the design stage. The designs and workflows are [available for everyone](https://www.figma.com/design/o4xu4PeC5bo1Ii4dyom6vQ/VerifyWise?node-id=0-1&t=Ty2Jh4S8QgHGrqon-1). This link includes 2 pages: dashboard designs and the style guide.
 - [VerifyWise presentation](https://pitch.com/v/ai-governance---verifywise-dsguhp), including terminology, why and how, technology, and roadmap
 
 

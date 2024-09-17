@@ -20,9 +20,40 @@ const light = createTheme({
   spacing: 2,
   palette: {
     primary: { main: "#1570EF" },
+    secondary: { main: "#F4F4F4", dark: "#e3e3e3", contrastText: "#475467" },
     border: border,
     background: background,
     text: text,
+    status: {
+      info: {
+        text: text.primary,
+        main: text.tertiary,
+        bg: background.main,
+        light: background.main,
+        border: "#27272a",
+      },
+      success: {
+        text: "#079455",
+        main: "#17b26a",
+        light: "#d4f4e1",
+        bg: "#ecfdf3",
+        border: "#079455",
+      },
+      error: {
+        text: "#f04438",
+        main: "#d32f2f",
+        light: "#fbd1d1",
+        bg: "#f9eced",
+        border: "#f04438",
+      },
+      warning: {
+        text: "#DC6803",
+        main: "#fdb022",
+        light: "#ffecbc",
+        bg: "#fffcf5",
+        border: "#fec84b",
+      },
+    },
     other: {
       icon: "#667085",
       line: "#d6d9dd",

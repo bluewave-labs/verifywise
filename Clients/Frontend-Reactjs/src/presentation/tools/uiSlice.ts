@@ -9,6 +9,12 @@ const uiSlice = createSlice({
     mode: "light",
   },
   reducers: {
+    setRowsPerPage: (state: any, action) => {
+      const { table, value } = action.payload;
+      if (state[table]) {
+        state[table].rowsPerPage = value;
+      }
+    },
     toggleSidebar: (state) => {
       state.sidebar.collapsed = !state.sidebar.collapsed;
     },
@@ -18,5 +24,5 @@ const uiSlice = createSlice({
   },
 });
 
-export const { toggleSidebar, setMode } = uiSlice.actions;
+export const { setRowsPerPage, toggleSidebar, setMode } = uiSlice.actions;
 export default uiSlice.reducer;

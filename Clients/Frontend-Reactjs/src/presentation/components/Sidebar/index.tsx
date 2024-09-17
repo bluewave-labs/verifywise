@@ -32,6 +32,7 @@ import { ReactComponent as Assessment } from "../../assets/icons/chart.svg";
 import { ReactComponent as Vendors } from "../../assets/icons/building.svg";
 import { ReactComponent as Settings } from "../../assets/icons/setting.svg";
 import { ReactComponent as Team } from "../../assets/icons/team.svg";
+import Avatar from "../Avatar";
 
 const menu = [
   {
@@ -427,7 +428,7 @@ const Sidebar = () => {
                 onClick={(event) => openPopup(event, "logout")}
                 sx={{ p: 0, "&:focus": { outline: "none" } }}
               >
-                {/* <Avatar small={true} /> */}
+                <Avatar small={true} />
               </IconButton>
             </Tooltip>
           </>

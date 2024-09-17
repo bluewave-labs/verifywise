@@ -16,6 +16,9 @@ const background = {
 
 const border = "#d0d5dd";
 
+const shadow =
+  "0px 4px 24px -4px rgba(255, 255, 255, 0.03), 0px 3px 3px -3px rgba(255, 255, 255, 0.01)";
+
 const dark = createTheme({
   spacing: 2,
   palette: {
@@ -64,6 +67,7 @@ const dark = createTheme({
   shape: {
     borderRadius: 2,
   },
+  boxShadow: shadow,
 });
 
 export default dark;

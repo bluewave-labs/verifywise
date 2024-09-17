@@ -5,6 +5,8 @@ import {
   TypeText,
   PaletteColor,
   PaletteColorOptions,
+  Shape,
+  ShapeOptions,
 } from "@mui/material/styles";
 
 declare module "@mui/material/styles" {
@@ -71,5 +73,20 @@ declare module "@mui/material/styles" {
     success?: PaletteColorOptions;
     error?: PaletteColorOptions;
     warning?: PaletteColorOptions;
+  }
+  interface Shape {
+    borderRadius: number | string;
+  }
+  interface ShapeOptions {
+    borderRadius?: number | string;
+  }
+  interface Shadows {
+    boxShadow: string; // Add this line
+  }
+  interface ThemeOptions {
+    boxShadow?: string; // Add this line
+  }
+  interface Theme {
+    boxShadow: string; // Add this line
   }
 }

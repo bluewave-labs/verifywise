@@ -23,8 +23,6 @@ import { toggleSidebar, setMode } from "../../tools/uiSlice";
 
 import { ReactComponent as ArrowLeft } from "../../assets/icons/left-arrow.svg";
 import { ReactComponent as ArrowRight } from "../../assets/icons/right-arrow.svg";
-import { ReactComponent as ArrowDown } from "../../assets/icons/down-arrow.svg";
-import { ReactComponent as ArrowUp } from "../../assets/icons/up-arrow.svg";
 import { ReactComponent as Dashboard } from "../../assets/icons/dashboard.svg";
 import { ReactComponent as DotsVertical } from "../../assets/icons/dots-vertical.svg";
 import { ReactComponent as LogoutSvg } from "../../assets/icons/logout.svg";
@@ -39,22 +37,21 @@ const menu = [
   {
     name: "Dashboard",
     icon: <Dashboard />,
-    path: "/Dashboard",
   },
   {
     name: "Compliance tracker",
     icon: <Compliance />,
-    path: "/Compliance",
+    path: "/compliance-tracker",
   },
   {
-    name: "Assessment tracker",
+    name: "Assessment",
     icon: <Assessment />,
-    path: "/Assessment",
+    path: "/assessment",
   },
   {
     name: "Vendors",
     icon: <Vendors />,
-    path: "/Vendors",
+    path: "/vendors",
   },
 ];
 
@@ -62,12 +59,12 @@ const other = [
   {
     name: "Setting",
     icon: <Settings />,
-    path: "/Setting",
+    path: "/setting",
   },
   {
     name: "Team",
     icon: <Team />,
-    path: "/Team",
+    path: "/team",
   },
 ];
 
@@ -231,7 +228,7 @@ const Sidebar = () => {
                 className={
                   location.pathname.includes(item.path) ? "selected-path" : ""
                 }
-                onClick={() => navigate(`/${item.path}`)}
+                onClick={() => navigate(`${item.path}`)}
                 sx={{
                   height: "37px",
                   gap: theme.spacing(4),
@@ -322,7 +319,6 @@ const Sidebar = () => {
               >
                 <ListItemIcon sx={{ minWidth: 0 }}>{item.icon}</ListItemIcon>
                 <ListItemText>{item.name}</ListItemText>
-                {open[`${item.name}`] ? <ArrowUp /> : <ArrowDown />}
               </ListItemButton>
               <Collapse in={open[`${item.name}`]} timeout="auto">
                 <List
@@ -385,7 +381,7 @@ const Sidebar = () => {
                       "_blank",
                       "noreferrer"
                     )
-                  : navigate(`/${item.path}`)
+                  : navigate(`${item.path}`)
               }
               sx={{
                 gap: theme.spacing(4),

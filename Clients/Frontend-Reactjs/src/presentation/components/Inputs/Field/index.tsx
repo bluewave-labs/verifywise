@@ -1,3 +1,28 @@
+/**
+ * A customizable input field component that supports various types of inputs,
+ * including text, password, and URL. It also provides options for labels,
+ * placeholders, error messages, and adornments.
+ *
+ * @component
+ * @param {FieldProps} props - The properties for the Field component.
+ * @param {string} [props.type="text"] - The type of the input field.
+ * @param {string} [props.id] - The id of the input field.
+ * @param {string} [props.label] - The label for the input field.
+ * @param {boolean} [props.https] - Whether to use "https" in the URL input.
+ * @param {boolean} [props.isRequired] - Whether the field is required.
+ * @param {boolean} [props.isOptional] - Whether the field is optional.
+ * @param {string} [props.optionalLabel] - The label for optional fields.
+ * @param {string} [props.autoComplete] - The autocomplete attribute for the input field.
+ * @param {string} [props.placeholder] - The placeholder text for the input field.
+ * @param {string} [props.value] - The value of the input field.
+ * @param {function} [props.onChange] - The function to call when the input value changes.
+ * @param {function} [props.onInput] - The function to call when the input event occurs.
+ * @param {string} [props.error] - The error message to display.
+ * @param {boolean} [props.disabled] - Whether the input field is disabled.
+ * @param {ForwardedRef<HTMLInputElement>} ref - The forwarded ref for the input field.
+ * @returns {JSX.Element} The rendered Field component.
+ */
+
 import {
   IconButton,
   InputAdornment,

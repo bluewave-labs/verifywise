@@ -1,12 +1,5 @@
-import { Stack } from "@mui/material";
-import Search from "../../components/Search";
-
 const Home = () => {
-  return (
-    <Stack gap={8}>
-      <Search />
-    </Stack>
-  );
+  return <div>Setting</div>;
 };
 
 export default Home;

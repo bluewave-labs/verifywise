@@ -21,6 +21,7 @@ declare module "@mui/material/styles" {
       fill: string;
       grid: string;
     };
+    unresolved: PaletteColor;
   }
   interface PaletteOptions {
     border?: string;
@@ -33,6 +34,7 @@ declare module "@mui/material/styles" {
       fill?: string;
       grid?: string;
     };
+    unresolved?: PaletteColorOptions;
   }
   interface TypeBackground {
     main: string;
@@ -81,12 +83,12 @@ declare module "@mui/material/styles" {
     borderRadius?: number | string;
   }
   interface Shadows {
-    boxShadow: string; // Add this line
+    boxShadow: string;
   }
   interface ThemeOptions {
-    boxShadow?: string; // Add this line
+    boxShadow?: string;
   }
   interface Theme {
-    boxShadow: string; // Add this line
+    boxShadow: string;
   }
 }

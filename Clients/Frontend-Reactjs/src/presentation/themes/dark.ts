@@ -63,6 +63,7 @@ const dark = createTheme({
       fill: "#18181a",
       grid: "#454546",
     },
+    unresolved: { main: "#4e5ba6", light: "#e2eaf7", bg: "#f2f4f7" },
   },
   shape: {
     borderRadius: 2,

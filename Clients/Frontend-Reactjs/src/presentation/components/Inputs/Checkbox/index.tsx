@@ -1,3 +1,18 @@
+/**
+ * Checkbox component using Material-UI's Checkbox and FormControlLabel.
+ *
+ * @component
+ * @param {string} id - The unique identifier for the checkbox input.
+ * @param {string} label - The label displayed next to the checkbox.
+ * @param {"small" | "medium" | "large"} [size="medium"] - The size of the checkbox.
+ * @param {boolean} isChecked - The checked state of the checkbox.
+ * @param {string} value - The value of the checkbox input.
+ * @param {function} onChange - The function to call when the checkbox state changes.
+ * @param {boolean} [isDisabled] - Whether the checkbox is disabled.
+ *
+ * @returns {JSX.Element} The rendered Checkbox component.
+ */
+
 import {
   FormControlLabel,
   Checkbox as MuiCheckbox,

@@ -1,7 +1,6 @@
 
 <h1 align="center"><a href="https://bluewavelabs.ca" target="_blank">VerifyWise</a></h1>
 
-
 VerifyWise is an open-source AI governance platform designed to help businesses harness the power of artificial intelligence safely and responsibly. Our platform ensures compliance and robust AI management without compromising on security.
 
 We are democratizing AI best practices with an open-source solution that can be hosted on-premises, giving you complete control over your AI governance.

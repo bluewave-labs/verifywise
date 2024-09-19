@@ -6,6 +6,15 @@ We are democratizing AI best practices with an open-source solution that can be 
 
 <img width="1574" alt="Compliance tracker" src="https://github.com/user-attachments/assets/b7fa9fa7-0b39-4498-b701-e03d42010382">
 
+
+## Running the frontend
+
+After you fork and clone the repository, simple head into the Clients directory and run the following command:
+
+`npm run dev`
+
+Currently the application is in its infancy state, so check back here often.
+
 ## Quick links
 
 - This application is currently in the design stage. The designs and workflows are [available for everyone](https://www.figma.com/design/o4xu4PeC5bo1Ii4dyom6vQ/VerifyWise?node-id=0-1&t=Ty2Jh4S8QgHGrqon-1). This link includes 2 pages: dashboard designs and the style guide.
@@ -43,8 +52,3 @@ VerifyWise is designed for:
 
 <img width="1086" alt="Screenshot 2024-09-12 at 10 56 50 PM" src="https://github.com/user-attachments/assets/3567066c-d916-49f4-bb0b-881dedb4ad37">
 
-## How to run the Frontend
-
-After you forked and cloned the repository, simple head into the root of the project, inside Clients directory and run the following command:
-
-`npm run dev`

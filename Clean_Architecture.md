@@ -4,22 +4,15 @@
 
 ---
 
-### Our Stacks, PERN
+### Our Stack: PERN
 
-![Enterprise Application Diagram](./images/PERN.png)
+![PERN](https://github.com/user-attachments/assets/5665e49e-c569-4a11-b2cc-2fdcd4f09d06)
 
 ---
 
 #### What does PERN stands for?
 
 PERN: PostgreSQL + Express.js + React.js + Node.js
-
-##### About PERN
-
-- **PostgreSQL:** A powerful, open-source relational database.
-- **Express.js:** Same as in MERN.
-- **React:** Same as in MERN.
-- **Node.js:** Same as in MERN.
 
 ##### Pros of using PostgreSQL here:
 
@@ -32,7 +25,7 @@ PERN: PostgreSQL + Express.js + React.js + Node.js
 
 #### React (TypeScript + SWC) + MUI
 
-**React:** A popular JavaScript library for building user interfaces, particularly single-page applications. React continues to be a dominant force in web development, and its popularity is expected to grow even more in 2024 and 2025.
+**React:** A popular JavaScript library for building user interfaces, particularly single-page applications. React continues to dominate web development, and its popularity is expected to grow even more in 2024 and 2025.
 
 **TypeScript:** A superset of JavaScript that adds static typing, which helps catch errors early and improves code quality and maintainability.
 [TypeScript Ultimate Course](https://youtu.be/d56mG7DezGs?si=Xl4RSkuPaRcaFiQR)
@@ -40,7 +33,7 @@ PERN: PostgreSQL + Express.js + React.js + Node.js
 [TypeScript Full Course for Beginners](https://youtu.be/gieEQFIfgYc?si=7bemq5IcwwzjYEW1)
 [Learn TS](https://youtu.be/30LWjhZzg50?si=IrcWeYfWD-YRswjn)
 
-**React with TypeScript:** Using TypeScript with React enhances the development experience by providing type safety, which helps prevent bugs and makes the code easier to understand and maintain. _Here are some links to dive deeper, also feel free so search for more:_
+**React with TypeScript:** Using TypeScript with React enhances the development experience by providing type safety, which helps prevent bugs and makes the code easier to understand and maintain. _Here are some links to dive deeper, also feel free to search for more:_
 [React TypeScript Tutorial Playlist](https://react-typescript-cheatsheet.netlify.app/https://youtube.com/playlist?list=PLC3y8-rFHvwi1AXijGTKM0BKtHzVC-LSK&si=Omx5y4IqrZodOFpi)
 [React.js & TypeScript](https://youtu.be/FJDVKeh7RJI?si=PL1D5c1dpv1xzSIw)
 

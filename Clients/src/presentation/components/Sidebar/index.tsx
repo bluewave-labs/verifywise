@@ -7,7 +7,6 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  ListSubheader,
   Menu,
   MenuItem,
   Stack,
@@ -93,6 +92,17 @@ const Sidebar = () => {
     setAnchorEl(null);
   };
 
+  /**
+   * Handles logging out the user
+   *
+   */
+  const logout = async () => {
+    // placeholder for logging out the user
+    console.log("User logged out");
+  };
+
+  console.log("collapsed -> ", collapsed);
+
   return (
     <Stack
       component="aside"
@@ -115,91 +125,66 @@ const Sidebar = () => {
         },
       }}
     >
-      <Stack pt={theme.spacing(6)} pb={theme.spacing(12)} pl={theme.spacing(8)}>
-        <Stack direction="row" alignItems="center" gap={theme.spacing(4)}>
-          <Stack
-            justifyContent="center"
-            alignItems="center"
-            minWidth={theme.spacing(16)}
-            minHeight={theme.spacing(16)}
-            pl="1px"
-            fontSize={18}
-            color="white"
-            sx={{
-              position: "relative",
-              border: `1px solid ${theme.palette.primary.main}`,
-              borderRadius: theme.shape.borderRadius,
-              userSelect: "none",
-              color: theme.palette.primary.main,
-              padding: 1,
-            }}
-          >
-            VW
-          </Stack>
-          <Typography
-            component="span"
-            mt={theme.spacing(2)}
-            sx={{ opacity: 0.8, fontWeight: 500 }}
-          >
-            Verify
-            <span
-              style={{
-                color: theme.palette.primary.main,
-              }}
-            >
-              Wise
-            </span>
-          </Typography>
-        </Stack>
-        <IconButton
-          sx={{
-            position: "absolute",
-            top: 60,
-            right: 0,
-            transform: `translate(50%, 0)`,
-            backgroundColor: theme.palette.background.fill,
-            border: 1,
-            borderColor: theme.palette.border,
-            p: theme.spacing(2.5),
-            "& svg": {
-              // width: theme.spacing(8),
-              // height: theme.spacing(8),
-              "& path": {
-                stroke: theme.palette.text.secondary,
-              },
-            },
-            "&:focus": { outline: "none" },
-            "&:hover": {
-              backgroundColor: theme.palette.border,
-              borderColor: theme.palette.border,
-            },
-          }}
-          onClick={() => {
-            setOpen({ Dashboard: false, Account: false });
-            dispatch(toggleSidebar());
-          }}
+      {!collapsed && (
+        <Stack
+          pt={theme.spacing(6)}
+          pb={theme.spacing(12)}
+          pl={theme.spacing(8)}
         >
-          {collapsed ? <ArrowRight /> : <ArrowLeft />}
-        </IconButton>
-      </Stack>
+          <Stack direction="row" alignItems="center" gap={theme.spacing(4)}>
+            <Typography
+              component="span"
+              mt={theme.spacing(2)}
+              sx={{ opacity: 0.8, fontWeight: 500 }}
+              className="app-title"
+            >
+              Verify
+              <span
+                style={{
+                  color: theme.palette.primary.main,
+                }}
+              >
+                Wise
+              </span>
+            </Typography>
+          </Stack>
+        </Stack>
+      )}
+      <IconButton
+        sx={{
+          position: "absolute",
+          top: 60,
+          right: 0,
+          transform: `translate(50%, 0)`,
+          backgroundColor: theme.palette.background.fill,
+          border: 1,
+          borderColor: theme.palette.border,
+          p: theme.spacing(2.5),
+          "& svg": {
+            // width: theme.spacing(8),
+            // height: theme.spacing(8),
+            "& path": {
+              stroke: theme.palette.text.secondary,
+            },
+          },
+          "&:focus": { outline: "none" },
+          "&:hover": {
+            backgroundColor: theme.palette.border,
+            borderColor: theme.palette.border,
+          },
+        }}
+        onClick={() => {
+          setOpen({ Dashboard: false, Account: false });
+          dispatch(toggleSidebar());
+        }}
+      >
+        {collapsed ? <ArrowRight /> : <ArrowLeft />}
+      </IconButton>
       {/* menu */}
       <List
         component="nav"
         aria-labelledby="nested-menu-subheader"
         disablePadding
-        subheader={
-          <ListSubheader
-            component="div"
-            id="nested-menu-subheader"
-            sx={{
-              pt: theme.spacing(4),
-              px: collapsed ? theme.spacing(2) : theme.spacing(4),
-              backgroundColor: "transparent",
-            }}
-          >
-            general
-          </ListSubheader>
-        }
         sx={{ px: theme.spacing(6) }}
       >
         {/*
@@ -337,19 +322,6 @@ const Sidebar = () => {
       <List
         component={"nav"}
         aria-labelledby="nested-other-subheader"
-        subheader={
-          <ListSubheader
-            component="div"
-            id="nested-other-subheader"
-            sx={{
-              pt: theme.spacing(4),
-              px: collapsed ? 0 : theme.spacing(4),
-              backgroundColor: "transparent",
-            }}
-          >
-            Account
-          </ListSubheader>
-        }
         sx={{ px: theme.spacing(6) }}
       >
         {other.map((item) => (
@@ -526,7 +498,7 @@ const Sidebar = () => {
           </MenuItem>
           <Divider />
           <MenuItem
-            onClick={() => console.log("Logout Clicked")}
+            onClick={logout}
             sx={{
               gap: theme.spacing(4),
               borderRadius: theme.shape.borderRadius,

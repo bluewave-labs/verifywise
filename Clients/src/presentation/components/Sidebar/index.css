@@ -7,6 +7,10 @@ aside span.MuiTypography-root {
   line-height: 1;
 }
 
+aside span.app-title {
+  font-size: 20px;
+}
+
 aside .MuiStack-root + span.MuiTypography-root {
   font-size: 14px;
 }

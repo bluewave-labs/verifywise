@@ -2,6 +2,7 @@ import { Button, Stack, Typography, useTheme } from "@mui/material";
 import { ReactComponent as Back } from "../../assets/icons/left-arrow-long.svg";
 import Select from "../../components/Inputs/Select";
 import "./index.css";
+import TableWithPlaceholder from "../../components/Table/WithPlaceholder";
 
 const Vendors = () => {
   const theme = useTheme();
@@ -38,6 +39,7 @@ const Vendors = () => {
               },
               textTransform: "capitalize",
             }}
+            onClick={() => console.log("Back button")}
           >
             <Back />
             Back
@@ -77,7 +79,6 @@ const Vendors = () => {
           sx={{
             alignItems: "flex-end",
           }}
-          marginBottom={theme.spacing(10)}
         >
           <Button
             variant="contained"
@@ -94,8 +95,35 @@ const Vendors = () => {
                 boxShadow: "none",
               },
             }}
+            onClick={() => console.log("Add new vendor button")}
           >
             Add new vendor
+          </Button>
+        </Stack>
+        <TableWithPlaceholder />
+        <Stack
+          sx={{
+            alignItems: "flex-end",
+          }}
+        >
+          <Button
+            variant="contained"
+            sx={{
+              width: 150,
+              height: 34,
+              fontSize: 13,
+              textTransform: "capitalize",
+              backgroundColor: "#4C7DE7",
+              boxShadow: "none",
+              borderRadius: "4px",
+              border: "1px solid #175CD3",
+              "&:hover": {
+                boxShadow: "none",
+              },
+            }}
+            onClick={() => console.log("Save button")}
+          >
+            Save
           </Button>
         </Stack>
       </Stack>

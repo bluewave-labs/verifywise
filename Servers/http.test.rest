@@ -1,0 +1,21 @@
+###
+
+GET http://localhost:3000/users
+
+###
+
+GET http://localhost:3000/users/1
+
+###
+
+POST http://localhost:3000/users
+
+###
+
+DELETE http://localhost:3000/users/1
+
+###
+
+PATCH  http://localhost:3000/users/1
+
+###

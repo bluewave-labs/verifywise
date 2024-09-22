@@ -128,6 +128,9 @@ const BasicTable = ({
                   key={row.id}
                   onClick={row.handleClick ? row.handleClick : null}
                 >
+                  <TableCell key={`icon-${row.id}`}>
+                    <img src={row.icon} alt="status icon" width={20} />
+                  </TableCell>
                   {row.data.map((cell: any) => {
                     return <TableCell key={cell.id}>{cell.data}</TableCell>;
                   })}

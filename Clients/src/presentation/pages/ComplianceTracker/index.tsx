@@ -1,8 +1,6 @@
 import { useState } from "react";
 import BasicTable from "../../../presentation/components/Table";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import Checked from "../../assets/icons/check.svg";
-import Exclamation from "../../assets/icons/globe.svg";
 import {
   Stack,
   useTheme,
@@ -19,90 +17,7 @@ import {
   SelectChangeEvent,
 } from "@mui/material";
 
-const complianceMetrics = [
-  {
-    name: "Compliance Status",
-    amount: "15%",
-  },
-  {
-    name: "Total number of controls",
-    amount: "184",
-  },
-  {
-    name: "Implemented controls",
-    amount: "31",
-  },
-  {
-    name: "Auditor completed",
-    amount: "17",
-  },
-];
-
-const complianceDetails = {
-  cols: [
-    { id: "icon", name: "" },
-    { id: "CONTROLS", name: "CONTROLS" },
-    { id: "OWNER", name: "OWNER" },
-    { id: "SUBCONTROLS", name: "SUBCONTROLS" },
-    { id: "COMPLETION", name: "COMPLETION" },
-  ],
-  rows: [
-    {
-      id: 1,
-      icon: Checked,
-      data: [
-        {
-          id: "1",
-          data: "AIAct-016: Compliance with High-Risk AI System Requirements",
-        },
-        { id: "2", data: "Rachelle Swing" },
-        { id: "3", data: "5 (2 left)" },
-        { id: "4", data: "45%" },
-      ],
-    },
-    {
-      id: 2,
-      icon: Checked,
-      data: [
-        {
-          id: "1",
-          data: "AIAct-017: Compliance with Union Harmonisation Legislation",
-        },
-        { id: "2", data: "Mike Arthurs" },
-        { id: "3", data: "3 (1 left)" },
-        { id: "4", data: "33%" },
-      ],
-    },
-    {
-      id: 3,
-      icon: Exclamation,
-      data: [
-        {
-          id: "1",
-          data: "AIAct-018: Establish and Maintain Risk Management System for High-Risk AI Systems",
-        },
-        { id: "2", data: "John B" },
-        { id: "3", data: "5 (all completed)" },
-        { id: "4", data: "55%" },
-      ],
-    },
-    {
-      id: 4,
-      icon: Checked,
-      data: [
-        {
-          id: "1",
-          data: "AIAct-020: Identify and Analyze Known and Foreseeable Risks",
-        },
-        { id: "2", data: "Adam Gwen" },
-        { id: "3", data: "4 (2 left)" },
-        { id: "4", data: "70%" },
-      ],
-    },
-  ],
-};
-
-const Compliance = () => {
+const Compliance = ({ complianceMetrics, complianceDetails }: any) => {
   const theme = useTheme();
   const { spacing, shape, palette } = theme;
   const [dropDown, setDropDown] = useState("ChatBot AI");
@@ -123,14 +38,17 @@ const Compliance = () => {
       expanded={expanded === id}
       onChange={handleAccordionChange(id)}
       sx={{
-        mt: 18,
+        mt: spacing(4.5), 
         border: "2px solid",
         borderColor: "#eaecf0",
-        width: "970px",
-        marginLeft: "6px",
+        width: "100%", 
+        marginLeft: spacing(0.75),
         borderRadius: theme.shape.borderRadius,
         overflow: "hidden",
         position: "relative",
+        "& .MuiAccordionDetails-root": {
+          padding: 0,
+        },
       }}
     >
       <AccordionSummary
@@ -146,11 +64,11 @@ const Compliance = () => {
         id={`${id}-header`}
         sx={{
           bgcolor: "#FAFAFA",
-          padding: theme.spacing(5),
+          padding: spacing(5),
           flexDirection: "row-reverse",
         }}
       >
-        <Typography variant="h6" sx={{ fontSize: "16px", paddingLeft: "10px" }}>
+        <Typography variant="h6" sx={{ fontSize: "16px", paddingLeft: spacing(1.25) }}>
           {title}
         </Typography>
       </AccordionSummary>
@@ -161,9 +79,9 @@ const Compliance = () => {
   return (
     <Container
       sx={{
-        mt: 1,
-        ml: 15,
-        mr: -20 /* border:"2px, solid" , borderColor:"red"*/,
+        mt: spacing(1),
+        ml: spacing(3.75), 
+        fontFamily: "Inter",
       }}
     >
       <Stack component="section">
@@ -172,13 +90,11 @@ const Compliance = () => {
             display: "flex",
             justifyContent: "flex-end",
             alignItems: "center",
-            padding: 2,
-            position: "absolute",
-            top: 60,
-            right: 0,
+            padding: spacing(2),
+            mt: spacing(4.25),
           }}
         >
-          <Typography variant="subtitle1" sx={{ fontSize: "13px", mr: 6 }}>
+          <Typography variant="subtitle1" sx={{ fontSize: "13px", mr: spacing(1.5) }}>
             Currently viewing project:
           </Typography>
           <FormControl>
@@ -190,8 +106,8 @@ const Compliance = () => {
                 fontSize: "13px",
                 boxShadow: "0px 1px rgba(0, 0, 0, 0.1)",
                 minWidth: 144,
-                height: 34,
-                borderRadius: (theme) => shape.borderRadius,
+                height: spacing(17), 
+                borderRadius: shape.borderRadius,
               }}
             >
               <MenuItem value="ChatBot AI">ChatBot AI</MenuItem>
@@ -206,7 +122,7 @@ const Compliance = () => {
             sx={{
               flexGrow: 1,
               position: "absolute",
-              top: 80,
+              top: spacing(2.5), 
               fontSize: "18px",
               fontWeight: 600,
               color: "#1A1919",
@@ -219,17 +135,17 @@ const Compliance = () => {
           sx={{
             display: "flex",
             justifyContent: "flex-start",
-            gap: spacing(10),
-            mt: 32,
-            paddingLeft: "6px",
+            gap: spacing(18), 
+            mt: spacing(1),
+            paddingLeft: spacing(0.75),
           }}
         >
-          {complianceMetrics.map((item) => (
+          {complianceMetrics.map((item: any) => (
             <Box
               key={item.name}
               sx={{
-                width: "224.21px",
-                height: "64px",
+                width: "20%", 
+                height: spacing(32), 
                 borderRadius: shape.borderRadius,
                 backgroundColor: palette.background.paper,
                 display: "flex",
@@ -237,7 +153,7 @@ const Compliance = () => {
                 alignItems: "start",
                 justifyContent: "center",
                 padding: spacing(2),
-                paddingLeft: "13px",
+                paddingLeft: spacing(6),
                 textAlign: "end",
                 border: "2px solid",
                 borderColor: "#EAECF0",
@@ -252,7 +168,7 @@ const Compliance = () => {
               <Typography
                 variant="h6"
                 sx={{
-                  mt: 1,
+                  mt: spacing(1), 
                   fontSize: "16px",
                   fontWeight: 600,
                   color: "#2D3748",
@@ -263,8 +179,11 @@ const Compliance = () => {
             </Box>
           ))}
         </Box>
-        <Box sx={{ mt: "30px" }}>
-
+        <Box
+          sx={{
+            mt: spacing(7.5), 
+          }}
+        >
           {renderAccordion(
             "panel1",
             "1.1 Compliance with Requirements for High-Risk AI Systems",
@@ -286,6 +205,7 @@ const Compliance = () => {
             />
           )}
         </Box>
+        {/* <SubControl /> */}
       </Stack>
     </Container>
   );

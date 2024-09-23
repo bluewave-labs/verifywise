@@ -20,7 +20,7 @@ function App() {
       <CssBaseline />
       <Routes>
         <Route path="/" element={<Dashboard />}>
-          <Route path="/" element={<Home />} />
+          <Route path="/home" element={<Home />} />
           <Route path="/compliance-tracker" element={<ComplianceTracker />} />
           <Route path="/assessment" element={<Assessment />} />
           <Route path="/vendors" element={<Vendors />} />

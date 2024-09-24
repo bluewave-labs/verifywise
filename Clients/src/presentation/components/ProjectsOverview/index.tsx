@@ -1,5 +1,7 @@
+import "./index.css";
 import { FC } from "react";
-import { Button } from "@mui/material";
+import { Box, Typography } from "@mui/material";
+import Button from '@mui/material/Button';
 import ProjectCard from "./ProjectCard";
 
 const projects = [
@@ -35,15 +37,27 @@ const projects = [
     }
 ];
 
-const ProjectsOverview: FC = () => (
-    <div>
-        <div>Projects overview</div>
-        <Button variant="contained">New project</Button>
-        <div>
-            {projects.map((item) => <ProjectCard {...item }/>)}
-        </div>
+const ProjectsOverview: FC = () => {
+    return (
+        <Box sx={{ pt: 36, pl: 20, pr: 20 }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 11 }}>
+                <Typography variant="h1" component="div" sx={{ color: '#1A1919', fontSize: 16, fontWeight: "bold" }}>
+                    Projects overview
+                </Typography>
+                <Button variant="contained" sx={{ textTransform: "none", borderRadius: 4, maxHeight: 34 }}>
+                    New project
+                </Button>
+            </Box>
         
-    </div>
-);
+            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                {projects.map((item, i) => 
+                    <Box key={i}> 
+                        <ProjectCard {...item }/>
+                    </Box>
+                )}
+            </Box>
+        </Box>
+    )
+};
 
 export default ProjectsOverview;

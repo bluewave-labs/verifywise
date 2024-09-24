@@ -1,4 +1,5 @@
-import { Card, CardContent, Typography, CardActions, Button } from "@mui/material";
+import { Card, CardContent, Typography, Box } from "@mui/material";
+import Button from '@mui/material/Button';
 import { FC } from "react";
 
 interface ProjectCardProps {
@@ -8,6 +9,8 @@ interface ProjectCardProps {
     controls_completed: string
 }
 
+const img = "../../assets/imgs/eu-ai-act.jpg"
+
 const ProjectCard: FC<ProjectCardProps> = ({
     name,
     owner_name,
@@ -15,26 +18,40 @@ const ProjectCard: FC<ProjectCardProps> = ({
     controls_completed
 }) => {
     return (
-        <Card sx={{ maxWidth: 261 }}>
+        <Card sx={{ minWidth: 261 }}>
             <CardContent>
-                <Typography variant="h5" component="div">
+                <Typography variant="h5" component="div" sx={{ color: '#2D3748', fontSize: 13, fontWeight: "bold", mb: 6 }}>
                     {name}
                 </Typography>
-                <div>
-                    <Typography sx={{ color: 'text.secondary', mb: 1.5 }}>Project owner</Typography>
-                    <div>{owner_name}</div>
-                </div>
-                <div>
-                    <Typography sx={{ color: 'text.secondary', mb: 1.5 }}>Last updated</Typography>
-                    <div>{last_update}</div>
-                </div>
-                <Typography sx={{ color: 'text.secondary', mb: 1.5 }}>{controls_completed} controls completed</Typography>
-                <Typography sx={{ color: 'text.secondary', mb: 1.5 }}>{controls_completed} requirements completed</Typography>
-                <div>EU AI Act</div>
+                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 10 }}>
+                    <Box>
+                        <Typography variant="subtitle1" component="span" sx={{ color: '#8594AC', fontSize: 11 }}>
+                            Project owner
+                        </Typography>
+                        <Typography sx={{ color: '#344054', fontSize: 13 }}>{owner_name}</Typography>
+                    </Box>
+                    <Box>
+                        <Typography variant="subtitle1" component="span" sx={{ color: '#8594AC', fontSize: 11 }}>
+                            Last updated
+                        </Typography>
+                        <Typography sx={{ color: '#344054', fontSize: 13 }}>{last_update}</Typography>
+                    </Box>
+                </Box>
+                <Typography sx={{ color: '#8594AC', mb: 10, fontSize: 11 }}>
+                    {controls_completed} controls completed
+                </Typography>
+                <Typography sx={{ color: '#8594AC', fontSize: 11  }}>
+                    {controls_completed} requirements completed
+                </Typography>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", mt: 15 }}>
+                     <Typography sx={{ color: '#8594AC', fontSize: 12  }}>
+                        EU AI Act
+                    </Typography>
+                    <Button variant="outlined" sx={{ textTransform: "none", borderRadius: 4, maxHeight: 34, borderColor: "#D0D5DD", color: "#344054" }}>
+                        View project
+                    </Button>
+                </Box>
             </CardContent>
-            <CardActions>
-                <Button variant="outlined">View project</Button>
-            </CardActions>
         </Card>
     )
 }

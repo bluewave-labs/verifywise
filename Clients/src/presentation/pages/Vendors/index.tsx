@@ -3,9 +3,22 @@ import { ReactComponent as Back } from "../../assets/icons/left-arrow-long.svg";
 import Select from "../../components/Inputs/Select";
 import "./index.css";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder";
+import { useState } from "react";
+
+import AddNewVendor from "../../components/Modals/NewVendor";
 
 const Vendors = () => {
   const theme = useTheme();
+  const [isOpen, setIsOpen] = useState(false);
+  const [value, setValue] = useState("1");
+
+  const openAddNewVendor = () => {
+    setIsOpen(true);
+  };
+
+  const handleChange = (_: React.SyntheticEvent, newValue: string) => {
+    setValue(newValue);
+  };
 
   return (
     <div className="vendors-page">
@@ -14,7 +27,7 @@ const Vendors = () => {
           justifyContent={"space-between"}
           display={"flex"}
           flexDirection={"row"}
-          marginBottom={theme.spacing(10)}
+          marginBottom={theme.spacing(6)}
         >
           <Button
             disableRipple
@@ -95,7 +108,9 @@ const Vendors = () => {
                 boxShadow: "none",
               },
             }}
-            onClick={() => console.log("Add new vendor button")}
+            onClick={() => {
+              openAddNewVendor();
+            }}
           >
             Add new vendor
           </Button>
@@ -127,6 +142,12 @@ const Vendors = () => {
           </Button>
         </Stack>
       </Stack>
+      <AddNewVendor
+        isOpen={isOpen}
+        handleChange={handleChange}
+        setIsOpen={() => setIsOpen(false)}
+        value={value}
+      />
     </div>
   );
 };

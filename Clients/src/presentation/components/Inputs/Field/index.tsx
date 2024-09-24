@@ -52,6 +52,7 @@ interface FieldProps {
   onInput?: (event: React.FormEvent<HTMLInputElement>) => void;
   error?: string;
   disabled?: boolean;
+  width?: number | string;
 }
 
 const Field = forwardRef(
@@ -71,6 +72,7 @@ const Field = forwardRef(
       onInput,
       error,
       disabled,
+      width,
     }: FieldProps,
     ref: ForwardedRef<HTMLInputElement>
   ) => {
@@ -94,6 +96,7 @@ const Field = forwardRef(
           "&:has(.input-error) .MuiOutlinedInput-root fieldset": {
             borderColor: theme.palette.error.text,
           },
+          width: width,
         }}
       >
         {label && (

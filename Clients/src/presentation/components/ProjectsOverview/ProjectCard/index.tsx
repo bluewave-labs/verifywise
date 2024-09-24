@@ -9,8 +9,6 @@ interface ProjectCardProps {
     controls_completed: string
 }
 
-const img = "../../assets/imgs/eu-ai-act.jpg"
-
 const ProjectCard: FC<ProjectCardProps> = ({
     name,
     owner_name,

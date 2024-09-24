@@ -49,7 +49,7 @@ const ProjectsOverview: FC = () => {
                     New project
                 </Button>
             </Box>
-            <Grid container spacing={23}>
+            <Grid container spacing={43} sx={{ display: "flex", justifyContent: "space-between" }}>
                 {projects && projects.length > 0 ? (
                     projects.map((item) => (
                         <Grid key={item.id}>

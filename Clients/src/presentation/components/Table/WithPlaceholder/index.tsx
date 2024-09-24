@@ -11,9 +11,21 @@ import {
 import Placeholder from "../../../assets/imgs/table placeholder 1.png";
 import listOfVendors from "../../../mocks/vendors.data";
 import IconButton from "../../IconButton";
+import AddNewVendor from "../../Modals/NewVendor";
+import { useState } from "react";
 
 function TableWithPlaceholder({ data = listOfVendors }) {
   const theme = useTheme();
+
+  const [isOpen, setIsOpen] = useState(false);
+  const [value, setValue] = useState("1");
+
+  const handleChange = (_: React.SyntheticEvent, newValue: string) => {
+    setValue(newValue);
+  };
+  const openAddNewVendor = () => {
+    setIsOpen(true);
+  };
 
   const cellStyle = { fontSize: 13, paddingY: theme.spacing(15) };
 
@@ -62,6 +74,10 @@ function TableWithPlaceholder({ data = listOfVendors }) {
                 sx={{
                   textTransform: "capitalize",
                   borderBottom: "1px solid #EEEEEE",
+                  cursor: "pointer",
+                }}
+                onClick={() => {
+                  openAddNewVendor();
                 }}
               >
                 <TableCell sx={cellStyle}>{row.name}</TableCell>
@@ -93,6 +109,12 @@ function TableWithPlaceholder({ data = listOfVendors }) {
           <img src={Placeholder} alt="Placeholder" />
         </div>
       )}
+      <AddNewVendor
+        isOpen={isOpen}
+        handleChange={handleChange}
+        setIsOpen={() => setIsOpen(false)}
+        value={value}
+      />
     </TableContainer>
   );
 }

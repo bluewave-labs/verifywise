@@ -17,17 +17,23 @@ const Home = ({projects = []}: HomeProps) => {
               New project
           </Button>
       </Box>
-      <Grid container spacing={10} sx={{ display: "flex", justifyContent: "space-between" }}>
+      
           {projects && projects.length > 0 ? (
               projects.map((item: ProjectCardProps) => (
-                  <Grid key={item.id}>
-                      <ProjectCard {...item} />
-                  </Grid>
+                <Grid container spacing={10} sx={{ display: "flex", justifyContent: "space-between" }}>
+                    <Grid key={item.id}>
+                        <ProjectCard {...item} />
+                    </Grid>
+                </Grid>
                   ))
               ) : (
-                <Typography>No projects available.</Typography>
+                <Box sx={{ display: "block", height: "100%", width: "100%", border: "1px solid #EAECF0", borderRadius: 2, pt: 34, pb: 39.5 }}>
+                  <Box sx={{ display: "flex", justifyContent: "center" }}></Box>
+                  <Typography sx={{textAlign: "center", mt: 13.5, color: "#475467" }}>You have no projects, yet. Click on the “New Project” button to start one.</Typography>
+                </Box>
+                
               )}
-      </Grid>
+      
   </Box>
   )
 };

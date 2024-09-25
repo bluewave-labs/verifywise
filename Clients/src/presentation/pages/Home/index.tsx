@@ -2,8 +2,11 @@ import { Box, Typography, Button } from "@mui/material";
 import Grid from '@mui/material/Grid2';
 import ProjectCard, { ProjectCardProps } from "../../components/ProjectCard";
 
+interface HomeProps {
+    projects?: ProjectCardProps[];
+}
 
-const Home = ({projects}: any) => {
+const Home = ({projects = []}: HomeProps) => {
   return (
     <Box sx={{ pt: 44, paddingX: 27.5 }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 11 }}>

@@ -13,7 +13,7 @@ import Vendors from "./presentation/pages/Vendors";
 import Setting from "./presentation/pages/Setting";
 import Team from "./presentation/pages/Team";
 import { complianceMetrics, complianceDetails } from './presentation/pages/ComplianceTracker/ComplianceData';
-
+import { projects} from "./presentation/pages/Home/projectData"
 
 function App() {
   const mode = useSelector((state: any) => state.ui?.mode || "light");
@@ -22,7 +22,7 @@ function App() {
       <CssBaseline />
       <Routes>
         <Route path="/" element={<Dashboard />}>
-          <Route path="/home" element={<Home />} />
+          <Route path="/" element={<Home projects={projects} />} />
           <Route path="/compliance-tracker" element={<ComplianceTracker complianceMetrics={complianceMetrics} complianceDetails={complianceDetails} />} />
           <Route path="/assessment" element={<Assessment />} />
           <Route path="/vendors" element={<Vendors />} />

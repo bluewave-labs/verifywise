@@ -55,8 +55,8 @@ const BasicTable = ({
   table,
 }: {
   data: TableData;
-  paginated: any;
-  reversed: any;
+  paginated: boolean;
+  reversed: boolean;
   table: any;
 }) => {
   const DEFAULT_ROWS_PER_PAGE = 5;

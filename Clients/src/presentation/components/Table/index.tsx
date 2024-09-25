@@ -55,8 +55,8 @@ const BasicTable = ({
   table,
 }: {
   data: TableData;
-  paginated: any;
-  reversed: any;
+  paginated: boolean;
+  reversed: boolean;
   table: any;
 }) => {
   const DEFAULT_ROWS_PER_PAGE = 5;
@@ -69,6 +69,8 @@ const BasicTable = ({
   useEffect(() => {
     setPage(0);
   }, [data]);
+
+  const cellStyle = { fontSize: 13, textWrap: "wrap" ,paddingY: theme.spacing(15)};
 
   const handleChangePage = (event: any, newPage: any) => {
     console.log(event);
@@ -107,11 +109,28 @@ const BasicTable = ({
   return (
     <>
       <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
+        <Table
+          sx={{
+            border: "1px solid #EEEEEE",
+            borderRadius: "4px",
+            "& td, & th": {
+              border: 0,
+            },
+          }}
+        >
+          <TableHead sx={{ backgroundColor: "#FAFAFA" }}>
+            <TableRow
+              sx={{
+                textTransform: "uppercase",
+                borderBottom: "1px solid #EEEEEE",
+              }}
+            >
               {data.cols.map((col) => {
-                return <TableCell key={col.id}>{col.name}</TableCell>;
+                return (
+                  <TableCell style={{ color: "#667085" }} key={col.id}>
+                    {col.name}
+                  </TableCell>
+                );
               })}
             </TableRow>
           </TableHead>
@@ -120,6 +139,8 @@ const BasicTable = ({
               return (
                 <TableRow
                   sx={{
+                    textTransform: "capitalize",
+                    borderBottom: "1px solid #EEEEEE",
                     cursor: row.handleClick ? "pointer" : "default",
                     "&:hover": {
                       backgroundColor: theme.palette.background.accent,
@@ -128,8 +149,11 @@ const BasicTable = ({
                   key={row.id}
                   onClick={row.handleClick ? row.handleClick : null}
                 >
+                  <TableCell sx={cellStyle} key={`icon-${row.id}`}>
+                    <img src={row.icon} alt="status icon" width={20} />
+                  </TableCell>
                   {row.data.map((cell: any) => {
-                    return <TableCell key={cell.id}>{cell.data}</TableCell>;
+                    return <TableCell sx={cellStyle} key={cell.id}>{cell.data}</TableCell>;
                   })}
                 </TableRow>
               );

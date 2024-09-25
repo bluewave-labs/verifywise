@@ -1,0 +1,16 @@
+.mui-date-picker {
+  height: 34px;
+}
+
+.mui-date-picker .MuiInputBase-root {
+  height: 34px;
+}
+
+.mui-date-picker .MuiInputBase-root input {
+  padding: 5px;
+  font-size: 13px;
+}
+
+.mui-date-picker > .MuiFormLabel-root {
+  font-size: 13px;
+}

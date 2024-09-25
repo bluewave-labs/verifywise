@@ -138,4 +138,20 @@ router.patch("/:id", async (req: Request, res: Response) => {
     }
 });
 
+router.post("/reset-password", async (req: Request, res: Response) => {
+    const { email } = req.query as { email: string }
+    const { password } = req.body as { password: string }
+
+    let users = await getUsers()
+    const userIndex = users.map(u => u.email).indexOf(email)
+
+    if (userIndex === -1) {
+        res.status(404).json({ data: `user with email: ${email} not found` })
+    } else {
+        users[userIndex].password = password
+        await writeFile("./files/users.json", JSON.stringify(users))
+        res.status(201).send({ data: `password update successful for the user with email: ${email}` })
+    }
+})
+
 module.exports = router;

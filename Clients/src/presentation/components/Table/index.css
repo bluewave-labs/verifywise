@@ -45,9 +45,9 @@
   width: 20px;
   height: 20px;
 }
-.MuiTable-root .MuiTableBody-root .MuiTableCell-root {
+/* .MuiTable-root .MuiTableBody-root .MuiTableCell-root {
   padding: 6px 24px;
-}
+} */
 .MuiTable-root .MuiTableBody-root .MuiTableRow-root {
   height: 50px;
 }

@@ -25,6 +25,27 @@ router.get("/", async (req: Request, res: Response) => {
     }
 });
 
+router.get("/find", async (req: Request, res: Response) => {
+    const params = req.query as { name?: string, email?: string, id?: number }
+    const users = await getUsers()
+
+    const user = users.find(u => {
+
+        for (let p of Object.keys(params)) {
+            if (u[p as keyof User] !== params[p as keyof typeof params]) {
+                return false
+            }
+        }
+        return true
+    })
+
+    if (user === undefined) {
+        res.status(404).json({ data: `user with ${Object.keys(params).map(p => `${p}: ${params[p as keyof typeof params]}`).join(', ')} not found` })
+    } else {
+        res.json({ data: user })
+    }
+})
+
 router.get("/:id", async (req: Request, res: Response) => {
     // assuming the userId will be integer parsable
     const userId = parseInt(req.params.id);
@@ -119,7 +140,7 @@ router.patch("/:id", async (req: Request, res: Response) => {
             if (nonUpdatableFields.length !== 0) {
                 res.status(400).json({ data: `cannot update ${nonUpdatableFields.join(" and ")} of the user` })
             } else {
-                Object.keys(req.body as { name: string, email: string, password: string }).map(b => {
+                Object.keys(req.body as { name: string, email: string, password: string }).forEach(b => {
                     // NOTE: any workaround for this?: "email" | "password" | "name"
                     filteredUser[b as "email" | "password" | "name"] = req.body[b]
                 })

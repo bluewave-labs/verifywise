@@ -1,1 +1,11 @@
-[{"id":1,"name":"harsh patchh","email":"harsh@gmail.com","password":"harsh@123"},{"id":2,"name":"harsh patch","email":"harsh1@gmail.com","password":"harsh@12345"}]
+[
+  {
+    "id": 1,
+    "created_at": 1727389492273,
+    "last_login": 0,
+    "role_id": 1,
+    "name": "harsh patchh",
+    "email": "harsh@gmail.com",
+    "password": "harsh@12345"
+  }
+]

@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import { User } from "../models/user.model";
+import { UserOut } from "../dtos/userOut.dto";
+import { UserIn } from "../dtos/userIn.dto";
 
 const router = require("express").Router();
 const { writeFile, readFile } = require('fs').promises;
@@ -13,10 +15,20 @@ async function getUsers(): Promise<User[]> {
     return usersObj
 }
 
+function getUserOut(u: User | User[]): UserOut | UserOut[] {
+    if (Array.isArray(u)) {
+        return u.map(u => new UserOut(u.id, u.name, u.email, new Date(u.created_at).toUTCString(), new Date(u.last_login).toUTCString()))
+    } else {
+        return new UserOut(u.id, u.name, u.email, new Date(u.created_at).toUTCString(), new Date(u.last_login).toUTCString())
+    }
+}
+
 router.get("/", async (req: Request, res: Response) => {
     try {
         let users = await getUsers()
-        res.json({ data: users })
+        let usersOut = getUserOut(users) as UserOut[]
+
+        res.json({ data: usersOut })
     } catch (error: any) {
         res.status(500).json({
             data: "internal server error",
@@ -42,7 +54,7 @@ router.get("/find", async (req: Request, res: Response) => {
     if (user === undefined) {
         res.status(404).json({ data: `user with ${Object.keys(params).map(p => `${p}: ${params[p as keyof typeof params]}`).join(', ')} not found` })
     } else {
-        res.json({ data: user })
+        res.json({ data: getUserOut(user) as UserOut })
     }
 })
 
@@ -56,7 +68,7 @@ router.get("/:id", async (req: Request, res: Response) => {
         for (let u of users) {
             if (u.id === userId) {
                 found = true
-                res.json({ data: u })
+                res.json({ data: getUserOut(u) as UserOut })
             }
         }
 
@@ -73,24 +85,33 @@ router.get("/:id", async (req: Request, res: Response) => {
 });
 
 router.post("/", async (req: Request, res: Response) => {
-    const { name, email, password } = req.body as { name: string, email: string, password: string }
+    const userIn = req.body as UserIn
     const users = await getUsers()
     const usersCtr = users.length
     let found = false
 
     for (let u of users) {
-        if (u.email === email) {
+        if (u.email === userIn.email) {
             found = true
-            res.status(400).json({ data: `user with email: ${email} already exists` })
+            res.status(400).json({ data: `user with email: ${userIn.email} already exists` })
         }
     }
 
     if (!found) {
-        users.push({ id: usersCtr + 1, name, email, password })
+        const user: User = {
+            id: usersCtr + 1,
+            created_at: Date.now(),
+            last_login: -1,
+            role_id: 1,
+            name: userIn.name,
+            email: userIn.email,
+            password: userIn.password
+        }
+        users.push(user)
 
         try {
             await writeFile("./files/users.json", JSON.stringify(users))
-            res.status(201).json({ data: `user created successfully, user id: ${usersCtr + 1}` })
+            res.status(201).json({ data: getUserOut(user) as UserOut })
         } catch (error: any) {
             res.status(500).json({
                 data: "internal server error",
@@ -129,24 +150,29 @@ router.patch("/:id", async (req: Request, res: Response) => {
     const userId = parseInt(req.params.id);
     try {
         let users = await getUsers()
-
+        let body = req.body as UserIn
         const userIndex = users.map(u => u.id).indexOf(userId)
         const filteredUser: User = users[userIndex];
 
         if (filteredUser) {
             // TODO: write a logic to change update email and password of the user
-            const nonUpdatableFields: string[] = Object.keys(req.body as { name: string, email: string, password: string }).filter(b => ["email", "password", "id"].includes(b))
+            const nonUpdatableFields: string[] = Object.keys(body).filter(b =>
+                ["email", "password", "id", "created_at", "last_login", "role_id"].includes(b))
 
             if (nonUpdatableFields.length !== 0) {
                 res.status(400).json({ data: `cannot update ${nonUpdatableFields.join(" and ")} of the user` })
             } else {
-                Object.keys(req.body as { name: string, email: string, password: string }).forEach(b => {
+                const userKeys = Object.getOwnPropertyNames(User)
+                Object.keys(body).forEach(b => {
                     // NOTE: any workaround for this?: "email" | "password" | "name"
-                    filteredUser[b as "email" | "password" | "name"] = req.body[b]
+
+                    if (userKeys.includes(b)) {
+                        filteredUser[b as "email" | "password" | "name"] = body[b as keyof UserIn]
+                    }
                 })
                 users[userIndex] = filteredUser
                 await writeFile("./files/users.json", JSON.stringify(users))
-                res.status(200).send({ data: filteredUser })
+                res.status(200).send({ data: getUserOut(filteredUser) as UserOut })
             }
         } else {
             res.status(400).json({ data: `user with id: ${userId} not found` })

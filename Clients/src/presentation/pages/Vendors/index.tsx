@@ -1,6 +1,5 @@
 import { Button, Stack, Typography, useTheme } from "@mui/material";
 import { ReactComponent as Back } from "../../assets/icons/left-arrow-long.svg";
-import Select from "../../components/Inputs/Select";
 import "./index.css";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder";
 import { useState } from "react";
@@ -57,26 +56,6 @@ const Vendors = () => {
             <Back />
             Back
           </Button>
-          <Stack
-            display={"flex"}
-            gap={8}
-            flexDirection={"row"}
-            alignItems={"center"}
-          >
-            <Typography fontSize={13} color="#344054">
-              Currently viewing project:
-            </Typography>
-            <Select
-              id="projects"
-              value={"1"}
-              items={[
-                { _id: "1", name: "ChatBot AI" },
-                { _id: "2", name: "Chat-GPT 4" },
-              ]}
-              onChange={() => {}}
-              sx={{ width: 150 }}
-            />
-          </Stack>
         </Stack>
         <Stack marginBottom={theme.spacing(10)}>
           <Typography fontSize={16} color="#1A1919" fontWeight={600}>
@@ -94,6 +73,7 @@ const Vendors = () => {
           }}
         >
           <Button
+            disableRipple
             variant="contained"
             sx={{
               width: 150,
@@ -122,6 +102,10 @@ const Vendors = () => {
           }}
         >
           <Button
+            disableRipple
+            focusRipple={false}
+            disableFocusRipple
+            disableTouchRipple
             variant="contained"
             sx={{
               width: 150,

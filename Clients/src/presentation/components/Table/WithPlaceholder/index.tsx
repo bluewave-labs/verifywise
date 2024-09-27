@@ -23,9 +23,6 @@ function TableWithPlaceholder({ data = listOfVendors }) {
   const handleChange = (_: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
   };
-  const openAddNewVendor = () => {
-    setIsOpen(true);
-  };
 
   const cellStyle = { fontSize: 13, paddingY: theme.spacing(15) };
 
@@ -74,10 +71,6 @@ function TableWithPlaceholder({ data = listOfVendors }) {
                 sx={{
                   textTransform: "capitalize",
                   borderBottom: "1px solid #EEEEEE",
-                  cursor: "pointer",
-                }}
-                onClick={() => {
-                  openAddNewVendor();
                 }}
               >
                 <TableCell sx={cellStyle}>{row.name}</TableCell>

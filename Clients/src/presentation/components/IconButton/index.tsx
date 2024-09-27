@@ -7,12 +7,14 @@ import {
 import { ReactComponent as Setting } from "../../assets/icons/setting.svg";
 import { useState } from "react";
 import BasicModal from "../Modals/Basic";
+import AddNewVendor from "../Modals/NewVendor";
 
 const IconButton = () => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
   const [actions, setActions] = useState({});
   const [isOpen, setIsOpen] = useState(false);
+  const [value, setValue] = useState("1");
 
   const openMenu = (event: any, id: any, url: any) => {
     console.log("open menu");
@@ -28,6 +30,14 @@ const IconButton = () => {
     setIsOpen(true);
   };
 
+  const handleChange = (_: React.SyntheticEvent, newValue: string) => {
+    setValue(newValue);
+  };
+
+  const openAddNewVendor = () => {
+    setIsOpen(true);
+  };
+
   const closeMenu = (e: any) => {
     e.stopPropagation();
     setAnchorEl(null);
@@ -36,6 +46,7 @@ const IconButton = () => {
   return (
     <>
       <MuiIconButton
+        disableRipple
         sx={{
           "&:focus": {
             outline: "none",
@@ -61,7 +72,13 @@ const IconButton = () => {
             sx: {
               width: 190,
               "& ul": { p: theme.spacing(2.5) },
-              "& li": { m: 0, fontSize: 13 },
+              "& li": {
+                m: 0,
+                fontSize: 13,
+                "& .MuiTouchRipple-root": {
+                  display: "none",
+                },
+              },
               "& li:hover": { borderRadius: 4 },
               "& li:last-of-type": {
                 color: theme.palette.error.main,
@@ -71,7 +88,13 @@ const IconButton = () => {
           },
         }}
       >
-        <MenuItem>Edit</MenuItem>
+        <MenuItem
+          onClick={() => {
+            openAddNewVendor();
+          }}
+        >
+          Edit
+        </MenuItem>
         <MenuItem
           onClick={(e) => {
             e.stopPropagation();
@@ -82,6 +105,12 @@ const IconButton = () => {
         </MenuItem>
       </Menu>
       <BasicModal isOpen={isOpen} setIsOpen={() => setIsOpen(false)} />
+      <AddNewVendor
+        isOpen={isOpen}
+        handleChange={handleChange}
+        setIsOpen={() => setIsOpen(false)}
+        value={value}
+      />
     </>
   );
 };

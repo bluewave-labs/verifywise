@@ -340,6 +340,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                   paddingX: 0,
                   textTransform: "inherit",
                   fontSize: 13,
+                  "& .MuiTouchRipple-root": {
+                    display: "none",
+                  },
                 }}
                 label="Vendor details"
                 value="1"
@@ -350,6 +353,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                   paddingX: 0,
                   textTransform: "capitalize",
                   fontSize: 13,
+                  "& .MuiTouchRipple-root": {
+                    display: "none",
+                  },
                 }}
                 label="Risks"
                 value="2"
@@ -364,6 +370,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             }}
           >
             <Button
+              disableRipple
               variant="contained"
               sx={{
                 width: 70,

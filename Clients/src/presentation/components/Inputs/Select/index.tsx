@@ -76,16 +76,41 @@ const Select: React.FC<SelectProps> = ({
         displayEmpty
         inputProps={{ id: id }}
         IconComponent={KeyboardArrowDownIcon}
-        MenuProps={{ disableScrollLock: true }}
+        MenuProps={{
+          disableScrollLock: true,
+          PaperProps: {
+            sx: {
+              borderRadius: theme.shape.borderRadius,
+              boxShadow: theme.boxShadow,
+              mt: 1,
+              "& .MuiMenuItem-root": {
+                fontSize: 13,
+                color: theme.palette.text.primary,
+                "&:hover": {
+                  backgroundColor: theme.palette.action.hover,
+                },
+                "&.Mui-selected": {
+                  backgroundColor: theme.palette.action.selected,
+                  "&:hover": {
+                    backgroundColor: theme.palette.action.selected,
+                  },
+                },
+                "& .MuiTouchRipple-root": {
+                  display: "none",
+                },
+              },
+            },
+          },
+        }}
         sx={{
           fontSize: 13,
           minWidth: "125px",
           "& fieldset": {
             borderRadius: theme.shape.borderRadius,
-            borderColor: theme.palette.border,
+            borderColor: theme.palette.border.dark,
           },
           "&:not(.Mui-focused):hover fieldset": {
-            borderColor: theme.palette.border,
+            borderColor: theme.palette.border.dark,
           },
           "& svg path": {
             fill: theme.palette.other.icon,

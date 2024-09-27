@@ -34,7 +34,7 @@ const BasicModal: React.FC<BasicModalProps> = ({ isOpen, setIsOpen }) => {
           width: 450,
           bgcolor: theme.palette.background.main,
           border: 1,
-          borderColor: theme.palette.border,
+          borderColor: theme.palette.border.dark,
           borderRadius: theme.shape.borderRadius,
           boxShadow: 24,
           p: theme.spacing(15),

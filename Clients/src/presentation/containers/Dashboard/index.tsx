@@ -6,6 +6,7 @@ import { Outlet } from "react-router";
 const Dashboard = () => {
   return (
     <Stack
+      maxWidth="100%"
       className="home-layout"
       flexDirection="row"
       gap={14}

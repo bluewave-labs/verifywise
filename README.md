@@ -1,11 +1,12 @@
-<h1 align="center"><a href="https://bluewavelabs.ca" target="_blank">VerifyWise</a></h1>
+<h1 align="center">VerifyWise</h1>
 
-VerifyWise is an open-source AI governance platform designed to help businesses harness the power of artificial intelligence safely and responsibly. Our platform ensures compliance and robust AI management without compromising on security.
+<h3 align="center">Democratizing AI Governance</a></h3>
+
+[VerifyWise](https://verifywise.ai) is an open-source AI governance platform designed to help businesses harness the power of artificial intelligence safely and responsibly. Our platform ensures compliance and robust AI management without compromising on security.
 
 We are democratizing AI best practices with an open-source solution that can be hosted on-premises, giving you complete control over your AI governance.
 
 <img width="1574" alt="Compliance tracker" src="https://github.com/user-attachments/assets/b7fa9fa7-0b39-4498-b701-e03d42010382">
-
 
 ## Running the frontend
 

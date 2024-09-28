@@ -11,7 +11,10 @@ import {
 
 declare module "@mui/material/styles" {
   interface Palette {
-    border: string;
+    border: {
+      light: string;
+      dark: string;
+    };
     background: TypeBackground;
     text: TypeText;
     status: StatusPalette;
@@ -24,7 +27,10 @@ declare module "@mui/material/styles" {
     unresolved: PaletteColor;
   }
   interface PaletteOptions {
-    border?: string;
+    border?: {
+      light: string;
+      dark: string;
+    };
     background?: TypeBackground;
     text?: TypeText;
     status?: StatusPaletteOptions;

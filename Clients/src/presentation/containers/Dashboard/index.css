@@ -3,19 +3,16 @@
   min-height: 100vh;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 24px;
 }
 
 .home-layout aside {
   position: sticky;
-  top: 24px;
-  left: 0;
-
-  height: calc(100vh - 24px * 2);
+  height: 100vh;
   max-width: 250px;
 }
 
 .home-layout > div {
+  padding: 24px;
   min-height: calc(100vh - 24px * 2);
   flex: 1;
 }

@@ -42,7 +42,7 @@ const Fallback: FC<FallbackProps> = ({
         className="background-pattern-svg"
         sx={{
           "& svg g g:last-of-type path": {
-            stroke: theme.palette.border,
+            stroke: theme.palette.border.light,
           },
         }}
       >

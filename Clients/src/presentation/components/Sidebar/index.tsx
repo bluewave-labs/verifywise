@@ -129,7 +129,11 @@ const Sidebar = () => {
         },
       }}
     >
-      <Stack pt={theme.spacing(6)} pb={theme.spacing(12)} pl={theme.spacing(8)}>
+      <Stack
+        pt={theme.spacing(6)}
+        pb={theme.spacing(12)}
+        pl={theme.spacing(10)}
+      >
         <Stack direction="row" alignItems="center" gap={theme.spacing(4)}>
           <img src={Logo} alt="Logo" width={32} height={30} />
           <Typography
@@ -180,7 +184,7 @@ const Sidebar = () => {
       </IconButton>
       {/* Select */}
       {!collapsed && (
-        <Stack sx={{ px: theme.spacing(6) }}>
+        <Stack sx={{ padding: theme.spacing(4), justifyContent: "flex-start" }}>
           <Select
             id="projects"
             value={"1"}
@@ -189,7 +193,7 @@ const Sidebar = () => {
               { _id: "2", name: "Chat-GPT 4" },
             ]}
             onChange={() => {}}
-            sx={{ width: "100%" }}
+            sx={{ width: "180px", marginLeft: theme.spacing(6) }}
           />
         </Stack>
       )}

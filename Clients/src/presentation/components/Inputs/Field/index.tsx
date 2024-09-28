@@ -52,6 +52,7 @@ interface FieldProps {
   onInput?: (event: React.FormEvent<HTMLInputElement>) => void;
   error?: string;
   disabled?: boolean;
+  width?: number | string;
 }
 
 const Field = forwardRef(
@@ -71,6 +72,7 @@ const Field = forwardRef(
       onInput,
       error,
       disabled,
+      width,
     }: FieldProps,
     ref: ForwardedRef<HTMLInputElement>
   ) => {
@@ -84,16 +86,17 @@ const Field = forwardRef(
         className={`field field-${type}`}
         sx={{
           "& fieldset": {
-            borderColor: theme.palette.border,
+            borderColor: theme.palette.border.dark,
             borderRadius: theme.shape.borderRadius,
           },
           "&:not(:has(.Mui-disabled)):not(:has(.input-error)) .MuiOutlinedInput-root:hover:not(:has(input:focus)):not(:has(textarea:focus)) fieldset":
             {
-              borderColor: theme.palette.border,
+              borderColor: theme.palette.border.dark,
             },
           "&:has(.input-error) .MuiOutlinedInput-root fieldset": {
             borderColor: theme.palette.error.text,
           },
+          width: width,
         }}
       >
         {label && (
@@ -168,7 +171,7 @@ const Field = forwardRef(
                 alignItems="center"
                 height="100%"
                 sx={{
-                  borderRight: `solid 1px ${theme.palette.border}`,
+                  borderRight: `solid 1px ${theme.palette.border.dark}`,
                   backgroundColor: theme.palette.background.accent,
                   pl: theme.spacing(6),
                 }}
@@ -189,7 +192,7 @@ const Field = forwardRef(
                   onClick={() => setVisible((show) => !show)}
                   tabIndex={-1}
                   sx={{
-                    color: theme.palette.border,
+                    color: theme.palette.border.dark,
                     padding: theme.spacing(1),
                     "&:focus": {
                       outline: "none",

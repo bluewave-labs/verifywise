@@ -29,8 +29,8 @@ const Check = ({
   const theme = useTheme();
   const colors = {
     success: theme.palette.success.main,
-    error: theme.palette.error.main,
-    info: theme.palette.info.main,
+    error: theme.palette.error.text,
+    info: theme.palette.info.border,
     warning: theme.palette.warning.main,
   };
 

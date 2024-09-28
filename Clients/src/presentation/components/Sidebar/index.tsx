@@ -31,7 +31,11 @@ import { ReactComponent as Assessment } from "../../assets/icons/chart.svg";
 import { ReactComponent as Vendors } from "../../assets/icons/building.svg";
 import { ReactComponent as Settings } from "../../assets/icons/setting.svg";
 import { ReactComponent as Team } from "../../assets/icons/team.svg";
+
+import Logo from "../../assets/imgs/logo.png";
+
 import Avatar from "../Avatar";
+import Select from "../Inputs/Select";
 
 const menu = [
   {
@@ -58,7 +62,7 @@ const menu = [
 
 const other = [
   {
-    name: "Setting",
+    name: "Settings",
     icon: <Settings />,
     path: "/setting",
   },
@@ -112,11 +116,11 @@ const Sidebar = () => {
       gap={theme.spacing(6)}
       sx={{
         border: 1,
-        borderColor: theme.palette.border,
+        borderColor: theme.palette.border.light,
         borderRadius: theme.shape.borderRadius,
         backgroundColor: theme.palette.background.main,
         "& ,selected-path, & >MuiListItemButton-root:hover": {
-          backgroundColor: theme.palette.background.accent,
+          backgroundColor: theme.palette.background.main,
         },
         "& .Muilist-root svg path": {
           stroke: theme.palette.text.tertiary,
@@ -126,31 +130,27 @@ const Sidebar = () => {
         },
       }}
     >
-      {!collapsed && (
-        <Stack
-          pt={theme.spacing(6)}
-          pb={theme.spacing(12)}
-          pl={theme.spacing(8)}
-        >
-          <Stack direction="row" alignItems="center" gap={theme.spacing(4)}>
-            <Typography
-              component="span"
-              mt={theme.spacing(2)}
-              sx={{ opacity: 0.8, fontWeight: 500 }}
-              className="app-title"
+      <Stack pt={theme.spacing(6)} pb={theme.spacing(12)} pl={theme.spacing(8)}>
+        <Stack direction="row" alignItems="center" gap={theme.spacing(4)}>
+          <img src={Logo} alt="Logo" width={32} height={30} />
+          <Typography
+            component="span"
+            mt={theme.spacing(2)}
+            sx={{ opacity: 0.8, fontWeight: 500 }}
+            className="app-title"
+          >
+            Verify
+            <span
+              style={{
+                color: "#0f604d",
+              }}
             >
-              Verify
-              <span
-                style={{
-                  color: theme.palette.primary.main,
-                }}
-              >
-                Wise
-              </span>
-            </Typography>
-          </Stack>
+              Wise
+            </span>
+          </Typography>
         </Stack>
-      )}
+      </Stack>
+
       <IconButton
         sx={{
           position: "absolute",
@@ -159,11 +159,9 @@ const Sidebar = () => {
           transform: `translate(50%, 0)`,
           backgroundColor: theme.palette.background.fill,
           border: 1,
-          borderColor: theme.palette.border,
+          borderColor: theme.palette.border.light,
           p: theme.spacing(2.5),
           "& svg": {
-            // width: theme.spacing(8),
-            // height: theme.spacing(8),
             "& path": {
               stroke: theme.palette.text.secondary,
             },
@@ -181,6 +179,21 @@ const Sidebar = () => {
       >
         {collapsed ? <ArrowRight /> : <ArrowLeft />}
       </IconButton>
+      {/* Select */}
+      {!collapsed && (
+        <Stack sx={{ px: theme.spacing(6) }}>
+          <Select
+            id="projects"
+            value={"1"}
+            items={[
+              { _id: "1", name: "ChatBot AI" },
+              { _id: "2", name: "Chat-GPT 4" },
+            ]}
+            onChange={() => {}}
+            sx={{ width: "100%" }}
+          />
+        </Stack>
+      )}
       {/* menu */}
       <List
         component="nav"
@@ -212,6 +225,7 @@ const Sidebar = () => {
               disableInteractive
             >
               <ListItemButton
+                disableRipple
                 className={
                   location.pathname.includes(item.path) ? "selected-path" : ""
                 }
@@ -245,6 +259,7 @@ const Sidebar = () => {
                 disableInteractive
               >
                 <ListItemButton
+                  disableRipple
                   className={
                     Boolean(anchorEl) && popup === item.name
                       ? "selected-path"
@@ -345,6 +360,7 @@ const Sidebar = () => {
             disableInteractive
           >
             <ListItemButton
+              disableRipple
               className={
                 location.pathname.includes(item.path) ? "selected-path" : ""
               }
@@ -452,6 +468,7 @@ const Sidebar = () => {
               sx: {
                 marginTop: theme.spacing(-4),
                 marginLeft: collapsed ? theme.spacing(2) : 0,
+                fontSize: 13,
               },
             },
           }}
@@ -461,6 +478,7 @@ const Sidebar = () => {
               "& li": { m: 0 },
               "& li:has(.MuiBox-root):hover": {
                 backgroundColor: "transparent",
+                fontSize: 13,
               },
             },
           }}
@@ -486,6 +504,13 @@ const Sidebar = () => {
               dispatch(setMode("light"));
               closePopup();
             }}
+            sx={{
+              fontSize: 13,
+
+              "& .MuiTouchRipple-root": {
+                display: "none",
+              },
+            }}
           >
             Light
           </MenuItem>
@@ -493,6 +518,13 @@ const Sidebar = () => {
             onClick={() => {
               dispatch(setMode("dark"));
               closePopup();
+            }}
+            sx={{
+              fontSize: 13,
+
+              "& .MuiTouchRipple-root": {
+                display: "none",
+              },
             }}
           >
             Dark
@@ -506,6 +538,11 @@ const Sidebar = () => {
               pl: theme.spacing(4),
               "& svg path": {
                 stroke: theme.palette.other.icon,
+              },
+              fontSize: 13,
+
+              "& .MuiTouchRipple-root": {
+                display: "none",
               },
             }}
           >

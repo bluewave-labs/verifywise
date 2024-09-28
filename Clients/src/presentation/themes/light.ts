@@ -94,7 +94,7 @@ const light = createTheme({
     MuiButton: {
       defaultProps: {
         disableElevation: true,
-        disableRipple: false,
+        disableRipple: true,
       },
       styleOverrides: {
         root: ({ theme }) => ({
@@ -141,7 +141,7 @@ const light = createTheme({
     },
     MuiIconButton: {
       defaultProps: {
-        disableRipple: false,
+        disableRipple: true,
       },
       styleOverrides: {
         root: {
@@ -175,7 +175,7 @@ const light = createTheme({
     },
     MuiListItemButton: {
       defaultProps: {
-        disableRipple: false,
+        disableRipple: true,
       },
       styleOverrides: {
         root: {
@@ -185,7 +185,7 @@ const light = createTheme({
     },
     MuiMenuItem: {
       defaultProps: {
-        disableRipple: false,
+        disableRipple: true,
       },
       styleOverrides: {
         root: {

@@ -137,7 +137,7 @@ const dark = createTheme({
     },
     MuiIconButton: {
       defaultProps: {
-        disableRipple: false,
+        disableRipple: true,
       },
       styleOverrides: {
         root: {
@@ -173,7 +173,7 @@ const dark = createTheme({
     },
     MuiListItemButton: {
       defaultProps: {
-        disableRipple: false,
+        disableRipple: true,
       },
       styleOverrides: {
         root: {
@@ -183,7 +183,7 @@ const dark = createTheme({
     },
     MuiMenuItem: {
       defaultProps: {
-        disableRipple: false,
+        disableRipple: true,
       },
       styleOverrides: {
         root: {

@@ -48,7 +48,7 @@ const menu = [
     path: "/compliance-tracker",
   },
   {
-    name: "Assessment",
+    name: "Assessment tracker",
     icon: <Assessment />,
     path: "/assessment",
   },

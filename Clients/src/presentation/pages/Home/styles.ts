@@ -7,8 +7,8 @@ export const styles = {
     projectBox: {
       display: "flex", 
       justifyContent: "space-between", 
-      alignItems: "center", 
-      mb: 11
+      alignItems: "flex-end", 
+      mb: 9
     },
     noProjectBox: {
       display: "block", 

@@ -7,7 +7,8 @@ export const styles = {
       pl: 6.5,
       pt: 9.5,
       border: "1px solid #EAECF0",
-      borderRadius: 2
+      borderRadius: 2,
+      backgroundColor: "#FFFFFF"
     },
     title: {
       color: '#2D3748',

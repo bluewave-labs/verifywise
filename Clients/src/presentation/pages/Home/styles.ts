@@ -28,7 +28,8 @@ export const styles = {
     },
     grid: {
       border: "1px solid #EAECF0", 
-      borderRadius: 2, 
+      borderRadius: 2,
+      backgroundColor: "#FFFFFF",
       minWidth: 300, 
       paddingX: 9.25, 
       pt: 4, 

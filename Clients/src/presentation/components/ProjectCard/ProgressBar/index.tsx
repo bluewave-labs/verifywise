@@ -10,7 +10,6 @@
 
 import { Slider, Stack } from "@mui/material";
 import { FC } from "react";
-import "./styles.css";
 
 interface ProgressBarProps {
     progress: string
@@ -27,8 +26,25 @@ const ProgressBar: FC<ProgressBarProps> = ({progress}) => {
     const value = progressCount(progress) * 100;
       
     return (
-        <Stack direction="row" sx={{ alignItems: 'center', mb: 1 }}>
-            <Slider value={value} sx={{ cursor: "auto", p: 0, height: 8, border: "none" }}/>
+        <Stack 
+            direction="row" 
+            sx={{ 
+                mb: 1, 
+                "& .MuiSlider-track": { 
+                    backgroundColor: "#4C7DE7" 
+                }, 
+                '& .MuiSlider-thumb': { 
+                    display: "none" 
+                } 
+            }}
+        >
+            <Slider value={value} sx={{ 
+                cursor: "auto", 
+                p: 0, 
+                height: 8, 
+                border: "none", 
+                color: "#EAECF0" 
+            }}/>
         </Stack>
     )
 }

@@ -1,4 +1,4 @@
-export const projects = [
+export const mockProjects = [
     {
         id: 1,
         name: "Marketing AI service",

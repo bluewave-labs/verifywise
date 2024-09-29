@@ -1,0 +1,9 @@
+.MuiSlider-thumb {
+    display: none;
+}
+.MuiSlider-root{
+    color: #EAECF0;
+}
+.MuiSlider-track {
+    background-color: #4C7DE7;
+}

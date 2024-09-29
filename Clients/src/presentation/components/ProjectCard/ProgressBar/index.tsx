@@ -8,8 +8,9 @@
  * @returns {JSX.Element} The rendered ProgressBar component.
  */
 
-import { Box } from "@mui/material";
+import { Slider, Stack } from "@mui/material";
 import { FC } from "react";
+import "./styles.css";
 
 interface ProgressBarProps {
     progress: string
@@ -18,18 +19,17 @@ interface ProgressBarProps {
 const ProgressBar: FC<ProgressBarProps> = ({progress}) => {
     const progressCount = (progressString: string): number => {
         const [completed, total] = progressString.split('/').map(Number);
-        if (isNaN(completed) || isNaN(total) || total === 0) {
-          console.error(`Invalid progress string: ${progressString}`);
-          return 0;
+        if (Number.isNaN(completed) || Number.isNaN(total) || total === 0) {
+            throw new Error(`Invalid progress string: ${progressString}`);
         }
         return completed / total;
       };
-    const widthValue = progressCount(progress) * 100;
+    const value = progressCount(progress) * 100;
       
     return (
-        <Box sx={{ width: "100%", backgroundColor: "#EAECF0", borderRadius: 2, height: 8, position: "relative" }}>
-            <Box sx={{ width: widthValue, height: 8 , backgroundColor: "#4C7DE7", borderRadius: 2, position: "absolute" }} />
-        </Box>
+        <Stack direction="row" sx={{ alignItems: 'center', mb: 1 }}>
+            <Slider value={value} sx={{ cursor: "auto", p: 0, height: 8, border: "none" }}/>
+        </Stack>
     )
 }
 

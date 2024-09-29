@@ -21,6 +21,15 @@ const ProjectCard: FC<ProjectCardProps> = ({
     controls_completed,
     requirements_completed
 }) => {
+    const renderProgressBar = (progress: string, label: string) => (
+        <>
+            <ProgressBar progress={progress} />
+            <Typography sx={styles.progressBarTytle}>
+                {progress} {label} completed
+            </Typography>
+        </>
+    );
+
     return (
         <Box sx={styles.card}>
             <Typography variant="h5" component="div" sx={styles.title}>
@@ -40,14 +49,8 @@ const ProjectCard: FC<ProjectCardProps> = ({
                     <Typography sx={styles.subtitleValue}>{last_update}</Typography>
                 </Box>
             </Box>
-            <ProgressBar progress={controls_completed} />
-            <Typography sx={styles.progressBarTytle}>
-                {controls_completed} controls completed
-            </Typography>
-            <ProgressBar progress={requirements_completed} />
-            <Typography sx={styles.progressBarTytle}>
-                {requirements_completed} requirements completed
-            </Typography>
+            {renderProgressBar(controls_completed, "controls")}
+            {renderProgressBar(requirements_completed, "requirements")}
             <Box sx={styles.lowerBox}>
                 <Box sx={{ display: "flex", mb: 1.5 }}>
                     <Box sx={styles.imageBox}>

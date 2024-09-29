@@ -33,9 +33,12 @@ const ProgressBar: FC<ProgressBarProps> = ({progress}) => {
                 "& .MuiSlider-track": { 
                     backgroundColor: "#4C7DE7" 
                 }, 
-                '& .MuiSlider-thumb': { 
+                "& .MuiSlider-thumb": { 
                     display: "none" 
-                } 
+                },
+                "& .MuiSlider-rail": {
+                    opacity: 1
+                }
             }}
         >
             <Slider value={value} sx={{ 

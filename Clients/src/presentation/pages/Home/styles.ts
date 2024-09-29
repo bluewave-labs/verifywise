@@ -23,7 +23,6 @@ export const styles = {
       color: '#1A1919', 
       fontSize: 16, 
       fontWeight: 500,
-      pl: 5,
       pb: 8.5,
       mt: 17
     },

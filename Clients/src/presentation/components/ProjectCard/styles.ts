@@ -50,12 +50,12 @@ export const styles = {
         display: "flex", 
         justifyContent: "space-between", 
         alignItems: "flex-end", 
-        mt: 15
+        mt: 15.5
     },
     progressBarTytle: {
         color: '#8594AC', 
         fontSize: 11,
-        mb: 10, 
+        mb: 10.5, 
         mt: 1
     }
 };

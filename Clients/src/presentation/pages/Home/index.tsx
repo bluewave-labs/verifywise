@@ -10,7 +10,7 @@ interface HomeProps {
 
 const Home = ({projects = mockProjects}: HomeProps) => {
   return (
-    <Box sx={{ mt: 47, marginX: 27.5 }}>
+    <Box sx={{ mt: 47, ml: 15.5, mr: 62 }}>
       <Box sx={styles.projectBox}>
           <Typography variant="h1" component="div" sx={styles.tytle}>
               Projects overview

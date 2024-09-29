@@ -36,7 +36,7 @@ export const styles = {
         maxHeight: 18, 
         borderRadius: 2 
     },
-    imageTytle: {
+    imageTitle: {
         color: '#8594AC', 
         fontSize: 12, 
         ml: 2
@@ -52,7 +52,7 @@ export const styles = {
         alignItems: "flex-end", 
         mt: 15.5
     },
-    progressBarTytle: {
+    progressBarTitle: {
         color: '#8594AC', 
         fontSize: 11,
         mb: 10.5, 

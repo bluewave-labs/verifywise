@@ -1,5 +1,5 @@
 export const styles = {
-    tytle: { 
+    title: { 
       color: '#1A1919', 
       fontSize: 16, 
       fontWeight: 600 
@@ -19,7 +19,7 @@ export const styles = {
       pt: 34, 
       pb: 39.5
     },
-    tytle2: {
+    title2: {
       color: '#1A1919', 
       fontSize: 16, 
       fontWeight: 500,
@@ -35,7 +35,7 @@ export const styles = {
       pt: 4, 
       pb: 4.7 
     },
-    gridTytle: {
+    gridTitle: {
       fontSize: 12, 
       color: "#8594AC", 
       pb: 1.5 

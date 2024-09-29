@@ -8,7 +8,41 @@ interface HomeProps {
     projects?: ProjectCardProps[]
 }
 
+interface MetricSectionProps {
+  title: string,
+  metrics: {
+    title: string,
+    value: string
+  }[]
+}
+
 const Home = ({projects = mockProjects}: HomeProps) => {
+  const complianceMetrics = [
+    { title: "Completed requirements", value: "85%" },
+    { title: "Completed assessments", value: "24" },
+    { title: "Assessment completion rate", value: "10%" },
+  ];
+  
+  const riskMetrics = [
+    { title: "Acceptable risks", value: "31" },
+    { title: "Residual risks", value: "1" },
+    { title: "Unacceptable risks", value: "14" },
+  ];
+
+  const MetricSection = ({ title, metrics }: MetricSectionProps) => (
+    <>
+      <Typography variant="h2" component="div" sx={styles.title2}>{title}</Typography>
+      <Grid container spacing={10} sx={{ display: "flex", justifyContent: "space-between" }}>
+        {metrics.map((metric, index) => (
+          <Grid key={index} sx={styles.grid}>
+            <Typography sx={styles.gridTitle}>{metric.title}</Typography>
+            <Typography sx={styles.gridValue}>{metric.value}</Typography>
+          </Grid>
+        ))}
+      </Grid>
+    </>
+  );
+
   const NoProjectsMessage  = () => (
     <Box sx={styles.noProjectBox}>
       <Box sx={{ display: "flex", justifyContent: "center" }}></Box>
@@ -21,7 +55,7 @@ const Home = ({projects = mockProjects}: HomeProps) => {
   return (
     <Box sx={{ mt: 47, ml: 15.5, mr: 62 }}>
       <Box sx={styles.projectBox}>
-        <Typography variant="h1" component="div" sx={styles.tytle}>
+        <Typography variant="h1" component="div" sx={styles.title}>
           Projects overview
         </Typography>
         <Button variant="contained" sx={{ textTransform: "none", borderRadius: 2, maxHeight: 34 }} onClick={() => {}}>
@@ -37,38 +71,8 @@ const Home = ({projects = mockProjects}: HomeProps) => {
                 </Grid>
             ))}
           </Grid>
-
-          <Typography variant="h2" component="div" sx={styles.tytle2}>All projects compliance status</Typography>
-          <Grid container spacing={10} sx={{ display: "flex", justifyContent: "space-between" }}>
-            <Grid sx={styles.grid}>
-              <Typography sx={styles.gridTytle}>Completed requirements</Typography>
-              <Typography sx={styles.gridValue}>85%</Typography>
-            </Grid>
-            <Grid sx={styles.grid}>
-              <Typography sx={styles.gridTytle}>Completed assessments</Typography>
-              <Typography sx={styles.gridValue}>24</Typography>
-            </Grid>
-            <Grid sx={styles.grid}>
-              <Typography sx={styles.gridTytle}>Assessment completion rate</Typography>
-              <Typography sx={styles.gridValue}>10%</Typography>
-            </Grid>
-          </Grid>
-
-          <Typography variant="h2" component="div" sx={styles.tytle2}>All projects risk status</Typography>
-          <Grid container spacing={10} sx={{ display: "flex", justifyContent: "space-between" }}>
-            <Grid sx={styles.grid}>
-              <Typography sx={styles.gridTytle}>Acceptable risks</Typography>
-              <Typography sx={styles.gridValue}>31</Typography>
-            </Grid>
-            <Grid sx={styles.grid}>
-              <Typography sx={styles.gridTytle}>Residual risks</Typography>
-              <Typography sx={styles.gridValue}>1</Typography>
-            </Grid>
-            <Grid sx={styles.grid}>
-              <Typography sx={styles.gridTytle}>Unacceptable risks</Typography>
-              <Typography sx={styles.gridValue}>14</Typography>
-            </Grid>
-          </Grid>
+          <MetricSection title="All projects compliance status" metrics={complianceMetrics} />
+          <MetricSection title="All projects risk status" metrics={riskMetrics} />
         </>
       ) : <NoProjectsMessage /> } 
     </Box>

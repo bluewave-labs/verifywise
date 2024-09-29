@@ -24,7 +24,7 @@ const ProjectCard: FC<ProjectCardProps> = ({
     const renderProgressBar = (progress: string, label: string) => (
         <>
             <ProgressBar progress={progress} />
-            <Typography sx={styles.progressBarTytle}>
+            <Typography sx={styles.progressBarTitle}>
                 {progress} {label} completed
             </Typography>
         </>
@@ -56,7 +56,7 @@ const ProjectCard: FC<ProjectCardProps> = ({
                     <Box sx={styles.imageBox}>
                         <img src={euimg} alt="EU AI Act" />
                     </Box>
-                    <Typography sx={styles.imageTytle}>
+                    <Typography sx={styles.imageTitle}>
                         EU AI Act
                     </Typography>
                 </Box>                    

@@ -1,7 +1,6 @@
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import { Paper, styled, Typography, useTheme } from "@mui/material";
-import "./index.css"
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: '#f9fafc',
@@ -20,7 +19,7 @@ const Assessment = () => {
   return (
     <div className="assessment-page">
       <Stack gap={theme.spacing(2)} sx={{marginTop: "50px", marginLeft: "30px"}}>
-        <Typography variant="h5" fontWeight={"bold"} fontSize={"16px"} color={theme.palette.text} fontFamily={"inter"}>
+        <Typography variant="h5" fontWeight={"bold"} fontSize={"16px"} color='#1A1919' fontFamily={"inter"}>
           Assessment tracker
         </Typography>
         <Stack direction={"row"} spacing={10} sx={{marginTop: "20px"}}>

@@ -1,9 +1,12 @@
-const express = require("express");
-const cors = require("cors");
-const userRouter = require("./routes/users.route");
+import express from "express";
+import cors from "cors";
+import userRouter from "./routes/users.route";
+import dotenv from "dotenv";
 
 const app = express();
-const port = 3000;
+dotenv.config();
+
+const port = process.env.PORT || 3000;
 
 // Middlewares
 app.use(cors());

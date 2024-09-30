@@ -3,13 +3,18 @@ import { User } from "../models/user.model";
 import { UserOut } from "../dtos/userOut.dto";
 import { UserIn } from "../dtos/userIn.dto";
 
-const router = require("express").Router();
-const { writeFile, readFile } = require('fs').promises;
+import express from "express";
+const router = express.Router();
+
+import { writeFile, readFile } from "fs/promises";
+import bcrypt from "bcrypt";
+
+type UserParams = Partial<Pick<User, "id" | "name" | "email">>;
 
 async function getUsers(): Promise<User[]> {
-    let users = await readFile("./files/users.json", "utf-8")
-    users = JSON.parse(users)
-    const usersObj: User[] = users.map((u: { id: string, name: string, email: string, password: string }) => {
+    const users = await readFile("./files/users.json", "utf-8")
+    const usersJSON = JSON.parse(users)
+    const usersObj: User[] = usersJSON.map((u: { id: string, name: string, email: string, password: string }) => {
         return Object.setPrototypeOf({ ...u }, User.prototype)
     })
     return usersObj
@@ -38,13 +43,13 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 router.get("/find", async (req: Request, res: Response) => {
-    const params = req.query as { name?: string, email?: string, id?: number }
+    const params = req.query as UserParams
     const users = await getUsers()
 
     const user = users.find(u => {
 
         for (let p of Object.keys(params)) {
-            if (u[p as keyof User] !== params[p as keyof typeof params]) {
+            if (u[p as keyof UserParams] !== params[p as keyof UserParams]) {
                 return false
             }
         }
@@ -85,7 +90,6 @@ router.post("/", async (req: Request, res: Response) => {
     const userIn = req.body as UserIn
     const users = await getUsers()
     const usersCtr = users.length
-    let found = false
 
     for (let u of users) {
         if (u.email === userIn.email) {
@@ -100,7 +104,7 @@ router.post("/", async (req: Request, res: Response) => {
         role_id: 1,
         name: userIn.name,
         email: userIn.email,
-        password: userIn.password
+        password: await bcrypt.hash(userIn.password, process.env.SALT as string)
     }
     users.push(user)
 
@@ -189,10 +193,11 @@ router.post("/reset-password", async (req: Request, res: Response) => {
     if (userIndex === -1) {
         return res.status(404).json({ data: `user with email: ${email} not found` })
     } else {
-        users[userIndex].password = password
+        users[userIndex].password = await bcrypt.hash(password, process.env.SALT as string)
         await writeFile("./files/users.json", JSON.stringify(users))
         return res.status(201).send({ data: `password update successful for the user with email: ${email}` })
     }
 })
 
-module.exports = router;
+// module.exports = router;
+export default router;

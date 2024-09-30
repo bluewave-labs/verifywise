@@ -54,7 +54,7 @@ const menu = [
   },
   {
     name: "Vendors",
-    icon: <Vendors />,
+    icon: <Vendors style={{}} />,
     path: "/vendors",
   },
 ];

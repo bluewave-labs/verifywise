@@ -57,7 +57,7 @@ const Vendors = () => {
             Back
           </Button>
         </Stack>
-        <Stack marginBottom={theme.spacing(10)}>
+        <Stack>
           <Typography fontSize={16} color="#1A1919" fontWeight={600}>
             Vendors list
           </Typography>

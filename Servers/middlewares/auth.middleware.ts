@@ -12,8 +12,8 @@ const authenticateJWT = async (req: IUserAuthRequest, res: Response, next: NextF
         const decoded = getTokenPayload(token)!;
         if (!decoded) return res.status(403).json({ data: "Not authorized" });
 
-        if (decoded.expire < Date.now()) return res.status(400).json({data: "token expired"})
-            
+        if (decoded.expire < Date.now()) return res.status(400).json({ data: "token expired" })
+
         const users = await getUsers();
         req.user = users.find(u => u.id == decoded.id) as User;
         next();

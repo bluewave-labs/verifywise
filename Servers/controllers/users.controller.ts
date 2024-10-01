@@ -46,7 +46,7 @@ async function findUser(req: Request, res: Response): Promise<any> {
     }
 }
 
-async function getUserFromId (req: Request, res: Response): Promise<any> {
+async function getUserFromId(req: Request, res: Response): Promise<any> {
     // assuming the userId will be integer parsable
     const userId = parseInt(req.params.id);
     try {
@@ -69,7 +69,7 @@ async function getUserFromId (req: Request, res: Response): Promise<any> {
     }
 }
 
-async function createUser (req: Request, res: Response): Promise<any> {
+async function createUser(req: Request, res: Response): Promise<any> {
     const userIn = req.body as UserIn
     const users = await getUsers()
     const usersCtr = users.length
@@ -102,7 +102,7 @@ async function createUser (req: Request, res: Response): Promise<any> {
     }
 }
 
-async function deleteUser (req: Request, res: Response): Promise<any> {
+async function deleteUser(req: Request, res: Response): Promise<any> {
     const userId = parseInt(req.params.id);
     try {
         const users = await getUsers()
@@ -126,7 +126,7 @@ async function deleteUser (req: Request, res: Response): Promise<any> {
     }
 }
 
-async function updateUser (req: Request, res: Response): Promise<any> {
+async function updateUser(req: Request, res: Response): Promise<any> {
     const userId = parseInt(req.params.id);
     try {
         let users = await getUsers()
@@ -165,7 +165,7 @@ async function updateUser (req: Request, res: Response): Promise<any> {
     }
 }
 
-async function resetPassword (req: Request, res: Response): Promise<any> {
+async function resetPassword(req: Request, res: Response): Promise<any> {
     const { email } = req.query as { email: string }
     const { password } = req.body as { password: string }
 
@@ -181,4 +181,8 @@ async function resetPassword (req: Request, res: Response): Promise<any> {
     }
 }
 
-export { getAllUsers, findUser, getUserFromId, createUser, deleteUser, updateUser, resetPassword };
+async function login(req: Request, res: Response) {
+
+}
+
+export { getAllUsers, findUser, getUserFromId, createUser, deleteUser, updateUser, resetPassword, login };

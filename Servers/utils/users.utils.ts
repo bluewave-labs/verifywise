@@ -1,11 +1,10 @@
-import { readFile } from "fs/promises";
+import { users as UserData } from "../mocks/users.data";
 import { User } from "../models/user.model"
 import { UserOut } from "../dtos/userOut.dto";
 
 async function getUsers(): Promise<User[]> {
-    const users = await readFile("./files/users.json", "utf-8")
-    const usersJSON = JSON.parse(users)
-    const usersObj: User[] = usersJSON.map((u: { id: string, name: string, email: string, password: string }) => {
+    const users = UserData
+    const usersObj: User[] = users.map((u) => {
         return Object.setPrototypeOf({ ...u }, User.prototype)
     })
     return usersObj

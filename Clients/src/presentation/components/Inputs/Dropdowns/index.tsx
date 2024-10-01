@@ -106,7 +106,7 @@ const DropDowns = () => {
       >
         Implementation details:
       </Typography>
-      <Grid container spacing={0} sx={{ mt: 3 }}>
+      <Grid container sx={{ mt: 3}}>
         <Grid
           item
           xs={12}
@@ -114,10 +114,10 @@ const DropDowns = () => {
             height: 73,
             borderRadius: theme.shape.borderRadius,
             "& .MuiInputBase-root": {
-              height: "73px", 
+              height: "73px",
             },
             "& .MuiOutlinedInput-input": {
-              padding: "10px", 
+              paddingTop: '20px',
             },
           }}
         >

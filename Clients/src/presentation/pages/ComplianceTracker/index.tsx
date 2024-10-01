@@ -63,53 +63,62 @@ const Compliance = ({
 
   const handleConfirm = () => {
     console.log("Confirmed action for row:", selectedRow);
-    setIsModalOpen(false); // Close the modal after confirming
+    setIsModalOpen(false); 
   };
 
   const renderAccordion = (id: string, title: string, content: any) => (
-    <Accordion
-      expanded={expanded === id}
-      onChange={handleAccordionChange(id)}
-      sx={{
-        mt: spacing(4.5),
-        border: "2px solid",
-        borderColor: "#eaecf0",
-        width: "100%",
-        marginLeft: spacing(0.75),
-        borderRadius: theme.shape.borderRadius,
-        overflow: "hidden",
-        position: "relative",
-        "& .MuiAccordionDetails-root": {
-          padding: 0,
-        },
-      }}
-    >
-      <AccordionSummary
-        expandIcon={
-          <ExpandMoreIcon
-            sx={{
-              transform: expanded === id ? "rotate(180deg)" : "rotate(270deg)",
-              transition: "transform 0.3s ease",
-            }}
-          />
-        }
-        aria-controls={`${id}-content`}
-        id={`${id}-header`}
+    <Box sx={{marginBottom: 10}}>
+      <Accordion
+        expanded={expanded === id}
+        onChange={handleAccordionChange(id)}
         sx={{
-          bgcolor: "#FAFAFA",
-          padding: spacing(5),
-          flexDirection: "row-reverse",
+          mt: spacing(4.5),
+          border: "2px solid",
+          borderColor: "#eaecf0",
+          width: "100%",
+          marginLeft: spacing(0.75),
+          borderRadius: theme.shape.borderRadius,
+          overflow: "hidden",
+          position: "relative",
+      
+          "&.MuiPaper-root": {
+            margin: 0,
+            padding: 0,
+            boxShadow: "none",
+          },
+          "& .MuiAccordionDetails-root": {
+            padding: 0,
+            margin: 0,
+          },
         }}
       >
-        <Typography
-          variant="h6"
-          sx={{ fontSize: "16px", paddingLeft: spacing(1.25) }}
+        <AccordionSummary
+          expandIcon={
+            <ExpandMoreIcon
+              sx={{
+                transform: expanded === id ? "rotate(180deg)" : "rotate(270deg)",
+                transition: "transform 0.3s ease",
+              }}
+            />
+          }
+          aria-controls={`${id}-content`}
+          id={`${id}-header`}
+          sx={{
+            bgcolor: "#FAFAFA",
+            padding: spacing(5),
+            flexDirection: "row-reverse",
+          }}
         >
-          {title}
-        </Typography>
-      </AccordionSummary>
-      <AccordionDetails>{content}</AccordionDetails>
-    </Accordion>
+          <Typography
+            variant="h6"
+            sx={{ fontSize: "16px", paddingLeft: spacing(1.25) }}
+          >
+            {title}
+          </Typography>
+        </AccordionSummary>
+        <AccordionDetails>{content}</AccordionDetails>
+      </Accordion>
+    </Box>
   );
 
   return (
@@ -141,16 +150,23 @@ const Compliance = ({
           sx={{
             display: "flex",
             justifyContent: "flex-start",
-            gap: spacing(18),
+            gap: spacing(20),
             mt: spacing(1),
             paddingLeft: spacing(0.75),
+            "& .MuiAccordion-root": {
+              boxShadow: "none", // No shadow effect
+            },
+            "& .MuiAccordion-root.Mui-expanded": {
+              margin: 0,
+              padding: 0, // Prevent margin movement
+            },
           }}
         >
           {complianceMetrics.map((item: any) => (
             <Box
               key={item.name}
               sx={{
-                width: "20%",
+                width: "30%",
                 height: spacing(32),
                 borderRadius: shape.borderRadius,
                 backgroundColor: palette.background.paper,
@@ -185,6 +201,7 @@ const Compliance = ({
             </Box>
           ))}
         </Box>
+
         <Box
           sx={{
             mt: spacing(7.5),

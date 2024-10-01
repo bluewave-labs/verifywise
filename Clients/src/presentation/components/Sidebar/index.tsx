@@ -18,7 +18,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 import { useTheme } from "@mui/material";
 import React, { useState } from "react";
-import { toggleSidebar, setMode } from "../../tools/uiSlice";
+import { toggleSidebar } from "../../tools/uiSlice";
 
 import { ReactComponent as ArrowLeft } from "../../assets/icons/left-arrow.svg";
 import { ReactComponent as ArrowRight } from "../../assets/icons/right-arrow.svg";
@@ -199,7 +199,7 @@ const Sidebar = () => {
               { _id: "2", name: "Chat-GPT 4" },
             ]}
             onChange={() => {}}
-            sx={{ width: "180px", marginLeft: theme.spacing(6) }}
+            sx={{ width: "180px", marginLeft: theme.spacing(8) }}
           />
         </Stack>
       )}
@@ -208,7 +208,7 @@ const Sidebar = () => {
         component="nav"
         aria-labelledby="nested-menu-subheader"
         disablePadding
-        sx={{ px: theme.spacing(6) }}
+        sx={{ px: theme.spacing(8) }}
       >
         {/*
         Items of the menu
@@ -236,7 +236,9 @@ const Sidebar = () => {
               <ListItemButton
                 disableRipple
                 className={
-                  location.pathname.includes(item.path) ? "selected-path" : ""
+                  location.pathname.includes(item.path)
+                    ? "selected-path"
+                    : "unselected"
                 }
                 onClick={() => navigate(`${item.path}`)}
                 sx={{
@@ -347,7 +349,7 @@ const Sidebar = () => {
       <List
         component={"nav"}
         aria-labelledby="nested-other-subheader"
-        sx={{ px: theme.spacing(6) }}
+        sx={{ px: theme.spacing(8) }}
       >
         {other.map((item) => (
           <Tooltip
@@ -424,9 +426,15 @@ const Sidebar = () => {
             >
               <IconButton
                 onClick={(event) => openPopup(event, "logout")}
-                sx={{ p: 0, "&:focus": { outline: "none" } }}
+                sx={{
+                  p: 0,
+                  "&:focus": { outline: "none" },
+                  justifyContent: "center",
+                  alignItems: "center",
+                  marginLeft: theme.spacing(3),
+                }}
               >
-                <Avatar small={true} />
+                <Avatar small={true} sx={{ margin: "auto" }} />
               </IconButton>
             </Tooltip>
           </>
@@ -492,7 +500,7 @@ const Sidebar = () => {
             },
           }}
           sx={{
-            ml: theme.spacing(8),
+            ml: theme.spacing(12),
           }}
         >
           {collapsed && (
@@ -507,38 +515,6 @@ const Sidebar = () => {
               </Box>
             </MenuItem>
           )}
-          {collapsed && <Divider />}
-          <MenuItem
-            onClick={() => {
-              dispatch(setMode("light"));
-              closePopup();
-            }}
-            sx={{
-              fontSize: 13,
-
-              "& .MuiTouchRipple-root": {
-                display: "none",
-              },
-            }}
-          >
-            Light
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
-              dispatch(setMode("dark"));
-              closePopup();
-            }}
-            sx={{
-              fontSize: 13,
-
-              "& .MuiTouchRipple-root": {
-                display: "none",
-              },
-            }}
-          >
-            Dark
-          </MenuItem>
-          <Divider />
           <MenuItem
             onClick={logout}
             sx={{

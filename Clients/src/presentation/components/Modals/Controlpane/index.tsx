@@ -49,17 +49,21 @@ const CustomModal: React.FC<CustomModalProps> = ({
     fontWeight: 500,
     boxShadow: "none",
     textTransform: "none",
+    "&:hover": {
+      boxShadow: "none",
+    },
   };
 
   const buttonStyle = {
-    marginRight: 1,
-    borderRadius: theme.shape.borderRadius,
-    backgroundColor: "#4C7DE7",
-    width: 173,
-    height: 34,
     fontSize: 13,
-    fontWeight: 400,
-    textTransform: "none",
+    textTransform: "capitalize",
+    backgroundColor: "#4C7DE7",
+    boxShadow: "none",
+    borderRadius: "4px",
+    border: "1px solid #175CD3",
+    "&:hover": {
+      boxShadow: "none",
+    },
   };
 
   const getVariant = (activeSection: string, section: string) => {
@@ -117,6 +121,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
           <Button
             variant={getVariant(activeSection, "Overview")}
             onClick={() => handleSectionChange("Overview")}
+            disableRipple
             sx={{
               ...buttonTabStyles,
               backgroundColor:
@@ -129,6 +134,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
           <Button
             variant={getVariant(activeSection, "Evidence")}
             onClick={() => handleSectionChange("Evidence")}
+            disableRipple
             sx={{
               ...buttonTabStyles,
               backgroundColor:
@@ -141,6 +147,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
           <Button
             variant={getVariant(activeSection, "Auditor Feedback")}
             onClick={() => handleSectionChange("Auditor Feedback")}
+            disableRipple
             sx={{
               ...buttonTabStyles,
               backgroundColor:
@@ -177,11 +184,15 @@ const CustomModal: React.FC<CustomModalProps> = ({
           )}
         </Box>
         <Box sx={{ display: "flex", justifyContent: "space-between", mt: 8 }}>
-          <Box>
+          <Stack
+            gap={theme.spacing(4)}
+            sx={{ display: "flex", flexDirection: "row" }}
+          >
             <Button
               variant="contained"
               onClick={() => console.log("Previous Subcontrol clicked")}
               sx={buttonStyle}
+              disableRipple
             >
               &lt;- Previous Subcontrol
             </Button>
@@ -189,10 +200,11 @@ const CustomModal: React.FC<CustomModalProps> = ({
               variant="contained"
               onClick={() => console.log("Next Subcontrol clicked")}
               sx={buttonStyle}
+              disableRipple
             >
               Next Subcontrol -&gt;
             </Button>
-          </Box>
+          </Stack>
           <Button
             variant="contained"
             onClick={() => console.log("Save clicked")}
@@ -200,6 +212,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
               ...buttonStyle,
               width: 68,
             }}
+            disableRipple
           >
             Save
           </Button>

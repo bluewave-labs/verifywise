@@ -1,6 +1,6 @@
 
-import Checked from "../../assets/icons/check-circle-green.svg";
-import Exclamation from "../../assets/icons/alert-circle-orange.svg";
+import Checked from "../../presentation/assets/icons/check-circle-green.svg";
+import Exclamation from "../../presentation/assets/icons/alert-circle-orange.svg";
 
 
 export const complianceMetrics = [
@@ -24,7 +24,7 @@ export const complianceMetrics = [
   
   export const complianceDetails = {
     cols: [
-      { id: "icon", name: "" },
+      { id: "icon", name: "icon" },
       { id: "CONTROLS", name: "CONTROLS" },
       { id: "OWNER", name: "OWNER" },
       { id: "SUBCONTROLS", name: "SUBCONTROLS" },

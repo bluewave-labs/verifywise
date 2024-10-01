@@ -27,7 +27,9 @@ import {
   IconButton,
   InputAdornment,
   Stack,
+  SxProps,
   TextField,
+  Theme,
   Typography,
   useTheme,
 } from "@mui/material";
@@ -53,6 +55,7 @@ interface FieldProps {
   error?: string;
   disabled?: boolean;
   width?: number | string;
+  sx?: SxProps<Theme>;
 }
 
 const Field = forwardRef(
@@ -73,6 +76,7 @@ const Field = forwardRef(
       error,
       disabled,
       width,
+      sx,
     }: FieldProps,
     ref: ForwardedRef<HTMLInputElement>
   ) => {
@@ -153,17 +157,7 @@ const Field = forwardRef(
               },
             },
           }}
-          sx={
-            type === "url"
-              ? {
-                  "& .MuiInputBase-root": { padding: 0 },
-                  "& .MuiStack-root": {
-                    borderTopLeftRadius: theme.shape.borderRadius,
-                    borderBottomLeftRadius: theme.shape.borderRadius,
-                  },
-                }
-              : {}
-          }
+          sx={sx}
           InputProps={{
             startAdornment: type === "url" && (
               <Stack

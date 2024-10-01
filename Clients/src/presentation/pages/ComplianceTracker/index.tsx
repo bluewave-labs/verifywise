@@ -1,27 +1,54 @@
 import { useState } from "react";
 import BasicTable from "../../../presentation/components/Table";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import CustomModal from "../../components/Modals/Controlpane";
 import {
   Stack,
   useTheme,
   Box,
   Typography,
-  Select,
-  MenuItem,
-  FormControl,
   Toolbar,
   Container,
   AccordionSummary,
   Accordion,
   AccordionDetails,
-  SelectChangeEvent,
 } from "@mui/material";
+import {
+  complianceMetrics as metricData,
+  complianceDetails as detailsData,
+} from "../../mocks/compliance.data";
 
-const Compliance = ({ complianceMetrics, complianceDetails }: any) => {
+const Compliance = ({
+  complianceMetrics = metricData,
+  complianceDetails = detailsData,
+}: any) => {
   const theme = useTheme();
   const { spacing, shape, palette } = theme;
-  const [dropDown, setDropDown] = useState("ChatBot AI");
+
+  // State to manage accordion expansion
   const [expanded, setExpanded] = useState<string | false>(false);
+
+  // State to manage modal open/close
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // State to manage the selected row for modal content
+  const [selectedRow, setSelectedRow] = useState<number | null>(null);
+
+  const selectedRowData = complianceDetails.rows.find(
+    (row: any) => row.id === selectedRow
+  );
+
+  const acdSumDetails = [
+    {
+      summaryId: "panel1",
+      summaryTitle: "1.1 Compliance with Requirements for High-Risk AI Systems",
+    },
+    {
+      summaryId: "panel2",
+      summaryTitle:
+        "1.2 Transparency Obligations for Providers and Deployers of Certain AI Systems",
+    },
+  ];
 
   const handleAccordionChange = (panel: string) => {
     return (event: React.SyntheticEvent, isExpanded: boolean) => {
@@ -29,8 +56,14 @@ const Compliance = ({ complianceMetrics, complianceDetails }: any) => {
     };
   };
 
-  const handleDropDownChange = (event: SelectChangeEvent<string>) => {
-    setDropDown(event.target.value as string);
+  const handleRowClick = (id: number) => {
+    setSelectedRow(id);
+    setIsModalOpen(true);
+  };
+
+  const handleConfirm = () => {
+    console.log("Confirmed action for row:", selectedRow);
+    setIsModalOpen(false); // Close the modal after confirming
   };
 
   const renderAccordion = (id: string, title: string, content: any) => (
@@ -38,10 +71,10 @@ const Compliance = ({ complianceMetrics, complianceDetails }: any) => {
       expanded={expanded === id}
       onChange={handleAccordionChange(id)}
       sx={{
-        mt: spacing(4.5), 
+        mt: spacing(4.5),
         border: "2px solid",
         borderColor: "#eaecf0",
-        width: "100%", 
+        width: "100%",
         marginLeft: spacing(0.75),
         borderRadius: theme.shape.borderRadius,
         overflow: "hidden",
@@ -68,7 +101,10 @@ const Compliance = ({ complianceMetrics, complianceDetails }: any) => {
           flexDirection: "row-reverse",
         }}
       >
-        <Typography variant="h6" sx={{ fontSize: "16px", paddingLeft: spacing(1.25) }}>
+        <Typography
+          variant="h6"
+          sx={{ fontSize: "16px", paddingLeft: spacing(1.25) }}
+        >
           {title}
         </Typography>
       </AccordionSummary>
@@ -80,41 +116,11 @@ const Compliance = ({ complianceMetrics, complianceDetails }: any) => {
     <Container
       sx={{
         mt: spacing(1),
-        ml: spacing(3.75), 
+        ml: spacing(3.75),
         fontFamily: "Inter",
       }}
     >
       <Stack component="section">
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "flex-end",
-            alignItems: "center",
-            padding: spacing(2),
-            mt: spacing(4.25),
-          }}
-        >
-          <Typography variant="subtitle1" sx={{ fontSize: "13px", mr: spacing(1.5) }}>
-            Currently viewing project:
-          </Typography>
-          <FormControl>
-            <Select
-              value={dropDown}
-              onChange={handleDropDownChange}
-              displayEmpty
-              sx={{
-                fontSize: "13px",
-                boxShadow: "0px 1px rgba(0, 0, 0, 0.1)",
-                minWidth: 144,
-                height: spacing(17), 
-                borderRadius: shape.borderRadius,
-              }}
-            >
-              <MenuItem value="ChatBot AI">ChatBot AI</MenuItem>
-              {/* add more dropDown options here */}
-            </Select>
-          </FormControl>
-        </Box>
         <Toolbar>
           <Typography
             variant="h6"
@@ -122,7 +128,7 @@ const Compliance = ({ complianceMetrics, complianceDetails }: any) => {
             sx={{
               flexGrow: 1,
               position: "absolute",
-              top: spacing(2.5), 
+              top: spacing(2.5),
               fontSize: "18px",
               fontWeight: 600,
               color: "#1A1919",
@@ -135,7 +141,7 @@ const Compliance = ({ complianceMetrics, complianceDetails }: any) => {
           sx={{
             display: "flex",
             justifyContent: "flex-start",
-            gap: spacing(18), 
+            gap: spacing(18),
             mt: spacing(1),
             paddingLeft: spacing(0.75),
           }}
@@ -144,8 +150,8 @@ const Compliance = ({ complianceMetrics, complianceDetails }: any) => {
             <Box
               key={item.name}
               sx={{
-                width: "20%", 
-                height: spacing(32), 
+                width: "20%",
+                height: spacing(32),
                 borderRadius: shape.borderRadius,
                 backgroundColor: palette.background.paper,
                 display: "flex",
@@ -168,7 +174,7 @@ const Compliance = ({ complianceMetrics, complianceDetails }: any) => {
               <Typography
                 variant="h6"
                 sx={{
-                  mt: spacing(1), 
+                  mt: spacing(1),
                   fontSize: "16px",
                   fontWeight: 600,
                   color: "#2D3748",
@@ -181,31 +187,44 @@ const Compliance = ({ complianceMetrics, complianceDetails }: any) => {
         </Box>
         <Box
           sx={{
-            mt: spacing(7.5), 
+            mt: spacing(7.5),
           }}
         >
           {renderAccordion(
-            "panel1",
-            "1.1 Compliance with Requirements for High-Risk AI Systems",
+            acdSumDetails[0].summaryId,
+            acdSumDetails[0].summaryTitle,
             <BasicTable
               data={complianceDetails}
               paginated={false}
               reversed={false}
               table="complianceTable"
+              onRowClick={handleRowClick}
             />
           )}
           {renderAccordion(
-            "panel2",
-            "1.2 Transparency Obligations for Providers and Deployers of Certain AI Systems",
+            acdSumDetails[1].summaryId,
+            acdSumDetails[1].summaryTitle,
             <BasicTable
               data={complianceDetails}
               paginated={false}
               reversed={false}
               table="complianceTable"
+              onRowClick={handleRowClick}
             />
           )}
         </Box>
-        {/* <SubControl /> */}
+        {/* Render the modal and pass the state */}
+        {selectedRow !== null && (
+          <CustomModal
+            isOpen={isModalOpen}
+            setIsOpen={setIsModalOpen}
+            title={
+              selectedRowData ? selectedRowData.data[0].data : "Row not found"
+            }
+            content={`This is some dynamic content for row ${selectedRow}.`}
+            onConfirm={handleConfirm}
+          />
+        )}
       </Stack>
     </Container>
   );

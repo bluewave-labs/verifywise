@@ -132,7 +132,7 @@ const Sidebar = () => {
       <Stack
         pt={theme.spacing(6)}
         pb={theme.spacing(12)}
-        pl={theme.spacing(10)}
+        pl={theme.spacing(12)}
       >
         <Stack direction="row" alignItems="center" gap={theme.spacing(4)}>
           <img src={Logo} alt="Logo" width={32} height={30} />
@@ -184,7 +184,13 @@ const Sidebar = () => {
       </IconButton>
       {/* Select */}
       {!collapsed && (
-        <Stack sx={{ padding: theme.spacing(4), justifyContent: "flex-start" }}>
+        <Stack
+          sx={{
+            padding: theme.spacing(4),
+            justifyContent: "flex-start",
+            width: "fit-content",
+          }}
+        >
           <Select
             id="projects"
             value={"1"}

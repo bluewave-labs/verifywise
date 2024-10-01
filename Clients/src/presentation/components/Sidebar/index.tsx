@@ -41,6 +41,7 @@ const menu = [
   {
     name: "Dashboard",
     icon: <Dashboard />,
+    path: "/"
   },
   {
     name: "Compliance tracker",

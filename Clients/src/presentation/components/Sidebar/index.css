@@ -88,8 +88,10 @@ aside .MuiListSubheader-root {
   transition: padding 200ms ease;
 }
 
-nav .selected-path {
-  /* background-color: ; */
+nav .selected-path .MuiListItemIcon-root svg {
+  path {
+    stroke: #344054;
+  }
 }
 
 @keyframes fadeIn {

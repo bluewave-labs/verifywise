@@ -46,7 +46,9 @@ const IconButton = () => {
   return (
     <>
       <MuiIconButton
-        disableRipple
+        disableRipple={
+          theme.components?.MuiIconButton?.defaultProps?.disableRipple
+        }
         sx={{
           "&:focus": {
             outline: "none",

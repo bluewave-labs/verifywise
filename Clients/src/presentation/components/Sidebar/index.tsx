@@ -41,6 +41,7 @@ const menu = [
   {
     name: "Dashboard",
     icon: <Dashboard />,
+    path: "/",
   },
   {
     name: "Compliance tracker",
@@ -155,6 +156,9 @@ const Sidebar = () => {
       </Stack>
 
       <IconButton
+        disableRipple={
+          theme.components?.MuiListItemButton?.defaultProps?.disableRipple
+        }
         sx={{
           position: "absolute",
           top: 60,
@@ -234,9 +238,12 @@ const Sidebar = () => {
               disableInteractive
             >
               <ListItemButton
-                disableRipple
+                disableRipple={
+                  theme.components?.MuiListItemButton?.defaultProps
+                    ?.disableRipple
+                }
                 className={
-                  location.pathname.includes(item.path)
+                  location.pathname === item.path
                     ? "selected-path"
                     : "unselected"
                 }
@@ -246,10 +253,16 @@ const Sidebar = () => {
                   gap: theme.spacing(4),
                   borderRadius: theme.shape.borderRadius,
                   px: theme.spacing(4),
+                  backgroundColor:
+                    location.pathname === item.path ? "#F9F9F9" : "transparent",
+
+                  "&:hover": {
+                    backgroundColor: "#F9F9F9",
+                  },
                 }}
               >
                 <ListItemIcon sx={{ minWidth: 0 }}>{item.icon}</ListItemIcon>
-                <ListItemText> {item.name} </ListItemText>
+                <ListItemText>{item.name}</ListItemText>
               </ListItemButton>
             </Tooltip>
           ) : collapsed ? (
@@ -270,7 +283,10 @@ const Sidebar = () => {
                 disableInteractive
               >
                 <ListItemButton
-                  disableRipple
+                  disableRipple={
+                    theme.components?.MuiListItemButton?.defaultProps
+                      ?.disableRipple
+                  }
                   className={
                     Boolean(anchorEl) && popup === item.name
                       ? "selected-path"
@@ -282,6 +298,14 @@ const Sidebar = () => {
                     gap: theme.spacing(4),
                     borderRadius: theme.shape.borderRadius,
                     px: theme.spacing(4),
+                    backgroundColor:
+                      location.pathname === item.path
+                        ? "#F9F9F9"
+                        : "transparent",
+
+                    "&:hover": {
+                      backgroundColor: "#F9F9F9",
+                    },
                   }}
                 >
                   <ListItemIcon sx={{ minWidth: 0 }}>{item.icon}</ListItemIcon>
@@ -371,7 +395,9 @@ const Sidebar = () => {
             disableInteractive
           >
             <ListItemButton
-              disableRipple
+              disableRipple={
+                theme.components?.MuiListItemButton?.defaultProps?.disableRipple
+              }
               className={
                 location.pathname.includes(item.path) ? "selected-path" : ""
               }
@@ -388,6 +414,12 @@ const Sidebar = () => {
                 gap: theme.spacing(4),
                 borderRadius: theme.shape.borderRadius,
                 px: theme.spacing(4),
+                backgroundColor:
+                  location.pathname === item.path ? "#F9F9F9" : "transparent",
+
+                "&:hover": {
+                  backgroundColor: "#F9F9F9",
+                },
               }}
             >
               <ListItemIcon sx={{ minWidth: 0 }}>{item.icon}</ListItemIcon>
@@ -451,6 +483,9 @@ const Sidebar = () => {
             </Box>
             <Tooltip title="Controls" disableInteractive>
               <IconButton
+                disableRipple={
+                  theme.components?.MuiIconButton?.defaultProps?.disableRipple
+                }
                 sx={{
                   ml: "auto",
                   mr: "-8px",

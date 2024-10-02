@@ -29,10 +29,9 @@ const Vendors = () => {
           marginBottom={theme.spacing(6)}
         >
           <Button
-            disableRipple
-            focusRipple={false}
-            disableFocusRipple
-            disableTouchRipple
+            disableRipple={
+              theme.components?.MuiButton?.defaultProps?.disableRipple
+            }
             variant="contained"
             color="inherit"
             sx={{
@@ -73,7 +72,9 @@ const Vendors = () => {
           }}
         >
           <Button
-            disableRipple
+            disableRipple={
+              theme.components?.MuiButton?.defaultProps?.disableRipple
+            }
             variant="contained"
             sx={{
               width: 150,
@@ -102,10 +103,9 @@ const Vendors = () => {
           }}
         >
           <Button
-            disableRipple
-            focusRipple={false}
-            disableFocusRipple
-            disableTouchRipple
+            disableRipple={
+              theme.components?.MuiButton?.defaultProps?.disableRipple
+            }
             variant="contained"
             sx={{
               width: 150,

@@ -8,10 +8,11 @@ import { writeFile } from "fs/promises";
 import bcrypt from "bcrypt";
 import { getUserOut, getUsers } from "../utils/users.utils";
 import { IUserAuthRequest } from "../types/IUserAuthRequest";
+import { generateToken } from "../utils/jwt.utils";
 
 type UserParams = Partial<Pick<User, "id" | "name" | "email">>;
 
-async function getAllUsers(req: Request, res: Response): Promise<any> {
+async function getAllUsers(req: IUserAuthRequest, res: Response): Promise<any> {
     try {
         let users = await getUsers()
         let usersOut = getUserOut(users) as UserOut[]
@@ -25,7 +26,7 @@ async function getAllUsers(req: Request, res: Response): Promise<any> {
     }
 }
 
-async function findUser(req: Request, res: Response): Promise<any> {
+async function findUser(req: IUserAuthRequest, res: Response): Promise<any> {
     const params = req.query as UserParams
     const users = await getUsers()
 
@@ -46,7 +47,7 @@ async function findUser(req: Request, res: Response): Promise<any> {
     }
 }
 
-async function getUserFromId(req: Request, res: Response): Promise<any> {
+async function getUserFromId(req: IUserAuthRequest, res: Response): Promise<any> {
     // assuming the userId will be integer parsable
     const userId = parseInt(req.params.id);
     try {
@@ -69,7 +70,7 @@ async function getUserFromId(req: Request, res: Response): Promise<any> {
     }
 }
 
-async function createUser(req: Request, res: Response): Promise<any> {
+async function createUser(req: IUserAuthRequest, res: Response): Promise<any> {
     const userIn = req.body as UserIn
     const users = await getUsers()
     const usersCtr = users.length
@@ -102,7 +103,7 @@ async function createUser(req: Request, res: Response): Promise<any> {
     }
 }
 
-async function deleteUser(req: Request, res: Response): Promise<any> {
+async function deleteUser(req: IUserAuthRequest, res: Response): Promise<any> {
     const userId = parseInt(req.params.id);
     try {
         const users = await getUsers()
@@ -126,7 +127,7 @@ async function deleteUser(req: Request, res: Response): Promise<any> {
     }
 }
 
-async function updateUser(req: Request, res: Response): Promise<any> {
+async function updateUser(req: IUserAuthRequest, res: Response): Promise<any> {
     const userId = parseInt(req.params.id);
     try {
         let users = await getUsers()
@@ -165,7 +166,7 @@ async function updateUser(req: Request, res: Response): Promise<any> {
     }
 }
 
-async function resetPassword(req: Request, res: Response): Promise<any> {
+async function resetPassword(req: IUserAuthRequest, res: Response): Promise<any> {
     const { email } = req.query as { email: string }
     const { password } = req.body as { password: string }
 
@@ -181,8 +182,30 @@ async function resetPassword(req: Request, res: Response): Promise<any> {
     }
 }
 
-async function login(req: Request, res: Response) {
+async function login(req: IUserAuthRequest, res: Response) {
+    const { email, password } = req.body as { email: string, password: string };
+    try {
+        const users = await getUsers()
+        const user = users.find(u => u.email === email)
 
+        if (!user) return res.status(404).json({ data: `user with email: ${email} not found` });
+
+        const passwordMatch = await bcrypt.compare(password, user.password)
+
+        if (!passwordMatch) return res.status(400).json({ data: `bad request, please check email or password` });
+
+        return res.json({
+            data: 'login successful', token: generateToken({
+                id: user.id, email: user.email
+            })
+        }).send()
+
+    } catch (error: any) {
+        return res.status(500).json({
+            data: "internal server error",
+            errorDetails: error.toString()
+        })
+    }
 }
 
 export { getAllUsers, findUser, getUserFromId, createUser, deleteUser, updateUser, resetPassword, login };

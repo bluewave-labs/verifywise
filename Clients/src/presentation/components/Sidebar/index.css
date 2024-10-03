@@ -65,7 +65,7 @@ aside {
   transition: max-width 650ms cubic-bezier(0.36, -0.01, 0, 0.77);
 }
 .home-layout aside.collapsed {
-  max-width: 64px;
+  max-width: 78px;
 }
 
 aside.expanded .MuiTypography-root,
@@ -86,6 +86,12 @@ aside.collapsed .MuiAvatar-root + .MuiBox-root + .MuiIconButton-root {
 
 aside .MuiListSubheader-root {
   transition: padding 200ms ease;
+}
+
+nav .selected-path .MuiListItemIcon-root svg {
+  path {
+    stroke: #344054;
+  }
 }
 
 @keyframes fadeIn {

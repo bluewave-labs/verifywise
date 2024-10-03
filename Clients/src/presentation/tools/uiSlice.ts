@@ -1,13 +1,15 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+const initialState = {
+  sidebar: {
+    collapsed: false,
+  },
+  mode: "light",
+};
+
 const uiSlice = createSlice({
   name: "ui",
-  initialState: {
-    sidebar: {
-      collapsed: false,
-    },
-    mode: "light",
-  },
+  initialState,
   reducers: {
     setRowsPerPage: (state: any, action) => {
       const { table, value } = action.payload;
@@ -24,5 +26,5 @@ const uiSlice = createSlice({
   },
 });
 
-export const { setRowsPerPage, toggleSidebar, setMode } = uiSlice.actions;
 export default uiSlice.reducer;
+export const { setRowsPerPage, toggleSidebar, setMode } = uiSlice.actions;

@@ -5,14 +5,14 @@ import { IUserAuthRequest } from "../types/IUserAuthRequest";
 import { User } from "../models/user.model";
 
 const authenticateJWT = async (req: IUserAuthRequest, res: Response, next: NextFunction) => {
-    const token = req.headers.authorization && req.headers.authorization.split(" ")[1];
+    const token = req.headers.authorization?.split(" ")[1];
     if (!token) return res.status(401).json({ data: "No token provided" });
 
     try {
-        const decoded = getTokenPayload(token)!;
+        const decoded = getTokenPayload(token);
         if (!decoded) return res.status(403).json({ data: "Not authorized" });
 
-        if (decoded.expire < Date.now()) return res.status(400).json({ data: "token expired" })
+        if (decoded.expire < Date.now()) return res.status(401).json({ data: "token expired" })
 
         const users = await getUsers();
         req.user = users.find(u => u.id == decoded.id) as User;

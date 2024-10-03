@@ -2,7 +2,7 @@ import { users as UserData } from "../mocks/users.data";
 import { User } from "../models/user.model"
 import { UserOut } from "../dtos/userOut.dto";
 
-async function getUsers(): Promise<User[]> {
+function getUsers(): User[] {
     const users = UserData
     const usersObj: User[] = users.map((u) => {
         return Object.setPrototypeOf({ ...u }, User.prototype)

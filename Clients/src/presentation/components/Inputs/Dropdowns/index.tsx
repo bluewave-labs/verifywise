@@ -1,4 +1,4 @@
-import { Grid, Typography, useTheme } from "@mui/material";
+import { Grid, Stack, Typography, useTheme } from "@mui/material";
 import { useState } from "react";
 import Select from "../Select";
 import DatePicker from "../Datepicker";
@@ -16,88 +16,91 @@ const DropDowns = () => {
 
   return (
     <>
-      <Grid container spacing={3}>
-        <Grid item xs={4}>
-          <Select
-            id="status"
-            label="Status:"
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            items={[
-              { _id: 10, name: "Waiting" },
-              { _id: 20, name: "In progress" },
-              { _id: 30, name: "Done" },
-            ]}
-            sx={inputStyles}
-          />
-        </Grid>
-        <Grid item xs={4}>
-          <Select
-            id="Approver"
-            label="Approver:"
-            value={approver}
-            onChange={(e) => setApprover(e.target.value)}
-            items={[
-              { _id: 10, name: "Option 1" },
-              { _id: 20, name: "Option 2" },
-              { _id: 30, name: "Option 3" },
-            ]}
-            sx={inputStyles}
-          />
-        </Grid>
-        <Grid item xs={4}>
-          <Select
-            id="Risk review"
-            label="Risk review:"
-            value={riskReview}
-            onChange={(e) => setRiskReview(e.target.value)}
-            items={[
-              { _id: 10, name: "Acceptable risk" },
-              { _id: 20, name: "Residual risk" },
-              { _id: 30, name: "Unacceptable risk" },
-            ]}
-            sx={inputStyles}
-          />
-        </Grid>
-      </Grid>
+      <Stack
+        display="flex"
+        flexDirection="row"
+        justifyContent="space-between"
+        alignItems="center"
+      >
+        <Select
+          id="status"
+          label="Status:"
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          items={[
+            { _id: 10, name: "Waiting" },
+            { _id: 20, name: "In progress" },
+            { _id: 30, name: "Done" },
+          ]}
+          sx={inputStyles}
+        />
+
+        <Select
+          id="Approver"
+          label="Approver:"
+          value={approver}
+          onChange={(e) => setApprover(e.target.value)}
+          items={[
+            { _id: 10, name: "Option 1" },
+            { _id: 20, name: "Option 2" },
+            { _id: 30, name: "Option 3" },
+          ]}
+          sx={inputStyles}
+        />
+
+        <Select
+          id="Risk review"
+          label="Risk review:"
+          value={riskReview}
+          onChange={(e) => setRiskReview(e.target.value)}
+          items={[
+            { _id: 10, name: "Acceptable risk" },
+            { _id: 20, name: "Residual risk" },
+            { _id: 30, name: "Unacceptable risk" },
+          ]}
+          sx={inputStyles}
+        />
+      </Stack>
 
       {/* Second Row */}
-      <Grid container spacing={3} sx={{ mt: 3 }}>
-        <Grid item xs={4}>
-          <Select
-            id="Owner"
-            label="Owner:"
-            value={owner}
-            onChange={(e) => setOwner(e.target.value)}
-            items={[
-              { _id: 10, name: "Option 1" },
-              { _id: 20, name: "Option 2" },
-              { _id: 30, name: "Option 3" },
-            ]}
-            sx={inputStyles}
-          />
-        </Grid>
-        <Grid item xs={4}>
-          <Select
-            id="Reviewer"
-            label="Reviewer:"
-            value={reviewer}
-            onChange={(e) => setReviewer(e.target.value)}
-            items={[
-              { _id: 10, name: "Option 1" },
-              { _id: 20, name: "Option 2" },
-              { _id: 30, name: "Option 3" },
-            ]}
-            sx={inputStyles}
-          />
-        </Grid>
-        <Grid item xs={4}>
-          <DatePicker
-            label="Due Date:"
-            sx={{ width: 129, height: 34, flexDirection: "row-reverse" }}
-          />
-        </Grid>
-      </Grid>
+      <Stack
+        display="flex"
+        flexDirection="row"
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ mt: 3 }}
+      >
+        <Select
+          id="Owner"
+          label="Owner:"
+          value={owner}
+          onChange={(e) => setOwner(e.target.value)}
+          items={[
+            { _id: 10, name: "Option 1" },
+            { _id: 20, name: "Option 2" },
+            { _id: 30, name: "Option 3" },
+          ]}
+          sx={inputStyles}
+        />
+
+        <Select
+          id="Reviewer"
+          label="Reviewer:"
+          value={reviewer}
+          onChange={(e) => setReviewer(e.target.value)}
+          items={[
+            { _id: 10, name: "Option 1" },
+            { _id: 20, name: "Option 2" },
+            { _id: 30, name: "Option 3" },
+          ]}
+          sx={inputStyles}
+        />
+
+        <DatePicker
+          label="Due Date:"
+          sx={inputStyles}
+        />
+      </Stack>
 
       <Typography
         fontSize={13}
@@ -106,7 +109,7 @@ const DropDowns = () => {
       >
         Implementation details:
       </Typography>
-      <Grid container sx={{ mt: 3}}>
+      <Grid container sx={{ mt: 3 }}>
         <Grid
           item
           xs={12}
@@ -117,7 +120,7 @@ const DropDowns = () => {
               height: "73px",
             },
             "& .MuiOutlinedInput-input": {
-              paddingTop: '20px',
+              paddingTop: "20px",
             },
           }}
         >

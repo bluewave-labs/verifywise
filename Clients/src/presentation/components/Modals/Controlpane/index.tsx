@@ -79,7 +79,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: { xs: 300, md: 600, lg: 900 },
+          width: { xs: 300, md: 600, lg: 816 },
           height: 900,
           bgcolor: theme.palette.background.paper,
           border: `1px solid ${theme.palette.divider}`,
@@ -157,7 +157,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
               fontWeight: activeSection === "Auditor Feedback" ? "500" : 300,
             }}
           >
-            Auditor Feedback
+            Auditor feedback
           </Button>
         </Box>
 
@@ -183,7 +183,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
             <AuditorFeedback activeSection={activeSection} />
           )}
         </Box>
-        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 8 }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2}}>
           <Stack
             gap={theme.spacing(4)}
             sx={{ display: "flex", flexDirection: "row" }}

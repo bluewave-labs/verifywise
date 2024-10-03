@@ -22,7 +22,7 @@ const Assessment = () => {
     marginTop: "30px",
     textTransform: 'none',
     border: "1px solid",
-    borderColor: theme.palette.border,
+    borderColor: theme.palette.status.info.border,
     borderRadius: "4px",
     boxShadow: "none",
     gap: "8px",
@@ -30,7 +30,7 @@ const Assessment = () => {
     paddingBottom: "10px",
     paddingLeft: "16px",
     paddingRight: "16px",
-  }
+  } as const;
 
   return (
     <div className="assessment-page">

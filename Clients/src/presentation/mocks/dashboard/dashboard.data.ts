@@ -63,4 +63,3 @@ const dashboardData: DashboardData = {
 };
 
 export default dashboardData;
-

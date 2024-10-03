@@ -9,6 +9,8 @@
   position: sticky;
   height: 100vh;
   max-width: 230px;
+  top: 0;
+  left: 0;
 }
 
 .home-layout > div {

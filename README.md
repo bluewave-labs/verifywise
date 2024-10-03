@@ -1,11 +1,12 @@
-<h1 align="center"><a href="https://bluewavelabs.ca" target="_blank">VerifyWise</a></h1>
+<h1 align="center">VerifyWise</h1>
 
-VerifyWise is an open-source AI governance platform designed to help businesses harness the power of artificial intelligence safely and responsibly. Our platform ensures compliance and robust AI management without compromising on security.
+<h3 align="center">Democratizing AI Governance</a></h3>
+
+[VerifyWise](https://verifywise.ai) is an open-source AI governance platform designed to help businesses harness the power of artificial intelligence safely and responsibly. Our platform ensures compliance and robust AI management without compromising on security.
 
 We are democratizing AI best practices with an open-source solution that can be hosted on-premises, giving you complete control over your AI governance.
 
 <img width="1574" alt="Compliance tracker" src="https://github.com/user-attachments/assets/b7fa9fa7-0b39-4498-b701-e03d42010382">
-
 
 ## Running the frontend
 
@@ -18,7 +19,7 @@ Currently the application is in its infancy state, so check back here often.
 ## Quick links
 
 - This application is currently in the design stage. The designs and workflows are [available for everyone](https://www.figma.com/design/o4xu4PeC5bo1Ii4dyom6vQ/VerifyWise?node-id=0-1&t=Ty2Jh4S8QgHGrqon-1). This link includes 2 pages: dashboard designs and the style guide.
-- [VerifyWise presentation](https://pitch.com/v/ai-governance---verifywise-dsguhp), including terminology, why and how, technology, and roadmap
+- The [VerifyWise presentation](https://pitch.com/v/verifywise-democratizing-ai-governance-zhxvh6), including terminology, why we started this project, technology, and roadmap
 
 ## Who is it for?
 

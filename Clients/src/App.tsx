@@ -12,6 +12,10 @@ import Assessment from "./presentation/pages/Assessment";
 import Vendors from "./presentation/pages/Vendors";
 import Setting from "./presentation/pages/Setting";
 import Team from "./presentation/pages/Team";
+import {
+  complianceMetrics,
+  complianceDetails,
+} from "./presentation/pages/ComplianceTracker/complianceData";
 
 function App() {
   const mode = useSelector((state: any) => state.ui?.mode || "light");
@@ -21,7 +25,15 @@ function App() {
       <Routes>
         <Route path="/" element={<Dashboard />}>
           <Route path="/" element={<Home />} />
-          <Route path="/compliance-tracker" element={<ComplianceTracker />} />
+          <Route
+            path="/compliance-tracker"
+            element={
+              <ComplianceTracker
+                complianceMetrics={complianceMetrics}
+                complianceDetails={complianceDetails}
+              />
+            }
+          />
           <Route path="/assessment" element={<Assessment />} />
           <Route path="/vendors" element={<Vendors />} />
           <Route path="/setting" element={<Setting />} />

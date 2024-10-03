@@ -1,4 +1,4 @@
-import { User } from "../models/user";
+import { User } from "../models/User";
 import pool from "../database/db";
 
 export const getAllUsersQuery = async (): Promise<User[]> => {

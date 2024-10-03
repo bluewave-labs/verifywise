@@ -4,7 +4,7 @@ GET http://localhost:3000/users/test
 
 ###
 
-GET http://localhost:3000/users/1
+GET http://localhost:3000/users
 
 ###
 

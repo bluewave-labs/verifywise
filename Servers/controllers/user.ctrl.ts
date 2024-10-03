@@ -8,7 +8,7 @@ async function getAllUsers(
   req: GetAllUsersRequest,
   res: GetAllUsersResponse
 ): Promise<any> {
-  console.log(req);
+  console.log("getAllUsers");
   try {
     const users = await getAllUsersQuery();
 

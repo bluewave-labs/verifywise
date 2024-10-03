@@ -16,7 +16,7 @@ app.use(express.json());
 app.use("/users", userRoutes);
 
 app.use("/", (req, res) => {
-  res.json("Hello World!");
+  res.json("Hello buddy!");
 });
 
 // Routes

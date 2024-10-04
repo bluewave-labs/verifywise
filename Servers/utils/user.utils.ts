@@ -32,3 +32,35 @@ export const createNewUserQuery = async (
   );
   return result.rows[0];
 };
+
+export const resetPasswordQuery = async (
+  email: string,
+  newPassword: string
+): Promise<User> => {
+  const result = await pool.query(
+    `UPDATE users SET password_hash = $1 WHERE email = $2 RETURNING *`,
+    [newPassword, email]
+  );
+  return result.rows[0];
+};
+
+export const updateUserByIdQuery = async (
+  id: string,
+  user: Partial<User>
+): Promise<User> => {
+  const { name, email, password_hash, role, last_login } = user;
+  const result = await pool.query(
+    `UPDATE users SET name = $1, email = $2, password_hash = $3, role = $4, last_login = $5
+     WHERE id = $6 RETURNING *`,
+    [name, email, password_hash, role, last_login, id]
+  );
+  return result.rows[0];
+};
+
+export const deleteUserByIdQuery = async (id: string): Promise<User> => {
+  const result = await pool.query(
+    "DELETE FROM users WHERE id = $1 RETURNING *",
+    [id]
+  );
+  return result.rows[0];
+};

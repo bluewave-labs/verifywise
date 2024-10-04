@@ -1,10 +1,10 @@
 ### get all users
 
-GET http://localhost:3000/users/test
+GET http://localhost:3000/users
 
 ### get user by email
 
-GET http://localhost:3000/users/by-email/johndoe@example.com
+GET http://localhost:3000/users/by-email/cathy.brown@example.com
 
 ### get user by id
 
@@ -17,11 +17,11 @@ Content-Type: application/json
 
 {
     "name": "Jane Smith",
-    "email": "jonesmith@example.com",
+    "email": "jonesmack@example.com",
     "password_hash": "$2y$10$abc123def456ghi789jkl012",
     "role": 2,
-    "created_at": "2023-11-23T12:34:56Z",
-    "last_login": "2023-12-23T12:34:56Z"
+    "created_at": "2023-12-05T00:00:00.000Z",
+    "last_login": "2024-04-22T00:00:00.000Z"
 }
 
 ###

@@ -111,7 +111,11 @@ const Compliance = ({
             padding: spacing(5),
             flexDirection: "row-reverse",
             height: '',
-            "& .MuiAccordionSummary-content":{
+            "& .Mui-expanded":{
+              marginTop: '12px',
+              marginBottom: '12px',
+            },
+            "& .MuiAccordionSummary-root":{
               marginTop: '12px',
               marginBottom: '12px',
             }

@@ -1,0 +1,35 @@
+### get all users
+
+GET http://localhost:3000/users
+
+### get user by email
+
+GET http://localhost:3000/users/by-email/cathy.brown@example.com
+
+### get user by id
+
+GET http://localhost:3000/users/2
+
+### post (create) a new user
+
+POST http://localhost:3000/users/register
+Content-Type: application/json 
+
+{
+    "name": "Jane Smith",
+    "email": "jonesmack@example.com",
+    "password_hash": "$2y$10$abc123def456ghi789jkl012",
+    "role": 2,
+    "created_at": "2023-12-05T00:00:00.000Z",
+    "last_login": "2024-04-22T00:00:00.000Z"
+}
+
+###
+
+PATCH  http://localhost:3000/users/1
+
+###
+
+DELETE http://localhost:3000/users/1
+
+###

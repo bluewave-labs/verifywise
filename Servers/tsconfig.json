@@ -102,7 +102,11 @@
     "skipLibCheck": true /* Skip type checking all .d.ts files. */
   },
   "include": [
-    "./**/*"
+    "./*.ts",
+    "./routes/**/*.ts",
+    "./controllers/**/*.ts",
+    "./models/**/*.ts",
+    "./utils/**/*.ts"
   ],
   "exclude": [
     "node_modules",

@@ -16,108 +16,95 @@ import {
   getMockUserByEmail,
   getMockUserById,
 } from "../mocks/tools/user.mock.db";
+import { STATUS_CODE } from "../utils/statusCode.utils";
 
 const MOCK_DATA_ON = process.env.MOCK_DATA_ON;
 
 async function getAllUsers(req: Request, res: Response): Promise<any> {
-  console.log("getAllUsers");
   try {
     if (MOCK_DATA_ON === "true") {
-      // using getAllMockUsers
       const users = getAllMockUsers();
 
       if (users) {
-        return res.status(200).json(users);
+        return res.status(200).json(STATUS_CODE[200](users));
       }
 
-      return res.status(400);
+      return res.status(204).json(STATUS_CODE[204](users));
     } else {
       const users = await getAllUsersQuery();
 
       if (users) {
-        return res.status(200).json({
-          users,
-        });
+        return res.status(200).json(STATUS_CODE[200](users));
       }
 
-      return res.status(400);
+      return res.status(204).json(STATUS_CODE[204](users));
     }
   } catch (error) {
-    return res.status(500).json({
-      error: (error as Error).message,
-    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 async function getUserByEmail(req: Request, res: Response) {
-  console.log("getUserByEmail");
   try {
     if (MOCK_DATA_ON === "true") {
-      // getMockUserByEmail
       const email = req.params.email;
       const user = getMockUserByEmail(email);
       if (user) {
-        return res.status(200).json(user);
+        return res.status(200).json(STATUS_CODE[200](user));
       }
 
-      return res.status(400).json({
-        error: "User not found",
-      });
+      return res.status(404).json(STATUS_CODE[404](user));
     } else {
       const email = req.params.email;
       const user = await getUserByEmailQuery(email);
 
       if (user) {
-        return res.status(200).json(user);
+        return res.status(200).json(STATUS_CODE[200](user));
       }
 
-      return res.status(400);
+      return res.status(404).json(STATUS_CODE[404](user));
     }
   } catch (error) {
-    return res.status(500).json({
-      error: (error as Error).message,
-    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 async function getUserById(req: Request, res: Response) {
-  console.log("getUserById");
   try {
     if (MOCK_DATA_ON === "true") {
-      // getMockUserById
       const id = parseInt(req.params.id);
       const user = getMockUserById(id);
       if (user) {
-        return res.status(200).json(user);
+        return res.status(200).json(STATUS_CODE[200](user));
       }
 
-      return res.status(400).json({
-        error: "User not found",
-      });
+      return res.status(404).json(STATUS_CODE[404](user));
     } else {
       const id = req.params.id;
       const user = await getUserByIdQuery(id);
 
       if (user) {
-        return res.status(200).json(user);
+        return res.status(200).json(STATUS_CODE[200](user));
       }
 
-      return res.status(400);
+      return res.status(404).json(STATUS_CODE[404](user));
     }
   } catch (error) {
-    return res.status(500).json({
-      error: (error as Error).message,
-    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 async function createNewUser(req: Request, res: Response) {
-  console.log("createNewUser");
   try {
     if (MOCK_DATA_ON === "true") {
-      // createMockUser
       const { name, email, password_hash, role, created_at, last_login } =
         req.body;
+      const existingUser = getMockUserByEmail(email);
+
+      if (existingUser) {
+        return res.status(409).json(STATUS_CODE[409](existingUser));
+      }
+
       const user = createMockUser({
         name,
         email,
@@ -128,13 +115,19 @@ async function createNewUser(req: Request, res: Response) {
       });
 
       if (user) {
-        return res.status(201).json(user);
+        return res.status(201).json(STATUS_CODE[201](user));
       }
 
-      return res.status(400);
+      return res.status(400).json(STATUS_CODE[400](user));
     } else {
       const { name, email, password_hash, role, created_at, last_login } =
         req.body;
+      const existingUser = await getUserByEmailQuery(email);
+
+      if (existingUser) {
+        return res.status(409).json(STATUS_CODE[409](existingUser));
+      }
+
       const user = await createNewUserQuery({
         name,
         email,
@@ -145,33 +138,31 @@ async function createNewUser(req: Request, res: Response) {
       });
 
       if (user) {
-        return res.status(201).json(user);
+        return res.status(201).json(STATUS_CODE[201](user));
       }
 
-      return res.status(400);
+      return res.status(400).json(STATUS_CODE[400](user));
     }
   } catch (error) {
-    return res.status(500).json({
-      error: (error as Error).message,
-    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 async function loginUser(req: Request, res: Response): Promise<any> {
-  console.log("loginUser");
   try {
     if (MOCK_DATA_ON === "true") {
-      // getMockUserByEmail
       const { email, password } = req.body;
       const user = getMockUserByEmail(email);
 
       if (user?.password_hash === password) {
-        return res.status(200).json({
-          token: "Generated token",
-        });
+        return res.status(202).json(
+          STATUS_CODE[202]({
+            token: "Generated token",
+          })
+        );
       }
 
-      return res.status(404);
+      return res.status(406).json(STATUS_CODE[406]({}));
     } else {
       const { email, password } = req.body;
       const user = await getUserByEmailQuery(email);
@@ -183,40 +174,33 @@ async function loginUser(req: Request, res: Response): Promise<any> {
         );
 
         if (passwordIsMatched) {
-          return res.status(200).json({
-            token: "Generated token",
-          });
+          return res.status(202).json(
+            STATUS_CODE[202]({
+              token: "Generated token",
+            })
+          );
         }
       }
 
-      return res.status(400);
+      return res.status(406).json(STATUS_CODE[406]({}));
     }
   } catch (error) {
-    return res.status(500).json({
-      error: (error as Error).message,
-    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 async function resetPassword(req: Request, res: Response) {
-  console.log("resetPassword");
   try {
     const { email, newPassword } = req.body;
 
     if (MOCK_DATA_ON === "true") {
-      // resetMockPassword
       const user = getMockUserByEmail(email);
       if (user) {
         user.password_hash = newPassword;
-        return res.status(200).json({
-          user,
-          message: "Password reset successfully",
-        });
+        return res.status(202).json(STATUS_CODE[202](user));
       }
 
-      return res.status(400).json({
-        error: "User not found",
-      });
+      return res.status(404).json(STATUS_CODE[404](user));
     } else {
       const user = await getUserByEmailQuery(email);
 
@@ -225,31 +209,22 @@ async function resetPassword(req: Request, res: Response) {
         user.password_hash = hashedPassword;
         const updatedUser = await resetPasswordQuery(email, hashedPassword);
 
-        return res.status(200).json({
-          updatedUser,
-          message: "Password reset successfully",
-        });
+        return res.status(202).json(STATUS_CODE[202](updatedUser));
       }
 
-      return res.status(400).json({
-        error: "User not found",
-      });
+      return res.status(404).json(STATUS_CODE[404](user));
     }
   } catch (error) {
-    return res.status(500).json({
-      error: (error as Error).message,
-    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 async function updateUserById(req: Request, res: Response) {
-  console.log("updateUserById");
   try {
     const id = req.params.id;
     const { name, email, password_hash, role, last_login } = req.body;
 
     if (MOCK_DATA_ON === "true") {
-      // updateMockUserById
       const user = getMockUserById(parseInt(id));
 
       if (user) {
@@ -259,15 +234,10 @@ async function updateUserById(req: Request, res: Response) {
         user.role = role || user.role;
         user.last_login = last_login || user.last_login;
 
-        return res.status(200).json({
-          user,
-          message: "User updated successfully",
-        });
+        return res.status(202).json(STATUS_CODE[202](user));
       }
 
-      return res.status(400).json({
-        error: "User not found",
-      });
+      return res.status(404).json(STATUS_CODE[404]({}));
     } else {
       const user = await getUserByIdQuery(id);
 
@@ -280,64 +250,42 @@ async function updateUserById(req: Request, res: Response) {
           last_login: last_login || user.last_login,
         });
 
-        return res
-          .status(200)
-          .json({ updatedUser, message: "User updated successfully" });
+        return res.status(202).json(STATUS_CODE[202](updatedUser));
       }
 
-      return res.status(400).json({
-        error: "User not found",
-      });
+      return res.status(404).json(STATUS_CODE[404]({}));
     }
   } catch (error) {
-    return res.status(500).json({
-      error: (error as Error).message,
-    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 async function deleteUserById(req: Request, res: Response) {
-  console.log("deleteUserById");
   try {
     if (MOCK_DATA_ON === "true") {
-      // deleteMockUserById
       const id = parseInt(req.params.id);
       const user = getMockUserById(id);
 
       if (user) {
-        // Simulate deletion
         const deletedUser = deleteMockUserById(id);
-        return res.status(200).json({
-          deletedUser,
-          message: "User deleted successfully",
-        });
+        return res.status(202).json(STATUS_CODE[202](deletedUser));
       }
 
-      return res.status(400).json({
-        error: "User not found",
-      });
+      return res.status(404).json(STATUS_CODE[404]({}));
     } else {
       const id = req.params.id;
       const user = await getUserByIdQuery(id);
 
       if (user) {
-        // Delete user
         const deletedUser = await deleteUserByIdQuery(id);
 
-        return res.status(200).json({
-          deletedUser,
-          message: "User deleted successfully",
-        });
+        return res.status(202).json(STATUS_CODE[202](deletedUser));
       }
 
-      return res.status(400).json({
-        error: "User not found",
-      });
+      return res.status(404).json(STATUS_CODE[404]({}));
     }
   } catch (error) {
-    return res.status(500).json({
-      error: (error as Error).message,
-    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 

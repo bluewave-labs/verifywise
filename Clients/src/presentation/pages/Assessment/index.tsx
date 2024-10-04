@@ -4,18 +4,18 @@ const Assessment = () => {
 
   const theme = useTheme();
 
-  const Item = styled(Paper)(({ theme }) => ({
-      backgroundColor: theme.palette.background.alt,
-      ...theme.typography.body2,
-      padding: theme.spacing(1),
-      border: "1px solid",
-      borderColor: theme.palette.border,
-      boxShadow: "none",
-      paddingRight: "150px",
-      paddingLeft: "25px",
-      paddingTop: "10px",
-      paddingBottom: "10px",
-    }));
+  const paperStyle = {
+    backgroundColor: theme.palette.background.alt,
+    ...theme.typography.body2,
+    padding: theme.spacing(1),
+    border: "1px solid",
+    borderColor: theme.palette.border,
+    boxShadow: "none",
+    paddingRight: "150px",
+    paddingLeft: "25px",
+    paddingTop: "10px",
+    paddingBottom: "10px",
+  }
 
   const buttonStyles = {
       width: "157px",
@@ -40,18 +40,18 @@ const Assessment = () => {
           Assessment tracker
         </Typography>
         <Stack direction={"row"} gap={theme.spacing(10)} sx={{ marginTop: "20px" }}>
-          <Item>
+          <Paper sx={paperStyle}>
             <Typography fontSize={"12px"} color={theme.palette.text.accent} fontFamily={"inter"}>Assessment completion</Typography>
             <Typography fontWeight={"bold"} fontSize={"16px"} color={theme.palette.text.primary} fontFamily={"inter"}>85%</Typography>
-          </Item>
-          <Item>
+          </Paper>
+          <Paper sx={paperStyle}>
             <Typography fontSize={"12px"} color={theme.palette.text.accent} fontFamily={"inter"}>Pending assessments</Typography>
             <Typography fontWeight={"bold"} fontSize={"16px"} color={theme.palette.text.primary} fontFamily={"inter"}>2</Typography>
-          </Item>
-          <Item>
+          </Paper>
+          <Paper sx={paperStyle}>
             <Typography fontSize={"12px"} color={theme.palette.text.accent} fontFamily={"inter"}>Approved assessments</Typography>
             <Typography fontWeight={"bold"} fontSize={"16px"} color={theme.palette.text.primary} fontFamily={"inter"}>12</Typography>
-          </Item>
+          </Paper>
         </Stack>
         <Typography variant="h5" fontWeight={"bold"} fontSize={"16px"} color={theme.palette.text.primary} sx={{ marginTop: "50px" }} fontFamily={"inter"}>
           Ongoing assessments

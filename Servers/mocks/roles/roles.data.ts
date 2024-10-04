@@ -1,5 +1,5 @@
 // Role table mock data
-const roles = [
+export const roles = [
   {
     id: 1,
     name: "Admin",

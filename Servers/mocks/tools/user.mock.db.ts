@@ -1,3 +1,49 @@
+/**
+ * @file user.mock.db.ts
+ * @description This file contains mock implementations of user-related database operations.
+ * It provides functions to get, create, update, and delete mock users, as well as reset passwords.
+ * These functions operate on an in-memory array of user objects, simulating a database for testing purposes.
+ *
+ * @module user.mock.db
+ *
+ * @function getAllMockUsers
+ * @description Retrieves all mock users.
+ * @returns {Array} An array of all mock user objects.
+ *
+ * @function getMockUserByEmail
+ * @description Retrieves a mock user by their email address.
+ * @param {string} email - The email address of the user to retrieve.
+ * @returns {Object|undefined} The mock user object if found, otherwise undefined.
+ *
+ * @function getMockUserById
+ * @description Retrieves a mock user by their ID.
+ * @param {number} id - The ID of the user to retrieve.
+ * @returns {Object|undefined} The mock user object if found, otherwise undefined.
+ *
+ * @function createMockUser
+ * @description Creates a new mock user if the email and ID are unique.
+ * @param {Object} user - The user object to create.
+ * @returns {Object} The created mock user object.
+ * @throws {Error} If a user with the same email or ID already exists.
+ *
+ * @function resetMockPassword
+ * @description Resets the password for a mock user identified by their email address.
+ * @param {string} email - The email address of the user whose password is to be reset.
+ * @param {string} newPassword - The new password to set.
+ * @returns {Object|undefined} The updated mock user object if found, otherwise undefined.
+ *
+ * @function updateMockUserById
+ * @description Updates a mock user identified by their ID with new data.
+ * @param {number} id - The ID of the user to update.
+ * @param {Object} user - The new data to update the user with.
+ * @returns {Object|null} The updated mock user object if found, otherwise null.
+ *
+ * @function deleteMockUserById
+ * @description Deletes a mock user identified by their ID.
+ * @param {number} id - The ID of the user to delete.
+ * @returns {Object|null} The deleted mock user object if found, otherwise null.
+ */
+
 import { users } from "../users/users.data";
 
 export const getAllMockUsers = () => {

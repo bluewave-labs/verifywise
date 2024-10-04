@@ -97,7 +97,7 @@ const DropDowns = () => {
         />
 
         <DatePicker
-          label="Due Date:"
+          label="Due date:"
           sx={inputStyles}
         />
       </Stack>

@@ -90,6 +90,9 @@ const Compliance = ({
             padding: 0,
             margin: 0,
           },
+          "& .css-11dq6i3-MuiPaper-root-MuiTableContainer-root":{
+            marginTop: 0,
+          }
         }}
       >
         <AccordionSummary
@@ -107,6 +110,11 @@ const Compliance = ({
             bgcolor: "#FAFAFA",
             padding: spacing(5),
             flexDirection: "row-reverse",
+            height: '',
+            "& .MuiAccordionSummary-content":{
+              marginTop: '12px',
+              marginBottom: '12px',
+            }
           }}
         >
           <Typography
@@ -116,7 +124,20 @@ const Compliance = ({
             {title}
           </Typography>
         </AccordionSummary>
-        <AccordionDetails>{content}</AccordionDetails>
+        <AccordionDetails
+        sx={{
+          "& .css-5s768i-MuiTable-root": {
+            border: "none",
+            borderRadius : '0',
+          },
+          "& .css-11dq6i3-MuiPaper-root-MuiTableContainer-root": {
+            borderLeft: "none",
+            borderRight: "none",
+            borderBottom: "none",
+            borderRadius: "0",
+          }
+        }}
+        >{content}</AccordionDetails>
       </Accordion>
     </Box>
   );

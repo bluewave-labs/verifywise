@@ -8,7 +8,9 @@ import {
   Box,
   Tabs,
   Tab,
+  IconButton,
 } from "@mui/material";
+import CloseIcon from '@mui/icons-material/Close';
 
 import React, { useState } from "react";
 import DropDowns from "../../Inputs/Dropdowns";
@@ -28,9 +30,15 @@ const CustomModal: React.FC<CustomModalProps> = ({
   title,
 }) => {
   const theme = useTheme();
-  // State for the date input
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
+
+  const extractNumberFromTitle = (title: string) => {
+    const match = title.match(/\d+/);
+    return match ? match[0] : "0"; 
+  };
+
+  const titleNumber = extractNumberFromTitle(title);
 
   const handleClose = () => setIsOpen(false);
 
@@ -91,6 +99,18 @@ const CustomModal: React.FC<CustomModalProps> = ({
           },
         }}
       >
+        <IconButton
+          onClick={handleClose}
+          sx={{
+            position: "absolute",
+            top: theme.spacing(2),
+            right: theme.spacing(2),
+          }}
+          disableRipple
+        >
+          <CloseIcon  />
+        </IconButton>
+
         <Typography fontSize={16} fontWeight={600} sx={{ textAlign: "left" }}>
           {title}
         </Typography>
@@ -100,7 +120,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
           throughout the entire lifecycle of the high-risk AI system.
         </Typography>
         <DropDowns />
-        <Divider sx={{ borderColor: "#C2C2C2", mt: 3 }} />
+        <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
 
         <Box sx={{ width: "100%", bgcolor: "background.paper" }}>
           <Tabs
@@ -110,10 +130,10 @@ const CustomModal: React.FC<CustomModalProps> = ({
             textColor="primary"
             sx={{ justifyContent: "flex-start" }}
           >
-            <Tab label="Subcontrol 1" sx={{ textTransform: "none" }} />
-            <Tab label="Subcontrol 2" sx={{ textTransform: "none" }} />
-            <Tab label="Subcontrol 3" sx={{ textTransform: "none" }} />
-            <Tab label="Subcontrol 4" sx={{ textTransform: "none" }} />
+            <Tab label="Subcontrol 1" sx={{ textTransform: "none" }} disableRipple />
+            <Tab label="Subcontrol 2" sx={{ textTransform: "none" }} disableRipple />
+            <Tab label="Subcontrol 3" sx={{ textTransform: "none" }} disableRipple />
+            <Tab label="Subcontrol 4" sx={{ textTransform: "none" }} disableRipple />
           </Tabs>
         </Box>
 
@@ -168,11 +188,11 @@ const CustomModal: React.FC<CustomModalProps> = ({
             fontWeight={600}
             sx={{ textAlign: "left", mb: 3 }}
           >
-            Subcontrol 19.1
+            Subcontrol {titleNumber}.{selectedTab + 1}
           </Typography>
           <Typography variant="body1" sx={{ mb: 5 }}>
             Plan and execute the risk management process as a continuous
-            iterative cycle. (EU AI ACT Ref: Subcontrol 19.1)
+            iterative cycle. (EU AI ACT Ref: Subcontrol {titleNumber}.{selectedTab + 1})
           </Typography>
           {activeSection === "Overview" && (
             <Typography variant="body1">
@@ -183,7 +203,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
             <AuditorFeedback activeSection={activeSection} />
           )}
         </Box>
-        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2}}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
           <Stack
             gap={theme.spacing(4)}
             sx={{ display: "flex", flexDirection: "row" }}

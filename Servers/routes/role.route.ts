@@ -30,15 +30,16 @@ import {
   getRoleById,
   updateRoleById,
 } from "../controllers/role.ctrl";
+import authenticateJWT from "../middleware/auth.middleware";
 const router = express.Router();
 
 // GET requests
-router.get("/", getAllRoles);
-router.get("/:id", getRoleById);
+router.get("/", authenticateJWT, getAllRoles);
+router.get("/:id", authenticateJWT, getRoleById);
 
 // POST, PUT, DELETE requests
-router.post("/", createRole);
-router.put("/:id", updateRoleById);
-router.delete("/:id", deleteRoleById);
+router.post("/", authenticateJWT, createRole);
+router.put("/:id", authenticateJWT, updateRoleById);
+router.delete("/:id", authenticateJWT, deleteRoleById);
 
 export default router;

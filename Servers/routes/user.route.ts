@@ -19,6 +19,7 @@ import {
   resetPassword,
   updateUserById,
 } from "../controllers/user.ctrl";
+import authenticateJWT from "../middleware/auth.middleware";
 
 /**
  * GET /users
@@ -32,7 +33,7 @@ import {
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.get("/", getAllUsers);
+router.get("/", authenticateJWT, getAllUsers);
 
 /**
  * GET /users/by-email/:email
@@ -46,7 +47,7 @@ router.get("/", getAllUsers);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.get("/by-email/:email", getUserByEmail);
+router.get("/by-email/:email", authenticateJWT, getUserByEmail);
 
 /**
  * GET /users/:id
@@ -60,7 +61,7 @@ router.get("/by-email/:email", getUserByEmail);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.get("/:id", getUserById);
+router.get("/:id", authenticateJWT, getUserById);
 
 /**
  * POST /users/register
@@ -116,7 +117,7 @@ router.post("/reset-password", resetPassword);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.patch("/:id", updateUserById);
+router.patch("/:id", authenticateJWT, updateUserById);
 
 /**
  * DELETE /users/:id
@@ -130,6 +131,6 @@ router.patch("/:id", updateUserById);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.delete("/:id", deleteUserById);
+router.delete("/:id", authenticateJWT, deleteUserById);
 
 export default router;

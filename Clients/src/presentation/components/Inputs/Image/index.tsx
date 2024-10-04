@@ -68,7 +68,7 @@ const ImageField: React.FC<ImageFieldProps> = ({
               borderRadius: theme.shape.borderRadius,
               borderColor: isDragging
                 ? theme.palette.primary.main
-                : theme.palette.border,
+                : theme.palette.border.light,
               borderWidth: "2px",
               transition: "0.2s",
               "&:hover": {
@@ -115,7 +115,7 @@ const ImageField: React.FC<ImageFieldProps> = ({
                 sx={{
                   pointerEvents: "none",
                   borderRadius: theme.shape.borderRadius,
-                  border: `solid 2px ${theme.palette.border}`,
+                  border: `solid 2px ${theme.palette.border.light}`,
                   boxShadow: theme.boxShadow,
                 }}
               >

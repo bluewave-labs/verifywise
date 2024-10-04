@@ -18,7 +18,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 import { useTheme } from "@mui/material";
 import React, { useState } from "react";
-import { toggleSidebar, setMode } from "../../tools/uiSlice";
+import { toggleSidebar } from "../../tools/uiSlice";
 
 import { ReactComponent as ArrowLeft } from "../../assets/icons/left-arrow.svg";
 import { ReactComponent as ArrowRight } from "../../assets/icons/right-arrow.svg";
@@ -31,12 +31,17 @@ import { ReactComponent as Assessment } from "../../assets/icons/chart.svg";
 import { ReactComponent as Vendors } from "../../assets/icons/building.svg";
 import { ReactComponent as Settings } from "../../assets/icons/setting.svg";
 import { ReactComponent as Team } from "../../assets/icons/team.svg";
+
+import Logo from "../../assets/imgs/logo.png";
+
 import Avatar from "../Avatar";
+import Select from "../Inputs/Select";
 
 const menu = [
   {
     name: "Dashboard",
     icon: <Dashboard />,
+    path: "/",
   },
   {
     name: "Compliance tracker",
@@ -44,20 +49,20 @@ const menu = [
     path: "/compliance-tracker",
   },
   {
-    name: "Assessment",
+    name: "Assessment tracker",
     icon: <Assessment />,
     path: "/assessment",
   },
   {
     name: "Vendors",
-    icon: <Vendors />,
+    icon: <Vendors style={{}} />,
     path: "/vendors",
   },
 ];
 
 const other = [
   {
-    name: "Setting",
+    name: "Settings",
     icon: <Settings />,
     path: "/setting",
   },
@@ -111,11 +116,11 @@ const Sidebar = () => {
       gap={theme.spacing(6)}
       sx={{
         border: 1,
-        borderColor: theme.palette.border,
+        borderColor: theme.palette.border.light,
         borderRadius: theme.shape.borderRadius,
         backgroundColor: theme.palette.background.main,
         "& ,selected-path, & >MuiListItemButton-root:hover": {
-          backgroundColor: theme.palette.background.accent,
+          backgroundColor: theme.palette.background.main,
         },
         "& .Muilist-root svg path": {
           stroke: theme.palette.text.tertiary,
@@ -125,32 +130,35 @@ const Sidebar = () => {
         },
       }}
     >
-      {!collapsed && (
-        <Stack
-          pt={theme.spacing(6)}
-          pb={theme.spacing(12)}
-          pl={theme.spacing(8)}
-        >
-          <Stack direction="row" alignItems="center" gap={theme.spacing(4)}>
-            <Typography
-              component="span"
-              mt={theme.spacing(2)}
-              sx={{ opacity: 0.8, fontWeight: 500 }}
-              className="app-title"
+      <Stack
+        pt={theme.spacing(6)}
+        pb={theme.spacing(12)}
+        pl={theme.spacing(12)}
+      >
+        <Stack direction="row" alignItems="center" gap={theme.spacing(4)}>
+          <img src={Logo} alt="Logo" width={32} height={30} />
+          <Typography
+            component="span"
+            mt={theme.spacing(2)}
+            sx={{ opacity: 0.8, fontWeight: 500 }}
+            className="app-title"
+          >
+            Verify
+            <span
+              style={{
+                color: "#0f604d",
+              }}
             >
-              Verify
-              <span
-                style={{
-                  color: theme.palette.primary.main,
-                }}
-              >
-                Wise
-              </span>
-            </Typography>
-          </Stack>
+              Wise
+            </span>
+          </Typography>
         </Stack>
-      )}
+      </Stack>
+
       <IconButton
+        disableRipple={
+          theme.components?.MuiListItemButton?.defaultProps?.disableRipple
+        }
         sx={{
           position: "absolute",
           top: 60,
@@ -158,11 +166,9 @@ const Sidebar = () => {
           transform: `translate(50%, 0)`,
           backgroundColor: theme.palette.background.fill,
           border: 1,
-          borderColor: theme.palette.border,
+          borderColor: theme.palette.border.light,
           p: theme.spacing(2.5),
           "& svg": {
-            // width: theme.spacing(8),
-            // height: theme.spacing(8),
             "& path": {
               stroke: theme.palette.text.secondary,
             },
@@ -180,12 +186,33 @@ const Sidebar = () => {
       >
         {collapsed ? <ArrowRight /> : <ArrowLeft />}
       </IconButton>
+      {/* Select */}
+      {!collapsed && (
+        <Stack
+          sx={{
+            padding: theme.spacing(4),
+            justifyContent: "flex-start",
+            width: "fit-content",
+          }}
+        >
+          <Select
+            id="projects"
+            value={"1"}
+            items={[
+              { _id: "1", name: "ChatBot AI" },
+              { _id: "2", name: "Chat-GPT 4" },
+            ]}
+            onChange={() => {}}
+            sx={{ width: "180px", marginLeft: theme.spacing(8) }}
+          />
+        </Stack>
+      )}
       {/* menu */}
       <List
         component="nav"
         aria-labelledby="nested-menu-subheader"
         disablePadding
-        sx={{ px: theme.spacing(6) }}
+        sx={{ px: theme.spacing(8) }}
       >
         {/*
         Items of the menu
@@ -211,8 +238,14 @@ const Sidebar = () => {
               disableInteractive
             >
               <ListItemButton
+                disableRipple={
+                  theme.components?.MuiListItemButton?.defaultProps
+                    ?.disableRipple
+                }
                 className={
-                  location.pathname.includes(item.path) ? "selected-path" : ""
+                  location.pathname === item.path
+                    ? "selected-path"
+                    : "unselected"
                 }
                 onClick={() => navigate(`${item.path}`)}
                 sx={{
@@ -220,10 +253,16 @@ const Sidebar = () => {
                   gap: theme.spacing(4),
                   borderRadius: theme.shape.borderRadius,
                   px: theme.spacing(4),
+                  backgroundColor:
+                    location.pathname === item.path ? "#F9F9F9" : "transparent",
+
+                  "&:hover": {
+                    backgroundColor: "#F9F9F9",
+                  },
                 }}
               >
                 <ListItemIcon sx={{ minWidth: 0 }}>{item.icon}</ListItemIcon>
-                <ListItemText> {item.name} </ListItemText>
+                <ListItemText>{item.name}</ListItemText>
               </ListItemButton>
             </Tooltip>
           ) : collapsed ? (
@@ -244,6 +283,10 @@ const Sidebar = () => {
                 disableInteractive
               >
                 <ListItemButton
+                  disableRipple={
+                    theme.components?.MuiListItemButton?.defaultProps
+                      ?.disableRipple
+                  }
                   className={
                     Boolean(anchorEl) && popup === item.name
                       ? "selected-path"
@@ -255,6 +298,14 @@ const Sidebar = () => {
                     gap: theme.spacing(4),
                     borderRadius: theme.shape.borderRadius,
                     px: theme.spacing(4),
+                    backgroundColor:
+                      location.pathname === item.path
+                        ? "#F9F9F9"
+                        : "transparent",
+
+                    "&:hover": {
+                      backgroundColor: "#F9F9F9",
+                    },
                   }}
                 >
                   <ListItemIcon sx={{ minWidth: 0 }}>{item.icon}</ListItemIcon>
@@ -322,7 +373,7 @@ const Sidebar = () => {
       <List
         component={"nav"}
         aria-labelledby="nested-other-subheader"
-        sx={{ px: theme.spacing(6) }}
+        sx={{ px: theme.spacing(8) }}
       >
         {other.map((item) => (
           <Tooltip
@@ -344,6 +395,9 @@ const Sidebar = () => {
             disableInteractive
           >
             <ListItemButton
+              disableRipple={
+                theme.components?.MuiListItemButton?.defaultProps?.disableRipple
+              }
               className={
                 location.pathname.includes(item.path) ? "selected-path" : ""
               }
@@ -360,6 +414,12 @@ const Sidebar = () => {
                 gap: theme.spacing(4),
                 borderRadius: theme.shape.borderRadius,
                 px: theme.spacing(4),
+                backgroundColor:
+                  location.pathname === item.path ? "#F9F9F9" : "transparent",
+
+                "&:hover": {
+                  backgroundColor: "#F9F9F9",
+                },
               }}
             >
               <ListItemIcon sx={{ minWidth: 0 }}>{item.icon}</ListItemIcon>
@@ -398,9 +458,15 @@ const Sidebar = () => {
             >
               <IconButton
                 onClick={(event) => openPopup(event, "logout")}
-                sx={{ p: 0, "&:focus": { outline: "none" } }}
+                sx={{
+                  p: 0,
+                  "&:focus": { outline: "none" },
+                  justifyContent: "center",
+                  alignItems: "center",
+                  marginLeft: theme.spacing(3),
+                }}
               >
-                <Avatar small={true} />
+                <Avatar small={true} sx={{ margin: "auto" }} />
               </IconButton>
             </Tooltip>
           </>
@@ -417,6 +483,9 @@ const Sidebar = () => {
             </Box>
             <Tooltip title="Controls" disableInteractive>
               <IconButton
+                disableRipple={
+                  theme.components?.MuiIconButton?.defaultProps?.disableRipple
+                }
                 sx={{
                   ml: "auto",
                   mr: "-8px",
@@ -451,6 +520,7 @@ const Sidebar = () => {
               sx: {
                 marginTop: theme.spacing(-4),
                 marginLeft: collapsed ? theme.spacing(2) : 0,
+                fontSize: 13,
               },
             },
           }}
@@ -460,11 +530,12 @@ const Sidebar = () => {
               "& li": { m: 0 },
               "& li:has(.MuiBox-root):hover": {
                 backgroundColor: "transparent",
+                fontSize: 13,
               },
             },
           }}
           sx={{
-            ml: theme.spacing(8),
+            ml: theme.spacing(12),
           }}
         >
           {collapsed && (
@@ -479,24 +550,6 @@ const Sidebar = () => {
               </Box>
             </MenuItem>
           )}
-          {collapsed && <Divider />}
-          <MenuItem
-            onClick={() => {
-              dispatch(setMode("light"));
-              closePopup();
-            }}
-          >
-            Light
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
-              dispatch(setMode("dark"));
-              closePopup();
-            }}
-          >
-            Dark
-          </MenuItem>
-          <Divider />
           <MenuItem
             onClick={logout}
             sx={{
@@ -505,6 +558,11 @@ const Sidebar = () => {
               pl: theme.spacing(4),
               "& svg path": {
                 stroke: theme.palette.other.icon,
+              },
+              fontSize: 13,
+
+              "& .MuiTouchRipple-root": {
+                display: "none",
               },
             }}
           >

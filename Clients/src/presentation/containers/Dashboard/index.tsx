@@ -5,7 +5,13 @@ import { Outlet } from "react-router";
 
 const Dashboard = () => {
   return (
-    <Stack className="home-layout" flexDirection="row" gap={14}>
+    <Stack
+      maxWidth="100%"
+      className="home-layout"
+      flexDirection="row"
+      gap={14}
+      sx={{ backgroundColor: "#FCFCFD" }}
+    >
       <Sidebar />
       <Outlet />
     </Stack>

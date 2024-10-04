@@ -63,7 +63,7 @@ const ProgressUpload: React.FC<ProgressUploadProps> = ({
         height: "fit-content",
         borderRadius: theme.shape.borderRadius,
         border: 1,
-        borderColor: theme.palette.border,
+        borderColor: theme.palette.border.light,
         backgroundColor: theme.palette.background.fill,
         "&:has(.input-error)": {
           borderColor: theme.palette.error.main,
@@ -93,7 +93,7 @@ const ProgressUpload: React.FC<ProgressUploadProps> = ({
               height: 30,
               minWidth: 30,
               border: 1,
-              borderColor: theme.palette.border,
+              borderColor: theme.palette.border.dark,
               borderRadius: 2,
               backgroundColor: theme.palette.background.main,
               "& svg": {
@@ -172,7 +172,7 @@ const ProgressUpload: React.FC<ProgressUploadProps> = ({
                 height: "10px",
                 borderRadius: theme.shape.borderRadius,
                 maxWidth: "500px",
-                backgroundColor: theme.palette.border,
+                backgroundColor: theme.palette.border.light,
               }}
             />
           </Box>

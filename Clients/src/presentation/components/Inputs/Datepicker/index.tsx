@@ -42,7 +42,7 @@ const DatePicker = ({
           color={theme.palette.text.secondary}
           fontSize={13}
           fontWeight={500}
-          marginBottom={theme.spacing(3)}
+          marginBottom={theme.spacing(2)}
         >
           {label}
           {isRequired ? (

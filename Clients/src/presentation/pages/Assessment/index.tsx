@@ -1,36 +1,37 @@
 import { Stack, Button, Typography, useTheme, styled, Paper } from "@mui/material";
 
 const Assessment = () => {
+
   const theme = useTheme();
 
   const Item = styled(Paper)(({ theme }) => ({
-    backgroundColor: theme.palette.background.alt,
-    ...theme.typography.body2,
-    padding: theme.spacing(1),
-    border: "1px solid",
-    borderColor: theme.palette.border,
-    boxShadow: "none",
-    paddingRight: "150px",
-    paddingLeft: "25px",
-    paddingTop: "10px",
-    paddingBottom: "10px",
-  }));
+      backgroundColor: theme.palette.background.alt,
+      ...theme.typography.body2,
+      padding: theme.spacing(1),
+      border: "1px solid",
+      borderColor: theme.palette.border,
+      boxShadow: "none",
+      paddingRight: "150px",
+      paddingLeft: "25px",
+      paddingTop: "10px",
+      paddingBottom: "10px",
+    }));
 
   const buttonStyles = {
-    width: "157px",
-    height: "34px",
-    marginTop: "30px",
-    textTransform: 'none',
-    border: "1px solid",
-    borderColor: theme.palette.status.info.border,
-    borderRadius: "4px",
-    boxShadow: "none",
-    gap: "8px",
-    paddingTop: "10px",
-    paddingBottom: "10px",
-    paddingLeft: "16px",
-    paddingRight: "16px",
-  } as const;
+      width: "157px",
+      height: "34px",
+      marginTop: "30px",
+      textTransform: 'none',
+      border: "1px solid",
+      borderColor: theme.palette.status.info.border,
+      borderRadius: "4px",
+      boxShadow: "none",
+      gap: "8px",
+      paddingTop: "10px",
+      paddingBottom: "10px",
+      paddingLeft: "16px",
+      paddingRight: "16px",
+    } as const;
 
   return (
     <div className="assessment-page">

@@ -14,99 +14,89 @@ import {
   getRoleByIdQuery,
   updateRoleByIdQuery,
 } from "../utils/role.utils";
+import { STATUS_CODE } from "../utils/statusCode.utils";
 
 export async function getAllRoles(req: Request, res: Response): Promise<any> {
-  console.log("getAllRoles");
   try {
     if (MOCK_DATA_ON === "true") {
-      // using getAllMockRoles
       const roles = getAllMockRoles();
 
       if (roles) {
-        return res.status(200).json(roles);
+        return res.status(200).json(STATUS_CODE[200](roles));
       }
 
-      return res.status(400);
+      return res.status(204).json(STATUS_CODE[204](roles));
     } else {
       const roles = await getAllRolesQuery();
 
       if (roles) {
-        return res.status(200).json({
-          roles,
-        });
+        return res.status(200).json(STATUS_CODE[200](roles));
       }
 
-      return res.status(400);
+      return res.status(204).json(STATUS_CODE[204](roles));
     }
   } catch (error) {
-    return res.status(500).json({
-      error: (error as Error).message,
-    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 export async function getRoleById(req: Request, res: Response): Promise<any> {
-  console.log("getRoleById");
   try {
     const roleId = parseInt(req.params.id);
 
     if (MOCK_DATA_ON === "true") {
-      // using getMockRoleById
       const role = getMockRoleById(roleId);
 
       if (role) {
-        return res.status(200).json(role);
+        return res.status(200).json(STATUS_CODE[200](role));
       }
 
-      return res.status(404).json({ message: "Role not found" });
+      return res.status(404).json(STATUS_CODE[404](role));
     } else {
       const role = await getRoleByIdQuery(roleId);
 
       if (role) {
-        return res.status(200).json(role);
+        return res.status(200).json(STATUS_CODE[200](role));
       }
 
-      return res.status(404).json({ message: "Role not found" });
+      return res.status(404).json(STATUS_CODE[404](role));
     }
   } catch (error) {
-    return res.status(500).json({
-      error: (error as Error).message,
-    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 export async function createRole(req: Request, res: Response): Promise<any> {
-  console.log("createRole");
   try {
     const { name, description } = req.body;
 
     if (!name || !description) {
       return res
         .status(400)
-        .json({ message: "Name and description are required" });
+        .json(
+          STATUS_CODE[400]({ message: "name and description are required" })
+        );
     }
 
     if (MOCK_DATA_ON === "true") {
       const newRole = createMockRole({ name, description });
 
       if (newRole) {
-        return res.status(201).json(newRole);
+        return res.status(201).json(STATUS_CODE[201](newRole));
       }
 
-      return res.status(400).json({ message: "Failed to create role" });
+      return res.status(503).json(STATUS_CODE[503]({}));
     } else {
       const newRole = await createNewRoleQuery({ name, description });
 
       if (newRole) {
-        return res.status(201).json(newRole);
+        return res.status(201).json(STATUS_CODE[201](newRole));
       }
 
-      return res.status(400).json({ message: "Failed to create role" });
+      return res.status(503).json(STATUS_CODE[503]({}));
     }
   } catch (error) {
-    return res.status(500).json({
-      error: (error as Error).message,
-    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
@@ -122,18 +112,19 @@ export async function updateRoleById(
     if (!name || !description) {
       return res
         .status(400)
-        .json({ message: "Name and description are required" });
+        .json(
+          STATUS_CODE[400]({ message: "name and description are required" })
+        );
     }
 
     if (MOCK_DATA_ON === "true") {
-      // Update mock role logic here
       const updatedRole = updateMockRoleById(roleId, { name, description });
 
       if (updatedRole) {
-        return res.status(200).json(updatedRole);
+        return res.status(202).json(STATUS_CODE[202](updatedRole));
       }
 
-      return res.status(404).json({ message: "Role not found" });
+      return res.status(404).json(STATUS_CODE[404]({}));
     } else {
       const updatedRole = await updateRoleByIdQuery(roleId, {
         name,
@@ -141,15 +132,13 @@ export async function updateRoleById(
       });
 
       if (updatedRole) {
-        return res.status(200).json(updatedRole);
+        return res.status(202).json(STATUS_CODE[202](updatedRole));
       }
 
-      return res.status(404).json({ message: "Role not found" });
+      return res.status(404).json(STATUS_CODE[404]({}));
     }
   } catch (error) {
-    return res.status(500).json({
-      error: (error as Error).message,
-    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
@@ -157,31 +146,27 @@ export async function deleteRoleById(
   req: Request,
   res: Response
 ): Promise<any> {
-  console.log("deleteRoleById");
   try {
     const roleId = parseInt(req.params.id);
 
     if (MOCK_DATA_ON === "true") {
-      // Delete mock role logic here
       const deletedRole = deleteMockRoleById(roleId);
 
       if (deletedRole) {
-        return res.status(200).json({ message: "Role deleted successfully" });
+        return res.status(202).json(STATUS_CODE[202](deletedRole));
       }
 
-      return res.status(404).json({ message: "Role not found" });
+      return res.status(404).json(STATUS_CODE[404]({}));
     } else {
       const deletedRole = await deleteRoleByIdQuery(roleId);
 
       if (deletedRole) {
-        return res.status(200).json({ message: "Role deleted successfully" });
+        return res.status(202).json(STATUS_CODE[202](deletedRole));
       }
 
-      return res.status(404).json({ message: "Role not found" });
+      return res.status(404).json(STATUS_CODE[404]({}));
     }
   } catch (error) {
-    return res.status(500).json({
-      error: (error as Error).message,
-    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

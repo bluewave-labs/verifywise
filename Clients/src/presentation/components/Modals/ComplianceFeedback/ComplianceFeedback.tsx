@@ -1,7 +1,7 @@
 import { Box, Typography, Tooltip, IconButton } from "@mui/material";
 import React, { useState } from "react";
 import CloudUpload from "../../../assets/icons/cloudUpload.svg";
-import RichTextEditor from "../../../components/RichTextEditor/index"; 
+import RichTextEditor from "../../../components/RichTextEditor/index";
 
 interface AuditorFeedbackProps {
   activeSection: string;
@@ -11,8 +11,38 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({ activeSection }) => {
   const [file, setFile] = useState<File | null>(null);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; 
+    const ALLOWED_FILE_TYPES = [
+      'image/jpeg', 'image/png', 'image/gif',  // Image formats
+      'application/pdf',  // PDF
+      'application/msword',  // DOC
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',  // DOCX
+      'text/plain',  // TXT
+      'application/vnd.ms-excel',  // XLS
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',  // XLSX
+      'application/zip',  // ZIP
+      'application/x-rar-compressed',  // RAR
+    ];
+  
+    try {
+      if (e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+  
+        if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+          alert("Invalid file type. Please upload a supported file format.");
+          return;
+        }
+  
+        if (file.size > MAX_FILE_SIZE) {
+          alert(`File is too large. Maximum size allowed is ${MAX_FILE_SIZE / (1024 * 1024)}MB.`);
+          return;
+        }
+  
+        setFile(file);
+      }
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      alert("An error occurred while uploading the file. Please try again.");
     }
   };
 
@@ -30,10 +60,8 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({ activeSection }) => {
         {activeSection === "Evidence" ? "Evidence:" : "Auditor Feedback:"}
       </Typography>
 
-      {/* Use the RichTextEditor component */}
       <RichTextEditor onContentChange={handleContentChange} />
 
-      {/* File Upload */}
       <Box
         sx={{
           display: "flex",
@@ -46,7 +74,9 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({ activeSection }) => {
         }}
         onClick={UploadFile}
       >
-        <Typography sx={{ color: "black", padding: 5, marginLeft: 1, paddingLeft: 0 }}>
+        <Typography
+          sx={{ color: "black", padding: 5, marginLeft: 1, paddingLeft: 0 }}
+        >
           You can also drag and drop, or click to upload a feedback.
         </Typography>
         <Tooltip title="Attach a file">
@@ -56,7 +86,12 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({ activeSection }) => {
               alt="Upload"
               style={{ height: 19, width: 20 }}
             />
-            <input type="file" hidden id="file-upload" onChange={handleFileUpload} />
+            <input
+              type="file"
+              hidden
+              id="file-upload"
+              onChange={handleFileUpload}
+            />
           </IconButton>
         </Tooltip>
       </Box>

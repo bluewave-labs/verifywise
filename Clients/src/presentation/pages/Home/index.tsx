@@ -1,5 +1,5 @@
 import { Box, Typography } from "@mui/material";
-import Grid from '@mui/material/Grid2';
+import Grid from "@mui/material/Grid2";
 import ProjectCard, { ProjectCardProps } from "../../components/ProjectCard";
 import { mockProjects } from "./projectData";
 import { styles } from "./styles";
@@ -7,24 +7,24 @@ import Popup from "../../components/Popup";
 import CreateProjectForm from "../../components/CreateProjectForm";
 
 interface HomeProps {
-    projects?: ProjectCardProps[]
+  projects?: ProjectCardProps[];
 }
 
 interface MetricSectionProps {
-  title: string,
+  title: string;
   metrics: {
-    title: string,
-    value: string
-  }[]
+    title: string;
+    value: string;
+  }[];
 }
 
-const Home = ({projects = mockProjects}: HomeProps) => {
+const Home = ({ projects = mockProjects }: HomeProps) => {
   const complianceMetrics = [
     { title: "Completed requirements", value: "85%" },
     { title: "Completed assessments", value: "24" },
     { title: "Assessment completion rate", value: "10%" },
   ];
-  
+
   const riskMetrics = [
     { title: "Acceptable risks", value: "31" },
     { title: "Residual risks", value: "1" },
@@ -33,8 +33,14 @@ const Home = ({projects = mockProjects}: HomeProps) => {
 
   const MetricSection = ({ title, metrics }: MetricSectionProps) => (
     <>
-      <Typography variant="h2" component="div" sx={styles.title2}>{title}</Typography>
-      <Grid container spacing={10} sx={{ display: "flex", justifyContent: "space-between" }}>
+      <Typography variant="h2" component="div" sx={styles.title2}>
+        {title}
+      </Typography>
+      <Grid
+        container
+        spacing={10}
+        sx={{ display: "flex", justifyContent: "space-between" }}
+      >
         {metrics.map((metric, index) => (
           <Grid key={index} sx={styles.grid}>
             <Typography sx={styles.gridTitle}>{metric.title}</Typography>
@@ -45,17 +51,18 @@ const Home = ({projects = mockProjects}: HomeProps) => {
     </>
   );
 
-  const NoProjectsMessage  = () => (
+  const NoProjectsMessage = () => (
     <Box sx={styles.noProjectBox}>
       <Box sx={{ display: "flex", justifyContent: "center" }}></Box>
-      <Typography sx={{textAlign: "center", mt: 13.5, color: "#475467" }}>
-        You have no projects, yet. Click on the "New Project" button to start one.
+      <Typography sx={{ textAlign: "center", mt: 13.5, color: "#475467" }}>
+        You have no projects, yet. Click on the "New Project" button to start
+        one.
       </Typography>
     </Box>
   );
 
   return (
-    <Box sx={{ mt: 47, ml: 15.5, mr: 62 }}>
+    <Box>
       <Box sx={styles.projectBox}>
         <Typography variant="h1" component="div" sx={styles.title}>
           Projects overview
@@ -71,19 +78,31 @@ const Home = ({projects = mockProjects}: HomeProps) => {
       </Box>
       {projects && projects.length > 0 ? (
         <>
-          <Grid container spacing={10} sx={{ display: "flex", justifyContent: "space-between" }}>
+          <Grid
+            container
+            spacing={10}
+            sx={{ display: "flex", justifyContent: "space-between" }}
+          >
             {projects.map((item: ProjectCardProps) => (
-                <Grid key={item.id}>
-                  <ProjectCard {...item} />
-                </Grid>
+              <Grid key={item.id}>
+                <ProjectCard {...item} />
+              </Grid>
             ))}
           </Grid>
-          <MetricSection title="All projects compliance status" metrics={complianceMetrics} />
-          <MetricSection title="All projects risk status" metrics={riskMetrics} />
+          <MetricSection
+            title="All projects compliance status"
+            metrics={complianceMetrics}
+          />
+          <MetricSection
+            title="All projects risk status"
+            metrics={riskMetrics}
+          />
         </>
-      ) : <NoProjectsMessage /> } 
+      ) : (
+        <NoProjectsMessage />
+      )}
     </Box>
-  )
+  );
 };
 
 export default Home;

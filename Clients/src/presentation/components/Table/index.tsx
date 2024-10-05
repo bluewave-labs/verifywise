@@ -53,11 +53,13 @@ const BasicTable = ({
   paginated,
   reversed,
   table,
+  onRowClick,
 }: {
   data: TableData;
-  paginated: boolean;
-  reversed: boolean;
+  paginated: any;
+  reversed: any;
   table: any;
+  onRowClick?: (rowId: number) => void;
 }) => {
   const DEFAULT_ROWS_PER_PAGE = 5;
   const theme = useTheme();
@@ -98,7 +100,7 @@ const BasicTable = ({
 
   if (!data || !data.cols || !data.rows) {
     return <div>No data</div>;
-  }
+  } 
 
   const getRange = () => {
     let start = page * rowsPerPage + 1;
@@ -141,19 +143,26 @@ const BasicTable = ({
                   sx={{
                     textTransform: "capitalize",
                     borderBottom: "1px solid #EEEEEE",
-                    cursor: row.handleClick ? "pointer" : "default",
+                    cursor: onRowClick ? "pointer" : "default",
                     "&:hover": {
                       backgroundColor: theme.palette.background.accent,
                     },
                   }}
                   key={row.id}
-                  onClick={row.handleClick ? row.handleClick : null}
+                  onClick={() => {
+                    console.log(`Row clicked: ${row.id}`); 
+                    onRowClick && onRowClick(row.id);
+                  }}
                 >
                   <TableCell sx={cellStyle} key={`icon-${row.id}`}>
                     <img src={row.icon} alt="status icon" width={20} />
                   </TableCell>
                   {row.data.map((cell: any) => {
-                    return <TableCell sx={cellStyle} key={cell.id}>{cell.data}</TableCell>;
+                    return <TableCell 
+                    sx={cellStyle} 
+                    key={cell.id}
+                    >{cell.data}
+                    </TableCell>;
                   })}
                 </TableRow>
               );

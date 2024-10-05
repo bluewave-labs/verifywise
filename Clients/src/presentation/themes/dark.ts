@@ -77,6 +77,201 @@ const dark = createTheme({
     borderRadius: 2,
   },
   boxShadow: shadow,
+  components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          backgroundImage:
+            "radial-gradient(circle, #09090b, #0c0c0e, #0f0f11, #111113, #131315, #131315, #131315, #131315, #111113, #0f0f11, #0c0c0e, #09090b)",
+          lineHeight: "inherit",
+          paddingLeft: "calc(100vw - 100%)",
+        },
+      },
+    },
+    MuiButton: {
+      defaultProps: {
+        disableRipple: true,
+      },
+      styleOverrides: {
+        root: ({ theme }) => ({
+          variants: [
+            {
+              props: (props) => props.variant === "group",
+              style: {
+                color: theme.palette.secondary.contrastText,
+                backgroundColor: theme.palette.background.main,
+                border: 1,
+                borderStyle: "solid",
+                borderColor: theme.palette.border.light,
+              },
+            },
+            {
+              props: (props) =>
+                props.variant === "group" && props.filled === "true",
+              style: {
+                backgroundColor: theme.palette.secondary.main,
+              },
+            },
+            {
+              props: (props) =>
+                props.variant === "contained" && props.color === "secondary",
+              style: {
+                border: 1,
+                borderStyle: "solid",
+                borderColor: theme.palette.border.dark,
+              },
+            },
+          ],
+          fontWeight: 400,
+          borderRadius: 4,
+          boxShadow: "none",
+          textTransform: "none",
+          "&:focus": {
+            outline: "none",
+          },
+          "&:hover": {
+            boxShadow: "none",
+          },
+        }),
+      },
+    },
+    MuiIconButton: {
+      defaultProps: {
+        disableRipple: true,
+      },
+      styleOverrides: {
+        root: {
+          padding: 4,
+          transition: "none",
+          "&:hover": {
+            backgroundColor: "#eaecf0",
+          },
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          marginTop: 4,
+          padding: 0,
+          border: 1,
+          borderStyle: "solid",
+          borderColor: "#eaecf0",
+          borderRadius: 4,
+          boxShadow: shadow,
+          backgroundColor: background.main,
+          backgroundImage: "none",
+        },
+      },
+    },
+    MuiList: {
+      styleOverrides: {
+        root: {
+          padding: 0,
+        },
+      },
+    },
+    MuiListItemButton: {
+      defaultProps: {
+        disableRipple: true,
+      },
+      styleOverrides: {
+        root: {
+          transition: "none",
+        },
+      },
+    },
+    MuiMenuItem: {
+      defaultProps: {
+        disableRipple: true,
+      },
+      styleOverrides: {
+        root: {
+          borderRadius: 4,
+          backgroundColor: "inherit",
+          padding: "4px 6px",
+          color: text.secondary,
+          fontSize: 13,
+          margin: 2,
+          minWidth: 100,
+          "&:hover, &.Mui-selected, &.Mui-selected:hover, &.Mui-selected.Mui-focusVisible":
+            {
+              backgroundColor: background.fill,
+            },
+        },
+      },
+    },
+    MuiTableCell: {
+      styleOverrides: {
+        root: {
+          borderBottomColor: "#eaecf0",
+        },
+      },
+    },
+    MuiTableHead: {
+      styleOverrides: {
+        root: {
+          backgroundColor: background.accent,
+        },
+      },
+    },
+    MuiPagination: {
+      styleOverrides: {
+        root: {
+          backgroundColor: background.main,
+          border: 1,
+          borderStyle: "solid",
+          borderColor: "#eaecf0",
+          "& button": {
+            color: text.tertiary,
+            borderRadius: 4,
+          },
+          "& li:first-of-type button, & li:last-of-type button": {
+            border: 1,
+            borderStyle: "solid",
+            borderColor: "#eaecf0",
+          },
+        },
+      },
+    },
+    MuiPaginationItem: {
+      styleOverrides: {
+        root: {
+          "&:not(.MuiPaginationItem-ellipsis):hover, &.Mui-selected": {
+            backgroundColor: background.fill,
+          },
+        },
+      },
+    },
+    MuiSkeleton: {
+      styleOverrides: {
+        root: {
+          backgroundColor: "#151518",
+        },
+      },
+    },
+
+    MuiButtonBase: {
+      defaultProps: {
+        disableRipple: true,
+      },
+    },
+    MuiFab: {
+      defaultProps: {
+        disableRipple: true,
+      },
+    },
+    MuiCheckbox: {
+      defaultProps: {
+        disableRipple: true,
+      },
+    },
+    MuiButtonGroup: {
+      defaultProps: {
+        disableRipple: true,
+      },
+    },
+  },
 });
 
 export default dark;

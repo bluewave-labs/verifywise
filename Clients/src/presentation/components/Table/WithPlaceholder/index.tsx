@@ -24,10 +24,10 @@ function TableWithPlaceholder({ data = listOfVendors }) {
     setValue(newValue);
   };
 
-  const cellStyle = { fontSize: 13, paddingY: theme.spacing(15) };
+  const cellStyle = { fontSize: 13, paddingY: theme.spacing(6) };
 
   return (
-    <TableContainer style={{ marginBottom: theme.spacing(15) }}>
+    <TableContainer style={{}}>
       <Table
         sx={{
           border: "1px solid #EEEEEE",
@@ -57,7 +57,14 @@ function TableWithPlaceholder({ data = listOfVendors }) {
               "review date",
               "",
             ].map((cell, index) => (
-              <TableCell style={{ color: "#667085" }} key={index}>
+              <TableCell
+                style={{
+                  color: "#a1afc6",
+                  fontWeight: 400,
+                  paddingLeft: "16px",
+                }}
+                key={index}
+              >
                 {cell}
               </TableCell>
             ))}

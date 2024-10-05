@@ -72,7 +72,19 @@ const BasicTable = ({
     setPage(0);
   }, [data]);
 
-  const cellStyle = { fontSize: 13, textWrap: "wrap" ,paddingY: theme.spacing(15)};
+  const cellStyle = {
+    fontSize: 13,
+    textWrap: "nowrap",
+    paddingY: theme.spacing(6),
+    paddingX: theme.spacing(8),
+    Height: "fit-content",
+  };
+
+  const iconCell = {
+    display: "flex",
+    justifyContent: "center",
+    itemAlign: "center",
+  };
 
   const handleChangePage = (event: any, newPage: any) => {
     console.log(event);
@@ -100,7 +112,7 @@ const BasicTable = ({
 
   if (!data || !data.cols || !data.rows) {
     return <div>No data</div>;
-  } 
+  }
 
   const getRange = () => {
     let start = page * rowsPerPage + 1;
@@ -150,19 +162,22 @@ const BasicTable = ({
                   }}
                   key={row.id}
                   onClick={() => {
-                    console.log(`Row clicked: ${row.id}`); 
+                    console.log(`Row clicked: ${row.id}`);
                     onRowClick && onRowClick(row.id);
                   }}
                 >
-                  <TableCell sx={cellStyle} key={`icon-${row.id}`}>
+                  <TableCell
+                    sx={{ ...cellStyle, ...iconCell }}
+                    key={`icon-${row.id}`}
+                  >
                     <img src={row.icon} alt="status icon" width={20} />
                   </TableCell>
                   {row.data.map((cell: any) => {
-                    return <TableCell 
-                    sx={cellStyle} 
-                    key={cell.id}
-                    >{cell.data}
-                    </TableCell>;
+                    return (
+                      <TableCell sx={cellStyle} key={cell.id}>
+                        {cell.data}
+                      </TableCell>
+                    );
                   })}
                 </TableRow>
               );

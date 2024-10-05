@@ -1,8 +1,10 @@
-import { Box, Typography, Button } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import Grid from '@mui/material/Grid2';
 import ProjectCard, { ProjectCardProps } from "../../components/ProjectCard";
 import { mockProjects } from "./projectData";
 import { styles } from "./styles";
+import Popup from "../../components/Popup";
+import CreateProjectForm from "../../components/CreateProjectForm";
 
 interface HomeProps {
     projects?: ProjectCardProps[]
@@ -58,9 +60,14 @@ const Home = ({projects = mockProjects}: HomeProps) => {
         <Typography variant="h1" component="div" sx={styles.title}>
           Projects overview
         </Typography>
-        <Button variant="contained" sx={{ textTransform: "none", borderRadius: 2, maxHeight: 34 }} onClick={() => {}}>
-          New project
-        </Button>
+        <Popup 
+          popupId="create-project-popup" 
+          popupContent={<CreateProjectForm/>} 
+          openPopupButtonName="New project"
+          actionButtonName="Create project"
+          popupTitle="Create new project"
+          popupSubtitle="Create a new project from scratch by filling in the following."
+        />
       </Box>
       {projects && projects.length > 0 ? (
         <>

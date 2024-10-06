@@ -48,5 +48,6 @@ export const styles = {
     gridValue: {
       fontSize: 16,
       fontWeight: 600,
+      color: '#2D3748',
     }
 }

@@ -10,8 +10,9 @@ import Home from "./presentation/pages/Home";
 import ComplianceTracker from "./presentation/pages/ComplianceTracker";
 import Assessment from "./presentation/pages/Assessment";
 import Vendors from "./presentation/pages/Vendors";
-import Setting from "./presentation/pages/Setting";
+import Setting from "./presentation/pages/Settings";
 import Team from "./presentation/pages/Team";
+import RegisterAdmin from "./presentation/pages/Authentication/RegisterAdmin";
 
 function App() {
   const mode = useSelector((state: any) => state.ui?.mode || "light");
@@ -27,6 +28,7 @@ function App() {
           <Route path="/setting" element={<Setting />} />
           <Route path="/team" element={<Team />} />
         </Route>
+        <Route path="/admin-reg" element={<RegisterAdmin />} />
       </Routes>
     </ThemeProvider>
   );

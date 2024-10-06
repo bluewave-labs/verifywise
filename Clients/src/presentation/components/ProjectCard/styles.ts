@@ -11,7 +11,7 @@ export const styles = {
         pt: 12,
         border: `1px solid ${light.palette.border.light}`,
         borderRadius: light.shape.borderRadius,
-        backgroundColor: "#FFFFFF",
+        backgroundColor: light.palette.background.main,
       },
     title: {
       color: '#2D3748',
@@ -32,9 +32,9 @@ export const styles = {
         borderRadius: 2,
         maxHeight: 34,
         borderColor: light.palette.border.dark,
-        color:  light.palette.text.secondary,
+        color: light.palette.text.secondary,
         boxShadow: "none",
-        backgroundColor: "#fff",
+        backgroundColor: light.palette.background.main,
         "&:hover": {
             boxShadow: "none",
         },

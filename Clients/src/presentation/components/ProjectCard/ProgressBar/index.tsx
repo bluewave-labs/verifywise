@@ -8,7 +8,7 @@
  * @returns {JSX.Element} The rendered ProgressBar component.
  */
 
-import { Slider, Stack } from "@mui/material";
+import { Slider, Stack, useTheme } from "@mui/material";
 import { FC } from "react";
 
 interface ProgressBarProps {
@@ -16,6 +16,7 @@ interface ProgressBarProps {
 }
 
 const ProgressBar: FC<ProgressBarProps> = ({progress}) => {
+    const theme = useTheme();
     const progressCount = (progressString: string): number => {
         const [completed, total] = progressString.split('/').map(Number);
         if (Number.isNaN(completed) || Number.isNaN(total) || total === 0) {
@@ -48,7 +49,7 @@ const ProgressBar: FC<ProgressBarProps> = ({progress}) => {
                 cursor: "auto", 
                 height: 8, 
                 border: "none", 
-                color: "#EAECF0" 
+                color: theme.palette.border.light 
             }}/>
         </Stack>
     )

@@ -1,8 +1,10 @@
-import { Box, Typography, Button } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import { Box, Button, Stack, Typography, useTheme } from "@mui/material";
 import ProjectCard, { ProjectCardProps } from "../../components/ProjectCard";
-import { mockProjects } from "./projectData";
+import { mockProjects } from "../../mocks/dashboard/project.data";
 import { styles } from "./styles";
+import dashboardData from "../../mocks/dashboard/dashboard.data";
+import light from "../../themes/light";
+import emptyState from "../../assets/imgs/empty-state.svg"
 
 interface HomeProps {
   projects?: ProjectCardProps[];
@@ -12,21 +14,22 @@ interface MetricSectionProps {
   title: string;
   metrics: {
     title: string;
-    value: string;
+    value: string | number;
   }[];
 }
 
 const Home = ({ projects = mockProjects }: HomeProps) => {
+  const theme = useTheme()
+  const { complianceStatus, riskStatus } = dashboardData;
   const complianceMetrics = [
-    { title: "Completed requirements", value: "85%" },
-    { title: "Completed assessments", value: "24" },
-    { title: "Assessment completion rate", value: "10%" },
+    { title: "Completed requirements", value: `${complianceStatus.assessmentCompletionRate}%` },
+    { title: "Completed assessments", value: complianceStatus.completedAssessments },
+    { title: "Assessment completion rate", value: `${complianceStatus.completedRequirementsPercentage}%` },
   ];
-
   const riskMetrics = [
-    { title: "Acceptable risks", value: "31" },
-    { title: "Residual risks", value: "1" },
-    { title: "Unacceptable risks", value: "14" },
+    { title: "Acceptable risks", value: riskStatus.acceptableRisks },
+    { title: "Residual risks", value: riskStatus.residualRisks },
+    { title: "Unacceptable risks", value: riskStatus.unacceptableRisks },
   ];
 
   const MetricSection = ({ title, metrics }: MetricSectionProps) => (
@@ -34,25 +37,30 @@ const Home = ({ projects = mockProjects }: HomeProps) => {
       <Typography variant="h2" component="div" sx={styles.title2}>
         {title}
       </Typography>
-      <Grid
-        container
-        spacing={10}
-        sx={{ display: "flex", justifyContent: "space-between" }}
+      <Stack
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "space-between",
+          gap: theme.spacing(15),
+        }}
       >
         {metrics.map((metric, index) => (
-          <Grid key={index} sx={styles.grid}>
+          <Stack key={index} sx={styles.grid}>
             <Typography sx={styles.gridTitle}>{metric.title}</Typography>
             <Typography sx={styles.gridValue}>{metric.value}</Typography>
-          </Grid>
+          </Stack>
         ))}
-      </Grid>
+      </Stack>
     </>
   );
 
   const NoProjectsMessage = () => (
     <Box sx={styles.noProjectBox}>
-      <Box sx={{ display: "flex", justifyContent: "center" }}></Box>
-      <Typography sx={{ textAlign: "center", mt: 13.5, color: "#475467" }}>
+      <Box sx={{ display: "flex", justifyContent: "center" }}>
+        <img src={emptyState} alt="Empty project state" />
+      </Box>
+      <Typography sx={{ textAlign: "center", mt: 13.5, color: light.palette.text.tertiary }}>
         You have no projects, yet. Click on the "New Project" button to start
         one.
       </Typography>
@@ -75,17 +83,18 @@ const Home = ({ projects = mockProjects }: HomeProps) => {
       </Box>
       {projects && projects.length > 0 ? (
         <>
-          <Grid
-            container
-            spacing={10}
-            sx={{ display: "flex", justifyContent: "space-between" }}
+          <Stack
+            sx={{ 
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              gap: theme.spacing(15),
+            }}
           >
             {projects.map((item: ProjectCardProps) => (
-              <Grid key={item.id}>
-                <ProjectCard {...item} />
-              </Grid>
+                <ProjectCard key={item.id} {...item} />
             ))}
-          </Grid>
+          </Stack>
           <MetricSection
             title="All projects compliance status"
             metrics={complianceMetrics}

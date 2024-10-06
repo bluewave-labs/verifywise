@@ -1,4 +1,4 @@
-import { Typography, Box } from "@mui/material";
+import { Typography, Box, useTheme } from "@mui/material";
 import Button from '@mui/material/Button';
 import { FC } from "react";
 import euimg from "../../assets/imgs/eu-ai-act.jpg"
@@ -21,6 +21,7 @@ const ProjectCard: FC<ProjectCardProps> = ({
     controls_completed,
     requirements_completed
 }) => {
+    const theme = useTheme();
     const renderProgressBar = (progress: string, label: string) => (
         <>
             <ProgressBar progress={progress} />
@@ -60,7 +61,9 @@ const ProjectCard: FC<ProjectCardProps> = ({
                         EU AI Act
                     </Typography>
                 </Box>                    
-                <Button variant="outlined" sx={styles.button}>
+                <Button variant="outlined" sx={styles.button} disableRipple={
+                    theme.components?.MuiButton?.defaultProps?.disableRipple
+                }>
                     View project
                 </Button>
             </Box>

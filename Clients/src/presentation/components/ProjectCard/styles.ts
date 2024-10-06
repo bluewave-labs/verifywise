@@ -1,19 +1,22 @@
+import light from "../../themes/light";
+
 export const styles = {
     card: {
-      maxHeight: 261,
-      minWidth: 300,
-      pb: 7.5,
-      pr: 15,
-      pl: 6.5,
-      pt: 9.5,
-      border: "1px solid #EAECF0",
-      borderRadius: 2,
-      backgroundColor: "#FFFFFF"
-    },
+        display: "flex",
+        flexDirection: "column",
+        minWidth: 300,
+        width: "100%",
+        maxWidth: "100%",
+        padding: 6,
+        pt: 12,
+        border: `1px solid ${light.palette.border.light}`,
+        borderRadius: light.shape.borderRadius,
+        backgroundColor: "#FFFFFF",
+      },
     title: {
       color: '#2D3748',
-      fontSize: 13,
-      fontWeight: "bold",
+      font: light.typography,
+      fontWeight: 600,
       mb: 6
     },
     subtitle: {
@@ -21,16 +24,20 @@ export const styles = {
         fontSize: 11
     },
     subtitleValue: {
-        color: '#344054', 
-        fontSize: 13
+        color: light.palette.text.secondary,
+        font: light.typography,
     },
     button: {
         textTransform: "none", 
-        borderRadius: 2, 
-        maxHeight: 34, 
-        borderColor: "#D0D5DD", 
-        color: "#344054", 
-        boxShadow: "1px 1px #1018280D"
+        borderRadius: 2,
+        maxHeight: 34,
+        borderColor: light.palette.border.dark,
+        color:  light.palette.text.secondary,
+        boxShadow: "none",
+        backgroundColor: "#fff",
+        "&:hover": {
+            boxShadow: "none",
+        },
     },
     imageBox: {
         maxWidth: 18.24, 
@@ -58,5 +65,5 @@ export const styles = {
         fontSize: 11,
         mb: 10.5, 
         mt: 1
-    }
+    },
 };

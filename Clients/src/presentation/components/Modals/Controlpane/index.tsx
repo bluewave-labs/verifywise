@@ -8,7 +8,6 @@ import {
   Box,
   Tabs,
   Tab,
-  IconButton,
 } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 
@@ -42,7 +41,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
 
   const handleClose = () => setIsOpen(false);
 
-  const handleSelectedTab = (event: React.SyntheticEvent, newValue: number) => {
+  const handleSelectedTab = (_: React.SyntheticEvent, newValue: number) => {
     setSelectedTab(newValue);
   };
 

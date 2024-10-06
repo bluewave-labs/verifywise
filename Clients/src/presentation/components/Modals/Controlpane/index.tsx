@@ -91,7 +91,6 @@ const CustomModal: React.FC<CustomModalProps> = ({
           left: "50%",
           transform: "translate(-50%, -50%)",
           width: 800,
-          height: 900,
           bgcolor: theme.palette.background.alt,
           borderRadius: theme.shape.borderRadius,
           boxShadow: 24,
@@ -183,7 +182,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
         </Stack>
 
         {/* Dynamic Content Based on Active Section */}
-        <Box sx={{ mt: 2 }}>
+        <Box>
           <Typography
             fontSize={16}
             fontWeight={600}
@@ -205,7 +204,14 @@ const CustomModal: React.FC<CustomModalProps> = ({
             <AuditorFeedback activeSection={activeSection} />
           )}
         </Box>
-        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
+        <Stack
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            mt: 2,
+          }}
+        >
           <Stack
             gap={theme.spacing(4)}
             sx={{ display: "flex", flexDirection: "row" }}
@@ -238,7 +244,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
           >
             Save
           </Button>
-        </Box>
+        </Stack>
       </Stack>
     </Modal>
   );

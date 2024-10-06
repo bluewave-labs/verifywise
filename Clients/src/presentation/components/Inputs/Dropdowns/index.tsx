@@ -111,21 +111,20 @@ const DropDowns = () => {
       <Typography fontSize={13} fontWeight={400} sx={{ textAlign: "start" }}>
         Implementation details:
       </Typography>
-      <Stack>
-        <Stack
-          sx={{
-            height: 73,
-            borderRadius: theme.shape.borderRadius,
-            "& .MuiInputBase-root": {
-              height: "73px",
-            },
-            "& .MuiOutlinedInput-input": {
-              paddingTop: "20px",
-            },
-          }}
-        >
-          <Field type="description" />
-        </Stack>
+      <Stack
+        sx={{
+          height: 73,
+          borderRadius: theme.shape.borderRadius,
+          "& .MuiInputBase-root": {
+            height: "73px",
+          },
+          "& .MuiOutlinedInput-input": {
+            paddingTop: "20px",
+          },
+          marginBottom: theme.spacing(4),
+        }}
+      >
+        <Field type="description" />
       </Stack>
     </Stack>
   );

@@ -168,6 +168,7 @@ const Compliance = ({
       </Toolbar>
       <Stack
         sx={{
+          maxWidth: 1400,
           display: "flex",
           justifyContent: "space-between",
           flexDirection: "row",
@@ -224,6 +225,7 @@ const Compliance = ({
 
       <Stack
         sx={{
+          maxWidth: 1400,
           mt: spacing(7.5),
           gap: theme.spacing(10),
         }}

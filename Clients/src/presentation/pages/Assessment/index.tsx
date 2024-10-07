@@ -5,17 +5,20 @@ const Assessment = () => {
   const theme = useTheme();
 
   const paperStyle = {
-    backgroundColor: theme.palette.background.alt,
+    backgroundColor: theme.palette.background.main,
     ...theme.typography.body2,
     padding: theme.spacing(1),
     border: "1px solid",
-    borderColor: theme.palette.border,
+    borderColor: theme.palette.border.light,
     boxShadow: "none",
     paddingRight: "150px",
     paddingLeft: "25px",
     paddingTop: "10px",
     paddingBottom: "10px",
-  }
+    width: 'calc(100% - 150px - 25px)',
+    minWidth: '300px',
+    maxWidth: '80%',
+  };
 
   const buttonStyles = {
       width: "157px",
@@ -24,7 +27,7 @@ const Assessment = () => {
       textTransform: 'none',
       border: "1px solid",
       borderColor: theme.palette.status.info.border,
-      borderRadius: "4px",
+      borderRadius: theme.shape.borderRadius,
       boxShadow: "none",
       gap: "8px",
       paddingTop: "10px",
@@ -35,11 +38,11 @@ const Assessment = () => {
 
   return (
     <div className="assessment-page">
-      <Stack gap={theme.spacing(2)} sx={{ marginTop: "50px", marginLeft: "30px" }}>
+      <Stack gap={theme.spacing(2)} sx={{backgroundColor: theme.palette.background.alt}}>
         <Typography variant="h5" fontWeight={"bold"} fontSize={"16px"} color={theme.palette.text.primary} fontFamily={"inter"}>
           Assessment tracker
         </Typography>
-        <Stack direction={"row"} gap={theme.spacing(10)} sx={{ marginTop: "20px" }}>
+        <Stack direction={"row"} justifyContent={"space-between"} display={'flex'} gap={theme.spacing(10)} sx={{ marginTop: "20px" }}>
           <Paper sx={paperStyle}>
             <Typography fontSize={"12px"} color={theme.palette.text.accent} fontFamily={"inter"}>Assessment completion</Typography>
             <Typography fontWeight={"bold"} fontSize={"16px"} color={theme.palette.text.primary} fontFamily={"inter"}>85%</Typography>

@@ -1,7 +1,7 @@
-import { Box, Typography, Tooltip, IconButton } from "@mui/material";
+import { Box, Typography, Tooltip, IconButton, Stack } from "@mui/material";
 import React, { useState } from "react";
 import CloudUpload from "../../../assets/icons/cloudUpload.svg";
-import RichTextEditor from "../../../components/RichTextEditor/index"; 
+import RichTextEditor from "../../../components/RichTextEditor/index";
 
 interface AuditorFeedbackProps {
   activeSection: string;
@@ -25,7 +25,7 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({ activeSection }) => {
   };
 
   return (
-    <Box sx={{ width: "100%", padding: 2 }}>
+    <Box sx={{ width: "100%" }}>
       <Typography sx={{ mb: 2 }}>
         {activeSection === "Evidence" ? "Evidence:" : "Auditor Feedback:"}
       </Typography>
@@ -34,21 +34,19 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({ activeSection }) => {
       <RichTextEditor onContentChange={handleContentChange} />
 
       {/* File Upload */}
-      <Box
+      <Stack
         sx={{
           display: "flex",
-          flexDirection: "row-reverse",
+          flexDirection: "row",
           border: "1px dotted",
           borderColor: "#D0D5DD",
-          width: 472,
+          width: "100%",
           alignItems: "center",
           cursor: "pointer",
+          justifyContent: "center",
         }}
         onClick={UploadFile}
       >
-        <Typography sx={{ color: "black", padding: 5, marginLeft: 1, paddingLeft: 0 }}>
-          You can also drag and drop, or click to upload a feedback.
-        </Typography>
         <Tooltip title="Attach a file">
           <IconButton component="label">
             <img
@@ -56,10 +54,20 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({ activeSection }) => {
               alt="Upload"
               style={{ height: 19, width: 20 }}
             />
-            <input type="file" hidden id="file-upload" onChange={handleFileUpload} />
+            <input
+              type="file"
+              hidden
+              id="file-upload"
+              onChange={handleFileUpload}
+            />
           </IconButton>
         </Tooltip>
-      </Box>
+        <Typography
+          sx={{ color: "black", padding: 5, marginLeft: 1, paddingLeft: 0 }}
+        >
+          You can also drag and drop, or click to upload a feedback.
+        </Typography>
+      </Stack>
 
       {file && (
         <Typography variant="body2" sx={{ mt: 2 }}>

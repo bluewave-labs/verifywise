@@ -8,9 +8,8 @@ import {
   Box,
   Tabs,
   Tab,
-  IconButton,
 } from "@mui/material";
-import CloseIcon from '@mui/icons-material/Close';
+import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 
 import React, { useState } from "react";
 import DropDowns from "../../Inputs/Dropdowns";
@@ -35,14 +34,14 @@ const CustomModal: React.FC<CustomModalProps> = ({
 
   const extractNumberFromTitle = (title: string) => {
     const match = title.match(/\d+/);
-    return match ? match[0] : "0"; 
+    return match ? match[0] : "0";
   };
 
   const titleNumber = extractNumberFromTitle(title);
 
   const handleClose = () => setIsOpen(false);
 
-  const handleSelectedTab = (event: React.SyntheticEvent, newValue: number) => {
+  const handleSelectedTab = (_: React.SyntheticEvent, newValue: number) => {
     setSelectedTab(newValue);
   };
 
@@ -54,6 +53,9 @@ const CustomModal: React.FC<CustomModalProps> = ({
     backgroundColor: "#EAECF0",
     color: "Black",
     borderColor: "#EAECF0",
+    borderTop: 0,
+    borderBottom: 0,
+    borderRadius: 0,
     fontWeight: 500,
     boxShadow: "none",
     textTransform: "none",
@@ -87,33 +89,31 @@ const CustomModal: React.FC<CustomModalProps> = ({
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: { xs: 300, md: 600, lg: 816 },
-          height: 900,
-          bgcolor: theme.palette.background.paper,
-          border: `1px solid ${theme.palette.divider}`,
+          width: 800,
+          bgcolor: theme.palette.background.alt,
           borderRadius: theme.shape.borderRadius,
           boxShadow: 24,
-          p: theme.spacing(20),
+          paddingY: theme.spacing(15),
+          paddingX: theme.spacing(20),
           "&:focus": {
             outline: "none",
           },
         }}
       >
-        <IconButton
-          onClick={handleClose}
+        <Stack
           sx={{
-            position: "absolute",
-            top: theme.spacing(2),
-            right: theme.spacing(2),
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
-          disableRipple
         >
-          <CloseIcon  />
-        </IconButton>
+          <Typography fontSize={16} fontWeight={600} sx={{ textAlign: "left" }}>
+            {title}
+          </Typography>
 
-        <Typography fontSize={16} fontWeight={600} sx={{ textAlign: "left" }}>
-          {title}
-        </Typography>
+          <CloseIcon onClick={handleClose} style={{ cursor: "pointer" }} />
+        </Stack>
         <Typography fontSize={13}>
           To ensure that the risk management system is a continuous iterative
           process that is planned, run, and regularly reviewed and updated
@@ -130,59 +130,58 @@ const CustomModal: React.FC<CustomModalProps> = ({
             textColor="primary"
             sx={{ justifyContent: "flex-start" }}
           >
-            <Tab label="Subcontrol 1" sx={{ textTransform: "none" }} disableRipple />
-            <Tab label="Subcontrol 2" sx={{ textTransform: "none" }} disableRipple />
-            <Tab label="Subcontrol 3" sx={{ textTransform: "none" }} disableRipple />
-            <Tab label="Subcontrol 4" sx={{ textTransform: "none" }} disableRipple />
+            <Tab
+              label="Subcontrol 1"
+              sx={{ textTransform: "none" }}
+              disableRipple
+            />
+            <Tab
+              label="Subcontrol 2"
+              sx={{ textTransform: "none" }}
+              disableRipple
+            />
+            <Tab
+              label="Subcontrol 3"
+              sx={{ textTransform: "none" }}
+              disableRipple
+            />
+            <Tab
+              label="Subcontrol 4"
+              sx={{ textTransform: "none" }}
+              disableRipple
+            />
           </Tabs>
         </Box>
 
-        <Box sx={{ display: "flex", justifyContent: "flex-start", mt: 2 }}>
-          <Button
-            variant={getVariant(activeSection, "Overview")}
-            onClick={() => handleSectionChange("Overview")}
-            disableRipple
-            sx={{
-              ...buttonTabStyles,
-              backgroundColor:
-                activeSection === "Overview" ? "#EAECF0" : "transparent",
-              fontWeight: activeSection === "Overview" ? "500" : 300,
-            }}
-          >
-            Overview
-          </Button>
-          <Button
-            variant={getVariant(activeSection, "Evidence")}
-            onClick={() => handleSectionChange("Evidence")}
-            disableRipple
-            sx={{
-              ...buttonTabStyles,
-              backgroundColor:
-                activeSection === "Evidence" ? "#EAECF0" : "transparent",
-              fontWeight: activeSection === "Evidence" ? "500" : 300,
-            }}
-          >
-            Evidence
-          </Button>
-          <Button
-            variant={getVariant(activeSection, "Auditor Feedback")}
-            onClick={() => handleSectionChange("Auditor Feedback")}
-            disableRipple
-            sx={{
-              ...buttonTabStyles,
-              backgroundColor:
-                activeSection === "Auditor Feedback"
-                  ? "#EAECF0"
-                  : "transparent",
-              fontWeight: activeSection === "Auditor Feedback" ? "500" : 300,
-            }}
-          >
-            Auditor feedback
-          </Button>
-        </Box>
+        <Stack
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "flex-start",
+            borderRadius: "4px",
+            border: "1px solid #EAECF0",
+            width: "fit-content",
+          }}
+        >
+          {["Overview", "Evidence", "Auditor Feedback"].map((section) => (
+            <Button
+              variant={getVariant(activeSection, section)}
+              onClick={() => handleSectionChange(section)}
+              disableRipple
+              sx={{
+                ...buttonTabStyles,
+                backgroundColor:
+                  activeSection === section ? "#EAECF0" : "transparent",
+                fontWeight: activeSection === section ? "500" : 300,
+              }}
+            >
+              {section}
+            </Button>
+          ))}
+        </Stack>
 
         {/* Dynamic Content Based on Active Section */}
-        <Box sx={{ mt: 2 }}>
+        <Box>
           <Typography
             fontSize={16}
             fontWeight={600}
@@ -192,7 +191,8 @@ const CustomModal: React.FC<CustomModalProps> = ({
           </Typography>
           <Typography variant="body1" sx={{ mb: 5 }}>
             Plan and execute the risk management process as a continuous
-            iterative cycle. (EU AI ACT Ref: Subcontrol {titleNumber}.{selectedTab + 1})
+            iterative cycle. (EU AI ACT Ref: Subcontrol {titleNumber}.
+            {selectedTab + 1})
           </Typography>
           {activeSection === "Overview" && (
             <Typography variant="body1">
@@ -203,7 +203,14 @@ const CustomModal: React.FC<CustomModalProps> = ({
             <AuditorFeedback activeSection={activeSection} />
           )}
         </Box>
-        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
+        <Stack
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            mt: 2,
+          }}
+        >
           <Stack
             gap={theme.spacing(4)}
             sx={{ display: "flex", flexDirection: "row" }}
@@ -236,7 +243,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
           >
             Save
           </Button>
-        </Box>
+        </Stack>
       </Stack>
     </Modal>
   );

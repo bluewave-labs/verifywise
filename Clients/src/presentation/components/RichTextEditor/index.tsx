@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box, Tooltip, IconButton } from "@mui/material";
+import { Box, Tooltip, IconButton, Stack } from "@mui/material";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import {
@@ -11,7 +11,7 @@ import {
 } from "@mui/icons-material";
 
 interface RichTextEditorProps {
-  onContentChange?: (content: string) => void; 
+  onContentChange?: (content: string) => void;
 }
 
 const RichTextEditor: React.FC<RichTextEditorProps> = ({ onContentChange }) => {
@@ -24,7 +24,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ onContentChange }) => {
     autofocus: true,
     onUpdate({ editor }) {
       if (onContentChange) {
-        onContentChange(editor.getHTML()); 
+        onContentChange(editor.getHTML());
       }
     },
   });
@@ -63,7 +63,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ onContentChange }) => {
   };
 
   return (
-    <Box>
+    <Stack>
       {/* Toolbar */}
       <Box
         sx={{
@@ -71,6 +71,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ onContentChange }) => {
           border: "1px solid",
           borderColor: "#c4c4c4",
           borderBottom: "none",
+          borderRadius: "4px",
         }}
       >
         <Tooltip title="Bold">
@@ -84,12 +85,18 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ onContentChange }) => {
           </IconButton>
         </Tooltip>
         <Tooltip title="Uppercase">
-          <IconButton onClick={() => applyFormatting("uppercase")} disableRipple>
+          <IconButton
+            onClick={() => applyFormatting("uppercase")}
+            disableRipple
+          >
             <HMobiledata sx={{ fontSize: "30px", fontWeight: "bold" }} />
           </IconButton>
         </Tooltip>
         <Tooltip title="Lowercase">
-          <IconButton onClick={() => applyFormatting("lowercase")} disableRipple>
+          <IconButton
+            onClick={() => applyFormatting("lowercase")}
+            disableRipple
+          >
             <HMobiledata />
           </IconButton>
         </Tooltip>
@@ -140,7 +147,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ onContentChange }) => {
         }
       `}
       </style>
-    </Box>
+    </Stack>
   );
 };
 

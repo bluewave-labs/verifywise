@@ -1,43 +1,47 @@
-import light from "../../themes/light";
+import { Box, Button, Typography } from "@mui/material";
+import { styled } from '@mui/material/styles';
+
+export const Card = styled(Box)(({ theme }) => ({
+    display: "flex",
+    flexDirection: "column",
+    minWidth: 300,
+    width: "100%",
+    maxWidth: "100%",
+    padding: "19px 34px 15px 13px",
+    border: `1px solid ${theme.palette.border.light}`,
+    borderRadius: theme.shape.borderRadius,
+    backgroundColor: theme.palette.background.main,
+}));
+
+export const Title = styled(Typography)(({ theme }) => ({ 
+    color: '#2D3748',
+    fontWeight: 600,
+    marginBottom: "10px",
+    fontSize: theme.typography.fontSize,
+}));
+
+export const SubtitleValue = styled(Typography)(({ theme }) => ({ 
+    color: theme.palette.text.secondary,
+    fontSize: theme.typography.fontSize,
+}));
+
+export const Btn = styled(Button)(({ theme }) => ({ 
+    textTransform: "none", 
+    borderRadius: 2,
+    maxHeight: 34,
+    borderColor: theme.palette.border.dark,
+    color: theme.palette.text.secondary,
+    boxShadow: "none",
+    backgroundColor: theme.palette.background.main,
+    "&:hover": {
+        boxShadow: "none",
+    },
+}));
 
 export const styles = {
-    card: {
-        display: "flex",
-        flexDirection: "column",
-        minWidth: 300,
-        width: "100%",
-        maxWidth: "100%",
-        padding: 6,
-        pt: 12,
-        border: `1px solid ${light.palette.border.light}`,
-        borderRadius: light.shape.borderRadius,
-        backgroundColor: light.palette.background.main,
-      },
-    title: {
-      color: '#2D3748',
-      font: light.typography,
-      fontWeight: 600,
-      mb: 6
-    },
     subtitle: {
         color: '#8594AC', 
         fontSize: 11
-    },
-    subtitleValue: {
-        color: light.palette.text.secondary,
-        font: light.typography,
-    },
-    button: {
-        textTransform: "none", 
-        borderRadius: 2,
-        maxHeight: 34,
-        borderColor: light.palette.border.dark,
-        color: light.palette.text.secondary,
-        boxShadow: "none",
-        backgroundColor: light.palette.background.main,
-        "&:hover": {
-            boxShadow: "none",
-        },
     },
     imageBox: {
         maxWidth: 18.24, 
@@ -58,12 +62,12 @@ export const styles = {
         display: "flex", 
         justifyContent: "space-between", 
         alignItems: "flex-end", 
-        mt: 15.5
+        mt: 5
     },
     progressBarTitle: {
         color: '#8594AC', 
         fontSize: 11,
-        mb: 10.5, 
+        mb: 10, 
         mt: 1
     },
 };

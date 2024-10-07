@@ -1,4 +1,27 @@
-import light from "../../themes/light";
+import { Box, Stack } from '@mui/material';
+import { styled } from '@mui/material/styles';
+
+export const NoProjectBox = styled(Box)(({ theme }) => ({ 
+  display: "block",
+  width: "100%",
+  border: `1px solid ${theme.palette.border.light}`,
+  borderRadius: 2,
+  backgroundColor: theme.palette.background.main,
+  paddingTop: "68px",
+  paddingBottom: "79px",
+}));
+
+export const StyledStack = styled(Stack)(({ theme }) => ({ 
+  display: "flex",
+  flexDirection: "column",
+  border: `1px solid ${theme.palette.border.light}`,
+  borderRadius: 2,
+  backgroundColor: theme.palette.background.main,
+  minWidth: 300,
+  width: "100%",
+  maxWidth: "100%",
+  padding: "10px 20px",
+}));
 
 export const styles = {
     title: {
@@ -12,33 +35,12 @@ export const styles = {
       alignItems: "flex-end",
       mb: 9,
     },
-    noProjectBox: {
-      display: "block",
-      width: "100%",
-      border: `1px solid ${light.palette.border.light}`,
-      borderRadius: 2,
-      backgroundColor: light.palette.background.main,
-      pt: 34,
-      pb: 39.5,
-    },
     title2: {
       color: "#1A1919",
       fontSize: 16,
       fontWeight: 500,
       pb: 8.5,
       mt: 17,
-    },
-    grid: {
-      display: "flex",
-      flexDirection: "column",
-      border: `1px solid ${light.palette.border.light}`,
-      borderRadius: 2,
-      backgroundColor: light.palette.background.main,
-      minWidth: 300,
-      width: "100%",
-      maxWidth: "100%",
-      paddingX: 10,
-      paddingY: 5,
     },
     gridTitle: {
       fontSize: 12,

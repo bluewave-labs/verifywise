@@ -30,7 +30,6 @@ const ProgressBar: FC<ProgressBarProps> = ({progress}) => {
         <Stack 
             direction="row" 
             sx={{ 
-                mb: 1, 
                 "& .MuiSlider-track": { 
                     backgroundColor: "#4C7DE7" 
                 }, 

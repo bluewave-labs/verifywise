@@ -3,7 +3,7 @@ import Button from '@mui/material/Button';
 import { FC } from "react";
 import euimg from "../../assets/imgs/eu-ai-act.jpg"
 import ProgressBar from "./ProgressBar";
-import { styles } from "./styles";
+import { Btn, Card, styles, SubtitleValue, Title } from "./styles";
 
 export interface ProjectCardProps {
     id: number,
@@ -32,22 +32,22 @@ const ProjectCard: FC<ProjectCardProps> = ({
     );
 
     return (
-        <Box sx={styles.card}>
-            <Typography variant="h5" component="div" sx={styles.title}>
+        <Card>
+            <Title variant="h5">
                 {name}
-            </Typography>
+            </Title>
             <Box sx={styles.upperBox}>
                 <Box>
                     <Typography variant="subtitle1" component="span" sx={styles.subtitle}>
                         Project owner
                     </Typography>
-                    <Typography sx={styles.subtitleValue}>{owner_name}</Typography>
+                    <SubtitleValue>{owner_name}</SubtitleValue>
                 </Box>
                 <Box>
                     <Typography variant="subtitle1" component="span" sx={styles.subtitle}>
                         Last updated
                     </Typography>
-                    <Typography sx={styles.subtitleValue}>{last_update}</Typography>
+                    <SubtitleValue>{last_update}</SubtitleValue>
                 </Box>
             </Box>
             {renderProgressBar(controls_completed, "controls")}
@@ -61,13 +61,11 @@ const ProjectCard: FC<ProjectCardProps> = ({
                         EU AI Act
                     </Typography>
                 </Box>                    
-                <Button variant="outlined" sx={styles.button} disableRipple={
-                    theme.components?.MuiButton?.defaultProps?.disableRipple
-                }>
+                <Btn variant="outlined" disableRipple={theme.components?.MuiButton?.defaultProps?.disableRipple}>
                     View project
-                </Button>
+                </Btn>
             </Box>
-        </Box>
+        </Card>
     )
 }
 

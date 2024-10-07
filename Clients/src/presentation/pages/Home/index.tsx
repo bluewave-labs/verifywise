@@ -1,7 +1,7 @@
 import { Box, Button, Stack, Typography, useTheme } from "@mui/material";
 import ProjectCard, { ProjectCardProps } from "../../components/ProjectCard";
 import { mockProjects } from "../../mocks/dashboard/project.data";
-import { styles } from "./styles";
+import { NoProjectBox, StyledStack, styles } from "./styles";
 import dashboardData from "../../mocks/dashboard/dashboard.data";
 import emptyState from "../../assets/imgs/empty-state.svg"
 
@@ -38,17 +38,17 @@ const Home = ({ projects = mockProjects }: HomeProps) => {
       </Typography>
       <Stack direction="row" justifyContent="space-between" spacing={15}>
         {metrics.map((metric, index) => (
-          <Stack key={index} sx={styles.grid}>
+          <StyledStack key={index}>
             <Typography sx={styles.gridTitle}>{metric.title}</Typography>
             <Typography sx={styles.gridValue}>{metric.value}</Typography>
-          </Stack>
+          </StyledStack>
         ))}
       </Stack>
     </>
   );
 
   const NoProjectsMessage = () => (
-    <Box sx={styles.noProjectBox}>
+    <NoProjectBox>
       <Box sx={{ display: "flex", justifyContent: "center" }}>
         <img src={emptyState} alt="Empty project state" />
       </Box>
@@ -56,7 +56,7 @@ const Home = ({ projects = mockProjects }: HomeProps) => {
         You have no projects, yet. Click on the "New Project" button to start
         one.
       </Typography>
-    </Box>
+    </NoProjectBox>
   );
 
   return (

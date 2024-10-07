@@ -1,4 +1,4 @@
-import { Grid, Stack, Typography, useTheme } from "@mui/material";
+import { Stack, Typography, useTheme } from "@mui/material";
 import { useState } from "react";
 import Select from "../Select";
 import DatePicker from "../Datepicker";
@@ -12,15 +12,25 @@ const DropDowns = () => {
   const [reviewer, setReviewer] = useState<string | number>("");
   const theme = useTheme();
 
-  const inputStyles = { width: 200, height: 34 };
+  const inputStyles = {
+    minWidth: 200,
+    maxWidth: 400,
+    flexGrow: 1,
+    height: 34,
+  };
 
   return (
-    <>
+    <Stack
+      style={{
+        gap: theme.spacing(8),
+      }}
+    >
       <Stack
         display="flex"
         flexDirection="row"
         justifyContent="space-between"
         alignItems="center"
+        gap={theme.spacing(15)}
       >
         <Select
           id="status"
@@ -68,7 +78,6 @@ const DropDowns = () => {
         flexDirection="row"
         justifyContent="space-between"
         alignItems="center"
-        sx={{ mt: 3 }}
       >
         <Select
           id="Owner"
@@ -96,38 +105,28 @@ const DropDowns = () => {
           sx={inputStyles}
         />
 
-        <DatePicker
-          label="Due date:"
-          sx={inputStyles}
-        />
+        <DatePicker label="Due date:" sx={inputStyles} />
       </Stack>
 
-      <Typography
-        fontSize={13}
-        fontWeight={400}
-        sx={{ textAlign: "left", mt: 4, ml: 2 }}
-      >
+      <Typography fontSize={13} fontWeight={400} sx={{ textAlign: "start" }}>
         Implementation details:
       </Typography>
-      <Grid container sx={{ mt: 3 }}>
-        <Grid
-          item
-          xs={12}
-          sx={{
-            height: 73,
-            borderRadius: theme.shape.borderRadius,
-            "& .MuiInputBase-root": {
-              height: "73px",
-            },
-            "& .MuiOutlinedInput-input": {
-              paddingTop: "20px",
-            },
-          }}
-        >
-          <Field type="description" />
-        </Grid>
-      </Grid>
-    </>
+      <Stack
+        sx={{
+          height: 73,
+          borderRadius: theme.shape.borderRadius,
+          "& .MuiInputBase-root": {
+            height: "73px",
+          },
+          "& .MuiOutlinedInput-input": {
+            paddingTop: "20px",
+          },
+          marginBottom: theme.spacing(4),
+        }}
+      >
+        <Field type="description" />
+      </Stack>
+    </Stack>
   );
 };
 

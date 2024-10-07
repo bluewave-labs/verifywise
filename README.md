@@ -1,4 +1,6 @@
-<h1 align="center">VerifyWise</h1>
+<p align="center">
+<img width="266" alt="VerifyWise Logo" src="https://github.com/user-attachments/assets/0bfc50fb-71cc-47e4-97bd-37faa14700fe">
+</p>
 
 <h3 align="center">Democratizing AI Governance</a></h3>
 
@@ -6,7 +8,7 @@
 
 We are democratizing AI best practices with an open-source solution that can be hosted on-premises, giving you complete control over your AI governance.
 
-<img width="1574" alt="Compliance tracker" src="https://github.com/user-attachments/assets/b7fa9fa7-0b39-4498-b701-e03d42010382">
+<img width="1433" alt="VerifyWise" src="https://github.com/user-attachments/assets/268a2c44-01de-4f7b-8e10-1dd4f76e86a8">
 
 ## Running the frontend
 

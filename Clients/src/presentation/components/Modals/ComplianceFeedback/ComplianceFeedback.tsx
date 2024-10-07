@@ -2,47 +2,50 @@ import { Box, Typography, Tooltip, IconButton } from "@mui/material";
 import React, { useState } from "react";
 import CloudUpload from "../../../assets/icons/cloudUpload.svg";
 import RichTextEditor from "../../../components/RichTextEditor/index";
+import { uploadFile } from "../../../../application/tools/fileUtil";
+import ErrorModal from "../Error";
 
 interface AuditorFeedbackProps {
   activeSection: string;
 }
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const ALLOWED_FILE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "text/plain",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/zip",
+  "application/x-rar-compressed",
+];
+
 const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({ activeSection }) => {
   const [file, setFile] = useState<File | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState<boolean>(false);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const MAX_FILE_SIZE = 10 * 1024 * 1024; 
-    const ALLOWED_FILE_TYPES = [
-      'image/jpeg', 'image/png', 'image/gif',  // Image formats
-      'application/pdf',  // PDF
-      'application/msword',  // DOC
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',  // DOCX
-      'text/plain',  // TXT
-      'application/vnd.ms-excel',  // XLS
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',  // XLSX
-      'application/zip',  // ZIP
-      'application/x-rar-compressed',  // RAR
-    ];
-  
-    try {
-      if (e.target.files && e.target.files[0]) {
-        const file = e.target.files[0];
-  
-        if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-          alert("Invalid file type. Please upload a supported file format.");
-          return;
-        }
-  
-        if (file.size > MAX_FILE_SIZE) {
-          alert(`File is too large. Maximum size allowed is ${MAX_FILE_SIZE / (1024 * 1024)}MB.`);
-          return;
-        }
-  
-        setFile(file);
+    setError(null);
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+
+      const { error: uploadError, file: uploadedFile } = uploadFile(
+        file,
+        ALLOWED_FILE_TYPES,
+        MAX_FILE_SIZE
+      );
+
+      if (uploadError) {
+        setError(uploadError);
+        setIsErrorModalOpen(true);
+      } else if (uploadedFile) {
+        setFile(uploadedFile);
       }
-    } catch (error) {
-      console.error("Error uploading file:", error);
-      alert("An error occurred while uploading the file. Please try again.");
     }
   };
 
@@ -52,6 +55,10 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({ activeSection }) => {
 
   const handleContentChange = (content: string) => {
     console.log("Updated content: ", content);
+  };
+
+  const closeErrorModal = () => {
+    setIsErrorModalOpen(false);
   };
 
   return (
@@ -101,6 +108,12 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({ activeSection }) => {
           Attached file: {file.name}
         </Typography>
       )}
+
+      <ErrorModal
+        open={isErrorModalOpen}
+        errorMessage={error}
+        handleClose={closeErrorModal}
+      />
     </Box>
   );
 };

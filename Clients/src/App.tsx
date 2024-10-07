@@ -13,6 +13,7 @@ import Vendors from "./presentation/pages/Vendors";
 import Setting from "./presentation/pages/Settings";
 import Team from "./presentation/pages/Team";
 import RegisterAdmin from "./presentation/pages/Authentication/RegisterAdmin";
+import RegisterUser from "./presentation/pages/Authentication/RegisterUser";
 
 function App() {
   const mode = useSelector((state: any) => state.ui?.mode || "light");
@@ -29,6 +30,7 @@ function App() {
           <Route path="/team" element={<Team />} />
         </Route>
         <Route path="/admin-reg" element={<RegisterAdmin />} />
+        <Route path="/user-reg" element={<RegisterUser />} />
       </Routes>
     </ThemeProvider>
   );

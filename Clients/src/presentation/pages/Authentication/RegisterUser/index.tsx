@@ -4,11 +4,10 @@ import Field from "../../../components/Inputs/Field";
 import Check from "../../../components/Checks";
 import { useState } from "react";
 
-const RegisterAdmin = () => {
+const RegisterUser = () => {
   const [values, setValues] = useState({
     name: "",
     surname: "",
-    email: "",
     password: "",
     confirmPassword: "",
   });
@@ -51,7 +50,7 @@ const RegisterAdmin = () => {
           alignItems: "center",
           height: "100%",
           margin: "auto",
-          gap: theme.spacing(10),
+          gap: theme.spacing(20),
         }}
       >
         <Typography
@@ -62,7 +61,7 @@ const RegisterAdmin = () => {
           Verify<span style={{ color: "#0f604d" }}>Wise</span>
         </Typography>
         <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>
-          Create VerifyWise admin account
+          Create VerifyWise user account
         </Typography>
         <Stack sx={{ gap: theme.spacing(7.5) }}>
           <Field
@@ -80,15 +79,6 @@ const RegisterAdmin = () => {
             sx={buttonStyle}
             value={values.surname}
             onChange={handleChange("surname")}
-          />
-          <Field
-            label="Email"
-            isRequired
-            placeholder="name.surname@companyname.com"
-            sx={buttonStyle}
-            type="email"
-            value={values.email}
-            onChange={handleChange("email")}
           />
           <Field
             label="Password"
@@ -129,4 +119,4 @@ const RegisterAdmin = () => {
   );
 };
 
-export default RegisterAdmin;
+export default RegisterUser;

@@ -17,6 +17,7 @@ import RegisterUser from "./presentation/pages/Authentication/RegisterUser";
 import Login from "./presentation/pages/Authentication/Login";
 import ForgotPassword from "./presentation/pages/Authentication/ForgotPassword";
 import ResetPassword from "./presentation/pages/Authentication/ResetPassword";
+import SetNewPassword from "./presentation/pages/Authentication/SetNewPassword";
 
 function App() {
   const mode = useSelector((state: any) => state.ui?.mode || "light");
@@ -37,6 +38,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/set-new-password" element={<SetNewPassword />} />
       </Routes>
     </ThemeProvider>
   );

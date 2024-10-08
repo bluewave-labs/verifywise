@@ -1,16 +1,13 @@
 import { Button, Stack, Typography, useTheme } from "@mui/material";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Field from "../../../components/Inputs/Field";
-import Check from "../../../components/Checks";
 import { useState } from "react";
+import Checkbox from "../../../components/Inputs/Checkbox";
 
-const RegisterAdmin = () => {
+const Login = () => {
   const [values, setValues] = useState({
-    name: "",
-    surname: "",
     email: "",
     password: "",
-    confirmPassword: "",
   });
 
   const handleChange =
@@ -52,7 +49,7 @@ const RegisterAdmin = () => {
           height: "100%",
           margin: "auto",
           mt: 40,
-          gap: theme.spacing(10),
+          gap: theme.spacing(20),
         }}
       >
         <Typography
@@ -63,25 +60,9 @@ const RegisterAdmin = () => {
           Verify<span style={{ color: "#0f604d" }}>Wise</span>
         </Typography>
         <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>
-          Create VerifyWise admin account
+          Log in to your account
         </Typography>
         <Stack sx={{ gap: theme.spacing(7.5) }}>
-          <Field
-            label="Name"
-            isRequired
-            placeholder="Your name"
-            sx={buttonStyle}
-            value={values.name}
-            onChange={handleChange("name")}
-          />
-          <Field
-            label="Surname"
-            isRequired
-            placeholder="Your surname"
-            sx={buttonStyle}
-            value={values.surname}
-            onChange={handleChange("surname")}
-          />
           <Field
             label="Email"
             isRequired
@@ -100,34 +81,67 @@ const RegisterAdmin = () => {
             value={values.password}
             onChange={handleChange("password")}
           />
-          <Field
-            label="Confirm password"
-            isRequired
-            placeholder="Confirm your password"
-            sx={buttonStyle}
-            type="password"
-            value={values.confirmPassword}
-            onChange={handleChange("confirmPassword")}
-          />
           <Stack
             sx={{
-              gap: theme.spacing(6),
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
             }}
           >
-            <Check text="Must be at least 8 characters" />
-            <Check text="Must contain one special character" />
+            <Checkbox
+              id="30-days-memory"
+              label="Remember for 30 days"
+              isChecked
+              value="true"
+              onChange={() => {}}
+              size="small"
+            />
+            <Typography
+              sx={{
+                color: theme.palette.primary.main,
+                fontSize: 13,
+                fontWeight: "bold",
+              }}
+            >
+              Forgot password
+            </Typography>
           </Stack>
           <Button
             disableRipple
             variant="contained"
             sx={{ fontSize: 13, backgroundColor: theme.palette.primary.main }}
           >
-            Get started
+            Sign in
           </Button>
+          <Stack
+            sx={{
+              mt: theme.spacing(20),
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Typography
+              sx={{ fontSize: 13, color: theme.palette.secondary.contrastText }}
+            >
+              Don’t have an account?{" "}
+              <span
+                style={{
+                  color: theme.palette.primary.main,
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                }}
+                onClick={() => console.log("Click")}
+              >
+                Sign up
+              </span>
+            </Typography>
+          </Stack>
         </Stack>
       </Stack>
     </Stack>
   );
 };
 
-export default RegisterAdmin;
+export default Login;

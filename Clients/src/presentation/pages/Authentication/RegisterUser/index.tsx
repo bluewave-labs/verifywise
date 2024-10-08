@@ -50,6 +50,7 @@ const RegisterUser = () => {
           alignItems: "center",
           height: "100%",
           margin: "auto",
+          mt: 40,
           gap: theme.spacing(20),
         }}
       >

@@ -14,6 +14,7 @@ import Setting from "./presentation/pages/Settings";
 import Team from "./presentation/pages/Team";
 import RegisterAdmin from "./presentation/pages/Authentication/RegisterAdmin";
 import RegisterUser from "./presentation/pages/Authentication/RegisterUser";
+import Login from "./presentation/pages/Authentication/Login";
 
 function App() {
   const mode = useSelector((state: any) => state.ui?.mode || "light");
@@ -31,6 +32,7 @@ function App() {
         </Route>
         <Route path="/admin-reg" element={<RegisterAdmin />} />
         <Route path="/user-reg" element={<RegisterUser />} />
+        <Route path="/login" element={<Login />} />
       </Routes>
     </ThemeProvider>
   );

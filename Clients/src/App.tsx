@@ -16,6 +16,7 @@ import RegisterAdmin from "./presentation/pages/Authentication/RegisterAdmin";
 import RegisterUser from "./presentation/pages/Authentication/RegisterUser";
 import Login from "./presentation/pages/Authentication/Login";
 import ForgotPassword from "./presentation/pages/Authentication/ForgotPassword";
+import ResetPassword from "./presentation/pages/Authentication/ResetPassword";
 
 function App() {
   const mode = useSelector((state: any) => state.ui?.mode || "light");
@@ -35,6 +36,7 @@ function App() {
         <Route path="/user-reg" element={<RegisterUser />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
     </ThemeProvider>
   );

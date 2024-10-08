@@ -1,11 +1,4 @@
-import {
-  Stack,
-  Button,
-  Typography,
-  useTheme,
-  styled,
-  Paper,
-} from "@mui/material";
+import { Stack, Button, Typography, useTheme, Paper } from "@mui/material";
 
 const Assessment = () => {
   const theme = useTheme();

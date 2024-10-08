@@ -52,9 +52,7 @@ const Popup: FC<PopupProps> = ({
             position: "relative",
             backgroundColor: "#FCFCFD",
             borderRadius: 2,
-            m: "auto",
             pt: 14.5, pb: 39.5, pl: 19, pr: 22.5,
-            transform: "translateY(50%)",
             width: "fit-content"
         },
         actionButton: {
@@ -83,7 +81,10 @@ const Popup: FC<PopupProps> = ({
                 top: 0,
                 width: "100%",
                 height: "100%",
-                backgroundColor: "#D9D9D980"
+                backgroundColor: "#D9D9D980",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
             }}>
                 <Box sx={styles.popupContent}>
                     <Typography variant="h1" component="div" sx={{ color: "#344054", fontSize: 16, fontWeight: 600, mb: 3.5 }}>

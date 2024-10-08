@@ -108,6 +108,7 @@ const Select: React.FC<SelectProps> = ({
           "& fieldset": {
             borderRadius: theme.shape.borderRadius,
             borderColor: theme.palette.border.dark,
+            boxShadow: theme.boxShadow
           },
           "&:not(.Mui-focused):hover fieldset": {
             borderColor: theme.palette.border.dark,

@@ -1,99 +1,62 @@
-import { FC } from 'react';
-import { Box, FormControl, InputLabel, InputBase, MenuItem, Select } from '@mui/material';
-import { styles } from "./styles";
+import { FC, useState } from 'react';
+import { Box } from '@mui/material';
+import Select from "../Inputs/Select";
+import DatePicker from '../Inputs/Datepicker';
+import Field from '../Inputs/Field';
 
 const CreateProjectForm: FC = () => {
+  const [riskClassification, setRiskClassification] = useState<string | number>("Select an option");
+  const [typeOfHighRiskRole, setTypeOfHighRiskRole] = useState<string | number>("Select an option");
+  const fieldStyle = {
+    height: 30, 
+    "& input": {
+      padding: "0 14px"
+    }
+  }
   return (
     <Box
       component="form"
       noValidate
       sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 20, rowGap: 8 }}
     >
-
-      {/* Project title field */}
-      <FormControl variant="standard" sx={{ width: 350 }}>
-        <InputLabel shrink htmlFor="project-title-input" sx={styles.label}>
-          Project title
-        </InputLabel>
-        <InputBase id="project-title-input" sx={{ ...styles.input, ...styles.field }} />
-      </FormControl>
-
-      {/* Users field */}
-      <FormControl variant="standard" sx={{ width: 350 }}>
-        <InputLabel shrink htmlFor="users-input" sx={styles.label}>
-          Users
-        </InputLabel>
-        <InputBase id="users-input" placeholder="Add user" sx={{ ...styles.input, ...styles.field }} />
-      </FormControl>
-
-      {/* Owner field */}
-      <FormControl variant="standard" sx={{ width: 350 }}>
-        <InputLabel shrink htmlFor="owner-input" sx={styles.label}>
-          Owner
-        </InputLabel>
-        <InputBase id="owner-input" sx={{ ...styles.input, ...styles.field }} />
-      </FormControl>
-
-      {/* Start data field */}
-      <FormControl variant="standard" sx={{ width: 350 }}>
-        <InputLabel shrink htmlFor="start-date-input" sx={styles.label}>
-          Start date
-        </InputLabel>
-        <InputBase id="start-date-input" type="date" sx={{ ...styles.field, ...styles.input2 }} />
-      </FormControl>
-
-      <Box sx={{ display: "grid", gridTemplateColumns: "1fr", columnGap: 20, rowGap: 8 }}>
-
-        {/* AI risk classification select */}
-        <FormControl variant="standard" >
-          <InputLabel shrink id="classification-input" sx={{ ...styles.label, ...styles.label2 }}>
-            AI risk classification
-          </InputLabel>
-          <Select
-            labelId="classification-input"
-            id="classification-input"
-            //value={}
-            label="AI risk classification"
-            //onChange={handleChange}
-            placeholder="Select an option"
-            sx={{ ...styles.input2, ...styles.field, ...styles.select }}
-          >
-            <MenuItem value={"Some value 1"}>Some value 1</MenuItem>
-            <MenuItem value={"Some value 2"}>Some value 2</MenuItem>
-            <MenuItem value={"Some value 3"}>Some value 3</MenuItem>
-          </Select>
-        </FormControl>
-
-        {/* Type of high risk role select */}
-        <FormControl variant="standard" >
-          <InputLabel shrink id="risk-role-input" sx={{ ...styles.label, ...styles.label2 }}>
-            Type of high risk role
-          </InputLabel>
-          <Select
-            labelId="risk-role--input"
-            id="risk-role-input"
-            //value={}
-            label="Type of high risk role"
-            //onChange={handleChange}
-            placeholder="Select an option"
-            sx={{ ...styles.input2, ...styles.field }}
-          >
-            <MenuItem value={"Some value 1"}>Some value 1</MenuItem>
-            <MenuItem value={"Some value 2"}>Some value 2</MenuItem>
-            <MenuItem value={"Some value 3"}>Some value 3</MenuItem>
-          </Select>
-        </FormControl>
-
+      <Field id="project-title-input" label="Project title" width="350px" sx={fieldStyle} />
+      <Field id="users-input" label="Users" placeholder="Add user" width="350px" sx={fieldStyle} />
+      <Field id="owner-input" label="Owner" width="350px" sx={fieldStyle} />
+      <DatePicker label="Start date" 
+        sx={{ width: "130px", 
+          "& input": {
+            padding: "0 14px"
+          }
+      }} />
+      <Box sx={{ display: "grid", gridTemplateColumns: "1fr", columnGap: 20, rowGap: 9.5, marginTop: "16px" }}>
+         <Select
+          id="risk-classification-input"
+          label="AI risk classification"
+          value={riskClassification}
+          onChange={(e) => setRiskClassification(e.target.value)}
+          items={[
+            { _id: 1, name: "Some value 1" },
+            { _id: 2, name: "Some value 2" },
+            { _id: 3, name: "Some value 3" },
+          ]}
+          sx={{ width: "350px" }}
+        />
+        <Select
+          id="type-of-high-risk-role-input"
+          label="Type of high risk role"
+          value={typeOfHighRiskRole}
+          onChange={(e) => setTypeOfHighRiskRole(e.target.value)}
+          items={[
+            { _id: 1, name: "Some value 1" },
+            { _id: 2, name: "Some value 2" },
+            { _id: 3, name: "Some value 3" },
+          ]}
+          sx={{ width: "350px" }}
+        />
       </Box>
-
-      {/* Goal text area */}
-      <FormControl variant="standard" >
-        <InputLabel shrink htmlFor="goal-input" sx={styles.label}>
-          Goal
-        </InputLabel>
-        <InputBase id="goal-input" multiline rows={4} sx={{ ...styles.field, ...styles.textarea }} />
-      </FormControl>
-
+      <Box sx={{ marginTop: "16px" }}>
+        <Field id="goal-input" label="Goal" type="description" sx={{ height: 101 }} />
+      </Box>
     </Box>
   )
 }

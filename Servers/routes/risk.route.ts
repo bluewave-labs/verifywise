@@ -2,11 +2,11 @@ import express from "express";
 const router = express.Router();
 
 import {
-    createRisk,
-    deleteRiskById,
-    getAllRisks,
-    getRiskById,
-    updateRiskById
+  createRisk,
+  deleteRiskById,
+  getAllRisks,
+  getRiskById,
+  updateRiskById
 } from "../controllers/risk.ctrl"
 
 import authenticateJWT from "../middleware/auth.middleware";

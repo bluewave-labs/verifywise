@@ -6,6 +6,7 @@ import userRoutes from "./routes/user.route";
 import roleRoutes from "./routes/role.route";
 import vendorRoutes from "./routes/vendor.route";
 import riskRoutes from "./routes/risk.route";
+import projectRoutes from "./routes/project.route";
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ app.use("/users", userRoutes);
 app.use("/roles", roleRoutes);
 app.use("/vendors", vendorRoutes);
 app.use("/risks", riskRoutes);
+app.use("/projects", projectRoutes);
 
 app.use("/", (req, res) => {
   res.json("Hello buddy!");

@@ -1,3 +1,11 @@
+/**
+ * @fileoverview This module provides a set of network services for making HTTP requests using CustomAxios.
+ * It includes utility functions for logging requests and responses, as well as error handling.
+ * The available HTTP methods are GET, POST, PATCH, and DELETE.
+ *
+ * @module networkServices
+ */
+
 import CustomAxios from "./customAxios";
 import CustomException from "../exceptions/customeException";
 import { AxiosError } from "axios";
@@ -40,7 +48,14 @@ const logResponse = (method: string, endpoint: string, response: any) => {
 };
 
 export const apiServices = {
-  // GET request
+  /**
+   * Makes a GET request to the specified endpoint with optional query parameters.
+   *
+   * @template T - The type of the response data.
+   * @param {string} endpoint - The API endpoint to send the request to.
+   * @param {RequestParams} [params={}] - Optional query parameters to include in the request.
+   * @returns {Promise<ApiResponse<T>>} - A promise that resolves to the API response.
+   */
   async get<T>(
     endpoint: string,
     params: RequestParams = {}
@@ -60,7 +75,14 @@ export const apiServices = {
     }
   },
 
-  // POST request
+  /**
+   * Makes a POST request to the specified endpoint with optional data payload.
+   *
+   * @template T - The type of the response data.
+   * @param {string} endpoint - The API endpoint to send the request to.
+   * @param {any} [data={}] - Optional data payload to include in the request.
+   * @returns {Promise<ApiResponse<T>>} - A promise that resolves to the API response.
+   */
   async post<T>(endpoint: string, data: any = {}): Promise<ApiResponse<T>> {
     logRequest("post", endpoint, undefined, data);
     try {
@@ -77,7 +99,14 @@ export const apiServices = {
     }
   },
 
-  // PATCH request
+  /**
+   * Makes a PATCH request to the specified endpoint with optional data payload.
+   *
+   * @template T - The type of the response data.
+   * @param {string} endpoint - The API endpoint to send the request to.
+   * @param {any} [data={}] - Optional data payload to include in the request.
+   * @returns {Promise<ApiResponse<T>>} - A promise that resolves to the API response.
+   */
   async patch<T>(endpoint: string, data: any = {}): Promise<ApiResponse<T>> {
     logRequest("patch", endpoint, undefined, data);
     try {
@@ -94,7 +123,13 @@ export const apiServices = {
     }
   },
 
-  // DELETE request
+  /**
+   * Makes a DELETE request to the specified endpoint.
+   *
+   * @template T - The type of the response data.
+   * @param {string} endpoint - The API endpoint to send the request to.
+   * @returns {Promise<ApiResponse<T>>} - A promise that resolves to the API response.
+   */
   async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
     logRequest("delete", endpoint);
     try {

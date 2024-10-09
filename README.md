@@ -1,4 +1,6 @@
-<h1 align="center">VerifyWise</h1>
+<p align="center">
+<img width="266" alt="VerifyWise Logo" src="https://github.com/user-attachments/assets/0bfc50fb-71cc-47e4-97bd-37faa14700fe">
+</p>
 
 <h3 align="center">Democratizing AI Governance</a></h3>
 
@@ -6,7 +8,7 @@
 
 We are democratizing AI best practices with an open-source solution that can be hosted on-premises, giving you complete control over your AI governance.
 
-<img width="1574" alt="Compliance tracker" src="https://github.com/user-attachments/assets/b7fa9fa7-0b39-4498-b701-e03d42010382">
+<img width="1433" alt="VerifyWise" src="https://github.com/user-attachments/assets/268a2c44-01de-4f7b-8e10-1dd4f76e86a8">
 
 ## Running the frontend
 
@@ -35,6 +37,8 @@ VerifyWise is designed for:
 
 ## Features
 
+![VerifyWise platform](https://github.com/user-attachments/assets/915534c8-d6fa-42b8-b8d4-496afa7f49a8)
+
 - Option to host the application on-premises or in a private cloud
 - Open source with a permissive license (AGPLv3)
 - End-to-end encryption for data in transit and at rest to ensure data security
@@ -51,5 +55,4 @@ VerifyWise is designed for:
 
 ## Roadmap
 
-<img width="1086" alt="Screenshot 2024-09-12 at 10 56 50 PM" src="https://github.com/user-attachments/assets/3567066c-d916-49f4-bb0b-881dedb4ad37">
-
+![VerifyWise roadmap](https://github.com/user-attachments/assets/b4e0d024-4a8d-4ef8-a5c6-b47b19fc3d37)

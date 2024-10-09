@@ -1,66 +1,61 @@
 <svg width="768" height="768" viewBox="0 0 768 768" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_14_2)">
-<mask id="mask0_14_2" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="768" height="768">
-<path d="M768 0H0V768H768V0Z" fill="url(#paint0_radial_14_2)"/>
+<mask id="mask0_884_6335" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="768" height="768">
+<rect width="768" height="768" fill="url(#paint0_radial_884_6335)"/>
 </mask>
-<g mask="url(#mask0_14_2)">
-<mask id="mask1_14_2" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="768" height="768">
-<path d="M768 0H0V768H768V0Z" fill="white"/>
-</mask>
-<g mask="url(#mask1_14_2)">
-<mask id="mask2_14_2" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="768" height="768">
-<path d="M768 0H0V768H768V0Z" fill="white"/>
-</mask>
-<g mask="url(#mask2_14_2)">
-<path d="M0.5 0V768" stroke="#b8b9bd"/>
-<path d="M48.5 0V768" stroke="#b8b9bd"/>
-<path d="M96.5 0V768" stroke="#b8b9bd"/>
-<path d="M144.5 0V768" stroke="#b8b9bd"/>
-<path d="M192.5 0V768" stroke="#b8b9bd"/>
-<path d="M240.5 0V768" stroke="#b8b9bd"/>
-<path d="M288.5 0V768" stroke="#b8b9bd"/>
-<path d="M336.5 0V768" stroke="#b8b9bd"/>
-<path d="M384.5 0V768" stroke="#b8b9bd"/>
-<path d="M432.5 0V768" stroke="#b8b9bd"/>
-<path d="M480.5 0V768" stroke="#b8b9bd"/>
-<path d="M528.5 0V768" stroke="#b8b9bd"/>
-<path d="M576.5 0V768" stroke="#b8b9bd"/>
-<path d="M624.5 0V768" stroke="#b8b9bd"/>
-<path d="M672.5 0V768" stroke="#b8b9bd"/>
-<path d="M720.5 0V768" stroke="#b8b9bd"/>
+<g mask="url(#mask0_884_6335)">
+<g clip-path="url(#clip0_884_6335)">
+<g clip-path="url(#clip1_884_6335)">
+<line x1="0.5" x2="0.5" y2="768" stroke="#EAECF0"/>
+<line x1="48.5" x2="48.5" y2="768" stroke="#EAECF0"/>
+<line x1="96.5" x2="96.5" y2="768" stroke="#EAECF0"/>
+<line x1="144.5" x2="144.5" y2="768" stroke="#EAECF0"/>
+<line x1="192.5" x2="192.5" y2="768" stroke="#EAECF0"/>
+<line x1="240.5" x2="240.5" y2="768" stroke="#EAECF0"/>
+<line x1="288.5" x2="288.5" y2="768" stroke="#EAECF0"/>
+<line x1="336.5" x2="336.5" y2="768" stroke="#EAECF0"/>
+<line x1="384.5" x2="384.5" y2="768" stroke="#EAECF0"/>
+<line x1="432.5" x2="432.5" y2="768" stroke="#EAECF0"/>
+<line x1="480.5" x2="480.5" y2="768" stroke="#EAECF0"/>
+<line x1="528.5" x2="528.5" y2="768" stroke="#EAECF0"/>
+<line x1="576.5" x2="576.5" y2="768" stroke="#EAECF0"/>
+<line x1="624.5" x2="624.5" y2="768" stroke="#EAECF0"/>
+<line x1="672.5" x2="672.5" y2="768" stroke="#EAECF0"/>
+<line x1="720.5" x2="720.5" y2="768" stroke="#EAECF0"/>
 </g>
-<path d="M767.5 0.5H0.5V767.5H767.5V0.5Z" stroke="#b8b9bd"/>
-<mask id="mask3_14_2" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="768" height="768">
-<path d="M768 0H0V768H768V0Z" fill="white"/>
-</mask>
-<g mask="url(#mask3_14_2)">
-<path d="M0 47.5H768" stroke="#b8b9bd"/>
-<path d="M0 95.5H768" stroke="#b8b9bd"/>
-<path d="M0 143.5H768" stroke="#b8b9bd"/>
-<path d="M0 191.5H768" stroke="#b8b9bd"/>
-<path d="M0 239.5H768" stroke="#b8b9bd"/>
-<path d="M0 287.5H768" stroke="#b8b9bd"/>
-<path d="M0 335.5H768" stroke="#b8b9bd"/>
-<path d="M0 383.5H768" stroke="#b8b9bd"/>
-<path d="M0 431.5H768" stroke="#b8b9bd"/>
-<path d="M0 479.5H768" stroke="#b8b9bd"/>
-<path d="M0 527.5H768" stroke="#b8b9bd"/>
-<path d="M0 575.5H768" stroke="#b8b9bd"/>
-<path d="M0 623.5H768" stroke="#b8b9bd"/>
-<path d="M0 671.5H768" stroke="#b8b9bd"/>
-<path d="M0 719.5H768" stroke="#b8b9bd"/>
-<path d="M0 767.5H768" stroke="#b8b9bd"/>
+<rect x="0.5" y="0.5" width="767" height="767" stroke="#EAECF0"/>
+<g clip-path="url(#clip2_884_6335)">
+<line y1="47.5" x2="768" y2="47.5" stroke="#EAECF0"/>
+<line y1="95.5" x2="768" y2="95.5" stroke="#EAECF0"/>
+<line y1="143.5" x2="768" y2="143.5" stroke="#EAECF0"/>
+<line y1="191.5" x2="768" y2="191.5" stroke="#EAECF0"/>
+<line y1="239.5" x2="768" y2="239.5" stroke="#EAECF0"/>
+<line y1="287.5" x2="768" y2="287.5" stroke="#EAECF0"/>
+<line y1="335.5" x2="768" y2="335.5" stroke="#EAECF0"/>
+<line y1="383.5" x2="768" y2="383.5" stroke="#EAECF0"/>
+<line y1="431.5" x2="768" y2="431.5" stroke="#EAECF0"/>
+<line y1="479.5" x2="768" y2="479.5" stroke="#EAECF0"/>
+<line y1="527.5" x2="768" y2="527.5" stroke="#EAECF0"/>
+<line y1="575.5" x2="768" y2="575.5" stroke="#EAECF0"/>
+<line y1="623.5" x2="768" y2="623.5" stroke="#EAECF0"/>
+<line y1="671.5" x2="768" y2="671.5" stroke="#EAECF0"/>
+<line y1="719.5" x2="768" y2="719.5" stroke="#EAECF0"/>
+<line y1="767.5" x2="768" y2="767.5" stroke="#EAECF0"/>
 </g>
-<path d="M767.5 0.5H0.5V767.5H767.5V0.5Z" stroke="#b8b9bd"/>
-</g>
+<rect x="0.5" y="0.5" width="767" height="767" stroke="#EAECF0"/>
 </g>
 </g>
 <defs>
-<radialGradient id="paint0_radial_14_2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(384 384) rotate(90) scale(384)">
+<radialGradient id="paint0_radial_884_6335" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(384 384) rotate(90) scale(384 384)">
 <stop/>
 <stop offset="1" stop-opacity="0"/>
 </radialGradient>
-<clipPath id="clip0_14_2">
+<clipPath id="clip0_884_6335">
+<rect width="768" height="768" fill="white"/>
+</clipPath>
+<clipPath id="clip1_884_6335">
+<rect width="768" height="768" fill="white"/>
+</clipPath>
+<clipPath id="clip2_884_6335">
 <rect width="768" height="768" fill="white"/>
 </clipPath>
 </defs>

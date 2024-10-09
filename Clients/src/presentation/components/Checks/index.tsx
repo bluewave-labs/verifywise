@@ -59,6 +59,7 @@ const Check = ({
           color:
             variant === "info" ? theme.palette.text.tertiary : colors[variant],
           opacity: 0.8,
+          fontSize: 11,
         }}
       >
         {text}

@@ -8,7 +8,6 @@ import {
   Box,
   Typography,
   Toolbar,
-  Container,
   AccordionSummary,
   Accordion,
   AccordionDetails,
@@ -51,7 +50,7 @@ const Compliance = ({
   ];
 
   const handleAccordionChange = (panel: string) => {
-    return (event: React.SyntheticEvent, isExpanded: boolean) => {
+    return (_: React.SyntheticEvent, isExpanded: boolean) => {
       setExpanded(isExpanded ? panel : false);
     };
   };
@@ -63,24 +62,24 @@ const Compliance = ({
 
   const handleConfirm = () => {
     console.log("Confirmed action for row:", selectedRow);
-    setIsModalOpen(false); 
+    setIsModalOpen(false);
   };
 
   const renderAccordion = (id: string, title: string, content: any) => (
-    <Box sx={{marginBottom: 10}}>
+    <Box>
       <Accordion
         expanded={expanded === id}
         onChange={handleAccordionChange(id)}
         sx={{
           mt: spacing(4.5),
-          border: "2px solid",
+          border: "1px solid",
           borderColor: "#eaecf0",
           width: "100%",
           marginLeft: spacing(0.75),
           borderRadius: theme.shape.borderRadius,
           overflow: "hidden",
           position: "relative",
-      
+
           "&.MuiPaper-root": {
             margin: 0,
             padding: 0,
@@ -90,16 +89,18 @@ const Compliance = ({
             padding: 0,
             margin: 0,
           },
-          "& .css-11dq6i3-MuiPaper-root-MuiTableContainer-root":{
+          "& .css-11dq6i3-MuiPaper-root-MuiTableContainer-root": {
             marginTop: 0,
-          }
+          },
         }}
       >
         <AccordionSummary
+          className="accordion-summary"
           expandIcon={
             <ExpandMoreIcon
               sx={{
-                transform: expanded === id ? "rotate(180deg)" : "rotate(270deg)",
+                transform:
+                  expanded === id ? "rotate(180deg)" : "rotate(270deg)",
                 transition: "transform 0.3s ease",
               }}
             />
@@ -110,15 +111,16 @@ const Compliance = ({
             bgcolor: "#FAFAFA",
             padding: spacing(5),
             flexDirection: "row-reverse",
-            height: '',
-            "& .Mui-expanded":{
-              marginTop: '12px',
-              marginBottom: '12px',
+            height: 64,
+            "& .Mui-expanded": {
+              margin: 0,
             },
-            "& .MuiAccordionSummary-root":{
-              marginTop: '12px',
-              marginBottom: '12px',
-            }
+            "& .MuiAccordionSummary-root": {
+              margin: 0,
+            },
+            "& .MuiAccordionSummary-content": {
+              margin: 0,
+            },
           }}
         >
           <Typography
@@ -129,146 +131,132 @@ const Compliance = ({
           </Typography>
         </AccordionSummary>
         <AccordionDetails
-        sx={{
-          "& .css-5s768i-MuiTable-root": {
-            border: "none",
-            borderRadius : '0',
-          },
-          "& .css-11dq6i3-MuiPaper-root-MuiTableContainer-root": {
-            borderLeft: "none",
-            borderRight: "none",
-            borderBottom: "none",
-            borderRadius: "0",
-          }
-        }}
-        >{content}</AccordionDetails>
+          sx={{
+            "& .css-5s768i-MuiTable-root": {
+              border: "none",
+              borderRadius: "0",
+            },
+            "& .css-11dq6i3-MuiPaper-root-MuiTableContainer-root": {
+              borderLeft: "none",
+              borderRight: "none",
+              borderBottom: "none",
+              borderRadius: "0",
+            },
+          }}
+        >
+          {content}
+        </AccordionDetails>
       </Accordion>
     </Box>
   );
 
   return (
-    <Container
-      sx={{
-        mt: spacing(1),
-        ml: spacing(3.75),
-        fontFamily: "Inter",
-      }}
-    >
-      <Stack component="section">
-        <Toolbar>
-          <Typography
-            variant="h6"
-            component="div"
+    <Stack className="compliance-page">
+      <Toolbar>
+        <Typography
+          sx={{
+            flexGrow: 1,
+            position: "absolute",
+            top: spacing(2.5),
+            fontSize: "18px",
+            fontWeight: 600,
+            color: "#1A1919",
+          }}
+        >
+          Compliance tracker
+        </Typography>
+      </Toolbar>
+      <Stack
+        sx={{
+          maxWidth: 1400,
+          display: "flex",
+          justifyContent: "space-between",
+          flexDirection: "row",
+          gap: spacing(10),
+          paddingLeft: spacing(0.75),
+          "& .MuiAccordion-root": {
+            boxShadow: "none",
+          },
+          "& .MuiAccordion-root.Mui-expanded": {
+            margin: 0,
+            padding: 0,
+          },
+        }}
+      >
+        {complianceMetrics.map((item: any) => (
+          <Stack
+            key={item.name}
             sx={{
-              flexGrow: 1,
-              position: "absolute",
-              top: spacing(2.5),
-              fontSize: "18px",
-              fontWeight: 600,
-              color: "#1A1919",
+              width: "30%",
+              height: spacing(32),
+              borderRadius: shape.borderRadius,
+              backgroundColor: palette.background.paper,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "start",
+              justifyContent: "center",
+              padding: spacing(2),
+              paddingLeft: spacing(6),
+              textAlign: "end",
+              border: "1px solid",
+              borderColor: "#EAECF0",
             }}
           >
-            Compliance tracker
-          </Typography>
-        </Toolbar>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "flex-start",
-            gap: spacing(20),
-            mt: spacing(1),
-            paddingLeft: spacing(0.75),
-            "& .MuiAccordion-root": {
-              boxShadow: "none", // No shadow effect
-            },
-            "& .MuiAccordion-root.Mui-expanded": {
-              margin: 0,
-              padding: 0, // Prevent margin movement
-            },
-          }}
-        >
-          {complianceMetrics.map((item: any) => (
-            <Box
-              key={item.name}
+            <Typography
+              variant="body1"
+              sx={{ fontSize: "12px", fontWeight: 400, color: "#8594AC" }}
+            >
+              {item.name}
+            </Typography>
+            <Typography
+              variant="h6"
               sx={{
-                width: "30%",
-                height: spacing(32),
-                borderRadius: shape.borderRadius,
-                backgroundColor: palette.background.paper,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "start",
-                justifyContent: "center",
-                padding: spacing(2),
-                paddingLeft: spacing(6),
-                textAlign: "end",
-                border: "2px solid",
-                borderColor: "#EAECF0",
+                mt: spacing(1),
+                fontSize: "16px",
+                fontWeight: 600,
+                color: "#2D3748",
               }}
             >
-              <Typography
-                variant="body1"
-                sx={{ fontSize: "12px", fontWeight: 400, color: "#8594AC" }}
-              >
-                {item.name}
-              </Typography>
-              <Typography
-                variant="h6"
-                sx={{
-                  mt: spacing(1),
-                  fontSize: "16px",
-                  fontWeight: 600,
-                  color: "#2D3748",
-                }}
-              >
-                {item.amount}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-
-        <Box
-          sx={{
-            mt: spacing(7.5),
-          }}
-        >
-          {renderAccordion(
-            acdSumDetails[0].summaryId,
-            acdSumDetails[0].summaryTitle,
-            <BasicTable
-              data={complianceDetails}
-              paginated={false}
-              reversed={false}
-              table="complianceTable"
-              onRowClick={handleRowClick}
-            />
-          )}
-          {renderAccordion(
-            acdSumDetails[1].summaryId,
-            acdSumDetails[1].summaryTitle,
-            <BasicTable
-              data={complianceDetails}
-              paginated={false}
-              reversed={false}
-              table="complianceTable"
-              onRowClick={handleRowClick}
-            />
-          )}
-        </Box>
-        {/* Render the modal and pass the state */}
-        {selectedRow !== null && (
-          <CustomModal
-            isOpen={isModalOpen}
-            setIsOpen={setIsModalOpen}
-            title={
-              selectedRowData ? selectedRowData.data[0].data : "Row not found"
-            }
-            content={`This is some dynamic content for row ${selectedRow}.`}
-            onConfirm={handleConfirm}
-          />
-        )}
+              {item.amount}
+            </Typography>
+          </Stack>
+        ))}
       </Stack>
-    </Container>
+
+      <Stack
+        sx={{
+          maxWidth: 1400,
+          mt: spacing(7.5),
+          gap: theme.spacing(10),
+        }}
+      >
+        {acdSumDetails.map((acdSumDetail) => {
+          return renderAccordion(
+            acdSumDetail.summaryId,
+            acdSumDetail.summaryTitle,
+            <BasicTable
+              data={complianceDetails}
+              paginated={false}
+              reversed={false}
+              table="complianceTable"
+              onRowClick={handleRowClick}
+            />
+          );
+        })}
+      </Stack>
+      {/* Render the modal and pass the state */}
+      {selectedRow !== null && (
+        <CustomModal
+          isOpen={isModalOpen}
+          setIsOpen={setIsModalOpen}
+          title={
+            selectedRowData ? selectedRowData.data[0].data : "Row not found"
+          }
+          content={`This is some dynamic content for row ${selectedRow}.`}
+          onConfirm={handleConfirm}
+        />
+      )}
+    </Stack>
   );
 };
 

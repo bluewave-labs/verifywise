@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 
 import userRoutes from "./routes/user.route";
 import roleRoutes from "./routes/role.route";
+import complianceTrackerRoutes from "./routes/complianceTracker.route";
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/users", userRoutes);
 app.use("/roles", roleRoutes);
+app.use("/complianceTrackers", complianceTrackerRoutes);
 
 app.use("/", (req, res) => {
   res.json("Hello buddy!");

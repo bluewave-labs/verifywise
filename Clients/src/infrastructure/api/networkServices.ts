@@ -1,4 +1,4 @@
-import CustomedAxios from "./customedAxios";
+import CustomAxios from "./customAxios";
 import CustomException from "../exceptions/customeException";
 import { AxiosError } from "axios";
 
@@ -47,9 +47,13 @@ export const apiServices = {
   ): Promise<ApiResponse<T>> {
     logRequest("get", endpoint, params);
     try {
-      const response = await CustomedAxios.get(endpoint, { params });
+      const response = await CustomAxios.get(endpoint, { params });
       logResponse("get", endpoint, response);
-      return response.data;
+      return {
+        data: response.data,
+        status: response.status,
+        statusText: response.statusText,
+      };
     } catch (error) {
       handleError(error);
       return undefined as unknown as ApiResponse<T>;
@@ -60,9 +64,13 @@ export const apiServices = {
   async post<T>(endpoint: string, data: any = {}): Promise<ApiResponse<T>> {
     logRequest("post", endpoint, undefined, data);
     try {
-      const response = await CustomedAxios.post(endpoint, data);
+      const response = await CustomAxios.post(endpoint, data);
       logResponse("post", endpoint, response);
-      return response.data;
+      return {
+        data: response.data,
+        status: response.status,
+        statusText: response.statusText,
+      };
     } catch (error) {
       handleError(error);
       return undefined as unknown as ApiResponse<T>;
@@ -73,9 +81,13 @@ export const apiServices = {
   async patch<T>(endpoint: string, data: any = {}): Promise<ApiResponse<T>> {
     logRequest("patch", endpoint, undefined, data);
     try {
-      const response = await CustomedAxios.patch(endpoint, data);
+      const response = await CustomAxios.patch(endpoint, data);
       logResponse("patch", endpoint, response);
-      return response.data;
+      return {
+        data: response.data,
+        status: response.status,
+        statusText: response.statusText,
+      };
     } catch (error) {
       handleError(error);
       return undefined as unknown as ApiResponse<T>;
@@ -86,9 +98,13 @@ export const apiServices = {
   async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
     logRequest("delete", endpoint);
     try {
-      const response = await CustomedAxios.delete(endpoint);
+      const response = await CustomAxios.delete(endpoint);
       logResponse("delete", endpoint, response);
-      return response.data;
+      return {
+        data: response.data,
+        status: response.status,
+        statusText: response.statusText,
+      };
     } catch (error) {
       handleError(error);
       return undefined as unknown as ApiResponse<T>;

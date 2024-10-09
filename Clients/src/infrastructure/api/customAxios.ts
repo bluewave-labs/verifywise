@@ -1,8 +1,10 @@
 import axios from "axios";
+import { store } from "../../application/redux/store"; // Adjust the path to your store
+const BASE_URL = "http://localhost:3000";
 
 // Create an instance of axios with default configurations
-const CustomedAxios = axios.create({
-  baseURL: process.env.REACT_APP_BASE_URL || "http://localhost:3000",
+const CustomAxios = axios.create({
+  baseURL: process.env.REACT_APP_BASE_URL || BASE_URL,
   timeout: 10000, // Set a timeout limit for requests
   headers: {
     "Content-Type": "application/json",
@@ -11,9 +13,10 @@ const CustomedAxios = axios.create({
 });
 
 // Request interceptor to add authorization token to headers
-CustomedAxios.interceptors.request.use(
+CustomAxios.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const state = store.getState();
+    const token = state.auth.token;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -25,7 +28,7 @@ CustomedAxios.interceptors.request.use(
 );
 
 // Response interceptor to handle responses and errors
-CustomedAxios.interceptors.response.use(
+CustomAxios.interceptors.response.use(
   (response) => {
     return response;
   },
@@ -59,4 +62,4 @@ CustomedAxios.interceptors.response.use(
   }
 );
 
-export default CustomedAxios;
+export default CustomAxios;

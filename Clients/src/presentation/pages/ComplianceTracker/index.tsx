@@ -72,7 +72,7 @@ const Compliance = ({
         onChange={handleAccordionChange(id)}
         sx={{
           mt: spacing(4.5),
-          border: "2px solid",
+          border: "1px solid",
           borderColor: "#eaecf0",
           width: "100%",
           marginLeft: spacing(0.75),
@@ -198,7 +198,7 @@ const Compliance = ({
               padding: spacing(2),
               paddingLeft: spacing(6),
               textAlign: "end",
-              border: "2px solid",
+              border: "1px solid",
               borderColor: "#EAECF0",
             }}
           >

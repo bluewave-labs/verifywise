@@ -17,6 +17,7 @@ import {
   getMockUserById,
 } from "../mocks/tools/user.mock.db";
 import { STATUS_CODE } from "../utils/statusCode.utils";
+import { generateToken } from "../utils/jwt.util";
 
 const MOCK_DATA_ON = process.env.MOCK_DATA_ON;
 
@@ -120,14 +121,15 @@ async function createNewUser(req: Request, res: Response) {
 
       return res.status(400).json(STATUS_CODE[400](user));
     } else {
-      const { name, email, password_hash, role, created_at, last_login } =
+      const { name, email, password, role, created_at, last_login } =
         req.body;
-      const existingUser = await getUserByEmailQuery(email);
+        const existingUser = await getUserByEmailQuery(email);
 
-      if (existingUser) {
-        return res.status(409).json(STATUS_CODE[409](existingUser));
-      }
+        if (existingUser) {
+          return res.status(409).json(STATUS_CODE[409](existingUser));
+        }
 
+      const password_hash = await bcrypt.hash(password, 10);
       const user = await createNewUserQuery({
         name,
         email,
@@ -155,9 +157,13 @@ async function loginUser(req: Request, res: Response): Promise<any> {
       const user = getMockUserByEmail(email);
 
       if (user?.password_hash === password) {
+        const token = generateToken({
+          id: user!.id,
+          email: email
+        })
         return res.status(202).json(
           STATUS_CODE[202]({
-            token: "Generated token",
+            token
           })
         );
       }
@@ -174,9 +180,13 @@ async function loginUser(req: Request, res: Response): Promise<any> {
         );
 
         if (passwordIsMatched) {
+          const token = generateToken({
+            id: user!.id,
+            email: email
+          })
           return res.status(202).json(
             STATUS_CODE[202]({
-              token: "Generated token",
+              token,
             })
           );
         }

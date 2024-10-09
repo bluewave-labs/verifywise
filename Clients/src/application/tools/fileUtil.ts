@@ -12,3 +12,25 @@ export const checkImage = (url: string) => {
   image.src = url;
   return image.naturalWidth !== 0;
 };
+
+
+export const uploadFile = (
+  file: File,
+  allowedFileTypes: string[],
+  maxFileSize: number
+): { error?: string; file?: File } => {
+  try {
+    if (!allowedFileTypes.includes(file.type)) {
+      return { error: "Invalid file type. Please upload a supported file format." };
+    }
+
+    if (file.size > maxFileSize) {
+      return { error: `File is too large. Maximum size allowed is ${maxFileSize / (1024 * 1024)}MB.` };
+    }
+
+    return { file };
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    return { error: "An error occurred while uploading the file. Please try again." };
+  }
+};

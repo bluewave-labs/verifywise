@@ -55,19 +55,25 @@ const Checkbox: FC<CheckboxProps> = ({
       className="checkbox-wrapper"
       control={
         <MuiCheckbox
+          disableRipple
           checked={isDisabled ? false : isChecked}
+          checkedIcon={<CheckboxFilled />}
+          icon={<CheckboxOutline />}
           value={value}
           onChange={onChange}
-          icon={<CheckboxOutline />}
-          checkedIcon={<CheckboxFilled />}
           inputProps={{
             "aria-label": "controlled checkbox",
             id: id,
           }}
           sx={{
+            borderRadius: "4px",
             "&:hover": { backgroundColor: "transparent" },
             "& svg": { width: sizes[size], height: sizes[size] },
+            "& .MuiTouchRipple-root": {
+              display: "none",
+            },
           }}
+          size={size}
         />
       }
       label={label}
@@ -81,12 +87,15 @@ const Checkbox: FC<CheckboxProps> = ({
           p: 0,
           mr: theme.spacing(6),
         },
-        "&:not(:has(.Mui-disabled)):hover": {
-          backgroundColor: theme.palette.background.accent,
+        "&:hover": {
+          backgroundColor: "transparent",
         },
         "& span.MuiTypography-root": {
           fontSize: 13,
           color: theme.palette.text.tertiary,
+        },
+        "& .MuiFormControlLabel-root:hover": {
+          backgroundColor: "transparent",
         },
       }}
     />

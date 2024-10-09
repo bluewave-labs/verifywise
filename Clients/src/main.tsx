@@ -7,6 +7,9 @@ import { persistor, store } from "./application/redux/store.ts";
 import { PersistGate } from "redux-persist/integration/react";
 // import { StyledEngineProvider } from "@mui/material";
 import { BrowserRouter as Router } from "react-router-dom";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 createRoot(document.getElementById("root")!).render(
   <Provider store={store}>

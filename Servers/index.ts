@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import userRoutes from "./routes/user.route";
 import roleRoutes from "./routes/role.route";
 import vendorRoutes from "./routes/vendor.route";
+import riskRoutes from "./routes/risk.route";
 
 dotenv.config();
 
@@ -17,7 +18,8 @@ app.use(cors());
 app.use(express.json());
 app.use("/users", userRoutes);
 app.use("/roles", roleRoutes);
-app.use("/vendors", vendorRoutes)
+app.use("/vendors", vendorRoutes);
+app.use("/risks", riskRoutes);
 
 app.use("/", (req, res) => {
   res.json("Hello buddy!");

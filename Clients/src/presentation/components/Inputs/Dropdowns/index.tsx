@@ -78,6 +78,7 @@ const DropDowns = () => {
         flexDirection="row"
         justifyContent="space-between"
         alignItems="center"
+        gap={theme.spacing(15)}
       >
         <Select
           id="Owner"

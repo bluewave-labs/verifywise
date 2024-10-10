@@ -151,7 +151,7 @@ const Compliance = ({
   );
 
   return (
-    <Stack className="compliance-page">
+    <Stack className="compliance-page" sx={{ }}>
       <Toolbar>
         <Typography
           sx={{

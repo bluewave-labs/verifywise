@@ -9,6 +9,7 @@
 .mui-date-picker .MuiInputBase-root input {
   padding: 5px;
   font-size: 13px;
+  padding-right: 1px;
 }
 
 .mui-date-picker > .MuiFormLabel-root {

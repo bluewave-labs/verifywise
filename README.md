@@ -37,6 +37,8 @@ VerifyWise is designed for:
 
 ## Features
 
+![VerifyWise platform](https://github.com/user-attachments/assets/915534c8-d6fa-42b8-b8d4-496afa7f49a8)
+
 - Option to host the application on-premises or in a private cloud
 - Open source with a permissive license (AGPLv3)
 - End-to-end encryption for data in transit and at rest to ensure data security
@@ -53,5 +55,4 @@ VerifyWise is designed for:
 
 ## Roadmap
 
-<img width="1086" alt="Screenshot 2024-09-12 at 10 56 50 PM" src="https://github.com/user-attachments/assets/3567066c-d916-49f4-bb0b-881dedb4ad37">
-
+![VerifyWise roadmap](https://github.com/user-attachments/assets/b4e0d024-4a8d-4ef8-a5c6-b47b19fc3d37)

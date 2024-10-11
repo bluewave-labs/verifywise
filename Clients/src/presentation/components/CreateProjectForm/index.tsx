@@ -1,14 +1,15 @@
 import { FC, useState } from 'react';
-import { Box, Stack } from '@mui/material';
+import { Box, Stack, useTheme } from '@mui/material';
 import Select from "../Inputs/Select";
 import DatePicker from '../Inputs/Datepicker';
 import Field from '../Inputs/Field';
 
 const CreateProjectForm: FC = () => {
+  const theme = useTheme();
   const [riskClassification, setRiskClassification] = useState<string | number>("Select an option");
   const [typeOfHighRiskRole, setTypeOfHighRiskRole] = useState<string | number>("Select an option");
   const fieldStyle = {
-    height: 30, 
+    backgroundColor: theme.palette.background.main,
     "& input": {
       padding: "0 14px"
     }
@@ -38,7 +39,7 @@ const CreateProjectForm: FC = () => {
             { _id: 2, name: "Some value 2" },
             { _id: 3, name: "Some value 3" },
           ]}
-          sx={{ width: "350px" }}
+          sx={{ width: "350px", backgroundColor: theme.palette.background.main }}
         />
         <Select
           id="type-of-high-risk-role-input"
@@ -51,11 +52,11 @@ const CreateProjectForm: FC = () => {
             { _id: 2, name: "Some value 2" },
             { _id: 3, name: "Some value 3" },
           ]}
-          sx={{ width: "350px" }}
+          sx={{ width: "350px", backgroundColor: theme.palette.background.main }}
         />
       </Box>
       <Box sx={{ marginTop: "16px" }}>
-        <Field id="goal-input" label="Goal" type="description" sx={{ height: 101 }} />
+        <Field id="goal-input" label="Goal" type="description" sx={{ height: 101, backgroundColor: theme.palette.background.main }} />
       </Box>
     </Stack>
   )

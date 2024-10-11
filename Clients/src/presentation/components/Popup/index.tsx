@@ -50,7 +50,7 @@ const Popup: FC<PopupProps> = ({
         },
         popupContent: {
             position: "relative",
-            backgroundColor: "#FCFCFD",
+            backgroundColor: theme.palette.background.alt,
             borderRadius: 2,
             pt: 14.5, pb: 39.5, pl: 19, pr: 22.5,
             width: "fit-content"

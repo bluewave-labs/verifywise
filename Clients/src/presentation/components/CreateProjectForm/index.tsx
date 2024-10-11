@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { Box } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 import Select from "../Inputs/Select";
 import DatePicker from '../Inputs/Datepicker';
 import Field from '../Inputs/Field';
@@ -14,7 +14,7 @@ const CreateProjectForm: FC = () => {
     }
   }
   return (
-    <Box
+    <Stack
       component="form"
       noValidate
       sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 20, rowGap: 8 }}
@@ -24,14 +24,13 @@ const CreateProjectForm: FC = () => {
       <Field id="owner-input" label="Owner" width="350px" sx={fieldStyle} />
       <DatePicker label="Start date" 
         sx={{ width: "130px", 
-          "& input": {
-            padding: "0 14px"
-          }
+          "& input": { width: "85px" }
       }} />
       <Box sx={{ display: "grid", gridTemplateColumns: "1fr", columnGap: 20, rowGap: 9.5, marginTop: "16px" }}>
          <Select
           id="risk-classification-input"
           label="AI risk classification"
+          placeholder="Select an option"
           value={riskClassification}
           onChange={(e) => setRiskClassification(e.target.value)}
           items={[
@@ -44,6 +43,7 @@ const CreateProjectForm: FC = () => {
         <Select
           id="type-of-high-risk-role-input"
           label="Type of high risk role"
+          placeholder="Select an option"
           value={typeOfHighRiskRole}
           onChange={(e) => setTypeOfHighRiskRole(e.target.value)}
           items={[
@@ -57,7 +57,7 @@ const CreateProjectForm: FC = () => {
       <Box sx={{ marginTop: "16px" }}>
         <Field id="goal-input" label="Goal" type="description" sx={{ height: 101 }} />
       </Box>
-    </Box>
+    </Stack>
   )
 }
 

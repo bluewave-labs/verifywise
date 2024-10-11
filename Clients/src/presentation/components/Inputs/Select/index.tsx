@@ -107,8 +107,7 @@ const Select: React.FC<SelectProps> = ({
           minWidth: "125px",
           "& fieldset": {
             borderRadius: theme.shape.borderRadius,
-            borderColor: theme.palette.border.dark,
-            boxShadow: theme.boxShadow
+            borderColor: theme.palette.border.dark
           },
           "&:not(.Mui-focused):hover fieldset": {
             borderColor: theme.palette.border.dark,

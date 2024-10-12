@@ -17,6 +17,12 @@ import {
   updateRiskByIdQuery
 } from "../utils/risk.utils";
 
+/**
+ * send all the risks from the db
+ * @param req request object
+ * @param res response object
+ * @returns return the response with status code and json data
+ */
 export async function getAllRisks(req: Request, res: Response): Promise<any> {
   try {
     if (MOCK_DATA_ON === "true") {
@@ -41,6 +47,12 @@ export async function getAllRisks(req: Request, res: Response): Promise<any> {
   }
 }
 
+/**
+ * send a risk from the db based on the id
+ * @param req request object
+ * @param res response object
+ * @returns return the response with status code and json data
+ */
 export async function getRiskById(req: Request, res: Response): Promise<any> {
   try {
     const riskId = parseInt(req.params.id);
@@ -67,6 +79,12 @@ export async function getRiskById(req: Request, res: Response): Promise<any> {
   }
 }
 
+/**
+ * create risk entry in the db
+ * @param req request object
+ * @param res response object
+ * @returns return the response with status code and json data
+ */
 export async function createRisk(req: Request, res: Response): Promise<any> {
   try {
     const { name, description } = req.body;
@@ -101,6 +119,12 @@ export async function createRisk(req: Request, res: Response): Promise<any> {
   }
 }
 
+/**
+ * update the risk entry in the db
+ * @param req request object
+ * @param res response object
+ * @returns return the response with status code and json data
+ */
 export async function updateRiskById(
   req: Request,
   res: Response
@@ -143,6 +167,12 @@ export async function updateRiskById(
   }
 }
 
+/**
+ * delete a risk entry in the db based on the id
+ * @param req request object
+ * @param res response object
+ * @returns return the response with status code and json data
+ */
 export async function deleteRiskById(
   req: Request,
   res: Response

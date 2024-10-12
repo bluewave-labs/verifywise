@@ -35,6 +35,13 @@ VerifyWise is designed for:
 - **Legal and privacy teams**: Professionals addressing the legal and ethical implications of AI use.
 - **AI developers**: Teams working on AI projects who need to ensure compliance and responsible development.
 
+## Why now? 
+
+- **There is an urgent need for regulatory compliance:** Regulations set clear rules for AI applications and create a need for organizations to comply with legal requirements.
+- **Complexity of compliance:** Companies will need governance tools that can help them manage a changing regulatory landscape. 
+- **Growing concerns for Ethical AI:** There’s a strong push from governments, businesses, and consumers for more ethical and transparent AI systems.
+- **Good timing with global AI expansion:** Starting an open source AI governance app now aligns with the AI adoption trend across industries (healthcare, finance etc), leading the need for a quickly deployable governance solution.
+
 ## Features
 
 ![VerifyWise platform](https://github.com/user-attachments/assets/915534c8-d6fa-42b8-b8d4-496afa7f49a8)

@@ -12,6 +12,11 @@ const getTokenPayload = (token: any): any => {
   }
 };
 
+/**
+ * Generate token payload and add the expiration time of the token
+ * @param payload id and email of the user
+ * @returns generated token
+ */
 const generateToken = (payload: {
   id: number,
   email: string

@@ -4,10 +4,7 @@ import dotenv from "dotenv";
 
 import userRoutes from "./routes/user.route";
 import roleRoutes from "./routes/role.route";
-<<<<<<< HEAD
 import vendorRiskRoutes from "./routes/vendorRisk.route";
-=======
->>>>>>> 7aefaf4c211d0559fa2b03488758cc11966e0f20
 import riskRoutes from "./routes/risk.route";
 
 dotenv.config();

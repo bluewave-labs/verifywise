@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import userRoutes from "./routes/user.route";
 import roleRoutes from "./routes/role.route";
 import vendorRiskRoutes from "./routes/vendorRisk.route";
+import riskRoutes from "./routes/risk.route";
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.use(express.json());
 app.use("/users", userRoutes);
 app.use("/roles", roleRoutes);
 app.use("/vendorRisks", vendorRiskRoutes);
+app.use("/risks", riskRoutes);
 
 app.use("/", (req, res) => {
   res.json("Hello buddy!");

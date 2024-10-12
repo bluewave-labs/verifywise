@@ -16,6 +16,7 @@ import { ReactComponent as Setting } from "../../assets/icons/setting.svg";
 import { useState } from "react";
 import BasicModal from "../Modals/Basic";
 import AddNewVendor from "../Modals/NewVendor";
+import singleTheme from "../../themes/v1SingleTheme";
 
 const IconButton = () => {
   const theme = useTheme();
@@ -25,22 +26,7 @@ const IconButton = () => {
   const [isOpenAddNewVendorModal, setIsOpenAddNewVendorModal] = useState(false);
   const [value, setValue] = useState("1");
 
-  const dropDownStyle = {
-    width: 190,
-    "& ul": { p: theme.spacing(2.5) },
-    "& li": {
-      m: 0,
-      fontSize: 13,
-      "& .MuiTouchRipple-root": {
-        display: "none",
-      },
-    },
-    "& li:hover": { borderRadius: 4 },
-    "& li:last-of-type": {
-      color: theme.palette.error.main,
-    },
-    boxShadow: theme.boxShadow,
-  };
+  const dropDownStyle = singleTheme.dropDownStyles.primary;
 
   /**
    * Handles the opening of a menu by preventing the default event behavior,
@@ -164,14 +150,7 @@ const IconButton = () => {
       disableRipple={
         theme.components?.MuiIconButton?.defaultProps?.disableRipple
       }
-      sx={{
-        "&:focus": {
-          outline: "none",
-        },
-        "& svg path": {
-          stroke: theme.palette.other.icon,
-        },
-      }}
+      sx={singleTheme.iconButtons}
       onClick={(event) => {
         event.stopPropagation();
         openMenu(event, "someId", "someUrl");

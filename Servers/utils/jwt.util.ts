@@ -12,4 +12,22 @@ const getTokenPayload = (token: any): any => {
   }
 };
 
-export { getTokenPayload };
+/**
+ * Generate token payload and add the expiration time of the token
+ * @param payload id and email of the user
+ * @returns generated token
+ */
+const generateToken = (payload: {
+  id: number,
+  email: string
+}) => {
+  return Jwt.sign(
+    {
+      ...payload,
+      expire: Date.now() + (1 * 3600 * 1000)
+    },
+    process.env.JWT_SECRET as string
+  );
+};
+
+export { getTokenPayload, generateToken };

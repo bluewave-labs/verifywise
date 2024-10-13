@@ -75,7 +75,7 @@ const Overview = ({project}: OverviewProps) => {
                 <Typography sx={{color: "#B8D39C"}}>Low risks</Typography>
                 <Typography sx={{color: theme.palette.text.secondary}}>{risks.lowRisks}</Typography>
             </Stack>
-            <Stack sx={styles.stackItem}>
+            <Stack sx={{p: "15px"}}>
                 <Typography sx={{color: "#52AB43"}}>Very low risks</Typography>
                 <Typography sx={{color: theme.palette.text.secondary}}>{risks.veryLowRisks}</Typography>
             </Stack>

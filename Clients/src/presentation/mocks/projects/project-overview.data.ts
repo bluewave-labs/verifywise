@@ -1,4 +1,4 @@
-type RiskData = {
+export type RiskData = {
   veryHighRisks: number;
   highRisks: number;
   mediumRisks: number;
@@ -6,7 +6,7 @@ type RiskData = {
   veryLowRisks: number;
 };
 
-type ProjectOverview = {
+export type ProjectOverview = {
   projectTitle: string;
   owner: string;
   lastUpdated: string;

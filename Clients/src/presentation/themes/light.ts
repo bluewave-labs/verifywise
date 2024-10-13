@@ -7,14 +7,14 @@ declare module "@mui/material/Button" {
 }
 
 const text = {
-  primary: "#1c2130",
+  primary: "#0288d1",
   secondary: "#344054",
   tertiary: "#475467",
   accent: "#838c99",
 };
 
 const background = {
-  main: "#FFFFFF",
+  main: "#e5f6fd",
   alt: "#FCFCFD",
   fill: "#F4F4F4",
   accent: "#f9fafb",

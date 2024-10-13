@@ -14,8 +14,8 @@ import CloseIcon from "@mui/icons-material/Close";
  */
 
 const icons: { [s: string]: JSX.Element } = {
-  success: <InfoOutlinedIcon />,
-  info: <SuccessOutlinedIcon />,
+  success: <SuccessOutlinedIcon />,
+  info: <InfoOutlinedIcon style={{ fill: "#0288d1" }} />,
   error: <ErrorOutlinedIcon />,
   warning: <WarningOutlinedIcon />,
 };
@@ -52,7 +52,7 @@ const Alert = ({
   onClick,
 }: AlertProps) => {
   const theme = useTheme();
-  const { text, bg, border } = theme.palette.status[variant];
+  const { text, bg } = theme.palette.status[variant];
   const icon = icons[variant];
 
   return (
@@ -67,7 +67,7 @@ const Alert = ({
           ? theme.spacing(8)
           : `${theme.spacing(4)} ${theme.spacing(8)}`,
         backgroundColor: bg,
-        border: `1px solid ${border}`,
+        border: `1px solid ${text}`,
         borderRadius: theme.shape.borderRadius,
       }}
     >
@@ -81,6 +81,7 @@ const Alert = ({
         )}
         {hasIcon && isToast && (
           <Button
+            disableRipple
             variant="text"
             color={variant}
             onClick={() => onClick()}
@@ -90,6 +91,9 @@ const Alert = ({
               mt: theme.spacing(4),
               padding: 0,
               minWidth: 0,
+              "&:hover": {
+                backgroundColor: "transparent",
+              },
             }}
           >
             Dismiss
@@ -98,6 +102,7 @@ const Alert = ({
       </Stack>
       {isToast && (
         <IconButton
+          disableRipple
           onClick={() => onClick()}
           sx={{
             alignSelf: "flex-start",
@@ -108,11 +113,15 @@ const Alert = ({
             "&:focus": {
               outline: "none",
             },
+            "&:hover": {
+              backgroundColor: "transparent",
+            },
           }}
         >
           <CloseIcon
             sx={{
               fontSize: 20,
+              fill: text,
             }}
           />
         </IconButton>

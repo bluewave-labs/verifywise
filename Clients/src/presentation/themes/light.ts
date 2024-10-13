@@ -7,7 +7,7 @@ declare module "@mui/material/Button" {
 }
 
 const text = {
-  primary: "#0288d1",
+  primary: "#1c2130",
   secondary: "#344054",
   tertiary: "#475467",
   accent: "#838c99",

@@ -14,7 +14,7 @@ const text = {
 };
 
 const background = {
-  main: "#e5f6fd",
+  main: "#FFFFFF",
   alt: "#FCFCFD",
   fill: "#F4F4F4",
   accent: "#f9fafb",

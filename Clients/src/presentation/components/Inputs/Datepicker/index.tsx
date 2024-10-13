@@ -25,7 +25,7 @@ const DatePicker = ({
       sx={{
         "& fieldset": {
           borderColor: theme.palette.border,
-          borderRadius: theme.shape.borderRadius,
+          borderRadius: theme.shape.borderRadius
         },
         "&:not(:has(.Mui-disabled)):not(:has(.input-error)) .MuiOutlinedInput-root:hover:not(:has(input:focus)):not(:has(textarea:focus)) fieldset":
           {
@@ -72,7 +72,22 @@ const DatePicker = ({
         </Typography>
       )}
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <MuiDatePicker className="mui-date-picker" sx={sx} />
+        <MuiDatePicker className="mui-date-picker" 
+          sx={{ 
+            ".MuiIconButton-root:hover": { backgroundColor: "unset" }, 
+            "& svg": { display: "none" },
+            "& button": { position: "absolute", left: "14px", top: "7px", width: "20px", height: "20px" },
+            "& button:before": { 
+              content: "url('/src/presentation/assets/icons/calendar.svg')", 
+              display: "block", 
+              position: "absolute",
+              top: 0,
+              left: 0
+            },
+            "& .MuiInputBase-root input": { position: "absolute", left: "36px", top: "3px", maxWidth: "145px" },
+            ...sx 
+          }}
+        />
       </LocalizationProvider>
     </Stack>
   );

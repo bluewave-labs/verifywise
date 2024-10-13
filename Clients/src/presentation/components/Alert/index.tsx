@@ -7,6 +7,7 @@ import SuccessOutlinedIcon from "@mui/icons-material/CheckCircleOutline";
 import ErrorOutlinedIcon from "@mui/icons-material/ErrorOutline";
 import WarningOutlinedIcon from "@mui/icons-material/WarningOutlined";
 import CloseIcon from "@mui/icons-material/Close";
+import singleTheme from "../../themes/v1SingleTheme";
 
 /**
  * Icons mapping for different alert variants.
@@ -52,7 +53,7 @@ const Alert = ({
   onClick,
 }: AlertProps) => {
   const theme = useTheme();
-  const { text, bg } = theme.palette.status[variant];
+  const { text, bg } = singleTheme.alertStyles[variant];
   const icon = icons[variant];
 
   return (

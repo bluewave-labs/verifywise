@@ -15,28 +15,24 @@ const Playground = () => {
       <Alert
         body="Here is a gentle confirmation that your action was successful."
         variant="success"
-        title="Alert"
         onClick={() => console.log("Alert clicked!")}
         isToast={true}
       />
       <Alert
         body="Here is a gentle confirmation that your action was successful."
         variant="warning"
-        title="Alert"
         onClick={() => console.log("Alert clicked!")}
         isToast={true}
       />
       <Alert
         body="Here is a gentle confirmation that your action was successful."
         variant="error"
-        title="Alert"
         onClick={() => console.log("Alert clicked!")}
         isToast={true}
       />
       <Alert
         body="Here is a gentle confirmation that your action was successful."
         variant="info"
-        title="Alert"
         onClick={() => console.log("Alert clicked!")}
         isToast={true}
       />

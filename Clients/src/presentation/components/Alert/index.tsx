@@ -31,7 +31,7 @@ import singleTheme from "../../themes/v1SingleTheme";
  */
 interface AlertProps {
   variant: "success" | "info" | "warning" | "error";
-  title: string;
+  title?: string;
   body: string;
   isToast: boolean;
   hasIcon?: boolean;
@@ -59,7 +59,6 @@ const iconButtonStyles = (hasIcon: boolean): object => ({
   ml: "auto",
   mr: "-5px",
   mt: hasIcon ? "-5px" : 0,
-  padding: "5px",
   "&:focus": {
     outline: "none",
   },
@@ -125,7 +124,7 @@ const Alert: React.FC<AlertProps> = ({
       className="alert row-stack"
       direction={"row"}
       justifyContent={"flex-start"}
-      alignItems={hasIcon ? "" : "center"}
+      alignItems={"center"}
       gap={theme.spacing(8)}
       sx={{
         padding: hasIcon
@@ -136,7 +135,9 @@ const Alert: React.FC<AlertProps> = ({
         borderRadius: theme.shape.borderRadius,
       }}
     >
-      {hasIcon && <Box sx={{ color: text }}> {icon} </Box>}
+      {hasIcon && (
+        <Box sx={{ color: text, maxHeight: "22.28px" }}> {icon} </Box>
+      )}
       <Stack direction={"column"} gap={"2px"} sx={{ flex: 1 }}>
         {title && (
           <Typography sx={{ fontWeight: 700, color: text }}>{title}</Typography>

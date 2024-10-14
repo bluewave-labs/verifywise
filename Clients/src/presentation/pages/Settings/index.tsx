@@ -52,7 +52,7 @@ export default function ProfilePage() {
       </Tabs>
 
       {activeTab === 0 && (
-        <Box sx={{ mt: 3, width: "70%",  }}>
+        <Box sx={{ mt: 3, width: "70%" }}>
           <Box
             sx={{
               display: "flex",
@@ -97,18 +97,22 @@ export default function ProfilePage() {
               <Stack direction="row" alignItems="center" spacing={6}>
                 {/* Stack for Avatar and "Your photo" */}
                 <Stack alignItems="center" spacing={1}>
-                <Typography fontWeight="600" variant="subtitle1" gutterBottom>
+                  <Typography fontWeight="600" variant="subtitle1" gutterBottom>
                     Your photo
                   </Typography>
                   <Avatar
                     src="/placeholder.svg?height=80&width=80"
                     sx={{ width: 80, height: 80 }}
                   />
-
                 </Stack>
 
                 {/* Stack for Delete and Update buttons */}
-                <Stack direction="row" spacing={2} alignItems={"center"} sx={{ paddingTop: theme.spacing(19)}}>
+                <Stack
+                  direction="row"
+                  spacing={2}
+                  alignItems={"center"}
+                  sx={{ paddingTop: theme.spacing(19) }}
+                >
                   <Link href="#">Delete</Link>
                   <Link href="#">Update</Link>
                 </Stack>
@@ -116,18 +120,18 @@ export default function ProfilePage() {
             </Box>
           </Box>
           <Button
-                variant="contained"
-                sx={{
-                  width: theme.spacing(80),
-                  mb: theme.spacing(4),
-                  backgroundColor: "Save",
-                  color: "#fff",
-                  position: "relative",
-                  left: theme.spacing(400)
-                }}
-              >
-                Save
-              </Button>
+            variant="contained"
+            sx={{
+              width: theme.spacing(80),
+              mb: theme.spacing(4),
+              backgroundColor: "Save",
+              color: "#fff",
+              position: "relative",
+              left: theme.spacing(400),
+            }}
+          >
+            Save
+          </Button>
           <Box>
             <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
             <Stack>
@@ -191,12 +195,13 @@ export default function ProfilePage() {
               <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
                 <Button
                   variant="contained"
-                  color="primary"
                   sx={{
-                    backgroundColor: "#1976d2",
-                    "&:hover": {
-                      backgroundColor: "#1565c0",
-                    },
+                    width: theme.spacing(80),
+                    mb: theme.spacing(4),
+                    backgroundColor: "Save",
+                    color: "#fff",
+                    position: "relative",
+                    left: theme.spacing(200),
                   }}
                 >
                   Save

@@ -100,6 +100,9 @@ const Field = forwardRef(
           "&:has(.input-error) .MuiOutlinedInput-root fieldset": {
             borderColor: theme.palette.error.text,
           },
+          ".Mui-focused .MuiOutlinedInput-notchedOutline": {
+            border: `1px solid ${theme.palette.border.dark}!important`
+          },
           width: width,
         }}
       >

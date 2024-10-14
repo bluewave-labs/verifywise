@@ -15,3 +15,25 @@
 .mui-date-picker > .MuiFormLabel-root {
   font-size: 13px;
 }
+
+.mui-date-picker .MuiTouchRipple-root, 
+.MuiPickersPopper-root .MuiTouchRipple-root,
+.MuiPickersDay-root.Mui-selected .MuiTouchRipple-root { 
+  display: none
+}
+
+.MuiPickersCalendarHeader-switchViewButton:hover,
+.MuiPickersArrowSwitcher-button:hover,
+.MuiPickersDay-root:hover,
+.Mui-selected:hover {
+  background-color: transparent!important;
+}
+
+.MuiPickersPopper-root .Mui-selected {
+  background-color: #1570EF!important;
+}
+
+.MuiPickersPopper-root .Mui-selected:hover {
+  color: #fff!important;
+  background-color: #1570EF!important;
+} 

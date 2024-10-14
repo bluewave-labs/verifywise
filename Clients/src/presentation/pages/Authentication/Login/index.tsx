@@ -3,6 +3,7 @@ import { ReactComponent as Background } from "../../../assets/imgs/background-gr
 import Field from "../../../components/Inputs/Field";
 import { useState } from "react";
 import Checkbox from "../../../components/Inputs/Checkbox";
+import singleTheme from "../../../themes/v1SingleTheme";
 
 const Login = () => {
   const [values, setValues] = useState({
@@ -57,7 +58,8 @@ const Login = () => {
             fontSize: 40,
           }}
         >
-          Verify<span style={{ color: "#0f604d" }}>Wise</span>
+          Verify
+          <span style={{ color: singleTheme.textColors.theme }}>Wise</span>
         </Typography>
         <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>
           Log in to your account
@@ -110,7 +112,7 @@ const Login = () => {
           <Button
             disableRipple
             variant="contained"
-            sx={{ fontSize: 13, backgroundColor: theme.palette.primary.main }}
+            sx={singleTheme.buttons.primary}
           >
             Sign in
           </Button>

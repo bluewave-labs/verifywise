@@ -11,6 +11,10 @@ const borderColors = {
   primary: "#175CD3",
 };
 
+const textColors = {
+  theme: "#0f604d",
+};
+
 const effects = {
   rippleEffect: false,
 };
@@ -29,6 +33,8 @@ const fontSizes = {
 
 const buttons = {
   primary: {
+    height: 34,
+    fontSize: fontSizes.medium,
     backgroundColor: backgroundColors.primary,
     borderRadius: "4px",
     border: `1px solid ${borderColors.primary}`,
@@ -158,6 +164,7 @@ const singleTheme = {
   dropDownStyles,
   iconButtons,
   alertStyles,
+  textColors,
 };
 
 export default singleTheme;

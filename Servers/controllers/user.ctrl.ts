@@ -123,11 +123,11 @@ async function createNewUser(req: Request, res: Response) {
     } else {
       const { name, email, password, role, created_at, last_login } =
         req.body;
-      const existingUser = await getUserByEmailQuery(email);
+        const existingUser = await getUserByEmailQuery(email);
 
-      if (existingUser) {
-        return res.status(409).json(STATUS_CODE[409](existingUser));
-      }
+        if (existingUser) {
+          return res.status(409).json(STATUS_CODE[409](existingUser));
+        }
 
       const password_hash = await bcrypt.hash(password, 10);
       const user = await createNewUserQuery({

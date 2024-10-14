@@ -19,6 +19,7 @@ import ForgotPassword from "./presentation/pages/Authentication/ForgotPassword";
 import ResetPassword from "./presentation/pages/Authentication/ResetPassword";
 import SetNewPassword from "./presentation/pages/Authentication/SetNewPassword";
 import ResetPasswordContinue from "./presentation/pages/Authentication/ResetPasswordContinue";
+import ProjectView from "./presentation/pages/ProjectView";
 
 function App() {
   const mode = useSelector((state: any) => state.ui?.mode || "light");
@@ -33,6 +34,7 @@ function App() {
           <Route path="/vendors" element={<Vendors />} />
           <Route path="/setting" element={<Setting />} />
           <Route path="/team" element={<Team />} />
+          <Route path="/project-view" element={<ProjectView />} />
         </Route>
         <Route path="/admin-reg" element={<RegisterAdmin />} />
         <Route path="/user-reg" element={<RegisterUser />} />

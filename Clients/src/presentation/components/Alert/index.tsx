@@ -9,7 +9,7 @@
 
 import "./index.css";
 import React from "react";
-import { Box, Button, IconButton, Stack, Typography } from "@mui/material";
+import { Box, IconButton, Stack, Typography } from "@mui/material";
 import { useTheme } from "@mui/material";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import SuccessOutlinedIcon from "@mui/icons-material/CheckCircleOutline";
@@ -143,26 +143,6 @@ const Alert: React.FC<AlertProps> = ({
         )}
         {body && (
           <Typography sx={{ fontWeight: 400, color: text }}>{body}</Typography>
-        )}
-        {hasIcon && isToast && (
-          <Button
-            disableRipple
-            variant="text"
-            color={variant}
-            onClick={onClick}
-            sx={{
-              fontWeight: "600",
-              width: "fit-content",
-              mt: theme.spacing(4),
-              padding: 0,
-              minWidth: 0,
-              "&:hover": {
-                backgroundColor: "transparent",
-              },
-            }}
-          >
-            Dismiss
-          </Button>
         )}
       </Stack>
       {isToast && (

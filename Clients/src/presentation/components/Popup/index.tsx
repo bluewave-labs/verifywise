@@ -1,4 +1,4 @@
-import { Button, Box, Typography, useTheme } from "@mui/material";
+import { Button, Typography, useTheme, Stack } from "@mui/material";
 import { ClearIcon } from "@mui/x-date-pickers/icons";
 import React from "react";
 import { FC } from "react";
@@ -86,7 +86,7 @@ const Popup: FC<PopupProps> = ({
                 alignItems: "center",
                 justifyContent: "center"
             }}>
-                <Box sx={styles.popupContent}>
+                <Stack sx={styles.popupContent}>
                     <Typography variant="h1" component="div" sx={{ color: "#344054", fontSize: 16, fontWeight: 600, mb: 3.5 }}>
                         {popupTitle}
                     </Typography>
@@ -100,7 +100,7 @@ const Popup: FC<PopupProps> = ({
                     <Button variant="contained" disableRipple={theme.components?.MuiButton?.defaultProps?.disableRipple} sx={styles.actionButton}>
                         {actionButtonName}
                     </Button>
-                </Box>
+                </Stack>
             </BasePopup>
         </div>
     )

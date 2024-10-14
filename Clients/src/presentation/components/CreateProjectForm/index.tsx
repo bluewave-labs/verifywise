@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { Box, Stack, useTheme } from '@mui/material';
+import { Stack, useTheme } from '@mui/material';
 import Select from "../Inputs/Select";
 import DatePicker from '../Inputs/Datepicker';
 import Field from '../Inputs/Field';
@@ -27,7 +27,7 @@ const CreateProjectForm: FC = () => {
         sx={{ width: "130px", 
           "& input": { width: "85px" }
       }} />
-      <Box sx={{ display: "grid", gridTemplateColumns: "1fr", columnGap: 20, rowGap: 9.5, marginTop: "16px" }}>
+      <Stack sx={{ display: "grid", gridTemplateColumns: "1fr", columnGap: 20, rowGap: 9.5, marginTop: "16px" }}>
          <Select
           id="risk-classification-input"
           label="AI risk classification"
@@ -54,10 +54,10 @@ const CreateProjectForm: FC = () => {
           ]}
           sx={{ width: "350px", backgroundColor: theme.palette.background.main }}
         />
-      </Box>
-      <Box sx={{ marginTop: "16px" }}>
+      </Stack>
+      <Stack sx={{ marginTop: "16px" }}>
         <Field id="goal-input" label="Goal" type="description" sx={{ height: 101, backgroundColor: theme.palette.background.main }} />
-      </Box>
+      </Stack>
     </Stack>
   )
 }

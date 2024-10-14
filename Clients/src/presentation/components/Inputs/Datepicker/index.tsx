@@ -24,15 +24,18 @@ const DatePicker = ({
     <Stack
       sx={{
         "& fieldset": {
-          borderColor: theme.palette.border,
+          borderColor: theme.palette.border.dark,
           borderRadius: theme.shape.borderRadius
         },
         "&:not(:has(.Mui-disabled)):not(:has(.input-error)) .MuiOutlinedInput-root:hover:not(:has(input:focus)):not(:has(textarea:focus)) fieldset":
           {
-            borderColor: theme.palette.border,
+            borderColor: theme.palette.border.dark,
           },
         "&:has(.input-error) .MuiOutlinedInput-root fieldset": {
           borderColor: theme.palette.error.text,
+        },
+        ".Mui-focused .MuiOutlinedInput-notchedOutline": {
+          border: `1px solid ${theme.palette.border.dark}!important`
         },
       }}
     >

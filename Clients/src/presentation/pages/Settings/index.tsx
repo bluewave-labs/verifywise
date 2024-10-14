@@ -120,6 +120,7 @@ export default function ProfilePage() {
             </Box>
           </Box>
           <Button
+          disableRipple
             variant="contained"
             sx={{
               width: theme.spacing(80),
@@ -151,6 +152,7 @@ export default function ProfilePage() {
                 system. This is permanent and non-recoverable.
               </Typography>
               <Button
+              disableRipple
                 variant="contained"
                 sx={{
                   width: theme.spacing(80),
@@ -194,6 +196,7 @@ export default function ProfilePage() {
               </Alert>
               <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
                 <Button
+                  disableRipple
                   variant="contained"
                   sx={{
                     width: theme.spacing(80),

@@ -3,6 +3,7 @@ import { ReactComponent as Background } from "../../../assets/imgs/background-gr
 import Field from "../../../components/Inputs/Field";
 import Check from "../../../components/Checks";
 import { useState } from "react";
+import singleTheme from "../../../themes/v1SingleTheme";
 
 const RegisterAdmin = () => {
   const [values, setValues] = useState({
@@ -20,7 +21,7 @@ const RegisterAdmin = () => {
 
   const theme = useTheme();
 
-  const buttonStyle = {
+  const fieldStyles = {
     width: 360,
     backgroundColor: "#fff",
   };
@@ -60,7 +61,8 @@ const RegisterAdmin = () => {
             fontSize: 40,
           }}
         >
-          Verify<span style={{ color: "#0f604d" }}>Wise</span>
+          Verify
+          <span style={{ color: singleTheme.textColors.theme }}>Wise</span>
         </Typography>
         <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>
           Create VerifyWise admin account
@@ -70,7 +72,7 @@ const RegisterAdmin = () => {
             label="Name"
             isRequired
             placeholder="Your name"
-            sx={buttonStyle}
+            sx={fieldStyles}
             value={values.name}
             onChange={handleChange("name")}
           />
@@ -78,7 +80,7 @@ const RegisterAdmin = () => {
             label="Surname"
             isRequired
             placeholder="Your surname"
-            sx={buttonStyle}
+            sx={fieldStyles}
             value={values.surname}
             onChange={handleChange("surname")}
           />
@@ -86,7 +88,7 @@ const RegisterAdmin = () => {
             label="Email"
             isRequired
             placeholder="name.surname@companyname.com"
-            sx={buttonStyle}
+            sx={fieldStyles}
             type="email"
             value={values.email}
             onChange={handleChange("email")}
@@ -95,7 +97,7 @@ const RegisterAdmin = () => {
             label="Password"
             isRequired
             placeholder="Create a password"
-            sx={buttonStyle}
+            sx={fieldStyles}
             type="password"
             value={values.password}
             onChange={handleChange("password")}
@@ -104,7 +106,7 @@ const RegisterAdmin = () => {
             label="Confirm password"
             isRequired
             placeholder="Confirm your password"
-            sx={buttonStyle}
+            sx={fieldStyles}
             type="password"
             value={values.confirmPassword}
             onChange={handleChange("confirmPassword")}
@@ -120,7 +122,7 @@ const RegisterAdmin = () => {
           <Button
             disableRipple
             variant="contained"
-            sx={{ fontSize: 13, backgroundColor: theme.palette.primary.main }}
+            sx={singleTheme.buttons.primary}
           >
             Get started
           </Button>

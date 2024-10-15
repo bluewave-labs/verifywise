@@ -1,9 +1,9 @@
 import { Typography, Box, useTheme } from "@mui/material";
-import Button from '@mui/material/Button';
 import { FC } from "react";
 import euimg from "../../assets/imgs/eu-ai-act.jpg"
 import ProgressBar from "./ProgressBar";
 import { Btn, Card, styles, SubtitleValue, Title } from "./styles";
+import { useNavigate } from "react-router-dom";
 
 export interface ProjectCardProps {
     id: number,
@@ -22,6 +22,7 @@ const ProjectCard: FC<ProjectCardProps> = ({
     requirements_completed
 }) => {
     const theme = useTheme();
+    const navigate = useNavigate();
     const renderProgressBar = (progress: string, label: string) => (
         <>
             <ProgressBar progress={progress} />
@@ -61,7 +62,9 @@ const ProjectCard: FC<ProjectCardProps> = ({
                         EU AI Act
                     </Typography>
                 </Box>                    
-                <Btn variant="outlined" disableRipple={theme.components?.MuiButton?.defaultProps?.disableRipple}>
+                <Btn variant="outlined" disableRipple={theme.components?.MuiButton?.defaultProps?.disableRipple}
+                onClick={() => navigate("/project-view")}
+                >
                     View project
                 </Btn>
             </Box>

@@ -10,6 +10,7 @@ import vendorRiskRoutes from "./routes/vendorRisk.route";
 import riskRoutes from "./routes/risk.route";
 import vendorRoutes from "./routes/vendor.route";
 import projectRoutes from "./routes/project.route";
+import assessmentTrackers from "./routes/assessmentTracker.route";
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ app.use("/vendorRisks", vendorRiskRoutes);
 app.use("/risks", riskRoutes);
 app.use("/vendors", vendorRoutes)
 app.use("/projects", projectRoutes);
+app.use("/assessmentTrackers", assessmentTrackers);
 
 app.use("/", (req, res) => {
   res.json("Hello buddy!");

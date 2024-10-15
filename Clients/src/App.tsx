@@ -10,7 +10,7 @@ import Home from "./presentation/pages/Home";
 import ComplianceTracker from "./presentation/pages/ComplianceTracker";
 import Assessment from "./presentation/pages/Assessment";
 import Vendors from "./presentation/pages/Vendors";
-import Setting from "./presentation/pages/Settings";
+import Setting from "./presentation/pages/SettingsPage";
 import Team from "./presentation/pages/Team";
 import RegisterAdmin from "./presentation/pages/Authentication/RegisterAdmin";
 import RegisterUser from "./presentation/pages/Authentication/RegisterUser";

@@ -1,23 +1,94 @@
 import { Button, Stack, Typography, useTheme } from "@mui/material";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Field from "../../../components/Inputs/Field";
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Check from "../../../components/Checks";
 
 import { ReactComponent as Lock } from "../../../assets/icons/lock.svg";
 import { ReactComponent as LeftArrowLong } from "../../../assets/icons/left-arrow-long.svg";
 import singleTheme from "../../../themes/v1SingleTheme";
 
-const SetNewPassword = () => {
-  const [values, setValues] = useState({
-    password: "",
-    confirmPassword: "",
+// Define the shape of form values
+interface FormValues {
+  password: string;
+  confirmPassword: string;
+}
+
+// Define the shape of form errors
+interface FormErrors {
+  password?: string;
+  confirmPassword?: string;
+}
+
+// Define the shape for password validation checks
+interface PasswordChecks {
+  length: boolean;
+  specialChar: boolean;
+}
+
+// Initial state for form values
+const initialState: FormValues = {
+  password: "",
+  confirmPassword: "",
+}
+
+const SetNewPassword: React.FC = () => {
+  // State for form values
+  const [values, setValues] = useState<FormValues>(initialState);
+  // State for form errors
+  const [errors, setErrors] = useState<FormErrors>({});
+  // State for password validation checks
+  const [passwordChecks, setPasswordChecks] = useState<PasswordChecks>({
+    length: false,
+    specialChar: false,
   });
 
-  const handleChange =
-    (prop: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
-      setValues({ ...values, [prop]: event.target.value });
-    };
+  // Handle input field changes
+  const handleChange = (prop: keyof FormValues) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    setValues({ ...values, [prop]: event.target.value });
+    setErrors({ ...errors, [prop]: "" }); // Clear error for the specific field
+  };
+
+  // Effect to update password checks based on the password input
+  useEffect(() => {
+    setPasswordChecks({
+      length: values.password.length >= 8,
+      specialChar: /[!@#$%^&*(),.?":{}|<>]/.test(values.password),
+    });
+  }, [values.password]);
+
+  // Function to validate the entire form
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    // Validate password
+    if (!values.password) {
+      newErrors.password = "Password is required";
+    } else if (!passwordChecks.length || !passwordChecks.specialChar) {
+      newErrors.password = "Password does not meet requirements";
+    }
+
+    // Confirm password validation
+    if (values.password !== values.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
+
+    // Update state with any new errors
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0; // Return true if no errors exist
+  };
+
+  // Handle form submission
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (validateForm()) {
+      console.log("Form submitted:", values);
+      // Reset form after successful submission
+      setValues(initialState);
+      setErrors({});
+      setPasswordChecks({ length: false, specialChar: false });
+    }
+  };
 
   const theme = useTheme();
 
@@ -43,97 +114,110 @@ const SetNewPassword = () => {
           transform: "translateX(-50%)",
         }}
       />
-      <Stack
-        className="reg-admin-form"
-        sx={{
-          width: 360,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100%",
-          margin: "auto",
-          mt: 40,
-          gap: theme.spacing(20),
-        }}
-      >
+      <form onSubmit={handleSubmit}>
         <Stack
+          className="reg-admin-form"
           sx={{
-            width: 56,
-            height: 56,
+            width: 360,
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            borderRadius: "12px",
-            border: "2px solid #EAECF0",
-            gap: theme.spacing(12),
+            height: "100%",
+            margin: "auto",
+            mt: 40,
+            gap: theme.spacing(20),
           }}
         >
-          <Lock />
-        </Stack>
-        <Stack sx={{ gap: theme.spacing(6), textAlign: "center" }}>
-          <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>
-            Set new password
-          </Typography>
-          <Typography fontSize={13}>
-            Your new password must be different to previously used passwords.
-          </Typography>
-        </Stack>
-        <Stack sx={{ gap: theme.spacing(12) }}>
-          <Field
-            label="Password"
-            placeholder="••••••••"
-            sx={buttonStyle}
-            type="password"
-            value={values.password}
-            onChange={handleChange("password")}
-          />
-          <Field
-            label="Confirm password"
-            placeholder="••••••••"
-            sx={buttonStyle}
-            type="password"
-            value={values.confirmPassword}
-            onChange={handleChange("confirmPassword")}
-          />
           <Stack
             sx={{
-              gap: theme.spacing(6),
+              width: 56,
+              height: 56,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              borderRadius: "12px",
+              border: "2px solid #EAECF0",
+              gap: theme.spacing(12),
             }}
           >
-            <Check text="Must be at least 8 characters" />
-            <Check text="Must contain one special character" />
+            <Lock />
           </Stack>
-          <Button
-            disableRipple
-            variant="contained"
-            sx={singleTheme.buttons.primary}
-          >
-            Reset password
-          </Button>
-        </Stack>
-        <Stack
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
+          <Stack sx={{ gap: theme.spacing(6), textAlign: "center" }}>
+            <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>
+              Set new password
+            </Typography>
+            <Typography fontSize={13}>
+              Your new password must be different to previously used passwords.
+            </Typography>
+          </Stack>
+          <Stack sx={{ gap: theme.spacing(12) }}>
+            <Field
+              label="Password"
+              isRequired
+              placeholder="••••••••"
+              sx={buttonStyle}
+              type="password"
+              value={values.password}
+              onChange={handleChange("password")}
+              error={errors.password}
+            />
+            <Field
+              label="Confirm password"
+              isRequired
+              placeholder="••••••••"
+              sx={buttonStyle}
+              type="password"
+              value={values.confirmPassword}
+              onChange={handleChange("confirmPassword")}
+              error={errors.confirmPassword}
+            />
+            <Stack
+              sx={{
+                gap: theme.spacing(6),
+              }}
+            >
+              <Check
+                text="Must be at least 8 characters"
+                variant={passwordChecks.length ? "success" : "info"}
+              />
+              <Check
+                text="Must contain one special character"
+                variant={passwordChecks.specialChar ? "success" : "info"}
+              />
+            </Stack>
+            <Button
+              type="submit"
+              disableRipple
+              variant="contained"
+              sx={singleTheme.buttons.primary}
+            >
+              Reset password
+            </Button>
+          </Stack>
           <Stack
             sx={{
               display: "flex",
-              flexDirection: "row",
-              gap: theme.spacing(5),
+              justifyContent: "center",
               alignItems: "center",
-              cursor: "pointer",
             }}
           >
-            <LeftArrowLong />
-            <Typography sx={{ height: 22, fontSize: 13, fontWeight: 500 }}>
-              Back to log in
-            </Typography>
+            <Stack
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                gap: theme.spacing(5),
+                alignItems: "center",
+                cursor: "pointer",
+              }}
+            >
+              <LeftArrowLong />
+              <Typography sx={{ height: 22, fontSize: 13, fontWeight: 500 }}>
+                Back to log in
+              </Typography>
+            </Stack>
           </Stack>
         </Stack>
-      </Stack>
+      </form>
     </Stack>
   );
 };

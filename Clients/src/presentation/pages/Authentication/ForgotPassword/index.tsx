@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { ReactComponent as Key } from "../../../assets/icons/key.svg";
 import { ReactComponent as LeftArrowLong } from "../../../assets/icons/left-arrow-long.svg";
+import singleTheme from "../../../themes/v1SingleTheme";
 
 const ForgotPassword = () => {
   const [values, setValues] = useState({
@@ -87,7 +88,7 @@ const ForgotPassword = () => {
           <Button
             disableRipple
             variant="contained"
-            sx={{ fontSize: 13, backgroundColor: theme.palette.primary.main }}
+            sx={singleTheme.buttons.primary}
           >
             Reset password
           </Button>

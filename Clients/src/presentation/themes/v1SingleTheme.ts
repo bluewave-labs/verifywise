@@ -11,6 +11,10 @@ const borderColors = {
   primary: "#175CD3",
 };
 
+const textColors = {
+  theme: "#0f604d",
+};
+
 const effects = {
   rippleEffect: false,
 };
@@ -29,6 +33,8 @@ const fontSizes = {
 
 const buttons = {
   primary: {
+    height: 34,
+    fontSize: fontSizes.medium,
     backgroundColor: backgroundColors.primary,
     borderRadius: "4px",
     border: `1px solid ${borderColors.primary}`,
@@ -116,6 +122,36 @@ const iconButtons = {
   },
 };
 
+const alertStyles = {
+  info: {
+    text: "#0288d1",
+    main: "#475467",
+    bg: "#e5f6fd",
+    light: "#FFFFFF",
+    border: "#d0d5dd",
+  },
+  success: {
+    text: "#079455",
+    main: "#17b26a",
+    light: "#d4f4e1",
+    bg: "#ecfdf3",
+  },
+  error: {
+    text: "#f04438",
+    main: "#d32f2f",
+    light: "#fbd1d1",
+    bg: "#f9eced",
+    border: "#f04438",
+  },
+  warning: {
+    text: "#DC6803",
+    main: "#fdb022",
+    light: "#ffecbc",
+    bg: "#fffcf5",
+    border: "#fec84b",
+  },
+};
+
 const singleTheme = {
   effects,
   shadowEffect,
@@ -127,6 +163,8 @@ const singleTheme = {
   tableStyles,
   dropDownStyles,
   iconButtons,
+  alertStyles,
+  textColors,
 };
 
 export default singleTheme;

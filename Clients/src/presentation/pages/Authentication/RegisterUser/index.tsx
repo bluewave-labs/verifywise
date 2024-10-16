@@ -3,6 +3,7 @@ import { ReactComponent as Background } from "../../../assets/imgs/background-gr
 import Field from "../../../components/Inputs/Field";
 import Check from "../../../components/Checks";
 import { useState } from "react";
+import singleTheme from "../../../themes/v1SingleTheme";
 
 const RegisterUser = () => {
   const [values, setValues] = useState({
@@ -59,7 +60,8 @@ const RegisterUser = () => {
             fontSize: 40,
           }}
         >
-          Verify<span style={{ color: "#0f604d" }}>Wise</span>
+          Verify
+          <span style={{ color: singleTheme.textColors.theme }}>Wise</span>
         </Typography>
         <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>
           Create VerifyWise user account
@@ -110,7 +112,7 @@ const RegisterUser = () => {
           <Button
             disableRipple
             variant="contained"
-            sx={{ fontSize: 13, backgroundColor: theme.palette.primary.main }}
+            sx={singleTheme.buttons.primary}
           >
             Get started
           </Button>

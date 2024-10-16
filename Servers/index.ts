@@ -14,6 +14,7 @@ import projectRoutes from "./routes/project.route";
 import subrequirementsRoutes from "./routes/subrequirement.route";
 import overviewsRoutes from "./routes/overview.route";
 import evidencesRoutes from "./routes/evidence.route";
+import auditorFeedbacks from "./routes/auditorFeedback.route";
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ app.use("/projects", projectRoutes);
 app.use("/subrequirements", subrequirementsRoutes);
 app.use("/overviews", overviewsRoutes);
 app.use("/evidences", evidencesRoutes);
+app.use("/auditorFeedbacks", auditorFeedbacks);
 
 app.use("/", (req, res) => {
   res.json("Hello buddy!");

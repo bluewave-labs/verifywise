@@ -89,7 +89,7 @@ router.post("/register", createNewUser);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.post("login", loginUser);
+router.post("/login", loginUser);
 
 /**
  * POST /users/reset-password

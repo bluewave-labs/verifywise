@@ -1,10 +1,10 @@
-import { Button, Stack, Typography, useTheme } from "@mui/material";
-import { ReactComponent as Back } from "../../assets/icons/left-arrow-long.svg";
 import "./index.css";
+import { Button, Stack, Typography, useTheme } from "@mui/material";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder";
 import { useState } from "react";
 
 import AddNewVendor from "../../components/Modals/NewVendor";
+import singleTheme from "../../themes/v1SingleTheme";
 
 const Vendors = () => {
   const theme = useTheme();
@@ -21,46 +21,12 @@ const Vendors = () => {
 
   return (
     <div className="vendors-page">
-      <Stack gap={theme.spacing(10)}>
-        <Stack
-          justifyContent={"space-between"}
-          display={"flex"}
-          flexDirection={"row"}
-          marginBottom={theme.spacing(6)}
-        >
-          <Button
-            disableRipple={
-              theme.components?.MuiButton?.defaultProps?.disableRipple
-            }
-            variant="contained"
-            color="inherit"
-            sx={{
-              width: 100,
-              height: 30,
-              gap: 6,
-              fontSize: 13,
-              boxShadow: "none",
-              backgroundColor: "#F5F5F5",
-              borderRadius: "4px",
-              border: "1px solid #EBEBEB",
-              alignItems: "center",
-              "&:hover": {
-                backgroundColor: "#F5F5F5",
-                boxShadow: "none",
-              },
-              textTransform: "capitalize",
-            }}
-            onClick={() => console.log("Back button")}
-          >
-            <Back />
-            Back
-          </Button>
-        </Stack>
+      <Stack gap={theme.spacing(10)} maxWidth={1400}>
         <Stack>
-          <Typography fontSize={16} color="#1A1919" fontWeight={600}>
+          <Typography sx={singleTheme.textStyles.pageTitle}>
             Vendors list
           </Typography>
-          <Typography fontSize={13} color="#344054">
+          <Typography sx={singleTheme.textStyles.pageDescription}>
             This table includes a list of external entity that provides
             AI-related products, services, or components. You can create and
             manage all vendors here.
@@ -77,17 +43,9 @@ const Vendors = () => {
             }
             variant="contained"
             sx={{
+              ...singleTheme.buttons.primary,
               width: 150,
               height: 34,
-              fontSize: 13,
-              textTransform: "capitalize",
-              backgroundColor: "#4C7DE7",
-              boxShadow: "none",
-              borderRadius: "4px",
-              border: "1px solid #175CD3",
-              "&:hover": {
-                boxShadow: "none",
-              },
             }}
             onClick={() => {
               openAddNewVendor();
@@ -97,34 +55,6 @@ const Vendors = () => {
           </Button>
         </Stack>
         <TableWithPlaceholder />
-        <Stack
-          sx={{
-            alignItems: "flex-end",
-          }}
-        >
-          <Button
-            disableRipple={
-              theme.components?.MuiButton?.defaultProps?.disableRipple
-            }
-            variant="contained"
-            sx={{
-              width: 150,
-              height: 34,
-              fontSize: 13,
-              textTransform: "capitalize",
-              backgroundColor: "#4C7DE7",
-              boxShadow: "none",
-              borderRadius: "4px",
-              border: "1px solid #175CD3",
-              "&:hover": {
-                boxShadow: "none",
-              },
-            }}
-            onClick={() => console.log("Save button")}
-          >
-            Save
-          </Button>
-        </Stack>
       </Stack>
       <AddNewVendor
         isOpen={isOpen}

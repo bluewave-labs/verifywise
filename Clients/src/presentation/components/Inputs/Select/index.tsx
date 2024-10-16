@@ -58,7 +58,12 @@ const Select: React.FC<SelectProps> = ({
   };
 
   return (
-    <Stack gap={theme.spacing(2)} className="select-wrapper">
+    <Stack gap={theme.spacing(2)} className="select-wrapper" 
+      sx={{
+        ".Mui-focused .MuiOutlinedInput-notchedOutline": {
+          border: `1px solid ${theme.palette.border.dark}!important`
+        }
+      }}>
       {label && (
         <Typography
           component="h3"
@@ -87,12 +92,12 @@ const Select: React.FC<SelectProps> = ({
                 fontSize: 13,
                 color: theme.palette.text.primary,
                 "&:hover": {
-                  backgroundColor: theme.palette.action.hover,
+                  backgroundColor: "transparent",
                 },
                 "&.Mui-selected": {
-                  backgroundColor: theme.palette.action.selected,
+                  backgroundColor: "transparent",
                   "&:hover": {
-                    backgroundColor: theme.palette.action.selected,
+                    backgroundColor: "transparent",
                   },
                 },
                 "& .MuiTouchRipple-root": {
@@ -107,7 +112,7 @@ const Select: React.FC<SelectProps> = ({
           minWidth: "125px",
           "& fieldset": {
             borderRadius: theme.shape.borderRadius,
-            borderColor: theme.palette.border.dark,
+            borderColor: theme.palette.border.dark
           },
           "&:not(.Mui-focused):hover fieldset": {
             borderColor: theme.palette.border.dark,

@@ -1,6 +1,7 @@
 import { Button, Stack, Typography, useTheme } from "@mui/material";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import { ReactComponent as Success } from "../../../assets/icons/check-outlined.svg";
+import singleTheme from "../../../themes/v1SingleTheme";
 
 const ResetPasswordContinue = () => {
   const theme = useTheme();
@@ -61,8 +62,7 @@ const ResetPasswordContinue = () => {
           variant="contained"
           sx={{
             width: 360,
-            fontSize: 13,
-            backgroundColor: theme.palette.primary.main,
+            ...singleTheme.buttons.primary,
           }}
         >
           Continue

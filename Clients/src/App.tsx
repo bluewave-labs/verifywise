@@ -20,6 +20,7 @@ import ResetPassword from "./presentation/pages/Authentication/ResetPassword";
 import SetNewPassword from "./presentation/pages/Authentication/SetNewPassword";
 import ResetPasswordContinue from "./presentation/pages/Authentication/ResetPasswordContinue";
 import ProjectView from "./presentation/pages/ProjectView";
+import Playground from "./presentation/pages";
 
 function App() {
   const mode = useSelector((state: any) => state.ui?.mode || "light");
@@ -46,6 +47,9 @@ function App() {
           path="/reset-password-continue"
           element={<ResetPasswordContinue />}
         />
+
+        {/** This route is simply for testing and playing with components and will be removed soon  */}
+        <Route path="/playground" element={<Playground />} />
       </Routes>
     </ThemeProvider>
   );

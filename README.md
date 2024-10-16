@@ -44,7 +44,7 @@ VerifyWise is designed for:
 
 ## Features
 
-![VerifyWise platform](https://github.com/user-attachments/assets/915534c8-d6fa-42b8-b8d4-496afa7f49a8)
+![VerifyWise platform](https://github.com/user-attachments/assets/2d05cd1f-f67b-45d2-aca4-1fdcde287a44)
 
 - Option to host the application on-premises or in a private cloud
 - Open source with a permissive license (AGPLv3)

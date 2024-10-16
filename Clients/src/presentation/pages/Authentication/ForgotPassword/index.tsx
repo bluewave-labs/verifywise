@@ -1,19 +1,14 @@
 import { Button, Stack, Typography, useTheme } from "@mui/material";
-import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
-import Field from "../../../components/Inputs/Field";
 import React, { useState } from "react";
 import { ReactComponent as Key } from "../../../assets/icons/key.svg";
 import { ReactComponent as LeftArrowLong } from "../../../assets/icons/left-arrow-long.svg";
+import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
+import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
 
 // Define the shape of form values
 interface FormValues {
   email: string;
-}
-
-// Define the shape of form errors
-interface FormErrors {
-  email?: string;
 }
 
 // Initial state for the form
@@ -24,40 +19,18 @@ const initialState: FormValues = {
 const ForgotPassword: React.FC = () => {
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
-  // State for form errors
-  const [errors, setErrors] = useState<FormErrors>({});
 
   // Handle changes in input fields
   const handleChange = (prop: keyof FormValues) => (event: React.ChangeEvent<HTMLInputElement>) => {
     setValues({ ...values, [prop]: event.target.value });
-    setErrors({ ...errors, [prop]: "" }); // Clear the error for the current field
-  };
-
-  // Validate the form fields
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    // Email validation
-    if (!values.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(values.email)) {
-      newErrors.email = "Email is invalid";
-    }
-
-    // Update the error state and return true if no errors
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
 
   // Handle form submission
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (validateForm()) {
-      console.log("Form submitted:", values);
-      // Reset form after successful submission
-      setValues(initialState);
-      setErrors({});
-    }
+    console.log("Form submitted:", values);
+    // Reset form after successful submission
+    setValues(initialState);
   };
 
   const theme = useTheme();
@@ -130,7 +103,6 @@ const ForgotPassword: React.FC = () => {
               type="email"
               value={values.email}
               onChange={handleChange("email")}
-              error={errors.email}
             />
             <Button
               type="submit"

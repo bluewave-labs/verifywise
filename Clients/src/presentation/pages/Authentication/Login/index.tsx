@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
 import { Button, Stack, Typography, useTheme } from "@mui/material";
+import React, { useState } from 'react';
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
-import Field from "../../../components/Inputs/Field";
 import Checkbox from "../../../components/Inputs/Checkbox";
+import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
 
 // Define the shape of form values
@@ -12,66 +12,29 @@ interface FormValues {
   rememberMe: boolean;
 }
 
-// Define the shape of form errors
-interface FormErrors {
-  email?: string;
-  password?: string;
-}
-
 // Initial state for the form
 const initialState: FormValues = {
   email: "",
   password: "",
-  rememberMe: true,
+  rememberMe: false,
 };
 
 const Login: React.FC = () => {
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
-  // State for form errors
-  const [errors, setErrors] = useState<FormErrors>({});
 
   // Handle changes in input fields
   const handleChange = (prop: keyof FormValues) => (event: React.ChangeEvent<HTMLInputElement>) => {
     setValues({ ...values, [prop]: event.target.value });
-    setErrors({ ...errors, [prop]: "" }); // Clear the error for the current field
   };
 
-  // Handle changes in the remember me checkbox
-  const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setValues({ ...values, rememberMe: event.target.checked });
-  };
-
-  // Validate the form fields
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    // Email validation
-    if (!values.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(values.email)) {
-      newErrors.email = "Email is invalid";
-    }
-
-    // Password validation
-    if (!values.password) {
-      newErrors.password = "Password is required";
-    }
-
-    // Update the error state and return true if no errors
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
 
   // Handle form submission
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (validateForm()) {
-      console.log("Form submitted:", values);
-      // Reset form after successful submission
-      setValues(initialState);
-      setErrors({});
-    }
+    console.log("Form submitted:", values);
+    // Reset form after successful submission
+    setValues(initialState);
   };
 
   const theme = useTheme();
@@ -133,7 +96,6 @@ const Login: React.FC = () => {
               type="email"
               value={values.email}
               onChange={handleChange("email")}
-              error={errors.email}
             />
             <Field
               label="Password"
@@ -143,7 +105,6 @@ const Login: React.FC = () => {
               type="password"
               value={values.password}
               onChange={handleChange("password")}
-              error={errors.password}
             />
             <Stack
               sx={{
@@ -158,7 +119,7 @@ const Login: React.FC = () => {
                 label="Remember for 30 days"
                 isChecked={values.rememberMe}
                 value={values.rememberMe ? "true" : "false"}
-                onChange={handleCheckboxChange}
+                onChange={()=>{}}
                 size="small"
               />
               <Typography

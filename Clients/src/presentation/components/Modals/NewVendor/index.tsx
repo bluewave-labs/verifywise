@@ -27,6 +27,38 @@ import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
 import { ReactComponent as Close } from "../../../assets/icons/close.svg";
+import { useState } from "react";
+import dayjs, { Dayjs } from "dayjs";
+
+interface VendorDetails {
+  vendorName: string;
+  projectVendorIsConnectedTo: string;
+  vendorProvides: string;
+  website: string;
+  vendorContactPerson: string;
+  reviewResult: string;
+  reviewStatus: string;
+  reviewer: string;
+  riskStatus: string;
+  reviewDate: string;
+}
+
+interface Risks {
+  riskDescription: string;
+  impactDescription: string;
+  projectName: string;
+  probability: string;
+  impact: string;
+  actionOwner: string;
+  riskSeverity: string;
+  likelihood: string;
+  riskLevel: string;
+}
+
+interface Values {
+  vendorDetails: VendorDetails;
+  risks: Risks;
+}
 
 interface AddNewVendorProps {
   isOpen: boolean;
@@ -42,6 +74,60 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   handleChange,
 }) => {
   const theme = useTheme();
+  const [values, setValues] = useState({
+    vendorDetails: {
+      vendorName: "",
+      projectVendorIsConnectedTo: "",
+      vendorProvides: "",
+      website: "",
+      vendorContactPerson: "",
+      reviewResult: "",
+      reviewStatus: "0",
+      reviewer: "0",
+      riskStatus: "0",
+      reviewDate: "",
+    },
+    risks: {
+      riskDescription: "",
+      impactDescription: "",
+      projectName: "0",
+      probability: "0",
+      impact: "0",
+      actionOwner: "0",
+      riskSeverity: "0",
+      likelihood: "0",
+      riskLevel: "0",
+    },
+  });
+
+  const handleDateChange = (newDate: Dayjs | null) => {
+    setValues((prevValues) => ({
+      ...prevValues,
+      vendorDetails: {
+        ...prevValues.vendorDetails,
+        reviewDate: newDate ? newDate.toISOString() : "",
+      },
+    }));
+  };
+
+  const handleOnChange = (
+    section: keyof Values,
+    field: string,
+    value: string | number
+  ) => {
+    setValues((prevValues) => ({
+      ...prevValues,
+      [section]: {
+        ...prevValues[section],
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleOnSave = () => {
+    console.log("Vendor Details:", values.vendorDetails);
+    console.log("Risks:", values.risks);
+  };
 
   const vendorDetailsPanel = (
     <TabPanel value="1" sx={{ paddingTop: theme.spacing(15), paddingX: 0 }}>
@@ -50,14 +136,36 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         justifyContent={"space-between"}
         marginBottom={theme.spacing(10)}
       >
-        <Field label="Vendor name" width={350} />
-        <Field label="Project the vendor is connected to" width={350} />
+        <Field
+          label="Vendor name"
+          width={350}
+          value={values.vendorDetails.vendorName}
+          onChange={(e) =>
+            handleOnChange("vendorDetails", "vendorName", e.target.value)
+          }
+        />
+        <Field
+          label="Project the vendor is connected to"
+          width={350}
+          value={values.vendorDetails.projectVendorIsConnectedTo}
+          onChange={(e) =>
+            handleOnChange(
+              "vendorDetails",
+              "projectVendorIsConnectedTo",
+              e.target.value
+            )
+          }
+        />
       </Stack>
       <Stack marginBottom={theme.spacing(10)}>
         <Field
           label="What does the vendor provide?"
           width={"100%"}
           type="description"
+          value={values.vendorDetails.vendorProvides}
+          onChange={(e) =>
+            handleOnChange("vendorDetails", "vendorProvides", e.target.value)
+          }
         />
       </Stack>
       <Stack
@@ -65,8 +173,26 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         justifyContent={"space-between"}
         marginBottom={theme.spacing(10)}
       >
-        <Field label="Website" width={350} />
-        <Field label="Vendor contact person" width={350} />
+        <Field
+          label="Website"
+          width={350}
+          value={values.vendorDetails.website}
+          onChange={(e) =>
+            handleOnChange("vendorDetails", "website", e.target.value)
+          }
+        />
+        <Field
+          label="Vendor contact person"
+          width={350}
+          value={values.vendorDetails.vendorContactPerson}
+          onChange={(e) =>
+            handleOnChange(
+              "vendorDetails",
+              "vendorContactPerson",
+              e.target.value
+            )
+          }
+        />
       </Stack>
       <Stack
         display={"flex"}
@@ -74,7 +200,15 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         marginBottom={theme.spacing(10)}
         flexDirection={"row"}
       >
-        <Field label="Review result" width={350} type="description" />
+        <Field
+          label="Review result"
+          width={350}
+          type="description"
+          value={values.vendorDetails.reviewResult}
+          onChange={(e) =>
+            handleOnChange("vendorDetails", "reviewResult", e.target.value)
+          }
+        />
         <Box
           justifyContent={"space-between"}
           display={"grid"}
@@ -82,30 +216,36 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         >
           <Select
             items={[
-              { _id: 1, name: "Select review status" },
-              { _id: 2, name: "Select review status" },
+              { _id: 1, name: "Under Review" },
+              { _id: 2, name: "Completed" },
+              { _id: 3, name: "Failed" },
             ]}
             label="Review status"
             placeholder="Select review status"
             isHidden={false}
             id=""
-            onChange={() => {}}
-            value={"Select review status"}
+            onChange={(e) =>
+              handleOnChange("vendorDetails", "reviewStatus", e.target.value)
+            }
+            value={values.vendorDetails.reviewStatus}
             sx={{
               width: 350,
             }}
           />
           <Select
             items={[
-              { _id: 1, name: "Select reviewer" },
-              { _id: 2, name: "Select reviewer" },
+              { _id: 1, name: "George Michael" },
+              { _id: 2, name: "Sarah Lee" },
+              { _id: 3, name: "Michael Lee" },
             ]}
             label="Reviewer"
             placeholder="Select reviewer"
             isHidden={false}
             id=""
-            onChange={() => {}}
-            value={"Select reviewer"}
+            onChange={(e) =>
+              handleOnChange("vendorDetails", "reviewer", e.target.value)
+            }
+            value={values.vendorDetails.reviewer}
             sx={{
               width: 350,
             }}
@@ -120,15 +260,18 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       >
         <Select
           items={[
-            { _id: 1, name: "Select risk status" },
-            { _id: 2, name: "Select risk status" },
+            { _id: 1, name: "High" },
+            { _id: 2, name: "Moderate" },
+            { _id: 3, name: "Low" },
           ]}
           label="Risk status"
           placeholder="Select risk status"
           isHidden={false}
           id=""
-          onChange={() => {}}
-          value={"Select risk status"}
+          onChange={(e) =>
+            handleOnChange("vendorDetails", "riskStatus", e.target.value)
+          }
+          value={values.vendorDetails.riskStatus}
           sx={{
             width: 350,
           }}
@@ -138,6 +281,12 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           sx={{
             width: 350,
           }}
+          date={
+            values.vendorDetails.reviewDate
+              ? dayjs(values.vendorDetails.reviewDate)
+              : null
+          }
+          handleDateChange={handleDateChange}
         />
       </Stack>
     </TabPanel>
@@ -150,8 +299,22 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         justifyContent={"space-between"}
         marginBottom={theme.spacing(10)}
       >
-        <Field label="Risk description" width={350} />
-        <Field label="Impact description" width={350} />
+        <Field
+          label="Risk description"
+          width={350}
+          value={values.risks.riskDescription}
+          onChange={(e) =>
+            handleOnChange("risks", "riskDescription", e.target.value)
+          }
+        />
+        <Field
+          label="Impact description"
+          width={350}
+          value={values.risks.impactDescription}
+          onChange={(e) =>
+            handleOnChange("risks", "impactDescription", e.target.value)
+          }
+        />
       </Stack>
       <Stack
         direction={"row"}
@@ -160,30 +323,36 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       >
         <Select
           items={[
-            { _id: 1, name: "Select project" },
-            { _id: 2, name: "Select project" },
+            { _id: 1, name: "Chatbot AI" },
+            { _id: 2, name: "Marketing AI" },
+            { _id: 3, name: "Compliance AI" },
           ]}
           label="Project name"
           placeholder="Select project"
           isHidden={false}
           id=""
-          onChange={() => {}}
-          value={"Select project"}
+          value={values.risks.projectName}
+          onChange={(e) =>
+            handleOnChange("risks", "projectName", e.target.value)
+          }
           sx={{
             width: 350,
           }}
         />
         <Select
           items={[
-            { _id: 1, name: "Select probability" },
-            { _id: 2, name: "Select probability" },
+            { _id: 1, name: "4" },
+            { _id: 2, name: "3" },
+            { _id: 3, name: "2" },
           ]}
           label="Probability"
           placeholder="Select probability"
           isHidden={false}
           id=""
-          onChange={() => {}}
-          value={"Select probability"}
+          value={values.risks.probability}
+          onChange={(e) =>
+            handleOnChange("risks", "probability", e.target.value)
+          }
           sx={{
             width: 350,
           }}
@@ -198,36 +367,48 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         <Box justifyContent={"space-between"} display={"grid"}>
           <Select
             items={[
-              { _id: 1, name: "Select impact" },
-              { _id: 2, name: "Select impact" },
+              { _id: 1, name: "High" },
+              { _id: 2, name: "Moderate" },
+              { _id: 3, name: "Low" },
             ]}
             label="Impact"
             placeholder="Select impact"
             isHidden={false}
             id=""
-            onChange={() => {}}
-            value={"Select impact"}
+            onChange={(e) => handleOnChange("risks", "impact", e.target.value)}
+            value={values.risks.impact}
             sx={{
               width: 350,
             }}
           />
           <Select
             items={[
-              { _id: 1, name: "Select owner" },
-              { _id: 2, name: "Select owner" },
+              { _id: 1, name: "John McAllen" },
+              { _id: 2, name: "Jessica Parker" },
+              { _id: 3, name: "Michael Johnson" },
             ]}
             label="Action owner"
             placeholder="Select owner"
             isHidden={false}
             id=""
-            onChange={() => {}}
-            value={"Select owner"}
+            onChange={(e) =>
+              handleOnChange("risks", "actionOwner", e.target.value)
+            }
+            value={values.risks.actionOwner}
             sx={{
               width: 350,
             }}
           />
         </Box>
-        <Field label="Review result" width={350} type="description" />
+        <Field
+          label="Review result"
+          width={350}
+          type="description"
+          value={values.vendorDetails.reviewResult}
+          onChange={(e) =>
+            handleOnChange("vendorDetails", "reviewResult", e.target.value)
+          }
+        />
       </Stack>
 
       <Stack
@@ -237,30 +418,36 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       >
         <Select
           items={[
-            { _id: 1, name: "Select risk severity" },
-            { _id: 2, name: "Select risk severity" },
+            { _id: 1, name: "Critical" },
+            { _id: 2, name: "Major" },
+            { _id: 3, name: "Minor" },
           ]}
           label="Risk severity"
           placeholder="Select risk severity"
           isHidden={false}
           id=""
-          onChange={() => {}}
-          value={"Select risk severity"}
+          onChange={(e) =>
+            handleOnChange("risks", "riskSeverity", e.target.value)
+          }
+          value={values.risks.riskSeverity}
           sx={{
             width: 350,
           }}
         />
         <Select
           items={[
-            { _id: 1, name: "Select risk severity" },
-            { _id: 2, name: "Select risk severity" },
+            { _id: 1, name: "Probable" },
+            { _id: 2, name: "Possible" },
+            { _id: 3, name: "Unlikely" },
           ]}
           label="Likelihood"
           placeholder="Select risk severity"
           isHidden={false}
           id=""
-          onChange={() => {}}
-          value={"Select risk severity"}
+          onChange={(e) =>
+            handleOnChange("risks", "likelihood", e.target.value)
+          }
+          value={values.risks.likelihood}
           sx={{
             width: 350,
           }}
@@ -273,15 +460,16 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       >
         <Select
           items={[
-            { _id: 1, name: "Select risk level" },
-            { _id: 2, name: "Select risk level" },
+            { _id: 1, name: "High" },
+            { _id: 2, name: "Moderate" },
+            { _id: 3, name: "Low" },
           ]}
           label="Risk level"
           placeholder="Select risk level"
           isHidden={false}
           id=""
-          onChange={() => {}}
-          value={"Select risk level"}
+          onChange={(e) => handleOnChange("risks", "riskLevel", e.target.value)}
+          value={values.risks.riskLevel}
           sx={{
             width: 350,
           }}
@@ -385,7 +573,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                   boxShadow: "none",
                 },
               }}
-              onClick={() => console.log("Save button")}
+              onClick={handleOnSave}
             >
               Save
             </Button>

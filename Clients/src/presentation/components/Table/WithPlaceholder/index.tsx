@@ -30,6 +30,7 @@ import {
 import Placeholder from "../../../assets/imgs/table placeholder 1.png";
 import listOfVendors from "../../../mocks/vendors.data";
 import IconButton from "../../IconButton";
+import singleTheme from "../../../themes/v1SingleTheme";
 
 /**
  * An array of strings representing the titles of the table columns.
@@ -55,7 +56,7 @@ const titleOfTableColumns = [
 const TableWithPlaceholder = ({ data = listOfVendors }) => {
   const theme = useTheme();
 
-  const cellStyle = { fontSize: 13, paddingY: theme.spacing(6) };
+  const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
   /**
    * Renders the table header with specified styles and column titles.
@@ -74,22 +75,14 @@ const TableWithPlaceholder = ({ data = listOfVendors }) => {
   const tableHeader: JSX.Element = (
     <TableHead
       sx={{
-        backgroundColor: "#FAFAFA",
+        backgroundColors:
+          singleTheme.tableStyles.primary.header.backgroundColors,
       }}
     >
-      <TableRow
-        sx={{
-          textTransform: "uppercase",
-          borderBottom: "1px solid #EEEEEE",
-        }}
-      >
+      <TableRow sx={singleTheme.tableStyles.primary.header.row}>
         {titleOfTableColumns.map((cell, index) => (
           <TableCell
-            style={{
-              color: "#a1afc6",
-              fontWeight: 400,
-              paddingLeft: "16px",
-            }}
+            style={singleTheme.tableStyles.primary.header.cell}
             key={index}
           >
             {cell}
@@ -122,14 +115,10 @@ const TableWithPlaceholder = ({ data = listOfVendors }) => {
     <TableBody>
       {data &&
         data.map((row, index) => (
-          <TableRow
-            key={index}
-            sx={{
-              textTransform: "capitalize",
-              borderBottom: "1px solid #EEEEEE",
-            }}
-          >
-            <TableCell sx={cellStyle}>{row.name}</TableCell>
+          <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row}>
+            <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+              {row.name}
+            </TableCell>
             <TableCell sx={cellStyle}>{row.type}</TableCell>
             <TableCell sx={cellStyle}>{row.assignee}</TableCell>
             <TableCell sx={cellStyle}>{row.status}</TableCell>
@@ -145,15 +134,7 @@ const TableWithPlaceholder = ({ data = listOfVendors }) => {
 
   return (
     <TableContainer>
-      <Table
-        sx={{
-          border: "1px solid #EEEEEE",
-          borderRadius: "4px",
-          "& td, & th": {
-            border: 0,
-          },
-        }}
-      >
+      <Table sx={singleTheme.tableStyles.primary.frame}>
         {tableHeader}
         {tableBody}
       </Table>

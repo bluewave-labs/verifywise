@@ -17,6 +17,7 @@ import evidencesRoutes from "./routes/evidence.route";
 import auditorFeedbacks from "./routes/auditorFeedback.route";
 import assessmentTrackers from "./routes/assessmentTracker.route";
 import sectionRoutes from "./routes/section.route";
+import questionRoutes from "./routes/question.route";
 
 dotenv.config();
 
@@ -42,6 +43,7 @@ app.use("/evidences", evidencesRoutes);
 app.use("/auditorFeedbacks", auditorFeedbacks);
 app.use("/assessmentTrackers", assessmentTrackers);
 app.use("/sections", sectionRoutes);
+app.use("/questions", questionRoutes);
 
 app.use("/", (req, res) => {
   res.json("Hello buddy!");

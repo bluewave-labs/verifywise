@@ -24,16 +24,6 @@
 
 .MuiPickersCalendarHeader-switchViewButton:hover,
 .MuiPickersArrowSwitcher-button:hover,
-.MuiPickersDay-root:hover,
-.Mui-selected:hover {
+.MuiPickersDay-root:hover {
   background-color: transparent!important;
-}
-
-.MuiPickersPopper-root .Mui-selected {
-  background-color: #1570EF!important;
-}
-
-.MuiPickersPopper-root .Mui-selected:hover {
-  color: #fff!important;
-  background-color: #1570EF!important;
 } 

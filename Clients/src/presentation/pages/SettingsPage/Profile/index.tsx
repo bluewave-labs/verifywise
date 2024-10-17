@@ -8,16 +8,20 @@ const index = () => {
   const [firstname, setFirstname] = useState("");
   const [lastname, setLastname] = useState("");
   const [password, setPassword] = useState("");
-  const [profilePhoto, setProfilePhoto] = useState("/placeholder.svg?height=80&width=80");
+  const [profilePhoto, setProfilePhoto] = useState(
+    "/placeholder.svg?height=80&width=80"
+  );
   const theme = useTheme();
   const fileInputRef = useRef(null);
 
   const handleUpdatePhoto = () => {
     // Trigger the file input to open the file picker dialog
-    fileInputRef.current.click();
+    if (fileInputRef.current !== null) {
+      fileInputRef.current.click();
+    }
   };
 
-  const handleFileChange = (event) => {
+  const handleFileChange = (event: any) => {
     const file = event.target.files[0];
     if (file) {
       // Update the profile photo URL (for simplicity, using a local URL for demonstration purposes)
@@ -45,15 +49,15 @@ const index = () => {
       >
         <Box sx={{ width: "40%" }}>
           <Field
-            id="Firstname"
-            label="Firstname"
+            id="First name"
+            label="First name"
             value={firstname}
             onChange={(e) => setFirstname(e.target.value)}
             sx={{ mb: 5 }}
           />
           <Field
-            id="lastname"
-            label="Lastname"
+            id="last name"
+            label="Last name"
             value={lastname}
             onChange={(e) => setLastname(e.target.value)}
             sx={{ mb: 5 }}
@@ -65,7 +69,7 @@ const index = () => {
             onChange={(e) => setPassword(e.target.value)}
             sx={{ mb: 5 }}
           />
-          <Typography variant="caption" sx={{ mt: 1, display: "block" }}>
+          <Typography variant="caption" sx={{ mt: 1, display: "block", color: "#667085" }}>
             This is your current email address — it cannot be changed.
           </Typography>
         </Box>
@@ -81,10 +85,7 @@ const index = () => {
               <Typography fontWeight="600" variant="subtitle1" gutterBottom>
                 Your photo
               </Typography>
-              <Avatar
-                src={profilePhoto}
-                sx={{ width: 80, height: 80 }}
-              />
+              <Avatar src={profilePhoto} sx={{ width: 80, height: 80 }} />
               {/* Hidden file input for selecting a new photo */}
               <input
                 type="file"
@@ -122,6 +123,7 @@ const index = () => {
                   "&:hover": {
                     textDecoration: "underline",
                   },
+                  paddingLeft: theme.spacing(5)
                 }}
                 onClick={handleUpdatePhoto}
               >
@@ -151,7 +153,7 @@ const index = () => {
         <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
         <Stack>
           <Typography fontWeight={"600"} gutterBottom sx={{ mb: 2, mt: 10 }}>
-            Delete Account
+            Delete account
           </Typography>
           <Typography
             fontWeight={"400"}

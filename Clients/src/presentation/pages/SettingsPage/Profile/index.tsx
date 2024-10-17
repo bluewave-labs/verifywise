@@ -1,15 +1,36 @@
 import { Box, Button, Divider, Stack, Typography } from "@mui/material";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Field from "../../../components/Inputs/Field";
 import Avatar from "../../../components/Avatar";
-import { Link } from "react-router-dom";
 import { useTheme } from "@mui/material";
 
 const index = () => {
   const [firstname, setFirstname] = useState("");
   const [lastname, setLastname] = useState("");
   const [password, setPassword] = useState("");
+  const [profilePhoto, setProfilePhoto] = useState("/placeholder.svg?height=80&width=80");
   const theme = useTheme();
+  const fileInputRef = useRef(null);
+
+  const handleUpdatePhoto = () => {
+    // Trigger the file input to open the file picker dialog
+    fileInputRef.current.click();
+  };
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Update the profile photo URL (for simplicity, using a local URL for demonstration purposes)
+      const newPhotoUrl = URL.createObjectURL(file);
+      setProfilePhoto(newPhotoUrl);
+    }
+  };
+
+  const handleDeletePhoto = () => {
+    // Reset to placeholder image or handle as needed
+    setProfilePhoto("/placeholder.svg?height=80&width=80");
+    console.log("Photo deleted");
+  };
 
   return (
     <Box sx={{ mt: 3, width: "70%" }}>
@@ -27,21 +48,21 @@ const index = () => {
             id="Firstname"
             label="Firstname"
             value={firstname}
-            onChange={(e) => console.log("object")}
+            onChange={(e) => setFirstname(e.target.value)}
             sx={{ mb: 5 }}
           />
           <Field
             id="lastname"
             label="Lastname"
             value={lastname}
-            onChange={(e) => console.log("object")}
+            onChange={(e) => setLastname(e.target.value)}
             sx={{ mb: 5 }}
           />
           <Field
-            id="password"
-            label="Password"
+            id="Email"
+            label="Email"
             value={password}
-            onChange={(e) => console.log("object")}
+            onChange={(e) => setPassword(e.target.value)}
             sx={{ mb: 5 }}
           />
           <Typography variant="caption" sx={{ mt: 1, display: "block" }}>
@@ -61,20 +82,51 @@ const index = () => {
                 Your photo
               </Typography>
               <Avatar
-                src="/placeholder.svg?height=80&width=80"
+                src={profilePhoto}
                 sx={{ width: 80, height: 80 }}
+              />
+              {/* Hidden file input for selecting a new photo */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: "none" }}
+                accept="image/*"
+                onChange={handleFileChange}
               />
             </Stack>
 
-            {/* Stack for Delete and Update buttons */}
             <Stack
               direction="row"
               spacing={2}
               alignItems={"center"}
               sx={{ paddingTop: theme.spacing(19) }}
             >
-              <Link to="#">Delete</Link>
-              <Link to="#">Update</Link>
+              <Typography
+                sx={{
+                  color: "#667085",
+                  cursor: "pointer",
+                  textDecoration: "none",
+                  "&:hover": {
+                    textDecoration: "underline",
+                  },
+                }}
+                onClick={handleDeletePhoto}
+              >
+                Delete
+              </Typography>
+              <Typography
+                sx={{
+                  color: "#4C7DE7",
+                  cursor: "pointer",
+                  textDecoration: "none",
+                  "&:hover": {
+                    textDecoration: "underline",
+                  },
+                }}
+                onClick={handleUpdatePhoto}
+              >
+                Update
+              </Typography>
             </Stack>
           </Stack>
         </Box>
@@ -85,10 +137,12 @@ const index = () => {
         sx={{
           width: theme.spacing(80),
           mb: theme.spacing(4),
-          backgroundColor: "Save",
+          backgroundColor: "#4c7de7",
           color: "#fff",
           position: "relative",
           left: theme.spacing(400),
+          marginTop: theme.spacing(5),
+          marginBottom: theme.spacing(10),
         }}
       >
         Save

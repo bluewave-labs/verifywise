@@ -1,4 +1,4 @@
-interface ProjectRisk {
+export interface ProjectRisk {
   riskName: string;
   project: string;
   impact: string;
@@ -11,7 +11,7 @@ interface ProjectRisk {
   finalRiskLevel: string;
 }
 
-const projectRisks: ProjectRisk[] = [
+const projectRisksData: ProjectRisk[] = [
   {
     riskName: "Nexus",
     project: "Marketing AI",
@@ -133,3 +133,5 @@ const projectRisks: ProjectRisk[] = [
     finalRiskLevel: "Low"
   }
 ];
+
+export default projectRisksData;

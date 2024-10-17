@@ -1,40 +1,19 @@
-import { Stack, Typography, useTheme } from "@mui/material";
+import { Stack, SxProps, Theme, Typography, useTheme } from "@mui/material";
 import { ProjectOverview, RiskData } from "../../../mocks/projects/project-overview.data";
 import ProgressBar from "../../../components/ProjectCard/ProgressBar";
+import { FC } from "react";
 
-interface OverviewProps {
-    project: ProjectOverview
-}
-
-const Overview = ({project}: OverviewProps) => {
-    const { owner, lastUpdated, lastUpdatedBy, controlsStatus, assessmentsStatus, projectRisks, vendorRisks } = project;
+export const Risks: FC<RiskData & {sx?: SxProps<Theme> | undefined}> = (
+    { veryHighRisks, highRisks, mediumRisks, lowRisks, veryLowRisks, sx }
+) => {
     const theme = useTheme();
-   
-    const styles = { 
-        block: {
-            border: `1px solid ${theme.palette.border.light}`,
-            borderRadius: 2,
-            backgroundColor: theme.palette.background.main,
-            minWidth: 300,
-            padding: "8px 36px 14px 14px"
-        },
-        tytle: {
-            fontSize: 12, 
-            color: "#8594AC", 
-            pb: "2px"
-        },
-        value: {
-            fontSize: 16, 
-            fontWeight: 600, 
-            color: "#2D3748"
-        },
+
+    const styles = {
         stack: {
             mb: "37px", 
             border: `1px solid ${theme.palette.border.light}`,
             borderRadius: 2,
-            backgroundColor: theme.palette.background.main,
-            minWidth: 532,
-            width: "fit-content"
+            backgroundColor: theme.palette.background.main
         },
         stackItem: {
             p: "15px", position: "relative",
@@ -47,6 +26,60 @@ const Overview = ({project}: OverviewProps) => {
                 height: "43px"
             } 
         }
+    }
+
+    return (
+        <Stack direction="row" sx={{...styles.stack, ...sx}}>
+            <Stack sx={styles.stackItem}>
+                <Typography sx={{color: "#C63622"}}>Very high risks</Typography>
+                <Typography sx={{color: theme.palette.text.secondary}}>{veryHighRisks}</Typography>
+            </Stack>
+            <Stack sx={styles.stackItem}>
+                <Typography sx={{color: "#D68B61"}}>High risks</Typography>
+                <Typography sx={{color: theme.palette.text.secondary}}>{highRisks}</Typography>
+            </Stack>
+            <Stack sx={styles.stackItem}>
+                <Typography sx={{color: "#D6B971"}}>Medium risks</Typography>
+                <Typography sx={{color: theme.palette.text.secondary}}>{mediumRisks}</Typography>
+            </Stack>
+            <Stack sx={styles.stackItem}>
+                <Typography sx={{color: "#B8D39C"}}>Low risks</Typography>
+                <Typography sx={{color: theme.palette.text.secondary}}>{lowRisks}</Typography>
+            </Stack>
+            <Stack sx={{p: "15px"}}>
+                <Typography sx={{color: "#52AB43"}}>Very low risks</Typography>
+                <Typography sx={{color: theme.palette.text.secondary}}>{veryLowRisks}</Typography>
+            </Stack>
+        </Stack>
+    );
+}
+
+interface OverviewProps {
+    project: ProjectOverview
+}
+
+const Overview: FC<OverviewProps> = ({ project }) => {
+    const { owner, lastUpdated, lastUpdatedBy, controlsStatus, assessmentsStatus, projectRisks, vendorRisks } = project;
+    const theme = useTheme();
+   
+    const styles = { 
+        block: {
+            border: `1px solid ${theme.palette.border.light}`,
+            borderRadius: 2,
+            backgroundColor: theme.palette.background.main,
+            minWidth: 228,
+            padding: "8px 36px 14px 14px"
+        },
+        tytle: {
+            fontSize: 12, 
+            color: "#8594AC", 
+            pb: "2px"
+        },
+        value: {
+            fontSize: 16, 
+            fontWeight: 600, 
+            color: "#2D3748"
+        }
     };
 
     const progressBarCardRender = (progress: string, label: string) => (
@@ -54,31 +87,6 @@ const Overview = ({project}: OverviewProps) => {
             <Typography sx={{"&:first-letter": { textTransform: "uppercase" }, ...styles.tytle}}>{label} status</Typography>
             <ProgressBar progress={progress} />
             <Typography sx={{fontSize: 11, color: "#8594AC" }}>{progress} {label} completed</Typography>
-        </Stack>
-    );
-
-    const risksRender = (risks: RiskData) => (
-        <Stack direction="row" sx={styles.stack}>
-            <Stack sx={styles.stackItem}>
-                <Typography sx={{color: "#C63622"}}>Very high risks</Typography>
-                <Typography sx={{color: theme.palette.text.secondary}}>{risks.veryHighRisks}</Typography>
-            </Stack>
-            <Stack sx={styles.stackItem}>
-                <Typography sx={{color: "#D68B61"}}>High risks</Typography>
-                <Typography sx={{color: theme.palette.text.secondary}}>{risks.highRisks}</Typography>
-            </Stack>
-            <Stack sx={styles.stackItem}>
-                <Typography sx={{color: "#D6B971"}}>Medium risks</Typography>
-                <Typography sx={{color: theme.palette.text.secondary}}>{risks.mediumRisks}</Typography>
-            </Stack>
-            <Stack sx={styles.stackItem}>
-                <Typography sx={{color: "#B8D39C"}}>Low risks</Typography>
-                <Typography sx={{color: theme.palette.text.secondary}}>{risks.lowRisks}</Typography>
-            </Stack>
-            <Stack sx={{p: "15px"}}>
-                <Typography sx={{color: "#52AB43"}}>Very low risks</Typography>
-                <Typography sx={{color: theme.palette.text.secondary}}>{risks.veryLowRisks}</Typography>
-            </Stack>
         </Stack>
     );
 
@@ -104,11 +112,11 @@ const Overview = ({project}: OverviewProps) => {
             </Stack>
             <Stack>
                 <Typography sx={{ color: "#1A1919", fontWeight: 600, mb: "10px", fontSize: 16 }}>Project risks</Typography>
-                {risksRender(projectRisks)}
+                <Risks {...projectRisks} sx={{width: "fit-content"}} />
             </Stack>
             <Stack>
                 <Typography sx={{ color: "#1A1919", fontWeight: 600, mb: "10px", fontSize: 16 }}>Vendor risks</Typography>
-                {risksRender(vendorRisks)}
+                <Risks {...vendorRisks} sx={{width: "fit-content"}} />
             </Stack>
         </Stack>
     )

@@ -1,13 +1,8 @@
 import React, { useState } from "react";
-import {
-  Tabs,
-  Tab,
-  Box,
-  useTheme,
-} from "@mui/material";
+import { Tabs, Tab, Box, useTheme } from "@mui/material";
 import Profile from "./Profile/index";
-import Password from "./Password/index"
-import Team from "./Team/index"
+import Password from "./Password/index";
+import Team from "./Team/index";
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState(0);
@@ -23,7 +18,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <Box sx={{ width: "100%", marginLeft: theme.spacing(10)}}>
+    <Box sx={{ width: "100%", marginLeft: theme.spacing(10) }}>
       <Tabs
         value={activeTab}
         onChange={handleTabChange}
@@ -44,13 +39,9 @@ export default function ProfilePage() {
 
       {activeTab === 0 && <Profile />}
 
-      {activeTab === 1 && (
-<Password />
-      )}
+      {activeTab === 1 && <Password />}
 
-      {activeTab === 2 && (
-<Team />
-      )}
+      {activeTab === 2 && <Team />}
     </Box>
   );
 }

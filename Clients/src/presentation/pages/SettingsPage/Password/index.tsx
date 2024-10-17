@@ -58,7 +58,7 @@ const index = () => {
                             sx={{
                                 width: theme.spacing(80),
                                 mb: theme.spacing(4),
-                                backgroundColor: "Save",
+                                backgroundColor: "#4c7de7",
                                 color: "#fff",
                                 position: "relative",
                                 left: theme.spacing(200),

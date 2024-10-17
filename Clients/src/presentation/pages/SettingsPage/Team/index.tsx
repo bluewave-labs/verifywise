@@ -1,8 +1,14 @@
+/**
+ * A component that renders a team management table with the ability to edit member roles, invite new members, and delete members.
+ *
+ * @component
+ * @returns {JSX.Element} The rendered team management table.
+ */
+
 import { useState } from "react";
 import {
   Box,
   Button,
-  TextField,
   Typography,
   Table,
   TableBody,
@@ -18,7 +24,8 @@ import {
   Stack,
   useTheme,
 } from "@mui/material";
-import Trashbin from "../../../../presentation/assets/icons/TrashCan.svg";
+import Trashbin from "../../../../presentation/assets/icons/trash-01.svg"; // Imported as an SVG file
+import Field from "../../../components/Inputs/Field";
 
 type TeamMember = {
   id: string;
@@ -50,10 +57,21 @@ export default function index() {
   ]);
 
   const theme = useTheme();
+
+  /**
+   * Handles the saving of the organization name.
+   * Logs the organization name to the console when the save button is clicked.
+   */
   const handleSaveOrgName = () => {
     console.log("Saving organization name:", orgName);
   };
 
+  /**
+   * Handles changing the role of a team member.
+   *
+   * @param {SelectChangeEvent<string>} event - The event triggered by the selection change.
+   * @param {string} memberId - The ID of the member whose role is being changed.
+   */
   const handleRoleChange = (
     event: SelectChangeEvent<string>,
     memberId: string
@@ -66,6 +84,11 @@ export default function index() {
     );
   };
 
+  /**
+   * Handles deleting a team member.
+   *
+   * @param {string} memberId - The ID of the member to delete.
+   */
   const handleDeleteMember = (memberId: string) => {
     setTeamMembers((members) =>
       members.filter((member) => member.id !== memberId)
@@ -86,19 +109,26 @@ export default function index() {
           sx={{
             flexGrow: 1,
             top: theme.spacing(2.5),
-            fontSize: "18px",
+            fontSize: "13px",
             fontWeight: 600,
             color: "#1A1919",
           }}
         >
           Organization name
         </Typography>
-        <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
-          <TextField
+        <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+            alignItems: "flex-start",
+            mt: theme.spacing(5),
+          }}
+        >
+          <Field
+            id="orgName"
             value={orgName}
             onChange={(e) => setOrgName(e.target.value)}
-            variant="outlined"
-            size="small"
+            sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
           />
           <Button
             variant="contained"
@@ -126,7 +156,7 @@ export default function index() {
           sx={{
             flexGrow: 1,
             top: theme.spacing(2.5),
-            fontSize: "18px",
+            fontSize: "13px",
             fontWeight: 600,
             color: "#1A1919",
             pt: theme.spacing(20),
@@ -150,12 +180,15 @@ export default function index() {
                   onClick={() => setFilter(role)}
                   sx={{
                     borderRadius: 0,
-                    color: filter === role ? "#344054" : "#344054", // Text color
-                    borderColor: "#EAECF0", // Border color for outlined
-                    backgroundColor: filter === role ? "#EAECF0" : "transparent", // Background color for contained
+                    color: "#344054",
+                    borderColor: "#EAECF0",
+                    backgroundColor:
+                      filter === role ? "#EAECF0" : "transparent",
                     "&:hover": {
-                      backgroundColor: filter === role ? "#D0D4DA" : "transparent", // Hover state
+                      backgroundColor:
+                        filter === role ? "#D0D4DA" : "transparent",
                     },
+                    fontWeight: filter === role ? "bold" : "normal",
                   }}
                 >
                   {role}
@@ -175,19 +208,21 @@ export default function index() {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>NAME</TableCell>
-                  <TableCell>EMAIL</TableCell>
-                  <TableCell>ROLE</TableCell>
-                  <TableCell>ACTION</TableCell>
+                  <TableCell sx={{ color: "#667085" }}>NAME</TableCell>
+                  <TableCell sx={{ color: "#667085" }}>EMAIL</TableCell>
+                  <TableCell sx={{ color: "#667085" }}>ROLE</TableCell>
+                  <TableCell sx={{ color: "#667085" }}>ACTION</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {filteredMembers.map((member) => (
                   <TableRow key={member.id} sx={{ height: theme.spacing(1) }}>
-                    <TableCell sx={{ height: "90px !important" }}>
+                    <TableCell
+                      sx={{ height: "80px !important", color: "#101828" }}
+                    >
                       {member.name}
                     </TableCell>
-                    <TableCell sx={{ height: "90px !important" }}>
+                    <TableCell sx={{ color: "#667085" }}>
                       {member.email}
                     </TableCell>
                     <TableCell>
@@ -199,6 +234,8 @@ export default function index() {
                           "& .MuiOutlinedInput-notchedOutline": {
                             border: "none",
                           },
+                          color: "#667085",
+                          fontSize: 13,
                         }}
                       >
                         {roles.map((role) => (
@@ -217,8 +254,11 @@ export default function index() {
                         <img
                           src={Trashbin}
                           alt="Delete"
-                          width={"20px"}
-                          height={"20px"}
+                          width={20}
+                          height={20}
+                          style={{
+                            filter: "invert(0.5)",
+                          }}
                         />
                       </IconButton>
                     </TableCell>

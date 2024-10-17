@@ -244,7 +244,6 @@ const Compliance = ({
           );
         })}
       </Stack>
-      {/* Render the modal and pass the state */}
       {selectedRow !== null && (
         <CustomModal
           isOpen={isModalOpen}

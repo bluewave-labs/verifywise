@@ -36,7 +36,7 @@ const ProjectView = ({ project = projectOverviewData }) => {
             <Typography sx={{ fontSize: theme.typography.fontSize, color: theme.palette.text.secondary }}>This project includes all the governance process status of the Chatbot AI project.</Typography>
             <Stack sx={{ minWidth: "968px", overflowX: "auto",  whiteSpace: "nowrap" }}>
                 <TabContext value={value}>
-                    <Box sx={{ borderBottom: 1, borderColor: "divider", maxWidth: "968px" }}>
+                    <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
                         <TabList onChange={handleChange} aria-label="project view tabs" 
                             sx={{ minHeight: "20px", 
                                 "& .MuiTabs-flexContainer": { columnGap: "34px" } }}

@@ -39,8 +39,8 @@ const RisksView: FC<RisksViewProps>= ({ risksSummary, title }) => {
 
     return (
         <Stack>
-            <Risks sx={{ width: "100%", maxWidth: "968px" }} {...risksSummary}/>
-            <Stack sx={{ mt: "33px", maxWidth: "968px" }} direction="row" justifyContent="space-between" alignItems="flex-end">
+            <Risks {...risksSummary}/>
+            <Stack sx={{ mt: "33px" }} direction="row" justifyContent="space-between" alignItems="flex-end">
                 <Typography component="h2" sx={{ fontSize: 16, fontWeight: 600, color: "#1A1919" }}>{title} risks</Typography>
                 <Button variant="contained" sx={styles.btn} onClick={()=>{}}
                 disableRipple={theme.components?.MuiButton?.defaultProps?.disableRipple}>Add new risk</Button>

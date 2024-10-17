@@ -68,6 +68,7 @@ const Overview: FC<OverviewProps> = ({ project }) => {
             borderRadius: 2,
             backgroundColor: theme.palette.background.main,
             minWidth: 228,
+            width: "100%",
             padding: "8px 36px 14px 14px"
         },
         tytle: {
@@ -92,7 +93,7 @@ const Overview: FC<OverviewProps> = ({ project }) => {
 
     return (
         <Stack>
-            <Stack direction="row" spacing={18} sx={{ pb: "31px" }}>
+            <Stack direction="row" justifyContent="space-between" spacing={18} sx={{ pb: "31px" }}>
                 <Stack sx={styles.block}>
                     <Typography sx={styles.tytle}>Owner</Typography>
                     <Typography sx={styles.value}>{owner}</Typography>
@@ -112,11 +113,11 @@ const Overview: FC<OverviewProps> = ({ project }) => {
             </Stack>
             <Stack>
                 <Typography sx={{ color: "#1A1919", fontWeight: 600, mb: "10px", fontSize: 16 }}>Project risks</Typography>
-                <Risks {...projectRisks} sx={{width: "fit-content"}} />
+                <Risks {...projectRisks} />
             </Stack>
             <Stack>
                 <Typography sx={{ color: "#1A1919", fontWeight: 600, mb: "10px", fontSize: 16 }}>Vendor risks</Typography>
-                <Risks {...vendorRisks} sx={{width: "fit-content"}} />
+                <Risks {...vendorRisks} />
             </Stack>
         </Stack>
     )

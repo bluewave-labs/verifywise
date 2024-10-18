@@ -60,7 +60,7 @@ export function checkStringValidation(
   if (value.length > maxLength) {
     return feedbackToString(
       false,
-      `${title} can't be londer than ${maxLength} characters.`
+      `${title} can't be longer than ${maxLength} characters.`
     );
   }
 

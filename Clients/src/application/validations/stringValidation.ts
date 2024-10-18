@@ -51,11 +51,17 @@ export function checkStringValidation(
   }
 
   if (value.length < minLength) {
-    return feedbackToString(false, `${title} is too short.`);
+    return feedbackToString(
+      false,
+      `${title} can't be shorter than ${minLength} characters.`
+    );
   }
 
   if (value.length > maxLength) {
-    return feedbackToString(false, `${title} is too long.`);
+    return feedbackToString(
+      false,
+      `${title} can't be londer than ${maxLength} characters.`
+    );
   }
 
   if (hasUpperCase && !/[A-Z]/.test(value)) {

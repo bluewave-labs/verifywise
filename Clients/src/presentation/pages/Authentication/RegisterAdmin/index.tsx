@@ -1,9 +1,10 @@
 import { Button, Stack, Typography, useTheme } from "@mui/material";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Check from "../../../components/Checks";
 import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
+import { checkStringValidation } from "../../../../application/validations/stringValidation";
 
 // Define the shape of form values
 interface FormValues {
@@ -36,7 +37,7 @@ const initialState: FormValues = {
   email: "",
   password: "",
   confirmPassword: "",
-}
+};
 
 const RegisterAdmin: React.FC = () => {
   // State for form values
@@ -50,10 +51,12 @@ const RegisterAdmin: React.FC = () => {
   });
 
   // Handle input field changes
-  const handleChange = (prop: keyof FormValues) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    setValues({ ...values, [prop]: event.target.value });
-    setErrors({ ...errors, [prop]: "" }); // Clear error for the specific field
-  };
+  const handleChange =
+    (prop: keyof FormValues) =>
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setValues({ ...values, [prop]: event.target.value });
+      setErrors({ ...errors, [prop]: "" }); // Clear error for the specific field
+    };
 
   // Effect to update password checks based on the password input
   useEffect(() => {
@@ -68,27 +71,47 @@ const RegisterAdmin: React.FC = () => {
     const newErrors: FormErrors = {};
 
     // Validate name
-    if (!values.name.trim()) {
-      newErrors.name = "Name is required";
+    const name = checkStringValidation("Name", values.name, 3, 50);
+    if (!name.accepted) {
+      newErrors.name = name.message;
     }
 
     // Validate surname
-    if (!values.surname.trim()) {
-      newErrors.surname = "Surname is required";
+    const surname = checkStringValidation("Surname", values.surname, 3, 50);
+    if (!surname.accepted) {
+      newErrors.surname = surname.message;
     }
 
     // Validate email
-    if (!values.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
-      newErrors.email = "Email is invalid";
+    const email = checkStringValidation(
+      "Email",
+      values.email,
+      0,
+      128,
+      false,
+      false,
+      false,
+      false,
+      "email"
+    );
+    if (!email.accepted) {
+      newErrors.email = email.message;
     }
 
     // Validate password
-    if (!values.password) {
-      newErrors.password = "Password is required";
-    } else if (!passwordChecks.length || !passwordChecks.specialChar) {
-      newErrors.password = "Password does not meet requirements";
+    const password = checkStringValidation(
+      "Password",
+      values.password,
+      8,
+      16,
+      true,
+      true,
+      true,
+      true,
+      "password"
+    );
+    if (!password.accepted) {
+      newErrors.password = password.message;
     }
 
     // Confirm password validation
@@ -126,6 +149,7 @@ const RegisterAdmin: React.FC = () => {
       className="reg-admin-page"
       sx={{
         minHeight: "100vh",
+        marginBottom: theme.spacing(20),
       }}
     >
       <Background

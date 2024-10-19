@@ -1,58 +1,8 @@
-import { Stack, SxProps, Theme, Typography, useTheme } from "@mui/material";
-import { ProjectOverview, RiskData } from "../../../mocks/projects/project-overview.data";
+import { Stack, Typography, useTheme } from "@mui/material";
+import { ProjectOverview } from "../../../mocks/projects/project-overview.data";
 import ProgressBar from "../../../components/ProjectCard/ProgressBar";
 import { FC } from "react";
-
-export const Risks: FC<RiskData & {sx?: SxProps<Theme> | undefined}> = (
-    { veryHighRisks, highRisks, mediumRisks, lowRisks, veryLowRisks, sx }
-) => {
-    const theme = useTheme();
-
-    const styles = {
-        stack: {
-            mb: "37px", 
-            border: `1px solid ${theme.palette.border.light}`,
-            borderRadius: 2,
-            backgroundColor: theme.palette.background.main
-        },
-        stackItem: {
-            p: "15px", position: "relative",
-            "&:after": { 
-                content: `""`, 
-                position: "absolute", 
-                backgroundColor: "#EEEEEE", 
-                top: "13px", right: 0, 
-                width: "1px", 
-                height: "43px"
-            } 
-        }
-    }
-
-    return (
-        <Stack direction="row" sx={{...styles.stack, ...sx}}>
-            <Stack sx={styles.stackItem}>
-                <Typography sx={{color: "#C63622"}}>Very high risks</Typography>
-                <Typography sx={{color: theme.palette.text.secondary}}>{veryHighRisks}</Typography>
-            </Stack>
-            <Stack sx={styles.stackItem}>
-                <Typography sx={{color: "#D68B61"}}>High risks</Typography>
-                <Typography sx={{color: theme.palette.text.secondary}}>{highRisks}</Typography>
-            </Stack>
-            <Stack sx={styles.stackItem}>
-                <Typography sx={{color: "#D6B971"}}>Medium risks</Typography>
-                <Typography sx={{color: theme.palette.text.secondary}}>{mediumRisks}</Typography>
-            </Stack>
-            <Stack sx={styles.stackItem}>
-                <Typography sx={{color: "#B8D39C"}}>Low risks</Typography>
-                <Typography sx={{color: theme.palette.text.secondary}}>{lowRisks}</Typography>
-            </Stack>
-            <Stack sx={{p: "15px"}}>
-                <Typography sx={{color: "#52AB43"}}>Very low risks</Typography>
-                <Typography sx={{color: theme.palette.text.secondary}}>{veryLowRisks}</Typography>
-            </Stack>
-        </Stack>
-    );
-}
+import Risks from "../../../components/Risks";
 
 interface OverviewProps {
     project: ProjectOverview

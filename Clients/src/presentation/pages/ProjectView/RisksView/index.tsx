@@ -1,9 +1,9 @@
 import { Button, Stack, Typography, useTheme } from "@mui/material";
 import { RiskData } from "../../../mocks/projects/project-overview.data";
-import { Risks } from "../Overview";
 import { ProjectRisk } from "../../../mocks/projects/project-risks.data";
 import { FC } from "react";
 import { VendorRisk } from "../../../mocks/projects/project-vendor-risks.data";
+import Risks from "../../../components/Risks";
 
 interface RisksViewProps {
     risksSummary: RiskData,

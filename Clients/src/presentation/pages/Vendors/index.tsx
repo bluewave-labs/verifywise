@@ -21,7 +21,7 @@ const Vendors = () => {
 
   return (
     <div className="vendors-page">
-      <Stack gap={theme.spacing(10)}>
+      <Stack gap={theme.spacing(10)} maxWidth={1400}>
         <Stack>
           <Typography sx={singleTheme.textStyles.pageTitle}>
             Vendors list

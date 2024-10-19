@@ -4,7 +4,7 @@
  *
  * @component
  * @param {Object} props - The properties object.
- * @param {Array} props.data - The array of data objects to be displayed in the table. Defaults to listOfVendors.
+ * @param {Array} props.data - The array of data objects to be displayed in the table. Defaults to vendorList.
  * @returns {JSX.Element} The rendered TableWithPlaceholder component.
  *
  * @example
@@ -28,7 +28,7 @@ import {
 } from "@mui/material";
 
 import Placeholder from "../../../assets/imgs/table placeholder 1.png";
-import listOfVendors from "../../../mocks/vendors.data";
+import { vendorList } from "../../../mocks/vendors/vendors.data";
 import IconButton from "../../IconButton";
 import singleTheme from "../../../themes/v1SingleTheme";
 
@@ -53,7 +53,7 @@ const titleOfTableColumns = [
   "",
 ];
 
-const TableWithPlaceholder = ({ data = listOfVendors }) => {
+const TableWithPlaceholder = ({ data = vendorList }) => {
   const theme = useTheme();
 
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
@@ -123,7 +123,7 @@ const TableWithPlaceholder = ({ data = listOfVendors }) => {
             <TableCell sx={cellStyle}>{row.assignee}</TableCell>
             <TableCell sx={cellStyle}>{row.status}</TableCell>
             <TableCell sx={cellStyle}>{row.risk}</TableCell>
-            <TableCell sx={cellStyle}>{row.review_date}</TableCell>
+            <TableCell sx={cellStyle}>{row.reviewDate}</TableCell>
             <TableCell sx={cellStyle}>
               <IconButton />
             </TableCell>

@@ -5,6 +5,7 @@ import { ReactComponent as LeftArrowLong } from "../../../assets/icons/left-arro
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
+import { useNavigate } from "react-router-dom";
 
 // Define the shape of form values
 interface FormValues {
@@ -17,13 +18,16 @@ const initialState: FormValues = {
 };
 
 const ForgotPassword: React.FC = () => {
+  const navigate = useNavigate();
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
 
   // Handle changes in input fields
-  const handleChange = (prop: keyof FormValues) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    setValues({ ...values, [prop]: event.target.value });
-  };
+  const handleChange =
+    (prop: keyof FormValues) =>
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setValues({ ...values, [prop]: event.target.value });
+    };
 
   // Handle form submission
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -127,6 +131,9 @@ const ForgotPassword: React.FC = () => {
                 gap: theme.spacing(5),
                 alignItems: "center",
                 cursor: "pointer",
+              }}
+              onClick={() => {
+                navigate("/login");
               }}
             >
               <LeftArrowLong />

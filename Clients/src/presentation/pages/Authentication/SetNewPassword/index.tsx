@@ -8,6 +8,7 @@ import { ReactComponent as LeftArrowLong } from "../../../assets/icons/left-arro
 import { ReactComponent as Lock } from "../../../assets/icons/lock.svg";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
+import { useNavigate } from "react-router-dom";
 
 // Define the shape of form values
 interface FormValues {
@@ -33,6 +34,7 @@ const initialState: FormValues = {
 };
 
 const SetNewPassword: React.FC = () => {
+  const navigate = useNavigate();
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
   // State for form errors
@@ -219,6 +221,9 @@ const SetNewPassword: React.FC = () => {
                 gap: theme.spacing(5),
                 alignItems: "center",
                 cursor: "pointer",
+              }}
+              onClick={() => {
+                navigate("/login");
               }}
             >
               <LeftArrowLong />

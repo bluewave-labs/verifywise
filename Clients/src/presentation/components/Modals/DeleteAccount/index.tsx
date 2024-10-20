@@ -6,11 +6,8 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
-  Box,
-  Paper,
-  Typography,
 } from "@mui/material";
-import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
+import Banner from "../Banner/index";
 
 interface DeleteAccountConfirmationProps {
   open: boolean;
@@ -67,7 +64,7 @@ const DeleteAccountConfirmation: React.FC<DeleteAccountConfirmationProps> = ({
             height: "240px", // Custom height
             maxWidth: "none", // Disable the default maxWidth behavior
             padding: "32px",
-            overflowY: "hidden"
+            overflowY: "hidden",
           },
         }}
       >
@@ -77,7 +74,7 @@ const DeleteAccountConfirmation: React.FC<DeleteAccountConfirmationProps> = ({
         >
           {"Are you sure you want to delete this account?"}
         </DialogTitle>
-        <DialogContent sx={{padding:0 }}>
+        <DialogContent sx={{ padding: 0 }}>
           <DialogContentText id="alert-dialog-description" sx={{ padding: 0 }}>
             When you delete this file, all the links associated with the file
             will also be removed. Note that this is a non-reversible action.
@@ -96,41 +93,7 @@ const DeleteAccountConfirmation: React.FC<DeleteAccountConfirmationProps> = ({
       </Dialog>
 
       {/* Conditionally render banner when isBannerOpen is true */}
-      {isBannerOpen && (
-        <Box
-          sx={{
-            position: "fixed",
-            bottom: 16,
-            right: 16,
-            zIndex: 1000,
-          }}
-        >
-          <Paper
-            sx={{
-              width: "219px",
-              height: "52px",
-              display: "flex",
-              justifyContent: "space-between", 
-              alignItems: "center",
-              color: "#475467",
-            }}
-          >
-            <Typography
-              sx={{
-                fontSize: "13px",
-                color: "#475467",
-                whiteSpace: "nowrap", // Prevent text from wrapping
-              }}
-            >
-              This account is removed.
-              <CloseIcon
-                onClick={onClose}
-                style={{ cursor: "pointer", marginLeft: 14 }}
-              />
-            </Typography>
-          </Paper>
-        </Box>
-      )}
+      {isBannerOpen && <Banner onClose={onClose} bannerText={'This account is removed.'} bannerWidth ={'209px'}/>}
     </>
   );
 };

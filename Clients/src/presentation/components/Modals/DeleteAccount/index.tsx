@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  useTheme,
 } from "@mui/material";
 
 interface DeleteAccountConfirmationProps {
@@ -18,6 +19,8 @@ const index: React.FC<DeleteAccountConfirmationProps> = ({ open, onClose }) => {
     onClose();
   };
 
+  const theme = useTheme();
+
   return (
     <Dialog
       open={open}
@@ -25,19 +28,32 @@ const index: React.FC<DeleteAccountConfirmationProps> = ({ open, onClose }) => {
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      <DialogTitle id="alert-dialog-title">
-        {"Are you absolutely sure?"}
+      <DialogTitle id="alert-dialog-title" sx={{font: 'bold'}}>
+        {"Are you sure you want to delete this account?"}
       </DialogTitle>
       <DialogContent>
-        <DialogContentText id="alert-dialog-description">
-          This action cannot be undone. This will permanently delete your
-          account and remove your data from our servers.
+        <DialogContentText
+          id="alert-dialog-description"
+          sx={{ maxWidth: '439px'}}
+        >
+          If you delete your account, you will no longer be able to sign in, and
+          all of your data will be deleted. Deleting your account is permanent
+          and non-recoverable action.
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={handleDelete} color="error" autoFocus>
-          Delete Account
+        <Button onClick={onClose} sx={{color: 'black', fontSize: 13}}>Cancel</Button>
+        <Button
+          disableRipple
+          variant="contained"
+          sx={{
+            width: theme.spacing(80),
+            mb: theme.spacing(4),
+            backgroundColor: "#DB504A",
+            color: "#fff",
+          }}
+        >
+          Delete account
         </Button>
       </DialogActions>
     </Dialog>

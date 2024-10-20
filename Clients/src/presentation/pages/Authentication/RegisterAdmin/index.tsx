@@ -5,6 +5,7 @@ import Check from "../../../components/Checks";
 import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
+import { useNavigate } from "react-router-dom";
 
 // Define the shape of form values
 interface FormValues {
@@ -40,6 +41,7 @@ const initialState: FormValues = {
 };
 
 const RegisterAdmin: React.FC = () => {
+  const navigate = useNavigate();
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
   // State for form errors
@@ -133,6 +135,7 @@ const RegisterAdmin: React.FC = () => {
       setValues(initialState);
       setErrors({});
       setPasswordChecks({ length: false, specialChar: false });
+      navigate("/login");
     }
   };
 

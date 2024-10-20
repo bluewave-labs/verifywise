@@ -47,14 +47,14 @@ const ProjectView = ({ project = projectOverviewData }) => {
                             <Tab label="Settings" value="settings" sx={tabStyle} disableRipple={disableRipple} />
                         </TabList>
                     </Box>
-                    <TabPanel value="overview" sx={{ p: "25px 0 0" }}><Overview project={project} /></TabPanel>
-                    <TabPanel value="project-risks" sx={{ p: "25px 0 0" }}>
+                    <TabPanel value="overview" sx={{ p: "32px 0 0" }}><Overview project={project} /></TabPanel>
+                    <TabPanel value="project-risks" sx={{ p: "32px 0 0" }}>
                         <RisksView risksSummary={projectRisks} risksData={projectRisksData} title="Project" />
                     </TabPanel>
-                    <TabPanel value="vendor-risks" sx={{ p: "25px 0 0" }}>
+                    <TabPanel value="vendor-risks" sx={{ p: "32px 0 0" }}>
                         <RisksView risksSummary={vendorRisks} risksData={vendorRisksData} title="Vendor" />
                     </TabPanel>
-                    <TabPanel value="settings" sx={{ p: "25px 0 0" }}>Item Three</TabPanel>
+                    <TabPanel value="settings" sx={{ p: "32px 0 0" }}>Item Three</TabPanel>
                 </TabContext>
             </Stack>
         </Stack>

@@ -43,7 +43,7 @@ const Overview: FC<OverviewProps> = ({ project }) => {
 
     return (
         <Stack>
-            <Stack direction="row" justifyContent="space-between" spacing={18} sx={{ pb: "31px" }}>
+            <Stack direction="row" spacing={18} sx={{ pb: "31px" }}>
                 <Stack sx={styles.block}>
                     <Typography sx={styles.tytle}>Owner</Typography>
                     <Typography sx={styles.value}>{owner}</Typography>
@@ -60,8 +60,9 @@ const Overview: FC<OverviewProps> = ({ project }) => {
             <Stack direction="row" spacing={18} sx={{ pb: "56px" }}>
                 {progressBarCardRender(`${controlsStatus.completedControls}/${controlsStatus.totalControls}`, "controls")}
                 {progressBarCardRender(`${assessmentsStatus.completedAssessments}/${assessmentsStatus.totalAssessments}`, "assessments")}
+                <Stack sx={{ minWidth: 228, width: "100%", p: "8px 36px 14px 14px" }}></Stack>
             </Stack>
-            <Stack>
+            <Stack sx={{ mb: "37px" }}>
                 <Typography sx={{ color: "#1A1919", fontWeight: 600, mb: "10px", fontSize: 16 }}>Project risks</Typography>
                 <Risks {...projectRisks} />
             </Stack>

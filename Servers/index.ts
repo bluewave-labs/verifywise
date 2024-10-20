@@ -20,6 +20,7 @@ import sectionRoutes from "./routes/section.route";
 import questionRoutes from "./routes/question.route";
 import questionEvidenceRoutes from "./routes/questionEvidence.route";
 import subrequirementEvidence from "./routes/subrequirementEvidence.route";
+import autoDriverRoutes from "./routes/autoDriver.route";
 
 dotenv.config();
 
@@ -48,6 +49,7 @@ app.use("/sections", sectionRoutes);
 app.use("/questions", questionRoutes);
 app.use("questionEvidence", questionEvidenceRoutes);
 app.use("subrequirementEvidence", subrequirementEvidence);
+app.use("/autoDrivers", autoDriverRoutes);
 
 app.use("/", (req, res) => {
   res.json("Hello buddy!");

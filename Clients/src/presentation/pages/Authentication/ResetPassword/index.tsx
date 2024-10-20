@@ -2,8 +2,10 @@ import { Stack, Typography, useTheme } from "@mui/material";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import { ReactComponent as Email } from "../../../assets/icons/email.svg";
 import { ReactComponent as LeftArrowLong } from "../../../assets/icons/left-arrow-long.svg";
+import { useNavigate } from "react-router-dom";
 
 const ResetPassword = () => {
+  const navigate = useNavigate();
   const theme = useTheme();
 
   return (
@@ -87,6 +89,9 @@ const ResetPassword = () => {
               gap: theme.spacing(5),
               alignItems: "center",
               cursor: "pointer",
+            }}
+            onClick={() => {
+              navigate("/login");
             }}
           >
             <LeftArrowLong />

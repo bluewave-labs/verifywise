@@ -1,9 +1,10 @@
 import { Button, Stack, Typography, useTheme } from "@mui/material";
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Checkbox from "../../../components/Inputs/Checkbox";
 import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
+import { useNavigate } from "react-router-dom";
 
 // Define the shape of form values
 interface FormValues {
@@ -20,14 +21,16 @@ const initialState: FormValues = {
 };
 
 const Login: React.FC = () => {
+  const navigate = useNavigate();
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
 
   // Handle changes in input fields
-  const handleChange = (prop: keyof FormValues) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    setValues({ ...values, [prop]: event.target.value });
-  };
-
+  const handleChange =
+    (prop: keyof FormValues) =>
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setValues({ ...values, [prop]: event.target.value });
+    };
 
   // Handle form submission
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -35,6 +38,7 @@ const Login: React.FC = () => {
     console.log("Form submitted:", values);
     // Reset form after successful submission
     setValues(initialState);
+    navigate("/");
   };
 
   const theme = useTheme();
@@ -119,7 +123,7 @@ const Login: React.FC = () => {
                 label="Remember for 30 days"
                 isChecked={values.rememberMe}
                 value={values.rememberMe ? "true" : "false"}
-                onChange={()=>{}}
+                onChange={() => {}}
                 size="small"
               />
               <Typography
@@ -129,7 +133,9 @@ const Login: React.FC = () => {
                   fontWeight: "bold",
                   cursor: "pointer",
                 }}
-                onClick={() => console.log("Forgot password clicked")}
+                onClick={() => {
+                  navigate("/forgot-password");
+                }}
               >
                 Forgot password
               </Typography>
@@ -151,7 +157,10 @@ const Login: React.FC = () => {
               }}
             >
               <Typography
-                sx={{ fontSize: 13, color: theme.palette.secondary.contrastText }}
+                sx={{
+                  fontSize: 13,
+                  color: theme.palette.secondary.contrastText,
+                }}
               >
                 Don't have an account?{" "}
                 <span
@@ -160,7 +169,9 @@ const Login: React.FC = () => {
                     fontWeight: "bold",
                     cursor: "pointer",
                   }}
-                  onClick={() => console.log("Sign up clicked")}
+                  onClick={() => {
+                    navigate("/user-reg");
+                  }}
                 >
                   Sign up
                 </span>

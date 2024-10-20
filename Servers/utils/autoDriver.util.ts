@@ -3,9 +3,9 @@ import pool from "../database/db";
 export async function checkTableExists(tableName: string) {
   const query = `
     SELECT EXISTS (
-        SELECT FROM information_schema.tables 
-        WHERE table_schema = 'public' 
-        AND table_name = $1
+      SELECT FROM information_schema.tables
+      WHERE table_schema = 'public'
+      AND table_name = $1
     );
   `;
   const result = await pool.query(query, [tableName]);
@@ -16,10 +16,9 @@ export async function createTable(createQuery: string) {
   await pool.query(createQuery);
 };
 
-export async function checkDataExists(tableName: string) {
-  const query = `SELECT COUNT(*) FROM ${tableName};`;
-  const result = await pool.query(query);
-  return parseInt(result.rows[0].count) > 0;
+export async function deleteExistingData(tableName: string) {
+  const query = `DELETE FROM ${tableName} WHERE 1=1;`;
+  await pool.query(query);
 };
 
 export async function insertData(insertQuery: string) {

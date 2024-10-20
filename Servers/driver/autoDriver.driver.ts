@@ -9,7 +9,7 @@ import { Project } from "../models/Project";
 import { Role } from "../models/Role";
 import { User } from "../models/User";
 import { Vendor } from "../models/Vendor";
-import { checkDataExists, checkTableExists, createTable, insertData } from "../utils/autoDriver.util";
+import { deleteExistingData, checkTableExists, createTable, insertData } from "../utils/autoDriver.util";
 
 interface TableEntry<T> {
   mockData: T[];
@@ -123,10 +123,9 @@ export async function insertMockData() {
     if (!(await checkTableExists(tableName as string))) {
       await createTable(createString as string);
     }
-    if (!(await checkDataExists(tableName as string))) {
-      const values = mockData.map(d => generateValuesString(d as any))
-      insertString += values.join(",") + ";"
-      await insertData(insertString as string)
-    }
+    await deleteExistingData(tableName as string);
+    const values = mockData.map(d => generateValuesString(d as any))
+    insertString += values.join(",") + ";"
+    await insertData(insertString as string)
   }
 }

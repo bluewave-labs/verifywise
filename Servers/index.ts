@@ -18,6 +18,8 @@ import auditorFeedbacks from "./routes/auditorFeedback.route";
 import assessmentTrackers from "./routes/assessmentTracker.route";
 import sectionRoutes from "./routes/section.route";
 import questionRoutes from "./routes/question.route";
+import questionEvidenceRoutes from "./routes/questionEvidence.route";
+import subrequirementEvidence from "./routes/subrequirementEvidence.route";
 
 dotenv.config();
 
@@ -35,7 +37,7 @@ app.use("/complianceLists", complianceListRoutes);
 app.use("/complianceTrackers", complianceTrackerRoutes);
 app.use("/vendorRisks", vendorRiskRoutes);
 app.use("/risks", riskRoutes);
-app.use("/vendors", vendorRoutes)
+app.use("/vendors", vendorRoutes);
 app.use("/projects", projectRoutes);
 app.use("/subrequirements", subrequirementsRoutes);
 app.use("/overviews", overviewsRoutes);
@@ -44,6 +46,8 @@ app.use("/auditorFeedbacks", auditorFeedbacks);
 app.use("/assessmentTrackers", assessmentTrackers);
 app.use("/sections", sectionRoutes);
 app.use("/questions", questionRoutes);
+app.use("questionEvidence", questionEvidenceRoutes);
+app.use("subrequirementEvidence", subrequirementEvidence);
 
 app.use("/", (req, res) => {
   res.json("Hello buddy!");

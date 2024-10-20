@@ -1,3 +1,5 @@
+import { isValidEmail } from "./emailAddress.rule";
+
 /**
  * Converts feedback information into an object containing acceptance status and a message.
  *
@@ -28,40 +30,58 @@ function feedbackToString(accepted: boolean, message: string) {
  *          otherwise an object with `accepted` set to `false` and a `message` indicating the reason.
  */
 export function checkStringValidation(
+  title: string,
   value: string,
   minLength: number = 0,
   maxLength: number = 128,
   hasUpperCase?: boolean,
   hasLowerCase?: boolean,
   hasNumber?: boolean,
-  hasSpecialCharacter?: boolean
-) {
+  hasSpecialCharacter?: boolean,
+  type?: string
+): { accepted: boolean; message: string } {
+  if (
+    value.length === 0 ||
+    value === undefined ||
+    value === null ||
+    value === "" ||
+    value === " "
+  ) {
+    return feedbackToString(false, `${title} is required.`);
+  }
+
   if (value.length < minLength) {
-    return feedbackToString(false, "Password is too short.");
+    return feedbackToString(
+      false,
+      `${title} can't be shorter than ${minLength} characters.`
+    );
   }
 
   if (value.length > maxLength) {
-    return feedbackToString(false, "Password is too long.");
+    return feedbackToString(
+      false,
+      `${title} can't be longer than ${maxLength} characters.`
+    );
   }
 
   if (hasUpperCase && !/[A-Z]/.test(value)) {
     return feedbackToString(
       false,
-      "Password must contain at least one uppercase letter."
+      `${title} must contain at least one uppercase letter.`
     );
   }
 
   if (hasLowerCase && !/[a-z]/.test(value)) {
     return feedbackToString(
       false,
-      "Password must contain at least one lowercase letter."
+      `${title} must contain at least one lowercase letter.`
     );
   }
 
   if (hasNumber && !/[0-9]/.test(value)) {
     return feedbackToString(
       false,
-      "Password must contain at least one number."
+      `${title} must contain at least one number.`
     );
   }
 
@@ -71,9 +91,17 @@ export function checkStringValidation(
   ) {
     return feedbackToString(
       false,
-      "Password must contain at least one special character."
+      `${title} must contain at least one special character.`
     );
   }
 
-  return true;
+  if (type == "email") {
+    if (isValidEmail(value)) {
+      return feedbackToString(true, "Success");
+    } else {
+      return feedbackToString(false, `Invalid ${title}.`);
+    }
+  }
+
+  return feedbackToString(true, "Success");
 }

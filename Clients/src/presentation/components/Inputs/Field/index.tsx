@@ -91,7 +91,7 @@ const Field = forwardRef(
         sx={{
           "& fieldset": {
             borderColor: theme.palette.border.dark,
-            borderRadius: theme.shape.borderRadius
+            borderRadius: theme.shape.borderRadius,
           },
           "&:not(:has(.Mui-disabled)):not(:has(.input-error)) .MuiOutlinedInput-root:hover:not(:has(input:focus)):not(:has(textarea:focus)) fieldset":
             {
@@ -101,7 +101,7 @@ const Field = forwardRef(
             borderColor: theme.palette.error.text,
           },
           ".Mui-focused .MuiOutlinedInput-notchedOutline": {
-            border: `1px solid ${theme.palette.border.dark}!important`
+            border: `1px solid ${theme.palette.border.dark}!important`,
           },
           width: width,
         }}
@@ -210,7 +210,7 @@ const Field = forwardRef(
           <Typography
             component="span"
             className="input-error"
-            color={theme.palette.error.text}
+            color={theme.palette.status.error.text}
             mt={theme.spacing(2)}
             sx={{
               opacity: 0.8,

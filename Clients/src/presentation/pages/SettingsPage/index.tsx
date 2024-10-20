@@ -32,7 +32,7 @@ export default function ProfilePage() {
           },
         }}
       >
-        <Tab label="Users" />
+        <Tab label="Profile" />
         <Tab label="Password" />
         <Tab label="Team" />
       </Tabs>

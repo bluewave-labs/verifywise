@@ -16,6 +16,7 @@ const index = () => {
     // State hooks for managing password inputs.
     const [password, setPassword] = useState(""); // State for the current password field.
     const [newPassword, setNewPassword] = useState(""); // State for the confirm new password field.
+    const [confirmPassword, setConfirmPassword] = useState(""); // State for the confirm new password field.
 
     return (
         <Box sx={{ mt: 3 }}>
@@ -27,22 +28,25 @@ const index = () => {
                         label="Current password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        type="password"
                         sx={{ mb: 5, backgroundColor: '#FFFFFF' }}
                     />
                     {/* New Password Field */}
                     <Field
                         id="Password"
                         label="Password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        type="password"
                         sx={{ mb: 5, backgroundColor: '#FFFFFF' }}
                     />
                     {/* Confirm New Password Field */}
                     <Field
                         id="Confirm new password"
                         label="Confirm new password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        type="password"
                         sx={{ mb: 5, backgroundColor: '#FFFFFF' }}
                     />
                     {/* Warning Alert */}

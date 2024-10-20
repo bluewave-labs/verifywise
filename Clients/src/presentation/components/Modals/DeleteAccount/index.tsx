@@ -19,11 +19,11 @@ interface DeleteAccountConfirmationProps {
 
 /**
  * A functional React component that renders a confirmation dialog for deleting an account.
- * 
- * The component displays a confirmation dialog when the `open` prop is true, allowing the user 
+ *
+ * The component displays a confirmation dialog when the `open` prop is true, allowing the user
  * to confirm or cancel the deletion of their account. When the delete button is clicked, the dialog closes
  * and a banner shows up at the bottom-right corner of the page for 3 seconds, indicating the account has been removed.
- * 
+ *
  * @component
  * @example
  * const [isDialogOpen, setDialogOpen] = useState(false);
@@ -31,7 +31,7 @@ interface DeleteAccountConfirmationProps {
  * return (
  *   <DeleteAccountConfirmation open={isDialogOpen} onClose={handleClose} />
  * );
- * 
+ *
  * @param {boolean} open - Boolean to control the visibility of the dialog.
  * @param {function} onClose - Callback function to close the dialog when the user clicks cancel or delete.
  * @returns {JSX.Element} The rendered DeleteAccountConfirmation component.
@@ -44,14 +44,14 @@ const DeleteAccountConfirmation: React.FC<DeleteAccountConfirmationProps> = ({
 
   /**
    * Handles the account deletion process.
-   * 
+   *
    * This function sets the banner to be visible for 3 seconds and closes the dialog.
    * The banner informs the user that the account has been removed.
    */
   const handleDeleteAccount = () => {
-    setIsBannerOpen(true);  // Show banner
-    onClose();              // Close dialog
-    setTimeout(() => setIsBannerOpen(false), 3000);  // Auto close banner after 3 seconds
+    setIsBannerOpen(true); // Show banner
+    onClose(); // Close dialog
+    setTimeout(() => setIsBannerOpen(false), 3000); // Auto close banner after 3 seconds
   };
 
   return (
@@ -61,18 +61,29 @@ const DeleteAccountConfirmation: React.FC<DeleteAccountConfirmationProps> = ({
         onClose={onClose}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
+        PaperProps={{
+          sx: {
+            width: "439px", // Custom width
+            height: "240px", // Custom height
+            maxWidth: "none", // Disable the default maxWidth behavior
+            padding: "32px",
+            overflowY: "hidden"
+          },
+        }}
       >
-        <DialogTitle id="alert-dialog-title">
+        <DialogTitle
+          id="alert-dialog-title"
+          sx={{ fontSize: "16px", padding: 0, paddingBottom: "16px" }}
+        >
           {"Are you sure you want to delete this account?"}
         </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            If you delete your account, you will no longer be able to sign in,
-            and all of your data will be deleted. This action is permanent and
-            cannot be undone.
+        <DialogContent sx={{padding:0 }}>
+          <DialogContentText id="alert-dialog-description" sx={{ padding: 0 }}>
+            When you delete this file, all the links associated with the file
+            will also be removed. Note that this is a non-reversible action.
           </DialogContentText>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ padding: 0, paddingTop: "32px" }}>
           <Button onClick={onClose}>Cancel</Button>
           <Button
             variant="contained"
@@ -98,12 +109,10 @@ const DeleteAccountConfirmation: React.FC<DeleteAccountConfirmationProps> = ({
             sx={{
               width: "219px",
               height: "52px",
-              display: "flex", // Flexbox layout
-              justifyContent: "space-between", // Space between text and CloseIcon
-              alignItems: "center", // Vertically center the content
-              padding: "0 16px", // Add some padding to the sides
+              display: "flex",
+              justifyContent: "space-between", 
+              alignItems: "center",
               color: "#475467",
-              overflow: "visible",
             }}
           >
             <Typography
@@ -116,7 +125,7 @@ const DeleteAccountConfirmation: React.FC<DeleteAccountConfirmationProps> = ({
               This account is removed.
               <CloseIcon
                 onClick={onClose}
-                style={{ cursor: "pointer", marginLeft: 14}}
+                style={{ cursor: "pointer", marginLeft: 14 }}
               />
             </Typography>
           </Paper>

@@ -166,12 +166,12 @@ const BasicTable = ({
                     onRowClick && onRowClick(row.id);
                   }}
                 >
-                  <TableCell
+                 {row.icon && <TableCell
                     sx={{ ...cellStyle, ...iconCell }}
                     key={`icon-${row.id}`}
                   >
                     <img src={row.icon} alt="status icon" width={20} />
-                  </TableCell>
+                  </TableCell>}
                   {row.data.map((cell: any) => {
                     return (
                       <TableCell sx={cellStyle} key={cell.id}>

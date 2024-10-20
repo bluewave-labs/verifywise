@@ -3,6 +3,7 @@ import { RiskData } from "../../../mocks/projects/project-overview.data";
 import { ProjectRisk } from "../../../mocks/projects/project-risks.data";
 import { FC } from "react";
 import { VendorRisk } from "../../../mocks/projects/project-vendor-risks.data";
+import BasicTable from "../../../components/Table";
 import Risks from "../../../components/Risks";
 
 interface RisksViewProps {
@@ -11,7 +12,7 @@ interface RisksViewProps {
     title: string
 }
 
-const RisksView: FC<RisksViewProps>= ({ risksSummary, title }) => {
+const RisksView: FC<RisksViewProps>= ({ risksSummary, risksData, title }) => {
     const theme = useTheme();
 
     const styles = {
@@ -24,27 +25,58 @@ const RisksView: FC<RisksViewProps>= ({ risksSummary, title }) => {
             borderRadius: 2,
             border: "1px solid #175CD3",
             "&:hover": { boxShadow: "none" }
-        },
-        tableCellHead: {
-            color: theme.palette.other.icon, 
-            textTransform: "uppercase",
-            fontWeight: "400!important",
-            p: "14px!important",
-            whiteSpace: "nowrap"
-        },
-        tableCellContent: {
-            whiteSpace: "nowrap"
         }
     }
 
+    const colsName = [ "RISK NAME", title, "IMPACT", "PROBABILITY", "OWNER", "SEVERITY", "LIKELIHOOD", "RISK LEVEL", "MITIGATION", "FINAL RISK LEVEL" ]
+
+    const risksTableCals = colsName.reduce<{ id: string, name: string }[]>((acc, item, i) => {
+        acc.push({
+            id: Object.keys(risksData[0])[i],
+            name: item
+        })
+
+        return acc
+    }, []);
+    
+    const risksTableRows = risksData.reduce<{ id: string, data: { id: string, data: string | number }[] }[]>((acc, item, i) => {
+        const rowData = Object.keys(item).map((key, indexKey) => {
+            const typedKey = key as keyof (ProjectRisk | VendorRisk);
+            return ({
+                id: `${key}_${i}_${indexKey}`,
+                data: item[typedKey]
+            })
+        });
+    
+        acc.push({
+            id: `${item.riskName}_${i}`,
+            data: rowData
+        });
+    
+        return acc;
+    }, []);
+    
+  
+    const tableData = {
+        cols: risksTableCals,
+        rows: risksTableRows
+    }
+
     return (
-        <Stack>
+        <Stack sx={{ maxWidth: 1220 }}>
             <Risks {...risksSummary}/>
-            <Stack sx={{ mt: "33px" }} direction="row" justifyContent="space-between" alignItems="flex-end">
+            <Stack sx={{ mt: "33px", mb: "28px" }} direction="row" justifyContent="space-between" alignItems="flex-end">
                 <Typography component="h2" sx={{ fontSize: 16, fontWeight: 600, color: "#1A1919" }}>{title} risks</Typography>
                 <Button variant="contained" sx={styles.btn} onClick={()=>{}}
                 disableRipple={theme.components?.MuiButton?.defaultProps?.disableRipple}>Add new risk</Button>
             </Stack>
+            <BasicTable 
+                data={tableData} 
+                paginated={false} 
+                reversed={false} 
+                table="risksTable" 
+                onRowClick={ () => {}}
+            />
         </Stack>
     )
 }

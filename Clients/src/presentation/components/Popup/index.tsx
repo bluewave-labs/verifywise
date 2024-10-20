@@ -10,7 +10,8 @@ interface PopupProps {
     openPopupButtonName: string,
     actionButtonName: string,
     popupTitle: string,
-    popupSubtitle?: string
+    popupSubtitle?: string,
+    onActionButtonClick?: () => void
 }
 
 const Popup: FC<PopupProps> = ({
@@ -19,7 +20,8 @@ const Popup: FC<PopupProps> = ({
     openPopupButtonName,
     actionButtonName,
     popupTitle,
-    popupSubtitle
+    popupSubtitle,
+    onActionButtonClick
 }) => {
     const theme = useTheme();
     const [anchor, setAnchor] = React.useState<null | HTMLElement>(null);
@@ -97,7 +99,12 @@ const Popup: FC<PopupProps> = ({
                         <ClearIcon />
                     </Button>
                     {popupContent}
-                    <Button variant="contained" disableRipple={theme.components?.MuiButton?.defaultProps?.disableRipple} sx={styles.actionButton}>
+                    <Button 
+                        variant="contained" 
+                        disableRipple={theme.components?.MuiButton?.defaultProps?.disableRipple} 
+                        onClick={onActionButtonClick}
+                        sx={styles.actionButton}
+                    >
                         {actionButtonName}
                     </Button>
                 </Stack>

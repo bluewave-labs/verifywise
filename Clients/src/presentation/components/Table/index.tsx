@@ -141,7 +141,7 @@ const BasicTable = ({
             >
               {data.cols.map((col) => {
                 return (
-                  <TableCell style={{ color: "#667085" }} key={col.id}>
+                  <TableCell style={{ color: "#667085", fontWeight: 400 }} key={col.id}>
                     {col.name}
                   </TableCell>
                 );

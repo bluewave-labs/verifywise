@@ -34,8 +34,8 @@ import { ReactComponent as Team } from "../../assets/icons/team.svg";
 
 import Logo from "../../assets/imgs/logo.png";
 
-import Avatar from "../Avatar";
 import Select from "../Inputs/Select";
+import Avatar from "../Avatar/VWAvatar";
 
 const menu = [
   {
@@ -466,7 +466,7 @@ const Sidebar = () => {
                   marginLeft: theme.spacing(3),
                 }}
               >
-                <Avatar small={true} sx={{ margin: "auto" }} />
+                <Avatar size="small" sx={{ margin: "auto" }} />
               </IconButton>
             </Tooltip>
           </>

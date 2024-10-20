@@ -95,9 +95,9 @@ const Select: React.FC<SelectProps> = ({
                   backgroundColor: "transparent",
                 },
                 "&.Mui-selected": {
-                  backgroundColor: "transparent",
+                  backgroundColor: theme.palette.background.accent,
                   "&:hover": {
-                    backgroundColor: "transparent",
+                    backgroundColor: theme.palette.background.accent,
                   },
                 },
                 "& .MuiTouchRipple-root": {

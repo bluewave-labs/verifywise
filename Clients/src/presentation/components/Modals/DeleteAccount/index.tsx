@@ -64,7 +64,7 @@ const DeleteAccountConfirmation: React.FC<DeleteAccountConfirmationProps> = ({
             height: "240px", // Custom height
             maxWidth: "none", // Disable the default maxWidth behavior
             padding: "32px",
-            overflowY: "hidden",
+            overflowY: 'none'
           },
         }}
       >
@@ -74,8 +74,11 @@ const DeleteAccountConfirmation: React.FC<DeleteAccountConfirmationProps> = ({
         >
           {"Are you sure you want to delete this account?"}
         </DialogTitle>
-        <DialogContent sx={{ padding: 0 }}>
-          <DialogContentText id="alert-dialog-description" sx={{ padding: 0 }}>
+        <DialogContent sx={{ padding: 0, overflowY: 'hidden' }}>
+          <DialogContentText
+            id="alert-dialog-description"
+            sx={{ padding: 0, overflowY: 'hidden' }}
+          >
             When you delete this file, all the links associated with the file
             will also be removed. Note that this is a non-reversible action.
           </DialogContentText>
@@ -93,7 +96,13 @@ const DeleteAccountConfirmation: React.FC<DeleteAccountConfirmationProps> = ({
       </Dialog>
 
       {/* Conditionally render banner when isBannerOpen is true */}
-      {isBannerOpen && <Banner onClose={onClose} bannerText={'This account is removed.'} bannerWidth ={'209px'}/>}
+      {isBannerOpen && (
+        <Banner
+          onClose={onClose}
+          bannerText={"This account is removed."}
+          bannerWidth={"209px"}
+        />
+      )}
     </>
   );
 };

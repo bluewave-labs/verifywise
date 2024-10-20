@@ -56,8 +56,8 @@ const BasicTable = ({
   onRowClick,
 }: {
   data: TableData;
-  paginated: any;
-  reversed: any;
+  paginated?: boolean;
+  reversed?: boolean;
   table: any;
   onRowClick?: (rowId: number) => void;
 }) => {
@@ -157,7 +157,7 @@ const BasicTable = ({
                     borderBottom: "1px solid #EEEEEE",
                     cursor: onRowClick ? "pointer" : "default",
                     "&:hover": {
-                      backgroundColor: theme.palette.background.accent,
+                      backgroundColor: onRowClick ? theme.palette.background.accent : "transparent",
                     },
                   }}
                   key={row.id}

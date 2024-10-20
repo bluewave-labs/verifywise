@@ -72,10 +72,7 @@ const RisksView: FC<RisksViewProps>= ({ risksSummary, risksData, title }) => {
             </Stack>
             <BasicTable 
                 data={tableData} 
-                paginated={false} 
-                reversed={false} 
                 table="risksTable" 
-                onRowClick={ () => {}}
             />
         </Stack>
     )

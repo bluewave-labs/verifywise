@@ -6,7 +6,7 @@ services:
     env_file:
       - ./.env
     ports:
-      - $DB_PORT:$DB_PORT
+      - $LOCAL_DB_PORT:$DB_PORT
     volumes:
       - db:/var/lib/postgres
     environment:

@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 
 import userRoutes from "./routes/user.route";
 import roleRoutes from "./routes/role.route";
@@ -21,8 +20,6 @@ import questionRoutes from "./routes/question.route";
 import questionEvidenceRoutes from "./routes/questionEvidence.route";
 import subrequirementEvidence from "./routes/subrequirementEvidence.route";
 import autoDriverRoutes from "./routes/autoDriver.route";
-
-dotenv.config();
 
 const app = express();
 
@@ -47,8 +44,8 @@ app.use("/auditorFeedbacks", auditorFeedbacks);
 app.use("/assessmentTrackers", assessmentTrackers);
 app.use("/sections", sectionRoutes);
 app.use("/questions", questionRoutes);
-app.use("questionEvidence", questionEvidenceRoutes);
-app.use("subrequirementEvidence", subrequirementEvidence);
+app.use("/questionEvidence", questionEvidenceRoutes);
+app.use("/subrequirementEvidence", subrequirementEvidence);
 app.use("/autoDrivers", autoDriverRoutes);
 
 app.use("/", (req, res) => {

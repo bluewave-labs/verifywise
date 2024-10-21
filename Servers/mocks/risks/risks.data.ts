@@ -1,7 +1,7 @@
 export const risks = [
   {
     id: 1,
-    project_id: 101,
+    project_id: 1,
     risk_description: "Data breach due to inadequate security measures.",
     impact: "High",
     probability: "Medium",
@@ -12,7 +12,7 @@ export const risks = [
   },
   {
     id: 2,
-    project_id: 102,
+    project_id: 2,
     risk_description: "Delays in project delivery due to resource constraints.",
     impact: "Medium",
     probability: "High",
@@ -23,7 +23,7 @@ export const risks = [
   },
   {
     id: 3,
-    project_id: 103,
+    project_id: 3,
     risk_description: "Non-compliance with industry regulations.",
     impact: "High",
     probability: "Low",
@@ -34,7 +34,7 @@ export const risks = [
   },
   {
     id: 4,
-    project_id: 104,
+    project_id: 4,
     risk_description: "Potential loss of key personnel during project execution.",
     impact: "Medium",
     probability: "Medium",
@@ -45,7 +45,7 @@ export const risks = [
   },
   {
     id: 5,
-    project_id: 105,
+    project_id: 5,
     risk_description: "Insufficient testing leading to software defects.",
     impact: "High",
     probability: "Medium",

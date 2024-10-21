@@ -17,17 +17,18 @@ const getTokenPayload = (token: any): any => {
  * @param payload id and email of the user
  * @returns generated token
  */
-const generateToken = (payload: {
-  id: number,
-  email: string
-}) => {
-  return Jwt.sign(
-    {
-      ...payload,
-      expire: Date.now() + (1 * 3600 * 1000)
-    },
-    process.env.JWT_SECRET as string
-  );
+const generateToken = (payload: { id: number; email: string }) => {
+  try {
+    return Jwt.sign(
+      {
+        ...payload,
+        expire: Date.now() + 1 * 3600 * 1000,
+      },
+      process.env.JWT_SECRET as string
+    );
+  } catch (error) {
+    return console.error(error);
+  }
 };
 
 export { getTokenPayload, generateToken };

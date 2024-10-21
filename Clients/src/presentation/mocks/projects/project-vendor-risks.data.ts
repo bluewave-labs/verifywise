@@ -1,4 +1,4 @@
-interface VendorRisk {
+export interface VendorRisk {
   riskName: string;
   vendor: string;
   impact: string;
@@ -11,7 +11,7 @@ interface VendorRisk {
   finalRiskLevel: string;
 }
 
-const vendorRisks: VendorRisk[] = [
+const vendorRisksData: VendorRisk[] = [
   {
     riskName: "Service Disruption",
     vendor: "CloudHost Inc.",
@@ -133,3 +133,5 @@ const vendorRisks: VendorRisk[] = [
     finalRiskLevel: "Medium"
   }
 ];
+
+export default vendorRisksData;

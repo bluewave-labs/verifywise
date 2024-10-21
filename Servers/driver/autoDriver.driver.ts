@@ -1,14 +1,22 @@
 import pool from "../database/db";
+import { assessmentTrackers } from "../mocks/assessmentTrackers/assessmentTrackers.data";
+import { complianceLists } from "../mocks/complianceLists/complianceLists.data";
 import { complianceTrackers } from "../mocks/complianceTrackers/complianceTrackers.data";
 import { projects } from "../mocks/projects/projects.data";
+import { risks } from "../mocks/risks/risks.data";
 import { roles } from "../mocks/roles/roles.data";
 import { users } from "../mocks/users/users.data";
+import { vendorRisks } from "../mocks/vendorRisks/vendorRisks.data";
 import { vendors } from "../mocks/vendors/vendors.data";
+import { AssessmentTracker } from "../models/AssessmentTracker";
+import { ComplianceList } from "../models/ComplianceList";
 import { ComplianceTracker } from "../models/ComplianceTracker";
 import { Project } from "../models/Project";
+import { Risk } from "../models/Risk";
 import { Role } from "../models/Role";
 import { User } from "../models/User";
 import { Vendor } from "../models/Vendor";
+import { VendorRisk } from "../models/VendorRisk";
 import { deleteExistingData, checkTableExists, createTable, insertData } from "../utils/autoDriver.util";
 
 interface TableEntry<T> {
@@ -24,7 +32,11 @@ type TableList = [
   TableEntry<User>,
   TableEntry<Project>,
   TableEntry<Vendor>,
-  TableEntry<ComplianceTracker>
+  TableEntry<ComplianceTracker>,
+  TableEntry<AssessmentTracker>,
+  TableEntry<Risk>,
+  TableEntry<VendorRisk>,
+  TableEntry<ComplianceList>
 ]
 
 const insertQuery: TableList = [
@@ -114,6 +126,88 @@ const insertQuery: TableList = [
     );`,
     insertString: "INSERT INTO compliancetrackers(id, project_id, compliance_status, pending_audits, completed_assessments, implemented_controls) VALUES ",
     generateValuesString: function (complianceTracker: ComplianceTracker) { return `(${complianceTracker.id}, ${complianceTracker.project_id}, ${complianceTracker.compliance_status}, ${complianceTracker.pending_audits}, ${complianceTracker.completed_assessments}, ${complianceTracker.implemented_controls})` },
+  },
+  {
+    mockData: assessmentTrackers,
+    tableName: "assessmenttrackers",
+    createString: `CREATE TABLE assessmenttrackers(
+      id integer PRIMARY KEY,
+      project_id integer NOT NULL,
+      name varchar(255),
+      status varchar(50),
+      CONSTRAINT assessmenttrackers_project_id_fkey FOREIGN KEY (project_id)
+        REFERENCES projects(id)
+        ON DELETE NO ACTION
+    );`,
+    insertString: "INSERT INTO assessmenttrackers(id, project_id, name, status) VALUES ",
+    generateValuesString: function (assessmentTracker: AssessmentTracker) { return `(${assessmentTracker.id}, ${assessmentTracker.project_id}, '${assessmentTracker.name}', '${assessmentTracker.status}')` },
+  },
+  {
+    mockData: risks,
+    tableName: "risks",
+    createString: `CREATE TABLE risks(
+      id integer PRIMARY KEY,
+      project_id integer NOT NULL,
+      risk_description text,
+      impact varchar(50),
+      probability varchar(50),
+      owner_id integer,
+      severity varchar(50),
+      likelihood varchar(50),
+      risk_level varchar(50),
+      CONSTRAINT risks_owner_id_fkey FOREIGN KEY (owner_id)
+        REFERENCES users(id)
+        ON DELETE SET NULL
+      CONSTRAINT risks_project_id_fkey FOREIGN KEY (project_id)
+        REFERENCES projects(id)
+        ON DELETE NO ACTION
+    );`,
+    insertString: "INSERT INTO risks(id, project_id, risk_description, impact, probability, owner_id, severity, likelihood, risk_level) VALUES ",
+    generateValuesString: function (risk: Risk) { return `(${risk.id}, ${risk.project_id}, '${risk.risk_description}', '${risk.impact}', '${risk.probability}', ${risk.owner_id}, '${risk.severity}', '${risk.likelihood}', '${risk.risk_level}')` },
+  },
+  {
+    mockData: vendorRisks,
+    tableName: "vendorrisks",
+    createString: `CREATE TABLE vendorrisks(
+      id integer PRIMARY KEY,
+      vendor_id integer NOT NULL,
+      risk_description text,
+      impact_description text,
+      project_id integer NOT NULL,
+      probability varchar(50),
+      impact varchar(50),
+      action_plan text,
+      action_owner_id integer NOT NULL,
+      risk_severity varchar(50),
+      likelihood varchar(50),
+      risk_level varchar(50),
+      CONSTRAINT vendorrisks_action_owner_id_fkey FOREIGN KEY (action_owner_id)
+        REFERENCES users(id)
+        ON DELETE SET NULL,
+      CONSTRAINT vendorrisks_project_id_fkey FOREIGN KEY (project_id)
+        REFERENCES projects(id)
+        ON DELETE CASCADE,
+      CONSTRAINT vendorrisks_vendor_id_fkey FOREIGN KEY (vendor_id)
+        REFERENCES vendors(id)
+        ON DELETE CASCADE
+    );`,
+    insertString: "INSERT INTO vendorrisks(id, vendor_id, risk_description, impact_description, project_id, probability, impact, action_plan, action_owner_id, risk_severity, likelihood, risk_level) VALUES ",
+    generateValuesString: function (vendorRisk: VendorRisk) { return `(${vendorRisk.id}, ${vendorRisk.vendor_id}, '${vendorRisk.risk_description}', '${vendorRisk.impact_description}', ${vendorRisk.project_id}, '${vendorRisk.probability}', '${vendorRisk.impact}', '${vendorRisk.action_plan}', ${vendorRisk.action_owner_id}, '${vendorRisk.risk_severity}', '${vendorRisk.likelihood}', '${vendorRisk.risk_level}')` },
+  },
+  {
+    mockData: complianceLists,
+    tableName: "compliancelists",
+    createString: `CREATE TABLE IF NOT EXISTS compliancelists(
+      id integer PRIMARY KEY,
+      compliance_tracker_id integer NOT NULL,
+      name varchar(255),
+      description text,
+      CONSTRAINT compliancelists_compliance_tracker_id_fkey FOREIGN KEY (compliance_tracker_id)
+        REFERENCES compliancetrackers (id)
+        ON DELETE CASCADE
+    );`,
+    insertString: "INSERT INTO compliancelists(id, compliance_tracker_id, name, description) VALUES ",
+    generateValuesString: function (complianceList: ComplianceList) { return `(${complianceList.id}, ${complianceList.compliance_tracker_id}, '${complianceList.name}', '${complianceList.description}')`; },
   }
 ]
 

@@ -6,6 +6,7 @@ import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import { useNavigate } from "react-router-dom";
+import { createNewUser } from "../../../../application/repository/entity.repository";
 
 // Define the shape of form values
 interface FormValues {
@@ -127,15 +128,21 @@ const RegisterAdmin: React.FC = () => {
   };
 
   // Handle form submission
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (validateForm()) {
-      console.log("Form submitted:", values);
-      // Reset form after successful submission
-      setValues(initialState);
-      setErrors({});
-      setPasswordChecks({ length: false, specialChar: false });
-      navigate("/login");
+      try {
+        const response = await createNewUser({
+          routeUrl: "/users/register",
+          body: values,
+        });
+        console.log("Form submitted:", response);
+        // Reset form after successful submission
+        setValues(initialState);
+        setErrors({});
+        setPasswordChecks({ length: false, specialChar: false });
+        navigate("/login");
+      } catch (error) {}
     }
   };
 

@@ -1,19 +1,27 @@
 import pool from "../database/db";
 import { assessmentTrackers } from "../mocks/assessmentTrackers/assessmentTrackers.data";
+import { auditorFeedbacks } from "../mocks/auditorFeedbacks/auditorFeedbacks.data";
 import { complianceLists } from "../mocks/complianceLists/complianceLists.data";
 import { complianceTrackers } from "../mocks/complianceTrackers/complianceTrackers.data";
+import { overviews } from "../mocks/overviews/overviews.data";
 import { projects } from "../mocks/projects/projects.data";
+import { question_evidence } from "../mocks/questionEvidence/questionEvidence.data";
 import { risks } from "../mocks/risks/risks.data";
 import { roles } from "../mocks/roles/roles.data";
+import { subrequirementEvidence } from "../mocks/subrequirementEvidence/subrequirementEvidence.data";
 import { users } from "../mocks/users/users.data";
 import { vendorRisks } from "../mocks/vendorRisks/vendorRisks.data";
 import { vendors } from "../mocks/vendors/vendors.data";
 import { AssessmentTracker } from "../models/AssessmentTracker";
+import { AuditorFeedback } from "../models/AuditorFeedback";
 import { ComplianceList } from "../models/ComplianceList";
 import { ComplianceTracker } from "../models/ComplianceTracker";
+import { Overview } from "../models/Overview";
 import { Project } from "../models/Project";
+import { QuestionEvidence } from "../models/QuestionEvidence";
 import { Risk } from "../models/Risk";
 import { Role } from "../models/Role";
+import { SubrequirementEvidence } from "../models/SubrequirementEvidence";
 import { User } from "../models/User";
 import { Vendor } from "../models/Vendor";
 import { VendorRisk } from "../models/VendorRisk";
@@ -36,7 +44,11 @@ type TableList = [
   TableEntry<AssessmentTracker>,
   TableEntry<Risk>,
   TableEntry<VendorRisk>,
-  TableEntry<ComplianceList>
+  TableEntry<ComplianceList>,
+  TableEntry<Overview>,
+  TableEntry<SubrequirementEvidence>,
+  TableEntry<QuestionEvidence>,
+  TableEntry<AuditorFeedback>
 ]
 
 const insertQuery: TableList = [
@@ -208,6 +220,94 @@ const insertQuery: TableList = [
     );`,
     insertString: "INSERT INTO compliancelists(id, compliance_tracker_id, name, description) VALUES ",
     generateValuesString: function (complianceList: ComplianceList) { return `(${complianceList.id}, ${complianceList.compliance_tracker_id}, '${complianceList.name}', '${complianceList.description}')`; },
+  },
+  {
+    mockData: overviews,
+    tableName: "overviews",
+    createString: `CREATE TABLE overviews(
+      id integer PRIMARY KEY,
+      subrequirement_id integer,
+      control_name varchar(255),
+      control_description text,
+      control_owner varchar(255),
+      control_status varchar(50),
+      implementation_description text,
+      implementation_evidence text,
+      effective_date date NOT NULL,
+      review_date date NOT NULL,
+      comments text,
+      CONSTRAINT overviews_subrequirement_id_fkey FOREIGN KEY (subrequirement_id)
+        REFERENCES subrequirements (id)
+        ON DELETE SET NULL
+    );`,
+    insertString: "INSERT INTO overviews(id, subrequirement_id, control_name, control_description, control_owner, control_status, implementation_description, implementation_evidence, effective_date, review_date, comments) VALUES ",
+    generateValuesString: function (overview: Overview) { return `(${overview.id}, ${overview.subrequirement_id}, '${overview.control_name}', '${overview.control_description}', '${overview.control_owner}', '${overview.control_status}', '${overview.implementation_description}', '${overview.implementation_evidence}', '${overview.effective_date.toISOString().split("T")[0]}', '${overview.review_date.toISOString().split("T")[0]}', '${overview.comments}')`; },
+  },
+  {
+    mockData: subrequirementEvidence,
+    tableName: "subrequirementevidences",
+    createString: `CREATE TABLE subrequirementevidences (
+      id INTEGER PRIMARY KEY,
+      subrequirement_id INT,
+      document_name VARCHAR(255) NOT NULL,
+      document_type VARCHAR(50) NOT NULL,
+      file_path VARCHAR(255) NOT NULL,
+      upload_date DATE NOT NULL,
+      uploader_id INT,
+      description TEXT NOT NULL,
+      status VARCHAR(50) NOT NULL,
+      last_reviewed DATE,
+      reviewer_id INT,
+      reviewer_comments TEXT,
+      FOREIGN KEY (subrequirement_id) REFERENCES subrequirements (id) ON DELETE SET NULL,
+      FOREIGN KEY (uploader_id) REFERENCES users (id) ON DELETE SET NULL,
+      FOREIGN KEY (reviewer_id) REFERENCES users (id) ON DELETE SET NULL
+    );`,
+    insertString: "INSERT INTO subrequirementevidences (id, subrequirement_id, document_name, document_type, file_path, upload_date, uploader_id, description, status, last_reviewed, reviewer_id, reviewer_comments) VALUES ",
+    generateValuesString: function (subrequirementEvidence: SubrequirementEvidence) { return `(${subrequirementEvidence.id}, ${subrequirementEvidence.subrequirement_id}, '${subrequirementEvidence.document_name}', '${subrequirementEvidence.document_type}', '${subrequirementEvidence.file_path}', '${subrequirementEvidence.upload_date.toISOString().split("T")[0]}', ${subrequirementEvidence.uploader_id}, '${subrequirementEvidence.description}', '${subrequirementEvidence.status}', '${subrequirementEvidence.last_reviewed.toISOString().split("T")[0]}', ${subrequirementEvidence.reviewer_id}, '${subrequirementEvidence.reviewer_comments}')`; },
+  },
+  {
+    mockData: question_evidence,
+    tableName: "questionevidences",
+    createString: `CREATE TABLE questionevidences (
+      id INTEGER PRIMARY KEY,
+      question_id INT,
+      section_id INT,
+      assessment_review TEXT NOT NULL,
+      evidence TEXT NOT NULL,
+      FOREIGN KEY (question_id) REFERENCES questions (id) ON DELETE SET NULL,
+      FOREIGN KEY (section_id) REFERENCES sections (id) ON DELETE SET NULL
+    );`,
+    insertString: "INSERT INTO questionevidences (id, question_id, section_id, assessment_review, evidence) VALUES ",
+    generateValuesString: function (questionEvidence: QuestionEvidence) { return `(${questionEvidence.id}, ${questionEvidence.question_id}, ${questionEvidence.section_id}, '${questionEvidence.assessment_review}', '${questionEvidence.evidence}')`; },
+  },
+  {
+    mockData: auditorFeedbacks,
+    tableName: "auditorfeedbacks",
+    createString: `CREATE TABLE auditorfeedbacks(
+      id integer PRIMARY KEY,
+      subrequirement_id integer,
+      assessment_type varchar(50),
+      assessment_date date NOT NULL,
+      auditor_id integer,
+      compliance_status varchar(50),
+      findings text,
+      recommendations text,
+      corrective_actions text,
+      follow_up_date date,
+      follow_up_notes text,
+      attachments varchar(255),
+      created_at date NOT NULL DEFAULT CURRENT_DATE,
+      updated_at date NOT NULL DEFAULT CURRENT_DATE,
+      CONSTRAINT fk_auditor FOREIGN KEY (auditor_id)
+        REFERENCES users (id)
+        ON DELETE SET NULL,
+      CONSTRAINT fk_subrequirement FOREIGN KEY (subrequirement_id)
+        REFERENCES subrequirements (id)
+        ON DELETE SET NULL
+    );`,
+    insertString: "INSERT INTO auditorfeedbacks(id, subrequirement_id, assessment_type, assessment_date, auditor_id, compliance_status, findings, recommendations, corrective_actions, follow_up_date, follow_up_notes, attachments, created_at, updated_at) VALUES ",
+    generateValuesString: function (auditorFeedback: AuditorFeedback) { return `(${auditorFeedback.id}, ${auditorFeedback.subrequirement_id}, '${auditorFeedback.assessment_type}', '${auditorFeedback.assessment_date.toISOString().split("T")[0]}', ${auditorFeedback.auditor_id}, '${auditorFeedback.compliance_status}', '${auditorFeedback.findings}', '${auditorFeedback.recommendations}', '${auditorFeedback.corrective_actions}', '${auditorFeedback.follow_up_date.toISOString().split("T")[0]}', '${auditorFeedback.follow_up_notes}', '${auditorFeedback.attachments}', '${auditorFeedback.created_at.toISOString().split("T")[0]}', '${auditorFeedback.updated_at.toISOString().split("T")[0]}')`; },
   }
 ]
 

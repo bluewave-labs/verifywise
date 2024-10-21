@@ -57,10 +57,15 @@ export const getAllUsersQuery = async (): Promise<User[]> => {
  */
 export const getUserByEmailQuery = async (email: string): Promise<User> => {
   console.log("getUserByEmail");
-  const user = await pool.query("SELECT * FROM users WHERE email = $1", [
-    email,
-  ]);
-  return user.rows[0];
+  try {
+    const user = await pool.query("SELECT * FROM users WHERE email = $1", [
+      email,
+    ]);
+    return user.rows[0];
+  } catch (error) {
+    console.error("Error getting user by email:", error);
+    throw error;
+  }
 };
 
 /**

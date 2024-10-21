@@ -5,6 +5,7 @@ import Checkbox from "../../../components/Inputs/Checkbox";
 import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate } from "react-router-dom";
+import { loginUser } from "../../../../application/repository/entity.repository";
 
 // Define the shape of form values
 interface FormValues {
@@ -33,12 +34,25 @@ const Login: React.FC = () => {
     };
 
   // Handle form submission
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    console.log("Form submitted:", values);
-    // Reset form after successful submission
-    setValues(initialState);
-    navigate("/");
+
+    await loginUser({
+      routeUrl: "/users/login",
+      body: values,
+    })
+      .then((response) => {
+        console.log("Login Form submitted:", response);
+        console.log("response.status:", response.status);
+        // Reset form after successful submission
+        setValues(initialState);
+        if (response.status === 202) {
+          navigate("/");
+        }
+      })
+      .catch((error) => {
+        console.error("Error submitting form:", error);
+      });
   };
 
   const theme = useTheme();

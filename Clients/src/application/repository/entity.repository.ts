@@ -32,6 +32,32 @@ export async function createNewUser({
 }
 
 /**
+ * Logs in a user by sending a POST request to the specified route URL with the provided credentials.
+ *
+ * @param {Object} params - The parameters for the login request.
+ * @param {string} [params.routeUrl] - The route URL to which the POST request will be sent.
+ * @param {any} params.body - The body of the POST request containing login credentials.
+ * @returns {Promise<any>} A promise that resolves to the response data of the logged-in user.
+ * @throws Will throw an error if the login fails.
+ */
+export async function loginUser({
+  routeUrl,
+  body,
+}: {
+  routeUrl?: string;
+  body: any;
+}): Promise<any> {
+  try {
+    const response = await apiServices.post(routeAddress + routeUrl, body);
+    console.log(`User logged in with the following details: ${response}`);
+    return response;
+  } catch (error) {
+    console.error("Error logging in user:", error);
+    throw error;
+  }
+}
+
+/**
  * Retrieves a user by their ID from the specified route URL.
  *
  * @param {Object} params - The parameters for the request.

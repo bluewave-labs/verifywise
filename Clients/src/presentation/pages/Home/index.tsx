@@ -6,6 +6,7 @@ import dashboardData from "../../mocks/dashboard/dashboard.data";
 import emptyState from "../../assets/imgs/empty-state.svg"
 import Popup from "../../components/Popup";
 import CreateProjectForm from "../../components/CreateProjectForm";
+import { useNavigate } from "react-router-dom";
 
 interface HomeProps {
   projects?: ProjectCardProps[];
@@ -21,6 +22,7 @@ interface MetricSectionProps {
 
 const Home = ({ projects = mockProjects }: HomeProps) => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const { complianceStatus, riskStatus } = dashboardData;
   const complianceMetrics = [
     { title: "Completed requirements", value: `${complianceStatus.assessmentCompletionRate}%` },
@@ -74,6 +76,7 @@ const Home = ({ projects = mockProjects }: HomeProps) => {
           actionButtonName="Create project"
           popupTitle="Create new project"
           popupSubtitle="Create a new project from scratch by filling in the following."
+          onActionButtonClick={() => navigate("/project-view")}
         />
       </Box>
       {projects && projects.length > 0 ? (

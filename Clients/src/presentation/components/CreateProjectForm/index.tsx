@@ -3,11 +3,31 @@ import { Stack, useTheme } from '@mui/material';
 import Select from "../Inputs/Select";
 import DatePicker from '../Inputs/Datepicker';
 import Field from '../Inputs/Field';
+import dayjs, { Dayjs } from "dayjs";
 
 const CreateProjectForm: FC = () => {
   const theme = useTheme();
-  const [riskClassification, setRiskClassification] = useState<string | number>("Select an option");
-  const [typeOfHighRiskRole, setTypeOfHighRiskRole] = useState<string | number>("Select an option");
+  const [values, setValues] = useState({
+    projectTitle: "",
+    users: "",
+    owner: "",
+    reviewDate: "",
+    riskClassification: "Select an option",
+    typeOfHighRiskRole: "Select an option",
+    goal: ""
+  });
+  const handleDateChange = (newDate: Dayjs | null) => {
+    setValues((prevValues) => ({
+      ...prevValues,
+      reviewDate: newDate ? newDate.toISOString() : ""
+    }));
+  };
+  const handleOnChange = (field: string, value: string | number) => {
+    setValues((prevValues) => ({
+      ...prevValues,
+      [field]: value,
+    }));
+  };
   const fieldStyle = {
     backgroundColor: theme.palette.background.main,
     "& input": {
@@ -20,20 +40,47 @@ const CreateProjectForm: FC = () => {
       noValidate
       sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 20, rowGap: 8 }}
     >
-      <Field id="project-title-input" label="Project title" width="350px" sx={fieldStyle} />
-      <Field id="users-input" label="Users" placeholder="Add user" width="350px" sx={fieldStyle} />
-      <Field id="owner-input" label="Owner" width="350px" sx={fieldStyle} />
-      <DatePicker label="Start date" 
-        sx={{ width: "130px", 
+      <Field 
+        id="project-title-input" 
+        label="Project title" 
+        width="350px" 
+        value={values.projectTitle}
+        onChange={(e) => handleOnChange("projectTitle", e.target.value)}
+        sx={fieldStyle} 
+      />
+      <Field 
+        id="users-input" 
+        label="Users" 
+        placeholder="Add user" 
+        width="350px" 
+        value={values.users}
+        onChange={(e) => handleOnChange("users", e.target.value)}
+        sx={fieldStyle} 
+      />
+      <Field 
+        id="owner-input" 
+        label="Owner" 
+        width="350px" 
+        value={values.owner}
+        onChange={(e) => handleOnChange("owner", e.target.value)}
+        sx={fieldStyle} 
+      />
+      <DatePicker 
+        label="Start date" 
+        date={ values.reviewDate ? dayjs(values.reviewDate) : null }
+        handleDateChange={handleDateChange}
+        sx={{ 
+          width: "130px",
           "& input": { width: "85px" }
-      }} />
+        }} 
+      />
       <Stack sx={{ display: "grid", gridTemplateColumns: "1fr", columnGap: 20, rowGap: 9.5, marginTop: "16px" }}>
          <Select
           id="risk-classification-input"
           label="AI risk classification"
           placeholder="Select an option"
-          value={riskClassification}
-          onChange={(e) => setRiskClassification(e.target.value)}
+          value={values.riskClassification}
+          onChange={(e) => handleOnChange("riskClassification", e.target.value)}
           items={[
             { _id: 1, name: "Some value 1" },
             { _id: 2, name: "Some value 2" },
@@ -45,8 +92,8 @@ const CreateProjectForm: FC = () => {
           id="type-of-high-risk-role-input"
           label="Type of high risk role"
           placeholder="Select an option"
-          value={typeOfHighRiskRole}
-          onChange={(e) => setTypeOfHighRiskRole(e.target.value)}
+          value={values.typeOfHighRiskRole}
+          onChange={(e) => handleOnChange("typeOfHighRiskRole", e.target.value)}
           items={[
             { _id: 1, name: "Some value 1" },
             { _id: 2, name: "Some value 2" },
@@ -56,7 +103,14 @@ const CreateProjectForm: FC = () => {
         />
       </Stack>
       <Stack sx={{ marginTop: "16px" }}>
-        <Field id="goal-input" label="Goal" type="description" sx={{ height: 101, backgroundColor: theme.palette.background.main }} />
+        <Field 
+          id="goal-input" 
+          label="Goal" 
+          type="description" 
+          value={values.goal}
+          onChange={(e) => handleOnChange("goal", e.target.value)}
+          sx={{ height: 101, backgroundColor: theme.palette.background.main }} 
+        />
       </Stack>
     </Stack>
   )

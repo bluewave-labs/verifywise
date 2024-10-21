@@ -17,6 +17,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setRowsPerPage } from "../../tools/uiSlice";
 import TablePaginationActions from "../TablePagination";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
+import singleTheme from "../../themes/v1SingleTheme";
 
 interface TableData {
   cols: any[];
@@ -56,8 +57,8 @@ const BasicTable = ({
   onRowClick,
 }: {
   data: TableData;
-  paginated: any;
-  reversed: any;
+  paginated?: boolean;
+  reversed?: boolean;
   table: any;
   onRowClick?: (rowId: number) => void;
 }) => {
@@ -72,13 +73,7 @@ const BasicTable = ({
     setPage(0);
   }, [data]);
 
-  const cellStyle = {
-    fontSize: 13,
-    textWrap: "nowrap",
-    paddingY: theme.spacing(6),
-    paddingX: theme.spacing(8),
-    Height: "fit-content",
-  };
+  const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
   const iconCell = {
     display: "flex",
@@ -122,26 +117,16 @@ const BasicTable = ({
 
   return (
     <>
-      <TableContainer component={Paper}>
-        <Table
-          sx={{
-            border: "1px solid #EEEEEE",
-            borderRadius: "4px",
-            "& td, & th": {
-              border: 0,
-            },
-          }}
-        >
-          <TableHead sx={{ backgroundColor: "#FAFAFA" }}>
-            <TableRow
-              sx={{
-                textTransform: "uppercase",
-                borderBottom: "1px solid #EEEEEE",
-              }}
-            >
+      <TableContainer>
+        <Table sx={singleTheme.tableStyles.primary.frame}>
+          <TableHead sx={{
+            backgroundColors:
+              singleTheme.tableStyles.primary.header.backgroundColors,
+          }}>
+            <TableRow sx={singleTheme.tableStyles.primary.header.row}>
               {data.cols.map((col) => {
                 return (
-                  <TableCell style={{ color: "#667085" }} key={col.id}>
+                  <TableCell style={singleTheme.tableStyles.primary.header.cell} key={col.id}>
                     {col.name}
                   </TableCell>
                 );
@@ -152,26 +137,19 @@ const BasicTable = ({
             {displayData.map((row) => {
               return (
                 <TableRow
-                  sx={{
-                    textTransform: "capitalize",
-                    borderBottom: "1px solid #EEEEEE",
-                    cursor: onRowClick ? "pointer" : "default",
-                    "&:hover": {
-                      backgroundColor: theme.palette.background.accent,
-                    },
-                  }}
+                  sx={singleTheme.tableStyles.primary.body.row}
                   key={row.id}
                   onClick={() => {
                     console.log(`Row clicked: ${row.id}`);
                     onRowClick && onRowClick(row.id);
                   }}
                 >
-                  <TableCell
+                 {row.icon && <TableCell
                     sx={{ ...cellStyle, ...iconCell }}
                     key={`icon-${row.id}`}
                   >
                     <img src={row.icon} alt="status icon" width={20} />
-                  </TableCell>
+                  </TableCell>}
                   {row.data.map((cell: any) => {
                     return (
                       <TableCell sx={cellStyle} key={cell.id}>

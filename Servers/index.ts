@@ -47,8 +47,8 @@ app.use("/auditorFeedbacks", auditorFeedbacks);
 app.use("/assessmentTrackers", assessmentTrackers);
 app.use("/sections", sectionRoutes);
 app.use("/questions", questionRoutes);
-app.use("questionEvidence", questionEvidenceRoutes);
-app.use("subrequirementEvidence", subrequirementEvidence);
+app.use("/questionEvidence", questionEvidenceRoutes);
+app.use("/subrequirementEvidence", subrequirementEvidence);
 app.use("/autoDrivers", autoDriverRoutes);
 
 app.use("/", (req, res) => {

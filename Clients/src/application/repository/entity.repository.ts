@@ -1,6 +1,6 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
 
-const routeAddress = process.env.BASE_URL || "http://localhost:3000";
+const routeAddress = "http://localhost:3000";
 
 /**
  * Creates a new user by sending a POST request to the specified route URL with the provided body.
@@ -19,6 +19,7 @@ export async function createNewUser({
   body: any;
 }): Promise<any> {
   try {
+    console.log("routeAddress => ", routeAddress);
     const response = await apiServices.post(routeAddress + routeUrl, body);
     console.log(
       `The entity with the following details is created: ${response.data}`
@@ -26,6 +27,32 @@ export async function createNewUser({
     return response.data;
   } catch (error) {
     console.error("Error creating new user:", error);
+    throw error;
+  }
+}
+
+/**
+ * Logs in a user by sending a POST request to the specified route URL with the provided credentials.
+ *
+ * @param {Object} params - The parameters for the login request.
+ * @param {string} [params.routeUrl] - The route URL to which the POST request will be sent.
+ * @param {any} params.body - The body of the POST request containing login credentials.
+ * @returns {Promise<any>} A promise that resolves to the response data of the logged-in user.
+ * @throws Will throw an error if the login fails.
+ */
+export async function loginUser({
+  routeUrl,
+  body,
+}: {
+  routeUrl?: string;
+  body: any;
+}): Promise<any> {
+  try {
+    const response = await apiServices.post(routeAddress + routeUrl, body);
+    console.log(`User logged in with the following details: ${response}`);
+    return response;
+  } catch (error) {
+    console.error("Error logging in user:", error);
     throw error;
   }
 }

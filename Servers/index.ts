@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 
 import userRoutes from "./routes/user.route";
 import roleRoutes from "./routes/role.route";
@@ -21,8 +20,6 @@ import questionRoutes from "./routes/question.route";
 import questionEvidenceRoutes from "./routes/questionEvidence.route";
 import subrequirementEvidence from "./routes/subrequirementEvidence.route";
 import autoDriverRoutes from "./routes/autoDriver.route";
-
-dotenv.config();
 
 const app = express();
 

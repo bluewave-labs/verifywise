@@ -5,6 +5,7 @@ import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import Overview from "./Overview";
+import ProjectSettings from "./ProjectSettings";
       
 const ProjectView = ({ project = projectOverviewData }) => {
     const { projectTitle } = project;
@@ -47,7 +48,7 @@ const ProjectView = ({ project = projectOverviewData }) => {
                     <TabPanel value="overview" sx={{ p: "25px 0 0" }}><Overview project={project} /></TabPanel>
                     <TabPanel value="project-risks" sx={{ p: "25px 0 0" }}>Item Two</TabPanel>
                     <TabPanel value="vendor-risks" sx={{ p: "25px 0 0" }}>Item Three</TabPanel>
-                    <TabPanel value="settings" sx={{ p: "25px 0 0" }}>Item Three</TabPanel>
+                    <TabPanel value="settings" sx={{ p: "25px 0 0" }}><ProjectSettings /></TabPanel>
                 </TabContext>
             </Box>
         </Stack>

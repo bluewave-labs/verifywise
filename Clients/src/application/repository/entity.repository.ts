@@ -1,6 +1,6 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
 
-const routeAddress = process.env.BASE_URL || "http://localhost:3000";
+const routeAddress = "http://localhost:3000";
 
 /**
  * Creates a new user by sending a POST request to the specified route URL with the provided body.
@@ -19,6 +19,7 @@ export async function createNewUser({
   body: any;
 }): Promise<any> {
   try {
+    console.log("routeAddress => ", routeAddress);
     const response = await apiServices.post(routeAddress + routeUrl, body);
     console.log(
       `The entity with the following details is created: ${response.data}`

@@ -25,7 +25,7 @@ const BASE_URL = "http://localhost:3000";
 
 // Create an instance of axios with default configurations
 const CustomAxios = axios.create({
-  baseURL: process.env.REACT_APP_BASE_URL || BASE_URL,
+  baseURL: import.meta.env.BASE_URL || BASE_URL,
   timeout: 10000, // Set a timeout limit for requests
   headers: {
     "Content-Type": "application/json",

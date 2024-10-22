@@ -1,11 +1,15 @@
-import { Stack, Typography, useTheme } from "@mui/material";
+import { Button, Stack, Typography, useTheme } from "@mui/material";
 import { FC, useState } from "react";
 import Field from "../../../components/Inputs/Field";
 import DatePicker from "../../../components/Inputs/Datepicker";
 import dayjs, { Dayjs } from "dayjs";
 import Select from "../../../components/Inputs/Select";
 
-const ProjectSettings: FC = () => {
+interface ProjectSettingsProps {
+    setTabValue: (value: string) => void
+}
+
+const ProjectSettings: FC<ProjectSettingsProps> = ({setTabValue}) => {
     const theme = useTheme();
     const [values, setValues] = useState({
         projectTitle: "",
@@ -39,7 +43,7 @@ const ProjectSettings: FC = () => {
         <Stack
             component="form"
             noValidate
-            sx={{ display: "grid", columnGap: 20, rowGap: 8 }}
+            rowGap="15px"
         >
             <Field 
                 id="project-title-input" 
@@ -80,8 +84,10 @@ const ProjectSettings: FC = () => {
                     "& input": { width: "85px" }
                 }} 
             />
-            <Typography>Team members</Typography>
-            <Typography>Add all team members of the project. Only those who are added will be able to see the project.</Typography>
+            <Stack gap="5px" sx={{ mt: "6px" }}>
+                <Typography sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}>Team members</Typography>
+                <Typography sx={{ fontSize: theme.typography.fontSize}}>Add all team members of the project. Only those who are added will be able to see the project.</Typography>
+            </Stack>
             <Select
                 id="add-users"
                 placeholder="Add users"
@@ -94,8 +100,10 @@ const ProjectSettings: FC = () => {
                 ]}
                 sx={{ width: 357, backgroundColor: theme.palette.background.main }}
             />
-            <Typography>AI risk classification</Typography>
-            <Typography>To define the AI risk classification, please see this link</Typography>
+            <Stack gap="5px" sx={{ mt: "6px" }}>
+                <Typography sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}>AI risk classification</Typography>
+                <Typography sx={{ fontSize: theme.typography.fontSize}}>To define the AI risk classification, please see this link</Typography>
+            </Stack>
             <Select
                 id="risk-classification-input"
                 placeholder="Select an option"
@@ -108,8 +116,10 @@ const ProjectSettings: FC = () => {
                 ]}
                 sx={{ width: 357, backgroundColor: theme.palette.background.main }}
             />
-            <Typography>Type of high risk role</Typography>
-            <Typography>If you are not sure about the high risk role, please see this link</Typography>
+            <Stack gap="5px" sx={{ mt: "6px" }}>
+                <Typography sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}>Type of high risk role</Typography>
+                <Typography sx={{ fontSize: theme.typography.fontSize}}>If you are not sure about the high risk role, please see this link</Typography>
+            </Stack>
             <Select
                 id="type-of-high-risk-role-input"
                 placeholder="Select an option"
@@ -122,6 +132,22 @@ const ProjectSettings: FC = () => {
                 ]}
                 sx={{ width: 357, backgroundColor: theme.palette.background.main }}
             />
+            <Button 
+                variant="contained" 
+                onClick={() => setTabValue("overview")}
+                sx={{
+                    width: 60, height: 34,
+                    fontSize: theme.typography.fontSize,
+                    textTransform: "inherit",
+                    backgroundColor: "#4C7DE7",
+                    boxShadow: "none",
+                    borderRadius: 2,
+                    border: "1px solid #175CD3",
+                    ml: "auto",
+                    mr: 0,
+                    "&:hover": { boxShadow: "none" }
+                }}
+            >Save</Button>
         </Stack>
     )
 }

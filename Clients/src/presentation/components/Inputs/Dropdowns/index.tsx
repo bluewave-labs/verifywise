@@ -1,17 +1,25 @@
 import { Stack, Typography, useTheme } from "@mui/material";
-import { useState } from "react";
 import Select from "../Select";
 import DatePicker from "../Datepicker";
 import Field from "../Field";
-import dayjs, { Dayjs } from "dayjs";
+import { Dayjs } from "dayjs";
+import { useComplianceContext } from "../../../../provider/ComplianceContext";
 
-const DropDowns = () => {
-  const [status, setStatus] = useState<string | number>("");
-  const [approver, setApprover] = useState<string | number>("");
-  const [riskReview, setRiskReview] = useState<string | number>("");
-  const [owner, setOwner] = useState<string | number>("");
-  const [reviewer, setReviewer] = useState<string | number>("");
-  const [dueDate, setDueDate] = useState<Dayjs | null>(null);
+const DropDowns: React.FC = () => {
+  const {
+    status,
+    setStatus,
+    approver,
+    setApprover,
+    owner,
+    setOwner,
+    reviewer,
+    setReviewer,
+    riskReview,
+    setRiskReview,
+    date,
+    setDate,
+  } = useComplianceContext();
   const theme = useTheme();
 
   const inputStyles = {
@@ -22,7 +30,7 @@ const DropDowns = () => {
   };
 
   const handleDateChange = (date: Dayjs | null) => {
-    setDueDate(date);
+    setDate(date);
   };
 
   return (
@@ -42,7 +50,11 @@ const DropDowns = () => {
           id="status"
           label="Status:"
           value={status}
-          onChange={(e) => setStatus(e.target.value)}
+          onChange={(e) => {
+            setStatus(e.target.value)    
+          console.log("🚀 ~ e.target.valu:", e.target.value)}
+
+          }      
           items={[
             { _id: 10, name: "Waiting" },
             { _id: 20, name: "In progress" },
@@ -112,7 +124,12 @@ const DropDowns = () => {
           sx={inputStyles}
         />
 
-        <DatePicker label="Due date:" sx={inputStyles} date={dueDate} handleDateChange={handleDateChange} />
+        <DatePicker
+          label="Due date:"
+          sx={inputStyles}
+          date={date}
+          handleDateChange={handleDateChange}
+        />
       </Stack>
 
       <Typography fontSize={13} fontWeight={400} sx={{ textAlign: "start" }}>

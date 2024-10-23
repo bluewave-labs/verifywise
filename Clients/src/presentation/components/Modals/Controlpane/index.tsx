@@ -10,10 +10,12 @@ import {
   Tab,
 } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
+import dayjs, { Dayjs } from "dayjs";
 
 import React, { useState } from "react";
 import DropDowns from "../../Inputs/Dropdowns";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
+import { useComplianceContext } from "../../../../provider/ComplianceContext";
 
 interface CustomModalProps {
   isOpen: boolean;
@@ -31,6 +33,28 @@ const CustomModal: React.FC<CustomModalProps> = ({
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
+  const { status, approver, owner, reviewer, riskReview, date } =
+    useComplianceContext();
+
+  const handleSave = () => {
+    console.log("Status:", status);
+    console.log("Approver:", approver);
+    console.log("Risk Review:", riskReview);
+    console.log("Owner:", owner);
+    console.log("Reviewer:", reviewer);
+    console.log("Due Date (raw):", date);
+  
+    const selectedValues = {
+      status,
+      approver,
+      riskReview,
+      owner,
+      reviewer,
+      dueDate: date ? dayjs(date).format("MM/DD/YYYY") : "No Date Selected",
+    };
+  
+    console.log("Selected values on Save:", selectedValues)
+  };
 
   const extractNumberFromTitle = (title: string) => {
     const match = title.match(/\d+/);
@@ -234,7 +258,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
           </Stack>
           <Button
             variant="contained"
-            onClick={() => console.log("Save clicked")}
+            onClick={handleSave}
             sx={{
               ...buttonStyle,
               width: 68,

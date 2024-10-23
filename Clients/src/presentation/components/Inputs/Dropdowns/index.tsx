@@ -3,6 +3,7 @@ import { useState } from "react";
 import Select from "../Select";
 import DatePicker from "../Datepicker";
 import Field from "../Field";
+import dayjs, { Dayjs } from "dayjs";
 
 const DropDowns = () => {
   const [status, setStatus] = useState<string | number>("");
@@ -10,6 +11,7 @@ const DropDowns = () => {
   const [riskReview, setRiskReview] = useState<string | number>("");
   const [owner, setOwner] = useState<string | number>("");
   const [reviewer, setReviewer] = useState<string | number>("");
+  const [dueDate, setDueDate] = useState<Dayjs | null>(null);
   const theme = useTheme();
 
   const inputStyles = {
@@ -17,6 +19,10 @@ const DropDowns = () => {
     maxWidth: 400,
     flexGrow: 1,
     height: 34,
+  };
+
+  const handleDateChange = (date: Dayjs | null) => {
+    setDueDate(date);
   };
 
   return (
@@ -106,7 +112,7 @@ const DropDowns = () => {
           sx={inputStyles}
         />
 
-        <DatePicker label="Due date:" sx={inputStyles} />
+        <DatePicker label="Due date:" sx={inputStyles} date={dueDate} handleDateChange={handleDateChange} />
       </Stack>
 
       <Typography fontSize={13} fontWeight={400} sx={{ textAlign: "start" }}>

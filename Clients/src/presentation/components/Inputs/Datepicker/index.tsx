@@ -109,7 +109,7 @@ const DatePicker = ({
             ...sx,
           }}
           value={date ? dayjs(date) : null}
-          onChange={(value) => handleDateChange(value)}
+          onChange={(value) =>handleDateChange(value)}
           format="MM/DD/YYYY"
         />
       </LocalizationProvider>

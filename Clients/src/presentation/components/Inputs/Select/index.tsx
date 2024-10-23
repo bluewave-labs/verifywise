@@ -92,7 +92,7 @@ const Select: React.FC<SelectProps> = ({
                 fontSize: 13,
                 color: theme.palette.text.primary,
                 "&:hover": {
-                  backgroundColor: "transparent",
+                  backgroundColor: theme.palette.background.accent,
                 },
                 "&.Mui-selected": {
                   backgroundColor: theme.palette.background.accent,

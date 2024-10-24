@@ -35,13 +35,6 @@ export const styles = {
       alignItems: "flex-end",
       mb: 9,
     },
-    title2: {
-      color: "#1A1919",
-      fontSize: 16,
-      fontWeight: 500,
-      pb: 8.5,
-      mt: 17,
-    },
     gridTitle: {
       fontSize: 12,
       color: "#8594AC",

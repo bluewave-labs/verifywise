@@ -1,15 +1,31 @@
 import { Stack, Typography, useTheme } from "@mui/material";
-import { useState } from "react";
 import Select from "../Select";
 import DatePicker from "../Datepicker";
 import Field from "../Field";
+import { Dayjs } from "dayjs";
+import { useComplianceContext } from "../../../../provider/ComplianceContext";
 
-const DropDowns = () => {
-  const [status, setStatus] = useState<string | number>("");
-  const [approver, setApprover] = useState<string | number>("");
-  const [riskReview, setRiskReview] = useState<string | number>("");
-  const [owner, setOwner] = useState<string | number>("");
-  const [reviewer, setReviewer] = useState<string | number>("");
+interface DropDownsProps {
+  value: string | number;
+  onChange: (value: string) => void;
+}
+
+const DropDowns: React.FC<DropDownsProps> = ({ value, onChange }) => {
+  const {
+    status,
+    setStatus,
+    approver,
+    setApprover,
+    owner,
+    setOwner,
+    reviewer,
+    setReviewer,
+    riskReview,
+    setRiskReview,
+    date,
+    setDate,
+  } = useComplianceContext();
+  
   const theme = useTheme();
 
   const inputStyles = {
@@ -19,12 +35,17 @@ const DropDowns = () => {
     height: 34,
   };
 
+  const handleDateChange = (date: Dayjs | null) => {
+    setDate(date);
+  };
+
   return (
     <Stack
       style={{
         gap: theme.spacing(8),
       }}
     >
+      {/* First Row of Dropdowns */}
       <Stack
         display="flex"
         flexDirection="row"
@@ -35,8 +56,8 @@ const DropDowns = () => {
         <Select
           id="status"
           label="Status:"
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
+          value={value}
+          onChange={(e) => onChange(String(e.target.value))}
           items={[
             { _id: 10, name: "Waiting" },
             { _id: 20, name: "In progress" },
@@ -60,7 +81,7 @@ const DropDowns = () => {
 
         <Select
           id="Risk review"
-          label="Risk review:"
+          label="Risk Review:"
           value={riskReview}
           onChange={(e) => setRiskReview(e.target.value)}
           items={[
@@ -72,7 +93,7 @@ const DropDowns = () => {
         />
       </Stack>
 
-      {/* Second Row */}
+      {/* Second Row of Dropdowns */}
       <Stack
         display="flex"
         flexDirection="row"
@@ -106,7 +127,12 @@ const DropDowns = () => {
           sx={inputStyles}
         />
 
-        <DatePicker label="Due date:" sx={inputStyles} />
+        <DatePicker
+          label="Due Date:"
+          sx={inputStyles}
+          date={date}
+          handleDateChange={handleDateChange}
+        />
       </Stack>
 
       <Typography fontSize={13} fontWeight={400} sx={{ textAlign: "start" }}>

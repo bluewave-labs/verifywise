@@ -5,7 +5,12 @@ import Field from "../Field";
 import { Dayjs } from "dayjs";
 import { useComplianceContext } from "../../../../provider/ComplianceContext";
 
-const DropDowns: React.FC = () => {
+interface DropDownsProps {
+  value: string | number;
+  onChange: (value: string) => void;
+}
+
+const DropDowns: React.FC<DropDownsProps> = ({ value, onChange }) => {
   const {
     status,
     setStatus,
@@ -20,6 +25,7 @@ const DropDowns: React.FC = () => {
     date,
     setDate,
   } = useComplianceContext();
+  
   const theme = useTheme();
 
   const inputStyles = {
@@ -39,6 +45,7 @@ const DropDowns: React.FC = () => {
         gap: theme.spacing(8),
       }}
     >
+      {/* First Row of Dropdowns */}
       <Stack
         display="flex"
         flexDirection="row"
@@ -49,12 +56,8 @@ const DropDowns: React.FC = () => {
         <Select
           id="status"
           label="Status:"
-          value={status}
-          onChange={(e) => {
-            setStatus(e.target.value)    
-          console.log("🚀 ~ e.target.valu:", e.target.value)}
-
-          }      
+          value={value}
+          onChange={(e) => onChange(String(e.target.value))}
           items={[
             { _id: 10, name: "Waiting" },
             { _id: 20, name: "In progress" },
@@ -78,7 +81,7 @@ const DropDowns: React.FC = () => {
 
         <Select
           id="Risk review"
-          label="Risk review:"
+          label="Risk Review:"
           value={riskReview}
           onChange={(e) => setRiskReview(e.target.value)}
           items={[
@@ -90,7 +93,7 @@ const DropDowns: React.FC = () => {
         />
       </Stack>
 
-      {/* Second Row */}
+      {/* Second Row of Dropdowns */}
       <Stack
         display="flex"
         flexDirection="row"
@@ -125,7 +128,7 @@ const DropDowns: React.FC = () => {
         />
 
         <DatePicker
-          label="Due date:"
+          label="Due Date:"
           sx={inputStyles}
           date={date}
           handleDateChange={handleDateChange}

@@ -10,8 +10,7 @@ import {
   Tab,
 } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
-import dayjs, { Dayjs } from "dayjs";
-
+import dayjs from "dayjs";
 import React, { useState } from "react";
 import DropDowns from "../../Inputs/Dropdowns";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
@@ -21,20 +20,15 @@ interface CustomModalProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   title: string;
-  content: string;
-  onConfirm: () => void;
 }
 
-const CustomModal: React.FC<CustomModalProps> = ({
-  isOpen,
-  setIsOpen,
-  title,
-}) => {
+const CustomModal: React.FC<CustomModalProps> = ({ isOpen, setIsOpen, title }) => {
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
-  const { status, approver, owner, reviewer, riskReview, date } =
-    useComplianceContext();
+  const { status, approver, owner, reviewer, riskReview, date } = useComplianceContext();
+  const [dropdown1Value, setDropdown1Value] = useState<string | number>("");
+  const [dropdown2Value, setDropdown2Value] = useState<string | number>("");
 
   const handleSave = () => {
     console.log("Status:", status);
@@ -43,7 +37,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
     console.log("Owner:", owner);
     console.log("Reviewer:", reviewer);
     console.log("Due Date (raw):", date);
-  
+
     const selectedValues = {
       status,
       approver,
@@ -52,8 +46,8 @@ const CustomModal: React.FC<CustomModalProps> = ({
       reviewer,
       dueDate: date ? dayjs(date).format("MM/DD/YYYY") : "No Date Selected",
     };
-  
-    console.log("Selected values on Save:", selectedValues)
+
+    console.log("Selected values on Save:", selectedValues);
   };
 
   const extractNumberFromTitle = (title: string) => {
@@ -143,7 +137,10 @@ const CustomModal: React.FC<CustomModalProps> = ({
           process that is planned, run, and regularly reviewed and updated
           throughout the entire lifecycle of the high-risk AI system.
         </Typography>
-        <DropDowns />
+
+        <Typography>First Dropdown</Typography>
+        <DropDowns value={dropdown1Value} onChange={setDropdown1Value} />
+
         <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
 
         <Box sx={{ width: "100%", bgcolor: "background.paper" }}>
@@ -154,26 +151,10 @@ const CustomModal: React.FC<CustomModalProps> = ({
             textColor="primary"
             sx={{ justifyContent: "flex-start" }}
           >
-            <Tab
-              label="Subcontrol 1"
-              sx={{ textTransform: "none" }}
-              disableRipple
-            />
-            <Tab
-              label="Subcontrol 2"
-              sx={{ textTransform: "none" }}
-              disableRipple
-            />
-            <Tab
-              label="Subcontrol 3"
-              sx={{ textTransform: "none" }}
-              disableRipple
-            />
-            <Tab
-              label="Subcontrol 4"
-              sx={{ textTransform: "none" }}
-              disableRipple
-            />
+            <Tab label="Subcontrol 1" sx={{ textTransform: "none" }} disableRipple />
+            <Tab label="Subcontrol 2" sx={{ textTransform: "none" }} disableRipple />
+            <Tab label="Subcontrol 3" sx={{ textTransform: "none" }} disableRipple />
+            <Tab label="Subcontrol 4" sx={{ textTransform: "none" }} disableRipple />
           </Tabs>
         </Box>
 
@@ -189,14 +170,14 @@ const CustomModal: React.FC<CustomModalProps> = ({
         >
           {["Overview", "Evidence", "Auditor Feedback"].map((section) => (
             <Button
+              key={section}
               variant={getVariant(activeSection, section)}
               onClick={() => handleSectionChange(section)}
               disableRipple
               sx={{
                 ...buttonTabStyles,
-                backgroundColor:
-                  activeSection === section ? "#EAECF0" : "transparent",
-                fontWeight: activeSection === section ? "500" : 300,
+                backgroundColor: activeSection === section ? "#EAECF0" : "transparent",
+                fontWeight: activeSection === section ? 500 : 300,
               }}
             >
               {section}
@@ -204,29 +185,20 @@ const CustomModal: React.FC<CustomModalProps> = ({
           ))}
         </Stack>
 
-        {/* Dynamic Content Based on Active Section */}
         <Box>
-          <Typography
-            fontSize={16}
-            fontWeight={600}
-            sx={{ textAlign: "left", mb: 3 }}
-          >
+          <Typography fontSize={16} fontWeight={600} sx={{ textAlign: "left", mb: 3 }}>
             Subcontrol {titleNumber}.{selectedTab + 1}
           </Typography>
           <Typography variant="body1" sx={{ mb: 5 }}>
-            Plan and execute the risk management process as a continuous
-            iterative cycle. (EU AI ACT Ref: Subcontrol {titleNumber}.
-            {selectedTab + 1})
+            Plan and execute the risk management process as a continuous iterative cycle.
+            (EU AI ACT Ref: Subcontrol {titleNumber}.{selectedTab + 1})
           </Typography>
-          {activeSection === "Overview" && (
-            <Typography variant="body1">
-              <DropDowns />
-            </Typography>
-          )}
+          {activeSection === "Overview" && <DropDowns value={dropdown2Value} onChange={setDropdown2Value} />}
           {["Evidence", "Auditor Feedback"].includes(activeSection) && (
             <AuditorFeedback activeSection={activeSection} />
           )}
         </Box>
+
         <Stack
           sx={{
             display: "flex",
@@ -235,36 +207,15 @@ const CustomModal: React.FC<CustomModalProps> = ({
             mt: 2,
           }}
         >
-          <Stack
-            gap={theme.spacing(4)}
-            sx={{ display: "flex", flexDirection: "row" }}
-          >
-            <Button
-              variant="contained"
-              onClick={() => console.log("Previous Subcontrol clicked")}
-              sx={buttonStyle}
-              disableRipple
-            >
+          <Stack gap={theme.spacing(4)} sx={{ display: "flex", flexDirection: "row" }}>
+            <Button variant="contained" onClick={() => console.log("Previous Subcontrol clicked")} sx={buttonStyle} disableRipple>
               &lt;- Previous Subcontrol
             </Button>
-            <Button
-              variant="contained"
-              onClick={() => console.log("Next Subcontrol clicked")}
-              sx={buttonStyle}
-              disableRipple
-            >
+            <Button variant="contained" onClick={() => console.log("Next Subcontrol clicked")} sx={buttonStyle} disableRipple>
               Next Subcontrol -&gt;
             </Button>
           </Stack>
-          <Button
-            variant="contained"
-            onClick={handleSave}
-            sx={{
-              ...buttonStyle,
-              width: 68,
-            }}
-            disableRipple
-          >
+          <Button variant="contained" onClick={handleSave} sx={{ ...buttonStyle, width: 68 }} disableRipple>
             Save
           </Button>
         </Stack>

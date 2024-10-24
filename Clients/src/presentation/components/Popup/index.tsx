@@ -55,16 +55,18 @@ const Popup: FC<PopupProps> = ({
             backgroundColor: theme.palette.background.alt,
             borderRadius: 2,
             pt: 14.5, pb: 39.5, pl: 19, pr: 22.5,
-            width: "fit-content"
+            width: "fit-content",
+            overflow: "auto"
         },
         actionButton: {
             borderRadius: 2, maxHeight: 34,
-            position: "absolute",
-            right: 45, bottom: 34,
             textTransform: "inherit",
             backgroundColor: "#4C7DE7",
             boxShadow: "none",
             border: "1px solid #175CD3",
+            ml: "auto",
+            mr: 0,
+            mt: "30px",
             "&:hover": { boxShadow: "none" }
         }
     }

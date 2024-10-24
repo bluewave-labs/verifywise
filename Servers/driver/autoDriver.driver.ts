@@ -5,8 +5,6 @@ import { complianceTrackers } from "../mocks/complianceTrackers/complianceTracke
 import { overviews } from "../mocks/overviews/overviews.data";
 import { projects } from "../mocks/projects/projects.data";
 import { question_evidence } from "../mocks/questionEvidence/questionEvidence.data";
-import { risks } from "../mocks/risks/risks.data";
-import { roles } from "../mocks/roles/roles.data";
 import { subrequirementEvidence } from "../mocks/subrequirementEvidence/subrequirementEvidence.data";
 import { questions } from "../mocks/questions/questions.data";
 import { requirements } from "../mocks/requirements/requirements.data";
@@ -24,8 +22,6 @@ import { ComplianceTracker } from "../models/ComplianceTracker";
 import { Overview } from "../models/Overview";
 import { Project } from "../models/Project";
 import { QuestionEvidence } from "../models/QuestionEvidence";
-import { Risk } from "../models/Risk";
-import { Role } from "../models/Role";
 import { SubrequirementEvidence } from "../models/SubrequirementEvidence";
 import { Question } from "../models/Question";
 import { Requirement } from "../models/Requirement";
@@ -36,7 +32,12 @@ import { Subrequirement } from "../models/Subrequirement";
 import { User } from "../models/User";
 import { Vendor } from "../models/Vendor";
 import { VendorRisk } from "../models/VendorRisk";
-import { deleteExistingData, checkTableExists, createTable, insertData } from "../utils/autoDriver.util";
+import {
+  deleteExistingData,
+  checkTableExists,
+  createTable,
+  insertData,
+} from "../utils/autoDriver.util";
 
 interface TableEntry<T> {
   mockData: T[];
@@ -64,7 +65,7 @@ type TableList = [
   TableEntry<Subrequirement>,
   TableEntry<Section>,
   TableEntry<Question>
-]
+];
 
 const insertQuery: TableList = [
   {
@@ -76,7 +77,9 @@ const insertQuery: TableList = [
       description text
     );`,
     insertString: "INSERT INTO roles(id, name, description) VALUES ",
-    generateValuesString: function (role: Role) { return `(${role.id}, '${role.name}', '${role.description}')` }
+    generateValuesString: function (role: Role) {
+      return `(${role.id}, '${role.name}', '${role.description}')`;
+    },
   },
   {
     mockData: users,
@@ -93,8 +96,15 @@ const insertQuery: TableList = [
         REFERENCES roles(id)
         ON DELETE SET NULL
     )`,
-    insertString: "INSERT INTO users(id, name, email, password_hash, role, created_at, last_login) VALUES ",
-    generateValuesString: function (user: User) { return `(${user.id}, '${user.name}', '${user.email}', '${user.password_hash}', ${user.role}, '${user.created_at.toISOString()}', '${user.last_login.toISOString()}')` },
+    insertString:
+      "INSERT INTO users(id, name, email, password_hash, role, created_at, last_login) VALUES ",
+    generateValuesString: function (user: User) {
+      return `(${user.id}, '${user.name}', '${user.email}', '${
+        user.password_hash
+      }', ${
+        user.role
+      }, '${user.created_at.toISOString()}', '${user.last_login.toISOString()}')`;
+    },
   },
   {
     mockData: projects,
@@ -112,8 +122,15 @@ const insertQuery: TableList = [
         REFERENCES users(id)
         ON DELETE SET NULL
     )`,
-    insertString: "INSERT INTO projects(id, name, description, last_updated, owner_id, compliance_status, controls_completed, requirements_completed)	VALUES ",
-    generateValuesString: function (project: Project) { return `(${project.id}, '${project.name}', '${project.description}', '${project.last_updated.toISOString().split("T")[0]}', ${project.owner_id}, '${project.compliance_status}', ${project.controls_completed}, ${project.requirements_completed})` },
+    insertString:
+      "INSERT INTO projects(id, name, description, last_updated, owner_id, compliance_status, controls_completed, requirements_completed)	VALUES ",
+    generateValuesString: function (project: Project) {
+      return `(${project.id}, '${project.name}', '${project.description}', '${
+        project.last_updated.toISOString().split("T")[0]
+      }', ${project.owner_id}, '${project.compliance_status}', ${
+        project.controls_completed
+      }, ${project.requirements_completed})`;
+    },
   },
   {
     mockData: vendors,
@@ -137,8 +154,17 @@ const insertQuery: TableList = [
         REFERENCES projects(id)
         ON DELETE SET NULL
     );`,
-    insertString: "INSERT INTO vendors(id, name, project_id, description, website, contact_person, review_result, review_status, reviewer_id, review_date, risk_status) VALUES ",
-    generateValuesString: function (vendor: Vendor) { return `(${vendor.id}, '${vendor.name}', ${vendor.project_id}, '${vendor.description}', '${vendor.website}', '${vendor.contact_person}', '${vendor.review_result}', '${vendor.review_status}', ${vendor.reviewer_id}, '${vendor.review_date.toISOString()}', '${vendor.risk_status}')` },
+    insertString:
+      "INSERT INTO vendors(id, name, project_id, description, website, contact_person, review_result, review_status, reviewer_id, review_date, risk_status) VALUES ",
+    generateValuesString: function (vendor: Vendor) {
+      return `(${vendor.id}, '${vendor.name}', ${vendor.project_id}, '${
+        vendor.description
+      }', '${vendor.website}', '${vendor.contact_person}', '${
+        vendor.review_result
+      }', '${vendor.review_status}', ${
+        vendor.reviewer_id
+      }, '${vendor.review_date.toISOString()}', '${vendor.risk_status}')`;
+    },
   },
   {
     mockData: complianceTrackers,
@@ -154,8 +180,11 @@ const insertQuery: TableList = [
         REFERENCES projects(id)
         ON DELETE SET NULL
     );`,
-    insertString: "INSERT INTO compliancetrackers(id, project_id, compliance_status, pending_audits, completed_assessments, implemented_controls) VALUES ",
-    generateValuesString: function (complianceTracker: ComplianceTracker) { return `(${complianceTracker.id}, ${complianceTracker.project_id}, ${complianceTracker.compliance_status}, ${complianceTracker.pending_audits}, ${complianceTracker.completed_assessments}, ${complianceTracker.implemented_controls})` },
+    insertString:
+      "INSERT INTO compliancetrackers(id, project_id, compliance_status, pending_audits, completed_assessments, implemented_controls) VALUES ",
+    generateValuesString: function (complianceTracker: ComplianceTracker) {
+      return `(${complianceTracker.id}, ${complianceTracker.project_id}, ${complianceTracker.compliance_status}, ${complianceTracker.pending_audits}, ${complianceTracker.completed_assessments}, ${complianceTracker.implemented_controls})`;
+    },
   },
   {
     mockData: assessmentTrackers,
@@ -169,8 +198,11 @@ const insertQuery: TableList = [
         REFERENCES projects(id)
         ON DELETE SET NULL
     );`,
-    insertString: "INSERT INTO assessmenttrackers(id, project_id, name, status) VALUES ",
-    generateValuesString: function (assessmentTracker: AssessmentTracker) { return `(${assessmentTracker.id}, ${assessmentTracker.project_id}, '${assessmentTracker.name}', '${assessmentTracker.status}')` },
+    insertString:
+      "INSERT INTO assessmenttrackers(id, project_id, name, status) VALUES ",
+    generateValuesString: function (assessmentTracker: AssessmentTracker) {
+      return `(${assessmentTracker.id}, ${assessmentTracker.project_id}, '${assessmentTracker.name}', '${assessmentTracker.status}')`;
+    },
   },
   {
     mockData: risks,
@@ -192,8 +224,11 @@ const insertQuery: TableList = [
         REFERENCES projects(id)
         ON DELETE SET NULL
     );`,
-    insertString: "INSERT INTO risks(id, project_id, risk_description, impact, probability, owner_id, severity, likelihood, risk_level) VALUES ",
-    generateValuesString: function (risk: Risk) { return `(${risk.id}, ${risk.project_id}, '${risk.risk_description}', '${risk.impact}', '${risk.probability}', ${risk.owner_id}, '${risk.severity}', '${risk.likelihood}', '${risk.risk_level}')` },
+    insertString:
+      "INSERT INTO risks(id, project_id, risk_description, impact, probability, owner_id, severity, likelihood, risk_level) VALUES ",
+    generateValuesString: function (risk: Risk) {
+      return `(${risk.id}, ${risk.project_id}, '${risk.risk_description}', '${risk.impact}', '${risk.probability}', ${risk.owner_id}, '${risk.severity}', '${risk.likelihood}', '${risk.risk_level}')`;
+    },
   },
   {
     mockData: vendorRisks,
@@ -221,8 +256,11 @@ const insertQuery: TableList = [
         REFERENCES vendors(id)
         ON DELETE SET NULL
     );`,
-    insertString: "INSERT INTO vendorrisks(id, vendor_id, risk_description, impact_description, project_id, probability, impact, action_plan, action_owner_id, risk_severity, likelihood, risk_level) VALUES ",
-    generateValuesString: function (vendorRisk: VendorRisk) { return `(${vendorRisk.id}, ${vendorRisk.vendor_id}, '${vendorRisk.risk_description}', '${vendorRisk.impact_description}', ${vendorRisk.project_id}, '${vendorRisk.probability}', '${vendorRisk.impact}', '${vendorRisk.action_plan}', ${vendorRisk.action_owner_id}, '${vendorRisk.risk_severity}', '${vendorRisk.likelihood}', '${vendorRisk.risk_level}')` },
+    insertString:
+      "INSERT INTO vendorrisks(id, vendor_id, risk_description, impact_description, project_id, probability, impact, action_plan, action_owner_id, risk_severity, likelihood, risk_level) VALUES ",
+    generateValuesString: function (vendorRisk: VendorRisk) {
+      return `(${vendorRisk.id}, ${vendorRisk.vendor_id}, '${vendorRisk.risk_description}', '${vendorRisk.impact_description}', ${vendorRisk.project_id}, '${vendorRisk.probability}', '${vendorRisk.impact}', '${vendorRisk.action_plan}', ${vendorRisk.action_owner_id}, '${vendorRisk.risk_severity}', '${vendorRisk.likelihood}', '${vendorRisk.risk_level}')`;
+    },
   },
   {
     mockData: complianceLists,
@@ -236,8 +274,11 @@ const insertQuery: TableList = [
         REFERENCES compliancetrackers (id)
         ON DELETE SET NULL
     );`,
-    insertString: "INSERT INTO compliancelists(id, compliance_tracker_id, name, description) VALUES ",
-    generateValuesString: function (complianceList: ComplianceList) { return `(${complianceList.id}, ${complianceList.compliance_tracker_id}, '${complianceList.name}', '${complianceList.description}')`; },
+    insertString:
+      "INSERT INTO compliancelists(id, compliance_tracker_id, name, description) VALUES ",
+    generateValuesString: function (complianceList: ComplianceList) {
+      return `(${complianceList.id}, ${complianceList.compliance_tracker_id}, '${complianceList.name}', '${complianceList.description}')`;
+    },
   },
   {
     mockData: overviews,
@@ -258,8 +299,19 @@ const insertQuery: TableList = [
         REFERENCES subrequirements (id)
         ON DELETE SET NULL
     );`,
-    insertString: "INSERT INTO overviews(id, subrequirement_id, control_name, control_description, control_owner, control_status, implementation_description, implementation_evidence, effective_date, review_date, comments) VALUES ",
-    generateValuesString: function (overview: Overview) { return `(${overview.id}, ${overview.subrequirement_id}, '${overview.control_name}', '${overview.control_description}', '${overview.control_owner}', '${overview.control_status}', '${overview.implementation_description}', '${overview.implementation_evidence}', '${overview.effective_date.toISOString().split("T")[0]}', '${overview.review_date.toISOString().split("T")[0]}', '${overview.comments}')`; },
+    insertString:
+      "INSERT INTO overviews(id, subrequirement_id, control_name, control_description, control_owner, control_status, implementation_description, implementation_evidence, effective_date, review_date, comments) VALUES ",
+    generateValuesString: function (overview: Overview) {
+      return `(${overview.id}, ${overview.subrequirement_id}, '${
+        overview.control_name
+      }', '${overview.control_description}', '${overview.control_owner}', '${
+        overview.control_status
+      }', '${overview.implementation_description}', '${
+        overview.implementation_evidence
+      }', '${overview.effective_date.toISOString().split("T")[0]}', '${
+        overview.review_date.toISOString().split("T")[0]
+      }', '${overview.comments}')`;
+    },
   },
   {
     mockData: subrequirementEvidence,
@@ -281,8 +333,25 @@ const insertQuery: TableList = [
       FOREIGN KEY (uploader_id) REFERENCES users (id) ON DELETE SET NULL,
       FOREIGN KEY (reviewer_id) REFERENCES users (id) ON DELETE SET NULL
     );`,
-    insertString: "INSERT INTO subrequirementevidences (id, subrequirement_id, document_name, document_type, file_path, upload_date, uploader_id, description, status, last_reviewed, reviewer_id, reviewer_comments) VALUES ",
-    generateValuesString: function (subrequirementEvidence: SubrequirementEvidence) { return `(${subrequirementEvidence.id}, ${subrequirementEvidence.subrequirement_id}, '${subrequirementEvidence.document_name}', '${subrequirementEvidence.document_type}', '${subrequirementEvidence.file_path}', '${subrequirementEvidence.upload_date.toISOString().split("T")[0]}', ${subrequirementEvidence.uploader_id}, '${subrequirementEvidence.description}', '${subrequirementEvidence.status}', '${subrequirementEvidence.last_reviewed.toISOString().split("T")[0]}', ${subrequirementEvidence.reviewer_id}, '${subrequirementEvidence.reviewer_comments}')`; },
+    insertString:
+      "INSERT INTO subrequirementevidences (id, subrequirement_id, document_name, document_type, file_path, upload_date, uploader_id, description, status, last_reviewed, reviewer_id, reviewer_comments) VALUES ",
+    generateValuesString: function (
+      subrequirementEvidence: SubrequirementEvidence
+    ) {
+      return `(${subrequirementEvidence.id}, ${
+        subrequirementEvidence.subrequirement_id
+      }, '${subrequirementEvidence.document_name}', '${
+        subrequirementEvidence.document_type
+      }', '${subrequirementEvidence.file_path}', '${
+        subrequirementEvidence.upload_date.toISOString().split("T")[0]
+      }', ${subrequirementEvidence.uploader_id}, '${
+        subrequirementEvidence.description
+      }', '${subrequirementEvidence.status}', '${
+        subrequirementEvidence.last_reviewed.toISOString().split("T")[0]
+      }', ${subrequirementEvidence.reviewer_id}, '${
+        subrequirementEvidence.reviewer_comments
+      }')`;
+    },
   },
   {
     mockData: question_evidence,
@@ -296,8 +365,11 @@ const insertQuery: TableList = [
       FOREIGN KEY (question_id) REFERENCES questions (id) ON DELETE SET NULL,
       FOREIGN KEY (section_id) REFERENCES sections (id) ON DELETE SET NULL
     );`,
-    insertString: "INSERT INTO questionevidences (id, question_id, section_id, assessment_review, evidence) VALUES ",
-    generateValuesString: function (questionEvidence: QuestionEvidence) { return `(${questionEvidence.id}, ${questionEvidence.question_id}, ${questionEvidence.section_id}, '${questionEvidence.assessment_review}', '${questionEvidence.evidence}')`; },
+    insertString:
+      "INSERT INTO questionevidences (id, question_id, section_id, assessment_review, evidence) VALUES ",
+    generateValuesString: function (questionEvidence: QuestionEvidence) {
+      return `(${questionEvidence.id}, ${questionEvidence.question_id}, ${questionEvidence.section_id}, '${questionEvidence.assessment_review}', '${questionEvidence.evidence}')`;
+    },
   },
   {
     mockData: auditorFeedbacks,
@@ -324,9 +396,25 @@ const insertQuery: TableList = [
         REFERENCES subrequirements (id)
         ON DELETE SET NULL
     );`,
-    insertString: "INSERT INTO auditorfeedbacks(id, subrequirement_id, assessment_type, assessment_date, auditor_id, compliance_status, findings, recommendations, corrective_actions, follow_up_date, follow_up_notes, attachments, created_at, updated_at) VALUES ",
-    generateValuesString: function (auditorFeedback: AuditorFeedback) { return `(${auditorFeedback.id}, ${auditorFeedback.subrequirement_id}, '${auditorFeedback.assessment_type}', '${auditorFeedback.assessment_date.toISOString().split("T")[0]}', ${auditorFeedback.auditor_id}, '${auditorFeedback.compliance_status}', '${auditorFeedback.findings}', '${auditorFeedback.recommendations}', '${auditorFeedback.corrective_actions}', '${auditorFeedback.follow_up_date.toISOString().split("T")[0]}', '${auditorFeedback.follow_up_notes}', '${auditorFeedback.attachments}', '${auditorFeedback.created_at.toISOString().split("T")[0]}', '${auditorFeedback.updated_at.toISOString().split("T")[0]}')`; },
-{
+    insertString:
+      "INSERT INTO auditorfeedbacks(id, subrequirement_id, assessment_type, assessment_date, auditor_id, compliance_status, findings, recommendations, corrective_actions, follow_up_date, follow_up_notes, attachments, created_at, updated_at) VALUES ",
+    generateValuesString: function (auditorFeedback: AuditorFeedback) {
+      return `(${auditorFeedback.id}, ${auditorFeedback.subrequirement_id}, '${
+        auditorFeedback.assessment_type
+      }', '${auditorFeedback.assessment_date.toISOString().split("T")[0]}', ${
+        auditorFeedback.auditor_id
+      }, '${auditorFeedback.compliance_status}', '${
+        auditorFeedback.findings
+      }', '${auditorFeedback.recommendations}', '${
+        auditorFeedback.corrective_actions
+      }', '${auditorFeedback.follow_up_date.toISOString().split("T")[0]}', '${
+        auditorFeedback.follow_up_notes
+      }', '${auditorFeedback.attachments}', '${
+        auditorFeedback.created_at.toISOString().split("T")[0]
+      }', '${auditorFeedback.updated_at.toISOString().split("T")[0]}')`;
+    },
+  },
+  {
     mockData: requirements,
     tableName: "requirements",
     createString: `CREATE TABLE requirements(
@@ -339,8 +427,11 @@ const insertQuery: TableList = [
         REFERENCES compliancelists (id)
         ON DELETE SET NULL
     );`,
-    insertString: "INSERT INTO requirements(id, compliance_list_id, name, description, status) VALUES ",
-    generateValuesString: function (requirement: Requirement) { return `(${requirement.id}, ${requirement.compliance_list_id}, '${requirement.name}', '${requirement.description}', '${requirement.status}')`; },
+    insertString:
+      "INSERT INTO requirements(id, compliance_list_id, name, description, status) VALUES ",
+    generateValuesString: function (requirement: Requirement) {
+      return `(${requirement.id}, ${requirement.compliance_list_id}, '${requirement.name}', '${requirement.description}', '${requirement.status}')`;
+    },
   },
   {
     mockData: subrequirements,
@@ -355,8 +446,11 @@ const insertQuery: TableList = [
         REFERENCES requirements (id)
         ON DELETE SET NULL
     );`,
-    insertString: "INSERT INTO subrequirements(id, requirement_id, name, description, status) VALUES ",
-    generateValuesString: function (subrequirement: Subrequirement) { return `(${subrequirement.id}, ${subrequirement.requirement_id}, '${subrequirement.name}', '${subrequirement.description}', '${subrequirement.status}')`; },
+    insertString:
+      "INSERT INTO subrequirements(id, requirement_id, name, description, status) VALUES ",
+    generateValuesString: function (subrequirement: Subrequirement) {
+      return `(${subrequirement.id}, ${subrequirement.requirement_id}, '${subrequirement.name}', '${subrequirement.description}', '${subrequirement.status}')`;
+    },
   },
   {
     mockData: sections,
@@ -371,8 +465,11 @@ const insertQuery: TableList = [
         REFERENCES assessmenttrackers (id)
         ON DELETE SET NULL
     );`,
-    insertString: "INSERT INTO sections(id, assessment_tracker_id, name, total_questions, completed_questions) VALUES ",
-    generateValuesString: function (section: Section) { return `(${section.id}, ${section.assessment_tracker_id}, '${section.name}', ${section.total_questions}, ${section.completed_questions})`; },
+    insertString:
+      "INSERT INTO sections(id, assessment_tracker_id, name, total_questions, completed_questions) VALUES ",
+    generateValuesString: function (section: Section) {
+      return `(${section.id}, ${section.assessment_tracker_id}, '${section.name}', ${section.total_questions}, ${section.completed_questions})`;
+    },
   },
   {
     mockData: questions,
@@ -387,21 +484,29 @@ const insertQuery: TableList = [
         REFERENCES sections (id)
         ON DELETE SET NULL
     );`,
-    insertString: "INSERT INTO questions(id, section_id, question_text, answer_type, required) VALUES ",
-    generateValuesString: function (question: Question) { return `(${question.id}, ${question.section_id}, '${question.question_text}', '${question.answer_type}', ${question.required})`; },
-
-  }
-]
+    insertString:
+      "INSERT INTO questions(id, section_id, question_text, answer_type, required) VALUES ",
+    generateValuesString: function (question: Question) {
+      return `(${question.id}, ${question.section_id}, '${question.question_text}', '${question.answer_type}', ${question.required})`;
+    },
+  },
+];
 
 export async function insertMockData() {
   for (let entry of insertQuery) {
-    let { mockData, tableName, createString, insertString, generateValuesString } = entry
+    let {
+      mockData,
+      tableName,
+      createString,
+      insertString,
+      generateValuesString,
+    } = entry;
     if (!(await checkTableExists(tableName as string))) {
       await createTable(createString as string);
     }
     await deleteExistingData(tableName as string);
-    const values = mockData.map(d => generateValuesString(d as any))
-    insertString += values.join(",") + ";"
-    await insertData(insertString as string)
+    const values = mockData.map((d) => generateValuesString(d as any));
+    insertString += values.join(",") + ";";
+    await insertData(insertString as string);
   }
 }

@@ -30,7 +30,6 @@ import { ReactComponent as Compliance } from "../../assets/icons/globe.svg";
 import { ReactComponent as Assessment } from "../../assets/icons/chart.svg";
 import { ReactComponent as Vendors } from "../../assets/icons/building.svg";
 import { ReactComponent as Settings } from "../../assets/icons/setting.svg";
-import { ReactComponent as Team } from "../../assets/icons/team.svg";
 
 import Logo from "../../assets/imgs/logo.png";
 
@@ -65,11 +64,6 @@ const other = [
     name: "Settings",
     icon: <Settings />,
     path: "/setting",
-  },
-  {
-    name: "Team",
-    icon: <Team />,
-    path: "/team",
   },
 ];
 

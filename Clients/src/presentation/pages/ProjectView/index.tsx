@@ -8,6 +8,7 @@ import Overview from "./Overview";
 import RisksView from "./RisksView";
 import projectRisksData from "../../mocks/projects/project-risks.data"
 import vendorRisksData from "../../mocks/projects/project-vendor-risks.data";
+import ProjectSettings from "./ProjectSettings";
       
 const ProjectView = ({ project = projectOverviewData }) => {
     const { projectTitle, projectRisks, vendorRisks } = project;
@@ -15,7 +16,7 @@ const ProjectView = ({ project = projectOverviewData }) => {
     const disableRipple = theme.components?.MuiButton?.defaultProps?.disableRipple;
 
     const [value, setValue] = React.useState("overview");
-    const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+    const handleChange = (_: React.SyntheticEvent, newValue: string) => {
       setValue(newValue);
     };
     
@@ -54,7 +55,7 @@ const ProjectView = ({ project = projectOverviewData }) => {
                     <TabPanel value="vendor-risks" sx={{ p: "32px 0 0" }}>
                         <RisksView risksSummary={vendorRisks} risksData={vendorRisksData} title="Vendor" />
                     </TabPanel>
-                    <TabPanel value="settings" sx={{ p: "32px 0 0" }}>Item Three</TabPanel>
+                    <TabPanel value="settings" sx={{ p: "32px 0 0" }}><ProjectSettings setTabValue={setValue}/></TabPanel>
                 </TabContext>
             </Stack>
         </Stack>

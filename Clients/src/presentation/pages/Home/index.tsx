@@ -37,7 +37,7 @@ const Home = ({ projects = mockProjects }: HomeProps) => {
 
   const MetricSection = ({ title, metrics }: MetricSectionProps) => (
     <>
-      <Typography variant="h2" component="div" sx={styles.title2}>
+      <Typography variant="h2" component="div" sx={{pb: 8.5, mt: 17, ...styles.title}}>
         {title}
       </Typography>
       <Stack direction="row" justifyContent="space-between" spacing={15}>

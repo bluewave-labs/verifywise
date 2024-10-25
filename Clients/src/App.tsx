@@ -23,11 +23,34 @@ import ProjectView from "./presentation/pages/ProjectView";
 import Playground from "./presentation/pages";
 
 import { VerifyWiseContext } from "./application/contexts/VerifyWise.context";
+import { useState } from "react";
 
 function App() {
   const mode = useSelector((state: any) => state.ui?.mode || "light");
+
+  const [uiValues, setUiValues] = useState<unknown | undefined>({}); // responsible for things like: Sidebar, light/dark mode, etc.
+
+  const [authValues, setAuthValues] = useState<unknown | undefined>({}); // for user authentication
+
+  const [dashboardValues, setDashboardValues] = useState<unknown | undefined>(
+    {}
+  ); // for the whole dashboard
+
+  const [inputValues, setInputValues] = useState<unknown | undefined>({}); // for the input fields
+
   return (
-    <VerifyWiseContext.Provider value={{}}>
+    <VerifyWiseContext.Provider
+      value={{
+        uiValues,
+        setUiValues,
+        authValues,
+        setAuthValues,
+        dashboardValues,
+        setDashboardValues,
+        inputValues,
+        setInputValues,
+      }}
+    >
       <ThemeProvider theme={mode === "light" ? light : dark}>
         <CssBaseline />
         <Routes>

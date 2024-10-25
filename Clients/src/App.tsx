@@ -23,7 +23,7 @@ import ProjectView from "./presentation/pages/ProjectView";
 import Playground from "./presentation/pages";
 
 import { VerifyWiseContext } from "./application/contexts/VerifyWise.context";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 function App() {
   const mode = useSelector((state: any) => state.ui?.mode || "light");
@@ -38,19 +38,22 @@ function App() {
 
   const [inputValues, setInputValues] = useState<unknown | undefined>({}); // for the input fields
 
+  const contextValues = useMemo(
+    () => ({
+      uiValues,
+      setUiValues,
+      authValues,
+      setAuthValues,
+      dashboardValues,
+      setDashboardValues,
+      inputValues,
+      setInputValues,
+    }),
+    [uiValues, authValues, dashboardValues, inputValues]
+  );
+
   return (
-    <VerifyWiseContext.Provider
-      value={{
-        uiValues,
-        setUiValues,
-        authValues,
-        setAuthValues,
-        dashboardValues,
-        setDashboardValues,
-        inputValues,
-        setInputValues,
-      }}
-    >
+    <VerifyWiseContext.Provider value={contextValues}>
       <ThemeProvider theme={mode === "light" ? light : dark}>
         <CssBaseline />
         <Routes>

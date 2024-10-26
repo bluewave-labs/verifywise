@@ -49,7 +49,8 @@ const Login: React.FC = () => {
         // Reset form after successful submission
         setValues(initialState);
         if (response.status === 202) {
-          login(response.data.token);
+          console.log("response.data.token ==> ", response.data.data.token);
+          login(response.data.data.token);
           navigate("/");
         }
       })

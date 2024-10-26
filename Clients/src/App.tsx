@@ -58,7 +58,19 @@ function App() {
       login,
       logout,
     }),
-    [uiValues, authValues, dashboardValues, inputValues]
+    [
+      uiValues,
+      setUiValues,
+      authValues,
+      setAuthValues,
+      dashboardValues,
+      setDashboardValues,
+      inputValues,
+      setInputValues,
+      token,
+      login,
+      logout,
+    ]
   );
 
   return (

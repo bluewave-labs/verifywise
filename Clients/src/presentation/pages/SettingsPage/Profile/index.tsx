@@ -4,6 +4,7 @@ import Field from "../../../components/Inputs/Field";
 import Avatar from "../../../components/Avatar";
 import { useTheme } from "@mui/material";
 import DeleteAccountConfirmation from "../../../components/Modals/DeleteAccount/index";
+import { Email } from "@mui/icons-material";
 
 /**
  * A functional component that renders a user profile form with fields for the first name, last name, email,
@@ -65,6 +66,15 @@ const index = () => {
     setProfilePhoto("/placeholder.svg?height=80&width=80");
     console.log("Photo deleted");
   };
+  
+  const handleSave = () => { 
+    const saveObj ={
+      firstname: firstname,
+      lastname: lastname,
+      password: password
+    }
+    console.log("🚀 ~ handleSave ~ saveObj:", saveObj)
+   }
 
   return (
     <Box sx={{ mt: 3, width: "70%" }}>
@@ -174,6 +184,7 @@ const index = () => {
           marginTop: theme.spacing(5),
           marginBottom: theme.spacing(10),
         }}
+        onClick={handleSave}
       >
         Save
       </Button>

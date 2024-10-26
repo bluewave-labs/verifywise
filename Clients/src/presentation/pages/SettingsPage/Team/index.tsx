@@ -242,12 +242,18 @@ export default function index() {
                     <TableCell sx={{ color: "#667085" }}>
                       {member.email}
                     </TableCell>
-                    <TableCell>
+                    <TableCell
+                    sx={{
+                      paddingLeft: 0
+                    }}>
                       <Select
                         value={member.role}
                         onChange={(event) => handleRoleChange(event, member.id)}
                         size="small"
                         sx={{
+                          textAlign: "left",
+                          paddingLeft: 0,
+                          marginLEft: 0,
                           "& .MuiOutlinedInput-notchedOutline": {
                             border: "none",
                           },
@@ -262,11 +268,17 @@ export default function index() {
                         ))}
                       </Select>
                     </TableCell>
-                    <TableCell>
+                    <TableCell
+                    
+                    sx={{
+                      textAlign: "left",
+                    }}>
                       <IconButton
                         edge="end"
                         aria-label="delete"
                         onClick={() => handleDeleteMember(member.id)}
+                        sx={{
+                          paddingLeft: '16px'}}
                       >
                         <img
                           src={Trashbin}

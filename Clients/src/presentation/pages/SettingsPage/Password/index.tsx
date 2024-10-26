@@ -18,6 +18,14 @@ const index = () => {
     const [newPassword, setNewPassword] = useState(""); // State for the confirm new password field.
     const [confirmPassword, setConfirmPassword] = useState(""); // State for the confirm new password field.
 
+    const handleSave = () => { 
+        const passObj={
+            password: password,
+            newPassword: newPassword,
+            confirmPassword: confirmPassword
+        }
+        console.log("🚀 ~ handleSave ~ passObj:", passObj)
+     }
     return (
         <Box sx={{ mt: 3 }}>
             <Box sx={{ width: "100%", maxWidth: 600 }}>
@@ -67,6 +75,7 @@ const index = () => {
                                 position: "relative",
                                 left: theme.spacing(200),
                             }}
+                            onClick={handleSave}
                         >
                             Save
                         </Button>

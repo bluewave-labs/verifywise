@@ -5,27 +5,23 @@ import Field from "../Field";
 import { Dayjs } from "dayjs";
 import { useComplianceContext } from "../../../../provider/ComplianceContext";
 
-interface DropDownsProps {
-  value: string | number;
-  onChange: (value: string) => void;
+interface DropdownValues {
+  status: string | number;
+  approver: string | number;
+  riskReview: string | number;
+  owner: string | number;
+  reviewer: string | number;
+  date: Dayjs | null;
 }
 
-const DropDowns: React.FC<DropDownsProps> = ({ value, onChange }) => {
-  const {
-    status,
-    setStatus,
-    approver,
-    setApprover,
-    owner,
-    setOwner,
-    reviewer,
-    setReviewer,
-    riskReview,
-    setRiskReview,
-    date,
-    setDate,
-  } = useComplianceContext();
-  
+interface DropDownsProps {
+  values: DropdownValues;
+  onChange: (updatedValues: Partial<DropdownValues>) => void;
+}
+
+const DropDowns: React.FC<DropDownsProps> = ({ values, onChange }) => {
+  const { setDate } = useComplianceContext();
+
   const theme = useTheme();
 
   const inputStyles = {
@@ -56,8 +52,8 @@ const DropDowns: React.FC<DropDownsProps> = ({ value, onChange }) => {
         <Select
           id="status"
           label="Status:"
-          value={value}
-          onChange={(e) => onChange(String(e.target.value))}
+          value={values.status}
+          onChange={(e) => onChange({ status: e.target.value })}
           items={[
             { _id: 10, name: "Waiting" },
             { _id: 20, name: "In progress" },
@@ -69,8 +65,8 @@ const DropDowns: React.FC<DropDownsProps> = ({ value, onChange }) => {
         <Select
           id="Approver"
           label="Approver:"
-          value={approver}
-          onChange={(e) => setApprover(e.target.value)}
+          value={values.approver}
+          onChange={(e) => onChange({ approver: e.target.value })}
           items={[
             { _id: 10, name: "Option 1" },
             { _id: 20, name: "Option 2" },
@@ -82,8 +78,8 @@ const DropDowns: React.FC<DropDownsProps> = ({ value, onChange }) => {
         <Select
           id="Risk review"
           label="Risk Review:"
-          value={riskReview}
-          onChange={(e) => setRiskReview(e.target.value)}
+          value={values.riskReview}
+          onChange={(e) => onChange({ riskReview: e.target.value })}
           items={[
             { _id: 10, name: "Acceptable risk" },
             { _id: 20, name: "Residual risk" },
@@ -104,8 +100,8 @@ const DropDowns: React.FC<DropDownsProps> = ({ value, onChange }) => {
         <Select
           id="Owner"
           label="Owner:"
-          value={owner}
-          onChange={(e) => setOwner(e.target.value)}
+          value={values.owner}
+          onChange={(e) => onChange({ owner: e.target.value })}
           items={[
             { _id: 10, name: "Option 1" },
             { _id: 20, name: "Option 2" },
@@ -117,8 +113,8 @@ const DropDowns: React.FC<DropDownsProps> = ({ value, onChange }) => {
         <Select
           id="Reviewer"
           label="Reviewer:"
-          value={reviewer}
-          onChange={(e) => setReviewer(e.target.value)}
+          value={values.reviewer}
+          onChange={(e) => onChange({ reviewer: e.target.value })}
           items={[
             { _id: 10, name: "Option 1" },
             { _id: 20, name: "Option 2" },
@@ -130,8 +126,8 @@ const DropDowns: React.FC<DropDownsProps> = ({ value, onChange }) => {
         <DatePicker
           label="Due Date:"
           sx={inputStyles}
-          date={date}
-          handleDateChange={handleDateChange}
+          date={values.date}
+          handleDateChange={setDate}
         />
       </Stack>
 

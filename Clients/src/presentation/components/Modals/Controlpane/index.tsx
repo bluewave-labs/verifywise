@@ -10,11 +10,10 @@ import {
   Tab,
 } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
-import dayjs from "dayjs";
+import { Dayjs } from "dayjs";
 import React, { useState } from "react";
 import DropDowns from "../../Inputs/Dropdowns";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
-import { useComplianceContext } from "../../../../provider/ComplianceContext";
 
 interface CustomModalProps {
   isOpen: boolean;
@@ -22,32 +21,56 @@ interface CustomModalProps {
   title: string;
 }
 
+
+interface DropdownValues {
+  status: string | number;
+  approver: string | number;
+  riskReview: string | number;
+  owner: string | number;
+  reviewer: string | number;
+  date: Dayjs | null;
+}
+
 const CustomModal: React.FC<CustomModalProps> = ({ isOpen, setIsOpen, title }) => {
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
-  const { status, approver, owner, reviewer, riskReview, date } = useComplianceContext();
-  const [dropdown1Value, setDropdown1Value] = useState<string | number>("");
-  const [dropdown2Value, setDropdown2Value] = useState<string | number>("");
+
+  const [topDropdownValues, setTopDropdownValues] = useState<DropdownValues>({
+    status: "",
+    approver: "",
+    riskReview: "",
+    owner: "",
+    reviewer: "",
+    date: null,
+  });
+
+  const [bottomDropdownValues, setBottomDropdownValues] = useState<DropdownValues>({
+    status: "",
+    approver: "",
+    riskReview: "",
+    owner: "",
+    reviewer: "",
+    date: null,
+  });
+
+  const handleTopDropdownChange = (updatedValues: Partial<typeof topDropdownValues>) => {
+    setTopDropdownValues((prevValues) => ({
+      ...prevValues,
+      ...updatedValues,
+    }));
+  };
+
+  const handleBottomDropdownChange = (updatedValues: Partial<typeof bottomDropdownValues>) => {
+    setBottomDropdownValues((prevValues) => ({
+      ...prevValues,
+      ...updatedValues,
+    }));
+  };
 
   const handleSave = () => {
-    console.log("Status:", status);
-    console.log("Approver:", approver);
-    console.log("Risk Review:", riskReview);
-    console.log("Owner:", owner);
-    console.log("Reviewer:", reviewer);
-    console.log("Due Date (raw):", date);
-
-    const selectedValues = {
-      status,
-      approver,
-      riskReview,
-      owner,
-      reviewer,
-      dueDate: date ? dayjs(date).format("MM/DD/YYYY") : "No Date Selected",
-    };
-
-    console.log("Selected values on Save:", selectedValues);
+    console.log("Top Dropdown Values:", topDropdownValues);
+    console.log("Bottom Dropdown Values:", bottomDropdownValues);
   };
 
   const extractNumberFromTitle = (title: string) => {
@@ -139,7 +162,7 @@ const CustomModal: React.FC<CustomModalProps> = ({ isOpen, setIsOpen, title }) =
         </Typography>
 
         <Typography>First Dropdown</Typography>
-        <DropDowns value={dropdown1Value} onChange={setDropdown1Value} />
+        <DropDowns values={topDropdownValues} onChange={handleTopDropdownChange} />
 
         <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
 
@@ -193,7 +216,7 @@ const CustomModal: React.FC<CustomModalProps> = ({ isOpen, setIsOpen, title }) =
             Plan and execute the risk management process as a continuous iterative cycle.
             (EU AI ACT Ref: Subcontrol {titleNumber}.{selectedTab + 1})
           </Typography>
-          {activeSection === "Overview" && <DropDowns value={dropdown2Value} onChange={setDropdown2Value} />}
+          {activeSection === "Overview" && <DropDowns values={bottomDropdownValues} onChange={handleBottomDropdownChange} />}
           {["Evidence", "Auditor Feedback"].includes(activeSection) && (
             <AuditorFeedback activeSection={activeSection} />
           )}

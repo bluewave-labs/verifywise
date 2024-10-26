@@ -1,11 +1,12 @@
 import { Button, Stack, Typography, useTheme } from "@mui/material";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Checkbox from "../../../components/Inputs/Checkbox";
 import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../../../../application/repository/entity.repository";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 // Define the shape of form values
 interface FormValues {
@@ -23,6 +24,7 @@ const initialState: FormValues = {
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const { login } = useContext(VerifyWiseContext);
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
 
@@ -47,6 +49,7 @@ const Login: React.FC = () => {
         // Reset form after successful submission
         setValues(initialState);
         if (response.status === 202) {
+          login(response.data.token);
           navigate("/");
         }
       })

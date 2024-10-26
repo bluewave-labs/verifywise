@@ -29,14 +29,20 @@ function App() {
   const mode = useSelector((state: any) => state.ui?.mode || "light");
 
   const [uiValues, setUiValues] = useState<unknown | undefined>({}); // responsible for things like: Sidebar, light/dark mode, etc.
-
   const [authValues, setAuthValues] = useState<unknown | undefined>({}); // for user authentication
-
   const [dashboardValues, setDashboardValues] = useState<unknown | undefined>(
     {}
   ); // for the whole dashboard
-
   const [inputValues, setInputValues] = useState<unknown | undefined>({}); // for the input fields
+  const [token, setToken] = useState<string | null>("");
+
+  const login = (token: string) => {
+    setToken(token);
+  };
+
+  const logout = () => {
+    setToken(null);
+  };
 
   const contextValues = useMemo(
     () => ({
@@ -48,6 +54,9 @@ function App() {
       setDashboardValues,
       inputValues,
       setInputValues,
+      token,
+      login,
+      logout,
     }),
     [uiValues, authValues, dashboardValues, inputValues]
   );

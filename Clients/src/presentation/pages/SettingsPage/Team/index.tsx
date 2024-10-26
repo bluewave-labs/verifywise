@@ -100,6 +100,23 @@ export default function index() {
       ? teamMembers
       : teamMembers.filter((member) => member.role === filter);
 
+
+      const handleSaveAllData = () => {
+        const formData = {
+          organizationName: orgName,
+          filterRole: filter,
+          teamMembers: teamMembers.map(member => ({
+            id: member.id,
+            name: member.name,
+            email: member.email,
+            role: member.role
+          }))
+        };
+      
+        // Log the collected data
+        console.log("Form Data:", formData);
+      };
+
   return (
     <Stack sx={{ pt: theme.spacing(10) }}>
       <Box sx={{ mb: 4 }}>
@@ -275,7 +292,8 @@ export default function index() {
               mt: 20,
             }}
           >
-            <Button variant="contained">Save</Button>
+            <Button variant="contained"
+            onClick={handleSaveAllData}>Save</Button>
           </Box>
         </Stack>
       </Box>

@@ -22,36 +22,87 @@ import ResetPasswordContinue from "./presentation/pages/Authentication/ResetPass
 import ProjectView from "./presentation/pages/ProjectView";
 import Playground from "./presentation/pages";
 
+import { VerifyWiseContext } from "./application/contexts/VerifyWise.context";
+import { useMemo, useState } from "react";
+
 function App() {
   const mode = useSelector((state: any) => state.ui?.mode || "light");
-  return (
-    <ThemeProvider theme={mode === "light" ? light : dark}>
-      <CssBaseline />
-      <Routes>
-        <Route path="/" element={<Dashboard />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/compliance-tracker" element={<ComplianceTracker />} />
-          <Route path="/assessment" element={<Assessment />} />
-          <Route path="/vendors" element={<Vendors />} />
-          <Route path="/setting" element={<Setting />} />
-          <Route path="/team" element={<Team />} />
-          <Route path="/project-view" element={<ProjectView />} />
-        </Route>
-        <Route path="/admin-reg" element={<RegisterAdmin />} />
-        <Route path="/user-reg" element={<RegisterUser />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/set-new-password" element={<SetNewPassword />} />
-        <Route
-          path="/reset-password-continue"
-          element={<ResetPasswordContinue />}
-        />
 
-        {/** This route is simply for testing and playing with components and will be removed soon  */}
-        <Route path="/playground" element={<Playground />} />
-      </Routes>
-    </ThemeProvider>
+  const [uiValues, setUiValues] = useState<unknown | undefined>({}); // responsible for things like: Sidebar, light/dark mode, etc.
+  const [authValues, setAuthValues] = useState<unknown | undefined>({}); // for user authentication
+  const [dashboardValues, setDashboardValues] = useState<unknown | undefined>(
+    {}
+  ); // for the whole dashboard
+  const [inputValues, setInputValues] = useState<unknown | undefined>({}); // for the input fields
+  const [token, setToken] = useState<string | null>("");
+
+  const login = (token: string) => {
+    setToken(token);
+  };
+
+  const logout = () => {
+    setToken(null);
+  };
+
+  const contextValues = useMemo(
+    () => ({
+      uiValues,
+      setUiValues,
+      authValues,
+      setAuthValues,
+      dashboardValues,
+      setDashboardValues,
+      inputValues,
+      setInputValues,
+      token,
+      login,
+      logout,
+    }),
+    [
+      uiValues,
+      setUiValues,
+      authValues,
+      setAuthValues,
+      dashboardValues,
+      setDashboardValues,
+      inputValues,
+      setInputValues,
+      token,
+      login,
+      logout,
+    ]
+  );
+
+  return (
+    <VerifyWiseContext.Provider value={contextValues}>
+      <ThemeProvider theme={mode === "light" ? light : dark}>
+        <CssBaseline />
+        <Routes>
+          <Route path="/" element={<Dashboard />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/compliance-tracker" element={<ComplianceTracker />} />
+            <Route path="/assessment" element={<Assessment />} />
+            <Route path="/vendors" element={<Vendors />} />
+            <Route path="/setting" element={<Setting />} />
+            <Route path="/team" element={<Team />} />
+            <Route path="/project-view" element={<ProjectView />} />
+          </Route>
+          <Route path="/admin-reg" element={<RegisterAdmin />} />
+          <Route path="/user-reg" element={<RegisterUser />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/set-new-password" element={<SetNewPassword />} />
+          <Route
+            path="/reset-password-continue"
+            element={<ResetPasswordContinue />}
+          />
+
+          {/** This route is simply for testing and playing with components and will be removed soon  */}
+          <Route path="/playground" element={<Playground />} />
+        </Routes>
+      </ThemeProvider>
+    </VerifyWiseContext.Provider>
   );
 }
 

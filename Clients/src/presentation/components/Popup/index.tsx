@@ -54,7 +54,7 @@ const Popup: FC<PopupProps> = ({
             position: "relative",
             backgroundColor: theme.palette.background.alt,
             borderRadius: 2,
-            pt: 14.5, pb: 39.5, pl: 19, pr: 22.5,
+            pt: 14.5, pb: 17, pl: 19, pr: 22.5,
             width: "fit-content",
             overflow: "auto"
         },
@@ -94,7 +94,7 @@ const Popup: FC<PopupProps> = ({
                     <Typography variant="h1" component="div" sx={{ color: "#344054", fontSize: 16, fontWeight: 600, mb: 3.5 }}>
                         {popupTitle}
                     </Typography>
-                    {popupSubtitle && <Typography variant="subtitle1" component="div" sx={{ color: "#344054", fontSize: 13, mb: 13.5 }}>
+                    {popupSubtitle && <Typography variant="subtitle1" component="div" sx={{ color: "#344054", fontSize: 13 }}>
                         {popupSubtitle}
                     </Typography>}
                     <Button onClick={handleClick} sx={styles.closePopupButton}>

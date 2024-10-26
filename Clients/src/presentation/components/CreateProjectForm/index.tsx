@@ -38,7 +38,7 @@ const CreateProjectForm: FC = () => {
     <Stack
       component="form"
       noValidate
-      sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 20, rowGap: 8 }}
+      sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 20, rowGap: 8, mt: 13.5 }}
     >
       <Field 
         id="project-title-input" 

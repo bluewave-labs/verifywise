@@ -4,25 +4,11 @@ import CloudUpload from "../../../assets/icons/cloudUpload.svg";
 import RichTextEditor from "../../../components/RichTextEditor/index";
 import { uploadFile } from "../../../../application/tools/fileUtil";
 import ErrorModal from "../Error";
+import { ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from "../constants";
 
 interface AuditorFeedbackProps {
-  activeSection: string;
+  activeSection?: string;
 }
-
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
-const ALLOWED_FILE_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/gif",
-  "application/pdf",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "text/plain",
-  "application/vnd.ms-excel",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  "application/zip",
-  "application/x-rar-compressed",
-];
 
 const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({ activeSection }) => {
   const [file, setFile] = useState<File | null>(null);
@@ -63,11 +49,14 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({ activeSection }) => {
 
   return (
     <Box sx={{ width: "100%", padding: 2 }}>
+      {activeSection && 
+      <>
       <Typography sx={{ mb: 2 }}>
         {activeSection === "Evidence" ? "Evidence:" : "Auditor Feedback:"}
       </Typography>
 
       <RichTextEditor onContentChange={handleContentChange} />
+      </>}
 
       <Box
         sx={{

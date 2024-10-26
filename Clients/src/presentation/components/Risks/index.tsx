@@ -17,7 +17,9 @@ const Risks: FC<RiskData & {sx?: SxProps<Theme> | undefined}> = (
             width: "fit-content"
         },
         stackItem: {
-            p: "15px", position: "relative",
+            p: "15px", 
+            position: "relative",
+            width: 124,
             "&:after": { 
                 content: `""`, 
                 position: "absolute", 
@@ -47,7 +49,7 @@ const Risks: FC<RiskData & {sx?: SxProps<Theme> | undefined}> = (
                 <Typography sx={{color: "#B8D39C"}}>Low risks</Typography>
                 <Typography sx={{color: theme.palette.text.secondary}}>{lowRisks}</Typography>
             </Stack>
-            <Stack sx={{p: "15px"}}>
+            <Stack sx={{p: "15px", width: 124}}>
                 <Typography sx={{color: "#52AB43"}}>Very low risks</Typography>
                 <Typography sx={{color: theme.palette.text.secondary}}>{veryLowRisks}</Typography>
             </Stack>

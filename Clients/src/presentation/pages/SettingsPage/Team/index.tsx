@@ -26,8 +26,6 @@ import {
 } from "@mui/material";
 import Trashbin from "../../../../presentation/assets/icons/trash-01.svg"; // Imported as an SVG file
 import Field from "../../../components/Inputs/Field";
-import TableWithPlaceholder from "../../../components/Table/WithPlaceholder";
-import singleTheme from "../../../themes/v1SingleTheme";
 
 type TeamMember = {
   id: string;
@@ -96,8 +94,6 @@ export default function index() {
       members.filter((member) => member.id !== memberId)
     );
   };
-
-  const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
   const filteredMembers =
     filter === "All"
@@ -204,78 +200,68 @@ export default function index() {
               <Button variant="contained">Invite team member</Button>
             </Box>
           </Stack>
+
           <TableContainer
             component={Paper}
             sx={{ maxWidth: theme.spacing(480) }}
           >
             <Table>
               <TableHead>
-                <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                  <TableCell
-                    sx={{ color: "#a7b4c8", width: "20%" }} // Fixed width for the "NAME" column
-                    style={singleTheme.tableStyles.primary.header.cell}
-                  >
-                    NAME
-                  </TableCell>
-                  <TableCell sx={{ color: "#a7b4c8", width: "30%" }}>
-                    EMAIL
-                  </TableCell>
-                  <TableCell sx={{ color: "#a7b4c8", width: "20%" , paddingLeft: '20px'}}>
-                    ROLE
-                  </TableCell>
-                  <TableCell sx={{ color: "#a7b4c8", width: "10%" , textAlign: "center"}}>
-                    ACTION
-                  </TableCell>
+                <TableRow>
+                  <TableCell sx={{ color: "#667085" }}>NAME</TableCell>
+                  <TableCell sx={{ color: "#667085" }}>EMAIL</TableCell>
+                  <TableCell sx={{ color: "#667085" }}>ROLE</TableCell>
+                  <TableCell sx={{ color: "#667085" }}>ACTION</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {filteredMembers.map((member) => (
-                  <TableRow
-                    key={member.id}
-                    sx={singleTheme.tableStyles.primary.body.row}
-                  >
+                  <TableRow key={member.id} sx={{ height: theme.spacing(1) }}>
                     <TableCell
-                      sx={{ width: "20%", textAlign: "left" }} // Same width for "NAME" column in body
-                      style={singleTheme.tableStyles.primary.body.cell}
+                      sx={{ height: "80px !important", color: "#101828" }}
                     >
                       {member.name}
                     </TableCell>
-                    <TableCell sx={{ width: "30%", textAlign: "left" }}>
+                    <TableCell sx={{ color: "#667085" }}>
                       {member.email}
                     </TableCell>
-                    <TableCell sx={{ width: "20%" }}>
+                    <TableCell
+                    sx={{
+                      paddingLeft: 0
+                    }}>
                       <Select
                         value={member.role}
                         onChange={(event) => handleRoleChange(event, member.id)}
                         size="small"
                         sx={{
+                          textAlign: "left",
+                          paddingLeft: 0,
+                          marginLEft: 0,
                           "& .MuiOutlinedInput-notchedOutline": {
                             border: "none",
                           },
                           color: "#667085",
                           fontSize: 13,
-                          width: "150px", // Ensures consistency for the Select dropdown
-                          textAlign: "center",
                         }}
                       >
                         {roles.map((role) => (
-                          <MenuItem
-                            key={role}
-                            value={role}
-                            sx={{
-                              textAlign: "center",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
+                          <MenuItem key={role} value={role}>
                             {role}
                           </MenuItem>
                         ))}
                       </Select>
                     </TableCell>
-                    <TableCell sx={{ width: "10%", textAlign: "center" }}>
+                    <TableCell
+                    
+                    sx={{
+                      textAlign: "left",
+                    }}>
                       <IconButton
+                        edge="end"
                         aria-label="delete"
                         onClick={() => handleDeleteMember(member.id)}
+                        sx={{
+                          paddingLeft: '16px'}}
                       >
                         <img
                           src={Trashbin}

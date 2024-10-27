@@ -44,7 +44,6 @@ export async function loginUser({
 }): Promise<any> {
   try {
     const response = await apiServices.post(routeAddress + routeUrl, body);
-    console.log(`User logged in with the following details: ${response}`);
     return response;
   } catch (error) {
     console.error("Error logging in user:", error);

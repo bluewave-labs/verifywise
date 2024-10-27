@@ -189,10 +189,12 @@ async function loginUser(req: Request, res: Response): Promise<any> {
               token,
             })
           );
+        } else {
+          return res.status(406).json(STATUS_CODE[406]({}));
         }
       }
 
-      return res.status(406).json(STATUS_CODE[406]({}));
+      return res.status(404).json(STATUS_CODE[404]({}));
     }
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

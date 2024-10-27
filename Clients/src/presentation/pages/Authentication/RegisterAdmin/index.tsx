@@ -150,7 +150,6 @@ const RegisterAdmin: React.FC = () => {
         body: values,
       })
         .then((response) => {
-          console.log("Form submitted:", response);
           // Reset form after successful submission
           setValues(initialState);
           setErrors({});

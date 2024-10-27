@@ -7,6 +7,8 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../../../../application/repository/entity.repository";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import Alert from "../../../components/Alert";
+import { logEngine } from "../../../../application/tools/log.engine";
 
 // Define the shape of form values
 interface FormValues {
@@ -27,6 +29,12 @@ const Login: React.FC = () => {
   const { login } = useContext(VerifyWiseContext);
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
+  // State for alert
+  const [alert, setAlert] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    title: string;
+    body: string;
+  } | null>(null);
 
   // Handle changes in input fields
   const handleChange =
@@ -39,23 +47,86 @@ const Login: React.FC = () => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    const user = {
+      id: "At login level", // Replace with actual user ID
+      email: values.email, // Replace with actual user email
+      firstname: "N/A", // Replace with actual user first name
+      lastname: "N/A", // Replace with actual user last name
+    };
+
     await loginUser({
       routeUrl: "/users/login",
       body: values,
     })
       .then((response) => {
-        console.log("Login Form submitted:", response);
-        console.log("response.status:", response.status);
-        // Reset form after successful submission
         setValues(initialState);
         if (response.status === 202) {
-          console.log("response.data.token ==> ", response.data.data.token);
           login(response.data.data.token);
-          navigate("/");
+          setAlert({
+            variant: "success",
+            title: "Success",
+            body: "Login successful. Redirecting...",
+          });
+          logEngine({
+            type: "info",
+            message: "Login successful.",
+            user,
+          });
+          setTimeout(() => {
+            setAlert(null);
+            navigate("/");
+          }, 3000);
+        } else if (response.status === 404) {
+          setAlert({
+            variant: "error",
+            title: "Error",
+            body: "User not found. Please try again.",
+          });
+          logEngine({
+            type: "event",
+            message: "User not found. Please try again.",
+            user,
+          });
+          setTimeout(() => setAlert(null), 3000);
+        } else if (response.status === 406) {
+          setAlert({
+            variant: "warning",
+            title: "Warning",
+            body: "Invalid password. Please try again.",
+          });
+          logEngine({
+            type: "event",
+            message: "Invalid password. Please try again.",
+            user,
+          });
+          setTimeout(() => setAlert(null), 3000);
+        } else {
+          setAlert({
+            variant: "error",
+            title: "Error",
+            body: "Unexpected response. Please try again.",
+          });
+          logEngine({
+            type: "error",
+            message: "Unexpected response. Please try again.",
+            user,
+          });
+          setTimeout(() => setAlert(null), 3000);
         }
       })
       .catch((error) => {
         console.error("Error submitting form:", error);
+        setAlert({
+          variant: "error",
+          title: "Error",
+          body: "An error occurred. Please try again.",
+        });
+        logEngine({
+          type: "error",
+          message: `An error occurred: ${error.message}`,
+          user,
+        });
+        setTimeout(() => setAlert(null), 3000);
       });
   };
 
@@ -84,6 +155,15 @@ const Login: React.FC = () => {
           transform: "translateX(-50%)",
         }}
       />
+      {alert && (
+        <Alert
+          variant={alert.variant}
+          title={alert.title}
+          body={alert.body}
+          isToast={true}
+          onClick={() => setAlert(null)}
+        />
+      )}
       <form onSubmit={handleSubmit}>
         <Stack
           className="reg-admin-form"

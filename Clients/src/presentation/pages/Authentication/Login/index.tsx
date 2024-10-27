@@ -32,7 +32,7 @@ const Login: React.FC = () => {
   // State for alert
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
-    title: string;
+    title?: string;
     body: string;
   } | null>(null);
 
@@ -64,7 +64,6 @@ const Login: React.FC = () => {
           login(response.data.data.token);
           setAlert({
             variant: "success",
-            title: "Success",
             body: "Login successful. Redirecting...",
           });
           logEngine({
@@ -79,7 +78,6 @@ const Login: React.FC = () => {
         } else if (response.status === 404) {
           setAlert({
             variant: "error",
-            title: "Error",
             body: "User not found. Please try again.",
           });
           logEngine({
@@ -91,7 +89,6 @@ const Login: React.FC = () => {
         } else if (response.status === 406) {
           setAlert({
             variant: "warning",
-            title: "Warning",
             body: "Invalid password. Please try again.",
           });
           logEngine({
@@ -103,7 +100,6 @@ const Login: React.FC = () => {
         } else {
           setAlert({
             variant: "error",
-            title: "Error",
             body: "Unexpected response. Please try again.",
           });
           logEngine({
@@ -118,7 +114,6 @@ const Login: React.FC = () => {
         console.error("Error submitting form:", error);
         setAlert({
           variant: "error",
-          title: "Error",
           body: "An error occurred. Please try again.",
         });
         logEngine({

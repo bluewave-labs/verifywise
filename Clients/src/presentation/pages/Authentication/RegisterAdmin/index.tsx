@@ -57,7 +57,7 @@ const RegisterAdmin: React.FC = () => {
   // State for alert
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
-    title: string;
+    title?: string;
     body: string;
   } | null>(null);
 
@@ -157,7 +157,6 @@ const RegisterAdmin: React.FC = () => {
           if (response.status === 201) {
             setAlert({
               variant: "success",
-              title: "Success",
               body: "Account created successfully. Redirecting to login...",
             });
             logEngine({
@@ -172,7 +171,6 @@ const RegisterAdmin: React.FC = () => {
           } else if (response.status === 400) {
             setAlert({
               variant: "error",
-              title: "Error",
               body: "Bad request. Please check your input.",
             });
             logEngine({
@@ -184,7 +182,6 @@ const RegisterAdmin: React.FC = () => {
           } else if (response.status === 409) {
             setAlert({
               variant: "warning",
-              title: "Warning",
               body: "Account already exists.",
             });
             logEngine({
@@ -196,7 +193,6 @@ const RegisterAdmin: React.FC = () => {
           } else if (response.status === 500) {
             setAlert({
               variant: "error",
-              title: "Error",
               body: "Internal server error. Please try again later.",
             });
             logEngine({
@@ -208,7 +204,6 @@ const RegisterAdmin: React.FC = () => {
           } else {
             setAlert({
               variant: "error",
-              title: "Error",
               body: "Unexpected response. Please try again.",
             });
             logEngine({
@@ -222,7 +217,6 @@ const RegisterAdmin: React.FC = () => {
         .catch((error) => {
           setAlert({
             variant: "error",
-            title: "Error",
             body: "An error occurred. Please try again.",
           });
           logEngine({

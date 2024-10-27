@@ -54,17 +54,19 @@ const Popup: FC<PopupProps> = ({
             position: "relative",
             backgroundColor: theme.palette.background.alt,
             borderRadius: 2,
-            pt: 14.5, pb: 39.5, pl: 19, pr: 22.5,
-            width: "fit-content"
+            pt: 14.5, pb: 17, pl: 19, pr: 22.5,
+            width: "fit-content",
+            overflow: "auto"
         },
         actionButton: {
             borderRadius: 2, maxHeight: 34,
-            position: "absolute",
-            right: 45, bottom: 34,
             textTransform: "inherit",
             backgroundColor: "#4C7DE7",
             boxShadow: "none",
             border: "1px solid #175CD3",
+            ml: "auto",
+            mr: 0,
+            mt: "30px",
             "&:hover": { boxShadow: "none" }
         }
     }
@@ -92,7 +94,7 @@ const Popup: FC<PopupProps> = ({
                     <Typography variant="h1" component="div" sx={{ color: "#344054", fontSize: 16, fontWeight: 600, mb: 3.5 }}>
                         {popupTitle}
                     </Typography>
-                    {popupSubtitle && <Typography variant="subtitle1" component="div" sx={{ color: "#344054", fontSize: 13, mb: 13.5 }}>
+                    {popupSubtitle && <Typography variant="subtitle1" component="div" sx={{ color: "#344054", fontSize: 13 }}>
                         {popupSubtitle}
                     </Typography>}
                     <Button onClick={handleClick} sx={styles.closePopupButton}>

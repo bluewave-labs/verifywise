@@ -44,7 +44,12 @@ const logRequest = (
 };
 
 const logResponse = (method: string, endpoint: string, response: any) => {
-  console.table(`[API Response] ${method.toUpperCase()} ${endpoint}`, response);
+  console.table(
+    `[API Response] ${method.toUpperCase()} ${endpoint} ${
+      response.data.message
+    }`,
+    response.status
+  );
 };
 
 export const apiServices = {

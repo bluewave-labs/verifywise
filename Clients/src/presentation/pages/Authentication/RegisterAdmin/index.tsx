@@ -7,6 +7,8 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import { useNavigate } from "react-router-dom";
 import { createNewUser } from "../../../../application/repository/entity.repository";
+import Alert from "../../../components/Alert";
+import { logEngine } from "../../../../application/tools/log.engine";
 
 // Define the shape of form values
 interface FormValues {
@@ -52,6 +54,12 @@ const RegisterAdmin: React.FC = () => {
     length: false,
     specialChar: false,
   });
+  // State for alert
+  const [alert, setAlert] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    title: string;
+    body: string;
+  } | null>(null);
 
   // Handle input field changes
   const handleChange =
@@ -130,19 +138,100 @@ const RegisterAdmin: React.FC = () => {
   // Handle form submission
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const user = {
+      id: "At register level as admin", // Replace with actual user ID
+      email: values.email, // Replace with actual user email
+      firstname: values.name, // Replace with actual user first name
+      lastname: values.surname, // Replace with actual user last name
+    };
     if (validateForm()) {
-      try {
-        const response = await createNewUser({
-          routeUrl: "/users/register",
-          body: values,
+      await createNewUser({
+        routeUrl: "/users/register",
+        body: values,
+      })
+        .then((response) => {
+          // Reset form after successful submission
+          setValues(initialState);
+          setErrors({});
+          setPasswordChecks({ length: false, specialChar: false });
+          if (response.status === 201) {
+            setAlert({
+              variant: "success",
+              title: "Success",
+              body: "Account created successfully. Redirecting to login...",
+            });
+            logEngine({
+              type: "info",
+              message: "Account created successfully.",
+              user,
+            });
+            setTimeout(() => {
+              setAlert(null);
+              navigate("/login");
+            }, 3000);
+          } else if (response.status === 400) {
+            setAlert({
+              variant: "error",
+              title: "Error",
+              body: "Bad request. Please check your input.",
+            });
+            logEngine({
+              type: "error",
+              message: "Bad request. Please check your input.",
+              user,
+            });
+            setTimeout(() => setAlert(null), 3000);
+          } else if (response.status === 409) {
+            setAlert({
+              variant: "warning",
+              title: "Warning",
+              body: "Account already exists.",
+            });
+            logEngine({
+              type: "event",
+              message: "Account already exists.",
+              user,
+            });
+            setTimeout(() => setAlert(null), 3000);
+          } else if (response.status === 500) {
+            setAlert({
+              variant: "error",
+              title: "Error",
+              body: "Internal server error. Please try again later.",
+            });
+            logEngine({
+              type: "error",
+              message: "Internal server error. Please try again later.",
+              user,
+            });
+            setTimeout(() => setAlert(null), 3000);
+          } else {
+            setAlert({
+              variant: "error",
+              title: "Error",
+              body: "Unexpected response. Please try again.",
+            });
+            logEngine({
+              type: "error",
+              message: "Unexpected response. Please try again.",
+              user,
+            });
+            setTimeout(() => setAlert(null), 3000);
+          }
+        })
+        .catch((error) => {
+          setAlert({
+            variant: "error",
+            title: "Error",
+            body: "An error occurred. Please try again.",
+          });
+          logEngine({
+            type: "error",
+            message: `An error occurred: ${error.message}`,
+            user,
+          });
+          setTimeout(() => setAlert(null), 3000);
         });
-        console.log("Form submitted:", response);
-        // Reset form after successful submission
-        setValues(initialState);
-        setErrors({});
-        setPasswordChecks({ length: false, specialChar: false });
-        navigate("/login");
-      } catch (error) {}
     }
   };
 
@@ -172,6 +261,15 @@ const RegisterAdmin: React.FC = () => {
           transform: "translateX(-50%)",
         }}
       />
+      {alert && (
+        <Alert
+          variant={alert.variant}
+          title={alert.title}
+          body={alert.body}
+          isToast={true}
+          onClick={() => setAlert(null)}
+        />
+      )}
       <form onSubmit={handleSubmit}>
         <Stack
           className="reg-admin-form"

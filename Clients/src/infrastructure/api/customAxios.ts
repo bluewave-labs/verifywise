@@ -55,28 +55,10 @@ CustomAxios.interceptors.response.use(
   },
   (error) => {
     if (error.response) {
-      // Handle specific status codes
-      switch (error.response.status) {
-        case 401:
-          // Handle unauthorized access
-          console.error("Unauthorized access - possibly invalid token");
-          break;
-        case 403:
-          // Handle forbidden access
-          console.error("Forbidden access");
-          break;
-        case 500:
-          // Handle server errors
-          console.error("Server error");
-          break;
-        default:
-          console.error("An error occurred:", error.response.status);
-      }
+      return error.response;
     } else if (error.request) {
-      // Handle no response from server
       console.error("No response received from server");
     } else {
-      // Handle other errors
       console.error("Error setting up request:", error.message);
     }
     return Promise.reject(error);

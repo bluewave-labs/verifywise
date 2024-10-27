@@ -1,9 +1,9 @@
-import { Box, Button, Stack, Typography, useTheme } from "@mui/material";
+import { Box, Stack, Typography, useTheme } from "@mui/material";
 import ProjectCard, { ProjectCardProps } from "../../components/ProjectCard";
 import { mockProjects } from "../../mocks/dashboard/project.data";
 import { NoProjectBox, StyledStack, styles } from "./styles";
 import dashboardData from "../../mocks/dashboard/dashboard.data";
-import emptyState from "../../assets/imgs/empty-state.svg"
+import emptyState from "../../assets/imgs/empty-state.svg";
 import Popup from "../../components/Popup";
 import CreateProjectForm from "../../components/CreateProjectForm";
 import { useNavigate } from "react-router-dom";
@@ -25,9 +25,18 @@ const Home = ({ projects = mockProjects }: HomeProps) => {
   const navigate = useNavigate();
   const { complianceStatus, riskStatus } = dashboardData;
   const complianceMetrics = [
-    { title: "Completed requirements", value: `${complianceStatus.assessmentCompletionRate}%` },
-    { title: "Completed assessments", value: complianceStatus.completedAssessments },
-    { title: "Assessment completion rate", value: `${complianceStatus.completedRequirementsPercentage}%` },
+    {
+      title: "Completed requirements",
+      value: `${complianceStatus.assessmentCompletionRate}%`,
+    },
+    {
+      title: "Completed assessments",
+      value: complianceStatus.completedAssessments,
+    },
+    {
+      title: "Assessment completion rate",
+      value: `${complianceStatus.completedRequirementsPercentage}%`,
+    },
   ];
   const riskMetrics = [
     { title: "Acceptable risks", value: riskStatus.acceptableRisks },
@@ -37,7 +46,11 @@ const Home = ({ projects = mockProjects }: HomeProps) => {
 
   const MetricSection = ({ title, metrics }: MetricSectionProps) => (
     <>
-      <Typography variant="h2" component="div" sx={{pb: 8.5, mt: 17, ...styles.title}}>
+      <Typography
+        variant="h2"
+        component="div"
+        sx={{ pb: 8.5, mt: 17, ...styles.title }}
+      >
         {title}
       </Typography>
       <Stack direction="row" justifyContent="space-between" spacing={15}>
@@ -56,7 +69,13 @@ const Home = ({ projects = mockProjects }: HomeProps) => {
       <Box sx={{ display: "flex", justifyContent: "center" }}>
         <img src={emptyState} alt="Empty project state" />
       </Box>
-      <Typography sx={{ textAlign: "center", mt: 13.5, color: theme.palette.text.tertiary }}>
+      <Typography
+        sx={{
+          textAlign: "center",
+          mt: 13.5,
+          color: theme.palette.text.tertiary,
+        }}
+      >
         You have no projects, yet. Click on the "New Project" button to start
         one.
       </Typography>
@@ -69,9 +88,9 @@ const Home = ({ projects = mockProjects }: HomeProps) => {
         <Typography variant="h1" component="div" sx={styles.title}>
           Projects overview
         </Typography>
-        <Popup 
-          popupId="create-project-popup" 
-          popupContent={<CreateProjectForm/>} 
+        <Popup
+          popupId="create-project-popup"
+          popupContent={<CreateProjectForm />}
           openPopupButtonName="New project"
           actionButtonName="Create project"
           popupTitle="Create new project"
@@ -83,7 +102,7 @@ const Home = ({ projects = mockProjects }: HomeProps) => {
         <>
           <Stack direction="row" justifyContent="space-between" spacing={15}>
             {projects.map((item: ProjectCardProps) => (
-                <ProjectCard key={item.id} {...item} />
+              <ProjectCard key={item.id} {...item} />
             ))}
           </Stack>
           <MetricSection

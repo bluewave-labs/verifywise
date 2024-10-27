@@ -7,7 +7,7 @@ enum RiskLevel {
   Extreme = "Extreme"
 }
 
-enum RiskLikelihood {
+export enum RiskLikelihood {
   Rare = "Rare",
   Unlikely = "Unlikely",
   Possible = "Possible",
@@ -15,8 +15,8 @@ enum RiskLikelihood {
   AlmostCertain = "Almost Certain"
 }
 
-enum RiskSeverity {
-  Insignificant = "Insignificant",
+export enum RiskSeverity {
+  Negligible = "Negligible",
   Minor = "Minor",
   Moderate = "Moderate",
   Major = "Major",

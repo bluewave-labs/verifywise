@@ -5,21 +5,22 @@ import Field from "../../Inputs/Field";
 import DatePicker from "../../Inputs/Datepicker";
 import dayjs, { Dayjs } from "dayjs";
 import FileUpload from "../../Modals/FileUpload";
+import RiskLevel from "../../RiskLevel";
+import { Likelihood, Severity } from "../../RiskLevel/constants";
 
 const MitigationSection: FC = () => {
     const theme = useTheme();
     const [values, setValues] = useState({
-        mitigationStatus: "Select status",
+        mitigationStatus: "0",
         mitigationPlan: "",
-        currentRiskLevel: "Select risk Level",
+        currentRiskLevel: "0",
         implementationStrategy: "",
         deadline: "",
         doc: "",
-        likelihood: "Select risk severity",
-        riskSeverity: "Select risk severity",
-        riskLevel: "Select risk level",
-        approver: "Select approver",
-        approvalStatus: "Select status",
+        likelihood: 1 as Likelihood,
+        riskSeverity: 1 as Severity,
+        approver: "0",
+        approvalStatus: "0",
         dateOfAssessment: "",
         recommendations: ""
     });
@@ -101,47 +102,7 @@ const MitigationSection: FC = () => {
             <Divider />
             <Typography sx={{ fontSize: 16, fontWeight: 600, mt: 8, mb: 3 }}>Residual risk level</Typography>
             <Typography sx={{ fontSize: theme.typography.fontSize, mb: 4.5 }}>The Risk Level is calculated by multiplying the Likelihood and Severity scores. By assigning these scores, the risk level will be determined based on your inputs.</Typography>
-            <Stack sx={{ flexDirection: "row", justifyContent: "space-between", columnGap: 12.5, mb: 12.5 }}>
-                <Select
-                    id="likelihood-input"
-                    label="Likelihood"
-                    placeholder="Select likelihood of risk to happen"
-                    value={values.likelihood}
-                    onChange={(e) => handleOnChange("likelihood", e.target.value)}
-                    items={[
-                        { _id: 1, name: "Some value 1" },
-                        { _id: 2, name: "Some value 2" },
-                        { _id: 3, name: "Some value 3" },
-                    ]}
-                    sx={{ width: 324, backgroundColor: theme.palette.background.main }}
-                />
-                <Select
-                    id="risk-severity-input"
-                    label="Risk severity"
-                    placeholder="Select risk severity"
-                    value={values.riskSeverity}
-                    onChange={(e) => handleOnChange("riskSeverity", e.target.value)}
-                    items={[
-                        { _id: 1, name: "Some value 1" },
-                        { _id: 2, name: "Some value 2" },
-                        { _id: 3, name: "Some value 3" },
-                    ]}
-                    sx={{ width: 324, backgroundColor: theme.palette.background.main }}
-                />
-                <Select
-                    id="risk-level-input"
-                    label="Risk level"
-                    placeholder="Select risk level"
-                    value={values.riskLevel}
-                    onChange={(e) => handleOnChange("riskLevel", e.target.value)}
-                    items={[
-                        { _id: 1, name: "Some value 1" },
-                        { _id: 2, name: "Some value 2" },
-                        { _id: 3, name: "Some value 3" },
-                    ]}
-                    sx={{ width: 324, backgroundColor: theme.palette.background.main }}
-                />
-            </Stack>
+            <RiskLevel likelihood={values.likelihood} riskSeverity={values.riskSeverity} handleOnChange={handleOnChange} />
             <Divider />
             <Typography sx={{ fontSize: 16, fontWeight: 600, mt: 8, mb: 4.5 }}>Risk approval</Typography>
             <Stack sx={{ flexDirection: "row", columnGap: 12.5, mb: 9.5 }}>

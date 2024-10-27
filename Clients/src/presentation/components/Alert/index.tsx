@@ -127,6 +127,10 @@ const Alert: React.FC<AlertProps> = ({
       alignItems={"center"}
       gap={theme.spacing(8)}
       sx={{
+        position: "fixed",
+        top: theme.spacing(5),
+        right: theme.spacing(5),
+        zIndex: 9999,
         padding: hasIcon
           ? theme.spacing(8)
           : `${theme.spacing(4)} ${theme.spacing(8)}`,

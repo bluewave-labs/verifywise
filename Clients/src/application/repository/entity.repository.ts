@@ -18,17 +18,12 @@ export async function createNewUser({
   routeUrl?: string;
   body: any;
 }): Promise<any> {
-  try {
-    console.log("routeAddress => ", routeAddress);
-    const response = await apiServices.post(routeAddress + routeUrl, body);
-    console.log(
-      `The entity with the following details is created: ${response.data}`
-    );
-    return response.data;
-  } catch (error) {
-    console.error("Error creating new user:", error);
-    throw error;
-  }
+  console.log("routeAddress => ", routeAddress);
+  const response = await apiServices.post(routeAddress + routeUrl, body);
+  console.log(
+    `The entity with the following details is created: ${response.data}`
+  );
+  return response;
 }
 
 /**

@@ -21,6 +21,11 @@ import questionEvidenceRoutes from "./routes/questionEvidence.route";
 import subrequirementEvidence from "./routes/subrequirementEvidence.route";
 import autoDriverRoutes from "./routes/autoDriver.route";
 
+import swaggerUi from "swagger-ui-express";
+import YAML from "yamljs";
+
+const swaggerDoc = YAML.load("./swagger.yaml")
+
 const app = express();
 
 const port = process.env.PORT || 3000;
@@ -47,6 +52,8 @@ app.use("/questions", questionRoutes);
 app.use("/questionEvidence", questionEvidenceRoutes);
 app.use("/subrequirementEvidence", subrequirementEvidence);
 app.use("/autoDrivers", autoDriverRoutes);
+
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 
 app.use("/", (req, res) => {
   res.json("Hello buddy!");

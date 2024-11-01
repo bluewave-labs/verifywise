@@ -122,8 +122,8 @@ const TableWithPlaceholder = ({ data = vendorList }) => {
             <TableCell sx={cellStyle}>{row.type}</TableCell>
             <TableCell sx={cellStyle}>{row.assignee}</TableCell>
             <TableCell sx={cellStyle}>{row.status}</TableCell>
-            <TableCell sx={cellStyle}>{row.risk}</TableCell>
-            <TableCell sx={cellStyle}>{row.reviewDate}</TableCell>
+            <TableCell sx={cellStyle}>{row.risk_status}</TableCell>
+            <TableCell sx={cellStyle}>{row.review_date}</TableCell>
             <TableCell sx={cellStyle}>
               <IconButton />
             </TableCell>

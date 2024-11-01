@@ -69,18 +69,18 @@ export async function getComplianceTrackerById(req: Request, res: Response): Pro
 
 export async function createComplianceTracker(req: Request, res: Response): Promise<any> {
   try {
-    const { name, description } = req.body;
+    const { project_id, compliance_status, pending_audits, completed_assessments, implemented_controls } = req.body;
 
-    if (!name || !description) {
+    if (!project_id || !compliance_status || !pending_audits || !completed_assessments || !implemented_controls) {
       return res
         .status(400)
         .json(
-          STATUS_CODE[400]({ message: "name and description are required" })
+          STATUS_CODE[400]({ message: "project_id, compliance_status, pending_audits, completed_assessments and implemented_controls are required" })
         );
     }
 
     if (MOCK_DATA_ON === "true") {
-      const newComplianceTracker = createMockComplianceTracker({ name, description });
+      const newComplianceTracker = createMockComplianceTracker({ project_id, compliance_status, pending_audits, completed_assessments, implemented_controls });
 
       if (newComplianceTracker) {
         return res.status(201).json(STATUS_CODE[201](newComplianceTracker));
@@ -88,7 +88,7 @@ export async function createComplianceTracker(req: Request, res: Response): Prom
 
       return res.status(503).json(STATUS_CODE[503]({}));
     } else {
-      const newComplianceTracker = await createNewComplianceTrackerQuery({ name, description });
+      const newComplianceTracker = await createNewComplianceTrackerQuery({ project_id, compliance_status, pending_audits, completed_assessments, implemented_controls });
 
       if (newComplianceTracker) {
         return res.status(201).json(STATUS_CODE[201](newComplianceTracker));
@@ -108,18 +108,18 @@ export async function updateComplianceTrackerById(
   console.log("updateComplianceTrackerById");
   try {
     const complianceTrackerId = parseInt(req.params.id);
-    const { name, description } = req.body;
+    const { project_id, compliance_status, pending_audits, completed_assessments, implemented_controls } = req.body;
 
-    if (!name || !description) {
+    if (!project_id || !compliance_status || !pending_audits || !completed_assessments || !implemented_controls) {
       return res
         .status(400)
         .json(
-          STATUS_CODE[400]({ message: "name and description are required" })
+          STATUS_CODE[400]({ message: "project_id, compliance_status, pending_audits, completed_assessments and implemented_controls are required" })
         );
     }
 
     if (MOCK_DATA_ON === "true") {
-      const updatedComplianceTracker = updateMockComplianceTrackerById(complianceTrackerId, { name, description });
+      const updatedComplianceTracker = updateMockComplianceTrackerById(complianceTrackerId, { project_id, compliance_status, pending_audits, completed_assessments, implemented_controls });
 
       if (updatedComplianceTracker) {
         return res.status(202).json(STATUS_CODE[202](updatedComplianceTracker));
@@ -128,8 +128,7 @@ export async function updateComplianceTrackerById(
       return res.status(404).json(STATUS_CODE[404]({}));
     } else {
       const updatedComplianceTracker = await updateComplianceTrackerByIdQuery(complianceTrackerId, {
-        name,
-        description,
+        project_id, compliance_status, pending_audits, completed_assessments, implemented_controls
       });
 
       if (updatedComplianceTracker) {

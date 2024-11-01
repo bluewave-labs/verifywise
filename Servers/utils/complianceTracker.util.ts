@@ -14,40 +14,61 @@ export const getComplianceTrackerByIdQuery = async (id: number): Promise<Complia
 };
 
 export const createNewComplianceTrackerQuery = async (complianceTracker: {
-  name: string;
-  description: string;
+  project_id: number
+  compliance_status: number
+  pending_audits: number
+  completed_assessments: number
+  implemented_controls: number
 }): Promise<ComplianceTracker> => {
   console.log("createNewComplianceTracker", complianceTracker);
   const result = await pool.query(
-    "INSERT INTO complianceTrackers (name, description) VALUES ($1, $2) RETURNING *",
-    [complianceTracker.name, complianceTracker.description]
+    "INSERT INTO complianceTrackers (project_id, compliance_status, pending_audits, completed_assessments, implemented_controls) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+    [complianceTracker.project_id, complianceTracker.compliance_status, complianceTracker.pending_audits, complianceTracker.completed_assessments, complianceTracker.implemented_controls]
   );
   return result.rows[0];
 };
 
 export const updateComplianceTrackerByIdQuery = async (
   id: number,
-  complianceTracker: { name?: string; description?: string }
+  complianceTracker: {
+    project_id?: number
+    compliance_status?: number
+    pending_audits?: number
+    completed_assessments?: number
+    implemented_controls?: number  
+  }
 ): Promise<ComplianceTracker | null> => {
   console.log("updateComplianceTrackerById", id, complianceTracker);
   const fields = [];
   const values = [];
   let query = "UPDATE complianceTrackers SET ";
 
-  if (complianceTracker.name) {
-    fields.push("name = $1");
-    values.push(complianceTracker.name);
+  if(complianceTracker.project_id) {
+    fields.push("project_id = $1");
+    values.push(complianceTracker.project_id)
   }
-  if (complianceTracker.description) {
-    fields.push("description = $2");
-    values.push(complianceTracker.description);
+  if(complianceTracker.compliance_status) {
+    fields.push("compliance_status = $2");
+    values.push(complianceTracker.compliance_status)
+  }
+  if(complianceTracker.pending_audits) {
+    fields.push("pending_audits = $3");
+    values.push(complianceTracker.pending_audits)
+  }
+  if(complianceTracker.completed_assessments) {
+    fields.push("completed_assessments = $4");
+    values.push(complianceTracker.completed_assessments)
+  }
+  if(complianceTracker.implemented_controls) {
+    fields.push("implemented_controls = $5");
+    values.push(complianceTracker.implemented_controls)
   }
 
   if (fields.length === 0) {
     throw new Error("No fields to update");
   }
 
-  query += fields.join(", ") + " WHERE id = $3 RETURNING *";
+  query += fields.join(", ") + " WHERE id = $6 RETURNING *";
   values.push(id);
 
   const result = await pool.query(query, values);

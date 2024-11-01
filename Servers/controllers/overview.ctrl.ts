@@ -69,18 +69,51 @@ export async function getOverviewById(req: Request, res: Response): Promise<any>
 
 export async function createOverview(req: Request, res: Response): Promise<any> {
   try {
-    const { name, description } = req.body;
+    const {
+      subrequirement_id,
+      control_name,
+      control_description,
+      control_owner,
+      control_status,
+      implementation_description,
+      implementation_evidence,
+      effective_date,
+      review_date,
+      comments
+    } = req.body;
 
-    if (!name || !description) {
+    if (
+      !subrequirement_id ||
+      !control_name ||
+      !control_description ||
+      !control_owner ||
+      !control_status ||
+      !implementation_description ||
+      !implementation_evidence ||
+      !effective_date ||
+      !review_date ||
+      !comments
+    ) {
       return res
         .status(400)
         .json(
-          STATUS_CODE[400]({ message: "name and description are required" })
+          STATUS_CODE[400]({ message: "subrequirement_id, control_name, control_description, control_owner, control_status, implementation_description, implementation_evidence, effective_date, review_date and comments are required" })
         );
     }
 
     if (MOCK_DATA_ON === "true") {
-      const newOverview = createMockOverview({ name, description });
+      const newOverview = createMockOverview({
+        subrequirement_id,
+        control_name,
+        control_description,
+        control_owner,
+        control_status,
+        implementation_description,
+        implementation_evidence,
+        effective_date,
+        review_date,
+        comments
+      });
 
       if (newOverview) {
         return res.status(201).json(STATUS_CODE[201](newOverview));
@@ -88,7 +121,18 @@ export async function createOverview(req: Request, res: Response): Promise<any> 
 
       return res.status(503).json(STATUS_CODE[503]({}));
     } else {
-      const newOverview = await createNewOverviewQuery({ name, description });
+      const newOverview = await createNewOverviewQuery({
+        subrequirement_id,
+        control_name,
+        control_description,
+        control_owner,
+        control_status,
+        implementation_description,
+        implementation_evidence,
+        effective_date,
+        review_date,
+        comments
+      });
 
       if (newOverview) {
         return res.status(201).json(STATUS_CODE[201](newOverview));
@@ -108,18 +152,51 @@ export async function updateOverviewById(
   console.log("updateOverviewById");
   try {
     const overviewId = parseInt(req.params.id);
-    const { name, description } = req.body;
+    const {
+      subrequirement_id,
+      control_name,
+      control_description,
+      control_owner,
+      control_status,
+      implementation_description,
+      implementation_evidence,
+      effective_date,
+      review_date,
+      comments
+    } = req.body;
 
-    if (!name || !description) {
+    if (
+      !subrequirement_id ||
+      !control_name ||
+      !control_description ||
+      !control_owner ||
+      !control_status ||
+      !implementation_description ||
+      !implementation_evidence ||
+      !effective_date ||
+      !review_date ||
+      !comments
+    ) {
       return res
         .status(400)
         .json(
-          STATUS_CODE[400]({ message: "name and description are required" })
+          STATUS_CODE[400]({ message: "subrequirement_id, control_name, control_description, control_owner, control_status, implementation_description, implementation_evidence, effective_date, review_date and comments are required" })
         );
     }
 
     if (MOCK_DATA_ON === "true") {
-      const updatedOverview = updateMockOverviewById(overviewId, { name, description });
+      const updatedOverview = updateMockOverviewById(overviewId, {
+        subrequirement_id,
+        control_name,
+        control_description,
+        control_owner,
+        control_status,
+        implementation_description,
+        implementation_evidence,
+        effective_date,
+        review_date,
+        comments
+      });
 
       if (updatedOverview) {
         return res.status(202).json(STATUS_CODE[202](updatedOverview));
@@ -128,8 +205,16 @@ export async function updateOverviewById(
       return res.status(404).json(STATUS_CODE[404]({}));
     } else {
       const updatedOverview = await updateOverviewByIdQuery(overviewId, {
-        name,
-        description,
+        subrequirement_id,
+        control_name,
+        control_description,
+        control_owner,
+        control_status,
+        implementation_description,
+        implementation_evidence,
+        effective_date,
+        review_date,
+        comments
       });
 
       if (updatedOverview) {

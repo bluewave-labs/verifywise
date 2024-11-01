@@ -1107,6 +1107,308 @@ paths:
                 error:
                   type: object
 
+  /overviews:
+    get:
+      tags: [overviews]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all overviews
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/Overview"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [overviews]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new overview
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subrequirement_id:
+                  type: integer
+                  example: 1
+                control_name:
+                  type: string
+                  example: "Privacy Policy Review"
+                control_description:
+                  type: string
+                  example: "Review and update the privacy policy to align with current consent requirements."
+                control_owner:
+                  type: string
+                  example: "John Doe"
+                control_status:
+                  type: string
+                  example: "Completed"
+                implementation_description:
+                  type: string
+                  example: "Updated the privacy policy to reflect changes in user consent collection."
+                implementation_evidence:
+                  type: string
+                  example: "Privacy Policy Document (v2.1)"
+                effective_date:
+                  type: string
+                  format: date-time
+                  example: "2024-06-01T00:00:00.000Z"
+                review_date:
+                  type: string
+                  format: date-time
+                  example: "2024-12-01T00:00:00.000Z"
+                comments:
+                  type: string
+                  example: "No issues encountered during implementation."
+        required: true
+      responses:
+        "201":
+          description: created overview
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/Overview"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /overviews/{id}:
+    get:
+      tags: [overviews]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the overview
+      responses:
+        "200":
+          description: overview
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/Overview"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [overviews]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the overview
+      requestBody:
+        description: body of the new overview
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subrequirement_id:
+                  type: integer
+                  example: 1
+                control_name:
+                  type: string
+                  example: "Privacy Policy Review"
+                control_description:
+                  type: string
+                  example: "Review and update the privacy policy to align with current consent requirements."
+                control_owner:
+                  type: string
+                  example: "John Doe"
+                control_status:
+                  type: string
+                  example: "Completed"
+                implementation_description:
+                  type: string
+                  example: "Updated the privacy policy to reflect changes in user consent collection."
+                implementation_evidence:
+                  type: string
+                  example: "Privacy Policy Document (v2.1)"
+                effective_date:
+                  type: string
+                  format: date-time
+                  example: "2024-06-01T00:00:00.000Z"
+                review_date:
+                  type: string
+                  format: date-time
+                  example: "2024-12-01T00:00:00.000Z"
+                comments:
+                  type: string
+                  example: "No issues encountered during implementation."
+        required: true
+      responses:
+        "202":
+          description: overview
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/Overview"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [overviews]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the overview to delete
+      responses:
+        "202":
+          description: overview
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
 components:
   securitySchemes:
     JWTAuth:
@@ -1215,3 +1517,41 @@ components:
         implemented_controls:
           type: integer
           example: 15
+    Overview:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        subrequirement_id:
+          type: integer
+          example: 1
+        control_name:
+          type: string
+          example: "Privacy Policy Review"
+        control_description:
+          type: string
+          example: "Review and update the privacy policy to align with current consent requirements."
+        control_owner:
+          type: string
+          example: "John Doe"
+        control_status:
+          type: string
+          example: "Completed"
+        implementation_description:
+          type: string
+          example: "Updated the privacy policy to reflect changes in user consent collection."
+        implementation_evidence:
+          type: string
+          example: "Privacy Policy Document (v2.1)"
+        effective_date:
+          type: string
+          format: date-time
+          example: "2024-06-01T00:00:00.000Z"
+        review_date:
+          type: string
+          format: date-time
+          example: "2024-12-01T00:00:00.000Z"
+        comments:
+          type: string
+          example: "No issues encountered during implementation."

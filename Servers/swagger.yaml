@@ -583,6 +583,261 @@ paths:
                 error:
                   type: object
 
+  /complianceLists:
+    get:
+      tags: [complianceLists]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all compliance lists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/ComplianceList"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [complianceLists]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new assessment tracker
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                compliance_tracker_id:
+                  type: string
+                  example: 1
+                name:
+                  type: string
+                  example: "GDPR Compliance"
+                description:
+                  type: string
+                  example: "Ensure all user data handling is in compliance with GDPR regulations."
+        required: true
+      responses:
+        "201":
+          description: created compliance list
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/ComplianceList"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /complianceLists/{id}:
+    get:
+      tags: [complianceLists]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the compliance list
+      responses:
+        "200":
+          description: compliance list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/ComplianceList"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [complianceLists]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the assessment tracker
+      requestBody:
+        description: body of the new assessment tracker
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                compliance_tracker_id:
+                  type: string
+                  example: 1
+                name:
+                  type: string
+                  example: "GDPR Compliance"
+                description:
+                  type: string
+                  example: "Ensure all user data handling is in compliance with GDPR regulations."
+        required: true
+      responses:
+        "202":
+          description: compliance list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/ComplianceList"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [complianceLists]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the compliance list to delete
+      responses:
+        "202":
+          description: compliance list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
 
 components:
   securitySchemes:
@@ -656,3 +911,18 @@ components:
           type: string
           format: date-time
           example: "2024-10-23T12:30:00Z"
+    ComplianceList:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        compliance_tracker_id:
+          type: integer
+          example: 101
+        name:
+          type: string
+          example: "GDPR Compliance Checklist"
+        description:
+          type: string
+          example: "Checklist for GDPR compliance requirements"

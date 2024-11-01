@@ -58,7 +58,7 @@ const riskList: Risk[] = [
   },
   {
     id: 4,
-    vendor_id: 2,
+    vendor_id: 3,
     description:
       "Server downtime causing interruptions in AI compliance checks",
     impact_description: "Delays in regulatory compliance reports",

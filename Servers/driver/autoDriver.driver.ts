@@ -157,13 +157,7 @@ const insertQuery: TableList = [
     insertString:
       "INSERT INTO vendors(id, name, project_id, description, website, contact_person, review_result, review_status, reviewer_id, review_date, risk_status) VALUES ",
     generateValuesString: function (vendor: Vendor) {
-      return `(${vendor.id}, '${vendor.name}', ${vendor.project_id}, '${
-        vendor.description
-      }', '${vendor.website}', '${vendor.contact_person}', '${
-        vendor.review_result
-      }', '${vendor.review_status}', ${
-        vendor.reviewer_id
-      }, '${vendor.review_date.toISOString()}', '${vendor.risk_status}')`;
+      return `(${vendor.id}, '${vendor.name}', '${vendor.type}', '${vendor.description}', '${vendor.website}', '${vendor.contact_person}', '${vendor.assignee}', '${vendor.status}', '${vendor.review_result}', '${vendor.reviewer}', '${vendor.review_date}', '${vendor.review_status}', '${vendor.risk_status}')`;
     },
   },
   {

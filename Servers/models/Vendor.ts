@@ -1,13 +1,15 @@
 export interface Vendor {
-  id: number,
-  name: string,
-  project_id: number
-  description: string,
-  website: string,
-  contact_person: string,
-  review_result: string,
-  review_status: string,
-  reviewer_id: number,
-  review_date: Date,
-  risk_status: string,
+  id: number;
+  name: string;
+  type: string;
+  description: string;
+  website: string;
+  contact_person: string;
+  assignee: string;
+  status: string;
+  review_result: string;
+  reviewer: string;
+  review_date: string;
+  review_status: string;
+  risk_status: string;
 }

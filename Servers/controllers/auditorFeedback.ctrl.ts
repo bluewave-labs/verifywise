@@ -69,18 +69,58 @@ export async function getAuditorFeedbackById(req: Request, res: Response): Promi
 
 export async function createAuditorFeedback(req: Request, res: Response): Promise<any> {
   try {
-    const { name, description } = req.body;
+    const {
+      subrequirement_id,
+      assessment_type,
+      assessment_date,
+      auditor_id,
+      compliance_status,
+      findings,
+      recommendations,
+      corrective_actions,
+      follow_up_date,
+      follow_up_notes,
+      attachments,
+    } = req.body;
 
-    if (!name || !description) {
+    if (
+      !subrequirement_id ||
+      !assessment_type ||
+      !assessment_date ||
+      !auditor_id ||
+      !compliance_status ||
+      !findings ||
+      !recommendations ||
+      !corrective_actions ||
+      !follow_up_date ||
+      !follow_up_notes ||
+      !attachments) {
       return res
         .status(400)
         .json(
-          STATUS_CODE[400]({ message: "name and description are required" })
+          STATUS_CODE[400]({ message: "subrequirement_id, assessment_type, assessment_date, auditor_id, compliance_status, findings, recommendations, corrective_actions, follow_up_date, follow_up_notes and attachments are required" })
         );
     }
 
+    var created_at, updated_at;
+    created_at = updated_at = new Date().toISOString()
+
     if (MOCK_DATA_ON === "true") {
-      const newAuditorFeedback = createMockAuditorFeedback({ name, description });
+      const newAuditorFeedback = createMockAuditorFeedback({
+        subrequirement_id,
+        assessment_type,
+        assessment_date,
+        auditor_id,
+        compliance_status,
+        findings,
+        recommendations,
+        corrective_actions,
+        follow_up_date,
+        follow_up_notes,
+        attachments,
+        created_at,
+        updated_at
+      });
 
       if (newAuditorFeedback) {
         return res.status(201).json(STATUS_CODE[201](newAuditorFeedback));
@@ -88,7 +128,21 @@ export async function createAuditorFeedback(req: Request, res: Response): Promis
 
       return res.status(503).json(STATUS_CODE[503]({}));
     } else {
-      const newAuditorFeedback = await createNewAuditorFeedbackQuery({ name, description });
+      const newAuditorFeedback = await createNewAuditorFeedbackQuery({
+        subrequirement_id,
+        assessment_type,
+        assessment_date,
+        auditor_id,
+        compliance_status,
+        findings,
+        recommendations,
+        corrective_actions,
+        follow_up_date,
+        follow_up_notes,
+        attachments,
+        created_at,
+        updated_at
+      });
 
       if (newAuditorFeedback) {
         return res.status(201).json(STATUS_CODE[201](newAuditorFeedback));
@@ -108,18 +162,60 @@ export async function updateAuditorFeedbackById(
   console.log("updateAuditorFeedbackById");
   try {
     const auditorFeedbackId = parseInt(req.params.id);
-    const { name, description } = req.body;
+    const {
+      subrequirement_id,
+      assessment_type,
+      assessment_date,
+      auditor_id,
+      compliance_status,
+      findings,
+      recommendations,
+      corrective_actions,
+      follow_up_date,
+      follow_up_notes,
+      attachments,
+      created_at,
+      updated_at
+    } = req.body;
 
-    if (!name || !description) {
+    if (
+      !subrequirement_id ||
+      !assessment_type ||
+      !assessment_date ||
+      !auditor_id ||
+      !compliance_status ||
+      !findings ||
+      !recommendations ||
+      !corrective_actions ||
+      !follow_up_date ||
+      !follow_up_notes ||
+      !attachments ||
+      !created_at ||
+      !updated_at
+    ) {
       return res
         .status(400)
         .json(
-          STATUS_CODE[400]({ message: "name and description are required" })
+          STATUS_CODE[400]({ message: "subrequirement_id, assessment_type, assessment_date, auditor_id, compliance_status, findings, recommendations, corrective_actions, follow_up_date, follow_up_notes, attachments, created_at and updated_at are required" })
         );
     }
 
     if (MOCK_DATA_ON === "true") {
-      const updatedAuditorFeedback = updateMockAuditorFeedbackById(auditorFeedbackId, { name, description });
+      const updatedAuditorFeedback = updateMockAuditorFeedbackById(auditorFeedbackId, {
+        subrequirement_id,
+        assessment_type,
+        assessment_date,
+        auditor_id,
+        compliance_status,
+        findings,
+        recommendations,
+        corrective_actions,
+        follow_up_date,
+        follow_up_notes,
+        attachments,
+        created_at,
+        updated_at
+      });
 
       if (updatedAuditorFeedback) {
         return res.status(202).json(STATUS_CODE[202](updatedAuditorFeedback));
@@ -128,8 +224,19 @@ export async function updateAuditorFeedbackById(
       return res.status(404).json(STATUS_CODE[404]({}));
     } else {
       const updatedAuditorFeedback = await updateAuditorFeedbackByIdQuery(auditorFeedbackId, {
-        name,
-        description,
+        subrequirement_id,
+        assessment_type,
+        assessment_date,
+        auditor_id,
+        compliance_status,
+        findings,
+        recommendations,
+        corrective_actions,
+        follow_up_date,
+        follow_up_notes,
+        attachments,
+        created_at,
+        updated_at
       });
 
       if (updatedAuditorFeedback) {

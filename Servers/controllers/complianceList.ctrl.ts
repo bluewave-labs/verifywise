@@ -69,18 +69,24 @@ export async function getComplianceListById(req: Request, res: Response): Promis
 
 export async function createComplianceList(req: Request, res: Response): Promise<any> {
   try {
-    const { name, description } = req.body;
+    const {
+      compliance_tracker_id,
+      name,
+      description
+    } = req.body;
 
-    if (!name || !description) {
+    if ( !compliance_tracker_id || !name || !description ) {
       return res
         .status(400)
         .json(
-          STATUS_CODE[400]({ message: "name and description are required" })
+          STATUS_CODE[400]({ message: "compliance_tracker_id, name and description are required" })
         );
     }
 
     if (MOCK_DATA_ON === "true") {
-      const newComplianceList = createMockComplianceList({ name, description });
+      const newComplianceList = createMockComplianceList({ compliance_tracker_id,
+        name,
+        description });
 
       if (newComplianceList) {
         return res.status(201).json(STATUS_CODE[201](newComplianceList));
@@ -88,7 +94,9 @@ export async function createComplianceList(req: Request, res: Response): Promise
 
       return res.status(503).json(STATUS_CODE[503]({}));
     } else {
-      const newComplianceList = await createNewComplianceListQuery({ name, description });
+      const newComplianceList = await createNewComplianceListQuery({ compliance_tracker_id,
+        name,
+        description });
 
       if (newComplianceList) {
         return res.status(201).json(STATUS_CODE[201](newComplianceList));
@@ -108,18 +116,26 @@ export async function updateComplianceListById(
   console.log("updateComplianceListById");
   try {
     const complianceListId = parseInt(req.params.id);
-    const { name, description } = req.body;
+    const {
+      compliance_tracker_id,
+      name,
+      description
+    } = req.body;
 
-    if (!name || !description) {
+    if (!compliance_tracker_id || !name || !description) {
       return res
         .status(400)
         .json(
-          STATUS_CODE[400]({ message: "name and description are required" })
+          STATUS_CODE[400]({ message: "compliance_tracker_id, name and description are required" })
         );
     }
 
     if (MOCK_DATA_ON === "true") {
-      const updatedComplianceList = updateMockComplianceListById(complianceListId, { name, description });
+      const updatedComplianceList = updateMockComplianceListById(complianceListId, {
+      compliance_tracker_id,
+      name,
+      description
+    });
 
       if (updatedComplianceList) {
         return res.status(202).json(STATUS_CODE[202](updatedComplianceList));
@@ -128,6 +144,7 @@ export async function updateComplianceListById(
       return res.status(404).json(STATUS_CODE[404]({}));
     } else {
       const updatedComplianceList = await updateComplianceListByIdQuery(complianceListId, {
+        compliance_tracker_id,
         name,
         description,
       });

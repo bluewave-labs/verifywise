@@ -14,20 +14,21 @@ export const getComplianceListByIdQuery = async (id: number): Promise<Compliance
 };
 
 export const createNewComplianceListQuery = async (complianceList: {
-  name: string;
-  description: string;
+  compliance_tracker_id: number
+  name: string
+  description: string
 }): Promise<ComplianceList> => {
   console.log("createNewComplianceList", complianceList);
   const result = await pool.query(
-    "INSERT INTO complianceLists (name, description) VALUES ($1, $2) RETURNING *",
-    [complianceList.name, complianceList.description]
+    "INSERT INTO complianceLists (compliance_tracker_id, name, description) VALUES ($1, $2, $3) RETURNING *",
+    [complianceList.compliance_tracker_id, complianceList.name, complianceList.description]
   );
   return result.rows[0];
 };
 
 export const updateComplianceListByIdQuery = async (
   id: number,
-  complianceList: { name?: string; description?: string }
+  complianceList: { compliance_tracker_id?: number; name?: string; description?: string }
 ): Promise<ComplianceList | null> => {
   console.log("updateComplianceListById", id, complianceList);
   const fields = [];
@@ -42,12 +43,16 @@ export const updateComplianceListByIdQuery = async (
     fields.push("description = $2");
     values.push(complianceList.description);
   }
+  if (complianceList.compliance_tracker_id) {
+    fields.push("compliance_tracker_id = $3");
+    values.push(complianceList.compliance_tracker_id);
+  }
 
   if (fields.length === 0) {
     throw new Error("No fields to update");
   }
 
-  query += fields.join(", ") + " WHERE id = $3 RETURNING *";
+  query += fields.join(", ") + " WHERE id = $4 RETURNING *";
   values.push(id);
 
   const result = await pool.query(query, values);

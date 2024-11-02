@@ -278,7 +278,7 @@ export default function index() {
                         aria-label="delete"
                         onClick={() => handleDeleteMember(member.id)}
                         sx={{
-                          paddingLeft: '16px'}}
+                          marginLeft: '16px'}}
                       >
                         <img
                           src={Trashbin}

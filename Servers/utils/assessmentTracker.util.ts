@@ -15,19 +15,20 @@ export const getAssessmentTrackerByIdQuery = async (id: number): Promise<Assessm
 
 export const createNewAssessmentTrackerQuery = async (assessmentTracker: {
   name: string;
-  description: string;
+  project_id: number,
+  status: string
 }): Promise<AssessmentTracker> => {
   console.log("createNewAssessmentTracker", assessmentTracker);
   const result = await pool.query(
-    "INSERT INTO assessmentTrackers (name, description) VALUES ($1, $2) RETURNING *",
-    [assessmentTracker.name, assessmentTracker.description]
+    "INSERT INTO assessmentTrackers (name, project_id, status) VALUES ($1, $2, $3) RETURNING *",
+    [assessmentTracker.name, assessmentTracker.project_id, assessmentTracker.status]
   );
   return result.rows[0];
 };
 
 export const updateAssessmentTrackerByIdQuery = async (
   id: number,
-  assessmentTracker: { name?: string; description?: string }
+  assessmentTracker: { name?: string; project_id?: number; status?: string }
 ): Promise<AssessmentTracker | null> => {
   console.log("updateAssessmentTrackerById", id, assessmentTracker);
   const fields = [];
@@ -38,16 +39,20 @@ export const updateAssessmentTrackerByIdQuery = async (
     fields.push("name = $1");
     values.push(assessmentTracker.name);
   }
-  if (assessmentTracker.description) {
-    fields.push("description = $2");
-    values.push(assessmentTracker.description);
+  if (assessmentTracker.project_id) {
+    fields.push("project_id = $2");
+    values.push(assessmentTracker.project_id);
+  }
+  if (assessmentTracker.status) {
+    fields.push("status = $3");
+    values.push(assessmentTracker.status);
   }
 
   if (fields.length === 0) {
     throw new Error("No fields to update");
   }
 
-  query += fields.join(", ") + " WHERE id = $3 RETURNING *";
+  query += fields.join(", ") + " WHERE id = $4 RETURNING *";
   values.push(id);
 
   const result = await pool.query(query, values);

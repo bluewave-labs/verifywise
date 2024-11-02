@@ -13,18 +13,28 @@ import {
   useTheme,
 } from "@mui/material";
 import { ReactComponent as Setting } from "../../assets/icons/setting.svg";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import BasicModal from "../Modals/Basic";
 import AddNewVendor from "../Modals/NewVendor";
 import singleTheme from "../../themes/v1SingleTheme";
+import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import { deleteUserById } from "../../../application/repository/entity.repository";
+import { logEngine } from "../../../application/tools/log.engine";
+import Alert from "../Alert";
 
-const IconButton = () => {
+const IconButton = ({ vendorId }: { vendorId: number }) => {
   const theme = useTheme();
+  const { setDashboardValues } = useContext(VerifyWiseContext);
   const [anchorEl, setAnchorEl] = useState(null);
   const [actions, setActions] = useState({});
   const [isOpenRemoveVendorModal, setIsOpenRemoveVendorModal] = useState(false);
   const [isOpenAddNewVendorModal, setIsOpenAddNewVendorModal] = useState(false);
   const [value, setValue] = useState("1");
+  const [alert, setAlert] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    title?: string;
+    body: string;
+  } | null>(null);
 
   const dropDownStyle = singleTheme.dropDownStyles.primary;
 
@@ -82,6 +92,73 @@ const IconButton = () => {
     e.stopPropagation();
     setAnchorEl(null);
   }
+
+  const handleDeleteVendor = async () => {
+    const user = {
+      id: "At delete vendor level", // Replace with actual user ID
+      email: "N/A", // Replace with actual user email
+      firstname: "N/A", // Replace with actual user first name
+      lastname: "N/A", // Replace with actual user last name
+    };
+
+    try {
+      const response = await deleteUserById({
+        routeUrl: `/vendors/${vendorId}`,
+      });
+
+      if (response.status === 202) {
+        setDashboardValues((prevValues: any) => ({
+          ...prevValues,
+          vendors: prevValues.vendors.filter(
+            (vendor: any) => vendor.id !== vendorId
+          ),
+        }));
+        setAlert({
+          variant: "success",
+          body: "Vendor deleted successfully.",
+        });
+        logEngine({
+          type: "info",
+          message: "Vendor deleted successfully.",
+          user,
+        });
+        setIsOpenRemoveVendorModal(false);
+      } else if (response.status === 404) {
+        setAlert({
+          variant: "error",
+          body: "Vendor not found.",
+        });
+        logEngine({
+          type: "error",
+          message: "Vendor not found.",
+          user,
+        });
+      } else {
+        setAlert({
+          variant: "error",
+          body: "Unexpected response. Please try again.",
+        });
+        logEngine({
+          type: "error",
+          message: "Unexpected response. Please try again.",
+          user,
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting vendor:", error);
+      setAlert({
+        variant: "error",
+        body: "An error occurred. Please try again.",
+      });
+      logEngine({
+        type: "error",
+        message: `An error occurred: ${error}`,
+        user,
+      });
+    } finally {
+      setTimeout(() => setAlert(null), 3000);
+    }
+  };
 
   /**
    * A dropdown list of options rendered as a Material-UI Menu component.
@@ -153,7 +230,7 @@ const IconButton = () => {
       sx={singleTheme.iconButtons}
       onClick={(event) => {
         event.stopPropagation();
-        openMenu(event, "someId", "someUrl");
+        openMenu(event, vendorId, "someUrl");
       }}
     >
       <Setting />
@@ -167,13 +244,23 @@ const IconButton = () => {
       <BasicModal
         isOpen={isOpenRemoveVendorModal}
         setIsOpen={() => setIsOpenRemoveVendorModal(false)}
+        onDelete={handleDeleteVendor}
       />
-      <AddNewVendor
+      <AddNewVendor // the usage here is as the edit window
         isOpen={isOpenAddNewVendorModal}
         handleChange={handleChange}
         setIsOpen={() => setIsOpenAddNewVendorModal(false)}
         value={value}
       />
+      {alert && (
+        <Alert
+          variant={alert.variant}
+          title={alert.title}
+          body={alert.body}
+          isToast={true}
+          onClick={() => setAlert(null)}
+        />
+      )}
     </>
   );
 };

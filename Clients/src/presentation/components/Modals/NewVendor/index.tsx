@@ -144,17 +144,23 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             handleOnChange("vendorDetails", "vendorName", e.target.value)
           }
         />
-        <Field
-          label="Project the vendor is connected to"
-          width={350}
-          value={values.vendorDetails.projectVendorIsConnectedTo}
+        <Select
+          items={[
+            { _id: 1, name: "Chatbot AI" },
+            { _id: 2, name: "Marketing AI" },
+            { _id: 3, name: "Compliance AI" },
+          ]}
+          label="Project name"
+          placeholder="Select project"
+          isHidden={false}
+          id=""
+          value={values.risks.projectName}
           onChange={(e) =>
-            handleOnChange(
-              "vendorDetails",
-              "projectVendorIsConnectedTo",
-              e.target.value
-            )
+            handleOnChange("risks", "projectName", e.target.value)
           }
+          sx={{
+            width: 350,
+          }}
         />
       </Stack>
       <Stack marginBottom={theme.spacing(10)}>
@@ -323,22 +329,21 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       >
         <Select
           items={[
-            { _id: 1, name: "Chatbot AI" },
-            { _id: 2, name: "Marketing AI" },
-            { _id: 3, name: "Compliance AI" },
+            { _id: 1, name: "High" },
+            { _id: 2, name: "Moderate" },
+            { _id: 3, name: "Low" },
           ]}
-          label="Project name"
-          placeholder="Select project"
+          label="Impact"
+          placeholder="Select impact"
           isHidden={false}
           id=""
-          value={values.risks.projectName}
-          onChange={(e) =>
-            handleOnChange("risks", "projectName", e.target.value)
-          }
+          onChange={(e) => handleOnChange("risks", "impact", e.target.value)}
+          value={values.risks.impact}
           sx={{
             width: 350,
           }}
         />
+
         <Select
           items={[
             { _id: 1, name: "4" },
@@ -364,23 +369,26 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         marginBottom={theme.spacing(10)}
         flexDirection={"row"}
       >
-        <Box justifyContent={"space-between"} display={"grid"}>
+        <Box justifyContent={"space-between"} display={"grid"} gap={4}>
           <Select
             items={[
-              { _id: 1, name: "High" },
-              { _id: 2, name: "Moderate" },
-              { _id: 3, name: "Low" },
+              { _id: 1, name: "Critical" },
+              { _id: 2, name: "Major" },
+              { _id: 3, name: "Minor" },
             ]}
-            label="Impact"
-            placeholder="Select impact"
+            label="Risk severity"
+            placeholder="Select risk severity"
             isHidden={false}
             id=""
-            onChange={(e) => handleOnChange("risks", "impact", e.target.value)}
-            value={values.risks.impact}
+            onChange={(e) =>
+              handleOnChange("risks", "riskSeverity", e.target.value)
+            }
+            value={values.risks.riskSeverity}
             sx={{
               width: 350,
             }}
           />
+
           <Select
             items={[
               { _id: 1, name: "John McAllen" },
@@ -418,18 +426,16 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       >
         <Select
           items={[
-            { _id: 1, name: "Critical" },
-            { _id: 2, name: "Major" },
-            { _id: 3, name: "Minor" },
+            { _id: 1, name: "High" },
+            { _id: 2, name: "Moderate" },
+            { _id: 3, name: "Low" },
           ]}
-          label="Risk severity"
-          placeholder="Select risk severity"
+          label="Risk level"
+          placeholder="Select risk level"
           isHidden={false}
           id=""
-          onChange={(e) =>
-            handleOnChange("risks", "riskSeverity", e.target.value)
-          }
-          value={values.risks.riskSeverity}
+          onChange={(e) => handleOnChange("risks", "riskLevel", e.target.value)}
+          value={values.risks.riskLevel}
           sx={{
             width: 350,
           }}
@@ -448,28 +454,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             handleOnChange("risks", "likelihood", e.target.value)
           }
           value={values.risks.likelihood}
-          sx={{
-            width: 350,
-          }}
-        />
-      </Stack>
-      <Stack
-        direction={"row"}
-        justifyContent={"flex-start"}
-        marginBottom={theme.spacing(10)}
-      >
-        <Select
-          items={[
-            { _id: 1, name: "High" },
-            { _id: 2, name: "Moderate" },
-            { _id: 3, name: "Low" },
-          ]}
-          label="Risk level"
-          placeholder="Select risk level"
-          isHidden={false}
-          id=""
-          onChange={(e) => handleOnChange("risks", "riskLevel", e.target.value)}
-          value={values.risks.riskLevel}
           sx={{
             width: 350,
           }}

@@ -4,6 +4,8 @@ import Field from "../../../components/Inputs/Field";
 import Avatar from "../../../components/Avatar/VWAvatar/index";
 import { useTheme } from "@mui/material";
 import DeleteAccountConfirmation from "../../../components/Modals/DeleteAccount/index";
+import { checkStringValidation } from "../../../../application/validations/stringValidation";
+import validator from "validator";
 
 interface User {
   firstname: string;
@@ -14,10 +16,14 @@ interface User {
 const ProfileForm: React.FC = () => {
   const [firstname, setFirstname] = useState<string>("");
   const [lastname, setLastname] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
   const [profilePhoto, setProfilePhoto] = useState<string>(
     "/placeholder.svg?height=80&width=80"
   );
+
+  const [firstnameError, setFirstnameError] = useState<string | null>(null);
+  const [lastnameError, setLastnameError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
 
   const theme = useTheme();
@@ -48,12 +54,44 @@ const ProfileForm: React.FC = () => {
   };
 
   const handleSave = (): void => {
+    if (firstnameError || lastnameError || emailError) {
+      console.log("Please correct the errors before saving.");
+      return;
+    }
+
     const saveObj = {
       firstname,
       lastname,
-      password,
+      email,
     };
     console.log("🚀 ~ handleSave ~ saveObj:", saveObj);
+  };
+
+  const handleFirstnameChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const newFirstname = e.target.value;
+    setFirstname(newFirstname);
+
+    const validation = checkStringValidation("First name", newFirstname, 2, 50, false, false);
+    setFirstnameError(validation.accepted ? null : validation.message);
+  };
+
+  const handleLastnameChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const newLastname = e.target.value;
+    setLastname(newLastname);
+
+    const validation = checkStringValidation("Last name", newLastname, 2, 50, false, false);
+    setLastnameError(validation.accepted ? null : validation.message);
+  };
+
+  const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+
+    if (!validator.isEmail(newEmail)) {
+      setEmailError("Invalid email address");
+    } else {
+      setEmailError(null);
+    }
   };
 
   const user: User = {
@@ -79,23 +117,38 @@ const ProfileForm: React.FC = () => {
             id="First name"
             label="First name"
             value={firstname}
-            onChange={(e) => setFirstname(e.target.value)}
+            onChange={handleFirstnameChange}
             sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
           />
+          {firstnameError && (
+            <Typography color="error" variant="caption">
+              {firstnameError}
+            </Typography>
+          )}
           <Field
-            id="last name"
+            id="Last name"
             label="Last name"
             value={lastname}
-            onChange={(e) => setLastname(e.target.value)}
+            onChange={handleLastnameChange}
             sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
           />
+          {lastnameError && (
+            <Typography color="error" variant="caption">
+              {lastnameError}
+            </Typography>
+          )}
           <Field
             id="Email"
             label="Email"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={email}
+            onChange={handleEmailChange}
             sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
           />
+          {emailError && (
+            <Typography color="error" variant="caption">
+              {emailError}
+            </Typography>
+          )}
           <Typography
             variant="caption"
             sx={{ mt: 1, display: "block", color: "#667085" }}
@@ -158,9 +211,8 @@ const ProfileForm: React.FC = () => {
           backgroundColor: "#4c7de7",
           color: "#fff",
           position: { md: "relative" },
-          left: { md: theme.spacing(0) }, 
+          left: { md: theme.spacing(0) },
           mt: theme.spacing(5),
-          // mb: theme.spacing(10),
         }}
         onClick={handleSave}
       >

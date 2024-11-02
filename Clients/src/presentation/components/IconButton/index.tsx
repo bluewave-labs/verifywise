@@ -246,7 +246,7 @@ const IconButton = ({ vendorId }: { vendorId: number }) => {
         setIsOpen={() => setIsOpenRemoveVendorModal(false)}
         onDelete={handleDeleteVendor}
       />
-      <AddNewVendor
+      <AddNewVendor // the usage here is as the edit window
         isOpen={isOpenAddNewVendorModal}
         handleChange={handleChange}
         setIsOpen={() => setIsOpenAddNewVendorModal(false)}

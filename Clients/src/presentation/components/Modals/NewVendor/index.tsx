@@ -134,7 +134,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       <Stack
         direction={"row"}
         justifyContent={"space-between"}
-        marginBottom={theme.spacing(10)}
+        marginBottom={theme.spacing(8)}
       >
         <Field
           label="Vendor name"
@@ -163,7 +163,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           }}
         />
       </Stack>
-      <Stack marginBottom={theme.spacing(10)}>
+      <Stack marginBottom={theme.spacing(8)}>
         <Field
           label="What does the vendor provide?"
           width={"100%"}
@@ -177,7 +177,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       <Stack
         direction={"row"}
         justifyContent={"space-between"}
-        marginBottom={theme.spacing(10)}
+        marginBottom={theme.spacing(8)}
       >
         <Field
           label="Website"
@@ -203,7 +203,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       <Stack
         display={"flex"}
         justifyContent={"space-between"}
-        marginBottom={theme.spacing(10)}
+        marginBottom={theme.spacing(8)}
         flexDirection={"row"}
       >
         <Field
@@ -218,7 +218,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         <Box
           justifyContent={"space-between"}
           display={"grid"}
-          gap={theme.spacing(10)}
+          gap={theme.spacing(8)}
         >
           <Select
             items={[
@@ -261,7 +261,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       <Stack
         display={"flex"}
         justifyContent={"space-between"}
-        marginBottom={theme.spacing(10)}
+        marginBottom={theme.spacing(8)}
         flexDirection={"row"}
       >
         <Select
@@ -303,7 +303,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       <Stack
         direction={"row"}
         justifyContent={"space-between"}
-        marginBottom={theme.spacing(10)}
+        marginBottom={theme.spacing(8)}
       >
         <Field
           label="Risk description"
@@ -325,7 +325,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       <Stack
         direction={"row"}
         justifyContent={"space-between"}
-        marginBottom={theme.spacing(10)}
+        marginBottom={theme.spacing(8)}
       >
         <Select
           items={[
@@ -366,10 +366,14 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       <Stack
         display={"flex"}
         justifyContent={"space-between"}
-        marginBottom={theme.spacing(10)}
+        marginBottom={theme.spacing(8)}
         flexDirection={"row"}
       >
-        <Box justifyContent={"space-between"} display={"grid"} gap={4}>
+        <Box
+          justifyContent={"space-between"}
+          display={"grid"}
+          gap={theme.spacing(8)}
+        >
           <Select
             items={[
               { _id: 1, name: "Critical" },
@@ -422,7 +426,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       <Stack
         direction={"row"}
         justifyContent={"space-between"}
-        marginBottom={theme.spacing(10)}
+        marginBottom={theme.spacing(8)}
       >
         <Select
           items={[
@@ -461,6 +465,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       </Stack>
     </TabPanel>
   );
+
   return (
     <Modal
       open={isOpen}

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-const MOCK_DATA_ON = process.env.MOCK_DATA_ON;
+// const MOCK_DATA_ON = process.env.MOCK_DATA_ON;
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
@@ -17,6 +17,7 @@ import {
   updateComplianceTrackerByIdQuery
 } from "../utils/complianceTracker.util";
 
+const MOCK_DATA_ON = "true";
 export async function getAllComplianceTrackers(req: Request, res: Response): Promise<any> {
   try {
     if (MOCK_DATA_ON === "true") {

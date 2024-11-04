@@ -89,9 +89,8 @@ const Compliance = ({
 
   const fetchComplianceTracker = async () => {
     try {
-      const response = await getAllEntities({ routeUrl: "/complianceTracker" });
+      const response = await getAllEntities({ routeUrl: "/complianceLists" });
       console.log("reponse ===> ", response);
-      console.log("dashboardValues ===> ", dashboardValues);
       setDashboardValues((prevValues: any) => ({
         ...prevValues,
         compliance: response.data,

@@ -69,18 +69,42 @@ export async function getProjectById(req: Request, res: Response): Promise<any> 
 
 export async function createProject(req: Request, res: Response): Promise<any> {
   try {
-    const { name, description } = req.body;
+    const {
+      name,
+      description,
+      last_updated,
+      owner_id,
+      compliance_status,
+      controls_completed,
+      requirements_completed
+    } = req.body;
 
-    if (!name || !description) {
+    if (
+      !name ||
+      !description ||
+      !last_updated ||
+      !owner_id ||
+      !compliance_status ||
+      !controls_completed ||
+      !requirements_completed
+    ) {
       return res
         .status(400)
         .json(
-          STATUS_CODE[400]({ message: "name and description are required" })
+          STATUS_CODE[400]({ message: "name, description, last_updated, owner_id, compliance_status, controls_completed and requirements_completed are required" })
         );
     }
 
     if (MOCK_DATA_ON === "true") {
-      const newProject = createMockProject({ name, description });
+      const newProject = createMockProject({
+        name,
+        description,
+        last_updated,
+        owner_id,
+        compliance_status,
+        controls_completed,
+        requirements_completed
+      });
 
       if (newProject) {
         return res.status(201).json(STATUS_CODE[201](newProject));
@@ -88,7 +112,15 @@ export async function createProject(req: Request, res: Response): Promise<any> {
 
       return res.status(503).json(STATUS_CODE[503]({}));
     } else {
-      const newProject = await createNewProjectQuery({ name, description });
+      const newProject = await createNewProjectQuery({
+        name,
+        description,
+        last_updated,
+        owner_id,
+        compliance_status,
+        controls_completed,
+        requirements_completed
+      });
 
       if (newProject) {
         return res.status(201).json(STATUS_CODE[201](newProject));
@@ -108,18 +140,42 @@ export async function updateProjectById(
   console.log("updateProjectById");
   try {
     const projectId = parseInt(req.params.id);
-    const { name, description } = req.body;
+    const {
+      name,
+      description,
+      last_updated,
+      owner_id,
+      compliance_status,
+      controls_completed,
+      requirements_completed
+    } = req.body;
 
-    if (!name || !description) {
+    if (
+      !name ||
+      !description ||
+      !last_updated ||
+      !owner_id ||
+      !compliance_status ||
+      !controls_completed ||
+      !requirements_completed
+    ) {
       return res
         .status(400)
         .json(
-          STATUS_CODE[400]({ message: "name and description are required" })
+          STATUS_CODE[400]({ message: "name, description, last_updated, owner_id, compliance_status, controls_completed and requirements_completed are required" })
         );
     }
 
     if (MOCK_DATA_ON === "true") {
-      const updatedProject = updateMockProjectById(projectId, { name, description });
+      const updatedProject = updateMockProjectById(projectId, {
+        name,
+        description,
+        last_updated,
+        owner_id,
+        compliance_status,
+        controls_completed,
+        requirements_completed
+      });
 
       if (updatedProject) {
         return res.status(202).json(STATUS_CODE[202](updatedProject));
@@ -130,6 +186,11 @@ export async function updateProjectById(
       const updatedProject = await updateProjectByIdQuery(projectId, {
         name,
         description,
+        last_updated,
+        owner_id,
+        compliance_status,
+        controls_completed,
+        requirements_completed
       });
 
       if (updatedProject) {

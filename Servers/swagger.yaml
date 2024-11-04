@@ -1409,6 +1409,274 @@ paths:
                 error:
                   type: object
 
+  /questions:
+    get:
+      tags: [question]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all questions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/Question"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [question]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new question
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 1
+                section_id:
+                  type: integer
+                  example: 1
+                question_text:
+                  type: string
+                  example: "Is the firewall configured properly?"
+                answer_type:
+                  type: string
+                  example: "Yes/No"
+                required:
+                  type: boolean
+                  example: true
+        required: true
+      responses:
+        "201":
+          description: created question
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/Question"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /questions/{id}:
+    get:
+      tags: [question]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the question
+      responses:
+        "200":
+          description: question
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/Question"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [question]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the question
+      requestBody:
+        description: body of the new question
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 1
+                section_id:
+                  type: integer
+                  example: 1
+                question_text:
+                  type: string
+                  example: "Is the firewall configured properly?"
+                answer_type:
+                  type: string
+                  example: "Yes/No"
+                required:
+                  type: boolean
+                  example: true
+        required: true
+      responses:
+        "202":
+          description: question
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/Question"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [question]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the compliance tracker to delete
+      responses:
+        "202":
+          description: compliance tracker
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
 components:
   securitySchemes:
     JWTAuth:
@@ -1555,3 +1823,21 @@ components:
         comments:
           type: string
           example: "No issues encountered during implementation."
+    Question:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        section_id:
+          type: integer
+          example: 1
+        question_text:
+          type: string
+          example: "Is the firewall configured properly?"
+        answer_type:
+          type: string
+          example: "Yes/No"
+        required:
+          type: boolean
+          example: true

@@ -1677,6 +1677,268 @@ paths:
                 error:
                   type: object
 
+  /requirements:
+    get:
+      tags: [requirements]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all requirements
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/Requirement"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [requirements]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new requirement
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                compliance_list_id:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  example: "User Consent"
+                description:
+                  type: string
+                  example: "Obtain explicit consent from users before processing their personal data."
+                status:
+                  type: string
+                  example: "Completed"
+        required: true
+      responses:
+        "201":
+          description: created requirement
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/Requirement"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /requirements/{id}:
+    get:
+      tags: [requirements]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the requirement
+      responses:
+        "200":
+          description: requirement
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/Requirement"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [requirements]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the requirement
+      requestBody:
+        description: body of the new requirement
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                compliance_list_id:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  example: "User Consent"
+                description:
+                  type: string
+                  example: "Obtain explicit consent from users before processing their personal data."
+                status:
+                  type: string
+                  example: "Completed"
+        required: true
+      responses:
+        "202":
+          description: requirement
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/Requirement"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [requirements]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the requirement to delete
+      responses:
+        "202":
+          description: requirement
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
 components:
   securitySchemes:
     JWTAuth:
@@ -1841,3 +2103,21 @@ components:
         required:
           type: boolean
           example: true
+    Requirement:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        compliance_list_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "User Consent"
+        description:
+          type: string
+          example: "Obtain explicit consent from users before processing their personal data."
+        status:
+          type: string
+          example: "Completed"

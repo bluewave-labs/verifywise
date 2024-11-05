@@ -7,7 +7,7 @@ import Popup from "../../components/Popup";
 import CreateProjectForm from "../../components/CreateProjectForm";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getAllUsers } from "../../../application/repository/entity.repository";
+import { getAllEntities } from "../../../application/repository/entity.repository";
 
 interface MetricSectionProps {
   title: string;
@@ -23,8 +23,9 @@ const Home = () => {
 
   const [projects, setProjects] = useState<ProjectCardProps[] | null>(null);
   useEffect(() => {
-    getAllUsers("/projects")
+    getAllEntities({routeUrl: "/projects"})
         .then(({data}) => {
+          console.log(data)
           setProjects(data);
         })
   }, []);

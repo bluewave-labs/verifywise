@@ -69,18 +69,18 @@ export async function getQuestionById(req: Request, res: Response): Promise<any>
 
 export async function createQuestion(req: Request, res: Response): Promise<any> {
   try {
-    const { name, description } = req.body;
+    const { section_id, question_text, answer_type, required } = req.body;
 
-    if (!name || !description) {
+    if (!section_id || !question_text || !answer_type || !required) {
       return res
         .status(400)
         .json(
-          STATUS_CODE[400]({ message: "name and description are required" })
+          STATUS_CODE[400]({ message: "section_id, question_text, answer_type and required are required" })
         );
     }
 
     if (MOCK_DATA_ON === "true") {
-      const newQuestion = createMockQuestion({ name, description });
+      const newQuestion = createMockQuestion({ section_id, question_text, answer_type, required });
 
       if (newQuestion) {
         return res.status(201).json(STATUS_CODE[201](newQuestion));
@@ -88,7 +88,7 @@ export async function createQuestion(req: Request, res: Response): Promise<any> 
 
       return res.status(503).json(STATUS_CODE[503]({}));
     } else {
-      const newQuestion = await createNewQuestionQuery({ name, description });
+      const newQuestion = await createNewQuestionQuery({ section_id, question_text, answer_type, required });
 
       if (newQuestion) {
         return res.status(201).json(STATUS_CODE[201](newQuestion));
@@ -108,18 +108,18 @@ export async function updateQuestionById(
   console.log("updateQuestionById");
   try {
     const questionId = parseInt(req.params.id);
-    const { name, description } = req.body;
+    const { section_id, question_text, answer_type, required } = req.body;
 
-    if (!name || !description) {
+    if (!section_id || !question_text || !answer_type || !required) {
       return res
         .status(400)
         .json(
-          STATUS_CODE[400]({ message: "name and description are required" })
+          STATUS_CODE[400]({ message: "section_id, question_text, answer_type and required are required" })
         );
     }
 
     if (MOCK_DATA_ON === "true") {
-      const updatedQuestion = updateMockQuestionById(questionId, { name, description });
+      const updatedQuestion = updateMockQuestionById(questionId, { section_id, question_text, answer_type, required });
 
       if (updatedQuestion) {
         return res.status(202).json(STATUS_CODE[202](updatedQuestion));
@@ -128,8 +128,7 @@ export async function updateQuestionById(
       return res.status(404).json(STATUS_CODE[404]({}));
     } else {
       const updatedQuestion = await updateQuestionByIdQuery(questionId, {
-        name,
-        description,
+        section_id, question_text, answer_type, required
       });
 
       if (updatedQuestion) {

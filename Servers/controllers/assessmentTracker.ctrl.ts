@@ -69,9 +69,10 @@ export async function getAssessmentTrackerById(req: Request, res: Response): Pro
 
 export async function createAssessmentTracker(req: Request, res: Response): Promise<any> {
   try {
-    const { name, description } = req.body;
+    let { name, project_id, status } = req.body;
+    project_id = parseInt(project_id);
 
-    if (!name || !description) {
+    if (!name || !project_id || !status) {
       return res
         .status(400)
         .json(
@@ -80,7 +81,7 @@ export async function createAssessmentTracker(req: Request, res: Response): Prom
     }
 
     if (MOCK_DATA_ON === "true") {
-      const newAssessmentTracker = createMockAssessmentTracker({ name, description });
+      const newAssessmentTracker = createMockAssessmentTracker({ name, project_id, status });
 
       if (newAssessmentTracker) {
         return res.status(201).json(STATUS_CODE[201](newAssessmentTracker));
@@ -88,7 +89,7 @@ export async function createAssessmentTracker(req: Request, res: Response): Prom
 
       return res.status(503).json(STATUS_CODE[503]({}));
     } else {
-      const newAssessmentTracker = await createNewAssessmentTrackerQuery({ name, description });
+      const newAssessmentTracker = await createNewAssessmentTrackerQuery({ name, project_id, status });
 
       if (newAssessmentTracker) {
         return res.status(201).json(STATUS_CODE[201](newAssessmentTracker));
@@ -108,9 +109,10 @@ export async function updateAssessmentTrackerById(
   console.log("updateAssessmentTrackerById");
   try {
     const assessmentTrackerId = parseInt(req.params.id);
-    const { name, description } = req.body;
+    let { name, project_id, status } = req.body;
+    project_id = parseInt(project_id);
 
-    if (!name || !description) {
+    if (!name || !project_id || !status) {
       return res
         .status(400)
         .json(
@@ -119,7 +121,7 @@ export async function updateAssessmentTrackerById(
     }
 
     if (MOCK_DATA_ON === "true") {
-      const updatedAssessmentTracker = updateMockAssessmentTrackerById(assessmentTrackerId, { name, description });
+      const updatedAssessmentTracker = updateMockAssessmentTrackerById(assessmentTrackerId, { name, project_id, status });
 
       if (updatedAssessmentTracker) {
         return res.status(202).json(STATUS_CODE[202](updatedAssessmentTracker));
@@ -129,7 +131,8 @@ export async function updateAssessmentTrackerById(
     } else {
       const updatedAssessmentTracker = await updateAssessmentTrackerByIdQuery(assessmentTrackerId, {
         name,
-        description,
+        project_id,
+        status
       });
 
       if (updatedAssessmentTracker) {

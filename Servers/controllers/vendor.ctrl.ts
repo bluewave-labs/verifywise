@@ -7,14 +7,14 @@ import {
   deleteMockVendorById,
   getAllMockVendors,
   getMockVendorById,
-  updateMockVendorById
-} from "../mocks/tools/vendor.mock.db"
+  updateMockVendorById,
+} from "../mocks/tools/vendor.mock.db";
 import {
   createNewVendorQuery,
   deleteVendorByIdQuery,
   getAllVendorsQuery,
   getVendorByIdQuery,
-  updateVendorByIdQuery
+  updateVendorByIdQuery,
 } from "../utils/vendor.utils";
 
 export async function getAllVendors(req: Request, res: Response): Promise<any> {
@@ -80,7 +80,20 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
     }
 
     if (MOCK_DATA_ON === "true") {
-      const newVendor = createMockVendor({ name, description });
+      const newVendor = createMockVendor({
+        name,
+        description,
+        type: req.body.type,
+        website: req.body.website,
+        contact_person: req.body.contact_person,
+        assignee: req.body.assignee,
+        status: req.body.status,
+        review_result: req.body.review_result,
+        reviewer: req.body.reviewer,
+        review_date: req.body.review_date,
+        review_status: req.body.review_status,
+        risk_status: req.body.risk_status,
+      });
 
       if (newVendor) {
         return res.status(201).json(STATUS_CODE[201](newVendor));
@@ -88,7 +101,20 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
 
       return res.status(503).json(STATUS_CODE[503]({}));
     } else {
-      const newVendor = await createNewVendorQuery({ name, description });
+      const newVendor = await createNewVendorQuery({
+        name,
+        description,
+        type: req.body.type,
+        website: req.body.website,
+        contact_person: req.body.contact_person,
+        assignee: req.body.assignee,
+        status: req.body.status,
+        review_result: req.body.review_result,
+        reviewer: req.body.reviewer,
+        review_date: req.body.review_date,
+        review_status: req.body.review_status,
+        risk_status: req.body.risk_status,
+      });
 
       if (newVendor) {
         return res.status(201).json(STATUS_CODE[201](newVendor));
@@ -119,7 +145,10 @@ export async function updateVendorById(
     }
 
     if (MOCK_DATA_ON === "true") {
-      const updatedVendor = updateMockVendorById(vendorId, { name, description });
+      const updatedVendor = updateMockVendorById(vendorId, {
+        name,
+        description,
+      });
 
       if (updatedVendor) {
         return res.status(202).json(STATUS_CODE[202](updatedVendor));

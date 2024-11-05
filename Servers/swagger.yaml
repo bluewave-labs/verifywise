@@ -1,0 +1,1557 @@
+openapi: 3.0.0
+info:
+  title: Compliance Management API
+  description: API documentation for the compliance management application
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+paths:
+  /assessmentTrackers:
+    get:
+      tags: [assessmentTrackers]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all assessment trackers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/AssessmentTracker"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [assessmentTrackers]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new assessment tracker
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Security Assessment Tracker"
+                project_id:
+                  type: integer
+                  example: 1
+                status:
+                  type: string
+                  example: "Pending"
+        required: true
+      responses:
+        "201":
+          description: list of all assessment trackers
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/AssessmentTracker"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /assessmentTrackers/{id}:
+    get:
+      tags: [assessmentTrackers]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the assessment tracker
+      responses:
+        "200":
+          description: assessment tracker
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/AssessmentTracker"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [assessmentTrackers]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the assessment tracker
+      requestBody:
+        description: body of the new assessment tracker
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Security Assessment Tracker"
+                project_id:
+                  type: integer
+                  example: 1
+                status:
+                  type: string
+                  example: "Pending"
+        required: true
+      responses:
+        "202":
+          description: assessment tracker
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/AssessmentTracker"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [assessmentTrackers]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the assessment tracker to delete
+      responses:
+        "202":
+          description: assessment tracker
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
+  /auditorFeedbacks:
+    get:
+      tags: [auditorFeedbacks]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all auditor feedbacks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/AuditorFeedback"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [auditorFeedbacks]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new assessment tracker
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subrequirement_id:
+                  type: integer
+                  example: 1
+                assessment_type:
+                  type: string
+                  example: "Internal"
+                assessment_date:
+                  type: string
+                  format: date-time
+                  example: "2023-09-10T00:00:00.000Z"
+                auditor_id:
+                  type: integer
+                  example: 1
+                compliance_status:
+                  type: string
+                  example: "Compliant"
+                findings:
+                  type: string
+                  example: "No significant issues were found."
+                recommendations:
+                  type: string
+                  example: "Continue with current procedures."
+                corrective_actions:
+                  type: string
+                  example: "None required."
+                follow_up_date:
+                  type: string
+                  nullable: true
+                  format: date-time
+                  example: "2023-12-10T00:00:00.000Z"
+                follow_up_notes:
+                  type: string
+                  example: "No follow-up needed as everything is in order."
+                attachments:
+                  type: string
+                  example: "audit_report_2023.pdf"
+        required: true
+      responses:
+        "201":
+          description: created auditor feedback
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/AuditorFeedback"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /auditorFeedbacks/{id}:
+    get:
+      tags: [auditorFeedbacks]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the auditor feedback
+      responses:
+        "200":
+          description: auditor feedback
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/AuditorFeedback"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [auditorFeedbacks]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the auditor feedback
+      requestBody:
+        description: body of the new auditor feedback
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subrequirement_id:
+                  type: integer
+                  example: 1
+                assessment_type:
+                  type: string
+                  example: "Internal"
+                assessment_date:
+                  type: string
+                  format: date-time
+                  example: "2023-09-10T00:00:00.000Z"
+                auditor_id:
+                  type: integer
+                  example: 1
+                compliance_status:
+                  type: string
+                  example: "Compliant"
+                findings:
+                  type: string
+                  example: "No significant issues were found."
+                recommendations:
+                  type: string
+                  example: "Continue with current procedures."
+                corrective_actions:
+                  type: string
+                  example: "None required."
+                follow_up_date:
+                  type: string
+                  nullable: true
+                  format: date-time
+                  example: "2023-12-10T00:00:00.000Z"
+                follow_up_notes:
+                  type: string
+                  example: "No follow-up needed as everything is in order."
+                attachments:
+                  type: string
+                  example: "audit_report_2023.pdf"
+                created_at:
+                  type: string
+                  format: date-time
+                  example: "2023-09-11T00:00:00.000Z"
+                updated_at:
+                  type: string
+                  format: date-time
+                  example: "2023-09-11T00:00:00.000Z"
+        required: true
+      responses:
+        "202":
+          description: assessment tracker
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/AssessmentTracker"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [auditorFeedbacks]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the auditor feedback to delete
+      responses:
+        "202":
+          description: auditor feedback
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
+  /complianceLists:
+    get:
+      tags: [complianceLists]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all compliance lists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/ComplianceList"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [complianceLists]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new assessment tracker
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                compliance_tracker_id:
+                  type: string
+                  example: 1
+                name:
+                  type: string
+                  example: "GDPR Compliance"
+                description:
+                  type: string
+                  example: "Ensure all user data handling is in compliance with GDPR regulations."
+        required: true
+      responses:
+        "201":
+          description: created compliance list
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/ComplianceList"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /complianceLists/{id}:
+    get:
+      tags: [complianceLists]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the compliance list
+      responses:
+        "200":
+          description: compliance list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/ComplianceList"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [complianceLists]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the assessment tracker
+      requestBody:
+        description: body of the new assessment tracker
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                compliance_tracker_id:
+                  type: string
+                  example: 1
+                name:
+                  type: string
+                  example: "GDPR Compliance"
+                description:
+                  type: string
+                  example: "Ensure all user data handling is in compliance with GDPR regulations."
+        required: true
+      responses:
+        "202":
+          description: compliance list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/ComplianceList"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [complianceLists]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the compliance list to delete
+      responses:
+        "202":
+          description: compliance list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
+  /complianceTrackers:
+    get:
+      tags: [complianceTrackers]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all compliance trackers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/ComplianceTracker"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [complianceTrackers]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new compliance tracker
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                project_id:
+                  type: integer
+                  example: 1
+                compliance_status:
+                  type: integer
+                  example: 1
+                pending_audits:
+                  type: integer
+                  example: 2
+                completed_assessments:
+                  type: integer
+                  example: 5
+                implemented_controls:
+                  type: integer
+                  example: 10
+        required: true
+      responses:
+        "201":
+          description: created compliance tracker
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/ComplianceTracker"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /complianceTrackers/{id}:
+    get:
+      tags: [complianceTrackers]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the compliance tracker
+      responses:
+        "200":
+          description: compliance tracker
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/ComplianceTracker"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [complianceTrackers]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the compliance tracker
+      requestBody:
+        description: body of the new compliance tracker
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                project_id:
+                  type: integer
+                  example: 1
+                compliance_status:
+                  type: integer
+                  example: 1
+                pending_audits:
+                  type: integer
+                  example: 2
+                completed_assessments:
+                  type: integer
+                  example: 5
+                implemented_controls:
+                  type: integer
+                  example: 10
+        required: true
+      responses:
+        "202":
+          description: compliance tracker
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/ComplianceTracker"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [complianceTrackers]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the compliance tracker to delete
+      responses:
+        "202":
+          description: compliance tracker
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
+  /overviews:
+    get:
+      tags: [overviews]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all overviews
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/Overview"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [overviews]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new overview
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subrequirement_id:
+                  type: integer
+                  example: 1
+                control_name:
+                  type: string
+                  example: "Privacy Policy Review"
+                control_description:
+                  type: string
+                  example: "Review and update the privacy policy to align with current consent requirements."
+                control_owner:
+                  type: string
+                  example: "John Doe"
+                control_status:
+                  type: string
+                  example: "Completed"
+                implementation_description:
+                  type: string
+                  example: "Updated the privacy policy to reflect changes in user consent collection."
+                implementation_evidence:
+                  type: string
+                  example: "Privacy Policy Document (v2.1)"
+                effective_date:
+                  type: string
+                  format: date-time
+                  example: "2024-06-01T00:00:00.000Z"
+                review_date:
+                  type: string
+                  format: date-time
+                  example: "2024-12-01T00:00:00.000Z"
+                comments:
+                  type: string
+                  example: "No issues encountered during implementation."
+        required: true
+      responses:
+        "201":
+          description: created overview
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/Overview"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /overviews/{id}:
+    get:
+      tags: [overviews]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the overview
+      responses:
+        "200":
+          description: overview
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/Overview"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [overviews]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the overview
+      requestBody:
+        description: body of the new overview
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subrequirement_id:
+                  type: integer
+                  example: 1
+                control_name:
+                  type: string
+                  example: "Privacy Policy Review"
+                control_description:
+                  type: string
+                  example: "Review and update the privacy policy to align with current consent requirements."
+                control_owner:
+                  type: string
+                  example: "John Doe"
+                control_status:
+                  type: string
+                  example: "Completed"
+                implementation_description:
+                  type: string
+                  example: "Updated the privacy policy to reflect changes in user consent collection."
+                implementation_evidence:
+                  type: string
+                  example: "Privacy Policy Document (v2.1)"
+                effective_date:
+                  type: string
+                  format: date-time
+                  example: "2024-06-01T00:00:00.000Z"
+                review_date:
+                  type: string
+                  format: date-time
+                  example: "2024-12-01T00:00:00.000Z"
+                comments:
+                  type: string
+                  example: "No issues encountered during implementation."
+        required: true
+      responses:
+        "202":
+          description: overview
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/Overview"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [overviews]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the overview to delete
+      responses:
+        "202":
+          description: overview
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
+components:
+  securitySchemes:
+    JWTAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      value: "Bearer <JWT token here>"
+  schemas:
+    AssessmentTracker:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        project_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Security Assessment Tracker"
+        status:
+          type: string
+          example: "In Progress"
+    AuditorFeedback:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        subrequirement_id:
+          type: integer
+          example: 1
+        assessment_type:
+          type: string
+          example: "Internal"
+        assessment_date:
+          type: string
+          format: date-time
+          example: "2024-10-22T00:00:00Z"
+        auditor_id:
+          type: integer
+          example: 1001
+        compliance_status:
+          type: string
+          example: "Non-Compliant"
+        findings:
+          type: string
+          example: "Weaknesses identified in data protection policies"
+        recommendations:
+          type: string
+          example: "Strengthen data encryption protocols"
+        corrective_actions:
+          type: string
+          example: "Implement end-to-end encryption for all data transfers"
+        follow_up_date:
+          type: string
+          format: date-time
+          example: "2024-12-01T00:00:00Z"
+        follow_up_notes:
+          type: string
+          example: "Encryption protocols successfully updated"
+        attachments:
+          type: string
+          example: "audit_report.pdf"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-10-22T10:15:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-10-23T12:30:00Z"
+    ComplianceList:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        compliance_tracker_id:
+          type: integer
+          example: 101
+        name:
+          type: string
+          example: "GDPR Compliance Checklist"
+        description:
+          type: string
+          example: "Checklist for GDPR compliance requirements"
+    ComplianceTracker:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        project_id:
+          type: integer
+          example: 1
+        compliance_status:
+          type: integer
+          example: 1
+        pending_audits:
+          type: integer
+          example: 3
+        completed_assessments:
+          type: integer
+          example: 10
+        implemented_controls:
+          type: integer
+          example: 15
+    Overview:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        subrequirement_id:
+          type: integer
+          example: 1
+        control_name:
+          type: string
+          example: "Privacy Policy Review"
+        control_description:
+          type: string
+          example: "Review and update the privacy policy to align with current consent requirements."
+        control_owner:
+          type: string
+          example: "John Doe"
+        control_status:
+          type: string
+          example: "Completed"
+        implementation_description:
+          type: string
+          example: "Updated the privacy policy to reflect changes in user consent collection."
+        implementation_evidence:
+          type: string
+          example: "Privacy Policy Document (v2.1)"
+        effective_date:
+          type: string
+          format: date-time
+          example: "2024-06-01T00:00:00.000Z"
+        review_date:
+          type: string
+          format: date-time
+          example: "2024-12-01T00:00:00.000Z"
+        comments:
+          type: string
+          example: "No issues encountered during implementation."

@@ -117,9 +117,9 @@ export async function deleteUserById({
   try {
     const response = await apiServices.delete(routeAddress + routeUrl);
     console.log(
-      `The entity with the following details is removed: ${response.data}`
+      `The entity with the following details is removed: ${response}`
     );
-    return response.data;
+    return response;
   } catch (error) {
     console.error("Error deleting user by ID:", error);
     throw error;
@@ -132,9 +132,13 @@ export async function deleteUserById({
  * @returns {Promise<any>} A promise that resolves to the data of all users.
  * @throws Will throw an error if the API request fails.
  */
-export async function getAllUsers(): Promise<any> {
+export async function getAllEntities({
+  routeUrl,
+}: {
+  routeUrl: string;
+}): Promise<any> {
   try {
-    const response = await apiServices.get(routeAddress);
+    const response = await apiServices.get(routeAddress + routeUrl);
     return response.data;
   } catch (error) {
     console.error("Error getting all users:", error);

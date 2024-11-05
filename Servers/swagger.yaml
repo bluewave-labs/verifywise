@@ -1677,6 +1677,268 @@ paths:
                 error:
                   type: object
 
+  /subrequirements:
+    get:
+      tags: [subrequirements]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all subrequirements
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/SubRequirement"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [subrequirements]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new subrequirement
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                requirement_id:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  example: "Privacy Policy Update"
+                description:
+                  type: string
+                  example: "Ensure the privacy policy reflects changes regarding user consent."
+                status:
+                  type: string
+                  example: "Completed"
+        required: true
+      responses:
+        "201":
+          description: created subrequirement
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/SubRequirement"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /subrequirements/{id}:
+    get:
+      tags: [subrequirements]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the subrequirement
+      responses:
+        "200":
+          description: subrequirement
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/SubRequirement"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [subrequirements]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the subrequirement
+      requestBody:
+        description: body of the new subrequirement
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                requirement_id:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  example: "Privacy Policy Update"
+                description:
+                  type: string
+                  example: "Ensure the privacy policy reflects changes regarding user consent."
+                status:
+                  type: string
+                  example: "Completed"
+        required: true
+      responses:
+        "202":
+          description: subrequirement
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/SubRequirement"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [subrequirements]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the subrequirement to delete
+      responses:
+        "202":
+          description: subrequirement
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
 components:
   securitySchemes:
     JWTAuth:
@@ -1841,3 +2103,21 @@ components:
         required:
           type: boolean
           example: true
+    SubRequirement:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        requirement_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Privacy Policy Update"
+        description:
+          type: string
+          example: "Ensure the privacy policy reflects changes regarding user consent."
+        status:
+          type: string
+          example: "Completed"

@@ -69,18 +69,33 @@ export async function getRequirementById(req: Request, res: Response): Promise<a
 
 export async function createRequirement(req: Request, res: Response): Promise<any> {
   try {
-    const { name, description } = req.body;
+    const {
+      compliance_list_id,
+      name,
+      description,
+      status
+    } = req.body;
 
-    if (!name || !description) {
+    if (
+      !compliance_list_id ||
+      !name ||
+      !description ||
+      !status
+    ) {
       return res
         .status(400)
         .json(
-          STATUS_CODE[400]({ message: "name and description are required" })
+          STATUS_CODE[400]({ message: "compliance_list_id, name, description and status are required" })
         );
     }
 
     if (MOCK_DATA_ON === "true") {
-      const newRequirement = createMockRequirement({ name, description });
+      const newRequirement = createMockRequirement({
+        compliance_list_id,
+        name,
+        description,
+        status
+      });
 
       if (newRequirement) {
         return res.status(201).json(STATUS_CODE[201](newRequirement));
@@ -88,7 +103,12 @@ export async function createRequirement(req: Request, res: Response): Promise<an
 
       return res.status(503).json(STATUS_CODE[503]({}));
     } else {
-      const newRequirement = await createNewRequirementQuery({ name, description });
+      const newRequirement = await createNewRequirementQuery({
+        compliance_list_id,
+        name,
+        description,
+        status
+      });
 
       if (newRequirement) {
         return res.status(201).json(STATUS_CODE[201](newRequirement));
@@ -108,18 +128,33 @@ export async function updateRequirementById(
   console.log("updateRequirementById");
   try {
     const requirementId = parseInt(req.params.id);
-    const { name, description } = req.body;
+    const {
+      compliance_list_id,
+      name,
+      description,
+      status
+    } = req.body;
 
-    if (!name || !description) {
+    if (
+      !compliance_list_id ||
+      !name ||
+      !description ||
+      !status
+    ) {
       return res
         .status(400)
         .json(
-          STATUS_CODE[400]({ message: "name and description are required" })
+          STATUS_CODE[400]({ message: "compliance_list_id, name, description and status are required" })
         );
     }
 
     if (MOCK_DATA_ON === "true") {
-      const updatedRequirement = updateMockRequirementById(requirementId, { name, description });
+      const updatedRequirement = updateMockRequirementById(requirementId, {
+        compliance_list_id,
+        name,
+        description,
+        status
+      });
 
       if (updatedRequirement) {
         return res.status(202).json(STATUS_CODE[202](updatedRequirement));
@@ -128,8 +163,10 @@ export async function updateRequirementById(
       return res.status(404).json(STATUS_CODE[404]({}));
     } else {
       const updatedRequirement = await updateRequirementByIdQuery(requirementId, {
+        compliance_list_id,
         name,
         description,
+        status
       });
 
       if (updatedRequirement) {

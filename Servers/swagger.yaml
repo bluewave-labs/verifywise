@@ -1462,9 +1462,6 @@ paths:
             schema:
               type: object
               properties:
-                id:
-                  type: integer
-                  example: 1
                 section_id:
                   type: integer
                   example: 1
@@ -1578,9 +1575,6 @@ paths:
             schema:
               type: object
               properties:
-                id:
-                  type: integer
-                  example: 1
                 section_id:
                   type: integer
                   example: 1
@@ -1643,6 +1637,530 @@ paths:
       responses:
         "202":
           description: compliance tracker
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
+  /questionEvidence:
+    get:
+      tags: [questionEvidence]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all question evidences
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/QuestionEvidence"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [questionEvidence]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new question evidence
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                question_id:
+                  type: integer
+                  example: 1
+                section_id:
+                  type: integer
+                  example: 1
+                assessment_review:
+                  type: string
+                  example: "Review for question 101"
+                evidence:
+                  type: string
+                  example: "Evidence for question 101"
+        required: true
+      responses:
+        "201":
+          description: created question evidence
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/QuestionEvidence"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /questionEvidence/{id}:
+    get:
+      tags: [questionEvidence]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the question evidence
+      responses:
+        "200":
+          description: question evidence
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/QuestionEvidence"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [questionEvidence]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the question evidence
+      requestBody:
+        description: body of the new question evidence
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                question_id:
+                  type: integer
+                  example: 1
+                section_id:
+                  type: integer
+                  example: 1
+                assessment_review:
+                  type: string
+                  example: "Review for question 101"
+                evidence:
+                  type: string
+                  example: "Evidence for question 101"
+        required: true
+      responses:
+        "202":
+          description: question evidence
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/QuestionEvidence"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [questionEvidence]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the question evidence to delete
+      responses:
+        "202":
+          description: question evidence
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
+  /requirements:
+    get:
+      tags: [requirements]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all requirements
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/Requirement"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [requirements]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new requirement
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                compliance_list_id:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  example: "User Consent"
+                description:
+                  type: string
+                  example: "Obtain explicit consent from users before processing their personal data."
+                status:
+                  type: string
+                  example: "Completed"
+        required: true
+      responses:
+        "201":
+          description: created requirement
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/Requirement"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /requirements/{id}:
+    get:
+      tags: [requirements]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the requirement
+      responses:
+        "200":
+          description: requirement
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/Requirement"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [requirements]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the requirement
+      requestBody:
+        description: body of the new requirement
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                compliance_list_id:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  example: "User Consent"
+                description:
+                  type: string
+                  example: "Obtain explicit consent from users before processing their personal data."
+                status:
+                  type: string
+                  example: "Completed"
+        required: true
+      responses:
+        "202":
+          description: requirement
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/Requirement"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [requirements]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the requirement to delete
+      responses:
+        "202":
+          description: requirement
           content:
             application/json:
               schema:
@@ -2127,6 +2645,42 @@ components:
         required:
           type: boolean
           example: true
+    QuestionEvidence:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        question_id:
+          type: integer
+          example: 1
+        section_id:
+          type: integer
+          example: 1
+        assessment_review:
+          type: string
+          example: "Review for question 101"
+        evidence:
+          type: string
+          example: "Evidence for question 101"
+    Requirement:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        compliance_list_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "User Consent"
+        description:
+          type: string
+          example: "Obtain explicit consent from users before processing their personal data."
+        status:
+          type: string
+          example: "Completed"
     Risk:
       type: object
       properties:

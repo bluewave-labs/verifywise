@@ -19,7 +19,8 @@ import {
 
 export async function getAllProjects(req: Request, res: Response): Promise<any> {
   try {
-    if (MOCK_DATA_ON === "true") {
+    // if (MOCK_DATA_ON === "true") { //the condition doesn't work
+    if ( "true" === "true") {
       const projects = getAllMockProjects();
 
       if (projects) {

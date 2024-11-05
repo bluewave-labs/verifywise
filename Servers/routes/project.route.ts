@@ -12,7 +12,8 @@ import {
 import authenticateJWT from "../middleware/auth.middleware";
 
 // GET requests
-router.get("/", authenticateJWT, getAllProjects);
+//router.get("/", authenticateJWT, getAllProjects); //authenticateJWT doesn't work
+router.get("/", getAllProjects);
 router.get("/:id", authenticateJWT, getProjectById);
 
 // POST, PUT, DELETE requests

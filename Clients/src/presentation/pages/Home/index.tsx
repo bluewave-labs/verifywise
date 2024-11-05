@@ -1,16 +1,13 @@
 import { Box, Stack, Typography, useTheme } from "@mui/material";
 import ProjectCard, { ProjectCardProps } from "../../components/ProjectCard";
-import { mockProjects } from "../../mocks/dashboard/project.data";
 import { NoProjectBox, StyledStack, styles } from "./styles";
 import dashboardData from "../../mocks/dashboard/dashboard.data";
 import emptyState from "../../assets/imgs/empty-state.svg";
 import Popup from "../../components/Popup";
 import CreateProjectForm from "../../components/CreateProjectForm";
 import { useNavigate } from "react-router-dom";
-
-interface HomeProps {
-  projects?: ProjectCardProps[];
-}
+import { useEffect, useState } from "react";
+import { getAllUsers } from "../../../application/repository/entity.repository";
 
 interface MetricSectionProps {
   title: string;
@@ -20,9 +17,18 @@ interface MetricSectionProps {
   }[];
 }
 
-const Home = ({ projects = mockProjects }: HomeProps) => {
+const Home = () => {
   const theme = useTheme();
   const navigate = useNavigate();
+
+  const [projects, setProjects] = useState<ProjectCardProps[] | null>(null);
+  useEffect(() => {
+    getAllUsers("/projects")
+        .then(({data}) => {
+          setProjects(data);
+        })
+  }, []);
+
   const { complianceStatus, riskStatus } = dashboardData;
   const complianceMetrics = [
     {

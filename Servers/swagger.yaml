@@ -1677,6 +1677,292 @@ paths:
                 error:
                   type: object
 
+  /risks:
+    get:
+      tags: [risks]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all risks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/Risk"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [risks]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new risk
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                project_id:
+                  type: integer
+                  example: 1
+                risk_description:
+                  type: string
+                  example: "Data breach due to inadequate security measures."
+                impact:
+                  type: string
+                  example: "High"
+                probability:
+                  type: string
+                  example: "Medium"
+                owner_id:
+                  type: integer
+                  example: 1
+                severity:
+                  type: string
+                  example: "Critical"
+                likelihood:
+                  type: string
+                  example: "Possible"
+                risk_level:
+                  type: string
+                  example: "High"
+        required: true
+      responses:
+        "201":
+          description: created risk
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/Risk"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /risks/{id}:
+    get:
+      tags: [risks]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the risk
+      responses:
+        "200":
+          description: risk
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/Risk"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [risks]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the risk
+      requestBody:
+        description: body of the new risk
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                project_id:
+                  type: integer
+                  example: 1
+                risk_description:
+                  type: string
+                  example: "Data breach due to inadequate security measures."
+                impact:
+                  type: string
+                  example: "High"
+                probability:
+                  type: string
+                  example: "Medium"
+                owner_id:
+                  type: integer
+                  example: 1
+                severity:
+                  type: string
+                  example: "Critical"
+                likelihood:
+                  type: string
+                  example: "Possible"
+                risk_level:
+                  type: string
+                  example: "High"
+        required: true
+      responses:
+        "202":
+          description: risk
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/Risk"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [risks]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the risk to delete
+      responses:
+        "202":
+          description: risk
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
 components:
   securitySchemes:
     JWTAuth:
@@ -1841,3 +2127,33 @@ components:
         required:
           type: boolean
           example: true
+    Risk:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        project_id:
+          type: integer
+          example: 1
+        risk_description:
+          type: string
+          example: "Data breach due to inadequate security measures."
+        impact:
+          type: string
+          example: "High"
+        probability:
+          type: string
+          example: "Medium"
+        owner_id:
+          type: integer
+          example: 1
+        severity:
+          type: string
+          example: "Critical"
+        likelihood:
+          type: string
+          example: "Possible"
+        risk_level:
+          type: string
+          example: "High"

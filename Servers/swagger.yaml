@@ -2195,6 +2195,316 @@ paths:
                 error:
                   type: object
 
+  /vendors:
+    get:
+      tags: [vendors]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all vendors
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/Vendor"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [vendors]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new vendor
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Apex"
+                type:
+                  type: string
+                  example: "Contractor"
+                description:
+                  type: string
+                  example: "Project: Chatbot AI, Services: NLP model development and maintenance"
+                website:
+                  type: string
+                  example: "https://apex-ai.com"
+                contact_person:
+                  type: string
+                  example: "John McAllen"
+                assignee:
+                  type: string
+                  example: "John McAllen"
+                status:
+                  type: string
+                  example: "Active"
+                review_result:
+                  type: string
+                  example: "Positive, needs minor improvements"
+                reviewer:
+                  type: string
+                  example: "George Michael"
+                review_date:
+                  type: string
+                  example: "12 January 2024"
+                review_status:
+                  type: string
+                  example: "Under Review"
+                risk_status:
+                  type: string
+                  example: "High"
+        required: true
+      responses:
+        "201":
+          description: created vendor
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/Vendor"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /vendors/{id}:
+    get:
+      tags: [vendors]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the vendor
+      responses:
+        "200":
+          description: vendor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/Vendor"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [vendors]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the vendor
+      requestBody:
+        description: body of the new vendor
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Apex"
+                type:
+                  type: string
+                  example: "Contractor"
+                description:
+                  type: string
+                  example: "Project: Chatbot AI, Services: NLP model development and maintenance"
+                website:
+                  type: string
+                  example: "https://apex-ai.com"
+                contact_person:
+                  type: string
+                  example: "John McAllen"
+                assignee:
+                  type: string
+                  example: "John McAllen"
+                status:
+                  type: string
+                  example: "Active"
+                review_result:
+                  type: string
+                  example: "Positive, needs minor improvements"
+                reviewer:
+                  type: string
+                  example: "George Michael"
+                review_date:
+                  type: string
+                  example: "12 January 2024"
+                review_status:
+                  type: string
+                  example: "Under Review"
+                risk_status:
+                  type: string
+                  example: "High"
+        required: true
+      responses:
+        "202":
+          description: vendor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/Vendor"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [vendors]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the vendor to delete
+      responses:
+        "202":
+          description: vendor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
 components:
   securitySchemes:
     JWTAuth:
@@ -2395,3 +2705,45 @@ components:
         status:
           type: string
           example: "Completed"
+    Vendor:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Apex"
+        type:
+          type: string
+          example: "Contractor"
+        description:
+          type: string
+          example: "Project: Chatbot AI, Services: NLP model development and maintenance"
+        website:
+          type: string
+          example: "https://apex-ai.com"
+        contact_person:
+          type: string
+          example: "John McAllen"
+        assignee:
+          type: string
+          example: "John McAllen"
+        status:
+          type: string
+          example: "Active"
+        review_result:
+          type: string
+          example: "Positive, needs minor improvements"
+        reviewer:
+          type: string
+          example: "George Michael"
+        review_date:
+          type: string
+          example: "12 January 2024"
+        review_status:
+          type: string
+          example: "Under Review"
+        risk_status:
+          type: string
+          example: "High"

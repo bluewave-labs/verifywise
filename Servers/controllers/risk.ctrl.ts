@@ -87,18 +87,45 @@ export async function getRiskById(req: Request, res: Response): Promise<any> {
  */
 export async function createRisk(req: Request, res: Response): Promise<any> {
   try {
-    const { name, description } = req.body;
+    const {
+      project_id,
+      risk_description,
+      impact,
+      probability,
+      owner_id,
+      severity,
+      likelihood,
+      risk_level
+    } = req.body;
 
-    if (!name || !description) {
+    if (
+      !project_id ||
+      !risk_description ||
+      !impact ||
+      !probability ||
+      !owner_id ||
+      !severity ||
+      !likelihood ||
+      !risk_level
+    ) {
       return res
         .status(400)
         .json(
-          STATUS_CODE[400]({ message: "name and description are required" })
+          STATUS_CODE[400]({ message: "project_id, risk_description, impact, probability, owner_id, severity, likelihood and risk_level are required" })
         );
     }
 
     if (MOCK_DATA_ON === "true") {
-      const newRisk = createMockRisk({ name, description });
+      const newRisk = createMockRisk({
+      project_id,
+      risk_description,
+      impact,
+      probability,
+      owner_id,
+      severity,
+      likelihood,
+      risk_level
+    });
 
       if (newRisk) {
         return res.status(201).json(STATUS_CODE[201](newRisk));
@@ -106,7 +133,16 @@ export async function createRisk(req: Request, res: Response): Promise<any> {
 
       return res.status(503).json(STATUS_CODE[503]({}));
     } else {
-      const newRisk = await createNewRiskQuery({ name, description });
+      const newRisk = await createNewRiskQuery({
+      project_id,
+      risk_description,
+      impact,
+      probability,
+      owner_id,
+      severity,
+      likelihood,
+      risk_level
+    });
 
       if (newRisk) {
         return res.status(201).json(STATUS_CODE[201](newRisk));
@@ -132,18 +168,45 @@ export async function updateRiskById(
   console.log("updateRiskById");
   try {
     const riskId = parseInt(req.params.id);
-    const { name, description } = req.body;
+    const {
+      project_id,
+      risk_description,
+      impact,
+      probability,
+      owner_id,
+      severity,
+      likelihood,
+      risk_level
+    } = req.body;
 
-    if (!name || !description) {
+    if (
+      !project_id ||
+      !risk_description ||
+      !impact ||
+      !probability ||
+      !owner_id ||
+      !severity ||
+      !likelihood ||
+      !risk_level
+    ) {
       return res
         .status(400)
         .json(
-          STATUS_CODE[400]({ message: "name and description are required" })
+          STATUS_CODE[400]({ message: "project_id, risk_description, impact, probability, owner_id, severity, likelihood and risk_level are required" })
         );
     }
 
     if (MOCK_DATA_ON === "true") {
-      const updatedRisk = updateMockRiskById(riskId, { name, description });
+      const updatedRisk = updateMockRiskById(riskId, {
+        project_id,
+        risk_description,
+        impact,
+        probability,
+        owner_id,
+        severity,
+        likelihood,
+        risk_level
+      });
 
       if (updatedRisk) {
         return res.status(202).json(STATUS_CODE[202](updatedRisk));
@@ -152,8 +215,14 @@ export async function updateRiskById(
       return res.status(404).json(STATUS_CODE[404]({}));
     } else {
       const updatedRisk = await updateRiskByIdQuery(riskId, {
-        name,
-        description,
+        project_id,
+        risk_description,
+        impact,
+        probability,
+        owner_id,
+        severity,
+        likelihood,
+        risk_level
       });
 
       if (updatedRisk) {

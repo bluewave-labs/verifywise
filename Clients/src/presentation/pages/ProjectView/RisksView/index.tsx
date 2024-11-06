@@ -68,6 +68,7 @@ const RisksView: FC<RisksViewProps>= ({ risksSummary, risksData, title }) => {
             <BasicTable 
                 data={tableData} 
                 table="risksTable" 
+                paginated
             />
         </Stack>
     )

@@ -1,4 +1,4 @@
-import { Stack, Typography, useTheme } from "@mui/material";
+import { Stack, Typography} from "@mui/material";
 import { RiskData } from "../../../mocks/projects/project-overview.data";
 import { ProjectRisk } from "../../../mocks/projects/project-risks.data";
 import { FC } from "react";
@@ -18,6 +18,7 @@ const RisksView: FC<RisksViewProps>= ({ risksSummary, risksData, title }) => {
     const colsName = [ "RISK NAME", title, "IMPACT", "PROBABILITY", "OWNER", "SEVERITY", "LIKELIHOOD", "RISK LEVEL", "MITIGATION", "FINAL RISK LEVEL" ]
 
     const risksTableCals = colsName.reduce<{ id: string, name: string }[]>((acc, item, i) => {
+        if (item === "Project") return acc; //Removed project name column title from the table
         acc.push({
             id: Object.keys(risksData[0])[i],
             name: item

@@ -15,10 +15,11 @@ interface RisksViewProps {
 }
 
 const RisksView: FC<RisksViewProps>= ({ risksSummary, risksData, title }) => {
-    const colsName = [ "RISK NAME", title, "IMPACT", "PROBABILITY", "OWNER", "SEVERITY", "LIKELIHOOD", "RISK LEVEL", "MITIGATION", "FINAL RISK LEVEL" ]
+    const projectRisksColNames = [ "RISK NAME", "IMPACT", "PROBABILITY", "OWNER", "SEVERITY", "LIKELIHOOD", "RISK LEVEL", "MITIGATION", "FINAL RISK LEVEL" ];
+    const vendorRisksColNames = [ "VENDOR NAME", "RISK NAME", "OWNER", "RISK LEVEL", "REVIEW DATE" ];
+    const colNames = title === "Project" ? projectRisksColNames : title === "Vendor" ? vendorRisksColNames : [];
 
-    const risksTableCals = colsName.reduce<{ id: string, name: string }[]>((acc, item, i) => {
-        if (item === "Project") return acc; //Removed project name column title from the table
+    const risksTableCals = colNames.reduce<{ id: string, name: string }[]>((acc, item, i) => {
         acc.push({
             id: Object.keys(risksData[0])[i],
             name: item

@@ -19,7 +19,7 @@ const vendorRisksData: VendorRisk[] = [
     vendor: "SecureData Systems",
     contractOwner: "Bob S.",
     riskLevel: "High",
-    reviewData: "23 Jan 2024"
+    reviewData: "17 March 2024"
   },
   {
     riskName: "Contract Violation",
@@ -33,7 +33,7 @@ const vendorRisksData: VendorRisk[] = [
     vendor: "TechStartup Co.",
     contractOwner: "David L.",
     riskLevel: "Medium",
-    reviewData: "23 Jan 2024"
+    reviewData: "17 March 2024"
   },
   {
     riskName: "API Changes",
@@ -47,7 +47,7 @@ const vendorRisksData: VendorRisk[] = [
     vendor: "24/7 Support Co.",
     contractOwner: "Frank O.",
     riskLevel: "Medium",
-    reviewData: "23 Jan 2024"
+    reviewData: "17 March 2024"
   },
   {
     riskName: "Price Increase",
@@ -61,7 +61,7 @@ const vendorRisksData: VendorRisk[] = [
     vendor: "RegTech Innovations",
     contractOwner: "Henry Q.",
     riskLevel: "High",
-    reviewData: "23 Jan 2024"
+    reviewData: "17 March 2024"
   },
   {
     riskName: "Intellectual Property Dispute",
@@ -75,7 +75,7 @@ const vendorRisksData: VendorRisk[] = [
     vendor: "ProprietaryTech Inc.",
     contractOwner: "Jack T.",
     riskLevel: "High",
-    reviewData: "23 Jan 2024"
+    reviewData: "17 March 2024"
   }
 ];
 

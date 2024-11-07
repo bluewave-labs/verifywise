@@ -69,18 +69,33 @@ export async function getSectionById(req: Request, res: Response): Promise<any> 
 
 export async function createSection(req: Request, res: Response): Promise<any> {
   try {
-    const { name, description } = req.body;
+    const {
+      assessment_tracker_id,
+      name,
+      total_questions,
+      completed_questions
+    } = req.body;
 
-    if (!name || !description) {
+    if (
+      !assessment_tracker_id ||
+      !name ||
+      !total_questions ||
+      !completed_questions
+    ) {
       return res
         .status(400)
         .json(
-          STATUS_CODE[400]({ message: "name and description are required" })
+          STATUS_CODE[400]({ message: "assessment_tracker_id, name, total_questions and completed_questions are required" })
         );
     }
 
     if (MOCK_DATA_ON === "true") {
-      const newSection = createMockSection({ name, description });
+      const newSection = createMockSection({
+      assessment_tracker_id,
+      name,
+      total_questions,
+      completed_questions
+    });
 
       if (newSection) {
         return res.status(201).json(STATUS_CODE[201](newSection));
@@ -88,7 +103,12 @@ export async function createSection(req: Request, res: Response): Promise<any> {
 
       return res.status(503).json(STATUS_CODE[503]({}));
     } else {
-      const newSection = await createNewSectionQuery({ name, description });
+      const newSection = await createNewSectionQuery({
+      assessment_tracker_id,
+      name,
+      total_questions,
+      completed_questions
+    });
 
       if (newSection) {
         return res.status(201).json(STATUS_CODE[201](newSection));
@@ -108,18 +128,33 @@ export async function updateSectionById(
   console.log("updateSectionById");
   try {
     const sectionId = parseInt(req.params.id);
-    const { name, description } = req.body;
+    const {
+      assessment_tracker_id,
+      name,
+      total_questions,
+      completed_questions
+    } = req.body;
 
-    if (!name || !description) {
+    if (
+      !assessment_tracker_id ||
+      !name ||
+      !total_questions ||
+      !completed_questions
+    ) {
       return res
         .status(400)
         .json(
-          STATUS_CODE[400]({ message: "name and description are required" })
+          STATUS_CODE[400]({ message: "assessment_tracker_id, name, total_questions and completed_questions are required" })
         );
     }
 
     if (MOCK_DATA_ON === "true") {
-      const updatedSection = updateMockSectionById(sectionId, { name, description });
+      const updatedSection = updateMockSectionById(sectionId, {
+        assessment_tracker_id,
+        name,
+        total_questions,
+        completed_questions
+      });
 
       if (updatedSection) {
         return res.status(202).json(STATUS_CODE[202](updatedSection));
@@ -128,8 +163,10 @@ export async function updateSectionById(
       return res.status(404).json(STATUS_CODE[404]({}));
     } else {
       const updatedSection = await updateSectionByIdQuery(sectionId, {
+        assessment_tracker_id,
         name,
-        description,
+        total_questions,
+        completed_questions
       });
 
       if (updatedSection) {

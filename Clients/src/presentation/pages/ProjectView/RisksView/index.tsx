@@ -1,4 +1,4 @@
-import { Stack, Typography, useTheme } from "@mui/material";
+import { Stack, Typography} from "@mui/material";
 import { RiskData } from "../../../mocks/projects/project-overview.data";
 import { ProjectRisk } from "../../../mocks/projects/project-risks.data";
 import { FC } from "react";
@@ -15,9 +15,11 @@ interface RisksViewProps {
 }
 
 const RisksView: FC<RisksViewProps>= ({ risksSummary, risksData, title }) => {
-    const colsName = [ "RISK NAME", title, "IMPACT", "PROBABILITY", "OWNER", "SEVERITY", "LIKELIHOOD", "RISK LEVEL", "MITIGATION", "FINAL RISK LEVEL" ]
+    const projectRisksColNames = [ "RISK NAME", "IMPACT", "PROBABILITY", "OWNER", "SEVERITY", "LIKELIHOOD", "RISK LEVEL", "MITIGATION", "FINAL RISK LEVEL" ];
+    const vendorRisksColNames = [ "VENDOR NAME", "RISK NAME", "OWNER", "RISK LEVEL", "REVIEW DATE" ];
+    const colNames = title === "Project" ? projectRisksColNames : title === "Vendor" ? vendorRisksColNames : [];
 
-    const risksTableCals = colsName.reduce<{ id: string, name: string }[]>((acc, item, i) => {
+    const risksTableCals = colNames.reduce<{ id: string, name: string }[]>((acc, item, i) => {
         acc.push({
             id: Object.keys(risksData[0])[i],
             name: item
@@ -67,6 +69,7 @@ const RisksView: FC<RisksViewProps>= ({ risksSummary, risksData, title }) => {
             <BasicTable 
                 data={tableData} 
                 table="risksTable" 
+                paginated
             />
         </Stack>
     )

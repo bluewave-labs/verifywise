@@ -3873,6 +3873,310 @@ paths:
                 error:
                   type: object
 
+  /vendorrisks:
+    get:
+      tags: [vendorrisks]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all vendor risks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/VendorRisk"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [vendorrisks]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new vendor risk
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                vendor_id:
+                  type: integer
+                  example: 1
+                risk_description:
+                  type: string
+                  example: "Potential data security risks due to third-party integrations."
+                impact_description:
+                  type: string
+                  example: "Data breaches could lead to significant financial and reputational damage."
+                project_id:
+                  type: integer
+                  example: 1
+                probability:
+                  type: string
+                  example: "High"
+                impact:
+                  type: string
+                  example: "Critical"
+                action_plan:
+                  type: string
+                  example: "Implement enhanced encryption and regular security audits."
+                action_owner_id:
+                  type: integer
+                  example: 1
+                risk_severity:
+                  type: string
+                  example: "Severe"
+                likelihood:
+                  type: string
+                  example: "Likely"
+                risk_level:
+                  type: string
+                  example: "High"
+        required: true
+      responses:
+        "201":
+          description: created vendor risk
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/VendorRisk"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /vendorrisks/{id}:
+    get:
+      tags: [vendorrisks]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the vendor risk
+      responses:
+        "200":
+          description: vendor risk
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/VendorRisk"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [vendorrisks]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the vendor risk
+      requestBody:
+        description: body of the new vendor risk
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                vendor_id:
+                  type: integer
+                  example: 1
+                risk_description:
+                  type: string
+                  example: "Potential data security risks due to third-party integrations."
+                impact_description:
+                  type: string
+                  example: "Data breaches could lead to significant financial and reputational damage."
+                project_id:
+                  type: integer
+                  example: 1
+                probability:
+                  type: string
+                  example: "High"
+                impact:
+                  type: string
+                  example: "Critical"
+                action_plan:
+                  type: string
+                  example: "Implement enhanced encryption and regular security audits."
+                action_owner_id:
+                  type: integer
+                  example: 1
+                risk_severity:
+                  type: string
+                  example: "Severe"
+                likelihood:
+                  type: string
+                  example: "Likely"
+                risk_level:
+                  type: string
+                  example: "High"
+        required: true
+      responses:
+        "202":
+          description: vendor risk
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/VendorRisk"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [vendorrisks]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the vendor risk to delete
+      responses:
+        "202":
+          description: vendor risk
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
 components:
   securitySchemes:
     JWTAuth:
@@ -4234,3 +4538,42 @@ components:
         reviewer_comments:
           type: string
           example: "Report is complete and meets all requirements."
+    VendorRisk:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        risk_description:
+          type: string
+          example: "Potential data security risks due to third-party integrations."
+        impact_description:
+          type: string
+          example: "Data breaches could lead to significant financial and reputational damage."
+        project_id:
+          type: integer
+          example: 1
+        probability:
+          type: string
+          example: "High"
+        impact:
+          type: string
+          example: "Critical"
+        action_plan:
+          type: string
+          example: "Implement enhanced encryption and regular security audits."
+        action_owner_id:
+          type: integer
+          example: 1
+        risk_severity:
+          type: string
+          example: "Severe"
+        likelihood:
+          type: string
+          example: "Likely"
+        risk_level:
+          type: string
+          example: "High"

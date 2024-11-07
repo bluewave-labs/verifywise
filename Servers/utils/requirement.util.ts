@@ -14,40 +14,55 @@ export const getRequirementByIdQuery = async (id: number): Promise<Requirement |
 };
 
 export const createNewRequirementQuery = async (requirement: {
-  name: string;
-  description: string;
+  compliance_list_id: number
+  name: string
+  description: string
+  status: string
 }): Promise<Requirement> => {
   console.log("createNewRequirement", requirement);
   const result = await pool.query(
-    "INSERT INTO requirements (name, description) VALUES ($1, $2) RETURNING *",
-    [requirement.name, requirement.description]
+    "INSERT INTO requirements (compliance_list_id, name, description, status) VALUES ($1, $2, $3, $4) RETURNING *",
+    [requirement.compliance_list_id, requirement.name, requirement.description, requirement.status]
   );
   return result.rows[0];
 };
 
 export const updateRequirementByIdQuery = async (
   id: number,
-  requirement: { name?: string; description?: string }
+  requirement: {
+    compliance_list_id?: number
+    name?: string
+    description?: string
+    status?: string
+  }
 ): Promise<Requirement | null> => {
   console.log("updateRequirementById", id, requirement);
   const fields = [];
   const values = [];
   let query = "UPDATE requirements SET ";
 
-  if (requirement.name) {
-    fields.push("name = $1");
-    values.push(requirement.name);
+  if(requirement.compliance_list_id) {
+    fields.push("compliance_list_id = $1");
+    values.push(requirement.compliance_list_id)
   }
-  if (requirement.description) {
-    fields.push("description = $2");
-    values.push(requirement.description);
+  if(requirement.name) {
+    fields.push("name = $2");
+    values.push(requirement.name)
+  }
+  if(requirement.description) {
+    fields.push("description = $3");
+    values.push(requirement.description)
+  }
+  if(requirement.status) {
+    fields.push("status = $4");
+    values.push(requirement.status)
   }
 
   if (fields.length === 0) {
     throw new Error("No fields to update");
   }
 
-  query += fields.join(", ") + " WHERE id = $3 RETURNING *";
+  query += fields.join(", ") + " WHERE id = $5 RETURNING *";
   values.push(id);
 
   const result = await pool.query(query, values);

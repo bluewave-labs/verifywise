@@ -14,40 +14,55 @@ export const getQuestionByIdQuery = async (id: number): Promise<Question | null>
 };
 
 export const createNewQuestionQuery = async (question: {
-  name: string;
-  description: string;
+  section_id: number
+  question_text: string
+  answer_type: string
+  required: boolean
 }): Promise<Question> => {
   console.log("createNewQuestion", question);
   const result = await pool.query(
-    "INSERT INTO questions (name, description) VALUES ($1, $2) RETURNING *",
-    [question.name, question.description]
+    "INSERT INTO questions (section_id, question_text, answer_type, required) VALUES ($1, $2, $3, $4) RETURNING *",
+    [question.section_id, question.question_text, question.answer_type, question.required]
   );
   return result.rows[0];
 };
 
 export const updateQuestionByIdQuery = async (
   id: number,
-  question: { name?: string; description?: string }
+  question: {
+    section_id?: number
+    question_text?: string
+    answer_type?: string
+    required?: boolean
+  }
 ): Promise<Question | null> => {
   console.log("updateQuestionById", id, question);
   const fields = [];
   const values = [];
   let query = "UPDATE questions SET ";
 
-  if (question.name) {
-    fields.push("name = $1");
-    values.push(question.name);
+  if(question.section_id) {
+    fields.push("section_id = $1");
+    values.push(question.section_id)
   }
-  if (question.description) {
-    fields.push("description = $2");
-    values.push(question.description);
+  if(question.question_text) {
+    fields.push("question_text = $2");
+    values.push(question.question_text)
+  }
+  if(question.answer_type) {
+    fields.push("answer_type = $3");
+    values.push(question.answer_type)
+  }
+  if(question.required) {
+    fields.push("required = $4");
+    values.push(question.required)
   }
 
   if (fields.length === 0) {
     throw new Error("No fields to update");
   }
 
-  query += fields.join(", ") + " WHERE id = $3 RETURNING *";
+  query += fields.join(", ") + " WHERE id = $5 RETURNING *";
   values.push(id);
 
   const result = await pool.query(query, values);

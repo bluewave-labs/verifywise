@@ -122,7 +122,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
         <DropDowns />
         <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
 
-        <Box sx={{ width: "100%", bgcolor: "background.paper" }}>
+        <Box sx={{ width: "100%", bgcolor: "#FCFCFD" }}>
           <Tabs
             value={selectedTab}
             onChange={handleSelectedTab}

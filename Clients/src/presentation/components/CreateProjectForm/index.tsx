@@ -9,11 +9,11 @@ const CreateProjectForm: FC = () => {
   const theme = useTheme();
   const [values, setValues] = useState({
     projectTitle: "",
-    users: "",
+    users: "0",
     owner: "",
     reviewDate: "",
-    riskClassification: "Select an option",
-    typeOfHighRiskRole: "Select an option",
+    riskClassification: "0",
+    typeOfHighRiskRole: "0",
     goal: ""
   });
   const handleDateChange = (newDate: Dayjs | null) => {
@@ -48,14 +48,18 @@ const CreateProjectForm: FC = () => {
         onChange={(e) => handleOnChange("projectTitle", e.target.value)}
         sx={fieldStyle} 
       />
-      <Field 
-        id="users-input" 
-        label="Users" 
-        placeholder="Add user" 
-        width="350px" 
+      <Select
+        id="users-input"
+        label="Users"
+        placeholder="Select users"
         value={values.users}
         onChange={(e) => handleOnChange("users", e.target.value)}
-        sx={fieldStyle} 
+        items={[
+          { _id: 1, name: "Some value 1" },
+          { _id: 2, name: "Some value 2" },
+          { _id: 3, name: "Some value 3" },
+        ]}
+        sx={{ width: "350px", backgroundColor: theme.palette.background.main }}
       />
       <Field 
         id="owner-input" 

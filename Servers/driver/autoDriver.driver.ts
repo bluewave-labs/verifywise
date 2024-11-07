@@ -64,7 +64,7 @@ type TableList = [
   TableEntry<SubrequirementEvidence>,
   TableEntry<Section>,
   TableEntry<Question>,
-  TableEntry<QuestionEvidence>,
+  TableEntry<QuestionEvidence>
 ];
 
 const insertQuery: TableList = [
@@ -99,9 +99,7 @@ const insertQuery: TableList = [
     insertString:
       "INSERT INTO users(name, email, password_hash, role, created_at, last_login) VALUES ",
     generateValuesString: function (user: User) {
-      return `('${user.name}', '${user.email}', '${
-        user.password_hash
-      }', ${
+      return `('${user.name}', '${user.email}', '${user.password_hash}', ${
         user.role
       }, '${user.created_at.toISOString()}', '${user.last_login.toISOString()}')`;
     },
@@ -157,13 +155,7 @@ const insertQuery: TableList = [
     insertString:
       "INSERT INTO vendors(name, project_id, description, website, contact_person, review_result, review_status, reviewer_id, review_date, risk_status) VALUES ",
     generateValuesString: function (vendor: Vendor) {
-      return `('${vendor.name}', ${vendor.project_id}, '${
-        vendor.description
-      }', '${vendor.website}', '${vendor.contact_person}', '${
-        vendor.review_result
-      }', '${vendor.review_status}', ${
-        vendor.reviewer_id
-      }, '${vendor.review_date.toISOString()}', '${vendor.risk_status}')`;
+      return `(${vendor.id}, '${vendor.name}', '${vendor.type}', '${vendor.description}', '${vendor.website}', '${vendor.contact_person}', '${vendor.assignee}', '${vendor.status}', '${vendor.review_result}', '${vendor.reviewer}', '${vendor.review_date}', '${vendor.review_status}', '${vendor.risk_status}')`;
     },
   },
   {
@@ -340,15 +332,15 @@ const insertQuery: TableList = [
     insertString:
       "INSERT INTO overviews(subrequirement_id, control_name, control_description, control_owner, control_status, implementation_description, implementation_evidence, effective_date, review_date, comments) VALUES ",
     generateValuesString: function (overview: Overview) {
-      return `(${overview.subrequirement_id}, '${
-        overview.control_name
-      }', '${overview.control_description}', '${overview.control_owner}', '${
-        overview.control_status
-      }', '${overview.implementation_description}', '${
-        overview.implementation_evidence
-      }', '${overview.effective_date.toISOString().split("T")[0]}', '${
-        overview.review_date.toISOString().split("T")[0]
-      }', '${overview.comments}')`;
+      return `(${overview.subrequirement_id}, '${overview.control_name}', '${
+        overview.control_description
+      }', '${overview.control_owner}', '${overview.control_status}', '${
+        overview.implementation_description
+      }', '${overview.implementation_evidence}', '${
+        overview.effective_date.toISOString().split("T")[0]
+      }', '${overview.review_date.toISOString().split("T")[0]}', '${
+        overview.comments
+      }')`;
     },
   },
   {
@@ -419,11 +411,11 @@ const insertQuery: TableList = [
     generateValuesString: function (
       subrequirementEvidence: SubrequirementEvidence
     ) {
-      return `(${
-        subrequirementEvidence.subrequirement_id
-      }, '${subrequirementEvidence.document_name}', '${
-        subrequirementEvidence.document_type
-      }', '${subrequirementEvidence.file_path}', '${
+      return `(${subrequirementEvidence.subrequirement_id}, '${
+        subrequirementEvidence.document_name
+      }', '${subrequirementEvidence.document_type}', '${
+        subrequirementEvidence.file_path
+      }', '${
         subrequirementEvidence.upload_date.toISOString().split("T")[0]
       }', ${subrequirementEvidence.uploader_id}, '${
         subrequirementEvidence.description

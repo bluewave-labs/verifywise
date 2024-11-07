@@ -52,7 +52,7 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({ activeSection }) => {
       {activeSection && 
       <>
       <Typography sx={{ mb: 2 }}>
-        {activeSection === "Evidence" ? "Evidence:" : "Auditor Feedback:"}
+        {activeSection === "Evidence" ? "Evidence:" : "Feedback:"}
       </Typography>
 
       <RichTextEditor onContentChange={handleContentChange} />

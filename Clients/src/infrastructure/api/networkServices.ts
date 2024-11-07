@@ -141,9 +141,9 @@ export const apiServices = {
       const response = await CustomAxios.delete(endpoint);
       logResponse("delete", endpoint, response);
       return {
-        data: response.data,
+        data: response.data.data,
         status: response.status,
-        statusText: response.statusText,
+        statusText: response.data.message,
       };
     } catch (error) {
       handleError(error);

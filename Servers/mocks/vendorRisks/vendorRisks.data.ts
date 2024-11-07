@@ -43,7 +43,7 @@ export const vendorRisks = [
   },
   {
     id: 4,
-    vendor_id: 4,
+    vendor_id: 2,
     risk_description: "Healthcare solution data handling does not meet compliance.",
     impact_description: "Non-compliance could lead to legal issues and fines.",
     project_id: 4,
@@ -57,7 +57,7 @@ export const vendorRisks = [
   },
   {
     id: 5,
-    vendor_id: 5,
+    vendor_id: 1,
     risk_description: "Aerospace components may not meet performance standards.",
     impact_description: "Failure could lead to product malfunctions and safety concerns.",
     project_id: 5,

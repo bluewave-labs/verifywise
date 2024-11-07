@@ -6,7 +6,7 @@ export const getAllQuestionEvidencesQuery = async (): Promise<
 > => {
   console.log("getAllQuestionEvidences");
   const questionEvidences = await pool.query(
-    "SELECT * FROM question_evidences"
+    "SELECT * FROM questionevidences"
   );
   return questionEvidences.rows;
 };
@@ -16,7 +16,7 @@ export const getQuestionEvidenceByIdQuery = async (
 ): Promise<QuestionEvidence | null> => {
   console.log("getQuestionEvidenceById", id);
   const result = await pool.query(
-    "SELECT * FROM question_evidences WHERE id = $1",
+    "SELECT * FROM questionevidences WHERE id = $1",
     [id]
   );
   return result.rows.length ? result.rows[0] : null;
@@ -30,7 +30,7 @@ export const createNewQuestionEvidenceQuery = async (questionEvidence: {
 }): Promise<QuestionEvidence> => {
   console.log("createNewQuestionEvidence", questionEvidence);
   const result = await pool.query(
-    "INSERT INTO question_evidences (question_id, section_id, assessment_review, evidence) VALUES ($1, $2, $3, $4) RETURNING *",
+    "INSERT INTO questionevidences (question_id, section_id, assessment_review, evidence) VALUES ($1, $2, $3, $4) RETURNING *",
     [
       questionEvidence.question_id,
       questionEvidence.section_id,
@@ -53,7 +53,7 @@ export const updateQuestionEvidenceByIdQuery = async (
   console.log("updateQuestionEvidenceById", id, questionEvidence);
   const fields = [];
   const values = [];
-  let query = "UPDATE question_evidences SET ";
+  let query = "UPDATE questionevidences SET ";
 
   if (questionEvidence.question_id) {
     fields.push("question_id = $1");
@@ -88,7 +88,7 @@ export const deleteQuestionEvidenceByIdQuery = async (
 ): Promise<boolean> => {
   console.log("deleteQuestionEvidenceById", id);
   const result = await pool.query(
-    "DELETE FROM question_evidences WHERE id = $1 RETURNING id",
+    "DELETE FROM questionevidences WHERE id = $1 RETURNING id",
     [id]
   );
   return result.rowCount !== null && result.rowCount > 0;

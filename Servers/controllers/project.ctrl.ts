@@ -85,8 +85,8 @@ export async function createProject(req: Request, res: Response): Promise<any> {
       !last_updated ||
       !owner_id ||
       !compliance_status ||
-      controls_completed === undefined ||
-      requirements_completed === undefined
+      !controls_completed ||
+      !requirements_completed
     ) {
       return res
         .status(400)
@@ -156,8 +156,8 @@ export async function updateProjectById(
       !last_updated ||
       !owner_id ||
       !compliance_status ||
-      controls_completed === undefined ||
-      requirements_completed === undefined
+      !controls_completed ||
+      !requirements_completed
     ) {
       return res
         .status(400)

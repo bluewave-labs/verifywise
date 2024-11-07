@@ -3565,6 +3565,314 @@ paths:
                 error:
                   type: object
 
+  /subrequirementEvidence:
+    get:
+      tags: [subrequirementEvidence]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all subrequirement evidences
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/SubRequirementEvidence"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [subrequirementEvidence]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new subrequirement evidences
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subrequirement_id:
+                  type: integer
+                  example: 1
+                document_name:
+                  type: string
+                  example: "Compliance Report"
+                document_type:
+                  type: string
+                  example: "PDF"
+                file_path:
+                  type: string
+                  example: "/documents/compliance_report.pdf"
+                upload_date:
+                  type: string
+                  format: date-time
+                  example: "2023-01-15T00:00:00.000Z"
+                uploader_id:
+                  type: integer
+                  example: 1
+                description:
+                  type: string
+                  example: "Annual compliance report for 2023"
+                status:
+                  type: string
+                  example: "Reviewed"
+                last_reviewed:
+                  type: string
+                  format: date-time
+                  example: "2023-02-01T00:00:00.000Z"
+                reviewer_id:
+                  type: integer
+                  example: 2
+                reviewer_comments:
+                  type: string
+                  example: "Report is complete and meets all requirements."
+        required: true
+      responses:
+        "201":
+          description: created subrequirement evidences
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/SubRequirementEvidence"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /subrequirementEvidence/{id}:
+    get:
+      tags: [subrequirementEvidence]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the subrequirement evidences
+      responses:
+        "200":
+          description: subrequirement evidences
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/SubRequirementEvidence"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [subrequirementEvidence]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the subrequirement evidences
+      requestBody:
+        description: body of the new subrequirement evidences
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subrequirement_id:
+                  type: integer
+                  example: 1
+                document_name:
+                  type: string
+                  example: "Compliance Report"
+                document_type:
+                  type: string
+                  example: "PDF"
+                file_path:
+                  type: string
+                  example: "/documents/compliance_report.pdf"
+                upload_date:
+                  type: string
+                  format: date-time
+                  example: "2023-01-15T00:00:00.000Z"
+                uploader_id:
+                  type: integer
+                  example: 1
+                description:
+                  type: string
+                  example: "Annual compliance report for 2023"
+                status:
+                  type: string
+                  example: "Reviewed"
+                last_reviewed:
+                  type: string
+                  format: date-time
+                  example: "2023-02-01T00:00:00.000Z"
+                reviewer_id:
+                  type: integer
+                  example: 2
+                reviewer_comments:
+                  type: string
+                  example: "Report is complete and meets all requirements."
+        required: true
+      responses:
+        "202":
+          description: subrequirement evidences
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/SubRequirementEvidence"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [subrequirementEvidence]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the subrequirement evidences to delete
+      responses:
+        "202":
+          description: subrequirement evidences
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
 components:
   securitySchemes:
     JWTAuth:
@@ -3885,3 +4193,44 @@ components:
         status:
           type: string
           example: "Completed"
+    SubRequirementEvidence:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        subrequirement_id:
+          type: integer
+          example: 1
+        document_name:
+          type: string
+          example: "Compliance Report"
+        document_type:
+          type: string
+          example: "PDF"
+        file_path:
+          type: string
+          example: "/documents/compliance_report.pdf"
+        upload_date:
+          type: string
+          format: date-time
+          example: "2023-01-15T00:00:00.000Z"
+        uploader_id:
+          type: integer
+          example: 1
+        description:
+          type: string
+          example: "Annual compliance report for 2023"
+        status:
+          type: string
+          example: "Reviewed"
+        last_reviewed:
+          type: string
+          format: date-time
+          example: "2023-02-01T00:00:00.000Z"
+        reviewer_id:
+          type: integer
+          example: 2
+        reviewer_comments:
+          type: string
+          example: "Report is complete and meets all requirements."

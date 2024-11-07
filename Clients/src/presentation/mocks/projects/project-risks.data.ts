@@ -1,6 +1,5 @@
 export interface ProjectRisk {
   riskName: string;
-  project: string;
   impact: string;
   probability: number;
   owner: string;
@@ -14,7 +13,6 @@ export interface ProjectRisk {
 const projectRisksData: ProjectRisk[] = [
   {
     riskName: "Nexus",
-    project: "Marketing AI",
     impact: "High",
     probability: 4,
     owner: "Jack M.",
@@ -26,7 +24,6 @@ const projectRisksData: ProjectRisk[] = [
   },
   {
     riskName: "Apex",
-    project: "Software update",
     impact: "Medium high",
     probability: 3,
     owner: "Robert A.",
@@ -38,7 +35,6 @@ const projectRisksData: ProjectRisk[] = [
   },
   {
     riskName: "Data Breach",
-    project: "Customer Database",
     impact: "Very High",
     probability: 2,
     owner: "Sarah L.",
@@ -50,7 +46,6 @@ const projectRisksData: ProjectRisk[] = [
   },
   {
     riskName: "Budget Overrun",
-    project: "Financial AI",
     impact: "High",
     probability: 4,
     owner: "Michael P.",
@@ -62,7 +57,6 @@ const projectRisksData: ProjectRisk[] = [
   },
   {
     riskName: "Skill Gap",
-    project: "NLP Engine",
     impact: "Medium",
     probability: 3,
     owner: "Emma R.",
@@ -74,7 +68,6 @@ const projectRisksData: ProjectRisk[] = [
   },
   {
     riskName: "Scope Creep",
-    project: "Chatbot UI",
     impact: "Medium high",
     probability: 5,
     owner: "David S.",
@@ -86,7 +79,6 @@ const projectRisksData: ProjectRisk[] = [
   },
   {
     riskName: "Integration Failure",
-    project: "CRM Integration",
     impact: "High",
     probability: 3,
     owner: "Lisa K.",
@@ -98,7 +90,6 @@ const projectRisksData: ProjectRisk[] = [
   },
   {
     riskName: "Performance Issues",
-    project: "Real-time Analytics",
     impact: "Very High",
     probability: 4,
     owner: "Tom W.",
@@ -110,7 +101,6 @@ const projectRisksData: ProjectRisk[] = [
   },
   {
     riskName: "Regulatory Non-compliance",
-    project: "Data Privacy",
     impact: "Very High",
     probability: 3,
     owner: "Nancy O.",
@@ -122,7 +112,6 @@ const projectRisksData: ProjectRisk[] = [
   },
   {
     riskName: "Vendor Lock-in",
-    project: "Cloud Infrastructure",
     impact: "Medium",
     probability: 4,
     owner: "Chris B.",

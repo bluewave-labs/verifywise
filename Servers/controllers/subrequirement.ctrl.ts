@@ -69,18 +69,33 @@ export async function getSubrequirementById(req: Request, res: Response): Promis
 
 export async function createSubrequirement(req: Request, res: Response): Promise<any> {
   try {
-    const { name, description } = req.body;
+    const {
+      requirement_id,
+      name,
+      description,
+      status
+    } = req.body;
 
-    if (!name || !description) {
+    if (
+      !requirement_id ||
+      !name ||
+      !description ||
+      !status
+    ) {
       return res
         .status(400)
         .json(
-          STATUS_CODE[400]({ message: "name and description are required" })
+          STATUS_CODE[400]({ message: "requirement_id, name, description and status are required" })
         );
     }
 
     if (MOCK_DATA_ON === "true") {
-      const newSubrequirement = createMockSubrequirement({ name, description });
+      const newSubrequirement = createMockSubrequirement({
+        requirement_id,
+        name,
+        description,
+        status
+      });
 
       if (newSubrequirement) {
         return res.status(201).json(STATUS_CODE[201](newSubrequirement));
@@ -88,7 +103,12 @@ export async function createSubrequirement(req: Request, res: Response): Promise
 
       return res.status(503).json(STATUS_CODE[503]({}));
     } else {
-      const newSubrequirement = await createNewSubrequirementQuery({ name, description });
+      const newSubrequirement = await createNewSubrequirementQuery({
+        requirement_id,
+        name,
+        description,
+        status
+      });
 
       if (newSubrequirement) {
         return res.status(201).json(STATUS_CODE[201](newSubrequirement));
@@ -108,18 +128,33 @@ export async function updateSubrequirementById(
   console.log("updateSubrequirementById");
   try {
     const subrequirementId = parseInt(req.params.id);
-    const { name, description } = req.body;
+    const {
+      requirement_id,
+      name,
+      description,
+      status
+    } = req.body;
 
-    if (!name || !description) {
+    if (
+      !requirement_id ||
+      !name ||
+      !description ||
+      !status
+    ) {
       return res
         .status(400)
         .json(
-          STATUS_CODE[400]({ message: "name and description are required" })
+          STATUS_CODE[400]({ message: "requirement_id, name, description and status are required" })
         );
     }
 
     if (MOCK_DATA_ON === "true") {
-      const updatedSubrequirement = updateMockSubrequirementById(subrequirementId, { name, description });
+      const updatedSubrequirement = updateMockSubrequirementById(subrequirementId, {
+        requirement_id,
+        name,
+        description,
+        status
+      });
 
       if (updatedSubrequirement) {
         return res.status(202).json(STATUS_CODE[202](updatedSubrequirement));
@@ -128,8 +163,10 @@ export async function updateSubrequirementById(
       return res.status(404).json(STATUS_CODE[404]({}));
     } else {
       const updatedSubrequirement = await updateSubrequirementByIdQuery(subrequirementId, {
+        requirement_id,
         name,
         description,
+        status
       });
 
       if (updatedSubrequirement) {

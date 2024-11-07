@@ -28,13 +28,19 @@ export const getRiskByIdQuery = async (id: number): Promise<Risk | null> => {
  * @returns new created risk object
  */
 export const createNewRiskQuery = async (risk: {
-  name: string;
-  description: string;
+  project_id: number
+  risk_description: string
+  impact: string
+  probability: string
+  owner_id: number
+  severity: string
+  likelihood: string
+  risk_level: string
 }): Promise<Risk> => {
   console.log("createNewRisk", risk);
   const result = await pool.query(
-    "INSERT INTO risks (name, description) VALUES ($1, $2) RETURNING *",
-    [risk.name, risk.description]
+    "INSERT INTO risks (project_id, risk_description, impact, probability, owner_id, severity, likelihood, risk_level) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",
+    [risk.project_id, risk.risk_description, risk.impact, risk.probability, risk.owner_id, risk.severity, risk.likelihood, risk.risk_level]
   );
   return result.rows[0];
 };
@@ -47,27 +53,60 @@ export const createNewRiskQuery = async (risk: {
  */
 export const updateRiskByIdQuery = async (
   id: number,
-  risk: { name?: string; description?: string }
+  risk: {
+    project_id?: number
+    risk_description?: string
+    impact?: string
+    probability?: string
+    owner_id?: number
+    severity?: string
+    likelihood?: string
+    risk_level?: string
+  }
 ): Promise<Risk | null> => {
   console.log("updateRiskById", id, risk);
   const fields = [];
   const values = [];
   let query = "UPDATE risks SET ";
 
-  if (risk.name) {
-    fields.push("name = $1");
-    values.push(risk.name);
+  if(risk.project_id) {
+    fields.push("project_id = $1")
+    values.push(risk.project_id)
   }
-  if (risk.description) {
-    fields.push("description = $2");
-    values.push(risk.description);
+  if(risk.risk_description) {
+    fields.push("risk_description = $2")
+    values.push(risk.risk_description)
+  }
+  if(risk.impact) {
+    fields.push("impact = $3")
+    values.push(risk.impact)
+  }
+  if(risk.probability) {
+    fields.push("probability = $4")
+    values.push(risk.probability)
+  }
+  if(risk.owner_id) {
+    fields.push("owner_id = $5")
+    values.push(risk.owner_id)
+  }
+  if(risk.severity) {
+    fields.push("severity = $6")
+    values.push(risk.severity)
+  }
+  if(risk.likelihood) {
+    fields.push("likelihood = $7")
+    values.push(risk.likelihood)
+  }
+  if(risk.risk_level) {
+    fields.push("risk_level = $8")
+    values.push(risk.risk_level)
   }
 
   if (fields.length === 0) {
     throw new Error("No fields to update");
   }
 
-  query += fields.join(", ") + " WHERE id = $3 RETURNING *";
+  query += fields.join(", ") + " WHERE id = $9 RETURNING *";
   values.push(id);
 
   const result = await pool.query(query, values);

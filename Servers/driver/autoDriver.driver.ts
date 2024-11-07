@@ -136,26 +136,22 @@ const insertQuery: TableList = [
     createString: `CREATE TABLE vendors(
       id SERIAL PRIMARY KEY,
       name varchar(255) NOT NULL,
-      project_id integer,
+      type varchar(100),
       description text,
       website varchar(255),
       contact_person varchar(100),
+      assignee varchar(100),
+      status varchar(100),
       review_result varchar(50),
       review_status varchar(50),
-      reviewer_id integer,
-      review_date timestamp,
-      risk_status varchar(50),
-      CONSTRAINT vendors_reviewer_id_fkey FOREIGN KEY (reviewer_id)
-        REFERENCES users(id)
-        ON DELETE SET NULL,
-      CONSTRAINT vendors_project_id_fkey FOREIGN KEY (project_id)
-        REFERENCES projects(id)
-        ON DELETE SET NULL
+      reviewer varchar(50),
+      review_date varchar(50),
+      risk_status varchar(50)
     );`,
     insertString:
-      "INSERT INTO vendors(name, project_id, description, website, contact_person, review_result, review_status, reviewer_id, review_date, risk_status) VALUES ",
+      "INSERT INTO vendors(name, type, description, website, contact_person, assignee, status, review_result, review_status, reviewer, review_date, risk_status) VALUES ",
     generateValuesString: function (vendor: Vendor) {
-      return `(${vendor.id}, '${vendor.name}', '${vendor.type}', '${vendor.description}', '${vendor.website}', '${vendor.contact_person}', '${vendor.assignee}', '${vendor.status}', '${vendor.review_result}', '${vendor.reviewer}', '${vendor.review_date}', '${vendor.review_status}', '${vendor.risk_status}')`;
+      return `('${vendor.name}', '${vendor.type}', '${vendor.description}', '${vendor.website}', '${vendor.contact_person}', '${vendor.assignee}', '${vendor.status}', '${vendor.review_result}', '${vendor.review_status}', '${vendor.reviewer}', '${vendor.review_date}', '${vendor.risk_status}')`;
     },
   },
   {

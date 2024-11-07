@@ -67,11 +67,11 @@ export const updateProjectByIdQuery = async (
     fields.push("compliance_status = $5")
     values.push(project.compliance_status)
   }
-  if(project.controls_completed) {
+  if(project.controls_completed !== undefined) {
     fields.push("controls_completed = $6")
     values.push(project.controls_completed)
   }
-  if(project.requirements_completed) {
+  if(project.requirements_completed !== undefined) {
     fields.push("requirements_completed = $7")
     values.push(project.requirements_completed)
   }

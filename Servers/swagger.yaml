@@ -3242,7 +3242,8 @@ components:
           example: "Possible"
         risk_level:
           type: string
-          example: "High"    Role:
+          example: "High"
+    Role:
       type: object
       properties:
         id:

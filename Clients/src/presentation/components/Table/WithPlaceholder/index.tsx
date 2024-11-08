@@ -49,7 +49,6 @@ import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.c
  */
 const titleOfTableColumns = [
   "name",
-  "type",
   "assignee",
   "status",
   "risk",
@@ -141,7 +140,6 @@ const TableWithPlaceholder = () => {
             <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
               {row.name}
             </TableCell>
-            <TableCell sx={cellStyle}>{row.type}</TableCell>
             <TableCell sx={cellStyle}>{row.assignee}</TableCell>
             <TableCell sx={cellStyle}>{row.status}</TableCell>
             <TableCell sx={cellStyle}>{row.risk_status}</TableCell>

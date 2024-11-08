@@ -179,7 +179,6 @@ const BasicTable = ({
             Showing {getRange()} of {data.rows.length} monitor(s)
           </Typography>
           <TablePagination
-            component="div"
             count={data.rows.length}
             page={page}
             onPageChange={handleChangePage}

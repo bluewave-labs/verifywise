@@ -62,7 +62,7 @@ const Radio = (props: RadioProps) => {
       }
       label={
         <>
-          <Typography component="p">{props.title}</Typography>
+          <Typography >{props.title}</Typography>
           <Typography
             component="h6"
             mt={theme.spacing(1)}

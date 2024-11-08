@@ -133,7 +133,6 @@ const ImageField: React.FC<ImageFieldProps> = ({
                 or drag and drop
               </Typography>
               <Typography
-                component="p"
                 color={theme.palette.text.tertiary}
                 sx={{ opacity: 0.6 }}
               >
@@ -142,7 +141,6 @@ const ImageField: React.FC<ImageFieldProps> = ({
             </Stack>
           </Box>
           <Typography
-            component="p"
             color={theme.palette.text.tertiary}
             sx={{ opacity: 0.6 }}
           >

@@ -1,5 +1,4 @@
 import {
-  Paper,
   Stack,
   Table,
   TableBody,
@@ -18,6 +17,14 @@ import { setRowsPerPage } from "../../tools/uiSlice";
 import TablePaginationActions from "../TablePagination";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
 import singleTheme from "../../themes/v1SingleTheme";
+import { LinearProgress } from "@mui/material";
+
+/**
+ * Interface for TableData object.
+ * @typedef {Object} TableData
+ * @property {Array} cols - Array of column objects, each containing id and name.
+ * @property {Array} rows - Array of row objects, each containing id, icon, and data properties.
+ */
 
 interface TableData {
   cols: any[];
@@ -81,10 +88,23 @@ const BasicTable = ({
     itemAlign: "center",
   };
 
+  /**
+   * Handles the page change for the table pagination.
+   *
+   * @param {Object} event - Event object.
+   * @param {number} newPage - New page number.
+   */
+
   const handleChangePage = (event: any, newPage: any) => {
     console.log(event);
     setPage(newPage);
   };
+
+  /**
+   * Handles the change of rows per page in pagination.
+   *
+   * @param {Object} event - Event object.
+   */
 
   const handleChangeRowsPerPage = (event: any) => {
     dispatch(
@@ -109,24 +129,48 @@ const BasicTable = ({
     return <div>No data</div>;
   }
 
+  /**
+   * Gets the range of displayed rows based on the current page and rows per page.
+   *
+   * @returns {string} Display range in the format "start - end".
+   */
+
   const getRange = () => {
     let start = page * rowsPerPage + 1;
     let end = Math.min(page * rowsPerPage + rowsPerPage, data.rows.length);
     return `${start} - ${end}`;
   };
 
+  const getProgressColor = (value: number) => {
+    if (value <= 10) return "#FF4500"; // 0-10%
+    if (value <= 20) return "#FF4500"; // 11-20%
+    if (value <= 30) return "#FFA500"; // 21-30%
+    if (value <= 40) return "#FFD700"; // 31-40%
+    if (value <= 50) return "#E9F14F"; // 41-50%
+    if (value <= 60) return "#CDDD24"; // 51-60%
+    if (value <= 70) return "#64E730"; // 61-70%
+    if (value <= 80) return "#32CD32"; // 71-80%
+    if (value <= 90) return "#228B22"; // 81-90%
+    return "#008000"; // 91-100%
+  };
+
   return (
     <>
       <TableContainer>
         <Table sx={singleTheme.tableStyles.primary.frame}>
-          <TableHead sx={{
-            backgroundColors:
-              singleTheme.tableStyles.primary.header.backgroundColors,
-          }}>
+          <TableHead
+            sx={{
+              backgroundColors:
+                singleTheme.tableStyles.primary.header.backgroundColors,
+            }}
+          >
             <TableRow sx={singleTheme.tableStyles.primary.header.row}>
               {data.cols.map((col) => {
                 return (
-                  <TableCell style={singleTheme.tableStyles.primary.header.cell} key={col.id}>
+                  <TableCell
+                    style={singleTheme.tableStyles.primary.header.cell}
+                    key={col.id}
+                  >
                     {col.name}
                   </TableCell>
                 );
@@ -144,16 +188,43 @@ const BasicTable = ({
                     onRowClick && onRowClick(row.id);
                   }}
                 >
-                 {row.icon && <TableCell
-                    sx={{ ...cellStyle, ...iconCell }}
-                    key={`icon-${row.id}`}
-                  >
-                    <img src={row.icon} alt="status icon" width={20} />
-                  </TableCell>}
+                  {row.icon && (
+                    <TableCell
+                      sx={{ ...cellStyle, ...iconCell }}
+                      key={`icon-${row.id}`}
+                    >
+                      <img src={row.icon} alt="status icon" width={20} />
+                    </TableCell>
+                  )}
                   {row.data.map((cell: any) => {
                     return (
                       <TableCell sx={cellStyle} key={cell.id}>
-                        {cell.data}
+                        {cell.id === "4" ? (
+                          <Stack
+                            direction="row"
+                            alignItems="center"
+                            spacing={1}
+                          >
+                            <Typography variant="body2">{cell.data}</Typography>
+                            <LinearProgress
+                              variant="determinate"
+                              value={parseFloat(cell.data)}
+                              sx={{
+                                width: "100px",
+                                height: "8px",
+                                borderRadius: "4px",
+                                backgroundColor: theme.palette.grey[200],
+                                "& .MuiLinearProgress-bar": {
+                                  backgroundColor: getProgressColor(
+                                    parseFloat(cell.data)
+                                  ),
+                                },
+                              }}
+                            />
+                          </Stack>
+                        ) : (
+                          cell.data
+                        )}
                       </TableCell>
                     );
                   })}

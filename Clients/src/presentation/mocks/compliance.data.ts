@@ -54,7 +54,7 @@ export const complianceMetrics = [
           },
           { id: "2", data: "Mike Arthurs" },
           { id: "3", data: "3 (1 left)" },
-          { id: "4", data: "33%" },
+          { id: "4", data: "22%" },
         ],
       },
       {

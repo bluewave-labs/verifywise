@@ -84,7 +84,7 @@ const Compliance = ({
   //   }
   // };
 
-  const { dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);
+  const { setDashboardValues } = useContext(VerifyWiseContext);
 
 
   const fetchComplianceTracker = async () => {

@@ -66,7 +66,7 @@ const Compliance = ({
   };
 
   const renderAccordion = (id: string, title: string, content: any) => (
-    <Box>
+    <Box key={id}>
       <Accordion
         expanded={expanded === id}
         onChange={handleAccordionChange(id)}
@@ -151,7 +151,7 @@ const Compliance = ({
   );
 
   return (
-    <Stack className="compliance-page" sx={{ }}>
+    <Stack className="compliance-page" sx={{}}>
       <Toolbar>
         <Typography
           sx={{
@@ -235,6 +235,7 @@ const Compliance = ({
             acdSumDetail.summaryId,
             acdSumDetail.summaryTitle,
             <BasicTable
+              key={acdSumDetail.summaryId}
               data={complianceDetails}
               paginated={false}
               reversed={false}

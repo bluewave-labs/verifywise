@@ -12,7 +12,7 @@ import { risks } from "../mocks/risks/risks.data";
 import { roles } from "../mocks/roles/roles.data";
 import { sections } from "../mocks/sections/sections.data";
 import { subrequirements } from "../mocks/subrequirements/subrequirements.data";
-import { users } from "../mocks/users/users.data";
+import { users } from "../mocks/users.data";
 import { vendorRisks } from "../mocks/vendorRisks/vendorRisks.data";
 import { vendors } from "../mocks/vendors/vendors.data";
 import { AssessmentTracker } from "../models/AssessmentTracker";
@@ -29,7 +29,7 @@ import { Risk } from "../models/Risk";
 import { Role } from "../models/Role";
 import { Section } from "../models/Section";
 import { Subrequirement } from "../models/Subrequirement";
-import { User } from "../models/User";
+import { User } from "../models/user.model";
 import { Vendor } from "../models/Vendor";
 import { VendorRisk } from "../models/VendorRisk";
 import {

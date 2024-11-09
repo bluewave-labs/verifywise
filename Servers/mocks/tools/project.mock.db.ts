@@ -1,31 +1,35 @@
-import { projects } from "../projects/projects.data";
+import mockProjects from "../project.mock.data";
+import { Project } from "../../models/project.model";
 
 export const getAllMockProjects = (): Array<any> => {
-  return projects;
+  return mockProjects;
 };
 
 export const getMockProjectById = (id: number): object | undefined => {
-  return projects.find((project) => project.id === id);
+  return mockProjects.find((project: Project) => project.id === id);
 };
 
 export const createMockProject = (newProject: any): object => {
-  projects.push(newProject);
+  mockProjects.push(newProject);
   return newProject;
 };
 
-export const updateMockProjectById = (id: number, updatedProject: any): object | null => {
-  const index = projects.findIndex((project) => project.id === id);
+export const updateMockProjectById = (
+  id: number,
+  updatedProject: any
+): object | null => {
+  const index = mockProjects.findIndex((project: Project) => project.id === id);
   if (index !== -1) {
-    projects[index] = { ...projects[index], ...updatedProject };
-    return projects[index];
+    mockProjects[index] = { ...mockProjects[index], ...updatedProject };
+    return mockProjects[index];
   }
   return null;
 };
 
 export const deleteMockProjectById = (id: number): object | null => {
-  const index = projects.findIndex((project) => project.id === id);
+  const index = mockProjects.findIndex((project: Project) => project.id === id);
   if (index !== -1) {
-    const deletedProject = projects.splice(index, 1)[0];
+    const deletedProject = mockProjects.splice(index, 1)[0];
     return deletedProject;
   }
   return null;

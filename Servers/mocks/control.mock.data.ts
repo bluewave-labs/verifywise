@@ -1,6 +1,6 @@
 import { Control } from "../models/control.model";
 
-export const controls: Control[] = [
+export const mockControls: Control[] = [
   {
     id: 1,
     projectId: 1,

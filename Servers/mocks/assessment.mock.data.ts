@@ -1,6 +1,6 @@
 import { Assessment } from "../models/assessment.model";
 
-export const assessments: Assessment[] = [
+export const Assessments: Assessment[] = [
   { id: 1, projectId: 1 },
   { id: 2, projectId: 1 },
   { id: 3, projectId: 2 },

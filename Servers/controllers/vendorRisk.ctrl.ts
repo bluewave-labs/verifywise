@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { VendorRisk } from "../models/vendorRisk.model";
 const MOCK_DATA_ON = process.env.MOCK_DATA_ON;
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
@@ -7,17 +8,20 @@ import {
   deleteMockVendorRiskById,
   getAllMockVendorRisks,
   getMockVendorRiskById,
-  updateMockVendorRiskById
-} from "../mocks/tools/vendorRisk.mock.db"
+  updateMockVendorRiskById,
+} from "../mocks/tools/vendorRisk.mock.db";
 import {
   createNewVendorRiskQuery,
   deleteVendorRiskByIdQuery,
   getAllVendorRisksQuery,
   getVendorRiskByIdQuery,
-  updateVendorRiskByIdQuery
+  updateVendorRiskByIdQuery,
 } from "../utils/vendorRisk.util";
 
-export async function getAllVendorRisks(req: Request, res: Response): Promise<any> {
+export async function getAllVendorRisks(
+  req: Request,
+  res: Response
+): Promise<any> {
   try {
     if (MOCK_DATA_ON === "true") {
       const vendorRisks = getAllMockVendorRisks();
@@ -41,7 +45,10 @@ export async function getAllVendorRisks(req: Request, res: Response): Promise<an
   }
 }
 
-export async function getVendorRiskById(req: Request, res: Response): Promise<any> {
+export async function getVendorRiskById(
+  req: Request,
+  res: Response
+): Promise<any> {
   try {
     const vendorRiskId = parseInt(req.params.id);
 
@@ -67,79 +74,42 @@ export async function getVendorRiskById(req: Request, res: Response): Promise<an
   }
 }
 
-export async function createVendorRisk(req: Request, res: Response): Promise<any> {
+export async function createVendorRisk(
+  req: Request,
+  res: Response
+): Promise<any> {
   try {
-    const {
-      vendor_id,
-      risk_description,
-      impact_description,
-      project_id,
-      probability,
-      impact,
-      action_plan,
-      action_owner_id,
-      risk_severity,
-      likelihood,
-      risk_level
-    } = req.body;
+    const newVendorRisk: VendorRisk = req.body;
 
     if (
-      !vendor_id ||
-      !risk_description ||
-      !impact_description ||
-      !project_id ||
-      !probability ||
-      !impact ||
-      !action_plan ||
-      !action_owner_id ||
-      !risk_severity ||
-      !likelihood ||
-      !risk_level
+      !newVendorRisk.project_id ||
+      !newVendorRisk.vendor_name ||
+      !newVendorRisk.risk_name ||
+      !newVendorRisk.owner ||
+      !newVendorRisk.risk_level ||
+      !newVendorRisk.review_date
     ) {
-      return res
-        .status(400)
-        .json(
-          STATUS_CODE[400]({ message: "vendor_id, risk_description, impact_description, project_id, probability, impact, action_plan, action_owner_id, risk_severity, likelihood and risk_level are required" })
-        );
+      return res.status(400).json(
+        STATUS_CODE[400]({
+          message:
+            "project_id, vendor_name, risk_name, owner, risk_level, and review_date are required",
+        })
+      );
     }
 
     if (MOCK_DATA_ON === "true") {
-      const newVendorRisk = createMockVendorRisk({
-      vendor_id,
-      risk_description,
-      impact_description,
-      project_id,
-      probability,
-      impact,
-      action_plan,
-      action_owner_id,
-      risk_severity,
-      likelihood,
-      risk_level
-    });
+      const createdVendorRisk = createMockVendorRisk(newVendorRisk);
 
-      if (newVendorRisk) {
-        return res.status(201).json(STATUS_CODE[201](newVendorRisk));
+      if (createdVendorRisk) {
+        return res.status(201).json(STATUS_CODE[201](createdVendorRisk));
       }
 
       return res.status(503).json(STATUS_CODE[503]({}));
     } else {
-      const newVendorRisk = await createNewVendorRiskQuery({
-      vendor_id,
-      risk_description,
-      impact_description,
-      project_id,
-      probability,
-      impact,
-      action_plan,
-      action_owner_id,
-      risk_severity,
-      likelihood,
-      risk_level
-    });
+      const createdVendorRisk = await createNewVendorRiskQuery(newVendorRisk);
 
-      if (newVendorRisk) {
-        return res.status(201).json(STATUS_CODE[201](newVendorRisk));
+      if (createdVendorRisk) {
+        return res.status(201).json(STATUS_CODE[201](createdVendorRisk));
       }
 
       return res.status(503).json(STATUS_CODE[503]({}));
@@ -153,80 +123,45 @@ export async function updateVendorRiskById(
   req: Request,
   res: Response
 ): Promise<any> {
-  console.log("updateVendorRiskById");
   try {
     const vendorRiskId = parseInt(req.params.id);
-    const {
-      vendor_id,
-      risk_description,
-      impact_description,
-      project_id,
-      probability,
-      impact,
-      action_plan,
-      action_owner_id,
-      risk_severity,
-      likelihood,
-      risk_level
-    } = req.body;
+    const updatedVendorRisk: VendorRisk = req.body;
 
     if (
-      !vendor_id ||
-      !risk_description ||
-      !impact_description ||
-      !project_id ||
-      !probability ||
-      !impact ||
-      !action_plan ||
-      !action_owner_id ||
-      !risk_severity ||
-      !likelihood ||
-      !risk_level
+      !updatedVendorRisk.project_id ||
+      !updatedVendorRisk.vendor_name ||
+      !updatedVendorRisk.risk_name ||
+      !updatedVendorRisk.owner ||
+      !updatedVendorRisk.risk_level ||
+      !updatedVendorRisk.review_date
     ) {
-      return res
-        .status(400)
-        .json(
-          STATUS_CODE[400]({ message: "vendor_id, risk_description, impact_description, project_id, probability, impact, action_plan, action_owner_id, risk_severity, likelihood and risk_level are required" })
-        );
+      return res.status(400).json(
+        STATUS_CODE[400]({
+          message:
+            "project_id, vendor_name, risk_name, owner, risk_level, and review_date are required",
+        })
+      );
     }
 
     if (MOCK_DATA_ON === "true") {
-      const updatedVendorRisk = updateMockVendorRiskById(vendorRiskId, {
-        vendor_id,
-        risk_description,
-        impact_description,
-        project_id,
-        probability,
-        impact,
-        action_plan,
-        action_owner_id,
-        risk_severity,
-        likelihood,
-        risk_level
-      });
+      const vendorRisk = updateMockVendorRiskById(
+        vendorRiskId,
+        updatedVendorRisk
+      );
 
-      if (updatedVendorRisk) {
-        return res.status(202).json(STATUS_CODE[202](updatedVendorRisk));
+      if (vendorRisk) {
+        return res.status(202).json(STATUS_CODE[202](vendorRisk));
       }
 
       return res.status(404).json(STATUS_CODE[404]({}));
     } else {
-      const updatedVendorRisk = await updateVendorRiskByIdQuery(vendorRiskId, {
-        vendor_id,
-        risk_description,
-        impact_description,
-        project_id,
-        probability,
-        impact,
-        action_plan,
-        action_owner_id,
-        risk_severity,
-        likelihood,
-        risk_level
-      });
+      const vendorRisk = await updateVendorRiskByIdQuery(
+        vendorRiskId,
+        updatedVendorRisk
+      );
 
-      if (updatedVendorRisk) {
-        return res.status(202).json(STATUS_CODE[202](updatedVendorRisk));
+      if (vendorRisk) {
+        return res.status(202).json(STATUS_CODE[202](vendorRisk));
       }
 
       return res.status(404).json(STATUS_CODE[404]({}));

@@ -8,7 +8,7 @@ import { Likelihood, Severity } from "../../RiskLevel/constants";
 const RiskSection: FC = () => {
     const theme = useTheme();
     const [values, setValues] = useState({
-        projectName: "0",
+        riskNameInput: "",
         actionOwner: "0",
         aiLifecyclePhase: "0",
         riskDescription: "",
@@ -34,18 +34,19 @@ const RiskSection: FC = () => {
         <Stack className="AddNewRiskForm">
             <Stack sx={{ flexDirection: "row", columnGap: 13, mb: 10 }}>
                 <Stack sx={{ display: "grid", gridTemplateColumns: "324px 324px", columnGap: 13, rowGap: 8.5 }}>
-                    <Select
-                        id="project-name-input"
-                        label="Project name"
-                        placeholder="Select project"
-                        value={values.projectName}
-                        onChange={(e) => handleOnChange("projectName", e.target.value)}
-                        items={[
-                            { _id: 1, name: "Some value 1" },
-                            { _id: 2, name: "Some value 2" },
-                            { _id: 3, name: "Some value 3" },
-                        ]}
-                        sx={{ width: 324, backgroundColor: theme.palette.background.main }}
+                    <Field
+                        id="risk-name-input"
+                        label="Risk name"
+                        placeholder="Write risk name"
+                        width={324}
+                        value={values.riskNameInput}
+                        onChange={(e) => handleOnChange("riskNameInput", e.target.value)}
+                        sx={{ 
+                            backgroundColor: theme.palette.background.main,
+                            "& input": {
+                                padding: "0 14px"
+                            }
+                        }}
                     />
                     <Field
                         id="risk-description-input"

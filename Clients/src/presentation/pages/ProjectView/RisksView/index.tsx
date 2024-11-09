@@ -15,7 +15,7 @@ interface RisksViewProps {
 }
 
 const RisksView: FC<RisksViewProps>= ({ risksSummary, risksData, title }) => {
-    const projectRisksColNames = [ "RISK NAME", "IMPACT", "PROBABILITY", "OWNER", "SEVERITY", "LIKELIHOOD", "RISK LEVEL", "MITIGATION", "FINAL RISK LEVEL" ];
+    const projectRisksColNames = [ "RISK NAME", "IMPACT", "OWNER", "SEVERITY", "LIKELIHOOD", "RISK LEVEL", "MITIGATION", "FINAL RISK LEVEL" ];
     const vendorRisksColNames = [ "VENDOR NAME", "RISK NAME", "OWNER", "RISK LEVEL", "REVIEW DATE" ];
     const colNames = title === "Project" ? projectRisksColNames : title === "Vendor" ? vendorRisksColNames : [];
 

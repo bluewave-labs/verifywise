@@ -69,7 +69,20 @@ export async function getVendorById(req: Request, res: Response): Promise<any> {
 
 export async function createVendor(req: Request, res: Response): Promise<any> {
   try {
-    const { name, description } = req.body;
+    const {
+      name,
+      type,
+      description,
+      website,
+      contact_person,
+      assignee,
+      status,
+      review_result,
+      reviewer,
+      review_date,
+      review_status,
+      risk_status
+    } = req.body;
 
     if (!name || !description) {
       return res

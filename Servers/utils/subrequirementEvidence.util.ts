@@ -6,7 +6,7 @@ export const getAllSubrequirementEvidencesQuery = async (): Promise<
 > => {
   console.log("getAllSubrequirementEvidences");
   const subrequirementEvidences = await pool.query(
-    "SELECT * FROM subrequirement_evidences"
+    "SELECT * FROM subrequirementevidences"
   );
   return subrequirementEvidences.rows;
 };
@@ -16,7 +16,7 @@ export const getSubrequirementEvidenceByIdQuery = async (
 ): Promise<SubrequirementEvidence | null> => {
   console.log("getSubrequirementEvidenceById", id);
   const result = await pool.query(
-    "SELECT * FROM subrequirement_evidences WHERE id = $1",
+    "SELECT * FROM subrequirementevidences WHERE id = $1",
     [id]
   );
   return result.rows.length ? result.rows[0] : null;
@@ -27,7 +27,7 @@ export const createNewSubrequirementEvidenceQuery = async (
 ): Promise<SubrequirementEvidence> => {
   console.log("createNewSubrequirementEvidence", subrequirementEvidence);
   const result = await pool.query(
-    `INSERT INTO subrequirement_evidences (
+    `INSERT INTO subrequirementevidences (
       subrequirement_id, document_name, document_type, file_path, upload_date, 
       uploader_id, description, status, last_reviewed, reviewer_id, reviewer_comments
     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
@@ -55,7 +55,7 @@ export const updateSubrequirementEvidenceByIdQuery = async (
   console.log("updateSubrequirementEvidenceById", id, subrequirementEvidence);
   const fields = [];
   const values = [];
-  let query = "UPDATE subrequirement_evidences SET ";
+  let query = "UPDATE subrequirementevidences SET ";
 
   if (subrequirementEvidence.subrequirement_id) {
     fields.push("subrequirement_id = $1");
@@ -125,7 +125,7 @@ export const deleteSubrequirementEvidenceByIdQuery = async (
 ): Promise<SubrequirementEvidence | null> => {
   console.log("deleteSubrequirementEvidenceById", id);
   const result = await pool.query(
-    "DELETE FROM subrequirement_evidences WHERE id = $1 RETURNING *",
+    "DELETE FROM subrequirementevidences WHERE id = $1 RETURNING *",
     [id]
   );
   return result.rows.length ? result.rows[0] : null;

@@ -34,19 +34,6 @@ const RiskSection: FC = () => {
         <Stack className="AddNewRiskForm">
             <Stack sx={{ flexDirection: "row", columnGap: 13, mb: 10 }}>
                 <Stack sx={{ display: "grid", gridTemplateColumns: "324px 324px", columnGap: 13, rowGap: 8.5 }}>
-                    {/* <Select
-                        id="risk-name-input"
-                        label="Risk name"
-                        placeholder="Select project"
-                        value={values.projectName}
-                        onChange={(e) => handleOnChange("projectName", e.target.value)}
-                        items={[
-                            { _id: 1, name: "Some value 1" },
-                            { _id: 2, name: "Some value 2" },
-                            { _id: 3, name: "Some value 3" },
-                        ]}
-                        sx={{ width: 324, backgroundColor: theme.palette.background.main }}
-                    /> */}
                     <Field
                         id="risk-name-input"
                         label="Risk name"

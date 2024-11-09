@@ -1,11 +1,19 @@
 import express from "express";
 import cors from "cors";
 
-import userRoutes from "./routes/user.route";
-import vendorRiskRoutes from "./routes/vendorRisk.route";
-import vendorRoutes from "./routes/vendor.route";
+import assessmentRoutes from "./routes/assessment.route";
+import controlRoutes from "./routes/control.route";
 import projectRoutes from "./routes/project.route";
+import projectRisksRoutes from "./routes/projectRisks.route";
+import projectScopeRoutes from "./routes/projectScope.route";
 import questionRoutes from "./routes/question.route";
+import subcontrolRoutes from "./routes/subcontrol.route";
+import subtopicRoutes from "./routes/subtopic.route";
+import topicRoutes from "./routes/topic.route";
+import userRoutes from "./routes/user.route";
+import vendorRoutes from "./routes/vendor.route";
+import vendorRiskRoutes from "./routes/vendorRisk.route";
+
 import autoDriverRoutes from "./routes/autoDriver.route";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
@@ -25,6 +33,13 @@ app.use("/vendors", vendorRoutes);
 app.use("/projects", projectRoutes);
 app.use("/questions", questionRoutes);
 app.use("/autoDrivers", autoDriverRoutes);
+app.use("/assessments", assessmentRoutes);
+app.use("/controls", controlRoutes);
+app.use("/projectRisks", projectRisksRoutes);
+app.use("/projectScopes", projectScopeRoutes);
+app.use("/subControls", subcontrolRoutes);
+app.use("/subTopics", subtopicRoutes);
+app.use("/topics", topicRoutes);
 
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 

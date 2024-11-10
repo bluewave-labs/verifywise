@@ -86,6 +86,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       reviewer: "0",
       riskStatus: "0",
       reviewDate: "",
+      assignee: "0",
     },
     risks: {
       riskDescription: "",
@@ -134,30 +135,44 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       <Stack
         direction={"row"}
         justifyContent={"space-between"}
-        marginBottom={theme.spacing(10)}
+        marginBottom={theme.spacing(8)}
       >
         <Field
           label="Vendor name"
-          width={350}
+          width={220}
           value={values.vendorDetails.vendorName}
           onChange={(e) =>
             handleOnChange("vendorDetails", "vendorName", e.target.value)
           }
         />
         <Field
-          label="Project the vendor is connected to"
-          width={350}
-          value={values.vendorDetails.projectVendorIsConnectedTo}
+          label="Website"
+          width={220}
+          value={values.vendorDetails.website}
           onChange={(e) =>
-            handleOnChange(
-              "vendorDetails",
-              "projectVendorIsConnectedTo",
-              e.target.value
-            )
+            handleOnChange("vendorDetails", "website", e.target.value)
           }
         />
+        <Select
+          items={[
+            { _id: 1, name: "Chatbot AI" },
+            { _id: 2, name: "Marketing AI" },
+            { _id: 3, name: "Compliance AI" },
+          ]}
+          label="Project name"
+          placeholder="Select project"
+          isHidden={false}
+          id=""
+          value={values.risks.projectName}
+          onChange={(e) =>
+            handleOnChange("risks", "projectName", e.target.value)
+          }
+          sx={{
+            width: 220,
+          }}
+        />
       </Stack>
-      <Stack marginBottom={theme.spacing(10)}>
+      <Stack marginBottom={theme.spacing(8)}>
         <Field
           label="What does the vendor provide?"
           width={"100%"}
@@ -171,19 +186,11 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       <Stack
         direction={"row"}
         justifyContent={"space-between"}
-        marginBottom={theme.spacing(10)}
+        marginBottom={theme.spacing(8)}
       >
         <Field
-          label="Website"
-          width={350}
-          value={values.vendorDetails.website}
-          onChange={(e) =>
-            handleOnChange("vendorDetails", "website", e.target.value)
-          }
-        />
-        <Field
           label="Vendor contact person"
-          width={350}
+          width={220}
           value={values.vendorDetails.vendorContactPerson}
           onChange={(e) =>
             handleOnChange(
@@ -193,69 +200,63 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             )
           }
         />
+        <Select
+          items={[
+            { _id: 1, name: "Under Review" },
+            { _id: 2, name: "Completed" },
+            { _id: 3, name: "Failed" },
+          ]}
+          label="Review status"
+          placeholder="Select review status"
+          isHidden={false}
+          id=""
+          onChange={(e) =>
+            handleOnChange("vendorDetails", "reviewStatus", e.target.value)
+          }
+          value={values.vendorDetails.reviewStatus}
+          sx={{
+            width: 220,
+          }}
+        />
+        <Select
+          items={[
+            { _id: 1, name: "George Michael" },
+            { _id: 2, name: "Sarah Lee" },
+            { _id: 3, name: "Michael Lee" },
+          ]}
+          label="Reviewer"
+          placeholder="Select reviewer"
+          isHidden={false}
+          id=""
+          onChange={(e) =>
+            handleOnChange("vendorDetails", "reviewer", e.target.value)
+          }
+          value={values.vendorDetails.reviewer}
+          sx={{
+            width: 220,
+          }}
+        />
       </Stack>
       <Stack
         display={"flex"}
         justifyContent={"space-between"}
-        marginBottom={theme.spacing(10)}
+        marginBottom={theme.spacing(8)}
         flexDirection={"row"}
       >
         <Field
           label="Review result"
-          width={350}
+          width={"100%"}
           type="description"
           value={values.vendorDetails.reviewResult}
           onChange={(e) =>
             handleOnChange("vendorDetails", "reviewResult", e.target.value)
           }
         />
-        <Box
-          justifyContent={"space-between"}
-          display={"grid"}
-          gap={theme.spacing(10)}
-        >
-          <Select
-            items={[
-              { _id: 1, name: "Under Review" },
-              { _id: 2, name: "Completed" },
-              { _id: 3, name: "Failed" },
-            ]}
-            label="Review status"
-            placeholder="Select review status"
-            isHidden={false}
-            id=""
-            onChange={(e) =>
-              handleOnChange("vendorDetails", "reviewStatus", e.target.value)
-            }
-            value={values.vendorDetails.reviewStatus}
-            sx={{
-              width: 350,
-            }}
-          />
-          <Select
-            items={[
-              { _id: 1, name: "George Michael" },
-              { _id: 2, name: "Sarah Lee" },
-              { _id: 3, name: "Michael Lee" },
-            ]}
-            label="Reviewer"
-            placeholder="Select reviewer"
-            isHidden={false}
-            id=""
-            onChange={(e) =>
-              handleOnChange("vendorDetails", "reviewer", e.target.value)
-            }
-            value={values.vendorDetails.reviewer}
-            sx={{
-              width: 350,
-            }}
-          />
-        </Box>
       </Stack>
       <Stack
         display={"flex"}
         justifyContent={"space-between"}
-        marginBottom={theme.spacing(10)}
+        marginBottom={theme.spacing(8)}
         flexDirection={"row"}
       >
         <Select
@@ -273,13 +274,31 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           }
           value={values.vendorDetails.riskStatus}
           sx={{
-            width: 350,
+            width: 220,
+          }}
+        />
+        <Select
+          items={[
+            { _id: 1, name: "Assignee 1" },
+            { _id: 2, name: "Assignee 2" },
+            { _id: 3, name: "Assignee 3" },
+          ]}
+          label="Assignee"
+          placeholder="Select person"
+          isHidden={false}
+          id=""
+          onChange={(e) =>
+            handleOnChange("vendorDetails", "assignee", e.target.value)
+          }
+          value={values.vendorDetails.riskStatus}
+          sx={{
+            width: 220,
           }}
         />
         <DatePicker
           label="Review date"
           sx={{
-            width: 350,
+            width: 220,
           }}
           date={
             values.vendorDetails.reviewDate
@@ -297,7 +316,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       <Stack
         direction={"row"}
         justifyContent={"space-between"}
-        marginBottom={theme.spacing(10)}
+        marginBottom={theme.spacing(8)}
       >
         <Field
           label="Risk description"
@@ -319,26 +338,25 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       <Stack
         direction={"row"}
         justifyContent={"space-between"}
-        marginBottom={theme.spacing(10)}
+        marginBottom={theme.spacing(8)}
       >
         <Select
           items={[
-            { _id: 1, name: "Chatbot AI" },
-            { _id: 2, name: "Marketing AI" },
-            { _id: 3, name: "Compliance AI" },
+            { _id: 1, name: "High" },
+            { _id: 2, name: "Moderate" },
+            { _id: 3, name: "Low" },
           ]}
-          label="Project name"
-          placeholder="Select project"
+          label="Impact"
+          placeholder="Select impact"
           isHidden={false}
           id=""
-          value={values.risks.projectName}
-          onChange={(e) =>
-            handleOnChange("risks", "projectName", e.target.value)
-          }
+          onChange={(e) => handleOnChange("risks", "impact", e.target.value)}
+          value={values.risks.impact}
           sx={{
             width: 350,
           }}
         />
+
         <Select
           items={[
             { _id: 1, name: "4" },
@@ -361,26 +379,33 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       <Stack
         display={"flex"}
         justifyContent={"space-between"}
-        marginBottom={theme.spacing(10)}
+        marginBottom={theme.spacing(8)}
         flexDirection={"row"}
       >
-        <Box justifyContent={"space-between"} display={"grid"}>
+        <Box
+          justifyContent={"space-between"}
+          display={"grid"}
+          gap={theme.spacing(8)}
+        >
           <Select
             items={[
-              { _id: 1, name: "High" },
-              { _id: 2, name: "Moderate" },
-              { _id: 3, name: "Low" },
+              { _id: 1, name: "Critical" },
+              { _id: 2, name: "Major" },
+              { _id: 3, name: "Minor" },
             ]}
-            label="Impact"
-            placeholder="Select impact"
+            label="Risk severity"
+            placeholder="Select risk severity"
             isHidden={false}
             id=""
-            onChange={(e) => handleOnChange("risks", "impact", e.target.value)}
-            value={values.risks.impact}
+            onChange={(e) =>
+              handleOnChange("risks", "riskSeverity", e.target.value)
+            }
+            value={values.risks.riskSeverity}
             sx={{
               width: 350,
             }}
           />
+
           <Select
             items={[
               { _id: 1, name: "John McAllen" },
@@ -414,22 +439,20 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       <Stack
         direction={"row"}
         justifyContent={"space-between"}
-        marginBottom={theme.spacing(10)}
+        marginBottom={theme.spacing(8)}
       >
         <Select
           items={[
-            { _id: 1, name: "Critical" },
-            { _id: 2, name: "Major" },
-            { _id: 3, name: "Minor" },
+            { _id: 1, name: "High" },
+            { _id: 2, name: "Moderate" },
+            { _id: 3, name: "Low" },
           ]}
-          label="Risk severity"
-          placeholder="Select risk severity"
+          label="Risk level"
+          placeholder="Select risk level"
           isHidden={false}
           id=""
-          onChange={(e) =>
-            handleOnChange("risks", "riskSeverity", e.target.value)
-          }
-          value={values.risks.riskSeverity}
+          onChange={(e) => handleOnChange("risks", "riskLevel", e.target.value)}
+          value={values.risks.riskLevel}
           sx={{
             width: 350,
           }}
@@ -453,30 +476,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           }}
         />
       </Stack>
-      <Stack
-        direction={"row"}
-        justifyContent={"flex-start"}
-        marginBottom={theme.spacing(10)}
-      >
-        <Select
-          items={[
-            { _id: 1, name: "High" },
-            { _id: 2, name: "Moderate" },
-            { _id: 3, name: "Low" },
-          ]}
-          label="Risk level"
-          placeholder="Select risk level"
-          isHidden={false}
-          id=""
-          onChange={(e) => handleOnChange("risks", "riskLevel", e.target.value)}
-          value={values.risks.riskLevel}
-          sx={{
-            width: 350,
-          }}
-        />
-      </Stack>
     </TabPanel>
   );
+
   return (
     <Modal
       open={isOpen}

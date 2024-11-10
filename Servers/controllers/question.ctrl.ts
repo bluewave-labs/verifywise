@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { Question } from "../models/question.model";
 const MOCK_DATA_ON = process.env.MOCK_DATA_ON;
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
@@ -7,17 +8,20 @@ import {
   deleteMockQuestionById,
   getAllMockQuestions,
   getMockQuestionById,
-  updateMockQuestionById
-} from "../mocks/tools/question.mock.db"
+  updateMockQuestionById,
+} from "../mocks/tools/question.mock.db";
 import {
   createNewQuestionQuery,
   deleteQuestionByIdQuery,
   getAllQuestionsQuery,
   getQuestionByIdQuery,
-  updateQuestionByIdQuery
-} from "../utils/question.util";
+  updateQuestionByIdQuery,
+} from "../utils/question.utils";
 
-export async function getAllQuestions(req: Request, res: Response): Promise<any> {
+export async function getAllQuestions(
+  req: Request,
+  res: Response
+): Promise<any> {
   try {
     if (MOCK_DATA_ON === "true") {
       const questions = getAllMockQuestions();
@@ -41,7 +45,10 @@ export async function getAllQuestions(req: Request, res: Response): Promise<any>
   }
 }
 
-export async function getQuestionById(req: Request, res: Response): Promise<any> {
+export async function getQuestionById(
+  req: Request,
+  res: Response
+): Promise<any> {
   try {
     const questionId = parseInt(req.params.id);
 
@@ -67,31 +74,40 @@ export async function getQuestionById(req: Request, res: Response): Promise<any>
   }
 }
 
-export async function createQuestion(req: Request, res: Response): Promise<any> {
+export async function createQuestion(
+  req: Request,
+  res: Response
+): Promise<any> {
   try {
-    const { name, description } = req.body;
+    const newQuestion: Question = req.body;
 
-    if (!name || !description) {
-      return res
-        .status(400)
-        .json(
-          STATUS_CODE[400]({ message: "name and description are required" })
-        );
+    if (
+      !newQuestion.subtopicId ||
+      !newQuestion.questionText ||
+      !newQuestion.answerType ||
+      newQuestion.isRequired === undefined
+    ) {
+      return res.status(400).json(
+        STATUS_CODE[400]({
+          message:
+            "subtopicId, questionText, answerType and isRequired are required",
+        })
+      );
     }
 
     if (MOCK_DATA_ON === "true") {
-      const newQuestion = createMockQuestion({ name, description });
+      const createdQuestion = createMockQuestion(newQuestion);
 
-      if (newQuestion) {
-        return res.status(201).json(STATUS_CODE[201](newQuestion));
+      if (createdQuestion) {
+        return res.status(201).json(STATUS_CODE[201](createdQuestion));
       }
 
       return res.status(503).json(STATUS_CODE[503]({}));
     } else {
-      const newQuestion = await createNewQuestionQuery({ name, description });
+      const createdQuestion = await createNewQuestionQuery(newQuestion);
 
-      if (newQuestion) {
-        return res.status(201).json(STATUS_CODE[201](newQuestion));
+      if (createdQuestion) {
+        return res.status(201).json(STATUS_CODE[201](createdQuestion));
       }
 
       return res.status(503).json(STATUS_CODE[503]({}));
@@ -105,35 +121,40 @@ export async function updateQuestionById(
   req: Request,
   res: Response
 ): Promise<any> {
-  console.log("updateQuestionById");
   try {
     const questionId = parseInt(req.params.id);
-    const { name, description } = req.body;
+    const updatedQuestion: Question = req.body;
 
-    if (!name || !description) {
-      return res
-        .status(400)
-        .json(
-          STATUS_CODE[400]({ message: "name and description are required" })
-        );
+    if (
+      !updatedQuestion.subtopicId ||
+      !updatedQuestion.questionText ||
+      !updatedQuestion.answerType ||
+      updatedQuestion.isRequired === undefined
+    ) {
+      return res.status(400).json(
+        STATUS_CODE[400]({
+          message:
+            "subtopicId, questionText, answerType and isRequired are required",
+        })
+      );
     }
 
     if (MOCK_DATA_ON === "true") {
-      const updatedQuestion = updateMockQuestionById(questionId, { name, description });
+      const question = updateMockQuestionById(questionId, updatedQuestion);
 
-      if (updatedQuestion) {
-        return res.status(202).json(STATUS_CODE[202](updatedQuestion));
+      if (question) {
+        return res.status(202).json(STATUS_CODE[202](question));
       }
 
       return res.status(404).json(STATUS_CODE[404]({}));
     } else {
-      const updatedQuestion = await updateQuestionByIdQuery(questionId, {
-        name,
-        description,
-      });
+      const question = await updateQuestionByIdQuery(
+        questionId,
+        updatedQuestion
+      );
 
-      if (updatedQuestion) {
-        return res.status(202).json(STATUS_CODE[202](updatedQuestion));
+      if (question) {
+        return res.status(202).json(STATUS_CODE[202](question));
       }
 
       return res.status(404).json(STATUS_CODE[404]({}));

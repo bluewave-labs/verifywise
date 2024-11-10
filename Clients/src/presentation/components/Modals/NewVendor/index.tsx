@@ -78,26 +78,25 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     vendorDetails: {
       vendorName: "",
       website: "",
-      projectVendorIsConnectedTo: "",
+      projectId: 0,
       vendorProvides: "",
       vendorContactPerson: "",
       reviewStatus: "0",
       reviewer: "0",
       reviewResult: "",
-      riskStatus: "0",
-      assignee: "0",
+      riskStatus: 0,
+      assignee: 0,
       reviewDate: "",
     },
     risks: {
       riskDescription: "",
       impactDescription: "",
-      impact: "0",
-      projectName: "0",
-      probability: "0",
-      actionOwner: "0",
-      riskSeverity: "0",
-      likelihood: "0",
-      riskLevel: "0",
+      impact: 0,
+      probability: 0,
+      actionOwner: 0,
+      riskSeverity: 0,
+      likelihood: 0,
+      riskLevel: 0,
       actionPlan: "",
     },
   });
@@ -164,7 +163,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           placeholder="Select project"
           isHidden={false}
           id=""
-          value={values.risks.projectName}
+          value={values.vendorDetails.projectId}
           onChange={(e) =>
             handleOnChange("risks", "projectName", e.target.value)
           }
@@ -203,9 +202,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         />
         <Select // reviewStatus
           items={[
-            { _id: 1, name: "Under Review" },
-            { _id: 2, name: "Completed" },
-            { _id: 3, name: "Failed" },
+            { _id: "Under Review", name: "Under Review" },
+            { _id: "Completed", name: "Completed" },
+            { _id: "Failed", name: "Failed" },
           ]}
           label="Review status"
           placeholder="Select review status"
@@ -221,9 +220,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         />
         <Select // reviewer
           items={[
-            { _id: 1, name: "George Michael" },
-            { _id: 2, name: "Sarah Lee" },
-            { _id: 3, name: "Michael Lee" },
+            { _id: "George Michael", name: "George Michael" },
+            { _id: "Sarah Lee", name: "Sarah Lee" },
+            { _id: "Michael Lee", name: "Michael Lee" },
           ]}
           label="Reviewer"
           placeholder="Select reviewer"
@@ -262,9 +261,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       >
         <Select // riskStatus
           items={[
-            { _id: 1, name: "High" },
-            { _id: 2, name: "Moderate" },
-            { _id: 3, name: "Low" },
+            { _id: "Active", name: "Active" },
+            { _id: "Under review", name: "Under review" },
+            { _id: "Not active", name: "Not active" },
           ]}
           label="Risk status"
           placeholder="Select risk status"
@@ -443,9 +442,11 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       >
         <Select // riskLevel
           items={[
-            { _id: 1, name: "High" },
-            { _id: 2, name: "Moderate" },
-            { _id: 3, name: "Low" },
+            { _id: "Very high risk", name: "Very high risk" },
+            { _id: "High risk", name: "High risk" },
+            { _id: "Medium risk", name: "Medium risk" },
+            { _id: "Low risk", name: "Low risk" },
+            { _id: "Very low risk", name: "Very low risk" },
           ]}
           label="Risk level"
           placeholder="Select risk level"

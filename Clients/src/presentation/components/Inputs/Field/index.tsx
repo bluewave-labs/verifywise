@@ -110,6 +110,7 @@ const Field = forwardRef(
           <Typography
             color={theme.palette.text.secondary}
             fontWeight={500}
+            fontSize={"13px"}
           >
             {label}
             {isRequired ? (

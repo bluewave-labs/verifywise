@@ -4,13 +4,13 @@ export type Vendor = {
   vendorName: string;
   website: string;
   projectId: number;
-  assignee: string;
   vendorProvides: string;
   vendorContactPerson: string;
   reviewStatus: string;
   reviewer: string;
   reviewResult: string;
   riskStatus: "Active" | "Under review" | "Not active";
+  assignee: string;
   reviewDate: Date;
   // Risks tab
   riskDescription: string;

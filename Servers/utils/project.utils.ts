@@ -1,120 +1,221 @@
+// Purpose: Driver to insert mock data into the database.
+
+import mockProjects from "../mocks/project.mock.data";
+import { questions } from "../mocks/question.mock.data";
+import { users } from "../mocks/users.data";
+import mockVendorRisks from "../mocks/vendorRisk.mock.data";
+import { vendors } from "../mocks/vendor.mock.data";
+import { Assessments } from "../mocks/assessment.mock.data";
+
+import { Assessment } from "../models/assessment.model";
 import { Project } from "../models/project.model";
-import pool from "../database/db";
+import { Question } from "../models/question.model";
+import { User } from "../models/user.model";
+import { Vendor } from "../models/vendor.model";
+import { VendorRisk } from "../models/vendorRisk.model";
 
-export const getAllProjectsQuery = async (): Promise<Project[]> => {
-  console.log("getAllProjects");
-  const projects = await pool.query("SELECT * FROM projects");
-  return projects.rows;
-};
+import {
+  deleteExistingData,
+  checkTableExists,
+  createTable,
+  insertData,
+} from "../utils/autoDriver.util";
 
-export const getProjectByIdQuery = async (
-  id: number
-): Promise<Project | null> => {
-  console.log("getProjectById", id);
-  const result = await pool.query("SELECT * FROM projects WHERE id = $1", [id]);
-  return result.rows.length ? result.rows[0] : null;
-};
+interface TableEntry<T> {
+  mockData: T[];
+  tableName: string;
+  createString: string;
+  insertString: string;
+  generateValuesString: (item: T) => string;
+}
 
-export const createNewProjectQuery = async (project: {
-  project_title: string;
-  owner: string;
-  users: number[];
-  start_date: Date;
-  ai_risk_classification: "high risk" | "limited risk" | "minimal risk";
-  type_of_high_risk_role:
-    | "deployer"
-    | "provider"
-    | "distributor"
-    | "importer"
-    | "product manufacturer"
-    | "authorized representative";
-  goal: string;
-  last_updated: Date;
-  last_updated_by: string;
-}): Promise<Project> => {
-  console.log("createNewProject", project);
-  const result = await pool.query(
-    `INSERT INTO projects (
-      project_title, owner, users, start_date, ai_risk_classification, 
-      type_of_high_risk_role, goal, last_updated, last_updated_by
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-    [
-      project.project_title,
-      project.owner,
-      project.users,
-      project.start_date,
-      project.ai_risk_classification,
-      project.type_of_high_risk_role,
-      project.goal,
-      project.last_updated,
-      project.last_updated_by,
-    ]
-  );
-  return result.rows[0];
-};
+type TableList = [
+  TableEntry<User>,
+  TableEntry<Project>,
+  TableEntry<Vendor>,
+  TableEntry<VendorRisk>,
+  TableEntry<Question>,
+  TableEntry<Assessment>
+];
 
-export const updateProjectByIdQuery = async (
-  id: number,
-  project: Partial<Project>
-): Promise<Project | null> => {
-  console.log("updateProjectById", id, project);
-  const fields = [];
-  const values = [];
-  let query = "UPDATE projects SET ";
+const insertQuery: TableList = [
+  {
+    mockData: users,
+    tableName: "users",
+    createString: `CREATE TABLE users(
+      id SERIAL PRIMARY KEY,
+      name varchar(100),
+      email varchar(255) UNIQUE,
+      password_hash varchar(255),
+      role integer,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      last_login TIMESTAMP,
+      CONSTRAINT users_role_fkey FOREIGN KEY (role)
+        REFERENCES roles(id)
+        ON DELETE SET NULL
+    )`,
+    insertString:
+      "INSERT INTO users(name, email, password_hash, role, created_at, last_login) VALUES ",
+    generateValuesString: function (user: User) {
+      return `('${user.name}', '${user.email}', '${user.password_hash}', ${
+        user.role
+      }, '${user.created_at.toISOString()}', '${user.last_login.toISOString()}')`;
+    },
+  },
+  {
+    mockData: mockProjects,
+    tableName: "projects",
+    createString: `CREATE TABLE projects(
+      id SERIAL PRIMARY KEY,
+      project_title varchar(255) NOT NULL,
+      owner varchar(255) NOT NULL,
+      users integer[] NOT NULL,
+      start_date DATE NOT NULL,
+      ai_risk_classification varchar(50) NOT NULL,
+      type_of_high_risk_role varchar(50) NOT NULL,
+      goal text,
+      last_updated TIMESTAMP NOT NULL,
+      last_updated_by varchar(255) NOT NULL
+    )`,
+    insertString:
+      "INSERT INTO projects(project_title, owner, users, start_date, ai_risk_classification, type_of_high_risk_role, goal, last_updated, last_updated_by) VALUES ",
+    generateValuesString: function (project: Project) {
+      const usersArray = `{${project.users.join(",")}}`;
+      return `('${project.project_title}', '${
+        project.owner
+      }', '${usersArray}', '${
+        project.start_date.toISOString().split("T")[0]
+      }', '${project.ai_risk_classification}', '${
+        project.type_of_high_risk_role
+      }', '${project.goal}', '${project.last_updated.toISOString()}', '${
+        project.last_updated_by
+      }')`;
+    },
+  },
+  {
+    mockData: vendors,
+    tableName: "vendors",
+    createString: `CREATE TABLE vendors(
+      id SERIAL PRIMARY KEY,
+      project_id integer,
+      vendor_name varchar(255) NOT NULL,
+      assignee varchar(100),
+      vendor_provides text,
+      website varchar(255),
+      vendor_contact_person varchar(100),
+      review_result varchar(50),
+      review_status varchar(50),
+      reviewer varchar(50),
+      review_date TIMESTAMP,
+      risk_status varchar(50),
+      risk_description text,
+      impact_description text,
+      impact integer,
+      probability integer,
+      action_owner varchar(100),
+      action_plan text,
+      risk_severity integer,
+      risk_level varchar(50),
+      likelihood integer
+    );`,
+    insertString:
+      "INSERT INTO vendors(project_id, vendor_name, assignee, vendor_provides, website, vendor_contact_person, review_result, review_status, reviewer, review_date, risk_status, risk_description, impact_description, impact, probability, action_owner, action_plan, risk_severity, risk_level, likelihood) VALUES ",
+    generateValuesString: function (vendor: Vendor) {
+      return `(${vendor.projectId}, '${vendor.vendorName}', '${
+        vendor.assignee
+      }', '${vendor.vendorProvides}', '${vendor.website}', '${
+        vendor.vendorContactPerson
+      }', '${vendor.reviewResult}', '${vendor.reviewStatus}', '${
+        vendor.reviewer
+      }', '${vendor.reviewDate.toISOString()}', '${vendor.riskStatus}', '${
+        vendor.riskDescription
+      }', '${vendor.impactDescription}', ${vendor.impact}, ${
+        vendor.probability
+      }, '${vendor.actionOwner}', '${vendor.actionPlan}', ${
+        vendor.riskSeverity
+      }, '${vendor.riskLevel}', ${vendor.likelihood})`;
+    },
+  },
+  {
+    mockData: mockVendorRisks,
+    tableName: "vendorrisks",
+    createString: `CREATE TABLE vendorrisks(
+      id SERIAL PRIMARY KEY,
+      project_id integer,
+      vendor_name varchar(255) NOT NULL,
+      risk_name varchar(255) NOT NULL,
+      owner varchar(255) NOT NULL,
+      risk_level varchar(50) CHECK (risk_level IN ('No risk', 'Low risk', 'Medium risk', 'High risk', 'Very high risk')),
+      review_date TIMESTAMP NOT NULL,
+      CONSTRAINT vendorrisks_project_id_fkey FOREIGN KEY (project_id)
+        REFERENCES projects(id)
+        ON DELETE SET NULL
+    );`,
+    insertString:
+      "INSERT INTO vendorrisks(project_id, vendor_name, risk_name, owner, risk_level, review_date) VALUES ",
+    generateValuesString: function (vendorRisk: VendorRisk) {
+      return `(${vendorRisk.project_id}, '${vendorRisk.vendor_name}', '${
+        vendorRisk.risk_name
+      }', '${vendorRisk.owner}', '${
+        vendorRisk.risk_level
+      }', '${vendorRisk.review_date.toISOString()}')`;
+    },
+  },
+  {
+    mockData: questions,
+    tableName: "questions",
+    createString: `CREATE TABLE questions(
+      id SERIAL PRIMARY KEY,
+      subtopic_id integer,
+      question_text text,
+      answer_type varchar(50),
+      dropdown_options text,
+      has_file_upload boolean,
+      has_hint boolean,
+      is_required boolean,
+      priority_options text,
+      CONSTRAINT fk_subtopic FOREIGN KEY (subtopic_id)
+        REFERENCES subtopics (id)
+        ON DELETE SET NULL
+    );`,
+    insertString:
+      "INSERT INTO questions(subtopic_id, question_text, answer_type, dropdown_options, has_file_upload, has_hint, is_required, priority_options) VALUES ",
+    generateValuesString: function (question: Question) {
+      return `(${question.subtopicId}, '${question.questionText}', '${question.answerType}', '${question.dropdownOptions}', ${question.hasFileUpload}, ${question.hasHint}, ${question.isRequired}, '${question.priorityOptions}')`;
+    },
+  },
+  {
+    mockData: Assessments,
+    tableName: "assessments",
+    createString: `CREATE TABLE assessments(
+      id SERIAL PRIMARY KEY,
+      project_id integer,
+      CONSTRAINT assessments_project_id_fkey FOREIGN KEY (project_id)
+        REFERENCES projects(id)
+        ON DELETE SET NULL
+    );`,
+    insertString: "INSERT INTO assessments(project_id) VALUES ",
+    generateValuesString: function (assessment: Assessment) {
+      return `(${assessment.projectId})`;
+    },
+  },
+];
 
-  if (project.project_title) {
-    fields.push(`project_title = $${fields.length + 1}`);
-    values.push(project.project_title);
+export async function insertMockData() {
+  for (let entry of insertQuery) {
+    let {
+      mockData,
+      tableName,
+      createString,
+      insertString,
+      generateValuesString,
+    } = entry;
+    if (!(await checkTableExists(tableName as string))) {
+      await createTable(createString as string);
+    }
+    await deleteExistingData(tableName as string);
+    const values = mockData.map((d) => generateValuesString(d as any));
+    insertString += values.join(",") + ";";
+    await insertData(insertString as string);
   }
-  if (project.owner) {
-    fields.push(`owner = $${fields.length + 1}`);
-    values.push(project.owner);
-  }
-  if (project.users) {
-    fields.push(`users = $${fields.length + 1}`);
-    values.push(project.users);
-  }
-  if (project.start_date) {
-    fields.push(`start_date = $${fields.length + 1}`);
-    values.push(project.start_date);
-  }
-  if (project.ai_risk_classification) {
-    fields.push(`ai_risk_classification = $${fields.length + 1}`);
-    values.push(project.ai_risk_classification);
-  }
-  if (project.type_of_high_risk_role) {
-    fields.push(`type_of_high_risk_role = $${fields.length + 1}`);
-    values.push(project.type_of_high_risk_role);
-  }
-  if (project.goal) {
-    fields.push(`goal = $${fields.length + 1}`);
-    values.push(project.goal);
-  }
-  if (project.last_updated) {
-    fields.push(`last_updated = $${fields.length + 1}`);
-    values.push(project.last_updated);
-  }
-  if (project.last_updated_by) {
-    fields.push(`last_updated_by = $${fields.length + 1}`);
-    values.push(project.last_updated_by);
-  }
-
-  if (fields.length === 0) {
-    throw new Error("No fields to update");
-  }
-
-  query += fields.join(", ") + ` WHERE id = $${fields.length + 1} RETURNING *`;
-  values.push(id);
-
-  const result = await pool.query(query, values);
-  return result.rows.length ? result.rows[0] : null;
-};
-
-export const deleteProjectByIdQuery = async (id: number): Promise<boolean> => {
-  console.log("deleteProjectById", id);
-  const result = await pool.query(
-    "DELETE FROM projects WHERE id = $1 RETURNING id",
-    [id]
-  );
-  return result.rowCount !== null && result.rowCount > 0;
-};
+}

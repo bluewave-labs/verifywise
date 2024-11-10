@@ -4177,6 +4177,288 @@ paths:
                 error:
                   type: object
 
+  /projects:
+    get:
+      tags: [projects]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all projects
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/Project"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [projects]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new project
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Cloud Migration"
+                description:
+                  type: string
+                  example: "Moving company services to a cloud-based infrastructure."
+                last_updated:
+                  type: string
+                  format: date-time
+                  example: "2024-09-20T00:00:00.000Z"
+                owner_id:
+                  type: integer
+                  example: 1
+                compliance_status:
+                  type: string
+                  example: "Not Started"
+                controls_completed:
+                  type: integer
+                  example: 0
+                requirements_completed:
+                  type: integer
+                  example: 0
+        required: true
+      responses:
+        "201":
+          description: created project
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/Project"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /projects/{id}:
+    get:
+      tags: [projects]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the project
+      responses:
+        "200":
+          description: project
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/Project"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [projects]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the project
+      requestBody:
+        description: body of the new project
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Cloud Migration"
+                description:
+                  type: string
+                  example: "Moving company services to a cloud-based infrastructure."
+                last_updated:
+                  type: string
+                  format: date-time
+                  example: "2024-09-20T00:00:00.000Z"
+                owner_id:
+                  type: integer
+                  example: 1
+                compliance_status:
+                  type: string
+                  example: "Not Started"
+                controls_completed:
+                  type: integer
+                  example: 0
+                requirements_completed:
+                  type: integer
+                  example: 0
+        required: true
+      responses:
+        "202":
+          description: project
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/Project"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [projects]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the project to delete
+      responses:
+        "202":
+          description: project
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
 components:
   securitySchemes:
     JWTAuth:
@@ -4577,3 +4859,31 @@ components:
         risk_level:
           type: string
           example: "High"
+    Project:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Cloud Migration"
+        description:
+          type: string
+          example: "Moving company services to a cloud-based infrastructure."
+        last_updated:
+          type: string
+          format: date-time
+          example: "2024-09-20T00:00:00.000Z"
+        owner_id:
+          type: integer
+          example: 1
+        compliance_status:
+          type: string
+          example: "Not Started"
+        controls_completed:
+          type: integer
+          example: 0
+        requirements_completed:
+          type: integer
+          example: 0

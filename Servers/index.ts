@@ -37,8 +37,8 @@ app.use("/assessments", assessmentRoutes);
 app.use("/controls", controlRoutes);
 app.use("/projectRisks", projectRisksRoutes);
 app.use("/projectScopes", projectScopeRoutes);
-app.use("/subControls", subcontrolRoutes);
-app.use("/subTopics", subtopicRoutes);
+app.use("/subcontrols", subcontrolRoutes);
+app.use("/subtopics", subtopicRoutes);
 app.use("/topics", topicRoutes);
 
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));

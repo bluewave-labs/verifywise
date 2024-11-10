@@ -1,0 +1,8 @@
+### get all subtopics
+
+GET http://localhost:3000/subtopics
+
+### get subtopic by id
+
+GET http://localhost:3000/subtopics/2
+

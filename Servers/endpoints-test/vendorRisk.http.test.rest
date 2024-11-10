@@ -1,0 +1,8 @@
+### get all vendorRisks
+
+GET http://localhost:3000/vendorRisks
+
+### get vendorRisk by id
+
+GET http://localhost:3000/vendorRisks/2
+

@@ -1,9 +1,15 @@
+// Purpose: Driver to insert mock data into the database.
+
+import { Assessments } from "../mocks/assessment.mock.data";
+import { mockControls } from "../mocks/control.mock.data";
 import mockProjects from "../mocks/project.mock.data";
 import { questions } from "../mocks/question.mock.data";
 import { users } from "../mocks/users.data";
-import mockVendorRisks from "../mocks/vendorRisk.mock.data";
 import { vendors } from "../mocks/vendor.mock.data";
+import mockVendorRisks from "../mocks/vendorRisk.mock.data";
 
+import { Assessment } from "../models/assessment.model";
+import { Control } from "../models/control.model";
 import { Project } from "../models/project.model";
 import { Question } from "../models/question.model";
 import { User } from "../models/user.model";
@@ -26,38 +32,60 @@ interface TableEntry<T> {
 }
 
 type TableList = [
-  TableEntry<User>,
+  TableEntry<Assessment>,
+  TableEntry<Control>,
   TableEntry<Project>,
+  TableEntry<Question>,
+  TableEntry<User>,
   TableEntry<Vendor>,
-  TableEntry<VendorRisk>,
-  TableEntry<Question>
+  TableEntry<VendorRisk>
 ];
 
 const insertQuery: TableList = [
   {
-    mockData: users,
-    tableName: "users",
-    createString: `CREATE TABLE users(
+    mockData: Assessments,
+    tableName: "assessments",
+    createString: `CREATE TABLE assessments(
       id SERIAL PRIMARY KEY,
-      name varchar(100),
-      email varchar(255) UNIQUE,
-      password_hash varchar(255),
-      role integer,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      last_login TIMESTAMP,
-      CONSTRAINT users_role_fkey FOREIGN KEY (role)
-        REFERENCES roles(id)
+      project_id integer,
+      CONSTRAINT assessments_project_id_fkey FOREIGN KEY (project_id)
+        REFERENCES projects(id)
         ON DELETE SET NULL
-    )`,
-    insertString:
-      "INSERT INTO users(name, email, password_hash, role, created_at, last_login) VALUES ",
-    generateValuesString: function (user: User) {
-      return `('${user.name}', '${user.email}', '${user.password_hash}', ${
-        user.role
-      }, '${user.created_at.toISOString()}', '${user.last_login.toISOString()}')`;
+    );`,
+    insertString: "INSERT INTO assessments(project_id) VALUES ",
+    generateValuesString: function (assessment: Assessment) {
+      return `(${assessment.projectId})`;
     },
   },
-
+  {
+    mockData: mockControls,
+    tableName: "controls",
+    createString: `CREATE TABLE controls(
+      id SERIAL PRIMARY KEY,
+      project_id integer,
+      status varchar(50),
+      approver varchar(100),
+      risk_review text,
+      owner varchar(100),
+      reviewer varchar(100),
+      due_date DATE,
+      implementation_details text,
+      CONSTRAINT controls_project_id_fkey FOREIGN KEY (project_id)
+      REFERENCES projects(id)
+      ON DELETE SET NULL
+    );`,
+    insertString:
+      "INSERT INTO controls(project_id, status, approver, risk_review, owner, reviewer, due_date, implementation_details) VALUES ",
+    generateValuesString: function (control: Control) {
+      return `(${control.projectId}, '${control.status}', '${
+        control.approver
+      }', '${control.riskReview}', '${control.owner}', '${
+        control.reviewer
+      }', '${control.dueDate.toISOString().split("T")[0]}', '${
+        control.implementationDetails
+      }')`;
+    },
+  },
   {
     mockData: mockProjects,
     tableName: "projects",
@@ -86,6 +114,52 @@ const insertQuery: TableList = [
       }', '${project.goal}', '${project.last_updated.toISOString()}', '${
         project.last_updated_by
       }')`;
+    },
+  },
+  {
+    mockData: questions,
+    tableName: "questions",
+    createString: `CREATE TABLE questions(
+      id SERIAL PRIMARY KEY,
+      subtopic_id integer,
+      question_text text,
+      answer_type varchar(50),
+      dropdown_options text,
+      has_file_upload boolean,
+      has_hint boolean,
+      is_required boolean,
+      priority_options text,
+      CONSTRAINT fk_subtopic FOREIGN KEY (subtopic_id)
+        REFERENCES subtopics (id)
+        ON DELETE SET NULL
+    );`,
+    insertString:
+      "INSERT INTO questions(subtopic_id, question_text, answer_type, dropdown_options, has_file_upload, has_hint, is_required, priority_options) VALUES ",
+    generateValuesString: function (question: Question) {
+      return `(${question.subtopicId}, '${question.questionText}', '${question.answerType}', '${question.dropdownOptions}', ${question.hasFileUpload}, ${question.hasHint}, ${question.isRequired}, '${question.priorityOptions}')`;
+    },
+  },
+  {
+    mockData: users,
+    tableName: "users",
+    createString: `CREATE TABLE users(
+      id SERIAL PRIMARY KEY,
+      name varchar(100),
+      email varchar(255) UNIQUE,
+      password_hash varchar(255),
+      role integer,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      last_login TIMESTAMP,
+      CONSTRAINT users_role_fkey FOREIGN KEY (role)
+        REFERENCES roles(id)
+        ON DELETE SET NULL
+    )`,
+    insertString:
+      "INSERT INTO users(name, email, password_hash, role, created_at, last_login) VALUES ",
+    generateValuesString: function (user: User) {
+      return `('${user.name}', '${user.email}', '${user.password_hash}', ${
+        user.role
+      }, '${user.created_at.toISOString()}', '${user.last_login.toISOString()}')`;
     },
   },
   {
@@ -155,29 +229,6 @@ const insertQuery: TableList = [
       }', '${vendorRisk.owner}', '${
         vendorRisk.risk_level
       }', '${vendorRisk.review_date.toISOString()}')`;
-    },
-  },
-  {
-    mockData: questions,
-    tableName: "questions",
-    createString: `CREATE TABLE questions(
-      id SERIAL PRIMARY KEY,
-      subtopic_id integer,
-      question_text text,
-      answer_type varchar(50),
-      dropdown_options text,
-      has_file_upload boolean,
-      has_hint boolean,
-      is_required boolean,
-      priority_options text,
-      CONSTRAINT fk_subtopic FOREIGN KEY (subtopic_id)
-        REFERENCES subtopics (id)
-        ON DELETE SET NULL
-    );`,
-    insertString:
-      "INSERT INTO questions(subtopic_id, question_text, answer_type, dropdown_options, has_file_upload, has_hint, is_required, priority_options) VALUES ",
-    generateValuesString: function (question: Question) {
-      return `(${question.subtopicId}, '${question.questionText}', '${question.answerType}', '${question.dropdownOptions}', ${question.hasFileUpload}, ${question.hasHint}, ${question.isRequired}, '${question.priorityOptions}')`;
     },
   },
 ];

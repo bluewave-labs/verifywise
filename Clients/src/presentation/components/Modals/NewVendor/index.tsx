@@ -77,27 +77,28 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   const [values, setValues] = useState({
     vendorDetails: {
       vendorName: "",
+      website: "",
       projectVendorIsConnectedTo: "",
       vendorProvides: "",
-      website: "",
       vendorContactPerson: "",
-      reviewResult: "",
       reviewStatus: "0",
       reviewer: "0",
+      reviewResult: "",
       riskStatus: "0",
-      reviewDate: "",
       assignee: "0",
+      reviewDate: "",
     },
     risks: {
       riskDescription: "",
       impactDescription: "",
+      impact: "0",
       projectName: "0",
       probability: "0",
-      impact: "0",
       actionOwner: "0",
       riskSeverity: "0",
       likelihood: "0",
       riskLevel: "0",
+      actionPlan: "",
     },
   });
 
@@ -137,7 +138,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         justifyContent={"space-between"}
         marginBottom={theme.spacing(8)}
       >
-        <Field
+        <Field // vendorName
           label="Vendor name"
           width={220}
           value={values.vendorDetails.vendorName}
@@ -145,7 +146,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             handleOnChange("vendorDetails", "vendorName", e.target.value)
           }
         />
-        <Field
+        <Field // website
           label="Website"
           width={220}
           value={values.vendorDetails.website}
@@ -153,7 +154,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             handleOnChange("vendorDetails", "website", e.target.value)
           }
         />
-        <Select
+        <Select // projectId (will be added my loading list of projects here)
           items={[
             { _id: 1, name: "Chatbot AI" },
             { _id: 2, name: "Marketing AI" },
@@ -173,7 +174,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         />
       </Stack>
       <Stack marginBottom={theme.spacing(8)}>
-        <Field
+        <Field // vendorProvides
           label="What does the vendor provide?"
           width={"100%"}
           type="description"
@@ -188,7 +189,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         justifyContent={"space-between"}
         marginBottom={theme.spacing(8)}
       >
-        <Field
+        <Field // vendorContactPerson
           label="Vendor contact person"
           width={220}
           value={values.vendorDetails.vendorContactPerson}
@@ -200,7 +201,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             )
           }
         />
-        <Select
+        <Select // reviewStatus
           items={[
             { _id: 1, name: "Under Review" },
             { _id: 2, name: "Completed" },
@@ -218,7 +219,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             width: 220,
           }}
         />
-        <Select
+        <Select // reviewer
           items={[
             { _id: 1, name: "George Michael" },
             { _id: 2, name: "Sarah Lee" },
@@ -243,7 +244,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         marginBottom={theme.spacing(8)}
         flexDirection={"row"}
       >
-        <Field
+        <Field // reviewResult
           label="Review result"
           width={"100%"}
           type="description"
@@ -259,7 +260,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         marginBottom={theme.spacing(8)}
         flexDirection={"row"}
       >
-        <Select
+        <Select // riskStatus
           items={[
             { _id: 1, name: "High" },
             { _id: 2, name: "Moderate" },
@@ -277,7 +278,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             width: 220,
           }}
         />
-        <Select
+        <Select // assignee (not in the server model!)
           items={[
             { _id: 1, name: "Assignee 1" },
             { _id: 2, name: "Assignee 2" },
@@ -290,12 +291,12 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           onChange={(e) =>
             handleOnChange("vendorDetails", "assignee", e.target.value)
           }
-          value={values.vendorDetails.riskStatus}
+          value={values.vendorDetails.assignee}
           sx={{
             width: 220,
           }}
         />
-        <DatePicker
+        <DatePicker // reviewDate
           label="Review date"
           sx={{
             width: 220,
@@ -318,7 +319,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         justifyContent={"space-between"}
         marginBottom={theme.spacing(8)}
       >
-        <Field
+        <Field // riskDescription
           label="Risk description"
           width={350}
           value={values.risks.riskDescription}
@@ -326,7 +327,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             handleOnChange("risks", "riskDescription", e.target.value)
           }
         />
-        <Field
+        <Field // impactDescription
           label="Impact description"
           width={350}
           value={values.risks.impactDescription}
@@ -340,7 +341,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         justifyContent={"space-between"}
         marginBottom={theme.spacing(8)}
       >
-        <Select
+        <Select // impact
           items={[
             { _id: 1, name: "High" },
             { _id: 2, name: "Moderate" },
@@ -357,7 +358,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           }}
         />
 
-        <Select
+        <Select // probability
           items={[
             { _id: 1, name: "4" },
             { _id: 2, name: "3" },
@@ -387,7 +388,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           display={"grid"}
           gap={theme.spacing(8)}
         >
-          <Select
+          <Select // riskSeverity
             items={[
               { _id: 1, name: "Critical" },
               { _id: 2, name: "Major" },
@@ -406,7 +407,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             }}
           />
 
-          <Select
+          <Select // actionOwner
             items={[
               { _id: 1, name: "John McAllen" },
               { _id: 2, name: "Jessica Parker" },
@@ -425,23 +426,22 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             }}
           />
         </Box>
-        <Field
-          label="Review result"
+        <Field // actionPlan
+          label="Action plan"
           width={350}
           type="description"
-          value={values.vendorDetails.reviewResult}
+          value={values.risks.actionPlan}
           onChange={(e) =>
-            handleOnChange("vendorDetails", "reviewResult", e.target.value)
+            handleOnChange("risks", "actionPlan", e.target.value)
           }
         />
       </Stack>
-
       <Stack
         direction={"row"}
         justifyContent={"space-between"}
         marginBottom={theme.spacing(8)}
       >
-        <Select
+        <Select // riskLevel
           items={[
             { _id: 1, name: "High" },
             { _id: 2, name: "Moderate" },
@@ -457,7 +457,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             width: 350,
           }}
         />
-        <Select
+        <Select // likelihood
           items={[
             { _id: 1, name: "Probable" },
             { _id: 2, name: "Possible" },

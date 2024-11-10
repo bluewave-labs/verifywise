@@ -1,23 +1,25 @@
 export type Vendor = {
   id: number;
-  projectId: number;
+  // Vendor details tab
   vendorName: string;
+  website: string;
+  projectId: number;
   assignee: string;
   vendorProvides: string;
-  website: string;
   vendorContactPerson: string;
-  reviewResult: string;
   reviewStatus: string;
   reviewer: string;
+  reviewResult: string;
   riskStatus: "Active" | "Under review" | "Not active";
   reviewDate: Date;
+  // Risks tab
   riskDescription: string;
   impactDescription: string;
   impact: number;
   probability: number;
+  riskSeverity: number;
   actionOwner: string;
   actionPlan: string;
-  riskSeverity: number;
   riskLevel:
     | "Very high risk"
     | "High risk"

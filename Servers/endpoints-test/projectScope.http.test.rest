@@ -1,0 +1,8 @@
+### get all projectScopes
+
+GET http://localhost:3000/projectScopes
+
+### get projectScope by id
+
+GET http://localhost:3000/projectScopes/2
+

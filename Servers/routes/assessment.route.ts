@@ -12,12 +12,12 @@ import {
 import authenticateJWT from "../middleware/auth.middleware";
 
 // GET requests
-router.get("/", authenticateJWT, getAllAssessments);
-router.get("/:id", authenticateJWT, getAssessmentById);
+router.get("/", /*authenticateJWT, */ getAllAssessments);
+router.get("/:id", /*authenticateJWT, */ getAssessmentById);
 
 // POST, PUT, DELETE requests
-router.post("/", authenticateJWT, createAssessment);
-router.put("/:id", authenticateJWT, updateAssessmentById);
-router.delete("/:id", authenticateJWT, deleteAssessmentById);
+router.post("/", /*authenticateJWT, */ createAssessment);
+router.put("/:id", /*authenticateJWT, */ updateAssessmentById);
+router.delete("/:id", /*authenticateJWT, */ deleteAssessmentById);
 
 export default router;

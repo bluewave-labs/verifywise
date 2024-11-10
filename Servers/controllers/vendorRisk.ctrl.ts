@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { VendorRisk } from "../models/vendorRisk.model";
-const MOCK_DATA_ON = process.env.MOCK_DATA_ON;
+const MOCK_DATA_ON = true;
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
@@ -23,7 +23,7 @@ export async function getAllVendorRisks(
   res: Response
 ): Promise<any> {
   try {
-    if (MOCK_DATA_ON === "true") {
+    if (MOCK_DATA_ON === true) {
       const vendorRisks = getAllMockVendorRisks();
 
       if (vendorRisks) {
@@ -52,7 +52,7 @@ export async function getVendorRiskById(
   try {
     const vendorRiskId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCK_DATA_ON === true) {
       const vendorRisk = getMockVendorRiskById(vendorRiskId);
 
       if (vendorRisk) {
@@ -97,7 +97,7 @@ export async function createVendorRisk(
       );
     }
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCK_DATA_ON === true) {
       const createdVendorRisk = createMockVendorRisk(newVendorRisk);
 
       if (createdVendorRisk) {
@@ -143,7 +143,7 @@ export async function updateVendorRiskById(
       );
     }
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCK_DATA_ON === true) {
       const vendorRisk = updateMockVendorRiskById(
         vendorRiskId,
         updatedVendorRisk
@@ -178,7 +178,7 @@ export async function deleteVendorRiskById(
   try {
     const vendorRiskId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCK_DATA_ON === true) {
       const deletedVendorRisk = deleteMockVendorRiskById(vendorRiskId);
 
       if (deletedVendorRisk) {

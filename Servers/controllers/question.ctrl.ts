@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { Question } from "../models/question.model";
-const MOCK_DATA_ON = process.env.MOCK_DATA_ON;
+const MOCK_DATA_ON = true;
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
@@ -23,7 +23,7 @@ export async function getAllQuestions(
   res: Response
 ): Promise<any> {
   try {
-    if (MOCK_DATA_ON === "true") {
+    if (MOCK_DATA_ON === true) {
       const questions = getAllMockQuestions();
 
       if (questions) {
@@ -52,7 +52,7 @@ export async function getQuestionById(
   try {
     const questionId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCK_DATA_ON === true) {
       const question = getMockQuestionById(questionId);
 
       if (question) {
@@ -95,7 +95,7 @@ export async function createQuestion(
       );
     }
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCK_DATA_ON === true) {
       const createdQuestion = createMockQuestion(newQuestion);
 
       if (createdQuestion) {
@@ -139,7 +139,7 @@ export async function updateQuestionById(
       );
     }
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCK_DATA_ON === true) {
       const question = updateMockQuestionById(questionId, updatedQuestion);
 
       if (question) {
@@ -171,7 +171,7 @@ export async function deleteQuestionById(
   try {
     const questionId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCK_DATA_ON === true) {
       const deletedQuestion = deleteMockQuestionById(questionId);
 
       if (deletedQuestion) {

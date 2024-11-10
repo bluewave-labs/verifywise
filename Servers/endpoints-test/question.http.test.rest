@@ -1,0 +1,8 @@
+### get all subcontrols
+
+GET http://localhost:3000/subcontrols
+
+### get subcontrol by id
+
+GET http://localhost:3000/subcontrols/2
+

@@ -108,7 +108,6 @@ const Field = forwardRef(
       >
         {label && (
           <Typography
-            component="h3"
             color={theme.palette.text.secondary}
             fontWeight={500}
           >

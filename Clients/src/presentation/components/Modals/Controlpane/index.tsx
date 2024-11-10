@@ -191,8 +191,9 @@ const CustomModal: React.FC<CustomModalProps> = ({
             width: "fit-content",
           }}
         >
-          {["Overview", "Evidence", "Auditor Feedback"].map((section) => (
+          {["Overview", "Evidence", "Auditor Feedback"].map((section, index) => (
             <Button
+            key={index}
               variant={getVariant(activeSection, section)}
               onClick={() => handleSectionChange(section)}
               disableRipple

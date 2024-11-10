@@ -47,7 +47,6 @@ const DatePicker = ({
     >
       {label && (
         <Typography
-          component="h3"
           color={theme.palette.text.secondary}
           fontSize={13}
           fontWeight={500}

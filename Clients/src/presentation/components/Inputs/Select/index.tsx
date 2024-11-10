@@ -66,7 +66,6 @@ const Select: React.FC<SelectProps> = ({
       }}>
       {label && (
         <Typography
-          component="h3"
           color={theme.palette.text.secondary}
           fontWeight={500}
           fontSize={13}

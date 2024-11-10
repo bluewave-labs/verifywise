@@ -1,31 +1,37 @@
-import { vendorRisks } from "../vendorRisks/vendorRisks.data";
+import mockVendorRisks from "../vendorRisk.mock.data";
 
 export const getAllMockVendorRisks = (): Array<any> => {
-  return vendorRisks;
+  return mockVendorRisks;
 };
 
 export const getMockVendorRiskById = (id: number): object | undefined => {
-  return vendorRisks.find((vendorRisk) => vendorRisk.id === id);
+  return mockVendorRisks.find((vendorRisk) => vendorRisk.id === id);
 };
 
 export const createMockVendorRisk = (newVendorRisk: any): object => {
-  vendorRisks.push(newVendorRisk);
+  mockVendorRisks.push(newVendorRisk);
   return newVendorRisk;
 };
 
-export const updateMockVendorRiskById = (id: number, updatedVendorRisk: any): object | null => {
-  const index = vendorRisks.findIndex((vendorRisk) => vendorRisk.id === id);
+export const updateMockVendorRiskById = (
+  id: number,
+  updatedVendorRisk: any
+): object | null => {
+  const index = mockVendorRisks.findIndex((vendorRisk) => vendorRisk.id === id);
   if (index !== -1) {
-    vendorRisks[index] = { ...vendorRisks[index], ...updatedVendorRisk };
-    return vendorRisks[index];
+    mockVendorRisks[index] = {
+      ...mockVendorRisks[index],
+      ...updatedVendorRisk,
+    };
+    return mockVendorRisks[index];
   }
   return null;
 };
 
 export const deleteMockVendorRiskById = (id: number): object | null => {
-  const index = vendorRisks.findIndex((vendorRisk) => vendorRisk.id === id);
+  const index = mockVendorRisks.findIndex((vendorRisk) => vendorRisk.id === id);
   if (index !== -1) {
-    const deletedVendorRisk = vendorRisks.splice(index, 1)[0];
+    const deletedVendorRisk = mockVendorRisks.splice(index, 1)[0];
     return deletedVendorRisk;
   }
   return null;

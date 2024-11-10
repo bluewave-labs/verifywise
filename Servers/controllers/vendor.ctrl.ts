@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { Vendor } from "../models/vendor.model";
 const MOCK_DATA_ON = process.env.MOCK_DATA_ON;
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
@@ -69,68 +70,31 @@ export async function getVendorById(req: Request, res: Response): Promise<any> {
 
 export async function createVendor(req: Request, res: Response): Promise<any> {
   try {
-    const {
-      name,
-      type,
-      description,
-      website,
-      contact_person,
-      assignee,
-      status,
-      review_result,
-      reviewer,
-      review_date,
-      review_status,
-      risk_status
-    } = req.body;
+    const newVendor: Vendor = req.body;
 
-    if (!name || !description) {
+    if (!newVendor.vendorName || !newVendor.vendorProvides) {
       return res
         .status(400)
         .json(
-          STATUS_CODE[400]({ message: "name and description are required" })
+          STATUS_CODE[400]({
+            message: "vendorName and vendorProvides are required",
+          })
         );
     }
 
     if (MOCK_DATA_ON === "true") {
-      const newVendor = createMockVendor({
-        name,
-        description,
-        type: req.body.type,
-        website: req.body.website,
-        contact_person: req.body.contact_person,
-        assignee: req.body.assignee,
-        status: req.body.status,
-        review_result: req.body.review_result,
-        reviewer: req.body.reviewer,
-        review_date: req.body.review_date,
-        review_status: req.body.review_status,
-        risk_status: req.body.risk_status,
-      });
+      const createdVendor = createMockVendor(newVendor);
 
-      if (newVendor) {
-        return res.status(201).json(STATUS_CODE[201](newVendor));
+      if (createdVendor) {
+        return res.status(201).json(STATUS_CODE[201](createdVendor));
       }
 
       return res.status(503).json(STATUS_CODE[503]({}));
     } else {
-      const newVendor = await createNewVendorQuery({
-        name,
-        description,
-        type: req.body.type,
-        website: req.body.website,
-        contact_person: req.body.contact_person,
-        assignee: req.body.assignee,
-        status: req.body.status,
-        review_result: req.body.review_result,
-        reviewer: req.body.reviewer,
-        review_date: req.body.review_date,
-        review_status: req.body.review_status,
-        risk_status: req.body.risk_status,
-      });
+      const createdVendor = await createNewVendorQuery(newVendor);
 
-      if (newVendor) {
-        return res.status(201).json(STATUS_CODE[201](newVendor));
+      if (createdVendor) {
+        return res.status(201).json(STATUS_CODE[201](createdVendor));
       }
 
       return res.status(503).json(STATUS_CODE[503]({}));
@@ -144,38 +108,33 @@ export async function updateVendorById(
   req: Request,
   res: Response
 ): Promise<any> {
-  console.log("updateVendorById");
   try {
     const vendorId = parseInt(req.params.id);
-    const { name, description } = req.body;
+    const updatedVendor: Vendor = req.body;
 
-    if (!name || !description) {
+    if (!updatedVendor.vendorName || !updatedVendor.vendorProvides) {
       return res
         .status(400)
         .json(
-          STATUS_CODE[400]({ message: "name and description are required" })
+          STATUS_CODE[400]({
+            message: "vendorName and vendorProvides are required",
+          })
         );
     }
 
     if (MOCK_DATA_ON === "true") {
-      const updatedVendor = updateMockVendorById(vendorId, {
-        name,
-        description,
-      });
+      const vendor = updateMockVendorById(vendorId, updatedVendor);
 
-      if (updatedVendor) {
-        return res.status(202).json(STATUS_CODE[202](updatedVendor));
+      if (vendor) {
+        return res.status(202).json(STATUS_CODE[202](vendor));
       }
 
       return res.status(404).json(STATUS_CODE[404]({}));
     } else {
-      const updatedVendor = await updateVendorByIdQuery(vendorId, {
-        name,
-        description,
-      });
+      const vendor = await updateVendorByIdQuery(vendorId, updatedVendor);
 
-      if (updatedVendor) {
-        return res.status(202).json(STATUS_CODE[202](updatedVendor));
+      if (vendor) {
+        return res.status(202).json(STATUS_CODE[202](vendor));
       }
 
       return res.status(404).json(STATUS_CODE[404]({}));

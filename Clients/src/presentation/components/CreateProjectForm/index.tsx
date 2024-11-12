@@ -13,7 +13,7 @@ interface FormValues {
   projectTitle: string,
   users: number,
   owner: number,
-  reviewDate: string,
+  startDate: string,
   riskClassification: number,
   typeOfHighRiskRole: number,
   goal: string
@@ -23,7 +23,7 @@ interface FormErrors {
   projectTitle?: string,
   users?: string,
   owner?: string,
-  reviewDate?: string,
+  startDate?: string,
   riskClassification?: string,
   typeOfHighRiskRole?: string,
   goal?: string
@@ -33,7 +33,7 @@ const initialState: FormValues = {
   projectTitle: "",
   users: 0,
   owner: 0,
-  reviewDate: "",
+  startDate: "",
   riskClassification: 0,
   typeOfHighRiskRole: 0,
   goal: ""
@@ -53,7 +53,7 @@ const CreateProjectForm: FC = () => {
   const handleDateChange = (newDate: Dayjs | null) => {
     setValues((prevValues) => ({
       ...prevValues,
-      reviewDate: newDate ? newDate.toISOString() : ""
+      startDate: newDate ? newDate.toISOString() : ""
     }));
   };
   const handleOnSelectChange = (prop: keyof FormValues) => (event: SelectChangeEvent<string | number>) => {
@@ -75,6 +75,10 @@ const CreateProjectForm: FC = () => {
     const goal = checkStringValidation("Goal", values.goal, 1, 256);
     if (!goal.accepted) {
       newErrors.goal = goal.message;
+    }
+    const startDate = checkStringValidation("Start date", values.startDate, 1);
+    if (!startDate.accepted) {
+        newErrors.startDate = startDate.message;
     }
     const users = selectValidation("Users", values.users);
     if (!users.accepted) {
@@ -167,13 +171,14 @@ console.log(values)
           />
           <DatePicker
             label="Start date"
-            date={values.reviewDate ? dayjs(values.reviewDate) : null}
+            date={values.startDate ? dayjs(values.startDate) : null}
             handleDateChange={handleDateChange}
             sx={{
               width: "130px",
               "& input": { width: "85px" }
             }}
             isRequired
+            error={errors.startDate}
           />
           <Stack sx={{ display: "grid", gridTemplateColumns: "1fr", columnGap: 20, rowGap: 9.5, marginTop: "16px" }}>
             <Select

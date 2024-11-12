@@ -1,7 +1,7 @@
 import { Stack, Typography} from "@mui/material";
 import { RiskData } from "../../../mocks/projects/project-overview.data";
 import { ProjectRisk } from "../../../mocks/projects/project-risks.data";
-import { FC } from "react";
+import { FC, useState } from "react";
 import { VendorRisk } from "../../../mocks/projects/project-vendor-risks.data";
 import BasicTable from "../../../components/Table";
 import Risks from "../../../components/Risks";
@@ -51,20 +51,31 @@ const RisksView: FC<RisksViewProps>= ({ risksSummary, risksData, title }) => {
         rows: risksTableRows
     }
 
+    const PopupRender = () => {
+        const [anchor, setAnchor] = useState<null | HTMLElement>(null);
+        const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
+            setAnchor(anchor ? null : event.currentTarget);
+        };
+    
+        return (
+          <Popup
+            popupId="add-new-risk-popup" 
+            popupContent={<AddNewRiskForm closePopup={() => setAnchor(null)} />} 
+            openPopupButtonName="Add new risk"
+            popupTitle="Add a new risk"
+            popupSubtitle="Create a detailed breakdown of risks and their mitigation strategies to assist in documenting your risk management activities effectively."
+            handleOpenOrClose={handleOpenOrClose}
+            anchor={anchor}
+          />
+        )
+      }
+
     return (
         <Stack sx={{ maxWidth: 1220 }}>
             <Risks {...risksSummary} />
             <Stack sx={{ mt: "32px", mb: "28px" }} direction="row" justifyContent="space-between" alignItems="flex-end">
                 <Typography component="h2" sx={{ fontSize: 16, fontWeight: 600, color: "#1A1919" }}>{title} risks</Typography>
-                <Popup 
-                    popupId="add-new-risk-popup" 
-                    popupContent={<AddNewRiskForm/>} 
-                    openPopupButtonName="Add new risk"
-                    actionButtonName="Save"
-                    popupTitle="Add a new risk"
-                    popupSubtitle="Create a detailed breakdown of risks and their mitigation strategies to assist in documenting your risk management activities effectively."
-                    onActionButtonClick={() => {}}
-                />
+                <PopupRender />
             </Stack>
             <BasicTable 
                 data={tableData} 

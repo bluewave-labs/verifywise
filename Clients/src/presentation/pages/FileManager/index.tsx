@@ -1,5 +1,5 @@
 const FileManager= () => {
-  return <div>FileManager</div>;
+  return <div>File Manager here</div>;
 };
 
 export default FileManager;

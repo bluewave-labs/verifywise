@@ -10,7 +10,6 @@ import {
   Menu,
   MenuItem,
   Box,
-  Button,
   Paper,
   TableContainer,
 } from "@mui/material";
@@ -55,15 +54,15 @@ const FileManager: React.FC = () => {
     handleMenuClose();
   };
 
-  const handleAddFile = () => {
-    const newFile: File = {
-      name: "new document",
-      type: "document",
-      uploadDate: new Date().toLocaleDateString(),
-      uploader: "you",
-    };
-    setFiles([...files, newFile]);
-  };
+  // const handleAddFile = () => {
+  //   const newFile: File = {
+  //     name: "new document",
+  //     type: "document",
+  //     uploadDate: new Date().toLocaleDateString(),
+  //     uploader: "you",
+  //   };
+  //   setFiles([...files, newFile]);
+  // };
 
   //empty dashboard
   const renderEmptyState = () => (

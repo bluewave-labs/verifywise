@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import { ReactComponent as EmptyStateImage } from "../../assets/imgs/empty-state.svg";
 import { ReactComponent as FileActionIcon } from "../../assets/icons/setting.svg";
+import { ReactComponent as UploadIcon } from "../../assets/imgs/upload-icon.svg";
 
 interface File {
   name: string;
@@ -89,8 +90,18 @@ const FileManager: React.FC = () => {
             <TableRow>
               <TableCell>File</TableCell>
               <TableCell>Type</TableCell>
-              <TableCell>Upload Date</TableCell>
-              <TableCell>Uploader</TableCell>
+              <TableCell>
+                Upload Date
+                <UploadIcon
+                  style={{ verticalAlign: "middle", marginRight: 4 }}
+                />
+              </TableCell>
+              <TableCell>
+                Uploader
+                <UploadIcon
+                  style={{ verticalAlign: "middle", marginRight: 4 }}
+                />
+              </TableCell>
               <TableCell>Action</TableCell>
             </TableRow>
           </TableHead>
@@ -103,26 +114,28 @@ const FileManager: React.FC = () => {
               </TableRow>
             ) : (
               files.map((file, index) => (
-              <TableRow key={index}>
-                <TableCell>{file.name}</TableCell>
-                <TableCell>{file.type}</TableCell>
-                <TableCell>{file.uploadDate}</TableCell>
-                <TableCell>{file.uploader}</TableCell>
-                <TableCell>
-                  <IconButton
-                    onClick={(event) => handleMenuClick(event, index)}>
-                    <FileActionIcon />
-                  </IconButton>
-                  <Menu
-                    anchorEl={anchorEl}
-                    open={Boolean(anchorEl)}
-                    onClose={handleMenuClose}>
-                    <MenuItem onClick={handleMenuClose}>Download</MenuItem>
-                    <MenuItem onClick={handleDeleteFile}>Remove</MenuItem>
-                  </Menu>
-                </TableCell>
-              </TableRow>
-            ))
+                <TableRow key={index}>
+                  <TableCell>{file.name}</TableCell>
+                  <TableCell>{file.type}</TableCell>
+                  <TableCell>{file.uploadDate}</TableCell>
+                  <TableCell>{file.uploader}</TableCell>
+                  <TableCell>
+                    <IconButton
+                      onClick={(event) => handleMenuClick(event, index)}
+                    >
+                      <FileActionIcon />
+                    </IconButton>
+                    <Menu
+                      anchorEl={anchorEl}
+                      open={Boolean(anchorEl)}
+                      onClose={handleMenuClose}
+                    >
+                      <MenuItem onClick={handleMenuClose}>Download</MenuItem>
+                      <MenuItem onClick={handleDeleteFile}>Remove</MenuItem>
+                    </Menu>
+                  </TableCell>
+                </TableRow>
+              ))
             )}
           </TableBody>
         </Table>

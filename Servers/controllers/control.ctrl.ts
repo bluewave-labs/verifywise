@@ -76,7 +76,16 @@ export async function getControlById(
 
 export async function createControl(req: Request, res: Response): Promise<any> {
   try {
-    const newControl: Control = req.body;
+    const newControl: {
+      projectId: number;
+      status: string;
+      approver: string;
+      riskReview: string;
+      owner: string;
+      reviewer: string;
+      dueDate: Date;
+      implementationDetails: string;
+    } = req.body;
 
     if (MOCK_DATA_ON === true) {
       const control = createMockControl(newControl);
@@ -106,7 +115,16 @@ export async function updateControlById(
 ): Promise<any> {
   try {
     const controlId = parseInt(req.params.id);
-    const updatedControl: Control = req.body;
+    const updatedControl: {
+      projectId: number;
+      status: string;
+      approver: string;
+      riskReview: string;
+      owner: string;
+      reviewer: string;
+      dueDate: Date;
+      implementationDetails: string;
+    } = req.body;
 
     if (MOCK_DATA_ON === true) {
       const control = updateMockControlById(controlId, updatedControl);

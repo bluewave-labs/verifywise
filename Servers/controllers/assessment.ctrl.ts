@@ -79,7 +79,9 @@ export async function createAssessment(
   res: Response
 ): Promise<any> {
   try {
-    const newAssessment: Assessment = req.body;
+    const newAssessment: {
+      projectId: number;
+    } = req.body;
 
     if (!newAssessment.projectId) {
       return res.status(400).json(
@@ -117,7 +119,9 @@ export async function updateAssessmentById(
 ): Promise<any> {
   try {
     const assessmentId = parseInt(req.params.id);
-    const updatedAssessment: Assessment = req.body;
+    const updatedAssessment: {
+      projectId: number;
+    } = req.body;
 
     if (!updatedAssessment.projectId) {
       return res.status(400).json(

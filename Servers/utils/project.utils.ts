@@ -16,7 +16,17 @@ export const getProjectByIdQuery = async (
 };
 
 export const createNewProjectQuery = async (
-  project: Project
+  project: {
+    project_title: string;
+    owner: string;
+    users: number[];
+    start_date: Date;
+    ai_risk_classification: string;
+    type_of_high_risk_role: string;
+    goal: string;
+    last_updated: Date;
+    last_updated_by: string;
+  }
 ): Promise<Project> => {
   console.log("createProject");
   const result = await pool.query(
@@ -38,7 +48,17 @@ export const createNewProjectQuery = async (
 
 export const updateProjectByIdQuery = async (
   id: number,
-  project: Partial<Project>
+  project: Partial<{
+    project_title: string;
+    owner: string;
+    users: number[];
+    start_date: Date;
+    ai_risk_classification: string;
+    type_of_high_risk_role: string;
+    goal: string;
+    last_updated: Date;
+    last_updated_by: string;
+  }>
 ): Promise<Project | null> => {
   console.log("updateProjectById", id);
   const result = await pool.query(

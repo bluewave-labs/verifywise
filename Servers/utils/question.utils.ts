@@ -49,7 +49,16 @@ export const createNewQuestionQuery = async (question: {
 
 export const updateQuestionByIdQuery = async (
   id: number,
-  question: Partial<Question>
+  question: Partial<{
+    subtopicId: number;
+    questionText: string;
+    answerType: string;
+    dropdownOptions: string;
+    hasFileUpload: boolean;
+    hasHint: boolean;
+    isRequired: boolean;
+    priorityOptions: string;
+  }>
 ): Promise<Question | null> => {
   console.log("updateQuestionById", id, question);
   const result = await pool.query(

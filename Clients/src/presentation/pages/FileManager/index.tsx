@@ -84,11 +84,6 @@ const FileManager: React.FC = () => {
 
   return (
     <Box padding={2}>
-      <Box marginBottom={2} display="flex" justifyContent="flex-end">
-        <Button variant="contained" color="primary" onClick={handleAddFile}>
-          Add new file
-        </Button>
-      </Box>
       <TableContainer component={Paper}>
         <Table>
           <TableHead>

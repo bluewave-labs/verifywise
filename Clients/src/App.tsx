@@ -97,6 +97,7 @@ function App() {
             <Route path="/setting" element={<Setting />} />
             <Route path="/team" element={<Team />} />
             <Route path="/project-view" element={<ProjectView />} />
+            <Route path="/file-manager" element={<FileManager />} />
           </Route>
           <Route path="/admin-reg" element={<RegisterAdmin />} />
           <Route path="/user-reg" element={<RegisterUser />} />
@@ -108,7 +109,6 @@ function App() {
             path="/reset-password-continue"
             element={<ResetPasswordContinue />}
           />
-          <Route path="/file-manager" element={<FileManager/>} />
 
           {/** This route is simply for testing and playing with components and will be removed soon  */}
           <Route path="/playground" element={<Playground />} />

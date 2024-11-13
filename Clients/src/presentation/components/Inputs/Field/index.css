@@ -4,8 +4,7 @@
 .field h3.MuiTypography-root,
 .field h5.MuiTypography-root,
 .field input,
-.field textarea,
-.field .input-error {
+.field textarea {
   font-size: 13px;
 }
 .field h5.MuiTypography-root {

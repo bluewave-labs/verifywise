@@ -12,6 +12,7 @@ interface DatePickerProps {
   optionalLabel?: string;
   sx?: object;
   date: Dayjs | null;
+  error?: string;
   handleDateChange: (date: Dayjs | null) => void;
 }
 
@@ -22,6 +23,7 @@ const DatePicker = ({
   optionalLabel,
   sx,
   date,
+  error,
   handleDateChange,
 }: DatePickerProps) => {
   const theme = useTheme();
@@ -38,7 +40,9 @@ const DatePicker = ({
             borderColor: theme.palette.border.dark,
           },
         "&:has(.input-error) .MuiOutlinedInput-root fieldset": {
-          borderColor: theme.palette.error.text,
+          border: error 
+            ? `1px solid ${theme.palette.status.error.border}!important` 
+            : `1px solid ${theme.palette.border.dark}!important`
         },
         ".Mui-focused .MuiOutlinedInput-notchedOutline": {
           border: `1px solid ${theme.palette.border.dark}!important`,
@@ -112,6 +116,20 @@ const DatePicker = ({
           format="MM/DD/YYYY"
         />
       </LocalizationProvider>
+      {error && (
+        <Typography
+          component="span"
+          className="input-error"
+          color={theme.palette.status.error.text}
+          mt={theme.spacing(2)}
+          sx={{
+            opacity: 0.8,
+            fontSize: 11
+          }}
+        >
+          {error}
+        </Typography>
+      )}
     </Stack>
   );
 };

@@ -32,6 +32,8 @@ interface SelectProps {
   isHidden?: boolean;
   value: string | number;
   items: { _id: string | number; name: string }[];
+  isRequired?: boolean;
+  error?: string;
   onChange: (
     event: SelectChangeEvent<string | number>,
     child: React.ReactNode
@@ -46,6 +48,8 @@ const Select: React.FC<SelectProps> = ({
   isHidden,
   value,
   items,
+  isRequired,
+  error,
   onChange,
   sx,
 }) => {
@@ -58,20 +62,35 @@ const Select: React.FC<SelectProps> = ({
   };
 
   return (
-    <Stack gap={theme.spacing(2)} className="select-wrapper" 
+    <Stack gap={theme.spacing(2)} className="select-wrapper"
       sx={{
+        ".MuiOutlinedInput-notchedOutline": {
+          border: error 
+            ? `1px solid ${theme.palette.status.error.border}!important` 
+            : `1px solid ${theme.palette.border.dark}!important`
+        },
         ".Mui-focused .MuiOutlinedInput-notchedOutline": {
-          border: `1px solid ${theme.palette.border.dark}!important`
+          border: error 
+          ? `1px solid ${theme.palette.status.error.border}!important` 
+          : `1px solid ${theme.palette.border.dark}!important`
         }
       }}>
       {label && (
         <Typography
-          component="h3"
           color={theme.palette.text.secondary}
           fontWeight={500}
           fontSize={13}
         >
           {label}
+          {isRequired && (
+            <Typography
+              component="span"
+              ml={theme.spacing(1)}
+              color={theme.palette.error.text}
+            >
+              *
+            </Typography>
+          )}
         </Typography>
       )}
       <MuiSelect
@@ -148,6 +167,20 @@ const Select: React.FC<SelectProps> = ({
           </MenuItem>
         ))}
       </MuiSelect>
+      {error && (
+        <Typography
+          component="span"
+          className="input-error"
+          color={theme.palette.status.error.text}
+          mt={theme.spacing(2)}
+          sx={{
+            opacity: 0.8,
+            fontSize: 11
+          }}
+        >
+          {error}
+        </Typography>
+      )}
     </Stack>
   );
 };

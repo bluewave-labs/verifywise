@@ -1,117 +1,154 @@
 import { Box, Button, Divider, Stack, Typography } from "@mui/material";
-import { useRef, useState } from "react";
+import { useRef, useState, ChangeEvent } from "react";
 import Field from "../../../components/Inputs/Field";
-import Avatar from "../../../components/Avatar";
+import Avatar from "../../../components/Avatar/VWAvatar/index";
 import { useTheme } from "@mui/material";
 import DeleteAccountConfirmation from "../../../components/Modals/DeleteAccount/index";
-import { Email } from "@mui/icons-material";
+import { checkStringValidation } from "../../../../application/validations/stringValidation";
+import validator from "validator";
 
-/**
- * A functional component that renders a user profile form with fields for the first name, last name, email,
- * and profile photo, allowing users to update their information or delete their profile photo.
- *
- * @component
- * @returns {JSX.Element} The rendered user profile form component.
- */
-const index = () => {
-  // State hooks for managing form inputs and profile photo.
-  const [firstname, setFirstname] = useState(""); // State for the first name field.
-  const [lastname, setLastname] = useState(""); // State for the last name field.
-  const [password, setPassword] = useState(""); // State for the email/password field (misnamed, should represent email).
-  const [profilePhoto, setProfilePhoto] = useState(
+interface User {
+  firstname: string;
+  lastname: string;
+  pathToImage: string;
+}
+
+const ProfileForm: React.FC = () => {
+  const [firstname, setFirstname] = useState<string>("");
+  const [lastname, setLastname] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [profilePhoto, setProfilePhoto] = useState<string>(
     "/placeholder.svg?height=80&width=80"
-  ); // State for the profile photo URL.
+  );
+
+  const [firstnameError, setFirstnameError] = useState<string | null>(null);
+  const [lastnameError, setLastnameError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
 
-  const handleOpenDeleteDialog = () => {
+  const theme = useTheme();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleOpenDeleteDialog = (): void => {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleCloseDeleteDialog = () => {
+  const handleCloseDeleteDialog = (): void => {
     setIsDeleteDialogOpen(false);
   };
 
-  // Retrieves the current theme settings from Material-UI for styling consistency.
-  const theme = useTheme();
-
-  // Reference to the hidden file input element for photo uploads.
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  /**
-   * Opens the file picker dialog to update the profile photo.
-   */
-  const handleUpdatePhoto = () => {
-    if (fileInputRef.current !== null) {
-      fileInputRef.current.click();
-    }
+  const handleUpdatePhoto = (): void => {
+    fileInputRef.current?.click();
   };
 
-  /**
-   * Handles the file input change event and updates the profile photo URL.
-   *
-   * @param {Object} event - The event object from the file input change.
-   */
-  const handleFileChange = (event: any) => {
-    const file = event.target.files[0];
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    const file = event.target.files?.[0];
     if (file) {
       const newPhotoUrl = URL.createObjectURL(file);
       setProfilePhoto(newPhotoUrl);
     }
   };
 
-  /**
-   * Resets the profile photo to the placeholder image.
-   */
-  const handleDeletePhoto = () => {
+  const handleDeletePhoto = (): void => {
     setProfilePhoto("/placeholder.svg?height=80&width=80");
-    console.log("Photo deleted");
   };
-  
-  const handleSave = () => { 
-    const saveObj ={
-      firstname: firstname,
-      lastname: lastname,
-      password: password
+
+  const handleSave = (): void => {
+    if (firstnameError || lastnameError || emailError) {
+      console.log("Please correct the errors before saving.");
+      return;
     }
-    console.log("🚀 ~ handleSave ~ saveObj:", saveObj)
-   }
+
+    const saveObj = {
+      firstname,
+      lastname,
+      email,
+    };
+    console.log("🚀 ~ handleSave ~ saveObj:", saveObj);
+  };
+
+  const handleFirstnameChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const newFirstname = e.target.value;
+    setFirstname(newFirstname);
+
+    const validation = checkStringValidation("First name", newFirstname, 2, 50, false, false);
+    setFirstnameError(validation.accepted ? null : validation.message);
+  };
+
+  const handleLastnameChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const newLastname = e.target.value;
+    setLastname(newLastname);
+
+    const validation = checkStringValidation("Last name", newLastname, 2, 50, false, false);
+    setLastnameError(validation.accepted ? null : validation.message);
+  };
+
+  const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+
+    if (!validator.isEmail(newEmail)) {
+      setEmailError("Invalid email address");
+    } else {
+      setEmailError(null);
+    }
+  };
+
+  const user: User = {
+    firstname,
+    lastname,
+    pathToImage: profilePhoto,
+  };
 
   return (
-    <Box sx={{ mt: 3, width: "70%" }}>
+    <Box sx={{ mt: 3, width: { xs: "90%", md: "70%" } }}>
       <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
+          flexDirection: { xs: "column", md: "row" },
           mb: 3,
-          width: "90%",
+          width: "100%",
           mt: 20,
         }}
       >
-        <Box sx={{ width: "40%" }}>
-          {/* First Name Field */}
+        <Box sx={{ width: { xs: "100%", md: "40%" } }}>
           <Field
             id="First name"
             label="First name"
             value={firstname}
-            onChange={(e) => setFirstname(e.target.value)}
+            onChange={handleFirstnameChange}
             sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
           />
-          {/* Last Name Field */}
+          {firstnameError && (
+            <Typography color="error" variant="caption">
+              {firstnameError}
+            </Typography>
+          )}
           <Field
-            id="last name"
+            id="Last name"
             label="Last name"
             value={lastname}
-            onChange={(e) => setLastname(e.target.value)}
+            onChange={handleLastnameChange}
             sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
           />
-          {/* Email Field */}
+          {lastnameError && (
+            <Typography color="error" variant="caption">
+              {lastnameError}
+            </Typography>
+          )}
           <Field
             id="Email"
             label="Email"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={email}
+            onChange={handleEmailChange}
             sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
           />
+          {emailError && (
+            <Typography color="error" variant="caption">
+              {emailError}
+            </Typography>
+          )}
           <Typography
             variant="caption"
             sx={{ mt: 1, display: "block", color: "#667085" }}
@@ -119,24 +156,19 @@ const index = () => {
             This is your current email address — it cannot be changed.
           </Typography>
         </Box>
-        <Box sx={{ width: "40%", textAlign: "center" }}>
-          <Stack direction="row" alignItems="center" spacing={6}>
-            {/* Avatar and photo update section */}
-            <Stack alignItems="center" spacing={1}>
-              <Typography fontWeight="600" variant="subtitle1" gutterBottom>
-                Your photo
-              </Typography>
-              <Avatar src={profilePhoto} sx={{ width: 80, height: 80 }} />
-              {/* Hidden file input for photo upload */}
-              <input
-                type="file"
-                ref={fileInputRef}
-                style={{ display: "none" }}
-                accept="image/*"
-                onChange={handleFileChange}
-              />
-            </Stack>
-            {/* Delete and Update photo actions */}
+        <Box sx={{ width: { xs: "100%", md: "40%" }, textAlign: "center" }}>
+          <Stack direction="column" alignItems="center" spacing={2}>
+            <Typography fontWeight="600" variant="subtitle1">
+              Your photo
+            </Typography>
+            <Avatar user={user} size="medium" sx={{ width: 80, height: 80 }} />
+            <input
+              type="file"
+              ref={fileInputRef}
+              style={{ display: "none" }}
+              accept="image/*"
+              onChange={handleFileChange}
+            />
             <Stack
               direction="row"
               spacing={2}
@@ -170,19 +202,17 @@ const index = () => {
           </Stack>
         </Box>
       </Box>
-      {/* Save button */}
       <Button
         disableRipple
         variant="contained"
         sx={{
-          width: theme.spacing(80),
+          width: { xs: "100%", sm: theme.spacing(80) },
           mb: theme.spacing(4),
           backgroundColor: "#4c7de7",
           color: "#fff",
-          position: "relative",
-          left: theme.spacing(400),
-          marginTop: theme.spacing(5),
-          marginBottom: theme.spacing(10),
+          position: { md: "relative" },
+          left: { md: theme.spacing(0) },
+          mt: theme.spacing(5),
         }}
         onClick={handleSave}
       >
@@ -207,7 +237,7 @@ const index = () => {
             variant="contained"
             onClick={handleOpenDeleteDialog}
             sx={{
-              width: theme.spacing(80),
+              width: { xs: "100%", sm: theme.spacing(80) },
               mb: theme.spacing(4),
               backgroundColor: "#DB504A",
               color: "#fff",
@@ -225,4 +255,4 @@ const index = () => {
   );
 };
 
-export default index;
+export default ProfileForm;

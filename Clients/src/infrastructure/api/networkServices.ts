@@ -68,6 +68,8 @@ export const apiServices = {
     logRequest("get", endpoint, params);
     try {
       const response = await CustomAxios.get(endpoint, { params });
+      console.log("🚀 ~ response:", response);
+
       logResponse("get", endpoint, response);
       return {
         data: response.data,
@@ -141,9 +143,9 @@ export const apiServices = {
       const response = await CustomAxios.delete(endpoint);
       logResponse("delete", endpoint, response);
       return {
-        data: response.data,
+        data: response.data.data,
         status: response.status,
-        statusText: response.statusText,
+        statusText: response.data.message,
       };
     } catch (error) {
       handleError(error);

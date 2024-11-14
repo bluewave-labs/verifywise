@@ -31,9 +31,19 @@ function App() {
 
   const [uiValues, setUiValues] = useState<unknown | undefined>({}); // responsible for things like: Sidebar, light/dark mode, etc.
   const [authValues, setAuthValues] = useState<unknown | undefined>({}); // for user authentication
-  const [dashboardValues, setDashboardValues] = useState<unknown | undefined>(
-    {}
-  ); // for the whole dashboard
+  const [dashboardValues, setDashboardValues] = useState<{
+    dashboard: Record<string, unknown>;
+    projects: Record<string, unknown>;
+    compliance: Record<string, unknown>;
+    assessments: Record<string, unknown>;
+    vendors: unknown[];
+  }>({
+    dashboard: {},
+    projects: {},
+    compliance: {},
+    assessments: {},
+    vendors: [],
+  });
   const [inputValues, setInputValues] = useState<unknown | undefined>({}); // for the input fields
   const [token, setToken] = useState<string | null>("");
 

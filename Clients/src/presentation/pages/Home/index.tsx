@@ -6,7 +6,7 @@ import dashboardData from "../../mocks/dashboard/dashboard.data";
 import emptyState from "../../assets/imgs/empty-state.svg";
 import Popup from "../../components/Popup";
 import CreateProjectForm from "../../components/CreateProjectForm";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 interface HomeProps {
   projects?: ProjectCardProps[];
@@ -22,7 +22,6 @@ interface MetricSectionProps {
 
 const Home = ({ projects = mockProjects }: HomeProps) => {
   const theme = useTheme();
-  const navigate = useNavigate();
   const { complianceStatus, riskStatus } = dashboardData;
   const complianceMetrics = [
     {
@@ -82,21 +81,32 @@ const Home = ({ projects = mockProjects }: HomeProps) => {
     </NoProjectBox>
   );
 
+  const PopupRender = () => {
+    const [anchor, setAnchor] = useState<null | HTMLElement>(null);
+    const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchor(anchor ? null : event.currentTarget);
+    };
+
+    return (
+      <Popup
+          popupId="create-project-popup"
+          popupContent={<CreateProjectForm />}
+          openPopupButtonName="New project"
+          popupTitle="Create new project"
+          popupSubtitle="Create a new project from scratch by filling in the following."
+          handleOpenOrClose={handleOpenOrClose}
+          anchor={anchor}
+      />
+    )
+  }
+
   return (
     <Box>
       <Box sx={styles.projectBox}>
         <Typography variant="h1" component="div" sx={styles.title}>
           Projects overview
         </Typography>
-        <Popup
-          popupId="create-project-popup"
-          popupContent={<CreateProjectForm />}
-          openPopupButtonName="New project"
-          actionButtonName="Create project"
-          popupTitle="Create new project"
-          popupSubtitle="Create a new project from scratch by filling in the following."
-          onActionButtonClick={() => navigate("/project-view")}
-        />
+        <PopupRender />
       </Box>
       {projects && projects.length > 0 ? (
         <>

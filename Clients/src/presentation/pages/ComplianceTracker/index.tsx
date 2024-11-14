@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import BasicTable from "../../../presentation/components/Table";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import CustomModal from "../../components/Modals/Controlpane";
@@ -16,6 +16,9 @@ import {
   complianceMetrics as metricData,
   complianceDetails as detailsData,
 } from "../../mocks/compliance.data";
+import { getAllEntities } from "../../../application/repository/entity.repository";
+import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+
 
 const Compliance = ({
   complianceMetrics = metricData,
@@ -60,13 +63,50 @@ const Compliance = ({
     setIsModalOpen(true);
   };
 
-  const handleConfirm = () => {
-    console.log("Confirmed action for row:", selectedRow);
-    setIsModalOpen(false);
+  // const handleConfirm = async (): Promise<{ status: number; data: any }> => {
+  //   try {
+  //     const response = await fetch("", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({ /* your payload */ }),
+  //     });
+  
+  //     const data = await response.json();
+  
+  //     // Return the status and data for the modal to handle
+  //     return { status: response.status, data };
+  //   } catch (error) {
+  //     console.error("Error in onConfirm:", error);
+  //     // Handle error and return a status code indicating failure (like 500)
+  //     return { status: 500, data: { message: "Internal Server Error" } };
+  //   }
+  // };
+
+  const { setDashboardValues } = useContext(VerifyWiseContext);
+
+
+  const fetchComplianceTracker = async () => {
+    try {
+      const response = await getAllEntities({ routeUrl: "/complianceLists" });
+      console.log("reponse ===> ", response);
+      setDashboardValues((prevValues: any) => ({
+        ...prevValues,
+        compliance: response.data,
+      }));
+    } catch (error) {
+      console.error("Error fetching vendors:", error);
+    }
   };
 
+
+  useEffect(() => {
+    fetchComplianceTracker();
+  }, []);
+
   const renderAccordion = (id: string, title: string, content: any) => (
-    <Box>
+    <Box key={id}>
       <Accordion
         expanded={expanded === id}
         onChange={handleAccordionChange(id)}
@@ -151,7 +191,7 @@ const Compliance = ({
   );
 
   return (
-    <Stack className="compliance-page" sx={{ }}>
+    <Stack className="compliance-page" sx={{}}>
       <Toolbar>
         <Typography
           sx={{
@@ -235,6 +275,7 @@ const Compliance = ({
             acdSumDetail.summaryId,
             acdSumDetail.summaryTitle,
             <BasicTable
+              key={acdSumDetail.summaryId}
               data={complianceDetails}
               paginated={false}
               reversed={false}
@@ -252,7 +293,7 @@ const Compliance = ({
             selectedRowData ? selectedRowData.data[0].data : "Row not found"
           }
           content={`This is some dynamic content for row ${selectedRow}.`}
-          onConfirm={handleConfirm}
+          onConfirm={()=> {}}
         />
       )}
     </Stack>

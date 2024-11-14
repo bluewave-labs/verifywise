@@ -9,11 +9,11 @@ export const complianceMetrics = [
       amount: "15%",
     },
     {
-      name: "Total number of controls",
+      name: "Total number of subcontrols",
       amount: "184",
     },
     {
-      name: "Implemented controls",
+      name: "Implemented subcontrols",
       amount: "31",
     },
     {
@@ -25,9 +25,9 @@ export const complianceMetrics = [
   export const complianceDetails = {
     cols: [
       { id: "icon", name: "icon" },
-      { id: "CONTROLS", name: "CONTROLS" },
+      { id: "SUBCONTROL NAME", name: "SUBCONTROL NAME" },
       { id: "OWNER", name: "OWNER" },
-      { id: "SUBCONTROLS", name: "SUBCONTROLS" },
+      { id: "# OF SUBCONTROLS", name: "# OF SUBCONTROLS" },
       { id: "COMPLETION", name: "COMPLETION" },
     ],
     rows: [
@@ -54,7 +54,7 @@ export const complianceMetrics = [
           },
           { id: "2", data: "Mike Arthurs" },
           { id: "3", data: "3 (1 left)" },
-          { id: "4", data: "33%" },
+          { id: "4", data: "22%" },
         ],
       },
       {

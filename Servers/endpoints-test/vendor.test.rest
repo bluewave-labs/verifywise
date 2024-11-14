@@ -1,0 +1,8 @@
+### get all vendors
+
+GET http://localhost:3000/vendors
+
+### get vendor by id
+
+GET http://localhost:3000/vendors/2
+

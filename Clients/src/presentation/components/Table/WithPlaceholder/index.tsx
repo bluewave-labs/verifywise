@@ -28,9 +28,13 @@ import {
 } from "@mui/material";
 
 import Placeholder from "../../../assets/imgs/table placeholder 1.png";
-import { vendorList } from "../../../mocks/vendors/vendors.data";
+import { Vendor } from "../../../mocks/vendors/vendors.data";
 import IconButton from "../../IconButton";
 import singleTheme from "../../../themes/v1SingleTheme";
+import { useContext, useEffect } from "react";
+import { getAllEntities } from "../../../../application/repository/entity.repository";
+import { formatDate } from "../../../tools/isoDateToString";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 /**
  * An array of strings representing the titles of the table columns.
@@ -45,7 +49,6 @@ import singleTheme from "../../../themes/v1SingleTheme";
  */
 const titleOfTableColumns = [
   "name",
-  "type",
   "assignee",
   "status",
   "risk",
@@ -53,8 +56,26 @@ const titleOfTableColumns = [
   "",
 ];
 
-const TableWithPlaceholder = ({ data = vendorList }) => {
+const TableWithPlaceholder = () => {
   const theme = useTheme();
+  const { dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);
+
+  const fetchVendors = async () => {
+    try {
+      const response = await getAllEntities({ routeUrl: "/vendors" });
+      console.log("reponse ===> ", response);
+      setDashboardValues((prevValues: any) => ({
+        ...prevValues,
+        vendors: response.data,
+      }));
+    } catch (error) {
+      console.error("Error fetching vendors:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchVendors();
+  }, []);
 
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
@@ -113,19 +134,18 @@ const TableWithPlaceholder = ({ data = vendorList }) => {
    */
   const tableBody: JSX.Element = (
     <TableBody>
-      {data &&
-        data.map((row, index) => (
+      {dashboardValues.vendors &&
+        dashboardValues.vendors.map((row: Vendor, index: number) => (
           <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row}>
             <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
               {row.name}
             </TableCell>
-            <TableCell sx={cellStyle}>{row.type}</TableCell>
             <TableCell sx={cellStyle}>{row.assignee}</TableCell>
             <TableCell sx={cellStyle}>{row.status}</TableCell>
-            <TableCell sx={cellStyle}>{row.risk}</TableCell>
-            <TableCell sx={cellStyle}>{row.reviewDate}</TableCell>
+            <TableCell sx={cellStyle}>{row.risk_status}</TableCell>
+            <TableCell sx={cellStyle}>{formatDate(row.review_date)}</TableCell>
             <TableCell sx={cellStyle}>
-              <IconButton />
+              <IconButton vendorId={row.id} />
             </TableCell>
           </TableRow>
         ))}
@@ -138,7 +158,7 @@ const TableWithPlaceholder = ({ data = vendorList }) => {
         {tableHeader}
         {tableBody}
       </Table>
-      {!data && (
+      {!dashboardValues.vendors.length && (
         <div
           style={{
             display: "flex",

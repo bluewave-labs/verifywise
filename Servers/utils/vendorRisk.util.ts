@@ -1,4 +1,4 @@
-import { VendorRisk } from "../models/VendorRisk";
+import { VendorRisk } from "../models/vendorRisk.model";
 import pool from "../database/db";
 
 export const getAllVendorRisksQuery = async (): Promise<VendorRisk[]> => {
@@ -7,54 +7,94 @@ export const getAllVendorRisksQuery = async (): Promise<VendorRisk[]> => {
   return vendorRisks.rows;
 };
 
-export const getVendorRiskByIdQuery = async (id: number): Promise<VendorRisk | null> => {
+export const getVendorRiskByIdQuery = async (
+  id: number
+): Promise<VendorRisk | null> => {
   console.log("getVendorRiskById", id);
-  const result = await pool.query("SELECT * FROM vendorRisks WHERE id = $1", [id]);
+  const result = await pool.query("SELECT * FROM vendorRisks WHERE id = $1", [
+    id,
+  ]);
   return result.rows.length ? result.rows[0] : null;
 };
 
 export const createNewVendorRiskQuery = async (vendorRisk: {
-  name: string;
-  description: string;
+  project_id: number;
+  vendor_name: string;
+  risk_name: string;
+  owner: string;
+  risk_level:
+    | "No risk"
+    | "Low risk"
+    | "Medium risk"
+    | "High risk"
+    | "Very high risk";
+  review_date: Date;
 }): Promise<VendorRisk> => {
   console.log("createNewVendorRisk", vendorRisk);
   const result = await pool.query(
-    "INSERT INTO vendorRisks (name, description) VALUES ($1, $2) RETURNING *",
-    [vendorRisk.name, vendorRisk.description]
+    `INSERT INTO vendorRisks (
+      project_id, vendor_name, risk_name, owner, risk_level, review_date
+    ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+    [
+      vendorRisk.project_id,
+      vendorRisk.vendor_name,
+      vendorRisk.risk_name,
+      vendorRisk.owner,
+      vendorRisk.risk_level,
+      vendorRisk.review_date,
+    ]
   );
   return result.rows[0];
 };
 
 export const updateVendorRiskByIdQuery = async (
   id: number,
-  vendorRisk: { name?: string; description?: string }
+  vendorRisk: Partial<VendorRisk>
 ): Promise<VendorRisk | null> => {
   console.log("updateVendorRiskById", id, vendorRisk);
   const fields = [];
   const values = [];
   let query = "UPDATE vendorRisks SET ";
 
-  if (vendorRisk.name) {
-    fields.push("name = $1");
-    values.push(vendorRisk.name);
+  if (vendorRisk.project_id !== undefined) {
+    fields.push(`project_id = $${fields.length + 1}`);
+    values.push(vendorRisk.project_id);
   }
-  if (vendorRisk.description) {
-    fields.push("description = $2");
-    values.push(vendorRisk.description);
+  if (vendorRisk.vendor_name !== undefined) {
+    fields.push(`vendor_name = $${fields.length + 1}`);
+    values.push(vendorRisk.vendor_name);
+  }
+  if (vendorRisk.risk_name !== undefined) {
+    fields.push(`risk_name = $${fields.length + 1}`);
+    values.push(vendorRisk.risk_name);
+  }
+  if (vendorRisk.owner !== undefined) {
+    fields.push(`owner = $${fields.length + 1}`);
+    values.push(vendorRisk.owner);
+  }
+  if (vendorRisk.risk_level !== undefined) {
+    fields.push(`risk_level = $${fields.length + 1}`);
+    values.push(vendorRisk.risk_level);
+  }
+  if (vendorRisk.review_date !== undefined) {
+    fields.push(`review_date = $${fields.length + 1}`);
+    values.push(vendorRisk.review_date);
   }
 
   if (fields.length === 0) {
     throw new Error("No fields to update");
   }
 
-  query += fields.join(", ") + " WHERE id = $3 RETURNING *";
+  query += fields.join(", ") + ` WHERE id = $${fields.length + 1} RETURNING *`;
   values.push(id);
 
   const result = await pool.query(query, values);
   return result.rows.length ? result.rows[0] : null;
 };
 
-export const deleteVendorRiskByIdQuery = async (id: number): Promise<boolean> => {
+export const deleteVendorRiskByIdQuery = async (
+  id: number
+): Promise<boolean> => {
   console.log("deleteVendorRiskById", id);
   const result = await pool.query(
     "DELETE FROM vendorRisks WHERE id = $1 RETURNING id",

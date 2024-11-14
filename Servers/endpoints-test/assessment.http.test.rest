@@ -1,0 +1,8 @@
+### get all assessments
+
+GET http://localhost:3000/assessments
+
+### get assessment by id
+
+GET http://localhost:3000/assessments/2
+

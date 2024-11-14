@@ -17,9 +17,14 @@ import { Button, Modal, Stack, Typography, useTheme } from "@mui/material";
 interface BasicModalProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
+  onDelete: () => void;
 }
 
-const BasicModal: React.FC<BasicModalProps> = ({ isOpen, setIsOpen }) => {
+const BasicModal: React.FC<BasicModalProps> = ({
+  isOpen,
+  setIsOpen,
+  onDelete,
+}) => {
   const theme = useTheme();
   return (
     <Modal open={isOpen} onClose={setIsOpen}>
@@ -100,6 +105,7 @@ const BasicModal: React.FC<BasicModalProps> = ({ isOpen, setIsOpen }) => {
                 boxShadow: "none",
               },
             }}
+            onClick={onDelete}
           >
             Delete vendor
           </Button>

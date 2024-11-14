@@ -1,0 +1,126 @@
+{
+  "assessment": {
+    "topics": [
+      {
+        "name": "Risk Management System",
+        "subtopics": [
+          {
+            "name": "Model Development",
+            "questions": [
+              {
+                "question": "Will you make substantial modifications to the high-risk AI system already on the EU market, and if so, what additional training or fine-tuning will be performed on the model after these modifications?",
+                "answerType": "long-text",
+                "dropdownOptions": null,
+                "fileUpload": true,
+                "hint": "Show this hint when hovered on the icon at the end of the sentence",
+                "required": false,
+                "priority": "H"
+              },
+              {
+                "question": "What business problem does the AI system solve, and what are its capabilities? What other techniques were considered before deciding to use AI to address this problem?",
+                "answerType": "long-text",
+                "dropdownOptions": null,
+                "fileUpload": true,
+                "hint": "Show this hint when hovered on the icon at the end of the sentence",
+                "required": true,
+                "priority": "L"
+              }
+            ]
+          },
+          {
+            "name": "Model Validation",
+            "questions": [
+              {
+                "question": "How has your organization assessed the AI application against its ethical values? What ethical considerations were most pertinent, and how were they addressed?",
+                "answerType": "long-text",
+                "dropdownOptions": null,
+                "fileUpload": true,
+                "hint": "Show this hint when hovered on the icon at the end of the sentence",
+                "required": true,
+                "priority": "H"
+              },
+              {
+                "question": "Specify details of any third-party involvement in the design, development, deployment, and support of the AI system.",
+                "answerType": "long-text",
+                "dropdownOptions": null,
+                "fileUpload": false,
+                "hint": "Show this hint when hovered on the icon at the end of the sentence",
+                "required": true,
+                "priority": "M"
+              },
+              {
+                "question": "What risks were identified in the data impact assessment? How have these risks been addressed or mitigated?",
+                "answerType": "dropdown",
+                "dropdownOptions": ["Risk 1", "Risk 2", "Risk 3"],
+                "fileUpload": false,
+                "hint": "Show this hint when hovered on the icon at the end of the sentence",
+                "required": false,
+                "priority": "L"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Data Governance",
+        "subtopics": [
+          {
+            "name": "General Questions",
+            "questions": [
+              {
+                "question": "What data sources are being used to develop the AI application? Describe the input and output data, and explain how this data is documented and managed.",
+                "answerType": "long-text",
+                "dropdownOptions": null,
+                "fileUpload": true,
+                "hint": "Show this hint when hovered on the icon at the end of the sentence",
+                "required": false,
+                "priority": "L"
+              },
+              {
+                "question": "Does the repository track and manage intellectual property rights and restrictions on the use of its content as required by deposit agreements, contracts, or licenses?",
+                "answerType": "long-text",
+                "dropdownOptions": null,
+                "fileUpload": true,
+                "hint": "Show this hint when hovered on the icon at the end of the sentence",
+                "required": true,
+                "priority": "L"
+              }
+            ]
+          },
+          {
+            "name": "Additional Questions",
+            "questions": [
+              {
+                "question": "How has your organization ensured the representativeness, relevance, accuracy, traceability, and completeness of the data used in development? What challenges were encountered in this process?",
+                "answerType": "long-text",
+                "dropdownOptions": null,
+                "fileUpload": true,
+                "hint": "Show this hint when hovered on the icon at the end of the sentence",
+                "required": true,
+                "priority": "M"
+              },
+              {
+                "question": "Provide details of the confidential and sensitive data processed by the AI system. Does it handle personal data?",
+                "answerType": "long-text",
+                "dropdownOptions": null,
+                "fileUpload": false,
+                "hint": "Show this hint when hovered on the icon at the end of the sentence",
+                "required": false,
+                "priority": "M"
+              },
+              {
+                "question": "What are the legal bases for processing personal and sensitive data. What measures are in place to ensure that the processing logic remains consistent with the original purpose for which consent was obtained, and that data is deleted after the stipulated period?",
+                "answerType": "dropdown",
+                "dropdownOptions": ["Measure 1", "Measure 2", "Measure 3"],
+                "fileUpload": false,
+                "hint": "Show this hint when hovered on the icon at the end of the sentence",
+                "required": true,
+                "priority": "H"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

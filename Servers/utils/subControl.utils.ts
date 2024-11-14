@@ -19,9 +19,9 @@ export const getSubcontrolByIdQuery = async (
 
 export const createNewSubcontrolQuery = async (subcontrol: {
   controlId: number;
-  status: "Waiting" | "In progress" | "Done";
+  status: string;
   approver: string;
-  riskReview: "Acceptable risk" | "Residual risk" | "Unacceptable risk";
+  riskReview: string;
   owner: string;
   reviewer: string;
   dueDate: Date;
@@ -55,7 +55,19 @@ export const createNewSubcontrolQuery = async (subcontrol: {
 
 export const updateSubcontrolByIdQuery = async (
   id: number,
-  subcontrol: Partial<Subcontrol>
+  subcontrol: Partial<{
+    controlId: number;
+    status: string;
+    approver: string;
+    riskReview: string;
+    owner: string;
+    reviewer: string;
+    dueDate: Date;
+    implementationDetails: string;
+    evidence: string;
+    attachment: string;
+    feedback: string;
+  }>
 ): Promise<Subcontrol | null> => {
   console.log("updateSubcontrolById", id, subcontrol);
   const result = await pool.query(

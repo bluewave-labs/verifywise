@@ -1889,6 +1889,834 @@ paths:
                 error:
                   type: object
 
+  /subcontrols:
+    get:
+      tags: [subcontrols]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all sub controls
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/SubControl"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [subcontrols]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new sub control
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                controlId:
+                  type: number
+                  example: 1
+                status:
+                  type: string
+                  anyOf:
+                    - type: string
+                    enum:
+                      - "Waiting"
+                      - "In progress"
+                      - "Done"
+                  example: "In Progress"
+                approver:
+                  type: string
+                  example: "John Doe"
+                riskReview:
+                  type: string
+                  anyOf:
+                    - type: string
+                    enum:
+                      - "Acceptable risk"
+                      - "Residual risk"
+                      - "Unacceptable risk"
+                  example: "Acceptable risk"
+                owner:
+                  type: string
+                  example: "Bob Johnson"
+                reviewer:
+                  type: string
+                  example: "Alice Williams"
+                dueDate:
+                  type: Date
+                  example: "2023-12-31T00:00:00.000Z"
+                implementationDetails:
+                  type: string
+                  example: "Implement new feature"
+                evidence:
+                  type: string
+                  example: "evidence1.pdf"
+                attachment:
+                  type: string
+                  example: "attachment1.docx"
+                feedback:
+                  type: string
+                  example: "Great work so far."
+        required: true
+      responses:
+        "201":
+          description: new created sub control
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/SubControl"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /subcontrols/{id}:
+    get:
+      tags: [subcontrols]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the sub control
+      responses:
+        "200":
+          description: sub control
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/SubControl"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [subcontrols]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the sub control
+      requestBody:
+        description: body of the new sub control
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                controlId:
+                  type: number
+                  example: 1
+                status:
+                  type: string
+                  anyOf:
+                    - type: string
+                    enum:
+                      - "Waiting"
+                      - "In progress"
+                      - "Done"
+                  example: "In Progress"
+                approver:
+                  type: string
+                  example: "John Doe"
+                riskReview:
+                  type: string
+                  anyOf:
+                    - type: string
+                    enum:
+                      - "Acceptable risk"
+                      - "Residual risk"
+                      - "Unacceptable risk"
+                  example: "Acceptable risk"
+                owner:
+                  type: string
+                  example: "Bob Johnson"
+                reviewer:
+                  type: string
+                  example: "Alice Williams"
+                dueDate:
+                  type: Date
+                  example: "2023-12-31T00:00:00.000Z"
+                implementationDetails:
+                  type: string
+                  example: "Implement new feature"
+                evidence:
+                  type: string
+                  example: "evidence1.pdf"
+                attachment:
+                  type: string
+                  example: "attachment1.docx"
+                feedback:
+                  type: string
+                  example: "Great work so far."
+        required: true
+      responses:
+        "202":
+          description: sub control
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/SubControl"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [subcontrols]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the sub control to delete
+      responses:
+        "202":
+          description: sub control
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
+  /subtopics:
+    get:
+      tags: [subtopics]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all sub topics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/SubTopic"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [subtopics]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new sub topic
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                topicId:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  example: "Subtopic A"
+        required: true
+      responses:
+        "201":
+          description: new created sub topic
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/SubTopic"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /subtopics/{id}:
+    get:
+      tags: [subtopics]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the sub topic
+      responses:
+        "200":
+          description: sub topic
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/SubTopic"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [subtopics]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the sub topic
+      requestBody:
+        description: body of the new sub topic
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                topicId:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  example: "Subtopic A"
+        required: true
+      responses:
+        "202":
+          description: sub topic
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/SubTopic"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [subtopics]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the sub topic to delete
+      responses:
+        "202":
+          description: sub topic
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
+  /topics:
+    get:
+      tags: [topics]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all topics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/Topic"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [topics]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new topic
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                assessmentId:
+                  type: integer
+                  example: 1
+                title:
+                  type: string
+                  example: "Project A"
+        required: true
+      responses:
+        "201":
+          description: new created topic
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/Topic"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /topics/{id}:
+    get:
+      tags: [topics]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the topic
+      responses:
+        "200":
+          description: topic
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/Topic"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [topics]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the topic
+      requestBody:
+        description: body of the new topic
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                assessmentId:
+                  type: integer
+                  example: 1
+                title:
+                  type: string
+                  example: "Project A"
+        required: true
+      responses:
+        "202":
+          description: topic
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/Topic"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [topics]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the topic to delete
+      responses:
+        "202":
+          description: topic
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
 components:
   securitySchemes:
     JWTAuth:

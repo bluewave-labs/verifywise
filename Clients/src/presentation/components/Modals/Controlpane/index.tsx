@@ -14,6 +14,7 @@ import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import React, { useState } from "react";
 import DropDowns from "../../Inputs/Dropdowns";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
+import { STATUS_CODE } from "../../../../../../Servers/utils/statusCode.utils";
 
 interface CustomModalProps {
   isOpen: boolean;
@@ -21,16 +22,19 @@ interface CustomModalProps {
   title: string;
   content: string;
   onConfirm: () => void;
+  //Promise<{ status: number; data: any }>;
 }
 
 const CustomModal: React.FC<CustomModalProps> = ({
   isOpen,
   setIsOpen,
   title,
+  onConfirm,
 }) => {
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
+  const [responseMessage, setResponseMessage] = useState<string | null>(null);
 
   const extractNumberFromTitle = (title: string) => {
     const match = title.match(/\d+/);
@@ -48,6 +52,16 @@ const CustomModal: React.FC<CustomModalProps> = ({
   const handleSectionChange = (section: string) => {
     setActiveSection(section);
   };
+
+  // const handleSave = async () => {
+  //   try {
+  //     const { status, data } = await onConfirm();
+  //     const response = (STATUS_CODE as any)[status](data);
+  //     setResponseMessage(response.message);
+  //   } catch (error) {
+  //     setResponseMessage("An unexpected error occurred. Please try again.");
+  //   }
+  // };
 
   const buttonTabStyles = {
     backgroundColor: "#EAECF0",
@@ -79,6 +93,9 @@ const CustomModal: React.FC<CustomModalProps> = ({
   const getVariant = (activeSection: string, section: string) => {
     return activeSection === section ? "contained" : "outlined";
   };
+
+
+
 
   return (
     <Modal open={isOpen} onClose={handleClose}>
@@ -120,6 +137,17 @@ const CustomModal: React.FC<CustomModalProps> = ({
           throughout the entire lifecycle of the high-risk AI system.
         </Typography>
         <DropDowns />
+
+
+        {responseMessage && (
+          <Typography
+            fontSize={13}
+            color="error"
+            sx={{ mb: 2, fontWeight: 500 }}
+          >
+            {responseMessage}
+          </Typography>
+        )}
         <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
 
         <Box sx={{ width: "100%", bgcolor: "#FCFCFD" }}>
@@ -163,8 +191,9 @@ const CustomModal: React.FC<CustomModalProps> = ({
             width: "fit-content",
           }}
         >
-          {["Overview", "Evidence", "Auditor Feedback"].map((section) => (
+          {["Overview", "Evidence", "Auditor Feedback"].map((section, index) => (
             <Button
+            key={index}
               variant={getVariant(activeSection, section)}
               onClick={() => handleSectionChange(section)}
               disableRipple
@@ -234,7 +263,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
           </Stack>
           <Button
             variant="contained"
-            onClick={() => console.log("Save clicked")}
+            // onClick={handleSave}
             sx={{
               ...buttonStyle,
               width: 68,

@@ -68,6 +68,8 @@ export const apiServices = {
     logRequest("get", endpoint, params);
     try {
       const response = await CustomAxios.get(endpoint, { params });
+      console.log("🚀 ~ response:", response);
+
       logResponse("get", endpoint, response);
       return {
         data: response.data,

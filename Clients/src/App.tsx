@@ -24,6 +24,7 @@ import Playground from "./presentation/pages";
 
 import { VerifyWiseContext } from "./application/contexts/VerifyWise.context";
 import { useMemo, useState } from "react";
+import NewAssessment from "./presentation/pages/Assessment/NewAssessment";
 
 function App() {
   const mode = useSelector((state: any) => state.ui?.mode || "light");
@@ -92,6 +93,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/compliance-tracker" element={<ComplianceTracker />} />
             <Route path="/assessment" element={<Assessment />} />
+              <Route path="/new-assessment" element={<NewAssessment />} />
             <Route path="/vendors" element={<Vendors />} />
             <Route path="/setting" element={<Setting />} />
             <Route path="/team" element={<Team />} />

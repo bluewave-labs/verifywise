@@ -18,7 +18,33 @@ export const getProjectRiskByIdQuery = async (
 };
 
 export const createProjectRiskQuery = async (
-  projectRisk: ProjectRisk
+  projectRisk: {
+    project_id: number; // Foreign key to refer to the project
+    risk_name: string;
+    risk_owner: string;
+    ai_lifecycle_phase: string;
+    risk_description: string;
+    risk_category: string;
+    impact: string;
+    assessment_mapping: string;
+    controls_mapping: string;
+    likelihood: string;
+    severity: string;
+    risk_level_autocalculated: string;
+    review_notes: string;
+    mitigation_status: string;
+    current_risk_level: string;
+    deadline: Date;
+    mitigation_plan: string;
+    implementation_strategy: string;
+    mitigation_evidence_document: string;
+    likelihood_mitigation: string;
+    risk_severity: string;
+    final_risk_level: string;
+    risk_approval: string;
+    approval_status: string;
+    date_of_assessment: Date;
+  }
 ): Promise<ProjectRisk> => {
   console.log("createProjectRisk");
   const result = await pool.query(
@@ -56,7 +82,33 @@ export const createProjectRiskQuery = async (
 
 export const updateProjectRiskByIdQuery = async (
   id: number,
-  projectRisk: Partial<ProjectRisk>
+  projectRisk: Partial<{
+    project_id: number; // Foreign key to refer to the project
+    risk_name: string;
+    risk_owner: string;
+    ai_lifecycle_phase: string;
+    risk_description: string;
+    risk_category: string;
+    impact: string;
+    assessment_mapping: string;
+    controls_mapping: string;
+    likelihood: string;
+    severity: string;
+    risk_level_autocalculated: string;
+    review_notes: string;
+    mitigation_status: string;
+    current_risk_level: string;
+    deadline: Date;
+    mitigation_plan: string;
+    implementation_strategy: string;
+    mitigation_evidence_document: string;
+    likelihood_mitigation: string;
+    risk_severity: string;
+    final_risk_level: string;
+    risk_approval: string;
+    approval_status: string;
+    date_of_assessment: Date;
+  }>
 ): Promise<ProjectRisk | null> => {
   console.log("updateProjectRiskById", id, projectRisk);
   const result = await pool.query(

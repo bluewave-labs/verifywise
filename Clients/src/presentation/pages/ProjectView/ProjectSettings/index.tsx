@@ -1,4 +1,4 @@
-import { Button, SelectChangeEvent, Stack, Typography, useTheme } from "@mui/material";
+import { Button, SelectChangeEvent, Link, Stack, Typography, useTheme } from "@mui/material";
 import { FC, useState } from "react";
 import Field from "../../../components/Inputs/Field";
 import DatePicker from "../../../components/Inputs/Datepicker";
@@ -197,7 +197,10 @@ const ProjectSettings: FC<ProjectSettingsProps> = ({ setTabValue }) => {
                 />
                 <Stack gap="5px" sx={{ mt: "6px" }}>
                     <Typography sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}>AI risk classification</Typography>
-                    <Typography sx={{ fontSize: theme.typography.fontSize }}>To define the AI risk classification, please see this link</Typography>
+                    <Typography sx={{ fontSize: theme.typography.fontSize}}>
+                      To define the AI risk classification,&nbsp;
+                      <Link href="https://artificialintelligenceact.eu/high-level-summary/" color={theme.palette.text.secondary}>please see this link</Link>
+                    </Typography>
                 </Stack>
                 <Select
                     id="risk-classification-input"
@@ -215,7 +218,10 @@ const ProjectSettings: FC<ProjectSettingsProps> = ({ setTabValue }) => {
                 />
                 <Stack gap="5px" sx={{ mt: "6px" }}>
                     <Typography sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}>Type of high risk role</Typography>
-                    <Typography sx={{ fontSize: theme.typography.fontSize }}>If you are not sure about the high risk role, please see this link</Typography>
+                    <Typography sx={{ fontSize: theme.typography.fontSize}}>
+                      If you are not sure about the high risk role,&nbsp;
+                      <Link href="https://artificialintelligenceact.eu/high-level-summary/" color={theme.palette.text.secondary}>please see this link</Link>
+                    </Typography>
                 </Stack>
                 <Select
                     id="type-of-high-risk-role-input"

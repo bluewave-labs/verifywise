@@ -46,7 +46,16 @@ export const createNewControlQuery = async (control: {
 
 export const updateControlByIdQuery = async (
   id: number,
-  control: Partial<Control>
+  control: Partial<{
+    projectId: number;
+    status: string;
+    approver: string;
+    riskReview: string;
+    owner: string;
+    reviewer: string;
+    dueDate: Date;
+    implementationDetails: string;
+  }>
 ): Promise<Control | null> => {
   console.log("updateControlById", id, control);
   const fields = [];

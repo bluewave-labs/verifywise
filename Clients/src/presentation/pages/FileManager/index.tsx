@@ -115,49 +115,55 @@ const FileManager: React.FC = (): JSX.Element => {
   };
 
   return (
-    <Box position="relative">
-      <Box sx={{ padding: 4, marginBottom:10 }}>
-        <Typography variant="h6" fontWeight="bold" gutterBottom>
-          Evidences & documents
-        </Typography>
-        <Typography variant="body2" color="text.secondary" mb={2}>
-          This table lists all the files uploaded to the system.
-        </Typography>
-      </Box>
+    <Box sx={{ padding: 4, marginBottom: 10 }}>
+      <Typography variant="h6" fontWeight="bold" gutterBottom>
+        Evidences & documents
+      </Typography>
+      <Typography variant="body2" color="text.secondary" mb={10}>
+        This table lists all the files uploaded to the system.
+      </Typography>
 
-      <BasicTable
-        data={{ cols, rows }}
-        paginated={files.length > 0}
-        table="fileManager"
-      />
+      <Box
+        sx={{
+          position: "relative",
+          border: "1px solid #e0e0e0",
+          borderRadius: "4px",
+          overflow: "hidden",
+          minHeight: "400px",
+        }}
+      >
+        <BasicTable
+          data={{ cols, rows }}
+          paginated={files.length > 0}
+          table="fileManager"
+        />
 
-      {files.length === 0 && (
-        <Box
-          position="absolute"
-          top="50%"
-          left="50%"
-          sx={{
-            transform: "translate(-50%, -50%)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            textAlign: "center",
-            width: "100%",
-            pointerEvents: "none",
-          }}
-        >
+        {files.length === 0 && (
           <Box
-            component="img"
-            src={EmptyTableImage}
-            alt="No files available"
-            sx={{ width: 300, height: 300, opacity: 0.7, mb:4 }}
-          />
-          <Typography variant="body1" color="text.secondary" font-size="1.25rem" mt={2}>
-            There are currently no evidences or documents uploaded
-          </Typography>
-        </Box>
-      )}
+            position="absolute"
+            top="50%"
+            left="50%"
+            sx={{
+              transform: "translate(-50%, -50%)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              textAlign: "center",
+              pointerEvents: "none",
+            }}
+          >
+            <Box
+              component="img"
+              src={EmptyTableImage}
+              alt="No files available"
+              sx={{ width: 250, height: 250, opacity: 0.7, mb: 6 }}
+            />
+            <Typography variant="body1" color="text.secondary" mt={2}>
+              There are currently no evidences or documents uploaded
+            </Typography>
+          </Box>
+        )}
+      </Box>
 
       <Menu
         anchorEl={anchorEl}

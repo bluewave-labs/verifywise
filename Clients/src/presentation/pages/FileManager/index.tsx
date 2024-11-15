@@ -151,9 +151,9 @@ const FileManager: React.FC = (): JSX.Element => {
             component="img"
             src={EmptyTableImage}
             alt="No files available"
-            sx={{ width: 150, height: 150, opacity: 0.7 }}
+            sx={{ width: 300, height: 300, opacity: 0.7, mb:4 }}
           />
-          <Typography variant="body1" color="text.secondary" mt={2}>
+          <Typography variant="body1" color="text.secondary" font-size="1.25rem" mt={2}>
             There are currently no evidences or documents uploaded
           </Typography>
         </Box>

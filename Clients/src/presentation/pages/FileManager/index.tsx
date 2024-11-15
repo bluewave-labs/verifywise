@@ -14,25 +14,25 @@ interface File {
 
 const FileManager: React.FC = (): JSX.Element => {
   const [files, setFiles] = useState<File[]>([
-    //filler data just to see populated table
-    {
-      name: "AI Model Overview",
-      type: "Evidence",
-      uploadDate: "May 22, 2024",
-      uploader: "Mert Can Boyar",
-    },
-    {
-      name: "Fairness Evidence",
-      type: "Evidence",
-      uploadDate: "July 15, 2024",
-      uploader: "Neeraj Sunil",
-    },
-    {
-      name: "No Bias Evidence",
-      type: "Evidence",
-      uploadDate: "July 1, 2024",
-      uploader: "You",
-    },
+    // //filler data just to see populated table
+    // {
+    //   name: "AI Model Overview",
+    //   type: "Evidence",
+    //   uploadDate: "May 22, 2024",
+    //   uploader: "Mert Can Boyar",
+    // },
+    // {
+    //   name: "Fairness Evidence",
+    //   type: "Evidence",
+    //   uploadDate: "July 15, 2024",
+    //   uploader: "Neeraj Sunil",
+    // },
+    // {
+    //   name: "No Bias Evidence",
+    //   type: "Evidence",
+    //   uploadDate: "July 1, 2024",
+    //   uploader: "You",
+    // },
   ]);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -116,6 +116,15 @@ const FileManager: React.FC = (): JSX.Element => {
 
   return (
     <Box position="relative">
+      <Box sx={{ padding: 4, marginBottom:10 }}>
+        <Typography variant="h6" fontWeight="bold" gutterBottom>
+          Evidences & documents
+        </Typography>
+        <Typography variant="body2" color="text.secondary" mb={2}>
+          This table lists all the files uploaded to the system.
+        </Typography>
+      </Box>
+
       <BasicTable
         data={{ cols, rows }}
         paginated={files.length > 0}

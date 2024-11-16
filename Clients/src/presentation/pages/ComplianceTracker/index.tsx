@@ -119,6 +119,8 @@ const ComplianceTracker = ({
   const renderAccordion = (id: string, title: string) => {
     // Get the specific section data for the current accordion title
     const sectionData = complianceDetails[title];
+    console.log("🚀 ~ renderAccordion ~ sectionDataaaaaaa:", sectionData)
+    
 
     if (!sectionData) {
       return <div>No data available for this section</div>;
@@ -269,7 +271,11 @@ const ComplianceTracker = ({
             return item.rows.find((row: any) => row.id === selectedRow)?.data[0]
               ?.data;
           })}
-          content={`This is some dynamic content for row ${selectedRow}.`}
+          content={Object.keys(complianceDetails).map((key) => {
+            const item = complianceDetails[key];
+            return item.rows.find((row: any) => row.id === selectedRow)?.data[0]
+              ?.controlDes;
+          })}
           onConfirm={() => {
             console.log("confirmed");
           }}

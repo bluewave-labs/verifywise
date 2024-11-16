@@ -20,7 +20,7 @@ interface CustomModalProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   title: any;
-  content: string;
+  content: any;
   onConfirm: () => void;
   //Promise<{ status: number; data: any }>;
 }
@@ -30,8 +30,9 @@ const CustomModal: React.FC<CustomModalProps> = ({
   setIsOpen,
   title,
   onConfirm,
+  content
 }) => {
-  console.log("🚀 ~ tittttttttle:", title)
+  console.log("🚀 ~ tittttttttle:", title);
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
@@ -43,7 +44,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
   // };
 
   // const titleNumber = extractNumberFromTitle(title);
-  const titleNumber = 332322;
+  const subControlNumber = 332322;
   const handleClose = () => setIsOpen(false);
 
   const handleSelectedTab = (_: React.SyntheticEvent, newValue: number) => {
@@ -95,9 +96,6 @@ const CustomModal: React.FC<CustomModalProps> = ({
     return activeSection === section ? "contained" : "outlined";
   };
 
-
-
-
   return (
     <Modal open={isOpen} onClose={handleClose}>
       <Stack
@@ -133,12 +131,9 @@ const CustomModal: React.FC<CustomModalProps> = ({
           <CloseIcon onClick={handleClose} style={{ cursor: "pointer" }} />
         </Stack>
         <Typography fontSize={13}>
-          To ensure that the risk management system is a continuous iterative
-          process that is planned, run, and regularly reviewed and updated
-          throughout the entire lifecycle of the high-risk AI system.
+          {content}
         </Typography>
         <DropDowns />
-
 
         {responseMessage && (
           <Typography
@@ -192,22 +187,24 @@ const CustomModal: React.FC<CustomModalProps> = ({
             width: "fit-content",
           }}
         >
-          {["Overview", "Evidence", "Auditor Feedback"].map((section, index) => (
-            <Button
-            key={index}
-              variant={getVariant(activeSection, section)}
-              onClick={() => handleSectionChange(section)}
-              disableRipple
-              sx={{
-                ...buttonTabStyles,
-                backgroundColor:
-                  activeSection === section ? "#EAECF0" : "transparent",
-                fontWeight: activeSection === section ? "500" : 300,
-              }}
-            >
-              {section}
-            </Button>
-          ))}
+          {["Overview", "Evidence", "Auditor Feedback"].map(
+            (section, index) => (
+              <Button
+                key={index}
+                variant={getVariant(activeSection, section)}
+                onClick={() => handleSectionChange(section)}
+                disableRipple
+                sx={{
+                  ...buttonTabStyles,
+                  backgroundColor:
+                    activeSection === section ? "#EAECF0" : "transparent",
+                  fontWeight: activeSection === section ? "500" : 300,
+                }}
+              >
+                {section}
+              </Button>
+            )
+          )}
         </Stack>
 
         {/* Dynamic Content Based on Active Section */}
@@ -217,11 +214,11 @@ const CustomModal: React.FC<CustomModalProps> = ({
             fontWeight={600}
             sx={{ textAlign: "left", mb: 3 }}
           >
-            Subcontrol {titleNumber}.{selectedTab + 1}
+            Subcontrol {subControlNumber}.{selectedTab + 1}
           </Typography>
           <Typography variant="body1" sx={{ mb: 5 }}>
             Plan and execute the risk management process as a continuous
-            iterative cycle. (EU AI ACT Ref: Subcontrol {titleNumber}.
+            iterative cycle. (EU AI ACT Ref: Subcontrol {subControlNumber}.
             {selectedTab + 1})
           </Typography>
           {activeSection === "Overview" && (

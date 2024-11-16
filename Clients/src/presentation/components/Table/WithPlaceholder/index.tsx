@@ -24,10 +24,11 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Typography,
   useTheme,
 } from "@mui/material";
 
-import Placeholder from "../../../assets/imgs/table placeholder 1.png";
+import Placeholder from "../../../assets/imgs/empty-state.svg";
 import { Vendor } from "../../../mocks/vendors/vendors.data";
 import IconButton from "../../IconButton";
 import singleTheme from "../../../themes/v1SingleTheme";
@@ -161,17 +162,21 @@ const TableWithPlaceholder = () => {
       {!dashboardValues.vendors.length && (
         <div
           style={{
-            display: "flex",
+            display: "grid",
             justifyContent: "center",
             alignItems: "center",
             border: "1px solid #EEEEEE",
             borderRadius: "4px",
             borderTop: "none",
-            padding: theme.spacing(5),
+            padding: theme.spacing(15, 5),
             paddingBottom: theme.spacing(20),
+            gap: theme.spacing(10),
           }}
         >
           <img src={Placeholder} alt="Placeholder" />
+          <Typography sx={{ fontSize: "13px", color: "#475467" }}>
+            There is currently no data in this table.
+          </Typography>
         </div>
       )}
     </TableContainer>

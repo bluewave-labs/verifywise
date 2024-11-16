@@ -132,7 +132,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 8,
+          id: 9,
           icon: Checked,
           data: [
             { id: "1", data: "AI System Accuracy and Security Information" },
@@ -153,7 +153,7 @@ export const complianceMetrics = [
       ],
       rows: [
         {
-          id: 5,
+          id: 10,
           icon: Exclamation,
           data: [
             { id: "1", data: "Human Intervention Mechanisms" },
@@ -163,7 +163,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 11,
           icon: Checked,
           data: [
             { id: "1", data: "Oversight Documentation" },
@@ -184,7 +184,7 @@ export const complianceMetrics = [
       ],
       rows: [
         {
-          id: 5,
+          id: 12,
           icon: Exclamation,
           data: [
             { id: "1", data: "Proportionate Oversight Measures" },
@@ -194,7 +194,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 13,
           icon: Checked,
           data: [
             { id: "1", data: "System Validation and Reliability Documentation" },
@@ -204,7 +204,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 14,
           icon: Checked,
           data: [
             { id: "1", data: "Prompt Corrective Actions Implementation" },
@@ -214,7 +214,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 15,
           icon: Checked,
           data: [
             { id: "1", data: "Documentation of Corrective Actions" },
@@ -235,7 +235,7 @@ export const complianceMetrics = [
       ],
       rows: [
         {
-          id: 5,
+          id: 16,
           icon: Exclamation,
           data: [
             { id: "1", data: "Conduct thorough due diligence before associating with high-risk AI systems" },
@@ -245,7 +245,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 17,
           icon: Checked,
           data: [
             { id: "1", data: "AI System Deactivation Mechanisms" },
@@ -255,7 +255,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 18,
           icon: Checked,
           data: [
             { id: "1", data: "Incident Monitoring for Third-Party Components" },
@@ -276,7 +276,7 @@ export const complianceMetrics = [
       ],
       rows: [
         {
-          id: 5,
+          id: 19,
           icon: Exclamation,
           data: [
             { id: "1", data: "AI Act Compliance Policies and Guidelines" },
@@ -286,7 +286,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 20,
           icon: Checked,
           data: [
             { id: "1", data: "AI Risk Response Planning" },
@@ -296,7 +296,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 21,
           icon: Checked,
           data: [
             { id: "1", data: "Compliance with AI System Instructions" },
@@ -306,7 +306,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 22,
           icon: Checked,
           data: [
             { id: "1", data: "System Risk Controls Documentation" },
@@ -316,7 +316,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 23,
           icon: Checked,
           data: [
             { id: "1", data: "Transparency and Explainability Evaluation" },
@@ -326,7 +326,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 24,
           icon: Checked,
           data: [
             { id: "1", data: "AI System Logging Implementation" },
@@ -347,7 +347,7 @@ export const complianceMetrics = [
       ],
       rows: [
         {
-          id: 5,
+          id: 25,
           icon: Exclamation,
           data: [
             { id: "1", data: "Fundamental Rights Impact Assessment Process Development" },
@@ -357,7 +357,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 26,
           icon: Checked,
           data: [
             { id: "1", data: "AI System Usage Process Description" },
@@ -367,7 +367,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 27,
           icon: Checked,
           data: [
             { id: "1", data: "Impacted Groups Identification" },
@@ -377,7 +377,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 28,
           icon: Checked,
           data: [
             { id: "1", data: "Data Assessment" },
@@ -387,7 +387,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 29,
           icon: Checked,
           data: [
             { id: "1", data: "Impacted Groups Identification" },
@@ -397,7 +397,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 30,
           icon: Checked,
           data: [
             { id: "1", data: "Impacted Groups Identification" },
@@ -407,7 +407,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 31,
           icon: Checked,
           data: [
             { id: "1", data: "Impacted Groups Identification" },
@@ -417,7 +417,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 32,
           icon: Checked,
           data: [
             { id: "1", data: "Impacted Groups Identification" },
@@ -438,7 +438,7 @@ export const complianceMetrics = [
       ],
       rows: [
         {
-          id: 5,
+          id: 33,
           icon: Exclamation,
           data: [
             { id: "1", data: "User Notification of AI System Use" },
@@ -448,7 +448,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 34,
           icon: Checked,
           data: [
             { id: "1", data: "Clear AI Indication for Users" },
@@ -458,7 +458,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 35,
           icon: Checked,
           data: [
             { id: "1", data: "AI System Scope and Impact Definition" },
@@ -480,7 +480,7 @@ export const complianceMetrics = [
       ],
       rows: [
         {
-          id: 5,
+          id:36,
           icon: Exclamation,
           data: [
             { id: "1", data: "EU Database Registration" },
@@ -490,7 +490,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id:37,
           icon: Checked,
           data: [
             { id: "1", data: "Conformity Assessment Completion" },
@@ -500,7 +500,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 38,
           icon: Checked,
           data: [
             { id: "1", data: "Registration Information Maintenance" },
@@ -521,7 +521,7 @@ export const complianceMetrics = [
       ],
       rows: [
         {
-          id: 5,
+          id: 39,
           icon: Exclamation,
           data: [
             { id: "1", data: "Registration Activity Records Maintenance" },
@@ -531,7 +531,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 40,
           icon: Checked,
           data: [
             { id: "1", data: "EU Database Data Entry Timeliness" },
@@ -552,7 +552,7 @@ export const complianceMetrics = [
       ],
       rows: [
         {
-          id: 5,
+          id: 41,
           icon: Exclamation,
           data: [
             { id: "1", data: "AI Lifecycle Risk Management" },
@@ -562,7 +562,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 42,
           icon: Checked,
           data: [
             { id: "1", data: "AI System Change Documentation" },
@@ -583,7 +583,7 @@ export const complianceMetrics = [
       ],
       rows: [
         {
-          id: 5,
+          id: 43,
           icon: Exclamation,
           data: [
             { id: "1", data: "Unexpected Impact Integration" },
@@ -593,7 +593,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 44,
           icon: Checked,
           data: [
             { id: "1", data: "AI Model Capability Assessment" },
@@ -603,7 +603,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 45,
           icon: Checked,
           data: [
             { id: "1", data: "Post-Deployment Incident Monitoring" },
@@ -613,7 +613,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 46,
           icon: Checked,
           data: [
             { id: "1", data: "AI System Logging Implementation" },
@@ -623,7 +623,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 47,
           icon: Checked,
           data: [
             { id: "1", data: "Serious Incident Immediate Reporting" },
@@ -644,7 +644,7 @@ export const complianceMetrics = [
       ],
       rows: [
         {
-          id: 5,
+          id: 48,
           icon: Exclamation,
           data: [
             { id: "1", data: "Intended Use Description for General-Purpose AI Models" },
@@ -654,7 +654,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 6,
+          id: 49,
           icon: Checked,
           data: [
             { id: "1", data: "Comprehensive AI System Documentation" },
@@ -664,7 +664,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 5,
+          id: 50,
           icon: Exclamation,
           data: [
             { id: "1", data: "Post-Market AI System Modification Management" },
@@ -674,7 +674,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 5,
+          id: 51,
           icon: Exclamation,
           data: [
             { id: "1", data: "Illegal Content Prevention Countermeasures" },
@@ -684,7 +684,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 5,
+          id: 52,
           icon: Exclamation,
           data: [
             { id: "1", data: "Synthetic Content Marking Mechanisms" },
@@ -694,7 +694,7 @@ export const complianceMetrics = [
           ],
         },
         {
-          id: 5,
+          id: 53,
           icon: Exclamation,
           data: [
             { id: "1", data: "Datasets Used Documentation" },

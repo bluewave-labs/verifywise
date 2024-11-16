@@ -264,13 +264,15 @@ const ComplianceTracker = ({
         <CustomModal
           isOpen={isModalOpen}
           setIsOpen={setIsModalOpen}
-          title={
-            complianceDetails.rows.find(
-              (row: RowData) => row.id === selectedRow
-            )?.data[0]?.data || "Row not found"
-          }
+          title={Object.keys(complianceDetails).map((key) => {
+            const item = complianceDetails[key];
+            return item.rows.find((row: any) => row.id === selectedRow)?.data[0]
+              ?.data;
+          })}
           content={`This is some dynamic content for row ${selectedRow}.`}
-          onConfirm={() => {}}
+          onConfirm={() => {
+            console.log("confirmed");
+          }}
         />
       )}
     </Stack>

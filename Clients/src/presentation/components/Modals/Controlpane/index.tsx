@@ -19,7 +19,7 @@ import { STATUS_CODE } from "../../../../../../Servers/utils/statusCode.utils";
 interface CustomModalProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  title: string;
+  title: any;
   content: string;
   onConfirm: () => void;
   //Promise<{ status: number; data: any }>;
@@ -31,18 +31,19 @@ const CustomModal: React.FC<CustomModalProps> = ({
   title,
   onConfirm,
 }) => {
+  console.log("🚀 ~ tittttttttle:", title)
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
   const [responseMessage, setResponseMessage] = useState<string | null>(null);
 
-  const extractNumberFromTitle = (title: string) => {
-    const match = title.match(/\d+/);
-    return match ? match[0] : "0";
-  };
+  // const extractNumberFromTitle = (title: any) => {
+  //   const match = title.match(/\d+/);
+  //   return match ? match[0] : "0";
+  // };
 
-  const titleNumber = extractNumberFromTitle(title);
-
+  // const titleNumber = extractNumberFromTitle(title);
+  const titleNumber = 332322;
   const handleClose = () => setIsOpen(false);
 
   const handleSelectedTab = (_: React.SyntheticEvent, newValue: number) => {

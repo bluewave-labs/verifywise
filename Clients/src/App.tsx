@@ -93,7 +93,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/compliance-tracker" element={<ComplianceTracker />} />
             <Route path="/assessment" element={<Assessment />} />
-              <Route path="/new-assessment" element={<NewAssessment />} />
+            <Route path="/all-assessments" element={<NewAssessment />} />
             <Route path="/vendors" element={<Vendors />} />
             <Route path="/setting" element={<Setting />} />
             <Route path="/team" element={<Team />} />

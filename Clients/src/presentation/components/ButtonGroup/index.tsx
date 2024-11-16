@@ -7,10 +7,9 @@ interface StyledButtonProps extends ButtonProps {
 }
 
 const StyledButtonGroup = styled(ButtonGroup)({
-  borderRadius: "8px",
+  borderRadius: "4px",
   overflow: "hidden",
-  width: "384px",
-  height: "49px",
+  border:'1px solid rgba(0,0,0,0.1)'
 });
 
 const StyledButton = styled(Button)<StyledButtonProps>(
@@ -20,13 +19,15 @@ const StyledButton = styled(Button)<StyledButtonProps>(
       : theme.palette.text.primary,
     backgroundColor: isSelected
       ? theme.palette.primary.main
-      : theme.palette.background.paper,
-    borderColor: "transparent",
+      : '#f0f0f0',
+    borderColor: "rgba(0,0,0,0.1)",
     fontWeight: isSelected ? "bold" : "normal",
-    "&:hover": {
+    border:'1px solid rgba(0,0,0,0.1)',
+    borderRadius: 0
+,    "&:hover": {
       backgroundColor: isSelected
         ? theme.palette.primary.dark
-        : theme.palette.action.hover,
+        : '#e0e0e0',
     },
     padding: "8px 16px",
     textTransform: "none",

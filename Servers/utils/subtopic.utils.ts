@@ -20,7 +20,10 @@ export const getSubtopicByIdQuery = async (
 export const createNewSubtopicQuery = async (subtopic: {
   topicId: number;
   name: string;
-}): Promise<Subtopic> => {
+}): Promise<{
+  topicId: number;
+  name: string;
+}> => {
   console.log("createNewSubtopic", subtopic);
   const result = await pool.query(
     `INSERT INTO subtopics (topic_id, name) VALUES ($1, $2) RETURNING *`,
@@ -31,7 +34,10 @@ export const createNewSubtopicQuery = async (subtopic: {
 
 export const updateSubtopicByIdQuery = async (
   id: number,
-  subtopic: Partial<Subtopic>
+  subtopic: Partial<{
+    topicId: number;
+    name: string;
+  }>
 ): Promise<Subtopic | null> => {
   console.log("updateSubtopicById", id, subtopic);
   const result = await pool.query(

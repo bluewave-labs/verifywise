@@ -7,6 +7,7 @@ import BasicTable from "../../../components/Table";
 import Risks from "../../../components/Risks";
 import AddNewRiskForm from "../../../components/AddNewRiskForm";
 import Popup from "../../../components/Popup";
+import AddNewVendorRiskForm from "../../../components/AddNewVendorRiskForm";
 
 interface RisksViewProps {
     risksSummary: RiskData,
@@ -51,7 +52,7 @@ const RisksView: FC<RisksViewProps>= ({ risksSummary, risksData, title }) => {
         rows: risksTableRows
     }
 
-    const PopupRender = () => {
+    const AddNewRiskPopupRender = () => {
         const [anchor, setAnchor] = useState<null | HTMLElement>(null);
         const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
             setAnchor(anchor ? null : event.currentTarget);
@@ -68,14 +69,33 @@ const RisksView: FC<RisksViewProps>= ({ risksSummary, risksData, title }) => {
             anchor={anchor}
           />
         )
-      }
+    }
 
+    const AddNewVendorRiskPopupRender = () => {
+        const [anchor, setAnchor] = useState<null | HTMLElement>(null);
+        const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
+            setAnchor(anchor ? null : event.currentTarget);
+        };
+    
+        return (
+          <Popup
+            popupId="add-new-vendor-risk-popup" 
+            popupContent={<AddNewVendorRiskForm closePopup={() => setAnchor(null)} />} 
+            openPopupButtonName="Add new risk"
+            popupTitle="Add a new vendor risk"
+            popupSubtitle="Create a list of vendor risks"
+            handleOpenOrClose={handleOpenOrClose}
+            anchor={anchor}
+          />
+        )
+    }
+console.log(title)
     return (
         <Stack sx={{ maxWidth: 1220 }}>
             <Risks {...risksSummary} />
             <Stack sx={{ mt: "32px", mb: "28px" }} direction="row" justifyContent="space-between" alignItems="flex-end">
                 <Typography component="h2" sx={{ fontSize: 16, fontWeight: 600, color: "#1A1919" }}>{title} risks</Typography>
-                <PopupRender />
+                {title === "Project" ? <AddNewRiskPopupRender /> : <AddNewVendorRiskPopupRender />}
             </Stack>
             <BasicTable 
                 data={tableData} 

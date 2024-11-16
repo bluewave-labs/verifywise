@@ -9,6 +9,2714 @@ servers:
     description: Local development server
 
 paths:
+  /assessments:
+    get:
+      tags: [assessments]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all assessments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/Assessment"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [assessments]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new assessment
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 1
+                projectId:
+                  type: integer
+                  example: 1
+        required: true
+      responses:
+        "201":
+          description: new created assessment tracker
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/Assessment"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /assessments/{id}:
+    get:
+      tags: [assessments]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the assessment
+      responses:
+        "200":
+          description: assessment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/Assessment"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [assessments]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the assessment
+      requestBody:
+        description: body of the new assessment
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 1
+                projectId:
+                  type: integer
+                  example: 1
+        required: true
+      responses:
+        "202":
+          description: assessment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/Assessment"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [assessments]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the assessment to delete
+      responses:
+        "202":
+          description: assessment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
+  /controls:
+    get:
+      tags: [controls]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all controls
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/Control"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [controls]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new control
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 1
+                ProjectId:
+                  type: integer
+                  example: 1
+                status:
+                  type: string
+                  example: "In Progress"
+                approver:
+                  type: string
+                  example: "John Doe"
+                riskReview:
+                  type: string
+                  example: "Acceptable risk"
+                owner:
+                  type: string
+                  example: "Bob Johnson"
+                reviewer:
+                  type: string
+                  example: "Alice Williams"
+                dueDate:
+                  type: string
+                  format: date-time
+                  example: "2024-09-20T00:00:00.000Z"
+                implementationDetails:
+                  type: string
+                  example: "Implement new feature"
+        required: true
+      responses:
+        "201":
+          description: new created control
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/Control"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /controls/{id}:
+    get:
+      tags: [controls]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the control
+      responses:
+        "200":
+          description: control
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/Control"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [controls]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the control
+      requestBody:
+        description: body of the new control
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 1
+                ProjectId:
+                  type: integer
+                  example: 1
+                status:
+                  type: string
+                  example: "In Progress"
+                approver:
+                  type: string
+                  example: "John Doe"
+                riskReview:
+                  type: string
+                  example: "Acceptable risk"
+                owner:
+                  type: string
+                  example: "Bob Johnson"
+                reviewer:
+                  type: string
+                  example: "Alice Williams"
+                dueDate:
+                  type: string
+                  format: date-time
+                  example: "2024-09-20T00:00:00.000Z"
+                implementationDetails:
+                  type: string
+                  example: "Implement new feature"
+        required: true
+      responses:
+        "202":
+          description: control
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/Control"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [controls]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the control to delete
+      responses:
+        "202":
+          description: control
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
+  /projects:
+    get:
+      tags: [projects]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all projects
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/Project"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [projects]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new project
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: number
+                  example: 1
+                project_title:
+                  type: string
+                  example: "AI Compliance Checker"
+                owner:
+                  type: string
+                  example: "Alice"
+                users:
+                  type: 
+                  example: 
+                start_date:
+                  type: string
+                  format: date-time
+                  example: "2023-01-15T00:00:00.000Z"
+                ai_risk_classification:
+                  type: string
+                  - anyOf:
+                    type: string
+                    enum:
+                      - "high risk"
+                      - "limited risk"
+                      - "minimal risk"
+                  example: "high risk"
+                type_of_high_risk_role:
+                  type: string
+                  - anyOf:
+                    type: string
+                    enum:
+                      - "deployer"
+                      - "provider"
+                      - "distributor"
+                      - "importer"
+                      - "product manufacturer"
+                      - "authorized representative"
+                  example: "deployer"
+                goal:
+                  type: string
+                  example: ""To ensure compliance with AI governance standards""
+                last_updated:
+                  type: string
+                  format: date-time
+                  example: "2024-10-30T00:00:00.000Z"
+                last_updated_by:
+                  type: string
+                  example: "Alice"
+        required: true
+      responses:
+        "201":
+          description: new created project
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/Project"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /projects/{id}:
+    get:
+      tags: [projects]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the project
+      responses:
+        "200":
+          description: project
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/Project"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [projects]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the project
+      requestBody:
+        description: body of the new project
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: number
+                  example: 1
+                project_title:
+                  type: string
+                  example: "AI Compliance Checker"
+                owner:
+                  type: string
+                  example: "Alice"
+                users:
+                  type: 
+                  example: 
+                start_date:
+                  type: string
+                  format: date-time
+                  example: "2023-01-15T00:00:00.000Z"
+                ai_risk_classification:
+                  type: string
+                  - anyOf:
+                    type: string
+                    enum:
+                      - "high risk"
+                      - "limited risk"
+                      - "minimal risk"
+                  example: "high risk"
+                type_of_high_risk_role:
+                  type: string
+                  - anyOf:
+                    type: string
+                    enum:
+                      - "deployer"
+                      - "provider"
+                      - "distributor"
+                      - "importer"
+                      - "product manufacturer"
+                      - "authorized representative"
+                  example: "deployer"
+                goal:
+                  type: string
+                  example: ""To ensure compliance with AI governance standards""
+                last_updated:
+                  type: string
+                  format: date-time
+                  example: "2024-10-30T00:00:00.000Z"
+                last_updated_by:
+                  type: string
+                  example: "Alice"
+        required: true
+      responses:
+        "202":
+          description: project
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/Project"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [projects]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the project to delete
+      responses:
+        "202":
+          description: project
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
+  /projectRisks:
+    get:
+      tags: [projectRisks]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all project risks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/ProjectRisk"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [projectRisks]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new project risk
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 1
+                project_id:
+                  type: integer
+                  example: 1
+                risk_name:
+                  type: string
+                  example: "Data Privacy Compliance"
+                risk_owner:
+                  type: string
+                  example: "Alice"
+                ai_lifecycle_phase:
+                  type: string
+                  example: "Deployment"
+                risk_description:
+                  type: string
+                  example: "Risk of non-compliance with data privacy regulations."
+                risk_category:
+                  type: string
+                  example: "Regulatory"
+                impact:
+                  type: string
+                  example: "High"
+                assessment_mapping:
+                  type: string
+                  example: "GDPR Compliance Check"
+                controls_mapping:
+                  type: string
+                  example: "Data Access Controls"
+                likelihood:
+                  type: string
+                  example: "Moderate"
+                severity:
+                  type: string
+                  example: "High"
+                risk_level_autocalculated:
+                  type: string
+                  anyOf:
+                    - type: string
+                      enum:
+                        - "No risk"
+                        - "Low risk"
+                        - "Medium risk"
+                        - "High risk"
+                        - "Very high risk"
+                  example: "No risk"
+                review_notes:
+                  type: string
+                  example: "Need for regular audits."
+                mitigation_status:
+                  type: string
+                  example: "In Progress"
+                current_risk_level:
+                  type: string
+                  example: "Medium"
+                deadline:
+                  type: string
+                  format: date-time
+                  example: "2024-12-31T00:00:00.000Z"
+                mitigation_plan:
+                  type: string
+                  example: "Implement data anonymization."
+                implementation_strategy:
+                  type: string
+                  example: "Anonymize user data in production environments."
+                mitigation_evidence_document:
+                  type: string
+                  example: "Data_Anonymization_Plan.pdf"
+                likelihood_mitigation:
+                  type: string
+                  example: "Reduced"
+                risk_severity:
+                  type: string
+                  example: "Moderate"
+                final_risk_level:
+                  type: string
+                  example: "Low"
+                risk_approval:
+                  type: string
+                  example: "Pending"
+                approval_status:
+                  type: string
+                  example: "Under Review"
+                date_of_assessment:
+                  type: string
+                  format: date-time
+                  example: "2024-11-01T00:00:00.000Z"
+        required: true
+      responses:
+        "201":
+          description: new created project risk
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/ProjectRisk"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /projectRisks/{id}:
+    get:
+      tags: [projectRisks]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the project risk
+      responses:
+        "200":
+          description: project risk
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/ProjectRisk"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [projectRisks]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the project risk
+      requestBody:
+        description: body of the new project risk
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 1
+                project_id:
+                  type: integer
+                  example: 1
+                risk_name:
+                  type: string
+                  example: "Data Privacy Compliance"
+                risk_owner:
+                  type: string
+                  example: "Alice"
+                ai_lifecycle_phase:
+                  type: string
+                  example: "Deployment"
+                risk_description:
+                  type: string
+                  example: "Risk of non-compliance with data privacy regulations."
+                risk_category:
+                  type: string
+                  example: "Regulatory"
+                impact:
+                  type: string
+                  example: "High"
+                assessment_mapping:
+                  type: string
+                  example: "GDPR Compliance Check"
+                controls_mapping:
+                  type: string
+                  example: "Data Access Controls"
+                likelihood:
+                  type: string
+                  example: "Moderate"
+                severity:
+                  type: string
+                  example: "High"
+                risk_level_autocalculated:
+                  type: string
+                  anyOf:
+                    - type: string
+                      enum:
+                        - "No risk"
+                        - "Low risk"
+                        - "Medium risk"
+                        - "High risk"
+                        - "Very high risk"
+                  example: "No risk"
+                review_notes:
+                  type: string
+                  example: "Need for regular audits."
+                mitigation_status:
+                  type: string
+                  example: "In Progress"
+                current_risk_level:
+                  type: string
+                  example: "Medium"
+                deadline:
+                  type: string
+                  format: date-time
+                  example: "2024-12-31T00:00:00.000Z"
+                mitigation_plan:
+                  type: string
+                  example: "Implement data anonymization."
+                implementation_strategy:
+                  type: string
+                  example: "Anonymize user data in production environments."
+                mitigation_evidence_document:
+                  type: string
+                  example: "Data_Anonymization_Plan.pdf"
+                likelihood_mitigation:
+                  type: string
+                  example: "Reduced"
+                risk_severity:
+                  type: string
+                  example: "Moderate"
+                final_risk_level:
+                  type: string
+                  example: "Low"
+                risk_approval:
+                  type: string
+                  example: "Pending"
+                approval_status:
+                  type: string
+                  example: "Under Review"
+                date_of_assessment:
+                  type: string
+                  format: date-time
+                  example: "2024-11-01T00:00:00.000Z"
+        required: true
+      responses:
+        "202":
+          description: project risk
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/ProjectRisk"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [projectRisks]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the project risk to delete
+      responses:
+        "202":
+          description: project risk
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
+  /projectScopes:
+    get:
+      tags: [projectScopes]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all project scopes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/ProjectScope"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [projectScopes]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new project scope
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 1
+                assessmentId:
+                  type: integer
+                  example: 1
+                describeAiEnvironment:
+                  type: string
+                  example: "This project involves the development of a new AI-powered virtual assistant."
+                isNewAiTechnology:
+                  type: boolean
+                  example: true
+                usesPersonalData:
+                  type: boolean
+                  example: true
+                projectScopeDocuments:
+                  type: string
+                  example: "project-scope-v1.pdf"
+                technologyType:
+                  type: string
+                  example: "Natural Language Processing"
+                hasOngoingMonitoring:
+                  type: boolean
+                  example: true
+                unintendedOutcomes:
+                  type: string
+                  example: "Potential bias in the assistant's responses."
+                technologyDocumentation:
+                  type: string
+                  example: "technology-documentation.docx"
+        required: true
+      responses:
+        "201":
+          description: new created project scope
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/ProjectScope"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /projectScopes/{id}:
+    get:
+      tags: [projectScopes]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the project scope
+      responses:
+        "200":
+          description: project scope
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/ProjectScope"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [projectScopes]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the project scope
+      requestBody:
+        description: body of the new project scope
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 1
+                assessmentId:
+                  type: integer
+                  example: 1
+                describeAiEnvironment:
+                  type: string
+                  example: "This project involves the development of a new AI-powered virtual assistant."
+                isNewAiTechnology:
+                  type: boolean
+                  example: true
+                usesPersonalData:
+                  type: boolean
+                  example: true
+                projectScopeDocuments:
+                  type: string
+                  example: "project-scope-v1.pdf"
+                technologyType:
+                  type: string
+                  example: "Natural Language Processing"
+                hasOngoingMonitoring:
+                  type: boolean
+                  example: true
+                unintendedOutcomes:
+                  type: string
+                  example: "Potential bias in the assistant's responses."
+                technologyDocumentation:
+                  type: string
+                  example: "technology-documentation.docx"
+        required: true
+      responses:
+        "202":
+          description: project scope
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/ProjectScope"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [projectScopes]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the project scope to delete
+      responses:
+        "202":
+          description: project scope
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
+  /questions:
+    get:
+      tags: [questions]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all questions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/Question"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [questions]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new question
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: number
+                  example: 1
+                subtopicId:
+                  type: number
+                  example: 1
+                questionText:
+                  type: string
+                  example: "What is the purpose of this feature?"
+                answerType:
+                  type: string
+                  example: "Multiple Choice"
+                dropdownOptions:
+                  type: string
+                  example: "Option A,Option B,Option C"
+                hasFileUpload:
+                  type: boolean
+                  example: false
+                hasHint:
+                  type: boolean
+                  example: true
+                isRequired:
+                  type: boolean
+                  example: true
+                priorityOptions:
+                  type: string
+                  example: "High,Medium,Low"
+        required: true
+      responses:
+        "201":
+          description: new created question
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/Question"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /questions/{id}:
+    get:
+      tags: [questions]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the question
+      responses:
+        "200":
+          description: question
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/Question"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [questions]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the question
+      requestBody:
+        description: body of the new question
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: number
+                  example: 1
+                subtopicId:
+                  type: number
+                  example: 1
+                questionText:
+                  type: string
+                  example: "What is the purpose of this feature?"
+                answerType:
+                  type: string
+                  example: "Multiple Choice"
+                dropdownOptions:
+                  type: string
+                  example: "Option A,Option B,Option C"
+                hasFileUpload:
+                  type: boolean
+                  example: false
+                hasHint:
+                  type: boolean
+                  example: true
+                isRequired:
+                  type: boolean
+                  example: true
+                priorityOptions:
+                  type: string
+                  example: "High,Medium,Low"
+        required: true
+      responses:
+        "202":
+          description: question
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/Question"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [questions]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the question to delete
+      responses:
+        "202":
+          description: question
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
+  /subcontrols:
+    get:
+      tags: [subcontrols]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all sub controls
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/SubControl"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [subcontrols]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new sub control
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                controlId:
+                  type: number
+                  example: 1
+                status:
+                  type: string
+                  anyOf:
+                    - type: string
+                    enum:
+                      - "Waiting"
+                      - "In progress"
+                      - "Done"
+                  example: "In Progress"
+                approver:
+                  type: string
+                  example: "John Doe"
+                riskReview:
+                  type: string
+                  anyOf:
+                    - type: string
+                    enum:
+                      - "Acceptable risk"
+                      - "Residual risk"
+                      - "Unacceptable risk"
+                  example: "Acceptable risk"
+                owner:
+                  type: string
+                  example: "Bob Johnson"
+                reviewer:
+                  type: string
+                  example: "Alice Williams"
+                dueDate:
+                  type: Date
+                  example: "2023-12-31T00:00:00.000Z"
+                implementationDetails:
+                  type: string
+                  example: "Implement new feature"
+                evidence:
+                  type: string
+                  example: "evidence1.pdf"
+                attachment:
+                  type: string
+                  example: "attachment1.docx"
+                feedback:
+                  type: string
+                  example: "Great work so far."
+        required: true
+      responses:
+        "201":
+          description: new created sub control
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/SubControl"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /subcontrols/{id}:
+    get:
+      tags: [subcontrols]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the sub control
+      responses:
+        "200":
+          description: sub control
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/SubControl"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [subcontrols]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the sub control
+      requestBody:
+        description: body of the new sub control
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                controlId:
+                  type: number
+                  example: 1
+                status:
+                  type: string
+                  anyOf:
+                    - type: string
+                    enum:
+                      - "Waiting"
+                      - "In progress"
+                      - "Done"
+                  example: "In Progress"
+                approver:
+                  type: string
+                  example: "John Doe"
+                riskReview:
+                  type: string
+                  anyOf:
+                    - type: string
+                    enum:
+                      - "Acceptable risk"
+                      - "Residual risk"
+                      - "Unacceptable risk"
+                  example: "Acceptable risk"
+                owner:
+                  type: string
+                  example: "Bob Johnson"
+                reviewer:
+                  type: string
+                  example: "Alice Williams"
+                dueDate:
+                  type: Date
+                  example: "2023-12-31T00:00:00.000Z"
+                implementationDetails:
+                  type: string
+                  example: "Implement new feature"
+                evidence:
+                  type: string
+                  example: "evidence1.pdf"
+                attachment:
+                  type: string
+                  example: "attachment1.docx"
+                feedback:
+                  type: string
+                  example: "Great work so far."
+        required: true
+      responses:
+        "202":
+          description: sub control
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/SubControl"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [subcontrols]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the sub control to delete
+      responses:
+        "202":
+          description: sub control
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
+  /subtopics:
+    get:
+      tags: [subtopics]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all sub topics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/SubTopic"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [subtopics]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new sub topic
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                topicId:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  example: "Subtopic A"
+        required: true
+      responses:
+        "201":
+          description: new created sub topic
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/SubTopic"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /subtopics/{id}:
+    get:
+      tags: [subtopics]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the sub topic
+      responses:
+        "200":
+          description: sub topic
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/SubTopic"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [subtopics]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the sub topic
+      requestBody:
+        description: body of the new sub topic
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                topicId:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  example: "Subtopic A"
+        required: true
+      responses:
+        "202":
+          description: sub topic
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/SubTopic"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [subtopics]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the sub topic to delete
+      responses:
+        "202":
+          description: sub topic
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
+  /topics:
+    get:
+      tags: [topics]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all topics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#components/schemas/Topic"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    post:
+      tags: [topics]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: body of the new topic
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                assessmentId:
+                  type: integer
+                  example: 1
+                title:
+                  type: string
+                  example: "Project A"
+        required: true
+      responses:
+        "201":
+          description: new created topic
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: created
+                data:
+                  type: object
+                  $ref: "#components/schemas/Topic"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+        "503":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: service unavailable
+                error:
+                  type: object
+  /topics/{id}:
+    get:
+      tags: [topics]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the topic
+      responses:
+        "200":
+          description: topic
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/Topic"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    put:
+      tags: [topics]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the topic
+      requestBody:
+        description: body of the new topic
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                assessmentId:
+                  type: integer
+                  example: 1
+                title:
+                  type: string
+                  example: "Project A"
+        required: true
+      responses:
+        "202":
+          description: topic
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    $ref: "#components/schemas/Topic"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [topics]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the topic to delete
+      responses:
+        "202":
+          description: topic
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
   /vendors:
     get:
       tags: [vendors]

@@ -115,7 +115,7 @@ const CreateProjectForm: FC = () => {
       padding: "0 14px"
     }
   }
-console.log(values)
+
   return (
     <Stack>
       {alert && (

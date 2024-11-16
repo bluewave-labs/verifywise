@@ -79,7 +79,17 @@ export async function createProjectScope(
   res: Response
 ): Promise<any> {
   try {
-    const projectScope = req.body as ProjectScope;
+    const projectScope = req.body as {
+      assessmentId: number;
+      describeAiEnvironment: string;
+      isNewAiTechnology: boolean;
+      usesPersonalData: boolean;
+      projectScopeDocuments: string;
+      technologyType: string;
+      hasOngoingMonitoring: boolean;
+      unintendedOutcomes: string;
+      technologyDocumentation: string;
+    };
 
     if (MOCK_DATA_ON === true) {
       const createdProjectScope = createMockProjectScope(projectScope);
@@ -109,7 +119,17 @@ export async function updateProjectScopeById(
 ): Promise<any> {
   try {
     const projectScopeId = parseInt(req.params.id);
-    const projectScope = req.body as ProjectScope;
+    const projectScope = req.body as {
+      assessmentId: number;
+      describeAiEnvironment: string;
+      isNewAiTechnology: boolean;
+      usesPersonalData: boolean;
+      projectScopeDocuments: string;
+      technologyType: string;
+      hasOngoingMonitoring: boolean;
+      unintendedOutcomes: string;
+      technologyDocumentation: string;
+    };
 
     if (MOCK_DATA_ON === true) {
       const updatedProjectScope = updateMockProjectScopeById(

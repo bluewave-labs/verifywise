@@ -30,7 +30,9 @@ export const createNewAssessmentQuery = async (assessment: {
 
 export const updateAssessmentByIdQuery = async (
   id: number,
-  assessment: Partial<Assessment>
+  assessment: Partial<{
+    projectId: number;
+  }>
 ): Promise<Assessment | null> => {
   console.log("updateAssessmentById", id, assessment);
   const result = await pool.query(

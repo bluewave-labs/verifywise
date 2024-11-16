@@ -79,7 +79,16 @@ export async function createQuestion(
   res: Response
 ): Promise<any> {
   try {
-    const newQuestion: Question = req.body;
+    const newQuestion: {
+      subtopicId: number;
+      questionText: string;
+      answerType: string;
+      dropdownOptions: string;
+      hasFileUpload: boolean;
+      hasHint: boolean;
+      isRequired: boolean;
+      priorityOptions: string;
+    } = req.body;
 
     if (
       !newQuestion.subtopicId ||
@@ -123,7 +132,16 @@ export async function updateQuestionById(
 ): Promise<any> {
   try {
     const questionId = parseInt(req.params.id);
-    const updatedQuestion: Question = req.body;
+    const updatedQuestion: {
+      subtopicId: number;
+      questionText: string;
+      answerType: string;
+      dropdownOptions: string;
+      hasFileUpload: boolean;
+      hasHint: boolean;
+      isRequired: boolean;
+      priorityOptions: string;
+    } = req.body;
 
     if (
       !updatedQuestion.subtopicId ||

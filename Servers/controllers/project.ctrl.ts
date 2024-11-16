@@ -76,7 +76,17 @@ export async function getProjectById(
 
 export async function createProject(req: Request, res: Response): Promise<any> {
   try {
-    const newProject: Project = req.body;
+    const newProject: {
+      project_title: string;
+      owner: string;
+      users: number[];
+      start_date: Date;
+      ai_risk_classification: string;
+      type_of_high_risk_role: string;
+      goal: string;
+      last_updated: Date;
+      last_updated_by: string;
+    } = req.body;
 
     if (!newProject.project_title || !newProject.owner) {
       return res
@@ -114,7 +124,17 @@ export async function updateProjectById(
 ): Promise<any> {
   try {
     const projectId = parseInt(req.params.id);
-    const updatedProject: Project = req.body;
+    const updatedProject: {
+      project_title: string;
+      owner: string;
+      users: number[];
+      start_date: Date;
+      ai_risk_classification: string;
+      type_of_high_risk_role: string;
+      goal: string;
+      last_updated: Date;
+      last_updated_by: string;
+    } = req.body;
 
     if (!updatedProject.project_title || !updatedProject.owner) {
       return res

@@ -1,52 +1,26 @@
-/**
- * TableWithPlaceholder component renders a table with a placeholder image when no data is provided.
- * It displays a table header and a body populated with rows from the provided data.
- *
- * @component
- * @param {Object} props - The properties object.
- * @param {Array} props.data - The array of data objects to be displayed in the table. Defaults to vendorList.
- * @returns {JSX.Element} The rendered TableWithPlaceholder component.
- *
- * @example
- * // Example usage of TableWithPlaceholder
- * const data = [
- *   { name: "Vendor A", type: "Type 1", assignee: "John Doe", status: "Active", risk: "Low", review_date: "2023-01-01" },
- *   { name: "Vendor B", type: "Type 2", assignee: "Jane Smith", status: "Inactive", risk: "High", review_date: "2023-02-01" }
- * ];
- *
- * <TableWithPlaceholder data={data} />
- */
-
 import {
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
   useTheme,
+  Stack,
+  Typography,
 } from "@mui/material";
-
+import { useContext, useEffect, useState } from "react";
 import Placeholder from "../../../assets/imgs/table placeholder 1.png";
 import { Vendor } from "../../../mocks/vendors/vendors.data";
 import IconButton from "../../IconButton";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { useContext, useEffect } from "react";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { formatDate } from "../../../tools/isoDateToString";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import TablePaginationActions from "../../TablePagination";
+import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
 
-/**
- * An array of strings representing the titles of the table columns.
- * The columns include:
- * - "name": The name of the item.
- * - "type": The type of the item.
- * - "assignee": The person assigned to the item.
- * - "status": The current status of the item.
- * - "risk": The risk level associated with the item.
- * - "review date": The date when the item was last reviewed.
- * - "": An empty string for a column with no title.
- */
 const titleOfTableColumns = [
   "name",
   "assignee",
@@ -59,11 +33,13 @@ const titleOfTableColumns = [
 const TableWithPlaceholder = () => {
   const theme = useTheme();
   const { dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const fetchVendors = async () => {
     try {
       const response = await getAllEntities({ routeUrl: "/vendors" });
-      console.log("reponse ===> ", response);
+      console.log("response ===> ", response);
       setDashboardValues((prevValues: any) => ({
         ...prevValues,
         vendors: response.data,
@@ -79,20 +55,24 @@ const TableWithPlaceholder = () => {
 
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
-  /**
-   * Renders the table header with specified styles and column titles.
-   *
-   * @constant
-   * @type {JSX.Element}
-   *
-   * @remarks
-   * The table header is styled with a light background color and uppercase text.
-   * Each column title is styled with a specific color, font weight, and padding.
-   *
-   * @param {Array<string>} titleOfTableColumns - An array of strings representing the titles of the table columns.
-   *
-   * @returns {JSX.Element} The table header component.
-   */
+  const handleChangePage = (_: any, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: any) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const getRange = () => {
+    let start = page * rowsPerPage + 1;
+    let end = Math.min(
+      page * rowsPerPage + rowsPerPage,
+      dashboardValues.vendors.length
+    );
+    return `${start} - ${end}`;
+  };
+
   const tableHeader: JSX.Element = (
     <TableHead
       sx={{
@@ -113,68 +93,125 @@ const TableWithPlaceholder = () => {
     </TableHead>
   );
 
-  /**
-   * Renders the body of a table with rows populated from the provided data.
-   * Each row displays various properties of the data object such as name, type, assignee, status, risk, and review date.
-   * An IconButton is also rendered in the last cell of each row.
-   *
-   * @constant
-   * @type {JSX.Element}
-   * @param {Array} data - The array of data objects to be displayed in the table.
-   * @param {Object} row - The individual data object representing a row in the table.
-   * @param {number} index - The index of the current row in the data array.
-   * @param {Object} row.name - The name property of the data object.
-   * @param {Object} row.type - The type property of the data object.
-   * @param {Object} row.assignee - The assignee property of the data object.
-   * @param {Object} row.status - The status property of the data object.
-   * @param {Object} row.risk - The risk property of the data object.
-   * @param {Object} row.review_date - The review date property of the data object.
-   * @param {Object} cellStyle - The style object applied to each TableCell.
-   * @returns {JSX.Element} The rendered table body with rows.
-   */
   const tableBody: JSX.Element = (
     <TableBody>
       {dashboardValues.vendors &&
-        dashboardValues.vendors.map((row: Vendor, index: number) => (
-          <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row}>
-            <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-              {row.name}
-            </TableCell>
-            <TableCell sx={cellStyle}>{row.assignee}</TableCell>
-            <TableCell sx={cellStyle}>{row.status}</TableCell>
-            <TableCell sx={cellStyle}>{row.risk_status}</TableCell>
-            <TableCell sx={cellStyle}>{formatDate(row.review_date)}</TableCell>
-            <TableCell sx={cellStyle}>
-              <IconButton vendorId={row.id} />
-            </TableCell>
-          </TableRow>
-        ))}
+        dashboardValues.vendors
+          .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+          .map((row: Vendor, index: number) => (
+            <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row}>
+              <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                {row.vendorName}
+              </TableCell>
+              <TableCell sx={cellStyle}>{row.assignee}</TableCell>
+              <TableCell sx={cellStyle}>{row.reviewStatus}</TableCell>
+              <TableCell sx={cellStyle}>{row.riskStatus}</TableCell>
+              <TableCell sx={cellStyle}>
+                {formatDate(row.reviewDate.toString())}
+              </TableCell>
+              <TableCell sx={cellStyle}>
+                <IconButton vendorId={row.id} />
+              </TableCell>
+            </TableRow>
+          ))}
     </TableBody>
   );
 
   return (
-    <TableContainer>
-      <Table sx={singleTheme.tableStyles.primary.frame}>
-        {tableHeader}
-        {tableBody}
-      </Table>
-      {!dashboardValues.vendors.length && (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            border: "1px solid #EEEEEE",
-            borderRadius: "4px",
-            borderTop: "none",
-            padding: theme.spacing(5),
-            paddingBottom: theme.spacing(20),
+    <>
+      <TableContainer>
+        <Table sx={singleTheme.tableStyles.primary.frame}>
+          {tableHeader}
+          {tableBody}
+        </Table>
+        {!dashboardValues.vendors.length && (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              border: "1px solid #EEEEEE",
+              borderRadius: "4px",
+              borderTop: "none",
+              padding: theme.spacing(5),
+              paddingBottom: theme.spacing(20),
+            }}
+          >
+            <img src={Placeholder} alt="Placeholder" />
+          </div>
+        )}
+      </TableContainer>
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        px={theme.spacing(4)}
+        sx={{
+          "& p": {
+            color: theme.palette.text.tertiary,
+          },
+        }}
+      >
+        <Typography px={theme.spacing(2)} fontSize={12} sx={{ opacity: 0.7 }}>
+          Showing {getRange()} of {dashboardValues.vendors.length} vendor(s)
+        </Typography>
+        <TablePagination
+          count={dashboardValues.vendors.length}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          rowsPerPageOptions={[5, 10, 15, 25]}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          ActionsComponent={(props) => <TablePaginationActions {...props} />}
+          labelRowsPerPage="Rows per page"
+          labelDisplayedRows={({ page, count }) =>
+            `Page ${page + 1} of ${Math.max(0, Math.ceil(count / rowsPerPage))}`
+          }
+          slotProps={{
+            select: {
+              MenuProps: {
+                keepMounted: true,
+                PaperProps: {
+                  className: "pagination-dropdown",
+                  sx: {
+                    mt: 0,
+                    mb: theme.spacing(2),
+                  },
+                },
+                transformOrigin: { vertical: "bottom", horizontal: "left" },
+                anchorOrigin: { vertical: "top", horizontal: "left" },
+                sx: { mt: theme.spacing(-2) },
+              },
+              inputProps: { id: "pagination-dropdown" },
+              IconComponent: SelectorVertical,
+              sx: {
+                ml: theme.spacing(4),
+                mr: theme.spacing(12),
+                minWidth: theme.spacing(20),
+                textAlign: "left",
+                "&.Mui-focused > div": {
+                  backgroundColor: theme.palette.background.main,
+                },
+              },
+            },
           }}
-        >
-          <img src={Placeholder} alt="Placeholder" />
-        </div>
-      )}
-    </TableContainer>
+          sx={{
+            mt: theme.spacing(6),
+            color: theme.palette.text.secondary,
+            "& .MuiSelect-icon": {
+              width: "24px",
+              height: "fit-content",
+            },
+            "& .MuiSelect-select": {
+              width: theme.spacing(10),
+              borderRadius: theme.shape.borderRadius,
+              border: `1px solid ${theme.palette.border.light}`,
+              padding: theme.spacing(4),
+            },
+          }}
+        />
+      </Stack>
+    </>
   );
 };
 

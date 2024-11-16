@@ -623,29 +623,27 @@ paths:
                   format: date-time
                   example: "2023-01-15T00:00:00.000Z"
                 ai_risk_classification:
-                  type: string
-                  - anyOf:
-                    type: string
-                    enum:
-                      - "high risk"
-                      - "limited risk"
-                      - "minimal risk"
+                  anyOf:
+                    - type: string
+                      enum:
+                        - "high risk"
+                        - "limited risk"
+                        - "minimal risk"
                   example: "high risk"
                 type_of_high_risk_role:
-                  type: string
-                  - anyOf:
-                    type: string
-                    enum:
-                      - "deployer"
-                      - "provider"
-                      - "distributor"
-                      - "importer"
-                      - "product manufacturer"
-                      - "authorized representative"
+                  anyOf:
+                    - type: string
+                      enum:
+                        - "deployer"
+                        - "provider"
+                        - "distributor"
+                        - "importer"
+                        - "product manufacturer"
+                        - "authorized representative"
                   example: "deployer"
                 goal:
                   type: string
-                  example: ""To ensure compliance with AI governance standards""
+                  example: "To ensure compliance with AI governance standards"
                 last_updated:
                   type: string
                   format: date-time
@@ -771,29 +769,27 @@ paths:
                   format: date-time
                   example: "2023-01-15T00:00:00.000Z"
                 ai_risk_classification:
-                  type: string
-                  - anyOf:
-                    type: string
-                    enum:
-                      - "high risk"
-                      - "limited risk"
-                      - "minimal risk"
+                  anyOf:
+                    - type: string
+                      enum:
+                        - "high risk"
+                        - "limited risk"
+                        - "minimal risk"
                   example: "high risk"
                 type_of_high_risk_role:
-                  type: string
-                  - anyOf:
-                    type: string
-                    enum:
-                      - "deployer"
-                      - "provider"
-                      - "distributor"
-                      - "importer"
-                      - "product manufacturer"
-                      - "authorized representative"
+                  anyOf:
+                    - type: string
+                      enum:
+                        - "deployer"
+                        - "provider"
+                        - "distributor"
+                        - "importer"
+                        - "product manufacturer"
+                        - "authorized representative"
                   example: "deployer"
                 goal:
                   type: string
-                  example: ""To ensure compliance with AI governance standards""
+                  example: "To ensure compliance with AI governance standards"
                 last_updated:
                   type: string
                   format: date-time
@@ -975,7 +971,6 @@ paths:
                   type: string
                   example: "High"
                 risk_level_autocalculated:
-                  type: string
                   anyOf:
                     - type: string
                       enum:
@@ -1164,7 +1159,6 @@ paths:
                   type: string
                   example: "High"
                 risk_level_autocalculated:
-                  type: string
                   anyOf:
                     - type: string
                       enum:
@@ -1946,25 +1940,23 @@ paths:
                   type: number
                   example: 1
                 status:
-                  type: string
                   anyOf:
                     - type: string
-                    enum:
-                      - "Waiting"
-                      - "In progress"
-                      - "Done"
+                      enum:
+                        - "Waiting"
+                        - "In progress"
+                        - "Done"
                   example: "In Progress"
                 approver:
                   type: string
                   example: "John Doe"
                 riskReview:
-                  type: string
                   anyOf:
                     - type: string
-                    enum:
-                      - "Acceptable risk"
-                      - "Residual risk"
-                      - "Unacceptable risk"
+                      enum:
+                        - "Acceptable risk"
+                        - "Residual risk"
+                        - "Unacceptable risk"
                   example: "Acceptable risk"
                 owner:
                   type: string
@@ -2092,25 +2084,23 @@ paths:
                   type: number
                   example: 1
                 status:
-                  type: string
                   anyOf:
                     - type: string
-                    enum:
-                      - "Waiting"
-                      - "In progress"
-                      - "Done"
+                      enum:
+                        - "Waiting"
+                        - "In progress"
+                        - "Done"
                   example: "In Progress"
                 approver:
                   type: string
                   example: "John Doe"
                 riskReview:
-                  type: string
                   anyOf:
                     - type: string
-                    enum:
-                      - "Acceptable risk"
-                      - "Residual risk"
-                      - "Unacceptable risk"
+                      enum:
+                        - "Acceptable risk"
+                        - "Residual risk"
+                        - "Unacceptable risk"
                   example: "Acceptable risk"
                 owner:
                   type: string
@@ -2798,13 +2788,12 @@ paths:
                   type: string
                   example: "Bob Johnson"
                 riskStatus:
-                  type: string
-                  - anyOf:
-                    type: string
-                    enum:
-                      - "Active"
-                      - "Under review"
-                      - "Not active"
+                  anyOf:
+                    - type: string
+                      enum:
+                        - "Active"
+                        - "Under review"
+                        - "Not active"
                   example: "Not active"
                 reviewDate:
                   type: string
@@ -2832,15 +2821,14 @@ paths:
                   type: integer
                   example: 2
                 riskLevel:
-                  type: string
-                  - anyOf:
-                    type: string
-                    enum:
-                      - "Very high risk"
-                      - "High risk"
-                      - "Medium risk"
-                      - "Low risk"
-                      - "Very low risk"
+                  anyOf:
+                    - type: string
+                      enum:
+                        - "Very high risk"
+                        - "High risk"
+                        - "Medium risk"
+                        - "Low risk"
+                        - "Very low risk"
                   example: "Low risk"
                 likelihood:
                   type: number
@@ -2974,13 +2962,12 @@ paths:
                   type: string
                   example: "Bob Johnson"
                 riskStatus:
-                  type: string
-                  - anyOf:
-                    type: string
-                    enum:
-                      - "Active"
-                      - "Under review"
-                      - "Not active"
+                  anyOf:
+                    - type: string
+                      enum:
+                        - "Active"
+                        - "Under review"
+                        - "Not active"
                   example: "Not active"
                 reviewDate:
                   type: string
@@ -3008,15 +2995,14 @@ paths:
                   type: integer
                   example: 2
                 riskLevel:
-                  type: string
-                  - anyOf:
-                    type: string
-                    enum:
-                      - "Very high risk"
-                      - "High risk"
-                      - "Medium risk"
-                      - "Low risk"
-                      - "Very low risk"
+                  anyOf:
+                    - type: string
+                      enum:
+                        - "Very high risk"
+                        - "High risk"
+                        - "Medium risk"
+                        - "Low risk"
+                        - "Very low risk"
                   example: "Low risk"
                 likelihood:
                   type: number
@@ -3171,15 +3157,14 @@ paths:
                   type: string
                   example: "Alice"
                 risk_level:
-                  type: string
-                  - anyOf:
-                    type: string
-                    enum:
-                      - "No risk"
-                      - "Low risk"
-                      - "Medium risk"
-                      - "High risk"
-                      - "Very high risk"
+                  anyOf:
+                    - type: string
+                      enum:
+                        - "No risk"
+                        - "Low risk"
+                        - "Medium risk"
+                        - "High risk"
+                        - "Very high risk"
                   example: "High Risk"
                 review_date:
                   type: string
@@ -3299,15 +3284,14 @@ paths:
                   type: string
                   example: "Alice"
                 risk_level:
-                  type: string
-                  - anyOf:
-                    type: string
-                    enum:
-                      - "No risk"
-                      - "Low risk"
-                      - "Medium risk"
-                      - "High risk"
-                      - "Very high risk"
+                  anyOf:
+                    - type: string
+                      enum:
+                        - "No risk"
+                        - "Low risk"
+                        - "Medium risk"
+                        - "High risk"
+                        - "Very high risk"
                   example: "High Risk"
                 review_date:
                   type: string
@@ -3918,29 +3902,27 @@ components:
           format: date-time
           example: "2023-01-15T00:00:00.000Z"
         ai_risk_classification:
-          type: string
-          - anyOf:
-            type: string
-            enum:
-              - "high risk"
-              - "limited risk"
-              - "minimal risk"
+          anyOf:
+            - type: string
+              enum:
+                - "high risk"
+                - "limited risk"
+                - "minimal risk"
           example: "high risk"
         type_of_high_risk_role:
-          type: string
-          - anyOf:
-            type: string
-            enum:
-              - "deployer"
-              - "provider"
-              - "distributor"
-              - "importer"
-              - "product manufacturer"
-              - "authorized representative"
+          anyOf:
+            - type: string
+              enum:
+                - "deployer"
+                - "provider"
+                - "distributor"
+                - "importer"
+                - "product manufacturer"
+                - "authorized representative"
           example: "deployer"
         goal:
           type: string
-          example: ""To ensure compliance with AI governance standards""
+          example: "To ensure compliance with AI governance standards"
         last_updated:
           type: string
           format: date-time
@@ -3988,7 +3970,6 @@ components:
           type: string
           example: "High"
         risk_level_autocalculated:
-          type: string
           anyOf:
             - type: string
               enum:
@@ -4112,25 +4093,23 @@ components:
           type: number
           example: 1
         status:
-          type: string
           anyOf:
             - type: string
-            enum:
-              - "Waiting"
-              - "In progress"
-              - "Done"
+              enum:
+                - "Waiting"
+                - "In progress"
+                - "Done"
           example: "In Progress"
         approver:
           type: string
           example: "John Doe"
         riskReview:
-          type: string
           anyOf:
             - type: string
-            enum:
-              - "Acceptable risk"
-              - "Residual risk"
-              - "Unacceptable risk"
+              enum:
+                - "Acceptable risk"
+                - "Residual risk"
+                - "Unacceptable risk"
           example: "Acceptable risk"
         owner:
           type: string
@@ -4237,13 +4216,12 @@ components:
           type: string
           example: "Bob Johnson"
         riskStatus:
-          type: string
-          - anyOf:
-            type: string
-            enum:
-              - "Active"
-              - "Under review"
-              - "Not active"
+          anyOf:
+            - type: string
+              enum:
+                - "Active"
+                - "Under review"
+                - "Not active"
           example: "Not active"
         reviewDate:
           type: string
@@ -4271,15 +4249,14 @@ components:
           type: integer
           example: 2
         riskLevel:
-          type: string
-          - anyOf:
-            type: string
-            enum:
-              - "Very high risk"
-              - "High risk"
-              - "Medium risk"
-              - "Low risk"
-              - "Very low risk"
+          anyOf:
+            - type: string
+              enum:
+                - "Very high risk"
+                - "High risk"
+                - "Medium risk"
+                - "Low risk"
+                - "Very low risk"
           example: "Low risk"
         likelihood:
           type: number
@@ -4303,15 +4280,14 @@ components:
           type: string
           example: "Alice"
         risk_level:
-          type: string
-          - anyOf:
-            type: string
-            enum:
-              - "No risk"
-              - "Low risk"
-              - "Medium risk"
-              - "High risk"
-              - "Very high risk"
+          anyOf:
+            - type: string
+              enum:
+                - "No risk"
+                - "Low risk"
+                - "Medium risk"
+                - "High risk"
+                - "Very high risk"
           example: "High Risk"
         review_date:
           type: string

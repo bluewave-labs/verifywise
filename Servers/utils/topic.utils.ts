@@ -27,7 +27,10 @@ export const createNewTopicQuery = async (topic: {
 
 export const updateTopicByIdQuery = async (
   id: number,
-  topic: Partial<Topic>
+  topic: Partial<{
+    assessmentId: number;
+    title: string;
+  }>
 ): Promise<Topic | null> => {
   console.log("updateTopicById", id, topic);
   const fields = [];

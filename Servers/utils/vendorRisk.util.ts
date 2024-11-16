@@ -22,12 +22,7 @@ export const createNewVendorRiskQuery = async (vendorRisk: {
   vendor_name: string;
   risk_name: string;
   owner: string;
-  risk_level:
-    | "No risk"
-    | "Low risk"
-    | "Medium risk"
-    | "High risk"
-    | "Very high risk";
+  risk_level: string;
   review_date: Date;
 }): Promise<VendorRisk> => {
   console.log("createNewVendorRisk", vendorRisk);
@@ -49,7 +44,14 @@ export const createNewVendorRiskQuery = async (vendorRisk: {
 
 export const updateVendorRiskByIdQuery = async (
   id: number,
-  vendorRisk: Partial<VendorRisk>
+  vendorRisk: Partial<{
+    project_id: number;
+    vendor_name: string;
+    risk_name: string;
+    owner: string;
+    risk_level: string;
+    review_date: Date;
+  }>
 ): Promise<VendorRisk | null> => {
   console.log("updateVendorRiskById", id, vendorRisk);
   const fields = [];

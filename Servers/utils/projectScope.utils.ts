@@ -19,7 +19,17 @@ export const getProjectScopeByIdQuery = async (
 };
 
 export const createProjectScopeQuery = async (
-  projectScope: ProjectScope
+  projectScope: {
+    assessmentId: number;
+    describeAiEnvironment: string;
+    isNewAiTechnology: boolean;
+    usesPersonalData: boolean;
+    projectScopeDocuments: string;
+    technologyType: string;
+    hasOngoingMonitoring: boolean;
+    unintendedOutcomes: string;
+    technologyDocumentation: string;
+  }
 ): Promise<ProjectScope> => {
   console.log("createProjectScope", projectScope);
   const result = await pool.query(
@@ -41,7 +51,17 @@ export const createProjectScopeQuery = async (
 
 export const updateProjectScopeByIdQuery = async (
   id: number,
-  projectScope: Partial<ProjectScope>
+  projectScope: Partial<{
+    assessmentId: number;
+    describeAiEnvironment: string;
+    isNewAiTechnology: boolean;
+    usesPersonalData: boolean;
+    projectScopeDocuments: string;
+    technologyType: string;
+    hasOngoingMonitoring: boolean;
+    unintendedOutcomes: string;
+    technologyDocumentation: string;
+  }>
 ): Promise<ProjectScope | null> => {
   console.log("updateProjectScopeById", id, projectScope);
   const result = await pool.query(

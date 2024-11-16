@@ -79,7 +79,14 @@ export async function createVendorRisk(
   res: Response
 ): Promise<any> {
   try {
-    const newVendorRisk: VendorRisk = req.body;
+    const newVendorRisk: {
+      project_id: number;
+      vendor_name: string;
+      risk_name: string;
+      owner: string;
+      risk_level: string;
+      review_date: Date;
+    } = req.body;
 
     if (
       !newVendorRisk.project_id ||
@@ -125,7 +132,14 @@ export async function updateVendorRiskById(
 ): Promise<any> {
   try {
     const vendorRiskId = parseInt(req.params.id);
-    const updatedVendorRisk: VendorRisk = req.body;
+    const updatedVendorRisk: {
+      project_id: number;
+      vendor_name: string;
+      risk_name: string;
+      owner: string;
+      risk_level: string;
+      review_date: Date;
+    } = req.body;
 
     if (
       !updatedVendorRisk.project_id ||

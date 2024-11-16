@@ -41,11 +41,12 @@ export function checkStringValidation(
   type?: string
 ): { accepted: boolean; message: string } {
   if (
-    value.length === 0 ||
+    (value.length === 0  ||
     value === undefined ||
     value === null ||
     value === "" ||
-    value === " "
+    value === " ") && 
+    minLength > 0
   ) {
     return feedbackToString(false, `${title} is required.`);
   }

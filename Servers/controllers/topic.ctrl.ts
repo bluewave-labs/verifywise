@@ -73,7 +73,10 @@ export async function createNewTopic(
   res: Response
 ): Promise<any> {
   try {
-    const newTopic: Topic = req.body;
+    const newTopic: {
+      assessmentId: number;
+      title: string;
+    } = req.body;
 
     if (MOCK_DATA_ON === true) {
       const topic = createMockTopic(newTopic);
@@ -103,7 +106,10 @@ export async function updateTopicById(
 ): Promise<any> {
   try {
     const topicId = parseInt(req.params.id);
-    const updatedTopic: Topic = req.body;
+    const updatedTopic: {
+      assessmentId: number;
+      title: string;
+    } = req.body;
 
     if (MOCK_DATA_ON === true) {
       const topic = updateMockTopicById(topicId, updatedTopic);

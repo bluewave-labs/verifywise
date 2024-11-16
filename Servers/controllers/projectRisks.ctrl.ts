@@ -79,7 +79,33 @@ export async function createProjectRisk(
   res: Response
 ): Promise<any> {
   try {
-    const projectRisk: ProjectRisk = req.body;
+    const projectRisk: {
+      project_id: number; // Foreign key to refer to the project
+      risk_name: string;
+      risk_owner: string;
+      ai_lifecycle_phase: string;
+      risk_description: string;
+      risk_category: string;
+      impact: string;
+      assessment_mapping: string;
+      controls_mapping: string;
+      likelihood: string;
+      severity: string;
+      risk_level_autocalculated: string;
+      review_notes: string;
+      mitigation_status: string;
+      current_risk_level: string;
+      deadline: Date;
+      mitigation_plan: string;
+      implementation_strategy: string;
+      mitigation_evidence_document: string;
+      likelihood_mitigation: string;
+      risk_severity: string;
+      final_risk_level: string;
+      risk_approval: string;
+      approval_status: string;
+      date_of_assessment: Date;
+    } = req.body;
 
     if (MOCK_DATA_ON === true) {
       const newProjectRisk = createMockProjectRisk(projectRisk);
@@ -109,7 +135,33 @@ export async function updateProjectRiskById(
 ): Promise<any> {
   try {
     const projectRiskId = parseInt(req.params.id);
-    const projectRisk: Partial<ProjectRisk> = req.body;
+    const projectRisk: Partial<{
+      project_id: number; // Foreign key to refer to the project
+      risk_name: string;
+      risk_owner: string;
+      ai_lifecycle_phase: string;
+      risk_description: string;
+      risk_category: string;
+      impact: string;
+      assessment_mapping: string;
+      controls_mapping: string;
+      likelihood: string;
+      severity: string;
+      risk_level_autocalculated: string;
+      review_notes: string;
+      mitigation_status: string;
+      current_risk_level: string;
+      deadline: Date;
+      mitigation_plan: string;
+      implementation_strategy: string;
+      mitigation_evidence_document: string;
+      likelihood_mitigation: string;
+      risk_severity: string;
+      final_risk_level: string;
+      risk_approval: string;
+      approval_status: string;
+      date_of_assessment: Date;
+    }> = req.body;
 
     if (MOCK_DATA_ON === true) {
       const updatedProjectRisk = updateMockProjectRiskById(

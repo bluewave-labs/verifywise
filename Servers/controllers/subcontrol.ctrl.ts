@@ -79,7 +79,19 @@ export async function createNewSubcontrol(
   res: Response
 ): Promise<any> {
   try {
-    const subcontrol: Subcontrol = req.body;
+    const subcontrol: {
+      controlId: number;
+      status: string;
+      approver: string;
+      riskReview: string;
+      owner: string;
+      reviewer: string;
+      dueDate: Date;
+      implementationDetails: string;
+      evidence: string;
+      attachment: string;
+      feedback: string;
+    } = req.body;
 
     if (MOCK_DATA_ON === true) {
       const newSubcontrol = createMockSubcontrol(subcontrol);
@@ -109,7 +121,19 @@ export async function updateSubcontrolById(
 ): Promise<any> {
   try {
     const subcontrolId = parseInt(req.params.id);
-    const subcontrol: Partial<Subcontrol> = req.body;
+    const subcontrol: Partial<{
+      controlId: number;
+      status: string;
+      approver: string;
+      riskReview: string;
+      owner: string;
+      reviewer: string;
+      dueDate: Date;
+      implementationDetails: string;
+      evidence: string;
+      attachment: string;
+      feedback: string;
+    }> = req.body;
 
     if (MOCK_DATA_ON === true) {
       const updatedSubcontrol = updateMockSubcontrolById(

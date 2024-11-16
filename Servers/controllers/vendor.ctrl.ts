@@ -70,7 +70,28 @@ export async function getVendorById(req: Request, res: Response): Promise<any> {
 
 export async function createVendor(req: Request, res: Response): Promise<any> {
   try {
-    const newVendor: Vendor = req.body;
+    const newVendor: {
+      projectId: number;
+      vendorName: string;
+      assignee: string;
+      vendorProvides: string;
+      website: string;
+      vendorContactPerson: string;
+      reviewResult: string;
+      reviewStatus: string;
+      reviewer: string;
+      riskStatus: string;
+      reviewDate: Date;
+      riskDescription: string;
+      impactDescription: string;
+      impact: number;
+      probability: number;
+      actionOwner: string;
+      actionPlan: string;
+      riskSeverity: number;
+      riskLevel: string;
+      likelihood: number;
+    } = req.body;
 
     if (!newVendor.vendorName || !newVendor.vendorProvides) {
       return res.status(400).json(
@@ -108,7 +129,28 @@ export async function updateVendorById(
 ): Promise<any> {
   try {
     const vendorId = parseInt(req.params.id);
-    const updatedVendor: Vendor = req.body;
+    const updatedVendor: {
+      projectId: number;
+      vendorName: string;
+      assignee: string;
+      vendorProvides: string;
+      website: string;
+      vendorContactPerson: string;
+      reviewResult: string;
+      reviewStatus: string;
+      reviewer: string;
+      riskStatus: string;
+      reviewDate: Date;
+      riskDescription: string;
+      impactDescription: string;
+      impact: number;
+      probability: number;
+      actionOwner: string;
+      actionPlan: string;
+      riskSeverity: number;
+      riskLevel: string;
+      likelihood: number;
+    } = req.body;
 
     if (!updatedVendor.vendorName || !updatedVendor.vendorProvides) {
       return res.status(400).json(

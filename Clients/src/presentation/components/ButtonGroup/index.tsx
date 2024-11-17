@@ -27,7 +27,7 @@ const StyledButton = styled(Button)<StyledButtonProps>(
     borderColor: "rgba(0,0,0,0.08)",
     fontWeight: isSelected ? "bold" : "normal",
     border:'1px solid rgba(0,0,0,0.08)',
-    borderRadius: 0
+    borderRadius: '4px'
 ,    "&:hover": {
       backgroundColor: theme.palette.primary.light,
        color: theme.palette.primary.contrastText,

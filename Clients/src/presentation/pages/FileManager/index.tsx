@@ -1,11 +1,13 @@
 import React, { useState, MouseEvent } from "react";
 import BasicTable from "../../components/Table";
-import { Box, Typography, IconButton, Menu, MenuItem } from "@mui/material";
+import { Box, Typography, IconButton, Menu, MenuItem} from "@mui/material";
 import SettingsIcon from "../../assets/icons/setting.svg";
 import EmptyTableImage from "../../assets/imgs/empty-state.svg";
-import UploadIcon from "../../assets/icons/upload-icon.svg";
+import AscendingIcon from '../../assets/icons/up-arrow.svg';
+import DescendingIcon from '../../assets/icons/down-arrow.svg';
 
 interface File {
+  id:string;
   name: string;
   type: string;
   uploadDate: string;
@@ -36,20 +38,52 @@ const FileManager: React.FC = (): JSX.Element => {
   ]);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [sortField, setSortField] = useState<keyof File | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
+    null
+  );
+
+  //sorting functionality 
+  const handleSort = (field: keyof File) => {
+    const isAsc = sortField === field && sortDirection === "asc";
+    const newDirection = isAsc ? "desc" : "asc";
+
+    setSortDirection(newDirection);
+    setSortField(field);
+
+    setFiles(
+      [...files].sort((a, b) => {
+        if (newDirection === "asc") {
+          return a[field] < b[field] ? -1 : 1;
+        }
+        return a[field] > b[field] ? -1 : 1;
+      })
+    );
+  };
 
   const cols = [
+    ,
     { id: 1, name: "File" },
     { id: 2, name: "Type" },
     {
       id: 3,
       name: (
-        <Box display="flex" alignItems="center">
+        <Box
+          display="flex"
+          alignItems="center"
+          onClick={() => handleSort("uploadDate")}
+          sx={{ cursor: "pointer" }}
+        >
           Upload Date
           <Box
             component="img"
-            src={UploadIcon}
-            alt="sort"
-            sx={{ width: 16, height: 16, ml: 0.5, opacity: 0.6 }}
+            src={
+              sortDirection === "asc" && sortField === "uploadDate"
+                ? AscendingIcon
+                : DescendingIcon
+            }
+            alt="Sort"
+            sx={{ width: 16, height: 16, ml: 0.5 }}
           />
         </Box>
       ),
@@ -57,13 +91,22 @@ const FileManager: React.FC = (): JSX.Element => {
     {
       id: 4,
       name: (
-        <Box display="flex" alignItems="center">
+        <Box
+          display="flex"
+          alignItems="center"
+          onClick={() => handleSort("uploader")}
+          sx={{ cursor: "pointer" }}
+        >
           Uploader
           <Box
             component="img"
-            src={UploadIcon}
-            alt="sort"
-            sx={{ width: 16, height: 16, ml: 0.5, opacity: 0.6 }}
+            src={
+              sortDirection === "asc" && sortField === "uploader"
+                ? AscendingIcon
+                : DescendingIcon
+            }
+            alt="Sort"
+            sx={{ width: 16, height: 16, ml: 0.5 }}
           />
         </Box>
       ),
@@ -71,8 +114,8 @@ const FileManager: React.FC = (): JSX.Element => {
     { id: 5, name: "Action" },
   ];
 
-  const rows = files.map((file, index) => ({
-    id: index,
+  const rows = files.map((file) => ({
+    id: file.name,
     data: [
       { id: 1, data: file.name },
       { id: 2, data: file.type },

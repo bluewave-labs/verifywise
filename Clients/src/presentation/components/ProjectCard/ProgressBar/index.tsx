@@ -12,10 +12,10 @@ import { Slider, Stack, useTheme } from "@mui/material";
 import { FC } from "react";
 
 interface ProgressBarProps {
-    progress: string
+    progress: string | undefined
 }
 
-const ProgressBar: FC<ProgressBarProps> = ({progress}) => {
+const ProgressBar: FC<ProgressBarProps> = ({progress = ""}) => {
     const theme = useTheme();
     const progressCount = (progressString: string): number => {
         const [completed, total] = progressString.split('/').map(Number);
@@ -23,15 +23,16 @@ const ProgressBar: FC<ProgressBarProps> = ({progress}) => {
             throw new Error(`Invalid progress string: ${progressString}`);
         }
         return completed / total;
-      };
+    };
     const value = progressCount(progress) * 100;
-      
+
     return (
         <Stack 
             direction="row" 
             sx={{ 
                 "& .MuiSlider-track": { 
-                    backgroundColor: "#4C7DE7" 
+                    backgroundColor: "#4C7DE7",
+                    display: !value ? "none" : "block"
                 }, 
                 "& .MuiSlider-thumb": { 
                     display: "none" 

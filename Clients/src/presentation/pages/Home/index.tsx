@@ -25,7 +25,7 @@ const Home = () => {
   useEffect(() => {
     getAllEntities({routeUrl: "/projects"})
         .then(({data}) => {
-          console.log(data)
+          console.log("data", data)
           setProjects(data);
         })
   }, []);

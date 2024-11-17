@@ -4,26 +4,27 @@ import euimg from "../../assets/imgs/eu-ai-act.jpg"
 import ProgressBar from "./ProgressBar";
 import { Btn, Card, styles, SubtitleValue, Title } from "./styles";
 import { useNavigate } from "react-router-dom";
+import { formatDate } from "../../tools/isoDateToString";
 
 export interface ProjectCardProps {
     id: number,
-    name: string,
-    owner_name: string,
-    last_update: string,
-    controls_completed: string,
-    requirements_completed: string
+    project_title: string,
+    owner: string,
+    last_updated: string,
+    controls_completed?: string,
+    requirements_completed?: string
 }
 
 const ProjectCard: FC<ProjectCardProps> = ({
-    name,
-    owner_name,
-    last_update,
+    project_title,
+    owner,
+    last_updated,
     controls_completed,
     requirements_completed
 }) => {
     const theme = useTheme();
     const navigate = useNavigate();
-    const renderProgressBar = (progress: string, label: string) => (
+    const renderProgressBar = (progress: string | undefined, label: string) => (
         <>
             <ProgressBar progress={progress} />
             <Typography sx={styles.progressBarTitle}>
@@ -35,20 +36,20 @@ const ProjectCard: FC<ProjectCardProps> = ({
     return (
         <Card>
             <Title variant="h5">
-                {name}
+                {project_title}
             </Title>
             <Box sx={styles.upperBox}>
                 <Box>
                     <Typography variant="subtitle1" component="span" sx={styles.subtitle}>
                         Project owner
                     </Typography>
-                    <SubtitleValue>{owner_name}</SubtitleValue>
+                    <SubtitleValue>{owner}</SubtitleValue>
                 </Box>
                 <Box>
                     <Typography variant="subtitle1" component="span" sx={styles.subtitle}>
                         Last updated
                     </Typography>
-                    <SubtitleValue>{last_update}</SubtitleValue>
+                    <SubtitleValue>{formatDate(last_updated)}</SubtitleValue>
                 </Box>
             </Box>
             {renderProgressBar(controls_completed, "controls")}

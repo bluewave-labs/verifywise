@@ -271,10 +271,21 @@ const ComplianceTracker = ({
             return item.rows.find((row: any) => row.id === selectedRow)?.data[0]
               ?.data;
           })}
-          content={Object.keys(complianceDetails).map((key) => {
+          content={
+            Object.keys(complianceDetails).map((key) => {
             const item = complianceDetails[key];
             return item.rows.find((row: any) => row.id === selectedRow)?.data[0]
               ?.controlDes;
+          })}
+          subControlTlts = {Object.keys(complianceDetails).flatMap((key) => {
+            const item = complianceDetails[key];
+            const selectedRowData = item.rows.find((row: any) => row.id === selectedRow)?.data[0];
+            
+            if (selectedRowData?.subControler) {
+              return selectedRowData.subControler.map((sub: any) => sub.subControlerTitle);
+            }
+          
+            return []; // Return an empty array if no subControler data is found
           })}
           onConfirm={() => {
             console.log("confirmed");

@@ -21,6 +21,7 @@ interface CustomModalProps {
   setIsOpen: (isOpen: boolean) => void;
   title: any;
   content: any;
+  subControlTlts: string[];
   onConfirm: () => void;
   //Promise<{ status: number; data: any }>;
 }
@@ -30,20 +31,19 @@ const CustomModal: React.FC<CustomModalProps> = ({
   setIsOpen,
   title,
   onConfirm,
-  content
+  content,
+  subControlTlts,
 }) => {
   console.log("🚀 ~ tittttttttle:", title);
   const theme = useTheme();
-  const [selectedTab, setSelectedTab] = useState<number>(0);
+  const [selectedTab, setSelectedTab] = useState<number>(0); // State to track active tab
+
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
+    setSelectedTab(newValue);
+  };
   const [activeSection, setActiveSection] = useState<string>("Overview");
   const [responseMessage, setResponseMessage] = useState<string | null>(null);
 
-  // const extractNumberFromTitle = (title: any) => {
-  //   const match = title.match(/\d+/);
-  //   return match ? match[0] : "0";
-  // };
-
-  // const titleNumber = extractNumberFromTitle(title);
   const subControlNumber = 332322;
   const handleClose = () => setIsOpen(false);
 
@@ -130,9 +130,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
 
           <CloseIcon onClick={handleClose} style={{ cursor: "pointer" }} />
         </Stack>
-        <Typography fontSize={13}>
-          {content}
-        </Typography>
+        <Typography fontSize={13}>{content}</Typography>
         <DropDowns />
 
         {responseMessage && (
@@ -154,26 +152,13 @@ const CustomModal: React.FC<CustomModalProps> = ({
             textColor="primary"
             sx={{ justifyContent: "flex-start" }}
           >
-            <Tab
-              label="Subcontrol 1"
-              sx={{ textTransform: "none" }}
-              disableRipple
-            />
-            <Tab
-              label="Subcontrol 2"
-              sx={{ textTransform: "none" }}
-              disableRipple
-            />
-            <Tab
-              label="Subcontrol 3"
-              sx={{ textTransform: "none" }}
-              disableRipple
-            />
-            <Tab
-              label="Subcontrol 4"
-              sx={{ textTransform: "none" }}
-              disableRipple
-            />
+            {subControlTlts.map((_, index) => (
+              <Tab
+                key={index}
+                label={`Subcontrol ${index + 1}`}
+                sx={{ textTransform: "none" }}
+              />
+            ))}
           </Tabs>
         </Box>
 
@@ -214,12 +199,10 @@ const CustomModal: React.FC<CustomModalProps> = ({
             fontWeight={600}
             sx={{ textAlign: "left", mb: 3 }}
           >
-            Subcontrol {subControlNumber}.{selectedTab + 1}
+            {subControlTlts[selectedTab]}
           </Typography>
           <Typography variant="body1" sx={{ mb: 5 }}>
-            Plan and execute the risk management process as a continuous
-            iterative cycle. (EU AI ACT Ref: Subcontrol {subControlNumber}.
-            {selectedTab + 1})
+            {'hiiiiiiiiiiiiiiiiii'}
           </Typography>
           {activeSection === "Overview" && (
             <Typography variant="body1">

@@ -43,12 +43,12 @@ export const complianceDetails = {
               {
                 id: 1,
                 subControlerTitle:
-                  "We ensure executive leadership takes responsibility for decisions related to AI risks.",
+                  "We ensure executive leadership takes responsibility for decisions related to AI risks",
               },
               {
                 id: 2,
                 subControlerTitle:
-                  "We provide AI literacy and ethics training to relevant personnel.",
+                  "We provide AI literacy and ethics training to relevant personnel",
               },
               {
                 id: 3,
@@ -92,7 +92,12 @@ export const complianceDetails = {
         id: 3,
         icon: Exclamation,
         data: [
-          { id: "1", data: "Intended Use Description" , controlDes: "Review and verify technical documentation from AI system providers." ,subControler: [] 
+          { id: "1", data: "Intended Use Description" , 
+            controlDes: "Review and verify technical documentation from AI system providers." ,
+            subControlTlt: [{title: "We ensure executive leadership takes responsibility for decisions related to AI risks."},
+              {title: "We provide AI literacy and ethics training to relevant personnel." },
+              {title: "We develop a clear and concise communication plan for informing workers about the use of high-risk AI systems in the workplace." }
+            ] 
           },
           { id: "2", data: "John Doe" },
           { id: "3", data: "4 (all completed)" },

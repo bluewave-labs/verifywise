@@ -4,30 +4,33 @@ import { styled } from "@mui/system";
 
 interface StyledButtonProps extends ButtonProps {
   isSelected?: boolean;
+  isAllButton?: boolean;
 }
 
 const StyledButtonGroup = styled(ButtonGroup)({
-  borderRadius: "4px",
+  borderRadius: "2px",
   overflow: "hidden",
-  border:'1px solid rgba(0,0,0,0.1)'
+  border:'1px solid rgba(0,0,0,0.08)'
 });
 
 const StyledButton = styled(Button)<StyledButtonProps>(
-  ({ theme, isSelected }) => ({
-    color: isSelected
-      ? theme.palette.primary.contrastText
-      : theme.palette.text.primary,
+  ({ theme, isSelected, isAllButton }) => ({
+    color: isAllButton
+    ? 'black'
+    : isSelected
+    
+    ? theme.palette.text.primary
+    :theme.palette.text.secondary,
     backgroundColor: isSelected
-      ? theme.palette.primary.main
-      : '#f0f0f0',
-    borderColor: "rgba(0,0,0,0.1)",
+      ? '#f0f0f0'
+      : theme.palette.background.paper,
+    borderColor: "rgba(0,0,0,0.08)",
     fontWeight: isSelected ? "bold" : "normal",
-    border:'1px solid rgba(0,0,0,0.1)',
+    border:'1px solid rgba(0,0,0,0.08)',
     borderRadius: 0
 ,    "&:hover": {
-      backgroundColor: isSelected
-        ? theme.palette.primary.dark
-        : '#e0e0e0',
+      backgroundColor: theme.palette.primary.light,
+       color: theme.palette.primary.contrastText,
     },
     padding: "8px 16px",
     textTransform: "none",

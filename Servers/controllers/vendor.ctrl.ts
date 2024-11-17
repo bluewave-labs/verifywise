@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { Vendor } from "../models/vendor.model";
-const MOCK_DATA_ON = process.env.MOCK_DATA_ON;
+const MOCK_DATA_ON = true;
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
@@ -20,7 +20,7 @@ import {
 
 export async function getAllVendors(req: Request, res: Response): Promise<any> {
   try {
-    if (MOCK_DATA_ON === "true") {
+    if (MOCK_DATA_ON === true) {
       const vendors = getAllMockVendors();
 
       if (vendors) {
@@ -46,7 +46,7 @@ export async function getVendorById(req: Request, res: Response): Promise<any> {
   try {
     const vendorId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCK_DATA_ON === true) {
       const vendor = getMockVendorById(vendorId);
 
       if (vendor) {
@@ -70,19 +70,38 @@ export async function getVendorById(req: Request, res: Response): Promise<any> {
 
 export async function createVendor(req: Request, res: Response): Promise<any> {
   try {
-    const newVendor: Vendor = req.body;
+    const newVendor: {
+      projectId: number;
+      vendorName: string;
+      assignee: string;
+      vendorProvides: string;
+      website: string;
+      vendorContactPerson: string;
+      reviewResult: string;
+      reviewStatus: string;
+      reviewer: string;
+      riskStatus: string;
+      reviewDate: Date;
+      riskDescription: string;
+      impactDescription: string;
+      impact: number;
+      probability: number;
+      actionOwner: string;
+      actionPlan: string;
+      riskSeverity: number;
+      riskLevel: string;
+      likelihood: number;
+    } = req.body;
 
     if (!newVendor.vendorName || !newVendor.vendorProvides) {
-      return res
-        .status(400)
-        .json(
-          STATUS_CODE[400]({
-            message: "vendorName and vendorProvides are required",
-          })
-        );
+      return res.status(400).json(
+        STATUS_CODE[400]({
+          message: "vendorName and vendorProvides are required",
+        })
+      );
     }
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCK_DATA_ON === true) {
       const createdVendor = createMockVendor(newVendor);
 
       if (createdVendor) {
@@ -110,19 +129,38 @@ export async function updateVendorById(
 ): Promise<any> {
   try {
     const vendorId = parseInt(req.params.id);
-    const updatedVendor: Vendor = req.body;
+    const updatedVendor: {
+      projectId: number;
+      vendorName: string;
+      assignee: string;
+      vendorProvides: string;
+      website: string;
+      vendorContactPerson: string;
+      reviewResult: string;
+      reviewStatus: string;
+      reviewer: string;
+      riskStatus: string;
+      reviewDate: Date;
+      riskDescription: string;
+      impactDescription: string;
+      impact: number;
+      probability: number;
+      actionOwner: string;
+      actionPlan: string;
+      riskSeverity: number;
+      riskLevel: string;
+      likelihood: number;
+    } = req.body;
 
     if (!updatedVendor.vendorName || !updatedVendor.vendorProvides) {
-      return res
-        .status(400)
-        .json(
-          STATUS_CODE[400]({
-            message: "vendorName and vendorProvides are required",
-          })
-        );
+      return res.status(400).json(
+        STATUS_CODE[400]({
+          message: "vendorName and vendorProvides are required",
+        })
+      );
     }
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCK_DATA_ON === true) {
       const vendor = updateMockVendorById(vendorId, updatedVendor);
 
       if (vendor) {
@@ -151,7 +189,7 @@ export async function deleteVendorById(
   try {
     const vendorId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCK_DATA_ON === true) {
       const deletedVendor = deleteMockVendorById(vendorId);
 
       if (deletedVendor) {

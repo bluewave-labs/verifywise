@@ -25,7 +25,7 @@ export const createNewVendorQuery = async (vendor: {
   reviewResult: string;
   reviewStatus: string;
   reviewer: string;
-  riskStatus: "Active" | "Under review" | "Not active";
+  riskStatus: string;
   reviewDate: Date;
   riskDescription: string;
   impactDescription: string;
@@ -34,12 +34,7 @@ export const createNewVendorQuery = async (vendor: {
   actionOwner: string;
   actionPlan: string;
   riskSeverity: number;
-  riskLevel:
-    | "Very high risk"
-    | "High risk"
-    | "Medium risk"
-    | "Low risk"
-    | "Very low risk";
+  riskLevel: string;
   likelihood: number;
 }): Promise<Vendor> => {
   console.log("createNewVendor", vendor);
@@ -78,7 +73,28 @@ export const createNewVendorQuery = async (vendor: {
 
 export const updateVendorByIdQuery = async (
   id: number,
-  vendor: Partial<Vendor>
+  vendor: Partial<{
+    projectId: number;
+    vendorName: string;
+    assignee: string;
+    vendorProvides: string;
+    website: string;
+    vendorContactPerson: string;
+    reviewResult: string;
+    reviewStatus: string;
+    reviewer: string;
+    riskStatus: string;
+    reviewDate: Date;
+    riskDescription: string;
+    impactDescription: string;
+    impact: number;
+    probability: number;
+    actionOwner: string;
+    actionPlan: string;
+    riskSeverity: number;
+    riskLevel: string;
+    likelihood: number;
+  }>
 ): Promise<Vendor | null> => {
   console.log("updateVendorById", id, vendor);
   const fields = [];

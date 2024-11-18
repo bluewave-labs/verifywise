@@ -22,6 +22,7 @@ import { RiskManagementSystem } from "../../../structures/AssessmentTracker/risk
 import { DataGovernance } from "../../../structures/AssessmentTracker/data-governance.subtopic";
 import { TechnicalDocumentation } from "../../../structures/AssessmentTracker/technical-documentation.subtopic";
 import { RecordKeeping } from "../../../structures/AssessmentTracker/record-keeping.subtopic";
+import { TransparencyAndUserInformation } from "../../../structures/AssessmentTracker/transparency-user-information.subtopic";
 
 const priorities = {
   "high priority": { color: "#FD7E14" },
@@ -34,6 +35,7 @@ const assessments = [
   { id: 2, component: DataGovernance },
   { id: 3, component: TechnicalDocumentation },
   { id: 4, component: RecordKeeping },
+  { id: 5, component: TransparencyAndUserInformation },
 ];
 
 const AllAssessment = () => {

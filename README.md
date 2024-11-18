@@ -59,6 +59,8 @@ VerifyWise is designed for:
   - Assessment tracker
   - Vendors
   - Risks
+  - AI Trust Center
+  - File manager
 
 ## Roadmap
 

@@ -20,6 +20,7 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import RichTextEditor from "../../../components/RichTextEditor";
 import { RiskManagementSystem } from "../../../structures/AssessmentTracker/risk-management-system.subtopic";
 import { DataGovernance } from "../../../structures/AssessmentTracker/data-governance.subtopic";
+import { TechnicalDocumentation } from "../../../structures/AssessmentTracker/technical-documentation.subtopic";
 
 const priorities = {
   "high priority": { color: "#FD7E14" },
@@ -30,6 +31,7 @@ const priorities = {
 const assessments = [
   { id: 1, component: RiskManagementSystem },
   { id: 2, component: DataGovernance },
+  { id: 3, component: TechnicalDocumentation },
 ];
 
 const AllAssessment = () => {
@@ -118,6 +120,7 @@ const AllAssessment = () => {
       <Divider orientation="vertical" flexItem />
       <Stack
         minWidth="70%"
+        width={"100%"}
         maxWidth={"100%"}
         py={2}
         px={8}

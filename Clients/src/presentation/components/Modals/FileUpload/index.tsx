@@ -45,10 +45,9 @@ const FileUpload: FC = () => {
           width: 315,
           height: 102
         }}
-        onClick={() => document.getElementById("file-upload")?.click()}
       >
         <Tooltip title="Attach a file">
-          <Button component="label" sx={{"&:hover": { background: "transparent" }}}>
+          <Button component="label" sx={{"&:hover": { background: "transparent" }}} disableRipple={theme.components?.MuiButton?.defaultProps?.disableRipple}>
             Click to upload
             <input
               type="file"
@@ -58,7 +57,7 @@ const FileUpload: FC = () => {
             />
           </Button>
         </Tooltip>
-        <Typography>or drag and drop</Typography>
+        <Typography sx={{ fontSize: 13 }}>or drag and drop</Typography>
       </Stack>
       {file 
         && <Typography variant="body2" sx={{ mt: 2 }}>Attached file: {file.name}</Typography>

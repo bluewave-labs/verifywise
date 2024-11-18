@@ -158,9 +158,13 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup }) => {
                             value={values.mitigationStatus}
                             onChange={handleOnSelectChange("mitigationStatus")}
                             items={[
-                                { _id: 1, name: "Some value 1" },
-                                { _id: 2, name: "Some value 2" },
-                                { _id: 3, name: "Some value 3" },
+                                { _id: 1, name: "Not started" },
+                                { _id: 2, name: "In progress" },
+                                { _id: 3, name: "Completed" },
+                                { _id: 2, name: "On hold" },
+                                { _id: 3, name: "Deferred" },
+                                { _id: 2, name: "Closed" },
+                                { _id: 3, name: "Requires review" },
                             ]}
                             sx={{ width: 324, backgroundColor: theme.palette.background.main }}
                             isRequired
@@ -185,9 +189,11 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup }) => {
                             value={values.currentRiskLevel}
                             onChange={handleOnSelectChange("currentRiskLevel")}
                             items={[
-                                { _id: 1, name: "Some value 1" },
-                                { _id: 2, name: "Some value 2" },
-                                { _id: 3, name: "Some value 3" },
+                                { _id: 1, name: "Critical risk" },
+                                { _id: 2, name: "High risk" },
+                                { _id: 3, name: "Medium risk" },
+                                { _id: 2, name: "Low risk" },
+                                { _id: 3, name: "No risk" },
                             ]}
                             sx={{ width: 324, backgroundColor: theme.palette.background.main }}
                             isRequired

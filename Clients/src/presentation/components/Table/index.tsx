@@ -62,12 +62,14 @@ const BasicTable = ({
   reversed,
   table,
   onRowClick,
+  label
 }: {
   data: TableData;
   paginated?: boolean;
   reversed?: boolean;
   table: any;
   onRowClick?: (rowId: number) => void;
+  label?: string;
 }) => {
   const DEFAULT_ROWS_PER_PAGE = 5;
   const theme = useTheme();
@@ -247,7 +249,7 @@ const BasicTable = ({
           }}
         >
           <Typography px={theme.spacing(2)} fontSize={12} sx={{ opacity: 0.7 }}>
-            Showing {getRange()} of {data.rows.length} monitor(s)
+            Showing {getRange()} of {data.rows.length} {label || "monitor(s)"}
           </Typography>
           <TablePagination
             count={data.rows.length}

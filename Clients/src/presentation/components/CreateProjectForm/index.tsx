@@ -188,9 +188,9 @@ const CreateProjectForm: FC = () => {
               value={values.riskClassification}
               onChange={handleOnSelectChange("riskClassification")}
               items={[
-                { _id: 1, name: "Some value 1" },
-                { _id: 2, name: "Some value 2" },
-                { _id: 3, name: "Some value 3" },
+                { _id: 1, name: "High risk" },
+                { _id: 2, name: "Limited risk" },
+                { _id: 3, name: "Minimal risk" },
               ]}
               sx={{ width: "350px", backgroundColor: theme.palette.background.main }}
               error={errors.riskClassification}
@@ -203,9 +203,12 @@ const CreateProjectForm: FC = () => {
               value={values.typeOfHighRiskRole}
               onChange={handleOnSelectChange("typeOfHighRiskRole")}
               items={[
-                { _id: 1, name: "Some value 1" },
-                { _id: 2, name: "Some value 2" },
-                { _id: 3, name: "Some value 3" },
+                { _id: 1, name: "Deployer" },
+                { _id: 2, name: "Provider" },
+                { _id: 3, name: "Distributor" },
+                { _id: 3, name: "Importer" },
+                { _id: 3, name: "Product manufacturer" },
+                { _id: 3, name: "Authorized representative" },
               ]}
               sx={{ width: "350px", backgroundColor: theme.palette.background.main }}
               isRequired

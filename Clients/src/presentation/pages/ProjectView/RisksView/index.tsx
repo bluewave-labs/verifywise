@@ -101,6 +101,7 @@ console.log(title)
                 data={tableData} 
                 table="risksTable" 
                 paginated
+                label={`${title} risks`}
             />
         </Stack>
     )

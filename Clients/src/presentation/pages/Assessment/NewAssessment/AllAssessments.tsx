@@ -21,6 +21,7 @@ import RichTextEditor from "../../../components/RichTextEditor";
 import { RiskManagementSystem } from "../../../structures/AssessmentTracker/risk-management-system.subtopic";
 import { DataGovernance } from "../../../structures/AssessmentTracker/data-governance.subtopic";
 import { TechnicalDocumentation } from "../../../structures/AssessmentTracker/technical-documentation.subtopic";
+import { RecordKeeping } from "../../../structures/AssessmentTracker/record-keeping.subtopic";
 
 const priorities = {
   "high priority": { color: "#FD7E14" },
@@ -32,6 +33,7 @@ const assessments = [
   { id: 1, component: RiskManagementSystem },
   { id: 2, component: DataGovernance },
   { id: 3, component: TechnicalDocumentation },
+  { id: 4, component: RecordKeeping },
 ];
 
 const AllAssessment = () => {

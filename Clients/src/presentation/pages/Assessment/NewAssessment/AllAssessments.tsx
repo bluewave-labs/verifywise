@@ -16,15 +16,21 @@ import { Topic, Topics } from "../../../structures/AssessmentTracker/Topics";
 import { useState } from "react";
 
 type PriorityLevel = "high priority" | "medium priority" | "low priority";
-import { RiskManagementSystem } from "../../../structures/AssessmentTracker/risk-management-system.subtopic";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import RichTextEditor from "../../../components/RichTextEditor";
+import { RiskManagementSystem } from "../../../structures/AssessmentTracker/risk-management-system.subtopic";
+import { DataGovernance } from "../../../structures/AssessmentTracker/data-governance.subtopic";
 
 const priorities = {
   "high priority": { color: "#FD7E14" },
   "medium priority": { color: "#EFB70E" },
   "low priority": { color: "#ABBDA1" },
 };
+
+const assessments = [
+  { id: 1, component: RiskManagementSystem },
+  { id: 2, component: DataGovernance },
+];
 
 const AllAssessment = () => {
   const theme = useTheme();
@@ -117,10 +123,10 @@ const AllAssessment = () => {
         px={8}
         sx={{ overflowY: "auto" }}
       >
-        {Topics[activeTab].id === 1 &&
-          RiskManagementSystem.map((subtopic, subIndex) => (
+        {Topics[activeTab].id === assessments[activeTab].id &&
+          assessments[activeTab].component.map((subtopic, subIndex) => (
             <Stack key={subIndex} mb={2}>
-              <Typography sx={{ fontSize: 16, color: "##344054" }}>
+              <Typography sx={{ fontSize: 16, color: "#344054" }}>
                 {subtopic.title}
               </Typography>
               {subtopic.questions.map((question, questionIndex) => (

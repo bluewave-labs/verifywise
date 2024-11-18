@@ -89,12 +89,6 @@ const NewAssessment = () => {
       </Box>
       <Divider orientation="vertical" flexItem />
       <Box width="70%" py={2} px={8} sx={{ overflowY: "auto" }}>
-        {/* Static part: Project Scope */}
-        <Box key={"Project Scope"} mb={2}>
-          <Typography color={theme.palette.text.primary} variant="h6">
-            Project Scope
-          </Typography>
-        </Box>
         {model.assessment.topics[activeTab].subtopics.map(
           (subtopic, subIndex) => (
             <Box key={subIndex} mb={2}>

@@ -24,6 +24,7 @@ import { TechnicalDocumentation } from "../../../structures/AssessmentTracker/te
 import { RecordKeeping } from "../../../structures/AssessmentTracker/record-keeping.subtopic";
 import { TransparencyAndUserInformation } from "../../../structures/AssessmentTracker/transparency-user-information.subtopic";
 import { HumanOversight } from "../../../structures/AssessmentTracker/human-oversight.subtopic";
+import { AccuracyRobustnessCyberSecurity } from "../../../structures/AssessmentTracker/accuracy-robustness-cybersecurity.subtopic";
 
 const priorities = {
   "high priority": { color: "#FD7E14" },
@@ -38,6 +39,7 @@ const assessments = [
   { id: 4, component: RecordKeeping },
   { id: 5, component: TransparencyAndUserInformation },
   { id: 6, component: HumanOversight },
+  { id: 7, component: AccuracyRobustnessCyberSecurity },
 ];
 
 const AllAssessment = () => {
@@ -134,7 +136,7 @@ const AllAssessment = () => {
       >
         {Topics[activeTab].id === assessments[activeTab].id &&
           assessments[activeTab].component.map((subtopic, subIndex) => (
-            <Stack key={subIndex} mb={2}>
+            <Stack key={subIndex} mb={15}>
               <Typography sx={{ fontSize: 16, color: "#344054" }}>
                 {subtopic.title}
               </Typography>

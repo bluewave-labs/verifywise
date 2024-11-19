@@ -30,6 +30,7 @@ import { PostMarketMonitoring } from "../../../structures/AssessmentTracker/post
 import { BiasMonitoringAndMitigation } from "../../../structures/AssessmentTracker/bias-monitoring-and-mitigation.subtopic";
 import { AccountabilityAndGovernance } from "../../../structures/AssessmentTracker/accountability-and-governance.subtopic";
 import { Explainability } from "../../../structures/AssessmentTracker/explainability.subtopic";
+import { EnvironmentalImpact } from "../../../structures/AssessmentTracker/environmental-impact.subtopic";
 
 const priorities = {
   "high priority": { color: "#FD7E14" },
@@ -50,6 +51,7 @@ const assessments = [
   { id: 10, component: BiasMonitoringAndMitigation },
   { id: 11, component: AccountabilityAndGovernance },
   { id: 12, component: Explainability },
+  { id: 13, component: EnvironmentalImpact },
 ];
 
 const AllAssessment = () => {

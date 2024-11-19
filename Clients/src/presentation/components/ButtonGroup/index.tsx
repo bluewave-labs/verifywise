@@ -21,10 +21,9 @@ const StyledButton = styled(Button)<StyledButtonProps>(
       ? theme.palette.text.primary
       : theme.palette.text.secondary,
     backgroundColor: isSelected ? "#F4F5F7" : theme.palette.background.paper,
-    // borderColor: "rgba(234, 236, 240, 1)",
     fontWeight: isSelected ? "600" : "normal",
     fontSize: "11px",
-    border: "0.85px solid rgba(234, 236, 240, 1)",
+    border: "1px solid rgba(234, 236, 240, 1)",
     borderRadius: "4px",
     "&:hover": {
       backgroundColor: theme.palette.primary.light,

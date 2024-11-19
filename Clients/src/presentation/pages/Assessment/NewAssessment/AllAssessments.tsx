@@ -14,17 +14,46 @@ import {
 } from "@mui/material";
 import { Topic, Topics } from "../../../structures/AssessmentTracker/Topics";
 import { useState } from "react";
+import singleTheme from "../../../themes/v1SingleTheme";
 
 type PriorityLevel = "high priority" | "medium priority" | "low priority";
-import { RiskManagementSystem } from "../../../structures/AssessmentTracker/risk-management-system.subtopic";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import RichTextEditor from "../../../components/RichTextEditor";
+import { RiskManagementSystem } from "../../../structures/AssessmentTracker/risk-management-system.subtopic";
+import { DataGovernance } from "../../../structures/AssessmentTracker/data-governance.subtopic";
+import { TechnicalDocumentation } from "../../../structures/AssessmentTracker/technical-documentation.subtopic";
+import { RecordKeeping } from "../../../structures/AssessmentTracker/record-keeping.subtopic";
+import { TransparencyAndUserInformation } from "../../../structures/AssessmentTracker/transparency-user-information.subtopic";
+import { HumanOversight } from "../../../structures/AssessmentTracker/human-oversight.subtopic";
+import { AccuracyRobustnessCyberSecurity } from "../../../structures/AssessmentTracker/accuracy-robustness-cybersecurity.subtopic";
+import { ConformityAssessment } from "../../../structures/AssessmentTracker/conformity-assessment.subtopic";
+import { PostMarketMonitoring } from "../../../structures/AssessmentTracker/post-market-monitoring.subtopic";
+import { BiasMonitoringAndMitigation } from "../../../structures/AssessmentTracker/bias-monitoring-and-mitigation.subtopic";
+import { AccountabilityAndGovernance } from "../../../structures/AssessmentTracker/accountability-and-governance.subtopic";
+import { Explainability } from "../../../structures/AssessmentTracker/explainability.subtopic";
+import { EnvironmentalImpact } from "../../../structures/AssessmentTracker/environmental-impact.subtopic";
 
 const priorities = {
   "high priority": { color: "#FD7E14" },
   "medium priority": { color: "#EFB70E" },
   "low priority": { color: "#ABBDA1" },
 };
+
+const assessments = [
+  { id: 1, component: RiskManagementSystem },
+  { id: 2, component: DataGovernance },
+  { id: 3, component: TechnicalDocumentation },
+  { id: 4, component: RecordKeeping },
+  { id: 5, component: TransparencyAndUserInformation },
+  { id: 6, component: HumanOversight },
+  { id: 7, component: AccuracyRobustnessCyberSecurity },
+  { id: 8, component: ConformityAssessment },
+  { id: 9, component: PostMarketMonitoring },
+  { id: 10, component: BiasMonitoringAndMitigation },
+  { id: 11, component: AccountabilityAndGovernance },
+  { id: 12, component: Explainability },
+  { id: 13, component: EnvironmentalImpact },
+];
 
 const AllAssessment = () => {
   const theme = useTheme();
@@ -112,15 +141,16 @@ const AllAssessment = () => {
       <Divider orientation="vertical" flexItem />
       <Stack
         minWidth="70%"
+        width={"100%"}
         maxWidth={"100%"}
         py={2}
         px={8}
         sx={{ overflowY: "auto" }}
       >
-        {Topics[activeTab].id === 1 &&
-          RiskManagementSystem.map((subtopic, subIndex) => (
-            <Stack key={subIndex} mb={2}>
-              <Typography sx={{ fontSize: 16, color: "##344054" }}>
+        {Topics[activeTab].id === assessments[activeTab].id &&
+          assessments[activeTab].component.map((subtopic, subIndex) => (
+            <Stack key={subIndex} mb={15}>
+              <Typography sx={{ fontSize: 16, color: "#344054" }}>
                 {subtopic.title}
               </Typography>
               {subtopic.questions.map((question, questionIndex) => (
@@ -213,6 +243,23 @@ const AllAssessment = () => {
               ))}
             </Stack>
           ))}
+        <Stack
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "flex-end",
+          }}
+        >
+          <Button
+            sx={{
+              ...singleTheme.buttons.primary,
+              color: "#FFFFFF",
+              width: 140,
+            }}
+          >
+            Save
+          </Button>
+        </Stack>
       </Stack>
     </Box>
   );

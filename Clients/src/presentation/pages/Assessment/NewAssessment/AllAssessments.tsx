@@ -28,6 +28,7 @@ import { AccuracyRobustnessCyberSecurity } from "../../../structures/AssessmentT
 import { ConformityAssessment } from "../../../structures/AssessmentTracker/conformity-assessment.subtopic";
 import { PostMarketMonitoring } from "../../../structures/AssessmentTracker/post-market-monitoring.subtopic";
 import { BiasMonitoringAndMitigation } from "../../../structures/AssessmentTracker/bias-monitoring-and-mitigation.subtopic";
+import { AccountabilityAndGovernance } from "../../../structures/AssessmentTracker/accountability-and-governance.subtopic";
 
 const priorities = {
   "high priority": { color: "#FD7E14" },
@@ -46,6 +47,7 @@ const assessments = [
   { id: 8, component: ConformityAssessment },
   { id: 9, component: PostMarketMonitoring },
   { id: 10, component: BiasMonitoringAndMitigation },
+  { id: 11, component: AccountabilityAndGovernance },
 ];
 
 const AllAssessment = () => {

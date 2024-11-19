@@ -14,6 +14,7 @@ export const Topics: Topic[] = [
   { id: 8, title: "Conformity assessment" },
   { id: 9, title: "Post-market monitoring" },
   { id: 10, title: "Bias monitoring and mitigation" },
-  { id: 11, title: "Explainability" },
-  { id: 12, title: "Environmental impact" },
+  { id: 11, title: "Accountability and governance" },
+  { id: 12, title: "Explainability" },
+  { id: 13, title: "Environmental impact" },
 ];

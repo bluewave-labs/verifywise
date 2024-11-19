@@ -7,8 +7,8 @@ import {
   FormatItalic,
   FormatListBulleted,
   FormatListNumbered,
-  HMobiledata,
 } from "@mui/icons-material";
+import "./index.css";
 
 interface RichTextEditorProps {
   onContentChange?: (content: string) => void;
@@ -91,22 +91,6 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             <FormatItalic />
           </IconButton>
         </Tooltip>
-        <Tooltip title="Uppercase">
-          <IconButton
-            onClick={() => applyFormatting("uppercase")}
-            disableRipple
-          >
-            <HMobiledata sx={{ fontSize: "30px", fontWeight: "bold" }} />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Lowercase">
-          <IconButton
-            onClick={() => applyFormatting("lowercase")}
-            disableRipple
-          >
-            <HMobiledata />
-          </IconButton>
-        </Tooltip>
         <Tooltip title="Bullets">
           <IconButton
             onClick={() => applyFormatting("bullets")}
@@ -130,16 +114,17 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
       {/* Tiptap Editor */}
       <Box>
         <EditorContent
+          className="custom-tip-tap-editor"
           editor={editor}
           style={{
             border: "1px solid #c4c4c4",
-            minHeight: "110px",
-            maxHeight: "110px",
+            height: "90px",
             overflowY: "auto",
             padding: "8px",
+            paddingTop: "0px",
             borderTop: "none",
             outline: "none",
-            marginBottom: "10px",
+            marginBottom: "5px",
             ...bodySx,
           }}
         />

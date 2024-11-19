@@ -1,3 +1,4 @@
+import { useState, useCallback } from "react";
 import {
   Typography,
   useTheme,
@@ -12,13 +13,11 @@ import {
   Chip,
   Button,
 } from "@mui/material";
-import { Topic, Topics } from "../../../structures/AssessmentTracker/Topics";
-import { useState } from "react";
-import singleTheme from "../../../themes/v1SingleTheme";
-
-type PriorityLevel = "high priority" | "medium priority" | "low priority";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import RichTextEditor from "../../../components/RichTextEditor";
+
+import singleTheme from "../../../themes/v1SingleTheme";
+import { Topic, Topics } from "../../../structures/AssessmentTracker/Topics";
 import { RiskManagementSystem } from "../../../structures/AssessmentTracker/risk-management-system.subtopic";
 import { DataGovernance } from "../../../structures/AssessmentTracker/data-governance.subtopic";
 import { TechnicalDocumentation } from "../../../structures/AssessmentTracker/technical-documentation.subtopic";
@@ -32,6 +31,8 @@ import { BiasMonitoringAndMitigation } from "../../../structures/AssessmentTrack
 import { AccountabilityAndGovernance } from "../../../structures/AssessmentTracker/accountability-and-governance.subtopic";
 import { Explainability } from "../../../structures/AssessmentTracker/explainability.subtopic";
 import { EnvironmentalImpact } from "../../../structures/AssessmentTracker/environmental-impact.subtopic";
+
+type PriorityLevel = "high priority" | "medium priority" | "low priority";
 
 const priorities = {
   "high priority": { color: "#FD7E14" },
@@ -57,15 +58,14 @@ const assessments = [
 
 const AllAssessment = () => {
   const theme = useTheme();
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState<number>(0);
 
-  // Handle list item click
-  const handleListItemClick = (index: number) => {
+  const handleListItemClick = useCallback((index: number) => {
     setActiveTab(index);
-  };
+  }, []);
 
-  const assessmentItem = (index: number, topic: Topic) => {
-    return (
+  const assessmentItem = useCallback(
+    (index: number, topic: Topic) => (
       <ListItem
         key={index}
         disablePadding
@@ -105,8 +105,9 @@ const AllAssessment = () => {
           />
         </ListItemButton>
       </ListItem>
-    );
-  };
+    ),
+    [activeTab, handleListItemClick, theme.palette.text.primary]
+  );
 
   return (
     <Box sx={{ display: "flex", height: "100vh", px: "8px !important" }}>
@@ -203,6 +204,10 @@ const AllAssessment = () => {
                     bodySx={{
                       borderColor: "#D0D5DD",
                       borderRadius: "0 0 4px 4px",
+
+                      "& .ProseMirror > p": {
+                        margin: 0,
+                      },
                     }}
                   />
                   <Stack

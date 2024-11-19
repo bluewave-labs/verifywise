@@ -21,7 +21,6 @@ import SetNewPassword from "./presentation/pages/Authentication/SetNewPassword";
 import ResetPasswordContinue from "./presentation/pages/Authentication/ResetPasswordContinue";
 import ProjectView from "./presentation/pages/ProjectView";
 import Playground from "./presentation/pages";
-import FileManager from "./presentation/pages/FileManager";
 
 import { VerifyWiseContext } from "./application/contexts/VerifyWise.context";
 import { useMemo, useState } from "react";
@@ -101,7 +100,6 @@ function App() {
             <Route path="/setting" element={<Setting />} />
             <Route path="/team" element={<Team />} />
             <Route path="/project-view" element={<ProjectView />} />
-            <Route path="/file-manager" element={<FileManager />} />
           </Route>
           <Route path="/admin-reg" element={<RegisterAdmin />} />
           <Route path="/user-reg" element={<RegisterUser />} />

@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { Topic, Topics } from "../../../structures/AssessmentTracker/Topics";
 import { useState } from "react";
+import singleTheme from "../../../themes/v1SingleTheme";
 
 type PriorityLevel = "high priority" | "medium priority" | "low priority";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
@@ -242,6 +243,23 @@ const AllAssessment = () => {
               ))}
             </Stack>
           ))}
+        <Stack
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "flex-end",
+          }}
+        >
+          <Button
+            sx={{
+              ...singleTheme.buttons.primary,
+              color: "#FFFFFF",
+              width: 140,
+            }}
+          >
+            Save
+          </Button>
+        </Stack>
       </Stack>
     </Box>
   );

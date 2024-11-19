@@ -1,13 +1,13 @@
 import { Stack } from "@mui/material";
-import Avatar from "../components/Avatar/VWAvatar";
+
 import RoleButtonGroup from "../components/ButtonGroup";
 
 const Playground = () => {
-  const user = {
-    firstname: "Mohammad",
-    lastname: "Khalilzadeh",
-    pathToImage: "https://avatars.githubusercontent.com/u/140876993?v=4",
-  };
+  // const user = {
+  //   firstname: "Mohammad",
+  //   lastname: "Khalilzadeh",
+  //   pathToImage: "https://avatars.githubusercontent.com/u/140876993?v=4",
+  // };
 
   return (
     <Stack
@@ -20,7 +20,7 @@ const Playground = () => {
         gap: 4,
       }}
     >
-      <RoleButtonGroup />
+        <RoleButtonGroup />
     </Stack>
   );
 };

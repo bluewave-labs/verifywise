@@ -10,7 +10,6 @@ interface StyledButtonProps extends ButtonProps {
 const StyledButtonGroup = styled(ButtonGroup)({
   borderRadius: "2px",
   overflow: "hidden",
-  border:'1px solid rgba(0,0,0,0.08)',
   height: '34px'
 });
 

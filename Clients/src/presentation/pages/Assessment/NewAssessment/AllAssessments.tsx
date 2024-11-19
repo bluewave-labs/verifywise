@@ -27,6 +27,7 @@ import { HumanOversight } from "../../../structures/AssessmentTracker/human-over
 import { AccuracyRobustnessCyberSecurity } from "../../../structures/AssessmentTracker/accuracy-robustness-cybersecurity.subtopic";
 import { ConformityAssessment } from "../../../structures/AssessmentTracker/conformity-assessment.subtopic";
 import { PostMarketMonitoring } from "../../../structures/AssessmentTracker/post-market-monitoring.subtopic";
+import { BiasMonitoringAndMitigation } from "../../../structures/AssessmentTracker/bias-monitoring-and-mitigation.subtopic";
 
 const priorities = {
   "high priority": { color: "#FD7E14" },
@@ -44,6 +45,7 @@ const assessments = [
   { id: 7, component: AccuracyRobustnessCyberSecurity },
   { id: 8, component: ConformityAssessment },
   { id: 9, component: PostMarketMonitoring },
+  { id: 10, component: BiasMonitoringAndMitigation },
 ];
 
 const AllAssessment = () => {

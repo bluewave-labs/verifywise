@@ -25,6 +25,7 @@ import { RecordKeeping } from "../../../structures/AssessmentTracker/record-keep
 import { TransparencyAndUserInformation } from "../../../structures/AssessmentTracker/transparency-user-information.subtopic";
 import { HumanOversight } from "../../../structures/AssessmentTracker/human-oversight.subtopic";
 import { AccuracyRobustnessCyberSecurity } from "../../../structures/AssessmentTracker/accuracy-robustness-cybersecurity.subtopic";
+import { ConformityAssessment } from "../../../structures/AssessmentTracker/conformity-assessment.subtopic";
 
 const priorities = {
   "high priority": { color: "#FD7E14" },
@@ -40,6 +41,7 @@ const assessments = [
   { id: 5, component: TransparencyAndUserInformation },
   { id: 6, component: HumanOversight },
   { id: 7, component: AccuracyRobustnessCyberSecurity },
+  { id: 8, component: ConformityAssessment },
 ];
 
 const AllAssessment = () => {

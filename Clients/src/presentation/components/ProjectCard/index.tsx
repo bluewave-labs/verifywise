@@ -11,8 +11,8 @@ export interface ProjectCardProps {
     project_title: string,
     owner: string,
     last_updated: string,
-    controls_completed?: string,
-    requirements_completed?: string
+    controls_completed: string | null,
+    requirements_completed: string | null
 }
 
 const ProjectCard: FC<ProjectCardProps> = ({
@@ -24,7 +24,8 @@ const ProjectCard: FC<ProjectCardProps> = ({
 }) => {
     const theme = useTheme();
     const navigate = useNavigate();
-    const renderProgressBar = (progress: string | undefined, label: string) => (
+    
+    const ProgressBarRender: FC<{ progress: string | null; label: string }> = ({ progress, label }) => (
         <>
             <ProgressBar progress={progress} />
             <Typography sx={styles.progressBarTitle}>
@@ -52,8 +53,8 @@ const ProjectCard: FC<ProjectCardProps> = ({
                     <SubtitleValue>{formatDate(last_updated)}</SubtitleValue>
                 </Box>
             </Box>
-            {renderProgressBar(controls_completed, "controls")}
-            {renderProgressBar(requirements_completed, "requirements")}
+            <ProgressBarRender progress={controls_completed}  label="controls" />
+            <ProgressBarRender progress={requirements_completed} label="requirements" />
             <Box sx={styles.lowerBox}>
                 <Box sx={{ display: "flex", mb: 1.5 }}>
                     <Box sx={styles.imageBox}>
@@ -64,7 +65,7 @@ const ProjectCard: FC<ProjectCardProps> = ({
                     </Typography>
                 </Box>                    
                 <Btn variant="outlined" disableRipple={theme.components?.MuiButton?.defaultProps?.disableRipple}
-                onClick={() => navigate("/project-view")}
+                    onClick={() => navigate("/project-view")}
                 >
                     View project
                 </Btn>

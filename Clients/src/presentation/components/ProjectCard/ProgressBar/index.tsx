@@ -3,8 +3,7 @@
  *
  * @component
  * @param {ProgressBarProps} props - The properties for the ProgressBar component.
- * @param {string} props.progress - The progress indicator as a fraction.
- *
+ * @param {string} props.progress - The progress is how full the indicator is in string format.
  * @returns {JSX.Element} The rendered ProgressBar component.
  */
 
@@ -12,30 +11,39 @@ import { Slider, Stack, useTheme } from "@mui/material";
 import { FC } from "react";
 
 interface ProgressBarProps {
-    progress: string | undefined
+    progress: string | null
 }
 
-const ProgressBar: FC<ProgressBarProps> = ({progress = ""}) => {
+const ProgressBar: FC<ProgressBarProps> = ({ progress = "" }) => {
     const theme = useTheme();
-    const progressCount = (progressString: string): number => {
-        const [completed, total] = progressString.split('/').map(Number);
-        if (Number.isNaN(completed) || Number.isNaN(total) || total === 0) {
-            throw new Error(`Invalid progress string: ${progressString}`);
+    const progressCount = (progressString: string): number => { // Function to calculatea number showing how full the indicator is
+        const [completed, total] = progressString.split('/').map(Number); // Getting values ​​from a slash separated string. The first value shows how full it is, the second is the total value.
+        if (Number.isNaN(completed) || Number.isNaN(total)) {
+            throw new Error(`Invalid progress format. Expected 'number/number', got: ${progressString}`);
+        }
+        if (total === 0) {
+            throw new Error('Total cannot be zero');
+        }
+        if (completed < 0 || total < 0) {
+            throw new Error('Progress values cannot be negative');
+        }
+        if (completed > total) {
+            throw new Error('Completed value cannot exceed total');
         }
         return completed / total;
     };
-    const value = progressCount(progress) * 100;
+    const value = progress ? progressCount(progress) * 100 : 0; // Calculating the percentage of how full the indicator is
 
     return (
-        <Stack 
-            direction="row" 
-            sx={{ 
-                "& .MuiSlider-track": { 
+        <Stack
+            direction="row"
+            sx={{
+                "& .MuiSlider-track": {
                     backgroundColor: "#4C7DE7",
                     display: !value ? "none" : "block"
-                }, 
-                "& .MuiSlider-thumb": { 
-                    display: "none" 
+                },
+                "& .MuiSlider-thumb": {
+                    display: "none"
                 },
                 "& .MuiSlider-rail": {
                     opacity: 1
@@ -45,12 +53,12 @@ const ProgressBar: FC<ProgressBarProps> = ({progress = ""}) => {
                 }
             }}
         >
-            <Slider value={value} sx={{ 
-                cursor: "auto", 
-                height: 8, 
-                border: "none", 
-                color: theme.palette.border.light 
-            }}/>
+            <Slider value={value} sx={{
+                cursor: "auto",
+                height: 8,
+                border: "none",
+                color: theme.palette.border.light
+            }} />
         </Stack>
     )
 }

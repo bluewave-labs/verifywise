@@ -5,7 +5,6 @@ import dashboardData from "../../mocks/dashboard/dashboard.data";
 import emptyState from "../../assets/imgs/empty-state.svg";
 import Popup from "../../components/Popup";
 import CreateProjectForm from "../../components/CreateProjectForm";
-import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getAllEntities } from "../../../application/repository/entity.repository";
 
@@ -19,16 +18,46 @@ interface MetricSectionProps {
 
 const Home = () => {
   const theme = useTheme();
-  const navigate = useNavigate();
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [projects, setProjects] = useState<ProjectCardProps[] | null>(null);
   useEffect(() => {
-    getAllEntities({routeUrl: "/projects"})
-        .then(({data}) => {
-          console.log("data", data)
-          setProjects(data);
-        })
+    const controller = new AbortController();
+    setIsLoading(true);
+    getAllEntities({ routeUrl: "/projects" })
+      .then(({ data }) => {
+        setProjects(data);
+        setError(null);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setError('Failed to fetch projects');
+          setProjects(null);
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
+      });
+    return () => controller.abort();
   }, []);
+
+  if (isLoading) {
+    return (
+      <Typography variant="h1" component="div" sx={styles.title}>
+        Projects are loading...
+      </Typography>
+    );
+  }
+  if (error) {
+    return (
+      <Typography variant="h1" component="div" sx={styles.title}>
+        {error}
+      </Typography>
+    );
+  }
 
   const { complianceStatus, riskStatus } = dashboardData;
   const complianceMetrics = [
@@ -92,18 +121,18 @@ const Home = () => {
   const PopupRender = () => {
     const [anchor, setAnchor] = useState<null | HTMLElement>(null);
     const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
-        setAnchor(anchor ? null : event.currentTarget);
+      setAnchor(anchor ? null : event.currentTarget);
     };
 
     return (
       <Popup
-          popupId="create-project-popup"
-          popupContent={<CreateProjectForm />}
-          openPopupButtonName="New project"
-          popupTitle="Create new project"
-          popupSubtitle="Create a new project from scratch by filling in the following."
-          handleOpenOrClose={handleOpenOrClose}
-          anchor={anchor}
+        popupId="create-project-popup"
+        popupContent={<CreateProjectForm />}
+        openPopupButtonName="New project"
+        popupTitle="Create new project"
+        popupSubtitle="Create a new project from scratch by filling in the following."
+        handleOpenOrClose={handleOpenOrClose}
+        anchor={anchor}
       />
     )
   }

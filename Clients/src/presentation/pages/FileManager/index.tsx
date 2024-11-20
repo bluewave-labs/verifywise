@@ -159,7 +159,7 @@ const FileManager: React.FC = (): JSX.Element => {
               sx={{ width: 250, height: 250, opacity: 0.7, mb: 6 }}
             />
             <Typography variant="body1" color="text.secondary" mt={2}>
-              There are currently no evidences or documents uploaded
+              There are currently no evidences or documents uploaded.
             </Typography>
           </Box>
         )}

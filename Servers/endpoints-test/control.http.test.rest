@@ -1,0 +1,8 @@
+### get all controls
+
+GET http://localhost:3000/controls
+
+### get control by id
+
+GET http://localhost:3000/controls/2
+

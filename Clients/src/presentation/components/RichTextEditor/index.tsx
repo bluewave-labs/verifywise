@@ -12,9 +12,15 @@ import {
 
 interface RichTextEditorProps {
   onContentChange?: (content: string) => void;
+  headerSx?: object;
+  bodySx?: object;
 }
 
-const RichTextEditor: React.FC<RichTextEditorProps> = ({ onContentChange }) => {
+const RichTextEditor: React.FC<RichTextEditorProps> = ({
+  onContentChange,
+  headerSx,
+  bodySx,
+}) => {
   const [bulleted, setBulleted] = useState<boolean>(false);
   const [numbered, setNumbered] = useState<boolean>(false);
 
@@ -72,6 +78,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ onContentChange }) => {
           borderColor: "#c4c4c4",
           borderBottom: "none",
           borderRadius: "4px",
+          ...headerSx,
         }}
       >
         <Tooltip title="Bold">
@@ -133,6 +140,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ onContentChange }) => {
             borderTop: "none",
             outline: "none",
             marginBottom: "10px",
+            ...bodySx,
           }}
         />
       </Box>

@@ -1,0 +1,8 @@
+### get all questions
+
+GET http://localhost:3000/questions
+
+### get question by id
+
+GET http://localhost:3000/questions/2
+

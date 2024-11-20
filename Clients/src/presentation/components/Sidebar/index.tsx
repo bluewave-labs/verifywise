@@ -30,7 +30,6 @@ import { ReactComponent as Compliance } from "../../assets/icons/globe.svg";
 import { ReactComponent as Assessment } from "../../assets/icons/chart.svg";
 import { ReactComponent as Vendors } from "../../assets/icons/building.svg";
 import { ReactComponent as Settings } from "../../assets/icons/setting.svg";
-import { ReactComponent as FileManager} from "../../assets/icons/file.svg";
 
 import Logo from "../../assets/imgs/logo.png";
 
@@ -57,11 +56,6 @@ const menu = [
     name: "Vendors",
     icon: <Vendors style={{}} />,
     path: "/vendors",
-  },
-  {
-    name:"File Manager",
-    icon: <FileManager/>,
-    path: "/file-manager",
   },
 ];
 

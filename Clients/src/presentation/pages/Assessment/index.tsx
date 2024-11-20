@@ -1,6 +1,9 @@
 import { Stack, Button, Typography, useTheme, Paper } from "@mui/material";
+import singleTheme from "../../themes/v1SingleTheme";
+import { useNavigate } from "react-router-dom";
 
 const Assessment = () => {
+  const navigate = useNavigate();
   const theme = useTheme();
 
   const paperStyle = {
@@ -19,24 +22,12 @@ const Assessment = () => {
     maxWidth: "80%",
   };
 
-  const buttonStyles = {
-    width: "157px",
-    marginTop: "30px",
-    gap: "8px",
-    paddingTop: "10px",
-    paddingBottom: "10px",
-    paddingLeft: "16px",
-    paddingRight: "16px",
-    height: 34,
-    fontSize: 13,
-    textTransform: "inherit",
-    backgroundColor: "#4C7DE7",
-    borderRadius: "4px",
-    border: "1px solid  #175CD3",
-    "&:hover": {
-      boxShadow: "none",
-    },
-  } as const;
+  /**
+   * TBD: Handle Go to Assessments button click
+   */
+  const handleAssessment = () => {
+    navigate("/all-assessments");
+  };
 
   return (
     <div className="assessment-page">
@@ -45,11 +36,11 @@ const Assessment = () => {
         sx={{ backgroundColor: theme.palette.background.alt }}
       >
         <Typography
-          variant="h5"
+          variant="h1"
+          component={"div"}
           fontWeight={"bold"}
           fontSize={"16px"}
           color={theme.palette.text.primary}
-          fontFamily={"inter"}
         >
           Assessment tracker
         </Typography>
@@ -61,52 +52,37 @@ const Assessment = () => {
           sx={{ maxWidth: 1400, marginTop: "20px" }}
         >
           <Paper sx={paperStyle}>
-            <Typography
-              fontSize={"12px"}
-              color={theme.palette.text.accent}
-              fontFamily={"inter"}
-            >
+            <Typography fontSize={"12px"} color={theme.palette.text.accent}>
               Assessment completion
             </Typography>
             <Typography
               fontWeight={"bold"}
               fontSize={"16px"}
               color={theme.palette.text.primary}
-              fontFamily={"inter"}
             >
               85%
             </Typography>
           </Paper>
           <Paper sx={paperStyle}>
-            <Typography
-              fontSize={"12px"}
-              color={theme.palette.text.accent}
-              fontFamily={"inter"}
-            >
+            <Typography fontSize={"12px"} color={theme.palette.text.accent}>
               Pending assessments
             </Typography>
             <Typography
               fontWeight={"bold"}
               fontSize={"16px"}
               color={theme.palette.text.primary}
-              fontFamily={"inter"}
             >
               2
             </Typography>
           </Paper>
           <Paper sx={paperStyle}>
-            <Typography
-              fontSize={"12px"}
-              color={theme.palette.text.accent}
-              fontFamily={"inter"}
-            >
+            <Typography fontSize={"12px"} color={theme.palette.text.accent}>
               Approved assessments
             </Typography>
             <Typography
               fontWeight={"bold"}
               fontSize={"16px"}
               color={theme.palette.text.primary}
-              fontFamily={"inter"}
             >
               12
             </Typography>
@@ -117,30 +93,31 @@ const Assessment = () => {
           fontWeight={"bold"}
           fontSize={"16px"}
           color={theme.palette.text.primary}
-          sx={{ marginTop: "50px" }}
-          fontFamily={"inter"}
+          sx={{ marginTop: "32px" }}
         >
           Ongoing assessments
         </Typography>
-        <Typography
-          fontSize={"14px"}
-          fontFamily={"inter"}
-          color={theme.palette.text.secondary}
-        >
+        <Typography fontSize={"14px"} color={theme.palette.text.secondary}>
           Those are the assessments you started. Each assessment has a
           completion status on the left hand side of the table.
         </Typography>
         <Stack>
-          <Button variant="contained" size="medium" sx={buttonStyles}>
-            <Typography
-              fontFamily={"inter"}
-              fontSize={"13px"}
-              fontWeight={"400"}
-              lineHeight={"20px"}
-              textAlign={"left"}
-            >
-              Go to assessments
-            </Typography>
+          <Button
+            disableRipple={
+              theme.components?.MuiButton?.defaultProps?.disableRipple
+            }
+            variant="contained"
+            sx={{
+              ...singleTheme.buttons.primary,
+              width: "fit-content",
+              height: 34,
+              marginTop: "20px",
+            }}
+            onClick={() => {
+              handleAssessment();
+            }}
+          >
+            Go to assessments
           </Button>
         </Stack>
       </Stack>

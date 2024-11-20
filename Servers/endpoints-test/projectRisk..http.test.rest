@@ -1,0 +1,8 @@
+### get all projectRisks
+
+GET http://localhost:3000/projectRisks
+
+### get projectRisk by id
+
+GET http://localhost:3000/projectRisks/2
+

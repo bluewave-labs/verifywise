@@ -20,7 +20,7 @@ const Playground = () => {
         gap: 4,
       }}
     >
-      <RoleButtonGroup />
+    <RoleButtonGroup />
     </Stack>
   );
 };

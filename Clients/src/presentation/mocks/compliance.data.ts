@@ -71,6 +71,18 @@ export const complianceDetails = {
             data: "Regulatory Training and Response Procedures",
             controlDes:
               "Train personnel on regulatory requirements and procedures for responding to authority requests.",
+              subControler: [
+                {
+                  id: 1,
+                  subControlerTitle:
+                    "We clearly define roles and responsibilities related to AI risk management",
+                },
+                {
+                  id: 2,
+                  subControlerTitle:
+                    "We train personnel on the requirements of the regulation and the process for responding to requests from competent authorities",
+                },
+              ],
           },
           { id: "2", data: "Mike Arthurs" },
           { id: "3", data: "3 (1 left)" },
@@ -94,10 +106,13 @@ export const complianceDetails = {
         data: [
           { id: "1", data: "Intended Use Description" , 
             controlDes: "Review and verify technical documentation from AI system providers." ,
-            subControlTlt: [{title: "We ensure executive leadership takes responsibility for decisions related to AI risks."},
-              {title: "We provide AI literacy and ethics training to relevant personnel." },
-              {title: "We develop a clear and concise communication plan for informing workers about the use of high-risk AI systems in the workplace." }
-            ] 
+            subControler: [
+              {
+                id: 1,
+                subControlerTitle:
+                  "We provide detailed descriptions of the AI system's intended use",
+              }
+            ],
           },
           { id: "2", data: "John Doe" },
           { id: "3", data: "4 (all completed)" },
@@ -108,7 +123,17 @@ export const complianceDetails = {
         id: 4,
         icon: Checked,
         data: [
-          { id: "1", data: "Technical Documentation Review" , controlDes: "Review and verify technical documentation from AI system providers."},
+          { id: "1", 
+            data: "Technical Documentation Review" , 
+            controlDes: "Review and verify technical documentation from AI system providers.",
+            subControler: [
+              {
+                id: 1,
+                subControlerTitle:
+                  "We review and verify technical documentation from providers",
+              }
+            ],
+          },
           { id: "2", data: "Jane Smith" },
           { id: "3", data: "6 (3 left)" },
           { id: "4", data: "50%" },
@@ -118,7 +143,17 @@ export const complianceDetails = {
         id: 5,
         icon: Checked,
         data: [
-          { id: "1", data: "Record Maintenance of AI System Activities" , controlDes: "Maintain accurate records of all AI system activities, including modifications and third-party involvements."},
+          { id: "1", 
+            data: "Record Maintenance of AI System Activities" , 
+            controlDes: "Maintain accurate records of all AI system activities, including modifications and third-party involvements.",
+            subControler: [
+              {
+                id: 1,
+                subControlerTitle:
+                  "We maintain accurate records of all AI system activities, including modifications and third-party involvements",
+              }
+            ],
+          },
           { id: "2", data: "Jane Smith" },
           { id: "3", data: "6 (3 left)" },
           { id: "4", data: "10%" },
@@ -128,7 +163,21 @@ export const complianceDetails = {
         id: 6,
         icon: Checked,
         data: [
-          { id: "1", data: "System Information Documentation" , controlDes: "Document system information, including functionality, limitations, and risk controls."},
+          { id: "1", data: "System Information Documentation" , 
+            controlDes: "Document system information, including functionality, limitations, and risk controls.",
+            subControler: [
+              {
+                id: 1,
+                subControlerTitle:
+                  "We document system information, including functionality, limitations, and risk controls",
+              },
+              {
+                id: 2,
+                subControlerTitle:
+                  "We define and document forbidden uses and foresee potential misuse",
+              },
+            ],
+          },
           { id: "2", data: "Jane Smith" },
           { id: "3", data: "6 (3 left)" },
           { id: "4", data: "30%" },
@@ -138,7 +187,16 @@ export const complianceDetails = {
         id: 7,
         icon: Checked,
         data: [
-          { id: "1", data: "Dataset Description" , controlDes: "Describe training, validation, and testing datasets used in AI systems."},
+          { id: "1", data: "Dataset Description" , 
+            controlDes: "Describe training, validation, and testing datasets used in AI systems.",
+            subControler: [
+              {
+                id: 1,
+                subControlerTitle:
+                  "We describe training, validation, and testing datasets used",
+              },
+            ]
+          },
           { id: "2", data: "Jane Smith" },
           { id: "3", data: "6 (3 left)" },
           { id: "4", data: "30%" },
@@ -148,7 +206,16 @@ export const complianceDetails = {
         id: 8,
         icon: Checked,
         data: [
-          { id: "1", data: "Mitigation Strategies and Bias Testing" , controlDes: "Explain mitigation strategies and document bias testing results."},
+          { id: "1", data: "Mitigation Strategies and Bias Testing" , 
+            controlDes: "Explain mitigation strategies and document bias testing results.",
+            subControler: [
+              {
+                id: 1,
+                subControlerTitle:
+                  "We explain mitigation strategies and bias testing results",
+              },]
+
+          },
           { id: "2", data: "Jane Smith" },
           { id: "3", data: "6 (3 left)" },
           { id: "4", data: "39%" },
@@ -158,7 +225,14 @@ export const complianceDetails = {
         id: 9,
         icon: Checked,
         data: [
-          { id: "1", data: "AI System Accuracy and Security Information" , controlDes: "Explain mitigation strategies and document bias testing results."},
+          { id: "1", data: "AI System Accuracy and Security Information" , 
+            controlDes: "Explain mitigation strategies and document bias testing results.",
+            subControler: [
+              {
+                id: 1,
+                subControlerTitle:
+                  "We provide accuracy metrics, robustness, and cybersecurity information",
+              },]},
           { id: "2", data: "Jane Smith" },
           { id: "3", data: "6 (3 left)" },
           { id: "4", data: "89%" },
@@ -179,7 +253,24 @@ export const complianceDetails = {
         id: 10,
         icon: Exclamation,
         data: [
-          { id: "1", data: "Human Intervention Mechanisms" , controlDes:"Assign competent individuals with authority to oversee AI system usage."},
+          { id: "1", data: "Human Intervention Mechanisms" , controlDes:"Assign competent individuals with authority to oversee AI system usage.",
+            subControler: [
+              {
+                id: 1,
+                subControlerTitle:
+                  "We define mechanisms for human intervention or override of AI outputs",
+              },
+              {
+                id: 2,
+                subControlerTitle:
+                  "We assign competent individuals with authority to oversee AI system usage",
+              },
+              {
+                id: 3,
+                subControlerTitle:
+                  "We align oversight measures with provider's instructions for use",
+              },
+            ]},
           { id: "2", data: "John Doe" },
           { id: "3", data: "4 (all completed)" },
           { id: "4", data: "100%" },
@@ -189,7 +280,30 @@ export const complianceDetails = {
         id: 11,
         icon: Checked,
         data: [
-          { id: "1", data: "Oversight Documentation" , controlDes:"Document system limitations and human oversight options."},
+          { id: "1", data: "Oversight Documentation" , 
+            controlDes:"Document system limitations and human oversight options.",
+            subControler: [
+              {
+                id: 1,
+                subControlerTitle:
+                  "We document system limitations and human oversight options",
+              },
+              {
+                id: 2,
+                subControlerTitle:
+                  "We establish appeal processes related to AI system decisions",
+              },
+              {
+                id: 3,
+                subControlerTitle:
+                  "We ensure clear communication of AI system capabilities, limitations, and risks to human operators",
+              },
+              {
+                id: 4,
+                subControlerTitle:
+                  "We proportion oversight measures to match AI system's risk level and autonomy",
+              },
+            ]},
           { id: "2", data: "Jane Smith" },
           { id: "3", data: "6 (3 left)" },
           { id: "4", data: "50%" },
@@ -210,7 +324,26 @@ export const complianceDetails = {
         id: 12,
         icon: Exclamation,
         data: [
-          { id: "1", data: "Proportionate Oversight Measures" , controlDes:"Take prompt and effective corrective actions for non-conforming high-risk AI systems and ensure ongoing system value post-deployment.        "},
+          { id: "1", data: "Proportionate Oversight Measures" , 
+            controlDes:"Take prompt and effective corrective actions for non-conforming high-risk AI systems and ensure ongoing system value post-deployment.",
+            subControler: [
+              {
+                id: 1,
+                subControlerTitle:
+                  "We define mechanisms for human intervention or override of AI outputs",
+              },
+              {
+                id: 2,
+                subControlerTitle:
+                  "We assign competent individuals with authority to oversee AI system usage",
+              },
+              {
+                id: 3,
+                subControlerTitle:
+                  "We align oversight measures with provider's instructions for use",
+              },
+            ]
+          },
           { id: "2", data: "John Doe" },
           { id: "3", data: "4 (all completed)" },
           { id: "4", data: "100%" },
@@ -220,7 +353,10 @@ export const complianceDetails = {
         id: 13,
         icon: Checked,
         data: [
-          { id: "1", data: "System Validation and Reliability Documentation" , controlDes:"Demonstrate and document the system's validity, reliability, and standards compliance."},
+          { id: "1", data: "System Validation and Reliability Documentation" , 
+            controlDes:"Demonstrate and document the system's validity, reliability, and standards compliance.",
+          
+          },
           { id: "2", data: "Jane Smith" },
           { id: "3", data: "6 (3 left)" },
           { id: "4", data: "50%" },

@@ -1,4 +1,4 @@
-import { questions } from "../questions/questions.data";
+import { questions } from "../question.mock.data";
 
 export const getAllMockQuestions = (): Array<any> => {
   return questions;
@@ -13,7 +13,10 @@ export const createMockQuestion = (newQuestion: any): object => {
   return newQuestion;
 };
 
-export const updateMockQuestionById = (id: number, updatedQuestion: any): object | null => {
+export const updateMockQuestionById = (
+  id: number,
+  updatedQuestion: any
+): object | null => {
   const index = questions.findIndex((question) => question.id === id);
   if (index !== -1) {
     questions[index] = { ...questions[index], ...updatedQuestion };

@@ -1,5 +1,6 @@
 import { Stack } from "@mui/material";
 import Avatar from "../components/Avatar/VWAvatar";
+import RoleButtonGroup from "../components/ButtonGroup";
 
 const Playground = () => {
   const user = {
@@ -43,7 +44,9 @@ const Playground = () => {
         <Avatar size="medium" user={user} />
         <Avatar size="large" user={user} />
       </Stack>
+      <RoleButtonGroup />
     </Stack>
+    
   );
 };
 

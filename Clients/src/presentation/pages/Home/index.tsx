@@ -1,68 +1,57 @@
 import { Box, Stack, Typography, useTheme } from "@mui/material";
-import ProjectCard, { ProjectCardProps } from "../../components/ProjectCard";
-import { mockProjects } from "../../mocks/dashboard/project.data";
-import { NoProjectBox, StyledStack, styles } from "./styles";
-import dashboardData from "../../mocks/dashboard/dashboard.data";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { NoProjectBox, styles } from "./styles";
 import emptyState from "../../assets/imgs/empty-state.svg";
-import Popup from "../../components/Popup";
-import CreateProjectForm from "../../components/CreateProjectForm";
-import { useNavigate } from "react-router-dom";
+import { getAllEntities } from "../../../application/repository/entity.repository";
+import { ProjectCardProps } from "../../components/ProjectCard";
 
-interface HomeProps {
-  projects?: ProjectCardProps[];
-}
+const ProjectCard = lazy(() => import("../../components/ProjectCard"));
+const Popup = lazy(() => import("../../components/Popup"));
+const CreateProjectForm = lazy(() => import("../../components/CreateProjectForm"));
+const MetricSection = lazy(() => import("../../components/MetricSection"));
 
-interface MetricSectionProps {
-  title: string;
-  metrics: {
-    title: string;
-    value: string | number;
-  }[];
-}
-
-const Home = ({ projects = mockProjects }: HomeProps) => {
+const Home = () => {
   const theme = useTheme();
-  const navigate = useNavigate();
-  const { complianceStatus, riskStatus } = dashboardData;
-  const complianceMetrics = [
-    {
-      title: "Completed requirements",
-      value: `${complianceStatus.assessmentCompletionRate}%`,
-    },
-    {
-      title: "Completed assessments",
-      value: complianceStatus.completedAssessments,
-    },
-    {
-      title: "Assessment completion rate",
-      value: `${complianceStatus.completedRequirementsPercentage}%`,
-    },
-  ];
-  const riskMetrics = [
-    { title: "Acceptable risks", value: riskStatus.acceptableRisks },
-    { title: "Residual risks", value: riskStatus.residualRisks },
-    { title: "Unacceptable risks", value: riskStatus.unacceptableRisks },
-  ];
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const MetricSection = ({ title, metrics }: MetricSectionProps) => (
-    <>
-      <Typography
-        variant="h2"
-        component="div"
-        sx={{ pb: 8.5, mt: 17, ...styles.title }}
-      >
-        {title}
+  const [projects, setProjects] = useState<ProjectCardProps[] | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    setIsLoading(true);
+    getAllEntities({ routeUrl: "/projects" })
+      .then(({ data }) => {
+        setProjects(data);
+        setError(null);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setError('Failed to fetch projects');
+          setProjects(null);
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
+      });
+    return () => controller.abort();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <Typography variant="h1" component="div" sx={styles.title}>
+        Projects are loading...
       </Typography>
-      <Stack direction="row" justifyContent="space-between" spacing={15}>
-        {metrics.map((metric, index) => (
-          <StyledStack key={index}>
-            <Typography sx={styles.gridTitle}>{metric.title}</Typography>
-            <Typography sx={styles.gridValue}>{metric.value}</Typography>
-          </StyledStack>
-        ))}
-      </Stack>
-    </>
-  );
+    );
+  }
+  if (error) {
+    return (
+      <Typography variant="h1" component="div" sx={styles.title}>
+        {error}
+      </Typography>
+    );
+  }
 
   const NoProjectsMessage = () => (
     <NoProjectBox>
@@ -76,11 +65,31 @@ const Home = ({ projects = mockProjects }: HomeProps) => {
           color: theme.palette.text.tertiary,
         }}
       >
-        You have no projects, yet. Click on the "New Project" button to start
-        one.
+        You have no projects, yet. Click on the "New Project" button to start one.
       </Typography>
     </NoProjectBox>
   );
+
+  const PopupRender = () => {
+    const [anchor, setAnchor] = useState<null | HTMLElement>(null);
+    const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
+      setAnchor(anchor ? null : event.currentTarget);
+    };
+
+    return (
+      <Suspense fallback={<div>Loading...</div>}>
+        <Popup
+          popupId="create-project-popup"
+          popupContent={<CreateProjectForm />}
+          openPopupButtonName="New project"
+          popupTitle="Create new project"
+          popupSubtitle="Create a new project from scratch by filling in the following."
+          handleOpenOrClose={handleOpenOrClose}
+          anchor={anchor}
+        />
+      </Suspense>
+    )
+  }
 
   return (
     <Box>
@@ -88,31 +97,25 @@ const Home = ({ projects = mockProjects }: HomeProps) => {
         <Typography variant="h1" component="div" sx={styles.title}>
           Projects overview
         </Typography>
-        <Popup
-          popupId="create-project-popup"
-          popupContent={<CreateProjectForm />}
-          openPopupButtonName="New project"
-          actionButtonName="Create project"
-          popupTitle="Create new project"
-          popupSubtitle="Create a new project from scratch by filling in the following."
-          onActionButtonClick={() => navigate("/project-view")}
-        />
+        <PopupRender />
       </Box>
       {projects && projects.length > 0 ? (
         <>
           <Stack direction="row" justifyContent="space-between" spacing={15}>
-            {projects.map((item: ProjectCardProps) => (
-              <ProjectCard key={item.id} {...item} />
-            ))}
+            <Suspense fallback={<div>Loading...</div>}>
+              {projects.map((item: ProjectCardProps) => (
+                <ProjectCard key={item.id} {...item} />
+              ))}
+            </Suspense>
           </Stack>
-          <MetricSection
-            title="All projects compliance status"
-            metrics={complianceMetrics}
-          />
-          <MetricSection
-            title="All projects risk status"
-            metrics={riskMetrics}
-          />
+          {(["compliance", "risk"] as const).map((metricType) => (
+            <Suspense key={metricType} fallback={<div>Loading...</div>}>
+              <MetricSection
+                title={`All projects ${metricType} status`}
+                metricType={metricType}
+              />
+            </Suspense>
+          ))}
         </>
       ) : (
         <NoProjectsMessage />

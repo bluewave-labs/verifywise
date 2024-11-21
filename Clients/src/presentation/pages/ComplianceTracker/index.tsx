@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import BasicTable from "../../../presentation/components/Table";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import CustomModal from "../../components/Modals/Controlpane";
@@ -16,8 +16,53 @@ import {
   complianceMetrics as metricData,
   complianceDetails as detailsData,
 } from "../../mocks/compliance.data";
+import { getAllEntities } from "../../../application/repository/entity.repository";
+import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 
-const Compliance = ({
+const acdSumDetails = [
+  { summaryId: "panel1", summaryTitle: "AI literacy" },
+  {
+    summaryId: "panel2",
+    summaryTitle: "Transparency and provision of information to deployers",
+  },
+  { summaryId: "panel3", summaryTitle: "Human oversight" },
+  {
+    summaryId: "panel4",
+    summaryTitle: "Corrective actions and duty of information",
+  },
+  {
+    summaryId: "panel5",
+    summaryTitle: "Responsibilities along the AI value chain",
+  },
+  {
+    summaryId: "panel6",
+    summaryTitle: "Obligations of deployers of high-risk AI systems",
+  },
+  {
+    summaryId: "panel7",
+    summaryTitle:
+      "Fundamental rights impact assessments for high-risk AI systems",
+  },
+  {
+    summaryId: "panel8",
+    summaryTitle:
+      "Transparency obligations for providers and users of certain AI systems",
+  },
+  { summaryId: "panel9", summaryTitle: "Registration" },
+  {
+    summaryId: "panel10",
+    summaryTitle: "EU database for high-risk AI systems listed in Annex III",
+  },
+  {
+    summaryId: "panel11",
+    summaryTitle:
+      "Post-market monitoring by providers and post-market monitoring plan for high-risk AI systems",
+  },
+  { summaryId: "panel12", summaryTitle: "Reporting of serious incidents" },
+  { summaryId: "panel13", summaryTitle: "General-purpose AI models" },
+];
+
+const ComplianceTracker = ({
   complianceMetrics = metricData,
   complianceDetails = detailsData,
 }: any) => {
@@ -33,125 +78,110 @@ const Compliance = ({
   // State to manage the selected row for modal content
   const [selectedRow, setSelectedRow] = useState<number | null>(null);
 
-  const selectedRowData = complianceDetails.rows.find(
-    (row: any) => row.id === selectedRow
-  );
+  const { setDashboardValues } = useContext(VerifyWiseContext);
 
-  const acdSumDetails = [
-    {
-      summaryId: "panel1",
-      summaryTitle: "1.1 Compliance with Requirements for High-Risk AI Systems",
-    },
-    {
-      summaryId: "panel2",
-      summaryTitle:
-        "1.2 Transparency Obligations for Providers and Deployers of Certain AI Systems",
-    },
-  ];
+  const fetchComplianceTracker = async () => {
+    try {
+      const response = await getAllEntities({ routeUrl: "/complianceLists" });
+      console.log("Response:", response);
+      setDashboardValues((prevValues: any) => ({
+        ...prevValues,
+        compliance: response.data,
+      }));
+    } catch (error) {
+      console.error("Error fetching compliance tracker:", error);
+    }
+  };
 
+  useEffect(() => {
+    fetchComplianceTracker();
+  }, []);
+
+  // Function to handle accordion toggle
   const handleAccordionChange = (panel: string) => {
     return (_: React.SyntheticEvent, isExpanded: boolean) => {
       setExpanded(isExpanded ? panel : false);
     };
   };
 
+  // Handle row click to open modal with selected row data
   const handleRowClick = (id: number) => {
     setSelectedRow(id);
     setIsModalOpen(true);
   };
 
-  const handleConfirm = () => {
-    console.log("Confirmed action for row:", selectedRow);
-    setIsModalOpen(false);
+  const renderAccordion = (id: string, title: string) => {
+    // Get the specific section data for the current accordion title
+    const sectionData = complianceDetails[title];
+    console.log("🚀 ~ renderAccordion ~ sectionDataaaaaaa:", sectionData)
+    
+
+    if (!sectionData) {
+      return <div>No data available for this section</div>;
+    }
+
+    const { cols, rows } = sectionData;
+
+    return (
+      <Box key={id}>
+        <Accordion
+          expanded={expanded === id}
+          onChange={handleAccordionChange(id)}
+          sx={{
+            mt: spacing(4.5),
+            border: "1px solid",
+            borderColor: "#eaecf0",
+            width: "100%",
+            marginLeft: spacing(0.75),
+            borderRadius: theme.shape.borderRadius,
+            overflow: "hidden",
+            position: "relative",
+            "&.MuiPaper-root": { margin: 0, padding: 0, boxShadow: "none" },
+            "& .MuiAccordionDetails-root": { padding: 0, margin: 0 },
+          }}
+        >
+          <AccordionSummary
+            expandIcon={
+              <ExpandMoreIcon
+                sx={{
+                  transform:
+                    expanded === id ? "rotate(180deg)" : "rotate(270deg)",
+                  transition: "transform 0.3s ease",
+                }}
+              />
+            }
+            aria-controls={`${id}-content`}
+            id={`${id}-header`}
+            sx={{
+              bgcolor: "#FAFAFA",
+              padding: spacing(5),
+              flexDirection: "row-reverse",
+              height: 64,
+            }}
+          >
+            <Typography
+              variant="h6"
+              sx={{ fontSize: "16px", paddingLeft: spacing(1.25) }}
+            >
+              {title}
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <BasicTable
+              data={{ cols, rows }}
+              paginated={false}
+              reversed={false}
+              table="complianceTable"
+              onRowClick={handleRowClick}
+            />
+          </AccordionDetails>
+        </Accordion>
+      </Box>
+    );
   };
 
-  const renderAccordion = (id: string, title: string, content: any) => (
-    <Box>
-      <Accordion
-        expanded={expanded === id}
-        onChange={handleAccordionChange(id)}
-        sx={{
-          mt: spacing(4.5),
-          border: "1px solid",
-          borderColor: "#eaecf0",
-          width: "100%",
-          marginLeft: spacing(0.75),
-          borderRadius: theme.shape.borderRadius,
-          overflow: "hidden",
-          position: "relative",
-
-          "&.MuiPaper-root": {
-            margin: 0,
-            padding: 0,
-            boxShadow: "none",
-          },
-          "& .MuiAccordionDetails-root": {
-            padding: 0,
-            margin: 0,
-          },
-          "& .css-11dq6i3-MuiPaper-root-MuiTableContainer-root": {
-            marginTop: 0,
-          },
-        }}
-      >
-        <AccordionSummary
-          className="accordion-summary"
-          expandIcon={
-            <ExpandMoreIcon
-              sx={{
-                transform:
-                  expanded === id ? "rotate(180deg)" : "rotate(270deg)",
-                transition: "transform 0.3s ease",
-              }}
-            />
-          }
-          aria-controls={`${id}-content`}
-          id={`${id}-header`}
-          sx={{
-            bgcolor: "#FAFAFA",
-            padding: spacing(5),
-            flexDirection: "row-reverse",
-            height: 64,
-            "& .Mui-expanded": {
-              margin: 0,
-            },
-            "& .MuiAccordionSummary-root": {
-              margin: 0,
-            },
-            "& .MuiAccordionSummary-content": {
-              margin: 0,
-            },
-          }}
-        >
-          <Typography
-            variant="h6"
-            sx={{ fontSize: "16px", paddingLeft: spacing(1.25) }}
-          >
-            {title}
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails
-          sx={{
-            "& .css-5s768i-MuiTable-root": {
-              border: "none",
-              borderRadius: "0",
-            },
-            "& .css-11dq6i3-MuiPaper-root-MuiTableContainer-root": {
-              borderLeft: "none",
-              borderRight: "none",
-              borderBottom: "none",
-              borderRadius: "0",
-            },
-          }}
-        >
-          {content}
-        </AccordionDetails>
-      </Accordion>
-    </Box>
-  );
-
   return (
-    <Stack className="compliance-page" sx={{ }}>
+    <Stack className="compliance-page">
       <Toolbar>
         <Typography
           sx={{
@@ -163,7 +193,7 @@ const Compliance = ({
             color: "#1A1919",
           }}
         >
-          Compliance tracker
+          Compliance Tracker
         </Typography>
       </Toolbar>
       <Stack
@@ -174,13 +204,6 @@ const Compliance = ({
           flexDirection: "row",
           gap: spacing(10),
           paddingLeft: spacing(0.75),
-          "& .MuiAccordion-root": {
-            boxShadow: "none",
-          },
-          "& .MuiAccordion-root.Mui-expanded": {
-            margin: 0,
-            padding: 0,
-          },
         }}
       >
         {complianceMetrics.map((item: any) => (
@@ -222,7 +245,6 @@ const Compliance = ({
           </Stack>
         ))}
       </Stack>
-
       <Stack
         sx={{
           maxWidth: 1400,
@@ -230,33 +252,42 @@ const Compliance = ({
           gap: theme.spacing(10),
         }}
       >
-        {acdSumDetails.map((acdSumDetail) => {
-          return renderAccordion(
-            acdSumDetail.summaryId,
-            acdSumDetail.summaryTitle,
-            <BasicTable
-              data={complianceDetails}
-              paginated={false}
-              reversed={false}
-              table="complianceTable"
-              onRowClick={handleRowClick}
-            />
-          );
-        })}
+        {acdSumDetails.map((acdSumDetail: any) =>
+          renderAccordion(acdSumDetail.summaryId, acdSumDetail.summaryTitle)
+        )}
       </Stack>
       {selectedRow !== null && (
         <CustomModal
           isOpen={isModalOpen}
           setIsOpen={setIsModalOpen}
-          title={
-            selectedRowData ? selectedRowData.data[0].data : "Row not found"
-          }
-          content={`This is some dynamic content for row ${selectedRow}.`}
-          onConfirm={handleConfirm}
+          title={Object.keys(complianceDetails).map((key) => {
+            const item = complianceDetails[key];
+            return item.rows.find((row: any) => row.id === selectedRow)?.data[0]
+              ?.data;
+          })}
+          content={
+            Object.keys(complianceDetails).map((key) => {
+            const item = complianceDetails[key];
+            return item.rows.find((row: any) => row.id === selectedRow)?.data[0]
+              ?.controlDes;
+          })}
+          subControlTlts = {Object.keys(complianceDetails).flatMap((key) => {
+            const item = complianceDetails[key];
+            const selectedRowData = item.rows.find((row: any) => row.id === selectedRow)?.data[0];
+            
+            if (selectedRowData?.subControler) {
+              return selectedRowData.subControler.map((sub: any) => sub.subControlerTitle);
+            }
+          
+            return []; // Return an empty array if no subControler data is found
+          })}
+          onConfirm={() => {
+            console.log("confirmed");
+          }}
         />
       )}
     </Stack>
   );
 };
 
-export default Compliance;
+export default ComplianceTracker;

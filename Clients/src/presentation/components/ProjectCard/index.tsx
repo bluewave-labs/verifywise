@@ -1,58 +1,60 @@
 import { Typography, Box, useTheme } from "@mui/material";
-import { FC } from "react";
-import euimg from "../../assets/imgs/eu-ai-act.jpg"
+import { FC, memo } from "react";
+import euimg from "../../assets/imgs/eu-ai-act.jpg";
 import ProgressBar from "./ProgressBar";
 import { Btn, Card, styles, SubtitleValue, Title } from "./styles";
 import { useNavigate } from "react-router-dom";
+import { formatDate } from "../../tools/isoDateToString";
 
 export interface ProjectCardProps {
-    id: number,
-    name: string,
-    owner_name: string,
-    last_update: string,
-    controls_completed: string,
-    requirements_completed: string
+    id: number;
+    project_title: string;
+    owner: string;
+    last_updated: string;
+    controls_completed: string | null;
+    requirements_completed: string | null;
 }
 
+const ProgressBarRender: FC<{ progress: string | null; label: string }> = memo(({ progress, label }) => (
+    <>
+        <ProgressBar progress={progress} />
+        <Typography sx={styles.progressBarTitle}>
+            {progress} {label} completed
+        </Typography>
+    </>
+));
+
 const ProjectCard: FC<ProjectCardProps> = ({
-    name,
-    owner_name,
-    last_update,
+    project_title,
+    owner,
+    last_updated,
     controls_completed,
     requirements_completed
 }) => {
     const theme = useTheme();
     const navigate = useNavigate();
-    const renderProgressBar = (progress: string, label: string) => (
-        <>
-            <ProgressBar progress={progress} />
-            <Typography sx={styles.progressBarTitle}>
-                {progress} {label} completed
-            </Typography>
-        </>
-    );
 
     return (
         <Card>
             <Title variant="h5">
-                {name}
+                {project_title}
             </Title>
             <Box sx={styles.upperBox}>
                 <Box>
                     <Typography variant="subtitle1" component="span" sx={styles.subtitle}>
                         Project owner
                     </Typography>
-                    <SubtitleValue>{owner_name}</SubtitleValue>
+                    <SubtitleValue>{owner}</SubtitleValue>
                 </Box>
                 <Box>
                     <Typography variant="subtitle1" component="span" sx={styles.subtitle}>
                         Last updated
                     </Typography>
-                    <SubtitleValue>{last_update}</SubtitleValue>
+                    <SubtitleValue>{formatDate(last_updated)}</SubtitleValue>
                 </Box>
             </Box>
-            {renderProgressBar(controls_completed, "controls")}
-            {renderProgressBar(requirements_completed, "requirements")}
+            <ProgressBarRender progress={controls_completed} label="controls" />
+            <ProgressBarRender progress={requirements_completed} label="requirements" />
             <Box sx={styles.lowerBox}>
                 <Box sx={{ display: "flex", mb: 1.5 }}>
                     <Box sx={styles.imageBox}>
@@ -61,15 +63,17 @@ const ProjectCard: FC<ProjectCardProps> = ({
                     <Typography sx={styles.imageTitle}>
                         EU AI Act
                     </Typography>
-                </Box>                    
-                <Btn variant="outlined" disableRipple={theme.components?.MuiButton?.defaultProps?.disableRipple}
-                onClick={() => navigate("/project-view")}
+                </Box>
+                <Btn
+                    variant="outlined"
+                    disableRipple={theme.components?.MuiButton?.defaultProps?.disableRipple}
+                    onClick={() => navigate("/project-view")}
                 >
                     View project
                 </Btn>
             </Box>
         </Card>
-    )
-}
+    );
+};
 
 export default ProjectCard;

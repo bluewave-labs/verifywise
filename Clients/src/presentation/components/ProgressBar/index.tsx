@@ -116,7 +116,6 @@ const ProgressUpload: React.FC<ProgressUploadProps> = ({
         )}
         {error ? (
           <Typography
-            component="p"
             className="input-error"
             color={theme.palette.error.text}
           >
@@ -127,7 +126,7 @@ const ProgressUpload: React.FC<ProgressUploadProps> = ({
             <Typography component="h2" mb={theme.spacing(1.5)}>
               {error ? error : label}
             </Typography>
-            <Typography component="p" sx={{ opacity: 0.6 }}>
+            <Typography sx={{ opacity: 0.6 }}>
               {!error && size}
             </Typography>
           </Box>
@@ -177,7 +176,6 @@ const ProgressUpload: React.FC<ProgressUploadProps> = ({
             />
           </Box>
           <Typography
-            component="p"
             sx={{ minWidth: "max-content", opacity: 0.6 }}
           >
             {progress}

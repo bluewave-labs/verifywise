@@ -1,0 +1,5 @@
+### get all projects
+
+GET http://localhost:3000/projects
+
+###

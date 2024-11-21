@@ -1,16 +1,21 @@
-import { Stack, Typography, useTheme } from "@mui/material";
+import { SelectChangeEvent, Stack, Typography, useTheme } from "@mui/material";
 import { FC } from "react";
 import Select from "../Inputs/Select";
 import { RiskLikelihood, RiskSeverity } from "../../mocks/projects/project-add-new-risk-tab2.data";
 import { Likelihood, RISK_LABELS, Severity } from "./constants";
 
+interface RiskLevelFormValues {
+    likelihood: Likelihood,
+    riskSeverity: Severity,
+}
+
 interface RiskLevelProps {
     likelihood: Likelihood,
     riskSeverity: Severity,
-    handleOnChange: (field: string, value: string | number) => void
+    handleOnSelectChange: (prop: keyof RiskLevelFormValues) => (event: SelectChangeEvent<string | number>) => void
 }
 
-const RiskLevel: FC<RiskLevelProps> = ({likelihood, riskSeverity, handleOnChange}) => {
+const RiskLevel: FC<RiskLevelProps> = ({likelihood, riskSeverity, handleOnSelectChange}) => {
     const theme = useTheme();
     
     // Define thresholds for risk levels based on the calculated score
@@ -35,7 +40,7 @@ const RiskLevel: FC<RiskLevelProps> = ({likelihood, riskSeverity, handleOnChange
                 label="Likelihood"
                 placeholder="Select likelihood of risk to happen"
                 value={likelihood}
-                onChange={(e) => handleOnChange("likelihood", e.target.value)}
+                onChange={handleOnSelectChange("likelihood")}
                 items={[
                     { _id: Likelihood.Rare, name: RiskLikelihood.Rare },
                     { _id: Likelihood.Unlikely, name: RiskLikelihood.Unlikely },
@@ -50,7 +55,7 @@ const RiskLevel: FC<RiskLevelProps> = ({likelihood, riskSeverity, handleOnChange
                 label="Risk severity"
                 placeholder="Select risk severity"
                 value={riskSeverity}
-                onChange={(e) => handleOnChange("riskSeverity", e.target.value)}
+                onChange={handleOnSelectChange("riskSeverity")}
                 items={[
                     { _id: Severity.Negligible, name: RiskSeverity.Negligible },
                     { _id: Severity.Minor, name: RiskSeverity.Minor },

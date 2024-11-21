@@ -14,31 +14,37 @@ import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import React, { useState } from "react";
 import DropDowns from "../../Inputs/Dropdowns";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
+import { STATUS_CODE } from "../../../../../../Servers/utils/statusCode.utils";
 
 interface CustomModalProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  title: string;
-  content: string;
+  title: any;
+  content: any;
+  subControlTlts: string[];
   onConfirm: () => void;
+  //Promise<{ status: number; data: any }>;
 }
 
 const CustomModal: React.FC<CustomModalProps> = ({
   isOpen,
   setIsOpen,
   title,
+  onConfirm,
+  content,
+  subControlTlts,
 }) => {
+  console.log("🚀 ~ tittttttttle:", title);
   const theme = useTheme();
-  const [selectedTab, setSelectedTab] = useState<number>(0);
-  const [activeSection, setActiveSection] = useState<string>("Overview");
+  const [selectedTab, setSelectedTab] = useState<number>(0); // State to track active tab
 
-  const extractNumberFromTitle = (title: string) => {
-    const match = title.match(/\d+/);
-    return match ? match[0] : "0";
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
+    setSelectedTab(newValue);
   };
+  const [activeSection, setActiveSection] = useState<string>("Overview");
+  const [responseMessage, setResponseMessage] = useState<string | null>(null);
 
-  const titleNumber = extractNumberFromTitle(title);
-
+  const subControlNumber = 332322;
   const handleClose = () => setIsOpen(false);
 
   const handleSelectedTab = (_: React.SyntheticEvent, newValue: number) => {
@@ -48,6 +54,16 @@ const CustomModal: React.FC<CustomModalProps> = ({
   const handleSectionChange = (section: string) => {
     setActiveSection(section);
   };
+
+  // const handleSave = async () => {
+  //   try {
+  //     const { status, data } = await onConfirm();
+  //     const response = (STATUS_CODE as any)[status](data);
+  //     setResponseMessage(response.message);
+  //   } catch (error) {
+  //     setResponseMessage("An unexpected error occurred. Please try again.");
+  //   }
+  // };
 
   const buttonTabStyles = {
     backgroundColor: "#EAECF0",
@@ -114,12 +130,18 @@ const CustomModal: React.FC<CustomModalProps> = ({
 
           <CloseIcon onClick={handleClose} style={{ cursor: "pointer" }} />
         </Stack>
-        <Typography fontSize={13}>
-          To ensure that the risk management system is a continuous iterative
-          process that is planned, run, and regularly reviewed and updated
-          throughout the entire lifecycle of the high-risk AI system.
-        </Typography>
+        <Typography fontSize={13}>{content}</Typography>
         <DropDowns />
+
+        {responseMessage && (
+          <Typography
+            fontSize={13}
+            color="error"
+            sx={{ mb: 2, fontWeight: 500 }}
+          >
+            {responseMessage}
+          </Typography>
+        )}
         <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
 
         <Box sx={{ width: "100%", bgcolor: "#FCFCFD" }}>
@@ -130,26 +152,13 @@ const CustomModal: React.FC<CustomModalProps> = ({
             textColor="primary"
             sx={{ justifyContent: "flex-start" }}
           >
-            <Tab
-              label="Subcontrol 1"
-              sx={{ textTransform: "none" }}
-              disableRipple
-            />
-            <Tab
-              label="Subcontrol 2"
-              sx={{ textTransform: "none" }}
-              disableRipple
-            />
-            <Tab
-              label="Subcontrol 3"
-              sx={{ textTransform: "none" }}
-              disableRipple
-            />
-            <Tab
-              label="Subcontrol 4"
-              sx={{ textTransform: "none" }}
-              disableRipple
-            />
+            {subControlTlts.map((_, index) => (
+              <Tab
+                key={index}
+                label={`Subcontrol ${index + 1}`}
+                sx={{ textTransform: "none" }}
+              />
+            ))}
           </Tabs>
         </Box>
 
@@ -163,21 +172,24 @@ const CustomModal: React.FC<CustomModalProps> = ({
             width: "fit-content",
           }}
         >
-          {["Overview", "Evidence", "Auditor Feedback"].map((section) => (
-            <Button
-              variant={getVariant(activeSection, section)}
-              onClick={() => handleSectionChange(section)}
-              disableRipple
-              sx={{
-                ...buttonTabStyles,
-                backgroundColor:
-                  activeSection === section ? "#EAECF0" : "transparent",
-                fontWeight: activeSection === section ? "500" : 300,
-              }}
-            >
-              {section}
-            </Button>
-          ))}
+          {["Overview", "Evidence", "Auditor Feedback"].map(
+            (section, index) => (
+              <Button
+                key={index}
+                variant={getVariant(activeSection, section)}
+                onClick={() => handleSectionChange(section)}
+                disableRipple
+                sx={{
+                  ...buttonTabStyles,
+                  backgroundColor:
+                    activeSection === section ? "#EAECF0" : "transparent",
+                  fontWeight: activeSection === section ? "500" : 300,
+                }}
+              >
+                {section}
+              </Button>
+            )
+          )}
         </Stack>
 
         {/* Dynamic Content Based on Active Section */}
@@ -187,12 +199,10 @@ const CustomModal: React.FC<CustomModalProps> = ({
             fontWeight={600}
             sx={{ textAlign: "left", mb: 3 }}
           >
-            Subcontrol {titleNumber}.{selectedTab + 1}
+            {subControlTlts[selectedTab]}
           </Typography>
           <Typography variant="body1" sx={{ mb: 5 }}>
-            Plan and execute the risk management process as a continuous
-            iterative cycle. (EU AI ACT Ref: Subcontrol {titleNumber}.
-            {selectedTab + 1})
+            {'hiiiiiiiiiiiiiiiiii =D'}
           </Typography>
           {activeSection === "Overview" && (
             <Typography variant="body1">
@@ -234,7 +244,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
           </Stack>
           <Button
             variant="contained"
-            onClick={() => console.log("Save clicked")}
+            // onClick={handleSave}
             sx={{
               ...buttonStyle,
               width: 68,

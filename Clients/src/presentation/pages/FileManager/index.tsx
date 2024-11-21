@@ -31,17 +31,24 @@ const EmptyState: React.FC = () => (
     alignItems="center"
     justifyContent="center"
     sx={{ height: "100%", textAlign: "center" }}
+    border= "1px solid #eeeeee"
   >
     <Box
       component="img"
       src={EmptyTableImage}
       alt="No files available"
-      sx={{ width: 250, height: 250, opacity: 0.7, mb: 4 }}
+      sx={{
+        width: 250,
+        height: 176,
+        opacity: 0.7,
+        mb: 4,
+      }}
     />
-    <Typography variant="body1" color="text.secondary">
+    <Typography variant="body2" color="text.secondary">
       There are currently no evidences or documents uploaded.
     </Typography>
-      
+    
+
   </Stack>
 );
 
@@ -259,7 +266,7 @@ const FileManager: React.FC = (): JSX.Element => {
       <Box
         sx={{
           position: "relative",
-          border: "1px solid #e0e0e0",
+          // border: "1px solid #e0e0e0",
           borderRadius: "4px",
           overflow: "hidden",
           minHeight: "400px",

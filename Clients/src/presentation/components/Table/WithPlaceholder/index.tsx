@@ -25,9 +25,10 @@ import {
   TableHead,
   TableRow,
   useTheme,
+  Typography
 } from "@mui/material";
 
-import Placeholder from "../../../assets/imgs/table placeholder 1.png";
+import Placeholder from "../../../assets/imgs/empty-state.svg";
 import { Vendor } from "../../../mocks/vendors/vendors.data";
 import IconButton from "../../IconButton";
 import singleTheme from "../../../themes/v1SingleTheme";
@@ -165,15 +166,25 @@ const TableWithPlaceholder = () => {
           style={{
             display: "flex",
             justifyContent: "center",
+            flexDirection: "column",
             alignItems: "center",
             border: "1px solid #EEEEEE",
             borderRadius: "4px",
             borderTop: "none",
             padding: theme.spacing(5),
+            paddingTop: theme.spacing(10),
             paddingBottom: theme.spacing(20),
+            marginTop: theme.spacing(4),
           }}
         >
-          <img src={Placeholder} alt="Placeholder" />
+          <img src={Placeholder} alt="Placeholder"
+          style={{width: "150px",
+          height:"auto",
+          marginTop: theme.spacing(4),
+          marginBottom:theme.spacing(4)}} />
+          <Typography variant="body2" color="text.secondary" style={{marginTop: theme.spacing(4)}}>
+            There is currently no data in this table
+          </Typography>
         </div>
       )}
     </TableContainer>

@@ -1,6 +1,16 @@
 import Checked from "../../presentation/assets/icons/check-circle-green.svg";
 import Exclamation from "../../presentation/assets/icons/alert-circle-orange.svg";
 
+// Common Columns Definition
+const columns = [
+  { id: "icon", name: "Icon" },
+  { id: "SUBCONTROL NAME", name: "Subcontrol Name" },
+  { id: "OWNER", name: "Owner" },
+  { id: "# OF SUBCONTROLS", name: "# of Subcontrols" },
+  { id: "COMPLETION", name: "Completion" },
+];
+
+
 export const complianceMetrics = [
   {
     name: "Compliance Status",
@@ -22,13 +32,7 @@ export const complianceMetrics = [
 
 export const complianceDetails = {
   "AI literacy": {
-    cols: [
-      { id: "icon", name: "Icon" },
-      { id: "SUBCONTROL NAME", name: "Subcontrol Name" },
-      { id: "OWNER", name: "Owner" },
-      { id: "# OF SUBCONTROLS", name: "# of Subcontrols" },
-      { id: "COMPLETION", name: "Completion" },
-    ],
+    cols: columns,
     rows: [
       {
         id: 1,
@@ -92,13 +96,7 @@ export const complianceDetails = {
     ],
   },
   "Transparency and provision of information to deployers": {
-    cols: [
-      { id: "icon", name: "Icon" },
-      { id: "SUBCONTROL NAME", name: "Subcontrol Name" },
-      { id: "OWNER", name: "Owner" },
-      { id: "# OF SUBCONTROLS", name: "# of Subcontrols" },
-      { id: "COMPLETION", name: "Completion" },
-    ],
+    cols: columns,
     rows: [
       {
         id: 3,
@@ -262,13 +260,7 @@ export const complianceDetails = {
     ],
   },
   "Human oversight": {
-    cols: [
-      { id: "icon", name: "Icon" },
-      { id: "SUBCONTROL NAME", name: "Subcontrol Name" },
-      { id: "OWNER", name: "Owner" },
-      { id: "# OF SUBCONTROLS", name: "# of Subcontrols" },
-      { id: "COMPLETION", name: "Completion" },
-    ],
+    cols: columns,
     rows: [
       {
         id: 10,
@@ -342,13 +334,7 @@ export const complianceDetails = {
     ],
   },
   "Corrective actions and duty of information": {
-    cols: [
-      { id: "icon", name: "Icon" },
-      { id: "SUBCONTROL NAME", name: "Subcontrol Name" },
-      { id: "OWNER", name: "Owner" },
-      { id: "# OF SUBCONTROLS", name: "# of Subcontrols" },
-      { id: "COMPLETION", name: "Completion" },
-    ],
+    cols: columns,
     rows: [
       {
         id: 12,
@@ -450,13 +436,7 @@ export const complianceDetails = {
     ],
   },
   "Responsibilities along the AI value chain": {
-    cols: [
-      { id: "icon", name: "Icon" },
-      { id: "SUBCONTROL NAME", name: "Subcontrol Name" },
-      { id: "OWNER", name: "Owner" },
-      { id: "# OF SUBCONTROLS", name: "# of Subcontrols" },
-      { id: "COMPLETION", name: "Completion" },
-    ],
+    cols: columns,
     rows: [
       {
         id: 16,
@@ -557,13 +537,7 @@ export const complianceDetails = {
     ],
   },
   "Obligations of deployers of high-risk AI systems": {
-    cols: [
-      { id: "icon", name: "Icon" },
-      { id: "SUBCONTROL NAME", name: "Subcontrol Name" },
-      { id: "OWNER", name: "Owner" },
-      { id: "# OF SUBCONTROLS", name: "# of Subcontrols" },
-      { id: "COMPLETION", name: "Completion" },
-    ],
+    cols:columns,
     rows: [
       {
         id: 19,
@@ -750,13 +724,7 @@ export const complianceDetails = {
     ],
   },
   "Fundamental rights impact assessments for high-risk AI systems": {
-    cols: [
-      { id: "icon", name: "Icon" },
-      { id: "SUBCONTROL NAME", name: "Subcontrol Name" },
-      { id: "OWNER", name: "Owner" },
-      { id: "# OF SUBCONTROLS", name: "# of Subcontrols" },
-      { id: "COMPLETION", name: "Completion" },
-    ],
+    cols: columns,
     rows: [
       {
         id: 25,
@@ -935,13 +903,7 @@ export const complianceDetails = {
     ],
   },
   "Transparency obligations for providers and users of certain AI systems": {
-    cols: [
-      { id: "icon", name: "Icon" },
-      { id: "SUBCONTROL NAME", name: "Subcontrol Name" },
-      { id: "OWNER", name: "Owner" },
-      { id: "# OF SUBCONTROLS", name: "# of Subcontrols" },
-      { id: "COMPLETION", name: "Completion" },
-    ],
+    cols: columns,
     rows: [
       {
         id: 33,
@@ -1022,13 +984,7 @@ export const complianceDetails = {
     ],
   },
   Registration: {
-    cols: [
-      { id: "icon", name: "Icon" },
-      { id: "SUBCONTROL NAME", name: "Subcontrol Name" },
-      { id: "OWNER", name: "Owner" },
-      { id: "# OF SUBCONTROLS", name: "# of Subcontrols" },
-      { id: "COMPLETION", name: "Completion" },
-    ],
+    cols: columns,
     rows: [
       {
         id: 36,
@@ -1124,13 +1080,7 @@ export const complianceDetails = {
     ],
   },
   "EU database for high-risk AI systems listed in Annex III": {
-    cols: [
-      { id: "icon", name: "Icon" },
-      { id: "SUBCONTROL NAME", name: "Subcontrol Name" },
-      { id: "OWNER", name: "Owner" },
-      { id: "# OF SUBCONTROLS", name: "# of Subcontrols" },
-      { id: "COMPLETION", name: "Completion" },
-    ],
+    cols: columns,
     rows: [
       {
         id: 39,
@@ -1195,13 +1145,7 @@ export const complianceDetails = {
   },
   "Post-market monitoring by providers and post-market monitoring plan for high-risk AI systems":
     {
-      cols: [
-        { id: "icon", name: "Icon" },
-        { id: "SUBCONTROL NAME", name: "Subcontrol Name" },
-        { id: "OWNER", name: "Owner" },
-        { id: "# OF SUBCONTROLS", name: "# of Subcontrols" },
-        { id: "COMPLETION", name: "Completion" },
-      ],
+      cols: columns,
       rows: [
         {
           id: 41,
@@ -1280,13 +1224,7 @@ export const complianceDetails = {
       ],
     },
   "Reporting of serious incidents": {
-    cols: [
-      { id: "icon", name: "Icon" },
-      { id: "SUBCONTROL NAME", name: "Subcontrol Name" },
-      { id: "OWNER", name: "Owner" },
-      { id: "# OF SUBCONTROLS", name: "# of Subcontrols" },
-      { id: "COMPLETION", name: "Completion" },
-    ],
+    cols: columns,
     rows: [
       {
         id: 43,
@@ -1406,13 +1344,7 @@ export const complianceDetails = {
     ],
   },
   "General-purpose AI models": {
-    cols: [
-      { id: "icon", name: "Icon" },
-      { id: "SUBCONTROL NAME", name: "Subcontrol Name" },
-      { id: "OWNER", name: "Owner" },
-      { id: "# OF SUBCONTROLS", name: "# of Subcontrols" },
-      { id: "COMPLETION", name: "Completion" },
-    ],
+    cols: columns,
     rows: [
       {
         id: 48,

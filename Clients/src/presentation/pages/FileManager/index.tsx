@@ -47,8 +47,6 @@ const EmptyState: React.FC = () => (
     <Typography variant="body2" color="text.secondary">
       There are currently no evidences or documents uploaded.
     </Typography>
-    
-
   </Stack>
 );
 

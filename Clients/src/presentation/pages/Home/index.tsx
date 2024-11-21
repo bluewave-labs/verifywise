@@ -109,9 +109,8 @@ const Home = () => {
             </Suspense>
           </Stack>
           {(["compliance", "risk"] as const).map((metricType) => (
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense key={metricType} fallback={<div>Loading...</div>}>
               <MetricSection
-                key={metricType}
                 title={`All projects ${metricType} status`}
                 metricType={metricType}
               />

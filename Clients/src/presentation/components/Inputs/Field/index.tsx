@@ -98,7 +98,10 @@ const Field = forwardRef(
               borderColor: theme.palette.border.dark,
             },
           "&:has(.input-error) .MuiOutlinedInput-root fieldset": {
-            borderColor: theme.palette.error.text,
+          border: error 
+            ? `1px solid ${theme.palette.status.error.border}` 
+            : `1px solid ${theme.palette.border.dark}`,
+            borderColor: theme.palette.status.error.border,
           },
           ".Mui-focused .MuiOutlinedInput-notchedOutline": {
             border: `1px solid ${theme.palette.border.dark}!important`,
@@ -108,9 +111,9 @@ const Field = forwardRef(
       >
         {label && (
           <Typography
-            component="h3"
             color={theme.palette.text.secondary}
             fontWeight={500}
+            fontSize={"13px"}
           >
             {label}
             {isRequired ? (
@@ -214,6 +217,7 @@ const Field = forwardRef(
             mt={theme.spacing(2)}
             sx={{
               opacity: 0.8,
+              fontSize: 11
             }}
           >
             {error}

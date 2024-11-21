@@ -8,14 +8,16 @@ import {
   MenuItem,
 } from "@mui/material";
 import BasicTable from "../../components/Table";
+
 import SettingsIcon from "../../assets/icons/setting.svg";
 import EmptyTableImage from "../../assets/imgs/empty-state.svg";
 import AscendingIcon from "../../assets/icons/up-arrow.svg";
 import DescendingIcon from "../../assets/icons/down-arrow.svg";
 
+
 // File interface for type safety
 interface File {
-  id: string;
+  id:string;
   name: string;
   type: string;
   uploadDate: string;
@@ -46,7 +48,7 @@ const EmptyState: React.FC = () => (
 );
 
 /**
- * Component for displaying the action menu (Download/Remove)
+ * displaying the action menu (Download/Remove)
  */
 const FileActions: React.FC<{
   anchorEl: HTMLElement | null;
@@ -66,7 +68,7 @@ const FileActions: React.FC<{
 );
 
 /**
- * Component for the main file table w sortable columns
+ * file table w sortable columns
  */
 const FileTable: React.FC<{
   cols: any[];
@@ -148,9 +150,9 @@ const FileManager: React.FC = (): JSX.Element => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [sortField, setSortField] = useState<keyof File | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
-    null
-  ); // Handle sorting logic
-
+    null); 
+  
+  // Handle sorting logic
   const handleSort = useCallback(
     (field: keyof File) => {
       const isAsc = sortField === field && sortDirection === "asc";
@@ -177,8 +179,9 @@ const FileManager: React.FC = (): JSX.Element => {
       );
     },
     [files, sortField, sortDirection]
-  ); // Memoize rows to prevent unnecessary recalculations
-
+  ); 
+  
+  // Memoize rows to prevent unnecessary recalculations
   const rows = useMemo(
     () =>
       files.map((file) => ({
@@ -207,8 +210,9 @@ const FileManager: React.FC = (): JSX.Element => {
         ],
       })),
     [files]
-  ); // Handle action menu logic
-
+  ); 
+  
+  // Handle action menu logic
   const handleActionsClick = useCallback(
     (event: MouseEvent<HTMLElement>, file: File) => {
       setAnchorEl(event.currentTarget);
@@ -232,16 +236,18 @@ const FileManager: React.FC = (): JSX.Element => {
       setFiles(files.filter((file) => file.id !== selectedFile.id));
     }
     handleMenuClose();
-  }, [files, selectedFile, handleMenuClose]); // Define table columns
-
+  }, [files, selectedFile, handleMenuClose]); 
+  
+  // Define table columns
   const cols = [
     { id: 1, name: "File" },
     { id: 2, name: "Type" },
     { id: 3, name: "Upload Date" },
     { id: 4, name: "Uploader" },
     { id: 5, name: "Action" },
-  ]; // Render FileManager UI
-
+  ];
+  
+  // Render FileManager UI
   return (
     <Stack spacing={4} sx={{ padding: 4, marginBottom: 10 }}>
       {/* Header Section */}
@@ -254,8 +260,8 @@ const FileManager: React.FC = (): JSX.Element => {
           This table lists all the files uploaded to the system.
         </Typography>
       </Stack>
+     
       {/* Table Container */}
-
       <Box
         sx={{
           position: "relative",
@@ -275,8 +281,8 @@ const FileManager: React.FC = (): JSX.Element => {
         />
         {files.length === 0 && <EmptyState />}
       </Box>
+      
       {/* Action Menu */}
-
       <FileActions
         anchorEl={anchorEl}
         onClose={handleMenuClose}

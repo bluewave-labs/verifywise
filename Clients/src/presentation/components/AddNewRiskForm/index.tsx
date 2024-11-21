@@ -7,7 +7,11 @@ import RiskSection from "./RisksSection";
 import MitigationSection from "./MitigationSection";
 import "./styles.css"
 
-const AddNewRiskForm: FC = () => {
+interface AddNewRiskFormProps {
+    closePopup: () => void
+}
+
+const AddNewRiskForm: FC<AddNewRiskFormProps> = ({closePopup}) => {
     const theme = useTheme();
     const disableRipple = theme.components?.MuiButton?.defaultProps?.disableRipple;
 
@@ -26,7 +30,7 @@ const AddNewRiskForm: FC = () => {
     };
 
     return (
-        <Stack component="form" noValidate>
+        <Stack>
             <TabContext value={value}>
                 <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
                     <TabList onChange={handleChange} aria-label="Add new risk tabs"
@@ -39,8 +43,8 @@ const AddNewRiskForm: FC = () => {
                         <Tab label="Mitigation" value="mitigation" sx={tabStyle} disableRipple={disableRipple} />
                     </TabList>
                 </Box>
-                <TabPanel value="risks" sx={{ p: "24px 0 0" }}><RiskSection /></TabPanel>
-                <TabPanel value="mitigation" sx={{ p: "24px 0 0" }}><MitigationSection /></TabPanel>
+                <TabPanel value="risks" sx={{ p: "24px 0 0" }}><RiskSection closePopup={closePopup} /></TabPanel>
+                <TabPanel value="mitigation" sx={{ p: "24px 0 0" }}><MitigationSection closePopup={closePopup} /></TabPanel>
             </TabContext>
         </Stack>
     )

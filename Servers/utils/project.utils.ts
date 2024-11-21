@@ -1,4 +1,4 @@
-import { Project } from "../models/Project";
+import { Project } from "../models/project.model";
 import pool from "../database/db";
 
 export const getAllProjectsQuery = async (): Promise<Project[]> => {
@@ -7,58 +7,76 @@ export const getAllProjectsQuery = async (): Promise<Project[]> => {
   return projects.rows;
 };
 
-export const getProjectByIdQuery = async (id: number): Promise<Project | null> => {
+export const getProjectByIdQuery = async (
+  id: number
+): Promise<Project | null> => {
   console.log("getProjectById", id);
   const result = await pool.query("SELECT * FROM projects WHERE id = $1", [id]);
   return result.rows.length ? result.rows[0] : null;
 };
 
-export const createNewProjectQuery = async (project: {
-  name: string;
-  description: string;
-}): Promise<Project> => {
-  console.log("createNewProject", project);
+export const createNewProjectQuery = async (
+  project: {
+    project_title: string;
+    owner: string;
+    users: number[];
+    start_date: Date;
+    ai_risk_classification: string;
+    type_of_high_risk_role: string;
+    goal: string;
+    last_updated: Date;
+    last_updated_by: string;
+  }
+): Promise<Project> => {
+  console.log("createProject");
   const result = await pool.query(
-    "INSERT INTO projects (name, description) VALUES ($1, $2) RETURNING *",
-    [project.name, project.description]
+    "INSERT INTO projects (project_title, owner, users, start_date, ai_risk_classification, type_of_high_risk_role, goal, last_updated, last_updated_by) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
+    [
+      project.project_title,
+      project.owner,
+      project.users,
+      project.start_date,
+      project.ai_risk_classification,
+      project.type_of_high_risk_role,
+      project.goal,
+      project.last_updated,
+      project.last_updated_by,
+    ]
   );
   return result.rows[0];
 };
 
 export const updateProjectByIdQuery = async (
   id: number,
-  project: { name?: string; description?: string }
+  project: Partial<{
+    project_title: string;
+    owner: string;
+    users: number[];
+    start_date: Date;
+    ai_risk_classification: string;
+    type_of_high_risk_role: string;
+    goal: string;
+    last_updated: Date;
+    last_updated_by: string;
+  }>
 ): Promise<Project | null> => {
-  console.log("updateProjectById", id, project);
-  const fields = [];
-  const values = [];
-  let query = "UPDATE projects SET ";
-
-  if (project.name) {
-    fields.push("name = $1");
-    values.push(project.name);
-  }
-  if (project.description) {
-    fields.push("description = $2");
-    values.push(project.description);
-  }
-
-  if (fields.length === 0) {
-    throw new Error("No fields to update");
-  }
-
-  query += fields.join(", ") + " WHERE id = $3 RETURNING *";
-  values.push(id);
-
-  const result = await pool.query(query, values);
+  console.log("updateProjectById", id);
+  const result = await pool.query(
+    `UPDATE projects SET ${Object.keys(project)
+      .map((key, index) => `${key} = $${index + 1}`)
+      .join(", ")} WHERE id = ${id} RETURNING *`,
+    Object.values(project)
+  );
   return result.rows.length ? result.rows[0] : null;
 };
 
-export const deleteProjectByIdQuery = async (id: number): Promise<boolean> => {
+export const deleteProjectByIdQuery = async (
+  id: number
+): Promise<Project | null> => {
   console.log("deleteProjectById", id);
   const result = await pool.query(
-    "DELETE FROM projects WHERE id = $1 RETURNING id",
+    "DELETE FROM projects WHERE id = $1 RETURNING *",
     [id]
   );
-  return result.rowCount !== null && result.rowCount > 0;
+  return result.rows.length ? result.rows[0] : null;
 };

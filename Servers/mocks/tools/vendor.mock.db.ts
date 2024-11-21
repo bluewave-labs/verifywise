@@ -1,4 +1,4 @@
-import { vendors } from "../vendors/vendors.data";
+import { vendors } from "../vendor.mock.data";
 
 export const getAllMockVendors = (): Array<any> => {
   return vendors;
@@ -13,7 +13,10 @@ export const createMockVendor = (newVendor: any): object => {
   return newVendor;
 };
 
-export const updateMockVendorById = (id: number, updatedVendor: any): object | null => {
+export const updateMockVendorById = (
+  id: number,
+  updatedVendor: any
+): object | null => {
   const index = vendors.findIndex((vendor) => vendor.id === id);
   if (index !== -1) {
     vendors[index] = { ...vendors[index], ...updatedVendor };

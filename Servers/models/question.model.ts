@@ -3,9 +3,9 @@ export type Question = {
   subtopicId: number;
   questionText: string;
   answerType: string;
-  dropdownOptions: string;
-  hasFileUpload: boolean;
-  hasHint: boolean;
+  evidenceFileRequired: boolean;
+  hint: string;
   isRequired: boolean;
-  priorityOptions: string;
+  priorityLevel: "high priority" | "medium priority" | "low priority";
+  evidenceFiles?: string[];
 };

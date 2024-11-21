@@ -223,19 +223,22 @@ const insertQuery: TableList = [
       subtopic_id integer,
       question_text text,
       answer_type varchar(50),
-      dropdown_options text,
-      has_file_upload boolean,
-      has_hint boolean,
+      evidence_file_required boolean,
+      hint text,
       is_required boolean,
-      priority_options text,
+      priority_level varchar(50),
+      evidence_files text[],
       CONSTRAINT fk_subtopic FOREIGN KEY (subtopic_id)
         REFERENCES subtopics (id)
         ON DELETE SET NULL
     );`,
     insertString:
-      "INSERT INTO questions(subtopic_id, question_text, answer_type, dropdown_options, has_file_upload, has_hint, is_required, priority_options) VALUES ",
+      "INSERT INTO questions(subtopic_id, question_text, answer_type, evidence_file_required, hint, is_required, priority_level, evidence_files) VALUES ",
     generateValuesString: function (question: Question) {
-      return `(${question.subtopicId}, '${question.questionText}', '${question.answerType}', '${question.dropdownOptions}', ${question.hasFileUpload}, ${question.hasHint}, ${question.isRequired}, '${question.priorityOptions}')`;
+      const evidenceFilesArray = question.evidenceFiles
+        ? `{${question.evidenceFiles.join(",")}}`
+        : "{}";
+      return `(${question.subtopicId}, '${question.questionText}', '${question.answerType}', ${question.evidenceFileRequired}, '${question.hint}', ${question.isRequired}, '${question.priorityLevel}', '${evidenceFilesArray}')`;
     },
   },
   {

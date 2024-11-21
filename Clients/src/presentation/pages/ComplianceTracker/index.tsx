@@ -19,12 +19,6 @@ import {
 import { getAllEntities } from "../../../application/repository/entity.repository";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 
-interface RowData {
-  id: number;
-  icon: string;
-  data: Array<{ id: string; data: string }>;
-}
-
 const acdSumDetails = [
   { summaryId: "panel1", summaryTitle: "AI literacy" },
   {

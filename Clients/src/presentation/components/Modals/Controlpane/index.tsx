@@ -202,7 +202,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
             {subControlTlts[selectedTab]}
           </Typography>
           <Typography variant="body1" sx={{ mb: 5 }}>
-            {'hiiiiiiiiiiiiiiiiii'}
+            {'hiiiiiiiiiiiiiiiiii =D'}
           </Typography>
           {activeSection === "Overview" && (
             <Typography variant="body1">

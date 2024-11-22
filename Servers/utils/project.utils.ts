@@ -19,7 +19,7 @@ export const createNewProjectQuery = async (
   project: {
     project_title: string;
     owner: string;
-    users: number[];
+    users: string;
     start_date: Date;
     ai_risk_classification: string;
     type_of_high_risk_role: string;
@@ -51,7 +51,7 @@ export const updateProjectByIdQuery = async (
   project: Partial<{
     project_title: string;
     owner: string;
-    users: number[];
+    users: string;
     start_date: Date;
     ai_risk_classification: string;
     type_of_high_risk_role: string;

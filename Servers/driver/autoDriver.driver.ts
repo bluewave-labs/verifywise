@@ -1,37 +1,31 @@
-import { assessmentTrackers } from "../mocks/assessmentTrackers/assessmentTrackers.data";
-import { auditorFeedbacks } from "../mocks/auditorFeedbacks/auditorFeedbacks.data";
-import { complianceLists } from "../mocks/complianceLists/complianceLists.data";
-import { complianceTrackers } from "../mocks/complianceTrackers/complianceTrackers.data";
-import { overviews } from "../mocks/overviews/overviews.data";
-import { projects } from "../mocks/projects/projects.data";
-import { question_evidence } from "../mocks/questionEvidence/questionEvidence.data";
-import { subrequirementEvidence } from "../mocks/subrequirementEvidence/subrequirementEvidence.data";
-import { questions } from "../mocks/questions/questions.data";
-import { requirements } from "../mocks/requirements/requirements.data";
-import { risks } from "../mocks/risks/risks.data";
-import { roles } from "../mocks/roles/roles.data";
-import { sections } from "../mocks/sections/sections.data";
-import { subrequirements } from "../mocks/subrequirements/subrequirements.data";
-import { users } from "../mocks/users/users.data";
-import { vendorRisks } from "../mocks/vendorRisks/vendorRisks.data";
-import { vendors } from "../mocks/vendors/vendors.data";
-import { AssessmentTracker } from "../models/AssessmentTracker";
-import { AuditorFeedback } from "../models/AuditorFeedback";
-import { ComplianceList } from "../models/ComplianceList";
-import { ComplianceTracker } from "../models/ComplianceTracker";
-import { Overview } from "../models/Overview";
-import { Project } from "../models/Project";
-import { QuestionEvidence } from "../models/QuestionEvidence";
-import { SubrequirementEvidence } from "../models/SubrequirementEvidence";
-import { Question } from "../models/Question";
-import { Requirement } from "../models/Requirement";
-import { Risk } from "../models/Risk";
-import { Role } from "../models/Role";
-import { Section } from "../models/Section";
-import { Subrequirement } from "../models/Subrequirement";
-import { User } from "../models/User";
-import { Vendor } from "../models/Vendor";
-import { VendorRisk } from "../models/VendorRisk";
+// Purpose: Driver to insert mock data into the database.
+
+import { Assessments } from "../mocks/assessment.mock.data";
+import { mockControls } from "../mocks/control.mock.data";
+import mockProjects from "../mocks/project.mock.data";
+import mockProjectRisks from "../mocks/projectRisks.mock.data";
+import { projectScopes } from "../mocks/projectScope.mock.data";
+import { questions } from "../mocks/question.mock.data";
+import { subcontrols } from "../mocks/subcontrol.mock.data";
+import { subtopics } from "../mocks/subtopic.mock.data";
+import { topics } from "../mocks/topic.mock.data";
+import { users } from "../mocks/users.data";
+import { vendors } from "../mocks/vendor.mock.data";
+import mockVendorRisks from "../mocks/vendorRisk.mock.data";
+
+import { Assessment } from "../models/assessment.model";
+import { Control } from "../models/control.model";
+import { Project } from "../models/project.model";
+import { ProjectRisk } from "../models/projectRisk.model";
+import { ProjectScope } from "../models/projectScope.model";
+import { Question } from "../models/question.model";
+import { Subcontrol } from "../models/subcontrol.model";
+import { Subtopic } from "../models/subtopic.model";
+import { Topic } from "../models/topic.model";
+import { User } from "../models/user.model";
+import { Vendor } from "../models/vendor.model";
+import { VendorRisk } from "../models/vendorRisk.model";
+
 import {
   deleteExistingData,
   checkTableExists,
@@ -48,37 +42,266 @@ interface TableEntry<T> {
 }
 
 type TableList = [
-  TableEntry<Role>,
-  TableEntry<User>,
+  TableEntry<Assessment>,
+  TableEntry<Control>,
   TableEntry<Project>,
-  TableEntry<Vendor>,
-  TableEntry<ComplianceTracker>,
-  TableEntry<AssessmentTracker>,
-  TableEntry<Risk>,
-  TableEntry<VendorRisk>,
-  TableEntry<ComplianceList>,
-  TableEntry<Requirement>,
-  TableEntry<Subrequirement>,
-  TableEntry<Overview>,
-  TableEntry<AuditorFeedback>,
-  TableEntry<SubrequirementEvidence>,
-  TableEntry<Section>,
+  TableEntry<ProjectRisk>,
+  TableEntry<ProjectScope>,
   TableEntry<Question>,
-  TableEntry<QuestionEvidence>
+  TableEntry<Subcontrol>,
+  TableEntry<Subtopic>,
+  TableEntry<Topic>,
+  TableEntry<User>,
+  TableEntry<Vendor>,
+  TableEntry<VendorRisk>
 ];
 
 const insertQuery: TableList = [
   {
-    mockData: roles,
-    tableName: "roles",
-    createString: `CREATE TABLE roles(
+    mockData: Assessments,
+    tableName: "assessments",
+    createString: `CREATE TABLE assessments(
       id SERIAL PRIMARY KEY,
-      name varchar(100) NOT NULL,
-      description text
+      project_id integer,
+      CONSTRAINT assessments_project_id_fkey FOREIGN KEY (project_id)
+        REFERENCES projects(id)
+        ON DELETE SET NULL
     );`,
-    insertString: "INSERT INTO roles(name, description) VALUES ",
-    generateValuesString: function (role: Role) {
-      return `('${role.name}', '${role.description}')`;
+    insertString: "INSERT INTO assessments(project_id) VALUES ",
+    generateValuesString: function (assessment: Assessment) {
+      return `(${assessment.projectId})`;
+    },
+  },
+  {
+    mockData: mockControls,
+    tableName: "controls",
+    createString: `CREATE TABLE controls(
+      id SERIAL PRIMARY KEY,
+      project_id integer,
+      status varchar(50),
+      approver varchar(100),
+      risk_review text,
+      owner varchar(100),
+      reviewer varchar(100),
+      due_date DATE,
+      implementation_details text,
+      CONSTRAINT controls_project_id_fkey FOREIGN KEY (project_id)
+      REFERENCES projects(id)
+      ON DELETE SET NULL
+    );`,
+    insertString:
+      "INSERT INTO controls(project_id, status, approver, risk_review, owner, reviewer, due_date, implementation_details) VALUES ",
+    generateValuesString: function (control: Control) {
+      return `(${control.projectId}, '${control.status}', '${
+        control.approver
+      }', '${control.riskReview}', '${control.owner}', '${
+        control.reviewer
+      }', '${control.dueDate.toISOString().split("T")[0]}', '${
+        control.implementationDetails
+      }')`;
+    },
+  },
+  {
+    mockData: mockProjects,
+    tableName: "projects",
+    createString: `CREATE TABLE projects(
+      id SERIAL PRIMARY KEY,
+      project_title varchar(255) NOT NULL,
+      owner varchar(255) NOT NULL,
+      users integer[] NOT NULL,
+      start_date DATE NOT NULL,
+      ai_risk_classification varchar(50) NOT NULL,
+      type_of_high_risk_role varchar(50) NOT NULL,
+      goal text,
+      last_updated TIMESTAMP NOT NULL,
+      last_updated_by varchar(255) NOT NULL
+    )`,
+    insertString:
+      "INSERT INTO projects(project_title, owner, users, start_date, ai_risk_classification, type_of_high_risk_role, goal, last_updated, last_updated_by) VALUES ",
+    generateValuesString: function (project: Project) {
+      const usersArray = `{${project.users.join(",")}}`;
+      return `('${project.project_title}', '${
+        project.owner
+      }', '${usersArray}', '${
+        project.start_date.toISOString().split("T")[0]
+      }', '${project.ai_risk_classification}', '${
+        project.type_of_high_risk_role
+      }', '${project.goal}', '${project.last_updated.toISOString()}', '${
+        project.last_updated_by
+      }')`;
+    },
+  },
+  {
+    mockData: mockProjectRisks,
+    tableName: "projectrisks",
+    createString: `CREATE TABLE projectrisks(
+      id SERIAL PRIMARY KEY,
+      project_id integer,
+      risk_name varchar(255),
+      risk_owner varchar(255),
+      ai_lifecycle_phase varchar(255),
+      risk_description text,
+      risk_category varchar(255),
+      impact varchar(255),
+      assessment_mapping text,
+      controls_mapping text,
+      likelihood varchar(255),
+      severity varchar(255),
+      risk_level_autocalculated varchar(50) CHECK (risk_level_autocalculated IN ('No risk', 'Low risk', 'Medium risk', 'High risk', 'Very high risk')),
+      review_notes text,
+      mitigation_status varchar(255),
+      current_risk_level varchar(255),
+      deadline DATE,
+      mitigation_plan text,
+      implementation_strategy text,
+      mitigation_evidence_document text,
+      likelihood_mitigation varchar(255),
+      risk_severity varchar(255),
+      final_risk_level varchar(255),
+      risk_approval varchar(255),
+      approval_status varchar(255),
+      date_of_assessment DATE,
+      CONSTRAINT projectrisks_project_id_fkey FOREIGN KEY (project_id)
+        REFERENCES projects(id)
+        ON DELETE SET NULL
+    );`,
+    insertString:
+      "INSERT INTO projectrisks(project_id, risk_name, risk_owner, ai_lifecycle_phase, risk_description, risk_category, impact, assessment_mapping, controls_mapping, likelihood, severity, risk_level_autocalculated, review_notes, mitigation_status, current_risk_level, deadline, mitigation_plan, implementation_strategy, mitigation_evidence_document, likelihood_mitigation, risk_severity, final_risk_level, risk_approval, approval_status, date_of_assessment) VALUES ",
+    generateValuesString: function (projectRisk: ProjectRisk) {
+      return `(${projectRisk.project_id}, '${projectRisk.risk_name}', '${
+        projectRisk.risk_owner
+      }', '${projectRisk.ai_lifecycle_phase}', '${
+        projectRisk.risk_description
+      }', '${projectRisk.risk_category}', '${projectRisk.impact}', '${
+        projectRisk.assessment_mapping
+      }', '${projectRisk.controls_mapping}', '${projectRisk.likelihood}', '${
+        projectRisk.severity
+      }', '${projectRisk.risk_level_autocalculated}', '${
+        projectRisk.review_notes
+      }', '${projectRisk.mitigation_status}', '${
+        projectRisk.current_risk_level
+      }', '${projectRisk.deadline.toISOString().split("T")[0]}', '${
+        projectRisk.mitigation_plan
+      }', '${projectRisk.implementation_strategy}', '${
+        projectRisk.mitigation_evidence_document
+      }', '${projectRisk.likelihood_mitigation}', '${
+        projectRisk.risk_severity
+      }', '${projectRisk.final_risk_level}', '${projectRisk.risk_approval}', '${
+        projectRisk.approval_status
+      }', '${projectRisk.date_of_assessment.toISOString().split("T")[0]}')`;
+    },
+  },
+  {
+    mockData: projectScopes,
+    tableName: "projectscopes",
+    createString: `CREATE TABLE projectscopes(
+      id SERIAL PRIMARY KEY,
+      assessment_id integer,
+      describe_ai_environment text,
+      is_new_ai_technology boolean,
+      uses_personal_data boolean,
+      project_scope_documents text,
+      technology_type varchar(255),
+      has_ongoing_monitoring boolean,
+      unintended_outcomes text,
+      technology_documentation text,
+      CONSTRAINT projectscopes_assessment_id_fkey FOREIGN KEY (assessment_id)
+        REFERENCES assessments(id)
+        ON DELETE SET NULL
+    );`,
+    insertString:
+      "INSERT INTO projectscopes(assessment_id, describe_ai_environment, is_new_ai_technology, uses_personal_data, project_scope_documents, technology_type, has_ongoing_monitoring, unintended_outcomes, technology_documentation) VALUES ",
+    generateValuesString: function (projectScope: ProjectScope) {
+      return `(${projectScope.assessmentId}, '${projectScope.describeAiEnvironment}', ${projectScope.isNewAiTechnology}, ${projectScope.usesPersonalData}, '${projectScope.projectScopeDocuments}', '${projectScope.technologyType}', ${projectScope.hasOngoingMonitoring}, '${projectScope.unintendedOutcomes}', '${projectScope.technologyDocumentation}')`;
+    },
+  },
+  {
+    mockData: questions,
+    tableName: "questions",
+    createString: `CREATE TABLE questions(
+      id SERIAL PRIMARY KEY,
+      subtopic_id integer,
+      question_text text,
+      answer_type varchar(50),
+      dropdown_options text,
+      has_file_upload boolean,
+      has_hint boolean,
+      is_required boolean,
+      priority_options text,
+      CONSTRAINT fk_subtopic FOREIGN KEY (subtopic_id)
+        REFERENCES subtopics (id)
+        ON DELETE SET NULL
+    );`,
+    insertString:
+      "INSERT INTO questions(subtopic_id, question_text, answer_type, dropdown_options, has_file_upload, has_hint, is_required, priority_options) VALUES ",
+    generateValuesString: function (question: Question) {
+      return `(${question.subtopicId}, '${question.questionText}', '${question.answerType}', '${question.dropdownOptions}', ${question.hasFileUpload}, ${question.hasHint}, ${question.isRequired}, '${question.priorityOptions}')`;
+    },
+  },
+  {
+    mockData: subcontrols,
+    tableName: "subcontrols",
+    createString: `CREATE TABLE subcontrols(
+      id SERIAL PRIMARY KEY,
+      control_id integer,
+      status varchar(50) CHECK (status IN ('Waiting', 'In progress', 'Done')),
+      approver varchar(100),
+      risk_review varchar(50) CHECK (risk_review IN ('Acceptable risk', 'Residual risk', 'Unacceptable risk')),
+      owner varchar(100),
+      reviewer varchar(100),
+      due_date DATE,
+      implementation_details text,
+      evidence text,
+      attachment text,
+      feedback text,
+      CONSTRAINT subcontrols_control_id_fkey FOREIGN KEY (control_id)
+        REFERENCES controls(id)
+        ON DELETE SET NULL
+    );`,
+    insertString:
+      "INSERT INTO subcontrols(control_id, status, approver, risk_review, owner, reviewer, due_date, implementation_details, evidence, attachment, feedback) VALUES ",
+    generateValuesString: function (subcontrol: Subcontrol) {
+      return `(${subcontrol.controlId}, '${subcontrol.status}', '${
+        subcontrol.approver
+      }', '${subcontrol.riskReview}', '${subcontrol.owner}', '${
+        subcontrol.reviewer
+      }', '${subcontrol.dueDate.toISOString().split("T")[0]}', '${
+        subcontrol.implementationDetails
+      }', '${subcontrol.evidence}', '${subcontrol.attachment}', '${
+        subcontrol.feedback
+      }')`;
+    },
+  },
+  {
+    mockData: subtopics,
+    tableName: "subtopics",
+    createString: `CREATE TABLE subtopics(
+      id SERIAL PRIMARY KEY,
+      topic_id integer,
+      name varchar(255),
+      CONSTRAINT fk_topic FOREIGN KEY (topic_id)
+        REFERENCES topics (id)
+        ON DELETE SET NULL
+    );`,
+    insertString: "INSERT INTO subtopics(topic_id, name) VALUES ",
+    generateValuesString: function (subtopic: Subtopic) {
+      return `(${subtopic.topicId}, '${subtopic.name}')`;
+    },
+  },
+  {
+    mockData: topics,
+    tableName: "topics",
+    createString: `CREATE TABLE topics(
+      id SERIAL PRIMARY KEY,
+      assessment_id integer,
+      name varchar(255),
+      CONSTRAINT fk_assessment FOREIGN KEY (assessment_id)
+        REFERENCES assessments (id)
+        ON DELETE SET NULL
+    );`,
+    insertString: "INSERT INTO topics(assessment_id, name) VALUES ",
+    generateValuesString: function (topic: Topic) {
+      return `(${topic.assessmentId}, '${topic.title}')`;
     },
   },
   {
@@ -105,381 +328,72 @@ const insertQuery: TableList = [
     },
   },
   {
-    mockData: projects,
-    tableName: "projects",
-    createString: `CREATE TABLE projects(
-      id SERIAL PRIMARY KEY,
-      name varchar(255) not null,
-      description text,
-      last_updated date NOT NULL,
-      owner_id integer,
-      compliance_status varchar(50),
-      controls_completed integer DEFAULT 0,
-      requirements_completed integer DEFAULT 0,
-      CONSTRAINT projects_owner_id_fkey FOREIGN KEY (owner_id)
-        REFERENCES users(id)
-        ON DELETE SET NULL
-    )`,
-    insertString:
-      "INSERT INTO projects(name, description, last_updated, owner_id, compliance_status, controls_completed, requirements_completed)	VALUES ",
-    generateValuesString: function (project: Project) {
-      return `('${project.name}', '${project.description}', '${
-        project.last_updated.toISOString().split("T")[0]
-      }', ${project.owner_id}, '${project.compliance_status}', ${
-        project.controls_completed
-      }, ${project.requirements_completed})`;
-    },
-  },
-  {
     mockData: vendors,
     tableName: "vendors",
     createString: `CREATE TABLE vendors(
       id SERIAL PRIMARY KEY,
-      name varchar(255) NOT NULL,
       project_id integer,
-      description text,
+      vendor_name varchar(255) NOT NULL,
+      assignee varchar(100),
+      vendor_provides text,
       website varchar(255),
-      contact_person varchar(100),
+      vendor_contact_person varchar(100),
       review_result varchar(50),
       review_status varchar(50),
-      reviewer_id integer,
-      review_date timestamp,
+      reviewer varchar(50),
+      review_date TIMESTAMP,
       risk_status varchar(50),
-      CONSTRAINT vendors_reviewer_id_fkey FOREIGN KEY (reviewer_id)
-        REFERENCES users(id)
-        ON DELETE SET NULL,
-      CONSTRAINT vendors_project_id_fkey FOREIGN KEY (project_id)
-        REFERENCES projects(id)
-        ON DELETE SET NULL
-    );`,
-    insertString:
-      "INSERT INTO vendors(name, project_id, description, website, contact_person, review_result, review_status, reviewer_id, review_date, risk_status) VALUES ",
-    generateValuesString: function (vendor: Vendor) {
-      return `(${vendor.id}, '${vendor.name}', '${vendor.type}', '${vendor.description}', '${vendor.website}', '${vendor.contact_person}', '${vendor.assignee}', '${vendor.status}', '${vendor.review_result}', '${vendor.reviewer}', '${vendor.review_date}', '${vendor.review_status}', '${vendor.risk_status}')`;
-    },
-  },
-  {
-    mockData: complianceTrackers,
-    tableName: "compliancetrackers",
-    createString: `CREATE TABLE compliancetrackers(
-      id SERIAL PRIMARY KEY,
-      project_id integer,
-      compliance_status integer NOT NULL,
-      pending_audits integer DEFAULT 0,
-      completed_assessments integer DEFAULT 0,
-      implemented_controls integer DEFAULT 0,
-      CONSTRAINT compliancetracker_project_id_fkey FOREIGN KEY (project_id)
-        REFERENCES projects(id)
-        ON DELETE SET NULL
-    );`,
-    insertString:
-      "INSERT INTO compliancetrackers(project_id, compliance_status, pending_audits, completed_assessments, implemented_controls) VALUES ",
-    generateValuesString: function (complianceTracker: ComplianceTracker) {
-      return `(${complianceTracker.project_id}, ${complianceTracker.compliance_status}, ${complianceTracker.pending_audits}, ${complianceTracker.completed_assessments}, ${complianceTracker.implemented_controls})`;
-    },
-  },
-  {
-    mockData: assessmentTrackers,
-    tableName: "assessmenttrackers",
-    createString: `CREATE TABLE assessmenttrackers(
-      id SERIAL PRIMARY KEY,
-      project_id integer,
-      name varchar(255),
-      status varchar(50),
-      CONSTRAINT assessmenttrackers_project_id_fkey FOREIGN KEY (project_id)
-        REFERENCES projects(id)
-        ON DELETE SET NULL
-    );`,
-    insertString:
-      "INSERT INTO assessmenttrackers(project_id, name, status) VALUES ",
-    generateValuesString: function (assessmentTracker: AssessmentTracker) {
-      return `(${assessmentTracker.project_id}, '${assessmentTracker.name}', '${assessmentTracker.status}')`;
-    },
-  },
-  {
-    mockData: risks,
-    tableName: "risks",
-    createString: `CREATE TABLE risks(
-      id SERIAL PRIMARY KEY,
-      project_id integer,
       risk_description text,
-      impact varchar(50),
-      probability varchar(50),
-      owner_id integer,
-      severity varchar(50),
-      likelihood varchar(50),
+      impact_description text,
+      impact integer,
+      probability integer,
+      action_owner varchar(100),
+      action_plan text,
+      risk_severity integer,
       risk_level varchar(50),
-      CONSTRAINT risks_owner_id_fkey FOREIGN KEY (owner_id)
-        REFERENCES users(id)
-        ON DELETE SET NULL,
-      CONSTRAINT risks_project_id_fkey FOREIGN KEY (project_id)
-        REFERENCES projects(id)
-        ON DELETE SET NULL
+      likelihood integer
     );`,
     insertString:
-      "INSERT INTO risks(project_id, risk_description, impact, probability, owner_id, severity, likelihood, risk_level) VALUES ",
-    generateValuesString: function (risk: Risk) {
-      return `(${risk.project_id}, '${risk.risk_description}', '${risk.impact}', '${risk.probability}', ${risk.owner_id}, '${risk.severity}', '${risk.likelihood}', '${risk.risk_level}')`;
+      "INSERT INTO vendors(project_id, vendor_name, assignee, vendor_provides, website, vendor_contact_person, review_result, review_status, reviewer, review_date, risk_status, risk_description, impact_description, impact, probability, action_owner, action_plan, risk_severity, risk_level, likelihood) VALUES ",
+    generateValuesString: function (vendor: Vendor) {
+      return `(${vendor.projectId}, '${vendor.vendorName}', '${
+        vendor.assignee
+      }', '${vendor.vendorProvides}', '${vendor.website}', '${
+        vendor.vendorContactPerson
+      }', '${vendor.reviewResult}', '${vendor.reviewStatus}', '${
+        vendor.reviewer
+      }', '${vendor.reviewDate.toISOString()}', '${vendor.riskStatus}', '${
+        vendor.riskDescription
+      }', '${vendor.impactDescription}', ${vendor.impact}, ${
+        vendor.probability
+      }, '${vendor.actionOwner}', '${vendor.actionPlan}', ${
+        vendor.riskSeverity
+      }, '${vendor.riskLevel}', ${vendor.likelihood})`;
     },
   },
   {
-    mockData: vendorRisks,
+    mockData: mockVendorRisks,
     tableName: "vendorrisks",
     createString: `CREATE TABLE vendorrisks(
       id SERIAL PRIMARY KEY,
-      vendor_id integer,
-      risk_description text,
-      impact_description text,
       project_id integer,
-      probability varchar(50),
-      impact varchar(50),
-      action_plan text,
-      action_owner_id integer,
-      risk_severity varchar(50),
-      likelihood varchar(50),
-      risk_level varchar(50),
-      CONSTRAINT vendorrisks_action_owner_id_fkey FOREIGN KEY (action_owner_id)
-        REFERENCES users(id)
-        ON DELETE SET NULL,
+      vendor_name varchar(255) NOT NULL,
+      risk_name varchar(255) NOT NULL,
+      owner varchar(255) NOT NULL,
+      risk_level varchar(50) CHECK (risk_level IN ('No risk', 'Low risk', 'Medium risk', 'High risk', 'Very high risk')),
+      review_date TIMESTAMP NOT NULL,
       CONSTRAINT vendorrisks_project_id_fkey FOREIGN KEY (project_id)
         REFERENCES projects(id)
-        ON DELETE SET NULL,
-      CONSTRAINT vendorrisks_vendor_id_fkey FOREIGN KEY (vendor_id)
-        REFERENCES vendors(id)
         ON DELETE SET NULL
     );`,
     insertString:
-      "INSERT INTO vendorrisks(vendor_id, risk_description, impact_description, project_id, probability, impact, action_plan, action_owner_id, risk_severity, likelihood, risk_level) VALUES ",
+      "INSERT INTO vendorrisks(project_id, vendor_name, risk_name, owner, risk_level, review_date) VALUES ",
     generateValuesString: function (vendorRisk: VendorRisk) {
-      return `(${vendorRisk.vendor_id}, '${vendorRisk.risk_description}', '${vendorRisk.impact_description}', ${vendorRisk.project_id}, '${vendorRisk.probability}', '${vendorRisk.impact}', '${vendorRisk.action_plan}', ${vendorRisk.action_owner_id}, '${vendorRisk.risk_severity}', '${vendorRisk.likelihood}', '${vendorRisk.risk_level}')`;
-    },
-  },
-  {
-    mockData: complianceLists,
-    tableName: "compliancelists",
-    createString: `CREATE TABLE IF NOT EXISTS compliancelists(
-      id SERIAL PRIMARY KEY,
-      compliance_tracker_id integer,
-      name varchar(255),
-      description text,
-      CONSTRAINT compliancelists_compliance_tracker_id_fkey FOREIGN KEY (compliance_tracker_id)
-        REFERENCES compliancetrackers (id)
-        ON DELETE SET NULL
-    );`,
-    insertString:
-      "INSERT INTO compliancelists(compliance_tracker_id, name, description) VALUES ",
-    generateValuesString: function (complianceList: ComplianceList) {
-      return `(${complianceList.compliance_tracker_id}, '${complianceList.name}', '${complianceList.description}')`;
-    },
-  },
-  {
-    mockData: requirements,
-    tableName: "requirements",
-    createString: `CREATE TABLE requirements(
-      id SERIAL PRIMARY KEY,
-      compliance_list_id integer,
-      name varchar(255),
-      description text,
-      status varchar(50),
-      CONSTRAINT requirements_compliance_list_id_fkey FOREIGN KEY (compliance_list_id)
-        REFERENCES compliancelists (id)
-        ON DELETE SET NULL
-    );`,
-    insertString:
-      "INSERT INTO requirements(compliance_list_id, name, description, status) VALUES ",
-    generateValuesString: function (requirement: Requirement) {
-      return `(${requirement.compliance_list_id}, '${requirement.name}', '${requirement.description}', '${requirement.status}')`;
-    },
-  },
-  {
-    mockData: subrequirements,
-    tableName: "subrequirements",
-    createString: `CREATE TABLE subrequirements(
-      id SERIAL PRIMARY KEY,
-      requirement_id integer,
-      name varchar(255),
-      description text,
-      status varchar(50),
-      CONSTRAINT subrequirements_requirement_id_fkey FOREIGN KEY (requirement_id)
-        REFERENCES requirements (id)
-        ON DELETE SET NULL
-    );`,
-    insertString:
-      "INSERT INTO subrequirements(requirement_id, name, description, status) VALUES ",
-    generateValuesString: function (subrequirement: Subrequirement) {
-      return `(${subrequirement.requirement_id}, '${subrequirement.name}', '${subrequirement.description}', '${subrequirement.status}')`;
-    },
-  },
-  {
-    mockData: overviews,
-    tableName: "overviews",
-    createString: `CREATE TABLE overviews(
-      id SERIAL PRIMARY KEY,
-      subrequirement_id integer,
-      control_name varchar(255),
-      control_description text,
-      control_owner varchar(255),
-      control_status varchar(50),
-      implementation_description text,
-      implementation_evidence text,
-      effective_date date NOT NULL,
-      review_date date NOT NULL,
-      comments text,
-      CONSTRAINT overviews_subrequirement_id_fkey FOREIGN KEY (subrequirement_id)
-        REFERENCES subrequirements (id)
-        ON DELETE SET NULL
-    );`,
-    insertString:
-      "INSERT INTO overviews(subrequirement_id, control_name, control_description, control_owner, control_status, implementation_description, implementation_evidence, effective_date, review_date, comments) VALUES ",
-    generateValuesString: function (overview: Overview) {
-      return `(${overview.subrequirement_id}, '${overview.control_name}', '${
-        overview.control_description
-      }', '${overview.control_owner}', '${overview.control_status}', '${
-        overview.implementation_description
-      }', '${overview.implementation_evidence}', '${
-        overview.effective_date.toISOString().split("T")[0]
-      }', '${overview.review_date.toISOString().split("T")[0]}', '${
-        overview.comments
-      }')`;
-    },
-  },
-  {
-    mockData: auditorFeedbacks,
-    tableName: "auditorfeedbacks",
-    createString: `CREATE TABLE auditorfeedbacks(
-      id SERIAL PRIMARY KEY,
-      subrequirement_id integer,
-      assessment_type varchar(50),
-      assessment_date date NOT NULL,
-      auditor_id integer,
-      compliance_status varchar(50),
-      findings text,
-      recommendations text,
-      corrective_actions text,
-      follow_up_date date,
-      follow_up_notes text,
-      attachments varchar(255),
-      created_at date NOT NULL DEFAULT CURRENT_DATE,
-      updated_at date NOT NULL DEFAULT CURRENT_DATE,
-      CONSTRAINT fk_auditor FOREIGN KEY (auditor_id)
-        REFERENCES users (id)
-        ON DELETE SET NULL,
-      CONSTRAINT fk_subrequirement FOREIGN KEY (subrequirement_id)
-        REFERENCES subrequirements (id)
-        ON DELETE SET NULL
-    );`,
-    insertString:
-      "INSERT INTO auditorfeedbacks(subrequirement_id, assessment_type, assessment_date, auditor_id, compliance_status, findings, recommendations, corrective_actions, follow_up_date, follow_up_notes, attachments, created_at, updated_at) VALUES ",
-    generateValuesString: function (auditorFeedback: AuditorFeedback) {
-      return `(${auditorFeedback.subrequirement_id}, '${
-        auditorFeedback.assessment_type
-      }', '${auditorFeedback.assessment_date.toISOString().split("T")[0]}', ${
-        auditorFeedback.auditor_id
-      }, '${auditorFeedback.compliance_status}', '${
-        auditorFeedback.findings
-      }', '${auditorFeedback.recommendations}', '${
-        auditorFeedback.corrective_actions
-      }', '${auditorFeedback.follow_up_date.toISOString().split("T")[0]}', '${
-        auditorFeedback.follow_up_notes
-      }', '${auditorFeedback.attachments}', '${
-        auditorFeedback.created_at.toISOString().split("T")[0]
-      }', '${auditorFeedback.updated_at.toISOString().split("T")[0]}')`;
-    },
-  },
-  {
-    mockData: subrequirementEvidence,
-    tableName: "subrequirementevidences",
-    createString: `CREATE TABLE subrequirementevidences (
-      id SERIAL PRIMARY KEY,
-      subrequirement_id INT,
-      document_name VARCHAR(255) NOT NULL,
-      document_type VARCHAR(50) NOT NULL,
-      file_path VARCHAR(255) NOT NULL,
-      upload_date DATE NOT NULL,
-      uploader_id INT,
-      description TEXT NOT NULL,
-      status VARCHAR(50) NOT NULL,
-      last_reviewed DATE,
-      reviewer_id INT,
-      reviewer_comments TEXT,
-      FOREIGN KEY (subrequirement_id) REFERENCES subrequirements (id) ON DELETE SET NULL,
-      FOREIGN KEY (uploader_id) REFERENCES users (id) ON DELETE SET NULL,
-      FOREIGN KEY (reviewer_id) REFERENCES users (id) ON DELETE SET NULL
-    );`,
-    insertString:
-      "INSERT INTO subrequirementevidences (subrequirement_id, document_name, document_type, file_path, upload_date, uploader_id, description, status, last_reviewed, reviewer_id, reviewer_comments) VALUES ",
-    generateValuesString: function (
-      subrequirementEvidence: SubrequirementEvidence
-    ) {
-      return `(${subrequirementEvidence.subrequirement_id}, '${
-        subrequirementEvidence.document_name
-      }', '${subrequirementEvidence.document_type}', '${
-        subrequirementEvidence.file_path
-      }', '${
-        subrequirementEvidence.upload_date.toISOString().split("T")[0]
-      }', ${subrequirementEvidence.uploader_id}, '${
-        subrequirementEvidence.description
-      }', '${subrequirementEvidence.status}', '${
-        subrequirementEvidence.last_reviewed.toISOString().split("T")[0]
-      }', ${subrequirementEvidence.reviewer_id}, '${
-        subrequirementEvidence.reviewer_comments
-      }')`;
-    },
-  },
-  {
-    mockData: sections,
-    tableName: "sections",
-    createString: `CREATE TABLE sections(
-      id SERIAL PRIMARY KEY,
-      assessment_tracker_id integer,
-      name varchar(255),
-      total_questions integer NOT NULL,
-      completed_questions integer NOT NULL,
-      CONSTRAINT fk_assessment_tracker FOREIGN KEY (assessment_tracker_id)
-        REFERENCES assessmenttrackers (id)
-        ON DELETE SET NULL
-    );`,
-    insertString:
-      "INSERT INTO sections(assessment_tracker_id, name, total_questions, completed_questions) VALUES ",
-    generateValuesString: function (section: Section) {
-      return `(${section.assessment_tracker_id}, '${section.name}', ${section.total_questions}, ${section.completed_questions})`;
-    },
-  },
-  {
-    mockData: questions,
-    tableName: "questions",
-    createString: `CREATE TABLE questions(
-      id SERIAL PRIMARY KEY,
-      section_id integer,
-      question_text text,
-      answer_type varchar(50),
-      required boolean NOT NULL,
-      CONSTRAINT fk_section FOREIGN KEY (section_id)
-        REFERENCES sections (id)
-        ON DELETE SET NULL
-    );`,
-    insertString:
-      "INSERT INTO questions(section_id, question_text, answer_type, required) VALUES ",
-    generateValuesString: function (question: Question) {
-      return `(${question.section_id}, '${question.question_text}', '${question.answer_type}', ${question.required})`;
-    },
-  },
-  {
-    mockData: question_evidence,
-    tableName: "questionevidences",
-    createString: `CREATE TABLE questionevidences (
-      id SERIAL PRIMARY KEY,
-      question_id INT,
-      section_id INT,
-      assessment_review TEXT NOT NULL,
-      evidence TEXT NOT NULL,
-      FOREIGN KEY (question_id) REFERENCES questions (id) ON DELETE SET NULL,
-      FOREIGN KEY (section_id) REFERENCES sections (id) ON DELETE SET NULL
-    );`,
-    insertString:
-      "INSERT INTO questionevidences (question_id, section_id, assessment_review, evidence) VALUES ",
-    generateValuesString: function (questionEvidence: QuestionEvidence) {
-      return `(${questionEvidence.question_id}, ${questionEvidence.section_id}, '${questionEvidence.assessment_review}', '${questionEvidence.evidence}')`;
+      return `(${vendorRisk.project_id}, '${vendorRisk.vendor_name}', '${
+        vendorRisk.risk_name
+      }', '${vendorRisk.owner}', '${
+        vendorRisk.risk_level
+      }', '${vendorRisk.review_date.toISOString()}')`;
     },
   },
 ];

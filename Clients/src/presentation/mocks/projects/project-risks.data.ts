@@ -1,7 +1,6 @@
 export interface ProjectRisk {
   riskName: string;
   impact: string;
-  probability: number;
   owner: string;
   severity: string;
   likelihood: string;
@@ -14,7 +13,6 @@ const projectRisksData: ProjectRisk[] = [
   {
     riskName: "Nexus",
     impact: "High",
-    probability: 4,
     owner: "Jack M.",
     severity: "Undesirable",
     likelihood: "Probable",
@@ -25,7 +23,6 @@ const projectRisksData: ProjectRisk[] = [
   {
     riskName: "Apex",
     impact: "Medium high",
-    probability: 3,
     owner: "Robert A.",
     severity: "Tolerable",
     likelihood: "Possible",
@@ -36,7 +33,6 @@ const projectRisksData: ProjectRisk[] = [
   {
     riskName: "Data Breach",
     impact: "Very High",
-    probability: 2,
     owner: "Sarah L.",
     severity: "Catastrophic",
     likelihood: "Unlikely",
@@ -47,7 +43,6 @@ const projectRisksData: ProjectRisk[] = [
   {
     riskName: "Budget Overrun",
     impact: "High",
-    probability: 4,
     owner: "Michael P.",
     severity: "Undesirable",
     likelihood: "Probable",
@@ -58,7 +53,6 @@ const projectRisksData: ProjectRisk[] = [
   {
     riskName: "Skill Gap",
     impact: "Medium",
-    probability: 3,
     owner: "Emma R.",
     severity: "Tolerable",
     likelihood: "Possible",
@@ -69,7 +63,6 @@ const projectRisksData: ProjectRisk[] = [
   {
     riskName: "Scope Creep",
     impact: "Medium high",
-    probability: 5,
     owner: "David S.",
     severity: "Undesirable",
     likelihood: "Very Likely",
@@ -80,7 +73,6 @@ const projectRisksData: ProjectRisk[] = [
   {
     riskName: "Integration Failure",
     impact: "High",
-    probability: 3,
     owner: "Lisa K.",
     severity: "Serious",
     likelihood: "Possible",
@@ -91,7 +83,6 @@ const projectRisksData: ProjectRisk[] = [
   {
     riskName: "Performance Issues",
     impact: "Very High",
-    probability: 4,
     owner: "Tom W.",
     severity: "Catastrophic",
     likelihood: "Probable",
@@ -102,7 +93,6 @@ const projectRisksData: ProjectRisk[] = [
   {
     riskName: "Regulatory Non-compliance",
     impact: "Very High",
-    probability: 3,
     owner: "Nancy O.",
     severity: "Catastrophic",
     likelihood: "Possible",
@@ -113,7 +103,6 @@ const projectRisksData: ProjectRisk[] = [
   {
     riskName: "Vendor Lock-in",
     impact: "Medium",
-    probability: 4,
     owner: "Chris B.",
     severity: "Tolerable",
     likelihood: "Probable",

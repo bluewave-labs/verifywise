@@ -25,6 +25,8 @@ import FileManager from "./presentation/pages/FileManager";
 
 import { VerifyWiseContext } from "./application/contexts/VerifyWise.context";
 import { useMemo, useState } from "react";
+// import NewAssessment from "./presentation/pages/Assessment/NewAssessment";
+import AllAssessment from "./presentation/pages/Assessment/NewAssessment/AllAssessments";
 
 function App() {
   const mode = useSelector((state: any) => state.ui?.mode || "light");
@@ -93,10 +95,13 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/compliance-tracker" element={<ComplianceTracker />} />
             <Route path="/assessment" element={<Assessment />} />
+            {/* <Route path="/all-assessments" element={<NewAssessment />} /> */}
+            <Route path="/all-assessments" element={<AllAssessment />} />
             <Route path="/vendors" element={<Vendors />} />
             <Route path="/setting" element={<Setting />} />
             <Route path="/team" element={<Team />} />
             <Route path="/project-view" element={<ProjectView />} />
+            <Route path="/file-manager" element={<FileManager />} />
           </Route>
           <Route path="/admin-reg" element={<RegisterAdmin />} />
           <Route path="/user-reg" element={<RegisterUser />} />
@@ -108,7 +113,6 @@ function App() {
             path="/reset-password-continue"
             element={<ResetPasswordContinue />}
           />
-          <Route path="/file-manager" element={<FileManager/>} />
 
           {/** This route is simply for testing and playing with components and will be removed soon  */}
           <Route path="/playground" element={<Playground />} />

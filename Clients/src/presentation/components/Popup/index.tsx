@@ -8,26 +8,22 @@ interface PopupProps {
     popupId: string,
     popupContent: React.ReactNode,
     openPopupButtonName: string,
-    actionButtonName: string,
     popupTitle: string,
     popupSubtitle?: string,
-    onActionButtonClick?: () => void
+    handleOpenOrClose?: (event: React.MouseEvent<HTMLElement>) => void,
+    anchor: null | HTMLElement
 }
 
 const Popup: FC<PopupProps> = ({
     popupId,
     popupContent,
     openPopupButtonName,
-    actionButtonName,
     popupTitle,
     popupSubtitle,
-    onActionButtonClick
+    handleOpenOrClose,
+    anchor
 }) => {
     const theme = useTheme();
-    const [anchor, setAnchor] = React.useState<null | HTMLElement>(null);
-    const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-        setAnchor(anchor ? null : event.currentTarget);
-    };
     const open = Boolean(anchor);
     const id = open ? popupId : undefined;
 
@@ -73,7 +69,7 @@ const Popup: FC<PopupProps> = ({
 
     return (
         <div>
-            <Button aria-describedby={id} type="button" variant="contained" onClick={handleClick}
+            <Button aria-describedby={id} type="button" variant="contained" onClick={handleOpenOrClose}
                 sx={styles.openPopupButton} disableRipple={theme.components?.MuiButton?.defaultProps?.disableRipple}
             >
                 {openPopupButtonName}
@@ -97,18 +93,10 @@ const Popup: FC<PopupProps> = ({
                     {popupSubtitle && <Typography variant="subtitle1" component="div" sx={{ color: "#344054", fontSize: 13 }}>
                         {popupSubtitle}
                     </Typography>}
-                    <Button onClick={handleClick} sx={styles.closePopupButton}>
+                    <Button onClick={handleOpenOrClose} sx={styles.closePopupButton}>
                         <ClearIcon />
                     </Button>
-                    {popupContent}
-                    <Button 
-                        variant="contained" 
-                        disableRipple={theme.components?.MuiButton?.defaultProps?.disableRipple} 
-                        onClick={onActionButtonClick}
-                        sx={styles.actionButton}
-                    >
-                        {actionButtonName}
-                    </Button>
+                    {popupContent}                    
                 </Stack>
             </BasePopup>
         </div>

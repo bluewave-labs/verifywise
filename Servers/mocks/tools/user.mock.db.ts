@@ -44,7 +44,7 @@
  * @returns {Object|null} The deleted mock user object if found, otherwise null.
  */
 
-import { users } from "../users/users.data";
+import { users } from "../users.data";
 
 export const getAllMockUsers = () => {
   return users;

@@ -25,7 +25,6 @@ import FileManager from "./presentation/pages/FileManager";
 
 import { VerifyWiseContext } from "./application/contexts/VerifyWise.context";
 import { useMemo, useState } from "react";
-// import NewAssessment from "./presentation/pages/Assessment/NewAssessment";
 import AllAssessment from "./presentation/pages/Assessment/NewAssessment/AllAssessments";
 
 function App() {
@@ -95,7 +94,6 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/compliance-tracker" element={<ComplianceTracker />} />
             <Route path="/assessment" element={<Assessment />} />
-            {/* <Route path="/all-assessments" element={<NewAssessment />} /> */}
             <Route path="/all-assessments" element={<AllAssessment />} />
             <Route path="/vendors" element={<Vendors />} />
             <Route path="/setting" element={<Setting />} />

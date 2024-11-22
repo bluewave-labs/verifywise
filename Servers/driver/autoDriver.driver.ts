@@ -56,7 +56,7 @@ type TableList = [
   TableEntry<Subtopic>,
   TableEntry<Question>,
   TableEntry<Role>,
-  TableEntry<User>,
+  TableEntry<User>
 ];
 
 const insertQuery: TableList = [
@@ -75,7 +75,8 @@ const insertQuery: TableList = [
       last_updated DATE,
       last_updated_by VARCHAR(255)
     );`,
-    insertString: "INSERT INTO projects(project_title, owner, users, start_date, ai_risk_classification, type_of_high_risk_role, goal, last_updated, last_updated_by) VALUES ",
+    insertString:
+      "INSERT INTO projects(project_title, owner, users, start_date, ai_risk_classification, type_of_high_risk_role, goal, last_updated, last_updated_by) VALUES ",
     generateValuesString: function (project: Project) {
       return `(
         '${project.project_title}',
@@ -116,7 +117,8 @@ const insertQuery: TableList = [
       risk_level VARCHAR(255),
       likelihood FLOAT
     );`,
-    insertString: "INSERT INTO vendors(project_id, vendor_name, assignee, vendor_provides, website, vendor_contact_person, review_result, review_status, reviewer, risk_status, review_date, risk_description, impact_description, impact, probability, action_owner, action_plan, risk_severity, risk_level, likelihood) VALUES ",
+    insertString:
+      "INSERT INTO vendors(project_id, vendor_name, assignee, vendor_provides, website, vendor_contact_person, review_result, review_status, reviewer, risk_status, review_date, risk_description, impact_description, impact, probability, action_owner, action_plan, risk_severity, risk_level, likelihood) VALUES ",
     generateValuesString: function (vendor: Vendor) {
       return `(
         ${vendor.projectId},
@@ -170,7 +172,8 @@ const insertQuery: TableList = [
       due_date DATE,
       implementation_details TEXT
     );`,
-    insertString: "INSERT INTO controls(project_id, status, approver, risk_review, owner, reviewer, due_date, implementation_details) VALUES ",
+    insertString:
+      "INSERT INTO controls(project_id, status, approver, risk_review, owner, reviewer, due_date, implementation_details) VALUES ",
     generateValuesString: function (control: Control) {
       return `(
         '${control.projectId}',
@@ -201,7 +204,8 @@ const insertQuery: TableList = [
       attachment VARCHAR(255),
       feedback TEXT
     );`,
-    insertString: "INSERT INTO subcontrols(control_id, status, approver, risk_review, owner, reviewer, due_date, implementation_details, evidence, attachment, feedback) VALUES ",
+    insertString:
+      "INSERT INTO subcontrols(control_id, status, approver, risk_review, owner, reviewer, due_date, implementation_details, evidence, attachment, feedback) VALUES ",
     generateValuesString: function (subControl: Subcontrol) {
       return `(
         '${subControl.controlId}',
@@ -249,7 +253,8 @@ const insertQuery: TableList = [
       approval_status VARCHAR(255),
       date_of_assessment DATE
     );`,
-    insertString: "INSERT INTO projectrisks(project_id, risk_name, risk_owner, ai_lifecycle_phase, risk_description, risk_category, impact, assessment_mapping, controls_mapping, likelihood, severity, risk_level_autocalculated, review_notes, mitigation_status, current_risk_level, deadline, mitigation_plan, implementation_strategy, mitigation_evidence_document, likelihood_mitigation, risk_severity, final_risk_level, risk_approval, approval_status, date_of_assessment) VALUES ",
+    insertString:
+      "INSERT INTO projectrisks(project_id, risk_name, risk_owner, ai_lifecycle_phase, risk_description, risk_category, impact, assessment_mapping, controls_mapping, likelihood, severity, risk_level_autocalculated, review_notes, mitigation_status, current_risk_level, deadline, mitigation_plan, implementation_strategy, mitigation_evidence_document, likelihood_mitigation, risk_severity, final_risk_level, risk_approval, approval_status, date_of_assessment) VALUES ",
     generateValuesString: function (projectRisk: ProjectRisk) {
       return `(
         '${projectRisk.project_id}',
@@ -292,7 +297,8 @@ const insertQuery: TableList = [
       risk_level VARCHAR(255),
       review_date DATE
     );`,
-    insertString: "INSERT INTO vendorrisks(project_id, vendor_name, risk_name, owner, risk_level, review_date) VALUES ",
+    insertString:
+      "INSERT INTO vendorrisks(project_id, vendor_name, risk_name, owner, risk_level, review_date) VALUES ",
     generateValuesString: function (vendorRisk: VendorRisk) {
       return `(
         '${vendorRisk.project_id}',
@@ -319,7 +325,8 @@ const insertQuery: TableList = [
       unintended_outcomes TEXT,
       technology_documentation VARCHAR(255)
     );`,
-    insertString: "INSERT INTO projectscopes(assessment_id, describe_ai_environment, is_new_ai_technology, uses_personal_data, project_scope_documents, technology_type, has_ongoing_monitoring, unintended_outcomes, technology_documentation) VALUES ",
+    insertString:
+      "INSERT INTO projectscopes(assessment_id, describe_ai_environment, is_new_ai_technology, uses_personal_data, project_scope_documents, technology_type, has_ongoing_monitoring, unintended_outcomes, technology_documentation) VALUES ",
     generateValuesString: function (projectScope: ProjectScope) {
       return `(
         '${projectScope.assessmentId}',
@@ -341,13 +348,10 @@ const insertQuery: TableList = [
       id SERIAL PRIMARY KEY,
       assessment_id INT REFERENCES assessments(id),
       title VARCHAR(255)
-    );`,
+        );`,
     insertString: "INSERT INTO topics(assessment_id, title) VALUES ",
     generateValuesString: function (topic: Topic) {
-      return `(
-        ${topic.assessmentId},
-        '${topic.title}'
-      )`;
+      return `(${topic.assessmentId}, '${topic.title}')`;
     },
   },
   {
@@ -357,7 +361,7 @@ const insertQuery: TableList = [
       id SERIAL PRIMARY KEY,
       topic_id INT REFERENCES topics(id),
       name VARCHAR(255)
-    );`,
+        );`,
     insertString: "INSERT INTO subtopics(topic_id, name) VALUES ",
     generateValuesString: function (subTopic: Subtopic) {
       return `(
@@ -374,23 +378,24 @@ const insertQuery: TableList = [
       subtopic_id INT REFERENCES subtopics(id),
       question_text TEXT,
       answer_type VARCHAR(255),
-      dropdown_options VARCHAR(255),
-      has_file_upload BOOLEAN,
-      has_hint BOOLEAN,
+      evidence_file_required BOOLEAN,
+      hint TEXT,
       is_required BOOLEAN,
-      priority_options VARCHAR(255)
-    );`,
-    insertString: "INSERT INTO questions(subtopic_id, question_text, answer_type, dropdown_options, has_file_upload, has_hint, is_required, priority_options) VALUES ",
+      priority_level VARCHAR(255),
+      evidence_files TEXT[]
+        );`,
+    insertString:
+      "INSERT INTO questions(subtopic_id, question_text, answer_type, evidence_file_required, hint, is_required, priority_level, evidence_files) VALUES ",
     generateValuesString: function (question: Question) {
       return `(
         ${question.subtopicId},
         '${question.questionText}',
         '${question.answerType}',
-        '${question.dropdownOptions}',
-        '${question.hasFileUpload}',
-        '${question.hasHint}',
-        '${question.isRequired}',
-        '${question.priorityOptions}'
+        ${question.evidenceFileRequired},
+        '${question.hint}',
+        ${question.isRequired},
+        '${question.priorityLevel}',
+        ARRAY[${question.evidenceFiles?.map((file) => `'${file}'`).join(", ")}]
       )`;
     },
   },
@@ -401,7 +406,7 @@ const insertQuery: TableList = [
       id SERIAL PRIMARY KEY,
       name VARCHAR(255),
       description TEXT
-    );`,
+        );`,
     insertString: "INSERT INTO roles(name, description) VALUES ",
     generateValuesString: function (role: Role) {
       return `(
@@ -422,7 +427,8 @@ const insertQuery: TableList = [
       created_at DATE,
       last_login DATE
     );`,
-    insertString: "INSERT INTO users(name, email, password_hash, role, created_at, last_login) VALUES ",
+    insertString:
+      "INSERT INTO users(name, email, password_hash, role, created_at, last_login) VALUES ",
     generateValuesString: function (user: User) {
       return `(
         '${user.name}',

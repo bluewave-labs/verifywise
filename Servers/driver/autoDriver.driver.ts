@@ -346,53 +346,12 @@ const insertQuery: TableList = [
     tableName: "topics",
     createString: `CREATE TABLE topics (
       id SERIAL PRIMARY KEY,
-      subtopic_id integer,
-      question_text text,
-      answer_type varchar(50),
-      evidence_file_required boolean,
-      hint text,
-      is_required boolean,
-      priority_level varchar(50),
-      evidence_files text[],
-      CONSTRAINT fk_subtopic FOREIGN KEY (subtopic_id)
-        REFERENCES subtopics (id)
-        ON DELETE SET NULL
-    );`,
-    insertString:
-      "INSERT INTO questions(subtopic_id, question_text, answer_type, evidence_file_required, hint, is_required, priority_level, evidence_files) VALUES ",
-    generateValuesString: function (question: Question) {
-      const evidenceFilesArray = question.evidenceFiles
-        ? `{${question.evidenceFiles.join(",")}}`
-        : "{}";
-      return `(${question.subtopicId}, '${question.questionText}', '${question.answerType}', ${question.evidenceFileRequired}, '${question.hint}', ${question.isRequired}, '${question.priorityLevel}', '${evidenceFilesArray}')`;
-    },
-  },
-  {
-    mockData: subcontrols,
-    tableName: "subcontrols",
-    createString: `CREATE TABLE subcontrols(
-      id SERIAL PRIMARY KEY,
-      control_id integer,
-      status varchar(50) CHECK (status IN ('Waiting', 'In progress', 'Done')),
-      approver varchar(100),
-      risk_review varchar(50) CHECK (risk_review IN ('Acceptable risk', 'Residual risk', 'Unacceptable risk')),
-      owner varchar(100),
-      reviewer varchar(100),
-      due_date DATE,
-      implementation_details text,
-      evidence text,
-      attachment text,
-      feedback text,
-      CONSTRAINT subcontrols_control_id_fkey FOREIGN KEY (control_id)
-        REFERENCES controls(id)
-        ON DELETE SET NULL
-    );`,
+      assessment_id INT REFERENCES assessments(id),
+      title VARCHAR(255)
+        );`,
     insertString: "INSERT INTO topics(assessment_id, title) VALUES ",
     generateValuesString: function (topic: Topic) {
-      return `(
-        ${topic.assessmentId},
-        '${topic.title}'
-      )`;
+      return `(${topic.assessmentId}, '${topic.title}')`;
     },
   },
   {
@@ -402,7 +361,7 @@ const insertQuery: TableList = [
       id SERIAL PRIMARY KEY,
       topic_id INT REFERENCES topics(id),
       name VARCHAR(255)
-    );`,
+        );`,
     insertString: "INSERT INTO subtopics(topic_id, name) VALUES ",
     generateValuesString: function (subTopic: Subtopic) {
       return `(
@@ -419,24 +378,24 @@ const insertQuery: TableList = [
       subtopic_id INT REFERENCES subtopics(id),
       question_text TEXT,
       answer_type VARCHAR(255),
-      dropdown_options VARCHAR(255),
-      has_file_upload BOOLEAN,
-      has_hint BOOLEAN,
+      evidence_file_required BOOLEAN,
+      hint TEXT,
       is_required BOOLEAN,
-      priority_options VARCHAR(255)
-    );`,
+      priority_level VARCHAR(255),
+      evidence_files TEXT[]
+        );`,
     insertString:
-      "INSERT INTO questions(subtopic_id, question_text, answer_type, dropdown_options, has_file_upload, has_hint, is_required, priority_options) VALUES ",
+      "INSERT INTO questions(subtopic_id, question_text, answer_type, evidence_file_required, hint, is_required, priority_level, evidence_files) VALUES ",
     generateValuesString: function (question: Question) {
       return `(
         ${question.subtopicId},
         '${question.questionText}',
         '${question.answerType}',
-        '${question.dropdownOptions}',
-        '${question.hasFileUpload}',
-        '${question.hasHint}',
-        '${question.isRequired}',
-        '${question.priorityOptions}'
+        ${question.evidenceFileRequired},
+        '${question.hint}',
+        ${question.isRequired},
+        '${question.priorityLevel}',
+        ARRAY[${question.evidenceFiles?.map((file) => `'${file}'`).join(", ")}]
       )`;
     },
   },
@@ -447,7 +406,7 @@ const insertQuery: TableList = [
       id SERIAL PRIMARY KEY,
       name VARCHAR(255),
       description TEXT
-    );`,
+        );`,
     insertString: "INSERT INTO roles(name, description) VALUES ",
     generateValuesString: function (role: Role) {
       return `(

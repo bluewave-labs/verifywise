@@ -11,7 +11,7 @@ export const projectScopes: ProjectScope[] = [
     projectScopeDocuments: "project-scope-v1.pdf",
     technologyType: "Natural Language Processing",
     hasOngoingMonitoring: true,
-    unintendedOutcomes: "Potential bias in the assistant's responses.",
+    unintendedOutcomes: "Potential bias in the assistant''s responses.",
     technologyDocumentation: "technology-documentation.docx",
   },
   {

@@ -79,7 +79,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
     const newProject: {
       project_title: string;
       owner: string;
-      users: number[];
+      users: string;
       start_date: Date;
       ai_risk_classification: string;
       type_of_high_risk_role: string;
@@ -127,7 +127,7 @@ export async function updateProjectById(
     const updatedProject: {
       project_title: string;
       owner: string;
-      users: number[];
+      users: string;
       start_date: Date;
       ai_risk_classification: string;
       type_of_high_risk_role: string;

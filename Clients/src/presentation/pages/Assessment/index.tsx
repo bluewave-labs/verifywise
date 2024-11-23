@@ -1,7 +1,9 @@
 import { Stack, Button, Typography, useTheme, Paper } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";
+import { useNavigate } from "react-router-dom";
 
 const Assessment = () => {
+  const navigate = useNavigate();
   const theme = useTheme();
 
   const paperStyle = {
@@ -24,8 +26,8 @@ const Assessment = () => {
    * TBD: Handle Go to Assessments button click
    */
   const handleAssessment = () => {
-    console.log("handleAssessment");
-  }
+    navigate("/all-assessments");
+  };
 
   return (
     <div className="assessment-page">
@@ -50,10 +52,7 @@ const Assessment = () => {
           sx={{ maxWidth: 1400, marginTop: "20px" }}
         >
           <Paper sx={paperStyle}>
-            <Typography
-              fontSize={"12px"}
-              color={theme.palette.text.accent}
-            >
+            <Typography fontSize={"12px"} color={theme.palette.text.accent}>
               Assessment completion
             </Typography>
             <Typography
@@ -65,10 +64,7 @@ const Assessment = () => {
             </Typography>
           </Paper>
           <Paper sx={paperStyle}>
-            <Typography
-              fontSize={"12px"}
-              color={theme.palette.text.accent}
-            >
+            <Typography fontSize={"12px"} color={theme.palette.text.accent}>
               Pending assessments
             </Typography>
             <Typography
@@ -80,10 +76,7 @@ const Assessment = () => {
             </Typography>
           </Paper>
           <Paper sx={paperStyle}>
-            <Typography
-              fontSize={"12px"}
-              color={theme.palette.text.accent}
-            >
+            <Typography fontSize={"12px"} color={theme.palette.text.accent}>
               Approved assessments
             </Typography>
             <Typography
@@ -104,24 +97,21 @@ const Assessment = () => {
         >
           Ongoing assessments
         </Typography>
-        <Typography
-          fontSize={"14px"}
-          color={theme.palette.text.secondary}
-        >
+        <Typography fontSize={"14px"} color={theme.palette.text.secondary}>
           Those are the assessments you started. Each assessment has a
           completion status on the left hand side of the table.
         </Typography>
         <Stack>
-        <Button
+          <Button
             disableRipple={
               theme.components?.MuiButton?.defaultProps?.disableRipple
             }
             variant="contained"
             sx={{
               ...singleTheme.buttons.primary,
-              width: 150,
+              width: "fit-content",
               height: 34,
-              marginTop: "20px"
+              marginTop: "20px",
             }}
             onClick={() => {
               handleAssessment();

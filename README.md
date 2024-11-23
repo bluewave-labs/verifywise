@@ -10,11 +10,15 @@ We are democratizing AI best practices with an open-source solution that can be 
 
 <img width="1433" alt="VerifyWise" src="https://github.com/user-attachments/assets/268a2c44-01de-4f7b-8e10-1dd4f76e86a8">
 
-## Running the frontend
+## Running the application
 
-After you fork and clone the repository, simple head into the Clients directory and run the following command:
+The application has two components: a frontend in Reactjs and backend in Nodejs. Do the following to run 
 
-`npm run dev`
+1. Fork and clone the repository. Go to the Clients directory.
+2. Run `npm i; npm run dev`
+3. Go to ../Servers directory.
+4. Run `npm i; npm run watch`
+5. Now the application is up and running on `https://localhost:5173` 
 
 Currently the application is in its infancy state, so check back here often.
 
@@ -59,6 +63,8 @@ VerifyWise is designed for:
   - Assessment tracker
   - Vendors
   - Risks
+  - AI Trust Center
+  - File manager
 
 ## Roadmap
 

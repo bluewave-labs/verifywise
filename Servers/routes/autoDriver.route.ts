@@ -7,6 +7,6 @@ import {
 
 import authenticateJWT from "../middleware/auth.middleware";
 
-router.post("/", authenticateJWT, postAutoDriver);
+router.post("/", /*authenticateJWT,*/ postAutoDriver);
 
 export default router;

@@ -29,7 +29,6 @@ const port = process.env.PORT || 3000;
 app.use(
   cors({
     origin: "*",
-    optionsSuccessStatus: 200,
   })
 );
 app.use(express.json());

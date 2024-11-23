@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 
 import assessmentRoutes from "./routes/assessment.route";
 import controlRoutes from "./routes/control.route";
@@ -25,36 +26,37 @@ const app = express();
 
 const port = process.env.PORT || 3000;
 
-// Middlewares
-app.use(
-  cors({
-    origin: "*",
-  })
-);
-app.use(express.json());
-app.use("/users", userRoutes);
-app.use("/vendorRisks", vendorRiskRoutes);
-app.use("/vendors", vendorRoutes);
-app.use("/projects", projectRoutes);
-app.use("/questions", questionRoutes);
-app.use("/autoDrivers", autoDriverRoutes);
-app.use("/assessments", assessmentRoutes);
-app.use("/controls", controlRoutes);
-app.use("/projectRisks", projectRisksRoutes);
-app.use("/projectScopes", projectScopeRoutes);
-app.use("/subcontrols", subcontrolRoutes);
-app.use("/subtopics", subtopicRoutes);
-app.use("/topics", topicRoutes);
-app.use("/roles", roleRoutes);
+try {
+  // Middlewares
+  app.use(cors({}));
+  app.use(helmet()); // Use helmet for security headers
+  app.use(express.json());
 
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
+  // Routes
+  app.use("/users", userRoutes);
+  app.use("/vendorRisks", vendorRiskRoutes);
+  app.use("/vendors", vendorRoutes);
+  app.use("/projects", projectRoutes);
+  app.use("/questions", questionRoutes);
+  app.use("/autoDrivers", autoDriverRoutes);
+  app.use("/assessments", assessmentRoutes);
+  app.use("/controls", controlRoutes);
+  app.use("/projectRisks", projectRisksRoutes);
+  app.use("/projectScopes", projectScopeRoutes);
+  app.use("/subcontrols", subcontrolRoutes);
+  app.use("/subtopics", subtopicRoutes);
+  app.use("/topics", topicRoutes);
+  app.use("/roles", roleRoutes);
 
-app.use("/", (req, res) => {
-  res.json("Hello buddy!");
-});
+  app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 
-// Routes
+  app.use("/", (req, res) => {
+    res.json("Hello buddy!");
+  });
 
-app.listen(port, () => {
-  console.log(`Server running on port http://localhost:${port}/`);
-});
+  app.listen(port, () => {
+    console.log(`Server running on port http://localhost:${port}/`);
+  });
+} catch (error) {
+  console.error("Error setting up the server:", error);
+}

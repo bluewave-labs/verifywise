@@ -1,6 +1,6 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
 
-const routeAddress = "http://localhost:3000";
+const routeAddress = "http://192.168.1.105:3000";
 
 /**
  * Creates a new user by sending a POST request to the specified route URL with the provided body.
@@ -139,6 +139,7 @@ export async function getAllEntities({
 }): Promise<any> {
   try {
     const response = await apiServices.get(routeAddress + routeUrl);
+    console.log("response ==> ", response);
     return response.data;
   } catch (error) {
     console.error("Error getting all users:", error);

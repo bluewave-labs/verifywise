@@ -1,3 +1,12 @@
+/**
+ * All colors used here:
+ * priorities: FD7E14, EFB70E, ABBDA1
+ * Listitem: 4C7DE7
+ * Text: White, FFFFFF, 667085, 344054
+ * Background: FBFAFA
+ * Border: D0D5DD
+ */
+
 import { useState, useCallback } from "react";
 import {
   Typography,
@@ -149,8 +158,8 @@ const AllAssessment = () => {
         sx={{ overflowY: "auto" }}
       >
         {Topics[activeTab].id === assessments[activeTab].id &&
-          assessments[activeTab].component.map((subtopic, subIndex) => (
-            <Stack key={subIndex} mb={15}>
+          assessments[activeTab].component.map((subtopic) => (
+            <Stack key={subtopic.id} mb={15}>
               <Typography sx={{ fontSize: 16, color: "#344054" }}>
                 {subtopic.title}
               </Typography>
@@ -194,6 +203,8 @@ const AllAssessment = () => {
 
                   <RichTextEditor
                     onContentChange={(content: string) => {
+                      console.log("Topics: ", Topics);
+                      console.log("assessments (Subtopics): ", assessments);
                       console.log(content);
                     }}
                     headerSx={{

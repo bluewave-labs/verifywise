@@ -259,7 +259,8 @@ const AllAssessment = () => {
                           (q: any) =>
                             q.id ===
                             `${Topics[activeTab].id}-${subtopic.id}-${question.id}`
-                        )?.answer || ""
+                        )
+                        ?.answer.trim() || "".trim()
                     }
                   />
                   <Stack

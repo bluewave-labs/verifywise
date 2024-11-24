@@ -76,7 +76,7 @@ const ComplianceTracker = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // State to manage the selected row for modal content
-  const [selectedRow, setSelectedRow] = useState<number | null>(null);
+  const [selectedRow, setSelectedRow] = useState<number | string | null>(null);
 
   const { setDashboardValues } = useContext(VerifyWiseContext);
 
@@ -105,7 +105,7 @@ const ComplianceTracker = ({
   };
 
   // Handle row click to open modal with selected row data
-  const handleRowClick = (id: number) => {
+  const handleRowClick = (id: number | string) => {
     setSelectedRow(id);
     setIsModalOpen(true);
   };

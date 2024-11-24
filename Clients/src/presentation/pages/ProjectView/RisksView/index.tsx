@@ -15,6 +15,18 @@ interface RisksViewProps {
     title: string
 }
 
+/**
+ * RisksView component displays a summary of risks and a table of detailed risk data.
+ * It conditionally renders different column names and popup forms based on the title prop.
+ *
+ * @component
+ * @param {RisksViewProps} props - The props for the RisksView component.
+ * @param {Object} props.risksSummary - Summary data for the risks.
+ * @param {Array<ProjectRisk | VendorRisk>} props.risksData - Array of risk data objects.
+ * @param {string} props.title - The title indicating the type of risks ("Project" or "Vendor").
+ *
+ * @returns {JSX.Element} The rendered RisksView component.
+ */
 const RisksView: FC<RisksViewProps>= ({ risksSummary, risksData, title }) => {
     const projectRisksColNames = [ "RISK NAME", "IMPACT", "OWNER", "SEVERITY", "LIKELIHOOD", "RISK LEVEL", "MITIGATION", "FINAL RISK LEVEL" ];
     const vendorRisksColNames = [ "VENDOR NAME", "RISK NAME", "OWNER", "RISK LEVEL", "REVIEW DATE" ];

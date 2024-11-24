@@ -38,21 +38,6 @@ const Home = () => {
     return () => controller.abort();
   }, []);
 
-  if (isLoading) {
-    return (
-      <Typography variant="h1" component="div" sx={styles.title}>
-        Projects are loading...
-      </Typography>
-    );
-  }
-  if (error) {
-    return (
-      <Typography variant="h1" component="div" sx={styles.title}>
-        {error}
-      </Typography>
-    );
-  }
-
   const NoProjectsMessage = () => (
     <NoProjectBox>
       <Box sx={{ display: "flex", justifyContent: "center" }}>
@@ -99,6 +84,12 @@ const Home = () => {
         </Typography>
         <PopupRender />
       </Box>
+      {isLoading ? <Typography component="div" sx={{mb: 12}}>
+        Projects are loading...
+      </Typography> : 
+      error ? <Typography component="div" sx={{mb: 12}}>
+        {error}
+      </Typography> : null}
       {projects && projects.length > 0 ? (
         <>
           <Stack direction="row" justifyContent="space-between" spacing={15}>

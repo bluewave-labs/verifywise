@@ -138,6 +138,7 @@ const ComplianceTracker = ({
             position: "relative",
             "&.MuiPaper-root": { margin: 0, padding: 0, boxShadow: "none" },
             "& .MuiAccordionDetails-root": { padding: 0, margin: 0 },
+            "& .MuiAccordionSummary-root" : {height: '42px'}
           }}
         >
           <AccordionSummary
@@ -161,7 +162,7 @@ const ComplianceTracker = ({
           >
             <Typography
               variant="h6"
-              sx={{ fontSize: "16px", paddingLeft: spacing(1.25) }}
+              sx={{ fontSize: "16px", paddingLeft: spacing(1.25)}}
             >
               {title}
             </Typography>

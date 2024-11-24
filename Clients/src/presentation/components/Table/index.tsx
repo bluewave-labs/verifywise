@@ -24,7 +24,7 @@ interface RowData {
     data: string | number;
   }[];
   icon?: string;
-};
+}
 
 interface ColData {
   id: number | string;
@@ -36,7 +36,7 @@ interface TableData {
   rows: RowData[];
 }
 
- /**
+/**
  * BasicTable component renders a table with optional pagination, sorting options, row click handling, and custom styling.
  *
  * @component
@@ -67,7 +67,7 @@ const BasicTable = ({
   reversed,
   table,
   onRowClick,
-  label
+  label,
 }: {
   data: TableData;
   paginated?: boolean;
@@ -129,79 +129,95 @@ const BasicTable = ({
     return "#008000"; // 91-100%
   }, []);
 
-  const tableHeader = useMemo(() => (
-    <TableHead
-      sx={{
-        backgroundColors:
-          singleTheme.tableStyles.primary.header.backgroundColors,
-      }}
-    >
-      <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-        {data.cols.map((col) => (
-          <TableCell
-            style={singleTheme.tableStyles.primary.header.cell}
-            key={col.id}
-          >
-            {col.name}
-          </TableCell>
-        ))}
-      </TableRow>
-    </TableHead>
-  ), [data.cols]);
-
-  const tableBody = useMemo(() => (
-    <TableBody>
-      {displayData.map((row) => (
-        <TableRow
-          sx={singleTheme.tableStyles.primary.body.row}
-          key={row.id}
-          onClick={() => {
-            console.log(`Row clicked: ${row.id}`);
-            onRowClick && onRowClick(row.id as number);
-          }}
-        >
-          {row.icon && (
+  const tableHeader = useMemo(
+    () => (
+      <TableHead
+        sx={{
+          backgroundColors:
+            singleTheme.tableStyles.primary.header.backgroundColors,
+        }}
+      >
+        <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+          {data.cols.map((col) => (
             <TableCell
-              sx={{ ...cellStyle, ...iconCell }}
-              key={`icon-${row.id}`}
+              style={singleTheme.tableStyles.primary.header.cell}
+              key={col.id}
             >
-              <img src={row.icon} alt="status icon" width={20} />
-            </TableCell>
-          )}
-          {row.data.map((cell: any) => (
-            <TableCell sx={cellStyle} key={cell.id}>
-              {cell.id === "4" ? (
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  spacing={1}
-                >
-                  <Typography variant="body2">{cell.data}</Typography>
-                  <LinearProgress
-                    variant="determinate"
-                    value={parseFloat(cell.data)}
-                    sx={{
-                      width: "100px",
-                      height: "8px",
-                      borderRadius: "4px",
-                      backgroundColor: theme.palette.grey[200],
-                      "& .MuiLinearProgress-bar": {
-                        backgroundColor: getProgressColor(
-                          parseFloat(cell.data)
-                        ),
-                      },
-                    }}
-                  />
-                </Stack>
-              ) : (
-                cell.data
-              )}
+              {col.name}
             </TableCell>
           ))}
         </TableRow>
-      ))}
-    </TableBody>
-  ), [displayData, cellStyle, iconCell, onRowClick, theme.palette.grey, getProgressColor]);
+      </TableHead>
+    ),
+    [data.cols]
+  );
+
+  const tableBody = useMemo(
+    () => (
+      <TableBody>
+        {displayData.map((row) => (
+          <TableRow
+            sx={{
+              ...singleTheme.tableStyles.primary.body.row, 
+              height: "36px", 
+              "&:hover":{
+                backgroundColor: "#FBFBFB",
+                cursor: "pointer",
+              }
+            }}
+            key={row.id}
+            onClick={() => {
+              console.log(`Row clicked: ${row.id}`);
+              onRowClick && onRowClick(row.id as number);
+            }}
+          >
+            {row.icon && (
+              <TableCell
+                sx={{ ...cellStyle, ...iconCell }}
+                key={`icon-${row.id}`}
+              >
+                <img src={row.icon} alt="status icon" width={20} />
+              </TableCell>
+            )}
+            {row.data.map((cell: any) => (
+              <TableCell sx={cellStyle} key={cell.id}>
+                {cell.id === "4" ? (
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <Typography variant="body2">{cell.data}</Typography>
+                    <LinearProgress
+                      variant="determinate"
+                      value={parseFloat(cell.data)}
+                      sx={{
+                        width: "100px",
+                        height: "8px",
+                        borderRadius: "4px",
+                        backgroundColor: theme.palette.grey[200],
+                        "& .MuiLinearProgress-bar": {
+                          backgroundColor: getProgressColor(
+                            parseFloat(cell.data)
+                          ),
+                        },
+                      }}
+                    />
+                  </Stack>
+                ) : (
+                  cell.data
+                )}
+              </TableCell>
+            ))}
+          </TableRow>
+        ))}
+      </TableBody>
+    ),
+    [
+      displayData,
+      cellStyle,
+      iconCell,
+      onRowClick,
+      theme.palette.grey,
+      getProgressColor,
+    ]
+  );
 
   const pagination = useMemo(() => {
     if (!paginated) {
@@ -221,11 +237,14 @@ const BasicTable = ({
         }}
       >
         <Typography px={theme.spacing(2)} fontSize={12} sx={{ opacity: 0.7 }}>
-          Showing {getRange()} of {data.rows.length} {label ? (
-            data.rows.length === 1 ? label : `${label}s`
-          ) : (
-            data.rows.length === 1 ? "item" : "items"
-          )}
+          Showing {getRange()} of {data.rows.length}{" "}
+          {label
+            ? data.rows.length === 1
+              ? label
+              : `${label}s`
+            : data.rows.length === 1
+            ? "item"
+            : "items"}
         </Typography>
         <TablePagination
           count={data.rows.length}
@@ -237,10 +256,7 @@ const BasicTable = ({
           ActionsComponent={(props) => <TablePaginationActions {...props} />}
           labelRowsPerPage="Rows per page"
           labelDisplayedRows={({ page, count }) =>
-            `Page ${page + 1} of ${Math.max(
-              0,
-              Math.ceil(count / rowsPerPage)
-            )}`
+            `Page ${page + 1} of ${Math.max(0, Math.ceil(count / rowsPerPage))}`
           }
           slotProps={{
             select: {
@@ -285,8 +301,18 @@ const BasicTable = ({
           }}
         />
       </Stack>
-    )
-  }, [paginated, theme, getRange, data.rows.length, label, page, rowsPerPage, handleChangePage, handleChangeRowsPerPage]);
+    );
+  }, [
+    paginated,
+    theme,
+    getRange,
+    data.rows.length,
+    label,
+    page,
+    rowsPerPage,
+    handleChangePage,
+    handleChangeRowsPerPage,
+  ]);
 
   return (
     <>

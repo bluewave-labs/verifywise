@@ -49,7 +49,7 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup }) => {
   const handleDateChange = (newDate: Dayjs | null) => {
     setValues((prevValues) => ({
       ...prevValues,
-      startDate: newDate ? newDate.toISOString() : ""
+      reviewDate: newDate ? newDate.toISOString() : ""
     }));
   };
   const handleOnSelectChange = (prop: keyof FormValues) => (event: SelectChangeEvent<string | number>) => {

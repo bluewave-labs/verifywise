@@ -114,6 +114,8 @@ const CustomModal: React.FC<CustomModalProps> = ({
           "&:focus": {
             outline: "none",
           },
+          maxHeight: "90vh",
+          overflowY: "auto",
         }}
       >
         <Stack
@@ -203,6 +205,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
           </Typography>
           <Typography variant="body1" sx={{ mb: 5 }}>
             {'hiiiiiiiiiiiiiiiiii =D'}
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Similique atque natus accusantium molestiae illum labore a ut dolorem doloribus maiores rerum quibusdam, sapiente amet itaque ad culpa quidem nostrum quo mollitia nihil reiciendis autem perspiciatis minus nobis. Ab delectus consequatur harum minima similique possimus? Nostrum at porro vel nisi assumenda facere voluptatem nobis fuga repudiandae in minus temporibus voluptatibus sint accusamus quia laboriosam laudantium, eum optio facilis, aliquam quasi quae a consequuntur. Sed quibusdam beatae perferendis dolorum nihil harum sunt unde vel pariatur quasi id placeat nulla accusamus delectus deleniti soluta illum dolorem, reprehenderit explicabo quo ex? Quod, non illum.
           </Typography>
           {activeSection === "Overview" && (
             <Typography variant="body1">

@@ -50,24 +50,118 @@ const priorities = {
 };
 
 const assessments = [
-  { id: 1, component: RiskManagementSystem },
-  { id: 2, component: DataGovernance },
-  { id: 3, component: TechnicalDocumentation },
-  { id: 4, component: RecordKeeping },
-  { id: 5, component: TransparencyAndUserInformation },
-  { id: 6, component: HumanOversight },
-  { id: 7, component: AccuracyRobustnessCyberSecurity },
-  { id: 8, component: ConformityAssessment },
-  { id: 9, component: PostMarketMonitoring },
-  { id: 10, component: BiasMonitoringAndMitigation },
-  { id: 11, component: AccountabilityAndGovernance },
-  { id: 12, component: Explainability },
-  { id: 13, component: EnvironmentalImpact },
+  { id: 1, title: "RiskManagementSystem", component: RiskManagementSystem },
+  { id: 2, title: "DataGovernance", component: DataGovernance },
+  { id: 3, title: "TechnicalDocumentation", component: TechnicalDocumentation },
+  { id: 4, title: "RecordKeeping", component: RecordKeeping },
+  {
+    id: 5,
+    title: "TransparencyAndUserInformation",
+    component: TransparencyAndUserInformation,
+  },
+  { id: 6, title: "HumanOversight", component: HumanOversight },
+  {
+    id: 7,
+    title: "AccuracyRobustnessCyberSecurity",
+    component: AccuracyRobustnessCyberSecurity,
+  },
+  { id: 8, title: "ConformityAssessment", component: ConformityAssessment },
+  { id: 9, title: "PostMarketMonitoring", component: PostMarketMonitoring },
+  {
+    id: 10,
+    title: "BiasMonitoringAndMitigation",
+    component: BiasMonitoringAndMitigation,
+  },
+  {
+    id: 11,
+    title: "AccountabilityAndGovernance",
+    component: AccountabilityAndGovernance,
+  },
+  { id: 12, title: "Explainability", component: Explainability },
+  { id: 13, title: "EnvironmentalImpact", component: EnvironmentalImpact },
 ];
 
 const AllAssessment = () => {
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState<number>(0);
+  const [assessmentsValues, setAssessmentsValue] = useState<any>({
+    1: { topic: "RiskManagementSystem", subtopic: [] },
+    2: { topic: "DataGovernance", subtopic: [] },
+    3: { topic: "TechnicalDocumentation", subtopic: [] },
+    4: { topic: "RecordKeeping", subtopic: [] },
+    5: { topic: "TransparencyAndUserInformation", subtopic: [] },
+    6: { topic: "HumanOversight", subtopic: [] },
+    7: { topic: "AccuracyRobustnessCyberSecurity", subtopic: [] },
+    8: { topic: "ConformityAssessment", subtopic: [] },
+    9: { topic: "PostMarketMonitoring", subtopic: [] },
+    10: { topic: "BiasMonitoringAndMitigation", subtopic: [] },
+    11: { topic: "AccountabilityAndGovernance", subtopic: [] },
+    12: { topic: "Explainability", subtopic: [] },
+    13: { topic: "EnvironmentalImpact", subtopic: [] },
+  });
+
+  const handleSave = () => {
+    console.log(assessmentsValues);
+  };
+
+  // Assessment and ID
+  // Topic and ID, Title
+  // Subtopic and ID, Title
+  // Question and ID, Question, Answer
+  const handleAssessmentChange = (
+    topicid: number,
+    topic: string,
+    subtopicId: any,
+    subtopic: string,
+    questionId: any,
+    question: string,
+    answer: string
+  ) => {
+    setAssessmentsValue((prevValues: any) => {
+      const updatedValues = { ...prevValues };
+      const assessment = updatedValues[topicid] || { subtopics: [] };
+
+      if (!assessment.subtopics) {
+        assessment.subtopics = [];
+      }
+
+      const subtopicIndex = assessment.subtopics.findIndex(
+        (subtopicItem: any) => subtopicItem.subtopicId === subtopicId
+      );
+
+      if (subtopicIndex === -1) {
+        assessment.subtopics.push({
+          subtopicId,
+          subtopic,
+          questions: [
+            {
+              questionId,
+              question,
+              answer,
+            },
+          ],
+        });
+      } else {
+        const questionIndex = assessment.subtopics[
+          subtopicIndex
+        ].questions.findIndex((q: any) => q.questionId === questionId);
+
+        if (questionIndex === -1) {
+          assessment.subtopics[subtopicIndex].questions.push({
+            questionId,
+            question,
+            answer,
+          });
+        } else {
+          assessment.subtopics[subtopicIndex].questions[questionIndex].answer =
+            answer;
+        }
+      }
+
+      updatedValues[topicid] = assessment;
+      return updatedValues;
+    });
+  };
 
   const handleListItemClick = useCallback((index: number) => {
     setActiveTab(index);
@@ -163,8 +257,8 @@ const AllAssessment = () => {
               <Typography sx={{ fontSize: 16, color: "#344054" }}>
                 {subtopic.title}
               </Typography>
-              {subtopic.questions.map((question, questionIndex) => (
-                <Box key={questionIndex} mt={10}>
+              {subtopic.questions.map((question) => (
+                <Box key={question.id} mt={10}>
                   <Box
                     className={"tiptap-header"}
                     p={5}
@@ -203,9 +297,19 @@ const AllAssessment = () => {
 
                   <RichTextEditor
                     onContentChange={(content: string) => {
-                      console.log("Topics: ", Topics);
-                      console.log("assessments (Subtopics): ", assessments);
-                      console.log(content);
+                      const cleanedContent = content
+                        .replace(/^<p>/, "")
+                        .replace(/<\/p>$/, "");
+
+                      handleAssessmentChange(
+                        Topics[activeTab].id,
+                        Topics[activeTab].title,
+                        `${Topics[activeTab].id}-${subtopic.id}`,
+                        subtopic.title,
+                        `${Topics[activeTab].id}-${subtopic.id}-${question.id}`,
+                        question.question,
+                        cleanedContent
+                      );
                     }}
                     headerSx={{
                       borderRadius: 0,
@@ -220,6 +324,17 @@ const AllAssessment = () => {
                         margin: 0,
                       },
                     }}
+                    initialContent={
+                      assessmentsValues[Topics[activeTab].id]?.subtopics
+                        ?.find(
+                          (subtopicItem: any) =>
+                            subtopicItem.subtopicId === subtopic.id
+                        )
+                        ?.questions.find(
+                          (questionItem: any) =>
+                            questionItem.questionId === question.id
+                        )?.answer || ""
+                    }
                   />
                   <Stack
                     sx={{
@@ -272,6 +387,7 @@ const AllAssessment = () => {
               color: "#FFFFFF",
               width: 140,
             }}
+            onClick={() => handleSave()}
           >
             Save
           </Button>

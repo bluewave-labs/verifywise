@@ -1,12 +1,3 @@
-/**
- * All colors used here:
- * priorities: FD7E14, EFB70E, ABBDA1
- * Listitem: 4C7DE7
- * Text: White, FFFFFF, 667085, 344054
- * Background: FBFAFA
- * Border: D0D5DD
- */
-
 import { useState, useCallback } from "react";
 import {
   Typography,
@@ -27,47 +18,74 @@ import RichTextEditor from "../../../components/RichTextEditor";
 
 import singleTheme from "../../../themes/v1SingleTheme";
 import { Topic, Topics } from "../../../structures/AssessmentTracker/Topics";
-import { RiskManagementSystem } from "../../../structures/AssessmentTracker/risk-management-system.subtopic";
-import { DataGovernance } from "../../../structures/AssessmentTracker/data-governance.subtopic";
-import { TechnicalDocumentation } from "../../../structures/AssessmentTracker/technical-documentation.subtopic";
-import { RecordKeeping } from "../../../structures/AssessmentTracker/record-keeping.subtopic";
-import { TransparencyAndUserInformation } from "../../../structures/AssessmentTracker/transparency-user-information.subtopic";
-import { HumanOversight } from "../../../structures/AssessmentTracker/human-oversight.subtopic";
-import { AccuracyRobustnessCyberSecurity } from "../../../structures/AssessmentTracker/accuracy-robustness-cybersecurity.subtopic";
-import { ConformityAssessment } from "../../../structures/AssessmentTracker/conformity-assessment.subtopic";
-import { PostMarketMonitoring } from "../../../structures/AssessmentTracker/post-market-monitoring.subtopic";
-import { BiasMonitoringAndMitigation } from "../../../structures/AssessmentTracker/bias-monitoring-and-mitigation.subtopic";
-import { AccountabilityAndGovernance } from "../../../structures/AssessmentTracker/accountability-and-governance.subtopic";
-import { Explainability } from "../../../structures/AssessmentTracker/explainability.subtopic";
-import { EnvironmentalImpact } from "../../../structures/AssessmentTracker/environmental-impact.subtopic";
-
-type PriorityLevel = "high priority" | "medium priority" | "low priority";
-
-const priorities = {
-  "high priority": { color: "#FD7E14" },
-  "medium priority": { color: "#EFB70E" },
-  "low priority": { color: "#ABBDA1" },
-};
-
-const assessments = [
-  { id: 1, component: RiskManagementSystem },
-  { id: 2, component: DataGovernance },
-  { id: 3, component: TechnicalDocumentation },
-  { id: 4, component: RecordKeeping },
-  { id: 5, component: TransparencyAndUserInformation },
-  { id: 6, component: HumanOversight },
-  { id: 7, component: AccuracyRobustnessCyberSecurity },
-  { id: 8, component: ConformityAssessment },
-  { id: 9, component: PostMarketMonitoring },
-  { id: 10, component: BiasMonitoringAndMitigation },
-  { id: 11, component: AccountabilityAndGovernance },
-  { id: 12, component: Explainability },
-  { id: 13, component: EnvironmentalImpact },
-];
+import { assessments } from "./assessments";
+import { priorities, PriorityLevel } from "./priorities";
 
 const AllAssessment = () => {
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState<number>(0);
+  const [assessmentsValues, setAssessmentsValue] = useState<any>({
+    1: { topic: "RiskManagementSystem", subtopic: [] },
+    2: { topic: "DataGovernance", subtopic: [] },
+    3: { topic: "TechnicalDocumentation", subtopic: [] },
+    4: { topic: "RecordKeeping", subtopic: [] },
+    5: { topic: "TransparencyAndUserInformation", subtopic: [] },
+    6: { topic: "HumanOversight", subtopic: [] },
+    7: { topic: "AccuracyRobustnessCyberSecurity", subtopic: [] },
+    8: { topic: "ConformityAssessment", subtopic: [] },
+    9: { topic: "PostMarketMonitoring", subtopic: [] },
+    10: { topic: "BiasMonitoringAndMitigation", subtopic: [] },
+    11: { topic: "AccountabilityAndGovernance", subtopic: [] },
+    12: { topic: "Explainability", subtopic: [] },
+    13: { topic: "EnvironmentalImpact", subtopic: [] },
+  });
+
+  const handleSave = () => {
+    console.log(assessmentsValues);
+  };
+
+  const handleAssessmentChange = (
+    topicid: number,
+    topic: string,
+    subtopicId: any,
+    subtopic: string,
+    questionId: any,
+    question: string,
+    answer: string
+  ) => {
+    setAssessmentsValue((prevValues: any) => {
+      const updatedValues = { ...prevValues };
+      if (!updatedValues[topicid]) {
+        updatedValues[topicid] = { topic, subtopic: [] };
+      }
+      const subtopicIndex = updatedValues[topicid].subtopic.findIndex(
+        (st: any) => st.id === subtopicId
+      );
+      if (subtopicIndex === -1) {
+        updatedValues[topicid].subtopic.push({
+          id: subtopicId,
+          title: subtopic,
+          questions: [{ id: questionId, question, answer }],
+        });
+      } else {
+        const questionIndex = updatedValues[topicid].subtopic[
+          subtopicIndex
+        ].questions.findIndex((q: any) => q.id === questionId);
+        if (questionIndex === -1) {
+          updatedValues[topicid].subtopic[subtopicIndex].questions.push({
+            id: questionId,
+            question,
+            answer,
+          });
+        } else {
+          updatedValues[topicid].subtopic[subtopicIndex].questions[
+            questionIndex
+          ].answer = answer;
+        }
+      }
+      return updatedValues;
+    });
+  };
 
   const handleListItemClick = useCallback((index: number) => {
     setActiveTab(index);
@@ -163,8 +181,8 @@ const AllAssessment = () => {
               <Typography sx={{ fontSize: 16, color: "#344054" }}>
                 {subtopic.title}
               </Typography>
-              {subtopic.questions.map((question, questionIndex) => (
-                <Box key={questionIndex} mt={10}>
+              {subtopic.questions.map((question) => (
+                <Box key={question.id} mt={10}>
                   <Box
                     className={"tiptap-header"}
                     p={5}
@@ -202,10 +220,21 @@ const AllAssessment = () => {
                   </Box>
 
                   <RichTextEditor
+                    key={`${Topics[activeTab].id}-${subtopic.id}-${question.id}`}
                     onContentChange={(content: string) => {
-                      console.log("Topics: ", Topics);
-                      console.log("assessments (Subtopics): ", assessments);
-                      console.log(content);
+                      const cleanedContent = content
+                        .replace(/^<p>/, "")
+                        .replace(/<\/p>$/, "");
+
+                      handleAssessmentChange(
+                        Topics[activeTab].id,
+                        Topics[activeTab].title,
+                        `${Topics[activeTab].id}-${subtopic.id}`,
+                        subtopic.title,
+                        `${Topics[activeTab].id}-${subtopic.id}-${question.id}`,
+                        question.question,
+                        cleanedContent
+                      );
                     }}
                     headerSx={{
                       borderRadius: 0,
@@ -220,6 +249,19 @@ const AllAssessment = () => {
                         margin: 0,
                       },
                     }}
+                    initialContent={
+                      assessmentsValues[Topics[activeTab].id]?.subtopic
+                        ?.find(
+                          (st: any) =>
+                            st.id === `${Topics[activeTab].id}-${subtopic.id}`
+                        )
+                        ?.questions?.find(
+                          (q: any) =>
+                            q.id ===
+                            `${Topics[activeTab].id}-${subtopic.id}-${question.id}`
+                        )
+                        ?.answer.trim() || "".trim()
+                    }
                   />
                   <Stack
                     sx={{
@@ -272,6 +314,7 @@ const AllAssessment = () => {
               color: "#FFFFFF",
               width: 140,
             }}
+            onClick={() => handleSave()}
           >
             Save
           </Button>

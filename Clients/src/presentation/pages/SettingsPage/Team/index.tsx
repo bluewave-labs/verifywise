@@ -156,6 +156,7 @@ export default function index() {
               width: theme.spacing(35),
               height: theme.spacing(17),
             }}
+            disableRipple
           >
             Save
           </Button>
@@ -194,6 +195,7 @@ export default function index() {
               {["All", ...roles].map((role) => (
                 <Button
                   key={role}
+                  disableRipple
                   variant={filter === role ? "contained" : "outlined"}
                   onClick={() => setFilter(role)}
                   sx={{
@@ -215,7 +217,7 @@ export default function index() {
             </Box>
 
             <Box sx={{ mt: 10 }}>
-              <Button variant="contained">Invite team member</Button>
+              <Button variant="contained" disableRipple>Invite team member</Button>
             </Box>
           </Stack>
 
@@ -307,6 +309,7 @@ export default function index() {
           >
           
             <Button variant="contained"
+            disableRipple
             onClick={handleSaveAllData}>Save</Button>
           </Box>
         </Stack>

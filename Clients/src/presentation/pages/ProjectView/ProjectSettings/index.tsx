@@ -55,7 +55,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = ({ setTabValue }) => {
     const handleDateChange = (newDate: Dayjs | null) => {
         setValues((prevValues) => ({
             ...prevValues,
-            reviewDate: newDate ? newDate.toISOString() : ""
+            startDate: newDate ? newDate.toISOString() : ""
         }));
     };
     const handleOnSelectChange = (prop: keyof FormValues) => (event: SelectChangeEvent<string | number>) => {

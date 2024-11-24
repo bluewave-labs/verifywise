@@ -61,7 +61,9 @@ const FileUpload: FC = () => {
         <Typography>or drag and drop</Typography>
       </Stack>
       {file 
-        && <Typography variant="body2" sx={{ mt: 2 }}>Attached file: {file.name}</Typography>
+        && <Typography variant="body2" sx={{ mt: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "315px" }}>
+            Attached file: {file.name}
+          </Typography>
         || <Typography sx={{ color: theme.palette.text.secondary, fontSize: theme.typography.fontSize, mt: 2 }}>Nothing selected.</Typography>
       }
       <ErrorModal

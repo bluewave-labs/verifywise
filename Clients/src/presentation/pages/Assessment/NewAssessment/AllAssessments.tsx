@@ -1,12 +1,3 @@
-/**
- * All colors used here:
- * priorities: FD7E14, EFB70E, ABBDA1
- * Listitem: 4C7DE7
- * Text: White, FFFFFF, 667085, 344054
- * Background: FBFAFA
- * Border: D0D5DD
- */
-
 import { useState, useCallback } from "react";
 import {
   Typography,
@@ -27,59 +18,8 @@ import RichTextEditor from "../../../components/RichTextEditor";
 
 import singleTheme from "../../../themes/v1SingleTheme";
 import { Topic, Topics } from "../../../structures/AssessmentTracker/Topics";
-import { RiskManagementSystem } from "../../../structures/AssessmentTracker/risk-management-system.subtopic";
-import { DataGovernance } from "../../../structures/AssessmentTracker/data-governance.subtopic";
-import { TechnicalDocumentation } from "../../../structures/AssessmentTracker/technical-documentation.subtopic";
-import { RecordKeeping } from "../../../structures/AssessmentTracker/record-keeping.subtopic";
-import { TransparencyAndUserInformation } from "../../../structures/AssessmentTracker/transparency-user-information.subtopic";
-import { HumanOversight } from "../../../structures/AssessmentTracker/human-oversight.subtopic";
-import { AccuracyRobustnessCyberSecurity } from "../../../structures/AssessmentTracker/accuracy-robustness-cybersecurity.subtopic";
-import { ConformityAssessment } from "../../../structures/AssessmentTracker/conformity-assessment.subtopic";
-import { PostMarketMonitoring } from "../../../structures/AssessmentTracker/post-market-monitoring.subtopic";
-import { BiasMonitoringAndMitigation } from "../../../structures/AssessmentTracker/bias-monitoring-and-mitigation.subtopic";
-import { AccountabilityAndGovernance } from "../../../structures/AssessmentTracker/accountability-and-governance.subtopic";
-import { Explainability } from "../../../structures/AssessmentTracker/explainability.subtopic";
-import { EnvironmentalImpact } from "../../../structures/AssessmentTracker/environmental-impact.subtopic";
-
-type PriorityLevel = "high priority" | "medium priority" | "low priority";
-
-const priorities = {
-  "high priority": { color: "#FD7E14" },
-  "medium priority": { color: "#EFB70E" },
-  "low priority": { color: "#ABBDA1" },
-};
-
-const assessments = [
-  { id: 1, title: "RiskManagementSystem", component: RiskManagementSystem },
-  { id: 2, title: "DataGovernance", component: DataGovernance },
-  { id: 3, title: "TechnicalDocumentation", component: TechnicalDocumentation },
-  { id: 4, title: "RecordKeeping", component: RecordKeeping },
-  {
-    id: 5,
-    title: "TransparencyAndUserInformation",
-    component: TransparencyAndUserInformation,
-  },
-  { id: 6, title: "HumanOversight", component: HumanOversight },
-  {
-    id: 7,
-    title: "AccuracyRobustnessCyberSecurity",
-    component: AccuracyRobustnessCyberSecurity,
-  },
-  { id: 8, title: "ConformityAssessment", component: ConformityAssessment },
-  { id: 9, title: "PostMarketMonitoring", component: PostMarketMonitoring },
-  {
-    id: 10,
-    title: "BiasMonitoringAndMitigation",
-    component: BiasMonitoringAndMitigation,
-  },
-  {
-    id: 11,
-    title: "AccountabilityAndGovernance",
-    component: AccountabilityAndGovernance,
-  },
-  { id: 12, title: "Explainability", component: Explainability },
-  { id: 13, title: "EnvironmentalImpact", component: EnvironmentalImpact },
-];
+import { assessments } from "./assessments";
+import { priorities, PriorityLevel } from "./priorities";
 
 const AllAssessment = () => {
   const theme = useTheme();
@@ -104,10 +44,6 @@ const AllAssessment = () => {
     console.log(assessmentsValues);
   };
 
-  // Assessment and ID
-  // Topic and ID, Title
-  // Subtopic and ID, Title
-  // Question and ID, Question, Answer
   const handleAssessmentChange = (
     topicid: number,
     topic: string,
@@ -284,6 +220,7 @@ const AllAssessment = () => {
                   </Box>
 
                   <RichTextEditor
+                    key={`${Topics[activeTab].id}-${subtopic.id}-${question.id}`}
                     onContentChange={(content: string) => {
                       const cleanedContent = content
                         .replace(/^<p>/, "")
@@ -312,7 +249,18 @@ const AllAssessment = () => {
                         margin: 0,
                       },
                     }}
-                    initialContent={""}
+                    initialContent={
+                      assessmentsValues[Topics[activeTab].id]?.subtopic
+                        ?.find(
+                          (st: any) =>
+                            st.id === `${Topics[activeTab].id}-${subtopic.id}`
+                        )
+                        ?.questions?.find(
+                          (q: any) =>
+                            q.id ===
+                            `${Topics[activeTab].id}-${subtopic.id}-${question.id}`
+                        )?.answer || ""
+                    }
                   />
                   <Stack
                     sx={{

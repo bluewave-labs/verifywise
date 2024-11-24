@@ -3,8 +3,8 @@ import Exclamation from "../../presentation/assets/icons/alert-circle-orange.svg
 
 // Common Columns Definition
 const columns = [
-  { id: "icon", name: "Icon" },
-  { id: "SUBCONTROL NAME", name: "Subcontrol Name" },
+  { id: "icon", },
+  { id: "CONTROL NAME", name: "Subcontrol Name" },
   { id: "OWNER", name: "Owner" },
   { id: "# OF SUBCONTROLS", name: "# of Subcontrols" },
   { id: "COMPLETION", name: "Completion" },

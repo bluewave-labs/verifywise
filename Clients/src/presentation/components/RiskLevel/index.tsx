@@ -15,6 +15,17 @@ interface RiskLevelProps {
     handleOnSelectChange: (prop: keyof RiskLevelFormValues) => (event: SelectChangeEvent<string | number>) => void
 }
 
+/**
+ * RiskLevel component displays a form to select the likelihood and severity of a risk,
+ * and calculates and displays the corresponding risk level.
+ *
+ * @component
+ * @param {RiskLevelProps} props - The props for the RiskLevel component.
+ * @param {number} props.likelihood - The likelihood of the risk occurring.
+ * @param {number} props.riskSeverity - The severity of the risk.
+ * @param {function} props.handleOnSelectChange - The function to handle changes in the select inputs.
+ * @returns {JSX.Element} The rendered RiskLevel component.
+ */
 const RiskLevel: FC<RiskLevelProps> = ({likelihood, riskSeverity, handleOnSelectChange}) => {
     const theme = useTheme();
     

@@ -4,6 +4,13 @@ import { uploadFile } from "../../../../application/tools/fileUtil";
 import { ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from "../constants";
 import ErrorModal from "../Error";
 
+/**
+ * FileUpload component allows users to upload a file by either clicking a button or dragging and dropping a file.
+ * It displays the uploaded file name or an error message if the upload fails.
+ *
+ * @component
+ * @returns {JSX.Element} The rendered FileUpload component.
+ */
 const FileUpload: FC = () => {
   const theme = useTheme();
   const [file, setFile] = useState<File | null>(null);
@@ -45,10 +52,9 @@ const FileUpload: FC = () => {
           width: 315,
           height: 102
         }}
-        onClick={() => document.getElementById("file-upload")?.click()}
       >
         <Tooltip title="Attach a file">
-          <Button component="label" sx={{"&:hover": { background: "transparent" }}}>
+          <Button component="label" sx={{"&:hover": { background: "transparent" }}} disableRipple={theme.components?.MuiButton?.defaultProps?.disableRipple}>
             Click to upload
             <input
               type="file"
@@ -58,7 +64,7 @@ const FileUpload: FC = () => {
             />
           </Button>
         </Tooltip>
-        <Typography>or drag and drop</Typography>
+        <Typography sx={{ fontSize: 13 }}>or drag and drop</Typography>
       </Stack>
       {file 
         && <Typography variant="body2" sx={{ mt: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "315px" }}>

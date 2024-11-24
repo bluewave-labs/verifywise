@@ -14,6 +14,10 @@ export const RISK_LABELS = {
     critical: {
       text: "Critical risk",
       color: "#DC3545"
+    },
+    noRisk: {
+      text: "No risk",
+      color: "#6C757D"
     }
 }
 

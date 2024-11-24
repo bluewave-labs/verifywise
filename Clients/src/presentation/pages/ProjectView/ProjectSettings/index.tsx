@@ -199,7 +199,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = ({ setTabValue }) => {
                     <Typography sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}>AI risk classification</Typography>
                     <Typography sx={{ fontSize: theme.typography.fontSize}}>
                       To define the AI risk classification,&nbsp;
-                      <Link href="https://artificialintelligenceact.eu/high-level-summary/" color={theme.palette.text.secondary}>please see this link</Link>
+                      <Link href="https://artificialintelligenceact.eu/high-level-summary/" target="_blank" rel="noopener" color={theme.palette.text.secondary}>please see this link</Link>
                     </Typography>
                 </Stack>
                 <Select
@@ -220,7 +220,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = ({ setTabValue }) => {
                     <Typography sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}>Type of high risk role</Typography>
                     <Typography sx={{ fontSize: theme.typography.fontSize}}>
                       If you are not sure about the high risk role,&nbsp;
-                      <Link href="https://artificialintelligenceact.eu/high-level-summary/" color={theme.palette.text.secondary}>please see this link</Link>
+                      <Link href="https://artificialintelligenceact.eu/high-level-summary/" target="_blank" rel="noopener" color={theme.palette.text.secondary}>please see this link</Link>
                     </Typography>
                 </Stack>
                 <Select

@@ -1,42 +1,44 @@
-import { Stack, Divider, Typography, useTheme, Button, SelectChangeEvent } from "@mui/material"
-import { FC, useState } from "react"
-import Field from "../../Inputs/Field"
+import { Stack, Divider, Typography, useTheme, Button, SelectChangeEvent } from "@mui/material";
+import { FC, useState, useCallback, Suspense } from "react";
+import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
-import RiskLevel from "../../RiskLevel";
 import { Likelihood, Severity } from "../../RiskLevel/constants";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import Alert from "../../Alert";
 import selectValidation from "../../../../application/validations/selectValidation";
+import React from "react";
+
+const RiskLevel = React.lazy(() => import("../../RiskLevel"));
 
 interface RiskSectionProps {
-    closePopup: () => void
+    closePopup: () => void;
 }
 
 interface RiskFormValues {
-    riskName: string,
-    actionOwner: number,
-    aiLifecyclePhase: number,
-    riskDescription: string,
-    riskCategory: number,
-    potentialImpact: string,
-    assessmentMapping: number,
-    controlsMapping: number,
-    likelihood: Likelihood,
-    riskSeverity: Severity,
-    riskLevel: number,
-    reviewNotes: string
+    riskName: string;
+    actionOwner: number;
+    aiLifecyclePhase: number;
+    riskDescription: string;
+    riskCategory: number;
+    potentialImpact: string;
+    assessmentMapping: number;
+    controlsMapping: number;
+    likelihood: Likelihood;
+    riskSeverity: Severity;
+    riskLevel: number;
+    reviewNotes: string;
 }
 
 interface FormErrors {
-    riskName?: string,
-    actionOwner?: string,
-    aiLifecyclePhase?: string,
-    riskDescription?: string,
-    riskCategory?: string,
-    potentialImpact?: string,
-    assessmentMapping?: string,
-    controlsMapping?: string,
-    reviewNotes?: string
+    riskName?: string;
+    actionOwner?: string;
+    aiLifecyclePhase?: string;
+    riskDescription?: string;
+    riskCategory?: string;
+    potentialImpact?: string;
+    assessmentMapping?: string;
+    controlsMapping?: string;
+    reviewNotes?: string;
 }
 
 const initialState: RiskFormValues = {
@@ -52,8 +54,20 @@ const initialState: RiskFormValues = {
     riskSeverity: 1 as Severity,
     riskLevel: 0,
     reviewNotes: ""
-}
+};
 
+/**
+ * `RiskSection` is a functional component that renders a form for adding a new risk.
+ * It includes fields for risk name, description, assessment mapping, action owner, risk category,
+ * controls mapping, AI lifecycle phase, potential impact, and review notes.
+ * The component also validates the form inputs and displays error messages if validation fails.
+ * 
+ * @component
+ * @param {RiskSectionProps} props - The props for the component.
+ * @param {Function} props.closePopup - Function to close the popup.
+ * 
+ * @returns {JSX.Element} The rendered component.
+ */
 const RiskSection: FC<RiskSectionProps> = ({ closePopup }) => {
     const theme = useTheme();
     const [values, setValues] = useState<RiskFormValues>(initialState);
@@ -64,18 +78,23 @@ const RiskSection: FC<RiskSectionProps> = ({ closePopup }) => {
         body: string;
     } | null>(null);
 
-    const handleOnSelectChange = (prop: keyof RiskFormValues) => (event: SelectChangeEvent<string | number>) => {
-        setValues({ ...values, [prop]: event.target.value });
-        setErrors({ ...errors, [prop]: "" });
-    };
-    const handleOnTextFieldChange =
-        (prop: keyof RiskFormValues) =>
-            (event: React.ChangeEvent<HTMLInputElement>) => {
-                setValues({ ...values, [prop]: event.target.value });
-                setErrors({ ...errors, [prop]: "" });
-            };
+    const handleOnSelectChange = useCallback(
+        (prop: keyof RiskFormValues) => (event: SelectChangeEvent<string | number>) => {
+            setValues((prevValues) => ({ ...prevValues, [prop]: event.target.value }));
+            setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
+        },
+        []
+    );
 
-    const validateForm = (): boolean => {
+    const handleOnTextFieldChange = useCallback(
+        (prop: keyof RiskFormValues) => (event: React.ChangeEvent<HTMLInputElement>) => {
+            setValues((prevValues) => ({ ...prevValues, [prop]: event.target.value }));
+            setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
+        },
+        []
+    );
+
+    const validateForm = useCallback((): boolean => {
         const newErrors: FormErrors = {};
 
         const riskName = checkStringValidation("Risk name", values.riskName, 3, 50);
@@ -96,28 +115,28 @@ const RiskSection: FC<RiskSectionProps> = ({ closePopup }) => {
         }
         const actionOwner = selectValidation("Action owner", values.actionOwner);
         if (!actionOwner.accepted) {
-          newErrors.actionOwner = actionOwner.message;
+            newErrors.actionOwner = actionOwner.message;
         }
         const aiLifecyclePhase = selectValidation("AI lifecycle phase", values.aiLifecyclePhase);
         if (!aiLifecyclePhase.accepted) {
-          newErrors.aiLifecyclePhase = aiLifecyclePhase.message;
+            newErrors.aiLifecyclePhase = aiLifecyclePhase.message;
         }
         const riskCategory = selectValidation("Risk category", values.riskCategory);
         if (!riskCategory.accepted) {
-          newErrors.riskCategory = riskCategory.message;
+            newErrors.riskCategory = riskCategory.message;
         }
         const assessmentMapping = selectValidation("Assessment mapping", values.assessmentMapping);
         if (!assessmentMapping.accepted) {
-          newErrors.assessmentMapping = assessmentMapping.message;
+            newErrors.assessmentMapping = assessmentMapping.message;
         }
         const controlsMapping = selectValidation("Controls mapping", values.controlsMapping);
         if (!controlsMapping.accepted) {
-          newErrors.controlsMapping = controlsMapping.message;
+            newErrors.controlsMapping = controlsMapping.message;
         }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0; // Return true if no errors exist
-    }
+    }, [values]);
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -125,7 +144,7 @@ const RiskSection: FC<RiskSectionProps> = ({ closePopup }) => {
             //request to the backend
             closePopup();
         }
-    }
+    };
 
     return (
         <Stack>
@@ -264,7 +283,9 @@ const RiskSection: FC<RiskSectionProps> = ({ closePopup }) => {
                 <Divider />
                 <Typography sx={{ fontSize: 16, fontWeight: 600, mt: 6.5 }}>Calculate risk level</Typography>
                 <Typography sx={{ fontSize: theme.typography.fontSize, mb: 8 }}>The Risk Level is calculated by multiplying the Likelihood and Severity scores. By assigning these scores, the risk level will be determined based on your inputs.</Typography>
-                <RiskLevel likelihood={values.likelihood} riskSeverity={values.riskSeverity} handleOnSelectChange={handleOnSelectChange} />
+                <Suspense fallback={<div>Loading...</div>}>
+                    <RiskLevel likelihood={values.likelihood} riskSeverity={values.riskSeverity} handleOnSelectChange={handleOnSelectChange} />
+                </Suspense>
                 <Divider />
                 <Stack sx={{ mt: 4.5 }}>
                     <Field
@@ -296,7 +317,7 @@ const RiskSection: FC<RiskSectionProps> = ({ closePopup }) => {
                 >Save</Button>
             </Stack>
         </Stack>
-    )
-}
+    );
+};
 
 export default RiskSection;

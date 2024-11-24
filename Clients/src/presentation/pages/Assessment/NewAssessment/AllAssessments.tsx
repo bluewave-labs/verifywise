@@ -119,46 +119,34 @@ const AllAssessment = () => {
   ) => {
     setAssessmentsValue((prevValues: any) => {
       const updatedValues = { ...prevValues };
-      const assessment = updatedValues[topicid] || { subtopics: [] };
-
-      if (!assessment.subtopics) {
-        assessment.subtopics = [];
+      if (!updatedValues[topicid]) {
+        updatedValues[topicid] = { topic, subtopic: [] };
       }
-
-      const subtopicIndex = assessment.subtopics.findIndex(
-        (subtopicItem: any) => subtopicItem.subtopicId === subtopicId
+      const subtopicIndex = updatedValues[topicid].subtopic.findIndex(
+        (st: any) => st.id === subtopicId
       );
-
       if (subtopicIndex === -1) {
-        assessment.subtopics.push({
-          subtopicId,
-          subtopic,
-          questions: [
-            {
-              questionId,
-              question,
-              answer,
-            },
-          ],
+        updatedValues[topicid].subtopic.push({
+          id: subtopicId,
+          title: subtopic,
+          questions: [{ id: questionId, question, answer }],
         });
       } else {
-        const questionIndex = assessment.subtopics[
+        const questionIndex = updatedValues[topicid].subtopic[
           subtopicIndex
-        ].questions.findIndex((q: any) => q.questionId === questionId);
-
+        ].questions.findIndex((q: any) => q.id === questionId);
         if (questionIndex === -1) {
-          assessment.subtopics[subtopicIndex].questions.push({
-            questionId,
+          updatedValues[topicid].subtopic[subtopicIndex].questions.push({
+            id: questionId,
             question,
             answer,
           });
         } else {
-          assessment.subtopics[subtopicIndex].questions[questionIndex].answer =
-            answer;
+          updatedValues[topicid].subtopic[subtopicIndex].questions[
+            questionIndex
+          ].answer = answer;
         }
       }
-
-      updatedValues[topicid] = assessment;
       return updatedValues;
     });
   };
@@ -324,17 +312,7 @@ const AllAssessment = () => {
                         margin: 0,
                       },
                     }}
-                    initialContent={
-                      assessmentsValues[Topics[activeTab].id]?.subtopics
-                        ?.find(
-                          (subtopicItem: any) =>
-                            subtopicItem.subtopicId === subtopic.id
-                        )
-                        ?.questions.find(
-                          (questionItem: any) =>
-                            questionItem.questionId === question.id
-                        )?.answer || ""
-                    }
+                    initialContent={""}
                   />
                   <Stack
                     sx={{

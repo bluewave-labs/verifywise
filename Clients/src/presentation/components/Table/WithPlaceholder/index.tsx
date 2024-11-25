@@ -12,14 +12,14 @@ import {
   Menu,
   MenuItem,
 } from "@mui/material";
-import { useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
 import { Vendor } from "../../../mocks/vendors/vendors.data";
 import IconButton from "../../IconButton";
 import singleTheme from "../../../themes/v1SingleTheme";
-// import { getAllEntities } from "../../../../application/repository/entity.repository";
+import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { formatDate } from "../../../tools/isoDateToString";
-// import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import TablePaginationActions from "../../TablePagination";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
 
@@ -32,159 +32,125 @@ const titleOfTableColumns = [
   "",
 ];
 
-//temporary mock data for testing purposes
-const mockVendors: Vendor[] = [
-  {
-    //all mock placeholder values
-    id: 1,
-    projectId: 101,
-    vendorName: "Vendor A",
-    assignee: "John Doe",
-    vendorProvides: "Cloud Services",
-    website: "https://vendor-a.com",
-    vendorContactPerson: "Alice Johnson",
-    reviewResult: "Passed",
-    reviewStatus: "Under Review",
-    reviewer: "Reviewer A",
-    riskStatus: "Active",
-    reviewDate: new Date("2024-11-24"),
-    riskDescription: "Minimal risk",
-    impactDescription: "Low impact",
-    impact: 1,
-    probability: 1,
-    actionOwner: "John Manager",
-    actionPlan: "Monitor vendor activities",
-    riskSeverity: 1,
-    riskLevel: "Low risk",
-    likelihood: 1,
-  },
-  {
-    id: 2,
-    projectId: 102,
-    vendorName: "Vendor B",
-    assignee: "Jane Smith",
-    vendorProvides: "AI Compliance Tools",
-    website: "https://vendor-b.com",
-    vendorContactPerson: "Bob Anderson",
-    reviewResult: "Failed",
-    reviewStatus: "Completed",
-    reviewer: "Reviewer B",
-    riskStatus: "Not active",
-    reviewDate: new Date("2024-10-15"),
-    riskDescription: "Potential delays",
-    impactDescription: "Medium impact",
-    impact: 2,
-    probability: 2,
-    actionOwner: "Jane Manager",
-    actionPlan: "Create risk mitigation plan",
-    riskSeverity: 2,
-    riskLevel: "Medium risk",
-    likelihood: 2,
-  },
-];
-
 const TableWithPlaceholder = () => {
   const theme = useTheme();
-  // const { dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);
+  const { dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [dropdownAnchor, setDropdownAnchor] = useState<HTMLElement | null>(
     null
-  ); //dropdown state for the menu
+  );
 
-  //mocking data, will be replaced with actual context or api
-  const vendors = mockVendors;
+  const fetchVendors = useCallback(async () => {
+    try {
+      const response = await getAllEntities({ routeUrl: "/vendors" });
+      console.log("response ===> ", response);
+      setDashboardValues((prevValues: any) => ({
+        ...prevValues,
+        vendors: response.data,
+      }));
+    } catch (error) {
+      console.error("Error fetching vendors:", error);
+    }
+  }, [setDashboardValues]);
 
-  // const fetchVendors = async () => {
-  //   try {
-  //     const response = await getAllEntities({ routeUrl: "/vendors" });
-  //     console.log("response ===> ", response);
-  //     setDashboardValues((prevValues: any) => ({
-  //       ...prevValues,
-  //       vendors: response.data,
-  //     }));
-  //   } catch (error) {
-  //     console.error("Error fetching vendors:", error);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   fetchVendors();
-  // }, []);
+  useEffect(() => {
+    fetchVendors();
+  }, [fetchVendors]);
 
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
-  const handleChangePage = (_: any, newPage: number) => {
+  const handleChangePage = useCallback((_: unknown, newPage: number) => {
     setPage(newPage);
-  };
+  }, []);
 
-  const handleChangeRowsPerPage = (event: any) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  //dropdown close functions
-
-  const handleDropdownClose = () => {
-    setDropdownAnchor(null);
-  };
-
-  const getRange = () => {
-    let start = page * rowsPerPage + 1;
-    let end = Math.min(page * rowsPerPage + rowsPerPage, vendors.length); // replaced "dashboardValues.vendors.length" with mockVendors
-    return `${start} - ${end}`;
-  };
-
-  const tableHeader: JSX.Element = (
-    <TableHead
-      sx={{
-        backgroundColors:
-          singleTheme.tableStyles.primary.header.backgroundColors,
-      }}
-    >
-      <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-        {titleOfTableColumns.map((cell, index) => (
-          <TableCell
-            style={singleTheme.tableStyles.primary.header.cell}
-            key={index}
-          >
-            {cell}
-          </TableCell>
-        ))}
-      </TableRow>
-    </TableHead>
+  const handleChangeRowsPerPage = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setRowsPerPage(parseInt(event.target.value, 10));
+      setPage(0);
+    },
+    []
   );
 
-  const tableBody: JSX.Element = (
-    <TableBody>
-      {vendors
-        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-        .map((row: Vendor, index: number) => (
-          <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row}>
-            <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-              {row.vendorName}
+  const handleDropdownClose = useCallback(() => {
+    setDropdownAnchor(null);
+  }, []);
+
+  const getRange = useMemo(() => {
+    const start = page * rowsPerPage + 1;
+    const end = Math.min(
+      page * rowsPerPage + rowsPerPage,
+      dashboardValues.vendors.length
+    );
+    return `${start} - ${end}`;
+  }, [page, rowsPerPage, dashboardValues.vendors.length]);
+
+  const tableHeader = useMemo(
+    () => (
+      <TableHead
+        sx={{
+          backgroundColors:
+            singleTheme.tableStyles.primary.header.backgroundColors,
+        }}
+      >
+        <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+          {titleOfTableColumns.map((cell, index) => (
+            <TableCell
+              style={singleTheme.tableStyles.primary.header.cell}
+              key={index}
+            >
+              {cell}
             </TableCell>
-            <TableCell sx={cellStyle}>{row.assignee}</TableCell>
-            <TableCell sx={cellStyle}>{row.reviewStatus}</TableCell>
-            <TableCell sx={cellStyle}>{row.riskStatus}</TableCell>
-            <TableCell sx={cellStyle}>
-              {formatDate(row.reviewDate.toString())}
-            </TableCell>
-            <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-              {/* dropdown for actions */}
-              <IconButton vendorId={row.id}></IconButton>
-              <Menu
-                anchorEl={dropdownAnchor}
-                open={Boolean(dropdownAnchor)}
-                onClose={handleDropdownClose}
+          ))}
+        </TableRow>
+      </TableHead>
+    ),
+    []
+  );
+
+  const tableBody = useMemo(
+    () => (
+      <TableBody>
+        {dashboardValues.vendors &&
+          dashboardValues.vendors
+            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+            .map((row: Vendor, index: number) => (
+              <TableRow
+                key={index}
+                sx={singleTheme.tableStyles.primary.body.row}
               >
-                <MenuItem onClick={handleDropdownClose}>Edit</MenuItem>
-                <MenuItem onClick={handleDropdownClose}>Remove</MenuItem>
-              </Menu>
-            </TableCell>
-          </TableRow>
-        ))}
-    </TableBody>
+                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                  {row.vendorName}
+                </TableCell>
+                <TableCell sx={cellStyle}>{row.assignee}</TableCell>
+                <TableCell sx={cellStyle}>{row.reviewStatus}</TableCell>
+                <TableCell sx={cellStyle}>{row.riskStatus}</TableCell>
+                <TableCell sx={cellStyle}>
+                  {formatDate(row.reviewDate.toString())}
+                </TableCell>
+                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                  <IconButton vendorId={row.id}></IconButton>
+                  <Menu
+                    anchorEl={dropdownAnchor}
+                    open={Boolean(dropdownAnchor)}
+                    onClose={handleDropdownClose}
+                  >
+                    <MenuItem onClick={handleDropdownClose}>Edit</MenuItem>
+                    <MenuItem onClick={handleDropdownClose}>Remove</MenuItem>
+                  </Menu>
+                </TableCell>
+              </TableRow>
+            ))}
+      </TableBody>
+    ),
+    [
+      dashboardValues.vendors,
+      page,
+      rowsPerPage,
+      cellStyle,
+      dropdownAnchor,
+      handleDropdownClose,
+    ]
   );
 
   return (
@@ -194,7 +160,7 @@ const TableWithPlaceholder = () => {
           {tableHeader}
           {tableBody}
         </Table>
-        {!vendors.length && (
+        {!dashboardValues.vendors.length && (
           <div
             style={{
               display: "grid",
@@ -227,10 +193,10 @@ const TableWithPlaceholder = () => {
         }}
       >
         <Typography px={theme.spacing(2)} fontSize={12} sx={{ opacity: 0.7 }}>
-          Showing {getRange()} of {vendors.length} vendor(s)
+          Showing {getRange} of {dashboardValues.vendors.length} vendor(s)
         </Typography>
         <TablePagination
-          count={vendors.length}
+          count={dashboardValues.vendors.length}
           page={page}
           onPageChange={handleChangePage}
           rowsPerPage={rowsPerPage}

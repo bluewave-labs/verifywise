@@ -155,6 +155,7 @@ export default function index() {
               ml: theme.spacing(10),
               width: theme.spacing(35),
               height: theme.spacing(17),
+              "&:hover": { backgroundColor: "#1570EF" },
             }}
             disableRipple
           >
@@ -217,7 +218,13 @@ export default function index() {
             </Box>
 
             <Box sx={{ mt: 10 }}>
-              <Button variant="contained" disableRipple>Invite team member</Button>
+              <Button
+                variant="contained"
+                disableRipple
+                sx={{ "&:hover": { backgroundColor: "#1570EF" } }}
+              >
+                Invite team member
+              </Button>
             </Box>
           </Stack>
 
@@ -246,9 +253,10 @@ export default function index() {
                       {member.email}
                     </TableCell>
                     <TableCell
-                    sx={{
-                      paddingLeft: 0
-                    }}>
+                      sx={{
+                        paddingLeft: 0,
+                      }}
+                    >
                       <Select
                         value={member.role}
                         onChange={(event) => handleRoleChange(event, member.id)}
@@ -272,16 +280,17 @@ export default function index() {
                       </Select>
                     </TableCell>
                     <TableCell
-                    
-                    sx={{
-                      textAlign: "left",
-                    }}>
+                      sx={{
+                        textAlign: "left",
+                      }}
+                    >
                       <IconButton
                         edge="end"
                         aria-label="delete"
                         onClick={() => handleDeleteMember(member.id)}
                         sx={{
-                          marginLeft: '16px'}}
+                          marginLeft: "16px",
+                        }}
                       >
                         <img
                           src={Trashbin}
@@ -307,10 +316,14 @@ export default function index() {
               mt: 20,
             }}
           >
-          
-            <Button variant="contained"
-            disableRipple
-            onClick={handleSaveAllData}>Save</Button>
+            <Button
+              variant="contained"
+              disableRipple
+              onClick={handleSaveAllData}
+              sx={{ "&:hover": { backgroundColor: "#1570EF" } }}
+            >
+              Save
+            </Button>
           </Box>
         </Stack>
       </Box>

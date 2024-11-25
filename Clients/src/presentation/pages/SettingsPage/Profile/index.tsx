@@ -112,13 +112,15 @@ const ProfileForm: React.FC = () => {
           mt: 20,
         }}
       >
-        <Box sx={{ width: { xs: "100%", md: "40%" } }}>
+        <Box sx={{ width: { xs: "100%", md: "40%" } }} 
+      >
           <Field
             id="First name"
             label="First name"
             value={firstname}
             onChange={handleFirstnameChange}
             sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
+            
           />
           {firstnameError && (
             <Typography color="error" variant="caption">

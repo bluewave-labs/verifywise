@@ -30,48 +30,49 @@ const titleOfTableColumns = [
   "",
 ];
 
+//temporary mock data for testing purposes
+const mockVendors = [
+  {
+    id: 1,
+    vendorName: "Vendor A",
+    assignee: "John Doe",
+    reviewStatus: "Under Review",
+    riskStatus: "Low Risk",
+    reviewDate: "2024-11-24",
+  },
+  {
+    id: 2,
+    vendorName: "Vendor B",
+    assignee: "Jane Smith",
+    reviewStatus: "Completed",
+    riskStatus: "Medium Risk",
+    reviewDate: "2024-10-15",
+  },
+];
+
 const TableWithPlaceholder = () => {
   const theme = useTheme();
   const { dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [dropdownAnchor, setDropdownAnchor] = useState(null); //dropdown state for the menu
 
-  //temporary mock data
-  const mockVendors = [
-    {
-      id: 1,
-      vendorName: "Vendor A",
-      assignee: "John Doe",
-      reviewStatus: "Under Review",
-      riskStatus: "Low Risk",
-      reviewDate: "2024-11-24",
-    },
-    {
-      id: 2,
-      vendorName: "Vendor B",
-      assignee: "Jane Smith",
-      reviewStatus: "Completed",
-      riskStatus: "Medium Risk",
-      reviewDate: "2024-10-15",
-    },
-  ];
+  // const fetchVendors = async () => {
+  //   try {
+  //     const response = await getAllEntities({ routeUrl: "/vendors" });
+  //     console.log("response ===> ", response);
+  //     setDashboardValues((prevValues: any) => ({
+  //       ...prevValues,
+  //       vendors: response.data,
+  //     }));
+  //   } catch (error) {
+  //     console.error("Error fetching vendors:", error);
+  //   }
+  // };
 
-  const fetchVendors = async () => {
-    try {
-      const response = await getAllEntities({ routeUrl: "/vendors" });
-      console.log("response ===> ", response);
-      setDashboardValues((prevValues: any) => ({
-        ...prevValues,
-        vendors: response.data,
-      }));
-    } catch (error) {
-      console.error("Error fetching vendors:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchVendors();
-  }, []);
+  // useEffect(() => {
+  //   fetchVendors();
+  // }, []);
 
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
@@ -83,6 +84,15 @@ const TableWithPlaceholder = () => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
+
+  //dropdown open and close functions 
+  const handleDropdownOpen = (event: React.MouseEvent<HTMLElement>) =>{
+    setDropdownAnchor(event.currentTarget)
+  }
+
+   const handleDropdownClose= () => {
+     setDropdownAnchor(null);
+   };
 
   const getRange = () => {
     let start = page * rowsPerPage + 1;

@@ -36,6 +36,26 @@ const TableWithPlaceholder = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
+  //temporary mock data
+  const mockVendors = [
+    {
+      id: 1,
+      vendorName: "Vendor A",
+      assignee: "John Doe",
+      reviewStatus: "Under Review",
+      riskStatus: "Low Risk",
+      reviewDate: "2024-11-24",
+    },
+    {
+      id: 2,
+      vendorName: "Vendor B",
+      assignee: "Jane Smith",
+      reviewStatus: "Completed",
+      riskStatus: "Medium Risk",
+      reviewDate: "2024-10-15",
+    },
+  ];
+
   const fetchVendors = async () => {
     try {
       const response = await getAllEntities({ routeUrl: "/vendors" });

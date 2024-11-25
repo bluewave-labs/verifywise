@@ -32,9 +32,9 @@ export default function ProfilePage() {
           },
         }}
       >
-        <Tab label="Profile" />
-        <Tab label="Password" />
-        <Tab label="Team" />
+        <Tab label="Profile" disableRipple />
+        <Tab label="Password" disableRipple  />
+        <Tab label="Team" disableRipple />
       </Tabs>
 
       {activeTab === 0 && <Profile />}

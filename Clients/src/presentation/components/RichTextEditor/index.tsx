@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Tooltip, IconButton, Stack } from "@mui/material";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -14,19 +14,21 @@ interface RichTextEditorProps {
   onContentChange?: (content: string) => void;
   headerSx?: object;
   bodySx?: object;
+  initialContent?: string; // Add initialContent prop
 }
 
 const RichTextEditor: React.FC<RichTextEditorProps> = ({
   onContentChange,
   headerSx,
   bodySx,
+  initialContent = "", // Default value for initialContent
 }) => {
   const [bulleted, setBulleted] = useState<boolean>(false);
   const [numbered, setNumbered] = useState<boolean>(false);
 
   const editor = useEditor({
     extensions: [StarterKit],
-    content: "",
+    content: initialContent,
     autofocus: true,
     onUpdate({ editor }) {
       if (onContentChange) {
@@ -34,6 +36,12 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
       }
     },
   });
+
+  useEffect(() => {
+    if (editor && initialContent) {
+      editor.commands.setContent(initialContent);
+    }
+  }, [editor, initialContent]);
 
   const applyFormatting = (type: string) => {
     if (!editor) return;

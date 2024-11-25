@@ -36,6 +36,17 @@ const initialState: FormValues = {
   riskDescription: ""
 }
 
+/**
+ * `AddNewVendorRiskForm` is a functional component that renders a form for adding a new vendor risk.
+ * It includes fields for vendor name, action owner, risk name, review date, and risk description.
+ * The form validates the input fields before submission and displays any validation errors.
+ * 
+ * @component
+ * @param {RiskSectionProps} props - The props for the component.
+ * @param {Function} props.closePopup - Function to close the popup form.
+ * 
+ * @returns {JSX.Element} The rendered component.
+ */
 const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup }) => {
   const theme = useTheme();
   const [values, setValues] = useState<FormValues>(initialState);
@@ -49,7 +60,7 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup }) => {
   const handleDateChange = (newDate: Dayjs | null) => {
     setValues((prevValues) => ({
       ...prevValues,
-      startDate: newDate ? newDate.toISOString() : ""
+      reviewDate: newDate ? newDate.toISOString() : ""
     }));
   };
   const handleOnSelectChange = (prop: keyof FormValues) => (event: SelectChangeEvent<string | number>) => {

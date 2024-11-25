@@ -77,7 +77,7 @@ const DeleteAccountConfirmation: React.FC<DeleteAccountConfirmationProps> = ({
         <DialogContent sx={{ padding: 0, overflowY: 'hidden' }}>
           <DialogContentText
             id="alert-dialog-description"
-            sx={{ padding: 0, overflowY: 'hidden' }}
+            sx={{ padding: 0, overflowY: 'hidden', fontSize: '13px' }}
           >
             When you delete this file, all the links associated with the file
             will also be removed. Note that this is a non-reversible action.

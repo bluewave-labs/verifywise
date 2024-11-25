@@ -8,6 +8,15 @@ interface MetricSectionProps {
     metricType: "compliance" | "risk";
 }
 
+/**
+ * MetricSection component displays a section with metrics based on the provided metric type.
+ *
+ * @component
+ * @param {Object} props - The props for the MetricSection component.
+ * @param {string} props.title - The title of the metric section.
+ * @param {string} props.metricType - The type of metrics to display, either "compliance" or "risk".
+ * @returns {JSX.Element} The rendered MetricSection component.
+ */
 const MetricSection: FC<MetricSectionProps> = ({ title, metricType }) => {
     const { complianceStatus, riskStatus } = dashboardData;
     const complianceMetrics: {

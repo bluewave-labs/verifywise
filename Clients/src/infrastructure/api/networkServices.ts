@@ -8,7 +8,7 @@
 
 import CustomAxios from "./customAxios";
 import CustomException from "../exceptions/customeException";
-import { AxiosError } from "axios";
+import axios from "axios";
 
 // Define types for request parameters and response data
 interface RequestParams {
@@ -23,10 +23,16 @@ interface ApiResponse<T> {
 
 // Utility function to handle errors
 const handleError = (error: any) => {
-  if (error instanceof AxiosError) {
-    throw new CustomException(error.message);
-  } else {
-    throw new CustomException("An unknown error occurred");
+  try {
+    if (axios.isAxiosError(error)) {
+      console.log("error : ", error);
+      throw new CustomException(error.message);
+    } else {
+      throw new CustomException("An unknown error occurred");
+    }
+  } catch (e) {
+    console.error("Error in handleError:", e);
+    throw e;
   }
 };
 
@@ -67,6 +73,7 @@ export const apiServices = {
   ): Promise<ApiResponse<T>> {
     logRequest("get", endpoint, params);
     try {
+      console.log("Get in networkServices");
       const response = await CustomAxios.get(endpoint, { params });
       console.log("🚀 ~ response:", response);
 

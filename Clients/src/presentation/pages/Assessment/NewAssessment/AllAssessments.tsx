@@ -20,6 +20,8 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import { Topic, Topics } from "../../../structures/AssessmentTracker/Topics";
 import { assessments } from "./assessments";
 import { priorities, PriorityLevel } from "./priorities";
+import { apiServices } from "../../../../infrastructure/api/networkServices";
+import Alert from "../../../components/Alert";
 
 interface AssessmentValue {
   topic: string;
@@ -55,8 +57,29 @@ const AllAssessment = () => {
     13: { topic: "EnvironmentalImpact", subtopic: [] },
   });
 
-  const handleSave = () => {
-    console.log(assessmentsValues);
+  const [alert, setAlert] = useState<{ show: boolean; message: string }>({
+    show: false,
+    message: "",
+  });
+
+  const handleSave = async () => {
+    for (const topicId in assessmentsValues) {
+      const subtopics = assessmentsValues[topicId].subtopic;
+      if (subtopics.length === 0) {
+        setAlert({
+          show: true,
+          message: `You need to answer all the questions`,
+        });
+        return;
+      }
+    }
+
+    try {
+      const response = await apiServices.post("/topics", assessmentsValues);
+      console.log("Assessments saved successfully:", response);
+    } catch (error) {
+      console.error("Error saving assessments:", error);
+    }
   };
 
   const handleAssessmentChange = useCallback(
@@ -196,9 +219,8 @@ const AllAssessment = () => {
           <RichTextEditor
             key={`${Topics[activeTab].id}-${subtopicId}-${question.id}`}
             onContentChange={(content: string) => {
-              const cleanedContent = content
-                .replace(/^<p>/, "")
-                .replace(/<\/p>$/, "");
+              const cleanedContent =
+                " " + content.replace(/^<p>/, "").replace(/<\/p>$/, "");
 
               handleAssessmentChange(
                 Topics[activeTab].id,
@@ -230,7 +252,7 @@ const AllAssessment = () => {
                     q.id ===
                     `${Topics[activeTab].id}-${subtopicId}-${question.id}`
                 )
-                ?.answer.trim() || "".trim()
+                ?.answer.trim() || " "
             }
           />
           <Stack
@@ -346,6 +368,15 @@ const AllAssessment = () => {
           </Button>
         </Stack>
       </Stack>
+      {alert.show && (
+        <Alert
+          variant="error"
+          title="Validation Error"
+          body={alert.message}
+          isToast={true}
+          onClick={() => setAlert({ show: false, message: "" })}
+        />
+      )}
     </Box>
   );
 };

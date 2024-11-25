@@ -72,6 +72,7 @@ export async function createNewTopic(
   req: Request,
   res: Response
 ): Promise<any> {
+  console.log("Create topics", req.body);
   try {
     const newTopic: {
       assessmentId: number;

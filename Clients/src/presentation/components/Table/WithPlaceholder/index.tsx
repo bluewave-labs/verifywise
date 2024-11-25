@@ -12,7 +12,7 @@ import {
   Menu,
   MenuItem,
 } from "@mui/material";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
 import { Vendor } from "../../../mocks/vendors/vendors.data";
 import IconButton from "../../IconButton";
@@ -41,7 +41,7 @@ const TableWithPlaceholder = () => {
     null
   );
 
-  const fetchVendors = async () => {
+  const fetchVendors = useCallback(async () => {
     try {
       const response = await getAllEntities({ routeUrl: "/vendors" });
       console.log("response ===> ", response);
@@ -52,87 +52,105 @@ const TableWithPlaceholder = () => {
     } catch (error) {
       console.error("Error fetching vendors:", error);
     }
-  };
+  }, [setDashboardValues]);
 
   useEffect(() => {
     fetchVendors();
-  }, []);
+  }, [fetchVendors]);
 
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
-  const handleChangePage = (_: any, newPage: number) => {
+  const handleChangePage = useCallback((_: unknown, newPage: number) => {
     setPage(newPage);
-  };
+  }, []);
 
-  const handleChangeRowsPerPage = (event: any) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
+  const handleChangeRowsPerPage = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setRowsPerPage(parseInt(event.target.value, 10));
+      setPage(0);
+    },
+    []
+  );
 
-  const handleDropdownClose = () => {
+  const handleDropdownClose = useCallback(() => {
     setDropdownAnchor(null);
-  };
+  }, []);
 
-  const getRange = () => {
-    let start = page * rowsPerPage + 1;
-    let end = Math.min(
+  const getRange = useMemo(() => {
+    const start = page * rowsPerPage + 1;
+    const end = Math.min(
       page * rowsPerPage + rowsPerPage,
       dashboardValues.vendors.length
     );
     return `${start} - ${end}`;
-  };
+  }, [page, rowsPerPage, dashboardValues.vendors.length]);
 
-  const tableHeader: JSX.Element = (
-    <TableHead
-      sx={{
-        backgroundColors:
-          singleTheme.tableStyles.primary.header.backgroundColors,
-      }}
-    >
-      <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-        {titleOfTableColumns.map((cell, index) => (
-          <TableCell
-            style={singleTheme.tableStyles.primary.header.cell}
-            key={index}
-          >
-            {cell}
-          </TableCell>
-        ))}
-      </TableRow>
-    </TableHead>
+  const tableHeader = useMemo(
+    () => (
+      <TableHead
+        sx={{
+          backgroundColors:
+            singleTheme.tableStyles.primary.header.backgroundColors,
+        }}
+      >
+        <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+          {titleOfTableColumns.map((cell, index) => (
+            <TableCell
+              style={singleTheme.tableStyles.primary.header.cell}
+              key={index}
+            >
+              {cell}
+            </TableCell>
+          ))}
+        </TableRow>
+      </TableHead>
+    ),
+    []
   );
 
-  const tableBody: JSX.Element = (
-    <TableBody>
-      {dashboardValues.vendors &&
-        dashboardValues.vendors
-          .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-          .map((row: Vendor, index: number) => (
-            <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row}>
-              <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                {row.vendorName}
-              </TableCell>
-              <TableCell sx={cellStyle}>{row.assignee}</TableCell>
-              <TableCell sx={cellStyle}>{row.reviewStatus}</TableCell>
-              <TableCell sx={cellStyle}>{row.riskStatus}</TableCell>
-              <TableCell sx={cellStyle}>
-                {formatDate(row.reviewDate.toString())}
-              </TableCell>
-              <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                {/* dropdown for actions */}
-                <IconButton vendorId={row.id}></IconButton>
-                <Menu
-                  anchorEl={dropdownAnchor}
-                  open={Boolean(dropdownAnchor)}
-                  onClose={handleDropdownClose}
-                >
-                  <MenuItem onClick={handleDropdownClose}>Edit</MenuItem>
-                  <MenuItem onClick={handleDropdownClose}>Remove</MenuItem>
-                </Menu>
-              </TableCell>
-            </TableRow>
-          ))}
-    </TableBody>
+  const tableBody = useMemo(
+    () => (
+      <TableBody>
+        {dashboardValues.vendors &&
+          dashboardValues.vendors
+            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+            .map((row: Vendor, index: number) => (
+              <TableRow
+                key={index}
+                sx={singleTheme.tableStyles.primary.body.row}
+              >
+                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                  {row.vendorName}
+                </TableCell>
+                <TableCell sx={cellStyle}>{row.assignee}</TableCell>
+                <TableCell sx={cellStyle}>{row.reviewStatus}</TableCell>
+                <TableCell sx={cellStyle}>{row.riskStatus}</TableCell>
+                <TableCell sx={cellStyle}>
+                  {formatDate(row.reviewDate.toString())}
+                </TableCell>
+                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                  <IconButton vendorId={row.id}></IconButton>
+                  <Menu
+                    anchorEl={dropdownAnchor}
+                    open={Boolean(dropdownAnchor)}
+                    onClose={handleDropdownClose}
+                  >
+                    <MenuItem onClick={handleDropdownClose}>Edit</MenuItem>
+                    <MenuItem onClick={handleDropdownClose}>Remove</MenuItem>
+                  </Menu>
+                </TableCell>
+              </TableRow>
+            ))}
+      </TableBody>
+    ),
+    [
+      dashboardValues.vendors,
+      page,
+      rowsPerPage,
+      cellStyle,
+      dropdownAnchor,
+      handleDropdownClose,
+    ]
   );
 
   return (
@@ -175,7 +193,7 @@ const TableWithPlaceholder = () => {
         }}
       >
         <Typography px={theme.spacing(2)} fontSize={12} sx={{ opacity: 0.7 }}>
-          Showing {getRange()} of {dashboardValues.vendors.length} vendor(s)
+          Showing {getRange} of {dashboardValues.vendors.length} vendor(s)
         </Typography>
         <TablePagination
           count={dashboardValues.vendors.length}

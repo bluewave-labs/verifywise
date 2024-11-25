@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   Typography,
   useTheme,
@@ -35,7 +35,6 @@ interface AssessmentValue {
     }[];
   }[];
 }
-
 const AllAssessment = () => {
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState<number>(0);
@@ -57,21 +56,33 @@ const AllAssessment = () => {
     13: { topic: "EnvironmentalImpact", subtopic: [] },
   });
 
+  const [allQuestionsToCheck, setAllQuestionsToCheck] = useState<
+    { title: string }[]
+  >([]);
+
   const [alert, setAlert] = useState<{ show: boolean; message: string }>({
     show: false,
     message: "",
   });
 
   const handleSave = async () => {
-    for (const topicId in assessmentsValues) {
-      const subtopics = assessmentsValues[topicId].subtopic;
-      if (subtopics.length === 0) {
-        setAlert({
-          show: true,
-          message: `You need to answer all the questions`,
-        });
-        return;
-      }
+    const unansweredRequiredQuestions = allQuestionsToCheck.filter(
+      (question) =>
+        !Object.values(assessmentsValues).some((assessment) =>
+          assessment.subtopic.some((subtopic) =>
+            subtopic.questions.some(
+              (q) => q.question === question.title && q.answer.trim() !== ""
+            )
+          )
+        )
+    );
+
+    if (unansweredRequiredQuestions.length > 0) {
+      setAlert({
+        show: true,
+        message: `You need to answer all the required questions`,
+      });
+      return;
     }
 
     try {
@@ -178,8 +189,8 @@ const AllAssessment = () => {
   );
 
   const renderQuestions = useCallback(
-    (subtopicId: string, subtopicTitle: string, questions: any[]) =>
-      questions.map((question) => (
+    (subtopicId: string, subtopicTitle: string, questions: any[]) => {
+      const renderedQuestions = questions.map((question) => (
         <Box key={question.id} mt={10}>
           <Box
             className={"tiptap-header"}
@@ -288,7 +299,10 @@ const AllAssessment = () => {
             </Typography>
           </Stack>
         </Box>
-      )),
+      ));
+
+      return renderedQuestions;
+    },
     [
       activeTab,
       assessmentsValues,
@@ -296,6 +310,22 @@ const AllAssessment = () => {
       theme.components?.MuiButton?.defaultProps?.disableRipple,
     ]
   );
+
+  // Collect all questions across all tabs
+  useEffect(() => {
+    const allQuestions = Topics.flatMap(
+      (topic) =>
+        assessments[topic.id]?.component?.flatMap((subtopic) =>
+          subtopic.questions.map((question) => ({
+            title: question.question,
+          }))
+        ) || []
+    );
+
+    setAllQuestionsToCheck(allQuestions);
+  }, [assessments]);
+
+  console.log("All Questions List:", allQuestionsToCheck); // Log the all questions list
 
   return (
     <Box sx={{ display: "flex", height: "100vh", px: "8px !important" }}>
@@ -336,8 +366,8 @@ const AllAssessment = () => {
         px={8}
         sx={{ overflowY: "auto" }}
       >
-        {Topics[activeTab].id === assessments[activeTab].id &&
-          assessments[activeTab].component.map((subtopic) => (
+        {Topics[activeTab].id === assessments[activeTab]?.id &&
+          assessments[activeTab]?.component.map((subtopic) => (
             <Stack key={subtopic.id} mb={15}>
               <Typography sx={{ fontSize: 16, color: "#344054" }}>
                 {subtopic.title}

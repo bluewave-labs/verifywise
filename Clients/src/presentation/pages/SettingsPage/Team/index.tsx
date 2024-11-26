@@ -155,7 +155,6 @@ export default function index() {
               ml: theme.spacing(10),
               width: theme.spacing(35),
               height: theme.spacing(17),
-              "&:hover": { backgroundColor: "#1570EF" },
             }}
             disableRipple
           >
@@ -221,7 +220,6 @@ export default function index() {
               <Button
                 variant="contained"
                 disableRipple
-                sx={{ "&:hover": { backgroundColor: "#1570EF" } }}
               >
                 Invite team member
               </Button>
@@ -320,7 +318,6 @@ export default function index() {
               variant="contained"
               disableRipple
               onClick={handleSaveAllData}
-              sx={{ "&:hover": { backgroundColor: "#1570EF" } }}
             >
               Save
             </Button>

@@ -1,13 +1,14 @@
 //make get request to backend
 
-import { Box, Button, Divider, Stack, Typography } from "@mui/material";
-import { useRef, useState, ChangeEvent } from "react";
+import { Box, Button, Divider, Stack, Typography, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@mui/material";
+import { useRef, useState, ChangeEvent, useEffect} from "react";
 import Field from "../../../components/Inputs/Field";
 import Avatar from "../../../components/Avatar/VWAvatar/index";
 import { useTheme } from "@mui/material";
 import DeleteAccountConfirmation from "../../../components/Modals/DeleteAccount/index";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import validator from "validator";
+import axios from "axios";
 
 interface User {
   firstname: string;
@@ -28,8 +29,26 @@ const ProfileForm: React.FC = () => {
   const [emailError, setEmailError] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
 
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState<boolean>(false);
+
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  //fetch data from backend 
+  useEffect(()=>{
+      const fetchUserData = async () =>{
+        try {
+          const response = await axios.get("/get enpoint");
+          const {firstname, lastname, email} =response.data;
+          setFirstname(firstname);
+          setLastname(lastname);
+          setEmail(email);
+        } catch (error){
+          console.error("Error fetching user data:", error)
+        }
+      };
+      fetchUserData();
+  }, [])
 
   const handleOpenDeleteDialog = (): void => {
     setIsDeleteDialogOpen(true);
@@ -61,13 +80,32 @@ const ProfileForm: React.FC = () => {
       return;
     }
 
-    const saveObj = {
+    setIsConfirmationModalOpen(true);
+
+    
+  };
+
+  const handleSaveConfirmed = async ()=>{
+    try{
+      const saveObj = {
       firstname,
       lastname,
       email,
     };
     console.log("🚀 ~ handleSave ~ saveObj:", saveObj);
+    await axios.post("get endpoint", saveObj);
+    alert("Profile updated successfully!")
+    setIsConfirmationModalOpen(false);
+    } catch(error){
+      console.error("Error updating profile:", error);
+      alert("Failed to update profile. Please try again.")
+    }
   };
+
+  // close confirmation modal 
+  const handleCloseConfirmationModal = () => {
+    setIsConfirmationModalOpen(false);
+  }
 
   const handleFirstnameChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newFirstname = e.target.value;
@@ -220,6 +258,19 @@ const ProfileForm: React.FC = () => {
       >
         Save
       </Button>
+{/* Confirmation Modal */}
+<Dialog open={isConfirmationModalOpen} onClose={handleCloseConfirmationModal}>
+  <DialogTitle>Save Changes?</DialogTitle>
+  <DialogContent>
+    <DialogContentText>
+      Are you sure you want to save the changes?
+    </DialogContentText>
+  </DialogContent>
+<DialogActions>
+  <Button onClick={handleCloseConfirmationModal}>Cancel</Button>
+  <Button onClick={handleSaveConfirmed} color="primary">Save</Button>
+</DialogActions>
+</Dialog>
       <Box>
         <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
         <Stack>

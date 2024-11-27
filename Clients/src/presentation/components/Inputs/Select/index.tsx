@@ -31,7 +31,7 @@ interface SelectProps {
   placeholder?: string;
   isHidden?: boolean;
   value: string | number;
-  items: { _id: string | number; name: string }[];
+  items: { _id: string | number; name: string; email?: string }[];
   isRequired?: boolean;
   error?: string;
   onChange: (
@@ -62,19 +62,22 @@ const Select: React.FC<SelectProps> = ({
   };
 
   return (
-    <Stack gap={theme.spacing(2)} className="select-wrapper"
+    <Stack
+      gap={theme.spacing(2)}
+      className="select-wrapper"
       sx={{
         ".MuiOutlinedInput-notchedOutline": {
-          border: error 
-            ? `1px solid ${theme.palette.status.error.border}!important` 
-            : `1px solid ${theme.palette.border.dark}!important`
+          border: error
+            ? `1px solid ${theme.palette.status.error.border}!important`
+            : `1px solid ${theme.palette.border.dark}!important`,
         },
         ".Mui-focused .MuiOutlinedInput-notchedOutline": {
-          border: error 
-          ? `1px solid ${theme.palette.status.error.border}!important` 
-          : `1px solid ${theme.palette.border.dark}!important`
-        }
-      }}>
+          border: error
+            ? `1px solid ${theme.palette.status.error.border}!important`
+            : `1px solid ${theme.palette.border.dark}!important`,
+        },
+      }}
+    >
       {label && (
         <Typography
           color={theme.palette.text.secondary}
@@ -131,7 +134,7 @@ const Select: React.FC<SelectProps> = ({
           minWidth: "125px",
           "& fieldset": {
             borderRadius: theme.shape.borderRadius,
-            borderColor: theme.palette.border.dark
+            borderColor: theme.palette.border.dark,
           },
           "&:not(.Mui-focused):hover fieldset": {
             borderColor: theme.palette.border.dark,
@@ -155,17 +158,27 @@ const Select: React.FC<SelectProps> = ({
             {placeholder}
           </MenuItem>
         )}
-        {items.map((item: { _id: string | number; name: string }) => (
-          <MenuItem
-            value={item._id}
-            key={`${id}-${item._id}`}
-            sx={{
-              ...itemStyles,
-            }}
-          >
-            {item.name}
-          </MenuItem>
-        ))}
+        {items.map(
+          (item: { _id: string | number; name: string; email?: string }) => (
+            <MenuItem
+              value={item._id}
+              key={`${id}-${item._id}`}
+              sx={{
+                display: "flex",
+                ...itemStyles,
+                justifyContent: "space-between",
+                flexDirection: "row",
+              }}
+            >
+              {item.name}
+              {item.email && (
+                <span style={{ fontSize: 11, color: "#9d9d9d" }}>
+                  email@email.com
+                </span>
+              )}
+            </MenuItem>
+          )
+        )}
       </MuiSelect>
       {error && (
         <Typography
@@ -175,7 +188,7 @@ const Select: React.FC<SelectProps> = ({
           mt={theme.spacing(2)}
           sx={{
             opacity: 0.8,
-            fontSize: 11
+            fontSize: 11,
           }}
         >
           {error}

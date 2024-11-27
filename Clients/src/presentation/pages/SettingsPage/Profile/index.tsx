@@ -1,13 +1,14 @@
 //make get request to backend
 
-import { Box, Button, Divider, Stack, Typography } from "@mui/material";
-import { useRef, useState, ChangeEvent } from "react";
+import { Box, Button, Divider, Stack, Typography, Dialog, DialogActions, DialogTitle, DialogContent, DialogContentText } from "@mui/material";
+import { useRef, useState, ChangeEvent, useEffect} from "react";
 import Field from "../../../components/Inputs/Field";
 import Avatar from "../../../components/Avatar/VWAvatar/index";
 import { useTheme } from "@mui/material";
 import DeleteAccountConfirmation from "../../../components/Modals/DeleteAccount/index";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import validator from "validator";
+import { getUserById, updateUserById} from "../../../../application/repository/entity.repository";
 
 interface User {
   firstname: string;
@@ -27,9 +28,29 @@ const ProfileForm: React.FC = () => {
   const [lastnameError, setLastnameError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
+  //confirmation modal
+  const [isConfirmationModalOpen,setIsConfirmationModalOpen] = useState<boolean>(false);
 
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  //fetching data on component 
+  useEffect(()=>{
+    const fetchUserData = async ()=>{
+      try{
+        const user = await getUserById({routeUrl:`/users`});
+        console.log("user data:", user)
+        setFirstname(user.firstname);
+        setLastname(user.lastname);
+        setEmail(user.email);
+      }catch(error){
+        console.error("Error fetching user data:", error)
+      }
+    };
+    fetchUserData();
+  }, [])
+
+
 
   const handleOpenDeleteDialog = (): void => {
     setIsDeleteDialogOpen(true);
@@ -55,20 +76,34 @@ const ProfileForm: React.FC = () => {
     setProfilePhoto("/placeholder.svg?height=80&width=80");
   };
 
+  //save button with validation 
   const handleSave = (): void => {
     if (firstnameError || lastnameError || emailError) {
       console.log("Please correct the errors before saving.");
       return;
     }
+    setIsConfirmationModalOpen(true);
 
-    const saveObj = {
-      firstname,
-      lastname,
-      email,
-    };
-    console.log("🚀 ~ handleSave ~ saveObj:", saveObj);
+    // const saveObj = {
+    //   firstname,
+    //   lastname,
+    //   email,
+    // };
+    // console.log("🚀 ~ handleSave ~ saveObj:", saveObj);
   };
 
+  //save updated user to backend
+const handleSaveConfirmed = async () => {
+try {
+const updatedUser = { firstname, lastname, email };
+await updateUserById({routeUrl:`/users`, body:updatedUser}); // Update user data
+alert("Profile updated successfully!");
+setIsConfirmationModalOpen(false); // Close modal
+} catch (error) {
+console.error("Error updating profile:", error);
+alert("Failed to update profile. Please try again.");
+}
+};
   const handleFirstnameChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newFirstname = e.target.value;
     setFirstname(newFirstname);
@@ -101,6 +136,12 @@ const ProfileForm: React.FC = () => {
     lastname,
     pathToImage: profilePhoto,
   };
+
+  //close confirmation
+  const handleCloseConfirmationModal =()=>
+  {
+    setIsConfirmationModalOpen(false);
+  }
 
   return (
     <Box sx={{ mt: 3, width: { xs: "90%", md: "70%" } }}>
@@ -220,6 +261,22 @@ const ProfileForm: React.FC = () => {
       >
         Save
       </Button>
+
+      {/* confirmation modal */}
+      <Dialog open={isConfirmationModalOpen} onClose={handleCloseConfirmationModal}>
+        <DialogTitle>Save Changes?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to save the changes?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseConfirmationModal}>Cancel</Button>
+          <Button onClick={handleSaveConfirmed} color="primary">
+            Save
+           </Button>
+        </DialogActions>
+      </Dialog>
       <Box>
         <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
         <Stack>
@@ -255,6 +312,5 @@ const ProfileForm: React.FC = () => {
       </Box>
     </Box>
   );
-};
-
+}
 export default ProfileForm;

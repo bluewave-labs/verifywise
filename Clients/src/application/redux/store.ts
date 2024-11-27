@@ -1,19 +1,16 @@
-import { combineReducers, configureStore, Reducer } from "@reduxjs/toolkit";
-import { persistReducer } from "redux-persist";
-import persistStore from "redux-persist/es/persistStore";
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
+import { persistReducer, persistStore } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import uiSlice from "../../presentation/tools/uiSlice";
-import authTransform from "../authentication/authTransform";
 import authReducer from "../authentication/authSlice";
 
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["auth"],
-  transforms: [authTransform],
+  whitelist: ["auth"], // Only persist the auth state
 };
 
-const rootReducer: Reducer = combineReducers({
+const rootReducer = combineReducers({
   ui: uiSlice,
   auth: authReducer,
 });

@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 const initialState = {
   isLoading: false,
@@ -131,6 +131,9 @@ const authSlice = createSlice({
       state.success = true;
       state.message = "Logged out successfully";
     },
+    setAuthToken: (state, action: PayloadAction<string>) => {
+      state.authToken = action.payload;
+    },
   },
   extraReducers(builder) {
     // Register thunk
@@ -184,4 +187,4 @@ const authSlice = createSlice({
 });
 
 export default authSlice.reducer;
-export const { clearAuthState } = authSlice.actions;
+export const { clearAuthState, setAuthToken } = authSlice.actions;

@@ -40,6 +40,7 @@ const buttons = {
     border: `1px solid ${borderColors.primary}`,
     "&:hover": {
       boxShadow: shadowEffect.NoShadow,
+      backgroundColor: "#175CD3 ",
     },
     fontSizes: fontSizes.medium,
   },

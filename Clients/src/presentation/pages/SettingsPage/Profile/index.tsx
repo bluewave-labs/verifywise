@@ -108,7 +108,14 @@ alert("Failed to update profile. Please try again.");
     const newFirstname = e.target.value;
     setFirstname(newFirstname);
 
-    const validation = checkStringValidation("First name", newFirstname, 2, 50, false, false);
+    const validation = checkStringValidation(
+      "First name",
+      newFirstname,
+      2,
+      50,
+      false,
+      false
+    );
     setFirstnameError(validation.accepted ? null : validation.message);
   };
 
@@ -116,7 +123,14 @@ alert("Failed to update profile. Please try again.");
     const newLastname = e.target.value;
     setLastname(newLastname);
 
-    const validation = checkStringValidation("Last name", newLastname, 2, 50, false, false);
+    const validation = checkStringValidation(
+      "Last name",
+      newLastname,
+      2,
+      50,
+      false,
+      false
+    );
     setLastnameError(validation.accepted ? null : validation.message);
   };
 
@@ -256,6 +270,9 @@ alert("Failed to update profile. Please try again.");
           position: { md: "relative" },
           left: { md: theme.spacing(0) },
           mt: theme.spacing(5),
+          "&:hover": {
+            backgroundColor: "#175CD3 ",
+          },
         }}
         onClick={handleSave}
       >

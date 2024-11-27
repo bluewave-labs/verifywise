@@ -89,6 +89,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
     border: "1px solid #175CD3",
     "&:hover": {
       boxShadow: "none",
+      backgroundColor: "#175CD3 ",
     },
   };
 
@@ -204,8 +205,19 @@ const CustomModal: React.FC<CustomModalProps> = ({
             {subControlTlts[selectedTab]}
           </Typography>
           <Typography variant="body1" sx={{ mb: 5 }}>
-            {'hiiiiiiiiiiiiiiiiii =D'}
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Similique atque natus accusantium molestiae illum labore a ut dolorem doloribus maiores rerum quibusdam, sapiente amet itaque ad culpa quidem nostrum quo mollitia nihil reiciendis autem perspiciatis minus nobis. Ab delectus consequatur harum minima similique possimus? Nostrum at porro vel nisi assumenda facere voluptatem nobis fuga repudiandae in minus temporibus voluptatibus sint accusamus quia laboriosam laudantium, eum optio facilis, aliquam quasi quae a consequuntur. Sed quibusdam beatae perferendis dolorum nihil harum sunt unde vel pariatur quasi id placeat nulla accusamus delectus deleniti soluta illum dolorem, reprehenderit explicabo quo ex? Quod, non illum.
+            {"hiiiiiiiiiiiiiiiiii =D"}
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Similique
+            atque natus accusantium molestiae illum labore a ut dolorem
+            doloribus maiores rerum quibusdam, sapiente amet itaque ad culpa
+            quidem nostrum quo mollitia nihil reiciendis autem perspiciatis
+            minus nobis. Ab delectus consequatur harum minima similique
+            possimus? Nostrum at porro vel nisi assumenda facere voluptatem
+            nobis fuga repudiandae in minus temporibus voluptatibus sint
+            accusamus quia laboriosam laudantium, eum optio facilis, aliquam
+            quasi quae a consequuntur. Sed quibusdam beatae perferendis dolorum
+            nihil harum sunt unde vel pariatur quasi id placeat nulla accusamus
+            delectus deleniti soluta illum dolorem, reprehenderit explicabo quo
+            ex? Quod, non illum.
           </Typography>
           {activeSection === "Overview" && (
             <Typography variant="body1">
@@ -251,6 +263,9 @@ const CustomModal: React.FC<CustomModalProps> = ({
             sx={{
               ...buttonStyle,
               width: 68,
+              "&:hover": {
+                backgroundColor: "#175CD3 ",
+              },
             }}
             disableRipple
           >

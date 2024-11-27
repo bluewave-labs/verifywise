@@ -505,6 +505,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           "&:focus": {
             outline: "none",
           },
+          mt: 5,
+          mb: 5,
         }}
       >
         <Stack
@@ -574,6 +576,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 border: "1px solid #175CD3",
                 "&:hover": {
                   boxShadow: "none",
+                  backgroundColor: "#175CD3 ",
                 },
               }}
               onClick={handleOnSave}

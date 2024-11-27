@@ -350,7 +350,7 @@ const CreateProjectForm: FC = () => {
             ml: "auto",
             mr: 0,
             mt: "30px",
-            "&:hover": { boxShadow: "none" },
+            "&:hover": { boxShadow: "none", backgroundColor: "#175CD3 " },
           }}
         >
           Create project

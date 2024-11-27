@@ -112,6 +112,9 @@ const Assessment = () => {
               width: "fit-content",
               height: 34,
               marginTop: "20px",
+              "&:hover": {
+                backgroundColor: "#175CD3 ",
+              },
             }}
             onClick={() => {
               handleAssessment();

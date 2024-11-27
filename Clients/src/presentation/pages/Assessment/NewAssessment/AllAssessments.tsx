@@ -391,6 +391,9 @@ const AllAssessment = () => {
               ...singleTheme.buttons.primary,
               color: "#FFFFFF",
               width: 140,
+              "&:hover": {
+                backgroundColor: "#175CD3 ",
+              },
             }}
             onClick={() => handleSave()}
           >

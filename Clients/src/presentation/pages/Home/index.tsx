@@ -1,10 +1,18 @@
+import React, {
+  lazy,
+  Suspense,
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
 import { Box, Stack, Typography, useTheme } from "@mui/material";
-import { lazy, Suspense, useEffect, useState } from "react";
 import { NoProjectBox, styles } from "./styles";
 import emptyState from "../../assets/imgs/empty-state.svg";
 import { getAllEntities } from "../../../application/repository/entity.repository";
 import { ProjectCardProps } from "../../components/ProjectCard";
 
+// Lazy load components
 const ProjectCard = lazy(() => import("../../components/ProjectCard"));
 const Popup = lazy(() => import("../../components/Popup"));
 const CreateProjectForm = lazy(
@@ -12,12 +20,12 @@ const CreateProjectForm = lazy(
 );
 const MetricSection = lazy(() => import("../../components/MetricSection"));
 
-const Home = () => {
-  const theme = useTheme();
+// Custom hook for fetching projects
+const useProjects = () => {
+  const [projects, setProjects] = useState<ProjectCardProps[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [projects, setProjects] = useState<ProjectCardProps[] | null>(null);
   useEffect(() => {
     const controller = new AbortController();
     setIsLoading(true);
@@ -26,9 +34,9 @@ const Home = () => {
         setProjects(data);
         setError(null);
       })
-      .catch(() => {
+      .catch((err) => {
         if (!controller.signal.aborted) {
-          setError("Failed to fetch projects");
+          setError("Failed to fetch projects: " + err.message);
           setProjects(null);
         }
       })
@@ -40,29 +48,42 @@ const Home = () => {
     return () => controller.abort();
   }, []);
 
-  const NoProjectsMessage = () => (
-    <NoProjectBox>
-      <Box sx={{ display: "flex", justifyContent: "center" }}>
-        <img src={emptyState} alt="Empty project state" />
-      </Box>
-      <Typography
-        sx={{
-          textAlign: "center",
-          mt: 13.5,
-          color: theme.palette.text.tertiary,
-        }}
-      >
-        You have no projects, yet. Click on the "New Project" button to start
-        one.
-      </Typography>
-    </NoProjectBox>
+  return { projects, error, isLoading };
+};
+
+const Home = () => {
+  const theme = useTheme();
+  const { projects, error, isLoading } = useProjects();
+
+  const NoProjectsMessage = useMemo(
+    () => (
+      <NoProjectBox>
+        <Box sx={{ display: "flex", justifyContent: "center" }}>
+          <img src={emptyState} alt="Empty project state" />
+        </Box>
+        <Typography
+          sx={{
+            textAlign: "center",
+            mt: 13.5,
+            color: theme.palette.text.tertiary,
+          }}
+        >
+          You have no projects, yet. Click on the "New Project" button to start
+          one.
+        </Typography>
+      </NoProjectBox>
+    ),
+    [theme]
   );
 
-  const PopupRender = () => {
+  const PopupRender = useCallback(() => {
     const [anchor, setAnchor] = useState<null | HTMLElement>(null);
-    const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
-      setAnchor(anchor ? null : event.currentTarget);
-    };
+    const handleOpenOrClose = useCallback(
+      (event: React.MouseEvent<HTMLElement>) => {
+        setAnchor(anchor ? null : event.currentTarget);
+      },
+      [anchor]
+    );
 
     return (
       <Suspense fallback={<div>Loading...</div>}>
@@ -77,7 +98,7 @@ const Home = () => {
         />
       </Suspense>
     );
-  };
+  }, []);
 
   return (
     <Box>
@@ -115,7 +136,7 @@ const Home = () => {
           ))}
         </>
       ) : (
-        <NoProjectsMessage />
+        NoProjectsMessage
       )}
     </Box>
   );

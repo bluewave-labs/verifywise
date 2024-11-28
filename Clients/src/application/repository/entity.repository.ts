@@ -1,5 +1,4 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { ENV_VARs } from "../../../env.vars";
 
 /**
  * Creates a new user by sending a POST request to the specified route URL with the provided body.
@@ -17,8 +16,7 @@ export async function createNewUser({
   routeUrl: string;
   body: any;
 }): Promise<any> {
-  console.log("ENV_VARs => ", ENV_VARs);
-  const response = await apiServices.post(ENV_VARs + routeUrl, body);
+  const response = await apiServices.post(routeUrl, body);
   console.log(
     `The entity with the following details is created: ${response.data}`
   );
@@ -42,7 +40,7 @@ export async function loginUser({
   body: any;
 }): Promise<any> {
   try {
-    const response = await apiServices.post(ENV_VARs + routeUrl, body);
+    const response = await apiServices.post(routeUrl, body);
     return response;
   } catch (error) {
     console.error("Error logging in user:", error);
@@ -58,13 +56,13 @@ export async function loginUser({
  * @returns {Promise<any>} The user data retrieved from the API.
  * @throws Will throw an error if the request fails.
  */
-export async function getUserById({
+export async function getEntityById({
   routeUrl,
 }: {
   routeUrl: string;
 }): Promise<any> {
   try {
-    const response = await apiServices.get(ENV_VARs + routeUrl);
+    const response = await apiServices.get(routeUrl);
     return response.data;
   } catch (error) {
     console.error("Error getting user by ID:", error);
@@ -81,7 +79,7 @@ export async function getUserById({
  * @returns {Promise<any>} The updated entity data.
  * @throws Will throw an error if the update operation fails.
  */
-export async function updateUserById({
+export async function updateEntityById({
   routeUrl,
   body,
 }: {
@@ -89,7 +87,7 @@ export async function updateUserById({
   body: any;
 }): Promise<any> {
   try {
-    const response = await apiServices.patch(ENV_VARs + routeUrl, body);
+    const response = await apiServices.patch(routeUrl, body);
     console.log(
       `The entity with the following details is updated: ${response.data}`
     );
@@ -108,13 +106,13 @@ export async function updateUserById({
  * @returns {Promise<any>} The response data from the delete operation.
  * @throws Will throw an error if the delete operation fails.
  */
-export async function deleteUserById({
+export async function deleteEntityById({
   routeUrl,
 }: {
   routeUrl: string;
 }): Promise<any> {
   try {
-    const response = await apiServices.delete(ENV_VARs + routeUrl);
+    const response = await apiServices.delete(routeUrl);
     console.log(
       `The entity with the following details is removed: ${response}`
     );

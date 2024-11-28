@@ -14,18 +14,41 @@ import EmptyTableImage from "../../assets/imgs/empty-state.svg";
 import AscendingIcon from "../../assets/icons/up-arrow.svg";
 import DescendingIcon from "../../assets/icons/down-arrow.svg";
 
-
-// File interface for type safety
+/**
+ * Represents a file with its metadata.
+ * @typedef {Object} File
+ * @property {string} id - The unique identifier of the file.
+ * @property {string} name - The name of the file.
+ * @property {string} type - The type of the file.
+ * @property {string} uploadDate - The date the file was uploaded.
+ * @property {string} uploader - The uploader of the file.
+ */
 interface File {
-  id:string;
+  id: string;
   name: string;
   type: string;
   uploadDate: string;
   uploader: string;
 }
 
+const COLUMN_NAMES = {
+  FILE: "File",
+  TYPE: "Type",
+  UPLOAD_DATE: "Upload Date",
+  UPLOADER: "Uploader",
+  ACTION: "Action",
+};
+
+const SORT_DIRECTIONS = {
+  ASC: "asc",
+  DESC: "desc",
+} as const;
+
+type SortDirection = (typeof SORT_DIRECTIONS)[keyof typeof SORT_DIRECTIONS];
+
 /**
- * Component for displaying an empty state w no files
+ * Displays an empty state when no files are available.
+ * @returns {JSX.Element} The empty state component.
  */
 const EmptyState: React.FC = () => (
   <Stack
@@ -33,7 +56,7 @@ const EmptyState: React.FC = () => (
     alignItems="center"
     justifyContent="center"
     sx={{ height: "100%", textAlign: "center" }}
-    border= "1px solid #eeeeee"
+    border="1px solid #eeeeee"
   >
     <Box
       component="img"
@@ -53,7 +76,13 @@ const EmptyState: React.FC = () => (
 );
 
 /**
- * displaying the action menu (Download/Remove)
+ * Displays a menu with actions for a file.
+ * @param {Object} props - The component props.
+ * @param {HTMLElement|null} props.anchorEl - The element to which the menu is anchored.
+ * @param {Function} props.onClose - Callback to close the menu.
+ * @param {Function} props.onDownload - Callback to download the file.
+ * @param {Function} props.onRemove - Callback to remove the file.
+ * @returns {JSX.Element} The file actions menu component.
  */
 const FileActions: React.FC<{
   anchorEl: HTMLElement | null;
@@ -65,7 +94,6 @@ const FileActions: React.FC<{
     <MenuItem onClick={onDownload} aria-label="Download File">
       Download
     </MenuItem>
-
     <MenuItem onClick={onRemove} aria-label="Remove File">
       Remove
     </MenuItem>
@@ -73,7 +101,15 @@ const FileActions: React.FC<{
 );
 
 /**
- * file table w sortable columns
+ * Displays a table of files with sortable columns.
+ * @param {Object} props - The component props.
+ * @param {Array} props.cols - The columns of the table.
+ * @param {Array} props.rows - The rows of the table.
+ * @param {Array<File>} props.files - The list of files.
+ * @param {Function} props.handleSort - Callback to handle sorting.
+ * @param {keyof File|null} props.sortField - The field currently sorted by.
+ * @param {SortDirection|null} props.sortDirection - The current sort direction.
+ * @returns {JSX.Element} The file table component.
  */
 const FileTable: React.FC<{
   cols: any[];
@@ -81,36 +117,41 @@ const FileTable: React.FC<{
   files: File[];
   handleSort: (field: keyof File) => void;
   sortField: keyof File | null;
-  sortDirection: "asc" | "desc" | null;
+  sortDirection: SortDirection | null;
 }> = ({ cols, rows, files, handleSort, sortField, sortDirection }) => {
-  // sorting logic for "Upload Date" and "Uploader"
-  const sortedCols = cols.map((col) =>
-    ["Upload Date", "Uploader"].includes(col.name)
-      ? {
-          ...col,
-          name: (
-            <Stack
-              direction="row"
-              alignItems="center"
-              onClick={() => handleSort(col.name.toLowerCase() as keyof File)}
-              sx={{ cursor: "pointer" }}
-            >
-              {col.name}
-              <Box
-                component="img"
-                src={
-                  sortField === col.name.toLowerCase() &&
-                  sortDirection === "asc"
-                    ? AscendingIcon
-                    : DescendingIcon
-                }
-                alt="Sort"
-                sx={{ width: 16, height: 16, ml: 0.5 }}
-              />
-            </Stack>
-          ),
-        }
-      : col
+  const sortedCols = useMemo(
+    () =>
+      cols.map((col) =>
+        [COLUMN_NAMES.UPLOAD_DATE, COLUMN_NAMES.UPLOADER].includes(col.name)
+          ? {
+              ...col,
+              name: (
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  onClick={() =>
+                    handleSort(col.name.toLowerCase() as keyof File)
+                  }
+                  sx={{ cursor: "pointer" }}
+                >
+                  {col.name}
+                  <Box
+                    component="img"
+                    src={
+                      sortField === col.name.toLowerCase() &&
+                      sortDirection === SORT_DIRECTIONS.ASC
+                        ? AscendingIcon
+                        : DescendingIcon
+                    }
+                    alt="Sort"
+                    sx={{ width: 16, height: 16, ml: 0.5 }}
+                  />
+                </Stack>
+              ),
+            }
+          : col
+      ),
+    [cols, handleSort, sortField, sortDirection]
   );
 
   return (
@@ -123,45 +164,28 @@ const FileTable: React.FC<{
 };
 
 /**
- * Main FileManager component for managing files, displaying a table,
+ * Main component for managing files, displaying a table,
  * sorting, and handling actions (Download/Remove).
+ * @returns {JSX.Element} The FileManager component.
  */
 const FileManager: React.FC = (): JSX.Element => {
-  // State management
-  const [files, setFiles] = useState<File[]>([
-    // {
-    //   id: "1",
-    //   name: "AI Model Overview",
-    //   type: "Evidence",
-    //   uploadDate: "May 22, 2024",
-    //   uploader: "Mert Can Boyar",
-    // },
-    // {
-    //   id: "2",
-    //   name: "Fairness Evidence",
-    //   type: "Evidence",
-    //   uploadDate: "July 15, 2024",
-    //   uploader: "Neeraj Sunil",
-    // },
-    // {
-    //   id: "3",
-    //   name: "No Bias Evidence",
-    //   type: "Document",
-    //   uploadDate: "July 1, 2024",
-    //   uploader: "You",
-    // },
-  ]);
+  const [files, setFiles] = useState<File[]>([]);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [sortField, setSortField] = useState<keyof File | null>(null);
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
-    null); 
-  
-  // Handle sorting logic
+  const [sortDirection, setSortDirection] = useState<SortDirection | null>(
+    null
+  );
+
+  /**
+   * Handles sorting of files by a specified field.
+   * @param {keyof File} field - The field to sort by.
+   */
   const handleSort = useCallback(
     (field: keyof File) => {
-      const isAsc = sortField === field && sortDirection === "asc";
-      const newDirection = isAsc ? "desc" : "asc";
+      const isAsc =
+        sortField === field && sortDirection === SORT_DIRECTIONS.ASC;
+      const newDirection = isAsc ? SORT_DIRECTIONS.DESC : SORT_DIRECTIONS.ASC;
 
       setSortDirection(newDirection);
       setSortField(field);
@@ -169,11 +193,11 @@ const FileManager: React.FC = (): JSX.Element => {
       setFiles(
         [...files].sort((a, b) => {
           if (typeof a[field] === "string" && typeof b[field] === "string") {
-            return newDirection === "asc"
+            return newDirection === SORT_DIRECTIONS.ASC
               ? a[field].localeCompare(b[field])
               : b[field].localeCompare(a[field]);
           }
-          return newDirection === "asc"
+          return newDirection === SORT_DIRECTIONS.ASC
             ? a[field] < b[field]
               ? -1
               : 1
@@ -184,9 +208,8 @@ const FileManager: React.FC = (): JSX.Element => {
       );
     },
     [files, sortField, sortDirection]
-  ); 
-  
-  // Memoize rows to prevent unnecessary recalculations
+  );
+
   const rows = useMemo(
     () =>
       files.map((file) => ({
@@ -215,9 +238,13 @@ const FileManager: React.FC = (): JSX.Element => {
         ],
       })),
     [files]
-  ); 
-  
-  // Handle action menu logic
+  );
+
+  /**
+   * Handles the click event for file actions.
+   * @param {MouseEvent<HTMLElement>} event - The click event.
+   * @param {File} file - The file for which actions are being handled.
+   */
   const handleActionsClick = useCallback(
     (event: MouseEvent<HTMLElement>, file: File) => {
       setAnchorEl(event.currentTarget);
@@ -226,51 +253,54 @@ const FileManager: React.FC = (): JSX.Element => {
     []
   );
 
+  /**
+   * Closes the action menu.
+   */
   const handleMenuClose = useCallback(() => {
     setAnchorEl(null);
     setSelectedFile(null);
   }, []);
 
+  /**
+   * Handles the download action for a file.
+   */
   const handleDownload = useCallback(() => {
     console.log(`Downloading ${selectedFile?.name}`);
     handleMenuClose();
   }, [selectedFile, handleMenuClose]);
 
+  /**
+   * Handles the removal of a file.
+   */
   const handleRemove = useCallback(() => {
     if (selectedFile) {
       setFiles(files.filter((file) => file.id !== selectedFile.id));
     }
     handleMenuClose();
-  }, [files, selectedFile, handleMenuClose]); 
-  
-  // Define table columns
+  }, [files, selectedFile, handleMenuClose]);
+
   const cols = [
-    { id: 1, name: "File" },
-    { id: 2, name: "Type" },
-    { id: 3, name: "Upload Date" },
-    { id: 4, name: "Uploader" },
-    { id: 5, name: "Action" },
+    { id: 1, name: COLUMN_NAMES.FILE },
+    { id: 2, name: COLUMN_NAMES.TYPE },
+    { id: 3, name: COLUMN_NAMES.UPLOAD_DATE },
+    { id: 4, name: COLUMN_NAMES.UPLOADER },
+    { id: 5, name: COLUMN_NAMES.ACTION },
   ];
-  
-  // Render FileManager UI
+
   return (
     <Stack spacing={4} sx={{ padding: 4, marginBottom: 10 }}>
-      {/* Header Section */}
       <Stack spacing={1}>
         <Typography variant="h6" fontWeight="bold" gutterBottom>
           Evidences & documents
         </Typography>
-
         <Typography variant="body2" color="text.secondary">
           This table lists all the files uploaded to the system.
         </Typography>
       </Stack>
-     
-      {/* Table Container */}
+
       <Box
         sx={{
           position: "relative",
-          // border: "1px solid #e0e0e0",
           borderRadius: "4px",
           overflow: "hidden",
           minHeight: "400px",
@@ -286,8 +316,7 @@ const FileManager: React.FC = (): JSX.Element => {
         />
         {files.length === 0 && <EmptyState />}
       </Box>
-      
-      {/* Action Menu */}
+
       <FileActions
         anchorEl={anchorEl}
         onClose={handleMenuClose}

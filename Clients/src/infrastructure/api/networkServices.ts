@@ -43,6 +43,7 @@ const logRequest = (
   params?: any,
   data?: any
 ) => {
+  console.log("endpoint: ", endpoint);
   console.log(`[API Request] ${method.toUpperCase()} ${endpoint}`, {
     params,
     data,
@@ -73,9 +74,7 @@ export const apiServices = {
   ): Promise<ApiResponse<T>> {
     logRequest("get", endpoint, params);
     try {
-      console.log("Get in networkServices");
       const response = await CustomAxios.get(endpoint, { params });
-      console.log("🚀 ~ response:", response);
 
       logResponse("get", endpoint, response);
       return {

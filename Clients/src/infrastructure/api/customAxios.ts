@@ -26,7 +26,7 @@ import { ENV_VARs } from "../../../env.vars";
 // Create an instance of axios with default configurations
 const CustomAxios = axios.create({
   baseURL: ENV_VARs.URL,
-  timeout: 10000, // Set a timeout limit for requests
+  timeout: 20000, // Set a timeout limit for requests
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -37,7 +37,7 @@ const CustomAxios = axios.create({
 CustomAxios.interceptors.request.use(
   (config) => {
     const state = store.getState();
-    const token = state.auth.token;
+    const token = state.auth.authToken;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

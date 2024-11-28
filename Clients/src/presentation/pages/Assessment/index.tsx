@@ -1,4 +1,3 @@
-import "./index.css";
 import { memo, useCallback } from "react";
 import { Stack, Button, Typography, useTheme, Paper } from "@mui/material";
 import { useNavigate } from "react-router-dom";

@@ -33,7 +33,7 @@ import authenticateJWT from "../middleware/auth.middleware";
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.get("/", authenticateJWT, getAllUsers);
+router.get("/", /*authenticateJWT, */getAllUsers);
 
 /**
  * GET /users/by-email/:email
@@ -61,7 +61,7 @@ router.get("/by-email/:email", authenticateJWT, getUserByEmail);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.get("/:id", authenticateJWT, getUserById);
+router.get("/:id", /*authenticateJWT,*/ getUserById);
 
 /**
  * POST /users/register

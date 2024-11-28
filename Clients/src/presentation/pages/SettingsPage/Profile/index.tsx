@@ -8,11 +8,13 @@ import { useTheme } from "@mui/material";
 import DeleteAccountConfirmation from "../../../components/Modals/DeleteAccount/index";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import validator from "validator";
-import { getUserById, updateUserById} from "../../../../application/repository/entity.repository";
+
 
 interface User {
+  id?: number;
   firstname: string;
   lastname: string;
+  email:string;
   pathToImage: string;
 }
 
@@ -34,15 +36,28 @@ const ProfileForm: React.FC = () => {
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  //fetching data on component 
+  //fetching first user from users 
   useEffect(()=>{
     const fetchUserData = async ()=>{
       try{
-        const user = await getUserById({routeUrl:`/users`});
-        console.log("user data:", user)
-        setFirstname(user.firstname);
-        setLastname(user.lastname);
-        setEmail(user.email);
+        
+        const response =await fetch("http://localhost:3000/users");
+        if (!response.ok) throw new Error("Failed to fetch user list");
+
+        const users: User[] = await response.json();
+        if(users.length === 0){
+          console.log("No users found in the database");
+          return;
+        }
+        
+        //picking the first user because i cant replace with an actual user ID to test 
+        const firstUser = users[0];
+        console.log("first user data:", firstUser);
+
+        setFirstname(firstUser.firstname || "");
+        setLastname(firstUser.lastname || "");
+        setEmail(firstUser.email || "");
+        console.log("fetched user:",user);
       }catch(error){
         console.error("Error fetching user data:", error)
       }
@@ -96,7 +111,18 @@ const ProfileForm: React.FC = () => {
 const handleSaveConfirmed = async () => {
 try {
 const updatedUser = { firstname, lastname, email };
-await updateUserById({routeUrl:`/users`, body:updatedUser}); // Update user data
+const response = await fetch("http://localhost:3000/users/1",{
+  method:"PATCH",
+  headers:{
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(updatedUser),
+});
+
+if (!response.ok){
+  throw new Error("failed to update user data");
+}
+
 alert("Profile updated successfully!");
 setIsConfirmationModalOpen(false); // Close modal
 } catch (error) {
@@ -149,6 +175,7 @@ alert("Failed to update profile. Please try again.");
     firstname,
     lastname,
     pathToImage: profilePhoto,
+    email,
   };
 
   //close confirmation

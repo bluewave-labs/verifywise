@@ -1,20 +1,33 @@
 //make get request to backend
 
-import { Box, Button, Divider, Stack, Typography, Dialog, DialogActions, DialogTitle, DialogContent, DialogContentText } from "@mui/material";
-import { useRef, useState, ChangeEvent, useEffect} from "react";
+import {
+  Box,
+  Button,
+  Divider,
+  Stack,
+  Typography,
+  Dialog,
+  DialogActions,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+} from "@mui/material";
+import { useRef, useState, ChangeEvent, useEffect } from "react";
 import Field from "../../../components/Inputs/Field";
 import Avatar from "../../../components/Avatar/VWAvatar/index";
 import { useTheme } from "@mui/material";
 import DeleteAccountConfirmation from "../../../components/Modals/DeleteAccount/index";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import validator from "validator";
-
+import {
+  getUserById,
+  updateUserById,
+} from "../../../../application/repository/entity.repository";
 
 interface User {
-  id?: number;
   firstname: string;
   lastname: string;
-  email:string;
+  email: string;
   pathToImage: string;
 }
 
@@ -31,41 +44,71 @@ const ProfileForm: React.FC = () => {
   const [emailError, setEmailError] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   //confirmation modal
-  const [isConfirmationModalOpen,setIsConfirmationModalOpen] = useState<boolean>(false);
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] =
+    useState<boolean>(false);
 
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  //fetching first user from users 
-  useEffect(()=>{
-    const fetchUserData = async ()=>{
-      try{
-        
-        const response =await fetch("http://localhost:3000/users");
-        if (!response.ok) throw new Error("Failed to fetch user list");
+  //fetching first user from users
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const userId = localStorage.getItem("userId") || "1";
+        const user = await getUserById({ routeUrl: `/users/${userId}` });
 
-        const users: User[] = await response.json();
-        if(users.length === 0){
-          console.log("No users found in the database");
-          return;
-        }
-        
-        //picking the first user because i cant replace with an actual user ID to test 
-        const firstUser = users[0];
-        console.log("first user data:", firstUser);
-
-        setFirstname(firstUser.firstname || "");
-        setLastname(firstUser.lastname || "");
-        setEmail(firstUser.email || "");
-        console.log("fetched user:",user);
-      }catch(error){
-        console.error("Error fetching user data:", error)
+        setFirstname(user.firstname || "");
+        setLastname(user.lastname || "");
+        setEmail(user.email || "");
+        setProfilePhoto(
+          user.pathToImage || "/placeholder.svg?height=80&width=80"
+        );
+      } catch (error) {
+        console.error("Error fetching user data:", error);
       }
     };
     fetchUserData();
-  }, [])
+  }, []);
 
+  //save button with validation
+  const handleSave = async () => {
+    try {
+      if (firstnameError || lastnameError || emailError) {
+        console.log("Please correct the errors before saving.");
+        return;
+      }
+      const userId = localStorage.getItem("userId") || "1";
+      const updatedUser = {
+        firstname,
+        lastname,
+        email,
+        pathToImage: profilePhoto,
+      };
 
+      await updateUserById({
+        routeUrl: `/users/${userId}`,
+        body: updatedUser,
+      });
+      alert("profile updated successfully");
+      setIsConfirmationModalOpen(false);
+    } catch (error) {
+      console.error("error updating profile:", error);
+      alert("failed to update profile. please try again.");
+    }
+    // const saveObj = {
+    //   firstname,
+    //   lastname,
+    //   email,
+    // };
+    // console.log("🚀 ~ handleSave ~ saveObj:", saveObj);
+  };
+const handleFileChange = (event: ChangeEvent<HTMLInputElement>): void => {
+  const file = event.target.files?.[0];
+  if (file) {
+    const newPhotoUrl = URL.createObjectURL(file);
+    setProfilePhoto(newPhotoUrl);
+  }
+};
 
   const handleOpenDeleteDialog = (): void => {
     setIsDeleteDialogOpen(true);
@@ -79,57 +122,11 @@ const ProfileForm: React.FC = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>): void => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const newPhotoUrl = URL.createObjectURL(file);
-      setProfilePhoto(newPhotoUrl);
-    }
-  };
-
+  
   const handleDeletePhoto = (): void => {
     setProfilePhoto("/placeholder.svg?height=80&width=80");
   };
 
-  //save button with validation 
-  const handleSave = (): void => {
-    if (firstnameError || lastnameError || emailError) {
-      console.log("Please correct the errors before saving.");
-      return;
-    }
-    setIsConfirmationModalOpen(true);
-
-    // const saveObj = {
-    //   firstname,
-    //   lastname,
-    //   email,
-    // };
-    // console.log("🚀 ~ handleSave ~ saveObj:", saveObj);
-  };
-
-  //save updated user to backend
-const handleSaveConfirmed = async () => {
-try {
-const updatedUser = { firstname, lastname, email };
-const response = await fetch("http://localhost:3000/users/1",{
-  method:"PATCH",
-  headers:{
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify(updatedUser),
-});
-
-if (!response.ok){
-  throw new Error("failed to update user data");
-}
-
-alert("Profile updated successfully!");
-setIsConfirmationModalOpen(false); // Close modal
-} catch (error) {
-console.error("Error updating profile:", error);
-alert("Failed to update profile. Please try again.");
-}
-};
   const handleFirstnameChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newFirstname = e.target.value;
     setFirstname(newFirstname);
@@ -179,10 +176,9 @@ alert("Failed to update profile. Please try again.");
   };
 
   //close confirmation
-  const handleCloseConfirmationModal =()=>
-  {
+  const handleCloseConfirmationModal = () => {
     setIsConfirmationModalOpen(false);
-  }
+  };
 
   return (
     <Box sx={{ mt: 3, width: { xs: "90%", md: "70%" } }}>
@@ -301,13 +297,16 @@ alert("Failed to update profile. Please try again.");
             backgroundColor: "#175CD3 ",
           },
         }}
-        onClick={handleSave}
+        onClick={()=> setIsConfirmationModalOpen(true)}
       >
         Save
       </Button>
 
       {/* confirmation modal */}
-      <Dialog open={isConfirmationModalOpen} onClose={handleCloseConfirmationModal}>
+      <Dialog
+        open={isConfirmationModalOpen}
+        onClose={handleCloseConfirmationModal}
+      >
         <DialogTitle>Save Changes?</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -316,9 +315,9 @@ alert("Failed to update profile. Please try again.");
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseConfirmationModal}>Cancel</Button>
-          <Button onClick={handleSaveConfirmed} color="primary">
+          <Button onClick={handleSave} color="primary">
             Save
-           </Button>
+          </Button>
         </DialogActions>
       </Dialog>
       <Box>
@@ -356,5 +355,5 @@ alert("Failed to update profile. Please try again.");
       </Box>
     </Box>
   );
-}
+};
 export default ProfileForm;

@@ -65,7 +65,7 @@ const Home = () => {
       <Suspense fallback={<div>Loading...</div>}>
         <Popup
           popupId="create-project-popup"
-          popupContent={<CreateProjectForm />}
+          popupContent={<CreateProjectForm closePopup={() => setAnchor(null)} />}
           openPopupButtonName="New project"
           popupTitle="Create new project"
           popupSubtitle="Create a new project from scratch by filling in the following."

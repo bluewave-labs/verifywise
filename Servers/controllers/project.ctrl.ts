@@ -84,8 +84,8 @@ export async function createProject(req: Request, res: Response): Promise<any> {
       ai_risk_classification: string;
       type_of_high_risk_role: string;
       goal: string;
-      last_updated: Date;
-      last_updated_by: string;
+      last_updated?: Date;
+      last_updated_by?: string;
     } = req.body;
 
     if (!newProject.project_title || !newProject.owner) {

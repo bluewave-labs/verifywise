@@ -1,5 +1,5 @@
-import { FC, useState, useMemo, useCallback } from 'react';
-import { Button, SelectChangeEvent, Stack, useTheme } from '@mui/material';
+import { FC, useState, useMemo, useCallback } from "react";
+import { Button, SelectChangeEvent, Stack, useTheme } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import dayjs, { Dayjs } from "dayjs";
 import { checkStringValidation } from '../../../application/validations/stringValidation';
@@ -8,14 +8,14 @@ import { Suspense, lazy } from 'react';
 import { createProject } from '../../../application/repository/entity.repository';
 
 const Select = lazy(() => import("../Inputs/Select"));
-const DatePicker = lazy(() => import('../Inputs/Datepicker'));
-const Field = lazy(() => import('../Inputs/Field'));
-const Alert = lazy(() => import('../Alert'));
+const DatePicker = lazy(() => import("../Inputs/Datepicker"));
+const Field = lazy(() => import("../Inputs/Field"));
+const Alert = lazy(() => import("../Alert"));
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
   LimitedRisk = "Limited risk",
-  MinimalRisk = "Minimal risk"
+  MinimalRisk = "Minimal risk",
 }
 
 enum HighRiskRoleEnum {
@@ -24,7 +24,7 @@ enum HighRiskRoleEnum {
   Distributor = "Distributor",
   Importer = "Importer",
   ProductManufacturer = "Product manufacturer",
-  AuthorizedRepresentative = "Authorized representative"
+  AuthorizedRepresentative = "Authorized representative",
 }
 
 interface FormValues {
@@ -88,15 +88,22 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
     }));
   }, []);
 
-  const handleOnSelectChange = useCallback((prop: keyof FormValues) => (event: SelectChangeEvent<string | number>) => {
-    setValues({ ...values, [prop]: event.target.value });
-    setErrors({ ...errors, [prop]: "" });
-  }, [values, errors]);
+  const handleOnSelectChange = useCallback(
+    (prop: keyof FormValues) => (event: SelectChangeEvent<string | number>) => {
+      setValues({ ...values, [prop]: event.target.value });
+      setErrors({ ...errors, [prop]: "" });
+    },
+    [values, errors]
+  );
 
-  const handleOnTextFieldChange = useCallback((prop: keyof FormValues) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    setValues({ ...values, [prop]: event.target.value });
-    setErrors({ ...errors, [prop]: "" });
-  }, [values, errors]);
+  const handleOnTextFieldChange = useCallback(
+    (prop: keyof FormValues) =>
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        setValues({ ...values, [prop]: event.target.value });
+        setErrors({ ...errors, [prop]: "" });
+      },
+    [values, errors]
+  );
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -111,7 +118,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
     }
     const startDate = checkStringValidation("Start date", values.start_date, 1);
     if (!startDate.accepted) {
-        newErrors.startDate = startDate.message;
+      newErrors.startDate = startDate.message;
     }
     const users = selectValidation("Users", values.users);
     if (!users.accepted) {
@@ -132,7 +139,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -157,35 +164,38 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
       closePopup();
       navigate("/project-view");
     }
-  }
+  };
 
   const riskClassificationItems = useMemo(
     () => [
-        { _id: 1, name: RiskClassificationEnum.HighRisk },
-        { _id: 2, name: RiskClassificationEnum.LimitedRisk },
-        { _id: 3, name: RiskClassificationEnum.MinimalRisk },
-    ],
-    []
-);
-
-  const highRiskRoleItems = useMemo(
-    () => [
-        { _id: 1, name: HighRiskRoleEnum.Deployer },
-        { _id: 2, name: HighRiskRoleEnum.Provider },
-        { _id: 3, name: HighRiskRoleEnum.Distributor },
-        { _id: 4, name: HighRiskRoleEnum.Importer },
-        { _id: 5, name: HighRiskRoleEnum.ProductManufacturer },
-        { _id: 6, name: HighRiskRoleEnum.AuthorizedRepresentative },
+      { _id: 1, name: RiskClassificationEnum.HighRisk },
+      { _id: 2, name: RiskClassificationEnum.LimitedRisk },
+      { _id: 3, name: RiskClassificationEnum.MinimalRisk },
     ],
     []
   );
 
-  const fieldStyle = useMemo(() => ({
-    backgroundColor: theme.palette.background.main,
-    "& input": {
-      padding: "0 14px"
-    }
-  }), [theme.palette.background.main]);
+  const highRiskRoleItems = useMemo(
+    () => [
+      { _id: 1, name: HighRiskRoleEnum.Deployer },
+      { _id: 2, name: HighRiskRoleEnum.Provider },
+      { _id: 3, name: HighRiskRoleEnum.Distributor },
+      { _id: 4, name: HighRiskRoleEnum.Importer },
+      { _id: 5, name: HighRiskRoleEnum.ProductManufacturer },
+      { _id: 6, name: HighRiskRoleEnum.AuthorizedRepresentative },
+    ],
+    []
+  );
+
+  const fieldStyle = useMemo(
+    () => ({
+      backgroundColor: theme.palette.background.main,
+      "& input": {
+        padding: "0 14px",
+      },
+    }),
+    [theme.palette.background.main]
+  );
 
   return (
     <Stack>
@@ -201,7 +211,15 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
         </Suspense>
       )}
       <Stack component="form" onSubmit={handleSubmit}>
-        <Stack sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 20, rowGap: 8, mt: 13.5 }}>
+        <Stack
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            columnGap: 20,
+            rowGap: 8,
+            mt: 13.5,
+          }}
+        >
           <Suspense fallback={<div>Loading...</div>}>
             <Field
               id="project-title-input"
@@ -222,11 +240,14 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
               value={values.users}
               onChange={handleOnSelectChange("users")}
               items={[
-                { _id: 1, name: "Some value 1" },
-                { _id: 2, name: "Some value 2" },
-                { _id: 3, name: "Some value 3" },
+                { _id: 1, name: "Some value 1", email: "email@email.com" },
+                { _id: 2, name: "Some value 2", email: "email@email.com" },
+                { _id: 3, name: "Some value 3", email: "email@email.com" },
               ]}
-              sx={{ width: "350px", backgroundColor: theme.palette.background.main }}
+              sx={{
+                width: "350px",
+                backgroundColor: theme.palette.background.main,
+              }}
               error={errors.users}
               isRequired
             />
@@ -243,7 +264,10 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
                 { _id: 2, name: "Some value 2" },
                 { _id: 3, name: "Some value 3" },
               ]}
-              sx={{ width: "350px", backgroundColor: theme.palette.background.main }}
+              sx={{
+                width: "350px",
+                backgroundColor: theme.palette.background.main,
+              }}
               error={errors.owner}
               isRequired
             />
@@ -255,13 +279,21 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
               handleDateChange={handleDateChange}
               sx={{
                 width: "130px",
-                "& input": { width: "85px" }
+                "& input": { width: "85px" },
               }}
               isRequired
               error={errors.startDate}
             />
           </Suspense>
-          <Stack sx={{ display: "grid", gridTemplateColumns: "1fr", columnGap: 20, rowGap: 9.5, marginTop: "16px" }}>
+          <Stack
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "1fr",
+              columnGap: 20,
+              rowGap: 9.5,
+              marginTop: "16px",
+            }}
+          >
             <Suspense fallback={<div>Loading...</div>}>
               <Select
                 id="risk-classification-input"
@@ -270,7 +302,10 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
                 value={values.ai_risk_classification}
                 onChange={handleOnSelectChange("ai_risk_classification")}
                 items={riskClassificationItems}
-                sx={{ width: "350px", backgroundColor: theme.palette.background.main }}
+                sx={{
+                  width: "350px",
+                  backgroundColor: theme.palette.background.main,
+                }}
                 error={errors.riskClassification}
                 isRequired
               />
@@ -283,7 +318,10 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
                 value={values.type_of_high_risk_role}
                 onChange={handleOnSelectChange("type_of_high_risk_role")}
                 items={highRiskRoleItems}
-                sx={{ width: "350px", backgroundColor: theme.palette.background.main }}
+                sx={{
+                  width: "350px",
+                  backgroundColor: theme.palette.background.main,
+                }}
                 isRequired
                 error={errors.typeOfHighRiskRole}
               />
@@ -297,7 +335,10 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
                 type="description"
                 value={values.goal}
                 onChange={handleOnTextFieldChange("goal")}
-                sx={{ height: 101, backgroundColor: theme.palette.background.main }}
+                sx={{
+                  height: 101,
+                  backgroundColor: theme.palette.background.main,
+                }}
                 isRequired
                 error={errors.goal}
               />
@@ -307,9 +348,12 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
         <Button
           type="submit"
           variant="contained"
-          disableRipple={theme.components?.MuiButton?.defaultProps?.disableRipple}
+          disableRipple={
+            theme.components?.MuiButton?.defaultProps?.disableRipple
+          }
           sx={{
-            borderRadius: 2, maxHeight: 34,
+            borderRadius: 2,
+            maxHeight: 34,
             textTransform: "inherit",
             backgroundColor: "#4C7DE7",
             boxShadow: "none",
@@ -317,12 +361,14 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
             ml: "auto",
             mr: 0,
             mt: "30px",
-            "&:hover": { boxShadow: "none" }
+            "&:hover": { boxShadow: "none", backgroundColor: "#175CD3 " },
           }}
-        >Create project</Button>
+        >
+          Create project
+        </Button>
       </Stack>
     </Stack>
-  )
-}
+  );
+};
 
 export default CreateProjectForm;

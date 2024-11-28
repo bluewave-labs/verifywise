@@ -46,6 +46,9 @@ const Vendors = () => {
               ...singleTheme.buttons.primary,
               width: 150,
               height: 34,
+              "&:hover": {
+                backgroundColor: "#175CD3 ",
+              },
             }}
             onClick={() => {
               openAddNewVendor();

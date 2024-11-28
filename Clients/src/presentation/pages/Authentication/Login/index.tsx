@@ -9,6 +9,8 @@ import { loginUser } from "../../../../application/repository/entity.repository"
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import Alert from "../../../components/Alert";
 import { logEngine } from "../../../../application/tools/log.engine";
+import { useDispatch } from "react-redux";
+import { setAuthToken } from "../../../../application/authentication/authSlice";
 
 // Define the shape of form values
 interface FormValues {
@@ -27,6 +29,7 @@ const initialState: FormValues = {
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useContext(VerifyWiseContext);
+  const dispatch = useDispatch();
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
   // State for alert
@@ -61,7 +64,9 @@ const Login: React.FC = () => {
       .then((response) => {
         setValues(initialState);
         if (response.status === 202) {
-          login(response.data.data.token);
+          const token = response.data.data.token;
+          login(token);
+          dispatch(setAuthToken(token)); // Dispatch the action to set the token in Redux state
           setAlert({
             variant: "success",
             body: "Login successful. Redirecting...",

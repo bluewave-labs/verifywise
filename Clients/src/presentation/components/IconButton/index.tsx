@@ -18,7 +18,7 @@ import BasicModal from "../Modals/Basic";
 import AddNewVendor from "../Modals/NewVendor";
 import singleTheme from "../../themes/v1SingleTheme";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import { deleteUserById } from "../../../application/repository/entity.repository";
+import { deleteEntityById } from "../../../application/repository/entity.repository";
 import { logEngine } from "../../../application/tools/log.engine";
 import Alert from "../Alert";
 
@@ -102,7 +102,7 @@ const IconButton = ({ vendorId }: { vendorId: number }) => {
     };
 
     try {
-      const response = await deleteUserById({
+      const response = await deleteEntityById({
         routeUrl: `/vendors/${vendorId}`,
       });
 

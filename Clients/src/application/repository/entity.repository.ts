@@ -56,7 +56,7 @@ export async function loginUser({
  * @returns {Promise<any>} The user data retrieved from the API.
  * @throws Will throw an error if the request fails.
  */
-export async function getUserById({
+export async function getEntityById({
   routeUrl,
 }: {
   routeUrl: string;
@@ -79,7 +79,7 @@ export async function getUserById({
  * @returns {Promise<any>} The updated entity data.
  * @throws Will throw an error if the update operation fails.
  */
-export async function updateUserById({
+export async function updateEntityById({
   routeUrl,
   body,
 }: {
@@ -106,7 +106,7 @@ export async function updateUserById({
  * @returns {Promise<any>} The response data from the delete operation.
  * @throws Will throw an error if the delete operation fails.
  */
-export async function deleteUserById({
+export async function deleteEntityById({
   routeUrl,
 }: {
   routeUrl: string;

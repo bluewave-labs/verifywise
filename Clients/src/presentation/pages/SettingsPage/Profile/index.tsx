@@ -20,8 +20,8 @@ import DeleteAccountConfirmation from "../../../components/Modals/DeleteAccount/
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import validator from "validator";
 import {
-  getUserById,
-  updateUserById,
+  getEntityById,
+  updateEntityById,
 } from "../../../../application/repository/entity.repository";
 
 interface User {
@@ -55,7 +55,7 @@ const ProfileForm: React.FC = () => {
     const fetchUserData = async () => {
       try {
         const userId = localStorage.getItem("userId") || "1";
-        const user = await getUserById({ routeUrl: `/users/${userId}` });
+        const user = await getEntityById({ routeUrl: `/users/${userId}` });
 
         setFirstname(user.firstname || "");
         setLastname(user.lastname || "");
@@ -85,7 +85,7 @@ const ProfileForm: React.FC = () => {
         pathToImage: profilePhoto,
       };
 
-      await updateUserById({
+      await updateEntityById({
         routeUrl: `/users/${userId}`,
         body: updatedUser,
       });

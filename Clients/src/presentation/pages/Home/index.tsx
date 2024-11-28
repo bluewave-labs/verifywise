@@ -7,7 +7,9 @@ import { ProjectCardProps } from "../../components/ProjectCard";
 
 const ProjectCard = lazy(() => import("../../components/ProjectCard"));
 const Popup = lazy(() => import("../../components/Popup"));
-const CreateProjectForm = lazy(() => import("../../components/CreateProjectForm"));
+const CreateProjectForm = lazy(
+  () => import("../../components/CreateProjectForm")
+);
 const MetricSection = lazy(() => import("../../components/MetricSection"));
 
 const Home = () => {
@@ -26,7 +28,7 @@ const Home = () => {
       })
       .catch(() => {
         if (!controller.signal.aborted) {
-          setError('Failed to fetch projects');
+          setError("Failed to fetch projects");
           setProjects(null);
         }
       })
@@ -50,7 +52,8 @@ const Home = () => {
           color: theme.palette.text.tertiary,
         }}
       >
-        You have no projects, yet. Click on the "New Project" button to start one.
+        You have no projects, yet. Click on the "New Project" button to start
+        one.
       </Typography>
     </NoProjectBox>
   );
@@ -73,8 +76,8 @@ const Home = () => {
           anchor={anchor}
         />
       </Suspense>
-    )
-  }
+    );
+  };
 
   return (
     <Box>
@@ -84,12 +87,15 @@ const Home = () => {
         </Typography>
         <PopupRender />
       </Box>
-      {isLoading ? <Typography component="div" sx={{mb: 12}}>
-        Projects are loading...
-      </Typography> : 
-      error ? <Typography component="div" sx={{mb: 12}}>
-        {error}
-      </Typography> : null}
+      {isLoading ? (
+        <Typography component="div" sx={{ mb: 12 }}>
+          Projects are loading...
+        </Typography>
+      ) : error ? (
+        <Typography component="div" sx={{ mb: 12 }}>
+          {error}
+        </Typography>
+      ) : null}
       {projects && projects.length > 0 ? (
         <>
           <Stack direction="row" justifyContent="space-between" spacing={15}>

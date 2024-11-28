@@ -1,6 +1,5 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
-
-const routeAddress = "http://192.168.1.105:3000";
+import { ENV_VARs } from "../../../env.vars";
 
 /**
  * Creates a new user by sending a POST request to the specified route URL with the provided body.
@@ -15,11 +14,11 @@ export async function createNewUser({
   routeUrl,
   body,
 }: {
-  routeUrl?: string;
+  routeUrl: string;
   body: any;
 }): Promise<any> {
-  console.log("routeAddress => ", routeAddress);
-  const response = await apiServices.post(routeAddress + routeUrl, body);
+  console.log("ENV_VARs => ", ENV_VARs);
+  const response = await apiServices.post(ENV_VARs + routeUrl, body);
   console.log(
     `The entity with the following details is created: ${response.data}`
   );
@@ -39,11 +38,11 @@ export async function loginUser({
   routeUrl,
   body,
 }: {
-  routeUrl?: string;
+  routeUrl: string;
   body: any;
 }): Promise<any> {
   try {
-    const response = await apiServices.post(routeAddress + routeUrl, body);
+    const response = await apiServices.post(ENV_VARs + routeUrl, body);
     return response;
   } catch (error) {
     console.error("Error logging in user:", error);
@@ -65,7 +64,7 @@ export async function getUserById({
   routeUrl: string;
 }): Promise<any> {
   try {
-    const response = await apiServices.get(routeAddress + routeUrl);
+    const response = await apiServices.get(ENV_VARs + routeUrl);
     return response.data;
   } catch (error) {
     console.error("Error getting user by ID:", error);
@@ -90,7 +89,7 @@ export async function updateUserById({
   body: any;
 }): Promise<any> {
   try {
-    const response = await apiServices.patch(routeAddress + routeUrl, body);
+    const response = await apiServices.patch(ENV_VARs + routeUrl, body);
     console.log(
       `The entity with the following details is updated: ${response.data}`
     );
@@ -115,7 +114,7 @@ export async function deleteUserById({
   routeUrl: string;
 }): Promise<any> {
   try {
-    const response = await apiServices.delete(routeAddress + routeUrl);
+    const response = await apiServices.delete(ENV_VARs + routeUrl);
     console.log(
       `The entity with the following details is removed: ${response}`
     );
@@ -137,8 +136,9 @@ export async function getAllEntities({
 }: {
   routeUrl: string;
 }): Promise<any> {
+  console.log("getAllEntities, routeUrl : ", routeUrl);
   try {
-    const response = await apiServices.get(routeAddress + routeUrl);
+    const response = await apiServices.get(routeUrl);
     console.log("response ==> ", response);
     return response.data;
   } catch (error) {

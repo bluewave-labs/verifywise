@@ -65,7 +65,7 @@ export async function getEntityById({
     const response = await apiServices.get(routeUrl);
     return response.data;
   } catch (error) {
-    console.error("Error getting user by ID:", error);
+    console.error("Error getting etity by ID:", error);
     throw error;
   }
 }

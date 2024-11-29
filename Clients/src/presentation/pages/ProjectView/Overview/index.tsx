@@ -1,24 +1,55 @@
 import { Stack, Typography, useTheme } from "@mui/material";
-import { ProjectOverview } from "../../../mocks/projects/project-overview.data";
 import ProgressBar from "../../../components/ProjectCard/ProgressBar";
-import { FC, memo, useCallback, useMemo } from "react";
+import { FC, memo, useCallback, useEffect, useMemo, useState } from "react";
+import { getEntityById } from "../../../../application/repository/entity.repository";
+import { formatDate } from "../../../tools/isoDateToString";
 import Risks from "../../../components/Risks";
+import { ProjectOverview } from "../../../mocks/projects/project-overview.data";
 
 interface OverviewProps {
-  project: ProjectOverview;
+  mocProject: ProjectOverview;
 }
 
-const Overview: FC<OverviewProps> = memo(({ project }) => {
+type ProjectData = {
+  project_title: string;
+  owner: string;
+  last_updated: string;
+  last_updated_by: string;
+};
+
+const Overview: FC<OverviewProps> = memo(({mocProject}) => {
+  const [project, setProject] = useState<ProjectData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const theme = useTheme();
   const {
-    owner,
-    lastUpdated,
-    lastUpdatedBy,
     controlsStatus,
     assessmentsStatus,
     projectRisks,
     vendorRisks,
-  } = project;
-  const theme = useTheme();
+  } = mocProject;
+  
+  useEffect(() => {
+    const controller = new AbortController();
+    setIsLoading(true);
+    getEntityById({ routeUrl: "/projects/2" }) //hardcode id
+      .then(({ data }) => {
+        setProject(data);
+        setError(null);
+      })
+      .catch((err) => {
+        if (!controller.signal.aborted) {
+          setError("Failed to fetch the project: " + err.message);
+          setProject(null);
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
+      });
+    return () => controller.abort();
+  }, []);
 
   const styles = useMemo(
     () => ({
@@ -63,21 +94,34 @@ const Overview: FC<OverviewProps> = memo(({ project }) => {
     ),
     [styles.block, styles.title]
   );
+  
+  if (!project) {
+    return null;
+  }
 
   return (
     <Stack>
+      {isLoading ? (
+        <Typography component="div" sx={{ mb: 12 }}>
+          Project are loading...
+        </Typography>
+      ) : error ? (
+        <Typography component="div" sx={{ mb: 12 }}>
+          {error}
+        </Typography>
+      ) : null}
       <Stack direction="row" spacing={18} sx={{ pb: "31px" }}>
         <Stack sx={styles.block}>
           <Typography sx={styles.title}>Owner</Typography>
-          <Typography sx={styles.value}>{owner}</Typography>
+          <Typography sx={styles.value}>{project.owner}</Typography>
         </Stack>
         <Stack sx={styles.block}>
           <Typography sx={styles.title}>Last updated</Typography>
-          <Typography sx={styles.value}>{lastUpdated}</Typography>
+          <Typography sx={styles.value}>{formatDate(project.last_updated)}</Typography>
         </Stack>
         <Stack sx={styles.block}>
           <Typography sx={styles.title}>Last updated by</Typography>
-          <Typography sx={styles.value}>{lastUpdatedBy}</Typography>
+          <Typography sx={styles.value}>{project.last_updated_by}</Typography>
         </Stack>
       </Stack>
       <Stack direction="row" spacing={18} sx={{ pb: "56px" }}>

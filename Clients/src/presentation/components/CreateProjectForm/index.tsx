@@ -157,10 +157,13 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
               variant: "success",
               body: "Project created successfully",
             });
+            setTimeout(() => {
+              setAlert(null);
+              navigate("/project-view");
+              closePopup();
+            }, 3000);
           }
         })
-      closePopup();
-      navigate("/project-view");
     }
   };
 

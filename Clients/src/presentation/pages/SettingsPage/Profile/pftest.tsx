@@ -49,6 +49,9 @@ describe("ProfileForm Component", () => {
   });
 
   test("triggers save action if validation passes", async () => {
+    const mockUserId = "test-user-id";
+    const mockImagePath = "/test-image.jpg";
+
     render(<ProfileForm />);
     const firstnameInput = screen.getByLabelText("First name");
     const lastnameInput = screen.getByLabelText("Last name");
@@ -57,32 +60,53 @@ describe("ProfileForm Component", () => {
 
     fireEvent.change(firstnameInput, { target: { value: "Alice" } });
     fireEvent.change(lastnameInput, { target: { value: "Smith" } });
-    fireEvent.change(emailInput, { target: { value: "test@example.com" } }); 
+    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
 
     fireEvent.click(saveButton); //expect mock data
 
+    // Verify loading state
+    +expect(screen.getByRole("progressbar")).toBeInTheDocument;
+
     expect(updateEntityById).toHaveBeenCalledWith({
-      routeUrl: "/users/1",
+      routeUrl: `/users/${mockUserId}`,
       body: {
         firstname: "Alice",
         lastname: "Smith",
         email: "test@example.com",
-        pathToImage: "/placeholder.svg?height=80&width=80",
+        pathToImage: mockImagePath,
       },
     });
+
+    // Verify success message  
++expect(
+  await screen.findByText("Profile updated successfully")
+).toBeInTheDocument();
   });
 
   test("does not trigger save action if validation fails", () => {
     render(<ProfileForm />);
     const firstnameInput = screen.getByLabelText("First name");
+    const emailInput = screen.getByLabelText("Email");
     const saveButton = screen.getByText("Save"); // invalid data
 
     fireEvent.change(firstnameInput, { target: { value: "A" } }); 
+    fireEvent.change(emailInput, { target: { value: "invalid-email" } });  
+ 
 
     fireEvent.click(saveButton); // Expect block save
 
     expect(
       screen.getByText("First name must be between 2 and 50 characters.")
     ).toBeInTheDocument();
+    expect(screen.getByText("Invalid email address")).toBeInTheDocument();
+    +(+(
+      // Verify API wasn't called
+      (+expect(updateEntityById).not.toHaveBeenCalled())
+    ));
+    +(+(
+      // Verify form remains in error state
+      (+expect(firstnameInput).toHaveClass("error"))
+    ));
+    +expect(emailInput).toHaveClass("error");
   });
 });

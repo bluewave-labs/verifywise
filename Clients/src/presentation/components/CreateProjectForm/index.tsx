@@ -2,9 +2,10 @@ import { FC, useState, useMemo, useCallback } from "react";
 import { Button, SelectChangeEvent, Stack, useTheme } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import dayjs, { Dayjs } from "dayjs";
-import { checkStringValidation } from "../../../application/validations/stringValidation";
-import selectValidation from "../../../application/validations/selectValidation";
-import { Suspense, lazy } from "react";
+import { checkStringValidation } from '../../../application/validations/stringValidation';
+import selectValidation from '../../../application/validations/selectValidation';
+import { Suspense, lazy } from 'react';
+import { createNewUser } from '../../../application/repository/entity.repository';
 
 const Select = lazy(() => import("../Inputs/Select"));
 const DatePicker = lazy(() => import("../Inputs/Datepicker"));
@@ -27,12 +28,12 @@ enum HighRiskRoleEnum {
 }
 
 interface FormValues {
-  projectTitle: string;
-  users: number;
+  project_title: string;
   owner: number;
-  startDate: string;
-  riskClassification: number;
-  typeOfHighRiskRole: number;
+  users: number;
+  start_date: string;
+  ai_risk_classification: number;
+  type_of_high_risk_role: number;
   goal: string;
 }
 
@@ -47,14 +48,18 @@ interface FormErrors {
 }
 
 const initialState: FormValues = {
-  projectTitle: "",
+  project_title: "",
   users: 0,
   owner: 0,
-  startDate: "",
-  riskClassification: 0,
-  typeOfHighRiskRole: 0,
-  goal: "",
-};
+  start_date: "",
+  ai_risk_classification: 0,
+  type_of_high_risk_role: 0,
+  goal: ""
+}
+
+interface CreateProjectFormProps {
+  closePopup: () => void
+}
 
 /**
  * `CreateProjectForm` is a functional component that renders a form for creating a new project.
@@ -65,7 +70,7 @@ const initialState: FormValues = {
  * @component
  * @returns {JSX.Element} The rendered component.
  */
-const CreateProjectForm: FC = () => {
+const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const [values, setValues] = useState<FormValues>(initialState);
@@ -79,7 +84,7 @@ const CreateProjectForm: FC = () => {
   const handleDateChange = useCallback((newDate: Dayjs | null) => {
     setValues((prevValues) => ({
       ...prevValues,
-      startDate: newDate ? newDate.toISOString() : "",
+      start_date: newDate ? newDate.toISOString() : ""
     }));
   }, []);
 
@@ -103,12 +108,7 @@ const CreateProjectForm: FC = () => {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    const projectTitle = checkStringValidation(
-      "Project title",
-      values.projectTitle,
-      1,
-      64
-    );
+    const projectTitle = checkStringValidation("Project title", values.project_title, 1, 64);
     if (!projectTitle.accepted) {
       newErrors.projectTitle = projectTitle.message;
     }
@@ -116,7 +116,7 @@ const CreateProjectForm: FC = () => {
     if (!goal.accepted) {
       newErrors.goal = goal.message;
     }
-    const startDate = checkStringValidation("Start date", values.startDate, 1);
+    const startDate = checkStringValidation("Start date", values.start_date, 1);
     if (!startDate.accepted) {
       newErrors.startDate = startDate.message;
     }
@@ -128,17 +128,11 @@ const CreateProjectForm: FC = () => {
     if (!owner.accepted) {
       newErrors.owner = owner.message;
     }
-    const riskClassification = selectValidation(
-      "AI risk classification",
-      values.riskClassification
-    );
+    const riskClassification = selectValidation("AI risk classification", values.ai_risk_classification);
     if (!riskClassification.accepted) {
       newErrors.riskClassification = riskClassification.message;
     }
-    const typeOfHighRiskRole = selectValidation(
-      "Type of high risk role",
-      values.typeOfHighRiskRole
-    );
+    const typeOfHighRiskRole = selectValidation("Type of high risk role", values.type_of_high_risk_role);
     if (!typeOfHighRiskRole.accepted) {
       newErrors.typeOfHighRiskRole = typeOfHighRiskRole.message;
     }
@@ -151,7 +145,25 @@ const CreateProjectForm: FC = () => {
     event.preventDefault();
     if (validateForm()) {
       //request to the backend
-      navigate("/project-view");
+      await createNewUser({
+        routeUrl: "/projects",
+        body: values,
+      }).then((response) => {
+          // Reset form after successful submission
+          setValues(initialState);
+          setErrors({});
+          if (response.status === 201) {
+            setAlert({
+              variant: "success",
+              body: "Project created successfully",
+            });
+            setTimeout(() => {
+              setAlert(null);
+              navigate("/project-view");
+              closePopup();
+            }, 3000);
+          }
+        })
     }
   };
 
@@ -214,8 +226,8 @@ const CreateProjectForm: FC = () => {
               id="project-title-input"
               label="Project title"
               width="350px"
-              value={values.projectTitle}
-              onChange={handleOnTextFieldChange("projectTitle")}
+              value={values.project_title}
+              onChange={handleOnTextFieldChange("project_title")}
               error={errors.projectTitle}
               sx={fieldStyle}
               isRequired
@@ -264,7 +276,7 @@ const CreateProjectForm: FC = () => {
           <Suspense fallback={<div>Loading...</div>}>
             <DatePicker
               label="Start date"
-              date={values.startDate ? dayjs(values.startDate) : null}
+              date={values.start_date ? dayjs(values.start_date) : null}
               handleDateChange={handleDateChange}
               sx={{
                 width: "130px",
@@ -288,8 +300,8 @@ const CreateProjectForm: FC = () => {
                 id="risk-classification-input"
                 label="AI risk classification"
                 placeholder="Select an option"
-                value={values.riskClassification}
-                onChange={handleOnSelectChange("riskClassification")}
+                value={values.ai_risk_classification}
+                onChange={handleOnSelectChange("ai_risk_classification")}
                 items={riskClassificationItems}
                 sx={{
                   width: "350px",
@@ -304,8 +316,8 @@ const CreateProjectForm: FC = () => {
                 id="type-of-high-risk-role-input"
                 label="Type of high risk role"
                 placeholder="Select an option"
-                value={values.typeOfHighRiskRole}
-                onChange={handleOnSelectChange("typeOfHighRiskRole")}
+                value={values.type_of_high_risk_role}
+                onChange={handleOnSelectChange("type_of_high_risk_role")}
                 items={highRiskRoleItems}
                 sx={{
                   width: "350px",

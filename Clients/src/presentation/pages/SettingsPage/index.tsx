@@ -9,12 +9,8 @@ export default function ProfilePage() {
 
   const theme = useTheme();
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
-  };
-
-  const handleFileUpload = () => {
-    document.getElementById("profile-upload")?.click();
   };
 
   return (
@@ -33,7 +29,7 @@ export default function ProfilePage() {
         }}
       >
         <Tab label="Profile" disableRipple />
-        <Tab label="Password" disableRipple  />
+        <Tab label="Password" disableRipple />
         <Tab label="Team" disableRipple />
       </Tabs>
 

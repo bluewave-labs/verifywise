@@ -29,7 +29,10 @@ import {
   updateEntityById,
 } from "../../../../application/repository/entity.repository";
 
-// Interface for user object
+/**
+ * Interface representing a user object.
+ * @interface
+ */
 interface User {
   firstname: string;
   lastname: string;
@@ -38,7 +41,14 @@ interface User {
 }
 
 /**
- * ProfileForm component for managing user profile information
+ * ProfileForm component for managing user profile information.
+ *
+ * This component allows users to view and update their profile information,
+ * including their first name, last name, email, and profile photo. It also
+ * provides functionality to delete the user's account.
+ *
+ * @component
+ * @returns {JSX.Element} The rendered component.
  */
 const ProfileForm: React.FC = () => {
   // State management
@@ -59,7 +69,12 @@ const ProfileForm: React.FC = () => {
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Fetch user data on component mount
+  /**
+   * Fetch user data on component mount.
+   *
+   * Retrieves the user data from the server and sets the state with the
+   * retrieved information.
+   */
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -79,7 +94,12 @@ const ProfileForm: React.FC = () => {
     fetchUserData();
   }, []);
 
-  // Handle save button click with validation
+  /**
+   * Handle save button click with validation.
+   *
+   * Validates the input fields and updates the user profile information
+   * on the server if there are no validation errors.
+   */
   const handleSave = useCallback(async () => {
     try {
       if (firstnameError || lastnameError || emailError) {
@@ -114,7 +134,13 @@ const ProfileForm: React.FC = () => {
     emailError,
   ]);
 
-  // Handle file input change
+  /**
+   * Handle file input change.
+   *
+   * Updates the profile photo with the selected file.
+   *
+   * @param {ChangeEvent<HTMLInputElement>} event - The change event.
+   */
   const handleFileChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>): void => {
       const file = event.target.files?.[0];
@@ -126,27 +152,49 @@ const ProfileForm: React.FC = () => {
     []
   );
 
-  // Handle delete dialog open
+  /**
+   * Handle delete dialog open.
+   *
+   * Opens the delete account confirmation dialog.
+   */
   const handleOpenDeleteDialog = useCallback((): void => {
     setIsDeleteDialogOpen(true);
   }, []);
 
-  // Handle delete dialog close
+  /**
+   * Handle delete dialog close.
+   *
+   * Closes the delete account confirmation dialog.
+   */
   const handleCloseDeleteDialog = useCallback((): void => {
     setIsDeleteDialogOpen(false);
   }, []);
 
-  // Handle update photo button click
+  /**
+   * Handle update photo button click.
+   *
+   * Triggers the file input click to update the profile photo.
+   */
   const handleUpdatePhoto = useCallback((): void => {
     fileInputRef.current?.click();
   }, []);
 
-  // Handle delete photo button click
+  /**
+   * Handle delete photo button click.
+   *
+   * Resets the profile photo to the default placeholder.
+   */
   const handleDeletePhoto = useCallback((): void => {
     setProfilePhoto("/placeholder.svg?height=80&width=80");
   }, []);
 
-  // Handle firstname input change with validation
+  /**
+   * Handle firstname input change with validation.
+   *
+   * Validates the first name input and updates the state.
+   *
+   * @param {ChangeEvent<HTMLInputElement>} e - The change event.
+   */
   const handleFirstnameChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
       const newFirstname = e.target.value;
@@ -165,7 +213,13 @@ const ProfileForm: React.FC = () => {
     []
   );
 
-  // Handle lastname input change with validation
+  /**
+   * Handle lastname input change with validation.
+   *
+   * Validates the last name input and updates the state.
+   *
+   * @param {ChangeEvent<HTMLInputElement>} e - The change event.
+   */
   const handleLastnameChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
       const newLastname = e.target.value;
@@ -184,7 +238,13 @@ const ProfileForm: React.FC = () => {
     []
   );
 
-  // Handle email input change with validation
+  /**
+   * Handle email input change with validation.
+   *
+   * Validates the email input and updates the state.
+   *
+   * @param {ChangeEvent<HTMLInputElement>} e - The change event.
+   */
   const handleEmailChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const newEmail = e.target.value;
     setEmail(newEmail);
@@ -196,7 +256,11 @@ const ProfileForm: React.FC = () => {
     }
   }, []);
 
-  // Close confirmation modal
+  /**
+   * Close confirmation modal.
+   *
+   * Closes the save changes confirmation modal.
+   */
   const handleCloseConfirmationModal = useCallback(() => {
     setIsConfirmationModalOpen(false);
   }, []);

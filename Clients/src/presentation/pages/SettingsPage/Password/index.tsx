@@ -1,7 +1,6 @@
-import { useTheme } from "@mui/material";
-import { Alert, Box, Button, Stack } from "@mui/material";
+import React, { useState, useCallback } from "react";
+import { useTheme, Alert, Box, Button, Stack } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
-import { useState } from "react";
 
 /**
  * A functional component that renders a password update form using Material-UI components.
@@ -9,23 +8,25 @@ import { useState } from "react";
  * @component
  * @returns {JSX.Element} The rendered component containing password fields, an alert, and a save button.
  */
-const index = () => {
+const Index: React.FC = (): JSX.Element => {
   // Retrieves the current theme settings from Material-UI.
   const theme = useTheme();
 
   // State hooks for managing password inputs.
-  const [password, setPassword] = useState(""); // State for the current password field.
-  const [newPassword, setNewPassword] = useState(""); // State for the confirm new password field.
-  const [confirmPassword, setConfirmPassword] = useState(""); // State for the confirm new password field.
+  const [password, setPassword] = useState<string>(""); // State for the current password field.
+  const [newPassword, setNewPassword] = useState<string>(""); // State for the new password field.
+  const [confirmPassword, setConfirmPassword] = useState<string>(""); // State for the confirm new password field.
 
-  const handleSave = () => {
+  // Handle save button click
+  const handleSave = useCallback(() => {
     const passObj = {
-      password: password,
-      newPassword: newPassword,
-      confirmPassword: confirmPassword,
+      password,
+      newPassword,
+      confirmPassword,
     };
     console.log("🚀 ~ handleSave ~ passObj:", passObj);
-  };
+  }, [password, newPassword, confirmPassword]);
+
   return (
     <Box sx={{ mt: 3 }}>
       <Box sx={{ width: "100%", maxWidth: 600 }}>
@@ -89,4 +90,4 @@ const index = () => {
   );
 };
 
-export default index;
+export default Index;

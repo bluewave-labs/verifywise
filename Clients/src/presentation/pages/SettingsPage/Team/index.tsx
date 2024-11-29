@@ -1,11 +1,4 @@
-/**
- * A component that renders a team management table with the ability to edit member roles, invite new members, and delete members.
- *
- * @component
- * @returns {JSX.Element} The rendered team management table.
- */
-
-import { useState } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   Box,
   Button,
@@ -19,104 +12,112 @@ import {
   Paper,
   Select,
   MenuItem,
-  SelectChangeEvent,
   IconButton,
   Stack,
   useTheme,
+  SelectChangeEvent,
 } from "@mui/material";
-import Trashbin from "../../../../presentation/assets/icons/trash-01.svg"; // Imported as an SVG file
+import Trashbin from "../../../../presentation/assets/icons/trash-01.svg";
 import Field from "../../../components/Inputs/Field";
 
+// Enum for roles
+enum Role {
+  Administrator = "Administrator",
+  Editor = "Editor",
+  Reviewer = "Reviewer",
+}
 
+// Type definition for team member
 type TeamMember = {
   id: string;
   name: string;
   email: string;
-  role: "Administrator" | "Editor" | "Reviewer";
+  role: Role;
 };
 
-const roles = ["Administrator", "Editor", "Reviewer"] as const;
+// Constants for roles
+const roles = Object.values(Role);
 
-export default function index() {
+/**
+ * A component that renders a team management table with the ability to edit member roles, invite new members, and delete members.
+ *
+ * @component
+ * @returns {JSX.Element} The rendered team management table.
+ */
+const TeamManagement: React.FC = (): JSX.Element => {
+  const theme = useTheme();
+
+  // State management
   const [orgName, setOrgName] = useState("BlueWave Labs");
-  const [filter, setFilter] = useState("All");
+  const [filter, setFilter] = useState<Role | "All">("All");
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([
     {
       id: "1",
       name: "John Connor",
       email: "john@domain.com",
-      role: "Administrator",
+      role: Role.Administrator,
     },
     {
       id: "2",
       name: "Adam McFadden",
       email: "adam@domain.com",
-      role: "Reviewer",
+      role: Role.Reviewer,
     },
-    { id: "3", name: "Cris Cross", email: "cris@domain.com", role: "Editor" },
-    { id: "4", name: "Prince", email: "prince@domain.com", role: "Editor" },
+    {
+      id: "3",
+      name: "Cris Cross",
+      email: "cris@domain.com",
+      role: Role.Editor,
+    },
+    { id: "4", name: "Prince", email: "prince@domain.com", role: Role.Editor },
   ]);
 
-  const theme = useTheme();
-
-  /**
-   * Handles the saving of the organization name.
-   * Logs the organization name to the console when the save button is clicked.
-   */
-  const handleSaveOrgName = () => {
+  // Handle saving organization name
+  const handleSaveOrgName = useCallback(() => {
     console.log("Saving organization name:", orgName);
-  };
+  }, [orgName]);
 
-  /**
-   * Handles changing the role of a team member.
-   *
-   * @param {SelectChangeEvent<string>} event - The event triggered by the selection change.
-   * @param {string} memberId - The ID of the member whose role is being changed.
-   */
-  const handleRoleChange = (
-    event: SelectChangeEvent<string>,
-    memberId: string
-  ) => {
-    const newRole = event.target.value as TeamMember["role"];
-    setTeamMembers((members) =>
-      members.map((member) =>
-        member.id === memberId ? { ...member, role: newRole } : member
-      )
-    );
-  };
+  // Handle role change
+  const handleRoleChange = useCallback(
+    (event: SelectChangeEvent<Role>, memberId: string) => {
+      const newRole = event.target.value as Role;
+      setTeamMembers((members) =>
+        members.map((member) =>
+          member.id === memberId ? { ...member, role: newRole } : member
+        )
+      );
+    },
+    []
+  );
 
-  /**
-   * Handles deleting a team member.
-   *
-   * @param {string} memberId - The ID of the member to delete.
-   */
-  const handleDeleteMember = (memberId: string) => {
+  // Handle deleting a team member
+  const handleDeleteMember = useCallback((memberId: string) => {
     setTeamMembers((members) =>
       members.filter((member) => member.id !== memberId)
     );
-  };
+  }, []);
 
-  const filteredMembers =
-    filter === "All"
+  // Filtered team members based on selected role
+  const filteredMembers = useMemo(() => {
+    return filter === "All"
       ? teamMembers
       : teamMembers.filter((member) => member.role === filter);
+  }, [filter, teamMembers]);
 
-
-      const handleSaveAllData = () => {
-        const formData = {
-          organizationName: orgName,
-          filterRole: filter,
-          teamMembers: teamMembers.map(member => ({
-            id: member.id,
-            name: member.name,
-            email: member.email,
-            role: member.role
-          }))
-        };
-      
-        // Log the collected data
-        console.log("Form Data:", formData);
-      };
+  // Handle saving all data
+  const handleSaveAllData = useCallback(() => {
+    const formData = {
+      organizationName: orgName,
+      filterRole: filter,
+      teamMembers: teamMembers.map(({ id, name, email, role }) => ({
+        id,
+        name,
+        email,
+        role,
+      })),
+    };
+    console.log("Form Data:", formData);
+  }, [orgName, filter, teamMembers]);
 
   return (
     <Stack sx={{ pt: theme.spacing(10) }}>
@@ -163,12 +164,7 @@ export default function index() {
         </Box>
       </Box>
 
-      <Box
-        sx={{
-          mb: 4,
-          maxWidth: theme.spacing(480),
-        }}
-      >
+      <Box sx={{ mb: 4, maxWidth: theme.spacing(480) }}>
         <Typography
           variant="h4"
           gutterBottom
@@ -197,7 +193,7 @@ export default function index() {
                   key={role}
                   disableRipple
                   variant={filter === role ? "contained" : "outlined"}
-                  onClick={() => setFilter(role)}
+                  onClick={() => setFilter(role as Role | "All")}
                   sx={{
                     borderRadius: 0,
                     color: "#344054",
@@ -217,10 +213,7 @@ export default function index() {
             </Box>
 
             <Box sx={{ mt: 10 }}>
-              <Button
-                variant="contained"
-                disableRipple
-              >
+              <Button variant="contained" disableRipple>
                 Invite team member
               </Button>
             </Box>
@@ -250,11 +243,7 @@ export default function index() {
                     <TableCell sx={{ color: "#667085" }}>
                       {member.email}
                     </TableCell>
-                    <TableCell
-                      sx={{
-                        paddingLeft: 0,
-                      }}
-                    >
+                    <TableCell sx={{ paddingLeft: 0 }}>
                       <Select
                         value={member.role}
                         onChange={(event) => handleRoleChange(event, member.id)}
@@ -262,7 +251,7 @@ export default function index() {
                         sx={{
                           textAlign: "left",
                           paddingLeft: 0,
-                          marginLEft: 0,
+                          marginLeft: 0,
                           "& .MuiOutlinedInput-notchedOutline": {
                             border: "none",
                           },
@@ -277,27 +266,19 @@ export default function index() {
                         ))}
                       </Select>
                     </TableCell>
-                    <TableCell
-                      sx={{
-                        textAlign: "left",
-                      }}
-                    >
+                    <TableCell sx={{ textAlign: "left" }}>
                       <IconButton
                         edge="end"
                         aria-label="delete"
                         onClick={() => handleDeleteMember(member.id)}
-                        sx={{
-                          marginLeft: "16px",
-                        }}
+                        sx={{ marginLeft: "16px" }}
                       >
                         <img
                           src={Trashbin}
                           alt="Delete"
                           width={20}
                           height={20}
-                          style={{
-                            filter: "invert(0.5)",
-                          }}
+                          style={{ filter: "invert(0.5)" }}
                         />
                       </IconButton>
                     </TableCell>
@@ -307,13 +288,7 @@ export default function index() {
             </Table>
           </TableContainer>
 
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "flex-end",
-              mt: 20,
-            }}
-          >
+          <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 20 }}>
             <Button
               variant="contained"
               disableRipple
@@ -326,4 +301,6 @@ export default function index() {
       </Box>
     </Stack>
   );
-}
+};
+
+export default TeamManagement;

@@ -2,19 +2,15 @@ import React, { useState } from "react";
 import { Tabs, Tab, Box, useTheme } from "@mui/material";
 import Profile from "./Profile/index";
 import Password from "./Password/index";
-import Team from "./Team/index";
+import TeamManagement from "./Team/index";
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState(0);
 
   const theme = useTheme();
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
-  };
-
-  const handleFileUpload = () => {
-    document.getElementById("profile-upload")?.click();
   };
 
   return (
@@ -33,7 +29,7 @@ export default function ProfilePage() {
         }}
       >
         <Tab label="Profile" disableRipple />
-        <Tab label="Password" disableRipple  />
+        <Tab label="Password" disableRipple />
         <Tab label="Team" disableRipple />
       </Tabs>
 
@@ -41,7 +37,7 @@ export default function ProfilePage() {
 
       {activeTab === 1 && <Password />}
 
-      {activeTab === 2 && <Team />}
+      {activeTab === 2 && <TeamManagement />}
     </Box>
   );
 }

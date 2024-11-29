@@ -463,7 +463,8 @@ const ProfileForm: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseConfirmationModal}>Cancel</Button>
-          <Button onClick={handleSave} color="primary">
+          <Button onClick={handleSave} color="primary"
+          aria-label = "Save profile changes">
             Save
           </Button>
         </DialogActions>

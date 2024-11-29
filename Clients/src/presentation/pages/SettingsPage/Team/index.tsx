@@ -15,6 +15,7 @@ import {
   IconButton,
   Stack,
   useTheme,
+  SelectChangeEvent,
 } from "@mui/material";
 import Trashbin from "../../../../presentation/assets/icons/trash-01.svg";
 import Field from "../../../components/Inputs/Field";
@@ -78,7 +79,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
 
   // Handle role change
   const handleRoleChange = useCallback(
-    (event: React.ChangeEvent<{ value: unknown }>, memberId: string) => {
+    (event: SelectChangeEvent<Role>, memberId: string) => {
       const newRole = event.target.value as Role;
       setTeamMembers((members) =>
         members.map((member) =>

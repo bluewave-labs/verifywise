@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Tabs, Tab, Box, useTheme } from "@mui/material";
 import Profile from "./Profile/index";
 import Password from "./Password/index";
-import Team from "./Team/index";
+import TeamManagement from "./Team/index";
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState(0);
@@ -37,7 +37,7 @@ export default function ProfilePage() {
 
       {activeTab === 1 && <Password />}
 
-      {activeTab === 2 && <Team />}
+      {activeTab === 2 && <TeamManagement />}
     </Box>
   );
 }

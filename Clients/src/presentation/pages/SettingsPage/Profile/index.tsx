@@ -1,15 +1,33 @@
-import { Box, Button, Divider, Stack, Typography } from "@mui/material";
-import { useRef, useState, ChangeEvent } from "react";
+//make get request to backend
+
+import {
+  Box,
+  Button,
+  Divider,
+  Stack,
+  Typography,
+  Dialog,
+  DialogActions,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+} from "@mui/material";
+import { useRef, useState, ChangeEvent, useEffect } from "react";
 import Field from "../../../components/Inputs/Field";
 import Avatar from "../../../components/Avatar/VWAvatar/index";
 import { useTheme } from "@mui/material";
 import DeleteAccountConfirmation from "../../../components/Modals/DeleteAccount/index";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import validator from "validator";
+import {
+  getEntityById,
+  updateEntityById,
+} from "../../../../application/repository/entity.repository";
 
 interface User {
   firstname: string;
   lastname: string;
+  email: string;
   pathToImage: string;
 }
 
@@ -25,9 +43,72 @@ const ProfileForm: React.FC = () => {
   const [lastnameError, setLastnameError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
+  //confirmation modal
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] =
+    useState<boolean>(false);
 
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  //fetching first user from users
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const userId = localStorage.getItem("userId") || "1";
+        const user = await getEntityById({ routeUrl: `/users/${userId}` });
+
+        setFirstname(user.firstname || "");
+        setLastname(user.lastname || "");
+        setEmail(user.email || "");
+        setProfilePhoto(
+          user.pathToImage || "/placeholder.svg?height=80&width=80"
+        );
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+    fetchUserData();
+  }, []);
+
+  //save button with validation
+  const handleSave = async () => {
+    try {
+      if (firstnameError || lastnameError || emailError) {
+        console.log("Please correct the errors before saving.");
+        return;
+      }
+      const userId = localStorage.getItem("userId") || "1";
+      const updatedUser = {
+        firstname,
+        lastname,
+        email,
+        pathToImage: profilePhoto,
+      };
+
+      await updateEntityById({
+        routeUrl: `/users/${userId}`,
+        body: updatedUser,
+      });
+      alert("profile updated successfully");
+      setIsConfirmationModalOpen(false);
+    } catch (error) {
+      console.error("error updating profile:", error);
+      alert("failed to update profile. please try again.");
+    }
+    // const saveObj = {
+    //   firstname,
+    //   lastname,
+    //   email,
+    // };
+    // console.log("🚀 ~ handleSave ~ saveObj:", saveObj);
+  };
+const handleFileChange = (event: ChangeEvent<HTMLInputElement>): void => {
+  const file = event.target.files?.[0];
+  if (file) {
+    const newPhotoUrl = URL.createObjectURL(file);
+    setProfilePhoto(newPhotoUrl);
+  }
+};
 
   const handleOpenDeleteDialog = (): void => {
     setIsDeleteDialogOpen(true);
@@ -41,30 +122,9 @@ const ProfileForm: React.FC = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>): void => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const newPhotoUrl = URL.createObjectURL(file);
-      setProfilePhoto(newPhotoUrl);
-    }
-  };
-
+  
   const handleDeletePhoto = (): void => {
     setProfilePhoto("/placeholder.svg?height=80&width=80");
-  };
-
-  const handleSave = (): void => {
-    if (firstnameError || lastnameError || emailError) {
-      console.log("Please correct the errors before saving.");
-      return;
-    }
-
-    const saveObj = {
-      firstname,
-      lastname,
-      email,
-    };
-    console.log("🚀 ~ handleSave ~ saveObj:", saveObj);
   };
 
   const handleFirstnameChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -112,6 +172,12 @@ const ProfileForm: React.FC = () => {
     firstname,
     lastname,
     pathToImage: profilePhoto,
+    email,
+  };
+
+  //close confirmation
+  const handleCloseConfirmationModal = () => {
+    setIsConfirmationModalOpen(false);
   };
 
   return (
@@ -231,10 +297,29 @@ const ProfileForm: React.FC = () => {
             backgroundColor: "#175CD3 ",
           },
         }}
-        onClick={handleSave}
+        onClick={()=> setIsConfirmationModalOpen(true)}
       >
         Save
       </Button>
+
+      {/* confirmation modal */}
+      <Dialog
+        open={isConfirmationModalOpen}
+        onClose={handleCloseConfirmationModal}
+      >
+        <DialogTitle>Save Changes?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to save the changes?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseConfirmationModal}>Cancel</Button>
+          <Button onClick={handleSave} color="primary">
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Box>
         <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
         <Stack>
@@ -271,5 +356,4 @@ const ProfileForm: React.FC = () => {
     </Box>
   );
 };
-
 export default ProfileForm;

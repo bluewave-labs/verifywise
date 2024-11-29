@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { Control } from "../models/control.model";
-const MOCK_DATA_ON = true;
+const MOCK_DATA_ON = process.env.MOCK_DATA_ON;
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
@@ -23,7 +23,7 @@ export async function getAllControls(
   res: Response
 ): Promise<any> {
   try {
-    if (MOCK_DATA_ON === true) {
+    if (MOCK_DATA_ON === "true") {
       const controls = getAllMockControls();
 
       if (controls) {
@@ -52,7 +52,7 @@ export async function getControlById(
   try {
     const controlId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCK_DATA_ON === "true") {
       const control = getMockControlById(controlId);
 
       if (control) {
@@ -87,7 +87,7 @@ export async function createControl(req: Request, res: Response): Promise<any> {
       implementationDetails: string;
     } = req.body;
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCK_DATA_ON === "true") {
       const control = createMockControl(newControl);
 
       if (control) {
@@ -126,7 +126,7 @@ export async function updateControlById(
       implementationDetails: string;
     } = req.body;
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCK_DATA_ON === "true") {
       const control = updateMockControlById(controlId, updatedControl);
 
       if (control) {
@@ -155,7 +155,7 @@ export async function deleteControlById(
   try {
     const controlId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCK_DATA_ON === "true") {
       const control = deleteMockControlById(controlId);
 
       if (control) {

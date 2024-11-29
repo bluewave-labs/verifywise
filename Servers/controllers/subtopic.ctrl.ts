@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { Subtopic } from "../models/subtopic.model";
-const MOCK_DATA_ON = true;
+const MOCK_DATA_ON = process.env.MOCK_DATA_ON;
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
@@ -23,7 +23,7 @@ export async function getAllSubtopics(
   res: Response
 ): Promise<any> {
   try {
-    if (MOCK_DATA_ON === true) {
+    if (MOCK_DATA_ON === "true") {
       const subtopics = getAllMockSubtopics();
 
       if (subtopics) {
@@ -52,7 +52,7 @@ export async function getSubtopicById(
   try {
     const subtopicId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCK_DATA_ON === "true") {
       const subtopic = getMockSubtopicById(subtopicId);
 
       if (subtopic) {
@@ -79,7 +79,7 @@ export async function createNewSubtopic(
   res: Response
 ): Promise<any> {
   try {
-    if (MOCK_DATA_ON === true) {
+    if (MOCK_DATA_ON === "true") {
       const subtopic = createMockSubtopic(req.body);
 
       if (subtopic) {
@@ -108,7 +108,7 @@ export async function updateSubtopicById(
   try {
     const subtopicId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCK_DATA_ON === "true") {
       const subtopic = updateMockSubtopicById(subtopicId, req.body);
 
       if (subtopic) {
@@ -137,7 +137,7 @@ export async function deleteSubtopicById(
   try {
     const subtopicId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCK_DATA_ON === "true") {
       const subtopic = deleteMockSubtopicById(subtopicId);
 
       if (subtopic) {

@@ -28,6 +28,8 @@ import {
   getEntityById,
   updateEntityById,
 } from "../../../../application/repository/entity.repository";
+import { logEngine } from "../../../../application/tools/log.engine";
+import localStorage from "redux-persist/es/storage";
 
 /**
  * Interface representing a user object.
@@ -62,6 +64,7 @@ const ProfileForm: React.FC = () => {
   const [firstnameError, setFirstnameError] = useState<string | null>(null);
   const [lastnameError, setLastnameError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
+
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] =
     useState<boolean>(false);
@@ -88,7 +91,16 @@ const ProfileForm: React.FC = () => {
           user.pathToImage || "/placeholder.svg?height=80&width=80"
         );
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        logEngine({
+          type:"error",
+          message:"Failed to fetch user data.",
+          user:{
+            id: String(localStorage.getItem("userId")) || "N/A",
+            email: "N/A",
+            firstname: "N/A",
+            lastname:"N/A"
+          },
+        });
       }
     };
     fetchUserData();
@@ -103,7 +115,16 @@ const ProfileForm: React.FC = () => {
   const handleSave = useCallback(async () => {
     try {
       if (firstnameError || lastnameError || emailError) {
-        console.log("Please correct the errors before saving.");
+        logEngine({
+          type: "error",
+          message: "Validation errors occured while saving the profile.",
+          user: {
+            id: "N/A",
+            email,
+            firstname,
+            lastname,
+          },
+        });
         return;
       }
       const userId = localStorage.getItem("userId") || "1";
@@ -121,7 +142,17 @@ const ProfileForm: React.FC = () => {
       alert("Profile updated successfully");
       setIsConfirmationModalOpen(false);
     } catch (error) {
-      console.error("Error updating profile:", error);
+
+       logEngine({
+         type: "error",
+         message: "An error occured while updating the profile.",
+         user: {
+           id:String(localStorage.getItem("userId")) || "N/A",
+           email,
+           firstname,
+           lastname,
+         },
+       });
       alert("Failed to update profile. Please try again.");
     }
   }, [
@@ -267,7 +298,7 @@ const ProfileForm: React.FC = () => {
 
   // User object for Avatar component
   const user: User = useMemo(
-    () => ({
+    () => ({ 
       firstname,
       lastname,
       pathToImage: profilePhoto,

@@ -1,5 +1,11 @@
-//make get request to backend
-
+import React, {
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+  ChangeEvent,
+  useMemo,
+} from "react";
 import {
   Box,
   Button,
@@ -12,10 +18,9 @@ import {
   DialogContent,
   DialogContentText,
 } from "@mui/material";
-import { useRef, useState, ChangeEvent, useEffect } from "react";
+import { useTheme } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import Avatar from "../../../components/Avatar/VWAvatar/index";
-import { useTheme } from "@mui/material";
 import DeleteAccountConfirmation from "../../../components/Modals/DeleteAccount/index";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import validator from "validator";
@@ -24,6 +29,7 @@ import {
   updateEntityById,
 } from "../../../../application/repository/entity.repository";
 
+// Interface for user object
 interface User {
   firstname: string;
   lastname: string;
@@ -31,7 +37,11 @@ interface User {
   pathToImage: string;
 }
 
+/**
+ * ProfileForm component for managing user profile information
+ */
 const ProfileForm: React.FC = () => {
+  // State management
   const [firstname, setFirstname] = useState<string>("");
   const [lastname, setLastname] = useState<string>("");
   const [email, setEmail] = useState<string>("");
@@ -43,14 +53,13 @@ const ProfileForm: React.FC = () => {
   const [lastnameError, setLastnameError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
-  //confirmation modal
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] =
     useState<boolean>(false);
 
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  //fetching first user from users
+  // Fetch user data on component mount
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -70,8 +79,8 @@ const ProfileForm: React.FC = () => {
     fetchUserData();
   }, []);
 
-  //save button with validation
-  const handleSave = async () => {
+  // Handle save button click with validation
+  const handleSave = useCallback(async () => {
     try {
       if (firstnameError || lastnameError || emailError) {
         console.log("Please correct the errors before saving.");
@@ -89,75 +98,94 @@ const ProfileForm: React.FC = () => {
         routeUrl: `/users/${userId}`,
         body: updatedUser,
       });
-      alert("profile updated successfully");
+      alert("Profile updated successfully");
       setIsConfirmationModalOpen(false);
     } catch (error) {
-      console.error("error updating profile:", error);
-      alert("failed to update profile. please try again.");
+      console.error("Error updating profile:", error);
+      alert("Failed to update profile. Please try again.");
     }
-    // const saveObj = {
-    //   firstname,
-    //   lastname,
-    //   email,
-    // };
-    // console.log("🚀 ~ handleSave ~ saveObj:", saveObj);
-  };
-const handleFileChange = (event: ChangeEvent<HTMLInputElement>): void => {
-  const file = event.target.files?.[0];
-  if (file) {
-    const newPhotoUrl = URL.createObjectURL(file);
-    setProfilePhoto(newPhotoUrl);
-  }
-};
+  }, [
+    firstname,
+    lastname,
+    email,
+    profilePhoto,
+    firstnameError,
+    lastnameError,
+    emailError,
+  ]);
 
-  const handleOpenDeleteDialog = (): void => {
+  // Handle file input change
+  const handleFileChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>): void => {
+      const file = event.target.files?.[0];
+      if (file) {
+        const newPhotoUrl = URL.createObjectURL(file);
+        setProfilePhoto(newPhotoUrl);
+      }
+    },
+    []
+  );
+
+  // Handle delete dialog open
+  const handleOpenDeleteDialog = useCallback((): void => {
     setIsDeleteDialogOpen(true);
-  };
+  }, []);
 
-  const handleCloseDeleteDialog = (): void => {
+  // Handle delete dialog close
+  const handleCloseDeleteDialog = useCallback((): void => {
     setIsDeleteDialogOpen(false);
-  };
+  }, []);
 
-  const handleUpdatePhoto = (): void => {
+  // Handle update photo button click
+  const handleUpdatePhoto = useCallback((): void => {
     fileInputRef.current?.click();
-  };
+  }, []);
 
-  
-  const handleDeletePhoto = (): void => {
+  // Handle delete photo button click
+  const handleDeletePhoto = useCallback((): void => {
     setProfilePhoto("/placeholder.svg?height=80&width=80");
-  };
+  }, []);
 
-  const handleFirstnameChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const newFirstname = e.target.value;
-    setFirstname(newFirstname);
+  // Handle firstname input change with validation
+  const handleFirstnameChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const newFirstname = e.target.value;
+      setFirstname(newFirstname);
 
-    const validation = checkStringValidation(
-      "First name",
-      newFirstname,
-      2,
-      50,
-      false,
-      false
-    );
-    setFirstnameError(validation.accepted ? null : validation.message);
-  };
+      const validation = checkStringValidation(
+        "First name",
+        newFirstname,
+        2,
+        50,
+        false,
+        false
+      );
+      setFirstnameError(validation.accepted ? null : validation.message);
+    },
+    []
+  );
 
-  const handleLastnameChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const newLastname = e.target.value;
-    setLastname(newLastname);
+  // Handle lastname input change with validation
+  const handleLastnameChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const newLastname = e.target.value;
+      setLastname(newLastname);
 
-    const validation = checkStringValidation(
-      "Last name",
-      newLastname,
-      2,
-      50,
-      false,
-      false
-    );
-    setLastnameError(validation.accepted ? null : validation.message);
-  };
+      const validation = checkStringValidation(
+        "Last name",
+        newLastname,
+        2,
+        50,
+        false,
+        false
+      );
+      setLastnameError(validation.accepted ? null : validation.message);
+    },
+    []
+  );
 
-  const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
+  // Handle email input change with validation
+  const handleEmailChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const newEmail = e.target.value;
     setEmail(newEmail);
 
@@ -166,19 +194,23 @@ const handleFileChange = (event: ChangeEvent<HTMLInputElement>): void => {
     } else {
       setEmailError(null);
     }
-  };
+  }, []);
 
-  const user: User = {
-    firstname,
-    lastname,
-    pathToImage: profilePhoto,
-    email,
-  };
-
-  //close confirmation
-  const handleCloseConfirmationModal = () => {
+  // Close confirmation modal
+  const handleCloseConfirmationModal = useCallback(() => {
     setIsConfirmationModalOpen(false);
-  };
+  }, []);
+
+  // User object for Avatar component
+  const user: User = useMemo(
+    () => ({
+      firstname,
+      lastname,
+      pathToImage: profilePhoto,
+      email,
+    }),
+    [firstname, lastname, profilePhoto, email]
+  );
 
   return (
     <Box sx={{ mt: 3, width: { xs: "90%", md: "70%" } }}>
@@ -297,12 +329,12 @@ const handleFileChange = (event: ChangeEvent<HTMLInputElement>): void => {
             backgroundColor: "#175CD3 ",
           },
         }}
-        onClick={()=> setIsConfirmationModalOpen(true)}
+        onClick={() => setIsConfirmationModalOpen(true)}
       >
         Save
       </Button>
 
-      {/* confirmation modal */}
+      {/* Confirmation modal */}
       <Dialog
         open={isConfirmationModalOpen}
         onClose={handleCloseConfirmationModal}
@@ -356,4 +388,5 @@ const handleFileChange = (event: ChangeEvent<HTMLInputElement>): void => {
     </Box>
   );
 };
+
 export default ProfileForm;

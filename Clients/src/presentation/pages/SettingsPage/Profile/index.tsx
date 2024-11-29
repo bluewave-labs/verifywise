@@ -68,6 +68,7 @@ const ProfileForm: React.FC = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] =
     useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
 
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -80,6 +81,7 @@ const ProfileForm: React.FC = () => {
    */
   useEffect(() => {
     const fetchUserData = async () => {
+      setLoading(true); 
       try {
         const userId = localStorage.getItem("userId") || "1";
         const user = await getEntityById({ routeUrl: `/users/${userId}` });
@@ -101,6 +103,8 @@ const ProfileForm: React.FC = () => {
             lastname:"N/A"
           },
         });
+      } finally {
+        setLoading(false);
       }
     };
     fetchUserData();
@@ -308,7 +312,24 @@ const ProfileForm: React.FC = () => {
   );
 
   return (
-    <Box sx={{ mt: 3, width: { xs: "90%", md: "70%" } }}>
+    <Box sx={{ position: "relative" ,mt: 3, width: { xs: "90%", md: "70%" } }}>
+      {loading && (
+        <Box
+        sx={{ position: "absolute",
+          top:0,
+          left: 0,
+          width:"100%",
+          height:"100%",
+          display:"flex",
+          justifyContent:"center",
+          alignItems:"center",
+          backgroundColor: "rgba(255,255,255,0.8)",
+          zIndex: 10,
+        }}
+        >
+          <Typography>Loading...</Typography>
+        </Box>
+      )}
       <Box
         sx={{
           display: "flex",

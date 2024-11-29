@@ -10,7 +10,7 @@ export interface ProjectCardProps {
     id: number;
     project_title: string;
     owner: string;
-    last_updated: string;
+    start_date: string;
     controls_completed: string | null;
     requirements_completed: string | null;
 }
@@ -27,7 +27,7 @@ const ProgressBarRender: FC<{ progress: string | null; label: string }> = memo((
 const ProjectCard: FC<ProjectCardProps> = ({
     project_title,
     owner,
-    last_updated,
+    start_date,
     controls_completed,
     requirements_completed
 }) => {
@@ -50,7 +50,7 @@ const ProjectCard: FC<ProjectCardProps> = ({
                     <Typography variant="subtitle1" component="span" sx={styles.subtitle}>
                         Last updated
                     </Typography>
-                    <SubtitleValue>{formatDate(last_updated)}</SubtitleValue>
+                    <SubtitleValue>{formatDate(start_date)}</SubtitleValue>
                 </Box>
             </Box>
             <ProgressBarRender progress={controls_completed} label="controls" />

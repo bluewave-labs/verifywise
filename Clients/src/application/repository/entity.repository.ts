@@ -144,18 +144,3 @@ export async function getAllEntities({
     throw error;
   }
 }
-
-
-export async function createProject({
-  routeUrl,
-  body,
-}: {
-  routeUrl?: string;
-  body: any;
-}): Promise<any> {
-  const response = await apiServices.post(routeAddress + routeUrl, body);
-  console.log(
-    `The entity with the following details is created: ${response.data}`
-  );
-  return response;
-}

@@ -5,7 +5,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { checkStringValidation } from '../../../application/validations/stringValidation';
 import selectValidation from '../../../application/validations/selectValidation';
 import { Suspense, lazy } from 'react';
-import { createProject } from '../../../application/repository/entity.repository';
+import { createNewUser } from '../../../application/repository/entity.repository';
 
 const Select = lazy(() => import("../Inputs/Select"));
 const DatePicker = lazy(() => import("../Inputs/Datepicker"));
@@ -145,11 +145,10 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
     event.preventDefault();
     if (validateForm()) {
       //request to the backend
-      await createProject({
+      await createNewUser({
         routeUrl: "/projects",
         body: values,
       }).then((response) => {
-        console.log(response)
           // Reset form after successful submission
           setValues(initialState);
           setErrors({});
@@ -160,7 +159,6 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
             });
           }
         })
-        console.log('dkddd')
       closePopup();
       navigate("/project-view");
     }

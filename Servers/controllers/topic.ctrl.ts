@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { Topic } from "../models/topic.model";
-const MOCK_DATA_ON = true;
+const MOCK_DATA_ON = process.env.MOCK_DATA_ON;
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
@@ -20,7 +20,7 @@ import {
 
 export async function getAllTopics(req: Request, res: Response): Promise<any> {
   try {
-    if (MOCK_DATA_ON === true) {
+    if (MOCK_DATA_ON === "true") {
       const topics = getAllMockTopics();
 
       if (topics) {
@@ -46,7 +46,7 @@ export async function getTopicById(req: Request, res: Response): Promise<any> {
   try {
     const topicId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCK_DATA_ON === "true") {
       const topic = getMockTopicById(topicId);
 
       if (topic) {
@@ -79,7 +79,7 @@ export async function createNewTopic(
       title: string;
     } = req.body;
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCK_DATA_ON === "true") {
       const topic = createMockTopic(newTopic);
 
       if (topic) {
@@ -112,7 +112,7 @@ export async function updateTopicById(
       title: string;
     } = req.body;
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCK_DATA_ON === "true") {
       const topic = updateMockTopicById(topicId, updatedTopic);
 
       if (topic) {
@@ -141,7 +141,7 @@ export async function deleteTopicById(
   try {
     const topicId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCK_DATA_ON === "true") {
       const topic = deleteMockTopicById(topicId);
 
       if (topic) {

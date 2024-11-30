@@ -28,7 +28,8 @@ const NewComplianceTracker = () => {
 
   const renderAccordion = (
     controlGroupIndex: number,
-    controlGroupTitle: string
+    controlGroupTitle: string,
+    control: any
   ) => {
     const controlDetails =
       complianceDetails[controlGroupTitle as keyof typeof complianceDetails];
@@ -51,12 +52,12 @@ const NewComplianceTracker = () => {
             }
           >
             <Typography className="new-compliance-tracker-details-accordion-summary-title">
-              {controlGroupTitle}
+              {controlGroupIndex} {controlGroupTitle}
             </Typography>
           </AccordionSummary>
           <AccordionDetails>
             <BasicTable
-              data={{ cols: Table_Columns, rows: [] }}
+              data={{ cols: Table_Columns, rows: control }}
               table="TableOfSubControllers"
             />
           </AccordionDetails>
@@ -81,7 +82,11 @@ const NewComplianceTracker = () => {
         ))}
       </Stack>
       {ControlGroups.map((controlGroup) =>
-        renderAccordion(controlGroup.id, controlGroup.controlGroupTitle)
+        renderAccordion(
+          controlGroup.id,
+          controlGroup.controlGroupTitle,
+          controlGroup.control
+        )
       )}
     </Stack>
   );

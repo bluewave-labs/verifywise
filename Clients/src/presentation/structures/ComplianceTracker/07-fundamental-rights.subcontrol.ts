@@ -1,8 +1,12 @@
+import Checked from "../../assets/icons/check-circle-green.svg";
+import Exclamation from "../../assets/icons/alert-circle-orange.svg";
+
 export const FundamentalRightsImpactAssessments = {
   id: 7,
   controls: [
     {
       id: 1,
+      icon: Exclamation,
       title: "Fundamental Rights Impact Assessment Process Development",
       description:
         "Conduct assessments to evaluate AI systems' impact on fundamental rights and notify authorities of findings.",
@@ -18,6 +22,7 @@ export const FundamentalRightsImpactAssessments = {
     },
     {
       id: 2,
+      icon: Checked,
       title: "AI System Usage Process Description",
       description:
         "Describe deployer processes for using high-risk AI systems, outlining intended purposes.",
@@ -33,6 +38,7 @@ export const FundamentalRightsImpactAssessments = {
     },
     {
       id: 3,
+      icon: Checked,
       title: "Impacted Groups Identification",
       description:
         "Identify all categories of natural persons and groups potentially affected by AI system usage.",
@@ -48,6 +54,7 @@ export const FundamentalRightsImpactAssessments = {
     },
     {
       id: 4,
+      icon: Checked,
       title: "Data Assessment",
       description:
         "Assess data provided to or acquired by AI systems based on legal definitions (e.g., GDPR Article 3 (32)).",
@@ -63,6 +70,7 @@ export const FundamentalRightsImpactAssessments = {
     },
     {
       id: 5,
+      icon: Checked,
       title: "Impact Measurement Strategy",
       description:
         "Develop and periodically re-evaluate strategies for measuring AI system impacts, including monitoring unexpected impacts.",
@@ -78,6 +86,7 @@ export const FundamentalRightsImpactAssessments = {
     },
     {
       id: 6,
+      icon: Checked,
       title: "Bias and Fairness Evaluation",
       description:
         "Develop and periodically re-evaluate strategies for measuring AI system impacts, including monitoring unexpected impacts.",
@@ -93,6 +102,7 @@ export const FundamentalRightsImpactAssessments = {
     },
     {
       id: 7,
+      icon: Checked,
       title: "Assessment Process Documentation",
       description:
         "Document identified risks and their potential impacts on affected individuals and groups.",
@@ -108,6 +118,7 @@ export const FundamentalRightsImpactAssessments = {
     },
     {
       id: 8,
+      icon: Checked,
       title: "Assessment Process Documentation",
       description:
         "Maintain documentation of the fundamental rights impact assessment process.",
@@ -123,6 +134,7 @@ export const FundamentalRightsImpactAssessments = {
     },
     {
       id: 9,
+      icon: Checked,
       title: "Assessment Process Documentation",
       description:
         "Integrate fundamental rights impact assessments with existing data protection impact assessments.",
@@ -138,6 +150,7 @@ export const FundamentalRightsImpactAssessments = {
     },
     {
       id: 10,
+      icon: Checked,
       title: "Assessment Process Documentation",
       description:
         "Regularly evaluate bias and fairness issues related to AI systems.",

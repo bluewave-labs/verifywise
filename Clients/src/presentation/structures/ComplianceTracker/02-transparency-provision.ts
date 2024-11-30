@@ -1,8 +1,12 @@
+import Checked from "../../assets/icons/check-circle-green.svg";
+import Exclamation from "../../assets/icons/alert-circle-orange.svg";
+
 export const TransparencyProvision = {
   id: 2,
   controls: [
     {
       id: 1,
+      icon: Exclamation,
       title: "Intended Use Description",
       description:
         "Review and verify technical documentation from AI system providers.",
@@ -18,6 +22,7 @@ export const TransparencyProvision = {
     },
     {
       id: 2,
+      icon: Checked,
       title: "Technical Documentation Review",
       description:
         "Review and verify technical documentation from AI system providers.",
@@ -32,6 +37,7 @@ export const TransparencyProvision = {
     },
     {
       id: 3,
+      icon: Checked,
       title: "Record Maintenance of AI System Activities",
       description:
         "Maintain accurate records of all AI system activities, including modifications and third-party involvements.",
@@ -47,6 +53,7 @@ export const TransparencyProvision = {
     },
     {
       id: 4,
+      icon: Checked,
       title: "System Information Documentation",
       description:
         "Document all information about the AI system, including its capabilities, limitations, and any relevant technical details.",
@@ -69,6 +76,7 @@ export const TransparencyProvision = {
     },
     {
       id: 5,
+      icon: Checked,
       title: "Dataset Description",
       description:
         "Describe training, validation, and testing datasets used in AI systems.",
@@ -83,6 +91,7 @@ export const TransparencyProvision = {
     },
     {
       id: 6,
+      icon: Checked,
       title: "Mitigation Strategies and Bias Testing",
       description:
         "Explain mitigation strategies and document bias testing results.",
@@ -97,6 +106,7 @@ export const TransparencyProvision = {
     },
     {
       id: 7,
+      icon: Checked,
       title: "AI System Accuracy and Security Information",
       description:
         "Provide accuracy metrics, robustness, and cybersecurity information for AI systems.",

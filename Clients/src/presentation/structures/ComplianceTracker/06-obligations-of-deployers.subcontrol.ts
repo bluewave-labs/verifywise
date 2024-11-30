@@ -1,8 +1,12 @@
+import Checked from "../../assets/icons/check-circle-green.svg";
+import Exclamation from "../../assets/icons/alert-circle-orange.svg";
+
 export const ObligationsOfDeployersAIsystems = {
   id: 6,
   controls: [
     {
       id: 1,
+      icon: Exclamation,
       title: "AI Act Compliance Policies and Guidelines",
       description:
         "Assign technical and organizational measures, along with human oversight, to ensure compliance with AI regulations and manage associated risks.",
@@ -24,6 +28,7 @@ export const ObligationsOfDeployersAIsystems = {
     },
     {
       id: 2,
+      icon: Checked,
       title: "AI Risk Response Planning",
       description:
         "Plan responses to AI system risks, including defining risk tolerance and mitigation strategies.",
@@ -39,6 +44,7 @@ export const ObligationsOfDeployersAIsystems = {
     },
     {
       id: 3,
+      icon: Checked,
       title: "Compliance with AI System Instructions",
       description:
         "Regularly evaluate transparency and accountability issues related to AI systems.",
@@ -61,6 +67,7 @@ export const ObligationsOfDeployersAIsystems = {
     },
     {
       id: 4,
+      icon: Checked,
       title: "System Risk Controls Documentation",
       description:
         "Document system risk controls, including those for third-party components.",
@@ -109,6 +116,7 @@ export const ObligationsOfDeployersAIsystems = {
     },
     {
       id: 5,
+      icon: Checked,
       title: "Transparency and Explainability Evaluation",
       description:
         "Regularly update compliance measures based on system or regulatory changes.",
@@ -124,6 +132,7 @@ export const ObligationsOfDeployersAIsystems = {
     },
     {
       id: 6,
+      icon: Checked,
       title: "Transparency and Explainability Evaluation",
       description:
         "Explain AI models to ensure responsible use and maintain an AI systems repository.",
@@ -139,6 +148,7 @@ export const ObligationsOfDeployersAIsystems = {
     },
     {
       id: 7,
+      icon: Checked,
       title: "Transparency and Explainability Evaluation",
       description:
         "Maintain and update technical documentation reflecting AI system changes.",
@@ -154,6 +164,7 @@ export const ObligationsOfDeployersAIsystems = {
     },
     {
       id: 8,
+      icon: Checked,
       title: "Transparency and Explainability Evaluation",
       description:
         "Assess the relevance and representativeness of input data used for AI system training and operation.",
@@ -168,7 +179,8 @@ export const ObligationsOfDeployersAIsystems = {
     },
     {
       id: 9,
-      title: "Transparency and Explainability Evaluation",
+      icon: Checked,
+      title: "AI System Logging Implementation",
       description:
         "Implement automatic logging of AI system operations and retain logs appropriately.",
       subControls: [

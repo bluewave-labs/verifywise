@@ -1,8 +1,12 @@
+import Checked from "../../assets/icons/check-circle-green.svg";
+import Exclamation from "../../assets/icons/alert-circle-orange.svg";
+
 export const CorrectiveActionsDutyOfInfo = {
   id: 4,
   controls: [
     {
       id: 1,
+      icon: Exclamation,
       title: "Proportionate Oversight Measures",
       description:
         "Take prompt and effective corrective actions for non-conforming high-risk AI systems and ensure ongoing system value post-deployment.",
@@ -18,6 +22,7 @@ export const CorrectiveActionsDutyOfInfo = {
     },
     {
       id: 2,
+      icon: Checked,
       title: "System Validation and Reliability Documentation",
       description:
         "Demonstrate and document the system's validity, reliability, and standards compliance.",
@@ -40,6 +45,7 @@ export const CorrectiveActionsDutyOfInfo = {
     },
     {
       id: 3,
+      icon: Checked,
       title: "Prompt Corrective Actions Implementation",
       description:
         "Implement corrective actions promptly and effectively to address identified risks or issues.",
@@ -62,6 +68,7 @@ export const CorrectiveActionsDutyOfInfo = {
     },
     {
       id: 4,
+      icon: Checked,
       title: "Documentation of Corrective Actions",
       description: "Maintain documentation of corrective actions taken.",
       subControls: [

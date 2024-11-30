@@ -1,8 +1,12 @@
+import Checked from "../../assets/icons/check-circle-green.svg";
+import Exclamation from "../../assets/icons/alert-circle-orange.svg";
+
 export const EUdatabaseForHighRiskAI = {
   id: 10,
   controls: [
     {
       id: 1,
+      icon: Exclamation,
       title: "Registration Activity Records Maintenance",
       description:
         "Maintain comprehensive records of high-risk AI systems in the EU database, ensuring compliance with documentation and responsiveness to authorities.",
@@ -18,6 +22,7 @@ export const EUdatabaseForHighRiskAI = {
     },
     {
       id: 2,
+      icon: Exclamation,
       title: "Registration Activity Records Maintenance",
       description:
         "Implement and document monitoring systems to track AI system performance and address risks post-deployment.",
@@ -33,6 +38,7 @@ export const EUdatabaseForHighRiskAI = {
     },
     {
       id: 3,
+      icon: Exclamation,
       title: "Registration Activity Records Maintenance",
       description:
         "Maintain up-to-date registration information and comprehensive conformity documentation.",
@@ -53,6 +59,7 @@ export const EUdatabaseForHighRiskAI = {
     },
     {
       id: 4,
+      icon: Checked,
       title: "EU Database Data Entry Timeliness",
       description:
         "Maintain up-to-date registration information and comprehensive conformity documentation.",

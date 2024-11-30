@@ -1,8 +1,12 @@
+import Checked from "../../assets/icons/check-circle-green.svg";
+import Exclamation from "../../assets/icons/alert-circle-orange.svg";
+
 export const ResponsibilitiesAlongAI = {
   id: 5,
   controls: [
     {
       id: 1,
+      icon: Exclamation,
       title:
         "Conduct thorough due diligence before associating with high-risk AI systems.",
       description:
@@ -19,6 +23,7 @@ export const ResponsibilitiesAlongAI = {
     },
     {
       id: 2,
+      icon: Exclamation,
       title:
         "Conduct thorough due diligence before associating with high-risk AI systems.",
       description:
@@ -35,6 +40,7 @@ export const ResponsibilitiesAlongAI = {
     },
     {
       id: 3,
+      icon: Exclamation,
       title:
         "Conduct thorough due diligence before associating with high-risk AI systems.",
       description:
@@ -51,6 +57,7 @@ export const ResponsibilitiesAlongAI = {
     },
     {
       id: 4,
+      icon: Exclamation,
       title:
         "Conduct thorough due diligence before associating with high-risk AI systems.",
       description:
@@ -67,6 +74,7 @@ export const ResponsibilitiesAlongAI = {
     },
     {
       id: 5,
+      icon: Exclamation,
       title:
         "Conduct thorough due diligence before associating with high-risk AI systems.",
       description:
@@ -83,6 +91,7 @@ export const ResponsibilitiesAlongAI = {
     },
     {
       id: 6,
+      icon: Checked,
       title: "AI System Deactivation Mechanisms",
       description:
         "Maintain mechanisms to deactivate AI systems if performance deviates from intended use.",
@@ -98,6 +107,7 @@ export const ResponsibilitiesAlongAI = {
     },
     {
       id: 7,
+      icon: Checked,
       title: "Incident Monitoring for Third-Party Components",
       description:
         "Monitor and respond to incidents involving third-party components.",
@@ -113,6 +123,7 @@ export const ResponsibilitiesAlongAI = {
     },
     {
       id: 8,
+      icon: Checked,
       title: "Incident Monitoring for Third-Party Components",
       description:
         "Implement measures to enhance AI system resilience against errors and faults.",
@@ -128,6 +139,7 @@ export const ResponsibilitiesAlongAI = {
     },
     {
       id: 9,
+      icon: Checked,
       title: "Incident Monitoring for Third-Party Components",
       description:
         "Identify and assess potential non-conformities with regulations.",

@@ -1,8 +1,12 @@
+import Checked from "../../assets/icons/check-circle-green.svg";
+import Exclamation from "../../assets/icons/alert-circle-orange.svg";
+
 export const ReportingSeriousIncidents = {
   id: 12,
   controls: [
     {
       id: 1,
+      icon: Exclamation,
       title: "Unexpected Impact Integration",
       description:
         "Report any serious incidents involving AI systems to relevant market surveillance authorities within specified timeframes.",
@@ -18,6 +22,7 @@ export const ReportingSeriousIncidents = {
     },
     {
       id: 2,
+      icon: Checked,
       title: "AI Model Capability Assessment",
       description:
         "Conduct comprehensive assessments of AI model capabilities using appropriate tools.",
@@ -32,6 +37,7 @@ export const ReportingSeriousIncidents = {
     },
     {
       id: 3,
+      icon: Checked,
       title: "Post-Deployment Incident Monitoring",
       description:
         "Monitor incidents related to AI systems and respond post-deployment.",
@@ -52,6 +58,7 @@ export const ReportingSeriousIncidents = {
     },
     {
       id: 4,
+      icon: Checked,
       title: "AI System Logging Implementation",
       description:
         "Ensure providers implement systems for capturing and storing AI system logs.",
@@ -67,6 +74,7 @@ export const ReportingSeriousIncidents = {
     },
     {
       id: 5,
+      icon: Checked,
       title: "Serious Incident Immediate Reporting",
       description:
         "Immediately report serious incidents to providers, importers, distributors, and authorities.",

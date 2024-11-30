@@ -1,8 +1,12 @@
+import Checked from "../../assets/icons/check-circle-green.svg";
+import Exclamation from "../../assets/icons/alert-circle-orange.svg";
+
 export const HumanOversight = {
   id: 3,
   controls: [
     {
       id: 1,
+      icon: Exclamation,
       title: "Human Intervention Mechanisms",
       description:
         "Assign competent individuals with authority to oversee AI system usage.",
@@ -32,6 +36,7 @@ export const HumanOversight = {
     },
     {
       id: 2,
+      icon: Checked,
       title: "Oversight Documentation",
       description: "Document system limitations and human oversight options.",
       subControls: [
@@ -52,6 +57,7 @@ export const HumanOversight = {
     },
     {
       id: 3,
+      icon: Checked,
       title: "Oversight Documentation",
       description:
         "Ensure clear communication of AI system capabilities, limitations, and risks to human operators.",

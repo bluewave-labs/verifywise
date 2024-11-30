@@ -1,8 +1,12 @@
+import Checked from "../../assets/icons/check-circle-green.svg";
+import Exclamation from "../../assets/icons/alert-circle-orange.svg";
+
 export const TransparencyObligationsForProviders = {
   id: 7,
   controls: [
     {
       id: 1,
+      icon: Exclamation,
       title: "User Notification of AI System Use",
       description:
         "Ensure clear communication that users are interacting with AI systems and provide comprehensive information about AI system functionalities and impacts.",
@@ -18,6 +22,7 @@ export const TransparencyObligationsForProviders = {
     },
     {
       id: 2,
+      icon: Checked,
       title: "Clear AI Indication for Users",
       description:
         "Ensure AI indications are clear and understandable for reasonably informed users.",
@@ -39,6 +44,7 @@ export const TransparencyObligationsForProviders = {
     },
     {
       id: 3,
+      icon: Checked,
       title: "AI System Scope and Impact Definition",
       description:
         "Define and document AI system scope, goals, methods, and potential impacts.",
@@ -54,6 +60,7 @@ export const TransparencyObligationsForProviders = {
     },
     {
       id: 4,
+      icon: Checked,
       title: "AI System Scope and Impact Definition",
       description:
         "Maintain accurate records of AI system activities, including modifications and third-party involvements.",

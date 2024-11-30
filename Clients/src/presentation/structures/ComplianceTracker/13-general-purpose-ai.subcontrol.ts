@@ -1,8 +1,12 @@
+import Checked from "../../assets/icons/check-circle-green.svg";
+import Exclamation from "../../assets/icons/alert-circle-orange.svg";
+
 export const GeneralPurposeAImodels = {
   id: 13,
   controls: [
     {
       id: 1,
+      icon: Exclamation,
       title: "Intended Use Description for General-Purpose AI Models",
       description:
         "Define and manage the intended and forbidden uses of general-purpose AI models, including modifications and content marking.",
@@ -18,6 +22,7 @@ export const GeneralPurposeAImodels = {
     },
     {
       id: 2,
+      icon: Checked,
       title: "Comprehensive AI System Documentation",
       description:
         "Ensure comprehensive documentation of AI system purposes and restrictions.",
@@ -33,6 +38,7 @@ export const GeneralPurposeAImodels = {
     },
     {
       id: 3,
+      icon: Exclamation,
       title: "Post-Market AI System Modification Management",
       description:
         "Manage and document any modifications to AI systems after placing on market or service.",
@@ -47,6 +53,7 @@ export const GeneralPurposeAImodels = {
     },
     {
       id: 4,
+      icon: Exclamation,
       title: "Illegal Content Prevention Countermeasures",
       description:
         "List and implement countermeasures to prevent the generation of illegal content by AI systems.",
@@ -62,6 +69,7 @@ export const GeneralPurposeAImodels = {
     },
     {
       id: 5,
+      icon: Exclamation,
       title: "Synthetic Content Marking Mechanisms",
       description:
         "Implement machine-readable watermarks for AI-generated synthetic content.",
@@ -77,6 +85,7 @@ export const GeneralPurposeAImodels = {
     },
     {
       id: 6,
+      icon: Exclamation,
       title: "Datasets Used Documentation",
       description:
         "Describe datasets used, including owned, free, and copyrighted data.",

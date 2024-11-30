@@ -1,8 +1,12 @@
+import Checked from "../../assets/icons/check-circle-green.svg";
+import Exclamation from "../../assets/icons/alert-circle-orange.svg";
+
 export const PostMarketMonitoringByProviders = {
   id: 11,
   controls: [
     {
       id: 1,
+      icon: Exclamation,
       title: "AI Lifecycle Risk Management",
       description:
         "Implement and document monitoring systems to track AI system performance and address risks post-deployment.",
@@ -17,6 +21,7 @@ export const PostMarketMonitoringByProviders = {
     },
     {
       id: 2,
+      icon: Exclamation,
       title: "AI Lifecycle Risk Management",
       description:
         "Establish a system for monitoring AI system operations based on usage instructions.",
@@ -31,6 +36,7 @@ export const PostMarketMonitoringByProviders = {
     },
     {
       id: 3,
+      icon: Exclamation,
       title: "AI Lifecycle Risk Management",
       description:
         "Track and respond to errors and incidents related to AI systems through measurable activities.",
@@ -46,6 +52,7 @@ export const PostMarketMonitoringByProviders = {
     },
     {
       id: 4,
+      icon: Exclamation,
       title: "AI Lifecycle Risk Management",
       description:
         "Consult with domain experts and end-users to inform risk management activities.",
@@ -61,6 +68,7 @@ export const PostMarketMonitoringByProviders = {
     },
     {
       id: 5,
+      icon: Checked,
       title: "AI System Change Documentation",
       description:
         "Document changes to AI systems and their performance post-deployment.",

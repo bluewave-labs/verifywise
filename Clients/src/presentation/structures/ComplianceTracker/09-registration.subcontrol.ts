@@ -1,8 +1,12 @@
+import Checked from "../../assets/icons/check-circle-green.svg";
+import Exclamation from "../../assets/icons/alert-circle-orange.svg";
+
 export const Registration = {
   id: 9,
   controls: [
     {
       id: 1,
+      icon: Exclamation,
       title: "EU Database Registration",
       description:
         "Register providers, authorized representatives, and deployers, along with their AI systems, in the EU database as required by the AI Act.",
@@ -24,6 +28,7 @@ export const Registration = {
     },
     {
       id: 2,
+      icon: Checked,
       title: "Conformity Assessment Completion",
       description:
         "Complete relevant conformity assessment procedures for AI systems.",
@@ -39,6 +44,7 @@ export const Registration = {
     },
     {
       id: 3,
+      icon: Checked,
       title: "Conformity Assessment Completion",
       description:
         "Identify necessary technical standards and certifications for AI systems.",
@@ -54,6 +60,7 @@ export const Registration = {
     },
     {
       id: 4,
+      icon: Checked,
       title: "Conformity Assessment Completion",
       description:
         "To ensure that high-risk AI systems or general-purpose AI models comply with the common specifications established by the Commission.",
@@ -69,6 +76,7 @@ export const Registration = {
     },
     {
       id: 5,
+      icon: Checked,
       title: "Conformity Assessment Completion",
       description:
         "Comply with common specifications established by the Commission for AI systems.",
@@ -83,6 +91,7 @@ export const Registration = {
     },
     {
       id: 6,
+      icon: Checked,
       title: "Registration Information Maintenance",
       description:
         "Maintain comprehensive records of high-risk AI systems in the EU database, ensuring compliance with documentation and responsiveness to authorities.",
@@ -97,6 +106,7 @@ export const Registration = {
     },
     {
       id: 7,
+      icon: Checked,
       title: "Registration Information Maintenance",
       description:
         "Maintain up-to-date registration information and comprehensive conformity documentation.",

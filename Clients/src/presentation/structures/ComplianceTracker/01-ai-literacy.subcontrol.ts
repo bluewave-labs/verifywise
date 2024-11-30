@@ -1,8 +1,11 @@
+import Checked from "../../assets/icons/check-circle-green.svg";
+
 export const AIliteracy = {
   id: 1,
   controls: [
     {
       id: 1,
+      icon: Checked,
       title: "AI Literacy and Responsible AI Training",
       description:
         "Develop the AI literacy of staff and others who operate or use AI systems on behalf of the organization.",
@@ -32,6 +35,7 @@ export const AIliteracy = {
     },
     {
       id: 2,
+      icon: Checked,
       title: "Regulatory Training and Response Procedures",
       description:
         "Train personnel on regulatory requirements and procedures for responding to authority requests.",

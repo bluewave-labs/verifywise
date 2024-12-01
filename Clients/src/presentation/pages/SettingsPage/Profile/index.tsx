@@ -28,6 +28,8 @@ import {
   getEntityById,
   updateEntityById,
 } from "../../../../application/repository/entity.repository";
+import { logEngine } from "../../../../application/tools/log.engine";
+import localStorage from "redux-persist/es/storage";
 
 /**
  * Interface representing a user object.
@@ -62,9 +64,11 @@ const ProfileForm: React.FC = () => {
   const [firstnameError, setFirstnameError] = useState<string | null>(null);
   const [lastnameError, setLastnameError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
+
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] =
     useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
 
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -77,6 +81,7 @@ const ProfileForm: React.FC = () => {
    */
   useEffect(() => {
     const fetchUserData = async () => {
+      setLoading(true); 
       try {
         const userId = localStorage.getItem("userId") || "1";
         const user = await getEntityById({ routeUrl: `/users/${userId}` });
@@ -88,7 +93,18 @@ const ProfileForm: React.FC = () => {
           user.pathToImage || "/placeholder.svg?height=80&width=80"
         );
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        logEngine({
+          type:"error",
+          message:"Failed to fetch user data.",
+          user:{
+            id: String(localStorage.getItem("userId")) || "N/A",
+            email: "N/A",
+            firstname: "N/A",
+            lastname:"N/A"
+          },
+        });
+      } finally {
+        setLoading(false);
       }
     };
     fetchUserData();
@@ -103,7 +119,16 @@ const ProfileForm: React.FC = () => {
   const handleSave = useCallback(async () => {
     try {
       if (firstnameError || lastnameError || emailError) {
-        console.log("Please correct the errors before saving.");
+        logEngine({
+          type: "error",
+          message: "Validation errors occured while saving the profile.",
+          user: {
+            id: "N/A",
+            email,
+            firstname,
+            lastname,
+          },
+        });
         return;
       }
       const userId = localStorage.getItem("userId") || "1";
@@ -121,7 +146,17 @@ const ProfileForm: React.FC = () => {
       alert("Profile updated successfully");
       setIsConfirmationModalOpen(false);
     } catch (error) {
-      console.error("Error updating profile:", error);
+
+       logEngine({
+         type: "error",
+         message: "An error occured while updating the profile.",
+         user: {
+           id:String(localStorage.getItem("userId")) || "N/A",
+           email,
+           firstname,
+           lastname,
+         },
+       });
       alert("Failed to update profile. Please try again.");
     }
   }, [
@@ -267,7 +302,7 @@ const ProfileForm: React.FC = () => {
 
   // User object for Avatar component
   const user: User = useMemo(
-    () => ({
+    () => ({ 
       firstname,
       lastname,
       pathToImage: profilePhoto,
@@ -277,7 +312,24 @@ const ProfileForm: React.FC = () => {
   );
 
   return (
-    <Box sx={{ mt: 3, width: { xs: "90%", md: "70%" } }}>
+    <Box sx={{ position: "relative" ,mt: 3, width: { xs: "90%", md: "70%" } }}>
+      {loading && (
+        <Box
+        sx={{ position: "absolute",
+          top:0,
+          left: 0,
+          width:"100%",
+          height:"100%",
+          display:"flex",
+          justifyContent:"center",
+          alignItems:"center",
+          backgroundColor: "rgba(255,255,255,0.8)",
+          zIndex: 10,
+        }}
+        >
+          <Typography>Loading...</Typography>
+        </Box>
+      )}
       <Box
         sx={{
           display: "flex",
@@ -411,7 +463,8 @@ const ProfileForm: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseConfirmationModal}>Cancel</Button>
-          <Button onClick={handleSave} color="primary">
+          <Button onClick={handleSave} color="primary"
+          aria-label = "Save profile changes">
             Save
           </Button>
         </DialogActions>

@@ -6,10 +6,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import {
-  complianceMetrics,
-  complianceDetails,
-} from "../../mocks/compliance.data";
+import { complianceMetrics } from "../../mocks/compliance.data";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { ControlGroups } from "../../structures/ComplianceTracker/controls";
 import { useState } from "react";
@@ -26,16 +23,23 @@ const Table_Columns = [
 const NewComplianceTracker = () => {
   const [expanded, setExpanded] = useState<number | false>(false);
 
+  const handleAccordionChange = (panel: number) => {
+    return (_: React.SyntheticEvent, isExpanded: boolean) => {
+      setExpanded(isExpanded ? panel : false);
+    };
+  };
+
   const renderAccordion = (
     controlGroupIndex: number,
     controlGroupTitle: string,
     controls: any
   ) => {
-    const controlDetails =
-      complianceDetails[controlGroupTitle as keyof typeof complianceDetails];
     return (
       <Stack className="new-compliance-tracker-details" key={controlGroupIndex}>
-        <Accordion className="new-compliance-tracker-details-accordion">
+        <Accordion
+          className="new-compliance-tracker-details-accordion"
+          onChange={handleAccordionChange(controlGroupIndex)}
+        >
           <AccordionSummary
             className="new-compliance-tracker-details-accordion-summary"
             expandIcon={

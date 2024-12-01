@@ -11,7 +11,8 @@ import {
   useTheme,
 } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { useCallback, useMemo } from "react";
+import { Fragment, useCallback, useMemo, useState } from "react";
+import NewControlPane from "../../Modals/Controlpane/NewControlPane";
 
 interface ITableCol {
   id: number;
@@ -28,6 +29,8 @@ const AccordionTable = ({
   rows: any[];
 }) => {
   const theme = useTheme();
+  const [selectedRow, setSelectedRow] = useState<number | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const getProgressColor = useCallback((value: number) => {
     if (value <= 10) return "#FF4500"; // 0-10%
@@ -45,6 +48,7 @@ const AccordionTable = ({
   const tableHeader = useMemo(
     () => (
       <TableHead
+        id={`${id}-table-header`}
         className="accordion-table-header"
         sx={{
           backgroundColors:
@@ -64,7 +68,7 @@ const AccordionTable = ({
         </TableRow>
       </TableHead>
     ),
-    [cols]
+    [cols, id]
   );
 
   const cellStyle = {
@@ -76,70 +80,81 @@ const AccordionTable = ({
     },
   };
 
+  const handleRowClick = (id: number) => {
+    setSelectedRow(id);
+    setModalOpen(true);
+  };
+
   const tableBody = useMemo(
     () => (
-      <TableBody className="accordion-table-body">
+      <TableBody id={`${id}-table-body`} className="accordion-table-body">
         {rows.map((row) => (
-          <TableRow
-            className="accordion-table-body-row"
-            key={row.id}
-            sx={{
-              ...singleTheme.tableStyles.primary.body.row,
-              height: "36px",
-              "&:hover": {
-                backgroundColor: "#FBFBFB",
-                cursor: "pointer",
-              },
-            }}
-          >
-            {row.icon && (
-              <TableCell sx={cellStyle} key={`icon-${row.id}`}>
-                <img src={row.icon} alt="status icon" width={20} />
-              </TableCell>
+          <Fragment key={row.id}>
+            {modalOpen && selectedRow === row.id && (
+              <NewControlPane
+                id={`${id}.${row.id}`}
+                isOpen={modalOpen}
+                handleClose={() => setModalOpen(false)}
+                title={row.title}
+                content={row.description}
+                subControls={row.subControls}
+              />
             )}
-            {row.title && (
-              <TableCell sx={cellStyle} key={`${id}-${row.id}`}>
-                {id}.{row.id} {row.title}{" "}
-                {`(${row.description}`.substring(0, 20) + `...)`}
-              </TableCell>
-            )}
-            {row.owner && (
-              <TableCell sx={cellStyle} key={`owner-${row.id}`}>
-                {row.owner}
-              </TableCell>
-            )}
-            {row.noOfSubControls && (
-              <TableCell sx={cellStyle} key={`noOfSubControls-${row.id}`}>
-                {row.noOfSubControls}
-              </TableCell>
-            )}
-            {row.completion && (
-              <TableCell sx={cellStyle} key={`completion-${row.id}`}>
-                <Stack direction="row" alignItems="center" spacing={1}>
-                  <Typography variant="body2">{row.completion}</Typography>
-                  <LinearProgress
-                    variant="determinate"
-                    value={parseFloat(row.completion)}
-                    sx={{
-                      width: "100px",
-                      height: "8px",
-                      borderRadius: "4px",
-                      backgroundColor: theme.palette.grey[200],
-                      "& .MuiLinearProgress-bar": {
-                        backgroundColor: getProgressColor(
-                          parseFloat(row.completion)
-                        ),
-                      },
-                    }}
-                  />
-                </Stack>
-              </TableCell>
-            )}
-          </TableRow>
+            <TableRow
+              className="accordion-table-body-row"
+              key={`${id}-${row.id}-row`}
+              sx={cellStyle}
+              onClick={() => handleRowClick(row.id)}
+            >
+              {row.icon && (
+                <TableCell sx={cellStyle} key={`icon-${row.id}`}>
+                  <img src={row.icon} alt="status icon" width={20} />
+                </TableCell>
+              )}
+              {row.title && (
+                <TableCell sx={cellStyle} key={`${id}-${row.id}`}>
+                  {id}.{row.id} {row.title}{" "}
+                  {`(${row.description}`.substring(0, 20) + `...)`}
+                </TableCell>
+              )}
+              {row.owner && (
+                <TableCell sx={cellStyle} key={`owner-${row.id}`}>
+                  {row.owner}
+                </TableCell>
+              )}
+              {row.noOfSubControls && (
+                <TableCell sx={cellStyle} key={`noOfSubControls-${row.id}`}>
+                  {row.noOfSubControls}
+                </TableCell>
+              )}
+              {row.completion && (
+                <TableCell sx={cellStyle} key={`completion-${row.id}`}>
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <Typography variant="body2">{row.completion} </Typography>
+                    <LinearProgress
+                      variant="determinate"
+                      value={parseFloat(row.completion)}
+                      sx={{
+                        width: "100px",
+                        height: "5px",
+                        borderRadius: "4px",
+                        backgroundColor: theme.palette.grey[200],
+                        "& .MuiLinearProgress-bar": {
+                          backgroundColor: getProgressColor(
+                            parseFloat(row.completion)
+                          ),
+                        },
+                      }}
+                    />
+                  </Stack>
+                </TableCell>
+              )}
+            </TableRow>
+          </Fragment>
         ))}
       </TableBody>
     ),
-    []
+    [rows, modalOpen, selectedRow, getProgressColor, theme.palette.grey, id]
   );
 
   return (

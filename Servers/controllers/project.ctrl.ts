@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
-import { Project } from "../models/project.model";
-const MOCK_DATA_ON = process.env.MOCK_DATA_ON;
+import { MOCKDATA_ON } from "../flags";
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
@@ -23,7 +22,7 @@ export async function getAllProjects(
   res: Response
 ): Promise<any> {
   try {
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const projects = getAllMockProjects();
 
       if (projects) {
@@ -52,7 +51,7 @@ export async function getProjectById(
   try {
     const projectId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const project = getMockProjectById(projectId);
 
       if (project) {
@@ -96,7 +95,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
         );
     }
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const createdProject = createMockProject(newProject);
 
       if (createdProject) {
@@ -144,7 +143,7 @@ export async function updateProjectById(
         );
     }
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const project = updateMockProjectById(projectId, updatedProject);
 
       if (project) {
@@ -173,7 +172,7 @@ export async function deleteProjectById(
   try {
     const projectId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const deletedProject = deleteMockProjectById(projectId);
 
       if (deletedProject) {

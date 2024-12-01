@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
-import { Vendor } from "../models/vendor.model";
-const MOCK_DATA_ON = process.env.MOCK_DATA_ON;
+import { MOCKDATA_ON } from "../flags";
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
@@ -20,7 +19,7 @@ import {
 
 export async function getAllVendors(req: Request, res: Response): Promise<any> {
   try {
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const vendors = getAllMockVendors();
 
       if (vendors) {
@@ -46,7 +45,7 @@ export async function getVendorById(req: Request, res: Response): Promise<any> {
   try {
     const vendorId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const vendor = getMockVendorById(vendorId);
 
       if (vendor) {
@@ -101,7 +100,7 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
       );
     }
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const createdVendor = createMockVendor(newVendor);
 
       if (createdVendor) {
@@ -160,7 +159,7 @@ export async function updateVendorById(
       );
     }
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const vendor = updateMockVendorById(vendorId, updatedVendor);
 
       if (vendor) {
@@ -189,7 +188,7 @@ export async function deleteVendorById(
   try {
     const vendorId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const deletedVendor = deleteMockVendorById(vendorId);
 
       if (deletedVendor) {

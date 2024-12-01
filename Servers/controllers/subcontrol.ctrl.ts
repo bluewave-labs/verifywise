@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
-import { Subcontrol } from "../models/subcontrol.model";
-const MOCK_DATA_ON = process.env.MOCK_DATA_ON;
+import { MOCKDATA_ON } from "../flags";
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
@@ -23,7 +22,7 @@ export async function getAllSubcontrols(
   res: Response
 ): Promise<any> {
   try {
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const subcontrols = getAllMockSubcontrols();
 
       if (subcontrols) {
@@ -52,7 +51,7 @@ export async function getSubcontrolById(
   try {
     const subcontrolId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const subcontrol = getMockSubcontrolById(subcontrolId);
 
       if (subcontrol) {
@@ -93,7 +92,7 @@ export async function createNewSubcontrol(
       feedback: string;
     } = req.body;
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const newSubcontrol = createMockSubcontrol(subcontrol);
 
       if (newSubcontrol) {
@@ -135,7 +134,7 @@ export async function updateSubcontrolById(
       feedback: string;
     }> = req.body;
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const updatedSubcontrol = updateMockSubcontrolById(
         subcontrolId,
         subcontrol
@@ -170,7 +169,7 @@ export async function deleteSubcontrolById(
   try {
     const subcontrolId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const deletedSubcontrol = deleteMockSubcontrolById(subcontrolId);
 
       if (deletedSubcontrol) {

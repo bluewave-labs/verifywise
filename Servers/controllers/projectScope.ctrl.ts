@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
-import { ProjectScope } from "../models/projectScope.model";
-const MOCK_DATA_ON = process.env.MOCK_DATA_ON;
+import { MOCKDATA_ON } from "../flags";
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
@@ -23,7 +22,7 @@ export async function getAllProjectScopes(
   res: Response
 ): Promise<any> {
   try {
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const projectScopes = getAllMockProjectScopes();
 
       if (projectScopes) {
@@ -52,7 +51,7 @@ export async function getProjectScopeById(
   try {
     const projectScopeId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const projectScope = getMockProjectScopeById(projectScopeId);
 
       if (projectScope) {
@@ -91,7 +90,7 @@ export async function createProjectScope(
       technologyDocumentation: string;
     };
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const createdProjectScope = createMockProjectScope(projectScope);
 
       if (createdProjectScope) {
@@ -131,7 +130,7 @@ export async function updateProjectScopeById(
       technologyDocumentation: string;
     };
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const updatedProjectScope = updateMockProjectScopeById(
         projectScopeId,
         projectScope
@@ -166,7 +165,7 @@ export async function deleteProjectScopeById(
   try {
     const projectScopeId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const deletedProjectScope = deleteMockProjectScopeById(projectScopeId);
 
       if (deletedProjectScope) {

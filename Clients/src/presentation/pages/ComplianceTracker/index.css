@@ -1,0 +1,84 @@
+.new-compliance-tracker .new-compliance-tracker-title {
+  min-height: 64px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1919;
+}
+
+.new-compliance-tracker .new-compliance-tracker-metrics {
+  max-width: 1400;
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  align-items: center;
+}
+
+.new-compliance-tracker .new-compliance-tracker-metrics .metric-card {
+  width: 30%;
+  height: 64px;
+  border-radius: 4px;
+  background-color: #fff;
+  border: 1px solid #eaecf0;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  justify-content: center;
+  padding: 4px;
+  padding-left: 12px;
+  text-align: end;
+}
+
+.metric-card .metric-card-name {
+  font-size: 12px;
+  font-weight: 400;
+  color: #8594ac;
+}
+
+.metric-card .metric-card-amount {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2d3748;
+  margin-top: 2px;
+}
+
+.new-compliance-tracker .new-compliance-tracker-details {
+  max-width: 1400px;
+  margin-top: 14px;
+  gap: 20px;
+}
+
+.new-compliance-tracker-details .new-compliance-tracker-details-accordion {
+  margin-top: 9px;
+  border: 1px solid #eaecf0;
+  width: 100%;
+  margin-left: 1.5px;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.new-compliance-tracker-details-accordion .MuiAccordionDetails-root {
+  padding: 0;
+  margin: 0;
+}
+
+.new-compliance-tracker-details-accordion .MuiAccordionSummary-root {
+  height: 42px;
+}
+
+.new-compliance-tracker-details-accordion
+  .new-compliance-tracker-details-accordion-summary {
+  background-color: #fafafa;
+  padding: 10px;
+  flex-direction: row-reverse;
+  height: 64;
+}
+
+.new-compliance-tracker-details-accordion-summary
+  .new-compliance-tracker-details-accordion-summary-title {
+  font-size: 16px;
+  padding-left: 2.5px;
+}

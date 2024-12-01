@@ -3,13 +3,12 @@ import Exclamation from "../../presentation/assets/icons/alert-circle-orange.svg
 
 // Common Columns Definition
 const columns = [
-  { id: "icon", },
+  { id: "icon" },
   { id: "CONTROL NAME", name: "Subcontrol Name" },
   { id: "OWNER", name: "Owner" },
   { id: "# OF SUBCONTROLS", name: "# of Subcontrols" },
   { id: "COMPLETION", name: "Completion" },
 ];
-
 
 export const complianceMetrics = [
   {
@@ -537,7 +536,7 @@ export const complianceDetails = {
     ],
   },
   "Obligations of deployers of high-risk AI systems": {
-    cols:columns,
+    cols: columns,
     rows: [
       {
         id: 19,
@@ -1240,7 +1239,7 @@ export const complianceDetails = {
                 id: 1,
                 subControlerTitle:
                   "We implement processes to capture and integrate unexpected impact inputs",
-              }
+              },
             ],
           },
           { id: "2", data: "John Doe" },
@@ -1262,7 +1261,7 @@ export const complianceDetails = {
                 id: 1,
                 subControlerTitle:
                   "We assess AI model capabilities using appropriate tools",
-              }
+              },
             ],
           },
           { id: "2", data: "Jane Smith" },
@@ -1289,7 +1288,7 @@ export const complianceDetails = {
                 id: 2,
                 subControlerTitle:
                   "We monitor and respond to incidents post-deployment",
-              }
+              },
             ],
           },
           { id: "2", data: "Jane Smith" },
@@ -1311,7 +1310,7 @@ export const complianceDetails = {
                 id: 1,
                 subControlerTitle:
                   "We ensure providers implement systems for capturing and storing AI system logs",
-              }
+              },
             ],
           },
           { id: "2", data: "Jane Smith" },
@@ -1333,7 +1332,7 @@ export const complianceDetails = {
                 id: 1,
                 subControlerTitle:
                   "We immediately report serious incidents to providers, importers, distributors, and relevant authorities",
-              }
+              },
             ],
           },
           { id: "2", data: "Jane Smith" },
@@ -1355,13 +1354,13 @@ export const complianceDetails = {
             data: "Intended Use Description for General-Purpose AI Models",
             controlDes:
               "Define and manage the intended and forbidden uses of general-purpose AI models, including modifications and content marking.",
-              subControler: [
-                {
-                  id: 1,
-                  subControlerTitle:
-                    "We document and prevent forbidden uses, distinguishing between foreseeable misuse and intended purposes",
-                }
-              ]
+            subControler: [
+              {
+                id: 1,
+                subControlerTitle:
+                  "We document and prevent forbidden uses, distinguishing between foreseeable misuse and intended purposes",
+              },
+            ],
           },
           { id: "2", data: "John Doe" },
           { id: "3", data: "4 (all completed)" },
@@ -1377,13 +1376,13 @@ export const complianceDetails = {
             data: "Comprehensive AI System Documentation",
             controlDes:
               "Ensure comprehensive documentation of AI system purposes and restrictions.",
-                          subControler: [
+            subControler: [
               {
                 id: 1,
                 subControlerTitle:
                   "We ensure comprehensive documentation of AI system purposes and restrictions",
-              }
-            ]
+              },
+            ],
           },
           { id: "2", data: "Jane Smith" },
           { id: "3", data: "6 (3 left)" },
@@ -1399,13 +1398,13 @@ export const complianceDetails = {
             data: "Post-Market AI System Modification Management",
             controlDes:
               "Manage and document any modifications to AI systems after placing on market or service.",
-                          subControler: [
+            subControler: [
               {
                 id: 1,
                 subControlerTitle:
                   "We manage modifications to AI systems post-market placement",
-              }
-            ]
+              },
+            ],
           },
           { id: "2", data: "John Doe" },
           { id: "3", data: "4 (all completed)" },
@@ -1421,13 +1420,13 @@ export const complianceDetails = {
             data: "Illegal Content Prevention Countermeasures",
             controlDes:
               "List and implement countermeasures to prevent the generation of illegal content by AI systems.",
-                          subControler: [
+            subControler: [
               {
                 id: 1,
                 subControlerTitle:
                   "We list countermeasures to prevent illegal content generation.",
-              }
-            ]
+              },
+            ],
           },
           { id: "2", data: "John Doe" },
           { id: "3", data: "4 (all completed)" },
@@ -1443,13 +1442,13 @@ export const complianceDetails = {
             data: "Synthetic Content Marking Mechanisms",
             controlDes:
               "Implement machine-readable watermarks for AI-generated synthetic content.",
-                          subControler: [
+            subControler: [
               {
                 id: 1,
                 subControlerTitle:
                   "We implement machine-readable watermarks for AI-generated content",
-              }
-            ]
+              },
+            ],
           },
           { id: "2", data: "John Doe" },
           { id: "3", data: "4 (all completed)" },
@@ -1465,13 +1464,13 @@ export const complianceDetails = {
             data: "Datasets Used Documentation",
             controlDes:
               "Describe datasets used, including owned, free, and copyrighted data.",
-                          subControler: [
+            subControler: [
               {
                 id: 1,
                 subControlerTitle:
                   "We describe datasets used, including owned, free, and copyrighted data",
-              }
-            ]
+              },
+            ],
           },
           { id: "2", data: "John Doe" },
           { id: "3", data: "4 (all completed)" },

@@ -14,6 +14,7 @@
 }
 
 .home-layout > div {
+  max-width: 1400px;
   padding: 24px;
   min-height: calc(100vh - 24px * 2);
   flex: 1;

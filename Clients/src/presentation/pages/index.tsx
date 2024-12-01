@@ -4,11 +4,11 @@ import FileUploadComponent from "../components/FileUpload";
 // import RoleButtonGroup from "../components/ButtonGroup";
 
 const Playground = () => {
-  const user = {
-    firstname: "Mohammad",
-    lastname: "Khalilzadeh",
-    pathToImage: "https://avatars.githubusercontent.com/u/140876993?v=4",
-  };
+  // const user = {
+  //   firstname: "Mohammad",
+  //   lastname: "Khalilzadeh",
+  //   pathToImage: "https://avatars.githubusercontent.com/u/140876993?v=4",
+  // };
 
   return (
     <Stack

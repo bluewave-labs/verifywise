@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { Role } from "../models/role.model";
-const MOCK_DATA_ON = true;
+const MOCK_DATA_ON = process.env.MOCK_DATA_ON;
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
@@ -23,7 +23,7 @@ export async function getAllRoles(
   res: Response
 ): Promise<any> {
   try {
-    if (MOCK_DATA_ON === true) {
+    if (MOCK_DATA_ON === "true") {
       const roles = getAllMockRoles();
 
       if (roles) {
@@ -52,7 +52,7 @@ export async function getRoleById(
   try {
     const roleId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCK_DATA_ON === "true") {
       const role = getMockRoleById(roleId);
 
       if (role) {
@@ -91,7 +91,7 @@ export async function createRole(
       );
     }
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCK_DATA_ON === "true") {
       const createdRole = createMockRole(newRole);
 
       if (createdRole) {
@@ -131,7 +131,7 @@ export async function updateRoleById(
       );
     }
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCK_DATA_ON === "true") {
       const role = updateMockRoleById(
         roleId,
         updatedRole
@@ -166,7 +166,7 @@ export async function deleteRoleById(
   try {
     const roleId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCK_DATA_ON === "true") {
       const deletedRole = deleteMockRoleById(roleId);
 
       if (deletedRole) {

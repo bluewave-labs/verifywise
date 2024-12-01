@@ -1,5 +1,6 @@
 import { Stack } from "@mui/material";
 import Avatar from "../components/Avatar/VWAvatar";
+import FileUploadComponent from "../components/FileUpload";
 import RoleButtonGroup from "../components/ButtonGroup";
 
 const Playground = () => {
@@ -45,6 +46,7 @@ const Playground = () => {
         <Avatar size="large" user={user} />
       </Stack>
       <RoleButtonGroup />
+      <FileUploadComponent />
     </Stack>
     
   );

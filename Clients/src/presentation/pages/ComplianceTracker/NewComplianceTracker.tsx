@@ -33,7 +33,6 @@ const NewComplianceTracker = () => {
   ) => {
     const controlDetails =
       complianceDetails[controlGroupTitle as keyof typeof complianceDetails];
-    console.log("renderAccordion, controlDetails: ", controlDetails);
     return (
       <Stack className="new-compliance-tracker-details" key={controlGroupIndex}>
         <Accordion className="new-compliance-tracker-details-accordion">

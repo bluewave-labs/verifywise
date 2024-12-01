@@ -4,9 +4,6 @@ export const Container = styled("div")({
   width: "384px",
   height: "338px",
   padding: "32px",
-  border: "1px solid #D1D5DB",
-  borderRadius: "8px",
-  backgroundColor: "#F9FAFB",
 });
 
 export const DragDropArea = styled("div")({
@@ -15,10 +12,15 @@ export const DragDropArea = styled("div")({
   border: "1px dashed #D1D5DB",
   display: "flex",
   alignItems: "center",
+  flexDirection: "column",
   justifyContent: "center",
   borderRadius: "8px",
   backgroundColor: "#FFFFFF",
   position: "relative",
+
+  "& .uppy-Container": {
+    display: "none !important",
+  }, //remove default uppy container while maintaining drag drop functionality
 });
 
 export const Icon = styled("img")({

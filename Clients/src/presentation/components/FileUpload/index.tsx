@@ -53,19 +53,29 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
       {/* Title */}
       <Typography
         variant="h6"
-        sx={{ fontWeight: 600, fontSize: "16px", color: "#374151" }}
+        sx={{
+          fontWeight: 600,
+          fontSize: "16px",
+          color: "#374151",
+          paddingBottom: "10px",
+        }}
       >
         Upload a new file
       </Typography>
       {/* Drag-and-Drop Area */}
       <DragDropArea>
-        <Icon src={UploadSmallIcon} alt="Upload Icon" />
+        <Icon
+          src={UploadSmallIcon}
+          alt="Upload Icon"
+          sx={{ marginBottom: "6px" }}
+        />
 
         <Typography
           variant="body2"
           sx={{
             fontSize: "14px",
             color: "#6B7280",
+            marginBottom: "6px",
           }}
         >
           <span

@@ -1,7 +1,7 @@
 import { Stack } from "@mui/material";
-import Avatar from "../components/Avatar/VWAvatar";
+// import Avatar from "../components/Avatar/VWAvatar";
 import FileUploadComponent from "../components/FileUpload";
-import RoleButtonGroup from "../components/ButtonGroup";
+// import RoleButtonGroup from "../components/ButtonGroup";
 
 const Playground = () => {
   const user = {
@@ -21,7 +21,7 @@ const Playground = () => {
         gap: 4,
       }}
     >
-      <Stack
+      {/*<Stack
         sx={{
           display: "flex",
           justifyContent: "center",
@@ -44,8 +44,8 @@ const Playground = () => {
         <Avatar size="small" user={user} />
         <Avatar size="medium" user={user} />
         <Avatar size="large" user={user} />
-      </Stack>
-      <RoleButtonGroup />
+      </Stack>*/}
+      {/*<RoleButtonGroup />*/}
       <FileUploadComponent />
     </Stack>
     

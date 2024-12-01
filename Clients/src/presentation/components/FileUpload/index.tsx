@@ -2,23 +2,71 @@ import React from "react";
 import { Stack, Typography, Button } from "@mui/material";
 import Uppy from "@uppy/core";
 import { DragDrop } from "@uppy/react";
+import XHRUpload from "@uppy/xhr-upload";
 import "@uppy/core/dist/style.css";
 import "@uppy/drag-drop/dist/style.css";
-import UploadSmallIcon from "../../assets/icons/file-upload.svg"; 
+import UploadSmallIcon from "../../assets/icons/file-upload.svg";
 
-const FileUploadComponent: React.FC = () => {
-  const uppy = new Uppy({
-    restrictions: {
-      maxNumberOfFiles: 1,
-      allowedFileTypes: [".pdf"],
-      maxFileSize: 50 * 1024 * 1024,
-    },
-    autoProceed: false,
-  });
+interface FileUploadProps {
+  onSuccess?: (file: any, response: any) => void;
+  onError?: (error: Error) => void;
+  onProgress?: (progress: number) => void;
+  maxFileSize?: number;
+  allowedFileTypes?: string[];
+  uploadEndpoint?: string;
+}
 
-  uppy.on("file-added", (file) => {
-    console.log("File added:", file);
-  });
+const FileUploadComponent: React.FC<FileUploadProps> = ({
+  onSuccess,
+  onError,
+  onProgress,
+  maxFileSize = 50 * 1024 * 1024,
+  allowedFileTypes = [".pdf"],
+  uploadEndpoint,
+}) => {
+  const uppy = React.useMemo(
+    () =>
+      new Uppy({
+        restrictions: {
+          maxNumberOfFiles: 1,
+          allowedFileTypes,
+          maxFileSize,
+        },
+        autoProceed: true,
+      }).use(XHRUpload, {
+        endpoint: uploadEndpoint || "api/replaceendpoint",
+        formData: true,
+        fieldName: "file",
+      }),
+    [allowedFileTypes, maxFileSize, uploadEndpoint]
+  );
+
+  //configure locale
+  const locale = React.useMemo(
+    () => ({
+      strings: {
+        dropHeroOr: "Click to upload or drap and drop",
+      },
+      pluralize: (count: number) => count,
+    }),
+    []
+  );
+
+  React.useEffect(() => {
+    if (onSuccess)
+      uppy.on("upload-success", (file, response) => onSuccess(file, response));
+
+    if (onError) uppy.on("upload-error", (_, error) => onError(error));
+
+    if (onProgress)
+      uppy.on("upload-progress", (_, progress) => {
+        if (progress && progress.bytesTotal) {
+          onProgress(progress.bytesUploaded / progress.bytesTotal);
+        }
+      });
+
+    return () => uppy.cancelAll();
+  }, [uppy, onSuccess, onError, onProgress]);
 
   return (
     <Stack
@@ -26,15 +74,14 @@ const FileUploadComponent: React.FC = () => {
       sx={{
         width: "384px",
         height: "338px",
-        
-        display:'flex',
-        flexDirection:'column',
-        justifyContent:'space-between',
+
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
         padding: "32px",
-      
       }}
     >
-     {/* Title */}
+      {/* Title */}
       <Typography
         variant="h6"
         sx={{
@@ -44,26 +91,25 @@ const FileUploadComponent: React.FC = () => {
           paddingBottom: "10px",
         }}
       >
-        Upload a new file 
+        Upload a new file
       </Typography>
-     {/* Drag-and-Drop Area */}
+      {/* Drag-and-Drop Area */}
       <Stack
         spacing={1}
         sx={{
           width: "320px",
           height: "190px",
           border: "1px dashed #D1D5DB",
-          display:'flex',
-          flexDirection:'column',
-          alignItems:'center',
-          justifyContent:'center',
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
           borderRadius: "8px",
-          backgroundColor: "#FFFFFF", 
-          
+          backgroundColor: "#FFFFFF",
         }}
       >
         {/* Small Upload Icon */}
-        
+
         <Stack
           component="img"
           src={UploadSmallIcon}
@@ -81,18 +127,17 @@ const FileUploadComponent: React.FC = () => {
             color: "#6B7280",
           }}
         >
-          
           <span
             style={{
               color: "#3B82F6",
               cursor: "pointer",
             }}
           >
-            Click to upload 
+            Click to upload
           </span>{" "}
-          or drag and drop 
+          or drag and drop
         </Typography>
-        
+
         <Typography
           variant="caption"
           sx={{
@@ -100,7 +145,7 @@ const FileUploadComponent: React.FC = () => {
             color: "#6B7280",
           }}
         >
-          (maximum size: 50 MB) 
+          (maximum size: 50 MB)
         </Typography>
         {/* Hidden DragDrop Component */}
         <Stack
@@ -113,22 +158,11 @@ const FileUploadComponent: React.FC = () => {
             opacity: 0,
           }}
         >
-          
-          <DragDrop
-            uppy={uppy}
-            locale={{
-              strings: {
-                dropHereOr: "Click to upload or drag and drop",
-              },
-              pluralize: (count: number) => (count === 1 ? "file" : "files"),
-            } as any}
-          />
-          
+          <DragDrop uppy={uppy} locale={locale} />
         </Stack>
-        
       </Stack>
       {/* Supported Formats */}
-      
+
       <Typography
         variant="caption"
         sx={{
@@ -136,15 +170,11 @@ const FileUploadComponent: React.FC = () => {
           color: "#6B7280",
         }}
       >
-       Supported formats: PDF 
+        Supported formats: PDF
       </Typography>
       {/* Upload Button Aligned to the Right */}
-      
-      <Stack
-        direction="row"
-        justifyContent="flex-end" 
-      >
-        
+
+      <Stack direction="row" justifyContent="flex-end">
         <Button
           variant="contained"
           sx={{
@@ -158,11 +188,9 @@ const FileUploadComponent: React.FC = () => {
           }}
           onClick={() => uppy.upload()}
         >
-         Upload 
+          Upload
         </Button>
-       
       </Stack>
-      
     </Stack>
   );
 };

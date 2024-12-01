@@ -21,6 +21,7 @@ const NewControlPane = ({
   title,
   content,
   subControls,
+  OnSave,
 }: {
   id: string;
   isOpen: boolean;
@@ -28,6 +29,7 @@ const NewControlPane = ({
   title: string;
   content: string;
   subControls: any[];
+  OnSave?: () => void;
 }) => {
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
@@ -216,7 +218,7 @@ const NewControlPane = ({
           </Stack>
           <Button
             variant="contained"
-            // onClick={handleSave}
+            onClick={OnSave}
             sx={{
               ...buttonStyle,
               width: 68,

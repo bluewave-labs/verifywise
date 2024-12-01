@@ -9,8 +9,10 @@ import {
 import { complianceMetrics } from "../../mocks/compliance.data";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { ControlGroups } from "../../structures/ComplianceTracker/controls";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import AccordionTable from "../../components/Table/AccordionTable";
+import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import { getAllEntities } from "../../../application/repository/entity.repository";
 
 const Table_Columns = [
   { id: 1, name: "Icon" },
@@ -22,6 +24,24 @@ const Table_Columns = [
 
 const NewComplianceTracker = () => {
   const [expanded, setExpanded] = useState<number | false>(false);
+  const { setDashboardValues } = useContext(VerifyWiseContext);
+
+  const fetchComplianceTracker = async () => {
+    try {
+      const response = await getAllEntities({ routeUrl: "/controls" });
+      console.log("Response:", response);
+      setDashboardValues((prevValues: any) => ({
+        ...prevValues,
+        compliance: response.data,
+      }));
+    } catch (error) {
+      console.error("Error fetching compliance tracker:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchComplianceTracker();
+  }, []);
 
   const handleAccordionChange = (panel: number) => {
     return (_: React.SyntheticEvent, isExpanded: boolean) => {
@@ -59,10 +79,6 @@ const NewComplianceTracker = () => {
             </Typography>
           </AccordionSummary>
           <AccordionDetails>
-            {/* <BasicTable
-              data={{ cols: Table_Columns, rows: control }}
-              table="TableOfSubControllers"
-            /> */}
             <AccordionTable
               id={controlGroupIndex}
               cols={Table_Columns}

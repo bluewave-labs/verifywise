@@ -19,6 +19,9 @@ export const CorrectiveActionsDutyOfInfo = {
             "Consulting experts and end-users ensures corrective measures are comprehensive and address real-world implications.",
         },
       ],
+      owner: "John Doe",
+      noOfSubControls: "4 (all completed)",
+      completion: "100%",
     },
     {
       id: 2,
@@ -42,6 +45,9 @@ export const CorrectiveActionsDutyOfInfo = {
             "Continuous improvements ensure AI systems remain effective, compliant, and aligned with user needs after deployment.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 3,
@@ -65,6 +71,9 @@ export const CorrectiveActionsDutyOfInfo = {
             "Effective mechanisms ensure non-conforming systems can be removed or disabled to prevent further risks.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 4,
@@ -79,6 +88,9 @@ export const CorrectiveActionsDutyOfInfo = {
             "Detailed records of corrective actions provide accountability and support audits or regulatory reviews.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
   ],
 };

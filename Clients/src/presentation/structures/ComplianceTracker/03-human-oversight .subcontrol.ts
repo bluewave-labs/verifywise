@@ -33,6 +33,9 @@ export const HumanOversight = {
             "Aligning measures with provider instructions ensures system use remains within intended boundaries and purposes.",
         },
       ],
+      owner: "John Doe",
+      noOfSubControls: "4 (all completed)",
+      completion: "100%",
     },
     {
       id: 2,
@@ -54,6 +57,9 @@ export const HumanOversight = {
             "Appeals processes provide a structured method for addressing disputes or adverse outcomes from AI system decisions.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 3,
@@ -77,6 +83,9 @@ export const HumanOversight = {
             "Oversight measures are scaled appropriately to reflect the system's complexity, risk, and decision-making autonomy.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
   ],
 };

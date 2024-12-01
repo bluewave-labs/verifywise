@@ -32,6 +32,9 @@ export const AIliteracy = {
             "A concise plan ensures employees are informed of AI system impacts in their workplace roles and rights.",
         },
       ],
+      owner: "Rachelle Swing",
+      noOfSubControls: "5 (2 left)",
+      completion: "45%",
     },
     {
       id: 2,
@@ -55,6 +58,9 @@ export const AIliteracy = {
             "Personnel training ensures efficient regulatory responses and familiarity with legal requirements for AI systems.",
         },
       ],
+      owner: "Mike Arthurs",
+      noOfSubControls: "3 (1 left)",
+      completion: "22%",
     },
   ],
 };

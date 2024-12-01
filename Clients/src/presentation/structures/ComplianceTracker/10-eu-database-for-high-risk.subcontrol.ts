@@ -19,6 +19,9 @@ export const EUdatabaseForHighRiskAI = {
             "Collaboration with notified bodies or conducting internal reviews ensures rigorous evaluation of AI system compliance.",
         },
       ],
+      owner: "John Doe",
+      noOfSubControls: "4 (all completed)",
+      completion: "10%",
     },
     {
       id: 2,
@@ -35,6 +38,9 @@ export const EUdatabaseForHighRiskAI = {
             "Well-defined processes enable efficient and accurate responses to regulatory inquiries or audits.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "80%",
     },
     {
       id: 3,
@@ -56,6 +62,9 @@ export const EUdatabaseForHighRiskAI = {
             "Detailed records of registration activities provide transparency and facilitate compliance verification.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "80%",
     },
     {
       id: 4,
@@ -72,6 +81,9 @@ export const EUdatabaseForHighRiskAI = {
             "Ensuring timely updates maintains regulatory compliance and fosters trust in system integrity and monitoring processes.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "80%",
     },
   ],
 };

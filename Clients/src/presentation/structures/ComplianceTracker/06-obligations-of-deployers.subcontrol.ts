@@ -25,6 +25,9 @@ export const ObligationsOfDeployersAIsystems = {
             "Policies and guidelines provide a structured framework for meeting AI Act requirements across the organization.",
         },
       ],
+      owner: "John Doe",
+      noOfSubControls: "4 (all completed)",
+      completion: "100%",
     },
     {
       id: 2,
@@ -41,6 +44,9 @@ export const ObligationsOfDeployersAIsystems = {
             "Risk response plans prepare organizations to manage and mitigate AI-related risks effectively and within acceptable limits.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 3,
@@ -64,6 +70,9 @@ export const ObligationsOfDeployersAIsystems = {
             "Regular evaluations help maintain system integrity and alignment with evolving regulatory and operational standards.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 4,
@@ -113,6 +122,9 @@ export const ObligationsOfDeployersAIsystems = {
             "Comprehensive documentation of risk controls ensures accountability and supports audits or compliance checks.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 5,
@@ -129,6 +141,9 @@ export const ObligationsOfDeployersAIsystems = {
             "Ongoing updates ensure compliance measures remain aligned with evolving technologies and legal requirements.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 6,
@@ -145,6 +160,9 @@ export const ObligationsOfDeployersAIsystems = {
             "Clear explanations of AI models support transparency and facilitate responsible usage across stakeholders.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 7,
@@ -161,6 +179,9 @@ export const ObligationsOfDeployersAIsystems = {
             "Up-to-date documentation ensures accurate representation of system functionalities and compliance status.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 8,
@@ -176,6 +197,9 @@ export const ObligationsOfDeployersAIsystems = {
             "Data assessments ensure that AI inputs are appropriate, unbiased, and aligned with the intended purpose.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 9,
@@ -192,6 +216,9 @@ export const ObligationsOfDeployersAIsystems = {
             "Automatic logging ensures traceability of system activities, aiding in audits, troubleshooting, and compliance.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
   ],
 };

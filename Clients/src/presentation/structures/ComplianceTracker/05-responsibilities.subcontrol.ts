@@ -20,6 +20,9 @@ export const ResponsibilitiesAlongAI = {
             "Comprehensive due diligence ensures third-party AI systems meet legal and ethical standards before adoption.",
         },
       ],
+      owner: "John Doe",
+      noOfSubControls: "4 (all completed)",
+      completion: "100%",
     },
     {
       id: 2,
@@ -37,6 +40,9 @@ export const ResponsibilitiesAlongAI = {
             "Contracts define obligations and responsibilities, ensuring all parties comply with AI-related requirements.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "4 (all completed)",
+      completion: "100%",
     },
     {
       id: 3,
@@ -54,6 +60,9 @@ export const ResponsibilitiesAlongAI = {
             "Specifying roles and responsibilities prevents gaps in accountability and ensures compliance along the AI supply chain.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "4 (all completed)",
+      completion: "100%",
     },
     {
       id: 4,
@@ -71,6 +80,9 @@ export const ResponsibilitiesAlongAI = {
             "Clear specifications for information and support ensure smooth regulatory processes and timely compliance responses.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "4 (all completed)",
+      completion: "100%",
     },
     {
       id: 5,
@@ -88,6 +100,9 @@ export const ResponsibilitiesAlongAI = {
             "Third-party compliance with organizational standards prevents risks like intellectual property violations.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "4 (all completed)",
+      completion: "100%",
     },
     {
       id: 6,
@@ -104,6 +119,9 @@ export const ResponsibilitiesAlongAI = {
             "Deactivation mechanisms ensure systems can be stopped to mitigate risks if they perform outside intended parameters.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "4 (all completed)",
+      completion: "100%",
     },
     {
       id: 7,
@@ -120,6 +138,9 @@ export const ResponsibilitiesAlongAI = {
             "Monitoring ensures timely detection and resolution of issues with third-party AI components to maintain compliance.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "4 (all completed)",
+      completion: "100%",
     },
     {
       id: 8,
@@ -136,6 +157,9 @@ export const ResponsibilitiesAlongAI = {
             "Validation and documentation demonstrate that systems operate reliably and meet required compliance standards.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "4 (all completed)",
+      completion: "100%",
     },
     {
       id: 9,
@@ -152,6 +176,9 @@ export const ResponsibilitiesAlongAI = {
             "Identifying non-conformities proactively reduces regulatory risks and ensures continued compliance.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "4 (all completed)",
+      completion: "100%",
     },
   ],
 };

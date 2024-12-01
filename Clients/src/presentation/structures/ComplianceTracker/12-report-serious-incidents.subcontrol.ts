@@ -19,6 +19,9 @@ export const ReportingSeriousIncidents = {
             "Capturing unforeseen impacts helps refine systems and address emerging risks proactively.",
         },
       ],
+      owner: "John Doe",
+      noOfSubControls: "4 (all completed)",
+      completion: "100%",
     },
     {
       id: 2,
@@ -34,6 +37,9 @@ export const ReportingSeriousIncidents = {
             "Capability assessments verify that AI models perform as intended and meet required safety and quality standards.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 3,
@@ -55,6 +61,9 @@ export const ReportingSeriousIncidents = {
             "Post-deployment monitoring identifies and mitigates issues, ensuring continued compliance and system reliability.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 4,
@@ -71,6 +80,9 @@ export const ReportingSeriousIncidents = {
             "Logging systems provide traceability, aiding audits and troubleshooting while supporting regulatory requirements.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 5,
@@ -87,6 +99,9 @@ export const ReportingSeriousIncidents = {
             "Prompt reporting ensures accountability and timely resolution of incidents, minimizing potential harm.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
   ],
 };

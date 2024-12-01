@@ -19,6 +19,9 @@ export const TransparencyProvision = {
             "Describing intended use prevents misuse, aligning AI deployment with specified legal and ethical boundaries.",
         },
       ],
+      owner: "John Doe",
+      noOfSubControls: "4 (all completed)",
+      completion: "100%",
     },
     {
       id: 2,
@@ -34,6 +37,9 @@ export const TransparencyProvision = {
             "	Reviewing documentation confirms provider accuracy and ensures adherence to standards and compliance needs.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 3,
@@ -50,6 +56,9 @@ export const TransparencyProvision = {
             "Accurate records enhance traceability, support audits, and provide accountability for AI system activities.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "10%",
     },
     {
       id: 4,
@@ -73,6 +82,9 @@ export const TransparencyProvision = {
             "Defining forbidden uses helps anticipate misuse and mitigate risks proactively for safe AI applications.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "30%",
     },
     {
       id: 5,
@@ -88,6 +100,9 @@ export const TransparencyProvision = {
             "Dataset descriptions provide transparency in training, validation, and testing, ensuring alignment with standards.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "30%",
     },
     {
       id: 6,
@@ -103,6 +118,9 @@ export const TransparencyProvision = {
             "Explaining bias testing and mitigation highlights fairness measures and prevents harmful or unethical outcomes.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "39%",
     },
     {
       id: 7,
@@ -119,6 +137,9 @@ export const TransparencyProvision = {
             "Providing metrics ensures systems meet robustness and security criteria while fostering trust through transparency.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "89%",
     },
   ],
 };

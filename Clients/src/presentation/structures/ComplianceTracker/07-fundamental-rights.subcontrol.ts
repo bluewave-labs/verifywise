@@ -19,6 +19,9 @@ export const FundamentalRightsImpactAssessments = {
             "A structured assessment process identifies and mitigates risks to fundamental rights posed by AI systems.",
         },
       ],
+      owner: "John Doe",
+      noOfSubControls: "4 (all completed)",
+      completion: "100%",
     },
     {
       id: 2,
@@ -35,6 +38,9 @@ export const FundamentalRightsImpactAssessments = {
             "Detailed process descriptions ensure transparency in how high-risk systems are deployed and their intended use cases.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 3,
@@ -51,6 +57,9 @@ export const FundamentalRightsImpactAssessments = {
             "Identifying impacted individuals and groups helps address potential risks and design systems responsibly.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 4,
@@ -67,6 +76,9 @@ export const FundamentalRightsImpactAssessments = {
             "Data assessments ensure compliance with legal frameworks and support ethical use of personal data in AI systems.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 5,
@@ -83,6 +95,9 @@ export const FundamentalRightsImpactAssessments = {
             "Re-evaluating strategies ensures continued relevance and effectiveness in managing AI system impacts.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 6,
@@ -99,6 +114,9 @@ export const FundamentalRightsImpactAssessments = {
             "Regular evaluations help ensure AI systems are ethical, equitable, and environmentally sustainable.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 7,
@@ -115,6 +133,9 @@ export const FundamentalRightsImpactAssessments = {
             "Documenting risks provides transparency and helps stakeholders make informed decisions regarding system deployment.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 8,
@@ -131,6 +152,9 @@ export const FundamentalRightsImpactAssessments = {
             "Detailed assessment records ensure accountability and facilitate compliance reviews or audits.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 9,
@@ -147,6 +171,9 @@ export const FundamentalRightsImpactAssessments = {
             "Combining assessments provides a holistic view of risks and ensures consistency across regulatory compliance efforts.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 10,
@@ -170,6 +197,9 @@ export const FundamentalRightsImpactAssessments = {
             "Representative evaluations protect fairness and ensure that findings are applicable across relevant user groups.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
   ],
 };

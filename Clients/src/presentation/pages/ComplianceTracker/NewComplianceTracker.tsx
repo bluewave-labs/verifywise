@@ -13,7 +13,7 @@ import {
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { ControlGroups } from "../../structures/ComplianceTracker/controls";
 import { useState } from "react";
-import BasicTable from "../../components/Table";
+import AccordionTable from "../../components/Table/AccordionTable";
 
 const Table_Columns = [
   { id: 1, name: "Icon" },
@@ -29,7 +29,7 @@ const NewComplianceTracker = () => {
   const renderAccordion = (
     controlGroupIndex: number,
     controlGroupTitle: string,
-    control: any
+    controls: any
   ) => {
     const controlDetails =
       complianceDetails[controlGroupTitle as keyof typeof complianceDetails];
@@ -56,9 +56,14 @@ const NewComplianceTracker = () => {
             </Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <BasicTable
+            {/* <BasicTable
               data={{ cols: Table_Columns, rows: control }}
               table="TableOfSubControllers"
+            /> */}
+            <AccordionTable
+              id={controlGroupIndex}
+              cols={Table_Columns}
+              rows={controls}
             />
           </AccordionDetails>
         </Accordion>
@@ -85,7 +90,7 @@ const NewComplianceTracker = () => {
         renderAccordion(
           controlGroup.id,
           controlGroup.controlGroupTitle,
-          controlGroup.control
+          controlGroup.control.controls
         )
       )}
     </Stack>

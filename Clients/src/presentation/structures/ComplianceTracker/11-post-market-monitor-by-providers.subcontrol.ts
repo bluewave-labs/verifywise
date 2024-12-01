@@ -18,6 +18,9 @@ export const PostMarketMonitoringByProviders = {
             "Establishing methods and tools ensures consistent evaluation of AI system effects on users, stakeholders, and society.",
         },
       ],
+      owner: "John Doe",
+      noOfSubControls: "4 (all completed)",
+      completion: "100%",
     },
     {
       id: 2,
@@ -33,6 +36,9 @@ export const PostMarketMonitoringByProviders = {
             "Monitoring ensures systems operate within intended parameters and quickly identifies deviations.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 3,
@@ -49,6 +55,9 @@ export const PostMarketMonitoringByProviders = {
             "Effective tracking and response minimize the impact of errors and improve system resilience and compliance.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 4,
@@ -65,6 +74,9 @@ export const PostMarketMonitoringByProviders = {
             "Input from diverse perspectives ensures risk management strategies are comprehensive and practical.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 5,
@@ -101,6 +113,9 @@ export const PostMarketMonitoringByProviders = {
             "Thorough documentation and assessment of changes prevent compliance gaps and support accountability.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
   ],
 };

@@ -19,6 +19,9 @@ export const TransparencyObligationsForProviders = {
             "Clear indicators help users understand when they are interacting with AI, promoting transparency and trust.",
         },
       ],
+      owner: "John Doe",
+      noOfSubControls: "4 (all completed)",
+      completion: "100%",
     },
     {
       id: 2,
@@ -41,6 +44,9 @@ export const TransparencyObligationsForProviders = {
             "Providing clear, simple AI indications allows users to make informed decisions and understand system limitations.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 3,
@@ -57,6 +63,9 @@ export const TransparencyObligationsForProviders = {
             "Comprehensive documentation helps align AI deployment with intended goals and prepares for potential risks.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 4,
@@ -73,6 +82,9 @@ export const TransparencyObligationsForProviders = {
             "Accurate records ensure accountability and support audits, troubleshooting, and regulatory compliance.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
   ],
 };

@@ -19,6 +19,9 @@ export const GeneralPurposeAImodels = {
             "Clear documentation and proactive measures minimize risks associated with misuse of AI systems.",
         },
       ],
+      owner: "John Doe",
+      noOfSubControls: "4 (all completed)",
+      completion: "100%",
     },
     {
       id: 2,
@@ -35,6 +38,9 @@ export const GeneralPurposeAImodels = {
             "Detailed documentation clarifies system capabilities, limitations, and appropriate use cases.",
         },
       ],
+      owner: "John Doe",
+      noOfSubControls: "4 (all completed)",
+      completion: "100%",
     },
     {
       id: 3,
@@ -50,6 +56,9 @@ export const GeneralPurposeAImodels = {
             "Managing post-market changes ensures continued compliance and alignment with system objectives.",
         },
       ],
+      owner: "John Doe",
+      noOfSubControls: "4 (all completed)",
+      completion: "100%",
     },
     {
       id: 4,
@@ -66,6 +75,9 @@ export const GeneralPurposeAImodels = {
             "Countermeasures protect against misuse, ensuring AI systems do not produce or facilitate illegal activities.",
         },
       ],
+      owner: "John Doe",
+      noOfSubControls: "4 (all completed)",
+      completion: "100%",
     },
     {
       id: 5,
@@ -82,6 +94,9 @@ export const GeneralPurposeAImodels = {
             "Watermarks enhance transparency, allowing users to identify AI-generated content and mitigating risks of misuse.",
         },
       ],
+      owner: "John Doe",
+      noOfSubControls: "4 (all completed)",
+      completion: "100%",
     },
     {
       id: 6,
@@ -98,6 +113,9 @@ export const GeneralPurposeAImodels = {
             "Dataset descriptions ensure transparency, compliance with intellectual property laws, and ethical use of data.",
         },
       ],
+      owner: "John Doe",
+      noOfSubControls: "4 (all completed)",
+      completion: "100%",
     },
   ],
 };

@@ -25,6 +25,9 @@ export const Registration = {
             "CE marking confirms that high-risk AI systems meet EU regulatory requirements, ensuring safety and compliance.",
         },
       ],
+      owner: "John Doe",
+      noOfSubControls: "4 (all completed)",
+      completion: "100%",
     },
     {
       id: 2,
@@ -41,6 +44,9 @@ export const Registration = {
             "Registering systems ensures compliance with EU AI Act requirements and facilitates monitoring and transparency.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 3,
@@ -57,6 +63,9 @@ export const Registration = {
             "Identifying relevant standards ensures systems are developed and deployed in compliance with industry and legal requirements.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 4,
@@ -73,6 +82,9 @@ export const Registration = {
             "Adhering to common specifications ensures systems meet regulatory benchmarks for safety, reliability, and performance.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 5,
@@ -88,6 +100,9 @@ export const Registration = {
             "Maintaining detailed records supports transparency, accountability, and regulatory compliance during system registration.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 6,
@@ -103,6 +118,9 @@ export const Registration = {
             "Accurate and timely data entry ensures compliance with regulatory requirements and keeps the database current.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
     {
       id: 7,
@@ -119,6 +137,9 @@ export const Registration = {
             "Keeping documentation updated ensures alignment with changes in regulations and system configurations.",
         },
       ],
+      owner: "Jane Smith",
+      noOfSubControls: "6 (3 left)",
+      completion: "50%",
     },
   ],
 };

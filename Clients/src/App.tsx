@@ -7,7 +7,6 @@ import light from "./presentation/themes/light";
 import dark from "./presentation/themes/dark";
 import { CssBaseline } from "@mui/material";
 import Home from "./presentation/pages/Home";
-// import ComplianceTracker from "./presentation/pages/ComplianceTracker";
 import Assessment from "./presentation/pages/Assessment";
 import Vendors from "./presentation/pages/Vendors";
 import Setting from "./presentation/pages/SettingsPage";
@@ -98,10 +97,6 @@ function App() {
             <Routes>
               <Route path="/" element={<Dashboard />}>
                 <Route path="/" element={<Home />} />
-                {/* <Route
-                  path="/compliance-tracker"
-                  element={<ComplianceTracker />}
-                /> */}
                 <Route
                   path="/compliance-tracker"
                   element={<NewComplianceTracker />}

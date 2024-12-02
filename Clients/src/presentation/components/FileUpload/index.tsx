@@ -69,26 +69,40 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
           alt="Upload Icon"
           sx={{ marginBottom: "6px" }}
         />
-
-        <Typography
-          variant="body2"
-          sx={{
-            fontSize: "14px",
-            color: "#6B7280",
-            marginBottom: "6px",
-          }}
-        >
-          <span
-            style={{
-              color: "#3B82F6",
-              cursor: "pointer",
+        <label htmlFor="fileInput" style={{cursor:"pointer"}}>
+          <Typography
+            variant="body2"
+            sx={{
+              fontSize: "14px",
+              color: "#6B7280",
+              marginBottom: "6px",
             }}
           >
-            Click to upload
-          </span>{" "}
-          or drag and drop
-        </Typography>
-
+            <span
+              style={{
+                color: "#3B82F6",
+                cursor: "pointer",
+              }}
+            >
+              Click to upload
+            </span>{" "}
+            or drag and drop
+          </Typography>
+        </label>
+        <input
+        type="file"
+        id="fileInput"
+        hidden
+        onChange={(e)=>{
+          if (e.target.files){
+            Array.from(e.target.files).forEach((file)=> uppy.addFile({
+              name: file.name,
+              type:file.type,
+              data:file,
+            }));
+          }
+        }}
+        />
         <Typography
           variant="caption"
           sx={{

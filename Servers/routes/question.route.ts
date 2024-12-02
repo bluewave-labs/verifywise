@@ -1,5 +1,7 @@
 import express from "express";
 const router = express.Router();
+const multer = require("multer");
+const upload = multer({ Storage: multer.memoryStorage() });
 
 import {
   createQuestion,
@@ -16,7 +18,7 @@ router.get("/", /*authenticateJWT,*/ getAllQuestions);
 router.get("/:id", /*authenticateJWT,*/ getQuestionById);
 
 // POST, PUT, DELETE requests
-router.post("/", /*authenticateJWT,*/ createQuestion);
+router.post("/", /*authenticateJWT,*/ upload.any("files"),  createQuestion);
 router.put("/:id", /*authenticateJWT,*/ updateQuestionById);
 router.delete("/:id", /*authenticateJWT,*/ deleteQuestionById);
 

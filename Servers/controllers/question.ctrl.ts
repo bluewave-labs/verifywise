@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
-import { Question } from "../models/question.model";
-const MOCK_DATA_ON = true;
+const MOCK_DATA_ON = process.env.MOCK_DATA_ON === "true";
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
@@ -16,6 +15,7 @@ import {
   getAllQuestionsQuery,
   getQuestionByIdQuery,
   updateQuestionByIdQuery,
+  UploadedFile
 } from "../utils/question.utils";
 
 export async function getAllQuestions(
@@ -74,8 +74,12 @@ export async function getQuestionById(
   }
 }
 
+interface RequestWithFile extends Request {
+  files?: UploadedFile[];
+}
+
 export async function createQuestion(
-  req: Request,
+  req: RequestWithFile,
   res: Response
 ): Promise<any> {
   try {
@@ -83,11 +87,10 @@ export async function createQuestion(
       subtopicId: number;
       questionText: string;
       answerType: string;
-      dropdownOptions: string;
-      hasFileUpload: boolean;
-      hasHint: boolean;
+      evidenceFileRequired: boolean;
+      hint: string;
       isRequired: boolean;
-      priorityOptions: string;
+      priorityLevel: string;
     } = req.body;
 
     if (
@@ -113,7 +116,7 @@ export async function createQuestion(
 
       return res.status(503).json(STATUS_CODE[503]({}));
     } else {
-      const createdQuestion = await createNewQuestionQuery(newQuestion);
+      const createdQuestion = await createNewQuestionQuery(newQuestion, req.files!);
 
       if (createdQuestion) {
         return res.status(201).json(STATUS_CODE[201](createdQuestion));
@@ -127,7 +130,7 @@ export async function createQuestion(
 }
 
 export async function updateQuestionById(
-  req: Request,
+  req: RequestWithFile,
   res: Response
 ): Promise<any> {
   try {
@@ -136,11 +139,10 @@ export async function updateQuestionById(
       subtopicId: number;
       questionText: string;
       answerType: string;
-      dropdownOptions: string;
-      hasFileUpload: boolean;
-      hasHint: boolean;
+      evidenceFileRequired: boolean;
+      hint: string;
       isRequired: boolean;
-      priorityOptions: string;
+      priorityLevel: string;
     } = req.body;
 
     if (
@@ -168,7 +170,8 @@ export async function updateQuestionById(
     } else {
       const question = await updateQuestionByIdQuery(
         questionId,
-        updatedQuestion
+        updatedQuestion,
+        req.files!
       );
 
       if (question) {

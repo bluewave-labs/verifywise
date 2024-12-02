@@ -68,16 +68,9 @@ const ComplianceTracker = ({
 }: any) => {
   const theme = useTheme();
   const { spacing, shape, palette } = theme;
-
-  // State to manage accordion expansion
   const [expanded, setExpanded] = useState<string | false>(false);
-
-  // State to manage modal open/close
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // State to manage the selected row for modal content
   const [selectedRow, setSelectedRow] = useState<number | string | null>(null);
-
   const { setDashboardValues } = useContext(VerifyWiseContext);
 
   const fetchComplianceTracker = async () => {
@@ -97,24 +90,20 @@ const ComplianceTracker = ({
     fetchComplianceTracker();
   }, []);
 
-  // Function to handle accordion toggle
   const handleAccordionChange = (panel: string) => {
     return (_: React.SyntheticEvent, isExpanded: boolean) => {
       setExpanded(isExpanded ? panel : false);
     };
   };
 
-  // Handle row click to open modal with selected row data
   const handleRowClick = (id: number | string) => {
     setSelectedRow(id);
     setIsModalOpen(true);
   };
 
   const renderAccordion = (id: string, title: string) => {
-    // Get the specific section data for the current accordion title
     const sectionData = complianceDetails[title];
-    console.log("🚀 ~ renderAccordion ~ sectionDataaaaaaa:", sectionData)
-    
+    console.log("🚀 ~ renderAccordion ~ sectionDataaaaaaa:", sectionData);
 
     if (!sectionData) {
       return <div>No data available for this section</div>;
@@ -138,7 +127,7 @@ const ComplianceTracker = ({
             position: "relative",
             "&.MuiPaper-root": { margin: 0, padding: 0, boxShadow: "none" },
             "& .MuiAccordionDetails-root": { padding: 0, margin: 0 },
-            "& .MuiAccordionSummary-root" : {height: '42px'}
+            "& .MuiAccordionSummary-root": { height: "42px" },
           }}
         >
           <AccordionSummary
@@ -162,7 +151,7 @@ const ComplianceTracker = ({
           >
             <Typography
               variant="h6"
-              sx={{ fontSize: "16px", paddingLeft: spacing(1.25)}}
+              sx={{ fontSize: "16px", paddingLeft: spacing(1.25) }}
             >
               {title}
             </Typography>
@@ -266,21 +255,24 @@ const ComplianceTracker = ({
             return item.rows.find((row: any) => row.id === selectedRow)?.data[0]
               ?.data;
           })}
-          content={
-            Object.keys(complianceDetails).map((key) => {
+          content={Object.keys(complianceDetails).map((key) => {
             const item = complianceDetails[key];
             return item.rows.find((row: any) => row.id === selectedRow)?.data[0]
               ?.controlDes;
           })}
-          subControlTlts = {Object.keys(complianceDetails).flatMap((key) => {
+          subControlTlts={Object.keys(complianceDetails).flatMap((key) => {
             const item = complianceDetails[key];
-            const selectedRowData = item.rows.find((row: any) => row.id === selectedRow)?.data[0];
-            
+            const selectedRowData = item.rows.find(
+              (row: any) => row.id === selectedRow
+            )?.data[0];
+
             if (selectedRowData?.subControler) {
-              return selectedRowData.subControler.map((sub: any) => sub.subControlerTitle);
+              return selectedRowData.subControler.map(
+                (sub: any) => sub.subControlerTitle
+              );
             }
-          
-            return []; // Return an empty array if no subControler data is found
+
+            return [];
           })}
           onConfirm={() => {
             console.log("confirmed");

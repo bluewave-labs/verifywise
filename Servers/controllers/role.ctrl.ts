@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
-import { Role } from "../models/role.model";
-const MOCK_DATA_ON = true;
+import { MOCKDATA_ON } from "../flags";
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
@@ -18,12 +17,9 @@ import {
   updateRoleByIdQuery,
 } from "../utils/role.utils";
 
-export async function getAllRoles(
-  req: Request,
-  res: Response
-): Promise<any> {
+export async function getAllRoles(req: Request, res: Response): Promise<any> {
   try {
-    if (MOCK_DATA_ON === true) {
+    if (MOCKDATA_ON === true) {
       const roles = getAllMockRoles();
 
       if (roles) {
@@ -45,14 +41,11 @@ export async function getAllRoles(
   }
 }
 
-export async function getRoleById(
-  req: Request,
-  res: Response
-): Promise<any> {
+export async function getRoleById(req: Request, res: Response): Promise<any> {
   try {
     const roleId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCKDATA_ON === true) {
       const role = getMockRoleById(roleId);
 
       if (role) {
@@ -74,10 +67,7 @@ export async function getRoleById(
   }
 }
 
-export async function createRole(
-  req: Request,
-  res: Response
-): Promise<any> {
+export async function createRole(req: Request, res: Response): Promise<any> {
   try {
     const newRole: {
       projectId: number;
@@ -91,7 +81,7 @@ export async function createRole(
       );
     }
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCKDATA_ON === true) {
       const createdRole = createMockRole(newRole);
 
       if (createdRole) {
@@ -131,11 +121,8 @@ export async function updateRoleById(
       );
     }
 
-    if (MOCK_DATA_ON === true) {
-      const role = updateMockRoleById(
-        roleId,
-        updatedRole
-      );
+    if (MOCKDATA_ON === true) {
+      const role = updateMockRoleById(roleId, updatedRole);
 
       if (role) {
         return res.status(202).json(STATUS_CODE[202](role));
@@ -143,10 +130,7 @@ export async function updateRoleById(
 
       return res.status(404).json(STATUS_CODE[404]({}));
     } else {
-      const role = await updateRoleByIdQuery(
-        roleId,
-        updatedRole
-      );
+      const role = await updateRoleByIdQuery(roleId, updatedRole);
 
       if (role) {
         return res.status(202).json(STATUS_CODE[202](role));
@@ -166,7 +150,7 @@ export async function deleteRoleById(
   try {
     const roleId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCKDATA_ON === true) {
       const deletedRole = deleteMockRoleById(roleId);
 
       if (deletedRole) {

@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
-import { ProjectRisk } from "../models/projectRisk.model";
-const MOCK_DATA_ON = true;
+import { MOCKDATA_ON } from "../flags";
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
@@ -23,7 +22,7 @@ export async function getAllProjectRisks(
   res: Response
 ): Promise<any> {
   try {
-    if (MOCK_DATA_ON === true) {
+    if (MOCKDATA_ON === true) {
       const projectRisks = getAllMockProjectRisks();
 
       if (projectRisks) {
@@ -52,7 +51,7 @@ export async function getProjectRiskById(
   try {
     const projectRiskId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCKDATA_ON === true) {
       const projectRisk = getMockProjectRiskById(projectRiskId);
 
       if (projectRisk) {
@@ -107,7 +106,7 @@ export async function createProjectRisk(
       date_of_assessment: Date;
     } = req.body;
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCKDATA_ON === true) {
       const newProjectRisk = createMockProjectRisk(projectRisk);
 
       if (newProjectRisk) {
@@ -163,7 +162,7 @@ export async function updateProjectRiskById(
       date_of_assessment: Date;
     }> = req.body;
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCKDATA_ON === true) {
       const updatedProjectRisk = updateMockProjectRiskById(
         projectRiskId,
         projectRisk
@@ -198,7 +197,7 @@ export async function deleteProjectRiskById(
   try {
     const projectRiskId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCKDATA_ON === true) {
       const deletedProjectRisk = deleteMockProjectRiskById(projectRiskId);
 
       if (deletedProjectRisk) {

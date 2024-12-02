@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
-import { Assessment } from "../models/assessment.model";
-const MOCK_DATA_ON = true;
+import { MOCKDATA_ON } from "../flags";
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
@@ -23,7 +22,7 @@ export async function getAllAssessments(
   res: Response
 ): Promise<any> {
   try {
-    if (MOCK_DATA_ON === true) {
+    if (MOCKDATA_ON === true) {
       const assessments = getAllMockAssessments();
 
       if (assessments) {
@@ -52,7 +51,7 @@ export async function getAssessmentById(
   try {
     const assessmentId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCKDATA_ON === true) {
       const assessment = getMockAssessmentById(assessmentId);
 
       if (assessment) {
@@ -91,7 +90,7 @@ export async function createAssessment(
       );
     }
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCKDATA_ON === true) {
       const createdAssessment = createMockAssessment(newAssessment);
 
       if (createdAssessment) {
@@ -131,7 +130,7 @@ export async function updateAssessmentById(
       );
     }
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCKDATA_ON === true) {
       const assessment = updateMockAssessmentById(
         assessmentId,
         updatedAssessment
@@ -166,7 +165,7 @@ export async function deleteAssessmentById(
   try {
     const assessmentId = parseInt(req.params.id);
 
-    if (MOCK_DATA_ON === true) {
+    if (MOCKDATA_ON === true) {
       const deletedAssessment = deleteMockAssessmentById(assessmentId);
 
       if (deletedAssessment) {

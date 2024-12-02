@@ -18,12 +18,11 @@ import {
 } from "../mocks/tools/user.mock.db";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { generateToken } from "../utils/jwt.util";
-
-const MOCK_DATA_ON = process.env.MOCK_DATA_ON;
+import { MOCKDATA_ON } from "../flags";
 
 async function getAllUsers(req: Request, res: Response): Promise<any> {
   try {
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const users = getAllMockUsers();
 
       if (users) {
@@ -47,7 +46,7 @@ async function getAllUsers(req: Request, res: Response): Promise<any> {
 
 async function getUserByEmail(req: Request, res: Response) {
   try {
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const email = req.params.email;
       const user = getMockUserByEmail(email);
       if (user) {
@@ -72,7 +71,7 @@ async function getUserByEmail(req: Request, res: Response) {
 
 async function getUserById(req: Request, res: Response) {
   try {
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const id = parseInt(req.params.id);
       const user = getMockUserById(id);
       if (user) {
@@ -97,7 +96,7 @@ async function getUserById(req: Request, res: Response) {
 
 async function createNewUser(req: Request, res: Response) {
   try {
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const { name, email, password_hash, role, created_at, last_login } =
         req.body;
       const existingUser = getMockUserByEmail(email);
@@ -152,7 +151,7 @@ async function createNewUser(req: Request, res: Response) {
 
 async function loginUser(req: Request, res: Response): Promise<any> {
   try {
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const { email, password } = req.body;
       const user = getMockUserByEmail(email);
 
@@ -205,7 +204,7 @@ async function resetPassword(req: Request, res: Response) {
   try {
     const { email, newPassword } = req.body;
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const user = getMockUserByEmail(email);
       if (user) {
         user.password_hash = newPassword;
@@ -236,7 +235,7 @@ async function updateUserById(req: Request, res: Response) {
     const id = req.params.id;
     const { name, email, password_hash, role, last_login } = req.body;
 
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const user = getMockUserById(parseInt(id));
 
       if (user) {
@@ -274,7 +273,7 @@ async function updateUserById(req: Request, res: Response) {
 
 async function deleteUserById(req: Request, res: Response) {
   try {
-    if (MOCK_DATA_ON === "true") {
+    if (MOCKDATA_ON === true) {
       const id = parseInt(req.params.id);
       const user = getMockUserById(id);
 

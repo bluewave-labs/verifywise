@@ -1656,21 +1656,32 @@ paths:
                 answerType:
                   type: string
                   example: "Multiple Choice"
-                dropdownOptions:
-                  type: string
-                  example: "Option A,Option B,Option C"
-                hasFileUpload:
+                evidenceFileRequired:
                   type: boolean
                   example: false
-                hasHint:
-                  type: boolean
-                  example: true
+                hint:
+                  type: string
+                  example: "As a deployer, you are responsible for any additional changes made to the high-risk AI system and must fulfill additional requirements based on the data used and the specific use case you are deploying."
                 isRequired:
                   type: boolean
                   example: true
-                priorityOptions:
-                  type: string
-                  example: "High,Medium,Low"
+                priorityLevel:
+                  anyOf:
+                    - type: string
+                      enum:
+                        - "high priority"
+                        - "medium priority"
+                        - "low priority"
+                  example: "high priority"
+                evidenceFiles:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: number
+                      filename:
+                        type: string
         required: true
       responses:
         "201":
@@ -1784,21 +1795,32 @@ paths:
                 answerType:
                   type: string
                   example: "Multiple Choice"
-                dropdownOptions:
-                  type: string
-                  example: "Option A,Option B,Option C"
-                hasFileUpload:
+                evidenceFileRequired:
                   type: boolean
                   example: false
-                hasHint:
-                  type: boolean
-                  example: true
+                hint:
+                  type: string
+                  example: "As a deployer, you are responsible for any additional changes made to the high-risk AI system and must fulfill additional requirements based on the data used and the specific use case you are deploying."
                 isRequired:
                   type: boolean
                   example: true
-                priorityOptions:
-                  type: string
-                  example: "High,Medium,Low"
+                priorityLevel:
+                  anyOf:
+                    - type: string
+                      enum:
+                        - "high priority"
+                        - "medium priority"
+                        - "low priority"
+                  example: "high priority"
+                evidenceFiles:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: number
+                      filename:
+                        type: string
         required: true
       responses:
         "202":
@@ -4330,21 +4352,32 @@ components:
         answerType:
           type: string
           example: "Multiple Choice"
-        dropdownOptions:
-          type: string
-          example: "Option A,Option B,Option C"
-        hasFileUpload:
+        evidenceFileRequired:
           type: boolean
           example: false
-        hasHint:
-          type: boolean
-          example: true
+        hint:
+          type: string
+          example: "As a deployer, you are responsible for any additional changes made to the high-risk AI system and must fulfill additional requirements based on the data used and the specific use case you are deploying."
         isRequired:
           type: boolean
           example: true
-        priorityOptions:
-          type: string
-          example: "High,Medium,Low"
+        priorityLevel:
+          anyOf:
+            - type: string
+              enum:
+                - "high priority"
+                - "medium priority"
+                - "low priority"
+          example: "high priority"
+        evidenceFiles:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+              filename:
+                type: string
     SubControl:
       type: object
       properties:

@@ -4,6 +4,7 @@ const initialState = {
   isLoading: false,
   authToken: "",
   user: "",
+  userExists: false,
   success: null as boolean | null,
   message: null as string | null,
 };
@@ -126,6 +127,7 @@ const authSlice = createSlice({
   reducers: {
     clearAuthState: (state) => {
       state.authToken = "";
+      state.userExists = false;
       state.user = "";
       state.isLoading = false;
       state.success = true;

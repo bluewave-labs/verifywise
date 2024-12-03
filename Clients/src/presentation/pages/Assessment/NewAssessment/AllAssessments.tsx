@@ -22,6 +22,7 @@ import { assessments } from "./assessments";
 import { priorities, PriorityLevel } from "./priorities";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import Alert from "../../../components/Alert";
+import { useNavigate } from "react-router-dom";
 
 interface AssessmentValue {
   topic: string;
@@ -190,6 +191,7 @@ const AllAssessment = () => {
 
   const renderQuestions = useCallback(
     (subtopicId: string, subtopicTitle: string, questions: any[]) => {
+      const navigate = useNavigate();
       const renderedQuestions = questions.map((question) => (
         <Box key={question.id} mt={10}>
           <Box
@@ -289,7 +291,7 @@ const AllAssessment = () => {
               disableRipple={
                 theme.components?.MuiButton?.defaultProps?.disableRipple
               }
-            >
+            onClick={()=>navigate("/playground")}> 
               Add evidence
             </Button>
             <Typography

@@ -20,7 +20,9 @@ export const DragDropArea = styled("div")({
 
   "& .uppy-Container": {
     display: "none !important",
-  }, //remove default uppy container while maintaining drag drop functionality
+  },
+ 
+  //remove default uppy container while maintaining drag drop functionality
 });
 
 export const Icon = styled("img")({

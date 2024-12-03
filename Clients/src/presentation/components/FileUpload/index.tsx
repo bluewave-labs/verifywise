@@ -11,6 +11,7 @@ import {
   handleUploadSuccess,
   handleUploadError,
   handleUploadProgress,
+  uploadToLocalStorage,
 } from "./eventHandlers";
 import { DragDrop } from "@uppy/react";
 import UploadSmallIcon from "../../assets/icons/file-upload.svg";
@@ -20,15 +21,9 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
   onSuccess,
   onError,
   onProgress,
-  maxFileSize = 50 * 1024 * 1024,
-  allowedFileTypes = [".pdf"],
-  uploadEndpoint,
 }) => {
   // Configure Uppy instance
-  const uppy = React.useMemo(
-    () => createUppyInstance(uploadEndpoint, allowedFileTypes, maxFileSize),
-    [uploadEndpoint, allowedFileTypes, maxFileSize]
-  ); // Attach event handlers
+  const uppy = React.useMemo(() => createUppyInstance(), []); // Attach event handlers
 
   React.useEffect(() => {
     uppy.on("upload-success", handleUploadSuccess(onSuccess));
@@ -43,7 +38,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
       strings: {
         dropHereOr: "Click to upload or drag and drop",
       },
-      pluralize:(count:number)=> count,
+      pluralize: (count: number) => count,
     }),
     []
   );
@@ -69,7 +64,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
           alt="Upload Icon"
           sx={{ marginBottom: "6px" }}
         />
-        <label htmlFor="fileInput" style={{cursor:"pointer"}}>
+        <label htmlFor="fileInput" style={{ cursor: "pointer" }}>
           <Typography
             variant="body2"
             sx={{
@@ -90,18 +85,20 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
           </Typography>
         </label>
         <input
-        type="file"
-        id="fileInput"
-        hidden
-        onChange={(e)=>{
-          if (e.target.files){
-            Array.from(e.target.files).forEach((file)=> uppy.addFile({
-              name: file.name,
-              type:file.type,
-              data:file,
-            }));
-          }
-        }}
+          type="file"
+          id="fileInput"
+          hidden
+          onChange={(e) => {
+            if (e.target.files) {
+              Array.from(e.target.files).forEach((file) =>
+                uppy.addFile({
+                  name: file.name,
+                  type: file.type,
+                  data: file,
+                })
+              );
+            }
+          }}
         />
         <Typography
           variant="caption"
@@ -115,6 +112,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
         {/* DragDrop Component */}
         <DragDrop uppy={uppy} locale={locale} />
       </DragDropArea>
+
       {/* Supported Formats */}
       <Typography variant="caption" sx={{ fontSize: "12px", color: "#6B7280" }}>
         Supported formats: PDF
@@ -128,7 +126,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
             backgroundColor: "#3B82F6",
             textTransform: "none",
           }}
-          onClick={() => uppy.upload()}
+          onClick={() => uploadToLocalStorage(uppy)}
         >
           Upload
         </Button>

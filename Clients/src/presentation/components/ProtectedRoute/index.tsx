@@ -1,20 +1,6 @@
-/**
- * ProtectedRoute component is a higher-order component that wraps around
- * another component to provide route protection based on authentication state.
- * It checks if the user is authenticated by inspecting the authToken from the
- * Redux store. If the user is authenticated, it renders the wrapped component.
- * Otherwise, it redirects the user to the login page.
- *
- * @component
- * @param {ComponentType<any>} Component - The component to be rendered if the user is authenticated.
- * @param {object} rest - Additional props to be passed to the wrapped component.
- * @returns {JSX.Element} - The rendered component if authenticated, or a redirect to the login page.
- */
-
 import "./index.css";
 import { useSelector } from "react-redux";
-import { Navigate } from "react-router-dom";
-
+import { Navigate, useLocation } from "react-router-dom";
 import { ComponentType } from "react";
 
 interface ProtectedRouteProps {
@@ -24,8 +10,14 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
   const authState = useSelector(
-    (state: { auth: { authToken: string } }) => state.auth
+    (state: { auth: { authToken: string; userExists: boolean } }) => state.auth
   );
+  const location = useLocation();
+
+  // Check if the user is trying to access the "admin-reg" route
+  if (location.pathname === "/admin-reg" && authState.userExists) {
+    return <Navigate to="/" replace />;
+  }
 
   return authState.authToken ? (
     <Component {...rest} />

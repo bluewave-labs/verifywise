@@ -1,21 +1,9 @@
-/**
- * ProtectedRoute component is a higher-order component that wraps around
- * another component to provide route protection based on authentication state.
- * It checks if the user is authenticated by inspecting the authToken from the
- * Redux store. If the user is authenticated, it renders the wrapped component.
- * Otherwise, it redirects the user to the login page.
- *
- * @component
- * @param {ComponentType<any>} Component - The component to be rendered if the user is authenticated.
- * @param {object} rest - Additional props to be passed to the wrapped component.
- * @returns {JSX.Element} - The rendered component if authenticated, or a redirect to the login page.
- */
-
-import "./index.css";
 import { useSelector } from "react-redux";
-import { Navigate } from "react-router-dom";
-
-import { ComponentType } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { ComponentType, useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { setUserExists } from "../../../application/authentication/authSlice";
+import { checkUserExists } from "../../../application/repository/entity.repository"; // Import the checkUserExists function
 
 interface ProtectedRouteProps {
   Component: ComponentType<any>;
@@ -24,8 +12,48 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
   const authState = useSelector(
-    (state: { auth: { authToken: string } }) => state.auth
+    (state: { auth: { authToken: string; userExists: boolean } }) => state.auth
   );
+  const location = useLocation();
+  const dispatch = useDispatch();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Check if user exists in the database
+    const checkUserExistsInDatabase = async () => {
+      try {
+        const data = await checkUserExists({
+          routeUrl: "/users/check/exists",
+        });
+        console.log("Data ==> ", data);
+        if (data) {
+          dispatch(setUserExists(true));
+        } else {
+          dispatch(setUserExists(false));
+        }
+      } catch (error) {
+        console.error("Error checking if user exists:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkUserExistsInDatabase();
+  }, [dispatch]);
+
+  if (loading) {
+    return <div>Loading...</div>; // Show a loading indicator while checking user existence
+  }
+
+  // Redirect to "/admin-reg" if no user exists and the current path is not "/admin-reg"
+  if (!authState.userExists && location.pathname !== "/admin-reg") {
+    return <Navigate to="/admin-reg" replace />;
+  }
+
+  // Redirect to home if user exists and trying to access "/admin-reg"
+  if (authState.userExists && location.pathname === "/admin-reg") {
+    return <Navigate to="/" replace />;
+  }
 
   return authState.authToken ? (
     <Component {...rest} />

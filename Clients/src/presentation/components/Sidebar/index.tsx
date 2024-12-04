@@ -30,12 +30,13 @@ import { ReactComponent as Compliance } from "../../assets/icons/globe.svg";
 import { ReactComponent as Assessment } from "../../assets/icons/chart.svg";
 import { ReactComponent as Vendors } from "../../assets/icons/building.svg";
 import { ReactComponent as Settings } from "../../assets/icons/setting.svg";
-import { ReactComponent as FileManager} from "../../assets/icons/file.svg";
+import { ReactComponent as FileManager } from "../../assets/icons/file.svg";
 
 import Logo from "../../assets/imgs/logo.png";
 
 import Select from "../Inputs/Select";
 import Avatar from "../Avatar/VWAvatar";
+import { clearAuthState } from "../../../application/authentication/authSlice";
 
 const menu = [
   {
@@ -59,8 +60,8 @@ const menu = [
     path: "/vendors",
   },
   {
-    name:"File Manager",
-    icon: <FileManager/>,
+    name: "File Manager",
+    icon: <FileManager />,
     path: "/file-manager",
   },
 ];
@@ -102,8 +103,11 @@ const Sidebar = () => {
    *
    */
   const logout = async () => {
-    // placeholder for logging out the user
-    console.log("User logged out");
+    // Clear the authentication token by dispatching the logout action
+    dispatch(clearAuthState());
+
+    // Navigate to the login page
+    navigate("/login");
   };
 
   console.log("collapsed -> ", collapsed);

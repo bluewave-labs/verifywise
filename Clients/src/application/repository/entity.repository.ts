@@ -144,3 +144,25 @@ export async function getAllEntities({
     throw error;
   }
 }
+
+/**
+ * Checks if any user exists in the database.
+ *
+ * @param {Object} params - The parameters for the request.
+ * @param {string} params.routeUrl - The URL route to check if a user exists.
+ * @returns {Promise<any>} The response data indicating if a user exists.
+ * @throws Will throw an error if the request fails.
+ */
+export async function checkUserExists({
+  routeUrl,
+}: {
+  routeUrl: string;
+}): Promise<any> {
+  try {
+    const response = await apiServices.get(routeUrl);
+    return response.data;
+  } catch (error) {
+    console.error("Error checking if user exists:", error);
+    throw error;
+  }
+}

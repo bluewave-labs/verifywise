@@ -4,6 +4,7 @@ const initialState = {
   isLoading: false,
   authToken: "",
   user: "",
+  userExists: false,
   success: null as boolean | null,
   message: null as string | null,
 };
@@ -126,6 +127,7 @@ const authSlice = createSlice({
   reducers: {
     clearAuthState: (state) => {
       state.authToken = "";
+      state.userExists = false;
       state.user = "";
       state.isLoading = false;
       state.success = true;
@@ -134,6 +136,9 @@ const authSlice = createSlice({
     setAuthToken: (state, action: PayloadAction<string>) => {
       state.authToken = action.payload;
     },
+    setUserExists: (state, action: PayloadAction<boolean>) => {
+      state.userExists = action.payload;
+    },
   },
   extraReducers(builder) {
     // Register thunk
@@ -141,7 +146,10 @@ const authSlice = createSlice({
       .addCase(register.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(register.fulfilled, handleAuthFulfilled)
+      .addCase(register.fulfilled, (state, action) => {
+        handleAuthFulfilled(state, action);
+        state.userExists = true; // Set userExists to true after registration
+      })
       .addCase(register.rejected, handleAuthRejected);
 
     // Login thunk
@@ -186,5 +194,6 @@ const authSlice = createSlice({
   },
 });
 
+export const { clearAuthState, setAuthToken, setUserExists } =
+  authSlice.actions;
 export default authSlice.reducer;
-export const { clearAuthState, setAuthToken } = authSlice.actions;

@@ -10,6 +10,7 @@
 import express from "express";
 const router = express.Router();
 import {
+  checkUserExists,
   createNewUser,
   deleteUserById,
   getAllUsers,
@@ -33,7 +34,7 @@ import authenticateJWT from "../middleware/auth.middleware";
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.get("/", /*authenticateJWT, */getAllUsers);
+router.get("/", /*authenticateJWT, */ getAllUsers);
 
 /**
  * GET /users/by-email/:email
@@ -132,5 +133,19 @@ router.patch("/:id", authenticateJWT, updateUserById);
  * @param {express.Response} res - Express response object
  */
 router.delete("/:id", authenticateJWT, deleteUserById);
+
+/**
+ * GET /users/check-user-exists
+ *
+ * Checks if any user exists in the database.
+ *
+ * @name get/check-user-exists
+ * @function
+ * @memberof module:routes/user.route
+ * @inner
+ * @param {express.Request} req - Express request object
+ * @param {express.Response} res - Express response object
+ */
+router.get("/check/exists", checkUserExists);
 
 export default router;

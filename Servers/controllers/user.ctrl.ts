@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import {
+  checkUserExistsQuery,
   createNewUserQuery,
   deleteUserByIdQuery,
   getAllUsersQuery,
@@ -10,6 +11,7 @@ import {
 } from "../utils/user.utils";
 import bcrypt from "bcrypt";
 import {
+  checkMockUserExists,
   createMockUser,
   deleteMockUserById,
   getAllMockUsers,
@@ -300,6 +302,31 @@ async function deleteUserById(req: Request, res: Response) {
   }
 }
 
+/**
+ * Checks if any user exists in the database.
+ *
+ * @param {Request} _req - Express request object.
+ * @param {Response} res - Express response object.
+ * @returns {Promise<Response>} A promise that resolves when the response is sent.
+ */
+async function checkUserExists(
+  _req: Request,
+  res: Response
+): Promise<Response> {
+  try {
+    console.log("checkUserExists");
+    if (MOCKDATA_ON === true) {
+      const userExists = checkMockUserExists();
+      return res.status(200).json(userExists);
+    } else {
+      const userExists = await checkUserExistsQuery();
+      return res.status(200).json(userExists);
+    }
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 export {
   getAllUsers,
   getUserByEmail,
@@ -309,4 +336,5 @@ export {
   resetPassword,
   updateUserById,
   deleteUserById,
+  checkUserExists,
 };

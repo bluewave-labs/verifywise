@@ -42,6 +42,10 @@
  * @description Deletes a mock user identified by their ID.
  * @param {number} id - The ID of the user to delete.
  * @returns {Object|null} The deleted mock user object if found, otherwise null.
+ *
+ * @function checkUserExists
+ * @description Checks if any user exists in the mock database.
+ * @returns {boolean} True if any user exists, otherwise false.
  */
 
 import { users } from "../users.data";
@@ -95,4 +99,8 @@ export const deleteMockUserById = (id: number) => {
     return users.splice(index, 1)[0];
   }
   return null;
+};
+
+export const checkMockUserExists = (): boolean => {
+  return users.length > 0;
 };

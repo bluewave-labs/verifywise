@@ -96,10 +96,7 @@ function App() {
           <ThemeProvider theme={mode === "light" ? light : dark}>
             <CssBaseline />
             <Routes>
-              <Route
-                path="/"
-                element={<ProtectedRoute Component={Dashboard} />}
-              >
+              <Route path="/" element={<Dashboard />}>
                 <Route path="/" element={<Home />} />
                 <Route
                   path="/compliance-tracker"
@@ -113,10 +110,7 @@ function App() {
                 <Route path="/project-view" element={<ProjectView />} />
                 <Route path="/file-manager" element={<FileManager />} />
               </Route>
-              <Route
-                path="/admin-reg"
-                element={<ProtectedRoute Component={RegisterAdmin} />}
-              />
+              <Route path="/admin-reg" element={<RegisterAdmin />} />
               <Route path="/user-reg" element={<RegisterUser />} />
               <Route path="/login" element={<Login />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />

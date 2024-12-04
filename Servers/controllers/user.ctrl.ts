@@ -314,6 +314,7 @@ async function checkUserExists(
   res: Response
 ): Promise<Response> {
   try {
+    console.log("checkUserExists");
     if (MOCKDATA_ON === true) {
       const userExists = checkMockUserExists();
       return res.status(200).json({ userExists });
@@ -322,7 +323,7 @@ async function checkUserExists(
       return res.status(200).json({ userExists });
     }
   } catch (error) {
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+    return res.status(500).json({ message: "Internal server error" });
   }
 }
 

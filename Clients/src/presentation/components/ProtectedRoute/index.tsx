@@ -1,8 +1,9 @@
 import { useSelector } from "react-redux";
 import { Navigate, useLocation } from "react-router-dom";
-import { ComponentType, useEffect } from "react";
+import { ComponentType, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { setUserExists } from "../../../application/authentication/authSlice";
+import { checkUserExists } from "../../../application/repository/entity.repository"; // Import the checkUserExists function
 
 interface ProtectedRouteProps {
   Component: ComponentType<any>;
@@ -15,17 +16,33 @@ const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
   );
   const location = useLocation();
   const dispatch = useDispatch();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Check if user exists in the database
-    const checkUserExists = async () => {
-      const response = await fetch("/api/check-user-exists"); // Replace with your API endpoint
-      const data = await response.json();
-      dispatch(setUserExists(data.userExists));
+    const checkUserExistsInDatabase = async () => {
+      try {
+        const data = await checkUserExists({
+          routeUrl: "/users/check-user-exists",
+        });
+        if (data.message === "Not found") {
+          dispatch(setUserExists(false));
+        } else {
+          dispatch(setUserExists(true));
+        }
+      } catch (error) {
+        console.error("Error checking if user exists:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    checkUserExists();
+    checkUserExistsInDatabase();
   }, [dispatch]);
+
+  if (loading) {
+    return <div>Loading...</div>; // Show a loading indicator while checking user existence
+  }
 
   // Redirect to "/admin-reg" if no user exists and the current path is not "/admin-reg"
   if (!authState.userExists && location.pathname !== "/admin-reg") {

@@ -23,12 +23,13 @@ const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
     const checkUserExistsInDatabase = async () => {
       try {
         const data = await checkUserExists({
-          routeUrl: "/users/check-user-exists",
+          routeUrl: "/users/check/exists",
         });
-        if (data.message === "Not found") {
-          dispatch(setUserExists(false));
-        } else {
+        console.log("Data ==> ", data);
+        if (data) {
           dispatch(setUserExists(true));
+        } else {
+          dispatch(setUserExists(false));
         }
       } catch (error) {
         console.error("Error checking if user exists:", error);

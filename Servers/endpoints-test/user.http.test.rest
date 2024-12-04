@@ -34,4 +34,4 @@ DELETE http://localhost:3000/users/1
 
 ### check if any user exists
 
-GET http://localhost:3000/users/check-user-exists
+GET http://localhost:3000/users/check/exists

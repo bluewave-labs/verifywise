@@ -29,7 +29,7 @@ import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./application/redux/store"; // Adjust the path as necessary
 import NewComplianceTracker from "./presentation/pages/ComplianceTracker/NewComplianceTracker";
-import ProtectedRoute from "./presentation/components/ProtectedRoute";
+// import ProtectedRoute from "./presentation/components/ProtectedRoute";
 
 function App() {
   const mode = useSelector((state: any) => state.ui?.mode || "light");
@@ -96,7 +96,11 @@ function App() {
           <ThemeProvider theme={mode === "light" ? light : dark}>
             <CssBaseline />
             <Routes>
-              <Route path="/" element={<Dashboard />}>
+              <Route
+                path="/"
+                // element={<ProtectedRoute Component={Dashboard} />} It's commented for now since we're working on other parts an it'll disturb
+                element={<Dashboard />}
+              >
                 <Route path="/" element={<Home />} />
                 <Route
                   path="/compliance-tracker"

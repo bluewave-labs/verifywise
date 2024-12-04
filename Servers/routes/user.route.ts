@@ -146,6 +146,6 @@ router.delete("/:id", authenticateJWT, deleteUserById);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.get("/check-user-exists", checkUserExists);
+router.get("/check/exists", checkUserExists);
 
 export default router;

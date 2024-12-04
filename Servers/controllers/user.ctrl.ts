@@ -317,10 +317,10 @@ async function checkUserExists(
     console.log("checkUserExists");
     if (MOCKDATA_ON === true) {
       const userExists = checkMockUserExists();
-      return res.status(200).json({ userExists });
+      return res.status(200).json(userExists);
     } else {
       const userExists = await checkUserExistsQuery();
-      return res.status(200).json({ userExists });
+      return res.status(200).json(userExists);
     }
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });

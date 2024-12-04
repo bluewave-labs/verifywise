@@ -205,3 +205,27 @@ export const deleteUserByIdQuery = async (id: string): Promise<User> => {
   );
   return result.rows[0];
 };
+
+/**
+ * Checks if any user exists in the database.
+ *
+ * This function executes a SQL query to count the number of users in the `users` table.
+ * It returns a promise that resolves to a boolean indicating whether any user exists.
+ *
+ * @returns {Promise<boolean>} A promise that resolves to a boolean indicating whether any user exists.
+ *
+ * @example
+ * const userExists = await checkUserExistsQuery();
+ * console.log(userExists); // true or false
+ *
+ * @throws {Error} If there is an error executing the SQL query.
+ */
+export const checkUserExistsQuery = async (): Promise<boolean> => {
+  try {
+    const result = await pool.query("SELECT COUNT(*) FROM users");
+    return result.rows[0].count > 0;
+  } catch (error) {
+    console.error("Error checking user existence:", error);
+    throw error;
+  }
+};

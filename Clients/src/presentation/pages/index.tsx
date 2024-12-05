@@ -1,13 +1,14 @@
 import { Stack } from "@mui/material";
-import Avatar from "../components/Avatar/VWAvatar";
-import RoleButtonGroup from "../components/ButtonGroup";
+// import Avatar from "../components/Avatar/VWAvatar";
+import FileUploadComponent from "../components/FileUpload";
+// import RoleButtonGroup from "../components/ButtonGroup";
 
 const Playground = () => {
-  const user = {
-    firstname: "Mohammad",
-    lastname: "Khalilzadeh",
-    pathToImage: "https://avatars.githubusercontent.com/u/140876993?v=4",
-  };
+  // const user = {
+  //   firstname: "Mohammad",
+  //   lastname: "Khalilzadeh",
+  //   pathToImage: "https://avatars.githubusercontent.com/u/140876993?v=4",
+  // };
 
   return (
     <Stack
@@ -20,7 +21,7 @@ const Playground = () => {
         gap: 4,
       }}
     >
-      <Stack
+      {/*<Stack
         sx={{
           display: "flex",
           justifyContent: "center",
@@ -43,8 +44,9 @@ const Playground = () => {
         <Avatar size="small" user={user} />
         <Avatar size="medium" user={user} />
         <Avatar size="large" user={user} />
-      </Stack>
-      <RoleButtonGroup />
+      </Stack>*/}
+      {/*<RoleButtonGroup />*/}
+      <FileUploadComponent />
     </Stack>
     
   );

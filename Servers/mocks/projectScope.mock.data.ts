@@ -16,7 +16,7 @@ export const projectScopes: ProjectScope[] = [
   },
   {
     id: 2,
-    assessmentId: 2,
+    assessmentId: 1,
     describeAiEnvironment:
       "The project aims to automate the customer service process using machine learning algorithms.",
     isNewAiTechnology: false,

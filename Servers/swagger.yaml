@@ -3613,7 +3613,7 @@ paths:
                   example: internal server error
                 error:
                   type: object
-  /register:
+  /users/register:
     post:
       tags: [users]
       requestBody:
@@ -3679,7 +3679,7 @@ paths:
                   example: service unavailable
                 error:
                   type: object
-  /by-email/{email}:
+  /users/by-email/{email}:
     get:
       tags: [users]
       security:
@@ -3726,7 +3726,7 @@ paths:
                   example: internal server error
                 error:
                   type: object
-  /login:
+  /users/login:
     post:
       tags: [users]
       requestBody:
@@ -3792,7 +3792,7 @@ paths:
                   example: internal server error
                 error:
                   type: object
-  /reset-password:
+  /users/reset-password:
     post:
       tags: [users]
       requestBody:

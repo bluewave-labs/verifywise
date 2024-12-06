@@ -44,6 +44,8 @@ interface TableEntry<T> {
 }
 
 type TableList = [
+  TableEntry<Role>,
+  TableEntry<User>,
   TableEntry<Project>,
   TableEntry<Vendor>,
   TableEntry<Assessment>,
@@ -54,26 +56,65 @@ type TableList = [
   TableEntry<ProjectScope>,
   TableEntry<Topic>,
   TableEntry<Subtopic>,
-  TableEntry<Question>,
-  TableEntry<Role>,
-  TableEntry<User>
+  TableEntry<Question>
 ];
 
 const insertQuery: TableList = [
+  {
+    mockData: roles,
+    tableName: "roles",
+    createString: `CREATE TABLE roles (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255),
+      description TEXT
+        );`,
+    insertString: "INSERT INTO roles(name, description) VALUES ",
+    generateValuesString: function (role: Role) {
+      return `(
+        '${role.name}',
+        '${role.description}'
+      )`;
+    },
+  },
+  {
+    mockData: users,
+    tableName: "users",
+    createString: `CREATE TABLE users (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255),
+      email VARCHAR(255),
+      password_hash VARCHAR(255),
+      role INT REFERENCES roles(id),
+      created_at DATE,
+      last_login DATE
+    );`,
+    insertString:
+      "INSERT INTO users(name, email, password_hash, role, created_at, last_login) VALUES ",
+    generateValuesString: function (user: User) {
+      return `(
+        '${user.name}',
+        '${user.email}',
+        '${user.password_hash}',
+        ${user.role},
+        '${user.created_at.toISOString().split("T")[0]}',
+        '${user.last_login.toISOString().split("T")[0]}'
+      )`;
+    },
+  },
   {
     mockData: Projects,
     tableName: "projects",
     createString: `CREATE TABLE projects (
       id SERIAL PRIMARY KEY,
       project_title VARCHAR(255),
-      owner VARCHAR(255),
+      owner INTEGER REFERENCES users(id),
       users TEXT,
       start_date DATE,
       ai_risk_classification VARCHAR(255),
       type_of_high_risk_role VARCHAR(255),
       goal VARCHAR(255),
       last_updated DATE,
-      last_updated_by VARCHAR(255)
+      last_updated_by INTEGER REFERENCES users(id)
     );`,
     insertString:
       "INSERT INTO projects(project_title, owner, users, start_date, ai_risk_classification, type_of_high_risk_role, goal, last_updated, last_updated_by) VALUES ",
@@ -170,10 +211,11 @@ const insertQuery: TableList = [
       owner VARCHAR(255),
       reviewer VARCHAR(255),
       due_date DATE,
-      implementation_details TEXT
+      implementation_details TEXT,
+      control_group VARCHAR(255)
     );`,
     insertString:
-      "INSERT INTO controls(project_id, status, approver, risk_review, owner, reviewer, due_date, implementation_details) VALUES ",
+      "INSERT INTO controls(project_id, status, approver, risk_review, owner, reviewer, due_date, implementation_details, control_group) VALUES ",
     generateValuesString: function (control: Control) {
       return `(
         '${control.projectId}',
@@ -183,7 +225,8 @@ const insertQuery: TableList = [
         '${control.owner}',
         '${control.reviewer}',
         '${control.dueDate.toISOString().split("T")[0]}',
-        '${control.implementationDetails}'
+        '${control.implementationDetails}',
+        '${control.controlGroup}'
       )`;
     },
   },
@@ -383,7 +426,7 @@ const insertQuery: TableList = [
       is_required BOOLEAN,
       priority_level VARCHAR(255),
       evidence_files TEXT[]
-        );`,
+    );`,
     insertString:
       "INSERT INTO questions(subtopic_id, question_text, answer_type, evidence_file_required, hint, is_required, priority_level, evidence_files) VALUES ",
     generateValuesString: function (question: Question) {
@@ -395,48 +438,7 @@ const insertQuery: TableList = [
         '${question.hint}',
         ${question.isRequired},
         '${question.priorityLevel}',
-        ARRAY[${question.evidenceFiles?.map((file) => `'${file}'`).join(", ")}]
-      )`;
-    },
-  },
-  {
-    mockData: roles,
-    tableName: "roles",
-    createString: `CREATE TABLE roles (
-      id SERIAL PRIMARY KEY,
-      name VARCHAR(255),
-      description TEXT
-        );`,
-    insertString: "INSERT INTO roles(name, description) VALUES ",
-    generateValuesString: function (role: Role) {
-      return `(
-        '${role.name}',
-        '${role.description}'
-      )`;
-    },
-  },
-  {
-    mockData: users,
-    tableName: "users",
-    createString: `CREATE TABLE users (
-      id SERIAL PRIMARY KEY,
-      name VARCHAR(255),
-      email VARCHAR(255),
-      password_hash VARCHAR(255),
-      role INT REFERENCES roles(id),
-      created_at DATE,
-      last_login DATE
-    );`,
-    insertString:
-      "INSERT INTO users(name, email, password_hash, role, created_at, last_login) VALUES ",
-    generateValuesString: function (user: User) {
-      return `(
-        '${user.name}',
-        '${user.email}',
-        '${user.password_hash}',
-        ${user.role},
-        '${user.created_at.toISOString().split("T")[0]}',
-        '${user.last_login.toISOString().split("T")[0]}'
+        ARRAY[]::TEXT[]
       )`;
     },
   },

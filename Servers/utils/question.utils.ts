@@ -1,6 +1,7 @@
 import { Question } from "../models/question.model";
 import pool from "../database/db";
 import { deleteFileById, getFileById, uploadFile } from "./fileUpload.utils";
+import { Request } from "express";
 
 export const getAllQuestionsQuery = async (): Promise<Question[]> => {
   console.log("getAllQuestions");
@@ -40,6 +41,10 @@ export const getQuestionByIdQuery = async (
   // return result.rows.length ? result.rows[0] : null;
 };
 
+
+export interface RequestWithFile extends Request {
+  files?: UploadedFile[];
+}
 export interface UploadedFile {
   originalname: string;
   mimetype: string;

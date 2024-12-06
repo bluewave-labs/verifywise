@@ -2,6 +2,7 @@ import { ProjectRisk } from "../models/projectRisk.model";
 
 // Sample mock data for ProjectRisk
 const mockProjectRisks: ProjectRisk[] = [
+  // Project risk for the first project
   {
     id: 1,
     project_id: 1, // Refers to the project with id 1
@@ -32,7 +33,7 @@ const mockProjectRisks: ProjectRisk[] = [
   },
   {
     id: 2,
-    project_id: 2, // Refers to the project with id 2
+    project_id: 1, // Refers to the project with id 2
     risk_name: "Algorithm Bias",
     risk_owner: "Bob",
     ai_lifecycle_phase: "Development",
@@ -58,6 +59,7 @@ const mockProjectRisks: ProjectRisk[] = [
     approval_status: "Completed",
     date_of_assessment: new Date("2024-10-15"),
   },
+  // Project risk for the second project
 ];
 
 // Export the mock data for use in other files

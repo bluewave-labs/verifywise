@@ -34,6 +34,14 @@ const NewControlPane = ({
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
+  const [values, setValues] = useState({
+    controlVale: {
+      
+    },
+    subControlValues: {
+      
+    },
+  });
   const handleSelectedTab = (_: React.SyntheticEvent, newValue: number) => {
     setSelectedTab(newValue);
   };

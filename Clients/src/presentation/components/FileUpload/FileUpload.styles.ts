@@ -17,6 +17,7 @@ export const DragDropArea = styled("div")({
   borderRadius: "8px",
   backgroundColor: "#FFFFFF",
   position: "relative",
+  gap:2,
 
   "& .uppy-Container": {
     display: "none !important",

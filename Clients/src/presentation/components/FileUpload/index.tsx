@@ -6,8 +6,9 @@ import {
   ListItemText,
   IconButton,
   Button,
+  Stack,
 } from "@mui/material";
-import { Container, DragDropArea, Icon } from "./FileUpload.styles";
+import { ButtonWrapper, Container, DragDropArea, Icon } from "./FileUpload.styles";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { createUppyInstance } from "./uppyConfig";
 import {
@@ -96,9 +97,6 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
     };
   }, [uppy, onSuccess, onError, onProgress]);
 
-  const handleSaveToLocalStorage = () => {
-    uploadToLocalStorage(uppy);
-  };
   return (
     <Container>
       {/* Title */}
@@ -128,7 +126,9 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
             if (e.target.files) {
               Array.from(e.target.files).forEach((file) => {
                 try {
-                  const existingFile = uppy.getFiles().find((f)=> f.name === file.name);
+                  const existingFile = uppy
+                    .getFiles()
+                    .find((f) => f.name === file.name);
                   if (existingFile) {
                     console.warn(`file ${file.name} already exists in Uppy`);
                     return;
@@ -145,43 +145,48 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
             }
           }}
         />
-        <label htmlFor="fileInput" style={{cursor:"pointer", textAlign:"center"}}>
-          <Typography variant="body2" sx={{fontSize:"13px", color:"#6b7280"}}>
-            <span style={{
-              color:"#3b82f6",
-              cursor:"pointer",
-            }}>
+        <label
+          htmlFor="fileInput"
+          style={{ cursor: "pointer", textAlign: "center" }}
+        >
+          <Typography
+            variant="body2"
+            sx={{ fontSize: "13px", color: "#6b7280" }}
+          >
+            <span
+              style={{
+                color: "#3b82f6",
+                cursor: "pointer",
+              }}
+            >
               Click to upload
-            </span> {" "}
-            or drag and drop 
+            </span>{" "}
+            or drag and drop
           </Typography>
         </label>
 
         {/* max size */}
         <Typography
-        variant="body2"
-        sx={{fontSize:"12px",
-          color:"#6b7280",
-          textAlign:"center",
-        }}
+          variant="body2"
+          sx={{ fontSize: "12px", color: "#6b7280", textAlign: "center" }}
         >
           Maximum size: 50 MB
         </Typography>
         <DragDrop uppy={uppy} locale={locale} />
 
         {/* Uploaded Files List */}
-       
+
         {uploadedFiles.length > 0 ? (
           <List
-           sx={{
-            width:"100%",
-            maxHeight:"150px",
-            overflowY:"auto",
-            padding:0,
-            marginTop:"16px",
-            borderTop:"1px solid #e5e7eb",
-            paddingTop:"8px"
-           }}
+            sx={{
+              width: "100%",
+              maxHeight: "150px",
+              overflowY: "auto",
+              padding: 0,
+              marginTop: "16px",
+              borderTop: "1px solid #e5e7eb",
+              paddingTop: "8px",
+            }}
           >
             {uploadedFiles.map((file) => (
               <ListItem
@@ -208,8 +213,10 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
                   aria-label="delete"
                   onClick={() => {
                     uppy.removeFile(file.id);
-                    setUploadedFiles((prevFiles)=>prevFiles.filter((f)=> f.id !== file.id))
-                   }} 
+                    setUploadedFiles((prevFiles) =>
+                      prevFiles.filter((f) => f.id !== file.id)
+                    );
+                  }}
                 >
                   <DeleteIcon />
                 </IconButton>
@@ -223,25 +230,31 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
         )}
         {/* Supported Formats */}
       </DragDropArea>
+      <Stack
+      direction="row"
+      justifyContent="space-between"
+      sx={{width:"100%"}}
+      >
+        <Typography
+          variant="caption"
+          sx={{ fontSize: "12px", color: "#6B7280", mt: 2 }}
+        >
+          Supported formats: PDF
+        </Typography>
 
-      <Typography
-        variant="caption"
-        sx={{ fontSize: "12px", color: "#6B7280", mt: 2 }}
-      >
-        Supported formats: PDF
-      </Typography>
-      <Button
-        variant="contained"
-        sx={{
-          mt: 2,
-          width: "180px",
-          backgroundColor: "#3B82F6",
-          textTransform: "none",
-        }}
-        onClick={handleSaveToLocalStorage}
-      >
-        Upload
-      </Button>
+        <Button
+          variant="contained"
+          sx={{
+            mt: 2,
+            width: "100px",
+            backgroundColor: "#3B82F6",
+            textTransform: "none",
+          }}
+          onClick={() => uploadToLocalStorage(uppy)}
+        >
+          Upload
+        </Button>
+      </Stack>
     </Container>
   );
 };

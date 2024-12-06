@@ -8,7 +8,7 @@ import {
   Button,
   Stack,
 } from "@mui/material";
-import { ButtonWrapper, Container, DragDropArea, Icon } from "./FileUpload.styles";
+import {  Container, DragDropArea, Icon } from "./FileUpload.styles";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { createUppyInstance } from "./uppyConfig";
 import {
@@ -48,6 +48,12 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
     uppy.on("file-added", (file) => {
       //debug
       console.log("file added:", file);
+      //preventing duplicate files
+      const existingFile = uploadedFiles.find((f) => f.id === file.id);
+      if (existingFile) {
+        console.warn(`file ${file.name} already exists in Uppy`);
+        return;
+      }
       if (!file) {
         console.error("file is undefined in file added event");
         return;
@@ -126,13 +132,6 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
             if (e.target.files) {
               Array.from(e.target.files).forEach((file) => {
                 try {
-                  const existingFile = uppy
-                    .getFiles()
-                    .find((f) => f.name === file.name);
-                  if (existingFile) {
-                    console.warn(`file ${file.name} already exists in Uppy`);
-                    return;
-                  }
                   uppy.addFile({
                     name: file.name,
                     type: file.type,
@@ -188,9 +187,9 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
               paddingTop: "8px",
             }}
           >
-            {uploadedFiles.map((file) => (
+            {uploadedFiles.map((file,index) => (
               <ListItem
-                key={file.id}
+                key={`${file.name}-${index}`}
                 sx={{
                   display: "flex",
                   justifyContent: "space-between",

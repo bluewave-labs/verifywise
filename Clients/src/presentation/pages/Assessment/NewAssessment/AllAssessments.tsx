@@ -57,8 +57,7 @@ const AllAssessment = () => {
   });
 
   const [allQuestionsToCheck, setAllQuestionsToCheck] = useState<
-    { title: string }[]
-  >([]);
+    { title: string }[]>([]);
 
   const [alert, setAlert] = useState<{ show: boolean; message: string }>({
     show: false,

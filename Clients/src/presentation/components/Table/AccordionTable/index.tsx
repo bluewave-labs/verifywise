@@ -32,6 +32,7 @@ const AccordionTable = ({
   const [selectedRow, setSelectedRow] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
+
   const getProgressColor = useCallback((value: number) => {
     if (value <= 10) return "#FF4500"; // 0-10%
     if (value <= 20) return "#FF4500"; // 11-20%
@@ -98,6 +99,10 @@ const AccordionTable = ({
                 title={row.title}
                 content={row.description}
                 subControls={row.subControls}
+                OnSave={() => {
+                  console.log("Save clicked");
+                  // fetchComplianceTracker();
+                }}
               />
             )}
             <TableRow

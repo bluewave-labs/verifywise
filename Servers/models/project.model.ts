@@ -3,7 +3,7 @@
 export type Project = {
   id: number;
   project_title: string;
-  owner: string;
+  owner: number;
   users: string;
   start_date: Date;
   ai_risk_classification: "high risk" | "limited risk" | "minimal risk";
@@ -16,5 +16,5 @@ export type Project = {
     | "authorized representative";
   goal: string;
   last_updated: Date;
-  last_updated_by: string;
+  last_updated_by: number;
 };

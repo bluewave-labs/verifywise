@@ -16,6 +16,8 @@ import {
   getTopicByIdQuery,
   updateTopicByIdQuery,
 } from "../utils/topic.utils";
+import { createNewQuestionQuery, RequestWithFile } from "../utils/question.utils";
+import { createNewSubtopicQuery } from "../utils/subtopic.utils";
 
 export async function getAllTopics(req: Request, res: Response): Promise<any> {
   try {
@@ -68,7 +70,7 @@ export async function getTopicById(req: Request, res: Response): Promise<any> {
 }
 
 export async function createNewTopic(
-  req: Request,
+  req: RequestWithFile,
   res: Response
 ): Promise<any> {
   console.log("Create topics", req.body);
@@ -76,24 +78,80 @@ export async function createNewTopic(
     const newTopic: {
       assessmentId: number;
       title: string;
-    } = req.body;
+      subTopics: {
+        id: number;
+        title: string;
+        questions: {
+          id: number;
+          question: string;
+          hint: string;
+          priorityLevel: string;
+          answerType: string;
+          inputType: string;
+          isRequired: boolean;
+          evidenceFileRequired: boolean;
+          evidenceFile: string;
+        }[];
+      }[];
+    }[] = req.body;
 
     if (MOCKDATA_ON === true) {
-      const topic = createMockTopic(newTopic);
+      // const topic = createMockTopic(newTopic);
 
-      if (topic) {
-        return res.status(201).json(STATUS_CODE[201](topic));
-      }
+      // if (topic) {
+      //   return res.status(201).json(STATUS_CODE[201](topic));
+      // }
 
-      return res.status(204).json(STATUS_CODE[204](topic));
+      // return res.status(204).json(STATUS_CODE[204](topic));
     } else {
-      const topic = await createNewTopicQuery(newTopic);
-
-      if (topic) {
-        return res.status(201).json(STATUS_CODE[201](topic));
+      let flag = true;
+      mainLoop: for (const topicGroup of newTopic) {
+        const assessmentId = topicGroup.assessmentId;
+        const newTopic = await createNewTopicQuery({
+          assessmentId,
+          title: topicGroup.title,
+        });
+        if (!newTopic) {
+          flag = false;
+          break mainLoop;
+        }
+        const newTopicId = newTopic.id;
+        for (const topic of topicGroup.subTopics) {
+          const newSubTopic = await createNewSubtopicQuery({
+            topicId: newTopicId,
+            name: topic.title,
+          });
+          if (!newSubTopic) {
+            flag = false;
+            break mainLoop;
+          }
+          const newSubTopicId = newSubTopic.topicId;
+          for (const question of topic.questions) {
+            const newQuestion = await createNewQuestionQuery(
+              {
+                subtopicId: newSubTopicId,
+                questionText: question.question,
+                answerType: question.answerType,
+                evidenceFileRequired: question.evidenceFileRequired,
+                hint: question.hint,
+                isRequired: question.isRequired,
+                priorityLevel: question.priorityLevel,
+              },
+              req.files!
+            );
+            if (!newQuestion) {
+              flag = false;
+              break mainLoop;
+            }
+          }
+        }
       }
 
-      return res.status(204).json(STATUS_CODE[204](topic));
+      if (flag) {
+        return res.status(201).json(STATUS_CODE[201]({}));
+      }
+
+      return res.status(204).json(STATUS_CODE[204]({}));
     }
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

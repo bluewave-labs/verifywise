@@ -13,7 +13,7 @@ const mockVendorRisks: VendorRisk[] = [
   },
   {
     id: 2,
-    project_id: 2, // Refers to the project with id 2
+    project_id: 1, // Refers to the project with id 2
     vendor_name: "Cloud Services Ltd.",
     risk_name: "Service Reliability",
     owner: "Bob",
@@ -31,7 +31,7 @@ const mockVendorRisks: VendorRisk[] = [
   },
   {
     id: 4,
-    project_id: 3, // Refers to the project with id 3
+    project_id: 2, // Refers to the project with id 3
     vendor_name: "Network Solutions LLC",
     risk_name: "Network Vulnerability",
     owner: "David",
@@ -49,7 +49,7 @@ const mockVendorRisks: VendorRisk[] = [
   },
   {
     id: 6,
-    project_id: 3, // Refers to the project with id 3
+    project_id: 2, // Refers to the project with id 3
     vendor_name: "Hardware Suppliers Inc.",
     risk_name: "Hardware Failure",
     owner: "Frank",

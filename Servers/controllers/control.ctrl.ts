@@ -16,6 +16,7 @@ import {
   getControlByIdQuery,
   updateControlByIdQuery,
 } from "../utils/control.utils";
+import { createNewSubcontrolQuery } from "../utils/subControl.utils";
 
 export async function getAllControls(
   req: Request,
@@ -75,33 +76,75 @@ export async function getControlById(
 
 export async function createControl(req: Request, res: Response): Promise<any> {
   try {
-    const newControl: {
-      projectId: number;
-      status: string;
-      approver: string;
-      riskReview: string;
-      owner: string;
-      reviewer: string;
-      dueDate: Date;
-      implementationDetails: string;
-    } = req.body;
+    const controlGroups: {
+      id: number;
+      controlGroupTitle: string;
+      control: {
+        id: number;
+        controls: {
+          id: number;
+          projectId: number;
+          status: string;
+          approver: string;
+          riskReview: string;
+          owner: string;
+          reviewer: string;
+          dueDate: Date;
+          implementationDetails: string;
+          subControls: {
+            id: number;
+            status: string;
+            approver: string;
+            riskReview: string;
+            owner: string;
+            reviewer: string;
+            dueDate: Date;
+            implementationDetails: string;
+            evidence: string;
+            attachment: string;
+            feedback: string;
+          }[];
+        }[];
+      }[];
+    }[] = req.body;
 
     if (MOCKDATA_ON === true) {
-      const control = createMockControl(newControl);
+      // const control = createMockControl(newControl);
 
-      if (control) {
-        return res.status(201).json(STATUS_CODE[201](control));
-      }
+      // if (control) {
+      //   return res.status(201).json(STATUS_CODE[201](control));
+      // }
 
-      return res.status(400).json(STATUS_CODE[400](control));
+      // return res.status(400).json(STATUS_CODE[400](control));
     } else {
-      const control = await createNewControlQuery(newControl);
-
-      if (control) {
-        return res.status(201).json(STATUS_CODE[201](control));
+      let flag = true;
+      mainLoop: for (const controlGroup of controlGroups) {
+        for (const ctrl of controlGroup.control) {
+          for (const control of ctrl.controls) {
+            const controlId = control.id;
+            for (const subControl of control.subControls) {
+              const newSubControl = await createNewSubcontrolQuery(
+                {controlId, ...subControl}
+              );
+              if (!newSubControl) {
+                flag = false;
+                break mainLoop;
+              }
+            }
+            const newControl = await createNewControlQuery(control);
+            if (!newControl) {
+              flag = false;
+              break mainLoop;
+            }
+          }
+        }
       }
 
-      return res.status(400).json(STATUS_CODE[400](control));
+      if (flag) {
+        return res.status(201).json(STATUS_CODE[201]({}));
+      }
+
+      return res.status(400).json(STATUS_CODE[400]({}));
     }
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

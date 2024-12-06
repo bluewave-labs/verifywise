@@ -15,7 +15,7 @@ import {
   getAllQuestionsQuery,
   getQuestionByIdQuery,
   updateQuestionByIdQuery,
-  UploadedFile
+  RequestWithFile,
 } from "../utils/question.utils";
 
 export async function getAllQuestions(
@@ -72,10 +72,6 @@ export async function getQuestionById(
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
-}
-
-interface RequestWithFile extends Request {
-  files?: UploadedFile[];
 }
 
 export async function createQuestion(

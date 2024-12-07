@@ -18,7 +18,7 @@ import {
   uploadToLocalStorage,
 } from "./eventHandlers";
 import { DragDrop } from "@uppy/react";
-import UploadSmallIcon from "../../assets/icons/file-upload.svg";
+import UploadSmallIcon from "../../assets/icons/folder-upload.svg";
 import { FileUploadProps } from "./types";
 
 const FileUploadComponent: React.FC<FileUploadProps> = ({
@@ -29,7 +29,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
   //local state to display uploaded files in uppy dashboard
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
 
-  // Configure Uppy instance
+  // Uppy instance
   const uppy = React.useMemo(() => createUppyInstance(), []); // Attach event handlers
 
   const locale = React.useMemo(
@@ -43,65 +43,57 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
   );
 
   React.useEffect(() => {
-    //debug
-    console.log("uppy instance created");
-    uppy.on("file-added", (file) => {
-      //debug
-      console.log("file added:", file);
-      //preventing duplicate files
-      const existingFile = uploadedFiles.find((f) => f.id === file.id);
-      if (existingFile) {
-        console.warn(`file ${file.name} already exists in Uppy`);
-        return;
-      }
+    const handleFileAdded = (file: any) => {
+      console.log("File added:", file);
+
       if (!file) {
-        console.error("file is undefined in file added event");
+        console.error("File is undefined in file-added event");
         return;
-      }
+      } 
+      // Prevent duplicate files by checking against uploadedFiles
+      setUploadedFiles((prevFiles) => {
+        const fileExists = prevFiles.some((f) => f.id === file.id);
+        if (fileExists) {
+          console.warn(`File ${file.name} already exists, skipping.`);
+          return prevFiles;
+        }
 
-      setUploadedFiles((prevFiles) => [
-        ...prevFiles,
-        {
-          id: file.id,
-          name: file.name,
-          size: file.size
-            ? `${(file.size / 1024).toFixed(2)} MB`
-            : "unknown size",
-          status: "Queued",
-        },
-      ]);
-    });
+        return [
+          ...prevFiles,
+          {
+            id: file.id,
+            name: file.name,
+            size: file.size
+              ? `${(file.size / 1024).toFixed(2)} MB`
+              : "Unknown size",
+            status: "Queued",
+          },
+        ];
+      });
+    };
 
-    // Handle upload-success using the event handler
-    uppy.on("upload-success", (file, response) => {
-      if (!file) {
-        console.error("file is undefined in upload success event");
-        return;
-      }
-      console.log("Upload Success:", { file, response });
-      handleUploadSuccess(onSuccess)(file, response);
+    const handleFileRemoved = (file: any) => {
+      console.log("File removed:", file);
 
-      setUploadedFiles((prevFiles) =>
-        prevFiles.map((f) =>
-          f.id === file.id ? { ...f, status: "Uploaded" } : f
-        )
-      );
-    }); // Handle upload-error using the event handler
-
-    uppy.on("upload-error", handleUploadError(onError)); // Handle upload-progress using the event handler
-
-    uppy.on("upload-progress", handleUploadProgress(onProgress));
-
-    uppy.on("file-removed", (file) => {
-      console.log("file removed:", file);
       setUploadedFiles((prevFiles) =>
         prevFiles.filter((f) => f.id !== file.id)
       );
-    });
-    return () => {
-      uppy.cancelAll();
     };
-  }, [uppy, onSuccess, onError, onProgress]);
+
+    uppy.on("file-added", handleFileAdded);
+    uppy.on("upload-success", handleUploadSuccess(onSuccess));
+    uppy.on("upload-error", handleUploadError(onError));
+    uppy.on("upload-progress", handleUploadProgress(onProgress));
+    uppy.on("file-removed", handleFileRemoved);
+
+    return () => {
+      uppy.off("file-added", handleFileAdded);
+      uppy.off("upload-success", handleUploadSuccess(onSuccess));
+      uppy.off("upload-error", handleUploadError(onError));
+      uppy.off("upload-progress", handleUploadProgress(onProgress));
+      uppy.off("file-removed", handleFileRemoved);
+    };
+  }, [uppy, onSuccess, onError, onProgress, uploadedFiles]);
 
   return (
     <Container>

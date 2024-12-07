@@ -8,4 +8,5 @@ export type Control = {
   reviewer: string;
   dueDate: Date;
   implementationDetails: string;
+  controlGroup: string;
 };

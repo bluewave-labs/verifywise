@@ -1,93 +1,257 @@
 import React, { useState, useCallback } from "react";
-import { useTheme, Alert, Box, Button, Stack } from "@mui/material";
+import { 
+  useTheme, 
+  Alert, 
+  Box, 
+  Button, 
+  Stack,
+  Dialog,
+  DialogActions,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  Typography 
+} from "@mui/material";
 import Field from "../../../components/Inputs/Field";
+import { checkStringValidation } from "../../../../application/validations/stringValidation";
+import { updateEntityById } from "../../../../application/repository/entity.repository";
+import { logEngine } from "../../../../application/tools/log.engine";
+import localStorage from "redux-persist/es/storage";
 
-/**
- * A functional component that renders a password update form using Material-UI components.
- *
- * @component
- * @returns {JSX.Element} The rendered component containing password fields, an alert, and a save button.
- */
-const Index: React.FC = (): JSX.Element => {
-  // Retrieves the current theme settings from Material-UI.
+const PasswordForm: React.FC = () => {
   const theme = useTheme();
 
-  // State hooks for managing password inputs.
-  const [password, setPassword] = useState<string>(""); // State for the current password field.
-  const [newPassword, setNewPassword] = useState<string>(""); // State for the new password field.
-  const [confirmPassword, setConfirmPassword] = useState<string>(""); // State for the confirm new password field.
+  // State management
+  const [currentPassword, setCurrentPassword] = useState<string>("");
+  const [newPassword, setNewPassword] = useState<string>("");
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
 
-  // Handle save button click
-  const handleSave = useCallback(() => {
-    const passObj = {
-      password,
-      newPassword,
-      confirmPassword,
-    };
-    console.log("🚀 ~ handleSave ~ passObj:", passObj);
-  }, [password, newPassword, confirmPassword]);
+  const [currentPasswordError, setCurrentPasswordError] = useState<string | null>(null);
+  const [newPasswordError, setNewPasswordError] = useState<string | null>(null);
+  const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
+
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
+
+  // Handle current password validation
+  const handleCurrentPasswordChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setCurrentPassword(value);
+
+      const validation = checkStringValidation(
+        "Current password",
+        value,
+        8,
+        128,
+        true, // hasUpperCase
+        true, // hasLowerCase
+        true, // hasNumber
+        true  // hasSpecialCharacter
+      );
+      setCurrentPasswordError(validation.accepted ? null : validation.message);
+    },
+    []
+  );
+
+  // Handle new password validation
+  const handleNewPasswordChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setNewPassword(value);
+
+      const validation = checkStringValidation(
+        "New password",
+        value,
+        8,
+        128,
+        true,
+        true,
+        true,
+        true
+      );
+      setNewPasswordError(validation.accepted ? null : validation.message);
+    },
+    []
+  );
+
+  // Handle confirm password validation
+  const handleConfirmPasswordChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setConfirmPassword(value);
+
+      if (value !== newPassword) {
+        setConfirmPasswordError("Passwords do not match");
+      } else {
+        setConfirmPasswordError(null);
+      }
+    },
+    [newPassword]
+  );
+
+  // Handle save
+  const handleSave = useCallback(async () => {
+    try {
+      if (currentPasswordError || newPasswordError || confirmPasswordError) {
+        logEngine({
+          type: "error",
+          message: "Validation errors occurred while updating password.",
+          user: {
+            id: String(localStorage.getItem("userId")) || "N/A",
+            email: "N/A",
+            firstname: "N/A",
+            lastname: "N/A"
+          },
+        });
+        return;
+      }
+
+      const userId = localStorage.getItem("userId") || "1";
+      const updatedPassword = {
+        currentPassword,
+        newPassword,
+        confirmPassword,
+      };
+
+      await updateEntityById({
+        routeUrl: `/users/${userId}/password`,
+        body: updatedPassword,
+      });
+      alert("Password updated successfully");
+      setIsConfirmationModalOpen(false);
+    } catch (error) {
+      logEngine({
+        type: "error",
+        message: "An error occurred while updating the password.",
+        user: {
+          id: String(localStorage.getItem("userId")) || "N/A",
+          email: "N/A",
+          firstname: "N/A",
+          lastname: "N/A"
+        },
+      });
+      alert("Failed to update password. Please try again.");
+    }
+  }, [currentPassword, newPassword, confirmPassword, currentPasswordError, newPasswordError, confirmPasswordError]);
+
+  const handleCloseConfirmationModal = useCallback(() => {
+    setIsConfirmationModalOpen(false);
+  }, []);
 
   return (
-    <Box sx={{ mt: 3 }}>
+    <Box sx={{ mt: 3, width: { xs: "90%", md: "70%" }, position: "relative" }}>
+      {loading && (
+        <Box
+          sx={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(255,255,255,0.8)",
+            zIndex: 10,
+          }}
+        >
+          <Typography>Loading...</Typography>
+        </Box>
+      )}
+      
       <Box sx={{ width: "100%", maxWidth: 600 }}>
         <Stack sx={{ marginTop: theme.spacing(15) }}>
-          {/* Current Password Field */}
           <Field
             id="Current password"
             label="Current password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={currentPassword}
+            onChange={handleCurrentPasswordChange}
             type="password"
             sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
           />
-          {/* New Password Field */}
+          {currentPasswordError && (
+            <Typography color="error" variant="caption">
+              {currentPasswordError}
+            </Typography>
+          )}
+
           <Field
-            id="Password"
-            label="Password"
+            id="New password"
+            label="New password"
             value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
+            onChange={handleNewPasswordChange}
             type="password"
             sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
           />
-          {/* Confirm New Password Field */}
+          {newPasswordError && (
+            <Typography color="error" variant="caption">
+              {newPasswordError}
+            </Typography>
+          )}
+
           <Field
             id="Confirm new password"
             label="Confirm new password"
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            onChange={handleConfirmPasswordChange}
             type="password"
             sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
           />
-          {/* Warning Alert */}
-          <Alert severity="warning">
-            New password must contain at least eight characters and must include
-            an uppercase letter, a number, and a symbol.
+          {confirmPasswordError && (
+            <Typography color="error" variant="caption">
+              {confirmPasswordError}
+            </Typography>
+          )}
+
+          <Alert severity="warning" sx={{ mb: 3 }}>
+            Password must contain at least eight characters and must include
+            an uppercase letter, a lowercase letter, a number, and a symbol.
           </Alert>
-          {/* Save Button */}
-          <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-            <Button
-              disableRipple
-              variant="contained"
-              sx={{
-                width: theme.spacing(80),
-                mb: theme.spacing(4),
-                backgroundColor: "#4c7de7",
-                color: "#fff",
-                position: "relative",
-                left: theme.spacing(200),
-                "&:hover": {
-                  backgroundColor: "#175CD3 ",
-                },
-              }}
-              onClick={handleSave}
-            >
-              Save
-            </Button>
-          </Box>
+
+          <Button
+            disableRipple
+            variant="contained"
+            sx={{
+              width: { xs: "100%", sm: theme.spacing(80) },
+              mb: theme.spacing(4),
+              backgroundColor: "#4c7de7",
+              color: "#fff",
+              "&:hover": {
+                backgroundColor: "#175CD3",
+              },
+            }}
+            onClick={() => setIsConfirmationModalOpen(true)}
+          >
+            Save
+          </Button>
         </Stack>
       </Box>
+
+      {/* Confirmation modal */}
+      <Dialog
+        open={isConfirmationModalOpen}
+        onClose={handleCloseConfirmationModal}
+      >
+        <DialogTitle>Update Password?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to update your password?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseConfirmationModal}>Cancel</Button>
+          <Button 
+            onClick={handleSave} 
+            color="primary"
+            aria-label="Save password changes"
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
 
-export default Index;
+export default PasswordForm;

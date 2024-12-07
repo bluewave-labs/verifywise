@@ -110,7 +110,23 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
         Upload a new file
       </Typography>
       {/* Drag-and-Drop Area */}
-      <DragDropArea>
+      <DragDropArea
+        sx={{
+          width: "100%",
+          padding: "16px",
+          border: "1px solid #e5e7eb",
+          borderRadius: "8px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          minHeight: "200px",
+          height:
+            uploadedFiles.length > 0
+              ? `${200 + uploadedFiles.length * 20}px`
+              : "200px", // Dynamically adjust height when files added
+          transition: "height 0.3s ease", // Smooth transition
+        }}
+      >
         <Icon
           src={UploadSmallIcon}
           alt="Upload Icon"
@@ -168,52 +184,52 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
         {/* Uploaded Files List */}
 
         {uploadedFiles.length > 0 ? (
-          <List
+          <Stack
             sx={{
               width: "100%",
-              maxHeight: "150px",
-              overflowY: "auto",
-              padding: 0,
+              flexGrow: 1,
               marginTop: "16px",
               borderTop: "1px solid #e5e7eb",
               paddingTop: "8px",
             }}
           >
-            {uploadedFiles.map((file,index) => (
-              <ListItem
-                key={`${file.name}-${index}`}
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  padding: "8px 0",
-                }}
-              >
-                <ListItemText
-                  primary={file.name}
-                  secondary={`Size: ${file.size}`}
+            <List>
+              {uploadedFiles.map((file, index) => (
+                <ListItem
+                  key={`${file.name}-${index}`}
                   sx={{
-                    "& .MuiListItemText-primary": { fontSize: "13px" },
-                    "& .MuiListItemText-secondary": {
-                      fontSize: "12px",
-                      color: "#6B7280",
-                    },
-                  }}
-                />
-                <IconButton
-                  edge="end"
-                  aria-label="delete"
-                  onClick={() => {
-                    uppy.removeFile(file.id);
-                    setUploadedFiles((prevFiles) =>
-                      prevFiles.filter((f) => f.id !== file.id)
-                    );
+                    display: "flex",
+                    justifyContent: "space-between",
+                    padding: "8px 0",
                   }}
                 >
-                  <DeleteIcon />
-                </IconButton>
-              </ListItem>
-            ))}
-          </List>
+                  <ListItemText
+                    primary={file.name}
+                    secondary={`Size: ${file.size}`}
+                    sx={{
+                      "& .MuiListItemText-primary": { fontSize: "13px" },
+                      "& .MuiListItemText-secondary": {
+                        fontSize: "12px",
+                        color: "#6B7280",
+                      },
+                    }}
+                  />
+                  <IconButton
+                    edge="end"
+                    aria-label="delete"
+                    onClick={() => {
+                      uppy.removeFile(file.id);
+                      setUploadedFiles((prevFiles) =>
+                        prevFiles.filter((f) => f.id !== file.id)
+                      );
+                    }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </ListItem>
+              ))}
+            </List>
+          </Stack>
         ) : (
           <Typography variant="caption" sx={{ color: "#6B7280" }}>
             No files uploaded yet.
@@ -222,9 +238,9 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
         {/* Supported Formats */}
       </DragDropArea>
       <Stack
-      direction="row"
-      justifyContent="space-between"
-      sx={{width:"100%"}}
+        direction="row"
+        justifyContent="space-between"
+        sx={{ width: "100%" }}
       >
         <Typography
           variant="caption"

@@ -139,6 +139,12 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
           onChange={(e) => {
             if (e.target.files) {
               Array.from(e.target.files).forEach((file) => {
+                //prevent duplicate files
+                const existingFile = uploadedFiles.find((f)=>f.name === file.name);
+                if(existingFile){
+                  console.warn(`File ${file.name} already exists`);
+                  return;
+                }
                 try {
                   uppy.addFile({
                     name: file.name,
@@ -149,6 +155,8 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
                   console.error("error uploading file:", error);
                 }
               });
+              //clear input to make sure next uploads trigger the onchange
+              e.target.value ="";
             }
           }}
         />

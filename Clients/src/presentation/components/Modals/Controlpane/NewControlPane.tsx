@@ -301,31 +301,10 @@ const NewControlPane = ({
           sx={{
             display: "flex",
             flexDirection: "row",
-            justifyContent: "space-between",
+            justifyContent: "flex-end",
             mt: 2,
           }}
         >
-          <Stack
-            gap={theme.spacing(4)}
-            sx={{ display: "flex", flexDirection: "row" }}
-          >
-            <Button
-              variant="contained"
-              onClick={() => console.log("Previous Subcontrol clicked")}
-              sx={buttonStyle}
-              disableRipple
-            >
-              &lt;- Previous Subcontrol
-            </Button>
-            <Button
-              variant="contained"
-              onClick={() => console.log("Next Subcontrol clicked")}
-              sx={buttonStyle}
-              disableRipple
-            >
-              Next Subcontrol -&gt;
-            </Button>
-          </Stack>
           <Button
             variant="contained"
             onClick={handleSave}

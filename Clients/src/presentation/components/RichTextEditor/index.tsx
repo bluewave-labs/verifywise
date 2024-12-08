@@ -14,14 +14,14 @@ interface RichTextEditorProps {
   onContentChange?: (content: string) => void;
   headerSx?: object;
   bodySx?: object;
-  initialContent?: string; // Add initialContent prop
+  initialContent?: string; // Add content prop
 }
 
 const RichTextEditor: React.FC<RichTextEditorProps> = ({
   onContentChange,
   headerSx,
   bodySx,
-  initialContent = "", // Default value for initialContent
+  initialContent = "", // Default value for content
 }) => {
   const [bulleted, setBulleted] = useState<boolean>(false);
   const [numbered, setNumbered] = useState<boolean>(false);

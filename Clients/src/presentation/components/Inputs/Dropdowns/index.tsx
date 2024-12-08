@@ -1,37 +1,48 @@
-import { Stack, Typography, useTheme } from "@mui/material";
-import { useState } from "react";
+import { Stack, Typography, useTheme, SelectChangeEvent } from "@mui/material";
 import Select from "../Select";
 import DatePicker from "../Datepicker";
 import Field from "../Field";
 import { Dayjs } from "dayjs";
 
-const DropDowns = () => {
-  const [status, setStatus] = useState<string | number>("");
-  const [approver, setApprover] = useState<string | number>("");
-  const [riskReview, setRiskReview] = useState<string | number>("");
-  const [owner, setOwner] = useState<string | number>("");
-  const [reviewer, setReviewer] = useState<string | number>("");
+interface State {
+  status: string | number;
+  approver: string | number;
+  riskReview: string | number;
+  owner: string | number;
+  reviewer: string | number;
+  description: string;
+  date: Dayjs | null;
+}
 
-  const [date, setDate] = useState<Dayjs | null>(null);
+const inputStyles = {
+  minWidth: 200,
+  maxWidth: 400,
+  flexGrow: 1,
+  height: 34,
+};
+
+const DropDowns = ({
+  elementId,
+  state,
+  setState,
+}: {
+  elementId: string;
+  state: State;
+  setState: (newState: Partial<State>) => void;
+}) => {
   const theme = useTheme();
 
-  const inputStyles = {
-    minWidth: 200,
-    maxWidth: 400,
-    flexGrow: 1,
-    height: 34,
-  };
+  const handleSelectChange =
+    (field: keyof State) => (event: SelectChangeEvent<string | number>) => {
+      setState({ [field]: event.target.value });
+    };
 
   const handleDateChange = (newDate: Dayjs | null) => {
-    setDate(newDate);
+    setState({ date: newDate });
   };
 
   return (
-    <Stack
-      style={{
-        gap: theme.spacing(8),
-      }}
-    >
+    <Stack style={{ gap: theme.spacing(8) }}>
       <Stack
         display="flex"
         flexDirection="row"
@@ -40,40 +51,43 @@ const DropDowns = () => {
         gap={theme.spacing(15)}
       >
         <Select
-          id="status"
+          id={`${elementId}-status`}
           label="Status:"
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
+          value={state.status}
+          onChange={handleSelectChange("status")}
           items={[
-            { _id: 10, name: "Waiting" },
-            { _id: 20, name: "In progress" },
-            { _id: 30, name: "Done" },
+            { _id: "Choose status", name: "Choose status" },
+            { _id: "Waiting", name: "Waiting" },
+            { _id: "In progress", name: "In progress" },
+            { _id: "Done", name: "Done" },
           ]}
           sx={inputStyles}
         />
 
         <Select
-          id="Approver"
+          id={`${elementId}-approver`}
           label="Approver:"
-          value={approver}
-          onChange={(e) => setApprover(e.target.value)}
+          value={state.approver}
+          onChange={handleSelectChange("approver")}
           items={[
-            { _id: 10, name: "Option 1" },
-            { _id: 20, name: "Option 2" },
-            { _id: 30, name: "Option 3" },
+            { _id: "Choose approver", name: "Choose approver" },
+            { _id: "Option 1", name: "Option 1" },
+            { _id: "Option 2", name: "Option 2" },
+            { _id: "Option 3", name: "Option 3" },
           ]}
           sx={inputStyles}
         />
 
         <Select
-          id="Risk review"
+          id={`${elementId}-riskReview`}
           label="Risk review:"
-          value={riskReview}
-          onChange={(e) => setRiskReview(e.target.value)}
+          value={state.riskReview}
+          onChange={handleSelectChange("riskReview")}
           items={[
-            { _id: 10, name: "Acceptable risk" },
-            { _id: 20, name: "Residual risk" },
-            { _id: 30, name: "Unacceptable risk" },
+            { _id: "Choose risk review", name: "Choose risk review" },
+            { _id: "Acceptable risk", name: "Acceptable risk" },
+            { _id: "Residual risk", name: "Residual risk" },
+            { _id: "Unacceptable risk", name: "Unacceptable risk" },
           ]}
           sx={inputStyles}
         />
@@ -88,27 +102,29 @@ const DropDowns = () => {
         gap={theme.spacing(15)}
       >
         <Select
-          id="Owner"
+          id={`${elementId}-owner`}
           label="Owner:"
-          value={owner}
-          onChange={(e) => setOwner(e.target.value)}
+          value={state.owner}
+          onChange={handleSelectChange("owner")}
           items={[
-            { _id: 10, name: "Option 1" },
-            { _id: 20, name: "Option 2" },
-            { _id: 30, name: "Option 3" },
+            { _id: "Choose owner", name: "Choose owner" },
+            { _id: "Option 1", name: "Option 1" },
+            { _id: "Option 2", name: "Option 2" },
+            { _id: "Option 3", name: "Option 3" },
           ]}
           sx={inputStyles}
         />
 
         <Select
-          id="Reviewer"
+          id={`${elementId}-reviewer`}
           label="Reviewer:"
-          value={reviewer}
-          onChange={(e) => setReviewer(e.target.value)}
+          value={state.reviewer}
+          onChange={handleSelectChange("reviewer")}
           items={[
-            { _id: 10, name: "Option 1" },
-            { _id: 20, name: "Option 2" },
-            { _id: 30, name: "Option 3" },
+            { _id: "Choose reviewer", name: "Choose reviewer" },
+            { _id: "Option 1", name: "Option 1" },
+            { _id: "Option 2", name: "Option 2" },
+            { _id: "Option 3", name: "Option 3" },
           ]}
           sx={inputStyles}
         />
@@ -116,7 +132,7 @@ const DropDowns = () => {
         <DatePicker
           label="Due date:"
           sx={inputStyles}
-          date={date} 
+          date={state.date}
           handleDateChange={handleDateChange}
         />
       </Stack>
@@ -137,7 +153,11 @@ const DropDowns = () => {
           marginBottom: theme.spacing(4),
         }}
       >
-        <Field type="description" />
+        <Field
+          type="description"
+          value={state.description}
+          onChange={(e) => setState({ description: e.target.value })}
+        />
       </Stack>
     </Stack>
   );

@@ -13,6 +13,37 @@ import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import DropDowns from "../../Inputs/Dropdowns";
 import { useState } from "react";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
+import { Dayjs } from "dayjs";
+
+interface SubControlState {
+  controlId: string;
+  subControlId: string;
+  subControlTitle: string;
+  subControlDescription: string;
+  status: string | number;
+  approver: string | number;
+  riskReview: string | number;
+  owner: string | number;
+  reviewer: string | number;
+  description: string;
+  date: Dayjs | null;
+  evidence: string;
+  feedback: string;
+}
+
+interface State {
+  controlId: string;
+  controlTitle: string;
+  controlDescription: string;
+  status: string | number;
+  approver: string | number;
+  riskReview: string | number;
+  owner: string | number;
+  reviewer: string | number;
+  description: string;
+  date: Dayjs | null;
+  subControls: SubControlState[];
+}
 
 const NewControlPane = ({
   id,
@@ -29,19 +60,42 @@ const NewControlPane = ({
   title: string;
   content: string;
   subControls: any[];
-  OnSave?: () => void;
+  OnSave?: (state: State) => void;
 }) => {
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
-  const [values, setValues] = useState({
-    controlVale: {
-      
-    },
-    subControlValues: {
-      
-    },
+
+  const initialSubControlState = subControls.map((subControl) => ({
+    controlId: id,
+    subControlId: subControl.id,
+    subControlTitle: subControl.title,
+    subControlDescription: subControl.description,
+    status: "Choose status", // Set default value
+    approver: "Choose approver", // Set default value
+    riskReview: "Acceptable risk", // Set default value
+    owner: "Choose owner", // Set default value
+    reviewer: "Choose reviewer", // Set default value
+    description: "",
+    date: null,
+    evidence: "",
+    feedback: "",
+  }));
+
+  const [state, setState] = useState<State>({
+    controlId: id,
+    controlTitle: title,
+    controlDescription: content,
+    status: "Choose status", // Set default value
+    approver: "Choose approver", // Set default value
+    riskReview: "Acceptable risk", // Set default value
+    owner: "Choose owner", // Set default value
+    reviewer: "Choose reviewer", // Set default value
+    description: "",
+    date: null,
+    subControls: initialSubControlState,
   });
+
   const handleSelectedTab = (_: React.SyntheticEvent, newValue: number) => {
     setSelectedTab(newValue);
   };
@@ -52,6 +106,17 @@ const NewControlPane = ({
 
   const handleSectionChange = (section: string) => {
     setActiveSection(section);
+  };
+
+  const handleSubControlStateChange = (
+    index: number,
+    newState: Partial<SubControlState>
+  ) => {
+    setState((prevState) => {
+      const updatedSubControls = [...prevState.subControls];
+      updatedSubControls[index] = { ...updatedSubControls[index], ...newState };
+      return { ...prevState, subControls: updatedSubControls };
+    });
   };
 
   const buttonTabStyles = {
@@ -80,6 +145,13 @@ const NewControlPane = ({
       boxShadow: "none",
       backgroundColor: "#175CD3 ",
     },
+  };
+
+  const handleSave = () => {
+    console.log(state);
+    if (OnSave) {
+      OnSave(state);
+    }
   };
 
   return (
@@ -124,7 +196,12 @@ const NewControlPane = ({
           <CloseIcon onClick={handleClose} style={{ cursor: "pointer" }} />
         </Stack>
         <Typography fontSize={13}>{content}</Typography>
-        <DropDowns />
+        <DropDowns
+          elementId={`control-${id}`}
+          state={state}
+          setState={(newState) => setState({ ...state, ...newState })}
+        />{" "}
+        {/* this is working fine */}
         <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
         <Box sx={{ width: "100%", bgcolor: "#FCFCFD" }}>
           <Tabs
@@ -188,11 +265,36 @@ const NewControlPane = ({
           </Typography>
           {activeSection === "Overview" && (
             <Typography>
-              <DropDowns />
+              <DropDowns
+                elementId={`sub-control-${id}.${subControls[selectedTab].subControlId}`}
+                state={state.subControls[selectedTab]}
+                setState={(newState) =>
+                  handleSubControlStateChange(selectedTab, newState)
+                }
+              />
             </Typography>
           )}
-          {["Evidence", "Auditor Feedback"].includes(activeSection) && (
-            <AuditorFeedback activeSection={activeSection} />
+          {activeSection === "Evidence" && (
+            <AuditorFeedback
+              activeSection={activeSection}
+              feedback={state.subControls[selectedTab].evidence}
+              onChange={(e) => {
+                const updatedSubControls = [...state.subControls];
+                updatedSubControls[selectedTab].evidence = e.target.value;
+                setState({ ...state, subControls: updatedSubControls });
+              }}
+            />
+          )}
+          {activeSection === "Auditor Feedback" && (
+            <AuditorFeedback
+              activeSection={activeSection}
+              feedback={state.subControls[selectedTab].feedback}
+              onChange={(e) => {
+                const updatedSubControls = [...state.subControls];
+                updatedSubControls[selectedTab].feedback = e.target.value;
+                setState({ ...state, subControls: updatedSubControls });
+              }}
+            />
           )}
         </Box>
         <Stack
@@ -226,7 +328,7 @@ const NewControlPane = ({
           </Stack>
           <Button
             variant="contained"
-            onClick={OnSave}
+            onClick={handleSave}
             sx={{
               ...buttonStyle,
               width: 68,

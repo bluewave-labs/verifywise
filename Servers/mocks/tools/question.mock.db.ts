@@ -8,9 +8,17 @@ export const getMockQuestionById = (id: number): object | undefined => {
   return questions.find((question) => question.id === id);
 };
 
-export const createMockQuestion = (newQuestion: any): object => {
-  questions.push(newQuestion);
-  return newQuestion;
+export const createMockQuestion = (
+  subtopicId: number,
+  newQuestion: any
+): object => {
+  const questionToSave = {
+    id: questions.length + 1,
+    subtopicId: subtopicId,
+    ...newQuestion,
+  };
+  questions.push(questionToSave);
+  return questionToSave;
 };
 
 export const updateMockQuestionById = (

@@ -104,7 +104,10 @@ export async function createQuestion(
     }
 
     if (MOCKDATA_ON === true) {
-      const createdQuestion = createMockQuestion(newQuestion);
+      const createdQuestion = createMockQuestion(
+        newQuestion.subtopicId,
+        newQuestion
+      );
 
       if (createdQuestion) {
         return res.status(201).json(STATUS_CODE[201](createdQuestion));
@@ -112,7 +115,10 @@ export async function createQuestion(
 
       return res.status(503).json(STATUS_CODE[503]({}));
     } else {
-      const createdQuestion = await createNewQuestionQuery(newQuestion, req.files!);
+      const createdQuestion = await createNewQuestionQuery(
+        newQuestion,
+        req.files!
+      );
 
       if (createdQuestion) {
         return res.status(201).json(STATUS_CODE[201](createdQuestion));

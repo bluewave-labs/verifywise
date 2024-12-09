@@ -42,30 +42,33 @@ const AllAssessment = () => {
   const [assessmentsValues, setAssessmentsValue] = useState<
     Record<number, AssessmentValue>
   >({
-    1: { topic: "RiskManagementSystem", subtopic: [] },
-    2: { topic: "DataGovernance", subtopic: [] },
-    3: { topic: "TechnicalDocumentation", subtopic: [] },
-    4: { topic: "RecordKeeping", subtopic: [] },
-    5: { topic: "TransparencyAndUserInformation", subtopic: [] },
-    6: { topic: "HumanOversight", subtopic: [] },
-    7: { topic: "AccuracyRobustnessCyberSecurity", subtopic: [] },
-    8: { topic: "ConformityAssessment", subtopic: [] },
-    9: { topic: "PostMarketMonitoring", subtopic: [] },
-    10: { topic: "BiasMonitoringAndMitigation", subtopic: [] },
-    11: { topic: "AccountabilityAndGovernance", subtopic: [] },
+    1: { topic: "Risk Management System", subtopic: [] },
+    2: { topic: "Data Governance", subtopic: [] },
+    3: { topic: "Technical Documentation", subtopic: [] },
+    4: { topic: "Record Keeping", subtopic: [] },
+    5: { topic: "Transparency and User Information", subtopic: [] },
+    6: { topic: "Human Oversight", subtopic: [] },
+    7: { topic: "Accuracy, Robustness, Cyber Security", subtopic: [] },
+    8: { topic: "Conformity Assessment", subtopic: [] },
+    9: { topic: "Post Market Monitoring", subtopic: [] },
+    10: { topic: "Bias Monitoring and Mitigation", subtopic: [] },
+    11: { topic: "Accountability and Governance", subtopic: [] },
     12: { topic: "Explainability", subtopic: [] },
-    13: { topic: "EnvironmentalImpact", subtopic: [] },
+    13: { topic: "Environmental Impact", subtopic: [] },
   });
 
-  const [allQuestionsToCheck, setAllQuestionsToCheck] = useState<
-    { title: string }[]>([]);
+  const [_, setAllQuestionsToCheck] = useState<{ title: string }[]>([]);
 
   const [alert, setAlert] = useState<{ show: boolean; message: string }>({
     show: false,
     message: "",
   });
 
-  const handleSave = async () => {
+  const handleSave = async (topicToSave: number) => {
+    /*
+    
+    This part will remain commented for now, as it is not needed for the current implementation
+
     const unansweredRequiredQuestions = allQuestionsToCheck.filter(
       (question) =>
         !Object.values(assessmentsValues).some((assessment) =>
@@ -84,9 +87,15 @@ const AllAssessment = () => {
       });
       return;
     }
+    */
+
+    const assessmentToSave = assessmentsValues[topicToSave];
 
     try {
-      const response = await apiServices.post("/topics", assessmentsValues);
+      const response = await apiServices.post(
+        "/assessments/saveAnswers",
+        assessmentToSave
+      );
       console.log("Assessments saved successfully:", response);
     } catch (error) {
       console.error("Error saving assessments:", error);
@@ -290,7 +299,8 @@ const AllAssessment = () => {
               disableRipple={
                 theme.components?.MuiButton?.defaultProps?.disableRipple
               }
-            onClick={()=>navigate("/playground")}> 
+              onClick={() => navigate("/playground")}
+            >
               Add evidence
             </Button>
             <Typography
@@ -326,7 +336,7 @@ const AllAssessment = () => {
     setAllQuestionsToCheck(allQuestions);
   }, [assessments]);
 
-  console.log("All Questions List:", allQuestionsToCheck); // Log the all questions list
+  // console.log("All Questions List:", allQuestionsToCheck); // Log the all questions list
 
   return (
     <Box sx={{ display: "flex", height: "100vh", px: "8px !important" }}>
@@ -396,9 +406,10 @@ const AllAssessment = () => {
                 backgroundColor: "#175CD3 ",
               },
             }}
-            onClick={() => handleSave()}
+            onClick={() => handleSave(Topics[activeTab].id)}
           >
             Save
+            {/* {Topics[activeTab].title} */}
           </Button>
         </Stack>
       </Stack>

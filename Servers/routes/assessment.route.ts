@@ -6,6 +6,7 @@ import {
   deleteAssessmentById,
   getAllAssessments,
   getAssessmentById,
+  saveAnswers,
   updateAssessmentById,
 } from "../controllers/assessment.ctrl";
 
@@ -15,9 +16,14 @@ import authenticateJWT from "../middleware/auth.middleware";
 router.get("/", /*authenticateJWT, */ getAllAssessments);
 router.get("/:id", /*authenticateJWT, */ getAssessmentById);
 
-// POST, PUT, DELETE requests
+// POSTs
 router.post("/", /*authenticateJWT, */ createAssessment);
+router.post("/saveAnswers", /*authenticateJWT, */ saveAnswers);
+
+// PUTs
 router.put("/:id", /*authenticateJWT, */ updateAssessmentById);
+
+// DELETEs
 router.delete("/:id", /*authenticateJWT, */ deleteAssessmentById);
 
 export default router;

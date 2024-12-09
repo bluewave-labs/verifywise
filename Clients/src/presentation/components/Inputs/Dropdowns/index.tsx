@@ -1,9 +1,17 @@
-import { Stack, Typography, useTheme } from "@mui/material";
-import { useState } from "react";
+import { Stack, Typography, useTheme, SelectChangeEvent } from "@mui/material";
+import { useEffect, useState } from "react";
 import Select from "../Select";
 import DatePicker from "../Datepicker";
 import Field from "../Field";
 import { Dayjs } from "dayjs";
+import { getAllEntities } from "../../../../application/repository/entity.repository";
+
+// Add interface for user type
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
 
 const DropDowns = () => {
   const [status, setStatus] = useState<string | number>("");
@@ -24,6 +32,25 @@ const DropDowns = () => {
 
   const handleDateChange = (newDate: Dayjs | null) => {
     setDate(newDate);
+  };
+
+  const [users, setUsers] = useState<User[]>([]);
+  
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const response = await getAllEntities({ routeUrl: "/users" });
+      setUsers(response.data);
+    };
+    fetchUsers();
+  }, []);
+  console.log("🚀 ~ DropDowns ~ usersssssssssss:", users)
+
+  const handleChange = (e: SelectChangeEvent<string | number>) => {
+    const selectedValue = e.target.value;
+    console.log("Selected value:", selectedValue);
+    const selectedUser = users.find(user => user.id === selectedValue);
+    console.log("Selected user:", selectedUser);
+    setApprover(selectedValue);
   };
 
   return (
@@ -55,13 +82,12 @@ const DropDowns = () => {
         <Select
           id="Approver"
           label="Approver:"
-          value={approver}
-          onChange={(e) => setApprover(e.target.value)}
-          items={[
-            { _id: 10, name: "Option 1" },
-            { _id: 20, name: "Option 2" },
-            { _id: 30, name: "Option 3" },
-          ]}
+          value={approver || ""}
+          onChange={handleChange}
+          items={users.map(user => ({ 
+            _id: user.id,
+            name: user.name 
+          }))}
           sx={inputStyles}
         />
 
@@ -92,11 +118,7 @@ const DropDowns = () => {
           label="Owner:"
           value={owner}
           onChange={(e) => setOwner(e.target.value)}
-          items={[
-            { _id: 10, name: "Option 1" },
-            { _id: 20, name: "Option 2" },
-            { _id: 30, name: "Option 3" },
-          ]}
+          items={users.map(user => ({ _id: user.id, name: user.name }))}
           sx={inputStyles}
         />
 
@@ -105,11 +127,7 @@ const DropDowns = () => {
           label="Reviewer:"
           value={reviewer}
           onChange={(e) => setReviewer(e.target.value)}
-          items={[
-            { _id: 10, name: "Option 1" },
-            { _id: 20, name: "Option 2" },
-            { _id: 30, name: "Option 3" },
-          ]}
+          items={users.map(user => ({ _id: user.id, name: user.name }))}
           sx={inputStyles}
         />
 

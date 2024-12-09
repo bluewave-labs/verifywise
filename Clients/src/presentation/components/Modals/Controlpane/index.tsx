@@ -44,7 +44,6 @@ const CustomModal: React.FC<CustomModalProps> = ({
   const [activeSection, setActiveSection] = useState<string>("Overview");
   const [responseMessage, setResponseMessage] = useState<string | null>(null);
 
-  const subControlNumber = 332322;
   const handleClose = () => setIsOpen(false);
 
   const handleSelectedTab = (_: React.SyntheticEvent, newValue: number) => {

@@ -16,6 +16,9 @@ import {
   getAssessmentByIdQuery,
   updateAssessmentByIdQuery,
 } from "../utils/assessment.utils";
+import { createNewQuestionQuery, RequestWithFile } from "../utils/question.utils";
+import { createNewTopicQuery } from "../utils/topic.utils";
+import { createNewSubtopicQuery } from "../utils/subtopic.utils";
 
 export async function getAllAssessments(
   req: Request,
@@ -74,21 +77,29 @@ export async function getAssessmentById(
 }
 
 export async function createAssessment(
-  req: Request,
+  req: RequestWithFile,
   res: Response
 ): Promise<any> {
   try {
     const newAssessment: {
       projectId: number;
-    } = req.body;
-
-    if (!newAssessment.projectId) {
-      return res.status(400).json(
-        STATUS_CODE[400]({
-          message: "projectId is required",
-        })
-      );
-    }
+      title: string;
+      subTopics: {
+        id: number;
+        title: string;
+        questions: {
+          id: number;
+          question: string;
+          hint: string;
+          priorityLevel: string;
+          answerType: string;
+          inputType: string;
+          isRequired: boolean;
+          evidenceFileRequired: boolean;
+          evidenceFile: string;
+        }[];
+      }[];
+    }[] = req.body;
 
     if (MOCKDATA_ON === true) {
       const createdAssessment = createMockAssessment(newAssessment);
@@ -99,13 +110,61 @@ export async function createAssessment(
 
       return res.status(503).json(STATUS_CODE[503]({}));
     } else {
-      const createdAssessment = await createNewAssessmentQuery(newAssessment);
-
-      if (createdAssessment) {
-        return res.status(201).json(STATUS_CODE[201](createdAssessment));
+      let flag = true;
+      mainLoop: for (const topicGroup of newAssessment) {
+        if (!topicGroup.projectId) {
+          flag = false;
+          break mainLoop;
+        }
+        const assessment = await createNewAssessmentQuery({
+          projectId: topicGroup.projectId,
+        });
+        const assessmentId = assessment.id;
+        const newTopic = await createNewTopicQuery({
+          assessmentId,
+          title: topicGroup.title,
+        });
+        if (!newTopic) {
+          flag = false;
+          break mainLoop;
+        }
+        const newTopicId = newTopic.id;
+        for (const topic of topicGroup.subTopics) {
+          const newSubTopic = await createNewSubtopicQuery({
+            topicId: newTopicId,
+            name: topic.title,
+          });
+          if (!newSubTopic) {
+            flag = false;
+            break mainLoop;
+          }
+          const newSubTopicId = newSubTopic.topicId;
+          for (const question of topic.questions) {
+            const newQuestion = await createNewQuestionQuery(
+              {
+                subtopicId: newSubTopicId,
+                questionText: question.question,
+                answerType: question.answerType,
+                evidenceFileRequired: question.evidenceFileRequired,
+                hint: question.hint,
+                isRequired: question.isRequired,
+                priorityLevel: question.priorityLevel,
+              },
+              req.files!
+            );
+            if (!newQuestion) {
+              flag = false;
+              break mainLoop;
+            }
+          }
+        }
       }
 
-      return res.status(503).json(STATUS_CODE[503]({}));
+      if (flag) {
+        return res.status(201).json(STATUS_CODE[201]({}));
+      }
+
+      return res.status(204).json(STATUS_CODE[204]({}));
     }
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

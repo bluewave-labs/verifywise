@@ -1,5 +1,5 @@
 import { Button, Stack, Typography, useTheme } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Check from "../../../components/Checks";
 import Field from "../../../components/Inputs/Field";
@@ -7,25 +7,9 @@ import Field from "../../../components/Inputs/Field";
 import { ReactComponent as LeftArrowLong } from "../../../assets/icons/left-arrow-long.svg";
 import { ReactComponent as Lock } from "../../../assets/icons/lock.svg";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import { useNavigate } from "react-router-dom";
-
-// Define the shape of form values
-interface FormValues {
-  password: string;
-  confirmPassword: string;
-}
-
-interface FormErrors {
-  password?: string;
-  confirmPassword?: string;
-}
-
-// Define the shape for password validation checks
-interface PasswordChecks {
-  length: boolean;
-  specialChar: boolean;
-}
+import { validatePassword, validateForm } from "../../../../application/validations/formValidation";
+import type { FormValues, FormErrors } from "../../../../application/validations/formValidation";
 
 // Initial state for form values
 const initialState: FormValues = {
@@ -39,11 +23,8 @@ const SetNewPassword: React.FC = () => {
   const [values, setValues] = useState<FormValues>(initialState);
   // State for form errors
   const [errors, setErrors] = useState<FormErrors>({});
-  // State for password validation checks
-  const [passwordChecks, setPasswordChecks] = useState<PasswordChecks>({
-    length: false,
-    specialChar: false,
-  });
+  // Password checks based on the password input
+  const passwordChecks = validatePassword(values);
 
   // Handle input field changes
   const handleChange =
@@ -53,53 +34,18 @@ const SetNewPassword: React.FC = () => {
       setErrors({ ...errors, [prop]: "" });
     };
 
-  // Effect to update password checks based on the password input
-  useEffect(() => {
-    setPasswordChecks({
-      length: values.password.length >= 8,
-      specialChar: /[!@#$%^&*(),.?":{}|<>]/.test(values.password),
-    });
-  }, [values.password]);
-
-  // Function to validate the entire form
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    // Validate password
-    const password = checkStringValidation(
-      "Password",
-      values.password,
-      8,
-      16,
-      true,
-      true,
-      true,
-      true,
-      "password"
-    );
-    if (!password.accepted) {
-      newErrors.password = password.message;
-    }
-
-    // Confirm password validation
-    if (values.password !== values.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
-    }
-
-    // Update state with any new errors
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0; // Return true if no errors exist
-  };
 
   // Handle form submission
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (validateForm()) {
+    const { isFormValid, errors } = validateForm(values);
+    if (!isFormValid) {
+      setErrors(errors);
+    } else {
       console.log("Form submitted:", values);
       // Reset form after successful submission
       setValues(initialState);
       setErrors({});
-      setPasswordChecks({ length: false, specialChar: false });
     }
   };
 

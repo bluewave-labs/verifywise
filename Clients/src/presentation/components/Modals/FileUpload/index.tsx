@@ -12,15 +12,17 @@ import FileUploadComponent from "../../FileUpload";
 import { FileUploadProps } from "../../FileUpload/types";
 
 /**
- * FileUpload component allows users to upload a file by either clicking a button or dragging and dropping a file.
- * It displays the uploaded file name or an error message if the upload fails.
+ * File Upload Modal: A modal wrapper for the file upload component
+ * 
  *
  * @component
- * @returns {JSX.Element} The rendered FileUpload component.
+ * @param {boolean} open - determines if the modal is open
+ * @param {function} onClose - function to close modal 
+ * @param {FileUploadProps} uploadProps - props for the file upload component
  */
 
 interface FileUploadModalProps {
-  //set props and removed FC
+  //set props 
   open: boolean;
   onClose: () => void;
   uploadProps: FileUploadProps;
@@ -59,9 +61,11 @@ const FileUploadModal: React.FC<FileUploadModalProps> = ({
         flexDirection:"column",
         alignItems:"center",
         justifyContent:"center",
+        padding:"16px",
       }}
       >
-        <FileUploadComponent {...uploadProps} onStart={handleUploadStart} 
+        <FileUploadComponent {...uploadProps} 
+        onStart={handleUploadStart} 
         onError={handleUploadError}
         onSuccess={handleUploadSuccess}/>
       </DialogContent>

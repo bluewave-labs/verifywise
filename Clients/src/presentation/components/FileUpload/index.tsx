@@ -15,7 +15,7 @@ import { DragDrop } from "@uppy/react";
 import UploadSmallIcon from "../../assets/icons/folder-upload.svg";
 import { FileUploadProps } from "./types";
 import { useDispatch } from "react-redux";
-import { addFile } from "../../../application/redux/slices/fileSlice";
+import { addFile, removeFile as removeFileFromRedux } from "../../../application/redux/slices/fileSlice";
 
 const FileUploadComponent: React.FC<FileUploadProps> = ({
   onSuccess,
@@ -101,6 +101,13 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
         },
       ];
     });
+  };
+
+  //file removal logic
+  const handleRemoveFile = (fileId:string) =>{
+    uppy.removeFile(fileId);
+    setUploadedFiles((prevFiles)=>prevFiles.filter((file) => file.id !== fileId));
+    dispatch(removeFileFromRedux(fileId));
   };
 
   const handleUploadSuccess = (file: any, response: any) => {
@@ -219,7 +226,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
                   />
 
                   <IconButton
-                    onClick={() => uppy.removeFile(file.id)}
+                    onClick={() => handleRemoveFile(file.id)}
                     edge="end"
                   >
                     <DeleteIcon />

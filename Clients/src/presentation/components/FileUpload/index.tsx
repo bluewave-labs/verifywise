@@ -8,24 +8,17 @@ import {
   Button,
   Stack,
 } from "@mui/material";
-import {  Container, DragDropArea, Icon } from "./FileUpload.styles";
+import { Container, DragDropArea, Icon } from "./FileUpload.styles";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { createUppyInstance } from "./uppyConfig";
-import {
-  handleUploadSuccess,
-  handleUploadError,
-  handleUploadProgress,
-  uploadToLocalStorage,
-} from "./eventHandlers";
 import { DragDrop } from "@uppy/react";
 import UploadSmallIcon from "../../assets/icons/folder-upload.svg";
-import { FileUploadProps } from "./types";
 
-const FileUploadComponent: React.FC<FileUploadProps> = ({
-  onSuccess,
-  onError,
-  onProgress,
-}) => {
+import { useDispatch } from "react-redux";
+import { addFile } from "../../../application/redux/slices/fileSlice";
+
+const FileUploadComponent: React.FC = () => {
+  const dispatch = useDispatch();
   //local state to display uploaded files in uppy dashboard
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
 
@@ -42,6 +35,38 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
     []
   );
 
+  //local storage
+  const uploadToLocalStorage = () => {
+    if (!uploadedFiles.length) {
+      alert("no files to upload");
+      return;
+    }
+    uploadedFiles.forEach((file) => {
+      if (!(file.data instanceof Blob)) {
+        console.error(`file data is not a Blob for file: ${file.name}`);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64Data = reader.result;
+        localStorage.setItem(
+          file.id,
+          JSON.stringify({
+            name: file.name,
+            type: file.type,
+            data: base64Data,
+          })
+        );
+        console.log(`File ${file.name} saved to local storage`);
+      };
+      reader.onerror = (error) => {
+        console.error(`error reading file: ${file.name}:`, error);
+      };
+      reader.readAsDataURL(file.data);
+    });
+    alert("File added to local storage successfully");
+  };
+
   React.useEffect(() => {
     const handleFileAdded = (file: any) => {
       console.log("File added:", file);
@@ -49,7 +74,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
       if (!file) {
         console.error("File is undefined in file-added event");
         return;
-      } 
+      }
       // Prevent duplicate files by checking against uploadedFiles
       setUploadedFiles((prevFiles) => {
         const fileExists = prevFiles.some((f) => f.id === file.id);
@@ -72,6 +97,49 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
       });
     };
 
+    const handleUploadSuccess = (file: any, response: any) => {
+      if (!file) {
+        console.error("File is undefined in upload success event");
+        return;
+      }
+      console.log("Upload success:", { file, response });
+
+      //change redux state
+      const newFile = {
+        id: file.id,
+        name: file.name,
+        type: file.type,
+        uploadDate: new Date().toISOString(),
+        uploader: "placeholder user",
+      };
+      dispatch(addFile(newFile));
+
+      //change local state
+      setUploadedFiles((prevFiles) => {
+        const fileExists = prevFiles.some((f) => f.id === file.id);
+        if (fileExists) {
+          console.warn(`file ${file.name} already exists`);
+          return prevFiles;
+        }
+        return [
+          ...prevFiles,
+          {
+            id: file.id,
+            name: file.name,
+            size: file.size
+              ? `${(file.size / 1024).toFixed(2)} MB`
+              : "unknown size",
+            status: "Queued",
+            data: file.data,
+          },
+        ];
+      });
+    };
+
+    const handleUploadError = (file: any, error: any) => {
+      console.error("Upload error:", file, error);
+    };
+
     const handleFileRemoved = (file: any) => {
       console.log("File removed:", file);
 
@@ -81,19 +149,19 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
     };
 
     uppy.on("file-added", handleFileAdded);
-    uppy.on("upload-success", handleUploadSuccess(onSuccess));
-    uppy.on("upload-error", handleUploadError(onError));
-    uppy.on("upload-progress", handleUploadProgress(onProgress));
+    uppy.on("upload-success", handleUploadSuccess);
+    uppy.on("upload-error", handleUploadError);
     uppy.on("file-removed", handleFileRemoved);
 
     return () => {
       uppy.off("file-added", handleFileAdded);
-      uppy.off("upload-success", handleUploadSuccess(onSuccess));
-      uppy.off("upload-error", handleUploadError(onError));
-      uppy.off("upload-progress", handleUploadProgress(onProgress));
+      uppy.off("upload-success", handleUploadSuccess);
+      uppy.off("upload-error", handleUploadError);
+
       uppy.off("file-removed", handleFileRemoved);
+      uppy.cancelAll();
     };
-  }, [uppy, onSuccess, onError, onProgress, uploadedFiles]);
+  }, [uppy, dispatch]);
 
   return (
     <Container>
@@ -140,8 +208,10 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
             if (e.target.files) {
               Array.from(e.target.files).forEach((file) => {
                 //prevent duplicate files
-                const existingFile = uploadedFiles.find((f)=>f.name === file.name);
-                if(existingFile){
+                const existingFile = uploadedFiles.find(
+                  (f) => f.name === file.name
+                );
+                if (existingFile) {
                   console.warn(`File ${file.name} already exists`);
                   return;
                 }
@@ -156,7 +226,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
                 }
               });
               //clear input to make sure next uploads trigger the onchange
-              e.target.value ="";
+              e.target.value = "";
             }
           }}
         />
@@ -265,7 +335,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
             backgroundColor: "#3B82F6",
             textTransform: "none",
           }}
-          onClick={() => uploadToLocalStorage(uppy)}
+          onClick={() => uploadToLocalStorage}
         >
           Upload
         </Button>

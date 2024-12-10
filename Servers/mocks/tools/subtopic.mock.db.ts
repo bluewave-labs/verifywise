@@ -9,9 +9,17 @@ export const getMockSubtopicById = (id: number): object | undefined => {
   return subtopics.find((subtopic: Subtopic) => subtopic.id === id);
 };
 
-export const createMockSubtopic = (newSubtopic: any): object => {
-  subtopics.push(newSubtopic);
-  return newSubtopic;
+export const createMockSubtopic = (
+  topicId: number,
+  newSubtopic: any
+): object => {
+  const subtopicToSave = {
+    id: subtopics.length + 1,
+    topicId: topicId,
+    name: newSubtopic,
+  };
+  subtopics.push(subtopicToSave);
+  return subtopicToSave;
 };
 
 export const updateMockSubtopicById = (

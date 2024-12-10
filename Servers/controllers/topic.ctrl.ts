@@ -16,7 +16,10 @@ import {
   getTopicByIdQuery,
   updateTopicByIdQuery,
 } from "../utils/topic.utils";
-import { createNewQuestionQuery, RequestWithFile } from "../utils/question.utils";
+import {
+  createNewQuestionQuery,
+  RequestWithFile,
+} from "../utils/question.utils";
 import { createNewSubtopicQuery } from "../utils/subtopic.utils";
 
 export async function getAllTopics(req: Request, res: Response): Promise<any> {
@@ -91,18 +94,22 @@ export async function createNewTopic(
           isRequired: boolean;
           evidenceFileRequired: boolean;
           evidenceFile: string;
+          answer: string;
         }[];
       }[];
     }[] = req.body;
 
     if (MOCKDATA_ON === true) {
-      // const topic = createMockTopic(newTopic);
+      const topic = createMockTopic(
+        newTopic[0].assessmentId,
+        newTopic[0].title
+      );
 
-      // if (topic) {
-      //   return res.status(201).json(STATUS_CODE[201](topic));
-      // }
+      if (topic) {
+        return res.status(201).json(STATUS_CODE[201](topic));
+      }
 
-      // return res.status(204).json(STATUS_CODE[204](topic));
+      return res.status(204).json(STATUS_CODE[204](topic));
     } else {
       let flag = true;
       mainLoop: for (const topicGroup of newTopic) {
@@ -136,6 +143,7 @@ export async function createNewTopic(
                 hint: question.hint,
                 isRequired: question.isRequired,
                 priorityLevel: question.priorityLevel,
+                answer: question.answer,
               },
               req.files!
             );

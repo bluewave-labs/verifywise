@@ -1,38 +1,15 @@
 import { Button, Stack, Typography, useTheme } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Check from "../../../components/Checks";
 import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import { useNavigate } from "react-router-dom";
 import { createNewUser } from "../../../../application/repository/entity.repository";
 import Alert from "../../../components/Alert";
 import { logEngine } from "../../../../application/tools/log.engine";
-
-// Define the shape of form values
-interface FormValues {
-  name: string;
-  surname: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-}
-
-// Define the shape of form errors
-interface FormErrors {
-  name?: string;
-  surname?: string;
-  email?: string;
-  password?: string;
-  confirmPassword?: string;
-}
-
-// Define the shape for password validation checks
-interface PasswordChecks {
-  length: boolean;
-  specialChar: boolean;
-}
+import { validatePassword, validateForm } from "../../../../application/validations/formValidation";
+import type { FormValues, FormErrors } from "../../../../application/validations/formValidation";
 
 // Initial state for form values
 const initialState: FormValues = {
@@ -49,11 +26,6 @@ const RegisterAdmin: React.FC = () => {
   const [values, setValues] = useState<FormValues>(initialState);
   // State for form errors
   const [errors, setErrors] = useState<FormErrors>({});
-  // State for password validation checks
-  const [passwordChecks, setPasswordChecks] = useState<PasswordChecks>({
-    length: false,
-    specialChar: false,
-  });
   // State for alert
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -61,78 +33,14 @@ const RegisterAdmin: React.FC = () => {
     body: string;
   } | null>(null);
 
+  const passwordChecks = validatePassword(values);
+
   // Handle input field changes
   const handleChange =
     (prop: keyof FormValues) =>
     (event: React.ChangeEvent<HTMLInputElement>) => {
       setValues({ ...values, [prop]: event.target.value });
       setErrors({ ...errors, [prop]: "" }); // Clear error for the specific field
-    };
-
-  // Effect to update password checks based on the password input
-  useEffect(() => {
-    setPasswordChecks({
-      length: values.password.length >= 8,
-      specialChar: /[!@#$%^&*(),.?":{}|<>]/.test(values.password),
-    });
-  }, [values.password]);
-
-  // Function to validate the entire form
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    // Validate name
-    const name = checkStringValidation("Name", values.name, 3, 50);
-    if (!name.accepted) {
-      newErrors.name = name.message;
-    }
-
-    // Validate surname
-    const surname = checkStringValidation("Surname", values.surname, 3, 50);
-    if (!surname.accepted) {
-      newErrors.surname = surname.message;
-    }
-
-    // Validate email
-    const email = checkStringValidation(
-      "Email",
-      values.email,
-      0,
-      128,
-      false,
-      false,
-      false,
-      false,
-      "email"
-    );
-    if (!email.accepted) {
-      newErrors.email = email.message;
-    }
-
-    // Validate password
-    const password = checkStringValidation(
-      "Password",
-      values.password,
-      8,
-      16,
-      true,
-      true,
-      true,
-      true,
-      "password"
-    );
-    if (!password.accepted) {
-      newErrors.password = password.message;
-    }
-
-    // Confirm password validation
-    if (values.password !== values.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
-    }
-
-    // Update state with any new errors
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0; // Return true if no errors exist
   };
 
   // Handle form submission
@@ -140,11 +48,14 @@ const RegisterAdmin: React.FC = () => {
     event.preventDefault();
     const user = {
       id: "At register level as admin", // Replace with actual user ID
-      email: values.email, // Replace with actual user email
-      firstname: values.name, // Replace with actual user first name
-      lastname: values.surname, // Replace with actual user last name
+      email: values.email ?? "", // Replace with actual user email
+      firstname: values.name ?? "", // Replace with actual user first name
+      lastname: values.surname ?? "", // Replace with actual user last name
     };
-    if (validateForm()) {
+    const { isFormValid, errors } = validateForm(values);
+    if (!isFormValid) {
+      setErrors(errors);
+    } else {
       await createNewUser({
         routeUrl: "/users/register",
         body: values,
@@ -153,7 +64,6 @@ const RegisterAdmin: React.FC = () => {
           // Reset form after successful submission
           setValues(initialState);
           setErrors({});
-          setPasswordChecks({ length: false, specialChar: false });
           if (response.status === 201) {
             setAlert({
               variant: "success",

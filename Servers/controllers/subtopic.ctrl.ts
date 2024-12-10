@@ -79,7 +79,7 @@ export async function createNewSubtopic(
 ): Promise<any> {
   try {
     if (MOCKDATA_ON === true) {
-      const subtopic = createMockSubtopic(req.body);
+      const subtopic = createMockSubtopic(req.body.topicId, req.body.name);
 
       if (subtopic) {
         return res.status(200).json(STATUS_CODE[200](subtopic));

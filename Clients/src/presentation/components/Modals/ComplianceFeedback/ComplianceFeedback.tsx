@@ -8,9 +8,15 @@ import { ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from "../constants";
 
 interface AuditorFeedbackProps {
   activeSection?: string;
+  feedback: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({ activeSection }) => {
+const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
+  activeSection,
+  feedback,
+  onChange,
+}) => {
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState<boolean>(false);
@@ -40,7 +46,9 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({ activeSection }) => {
   };
 
   const handleContentChange = (content: string) => {
-    console.log("Updated content: ", content);
+    onChange({
+      target: { value: content },
+    } as React.ChangeEvent<HTMLInputElement>);
   };
 
   const closeErrorModal = () => {
@@ -49,14 +57,18 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({ activeSection }) => {
 
   return (
     <Box sx={{ width: "100%", padding: 2 }}>
-      {activeSection && 
-      <>
-      <Typography sx={{ mb: 2 }}>
-        {activeSection === "Evidence" ? "Evidence:" : "Feedback:"}
-      </Typography>
+      {activeSection && (
+        <>
+          <Typography sx={{ mb: 2 }}>
+            {activeSection === "Evidence" ? "Evidence:" : "Feedback:"}
+          </Typography>
 
-      <RichTextEditor onContentChange={handleContentChange} />
-      </>}
+          <RichTextEditor
+            initialContent={feedback}
+            onContentChange={handleContentChange}
+          />
+        </>
+      )}
 
       <Box
         sx={{

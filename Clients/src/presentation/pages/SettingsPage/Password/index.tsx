@@ -1,16 +1,16 @@
 import React, { useState, useCallback } from "react";
-import { 
-  useTheme, 
-  Alert, 
-  Box, 
-  Button, 
+import {
+  useTheme,
+  Alert,
+  Box,
+  Button,
   Stack,
   Dialog,
   DialogActions,
   DialogTitle,
   DialogContent,
   DialogContentText,
-  Typography 
+  Typography,
 } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
@@ -26,12 +26,17 @@ const PasswordForm: React.FC = () => {
   const [newPassword, setNewPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
 
-  const [currentPasswordError, setCurrentPasswordError] = useState<string | null>(null);
+  const [currentPasswordError, setCurrentPasswordError] = useState<
+    string | null
+  >(null);
   const [newPasswordError, setNewPasswordError] = useState<string | null>(null);
-  const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
+  const [confirmPasswordError, setConfirmPasswordError] = useState<
+    string | null
+  >(null);
 
-  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState<boolean>(false);
-  const [loading, setLoading] = useState(false);
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] =
+    useState<boolean>(false);
+  const [loading, _] = useState(false);
 
   // Handle current password validation
   const handleCurrentPasswordChange = useCallback(
@@ -47,7 +52,7 @@ const PasswordForm: React.FC = () => {
         true, // hasUpperCase
         true, // hasLowerCase
         true, // hasNumber
-        true  // hasSpecialCharacter
+        true // hasSpecialCharacter
       );
       setCurrentPasswordError(validation.accepted ? null : validation.message);
     },
@@ -101,7 +106,7 @@ const PasswordForm: React.FC = () => {
             id: String(localStorage.getItem("userId")) || "N/A",
             email: "N/A",
             firstname: "N/A",
-            lastname: "N/A"
+            lastname: "N/A",
           },
         });
         return;
@@ -128,12 +133,19 @@ const PasswordForm: React.FC = () => {
           id: String(localStorage.getItem("userId")) || "N/A",
           email: "N/A",
           firstname: "N/A",
-          lastname: "N/A"
+          lastname: "N/A",
         },
       });
       alert("Failed to update password. Please try again.");
     }
-  }, [currentPassword, newPassword, confirmPassword, currentPasswordError, newPasswordError, confirmPasswordError]);
+  }, [
+    currentPassword,
+    newPassword,
+    confirmPassword,
+    currentPasswordError,
+    newPasswordError,
+    confirmPasswordError,
+  ]);
 
   const handleCloseConfirmationModal = useCallback(() => {
     setIsConfirmationModalOpen(false);
@@ -159,7 +171,7 @@ const PasswordForm: React.FC = () => {
           <Typography>Loading...</Typography>
         </Box>
       )}
-      
+
       <Box sx={{ width: "100%", maxWidth: 600 }}>
         <Stack sx={{ marginTop: theme.spacing(15) }}>
           <Field
@@ -205,8 +217,8 @@ const PasswordForm: React.FC = () => {
           )}
 
           <Alert severity="warning" sx={{ mb: 3 }}>
-            Password must contain at least eight characters and must include
-            an uppercase letter, a lowercase letter, a number, and a symbol.
+            Password must contain at least eight characters and must include an
+            uppercase letter, a lowercase letter, a number, and a symbol.
           </Alert>
 
           <Button
@@ -241,8 +253,8 @@ const PasswordForm: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseConfirmationModal}>Cancel</Button>
-          <Button 
-            onClick={handleSave} 
+          <Button
+            onClick={handleSave}
             color="primary"
             aria-label="Save password changes"
           >

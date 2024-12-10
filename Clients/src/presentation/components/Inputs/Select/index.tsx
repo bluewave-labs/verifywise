@@ -86,11 +86,7 @@ const Select: React.FC<SelectProps> = ({
         >
           {label}
           {isRequired && (
-            <Typography
-              component="span"
-              ml={theme.spacing(1)}
-              color={theme.palette.error.text}
-            >
+            <Typography ml={theme.spacing(1)} color={theme.palette.error.text}>
               *
             </Typography>
           )}
@@ -182,7 +178,6 @@ const Select: React.FC<SelectProps> = ({
       </MuiSelect>
       {error && (
         <Typography
-          component="span"
           className="input-error"
           color={theme.palette.status.error.text}
           mt={theme.spacing(2)}

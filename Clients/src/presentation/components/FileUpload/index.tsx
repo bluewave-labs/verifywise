@@ -155,7 +155,21 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
         Upload a new file
       </Typography>
 
-      <DragDropArea>
+      <DragDropArea
+        sx={{
+          width: "100%",
+          
+          border: "1px solid #e5e7eb",
+          borderRadius: "8px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center", 
+          minHeight: "150px", 
+          height: uploadedFiles.length > 0 ? "auto" : "150px", 
+          transition: "height 0.3s ease",
+        }}
+      >
         <Icon src={UploadSmallIcon} alt="Upload Icon" sx={{ mb: 2 }} />
         <input
           type="file"

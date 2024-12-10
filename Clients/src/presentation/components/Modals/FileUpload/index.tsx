@@ -1,7 +1,6 @@
 import {
   Button,
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   CircularProgress,
@@ -54,8 +53,14 @@ const FileUploadModal: React.FC<FileUploadModalProps> = ({
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Upload Evidence</DialogTitle>
-      <DialogContent>
+      <DialogContent
+      sx={{
+        display:"flex",
+        flexDirection:"column",
+        alignItems:"center",
+        justifyContent:"center",
+      }}
+      >
         <FileUploadComponent {...uploadProps} onStart={handleUploadStart} 
         onError={handleUploadError}
         onSuccess={handleUploadSuccess}/>

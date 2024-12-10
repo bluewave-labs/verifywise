@@ -5,7 +5,7 @@ export const createUppyInstance = () => {
   return new Uppy({
     restrictions: {
       maxFileSize: 50 * 1024 * 1024,
-      allowedFileTypes: ["application/pdf"],
+      allowedFileTypes: ["pdf"],
     },
     autoProceed: false,
     debug: true,

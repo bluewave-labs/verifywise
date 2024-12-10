@@ -22,7 +22,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
   onError,
   onProgress,
   onStart,
-  allowedFileTypes = ["application/pdf"],
+  allowedFileTypes = ["pdf"],
   maxFileSize = 5 * 1024 * 1024,
 }) => {
   const dispatch = useDispatch();
@@ -77,7 +77,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
       return;
     }
 
-    if (!(allowedFileTypes || ["application/pdf"]).includes(file.type)) {
+    if (!(allowedFileTypes || ["pdf"]).includes(file.type)) {
       onError?.("Invalid file type.");
       return;
     }

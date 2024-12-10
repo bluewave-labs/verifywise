@@ -87,6 +87,7 @@ export async function createQuestion(
       hint: string;
       isRequired: boolean;
       priorityLevel: string;
+      answer: string;
     } = req.body;
 
     if (

@@ -210,10 +210,11 @@ export async function saveAnswers(req: Request, res: Response): Promise<any> {
         );
         const subtopicId = subtopicToSave.id;
         const questions = subtopic.questions;
+        console.log(questions);
         // now iterate over the questions, create a question using subtopic id and the question
         for (const question of questions) {
           const questionToSave: any = createMockQuestion(subtopicId, question);
-          console.log(questionToSave);
+          // console.log(questionToSave);
         }
       }
     } catch (error) {

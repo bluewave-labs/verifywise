@@ -33,6 +33,12 @@ interface AssessmentValue {
       id: string;
       question: string;
       answer: string;
+      answerType: string;
+      evidenceFileRequired: boolean;
+      hint: string;
+      isRequired: boolean;
+      priorityLevel: "high priority" | "medium priority" | "low priority";
+      evidenceFiles?: string[];
     }[];
   }[];
 }
@@ -91,6 +97,8 @@ const AllAssessment = () => {
 
     const assessmentToSave = assessmentsValues[topicToSave];
 
+    console.log(assessmentToSave);
+
     try {
       const response = await apiServices.post(
         "/assessments/saveAnswers",
@@ -104,14 +112,38 @@ const AllAssessment = () => {
 
   const handleAssessmentChange = useCallback(
     (
+      // topic relateds
       topicid: number,
       topic: string,
+      // subtopic relateds
       subtopicId: string,
       subtopic: string,
+      // question relateds
       questionId: string,
       question: string,
-      answer: string
+      answer: string,
+      answerType: string,
+      evidenceFileRequired: boolean,
+      hint: string,
+      isRequired: boolean,
+      priorityLevel: "high priority" | "medium priority" | "low priority",
+      evidenceFiles?: string[]
     ) => {
+      console.log("Values are: ", {
+        topicId: Topics[activeTab].id,
+        topicTitle: Topics[activeTab].title,
+        subtopicId,
+        subtopicTitle: subtopic,
+        questionId: questionId,
+        question: question,
+        answer: answer,
+        answerType: answerType,
+        evidenceFileRequired: evidenceFileRequired,
+        hint: hint,
+        isRequired: isRequired,
+        priorityLevel: priorityLevel,
+        evidenceFiles: evidenceFiles,
+      });
       setAssessmentsValue((prevValues) => {
         const updatedValues = { ...prevValues };
         if (!updatedValues[topicid]) {
@@ -124,7 +156,19 @@ const AllAssessment = () => {
           updatedValues[topicid].subtopic.push({
             id: subtopicId,
             title: subtopic,
-            questions: [{ id: questionId, question, answer }],
+            questions: [
+              {
+                id: questionId,
+                question,
+                answer,
+                answerType,
+                evidenceFileRequired,
+                hint,
+                isRequired,
+                priorityLevel,
+                evidenceFiles,
+              },
+            ],
           });
         } else {
           const questionIndex = updatedValues[topicid].subtopic[
@@ -135,6 +179,12 @@ const AllAssessment = () => {
               id: questionId,
               question,
               answer,
+              answerType,
+              evidenceFileRequired,
+              hint,
+              isRequired,
+              priorityLevel,
+              evidenceFiles,
             });
           } else {
             updatedValues[topicid].subtopic[subtopicIndex].questions[
@@ -243,14 +293,29 @@ const AllAssessment = () => {
               const cleanedContent =
                 " " + content.replace(/^<p>/, "").replace(/<\/p>$/, "");
 
+              console.log("Question details:", {
+                evidenceFileRequired: question.evidenceFileRequired,
+                isRequired: question.isRequired,
+                evidenceFiles: question.evidenceFiles,
+              });
+
               handleAssessmentChange(
+                // topic relateds
                 Topics[activeTab].id,
                 Topics[activeTab].title,
+                // subtopic relateds
                 subtopicId,
                 subtopicTitle,
+                // question relateds
                 `${Topics[activeTab].id}-${subtopicId}-${question.id}`,
                 question.question,
-                cleanedContent
+                cleanedContent,
+                question.answerType,
+                question.evidenceFileRequired,
+                question.hint,
+                question.isRequired,
+                question.priorityLevel,
+                question.evidenceFiles
               );
             }}
             headerSx={{
@@ -306,7 +371,7 @@ const AllAssessment = () => {
             <Typography
               sx={{ fontSize: 11, color: "#344054", fontWeight: "300" }}
             >
-              {question.evidenceFile === "Not required" ? "required" : ""}
+              {question.isRequired === true ? "required" : ""}
             </Typography>
           </Stack>
         </Box>

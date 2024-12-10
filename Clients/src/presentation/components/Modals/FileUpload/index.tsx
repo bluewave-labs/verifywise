@@ -1,10 +1,16 @@
-//merge uppy uploader
+import {
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  CircularProgress,
+} from "@mui/material";
+import React, { useState } from "react";
 
-import { Box, Typography, Tooltip, Button, Stack, useTheme } from "@mui/material"
-import { FC, useState } from "react"
-import { uploadFile } from "../../../../application/tools/fileUtil";
-import { ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from "../constants";
 import ErrorModal from "../Error";
+import FileUploadComponent from "../../FileUpload";
+import { FileUploadProps } from "../../FileUpload/types";
 
 /**
  * FileUpload component allows users to upload a file by either clicking a button or dragging and dropping a file.
@@ -13,74 +19,63 @@ import ErrorModal from "../Error";
  * @component
  * @returns {JSX.Element} The rendered FileUpload component.
  */
-const FileUpload: FC = () => {
-  const theme = useTheme();
-  const [file, setFile] = useState<File | null>(null);
+
+interface FileUploadModalProps {
+  //set props and removed FC
+  open: boolean;
+  onClose: () => void;
+  uploadProps: FileUploadProps;
+}
+
+const FileUploadModal: React.FC<FileUploadModalProps> = ({
+  open,
+  onClose,
+  uploadProps,
+}: FileUploadModalProps) => {
+  const [loading, setLoading] = useState(false); //loading state
   const [error, setError] = useState<string | null>(null);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState<boolean>(false);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUploadStart = () => {
+    setLoading(true);
     setError(null);
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
+  };
 
-      const { error: uploadError, file: uploadedFile } = uploadFile(
-        file,
-        ALLOWED_FILE_TYPES,
-        MAX_FILE_SIZE
-      );
+  const handleUploadError = (errorMessage: string) => {
+    setLoading(false);
+    setError(errorMessage);
+    setIsErrorModalOpen(true);
+  };
 
-      if (uploadError) {
-        setError(uploadError);
-        setIsErrorModalOpen(true);
-      } else if (uploadedFile) {
-        setFile(uploadedFile);
-      }
-    }
+  const handleUploadSuccess = () => {
+    setLoading(false);
+    onClose();
   };
 
   return (
-    <Box sx={{ width: "100%" }}>
-      <Typography sx={{ fontSize: theme.typography.fontSize, fontWeight: 500, mb: 2 }}>Upload mitigation evidence document</Typography>
-      <Stack
-        sx={{
-          cursor: "pointer",
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-          border: `1px dotted ${theme.palette.border.dark}`,
-          borderRadius: theme.shape.borderRadius,
-          backgroundColor: theme.palette.background.main,
-          width: 315,
-          height: 102
-        }}
-      >
-        <Tooltip title="Attach a file">
-          <Button component="label" sx={{"&:hover": { background: "transparent" }}} disableRipple={theme.components?.MuiButton?.defaultProps?.disableRipple}>
-            Click to upload
-            <input
-              type="file"
-              hidden
-              id="file-upload"
-              onChange={handleFileUpload}
-            />
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle>Upload Evidence</DialogTitle>
+      <DialogContent>
+        <FileUploadComponent {...uploadProps} onStart={handleUploadStart} 
+        onError={handleUploadError}
+        onSuccess={handleUploadSuccess}/>
+      </DialogContent>
+      <DialogActions>
+        {loading ? (
+          <CircularProgress size={24} />
+        ) : (
+          <Button onClick={onClose} variant="outlined">
+            Close
           </Button>
-        </Tooltip>
-        <Typography sx={{ fontSize: 13 }}>or drag and drop</Typography>
-      </Stack>
-      {file 
-        && <Typography variant="body2" sx={{ mt: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "315px" }}>
-            Attached file: {file.name}
-          </Typography>
-        || <Typography sx={{ color: theme.palette.text.secondary, fontSize: theme.typography.fontSize, mt: 2 }}>Nothing selected.</Typography>
-      }
+        )}
+      </DialogActions>
       <ErrorModal
         open={isErrorModalOpen}
         errorMessage={error}
         handleClose={() => setIsErrorModalOpen(false)}
       />
-    </Box>
-    )
-}
+    </Dialog>
+  );
+};
 
-export default FileUpload;
+export default FileUploadModal;

@@ -13,6 +13,12 @@ interface User {
   email: string;
 }
 
+// Add interface for validation
+interface ValidationError {
+  hasError: boolean;
+  message: string;
+}
+
 const DropDowns = () => {
   const [status, setStatus] = useState<string | number>("");
   const [approver, setApprover] = useState<string | number>("");
@@ -53,6 +59,69 @@ const DropDowns = () => {
     setApprover(selectedValue);
   };
 
+  // Add new error states
+  const [statusError, setStatusError] = useState<ValidationError>({ 
+    hasError: false, 
+    message: '' 
+  });
+  const [ownerError, setOwnerError] = useState<ValidationError>({ 
+    hasError: false, 
+    message: '' 
+  });
+  const [reviewerError, setReviewerError] = useState<ValidationError>({ 
+    hasError: false, 
+    message: '' 
+  });
+
+  // Add validation functions
+  const validateStatus = (value: string | number): ValidationError => {
+    if (!value) {
+      return { hasError: true, message: 'Status is required' };
+    }
+    return { hasError: false, message: '' };
+  };
+
+  const validateUser = (value: string | number, role: string): ValidationError => {
+    if (!value) {
+      return { hasError: true, message: `${role} is required` };
+    }
+    
+    const selectedUser = users.find(user => user.id === value);
+    if (!selectedUser) {
+      return { hasError: true, message: `Invalid ${role.toLowerCase()} selected` };
+    }
+
+    return { hasError: false, message: '' };
+  };
+
+  // Update handle change functions
+  const handleStatusChange = (e: SelectChangeEvent<string | number>) => {
+    const selectedValue = e.target.value;
+    const validation = validateStatus(selectedValue);
+    setStatusError(validation);
+    if (!validation.hasError) {
+      setStatus(selectedValue);
+    }
+  };
+
+  const handleOwnerChange = (e: SelectChangeEvent<string | number>) => {
+    const selectedValue = e.target.value;
+    const validation = validateUser(selectedValue, 'Owner');
+    setOwnerError(validation);
+    if (!validation.hasError) {
+      setOwner(selectedValue);
+    }
+  };
+
+  const handleReviewerChange = (e: SelectChangeEvent<string | number>) => {
+    const selectedValue = e.target.value;
+    const validation = validateUser(selectedValue, 'Reviewer');
+    setReviewerError(validation);
+    if (!validation.hasError) {
+      setReviewer(selectedValue);
+    }
+  };
+
   return (
     <Stack
       style={{
@@ -69,14 +138,17 @@ const DropDowns = () => {
         <Select
           id="status"
           label="Status:"
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
+          value={status || ""}
+          onChange={handleStatusChange}
+          required
           items={[
             { _id: 10, name: "Waiting" },
             { _id: 20, name: "In progress" },
             { _id: 30, name: "Done" },
           ]}
           sx={inputStyles}
+          error={statusError.hasError}
+          helperText={statusError.message}
         />
 
         <Select
@@ -84,6 +156,7 @@ const DropDowns = () => {
           label="Approver:"
           value={approver || ""}
           onChange={handleChange}
+          required
           items={users.map(user => ({ 
             _id: user.id,
             name: user.name 
@@ -116,19 +189,25 @@ const DropDowns = () => {
         <Select
           id="Owner"
           label="Owner:"
-          value={owner}
-          onChange={(e) => setOwner(e.target.value)}
+          value={owner || ""}
+          onChange={handleOwnerChange}
+          required
           items={users.map(user => ({ _id: user.id, name: user.name }))}
           sx={inputStyles}
+          error={ownerError.hasError}
+          helperText={ownerError.message}
         />
 
         <Select
           id="Reviewer"
           label="Reviewer:"
-          value={reviewer}
-          onChange={(e) => setReviewer(e.target.value)}
+          value={reviewer || ""}
+          onChange={handleReviewerChange}
+          required
           items={users.map(user => ({ _id: user.id, name: user.name }))}
           sx={inputStyles}
+          error={reviewerError.hasError}
+          helperText={reviewerError.message}
         />
 
         <DatePicker

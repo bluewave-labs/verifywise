@@ -15,14 +15,17 @@ import { DragDrop } from "@uppy/react";
 import UploadSmallIcon from "../../assets/icons/folder-upload.svg";
 import { FileUploadProps } from "./types";
 import { useDispatch } from "react-redux";
-import { addFile, removeFile as removeFileFromRedux } from "../../../application/redux/slices/fileSlice";
+import {
+  addFile,
+  removeFile as removeFileFromRedux,
+} from "../../../application/redux/slices/fileSlice";
 
 const FileUploadComponent: React.FC<FileUploadProps> = ({
   onSuccess,
   onError,
   onProgress,
   onStart,
-  allowedFileTypes = ["pdf"],
+  allowedFileTypes = ["application/pdf"],
   maxFileSize = 5 * 1024 * 1024,
 }) => {
   const dispatch = useDispatch();
@@ -43,6 +46,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
     []
   );
 
+  //local storage
   const uploadToLocalStorage = () => {
     if (!uploadedFiles.length) {
       alert("No files to upload");
@@ -52,7 +56,9 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
       if (file.data instanceof Blob) {
         const reader = new FileReader();
         reader.onload = () => {
-          localStorage.setItem(
+          const result = reader.result;
+          if(typeof result === "string") {
+             localStorage.setItem(
             file.id,
             JSON.stringify({
               name: file.name,
@@ -60,6 +66,10 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
               data: reader.result,
             })
           );
+          console.log(`file ${file.name} saved to local storage`);
+          } else {
+            console.error(`failed to process file ${file.name}`);
+          }
         };
         reader.readAsDataURL(file.data);
       } else {
@@ -72,12 +82,18 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
   const handleFileAdded = (file: any) => {
     console.log("File added:", file);
 
+    if (!file || !file.data || !(file.data instanceof Blob)) {
+      console.error(`invalid file data for ${file?.name || "unknown file"}`);
+      onError?.("invalid file data");
+    }
+
     if (file.size > (maxFileSize || 5 * 1024 * 1024)) {
       onError?.("File size exceeds the allowed limit.");
       return;
     }
 
-    if (!(allowedFileTypes || ["pdf"]).includes(file.type)) {
+    if (!allowedFileTypes.includes(file.type)) {
+      console.error(`invalid file type:${file.type}`);
       onError?.("Invalid file type.");
       return;
     }
@@ -97,16 +113,18 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
           size: file.size
             ? `${(file.size / 1024 / 1024).toFixed(2)} MB`
             : "Unknown size",
-          status: "Queued",
+          data: file.data,
         },
       ];
     });
   };
 
   //file removal logic
-  const handleRemoveFile = (fileId:string) =>{
+  const handleRemoveFile = (fileId: string) => {
     uppy.removeFile(fileId);
-    setUploadedFiles((prevFiles)=>prevFiles.filter((file) => file.id !== fileId));
+    setUploadedFiles((prevFiles) =>
+      prevFiles.filter((file) => file.id !== fileId)
+    );
     dispatch(removeFileFromRedux(fileId));
   };
 
@@ -165,15 +183,15 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
       <DragDropArea
         sx={{
           width: "100%",
-          
+
           border: "1px solid #e5e7eb",
           borderRadius: "8px",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          justifyContent: "center", 
-          minHeight: "150px", 
-          height: uploadedFiles.length > 0 ? "auto" : "150px", 
+          justifyContent: "center",
+          minHeight: "150px",
+          height: uploadedFiles.length > 0 ? "auto" : "150px",
           transition: "height 0.3s ease",
         }}
       >

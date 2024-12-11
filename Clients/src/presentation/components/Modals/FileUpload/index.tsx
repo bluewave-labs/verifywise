@@ -64,15 +64,24 @@ const FileUploadModal: React.FC<FileUploadModalProps> = ({
         padding:"16px",
       }}
       >
+        {loading && (
+          <CircularProgress
+          size={50}
+          sx={{position:"absolute",
+            top:"50%",
+            left:"50%",
+            transform:"translate(-50%, -50%)",
+            zIndex:1000,
+          }}
+          />
+        )}
         <FileUploadComponent {...uploadProps} 
         onStart={handleUploadStart} 
         onError={handleUploadError}
         onSuccess={handleUploadSuccess}/>
       </DialogContent>
       <DialogActions>
-        {loading ? (
-          <CircularProgress size={24} />
-        ) : (
+        {!loading && (
           <Button onClick={onClose} variant="outlined">
             Close
           </Button>

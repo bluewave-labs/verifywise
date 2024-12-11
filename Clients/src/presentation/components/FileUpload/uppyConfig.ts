@@ -5,11 +5,11 @@ export const createUppyInstance = () => {
   return new Uppy({
     restrictions: {
       maxFileSize: 50 * 1024 * 1024,
-      allowedFileTypes: ["pdf"],
+      allowedFileTypes: ["application/pdf"],
     },
     autoProceed: false,
     debug: true,
   }).use(DropTarget, {
-    target:document.body
-  })
+    target: document.body,
+  });
 };

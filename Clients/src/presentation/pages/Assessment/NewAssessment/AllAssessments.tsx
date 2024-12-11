@@ -507,7 +507,7 @@ const AllAssessment = () => {
         uploadProps={{
           onSuccess: () => console.log("File uploaded successfully!"),
           onError: (errorMessage: string) => console.error(errorMessage),
-          allowedFileTypes: ["pdf"],
+          allowedFileTypes: ["application/pdf"],
           maxFileSize: 50 * 1024 * 1024,
         }}
       />

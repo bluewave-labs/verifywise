@@ -16,7 +16,7 @@ const FileUploadModal: React.FC<FileUploadModalProps> = ({
   uploadProps,
 }) => {
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
       <DialogContent
         sx={{
           display: "flex",

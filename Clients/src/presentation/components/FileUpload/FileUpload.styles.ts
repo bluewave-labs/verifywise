@@ -2,7 +2,7 @@ import { styled } from "@mui/material/styles";
 
 export const Container = styled("div")({
   width: "384px",
-  height: "320px",
+  height: "310px",
   padding: "32px",
 });
 

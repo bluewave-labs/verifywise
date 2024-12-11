@@ -2,6 +2,7 @@ import Uppy from "@uppy/core";
 import XHRUpload from "@uppy/xhr-upload";
 import DropTarget from "@uppy/drop-target";
 
+
 export const createUppyInstance = () => {
   const uppy = new Uppy({
     restrictions: {
@@ -23,6 +24,7 @@ export const createUppyInstance = () => {
   uppy.use(DropTarget, {
     target: document.body, 
   });
+ 
 
   return uppy;
 };

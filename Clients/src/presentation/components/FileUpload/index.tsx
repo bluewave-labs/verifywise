@@ -7,12 +7,12 @@ import {
   IconButton,
   Button,
   Stack,
-  CircularProgress,
+  
 } from "@mui/material";
 import { Container, DragDropArea, Icon } from "./FileUpload.styles";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { createUppyInstance } from "./uppyConfig";
-import { DragDrop } from "@uppy/react";
+import { DragDrop,StatusBar } from "@uppy/react";
 import UploadSmallIcon from "../../assets/icons/folder-upload.svg";
 import { FileUploadProps } from "./types";
 import { useDispatch } from "react-redux";
@@ -32,8 +32,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
 
   // Local state to display uploaded files
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-
+  
   // Initialize Uppy
   const uppy = useMemo(() => createUppyInstance(), []);
 
@@ -82,26 +81,26 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
   // File upload logic
   const handleFileAdded = (file: any) => {
     console.log("File added:", file);
-    setLoading(true);
+    
 
     if (!file || !file.data || !(file.data instanceof Blob)) {
       console.error(`Invalid file data for ${file.name}`);
       onError?.("invalid file data");
-      setLoading(false);
+     
       return;
     }
 
     if (file.size > maxFileSize) {
       console.error(`File size exceeds the limit ${file.size}`);
       onError?.("File size exceeds the allowed limit.");
-      setLoading(false);
+      
       return;
     }
 
     if (!allowedFileTypes.includes(file.type)) {
       console.error(`invalid file type: ${file.type}`);
       onError?.("Invalid file type.");
-      setLoading(false);
+      
       return;
     }
 
@@ -130,7 +129,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
 
   const handleUploadSuccess = (file: any) => {
     console.log("upload success:", file);
-    setLoading(false);
+    
     onSuccess?.(file);
 
     // Update Redux state
@@ -147,12 +146,12 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
 
   const handleUploadError = (error: any, file:any) => {
     console.log("upload error", {error, file});
-    setLoading(false);
+   
     onError?.("upload failed");
   };
   const handleUploadComplete =(result:any)=>{
     console.log("all uploads complete", result);
-    setLoading(false);
+    
   }
 
   //file removal logic
@@ -203,21 +202,11 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
           transition: "height 0.3s ease",
         }}
       >
-        {loading && (
-          <CircularProgress
-            size={40}
-            sx={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%,-50%)",
-              zIndex: 1000,
-            }}
-          />
-        )}
+        
 
         <Icon src={UploadSmallIcon} alt="Upload Icon" sx={{ mb: 2 }} />
         <DragDrop uppy={uppy} locale={locale} />
+        <StatusBar uppy={uppy} hideAfterFinish={true} showProgressDetails={true}/>
         <input
           type="file"
           hidden

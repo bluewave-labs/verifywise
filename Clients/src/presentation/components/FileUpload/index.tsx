@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Typography,
   List,
@@ -7,6 +7,7 @@ import {
   IconButton,
   Button,
   Stack,
+  CircularProgress,
 } from "@mui/material";
 import { Container, DragDropArea, Icon } from "./FileUpload.styles";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -23,7 +24,6 @@ import {
 const FileUploadComponent: React.FC<FileUploadProps> = ({
   onSuccess,
   onError,
-  onProgress,
   onStart,
   allowedFileTypes = ["application/pdf"],
   maxFileSize = 5 * 1024 * 1024,
@@ -32,11 +32,12 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
 
   // Local state to display uploaded files
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
   // Initialize Uppy
-  const uppy = React.useMemo(() => createUppyInstance(), []);
+  const uppy = useMemo(() => createUppyInstance(), []);
 
-  const locale = React.useMemo(
+  const locale = useMemo(
     () => ({
       strings: {
         dropHereOr: "Click to upload or drag and drop",
@@ -57,16 +58,16 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
         const reader = new FileReader();
         reader.onload = () => {
           const result = reader.result;
-          if(typeof result === "string") {
-             localStorage.setItem(
-            file.id,
-            JSON.stringify({
-              name: file.name,
-              type: file.type,
-              data: reader.result,
-            })
-          );
-          console.log(`file ${file.name} saved to local storage`);
+          if (typeof result === "string") {
+            localStorage.setItem(
+              file.id,
+              JSON.stringify({
+                name: file.name,
+                type: file.type,
+                data: reader.result,
+              })
+            );
+            console.log(`file ${file.name} saved to local storage`);
           } else {
             console.error(`failed to process file ${file.name}`);
           }
@@ -81,23 +82,30 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
   // File upload logic
   const handleFileAdded = (file: any) => {
     console.log("File added:", file);
+    setLoading(true);
 
     if (!file || !file.data || !(file.data instanceof Blob)) {
-      console.error(`invalid file data for ${file?.name || "unknown file"}`);
+      console.error(`Invalid file data for ${file.name}`);
       onError?.("invalid file data");
+      setLoading(false);
+      return;
     }
 
-    if (file.size > (maxFileSize || 5 * 1024 * 1024)) {
+    if (file.size > maxFileSize) {
+      console.error(`File size exceeds the limit ${file.size}`);
       onError?.("File size exceeds the allowed limit.");
+      setLoading(false);
       return;
     }
 
     if (!allowedFileTypes.includes(file.type)) {
-      console.error(`invalid file type:${file.type}`);
+      console.error(`invalid file type: ${file.type}`);
       onError?.("Invalid file type.");
+      setLoading(false);
       return;
     }
 
+  
     // Prevent duplicate files
     setUploadedFiles((prevFiles) => {
       const fileExists = prevFiles.some((f) => f.id === file.id);
@@ -117,20 +125,13 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
         },
       ];
     });
+    onStart?.();
   };
 
-  //file removal logic
-  const handleRemoveFile = (fileId: string) => {
-    uppy.removeFile(fileId);
-    setUploadedFiles((prevFiles) =>
-      prevFiles.filter((file) => file.id !== fileId)
-    );
-    dispatch(removeFileFromRedux(fileId));
-  };
-
-  const handleUploadSuccess = (file: any, response: any) => {
-    console.log("Upload success:", { file, response });
-    onSuccess?.();
+  const handleUploadSuccess = (file: any) => {
+    console.log("upload success:", file);
+    setLoading(false);
+    onSuccess?.(file);
 
     // Update Redux state
     dispatch(
@@ -144,32 +145,39 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
     );
   };
 
-  const handleUploadError = (error: any) => {
-    console.error("Upload error:", error);
-    onError?.("An error occurred during file upload.");
+  const handleUploadError = (error: any, file:any) => {
+    console.log("upload error", {error, file});
+    setLoading(false);
+    onError?.("upload failed");
+  };
+  const handleUploadComplete =(result:any)=>{
+    console.log("all uploads complete", result);
+    setLoading(false);
+  }
+
+  //file removal logic
+  const handleRemoveFile = (fileId: string) => {
+    uppy.removeFile(fileId);
+    setUploadedFiles((prevFiles) =>
+      prevFiles.filter((file) => file.id !== fileId)
+    );
+    dispatch(removeFileFromRedux(fileId));
   };
 
-  React.useEffect(() => {
+ useEffect(() => {
     uppy.on("file-added", handleFileAdded);
     uppy.on("upload-success", handleUploadSuccess);
     uppy.on("upload-error", handleUploadError);
+    uppy.on("complete",  handleUploadComplete);
 
     return () => {
       uppy.off("file-added", handleFileAdded);
       uppy.off("upload-success", handleUploadSuccess);
       uppy.off("upload-error", handleUploadError);
-
+      uppy.off("complete", handleUploadComplete);
       uppy.cancelAll();
     };
-  }, [
-    uppy,
-    onProgress,
-    onError,
-    onSuccess,
-    maxFileSize,
-    allowedFileTypes,
-    onStart,
-  ]);
+  }, [uppy]);
 
   return (
     <Container>
@@ -195,7 +203,21 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
           transition: "height 0.3s ease",
         }}
       >
+        {loading && (
+          <CircularProgress
+            size={40}
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%,-50%)",
+              zIndex: 1000,
+            }}
+          />
+        )}
+
         <Icon src={UploadSmallIcon} alt="Upload Icon" sx={{ mb: 2 }} />
+        <DragDrop uppy={uppy} locale={locale} />
         <input
           type="file"
           hidden
@@ -230,8 +252,6 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
         <Typography variant="body2" sx={{ fontSize: 12, textAlign: "center" }}>
           Maximum size: {maxFileSize / (1024 * 1024)} MB
         </Typography>
-
-        <DragDrop uppy={uppy} locale={locale} />
 
         {uploadedFiles.length > 0 && (
           <Stack sx={{ mt: 2, borderTop: "1px solid #e5e7eb", pt: 2 }}>

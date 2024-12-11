@@ -10,17 +10,17 @@ export const createUppyInstance = () => {
       maxFileSize: 50 * 1024 * 1024, 
       allowedFileTypes: ["application/pdf"], 
     },
-    autoProceed: false, 
+    autoProceed: true, 
     debug: true,
   }); 
 
   uppy.use(XHRUpload, {
-    endpoint: "http://localhost:3000/subcontrols", 
+    endpoint: "http://localhost:3000/questions/2",
     method: "POST",
     headers: {
-      Authorization: "Placeholder", 
+      Authorization: "Placeholder",
     },
-    fieldName: "file", 
+    fieldName: "file",
   }); 
   uppy.use(DropTarget, {
     target: document.body, 

@@ -7,13 +7,13 @@ import {
   IconButton,
   Button,
   Stack,
-  
 } from "@mui/material";
-import { Container, DragDropArea, Icon } from "./FileUpload.styles";
+import { Container, DragDropArea, Icon} from "./FileUpload.styles";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { createUppyInstance } from "./uppyConfig";
-import { DragDrop} from "@uppy/react";
+import { DragDrop } from "@uppy/react";
 import StatusBar from "@uppy/status-bar";
+import "@uppy/status-bar/dist/style.css";
 import UploadSmallIcon from "../../assets/icons/folder-upload.svg";
 import { FileUploadProps } from "./types";
 import { useDispatch } from "react-redux";
@@ -21,7 +21,6 @@ import {
   addFile,
   removeFile as removeFileFromRedux,
 } from "../../../application/redux/slices/fileSlice";
-
 
 const FileUploadComponent: React.FC<FileUploadProps> = ({
   onSuccess,
@@ -34,7 +33,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
 
   // Local state to display uploaded files
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
-  
+
   // Initialize Uppy
   const uppy = useMemo(() => createUppyInstance(), []);
 
@@ -83,30 +82,28 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
   // File upload logic
   const handleFileAdded = (file: any) => {
     console.log("File added:", file);
-    
 
     if (!file || !file.data || !(file.data instanceof Blob)) {
       console.error(`Invalid file data for ${file.name}`);
       onError?.("invalid file data");
-     
+
       return;
     }
 
     if (file.size > maxFileSize) {
       console.error(`File size exceeds the limit ${file.size}`);
       onError?.("File size exceeds the allowed limit.");
-      
+
       return;
     }
 
     if (!allowedFileTypes.includes(file.type)) {
       console.error(`invalid file type: ${file.type}`);
       onError?.("Invalid file type.");
-      
+
       return;
     }
 
-  
     // Prevent duplicate files
     setUploadedFiles((prevFiles) => {
       const fileExists = prevFiles.some((f) => f.id === file.id);
@@ -131,7 +128,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
 
   const handleUploadSuccess = (file: any) => {
     console.log("upload success:", file);
-    
+
     onSuccess?.(file);
 
     // Update Redux state
@@ -146,15 +143,14 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
     );
   };
 
-  const handleUploadError = (error: any, file:any) => {
-    console.log("upload error", {error, file});
-   
+  const handleUploadError = (error: any, file: any) => {
+    console.log("upload error", { error, file });
+
     onError?.("upload failed");
   };
-  const handleUploadComplete =(result:any)=>{
+  const handleUploadComplete = (result: any) => {
     console.log("all uploads complete", result);
-    
-  }
+  };
 
   //file removal logic
   const handleRemoveFile = (fileId: string) => {
@@ -165,18 +161,20 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
     dispatch(removeFileFromRedux(fileId));
   };
 
- useEffect(() => {
-uppy.use(StatusBar, {
-  target:"#status-bar",
-  hideUploadButton:false,
-  hideAfterFinish:false,
-})
-
+  useEffect(() => {
+    console.log("status bar started");
+    uppy.use(StatusBar, {
+      target:"#status-bar",
+      hideUploadButton: true,
+      hideAfterFinish: false,
+      hideRetryButton: true,
+      hidePauseResumeButton: true,
+    });
 
     uppy.on("file-added", handleFileAdded);
     uppy.on("upload-success", handleUploadSuccess);
     uppy.on("upload-error", handleUploadError);
-    uppy.on("complete",  handleUploadComplete);
+    uppy.on("complete", handleUploadComplete);
 
     return () => {
       uppy.off("file-added", handleFileAdded);
@@ -184,6 +182,7 @@ uppy.use(StatusBar, {
       uppy.off("upload-error", handleUploadError);
       uppy.off("complete", handleUploadComplete);
       uppy.cancelAll();
+      console.log("uppy cleanup");
     };
   }, [uppy]);
 
@@ -248,11 +247,14 @@ uppy.use(StatusBar, {
         <Typography variant="body2" sx={{ fontSize: 12, textAlign: "center" }}>
           Maximum size: {maxFileSize / (1024 * 1024)} MB
         </Typography>
-        {/* status bar */}
-       <Stack>
-        <div id="status-bar"></div>
-       </Stack>
 
+        {/* status bar */}
+        <Stack sx={{marginTop:2, marginBottom:1}}>
+          <div id="status-bar" style={{marginTop:'8px', marginBottom:'0',padding:'4px'}}>
+           
+          </div>
+        </Stack>
+        
         {uploadedFiles.length > 0 && (
           <Stack sx={{ mt: 2, borderTop: "1px solid #e5e7eb", pt: 2 }}>
             <List>

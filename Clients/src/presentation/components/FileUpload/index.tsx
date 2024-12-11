@@ -12,7 +12,8 @@ import {
 import { Container, DragDropArea, Icon } from "./FileUpload.styles";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { createUppyInstance } from "./uppyConfig";
-import { DragDrop,StatusBar } from "@uppy/react";
+import { DragDrop} from "@uppy/react";
+import StatusBar from "@uppy/status-bar";
 import UploadSmallIcon from "../../assets/icons/folder-upload.svg";
 import { FileUploadProps } from "./types";
 import { useDispatch } from "react-redux";
@@ -20,6 +21,7 @@ import {
   addFile,
   removeFile as removeFileFromRedux,
 } from "../../../application/redux/slices/fileSlice";
+
 
 const FileUploadComponent: React.FC<FileUploadProps> = ({
   onSuccess,
@@ -164,6 +166,13 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
   };
 
  useEffect(() => {
+uppy.use(StatusBar, {
+  target:"#status-bar",
+  hideUploadButton:false,
+  hideAfterFinish:false,
+})
+
+
     uppy.on("file-added", handleFileAdded);
     uppy.on("upload-success", handleUploadSuccess);
     uppy.on("upload-error", handleUploadError);
@@ -202,11 +211,9 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
           transition: "height 0.3s ease",
         }}
       >
-        
-
         <Icon src={UploadSmallIcon} alt="Upload Icon" sx={{ mb: 2 }} />
         <DragDrop uppy={uppy} locale={locale} />
-        <StatusBar uppy={uppy} hideAfterFinish={true} showProgressDetails={true}/>
+
         <input
           type="file"
           hidden
@@ -241,6 +248,10 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
         <Typography variant="body2" sx={{ fontSize: 12, textAlign: "center" }}>
           Maximum size: {maxFileSize / (1024 * 1024)} MB
         </Typography>
+        {/* status bar */}
+       <Stack>
+        <div id="status-bar"></div>
+       </Stack>
 
         {uploadedFiles.length > 0 && (
           <Stack sx={{ mt: 2, borderTop: "1px solid #e5e7eb", pt: 2 }}>

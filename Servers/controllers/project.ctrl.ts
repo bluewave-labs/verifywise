@@ -193,3 +193,14 @@ export async function deleteProjectById(
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
+
+export async function saveControls(req: Request, res: Response): Promise<any> {
+  if (MOCKDATA_ON === true) {
+    // first, the id of the project is needed and will be sent inside the req.body
+    const projectId = req.body.projectId;
+
+    // then, we need to create the control category and use the projectId as the foreign key
+    // const controlCategory = createMockControlCategory(projectId);
+  } else {
+  }
+}

@@ -3,6 +3,7 @@ import { persistReducer, persistStore } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import uiSlice from "../../presentation/tools/uiSlice";
 import authReducer from "../authentication/authSlice";
+import fileReducer from "./slices/fileSlice";
 
 const persistConfig = {
   key: "root",
@@ -13,6 +14,7 @@ const persistConfig = {
 const rootReducer = combineReducers({
   ui: uiSlice,
   auth: authReducer,
+  files: fileReducer, //file slice
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

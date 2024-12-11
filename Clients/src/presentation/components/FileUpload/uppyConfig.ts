@@ -1,40 +1,28 @@
 import Uppy from "@uppy/core";
-//import XHRUpload from "@uppy/xhr-upload";
-
-import GoldenRetriever from "@uppy/golden-retriever";
+import XHRUpload from "@uppy/xhr-upload";
 import DropTarget from "@uppy/drop-target";
 
+export const createUppyInstance = () => {
+  const uppy = new Uppy({
+    restrictions: {
+      maxFileSize: 50 * 1024 * 1024, 
+      allowedFileTypes: ["application/pdf"], 
+    },
+    autoProceed: false, 
+    debug: true,
+  }); 
 
-export const createUppyInstance = ()=> { return new Uppy({
-  autoProceed: false,
-  debug: true,
-})
-  .use(DropTarget, {
-    target: document.body,
-  })
-  .use(GoldenRetriever);}
+  uppy.use(XHRUpload, {
+    endpoint: "http://localhost:3000/subcontrols", 
+    method: "POST",
+    headers: {
+      Authorization: "Placeholder", 
+    },
+    fieldName: "file", 
+  }); 
+  uppy.use(DropTarget, {
+    target: document.body, 
+  });
 
-// export const createUppyInstance = (
-//   //uploadEndpoint: string | undefined,
-//   allowedFileTypes: string[],
-//   maxFileSize: number
-// ) => {
-//   return new Uppy({
-//     restrictions: {
-//       maxNumberOfFiles: 1,
-//       allowedFileTypes,
-//       maxFileSize,
-//     },
-//     autoProceed: true,
-//   }).use(GoldenRetriever
-    
-    
-//     //XHRUpload, {
-//     //endpoint: uploadEndpoint || "api/replaceendpoint",
-//     //formData: true,
-//     //fieldName: "file",
-//   //}
-
-
-// );
-// };
+  return uppy;
+};

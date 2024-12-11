@@ -2,7 +2,7 @@ import { styled } from "@mui/material/styles";
 
 export const Container = styled("div")({
   width: "384px",
-  height: "338px",
+  height: "320px",
   padding: "32px",
 });
 
@@ -17,6 +17,8 @@ export const DragDropArea = styled("div")({
   borderRadius: "8px",
   backgroundColor: "#FFFFFF",
   position: "relative",
+  gap:2,
+  padding:"16px",
 
   "& .uppy-Container": {
     display: "none !important",

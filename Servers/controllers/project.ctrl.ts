@@ -103,7 +103,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
       console.log("project id ", createdProject.id, ", assessment id ", assessment.id);
 
       if (createdProject) {
-        return res.status(201).json(STATUS_CODE[201](createdProject));
+        return res.status(201).json(STATUS_CODE[201]({assessment: assessment, project: createdProject}));
       }
 
       return res.status(503).json(STATUS_CODE[503]({}));
@@ -113,7 +113,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
       console.log("project id ", createdProject.id, ", assessment id ", assessment.id);
 
       if (createdProject) {
-        return res.status(201).json(STATUS_CODE[201](createdProject));
+        return res.status(201).json(STATUS_CODE[201]({assessment: assessment, project: createdProject}));
       }
 
       return res.status(503).json(STATUS_CODE[503]({}));

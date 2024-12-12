@@ -1,9 +1,12 @@
 import React from "react";
-import {  DialogActions, Button } from "@mui/material";
-import { StyledDialog, StyledDialogContent } from "../../FileUpload/FileUpload.styles";
+import {
+  StyledDialog,
+  StyledDialogContent,
+} from "../../FileUpload/FileUpload.styles";
 import FileUploadComponent from "../../FileUpload";
-
 import { FileUploadProps } from "../../FileUpload/types";
+import CloseIcon from "@mui/icons-material/Close";
+import { IconButton } from "@mui/material";
 
 interface FileUploadModalProps {
   open: boolean;
@@ -17,27 +20,27 @@ const FileUploadModal: React.FC<FileUploadModalProps> = ({
   uploadProps,
 }) => {
   return (
-    <StyledDialog open={open} onClose={onClose} aria-labelledby="upload-dialog-title"
+    <StyledDialog
+      open={open}
+      onClose={onClose}
+      fullWidth={false}
+      maxWidth={false}
     >
-      <StyledDialogContent
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          gap:"16px",
-          overflow:"visible"
-        }}
-      >
+      <StyledDialogContent>
+        <IconButton
+          onClick={onClose}
+          sx={{
+            position: "absolute",
+            top: 8,
+            right: 8,
+          }}
+          disableRipple
+        >
+          <CloseIcon />
+        </IconButton>
+
         <FileUploadComponent {...uploadProps} />
       </StyledDialogContent>
-      <DialogActions>
-        <Button onClick={onClose} variant="outlined" sx={{
-          height:"30px", marginTop:2
-        }}>
-          Close
-        </Button>
-      </DialogActions>
     </StyledDialog>
   );
 };

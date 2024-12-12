@@ -8,7 +8,7 @@ import {
   Button,
   Stack,
 } from "@mui/material";
-import { Container, DragDropArea, Icon} from "./FileUpload.styles";
+import { Container, DragDropArea, Icon } from "./FileUpload.styles";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { createUppyInstance } from "./uppyConfig";
 import { DragDrop } from "@uppy/react";
@@ -164,7 +164,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
   useEffect(() => {
     console.log("status bar started");
     uppy.use(StatusBar, {
-      target:"#status-bar",
+      target: "#status-bar",
       hideUploadButton: true,
       hideAfterFinish: false,
       hideRetryButton: true,
@@ -188,9 +188,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
 
   return (
     <Container>
-      <Stack
-      spacing={2} sx={{alignItems:"center", textAlign:"center", width:"100%"}}
-      >
+      <Stack spacing={3} sx={{ width: "100%" }}>
         <Typography
           variant="h6"
           sx={{ fontWeight: 600, fontSize: "16px", pb: 2 }}
@@ -198,21 +196,9 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
           Upload a new file
         </Typography>
 
-        <DragDropArea
-          sx={{
-            width: "100%",
-            border: "1px solid #e5e7eb",
-            borderRadius: "8px",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            height: uploadedFiles.length > 0 ? "auto" : "190px",
-            transition: "height 0.3s ease",
-          }}
-        >
+        <DragDropArea>
           <Icon src={UploadSmallIcon} alt="Upload Icon" sx={{ mb: 2 }} />
-          <DragDrop uppy={uppy} locale={locale}/>
+          <DragDrop uppy={uppy} locale={locale} />
 
           <input
             type="file"

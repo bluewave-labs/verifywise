@@ -79,14 +79,14 @@ export async function createProject(req: Request, res: Response): Promise<any> {
   try {
     const newProject: {
       project_title: string;
-      owner: string;
+      owner: number;
       users: string;
       start_date: Date;
       ai_risk_classification: string;
       type_of_high_risk_role: string;
       goal: string;
       last_updated?: Date;
-      last_updated_by?: string;
+      last_updated_by?: number;
     } = req.body;
 
     if (!newProject.project_title || !newProject.owner) {

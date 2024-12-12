@@ -12,8 +12,13 @@ export const getMockControlCategoryById = (id: number): object | undefined => {
 };
 
 export const createMockControlCategory = (newControlCategory: any): object => {
-  ControlCategories.push(newControlCategory);
-  return newControlCategory;
+  const controlCategoriesToSave = {
+    id: ControlCategories.length + 1,
+    ...newControlCategory,
+  };
+
+  ControlCategories.push(controlCategoriesToSave);
+  return controlCategoriesToSave;
 };
 
 export const updateMockControlCategoryById = (

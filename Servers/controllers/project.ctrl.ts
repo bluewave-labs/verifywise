@@ -16,6 +16,9 @@ import {
   getProjectByIdQuery,
   updateProjectByIdQuery,
 } from "../utils/project.utils";
+import { createMockControlCategory } from "../mocks/tools/controlCategory.mock.db";
+import { createMockControl } from "../mocks/tools/control.mock.db";
+import { createMockSubcontrol } from "../mocks/tools/subcontrol.mock.db";
 
 export async function getAllProjects(
   req: Request,
@@ -197,10 +200,46 @@ export async function deleteProjectById(
 export async function saveControls(req: Request, res: Response): Promise<any> {
   if (MOCKDATA_ON === true) {
     // first, the id of the project is needed and will be sent inside the req.body
-    const projectId = req.body.projectId;
+    const projectId = req.body.projectId || 1;
+    const controlCategoryTitle = req.body.controlCategoryTitle;
 
     // then, we need to create the control category and use the projectId as the foreign key
-    // const controlCategory = createMockControlCategory(projectId);
+    const controlCategory: any = createMockControlCategory({
+      projectId,
+      controlCategoryTitle,
+    });
+
+    // now, we need to create the control for the control category, and use the control category id as the foreign key
+    const control: any = createMockControl({
+      controlCategoryId: controlCategory.id,
+      control: {
+        contrlTitle: req.body.control.controlTitle,
+        controlDescription: req.body.control.controlDescription,
+        status: req.body.control.status,
+        approver: req.body.control.approver,
+        riskReview: req.body.control.riskReview,
+        owner: req.body.control.owner,
+        reviewer: req.body.control.reviewer,
+        description: req.body.control.description,
+        date: req.body.control.date,
+      },
+    });
+    const controlId = control.id;
+
+    // now we need to iterate over subcontrols inside the control, and create a subcontrol for each subcontrol
+    const subcontrols = req.body.control.subControls;
+    for (const subcontrol of subcontrols) {
+      const subcontrolToSave: any = createMockSubcontrol({
+        controlId,
+        subcontrol: subcontrol,
+      });
+      console.log("subcontrolToSave : ", subcontrolToSave);
+    }
+    res.status(200).json(
+      STATUS_CODE[200]({
+        message: "Controls saved",
+      })
+    );
   } else {
   }
 }

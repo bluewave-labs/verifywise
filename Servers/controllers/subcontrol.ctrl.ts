@@ -101,7 +101,11 @@ export async function createNewSubcontrol(
 
       return res.status(204).json(STATUS_CODE[204](newSubcontrol));
     } else {
-      const newSubcontrol = await createNewSubcontrolQuery(subcontrol);
+      const controlIdFK = req.body.controlId;
+      const newSubcontrol = await createNewSubcontrolQuery(
+        controlIdFK,
+        subcontrol
+      );
 
       if (newSubcontrol) {
         return res.status(200).json(STATUS_CODE[200](newSubcontrol));

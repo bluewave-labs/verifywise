@@ -16,6 +16,7 @@ import {
   Stack,
   useTheme,
   SelectChangeEvent,
+  TablePagination,
 } from "@mui/material";
 import Trashbin from "../../../../presentation/assets/icons/trash-01.svg";
 import Field from "../../../components/Inputs/Field";
@@ -72,6 +73,9 @@ const TeamManagement: React.FC = (): JSX.Element => {
     { id: "4", name: "Prince", email: "prince@domain.com", role: Role.Editor },
   ]);
 
+  const [page, setPage] = useState(0); // Current page
+  const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
+
   // Handle saving organization name
   const handleSaveOrgName = useCallback(() => {
     console.log("Saving organization name:", orgName);
@@ -118,6 +122,22 @@ const TeamManagement: React.FC = (): JSX.Element => {
     };
     console.log("Form Data:", formData);
   }, [orgName, filter, teamMembers]);
+
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const paginatedMembers = useMemo(() => {
+    const startIndex = page * rowsPerPage;
+    return filteredMembers.slice(startIndex, startIndex + rowsPerPage);
+  }, [filteredMembers, page, rowsPerPage]);
 
   return (
     <Stack sx={{ pt: theme.spacing(10) }}>
@@ -233,60 +253,64 @@ const TeamManagement: React.FC = (): JSX.Element => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredMembers.map((member) => (
-                  <TableRow key={member.id} sx={{ height: theme.spacing(1) }}>
-                    <TableCell
-                      sx={{ height: "80px !important", color: "#101828" }}
-                    >
-                      {member.name}
-                    </TableCell>
-                    <TableCell sx={{ color: "#667085" }}>
-                      {member.email}
-                    </TableCell>
-                    <TableCell sx={{ paddingLeft: 0 }}>
-                      <Select
-                        value={member.role}
-                        onChange={(event) => handleRoleChange(event, member.id)}
-                        size="small"
-                        sx={{
-                          textAlign: "left",
-                          paddingLeft: 0,
-                          marginLeft: 0,
-                          "& .MuiOutlinedInput-notchedOutline": {
-                            border: "none",
-                          },
-                          color: "#667085",
-                          fontSize: 13,
-                        }}
-                      >
-                        {roles.map((role) => (
-                          <MenuItem key={role} value={role}>
-                            {role}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </TableCell>
-                    <TableCell sx={{ textAlign: "left" }}>
-                      <IconButton
-                        edge="end"
-                        aria-label="delete"
-                        onClick={() => handleDeleteMember(member.id)}
-                        sx={{ marginLeft: "16px" }}
-                      >
-                        <img
-                          src={Trashbin}
-                          alt="Delete"
-                          width={20}
-                          height={20}
-                          style={{ filter: "invert(0.5)" }}
-                        />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {filteredMembers
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) // Apply pagination to filtered members
+                  .map((member) => (
+                    <TableRow key={member.id}>
+                      <TableCell>{member.name}</TableCell>
+                      <TableCell>{member.email}</TableCell>
+                      <TableCell>
+                        <Select
+                          value={member.role}
+                          onChange={(event) =>
+                            handleRoleChange(event, member.id)
+                          }
+                          size="small"
+                          sx={{
+                            textAlign: "left",
+                            paddingLeft: 0,
+                            marginLeft: 0,
+                            "& .MuiOutlinedInput-notchedOutline": {
+                              border: "none",
+                            },
+                            color: "#667085",
+                            fontSize: 13,
+                          }}
+                        >
+                          {roles.map((role) => (
+                            <MenuItem key={role} value={role}>
+                              {role}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <IconButton
+                          aria-label="delete"
+                          onClick={() => handleDeleteMember(member.id)}
+                        >
+                          <img
+                            src={Trashbin}
+                            alt="Delete"
+                            width={20}
+                            height={20}
+                          />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
               </TableBody>
             </Table>
           </TableContainer>
+
+          <TablePagination
+          component="div"
+          count={filteredMembers.length}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
 
           <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 20 }}>
             <Button

@@ -1,9 +1,31 @@
 import { styled } from "@mui/material/styles";
+import {Dialog, DialogContent} from "@mui/material";
+
+export const StyledDialog = styled(Dialog)(() => ({
+  "& .MuiPaper-root": {
+    width: "384px",
+    height: "338px",
+    borderRadius: "4px",
+    padding: "32px", 
+    overflow: "visible", 
+  },
+}));
+
+export const StyledDialogContent = styled(DialogContent)(() => ({
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: 0, 
+  gap: "16px", 
+}));
 
 export const Container = styled("div")({
-  width: "384px",
-  height: "310px",
-  padding: "32px",
+  width: "349px",
+ height:"300px",
+  padding:"32px",
+  
+  
 });
 
 export const DragDropArea = styled("div")({
@@ -18,7 +40,7 @@ export const DragDropArea = styled("div")({
   backgroundColor: "#FFFFFF",
   position: "relative",
   gap:2,
-  padding:"16px",
+
 
   "& .uppy-Container": {
     display: "none !important",

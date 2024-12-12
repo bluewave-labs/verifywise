@@ -1,5 +1,6 @@
 import React from "react";
-import { Dialog, DialogContent, DialogActions, Button } from "@mui/material";
+import {  DialogActions, Button } from "@mui/material";
+import { StyledDialog, StyledDialogContent } from "../../FileUpload/FileUpload.styles";
 import FileUploadComponent from "../../FileUpload";
 
 import { FileUploadProps } from "../../FileUpload/types";
@@ -16,24 +17,28 @@ const FileUploadModal: React.FC<FileUploadModalProps> = ({
   uploadProps,
 }) => {
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
-      <DialogContent
+    <StyledDialog open={open} onClose={onClose} aria-labelledby="upload-dialog-title"
+    >
+      <StyledDialogContent
         sx={{
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          padding: "16px",
+          gap:"16px",
+          overflow:"visible"
         }}
       >
         <FileUploadComponent {...uploadProps} />
-      </DialogContent>
+      </StyledDialogContent>
       <DialogActions>
-        <Button onClick={onClose} variant="outlined">
+        <Button onClick={onClose} variant="outlined" sx={{
+          height:"30px", marginTop:2
+        }}>
           Close
         </Button>
       </DialogActions>
-    </Dialog>
+    </StyledDialog>
   );
 };
 

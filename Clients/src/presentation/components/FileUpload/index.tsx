@@ -188,104 +188,114 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
 
   return (
     <Container>
-      <Typography
-        variant="h6"
-        sx={{ fontWeight: 600, fontSize: "16px", pb: 2 }}
+      <Stack
+      spacing={2} sx={{alignItems:"center", textAlign:"center", width:"100%"}}
       >
-        Upload a new file
-      </Typography>
-
-      <DragDropArea
-        sx={{
-          width: "100%",
-
-          border: "1px solid #e5e7eb",
-          borderRadius: "8px",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "150px",
-          height: uploadedFiles.length > 0 ? "auto" : "150px",
-          transition: "height 0.3s ease",
-        }}
-      >
-        <Icon src={UploadSmallIcon} alt="Upload Icon" sx={{ mb: 2 }} />
-        <DragDrop uppy={uppy} locale={locale} />
-
-        <input
-          type="file"
-          hidden
-          id="fileInput"
-          onChange={(e) => {
-            if (e.target.files) {
-              Array.from(e.target.files).forEach((file) => {
-                try {
-                  uppy.addFile({
-                    name: file.name,
-                    type: file.type,
-                    data: file,
-                  });
-                } catch (err) {
-                  console.error("Error adding file:", err);
-                }
-              });
-            }
-          }}
-        />
-
-        <label
-          htmlFor="fileInput"
-          style={{ cursor: "pointer", textAlign: "center" }}
+        <Typography
+          variant="h6"
+          sx={{ fontWeight: 600, fontSize: "16px", pb: 2 }}
         >
-          <Typography variant="body2">
-            <span style={{ color: "#3b82f6" }}>Click to upload</span> or drag
-            and drop
+          Upload a new file
+        </Typography>
+
+        <DragDropArea
+          sx={{
+            width: "100%",
+            border: "1px solid #e5e7eb",
+            borderRadius: "8px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            height: uploadedFiles.length > 0 ? "auto" : "190px",
+            transition: "height 0.3s ease",
+          }}
+        >
+          <Icon src={UploadSmallIcon} alt="Upload Icon" sx={{ mb: 2 }} />
+          <DragDrop uppy={uppy} locale={locale}/>
+
+          <input
+            type="file"
+            hidden
+            id="fileInput"
+            onChange={(e) => {
+              if (e.target.files) {
+                Array.from(e.target.files).forEach((file) => {
+                  try {
+                    uppy.addFile({
+                      name: file.name,
+                      type: file.type,
+                      data: file,
+                    });
+                  } catch (err) {
+                    console.error("Error adding file:", err);
+                  }
+                });
+              }
+            }}
+          />
+
+          <label
+            htmlFor="fileInput"
+            style={{ cursor: "pointer", textAlign: "center" }}
+          >
+            <Typography variant="body2">
+              <span style={{ color: "#3b82f6" }}>Click to upload</span> or drag
+              and drop
+            </Typography>
+          </label>
+
+          <Typography
+            variant="body2"
+            sx={{ fontSize: 12, textAlign: "center" }}
+          >
+            Maximum size: {maxFileSize / (1024 * 1024)} MB
           </Typography>
-        </label>
 
-        <Typography variant="body2" sx={{ fontSize: 12, textAlign: "center" }}>
-          Maximum size: {maxFileSize / (1024 * 1024)} MB
-        </Typography>
-
-        {/* status bar */}
-        <Stack sx={{marginTop:2, marginBottom:1}}>
-          <div id="status-bar" style={{marginTop:'8px', marginBottom:'0',padding:'4px'}}>
-           
-          </div>
-        </Stack>
-        
-        {uploadedFiles.length > 0 && (
-          <Stack sx={{ mt: 2, borderTop: "1px solid #e5e7eb", pt: 2 }}>
-            <List>
-              {uploadedFiles.map((file, index) => (
-                <ListItem key={file.id || index}>
-                  <ListItemText
-                    primary={file.name}
-                    secondary={`Size: ${file.size}`}
-                  />
-
-                  <IconButton
-                    onClick={() => handleRemoveFile(file.id)}
-                    edge="end"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </ListItem>
-              ))}
-            </List>
+          {/* status bar */}
+          <Stack sx={{ marginTop: 2, marginBottom: 1 }}>
+            <div
+              id="status-bar"
+              style={{ marginTop: "8px", marginBottom: "0", padding: "4px" }}
+            ></div>
           </Stack>
-        )}
-      </DragDropArea>
 
-      <Stack direction="row" justifyContent="space-between" sx={{ mt: 2 }}>
-        <Typography variant="caption" sx={{ fontSize: 12 }}>
-          Supported formats: {allowedFileTypes.join(", ")}
-        </Typography>
+          {uploadedFiles.length > 0 && (
+            <Stack sx={{ mt: 2, borderTop: "1px solid #e5e7eb", pt: 2 }}>
+              <List>
+                {uploadedFiles.map((file, index) => (
+                  <ListItem key={file.id || index}>
+                    <ListItemText
+                      primary={file.name}
+                      secondary={`Size: ${file.size}`}
+                    />
 
-        <Button variant="contained" onClick={() => uploadToLocalStorage()}>
-          Upload
-        </Button>
+                    <IconButton
+                      onClick={() => handleRemoveFile(file.id)}
+                      edge="end"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </ListItem>
+                ))}
+              </List>
+            </Stack>
+          )}
+        </DragDropArea>
+
+        <Stack direction="row" justifyContent="space-between" sx={{ mt: 2 }}>
+          <Typography variant="caption" sx={{ fontSize: "12px" }}>
+            Supported formats: PDF
+          </Typography>
+
+          <Button
+            variant="contained"
+            sx={{ marginTop: "16px", width: "100px", height: "34px" }}
+            onClick={() => uploadToLocalStorage()}
+          >
+            Upload
+          </Button>
+        </Stack>
       </Stack>
     </Container>
   );

@@ -16,6 +16,8 @@ import {
   getProjectByIdQuery,
   updateProjectByIdQuery,
 } from "../utils/project.utils";
+import { createNewAssessmentQuery } from "../utils/assessment.utils";
+import { createMockAssessment } from "../mocks/tools/assessment.mock.db";
 
 export async function getAllProjects(
   req: Request,
@@ -96,7 +98,9 @@ export async function createProject(req: Request, res: Response): Promise<any> {
     }
 
     if (MOCKDATA_ON === true) {
-      const createdProject = createMockProject(newProject);
+      const createdProject = createMockProject(newProject) as { id: string };
+      const assessment = createMockAssessment({ projectId: createdProject.id }) as { id: string, projectId: string };
+      console.log("project id ", createdProject.id, ", assessment id ", assessment.id);
 
       if (createdProject) {
         return res.status(201).json(STATUS_CODE[201](createdProject));
@@ -105,6 +109,8 @@ export async function createProject(req: Request, res: Response): Promise<any> {
       return res.status(503).json(STATUS_CODE[503]({}));
     } else {
       const createdProject = await createNewProjectQuery(newProject);
+      const assessment = await createNewAssessmentQuery({ projectId: createdProject.id });
+      console.log("project id ", createdProject.id, ", assessment id ", assessment.id);
 
       if (createdProject) {
         return res.status(201).json(STATUS_CODE[201](createdProject));

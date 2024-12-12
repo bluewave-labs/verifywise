@@ -1,5 +1,5 @@
 export type ControlCategory = {
-  id: number;
+  id?: number;
   projectId: number;
   name: string;
 };

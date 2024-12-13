@@ -37,3 +37,8 @@
 .set-new-password-page .field input {
   border-radius: 8px;
 }
+
+.field-description .MuiFormControl-root .MuiInputBase-root .MuiInputBase-input {
+  padding: 0;
+  max-height: 53px;
+}

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   StyledDialog,
   StyledDialogContent,
@@ -12,19 +12,32 @@ interface FileUploadModalProps {
   open: boolean;
   onClose: () => void;
   uploadProps: FileUploadProps;
+
 }
 
 const FileUploadModal: React.FC<FileUploadModalProps> = ({
   open,
   onClose,
   uploadProps,
+  
 }) => {
+const [modalWidth,setModalWidth]= useState(384);
+const [modalHeight, setModalHeight]=useState(338);
+
+const handleWidthChange = (newWidth:number) =>{
+  setModalWidth(newWidth);
+}
+
+const handleHeightChange = (newHeight:number)=>{
+  setModalHeight(newHeight)
+};
+
   return (
     <StyledDialog
       open={open}
       onClose={onClose}
-      fullWidth={false}
-      maxWidth={false}
+      modalWidth={modalWidth}
+      modalHeight={modalHeight}
     >
       <StyledDialogContent>
         <IconButton
@@ -39,7 +52,12 @@ const FileUploadModal: React.FC<FileUploadModalProps> = ({
           <CloseIcon />
         </IconButton>
 
-        <FileUploadComponent {...uploadProps} />
+        <FileUploadComponent
+          {...uploadProps}
+          onWidthChange={handleWidthChange}
+          onHeightChange={handleHeightChange}
+         
+        />
       </StyledDialogContent>
     </StyledDialog>
   );

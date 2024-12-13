@@ -48,6 +48,7 @@ const AllAssessment = () => {
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState<number>(0);
 
+ 
 
   const [assessmentsValues, setAssessmentsValue] = useState<
     Record<number, AssessmentValue>
@@ -500,7 +501,7 @@ const AllAssessment = () => {
         />
       )}
       {/* FileUploadModal*/}
-      
+
       <FileUploadModal
         open={fileUploadModalOpen}
         onClose={handleCloseFileUploadModal}
@@ -509,6 +510,7 @@ const AllAssessment = () => {
           onError: (errorMessage: string) => console.error(errorMessage),
           allowedFileTypes: ["application/pdf"],
           maxFileSize: 50 * 1024 * 1024,
+        
         }}
       />
     </Box>

@@ -28,6 +28,8 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
   onStart,
   allowedFileTypes = ["application/pdf"],
   maxFileSize = 5 * 1024 * 1024,
+  onWidthChange,
+  onHeightChange,
 }) => {
   const dispatch = useDispatch();
 
@@ -161,6 +163,30 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
     dispatch(removeFileFromRedux(fileId));
   };
 
+  //dynamically adjust based on uploaded files
+  useEffect(() => {
+    if (onWidthChange || onHeightChange) {
+      const baseWidth = 384;
+      const baseHeight = 338;
+      const fileHeightIncrement = 50;
+      const fileWidthIncrement = 50;
+      const maxWidth = 800;
+      const maxHeight = 600;
+
+      const newWidth = Math.min(
+        baseWidth + uploadedFiles.length * fileWidthIncrement,
+        maxWidth
+      );
+      const newHeight = Math.min(
+        baseHeight + uploadedFiles.length * fileHeightIncrement,
+        maxHeight
+      );
+
+      onWidthChange?.(newWidth);
+      onHeightChange?.(newHeight);
+    }
+  }, [uploadedFiles.length, onWidthChange, onHeightChange]);
+
   useEffect(() => {
     console.log("status bar started");
     uppy.use(StatusBar, {
@@ -188,7 +214,15 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
 
   return (
     <Container>
-      <Stack spacing={3} sx={{ width: "100%" }}>
+      <Stack
+        spacing={3}
+        sx={{
+          width: "100%",
+          maxWidth: "100%",
+          mt: 2,
+          pt: 2,
+        }}
+      >
         <Typography
           variant="h6"
           sx={{ fontWeight: 600, fontSize: "16px", pb: 2 }}
@@ -196,7 +230,9 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
           Upload a new file
         </Typography>
 
-        <DragDropArea>
+        <DragDropArea
+         uploadedFilesCount={uploadedFiles.length}
+        >
           <Icon src={UploadSmallIcon} alt="Upload Icon" sx={{ mb: 2 }} />
           <DragDrop uppy={uppy} locale={locale} />
 
@@ -247,13 +283,33 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
           </Stack>
 
           {uploadedFiles.length > 0 && (
-            <Stack sx={{ mt: 2, borderTop: "1px solid #e5e7eb", pt: 2 }}>
+            <Stack
+              sx={{
+                mt: 2,
+                borderTop: "1px solid #e5e7eb",
+                width: "100%",
+                padding: "8px",
+                maxHeight: "300px",
+                overflowY: "auto",
+                boxSizing: "border-box",
+               
+              }}
+            >
               <List>
                 {uploadedFiles.map((file, index) => (
-                  <ListItem key={file.id || index}>
+                  <ListItem
+                    key={file.id || index}
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mb: 1,
+                    }}
+                  >
                     <ListItemText
                       primary={file.name}
                       secondary={`Size: ${file.size}`}
+                      sx={{ wordBreak: "break-word" }}
                     />
 
                     <IconButton

@@ -10,8 +10,20 @@ export const getMockControlById = (id: number): object | undefined => {
 };
 
 export const createMockControl = (newControl: any): object => {
-  mockControls.push(newControl);
-  return newControl;
+  const newControlToSave = {
+    id: mockControls.length + 1,
+    status: newControl.control.status,
+    approver: newControl.control.approver,
+    riskReview: newControl.control.riskReview,
+    owner: newControl.control.owner,
+    reviewer: newControl.control.reviewer,
+    implementationDetails: newControl.control.description,
+    dueDate: newControl.control.date,
+    projectId: newControl.controlCategoryId, // it will be controlCategoryId
+    controlGroup: newControl.controlGroup, // This field must be removed in anywhere
+  };
+  mockControls.push(newControlToSave);
+  return newControlToSave;
 };
 
 export const updateMockControlById = (

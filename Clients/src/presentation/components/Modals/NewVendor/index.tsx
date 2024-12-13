@@ -15,6 +15,7 @@ import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import {
+  Alert,
   Box,
   Button,
   Modal,
@@ -27,10 +28,11 @@ import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
 import { ReactComponent as Close } from "../../../assets/icons/close.svg";
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
+import { createNewUser, getAllEntities, updateEntityById } from "../../../../application/repository/entity.repository";
 
-interface VendorDetails {
+export interface VendorDetails {
   vendorName: string;
   projectVendorIsConnectedTo: string;
   vendorProvides: string;
@@ -65,6 +67,8 @@ interface AddNewVendorProps {
   setIsOpen: () => void;
   value: string;
   handleChange: (event: React.SyntheticEvent, newValue: string) => void;
+  existingVendor?: VendorDetails,
+  onVendorChange?: () => void;
 }
 
 const AddNewVendor: React.FC<AddNewVendorProps> = ({
@@ -72,11 +76,13 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   setIsOpen,
   value,
   handleChange,
+  existingVendor,
+  onVendorChange = () => { },
 }) => {
   const theme = useTheme();
   const [values, setValues] = useState({
     vendorDetails: {
-      vendorName: "",
+      vendorName: existingVendor?.vendorName || "",
       website: "",
       projectId: 0,
       vendorProvides: "",
@@ -84,7 +90,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       reviewStatus: "0",
       reviewer: "0",
       reviewResult: "",
-      riskStatus: 0,
+      riskStatus: "0",
       assignee: 0,
       reviewDate: "",
     },
@@ -100,6 +106,64 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       actionPlan: "",
     },
   });
+  const [alert, setAlert] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    title?: string;
+    body: string;
+  } | null>(null);
+
+  const [projectOptions, setProjectOptions] = useState<{ _id: number; name: string }[]>([]);
+  const [projectsLoaded, setProjectsLoaded] = useState(false); // Track if projects are loaded
+
+  const fetchProjects = async () => {
+    try {
+      const response = await getAllEntities({ routeUrl: "/projects" });
+      console.log("API response ===> ", response);
+
+      if (response.data) {
+        const formattedProjects = response.data.map((project: any) => ({
+          _id: project.id,
+          name: project.project_title,
+        }));
+        setProjectOptions(formattedProjects);
+        setProjectsLoaded(true); // Mark projects as loaded
+      } else {
+        console.error('Unexpected response structure:', response);
+        setProjectOptions([]);
+      }
+    } catch (error: any) {
+      console.error('Error fetching projects:', error);
+      setProjectOptions([]);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen && !projectsLoaded) {
+      fetchProjects();
+    }
+  }, [isOpen, projectsLoaded]);
+
+  useEffect(() => {
+    if (existingVendor) {
+      setValues((prevValues) => ({
+        ...prevValues,
+        vendorDetails: {
+          ...prevValues.vendorDetails,
+          vendorName: existingVendor.vendorName,
+          website: existingVendor.website,
+          projectId: 0,
+          vendorProvides: existingVendor.vendorProvides,
+          vendorContactPerson: existingVendor.vendorContactPerson,
+          reviewStatus: existingVendor.reviewStatus,
+          reviewer: existingVendor.reviewer,
+          reviewResult: existingVendor.reviewResult,
+          riskStatus: existingVendor.riskStatus,
+          assignee: 0,
+          reviewDate: existingVendor.reviewDate,
+        },
+      }));
+    }
+  }, [existingVendor]);
 
   const handleDateChange = (newDate: Dayjs | null) => {
     setValues((prevValues) => ({
@@ -116,6 +180,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     field: string,
     value: string | number
   ) => {
+    debugger;
     setValues((prevValues) => ({
       ...prevValues,
       [section]: {
@@ -125,10 +190,93 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     }));
   };
 
-  const handleOnSave = () => {
+  const handleOnSave = async () => {
     console.log("Vendor Details:", values.vendorDetails);
-    console.log("Risks:", values.risks);
+    console.log("Risks:", values.risks); {
+      //request to the backend
+      // onSave(values.vendorDetails);
+      const _vendorDetails = {
+        projectId: values.vendorDetails.projectId,
+        vendorName: values.vendorDetails.vendorName,
+        assignee: 'Assignee 1',
+        vendorProvides: values.vendorDetails.vendorProvides,
+        website: values.vendorDetails.website,
+        vendorContactPerson: values.vendorDetails.vendorContactPerson,
+        reviewResult: values.vendorDetails.reviewResult,
+        reviewStatus: values.vendorDetails.reviewStatus,
+        reviewer: values.vendorDetails.reviewer,
+        riskStatus: values.vendorDetails.riskStatus,
+        reviewDate: values.vendorDetails.reviewDate,
+        riskDescription: values.risks.riskDescription,
+        impactDescription: values.risks.impactDescription,
+        impact: values.risks.impact,
+        probability: values.risks.probability,
+        actionOwner: values.risks.actionOwner,
+        actionPlan: values.risks.actionPlan,
+        riskSeverity: values.risks.riskSeverity,
+        riskLevel: values.risks.riskLevel,
+        likelihood: values.risks.likelihood,
+        projectVendorIsConnectedTo: "", // Ensure this is included
+      };
+      if (existingVendor) {
+        // uuse vendor id
+        await updateVendor(1, _vendorDetails);
+      } else {
+        await createVendor(_vendorDetails)
+      }
+    }
   };
+
+  const createVendor = async (vendorDetails: VendorDetails) => {
+    await createNewUser({
+      routeUrl: "/vendors",
+      body: vendorDetails,
+    }).then((response) => {
+      if (response.status === 201) {
+        setAlert({
+          variant: "success",
+          body: "Vendor created successfully",
+        });
+        setTimeout(() => {
+          setAlert(null);
+          onVendorChange();
+          setIsOpen();
+        }, 3000);
+      } else if (response.status == 400) {
+        setAlert({
+          variant: "error",
+          body: response.data.data.message,
+        });
+      }
+    })
+  }
+
+  const updateVendor = async (vendorId: number, updatedVendorDetails: VendorDetails) => {
+    // Make a call to backend and update the vendor
+    console.log("Edit Vendor", vendorId, updatedVendorDetails);
+    await updateEntityById({
+      routeUrl: `/vendors/${vendorId}`,
+      body: updatedVendorDetails,
+    }).then((response) => {
+      if (response.status === 202) {
+        setAlert({
+          variant: "success",
+          body: "Vendor updated successfully",
+        });
+        setTimeout(() => {
+          setAlert(null);
+          onVendorChange();
+          setIsOpen();
+        }, 3000);
+      } else if (response.status == 400) {
+        setAlert({
+          variant: "error",
+          body: response.data.data.message,
+        });
+      }
+    })
+  }
+
 
   const vendorDetailsPanel = (
     <TabPanel value="1" sx={{ paddingTop: theme.spacing(15), paddingX: 0 }}>
@@ -153,7 +301,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             handleOnChange("vendorDetails", "website", e.target.value)
           }
         />
-        <Select // projectId (will be added my loading list of projects here)
+        {/* <Select // projectId (will be added my loading list of projects here)
           items={[
             { _id: 1, name: "Chatbot AI" },
             { _id: 2, name: "Marketing AI" },
@@ -166,6 +314,20 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           value={values.vendorDetails.projectId}
           onChange={(e) =>
             handleOnChange("risks", "projectName", e.target.value)
+          }
+          sx={{
+            width: 220,
+          }}
+        /> */}
+        <Select // projectId
+          items={projectOptions}
+          label="Project name"
+          placeholder="Select project"
+          isHidden={false}
+          id=""
+          value={values.vendorDetails.projectId}
+          onChange={(e) =>
+            handleOnChange("vendorDetails", "projectId", e.target.value)
           }
           sx={{
             width: 220,
@@ -520,7 +682,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             fontWeight={600}
             marginBottom={theme.spacing(5)}
           >
-            Add new vendor
+            {existingVendor ? 'Edit vendor' : 'Add new vendor'}
           </Typography>
           <Close style={{ cursor: "pointer" }} onClick={setIsOpen} />
         </Stack>

@@ -54,57 +54,57 @@ const Vendors = () => {
   // }
   // };
 
-  // const handleDeleteVendor = async (vendorId: number) => {
-  //   const user = {
-  //     id: "At delete vendor level", // Replace with actual user ID
-  //     email: "N/A", // Replace with actual user email
-  //     firstname: "N/A", // Replace with actual user first name
-  //     lastname: "N/A", // Replace with actual user last name
-  //   };
+  const handleDeleteVendor = async (vendorId: number) => {
+    const user = {
+      id: "At delete vendor level", // Replace with actual user ID
+      email: "N/A", // Replace with actual user email
+      firstname: "N/A", // Replace with actual user first name
+      lastname: "N/A", // Replace with actual user last name
+    };
 
-  //   try {
-  //     const response = await deleteEntityById({
-  //       routeUrl: `/vendors/${vendorId}`,
-  //     });
+    try {
+      const response = await deleteEntityById({
+        routeUrl: `/vendors/${vendorId}`,
+      });
 
-  //     if (response.status === 202) {
-  //       setDashboardValues((prevValues: any) => ({
-  //         ...prevValues,
-  //         vendors: prevValues.vendors.filter(
-  //           (vendor: any) => vendor.id !== vendorId
-  //         ),
-  //       }));
-  //       console.log("Vendor deleted successfully.");
-  //       logEngine({
-  //         type: "info",
-  //         message: "Vendor deleted successfully.",
-  //         user,
-  //       });
-  //       updateVendorChangeTrigger();
-  //     } else if (response.status === 404) {
-  //       console.error("Vendor not found.");
-  //       logEngine({
-  //         type: "error",
-  //         message: "Vendor not found.",
-  //         user,
-  //       });
-  //     } else {
-  //       console.error("Unexpected response. Please try again.");
-  //       logEngine({
-  //         type: "error",
-  //         message: "Unexpected response. Please try again.",
-  //         user,
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.error("Error deleting vendor:", error);
-  //     logEngine({
-  //       type: "error",
-  //       message: `An error occurred: ${error}`,
-  //       user,
-  //     });
-  //   }
-  // };
+      if (response.status === 202) {
+        setDashboardValues((prevValues: any) => ({
+          ...prevValues,
+          vendors: prevValues.vendors.filter(
+            (vendor: any) => vendor.id !== vendorId
+          ),
+        }));
+        console.log("Vendor deleted successfully.");
+        logEngine({
+          type: "info",
+          message: "Vendor deleted successfully.",
+          user,
+        });
+        updateVendorChangeTrigger();
+      } else if (response.status === 404) {
+        console.error("Vendor not found.");
+        logEngine({
+          type: "error",
+          message: "Vendor not found.",
+          user,
+        });
+      } else {
+        console.error("Unexpected response. Please try again.");
+        logEngine({
+          type: "error",
+          message: "Unexpected response. Please try again.",
+          user,
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting vendor:", error);
+      logEngine({
+        type: "error",
+        message: `An error occurred: ${error}`,
+        user,
+      });
+    }
+  };
 
   return (
     <div className="vendors-page">
@@ -146,17 +146,15 @@ const Vendors = () => {
         </Stack>
         <TableWithPlaceholder
           dashboardValues={dashboardValues}
-        // onVendorChange={updateVendorChangeTrigger}
-        // onDeleteVendor={handleDeleteVendor}
-        />
-
+          onVendorChange={updateVendorChangeTrigger}
+          onDeleteVendor={handleDeleteVendor} />
       </Stack>
       <AddNewVendor
         isOpen={isOpen}
         handleChange={handleChange}
         setIsOpen={() => setIsOpen(false)}
         value={value}
-      // onVendorChange={updateVendorChangeTrigger}
+        onVendorChange={updateVendorChangeTrigger}
       />
     </div>
   );

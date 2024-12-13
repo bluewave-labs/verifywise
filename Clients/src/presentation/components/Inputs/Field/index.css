@@ -42,3 +42,7 @@
   padding: 0;
   max-height: 53px;
 }
+
+.field-description .MuiFormControl-root .MuiInputBase-root {
+  padding: 5px 10px;
+}

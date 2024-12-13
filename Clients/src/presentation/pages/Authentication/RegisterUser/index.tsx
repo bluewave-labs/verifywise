@@ -4,9 +4,18 @@ import { ReactComponent as Background } from "../../../assets/imgs/background-gr
 import Check from "../../../components/Checks";
 import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { useNavigate } from "react-router-dom";
 import { validatePassword, validateForm } from "../../../../application/validations/formValidation";
 import type { FormValues, FormErrors } from "../../../../application/validations/formValidation";
+import Alert from "../../../components/Alert";
+import useRegisterUser from "../../../../application/hooks/useRegisterUser";
+import { useNavigate } from "react-router-dom";
+import { ALERT_TIMEOUT } from "../../../../application/constants/apiResponses";
+
+export interface AlertType {
+  variant: "success" | "info" | "warning" | "error";
+  title?: string;
+  body: string;
+}
 
 // Initial state for form values
 const initialState: FormValues = {
@@ -18,10 +27,13 @@ const initialState: FormValues = {
 
 const RegisterUser: React.FC = () => {
   const navigate = useNavigate();
+  const {registerUser} = useRegisterUser();
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
   // State for form errors
   const [errors, setErrors] = useState<FormErrors>({});
+  // State for alert
+  const [alert, setAlert] = useState<AlertType | null>(null);
   // Password checks based on the password input
   const passwordChecks = validatePassword(values);
 
@@ -34,17 +46,24 @@ const RegisterUser: React.FC = () => {
   };
 
   // Handle form submission
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const user = {
+      id: "At register level as user",
+      firstname: values.name || "",
+      lastname: values.surname || "",
+
+    };
     const { isFormValid, errors } = validateForm(values);
     if (!isFormValid) {
       setErrors(errors);
     } else {
-      console.log("Form submitted:", values);
-      // Reset form after successful submission
-      setValues(initialState);
-      setErrors({});
-      navigate("/login");
+      const { isSuccess } = await registerUser({ values, user, setAlert });
+      if (isSuccess) {
+        setValues(initialState);
+        setErrors({});
+        setTimeout(() => navigate("/login"), ALERT_TIMEOUT);
+      }
     }
   };
 
@@ -73,6 +92,15 @@ const RegisterUser: React.FC = () => {
           transform: "translateX(-50%)",
         }}
       />
+      {alert && (
+        <Alert
+          variant={alert.variant}
+          title={alert.title}
+          body={alert.body}
+          isToast={true}
+          onClick={() => setAlert(null)}
+        />
+      )}
       <form onSubmit={handleSubmit}>
         <Stack
           className="reg-user-form"

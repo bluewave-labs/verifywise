@@ -28,7 +28,6 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
   onStart,
   allowedFileTypes = ["application/pdf"],
   maxFileSize = 5 * 1024 * 1024,
-  onWidthChange,
   onHeightChange,
 }) => {
   const dispatch = useDispatch();
@@ -165,27 +164,19 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
 
   //dynamically adjust based on uploaded files
   useEffect(() => {
-    if (onWidthChange || onHeightChange) {
-      const baseWidth = 384;
+    if (onHeightChange) {
       const baseHeight = 338;
       const fileHeightIncrement = 50;
-      const fileWidthIncrement = 50;
-      const maxWidth = 800;
       const maxHeight = 600;
 
-      const newWidth = Math.min(
-        baseWidth + uploadedFiles.length * fileWidthIncrement,
-        maxWidth
-      );
       const newHeight = Math.min(
         baseHeight + uploadedFiles.length * fileHeightIncrement,
         maxHeight
       );
 
-      onWidthChange?.(newWidth);
       onHeightChange?.(newHeight);
     }
-  }, [uploadedFiles.length, onWidthChange, onHeightChange]);
+  }, [uploadedFiles.length, onHeightChange]);
 
   useEffect(() => {
     console.log("status bar started");
@@ -219,8 +210,8 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
         sx={{
           width: "100%",
           maxWidth: "100%",
-          mt: 2,
-          pt: 2,
+          mt: 0,
+          pt: 0,
         }}
       >
         <Typography
@@ -230,9 +221,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
           Upload a new file
         </Typography>
 
-        <DragDropArea
-         uploadedFilesCount={uploadedFiles.length}
-        >
+        <DragDropArea uploadedFilesCount={uploadedFiles.length}>
           <Icon src={UploadSmallIcon} alt="Upload Icon" sx={{ mb: 2 }} />
           <DragDrop uppy={uppy} locale={locale} />
 
@@ -292,7 +281,6 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
                 maxHeight: "300px",
                 overflowY: "auto",
                 boxSizing: "border-box",
-               
               }}
             >
               <List>
@@ -303,20 +291,25 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center",
-                      mb: 1,
+                      padding:"0",
+                     
                     }}
                   >
                     <ListItemText
                       primary={file.name}
                       secondary={`Size: ${file.size}`}
-                      sx={{ wordBreak: "break-word" }}
+                      sx={{ fontSize:"12px",wordBreak: "break-word",
+                        maxWidth:"100%"
+                      }}
                     />
 
                     <IconButton
                       onClick={() => handleRemoveFile(file.id)}
                       edge="end"
+                      size="small"
+                      sx={{padding:"4px"}}
                     >
-                      <DeleteIcon />
+                      <DeleteIcon  fontSize="small"/>
                     </IconButton>
                   </ListItem>
                 ))}
@@ -325,14 +318,14 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
           )}
         </DragDropArea>
 
-        <Stack direction="row" justifyContent="space-between" sx={{ mt: 2 }}>
+        <Stack direction="row" justifyContent="space-between" sx={{ mt: 2}}>
           <Typography variant="caption" sx={{ fontSize: "12px" }}>
             Supported formats: PDF
           </Typography>
 
           <Button
             variant="contained"
-            sx={{ marginTop: "16px", width: "100px", height: "34px" }}
+            sx={{ marginTop:"8px", width: "100px", height: "34px" }}
             onClick={() => uploadToLocalStorage()}
           >
             Upload

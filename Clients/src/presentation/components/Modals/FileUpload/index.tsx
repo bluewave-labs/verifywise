@@ -21,13 +21,8 @@ const FileUploadModal: React.FC<FileUploadModalProps> = ({
   uploadProps,
   
 }) => {
-const [modalWidth,setModalWidth]= useState(384);
+
 const [modalHeight, setModalHeight]=useState(338);
-
-const handleWidthChange = (newWidth:number) =>{
-  setModalWidth(newWidth);
-}
-
 const handleHeightChange = (newHeight:number)=>{
   setModalHeight(newHeight)
 };
@@ -36,7 +31,7 @@ const handleHeightChange = (newHeight:number)=>{
     <StyledDialog
       open={open}
       onClose={onClose}
-      modalWidth={modalWidth}
+      
       modalHeight={modalHeight}
     >
       <StyledDialogContent>
@@ -54,7 +49,6 @@ const handleHeightChange = (newHeight:number)=>{
 
         <FileUploadComponent
           {...uploadProps}
-          onWidthChange={handleWidthChange}
           onHeightChange={handleHeightChange}
          
         />

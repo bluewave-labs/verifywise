@@ -6,6 +6,5 @@ export interface FileUploadProps {
   maxFileSize?: number;
   allowedFileTypes?: string[];
   uploadEndpoint?: string;
-  onWidthChange?: (newWidth: number) => void;
   onHeightChange?: (newHeight: number) => void;
 }

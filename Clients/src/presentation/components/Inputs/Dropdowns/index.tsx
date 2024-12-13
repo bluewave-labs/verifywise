@@ -71,9 +71,9 @@ const DropDowns = ({
           onChange={handleSelectChange("approver")}
           items={[
             { _id: "Choose approver", name: "Choose approver" },
-            { _id: "Option 1", name: "Option 1" },
-            { _id: "Option 2", name: "Option 2" },
-            { _id: "Option 3", name: "Option 3" },
+            { _id: "approver 1", name: "approver 1" },
+            { _id: "approver 2", name: "approver 2" },
+            { _id: "approver 3", name: "approver 3" },
           ]}
           sx={inputStyles}
         />
@@ -108,9 +108,9 @@ const DropDowns = ({
           onChange={handleSelectChange("owner")}
           items={[
             { _id: "Choose owner", name: "Choose owner" },
-            { _id: "Option 1", name: "Option 1" },
-            { _id: "Option 2", name: "Option 2" },
-            { _id: "Option 3", name: "Option 3" },
+            { _id: "owner 1", name: "owner 1" },
+            { _id: "owner 2", name: "owner 2" },
+            { _id: "owner 3", name: "owner 3" },
           ]}
           sx={inputStyles}
         />
@@ -122,9 +122,9 @@ const DropDowns = ({
           onChange={handleSelectChange("reviewer")}
           items={[
             { _id: "Choose reviewer", name: "Choose reviewer" },
-            { _id: "Option 1", name: "Option 1" },
-            { _id: "Option 2", name: "Option 2" },
-            { _id: "Option 3", name: "Option 3" },
+            { _id: "reviewer 1", name: "reviewer 1" },
+            { _id: "reviewer 2", name: "reviewer 2" },
+            { _id: "reviewer 3", name: "reviewer 3" },
           ]}
           sx={inputStyles}
         />

@@ -23,15 +23,16 @@ const AccordionTable = ({
   id,
   cols,
   rows,
+  controlCategory,
 }: {
   id: any;
   cols: ITableCol[];
   rows: any[];
+  controlCategory: string;
 }) => {
   const theme = useTheme();
   const [selectedRow, setSelectedRow] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-
 
   const getProgressColor = useCallback((value: number) => {
     if (value <= 10) return "#FF4500"; // 0-10%
@@ -93,7 +94,8 @@ const AccordionTable = ({
           <Fragment key={row.id}>
             {modalOpen && selectedRow === row.id && (
               <NewControlPane
-                id={`${id}.${row.id}`}
+                id={row.id}
+                numbering={`${id}.${row.id}`}
                 isOpen={modalOpen}
                 handleClose={() => setModalOpen(false)}
                 title={row.title}
@@ -103,6 +105,7 @@ const AccordionTable = ({
                   console.log("Save clicked");
                   // fetchComplianceTracker();
                 }}
+                controlCategory={controlCategory}
               />
             )}
             <TableRow

@@ -33,16 +33,46 @@ const fontSizes = {
 
 const buttons = {
   primary: {
-    height: 34,
-    fontSize: fontSizes.medium,
-    backgroundColor: backgroundColors.primary,
-    borderRadius: "4px",
-    border: `1px solid ${borderColors.primary}`,
-    "&:hover": {
-      boxShadow: shadowEffect.NoShadow,
-      backgroundColor: "#175CD3 ",
+    contained: {
+      height: 34,
+      fontSize: fontSizes.medium,
+      backgroundColor: backgroundColors.primary,
+      boxShadow: "none",
+      textTransform: "Inherit",
+      borderRadius: "4px",
+      border: `1px solid ${borderColors.primary}`,
+      "&:hover": {
+        boxShadow: shadowEffect.NoShadow,
+        backgroundColor: "#175CD3 ",
+      },
     },
-    fontSizes: fontSizes.medium,
+    outlined: {},
+    text: {},
+  },
+  secondary: {
+    contained: {},
+    outlined: {},
+    text: {},
+  },
+  success: {
+    contained: {},
+    outlined: {},
+    text: {},
+  },
+  warning: {
+    contained: {},
+    outlined: {},
+    text: {},
+  },
+  error: {
+    contained: {},
+    outlined: {},
+    text: {},
+  },
+  info: {
+    contained: {},
+    outlined: {},
+    text: {},
   },
 };
 

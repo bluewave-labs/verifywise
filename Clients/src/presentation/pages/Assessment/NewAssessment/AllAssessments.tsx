@@ -22,7 +22,9 @@ import { assessments } from "./assessments";
 import { priorities, PriorityLevel } from "./priorities";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import Alert from "../../../components/Alert";
-import { useNavigate } from "react-router-dom";
+import FileUploadModal from "../../../components/Modals/FileUpload";
+
+
 
 interface AssessmentValue {
   topic: string;
@@ -45,6 +47,9 @@ interface AssessmentValue {
 const AllAssessment = () => {
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState<number>(0);
+
+ 
+
   const [assessmentsValues, setAssessmentsValue] = useState<
     Record<number, AssessmentValue>
   >({
@@ -64,6 +69,11 @@ const AllAssessment = () => {
   });
 
   const [_, setAllQuestionsToCheck] = useState<{ title: string }[]>([]);
+
+  //modal
+  const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
+  const handleOpenFileUploadModal =()=>setFileUploadModalOpen(true);
+   const handleCloseFileUploadModal = () => setFileUploadModalOpen(false);
 
   const [alert, setAlert] = useState<{ show: boolean; message: string }>({
     show: false,
@@ -249,7 +259,6 @@ const AllAssessment = () => {
 
   const renderQuestions = useCallback(
     (subtopicId: string, subtopicTitle: string, questions: any[]) => {
-      const navigate = useNavigate();
       const renderedQuestions = questions.map((question) => (
         <Box key={question.id} mt={10}>
           <Box
@@ -364,8 +373,10 @@ const AllAssessment = () => {
               disableRipple={
                 theme.components?.MuiButton?.defaultProps?.disableRipple
               }
-              onClick={() => navigate("/playground")}
-            >
+
+            onClick={handleOpenFileUploadModal}> 
+
+           
               Add evidence
             </Button>
             <Typography
@@ -374,8 +385,10 @@ const AllAssessment = () => {
               {question.isRequired === true ? "required" : ""}
             </Typography>
           </Stack>
+          
         </Box>
       ));
+      
 
       return renderedQuestions;
     },
@@ -487,8 +500,22 @@ const AllAssessment = () => {
           onClick={() => setAlert({ show: false, message: "" })}
         />
       )}
+      {/* FileUploadModal*/}
+
+      <FileUploadModal
+        open={fileUploadModalOpen}
+        onClose={handleCloseFileUploadModal}
+        uploadProps={{
+          onSuccess: () => console.log("File uploaded successfully!"),
+          onError: (errorMessage: string) => console.error(errorMessage),
+          allowedFileTypes: ["application/pdf"],
+          maxFileSize: 50 * 1024 * 1024,
+        
+        }}
+      />
     </Box>
   );
+
 };
 
 export default AllAssessment;

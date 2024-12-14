@@ -8,6 +8,7 @@ Mention the issue number(s) this PR addresses (e.g., #123).
 
 ## Please ensure all items are checked off before requesting a review:
 
+- [ ] I deployed the code locally.
 - [ ] I have performed a self-review of my code.
 - [ ] I have included the issue # in the PR.
 - [ ] I have labelled the PR correctly.

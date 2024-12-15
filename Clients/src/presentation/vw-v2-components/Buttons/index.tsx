@@ -27,7 +27,6 @@
 
 import { Button } from "@mui/material";
 import PropTypes from "prop-types";
-import { SxProps } from "@mui/system";
 import { ButtonProps } from "@mui/material/Button";
 
 import singleTheme from "../../themes/v1SingleTheme";
@@ -39,7 +38,8 @@ interface VWButtonProps {
   isLink?: boolean;
   color?: "primary" | "secondary" | "success" | "warning" | "error" | "info";
   onClick?: () => void;
-  sx?: SxProps;
+  sx?: any;
+  text?: string;
 }
 
 const VWButton: React.FC<VWButtonProps> = ({
@@ -50,8 +50,11 @@ const VWButton: React.FC<VWButtonProps> = ({
   color = "primary",
   onClick,
   sx,
+  text = "VWButton",
 }) => {
   const appearance = singleTheme.buttons[color][variant];
+
+  console.log(appearance);
 
   return (
     <Button
@@ -61,10 +64,10 @@ const VWButton: React.FC<VWButtonProps> = ({
       disabled={isDisabled}
       color={color as ButtonProps["color"]}
       onClick={onClick}
-      sx={{ appearance, ...sx }}
+      sx={{ ...appearance, ...sx }}
       disableElevation={variant === "contained" && !isLink}
     >
-      VWButton
+      {text}
     </Button>
   );
 };

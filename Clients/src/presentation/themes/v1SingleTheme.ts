@@ -5,14 +5,17 @@
 
 const backgroundColors = {
   primary: "#4C7DE7",
+  error: "#DB504A",
 };
 
 const borderColors = {
   primary: "#175CD3",
+  error: "#DB504A",
 };
 
 const textColors = {
   theme: "#0f604d",
+  error: "#DB504A",
 };
 
 const effects = {
@@ -43,11 +46,15 @@ const buttons = {
       border: `1px solid ${borderColors.primary}`,
       "&:hover": {
         boxShadow: shadowEffect.NoShadow,
-        backgroundColor: "#175CD3 ",
       },
     },
     outlined: {},
-    text: {},
+    text: {
+      "&:hover": {
+        boxShadow: shadowEffect.NoShadow,
+        backgroundColor: "#fff",
+      },
+    },
   },
   secondary: {
     contained: {},
@@ -65,7 +72,19 @@ const buttons = {
     text: {},
   },
   error: {
-    contained: {},
+    contained: {
+      height: 34,
+      fontSize: fontSizes.medium,
+      backgroundColor: backgroundColors.error,
+      boxShadow: "none",
+      textTransform: "Inherit",
+      borderRadius: "4px",
+      border: `1px solid ${borderColors.error}`,
+      "&:hover": {
+        boxShadow: shadowEffect.NoShadow,
+        backgroundColor: "#d32f2f",
+      },
+    },
     outlined: {},
     text: {},
   },

@@ -1,0 +1,45 @@
+/* Styling for the outer container */
+.file-upload-container {
+  width: 384px;
+  height: 338px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f9fafb;
+}
+
+/* Styling for the drag-and-drop area */
+.file-upload-drag-drop {
+  width: 320px;
+  height: 190px;
+  border: 1px dashed #d1d5db;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background-color: #ffffff;
+}
+
+/* Styling for the small upload icon */
+.file-upload-icon {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 8px;
+}
+
+/* Styling for the upload button */
+.file-upload-button {
+  width: 120px;
+  height: 40px;
+  background-color: #3b82f6;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  text-transform: none;
+}

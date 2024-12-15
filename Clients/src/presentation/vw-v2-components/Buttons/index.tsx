@@ -54,8 +54,6 @@ const VWButton: React.FC<VWButtonProps> = ({
 }) => {
   const appearance = singleTheme.buttons[color][variant];
 
-  console.log(appearance);
-
   return (
     <Button
       disableRipple

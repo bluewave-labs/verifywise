@@ -81,9 +81,10 @@ const ProfileForm: React.FC = () => {
    */
   useEffect(() => {
     const fetchUserData = async () => {
+      const userId = localStorage.getItem("userId") || "1";
       setLoading(true); 
       try {
-        const userId = localStorage.getItem("userId") || "1";
+       
         const user = await getEntityById({ routeUrl: `/users/${userId}` });
 
         setFirstname(user.firstname || "");

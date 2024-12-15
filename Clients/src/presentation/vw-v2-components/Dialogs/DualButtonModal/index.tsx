@@ -30,7 +30,20 @@ const DualButtonModal: React.FC<DualButtonModalProps> = ({
   proceedButtonVariant,
 }) => {
   return (
-    <Stack className="dual-btn-modal">
+    <Stack
+      className="dual-btn-modal"
+      sx={{
+        position: "fixed",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        zIndex: 1300, // Ensure it appears on top of other components
+        backgroundColor: "white",
+        padding: "16px",
+        borderRadius: "8px",
+        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+      }}
+    >
       <Stack className="dual-btn-modal-content">
         <Typography className="dual-btn-modal-title">{title}</Typography>
         {body}

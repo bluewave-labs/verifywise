@@ -23,6 +23,7 @@ import { priorities, PriorityLevel } from "./priorities";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import Alert from "../../../components/Alert";
 import { useNavigate } from "react-router-dom";
+import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 
 interface AssessmentValue {
   topic: string;
@@ -42,6 +43,7 @@ interface AssessmentValue {
     }[];
   }[];
 }
+
 const AllAssessment = () => {
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState<number>(0);
@@ -70,30 +72,16 @@ const AllAssessment = () => {
     message: "",
   });
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [topicToSave, setTopicToSave] = useState<number | null>(null);
+
   const handleSave = async (topicToSave: number) => {
-    /*
-    
-    This part will remain commented for now, as it is not needed for the current implementation
+    setTopicToSave(topicToSave);
+    setIsModalOpen(true);
+  };
 
-    const unansweredRequiredQuestions = allQuestionsToCheck.filter(
-      (question) =>
-        !Object.values(assessmentsValues).some((assessment) =>
-          assessment.subtopic.some((subtopic) =>
-            subtopic.questions.some(
-              (q) => q.question === question.title && q.answer.trim() !== ""
-            )
-          )
-        )
-    );
-
-    if (unansweredRequiredQuestions.length > 0) {
-      setAlert({
-        show: true,
-        message: `You need to answer all the required questions`,
-      });
-      return;
-    }
-    */
+  const confirmSave = async () => {
+    if (topicToSave === null) return;
 
     const assessmentToSave = assessmentsValues[topicToSave];
 
@@ -107,6 +95,9 @@ const AllAssessment = () => {
       console.log("Assessments saved successfully:", response);
     } catch (error) {
       console.error("Error saving assessments:", error);
+    } finally {
+      setIsModalOpen(false);
+      setTopicToSave(null);
     }
   };
 
@@ -464,7 +455,7 @@ const AllAssessment = () => {
         >
           <Button
             sx={{
-              ...singleTheme.buttons.primary,
+              ...singleTheme.buttons.primary.contained,
               color: "#FFFFFF",
               width: 140,
               "&:hover": {
@@ -485,6 +476,23 @@ const AllAssessment = () => {
           body={alert.message}
           isToast={true}
           onClick={() => setAlert({ show: false, message: "" })}
+        />
+      )}
+      {isModalOpen && (
+        <DualButtonModal
+          title={"Are you sure you want to save the content?"}
+          body={
+            <Typography className="dual-btn-modal-body">
+              If you confirm, new answers and evidence files will be save inside
+              the database
+            </Typography>
+          }
+          cancelText={"Cancel"}
+          proceedText={"Confirm"}
+          onCancel={() => setIsModalOpen(false)}
+          onProceed={confirmSave}
+          proceedButtonColor="primary"
+          proceedButtonVariant="contained"
         />
       )}
     </Box>

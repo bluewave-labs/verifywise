@@ -24,10 +24,6 @@ import Avatar from "../../../components/Avatar/VWAvatar/index";
 import DeleteAccountConfirmation from "../../../components/Modals/DeleteAccount/index";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import validator from "validator";
-import {
-  getEntityById,
-  updateEntityById,
-} from "../../../../application/repository/entity.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
 import localStorage from "redux-persist/es/storage";
 
@@ -81,11 +77,18 @@ const ProfileForm: React.FC = () => {
    */
   useEffect(() => {
     const fetchUserData = async () => {
-      const userId = localStorage.getItem("userId") || "1";
-      setLoading(true); 
+      setLoading(true);
       try {
-       
-        const user = await getEntityById({ routeUrl: `/users/${userId}` });
+        const userId = (await localStorage.getItem("userId")) || "1";
+        if (!userId) {
+          throw new Error("User ID not found in local storage");
+        }
+
+        const response = await fetch(`http://localhost:3000/users/${userId}`);
+        if (!response) {
+          throw new Error("failed to fetch user data");
+        }
+        const user = await response.json();
 
         setFirstname(user.firstname || "");
         setLastname(user.lastname || "");
@@ -95,15 +98,16 @@ const ProfileForm: React.FC = () => {
         );
       } catch (error) {
         logEngine({
-          type:"error",
-          message:"Failed to fetch user data.",
-          user:{
-            id: String(localStorage.getItem("userId")) || "N/A",
+          type: "error",
+          message: "Failed to fetch user data.",
+          user: {
+            id: "N/A",
             email: "N/A",
             firstname: "N/A",
-            lastname:"N/A"
+            lastname: "N/A",
           },
         });
+        console.error("error fetching user data:", error);
       } finally {
         setLoading(false);
       }
@@ -120,19 +124,14 @@ const ProfileForm: React.FC = () => {
   const handleSave = useCallback(async () => {
     try {
       if (firstnameError || lastnameError || emailError) {
-        logEngine({
-          type: "error",
-          message: "Validation errors occured while saving the profile.",
-          user: {
-            id: "N/A",
-            email,
-            firstname,
-            lastname,
-          },
-        });
+        alert("validation errors need to be fixed before saving");
         return;
       }
-      const userId = localStorage.getItem("userId") || "1";
+      const userId = (await localStorage.getItem("userId")) || "1";
+      if (!userId) {
+        throw new Error("user id not found in local storage");
+      }
+
       const updatedUser = {
         firstname,
         lastname,
@@ -140,25 +139,19 @@ const ProfileForm: React.FC = () => {
         pathToImage: profilePhoto,
       };
 
-      await updateEntityById({
-        routeUrl: `/users/${userId}`,
-        body: updatedUser,
+      const response = await fetch(`http://localhost:3000/users/${userId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedUser),
       });
+      if (!response.ok) {
+        throw new Error("failed to update user");
+      }
       alert("Profile updated successfully");
       setIsConfirmationModalOpen(false);
     } catch (error) {
-
-       logEngine({
-         type: "error",
-         message: "An error occured while updating the profile.",
-         user: {
-           id:String(localStorage.getItem("userId")) || "N/A",
-           email,
-           firstname,
-           lastname,
-         },
-       });
-      alert("Failed to update profile. Please try again.");
+      console.error("error updating user", error);
+      alert("failed to update profile, please try again");
     }
   }, [
     firstname,
@@ -303,7 +296,7 @@ const ProfileForm: React.FC = () => {
 
   // User object for Avatar component
   const user: User = useMemo(
-    () => ({ 
+    () => ({
       firstname,
       lastname,
       pathToImage: profilePhoto,
@@ -313,20 +306,21 @@ const ProfileForm: React.FC = () => {
   );
 
   return (
-    <Box sx={{ position: "relative" ,mt: 3, width: { xs: "90%", md: "70%" } }}>
+    <Box sx={{ position: "relative", mt: 3, width: { xs: "90%", md: "70%" } }}>
       {loading && (
         <Box
-        sx={{ position: "absolute",
-          top:0,
-          left: 0,
-          width:"100%",
-          height:"100%",
-          display:"flex",
-          justifyContent:"center",
-          alignItems:"center",
-          backgroundColor: "rgba(255,255,255,0.8)",
-          zIndex: 10,
-        }}
+          sx={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(255,255,255,0.8)",
+            zIndex: 10,
+          }}
         >
           <Typography>Loading...</Typography>
         </Box>
@@ -464,8 +458,11 @@ const ProfileForm: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseConfirmationModal}>Cancel</Button>
-          <Button onClick={handleSave} color="primary"
-          aria-label = "Save profile changes">
+          <Button
+            onClick={handleSave}
+            color="primary"
+            aria-label="Save profile changes"
+          >
             Save
           </Button>
         </DialogActions>

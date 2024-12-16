@@ -81,26 +81,26 @@ const ProfileForm: React.FC = () => {
    */
   useEffect(() => {
     const fetchUserData = async () => {
-      setLoading(true); 
+      setLoading(true);
       try {
-        const userId = localStorage.getItem("userId") || "1";
-        const user = await getEntityById({ routeUrl: `/users/${userId}` });
+        // const userId = localStorage.getItem("userId") || 1;
+        const response = await getEntityById({ routeUrl: `/users/1` });
 
-        setFirstname(user.firstname || "");
-        setLastname(user.lastname || "");
-        setEmail(user.email || "");
+        setFirstname(response.data.name || "");
+        setLastname(response.data.surname || "");
+        setEmail(response.data.email || "");
         setProfilePhoto(
-          user.pathToImage || "/placeholder.svg?height=80&width=80"
+          response.data.pathToImage || "/placeholder.svg?height=80&width=80"
         );
       } catch (error) {
         logEngine({
-          type:"error",
-          message:"Failed to fetch user data.",
-          user:{
+          type: "error",
+          message: "Failed to fetch user data.",
+          user: {
             id: String(localStorage.getItem("userId")) || "N/A",
             email: "N/A",
             firstname: "N/A",
-            lastname:"N/A"
+            lastname: "N/A",
           },
         });
       } finally {
@@ -146,17 +146,16 @@ const ProfileForm: React.FC = () => {
       alert("Profile updated successfully");
       setIsConfirmationModalOpen(false);
     } catch (error) {
-
-       logEngine({
-         type: "error",
-         message: "An error occured while updating the profile.",
-         user: {
-           id:String(localStorage.getItem("userId")) || "N/A",
-           email,
-           firstname,
-           lastname,
-         },
-       });
+      logEngine({
+        type: "error",
+        message: "An error occured while updating the profile.",
+        user: {
+          id: String(localStorage.getItem("userId")) || "N/A",
+          email,
+          firstname,
+          lastname,
+        },
+      });
       alert("Failed to update profile. Please try again.");
     }
   }, [
@@ -302,7 +301,7 @@ const ProfileForm: React.FC = () => {
 
   // User object for Avatar component
   const user: User = useMemo(
-    () => ({ 
+    () => ({
       firstname,
       lastname,
       pathToImage: profilePhoto,
@@ -312,20 +311,21 @@ const ProfileForm: React.FC = () => {
   );
 
   return (
-    <Box sx={{ position: "relative" ,mt: 3, width: { xs: "90%", md: "70%" } }}>
+    <Box sx={{ position: "relative", mt: 3, width: { xs: "90%", md: "70%" } }}>
       {loading && (
         <Box
-        sx={{ position: "absolute",
-          top:0,
-          left: 0,
-          width:"100%",
-          height:"100%",
-          display:"flex",
-          justifyContent:"center",
-          alignItems:"center",
-          backgroundColor: "rgba(255,255,255,0.8)",
-          zIndex: 10,
-        }}
+          sx={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(255,255,255,0.8)",
+            zIndex: 10,
+          }}
         >
           <Typography>Loading...</Typography>
         </Box>
@@ -343,7 +343,7 @@ const ProfileForm: React.FC = () => {
         <Box sx={{ width: { xs: "100%", md: "40%" } }}>
           <Field
             id="First name"
-            label="First name"
+            label="Name"
             value={firstname}
             onChange={handleFirstnameChange}
             sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
@@ -355,7 +355,7 @@ const ProfileForm: React.FC = () => {
           )}
           <Field
             id="Last name"
-            label="Last name"
+            label="Surname"
             value={lastname}
             onChange={handleLastnameChange}
             sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
@@ -463,8 +463,11 @@ const ProfileForm: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseConfirmationModal}>Cancel</Button>
-          <Button onClick={handleSave} color="primary"
-          aria-label = "Save profile changes">
+          <Button
+            onClick={handleSave}
+            color="primary"
+            aria-label="Save profile changes"
+          >
             Save
           </Button>
         </DialogActions>

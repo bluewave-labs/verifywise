@@ -6,18 +6,7 @@ import React, {
   ChangeEvent,
   useMemo,
 } from "react";
-import {
-  Box,
-  Button,
-  Divider,
-  Stack,
-  Typography,
-  Dialog,
-  DialogActions,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-} from "@mui/material";
+import { Box, Button, Divider, Stack, Typography } from "@mui/material";
 import { useTheme } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import Avatar from "../../../components/Avatar/VWAvatar/index";
@@ -26,6 +15,7 @@ import { checkStringValidation } from "../../../../application/validations/strin
 import validator from "validator";
 import { logEngine } from "../../../../application/tools/log.engine";
 import localStorage from "redux-persist/es/storage";
+import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 
 /**
  * Interface representing a user object.
@@ -64,6 +54,10 @@ const ProfileForm: React.FC = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] =
     useState<boolean>(false);
+
+  const [errorModalOpen, setErrorModalOpen] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+
   const [loading, setLoading] = useState(false);
 
   const theme = useTheme();
@@ -79,16 +73,19 @@ const ProfileForm: React.FC = () => {
     const fetchUserData = async () => {
       setLoading(true);
       try {
-        const userId = (await localStorage.getItem("userId")) || "1";
+        const userId = await localStorage.getItem("userId");
         if (!userId) {
           throw new Error("User ID not found in local storage");
         }
 
-        const response = await fetch(`http://localhost:3000/users/${userId}`);
-        if (!response) {
-          throw new Error("failed to fetch user data");
+        const API_BASE_URL =
+          process.env.REACT_APP_API_BASE_URL || "http://localhost:3000";
+        const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+          signal: AbortSignal.timeout(5000),
+        });
+        if (!response.ok) {
+          throw new Error("Failed to fetch user data");
         }
-        const user = await response.json();
 
         setFirstname(user.firstname || "");
         setLastname(user.lastname || "");
@@ -124,8 +121,8 @@ const ProfileForm: React.FC = () => {
   const handleSave = useCallback(async () => {
     try {
       if (firstnameError || lastnameError || emailError) {
-        alert("validation errors need to be fixed before saving");
-        return;
+        setErrorModalOpen(true);
+        setErrorMessage("Please fix validation errors before saving");
       }
       const userId = (await localStorage.getItem("userId")) || "1";
       if (!userId) {
@@ -139,19 +136,21 @@ const ProfileForm: React.FC = () => {
         pathToImage: profilePhoto,
       };
 
-      const response = await fetch(`http://localhost:3000/users/${userId}`, {
+      const API_BASE_URL =
+        process.env.REACT_APP_API_BASE_URL || "http://localhost:3000";
+      const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedUser),
+        signal: AbortSignal.timeout(5000),
       });
       if (!response.ok) {
-        throw new Error("failed to update user");
+        throw new Error(`Failed to update user: ${response.status}`);
       }
       alert("Profile updated successfully");
       setIsConfirmationModalOpen(false);
-    } catch (error) {
-      console.error("error updating user", error);
-      alert("failed to update profile, please try again");
+    } finally {
+      setLoading(false);
     }
   }, [
     firstname,
@@ -293,6 +292,13 @@ const ProfileForm: React.FC = () => {
   const handleCloseConfirmationModal = useCallback(() => {
     setIsConfirmationModalOpen(false);
   }, []);
+
+  /**
+   * Close error modal.
+   */
+  const handleCloseErrorModal = useCallback(()=>{
+    setErrorModalOpen(false)
+  },[]);
 
   // User object for Avatar component
   const user: User = useMemo(
@@ -444,29 +450,39 @@ const ProfileForm: React.FC = () => {
       >
         Save
       </Button>
-
-      {/* Confirmation modal */}
-      <Dialog
-        open={isConfirmationModalOpen}
-        onClose={handleCloseConfirmationModal}
-      >
-        <DialogTitle>Save Changes?</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to save the changes?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseConfirmationModal}>Cancel</Button>
-          <Button
-            onClick={handleSave}
-            color="primary"
-            aria-label="Save profile changes"
-          >
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Confirmation Modal */}
+      {isConfirmationModalOpen && (
+        <DualButtonModal
+          title="Save Changes?"
+          body={<Typography>Are you sure you want to save changes?</Typography>}
+          cancelText="Cancel"
+          proceedText="Save"
+          onCancel={handleCloseConfirmationModal}
+          onProceed={handleSave}
+          proceedButtonColor="primary"
+          proceedButtonVariant="contained"
+        />
+      )}
+      {/* error Modal */}
+      {errorModalOpen && (
+        <DualButtonModal
+          title="Error"
+          body={
+            <Typography>
+              {errorMessage || "An error occured while saving"}
+            </Typography>
+          }
+          cancelText="Close"
+          proceedText="Retry"
+          onCancel={handleCloseErrorModal}
+          onProceed={() => {
+            setErrorModalOpen(false);
+            setIsConfirmationModalOpen(true);
+          }}
+          proceedButtonColor="error"
+          proceedButtonVariant="outlined"
+        />
+      )}
       <Box>
         <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
         <Stack>

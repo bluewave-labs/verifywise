@@ -17,6 +17,7 @@ import { logEngine } from "../../../../application/tools/log.engine";
 import localStorage from "redux-persist/es/storage";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 
+
 /**
  * Interface representing a user object.
  * @interface
@@ -59,6 +60,8 @@ const ProfileForm: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>("");
 
   const [loading, setLoading] = useState(false);
+
+  
 
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -297,9 +300,9 @@ const ProfileForm: React.FC = () => {
   /**
    * Close error modal.
    */
-  const handleCloseErrorModal = useCallback(()=>{
-    setErrorModalOpen(false)
-  },[]);
+  const handleCloseErrorModal = useCallback(() => {
+    setErrorModalOpen(false);
+  }, []);
 
   // User object for Avatar component
   const user: User = useMemo(
@@ -476,9 +479,10 @@ const ProfileForm: React.FC = () => {
           cancelText="Close"
           proceedText="Retry"
           onCancel={handleCloseErrorModal}
-          onProceed={() => {
+          onProceed={()=>{
             setErrorModalOpen(false);
-            setIsConfirmationModalOpen(true);
+            setIsConfirmationModalOpen(false);
+            window.location.reload();
           }}
           proceedButtonColor="error"
           proceedButtonVariant="outlined"

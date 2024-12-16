@@ -122,7 +122,8 @@ async function createNewUser(req: Request, res: Response) {
 
       return res.status(400).json(STATUS_CODE[400](user));
     } else {
-      const { name, email, password, role, created_at, last_login } = req.body;
+      const { name, surname, email, password, role, created_at, last_login } =
+        req.body;
       const existingUser = await getUserByEmailQuery(email);
 
       if (existingUser) {
@@ -133,6 +134,7 @@ async function createNewUser(req: Request, res: Response) {
 
       const user = await createNewUserQuery({
         name,
+        surname,
         email,
         password_hash,
         role,
@@ -235,13 +237,14 @@ async function resetPassword(req: Request, res: Response) {
 async function updateUserById(req: Request, res: Response) {
   try {
     const id = req.params.id;
-    const { name, email, password_hash, role, last_login } = req.body;
+    const { name, surname, email, password_hash, role, last_login } = req.body;
 
     if (MOCKDATA_ON === true) {
       const user = getMockUserById(parseInt(id));
 
       if (user) {
         user.name = name || user.name;
+        user.surname = surname || user.surname;
         user.email = email || user.email;
         user.password_hash = password_hash || user.password_hash;
         user.role = role || user.role;
@@ -257,6 +260,7 @@ async function updateUserById(req: Request, res: Response) {
       if (user) {
         const updatedUser = await updateUserByIdQuery(id, {
           name: name || user.name,
+          surname: surname || user.surname,
           email: email || user.email,
           password_hash: password_hash || user.password_hash,
           role: role || user.role,

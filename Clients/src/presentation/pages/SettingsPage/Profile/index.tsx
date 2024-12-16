@@ -482,7 +482,7 @@ const ProfileForm: React.FC = () => {
           onProceed={()=>{
             setErrorModalOpen(false);
             setIsConfirmationModalOpen(false);
-            window.location.reload();
+          
           }}
           proceedButtonColor="error"
           proceedButtonVariant="outlined"

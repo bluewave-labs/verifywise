@@ -13,13 +13,13 @@ import {
   useTheme,
 } from "@mui/material";
 import { ReactComponent as Setting } from "../../assets/icons/setting.svg";
-import { useContext, useState } from "react";
+import { useState } from "react";
 import BasicModal from "../Modals/Basic";
 import AddNewVendor, { VendorDetails } from "../Modals/NewVendor";
 import singleTheme from "../../themes/v1SingleTheme";
-import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import Alert from "../Alert";
 import { getEntityById } from "../../../application/repository/entity.repository";
+import Alert from "../Alert";
+import { logEngine } from "../../../application/tools/log.engine";
 
 interface IconButtonProps {
   vendorId: number;
@@ -29,7 +29,6 @@ interface IconButtonProps {
 
 const IconButton: React.FC<IconButtonProps> = ({ vendorId, onVendorChange, onDeleteVendor }) => {
   const theme = useTheme();
-  // const { setDashboardValues } = useContext(VerifyWiseContext);
   const [anchorEl, setAnchorEl] = useState(null);
   const [actions, setActions] = useState({});
   const [isOpenRemoveVendorModal, setIsOpenRemoveVendorModal] = useState(false);
@@ -99,21 +98,31 @@ const IconButton: React.FC<IconButtonProps> = ({ vendorId, onVendorChange, onDel
     setAnchorEl(null);
   }
 
-  const handleDeleteVendor = async () => {
+  const handleDeleteVendor = () => {
     onDeleteVendor(vendorId);
     setIsOpenRemoveVendorModal(false);
   };
 
-  const handleEditVendor = async () => {
+  const handleEditVendor = async (e: React.MouseEvent) => {
+    closeDropDownMenu(e);
     try {
       const response = await getEntityById({
         routeUrl: `/vendors/${vendorId}`,
       });
-      console.log("Get Vendor Details");
-      console.log(response);
       setSelectedVendor(response.data)
       openAddNewVendor();
-    } catch (e) { }
+    } catch (e) {
+      logEngine({
+        type: "error",
+        message: "Failed to fetch vendor data.",
+        user: {
+          id: String(localStorage.getItem("userId")) || "N/A",
+          email: "N/A",
+          firstname: "N/A",
+          lastname: "N/A"
+        },
+      });
+    }
   }
 
   /**
@@ -145,8 +154,9 @@ const IconButton: React.FC<IconButtonProps> = ({ vendorId, onVendorChange, onDel
       }}
     >
       <MenuItem
-        onClick={() => {
-          handleEditVendor()
+        onClick={(e) => {
+          e.stopPropagation();
+          handleEditVendor(e)
         }}
       >
         Edit

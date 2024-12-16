@@ -35,6 +35,7 @@ import Alert from "../../Alert";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 
 export interface VendorDetails {
+	id?: number;  // Add th
 	vendorName: string;
 	projectVendorIsConnectedTo: string;
 	vendorProvides: string;
@@ -65,9 +66,38 @@ interface Values {
 }
 
 interface FormErrors {
-	vendorName?: string;
-	vendorProvides?: string;
+	vendorName?: string,
+	vendorProvides?: string,
+	website?: string,
+	projectId?: string,
+	vendorContactPerson?: string,
 }
+const initialState = {
+	vendorDetails: {
+	  vendorName: "",
+	  website: "",
+	  projectId: 0,
+	  vendorProvides: "",
+	  vendorContactPerson: "",
+	  reviewStatus: "0",
+	  reviewer: "0",
+	  reviewResult: "",
+	  riskStatus: "0",
+	  assignee: 0,
+	  reviewDate: "",
+	},
+	risks: {
+	  riskDescription: "",
+	  impactDescription: "",
+	  impact: 0,
+	  probability: 0,
+	  actionOwner: 0,
+	  riskSeverity: 0,
+	  likelihood: 0,
+	  riskLevel: 0,
+	  actionPlan: "",
+	},
+  };
 
 interface AddNewVendorProps {
 	isOpen: boolean;
@@ -184,6 +214,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
 	};
 
 	const handleOnChange = (section: keyof Values, field: string, value: string | number) => {
+		console.log("handleOnChange", section, field, value);
 		setValues((prevValues) => ({
 			...prevValues,
 			[section]: {
@@ -201,10 +232,22 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
 		if (!vendorName.accepted) {
 			newErrors.vendorName = vendorName.message;
 		}
+		const vendorWebsite = checkStringValidation("Vendor Website", values.vendorDetails.website, 1, 64);
+		if (!vendorWebsite.accepted) {
+			newErrors.website = vendorWebsite.message;
+		}
+		if (!values.vendorDetails.projectId || Number(values.vendorDetails.projectId) === 0) {
+			newErrors.projectId = "Project is required";
+		}
 		const vendorProvides = checkStringValidation("Vendor Provides", values.vendorDetails.vendorProvides, 1, 64);
 		if (!vendorProvides.accepted) {
 			newErrors.vendorProvides = vendorProvides.message;
 		}
+		const vendorContactPerson = checkStringValidation("Vendor Contact Person", values.vendorDetails.vendorContactPerson, 1, 64);
+		if (!vendorContactPerson.accepted) {
+			newErrors.vendorContactPerson = vendorContactPerson.message;
+		}
+
 		setErrors(newErrors);
 		return Object.keys(newErrors).length === 0;
 	};
@@ -240,7 +283,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
 			};
 			if (existingVendor) {
 				// uuse vendor id
-				await updateVendor(1, _vendorDetails);
+				await updateVendor(existingVendor.id!, _vendorDetails);
 			} else {
 				await createVendor(_vendorDetails)
 			}
@@ -252,6 +295,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
 			routeUrl: "/vendors",
 			body: vendorDetails,
 		}).then((response) => {
+			setValues(initialState);
 			if (response.status === 201) {
 				setAlert({
 					variant: "success",
@@ -278,6 +322,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
 			routeUrl: `/vendors/${vendorId}`,
 			body: updatedVendorDetails,
 		}).then((response) => {
+			setValues(initialState);
 			if (response.status === 202) {
 				setAlert({
 					variant: "success",
@@ -323,6 +368,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
 					onChange={(e) =>
 						handleOnChange("vendorDetails", "website", e.target.value)
 					}
+					error={errors.website}
+					isRequired
 				/>
 				<Select // projectId
 					items={projectOptions}
@@ -337,6 +384,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
 					sx={{
 						width: 220,
 					}}
+					error={errors.projectId}
+					isRequired
 				/>
 			</Stack>
 			<Stack marginBottom={theme.spacing(8)}>
@@ -368,6 +417,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
 							e.target.value
 						)
 					}
+					isRequired
+					error={errors.vendorContactPerson}
 				/>
 				<Select // reviewStatus
 					items={[

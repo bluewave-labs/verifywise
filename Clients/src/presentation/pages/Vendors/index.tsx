@@ -51,23 +51,13 @@ const Vendors = () => {
         setVendorChangeTrigger(prev => prev + 1);
     };
 
-    // const handleEditVendor = async (vendorId: number, updatedVendorDetails: VendorDetails) => {
-    //     try {
-    //         await editVendor(vendorId, updatedVendorDetails);
-    //         setVendorChangeTrigger(prev => prev + 1); // Increment to trigger re-fetch
-    //     } catch (error) {
-    //         console.error("Error editing vendor:", error);
-    //     }
-    // };
-
     const handleDeleteVendor = async (vendorId: number) => {
         const user = {
-            id: "At delete vendor level", // Replace with actual user ID
-            email: "N/A", // Replace with actual user email
-            firstname: "N/A", // Replace with actual user first name
-            lastname: "N/A", // Replace with actual user last name
-        };
-
+            id: String(localStorage.getItem("userId")) || "N/A",
+            email: "N/A",
+            firstname: "N/A",
+            lastname: "N/A"
+        }
         try {
             const response = await deleteEntityById({
                 routeUrl: `/vendors/${vendorId}`,

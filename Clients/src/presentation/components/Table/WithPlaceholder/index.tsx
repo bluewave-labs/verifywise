@@ -117,10 +117,6 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({ dashboardVa
                                         onDeleteVendor={onDeleteVendor}
                                     >
                                     </IconButton>
-                                    {/* <Menu anchorEl={dropdownAnchor} open={Boolean(dropdownAnchor)} onClose={handleDropdownClose}>
-                      <MenuItem onClick={handleDropdownClose}>Edit</MenuItem>
-                      <MenuItem onClick={handleDropdownClose}>Remove</MenuItem>
-                    </Menu> */}
                                 </TableCell>
                             </TableRow>
                         ))}

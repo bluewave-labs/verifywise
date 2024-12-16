@@ -123,6 +123,7 @@ const ProfileForm: React.FC = () => {
       if (firstnameError || lastnameError || emailError) {
         setErrorModalOpen(true);
         setErrorMessage("Please fix validation errors before saving");
+        return;
       }
       const userId = (await localStorage.getItem("userId")) || "1";
       if (!userId) {
@@ -451,7 +452,7 @@ const ProfileForm: React.FC = () => {
         Save
       </Button>
       {/* Confirmation Modal */}
-      {isConfirmationModalOpen && (
+      {isConfirmationModalOpen && !errorModalOpen && (
         <DualButtonModal
           title="Save Changes?"
           body={<Typography>Are you sure you want to save changes?</Typography>}

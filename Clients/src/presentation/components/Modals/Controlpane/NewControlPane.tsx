@@ -15,6 +15,7 @@ import { useState } from "react";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
 import { Dayjs } from "dayjs";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
+import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 
 interface SubControlState {
   controlId: string;
@@ -70,6 +71,7 @@ const NewControlPane = ({
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const initialSubControlState = subControls.map((subControl) => ({
     controlId: id,
@@ -152,7 +154,11 @@ const NewControlPane = ({
     },
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
+    setIsModalOpen(true);
+  };
+
+  const confirmSave = async () => {
     const controlToSave = {
       controlCategoryTitle: controlCategory,
       control: state,
@@ -171,6 +177,7 @@ const NewControlPane = ({
     if (OnSave) {
       OnSave(state);
     }
+    setIsModalOpen(false);
   };
 
   return (
@@ -339,6 +346,22 @@ const NewControlPane = ({
             Save
           </Button>
         </Stack>
+        {isModalOpen && (
+          <DualButtonModal
+            title="Confirm Save"
+            body={
+              <Typography>
+                Are you sure you want to save the changes?
+              </Typography>
+            }
+            cancelText="Cancel"
+            proceedText="Save"
+            onCancel={() => setIsModalOpen(false)}
+            onProceed={confirmSave}
+            proceedButtonColor="primary"
+            proceedButtonVariant="contained"
+          />
+        )}
       </Stack>
     </Modal>
   );

@@ -1,15 +1,7 @@
-import { Stack } from "@mui/material";
-// import Avatar from "../components/Avatar/VWAvatar";
-import FileUploadComponent from "../components/FileUpload";
-// import RoleButtonGroup from "../components/ButtonGroup";
+import { Stack, Typography } from "@mui/material";
+import DualButtonModal from "../vw-v2-components/Dialogs/DualButtonModal";
 
 const Playground = () => {
-  // const user = {
-  //   firstname: "Mohammad",
-  //   lastname: "Khalilzadeh",
-  //   pathToImage: "https://avatars.githubusercontent.com/u/140876993?v=4",
-  // };
-
   return (
     <Stack
       sx={{
@@ -21,34 +13,22 @@ const Playground = () => {
         gap: 4,
       }}
     >
-      {/*<Stack
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: 4,
-        }}
-      >
-        <Avatar size="small" />
-        <Avatar size="medium" />
-        <Avatar size="large" />
-      </Stack>
-      <Stack
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: 4,
-        }}
-      >
-        <Avatar size="small" user={user} />
-        <Avatar size="medium" user={user} />
-        <Avatar size="large" user={user} />
-      </Stack>*/}
-      {/*<RoleButtonGroup />*/}
-      <FileUploadComponent />
+      <DualButtonModal
+        title={"Really delete this file?"}
+        body={
+          <Typography className="dual-btn-modal-body">
+            When you delete this file, all the links associated with the file
+            will also be removed. Note that this is a non-reversible action.
+          </Typography>
+        }
+        cancelText={"Cancel"}
+        proceedText={"Delete file"}
+        onCancel={() => console.log("Cancel")}
+        onProceed={() => console.log("Delete file")}
+        proceedButtonColor="error"
+        proceedButtonVariant="contained"
+      />
     </Stack>
-    
   );
 };
 

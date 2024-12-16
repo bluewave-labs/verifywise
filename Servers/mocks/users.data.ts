@@ -3,7 +3,8 @@ import { User } from "../models/user.model";
 export const users: User[] = [
   {
     id: 1,
-    name: "Alice Smith",
+    name: "Alice",
+    surname: "Smith",
     email: "alice.smith@example.com",
     password_hash:
       "$2b$10$c7Mtd3kRpMjr6VexlxuAleT8Sy3SwPcT.YLCazH5QWBgnATDo5N6O",
@@ -13,7 +14,8 @@ export const users: User[] = [
   },
   {
     id: 2,
-    name: "Bob Johnson",
+    name: "Bob",
+    surname: "Johnson",
     email: "bob.johnson@example.com",
     password_hash:
       "$2b$10$MBmkOR9yReYBIPfR2pE0QOwT4sGHjYV/Za3B/wfmZW2gQszqVod1G",
@@ -23,7 +25,8 @@ export const users: User[] = [
   },
   {
     id: 3,
-    name: "Cathy Brown",
+    name: "Cathy",
+    surname: "Brown",
     email: "cathy.brown@example.com",
     password_hash:
       "$2b$10$7qXYDROKyGgH3lpWL0dJR.dRN1T0AvG.J7EmZHF9iVqptQWAWHq.a",
@@ -33,7 +36,8 @@ export const users: User[] = [
   },
   {
     id: 4,
-    name: "David Wilson",
+    name: "David",
+    surname: "Wilson",
     email: "david.wilson@example.com",
     password_hash:
       "$2b$10$7yo46.rtqbrn4fxxLENu5eqfvfi8pYXm00sceVM3Ash7PlZuGONOa",
@@ -43,7 +47,8 @@ export const users: User[] = [
   },
   {
     id: 5,
-    name: "Eva Clark",
+    name: "Eva",
+    surname: "Clark",
     email: "eva.clark@example.com",
     password_hash:
       "$2b$10$3T5VhzKdBpUPXqHuiKZXJusPdR7k.SmwRbl3fopf4XEJhMfgyYSOO",

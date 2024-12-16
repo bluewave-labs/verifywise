@@ -110,11 +110,9 @@ export async function createControl(req: Request, res: Response): Promise<any> {
 
     if (MOCKDATA_ON === true) {
       // const control = createMockControl(newControl);
-
       // if (control) {
       //   return res.status(201).json(STATUS_CODE[201](control));
       // }
-
       // return res.status(400).json(STATUS_CODE[400](control));
     } else {
       let flag = true;
@@ -124,7 +122,8 @@ export async function createControl(req: Request, res: Response): Promise<any> {
             const controlId = control.id;
             for (const subControl of control.subControls) {
               const newSubControl = await createNewSubcontrolQuery(
-                {controlId, ...subControl}
+                controlId,
+                subControl
               );
               if (!newSubControl) {
                 flag = false;

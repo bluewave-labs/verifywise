@@ -1,11 +1,20 @@
 import { Stack, Typography, useTheme } from "@mui/material";
 import ProgressBar from "../../../components/ProjectCard/ProgressBar";
-import { FC, memo, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  FC,
+  memo,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import { formatDate } from "../../../tools/isoDateToString";
 import Risks from "../../../components/Risks";
 import { ProjectOverview } from "../../../mocks/projects/project-overview.data";
 import { useParams } from "react-router-dom";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 interface OverviewProps {
   mocProject: ProjectOverview;
@@ -18,24 +27,29 @@ type ProjectData = {
   last_updated_by: string;
 };
 
-const Overview: FC<OverviewProps> = memo(({mocProject}) => {
+const Overview: FC<OverviewProps> = memo(({ mocProject }) => {
   const [project, setProject] = useState<ProjectData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { projectId = 2 } = useParams<{ projectId: string }>(); // default project ID is 2
   const theme = useTheme();
-  const {
-    controlsStatus,
-    assessmentsStatus,
-    projectRisks,
-    vendorRisks,
-  } = mocProject;
-  
+  const { dashboardValues } = useContext(VerifyWiseContext);
+  const { selectedProjectId } = dashboardValues;
+
+  const { controlsStatus, assessmentsStatus, projectRisks, vendorRisks } =
+    mocProject;
+
   useEffect(() => {
     const controller = new AbortController();
     setIsLoading(true);
-    getEntityById({ routeUrl: `/projects/${projectId}` })
+    getEntityById({ routeUrl: `/projects/${selectedProjectId ?? projectId}` })
       .then(({ data }) => {
+        const ownerUser = dashboardValues.users.find(
+          (user: any) => user.id === data.owner
+        );
+        if (ownerUser) {
+          data.owner = ownerUser.name + ` ` + ownerUser.surname;
+        }
         setProject(data);
         setError(null);
       })
@@ -96,8 +110,8 @@ const Overview: FC<OverviewProps> = memo(({mocProject}) => {
     ),
     [styles.block, styles.title]
   );
-  
-  if(!project){
+
+  if (!project) {
     return "No project found";
   }
 
@@ -119,7 +133,9 @@ const Overview: FC<OverviewProps> = memo(({mocProject}) => {
         </Stack>
         <Stack sx={styles.block}>
           <Typography sx={styles.title}>Last updated</Typography>
-          <Typography sx={styles.value}>{formatDate(project.last_updated)}</Typography>
+          <Typography sx={styles.value}>
+            {formatDate(project.last_updated)}
+          </Typography>
         </Stack>
         <Stack sx={styles.block}>
           <Typography sx={styles.title}>Last updated by</Typography>

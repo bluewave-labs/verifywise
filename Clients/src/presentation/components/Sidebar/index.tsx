@@ -17,7 +17,7 @@ import "./index.css";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 import { useTheme } from "@mui/material";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { toggleSidebar } from "../../tools/uiSlice";
 
 import { ReactComponent as ArrowLeft } from "../../assets/icons/left-arrow.svg";
@@ -38,6 +38,7 @@ import Select from "../Inputs/Select";
 import Avatar from "../Avatar/VWAvatar";
 import { clearAuthState } from "../../../application/authentication/authSlice";
 import { SelectChangeEvent } from "@mui/material";
+import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 
 const menu = [
   {
@@ -85,12 +86,18 @@ const Sidebar = ({ projects }: { projects: any }) => {
   const [selectedProjectId, setSelectedProjectId] = useState<string | number>(
     projects.length > 0 ? projects[0]._id : ""
   );
+  const { dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);
 
   const collapsed = useSelector((state: any) => state.ui?.sidebar?.collapsed);
 
   const handleProjectChange = (event: SelectChangeEvent<string | number>) => {
     const selectedProjectId = event.target.value as string;
     setSelectedProjectId(selectedProjectId);
+    // Update the dashboardValues in the context
+    setDashboardValues({
+      ...dashboardValues,
+      selectedProjectId,
+    });
   };
 
   const [open, setOpen] = useState<{ [key: string]: boolean }>({

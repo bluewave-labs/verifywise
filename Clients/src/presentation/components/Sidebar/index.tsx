@@ -91,8 +91,6 @@ const Sidebar = ({ projects }: { projects: any }) => {
   const handleProjectChange = (event: SelectChangeEvent<string | number>) => {
     const selectedProjectId = event.target.value as string;
     setSelectedProjectId(selectedProjectId);
-    console.log("Selected project ID:", selectedProjectId);
-    // Handle the project change logic here
   };
 
   const [open, setOpen] = useState<{ [key: string]: boolean }>({

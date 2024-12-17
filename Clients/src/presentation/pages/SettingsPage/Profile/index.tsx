@@ -17,7 +17,6 @@ import { logEngine } from "../../../../application/tools/log.engine";
 import localStorage from "redux-persist/es/storage";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 
-
 /**
  * Interface representing a user object.
  * @interface
@@ -61,8 +60,6 @@ const ProfileForm: React.FC = () => {
 
   const [loading, setLoading] = useState(false);
 
-  
-
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -89,7 +86,7 @@ const ProfileForm: React.FC = () => {
         if (!response.ok) {
           throw new Error("Failed to fetch user data");
         }
-
+        const user = await response.json();
         setFirstname(user.firstname || "");
         setLastname(user.lastname || "");
         setEmail(user.email || "");
@@ -479,10 +476,10 @@ const ProfileForm: React.FC = () => {
           cancelText="Close"
           proceedText="Retry"
           onCancel={handleCloseErrorModal}
-          onProceed={()=>{
+          onProceed={() => {
             setErrorModalOpen(false);
             setIsConfirmationModalOpen(false);
-          
+            handleSave();
           }}
           proceedButtonColor="error"
           proceedButtonVariant="outlined"

@@ -74,6 +74,8 @@ const ProfileForm: React.FC = () => {
       setLoading(true);
       try {
         const userId = await localStorage.getItem("userId");
+        //debug
+        console.log("user ID from local storage:", userId);
         if (!userId) {
           throw new Error("User ID not found in local storage");
         }
@@ -105,6 +107,7 @@ const ProfileForm: React.FC = () => {
           },
         });
         console.error("error fetching user data:", error);
+        setErrorMessage("failed to fetch user data");
       } finally {
         setLoading(false);
       }
@@ -479,7 +482,6 @@ const ProfileForm: React.FC = () => {
           onProceed={() => {
             setErrorModalOpen(false);
             setIsConfirmationModalOpen(false);
-            handleSave();
           }}
           proceedButtonColor="error"
           proceedButtonVariant="outlined"

@@ -3,6 +3,8 @@
  * all the similar values, merging them and then adding them to the main theme files
  */
 
+import { tableStyles } from "./tables";
+
 const backgroundColors = {
   primary: "#4C7DE7",
   error: "#DB504A",
@@ -104,40 +106,6 @@ const textStyles = {
   pageDescription: {
     color: "#344054",
     fontSize: fontSizes.medium,
-  },
-};
-
-const tableStyles = {
-  primary: {
-    frame: {
-      border: "1px solid #EEEEEE",
-      borderRadius: "4px",
-      "& td, & th": {
-        border: 0,
-      },
-    },
-    header: {
-      backgroundColors: "#fafafa",
-      row: {
-        textTransform: "uppercase",
-        borderBottom: "1px solid #EEEEEE",
-      },
-      cell: {
-        color: "#a1afc6",
-        fontWeight: 400,
-        paddingLeft: "16px",
-      },
-    },
-    body: {
-      row: {
-        textTransform: "capitalize",
-        borderBottom: "1px solid #EEEEEE",
-      },
-      cell: {
-        fontSize: fontSizes.medium,
-        paddingY: "12px",
-      },
-    },
   },
 };
 

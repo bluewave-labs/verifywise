@@ -98,9 +98,9 @@ const Field = forwardRef(
               borderColor: theme.palette.border.dark,
             },
           "&:has(.input-error) .MuiOutlinedInput-root fieldset": {
-          border: error 
-            ? `1px solid ${theme.palette.status.error.border}` 
-            : `1px solid ${theme.palette.border.dark}`,
+            border: error
+              ? `1px solid ${theme.palette.status.error.border}`
+              : `1px solid ${theme.palette.border.dark}`,
             borderColor: theme.palette.status.error.border,
           },
           ".Mui-focused .MuiOutlinedInput-notchedOutline": {
@@ -143,6 +143,7 @@ const Field = forwardRef(
           </Typography>
         )}
         <TextField
+          className="field-input"
           type={type === "password" ? (isVisible ? "text" : type) : type}
           id={id}
           autoComplete={autoComplete}
@@ -161,6 +162,7 @@ const Field = forwardRef(
                 WebkitBoxShadow: `0 0 0 100px ${theme.palette.background.fill} inset`,
                 WebkitTextFillColor: theme.palette.text.secondary,
               },
+              overflowY: "auto",
             },
           }}
           sx={sx}
@@ -217,7 +219,7 @@ const Field = forwardRef(
             mt={theme.spacing(2)}
             sx={{
               opacity: 0.8,
-              fontSize: 11
+              fontSize: 11,
             }}
           >
             {error}

@@ -11,6 +11,7 @@ export const questions: Question[] = [
     hint: "As a deployer, you are responsible for any additional changes made to the high-risk AI system and must fulfill additional requirements based on the data used and the specific use case you are deploying.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 2,
@@ -22,6 +23,7 @@ export const questions: Question[] = [
     hint: "It''s important to provide transparent information about why you are choosing a high-risk AI system, including a mapping of key stages within the project and an assessment of resources and capabilities within your team or organization.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 3,
@@ -33,6 +35,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 4,
@@ -44,6 +47,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 5,
@@ -55,6 +59,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 6,
@@ -66,6 +71,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 7,
@@ -77,6 +83,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 8,
@@ -88,6 +95,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 9,
@@ -99,6 +107,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 10,
@@ -110,6 +119,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 11,
@@ -121,6 +131,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 12,
@@ -132,6 +143,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 13,
@@ -143,6 +155,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 14,
@@ -154,6 +167,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 15,
@@ -165,6 +179,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 16,
@@ -176,6 +191,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 17,
@@ -187,6 +203,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 18,
@@ -198,6 +215,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 19,
@@ -209,6 +227,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 20,
@@ -220,6 +239,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 21,
@@ -231,6 +251,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 22,
@@ -242,6 +263,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 23,
@@ -253,6 +275,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 24,
@@ -264,6 +287,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 25,
@@ -275,6 +299,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 26,
@@ -286,6 +311,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 27,
@@ -297,6 +323,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 28,
@@ -308,6 +335,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 29,
@@ -319,6 +347,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 30,
@@ -330,6 +359,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 31,
@@ -341,6 +371,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 32,
@@ -352,6 +383,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 33,
@@ -363,6 +395,7 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
   {
     id: 34,
@@ -374,5 +407,6 @@ export const questions: Question[] = [
     hint: "Explain what other methods lacked and, based on the use case, what the implications would be for society, the environment, and human rights.",
     isRequired: true,
     priorityLevel: "high priority",
+    answer: "",
   },
 ];

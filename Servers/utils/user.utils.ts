@@ -117,7 +117,7 @@ export const getUserByIdQuery = async (id: string): Promise<User> => {
 export const createNewUserQuery = async (
   user: Omit<User, "id">
 ): Promise<User> => {
-  const { name, email, password_hash } = user;
+  const { name, surname, email, password_hash } = user;
   const role = 1;
   const created_at = new Date();
   const last_login = new Date();

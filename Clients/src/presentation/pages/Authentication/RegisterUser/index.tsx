@@ -1,18 +1,20 @@
 import { Button, Stack, Typography, useTheme } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Check from "../../../components/Checks";
 import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { checkStringValidation } from "../../../../application/validations/stringValidation";
+import { validatePassword, validateForm } from "../../../../application/validations/formValidation";
+import type { FormValues, FormErrors } from "../../../../application/validations/formValidation";
+import Alert from "../../../components/Alert";
+import useRegisterUser from "../../../../application/hooks/useRegisterUser";
 import { useNavigate } from "react-router-dom";
+import { ALERT_TIMEOUT } from "../../../../application/constants/apiResponses";
 
-// Define the shape of form values
-interface FormValues {
-  name: string;
-  surname: string;
-  password: string;
-  confirmPassword: string;
+export interface AlertType {
+  variant: "success" | "info" | "warning" | "error";
+  title?: string;
+  body: string;
 }
 
 // Initial state for form values
@@ -23,31 +25,17 @@ const initialState: FormValues = {
   confirmPassword: "",
 };
 
-// Define the shape of form errors
-interface FormErrors {
-  name?: string;
-  surname?: string;
-  password?: string;
-  confirmPassword?: string;
-}
-
-// Define the shape for password validation checks
-interface PasswordChecks {
-  length: boolean;
-  specialChar: boolean;
-}
-
 const RegisterUser: React.FC = () => {
   const navigate = useNavigate();
+  const {registerUser} = useRegisterUser();
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
   // State for form errors
   const [errors, setErrors] = useState<FormErrors>({});
-  // State for password validation checks
-  const [passwordChecks, setPasswordChecks] = useState<PasswordChecks>({
-    length: false,
-    specialChar: false,
-  });
+  // State for alert
+  const [alert, setAlert] = useState<AlertType | null>(null);
+  // Password checks based on the password input
+  const passwordChecks = validatePassword(values);
 
   // Handle input field changes
   const handleChange =
@@ -55,68 +43,27 @@ const RegisterUser: React.FC = () => {
     (event: React.ChangeEvent<HTMLInputElement>) => {
       setValues({ ...values, [prop]: event.target.value });
       setErrors({ ...errors, [prop]: "" });
-    };
-
-  // Effect to update password checks based on the password input
-  useEffect(() => {
-    setPasswordChecks({
-      length: values.password.length >= 8,
-      specialChar: /[!@#$%^&*(),.?":{}|<>]/.test(values.password),
-    });
-  }, [values.password]);
-
-  // Function to validate the entire form
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    // Validate name
-    const name = checkStringValidation("Name", values.name, 3, 50);
-    if (!name.accepted) {
-      newErrors.name = name.message;
-    }
-
-    // Validate surname
-    const surname = checkStringValidation("Surname", values.surname, 3, 50);
-    if (!surname.accepted) {
-      newErrors.surname = surname.message;
-    }
-
-    // Validate password
-    const password = checkStringValidation(
-      "Password",
-      values.password,
-      8,
-      16,
-      true,
-      true,
-      true,
-      true,
-      "password"
-    );
-    if (!password.accepted) {
-      newErrors.password = password.message;
-    }
-
-    // Confirm password validation
-    if (values.password !== values.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
-    }
-
-    // Update state with any new errors
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0; // Return true if no errors exist
   };
 
   // Handle form submission
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (validateForm()) {
-      console.log("Form submitted:", values);
-      // Reset form after successful submission
-      setValues(initialState);
-      setErrors({});
-      setPasswordChecks({ length: false, specialChar: false });
-      navigate("/login");
+    const user = {
+      id: "At register level as user",
+      firstname: values.name || "",
+      lastname: values.surname || "",
+
+    };
+    const { isFormValid, errors } = validateForm(values);
+    if (!isFormValid) {
+      setErrors(errors);
+    } else {
+      const { isSuccess } = await registerUser({ values, user, setAlert });
+      if (isSuccess) {
+        setValues(initialState);
+        setErrors({});
+        setTimeout(() => navigate("/login"), ALERT_TIMEOUT);
+      }
     }
   };
 
@@ -145,6 +92,15 @@ const RegisterUser: React.FC = () => {
           transform: "translateX(-50%)",
         }}
       />
+      {alert && (
+        <Alert
+          variant={alert.variant}
+          title={alert.title}
+          body={alert.body}
+          isToast={true}
+          onClick={() => setAlert(null)}
+        />
+      )}
       <form onSubmit={handleSubmit}>
         <Stack
           className="reg-user-form"

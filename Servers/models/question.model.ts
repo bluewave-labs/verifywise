@@ -8,4 +8,5 @@ export type Question = {
   isRequired: boolean;
   priorityLevel: "high priority" | "medium priority" | "low priority";
   evidenceFiles?: string[];
+  answer?: string;
 };

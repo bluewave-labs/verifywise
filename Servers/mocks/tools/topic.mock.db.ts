@@ -9,9 +9,17 @@ export const getMockTopicById = (id: number): object | undefined => {
   return topics.find((topic: Topic) => topic.id === id);
 };
 
-export const createMockTopic = (newTopic: any): object => {
-  topics.push(newTopic);
-  return newTopic;
+export const createMockTopic = (
+  assessmentId: number,
+  newTopic: any
+): object => {
+  const topicToSave = {
+    id: topics.length + 1,
+    assessmentId: assessmentId,
+    title: newTopic,
+  };
+  topics.push(topicToSave);
+  return topicToSave;
 };
 
 export const updateMockTopicById = (

@@ -13,35 +13,96 @@ import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import DropDowns from "../../Inputs/Dropdowns";
 import { useState } from "react";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
+import { Dayjs } from "dayjs";
+import { apiServices } from "../../../../infrastructure/api/networkServices";
+import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
+
+interface SubControlState {
+  controlId: string;
+  subControlId: string;
+  subControlTitle: string;
+  subControlDescription: string;
+  status: string | number;
+  approver: string | number;
+  riskReview: string | number;
+  owner: string | number;
+  reviewer: string | number;
+  description: string;
+  date: Dayjs | null;
+  evidence: string;
+  feedback: string;
+}
+
+interface State {
+  controlId: string;
+  controlTitle: string;
+  controlDescription: string;
+  status: string | number;
+  approver: string | number;
+  riskReview: string | number;
+  owner: string | number;
+  reviewer: string | number;
+  description: string;
+  date: Dayjs | null;
+  subControls: SubControlState[];
+}
 
 const NewControlPane = ({
   id,
+  numbering,
   isOpen,
   handleClose,
   title,
   content,
   subControls,
+  controlCategory,
   OnSave,
 }: {
   id: string;
+  numbering: string;
   isOpen: boolean;
   handleClose: () => void;
   title: string;
   content: string;
   subControls: any[];
-  OnSave?: () => void;
+  controlCategory: string;
+  OnSave?: (state: State) => void;
 }) => {
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
-  const [values, setValues] = useState({
-    controlVale: {
-      
-    },
-    subControlValues: {
-      
-    },
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const initialSubControlState = subControls.map((subControl) => ({
+    controlId: id,
+    subControlId: subControl.id,
+    subControlTitle: subControl.title,
+    subControlDescription: subControl.description,
+    status: "Choose status", // Set default value
+    approver: "Choose approver", // Set default value
+    riskReview: "Acceptable risk", // Set default value
+    owner: "Choose owner", // Set default value
+    reviewer: "Choose reviewer", // Set default value
+    description: "",
+    date: null,
+    evidence: "",
+    feedback: "",
+  }));
+
+  const [state, setState] = useState<State>({
+    controlId: id,
+    controlTitle: title,
+    controlDescription: content,
+    status: "Choose status", // Set default value
+    approver: "Choose approver", // Set default value
+    riskReview: "Acceptable risk", // Set default value
+    owner: "Choose owner", // Set default value
+    reviewer: "Choose reviewer", // Set default value
+    description: "",
+    date: null,
+    subControls: initialSubControlState,
   });
+
   const handleSelectedTab = (_: React.SyntheticEvent, newValue: number) => {
     setSelectedTab(newValue);
   };
@@ -52,6 +113,17 @@ const NewControlPane = ({
 
   const handleSectionChange = (section: string) => {
     setActiveSection(section);
+  };
+
+  const handleSubControlStateChange = (
+    index: number,
+    newState: Partial<SubControlState>
+  ) => {
+    setState((prevState) => {
+      const updatedSubControls = [...prevState.subControls];
+      updatedSubControls[index] = { ...updatedSubControls[index], ...newState };
+      return { ...prevState, subControls: updatedSubControls };
+    });
   };
 
   const buttonTabStyles = {
@@ -80,6 +152,32 @@ const NewControlPane = ({
       boxShadow: "none",
       backgroundColor: "#175CD3 ",
     },
+  };
+
+  const handleSave = () => {
+    setIsModalOpen(true);
+  };
+
+  const confirmSave = async () => {
+    const controlToSave = {
+      controlCategoryTitle: controlCategory,
+      control: state,
+    };
+    console.log(controlToSave);
+
+    try {
+      const response = await apiServices.post(
+        "/projects/saveControls",
+        controlToSave
+      );
+      console.log("Controls saved successfully:", response);
+    } catch (error) {
+      console.error("Error saving controls:", error);
+    }
+    if (OnSave) {
+      OnSave(state);
+    }
+    setIsModalOpen(false);
   };
 
   return (
@@ -119,12 +217,17 @@ const NewControlPane = ({
           }}
         >
           <Typography fontSize={16} fontWeight={600} sx={{ textAlign: "left" }}>
-            {id} {title}
+            {numbering} {title}
           </Typography>
           <CloseIcon onClick={handleClose} style={{ cursor: "pointer" }} />
         </Stack>
         <Typography fontSize={13}>{content}</Typography>
-        <DropDowns />
+        <DropDowns
+          elementId={`control-${id}`}
+          state={state}
+          setState={(newState) => setState({ ...state, ...newState })}
+        />{" "}
+        {/* this is working fine */}
         <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
         <Box sx={{ width: "100%", bgcolor: "#FCFCFD" }}>
           <Tabs
@@ -180,7 +283,7 @@ const NewControlPane = ({
             fontWeight={600}
             sx={{ textAlign: "left", mb: 3 }}
           >
-            {`${id}.${subControls[selectedTab].id}`}{" "}
+            {`${numbering}.${subControls[selectedTab].id}`}{" "}
             {subControls[selectedTab].title}
           </Typography>
           <Typography sx={{ mb: 5 }}>
@@ -188,45 +291,49 @@ const NewControlPane = ({
           </Typography>
           {activeSection === "Overview" && (
             <Typography>
-              <DropDowns />
+              <DropDowns
+                elementId={`sub-control-${id}.${subControls[selectedTab].subControlId}`}
+                state={state.subControls[selectedTab]}
+                setState={(newState) =>
+                  handleSubControlStateChange(selectedTab, newState)
+                }
+              />
             </Typography>
           )}
-          {["Evidence", "Auditor Feedback"].includes(activeSection) && (
-            <AuditorFeedback activeSection={activeSection} />
+          {activeSection === "Evidence" && (
+            <AuditorFeedback
+              activeSection={activeSection}
+              feedback={state.subControls[selectedTab].evidence}
+              onChange={(e) => {
+                const updatedSubControls = [...state.subControls];
+                updatedSubControls[selectedTab].evidence = e.target.value;
+                setState({ ...state, subControls: updatedSubControls });
+              }}
+            />
+          )}
+          {activeSection === "Auditor Feedback" && (
+            <AuditorFeedback
+              activeSection={activeSection}
+              feedback={state.subControls[selectedTab].feedback}
+              onChange={(e) => {
+                const updatedSubControls = [...state.subControls];
+                updatedSubControls[selectedTab].feedback = e.target.value;
+                setState({ ...state, subControls: updatedSubControls });
+              }}
+            />
           )}
         </Box>
         <Stack
           sx={{
             display: "flex",
             flexDirection: "row",
-            justifyContent: "space-between",
+            justifyContent: "flex-end",
             mt: 2,
           }}
         >
-          <Stack
-            gap={theme.spacing(4)}
-            sx={{ display: "flex", flexDirection: "row" }}
-          >
-            <Button
-              variant="contained"
-              onClick={() => console.log("Previous Subcontrol clicked")}
-              sx={buttonStyle}
-              disableRipple
-            >
-              &lt;- Previous Subcontrol
-            </Button>
-            <Button
-              variant="contained"
-              onClick={() => console.log("Next Subcontrol clicked")}
-              sx={buttonStyle}
-              disableRipple
-            >
-              Next Subcontrol -&gt;
-            </Button>
-          </Stack>
           <Button
             variant="contained"
-            onClick={OnSave}
+            onClick={handleSave}
             sx={{
               ...buttonStyle,
               width: 68,
@@ -239,6 +346,22 @@ const NewControlPane = ({
             Save
           </Button>
         </Stack>
+        {isModalOpen && (
+          <DualButtonModal
+            title="Confirm Save"
+            body={
+              <Typography>
+                Are you sure you want to save the changes?
+              </Typography>
+            }
+            cancelText="Cancel"
+            proceedText="Save"
+            onCancel={() => setIsModalOpen(false)}
+            onProceed={confirmSave}
+            proceedButtonColor="primary"
+            proceedButtonVariant="contained"
+          />
+        )}
       </Stack>
     </Modal>
   );

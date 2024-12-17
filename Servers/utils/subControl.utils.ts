@@ -17,19 +17,21 @@ export const getSubcontrolByIdQuery = async (
   return result.rows.length ? result.rows[0] : null;
 };
 
-export const createNewSubcontrolQuery = async (subcontrol: {
-  controlId: number;
-  status: string;
-  approver: string;
-  riskReview: string;
-  owner: string;
-  reviewer: string;
-  dueDate: Date;
-  implementationDetails: string;
-  evidence: string;
-  attachment: string;
-  feedback: string;
-}): Promise<Subcontrol> => {
+export const createNewSubcontrolQuery = async (
+  controlId: number,
+  subcontrol: {
+    status: string;
+    approver: string;
+    riskReview: string;
+    owner: string;
+    reviewer: string;
+    dueDate: Date;
+    implementationDetails: string;
+    evidence: string;
+    attachment: string;
+    feedback: string;
+  }
+): Promise<Subcontrol> => {
   console.log("createNewSubcontrol", subcontrol);
   const result = await pool.query(
     `INSERT INTO subcontrols (
@@ -37,7 +39,7 @@ export const createNewSubcontrolQuery = async (subcontrol: {
       implementationDetails, evidence, attachment, feedback
     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
     [
-      subcontrol.controlId,
+      controlId,
       subcontrol.status,
       subcontrol.approver,
       subcontrol.riskReview,

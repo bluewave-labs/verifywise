@@ -6,6 +6,7 @@ import {
   deleteProjectById,
   getAllProjects,
   getProjectById,
+  saveControls,
   updateProjectById,
 } from "../controllers/project.ctrl";
 
@@ -15,9 +16,14 @@ import authenticateJWT from "../middleware/auth.middleware";
 router.get("/", /*authenticateJWT,*/ getAllProjects);
 router.get("/:id", /*authenticateJWT,*/ getProjectById);
 
-// POST, PUT, DELETE requests
+// POSTs
 router.post("/", /*authenticateJWT,*/ createProject);
+router.post("/saveControls", /*authenticateJWT,*/ saveControls);
+
+// PUTs
 router.put("/:id", /*authenticateJWT,*/ updateProjectById);
+
+// DELETEs
 router.delete("/:id", /*authenticateJWT,*/ deleteProjectById);
 
 export default router;

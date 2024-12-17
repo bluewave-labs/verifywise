@@ -3,7 +3,7 @@ interface LogProps {
   message: string;
   user: {
     id: string;
-    email: string;
+    email?: string;
     firstname: string;
     lastname: string;
   };

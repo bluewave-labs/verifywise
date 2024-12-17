@@ -37,10 +37,11 @@ export const getQuestionByIdQuery = async (
       })
     );
   }
-  return result.rows.length ? { ...result.rows[0], evidence_files: evidenceFiles } : null;
+  return result.rows.length
+    ? { ...result.rows[0], evidence_files: evidenceFiles }
+    : null;
   // return result.rows.length ? result.rows[0] : null;
 };
-
 
 export interface RequestWithFile extends Request {
   files?: UploadedFile[];
@@ -51,27 +52,31 @@ export interface UploadedFile {
   buffer: Buffer;
 }
 
-export const createNewQuestionQuery = async (question: {
-  subtopicId: number;
-  questionText: string;
-  answerType: string;
-  evidenceFileRequired: boolean;
-  hint: string;
-  isRequired: boolean;
-  priorityLevel: string;
-}, files: UploadedFile[]): Promise<Question> => {
+export const createNewQuestionQuery = async (
+  question: {
+    subtopicId: number;
+    questionText: string;
+    answerType: string;
+    evidenceFileRequired: boolean;
+    hint: string;
+    isRequired: boolean;
+    priorityLevel: string;
+    answer: string;
+  },
+  files?: UploadedFile[]
+): Promise<Question> => {
   console.log("createNewQuestion", question);
   let uploadedFiles: string[] = [];
   await Promise.all(
-    files.map(async (file) => {
+    files!.map(async (file) => {
       const uploadedFile = await uploadFile(file);
       uploadedFiles.push(uploadedFile.id.toString());
     })
   );
   const result = await pool.query(
     `INSERT INTO questions (
-      subtopic_id, question_text, answer_type, evidence_file_required, hint, is_required, priority_level, evidence_files
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      subtopic_id, question_text, answer_type, evidence_file_required, hint, is_required, priority_level, evidence_files, answer
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
     [
       question.subtopicId,
       question.questionText,
@@ -80,7 +85,8 @@ export const createNewQuestionQuery = async (question: {
       question.hint,
       question.isRequired,
       question.priorityLevel,
-      uploadedFiles
+      uploadedFiles,
+      question.answer,
     ]
   );
   return result.rows[0];

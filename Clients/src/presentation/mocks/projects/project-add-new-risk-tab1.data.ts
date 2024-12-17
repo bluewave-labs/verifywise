@@ -2,7 +2,7 @@
 enum ProjectName {
   AIChatbot = "AI Chatbot",
   AIMarketing = "AI Marketing",
-  AIHRApplication = "AI HR Application"
+  AIHRApplication = "AI HR Application",
 }
 
 enum AILifecyclePhase {
@@ -10,7 +10,7 @@ enum AILifecyclePhase {
   Development = "Development",
   Testing = "Testing",
   Deployment = "Deployment",
-  Monitoring = "Monitoring"
+  Monitoring = "Monitoring",
 }
 
 enum RiskLikelihood {
@@ -18,7 +18,7 @@ enum RiskLikelihood {
   Unlikely = "Unlikely",
   Possible = "Possible",
   Likely = "Likely",
-  AlmostCertain = "Almost Certain"
+  AlmostCertain = "Almost Certain",
 }
 
 enum RiskSeverity {
@@ -26,7 +26,7 @@ enum RiskSeverity {
   Minor = "Minor",
   Moderate = "Moderate",
   Major = "Major",
-  Critical = "Critical"
+  Critical = "Critical",
 }
 
 enum RiskLevel {
@@ -34,7 +34,7 @@ enum RiskLevel {
   Medium = "Medium",
   High = "High",
   VeryHigh = "Very High",
-  Extreme = "Extreme"
+  Extreme = "Extreme",
 }
 
 // Interface for the form data
@@ -54,7 +54,7 @@ interface AddNewRiskForm {
 }
 
 // Example usage:
-const newRisk: AddNewRiskForm = {
+export const newRisk: AddNewRiskForm = {
   projectName: ProjectName.AIChatbot,
   actionOwner: "John Doe", // One of the 5 different names
   aiLifecyclePhase: AILifecyclePhase.Development,
@@ -66,5 +66,5 @@ const newRisk: AddNewRiskForm = {
   likelihood: RiskLikelihood.Unlikely,
   riskSeverity: RiskSeverity.Major,
   riskLevel: RiskLevel.High, // This would be auto-calculated in the actual implementation
-  reviewNotes: "Discuss with security team for additional safeguards"
+  reviewNotes: "Discuss with security team for additional safeguards",
 };

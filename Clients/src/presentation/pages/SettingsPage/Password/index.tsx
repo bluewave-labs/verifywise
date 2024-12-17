@@ -1,22 +1,11 @@
 import React, { useState, useCallback } from "react";
-import { 
-  useTheme, 
-  Alert, 
-  Box, 
-  Button, 
-  Stack,
-  Dialog,
-  DialogActions,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  Typography 
-} from "@mui/material";
+import { useTheme, Alert, Box, Button, Stack, Typography } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import { updateEntityById } from "../../../../application/repository/entity.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
 import localStorage from "redux-persist/es/storage";
+import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 
 const PasswordForm: React.FC = () => {
   const theme = useTheme();
@@ -26,12 +15,17 @@ const PasswordForm: React.FC = () => {
   const [newPassword, setNewPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
 
-  const [currentPasswordError, setCurrentPasswordError] = useState<string | null>(null);
+  const [currentPasswordError, setCurrentPasswordError] = useState<
+    string | null
+  >(null);
   const [newPasswordError, setNewPasswordError] = useState<string | null>(null);
-  const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
+  const [confirmPasswordError, setConfirmPasswordError] = useState<
+    string | null
+  >(null);
 
-  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState<boolean>(false);
-  const [loading, setLoading] = useState(false);
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] =
+    useState<boolean>(false);
+  const [loading, _] = useState(false);
 
   // Handle current password validation
   const handleCurrentPasswordChange = useCallback(
@@ -47,7 +41,7 @@ const PasswordForm: React.FC = () => {
         true, // hasUpperCase
         true, // hasLowerCase
         true, // hasNumber
-        true  // hasSpecialCharacter
+        true // hasSpecialCharacter
       );
       setCurrentPasswordError(validation.accepted ? null : validation.message);
     },
@@ -101,7 +95,7 @@ const PasswordForm: React.FC = () => {
             id: String(localStorage.getItem("userId")) || "N/A",
             email: "N/A",
             firstname: "N/A",
-            lastname: "N/A"
+            lastname: "N/A",
           },
         });
         return;
@@ -128,16 +122,27 @@ const PasswordForm: React.FC = () => {
           id: String(localStorage.getItem("userId")) || "N/A",
           email: "N/A",
           firstname: "N/A",
-          lastname: "N/A"
+          lastname: "N/A",
         },
       });
       alert("Failed to update password. Please try again.");
     }
-  }, [currentPassword, newPassword, confirmPassword, currentPasswordError, newPasswordError, confirmPasswordError]);
+  }, [
+    currentPassword,
+    newPassword,
+    confirmPassword,
+    currentPasswordError,
+    newPasswordError,
+    confirmPasswordError,
+  ]);
 
   const handleCloseConfirmationModal = useCallback(() => {
     setIsConfirmationModalOpen(false);
   }, []);
+
+  const handleConfirmSave = useCallback(() => {
+    handleSave();
+  }, [handleSave]);
 
   return (
     <Box sx={{ mt: 3, width: { xs: "90%", md: "70%" }, position: "relative" }}>
@@ -159,7 +164,7 @@ const PasswordForm: React.FC = () => {
           <Typography>Loading...</Typography>
         </Box>
       )}
-      
+
       <Box sx={{ width: "100%", maxWidth: 600 }}>
         <Stack sx={{ marginTop: theme.spacing(15) }}>
           <Field
@@ -204,52 +209,56 @@ const PasswordForm: React.FC = () => {
             </Typography>
           )}
 
-          <Alert severity="warning" sx={{ mb: 3 }}>
-            Password must contain at least eight characters and must include
-            an uppercase letter, a lowercase letter, a number, and a symbol.
+          <Alert severity="warning" sx={{ my: theme.spacing(5) }}>
+            Password must contain at least eight characters and must include an
+            uppercase letter, a lowercase letter, a number, and a symbol.
           </Alert>
 
-          <Button
-            disableRipple
-            variant="contained"
+          <Stack
             sx={{
-              width: { xs: "100%", sm: theme.spacing(80) },
-              mb: theme.spacing(4),
-              backgroundColor: "#4c7de7",
-              color: "#fff",
-              "&:hover": {
-                backgroundColor: "#175CD3",
-              },
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "flex-end",
+              alignItems: "center",
+              paddingTop: theme.spacing(5),
             }}
-            onClick={() => setIsConfirmationModalOpen(true)}
           >
-            Save
-          </Button>
+            <Button
+              disableRipple
+              variant="contained"
+              sx={{
+                width: { xs: "100%", sm: theme.spacing(80) },
+                mb: theme.spacing(4),
+                backgroundColor: "#4c7de7",
+                color: "#fff",
+                "&:hover": {
+                  backgroundColor: "#175CD3",
+                },
+              }}
+              onClick={() => setIsConfirmationModalOpen(true)}
+            >
+              Save
+            </Button>
+          </Stack>
         </Stack>
       </Box>
 
-      {/* Confirmation modal */}
-      <Dialog
-        open={isConfirmationModalOpen}
-        onClose={handleCloseConfirmationModal}
-      >
-        <DialogTitle>Update Password?</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to update your password?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseConfirmationModal}>Cancel</Button>
-          <Button 
-            onClick={handleSave} 
-            color="primary"
-            aria-label="Save password changes"
-          >
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {isConfirmationModalOpen && (
+        <DualButtonModal
+          title="Confirm Save"
+          body={
+            <Typography fontSize={13}>
+              Are you sure you want to save the changes?
+            </Typography>
+          }
+          cancelText="Cancel"
+          proceedText="Save"
+          onCancel={handleCloseConfirmationModal}
+          onProceed={handleConfirmSave}
+          proceedButtonColor="primary"
+          proceedButtonVariant="contained"
+        />
+      )}
     </Box>
   );
 };

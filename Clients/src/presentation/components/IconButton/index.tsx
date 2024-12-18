@@ -15,21 +15,27 @@ import {
 import { ReactComponent as Setting } from "../../assets/icons/setting.svg";
 import { useContext, useState } from "react";
 import BasicModal from "../Modals/Basic";
-import AddNewVendor from "../Modals/NewVendor";
+import AddNewVendor, { VendorDetails } from "../Modals/NewVendor";
 import singleTheme from "../../themes/v1SingleTheme";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import { deleteEntityById } from "../../../application/repository/entity.repository";
-import { logEngine } from "../../../application/tools/log.engine";
 import Alert from "../Alert";
+import { getEntityById } from "../../../application/repository/entity.repository";
 
-const IconButton = ({ vendorId }: { vendorId: number }) => {
+interface IconButtonProps {
+  vendorId: number;
+  onVendorChange: () => void;
+  onDeleteVendor: (vendorId: number) => void;
+}
+
+const IconButton: React.FC<IconButtonProps> = ({ vendorId, onVendorChange, onDeleteVendor }) => {
   const theme = useTheme();
-  const { setDashboardValues } = useContext(VerifyWiseContext);
+  // const { setDashboardValues } = useContext(VerifyWiseContext);
   const [anchorEl, setAnchorEl] = useState(null);
   const [actions, setActions] = useState({});
   const [isOpenRemoveVendorModal, setIsOpenRemoveVendorModal] = useState(false);
   const [isOpenAddNewVendorModal, setIsOpenAddNewVendorModal] = useState(false);
   const [value, setValue] = useState("1");
+  const [selectedVendor, setSelectedVendor] = useState<VendorDetails | undefined>(undefined);
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
@@ -94,71 +100,21 @@ const IconButton = ({ vendorId }: { vendorId: number }) => {
   }
 
   const handleDeleteVendor = async () => {
-    const user = {
-      id: "At delete vendor level", // Replace with actual user ID
-      email: "N/A", // Replace with actual user email
-      firstname: "N/A", // Replace with actual user first name
-      lastname: "N/A", // Replace with actual user last name
-    };
+    onDeleteVendor(vendorId);
+    setIsOpenRemoveVendorModal(false);
+  };
 
+  const handleEditVendor = async () => {
     try {
-      const response = await deleteEntityById({
+      const response = await getEntityById({
         routeUrl: `/vendors/${vendorId}`,
       });
-
-      if (response.status === 202) {
-        setDashboardValues((prevValues: any) => ({
-          ...prevValues,
-          vendors: prevValues.vendors.filter(
-            (vendor: any) => vendor.id !== vendorId
-          ),
-        }));
-        setAlert({
-          variant: "success",
-          body: "Vendor deleted successfully.",
-        });
-        logEngine({
-          type: "info",
-          message: "Vendor deleted successfully.",
-          user,
-        });
-        setIsOpenRemoveVendorModal(false);
-      } else if (response.status === 404) {
-        setAlert({
-          variant: "error",
-          body: "Vendor not found.",
-        });
-        logEngine({
-          type: "error",
-          message: "Vendor not found.",
-          user,
-        });
-      } else {
-        setAlert({
-          variant: "error",
-          body: "Unexpected response. Please try again.",
-        });
-        logEngine({
-          type: "error",
-          message: "Unexpected response. Please try again.",
-          user,
-        });
-      }
-    } catch (error) {
-      console.error("Error deleting vendor:", error);
-      setAlert({
-        variant: "error",
-        body: "An error occurred. Please try again.",
-      });
-      logEngine({
-        type: "error",
-        message: `An error occurred: ${error}`,
-        user,
-      });
-    } finally {
-      setTimeout(() => setAlert(null), 3000);
-    }
-  };
+      console.log("Get Vendor Details");
+      console.log(response);
+      setSelectedVendor(response.data)
+      openAddNewVendor();
+    } catch (e) { }
+  }
 
   /**
    * A dropdown list of options rendered as a Material-UI Menu component.
@@ -190,7 +146,7 @@ const IconButton = ({ vendorId }: { vendorId: number }) => {
     >
       <MenuItem
         onClick={() => {
-          openAddNewVendor();
+          handleEditVendor()
         }}
       >
         Edit
@@ -251,6 +207,8 @@ const IconButton = ({ vendorId }: { vendorId: number }) => {
         handleChange={handleChange}
         setIsOpen={() => setIsOpenAddNewVendorModal(false)}
         value={value}
+        existingVendor={selectedVendor}
+        onVendorChange={onVendorChange}
       />
       {alert && (
         <Alert

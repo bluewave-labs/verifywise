@@ -122,6 +122,8 @@ const ProfileForm: React.FC = () => {
    * on the server if there are no validation errors.
    */
   const handleSave = useCallback(async () => {
+// prevent saving if validation errors exists
+
     try {
       if (firstnameError || lastnameError || emailError) {
         setErrorModalOpen(true);
@@ -450,7 +452,16 @@ const ProfileForm: React.FC = () => {
             backgroundColor: "#175CD3 ",
           },
         }}
-        onClick={() => setIsConfirmationModalOpen(true)}
+        //trigger different modals depending on validation errors && disable button if errors exist
+        disabled={!!(firstnameError || lastnameError || emailError)}
+        onClick={() => {
+          if (firstnameError || lastnameError || emailError) {
+            setErrorMessage("Please fix the input errors before proceeding");
+            setErrorModalOpen(true);
+            return;
+          }
+          setIsConfirmationModalOpen(true);
+        }}
       >
         Save
       </Button>

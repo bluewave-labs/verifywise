@@ -122,14 +122,16 @@ const ProfileForm: React.FC = () => {
    * on the server if there are no validation errors.
    */
   const handleSave = useCallback(async () => {
-// prevent saving if validation errors exists
+    // prevent saving if validation errors exists
+    if (firstnameError || lastnameError || emailError) {
+      console.error("Validation errors detected.Cannot save.");
+      setErrorMessage("Please fix the input errors before saving.");
+      setErrorModalOpen(true);
+      return;
+    }
 
     try {
-      if (firstnameError || lastnameError || emailError) {
-        setErrorModalOpen(true);
-        setErrorMessage("Please fix validation errors before saving");
-        return;
-      }
+      setLoading(true);
       const userId = (await localStorage.getItem("userId")) || "1";
       if (!userId) {
         throw new Error("user id not found in local storage");
@@ -155,6 +157,10 @@ const ProfileForm: React.FC = () => {
       }
       alert("Profile updated successfully");
       setIsConfirmationModalOpen(false);
+    } catch (error) {
+      console.error("Error saving user data:", error);
+      setErrorMessage("Failed to update profile. Please try again.");
+      setErrorModalOpen(true);
     } finally {
       setLoading(false);
     }

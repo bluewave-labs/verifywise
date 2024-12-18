@@ -81,7 +81,7 @@ const ProfileForm: React.FC = () => {
         }
 
         const API_BASE_URL =
-          process.env.REACT_APP_API_BASE_URL || "http://localhost:3000";
+          typeof process !== "undefined" && process.env.REACT_APP_API_BASE_URL ? process.env.REACT_APP_API_BASE_URL : "http://localhost:3000";
         const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
           signal: AbortSignal.timeout(5000),
         });
@@ -122,11 +122,16 @@ const ProfileForm: React.FC = () => {
    * on the server if there are no validation errors.
    */
   const handleSave = useCallback(async () => {
+    // debugging validation errors
+    console.log("Validation errors on save:", {
+      firstnameError, lastnameError, emailError
+    });
     // prevent saving if validation errors exists
     if (firstnameError || lastnameError || emailError) {
       console.error("Validation errors detected.Cannot save.");
       setErrorMessage("Please fix the input errors before saving.");
       setErrorModalOpen(true);
+      setIsConfirmationModalOpen(false);
       return;
     }
 
@@ -145,7 +150,7 @@ const ProfileForm: React.FC = () => {
       };
 
       const API_BASE_URL =
-        process.env.REACT_APP_API_BASE_URL || "http://localhost:3000";
+        process.env.REACT_APP_API_BASE_URL || "https://127.0.0.1:3000";
       const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -161,6 +166,7 @@ const ProfileForm: React.FC = () => {
       console.error("Error saving user data:", error);
       setErrorMessage("Failed to update profile. Please try again.");
       setErrorModalOpen(true);
+      setIsConfirmationModalOpen(false);
     } finally {
       setLoading(false);
     }
@@ -303,6 +309,7 @@ const ProfileForm: React.FC = () => {
    */
   const handleCloseConfirmationModal = useCallback(() => {
     setIsConfirmationModalOpen(false);
+    setErrorModalOpen(false);
   }, []);
 
   /**
@@ -463,6 +470,7 @@ const ProfileForm: React.FC = () => {
         onClick={() => {
           if (!firstnameError && !lastnameError && !emailError) {
             setIsConfirmationModalOpen(true);
+            setErrorModalOpen(false);
           }
         }}
       >

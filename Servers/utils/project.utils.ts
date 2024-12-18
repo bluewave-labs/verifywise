@@ -18,14 +18,14 @@ export const getProjectByIdQuery = async (
 export const createNewProjectQuery = async (
   project: {
     project_title: string;
-    owner: string;
+    owner: number;
     users: string;
     start_date: Date;
     ai_risk_classification: string;
     type_of_high_risk_role: string;
     goal: string;
     last_updated?: Date;
-    last_updated_by?: string;
+    last_updated_by?: number;
   }
 ): Promise<Project> => {
   console.log("createProject");

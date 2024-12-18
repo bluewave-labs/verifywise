@@ -461,12 +461,9 @@ const ProfileForm: React.FC = () => {
         //trigger different modals depending on validation errors && disable button if errors exist
         disabled={!!(firstnameError || lastnameError || emailError)}
         onClick={() => {
-          if (firstnameError || lastnameError || emailError) {
-            setErrorMessage("Please fix the input errors before proceeding");
-            setErrorModalOpen(true);
-            return;
+          if (!firstnameError && !lastnameError && !emailError) {
+            setIsConfirmationModalOpen(true);
           }
-          setIsConfirmationModalOpen(true);
         }}
       >
         Save

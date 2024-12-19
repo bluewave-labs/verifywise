@@ -71,33 +71,34 @@ interface FormErrors {
 	website?: string,
 	projectId?: string,
 	vendorContactPerson?: string,
+	reviewStatus?: string,
 }
 const initialState = {
 	vendorDetails: {
-	  vendorName: "",
-	  website: "",
-	  projectId: 0,
-	  vendorProvides: "",
-	  vendorContactPerson: "",
-	  reviewStatus: "0",
-	  reviewer: "0",
-	  reviewResult: "",
-	  riskStatus: "0",
-	  assignee: 0,
-	  reviewDate: "",
+		vendorName: "",
+		website: "",
+		projectId: 0,
+		vendorProvides: "",
+		vendorContactPerson: "",
+		reviewStatus: "0",
+		reviewer: "0",
+		reviewResult: "",
+		riskStatus: "0",
+		assignee: 0,
+		reviewDate: "",
 	},
 	risks: {
-	  riskDescription: "",
-	  impactDescription: "",
-	  impact: 0,
-	  probability: 0,
-	  actionOwner: 0,
-	  riskSeverity: 0,
-	  likelihood: 0,
-	  riskLevel: 0,
-	  actionPlan: "",
+		riskDescription: "",
+		impactDescription: "",
+		impact: 0,
+		probability: 0,
+		actionOwner: 0,
+		riskSeverity: 0,
+		likelihood: 0,
+		riskLevel: 0,
+		actionPlan: "",
 	},
-  };
+};
 
 interface AddNewVendorProps {
 	isOpen: boolean;
@@ -247,7 +248,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
 		if (!vendorContactPerson.accepted) {
 			newErrors.vendorContactPerson = vendorContactPerson.message;
 		}
-
+		const reviewStatus = checkStringValidation("Review Status", values.vendorDetails.reviewStatus, 1, 64);
+		if (!vendorContactPerson.accepted) {
+			newErrors.reviewStatus = reviewStatus.message;
+		}
 		setErrors(newErrors);
 		return Object.keys(newErrors).length === 0;
 	};
@@ -316,7 +320,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
 	}
 
 	const updateVendor = async (vendorId: number, updatedVendorDetails: VendorDetails) => {
-		// Make a call to backend and update the vendor
+		// Make a call to backend and update the vendor'
+		debugger;
 		console.log("Edit Vendor", vendorId, updatedVendorDetails);
 		await updateEntityById({
 			routeUrl: `/vendors/${vendorId}`,
@@ -437,6 +442,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
 					sx={{
 						width: 220,
 					}}
+					error={errors.reviewStatus}
+					isRequired
 				/>
 				<Select // reviewer
 					items={[

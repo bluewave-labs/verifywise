@@ -13,7 +13,7 @@ import { getEntityById } from "../../../../application/repository/entity.reposit
 import { formatDate } from "../../../tools/isoDateToString";
 import Risks from "../../../components/Risks";
 import { ProjectOverview } from "../../../mocks/projects/project-overview.data";
-import { useParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 interface OverviewProps {
@@ -31,22 +31,34 @@ const Overview: FC<OverviewProps> = memo(({ mocProject }) => {
   const [project, setProject] = useState<ProjectData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { projectId = 2 } = useParams<{ projectId: string }>(); // default project ID is 2
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get("projectId") ?? "2";  // default project ID is 2
   const theme = useTheme();
   const { dashboardValues } = useContext(VerifyWiseContext);
-  const { selectedProjectId } = dashboardValues;
+  const { selectedProjectId, users } = dashboardValues;
 
   const { controlsStatus, assessmentsStatus, projectRisks, vendorRisks } =
     mocProject;
 
   useEffect(() => {
+    if (!projectId) {
+      setError("No project ID provided");
+      setIsLoading(false);
+      return;
+    }
     const controller = new AbortController();
     setIsLoading(true);
     getEntityById({ routeUrl: `/projects/${selectedProjectId ?? projectId}` })
       .then(({ data }) => {
-        const ownerUser = dashboardValues.users.find(
+        const ownerUser = users.find(
           (user: any) => user.id === data.owner
         );
+        const lastUpdatedByUser = users.find(
+          (user: any) => user.id === data.last_updated_by
+        );
+        if (lastUpdatedByUser) {
+          data.last_updated_by = lastUpdatedByUser.name + ` ` + lastUpdatedByUser.surname;
+        }
         if (ownerUser) {
           data.owner = ownerUser.name + ` ` + ownerUser.surname;
         }
@@ -55,7 +67,7 @@ const Overview: FC<OverviewProps> = memo(({ mocProject }) => {
       })
       .catch((err) => {
         if (!controller.signal.aborted) {
-          setError("Failed to fetch the project: " + err.message);
+          setError(`Failed to fetch project #${projectId}: ${err.message}`);
           setProject(null);
         }
       })
@@ -65,7 +77,7 @@ const Overview: FC<OverviewProps> = memo(({ mocProject }) => {
         }
       });
     return () => controller.abort();
-  }, []);
+  }, [users, projectId, selectedProjectId]);
 
   const styles = useMemo(
     () => ({

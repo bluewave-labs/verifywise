@@ -76,30 +76,24 @@ const ProfileForm: React.FC = () => {
       setLoading(true);
       try {
         const storedUserId = await localStorage.getItem("userId");
-        //debug
-        console.log("user ID ", storedUserId);
+
         if (!storedUserId) {
           throw new Error("User ID not found in local storage");
         }
         const id = parseInt(storedUserId, 10);
         setUserId(id);
-        console.log("Stored User Id:", storedUserId);
 
         const API_BASE_URL =
-          process.env.REACT_APP_API_BASE_URL ||"http://127.0.0.1:3000" ;
-        console.log("API Base URL:", API_BASE_URL);
+          process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:3000";
 
         const response = await fetch(`${API_BASE_URL}/users/${id}`, {
           signal: AbortSignal.timeout(5000),
         });
-        console.log("API response:", response);
 
         if (!response.ok) {
           throw new Error("Failed to fetch user data");
         }
         const user = await response.json();
-        console.log("fetched user data:", user);
-
         setFirstname(user.firstname || "");
         setLastname(user.lastname || "");
         setEmail(user.email || "");
@@ -117,7 +111,7 @@ const ProfileForm: React.FC = () => {
             lastname: "N/A",
           },
         });
-        console.error("error fetching user data:", error);
+
         setErrorMessage("failed to fetch user data");
       } finally {
         setLoading(false);
@@ -133,15 +127,9 @@ const ProfileForm: React.FC = () => {
    * on the server if there are no validation errors.
    */
   const handleSave = useCallback(async () => {
-    // debugging validation errors
-    console.log("Validation errors on save:", {
-      firstnameError,
-      lastnameError,
-      emailError,
-    });
+  
     // prevent saving if validation errors exists
     if (firstnameError || lastnameError || emailError) {
-      console.error("Validation errors detected.Cannot save.");
       setErrorMessage("Please fix the input errors before saving.");
       setErrorModalOpen(true);
       setIsConfirmationModalOpen(false);
@@ -176,7 +164,6 @@ const ProfileForm: React.FC = () => {
       alert("Profile updated successfully");
       setIsConfirmationModalOpen(false);
     } catch (error) {
-      console.error("Error saving user data:", error);
       setErrorMessage("Failed to update profile. Please try again.");
       setErrorModalOpen(true);
       setIsConfirmationModalOpen(false);
@@ -346,7 +333,10 @@ const ProfileForm: React.FC = () => {
   );
 
   return (
-    <Box key={userId} sx={{ position: "relative", mt: 3, width: { xs: "90%", md: "70%" } }}>
+    <Box
+      key={userId}
+      sx={{ position: "relative", mt: 3, width: { xs: "90%", md: "70%" } }}
+    >
       {loading && (
         <Box
           sx={{

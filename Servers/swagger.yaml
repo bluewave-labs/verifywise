@@ -3901,7 +3901,7 @@ paths:
                       type: number
                       format: float
                       example: 8.33
-                questions:
+                assessments:
                   type: object
                   properties:
                     projects:
@@ -3912,16 +3912,16 @@ paths:
                           projectId:
                             type: integer
                             example: 1
-                          totalQuestions:
+                          totalAssessments:
                             type: integer
                             example: 34
-                          doneQuestions:
+                          doneAssessments:
                             type: integer
                             example: 0
-                    totalQuestions:
+                    totalAssessments:
                       type: integer
                       example: 34
-                    doneQuestions:
+                    doneAssessments:
                       type: integer
                       example: 0
                     percentageComplete:

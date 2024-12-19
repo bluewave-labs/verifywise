@@ -347,9 +347,9 @@ async function calculateProgress(
     const id = parseInt(req.params.id)
     const userProjects = await getUserProjects(id)
 
-    let questionsMetadata = []
-    let allTotalQuestions = 0
-    let allDoneQuestions = 0
+    let assessmentsMetadata = []
+    let allTotalAssessments = 0
+    let allDoneAssessments = 0
 
     let controlsMetadata = []
     let allTotalSubControls = 0
@@ -375,8 +375,8 @@ async function calculateProgress(
       allDoneSubControls += doneSubControls
       controlsMetadata.push({ projectId: userProject.id, totalSubControls, doneSubControls })
 
-      let totalQuestions = 0
-      let doneQuestions = 0
+      let totalAssessments = 0
+      let doneAssessments = 0
       const assessments = await getAssessmentsForProject(userProject.id)
       for (const assessment of assessments) {
         const topics = await getTopicsForAssessment(assessment.id)
@@ -385,17 +385,17 @@ async function calculateProgress(
           for (const subTopic of subTopics) {
             const questions = await getQuestionsForSubTopic(subTopic.id)
             for (const question of questions) {
-              totalQuestions++;
+              totalAssessments++;
               if (question.answer) {
-                doneQuestions++
+                doneAssessments++
               }
             }
           }
         }
       }
-      allTotalQuestions += totalQuestions
-      allDoneQuestions += doneQuestions
-      questionsMetadata.push({ projectId: userProject.id, totalQuestions, doneQuestions })
+      allTotalAssessments += totalAssessments
+      allDoneAssessments += doneAssessments
+      assessmentsMetadata.push({ projectId: userProject.id, totalAssessments, doneAssessments })
     }
 
     const response = {
@@ -405,11 +405,11 @@ async function calculateProgress(
         doneSubControls: allDoneSubControls,
         percentageComplete: Number(((allDoneSubControls / allTotalSubControls) * 100).toFixed(2))
       },
-      questions: {
-        projects: questionsMetadata,
-        totalQuestions: allTotalQuestions,
-        doneQuestions: allDoneQuestions,
-        percentageComplete: Number(((allDoneQuestions / allTotalQuestions) * 100).toFixed(2))
+      assessments: {
+        projects: assessmentsMetadata,
+        totalAssessments: allTotalAssessments,
+        doneAssessments: allDoneAssessments,
+        percentageComplete: Number(((allDoneAssessments / allTotalAssessments) * 100).toFixed(2))
       }
     }
     return res.status(200).json(response)

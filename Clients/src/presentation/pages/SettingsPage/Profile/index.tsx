@@ -86,21 +86,28 @@ const ProfileForm: React.FC = () => {
         const API_BASE_URL =
           process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:3000";
 
-        const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+       
+
+          // the 1 at the end was hard coded, can change back to a variable
+        const response = await fetch(`${API_BASE_URL}/users/{id}`, {
           signal: AbortSignal.timeout(5000),
         });
+        console.log(response);
 
         if (!response.ok) {
           throw new Error("Failed to fetch user data");
         }
-        const user = await response.json();
-        setFirstname(user.firstname || "");
-        setLastname(user.lastname || "");
-        setEmail(user.email || "");
+        const user: User = await response.json();
+        setFirstname(user.firstname);
+        setLastname(user.lastname);
+        setEmail(user.email);
         setProfilePhoto(
           user.pathToImage || "/placeholder.svg?height=80&width=80"
         );
+        console.log(`user ${user.firstname} ${user.lastname} fetched`);
+        console.log(firstname);
       } catch (error) {
+        console.log(error);
         logEngine({
           type: "error",
           message: "Failed to fetch user data.",
@@ -118,6 +125,7 @@ const ProfileForm: React.FC = () => {
       }
     };
     fetchUserData();
+    console.log("fetchUserData");
   }, []);
 
   /**
@@ -143,7 +151,8 @@ const ProfileForm: React.FC = () => {
         throw new Error("user id not found in local storage");
       }
 
-      const updatedUser = {
+      const updatedUser: User = {
+        id: parseInt(userId, 10),
         firstname,
         lastname,
         email,

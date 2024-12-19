@@ -17,7 +17,7 @@ import "./index.css";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 import { useTheme } from "@mui/material";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { toggleSidebar } from "../../tools/uiSlice";
 
 import { ReactComponent as ArrowLeft } from "../../assets/icons/left-arrow.svg";
@@ -37,6 +37,8 @@ import Logo from "../../assets/imgs/logo.png";
 import Select from "../Inputs/Select";
 import Avatar from "../Avatar/VWAvatar";
 import { clearAuthState } from "../../../application/authentication/authSlice";
+import { SelectChangeEvent } from "@mui/material";
+import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 
 const menu = [
   {
@@ -74,15 +76,29 @@ const other = [
   },
 ];
 
-const Sidebar = () => {
+const Sidebar = ({ projects }: { projects: any }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
   const [anchorEl, setAnchorEl] = useState(null);
   const [popup, setPopup] = useState();
+  const [selectedProjectId, setSelectedProjectId] = useState<string | number>(
+    projects.length > 0 ? projects[0]._id : ""
+  );
+  const { dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);
 
   const collapsed = useSelector((state: any) => state.ui?.sidebar?.collapsed);
+
+  const handleProjectChange = (event: SelectChangeEvent<string | number>) => {
+    const selectedProjectId = event.target.value as string;
+    setSelectedProjectId(selectedProjectId);
+    // Update the dashboardValues in the context
+    setDashboardValues({
+      ...dashboardValues,
+      selectedProjectId,
+    });
+  };
 
   const [open, setOpen] = useState<{ [key: string]: boolean }>({
     Dashboard: false,
@@ -109,8 +125,6 @@ const Sidebar = () => {
     // Navigate to the login page
     navigate("/login");
   };
-
-  console.log("collapsed -> ", collapsed);
 
   return (
     <Stack
@@ -201,12 +215,9 @@ const Sidebar = () => {
         >
           <Select
             id="projects"
-            value={"1"}
-            items={[
-              { _id: "1", name: "ChatBot AI" },
-              { _id: "2", name: "Chat-GPT 4" },
-            ]}
-            onChange={() => {}}
+            value={selectedProjectId}
+            items={projects}
+            onChange={handleProjectChange}
             sx={{ width: "180px", marginLeft: theme.spacing(8) }}
           />
         </Stack>

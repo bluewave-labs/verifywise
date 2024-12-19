@@ -89,7 +89,7 @@ const ProfileForm: React.FC = () => {
        
 
           // the 1 at the end was hard coded, can change back to a variable
-        const response = await fetch(`${API_BASE_URL}/users/{id}`, {
+        const response = await fetch(`${API_BASE_URL}/users/${id}`, {
           signal: AbortSignal.timeout(5000),
         });
         console.log(response);

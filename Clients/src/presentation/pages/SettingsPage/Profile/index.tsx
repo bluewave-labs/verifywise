@@ -41,7 +41,7 @@ interface User {
  */
 const ProfileForm: React.FC = () => {
   // State management
-  const [userId, setUserId] =useState<number | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
   const [firstname, setFirstname] = useState<string>("");
   const [lastname, setLastname] = useState<string>("");
   const [email, setEmail] = useState<string>("");
@@ -83,16 +83,23 @@ const ProfileForm: React.FC = () => {
         }
         const id = parseInt(storedUserId, 10);
         setUserId(id);
+        console.log("Stored User Id:", storedUserId);
 
         const API_BASE_URL =
-         process.env.REACT_APP_API_BASE_URL || "http://localhost:3000";
+          process.env.REACT_APP_API_BASE_URL ||"http://127.0.0.1:3000" ;
+        console.log("API Base URL:", API_BASE_URL);
+
         const response = await fetch(`${API_BASE_URL}/users/${id}`, {
           signal: AbortSignal.timeout(5000),
         });
+        console.log("API response:", response);
+
         if (!response.ok) {
           throw new Error("Failed to fetch user data");
         }
         const user = await response.json();
+        console.log("fetched user data:", user);
+
         setFirstname(user.firstname || "");
         setLastname(user.lastname || "");
         setEmail(user.email || "");
@@ -112,7 +119,6 @@ const ProfileForm: React.FC = () => {
         });
         console.error("error fetching user data:", error);
         setErrorMessage("failed to fetch user data");
-       
       } finally {
         setLoading(false);
       }
@@ -157,7 +163,7 @@ const ProfileForm: React.FC = () => {
       };
 
       const API_BASE_URL =
-        process.env.REACT_APP_API_BASE_URL || "https://127.0.0.1:3000";
+        process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:3000";
       const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -336,11 +342,11 @@ const ProfileForm: React.FC = () => {
       pathToImage: profilePhoto,
       email,
     }),
-    [userId,firstname, lastname, profilePhoto, email]
+    [userId, firstname, lastname, profilePhoto, email]
   );
 
   return (
-    <Box sx={{ position: "relative", mt: 3, width: { xs: "90%", md: "70%" } }}>
+    <Box key={userId} sx={{ position: "relative", mt: 3, width: { xs: "90%", md: "70%" } }}>
       {loading && (
         <Box
           sx={{
@@ -486,7 +492,7 @@ const ProfileForm: React.FC = () => {
         Save
       </Button>
       {/* Confirmation Modal */}
-      {isConfirmationModalOpen &&  (
+      {isConfirmationModalOpen && (
         <DualButtonModal
           title="Save Changes?"
           body={<Typography>Are you sure you want to save changes?</Typography>}

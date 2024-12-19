@@ -427,9 +427,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
 				/>
 				<Select // reviewStatus
 					items={[
-						{ _id: "Under Review", name: "Under Review" },
-						{ _id: "Completed", name: "Completed" },
-						{ _id: "Failed", name: "Failed" },
+						{ _id: "active", name: "Active" },
+						{ _id: "underReview", name: "Under review" },
+						{ _id: "notActive", name: "Not active" },
 					]}
 					label="Review status"
 					placeholder="Select review status"
@@ -488,9 +488,11 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
 			>
 				<Select // riskStatus
 					items={[
-						{ _id: "Active", name: "Active" },
-						{ _id: "Under review", name: "Under review" },
-						{ _id: "Not active", name: "Not active" },
+						{ _id: "veryHighRisk", name: "Very high risk" },
+						{ _id: "highRisk", name: "High risk" },
+						{ _id: "mediumRisk", name: "Medium risk" },
+						{ _id: "lowRisk", name: "Low risk" },
+						{ _id: "veryLowRisk", name: "Very low risk" },
 					]}
 					label="Risk status"
 					placeholder="Select risk status"

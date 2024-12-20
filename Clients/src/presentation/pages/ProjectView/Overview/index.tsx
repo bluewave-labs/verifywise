@@ -1,71 +1,24 @@
 import { Stack, Typography, useTheme } from "@mui/material";
 import ProgressBar from "../../../components/ProjectCard/ProgressBar";
-import {
-  FC,
-  memo,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import { getEntityById } from "../../../../application/repository/entity.repository";
+import { FC, memo, useCallback, useMemo } from "react";
 import { formatDate } from "../../../tools/isoDateToString";
 import Risks from "../../../components/Risks";
 import { ProjectOverview } from "../../../mocks/projects/project-overview.data";
-import { useParams } from "react-router-dom";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import { useSearchParams } from "react-router-dom";
+import useProjectData from "../../../../application/hooks/useProjectData";
 
 interface OverviewProps {
   mocProject: ProjectOverview;
 }
 
-type ProjectData = {
-  project_title: string;
-  owner: string;
-  last_updated: string;
-  last_updated_by: string;
-};
-
 const Overview: FC<OverviewProps> = memo(({ mocProject }) => {
-  const [project, setProject] = useState<ProjectData | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const { projectId = 2 } = useParams<{ projectId: string }>(); // default project ID is 2
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get("projectId") ?? "2"; // default project ID is 2
+  const { project, error, isLoading } = useProjectData({ projectId });
   const theme = useTheme();
-  const { dashboardValues } = useContext(VerifyWiseContext);
-  const { selectedProjectId } = dashboardValues;
 
   const { controlsStatus, assessmentsStatus, projectRisks, vendorRisks } =
     mocProject;
-
-  useEffect(() => {
-    const controller = new AbortController();
-    setIsLoading(true);
-    getEntityById({ routeUrl: `/projects/${selectedProjectId ?? projectId}` })
-      .then(({ data }) => {
-        const ownerUser = dashboardValues.users.find(
-          (user: any) => user.id === data.owner
-        );
-        if (ownerUser) {
-          data.owner = ownerUser.name + ` ` + ownerUser.surname;
-        }
-        setProject(data);
-        setError(null);
-      })
-      .catch((err) => {
-        if (!controller.signal.aborted) {
-          setError("Failed to fetch the project: " + err.message);
-          setProject(null);
-        }
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
-      });
-    return () => controller.abort();
-  }, []);
 
   const styles = useMemo(
     () => ({

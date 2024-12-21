@@ -481,10 +481,10 @@ const ProfileForm: React.FC = () => {
       {/* error Modal */}
       {errorModalOpen && (
         <DualButtonModal
-          title="Error"
+          title= ""
           body={
-            <Typography>
-              {errorMessage || "An unexpected error occured."}
+             <Typography variant="body2" sx={{fontWeight: "bold", fontSize:"13px"}}>
+              Error: {errorMessage || "An unexpected error occured."}
             </Typography>
           }
           cancelText="Close"
@@ -495,6 +495,8 @@ const ProfileForm: React.FC = () => {
           }}
           proceedButtonColor="error"
           proceedButtonVariant="outlined"
+       
+
         />
       )}
       <Box>

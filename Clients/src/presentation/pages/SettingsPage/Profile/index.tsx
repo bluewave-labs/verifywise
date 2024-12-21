@@ -54,8 +54,6 @@ const ProfileForm: React.FC = () => {
   const [emailError, setEmailError] = useState<string | null>(null);
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
-  const [isConfirmationModalOpen, setIsConfirmationModalOpen] =
-    useState<boolean>(false);
 
   const [errorModalOpen, setErrorModalOpen] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -86,9 +84,7 @@ const ProfileForm: React.FC = () => {
         const API_BASE_URL =
           process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:3000";
 
-       
-
-          // the 1 at the end was hard coded, can change back to a variable
+        // the 1 at the end was hard coded, can change back to a variable
         const response = await fetch(`${API_BASE_URL}/users/${id}`, {
           signal: AbortSignal.timeout(5000),
         });
@@ -135,12 +131,11 @@ const ProfileForm: React.FC = () => {
    * on the server if there are no validation errors.
    */
   const handleSave = useCallback(async () => {
-  
     // prevent saving if validation errors exists
     if (firstnameError || lastnameError || emailError) {
       setErrorMessage("Please fix errors before saving.");
       setErrorModalOpen(true);
-      setIsConfirmationModalOpen(false);
+
       return;
     }
 
@@ -171,11 +166,9 @@ const ProfileForm: React.FC = () => {
         throw new Error(`Failed to update user: ${response.status}`);
       }
       alert("Profile updated successfully");
-      setIsConfirmationModalOpen(false);
     } catch (error) {
       setErrorMessage("Error fetching data. Try again.");
       setErrorModalOpen(true);
-      setIsConfirmationModalOpen(false);
     } finally {
       setLoading(false);
     }
@@ -316,12 +309,12 @@ const ProfileForm: React.FC = () => {
    * Close confirmation modal.
    *
    * Closes the save changes confirmation modal.
-   */
+  
   const handleCloseConfirmationModal = useCallback(() => {
-    setIsConfirmationModalOpen(false);
+    
     setErrorModalOpen(false);
   }, []);
-
+ */
   /**
    * Close error modal.
    */
@@ -481,28 +474,10 @@ const ProfileForm: React.FC = () => {
         }}
         //trigger different modals depending on validation errors && disable button if errors exist
         disabled={!!(firstnameError || lastnameError || emailError)}
-        onClick={() => {
-          if (!firstnameError && !lastnameError && !emailError) {
-            setIsConfirmationModalOpen(true);
-            setErrorModalOpen(false);
-          }
-        }}
+        onClick={handleSave}
       >
         Save
       </Button>
-      {/* Confirmation Modal */}
-      {isConfirmationModalOpen && (
-        <DualButtonModal
-          title="Save Changes?"
-          body={<Typography>Are you sure you want to save changes?</Typography>}
-          cancelText="Cancel"
-          proceedText="Save"
-          onCancel={handleCloseConfirmationModal}
-          onProceed={handleSave}
-          proceedButtonColor="primary"
-          proceedButtonVariant="contained"
-        />
-      )}
       {/* error Modal */}
       {errorModalOpen && (
         <DualButtonModal
@@ -517,7 +492,6 @@ const ProfileForm: React.FC = () => {
           onCancel={handleCloseErrorModal}
           onProceed={() => {
             setErrorModalOpen(false);
-            setIsConfirmationModalOpen(false);
           }}
           proceedButtonColor="error"
           proceedButtonVariant="outlined"

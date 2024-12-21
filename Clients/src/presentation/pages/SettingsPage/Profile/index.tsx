@@ -138,7 +138,7 @@ const ProfileForm: React.FC = () => {
   
     // prevent saving if validation errors exists
     if (firstnameError || lastnameError || emailError) {
-      setErrorMessage("Please fix the input errors before saving.");
+      setErrorMessage("Please fix errors before saving.");
       setErrorModalOpen(true);
       setIsConfirmationModalOpen(false);
       return;
@@ -173,7 +173,7 @@ const ProfileForm: React.FC = () => {
       alert("Profile updated successfully");
       setIsConfirmationModalOpen(false);
     } catch (error) {
-      setErrorMessage("Failed to update profile. Please try again.");
+      setErrorMessage("Error fetching data. Try again.");
       setErrorModalOpen(true);
       setIsConfirmationModalOpen(false);
     } finally {
@@ -509,7 +509,7 @@ const ProfileForm: React.FC = () => {
           title="Error"
           body={
             <Typography>
-              {errorMessage || "An error occured while saving"}
+              {errorMessage || "An unexpected error occured."}
             </Typography>
           }
           cancelText="Close"

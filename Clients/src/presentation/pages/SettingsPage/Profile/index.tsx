@@ -22,6 +22,7 @@ import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
  * @interface
  */
 interface User {
+  id: number;
   firstname: string;
   lastname: string;
   email: string;
@@ -40,6 +41,7 @@ interface User {
  */
 const ProfileForm: React.FC = () => {
   // State management
+  const [userId, setUserId] = useState<number | null>(null);
   const [firstname, setFirstname] = useState<string>("");
   const [lastname, setLastname] = useState<string>("");
   const [email, setEmail] = useState<string>("");
@@ -52,8 +54,6 @@ const ProfileForm: React.FC = () => {
   const [emailError, setEmailError] = useState<string | null>(null);
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
-  const [isConfirmationModalOpen, setIsConfirmationModalOpen] =
-    useState<boolean>(false);
 
   const [errorModalOpen, setErrorModalOpen] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -73,29 +73,37 @@ const ProfileForm: React.FC = () => {
     const fetchUserData = async () => {
       setLoading(true);
       try {
-        const userId = await localStorage.getItem("userId");
-        //debug
-        console.log("user ID from local storage:", userId);
-        if (!userId) {
+        const storedUserId = await localStorage.getItem("userId");
+
+        if (!storedUserId) {
           throw new Error("User ID not found in local storage");
         }
+        const id = parseInt(storedUserId, 10);
+        setUserId(id);
 
         const API_BASE_URL =
-          process.env.REACT_APP_API_BASE_URL || "http://localhost:3000";
-        const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+          process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:3000";
+
+        // the 1 at the end was hard coded, can change back to a variable
+        const response = await fetch(`${API_BASE_URL}/users/${id}`, {
           signal: AbortSignal.timeout(5000),
         });
+        console.log(response);
+
         if (!response.ok) {
           throw new Error("Failed to fetch user data");
         }
-        const user = await response.json();
-        setFirstname(user.firstname || "");
-        setLastname(user.lastname || "");
-        setEmail(user.email || "");
+        const user: User = await response.json();
+        setFirstname(user.firstname);
+        setLastname(user.lastname);
+        setEmail(user.email);
         setProfilePhoto(
           user.pathToImage || "/placeholder.svg?height=80&width=80"
         );
+        console.log(`user ${user.firstname} ${user.lastname} fetched`);
+        console.log(firstname);
       } catch (error) {
+        console.log(error);
         logEngine({
           type: "error",
           message: "Failed to fetch user data.",
@@ -106,13 +114,14 @@ const ProfileForm: React.FC = () => {
             lastname: "N/A",
           },
         });
-        console.error("error fetching user data:", error);
+
         setErrorMessage("failed to fetch user data");
       } finally {
         setLoading(false);
       }
     };
     fetchUserData();
+    console.log("fetchUserData");
   }, []);
 
   /**
@@ -122,18 +131,23 @@ const ProfileForm: React.FC = () => {
    * on the server if there are no validation errors.
    */
   const handleSave = useCallback(async () => {
+    // prevent saving if validation errors exists
+    if (firstnameError || lastnameError || emailError) {
+      setErrorMessage("Please fix errors before saving.");
+      setErrorModalOpen(true);
+
+      return;
+    }
+
     try {
-      if (firstnameError || lastnameError || emailError) {
-        setErrorModalOpen(true);
-        setErrorMessage("Please fix validation errors before saving");
-        return;
-      }
+      setLoading(true);
       const userId = (await localStorage.getItem("userId")) || "1";
       if (!userId) {
         throw new Error("user id not found in local storage");
       }
 
-      const updatedUser = {
+      const updatedUser: User = {
+        id: parseInt(userId, 10),
         firstname,
         lastname,
         email,
@@ -141,7 +155,7 @@ const ProfileForm: React.FC = () => {
       };
 
       const API_BASE_URL =
-        process.env.REACT_APP_API_BASE_URL || "http://localhost:3000";
+        process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:3000";
       const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -152,11 +166,14 @@ const ProfileForm: React.FC = () => {
         throw new Error(`Failed to update user: ${response.status}`);
       }
       alert("Profile updated successfully");
-      setIsConfirmationModalOpen(false);
+    } catch (error) {
+      setErrorMessage("Error fetching data. Try again.");
+      setErrorModalOpen(true);
     } finally {
       setLoading(false);
     }
   }, [
+    userId,
     firstname,
     lastname,
     email,
@@ -292,11 +309,12 @@ const ProfileForm: React.FC = () => {
    * Close confirmation modal.
    *
    * Closes the save changes confirmation modal.
-   */
+  
   const handleCloseConfirmationModal = useCallback(() => {
-    setIsConfirmationModalOpen(false);
+    
+    setErrorModalOpen(false);
   }, []);
-
+ */
   /**
    * Close error modal.
    */
@@ -307,16 +325,20 @@ const ProfileForm: React.FC = () => {
   // User object for Avatar component
   const user: User = useMemo(
     () => ({
+      id: userId || 0,
       firstname,
       lastname,
       pathToImage: profilePhoto,
       email,
     }),
-    [firstname, lastname, profilePhoto, email]
+    [userId, firstname, lastname, profilePhoto, email]
   );
 
   return (
-    <Box sx={{ position: "relative", mt: 3, width: { xs: "90%", md: "70%" } }}>
+    <Box
+      key={userId}
+      sx={{ position: "relative", mt: 3, width: { xs: "90%", md: "70%" } }}
+    >
       {loading && (
         <Box
           sx={{
@@ -450,30 +472,19 @@ const ProfileForm: React.FC = () => {
             backgroundColor: "#175CD3 ",
           },
         }}
-        onClick={() => setIsConfirmationModalOpen(true)}
+        //trigger different modals depending on validation errors && disable button if errors exist
+        disabled={!!(firstnameError || lastnameError || emailError)}
+        onClick={handleSave}
       >
         Save
       </Button>
-      {/* Confirmation Modal */}
-      {isConfirmationModalOpen && !errorModalOpen && (
-        <DualButtonModal
-          title="Save Changes?"
-          body={<Typography>Are you sure you want to save changes?</Typography>}
-          cancelText="Cancel"
-          proceedText="Save"
-          onCancel={handleCloseConfirmationModal}
-          onProceed={handleSave}
-          proceedButtonColor="primary"
-          proceedButtonVariant="contained"
-        />
-      )}
       {/* error Modal */}
       {errorModalOpen && (
         <DualButtonModal
-          title="Error"
+          title= ""
           body={
-            <Typography>
-              {errorMessage || "An error occured while saving"}
+             <Typography variant="body2" sx={{fontWeight: "bold", fontSize:"13px"}}>
+              Error: {errorMessage || "An unexpected error occured."}
             </Typography>
           }
           cancelText="Close"
@@ -481,10 +492,11 @@ const ProfileForm: React.FC = () => {
           onCancel={handleCloseErrorModal}
           onProceed={() => {
             setErrorModalOpen(false);
-            setIsConfirmationModalOpen(false);
           }}
           proceedButtonColor="error"
           proceedButtonVariant="outlined"
+       
+
         />
       )}
       <Box>

@@ -27,7 +27,6 @@ import Alert from "../../../components/Alert"; // Import Alert component
  * @interface
  */
 interface User {
-  id: number;
   firstname: string;
   lastname: string;
   email: string;
@@ -46,7 +45,6 @@ interface User {
  */
 const ProfileForm: React.FC = () => {
   // State management
-  const [userId, setUserId] = useState<number | null>(null);
   const [firstname, setFirstname] = useState<string>("");
   const [lastname, setLastname] = useState<string>("");
   const [email, setEmail] = useState<string>("");
@@ -89,30 +87,12 @@ const ProfileForm: React.FC = () => {
     const fetchUserData = async () => {
       setLoading(true);
       try {
-        const storedUserId = await localStorage.getItem("userId");
+        // const userId = localStorage.getItem("userId") || 1;
+        const response = await getEntityById({ routeUrl: `/users/1` });
 
-        if (!storedUserId) {
-          throw new Error("User ID not found in local storage");
-        }
-        const id = parseInt(storedUserId, 10);
-        setUserId(id);
-
-        const API_BASE_URL =
-          process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:3000";
-
-        // the 1 at the end was hard coded, can change back to a variable
-        const response = await fetch(`${API_BASE_URL}/users/${id}`, {
-          signal: AbortSignal.timeout(5000),
-        });
-        console.log(response);
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch user data");
-        }
-        const user: User = await response.json();
-        setFirstname(user.firstname);
-        setLastname(user.lastname);
-        setEmail(user.email);
+            setFirstname(response.data.name || "");
+            setLastname(response.data.surname || "");
+            setEmail(response.data.email || "");
 
         setProfilePhoto(
           response.data.pathToImage || "/placeholder.svg?height=80&width=80"
@@ -131,9 +111,6 @@ const ProfileForm: React.FC = () => {
             lastname: "N/A",
           },
         });
-
-        setErrorMessage("failed to fetch user data");
-
       } finally {
         setLoading(false);
       }
@@ -149,14 +126,6 @@ const ProfileForm: React.FC = () => {
    * on the server if there are no validation errors.
    */
   const handleSave = useCallback(async () => {
-    // prevent saving if validation errors exists
-    if (firstnameError || lastnameError || emailError) {
-      setErrorMessage("Please fix errors before saving.");
-      setErrorModalOpen(true);
-
-      return;
-    }
-
     try {
       if (firstnameError || lastnameError || emailError) {
         logEngine({
@@ -218,7 +187,6 @@ const ProfileForm: React.FC = () => {
       });
     }
   }, [
-    userId,
     firstname,
     lastname,
     email,
@@ -354,11 +322,11 @@ const ProfileForm: React.FC = () => {
    * Close confirmation modal.
    *
    * Closes the save changes confirmation modal.
-  
+  */
   const handleCloseConfirmationModal = useCallback(() => {
     setIsSaveModalOpen(false);
   }, []);
- */
+ 
   /**
    * Handle save confirmation.
    *
@@ -413,18 +381,16 @@ const ProfileForm: React.FC = () => {
   // User object for Avatar component
   const user: User = useMemo(
     () => ({
-      id: userId || 0,
       firstname,
       lastname,
       pathToImage: profilePhoto,
       email,
     }),
-    [userId, firstname, lastname, profilePhoto, email]
+    [ firstname, lastname, profilePhoto, email]
   );
 
   return (
     <Box
-      key={userId}
       sx={{ position: "relative", mt: 3, width: { xs: "90%", md: "70%" } }}
     >
       {loading && (

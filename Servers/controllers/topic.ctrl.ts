@@ -79,15 +79,30 @@ export async function createNewTopic(
   console.log("Create topics", req.body);
   try {
     const newTopic: {
-      id: number;
       assessmentId: number;
       title: string;
-    } = req.body;
+      subTopics: {
+        id: number;
+        title: string;
+        questions: {
+          id: number;
+          question: string;
+          hint: string;
+          priorityLevel: string;
+          answerType: string;
+          inputType: string;
+          isRequired: boolean;
+          evidenceFileRequired: boolean;
+          evidenceFile: string;
+          answer: string;
+        }[];
+      }[];
+    }[] = req.body;
 
     if (MOCKDATA_ON === true) {
       const topic = createMockTopic(
-        newTopic.assessmentId,
-        newTopic.title
+        newTopic[0].assessmentId,
+        newTopic[0].title
       );
 
       if (topic) {
@@ -96,10 +111,52 @@ export async function createNewTopic(
 
       return res.status(204).json(STATUS_CODE[204](topic));
     } else {
-      const createdTopic = await createNewTopicQuery(newTopic);
+      let flag = true;
+      mainLoop: for (const topicGroup of newTopic) {
+        const assessmentId = topicGroup.assessmentId;
+        const newTopic = await createNewTopicQuery({
+          assessmentId,
+          title: topicGroup.title,
+        });
+        if (!newTopic) {
+          flag = false;
+          break mainLoop;
+        }
+        const newTopicId = newTopic.id;
+        for (const topic of topicGroup.subTopics) {
+          const newSubTopic = await createNewSubtopicQuery({
+            topicId: newTopicId,
+            name: topic.title,
+          });
+          if (!newSubTopic) {
+            flag = false;
+            break mainLoop;
+          }
+          const newSubTopicId = newSubTopic.topicId;
+          for (const question of topic.questions) {
+            const newQuestion = await createNewQuestionQuery(
+              {
+                subtopicId: newSubTopicId,
+                questionText: question.question,
+                answerType: question.answerType,
+                evidenceFileRequired: question.evidenceFileRequired,
+                hint: question.hint,
+                isRequired: question.isRequired,
+                priorityLevel: question.priorityLevel,
+                answer: question.answer,
+              },
+              req.files!
+            );
+            if (!newQuestion) {
+              flag = false;
+              break mainLoop;
+            }
+          }
+        }
+      }
 
-      if (createdTopic) {
-        return res.status(201).json(STATUS_CODE[201](createdTopic));
+      if (flag) {
+        return res.status(201).json(STATUS_CODE[201]({}));
       }
 
       return res.status(204).json(STATUS_CODE[204]({}));

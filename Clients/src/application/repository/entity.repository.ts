@@ -91,7 +91,7 @@ export async function updateEntityById({
     console.log(
       `The entity with the following details is updated: ${response.data}`
     );
-    return response.data;
+    return response;
   } catch (error) {
     console.error("Error updating user by ID:", error);
     throw error;

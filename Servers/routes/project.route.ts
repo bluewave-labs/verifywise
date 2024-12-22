@@ -6,7 +6,7 @@ import {
   deleteProjectById,
   getAllProjects,
   getProjectById,
-  // saveControls,
+  saveControls,
   updateProjectById,
 } from "../controllers/project.ctrl";
 
@@ -18,7 +18,7 @@ router.get("/:id", /*authenticateJWT,*/ getProjectById);
 
 // POSTs
 router.post("/", /*authenticateJWT,*/ createProject);
-// router.post("/saveControls", /*authenticateJWT,*/ saveControls);
+router.post("/saveControls", /*authenticateJWT,*/ saveControls);
 
 // PUTs
 router.put("/:id", /*authenticateJWT,*/ updateProjectById);

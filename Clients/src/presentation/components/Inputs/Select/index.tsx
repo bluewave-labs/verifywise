@@ -11,9 +11,6 @@
  * @param {Array<{ _id: string | number; name: string }>} props.items - The list of items to display in the select dropdown.
  * @param {function} props.onChange - The callback function to handle changes in the select input.
  * @param {object} [props.sx] - Additional styles to apply to the select component.
- * @param {function} props.getOptionValue - The function to get the value of an option.
- * @param {boolean} props.required - Flag to determine if the select input is required.
- * @param {string} props.helperText - The helper text to display when the select input is empty.
  * @returns {JSX.Element} The rendered select component.
  */
 
@@ -36,15 +33,12 @@ interface SelectProps {
   value: string | number;
   items: { _id: string | number; name: string; email?: string }[];
   isRequired?: boolean;
-  error?: boolean | string;
-  helperText?: string;
+  error?: string;
   onChange: (
     event: SelectChangeEvent<string | number>,
     child: React.ReactNode
   ) => void;
   sx?: object;
-  getOptionValue?: (item: any) => any;
-  required?: boolean;
 }
 
 const Select: React.FC<SelectProps> = ({
@@ -58,9 +52,6 @@ const Select: React.FC<SelectProps> = ({
   error,
   onChange,
   sx,
-  getOptionValue,
-  required,
-  helperText,
 }) => {
   const theme = useTheme();
   const itemStyles = {
@@ -70,16 +61,13 @@ const Select: React.FC<SelectProps> = ({
     margin: theme.spacing(2),
   };
 
-  const isEmpty = required && (!value || value === "");
-  const errorMessage = isEmpty ? "This field is required" : helperText;
-
   return (
     <Stack
       gap={theme.spacing(2)}
       className="select-wrapper"
       sx={{
         ".MuiOutlinedInput-notchedOutline": {
-          border: (isEmpty || error)
+          border: error
             ? `1px solid ${theme.palette.status.error.border}!important`
             : `1px solid ${theme.palette.border.dark}!important`,
         },
@@ -156,7 +144,6 @@ const Select: React.FC<SelectProps> = ({
           },
           ...sx,
         }}
-        error={isEmpty || error}
       >
         {placeholder && (
           <MenuItem
@@ -174,7 +161,7 @@ const Select: React.FC<SelectProps> = ({
         {items.map(
           (item: { _id: string | number; name: string; email?: string }) => (
             <MenuItem
-              value={getOptionValue ? getOptionValue(item) : item._id}
+              value={item._id}
               key={`${id}-${item._id}`}
               sx={{
                 display: "flex",
@@ -193,7 +180,7 @@ const Select: React.FC<SelectProps> = ({
           )
         )}
       </MuiSelect>
-      {(errorMessage) && (
+      {error && (
         <Typography
           className="input-error"
           color={theme.palette.status.error.text}
@@ -203,7 +190,7 @@ const Select: React.FC<SelectProps> = ({
             fontSize: 11,
           }}
         >
-          {errorMessage}
+          {error}
         </Typography>
       )}
     </Stack>

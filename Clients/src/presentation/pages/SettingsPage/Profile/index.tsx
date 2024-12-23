@@ -90,8 +90,8 @@ const ProfileForm: React.FC = () => {
         // const userId = localStorage.getItem("userId") || 1;
         const response = await getEntityById({ routeUrl: `/users/1` });
 
-            setFirstname(response.data.name || "");
-            setLastname(response.data.surname || "");
+            setFirstname(response.data.firstname || "");
+            setLastname(response.data.lastname || "");
             setEmail(response.data.email || "");
 
         setProfilePhoto(

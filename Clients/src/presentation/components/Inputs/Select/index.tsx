@@ -83,6 +83,10 @@ const Select: React.FC<SelectProps> = ({
           color={theme.palette.text.secondary}
           fontWeight={500}
           fontSize={13}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+          }}
         >
           {label}
           {isRequired && (

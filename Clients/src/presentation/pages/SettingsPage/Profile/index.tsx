@@ -13,12 +13,14 @@ import Avatar from "../../../components/Avatar/VWAvatar/index";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import validator from "validator";
 import {
+  deleteEntityById,
   getEntityById,
   updateEntityById,
 } from "../../../../application/repository/entity.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
 import localStorage from "redux-persist/es/storage";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
+import Alert from "../../../components/Alert"; // Import Alert component
 
 /**
  * Interface representing a user object.
@@ -57,6 +59,20 @@ const ProfileForm: React.FC = () => {
 
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const [alert, setAlert] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    title: string;
+    body: string;
+    isToast: boolean;
+    visible: boolean;
+  }>({
+    variant: "info",
+    title: "",
+    body: "",
+    isToast: true,
+    visible: false,
+  });
 
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -117,9 +133,16 @@ const ProfileForm: React.FC = () => {
             lastname,
           },
         });
+        setAlert({
+          variant: "error",
+          title: "Error",
+          body: "Validation errors occurred while saving the profile.",
+          isToast: true,
+          visible: true,
+        });
         return;
       }
-      const userId = localStorage.getItem("userId") || "1";
+      // const userId = localStorage.getItem("userId") || "1";
       const updatedUser = {
         firstname,
         lastname,
@@ -127,11 +150,18 @@ const ProfileForm: React.FC = () => {
         pathToImage: profilePhoto,
       };
 
-      await updateEntityById({
-        routeUrl: `/users/${userId}`,
+      const response = await updateEntityById({
+        routeUrl: `/users/1`,
         body: updatedUser,
       });
-      alert("Profile updated successfully");
+      console.log(response);
+      setAlert({
+        variant: "success",
+        title: "Success",
+        body: "Profile updated successfully.",
+        isToast: true,
+        visible: true,
+      });
     } catch (error) {
       logEngine({
         type: "error",
@@ -143,7 +173,13 @@ const ProfileForm: React.FC = () => {
           lastname,
         },
       });
-      alert("Failed to update profile. Please try again.");
+      setAlert({
+        variant: "error",
+        title: "Error",
+        body: "Failed to update profile. Please try again.",
+        isToast: true,
+        visible: true,
+      });
     }
   }, [
     firstname,
@@ -301,10 +337,41 @@ const ProfileForm: React.FC = () => {
    *
    * Proceeds with deleting the account.
    */
-  const handleConfirmDelete = useCallback(() => {
-    // Add delete account logic here
-    setIsDeleteModalOpen(false);
-  }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    try {
+      // const userId = localStorage.getItem("userId") || "1";
+      await deleteEntityById({ routeUrl: `/users/1` });
+      setAlert({
+        variant: "success",
+        title: "Success",
+        body: "Account deleted successfully.",
+        isToast: true,
+        visible: true,
+      });
+      // Add any additional logic needed after account deletion, e.g., redirecting to a login page
+    } catch (error) {
+      logEngine({
+        type: "error",
+        message: "An error occured while deleting the account.",
+        user: {
+          id: String(localStorage.getItem("userId")) || "N/A",
+          email,
+          firstname,
+          lastname,
+        },
+      });
+      setAlert({
+        variant: "error",
+        title: "Error",
+        body: "Failed to delete account. Please try again.",
+        isToast: true,
+        visible: true,
+      });
+    } finally {
+      setIsDeleteModalOpen(false);
+    }
+  }, [email, firstname, lastname]);
 
   // User object for Avatar component
   const user: User = useMemo(
@@ -336,6 +403,15 @@ const ProfileForm: React.FC = () => {
         >
           <Typography>Loading...</Typography>
         </Box>
+      )}
+      {alert.visible && (
+        <Alert
+          variant={alert.variant}
+          title={alert.title}
+          body={alert.body}
+          isToast={alert.isToast}
+          onClick={() => setAlert((prev) => ({ ...prev, visible: false }))}
+        />
       )}
       <Box
         sx={{
@@ -469,6 +545,7 @@ const ProfileForm: React.FC = () => {
             },
           }}
           onClick={() => setIsSaveModalOpen(true)}
+          disabled={!!firstnameError || !!lastnameError || !!emailError}
         >
           Save
         </Button>

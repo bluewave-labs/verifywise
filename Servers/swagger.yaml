@@ -3855,6 +3855,90 @@ paths:
                   example: internal server error
                 error:
                   type: object
+  /users/{id}/calculate-progress:
+    get:
+      tags: [users]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the user
+      responses:
+        "200":
+          description: user
+          content:
+            application/json:
+              type: object
+              properties:
+                controls:
+                  type: object
+                  properties:
+                    projects:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          projectId:
+                            type: integer
+                            example: 1
+                          totalSubControls:
+                            type: integer
+                            example: 12
+                          doneSubControls:
+                            type: integer
+                            example: 1
+                    totalSubControls:
+                      type: integer
+                      example: 12
+                    doneSubControls:
+                      type: integer
+                      example: 1
+                    percentageComplete:
+                      type: number
+                      format: float
+                      example: 8.33
+                assessments:
+                  type: object
+                  properties:
+                    projects:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          projectId:
+                            type: integer
+                            example: 1
+                          totalAssessments:
+                            type: integer
+                            example: 34
+                          doneAssessments:
+                            type: integer
+                            example: 0
+                    totalAssessments:
+                      type: integer
+                      example: 34
+                    doneAssessments:
+                      type: integer
+                      example: 0
+                    percentageComplete:
+                      type: number
+                      format: float
+                      example: 0
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
 
   /roles:
     get:

@@ -123,7 +123,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
     console.log("Form Data:", formData);
   }, [orgName, filter, teamMembers]);
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);
   };
 
@@ -134,10 +134,10 @@ const TeamManagement: React.FC = (): JSX.Element => {
     setPage(0);
   };
 
-  const paginatedMembers = useMemo(() => {
-    const startIndex = page * rowsPerPage;
-    return filteredMembers.slice(startIndex, startIndex + rowsPerPage);
-  }, [filteredMembers, page, rowsPerPage]);
+  // const paginatedMembers = useMemo(() => {
+  //   const startIndex = page * rowsPerPage;
+  //   return filteredMembers.slice(startIndex, startIndex + rowsPerPage);
+  // }, [filteredMembers, page, rowsPerPage]);
 
   return (
     <Stack sx={{ pt: theme.spacing(10) }}>
@@ -304,13 +304,13 @@ const TeamManagement: React.FC = (): JSX.Element => {
           </TableContainer>
 
           <TablePagination
-          component="div"
-          count={filteredMembers.length}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
+            component="div"
+            count={filteredMembers.length}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
 
           <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 20 }}>
             <Button

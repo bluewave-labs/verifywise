@@ -3,14 +3,14 @@ import { FC, memo } from "react";
 import euimg from "../../assets/imgs/eu-ai-act.jpg";
 import ProgressBar from "./ProgressBar";
 import { Btn, Card, styles, SubtitleValue, Title } from "./styles";
-import { useNavigate } from "react-router-dom";
 import { formatDate } from "../../tools/isoDateToString";
+import useNavigateSearch from "../../../application/hooks/useNavigateSearch";
 
 export interface ProjectCardProps {
     id: number;
     project_title: string;
     owner: string;
-    start_date: string;
+    last_updated: string;
     controls_completed: string | null;
     requirements_completed: string | null;
 }
@@ -25,14 +25,15 @@ const ProgressBarRender: FC<{ progress: string | null; label: string }> = memo((
 ));
 
 const ProjectCard: FC<ProjectCardProps> = ({
+    id,
     project_title,
     owner,
-    start_date,
+    last_updated,
     controls_completed,
     requirements_completed
 }) => {
     const theme = useTheme();
-    const navigate = useNavigate();
+    const navigate = useNavigateSearch();
 
     return (
         <Card>
@@ -50,7 +51,7 @@ const ProjectCard: FC<ProjectCardProps> = ({
                     <Typography variant="subtitle1" component="span" sx={styles.subtitle}>
                         Last updated
                     </Typography>
-                    <SubtitleValue>{formatDate(start_date)}</SubtitleValue>
+                    <SubtitleValue>{formatDate(last_updated)}</SubtitleValue>
                 </Box>
             </Box>
             <ProgressBarRender progress={controls_completed} label="controls" />
@@ -67,7 +68,7 @@ const ProjectCard: FC<ProjectCardProps> = ({
                 <Btn
                     variant="outlined"
                     disableRipple={theme.components?.MuiButton?.defaultProps?.disableRipple}
-                    onClick={() => navigate("/project-view")}
+                    onClick={() => navigate('/project-view', {projectId: id.toString()})}
                 >
                     View project
                 </Btn>

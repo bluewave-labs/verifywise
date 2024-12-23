@@ -6,14 +6,13 @@ import { useCallback, useContext, useEffect, useState } from "react";
 import AddNewVendor from "../../components/Modals/NewVendor";
 import singleTheme from "../../themes/v1SingleTheme";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import { deleteEntityById, getAllEntities } from "../../../application/repository/entity.repository";
-import { logEngine } from "../../../application/tools/log.engine";
+import { getAllEntities } from "../../../application/repository/entity.repository";
 
 const Vendors = () => {
   const theme = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [value, setValue] = useState("1");
-  const [vendorChangeTrigger, setVendorChangeTrigger] = useState(0);
+  const [vendorChangeTrigger, _] = useState(0);
   const { dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);
 
   const openAddNewVendor = () => {
@@ -41,9 +40,9 @@ const Vendors = () => {
     fetchVendors();
   }, [fetchVendors, vendorChangeTrigger]);
 
-  const updateVendorChangeTrigger = () => {
-    setVendorChangeTrigger(prev => prev + 1);
-  };
+  // const updateVendorChangeTrigger = () => {
+  //   setVendorChangeTrigger((prev) => prev + 1);
+  // };
 
   // const handleEditVendor = async (vendorId: number, updatedVendorDetails: VendorDetails) => {
   // try {
@@ -146,17 +145,16 @@ const Vendors = () => {
         </Stack>
         <TableWithPlaceholder
           dashboardValues={dashboardValues}
-        // onVendorChange={updateVendorChangeTrigger}
-        // onDeleteVendor={handleDeleteVendor}
+          // onVendorChange={updateVendorChangeTrigger}
+          // onDeleteVendor={handleDeleteVendor}
         />
-
       </Stack>
       <AddNewVendor
         isOpen={isOpen}
         handleChange={handleChange}
         setIsOpen={() => setIsOpen(false)}
         value={value}
-      // onVendorChange={updateVendorChangeTrigger}
+        // onVendorChange={updateVendorChangeTrigger}
       />
     </div>
   );

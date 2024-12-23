@@ -4,8 +4,16 @@ import {
   createNewUserQuery,
   deleteUserByIdQuery,
   getAllUsersQuery,
+  getAssessmentsForProject,
+  getControlCategoriesForProject,
+  getControlForControlCategory,
+  getQuestionsForSubTopic,
+  getSubControlForControl,
+  getSubTopicsForTopic,
+  getTopicsForAssessment,
   getUserByEmailQuery,
   getUserByIdQuery,
+  getUserProjects,
   resetPasswordQuery,
   updateUserByIdQuery,
 } from "../utils/user.utils";
@@ -331,6 +339,86 @@ async function checkUserExists(
   }
 }
 
+async function calculateProgress(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  try {
+    const id = parseInt(req.params.id)
+    const userProjects = await getUserProjects(id)
+
+    let assessmentsMetadata = []
+    let allTotalAssessments = 0
+    let allDoneAssessments = 0
+
+    let controlsMetadata = []
+    let allTotalSubControls = 0
+    let allDoneSubControls = 0
+
+    for (const userProject of userProjects) {
+      let totalSubControls = 0
+      let doneSubControls = 0
+      const controlcategories = await getControlCategoriesForProject(userProject.id)
+      for (const controlcategory of controlcategories) {
+        const controls = await getControlForControlCategory(controlcategory.id)
+        for (const control of controls) {
+          const subControls = await getSubControlForControl(control.id)
+          for (const subControl of subControls) {
+            totalSubControls++;
+            if (subControl.status === "Done") {
+              doneSubControls++;
+            }
+          }
+        }
+      }
+      allTotalSubControls += totalSubControls
+      allDoneSubControls += doneSubControls
+      controlsMetadata.push({ projectId: userProject.id, totalSubControls, doneSubControls })
+
+      let totalAssessments = 0
+      let doneAssessments = 0
+      const assessments = await getAssessmentsForProject(userProject.id)
+      for (const assessment of assessments) {
+        const topics = await getTopicsForAssessment(assessment.id)
+        for (const topic of topics) {
+          const subTopics = await getSubTopicsForTopic(topic.id)
+          for (const subTopic of subTopics) {
+            const questions = await getQuestionsForSubTopic(subTopic.id)
+            for (const question of questions) {
+              totalAssessments++;
+              if (question.answer) {
+                doneAssessments++
+              }
+            }
+          }
+        }
+      }
+      allTotalAssessments += totalAssessments
+      allDoneAssessments += doneAssessments
+      assessmentsMetadata.push({ projectId: userProject.id, totalAssessments, doneAssessments })
+    }
+
+    const response = {
+      controls: {
+        projects: controlsMetadata,
+        totalSubControls: allTotalSubControls,
+        doneSubControls: allDoneSubControls,
+        percentageComplete: Number(((allDoneSubControls / allTotalSubControls) * 100).toFixed(2))
+      },
+      assessments: {
+        projects: assessmentsMetadata,
+        totalAssessments: allTotalAssessments,
+        doneAssessments: allDoneAssessments,
+        percentageComplete: Number(((allDoneAssessments / allTotalAssessments) * 100).toFixed(2))
+      }
+    }
+    return res.status(200).json(response)
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 export {
   getAllUsers,
   getUserByEmail,
@@ -341,4 +429,5 @@ export {
   updateUserById,
   deleteUserById,
   checkUserExists,
+  calculateProgress
 };

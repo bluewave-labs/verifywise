@@ -19,6 +19,7 @@ import {
   loginUser,
   resetPassword,
   updateUserById,
+  calculateProgress
 } from "../controllers/user.ctrl";
 import authenticateJWT from "../middleware/auth.middleware";
 
@@ -147,5 +148,7 @@ router.delete("/:id", /* authenticateJWT,*/ deleteUserById);
  * @param {express.Response} res - Express response object
  */
 router.get("/check/exists", checkUserExists);
+
+router.get("/:id/calculate-progress", calculateProgress)
 
 export default router;

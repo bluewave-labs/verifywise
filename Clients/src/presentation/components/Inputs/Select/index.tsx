@@ -90,7 +90,7 @@ const Select: React.FC<SelectProps> = ({
         >
           {label}
           {isRequired && (
-            <Typography ml={theme.spacing(1)} color={theme.palette.error.text}>
+            <Typography component="span" ml={theme.spacing(1)} color={theme.palette.error.text}>
               *
             </Typography>
           )}

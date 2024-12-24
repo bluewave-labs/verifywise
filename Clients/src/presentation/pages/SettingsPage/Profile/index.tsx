@@ -90,13 +90,17 @@ const ProfileForm: React.FC = () => {
         // const userId = localStorage.getItem("userId") || 1;
         const response = await getEntityById({ routeUrl: `/users/1` });
 
-        setFirstname(response.data.name || "");
-        setLastname(response.data.surname || "");
-        setEmail(response.data.email || "");
+            setFirstname(response.data.firstname || "");
+            setLastname(response.data.lastname || "");
+            setEmail(response.data.email || "");
+
         setProfilePhoto(
           response.data.pathToImage || "/placeholder.svg?height=80&width=80"
         );
+        console.log(`user ${user.firstname} ${user.lastname} fetched`);
+        console.log(firstname);
       } catch (error) {
+        console.log(error);
         logEngine({
           type: "error",
           message: "Failed to fetch user data.",
@@ -112,6 +116,7 @@ const ProfileForm: React.FC = () => {
       }
     };
     fetchUserData();
+    console.log("fetchUserData");
   }, []);
 
   /**
@@ -149,7 +154,7 @@ const ProfileForm: React.FC = () => {
         email,
         pathToImage: profilePhoto,
       };
-
+      
       const response = await updateEntityById({
         routeUrl: `/users/1`,
         body: updatedUser,
@@ -317,11 +322,11 @@ const ProfileForm: React.FC = () => {
    * Close confirmation modal.
    *
    * Closes the save changes confirmation modal.
-   */
+  */
   const handleCloseConfirmationModal = useCallback(() => {
     setIsSaveModalOpen(false);
   }, []);
-
+ 
   /**
    * Handle save confirmation.
    *
@@ -381,11 +386,13 @@ const ProfileForm: React.FC = () => {
       pathToImage: profilePhoto,
       email,
     }),
-    [firstname, lastname, profilePhoto, email]
+    [ firstname, lastname, profilePhoto, email]
   );
 
   return (
-    <Box sx={{ position: "relative", mt: 3, width: { xs: "90%", md: "70%" } }}>
+    <Box
+      sx={{ position: "relative", mt: 3, width: { xs: "90%", md: "70%" } }}
+    >
       {loading && (
         <Box
           sx={{
@@ -552,7 +559,6 @@ const ProfileForm: React.FC = () => {
       </Stack>
 
       <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
-
       <Box>
         <Stack>
           <Typography fontWeight={"600"} gutterBottom sx={{ mb: 2, mt: 10 }}>

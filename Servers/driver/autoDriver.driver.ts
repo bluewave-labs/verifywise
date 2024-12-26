@@ -2,6 +2,7 @@
 
 import { Assessments } from "../mocks/assessment.mock.data";
 import { mockControls } from "../mocks/control.mock.data";
+import { ControlCategories } from "../mocks/controlCategory.mock.data";
 import Projects from "../mocks/project.mock.data";
 import mockProjectRisks from "../mocks/projectRisks.mock.data";
 import { projectScopes } from "../mocks/projectScope.mock.data";
@@ -16,6 +17,7 @@ import mockVendorRisks from "../mocks/vendorRisk.mock.data";
 
 import { Assessment } from "../models/assessment.model";
 import { Control } from "../models/control.model";
+import { ControlCategory } from "../models/controlCategory.model";
 import { Project } from "../models/project.model";
 import { ProjectRisk } from "../models/projectRisk.model";
 import { ProjectScope } from "../models/projectScope.model";
@@ -49,6 +51,7 @@ type TableList = [
   TableEntry<Project>,
   TableEntry<Vendor>,
   TableEntry<Assessment>,
+  TableEntry<ControlCategory>,
   TableEntry<Control>,
   TableEntry<Subcontrol>,
   TableEntry<ProjectRisk>,
@@ -200,11 +203,26 @@ const insertQuery: TableList = [
     },
   },
   {
+    mockData: ControlCategories,
+    tableName: "controlcategories",
+    createString: `CREATE TABLE controlcategories (
+      id SERIAL PRIMARY KEY,
+      project_id INT REFERENCES projects(id),
+      name VARCHAR(255)
+    );`,
+    insertString: "INSERT INTO controlcategories(project_id, name) VALUES ",
+    generateValuesString: function (controlCategory: ControlCategory) {
+      return `(
+        '${controlCategory.projectId}',
+        '${controlCategory.name}'
+      )`;
+    },
+  },
+  {
     mockData: mockControls,
     tableName: "controls",
     createString: `CREATE TABLE controls (
       id SERIAL PRIMARY KEY,
-      project_id INT REFERENCES projects(id),
       status VARCHAR(255),
       approver VARCHAR(255),
       risk_review TEXT,
@@ -212,13 +230,12 @@ const insertQuery: TableList = [
       reviewer VARCHAR(255),
       due_date DATE,
       implementation_details TEXT,
-      control_group VARCHAR(255)
+      control_group INT REFERENCES controlcategories(id)
     );`,
     insertString:
-      "INSERT INTO controls(project_id, status, approver, risk_review, owner, reviewer, due_date, implementation_details, control_group) VALUES ",
+      "INSERT INTO controls(status, approver, risk_review, owner, reviewer, due_date, implementation_details, control_group) VALUES ",
     generateValuesString: function (control: Control) {
       return `(
-        '${control.projectId}',
         '${control.status}',
         '${control.approver}',
         '${control.riskReview}',

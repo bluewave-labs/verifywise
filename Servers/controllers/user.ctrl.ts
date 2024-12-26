@@ -4,8 +4,16 @@ import {
   createNewUserQuery,
   deleteUserByIdQuery,
   getAllUsersQuery,
+  getAssessmentsForProject,
+  getControlCategoriesForProject,
+  getControlForControlCategory,
+  getQuestionsForSubTopic,
+  getSubControlForControl,
+  getSubTopicsForTopic,
+  getTopicsForAssessment,
   getUserByEmailQuery,
   getUserByIdQuery,
+  getUserProjects,
   resetPasswordQuery,
   updateUserByIdQuery,
 } from "../utils/user.utils";
@@ -122,7 +130,8 @@ async function createNewUser(req: Request, res: Response) {
 
       return res.status(400).json(STATUS_CODE[400](user));
     } else {
-      const { name, email, password, role, created_at, last_login } = req.body;
+      const { name, surname, email, password, role, created_at, last_login } =
+        req.body;
       const existingUser = await getUserByEmailQuery(email);
 
       if (existingUser) {
@@ -133,6 +142,7 @@ async function createNewUser(req: Request, res: Response) {
 
       const user = await createNewUserQuery({
         name,
+        surname,
         email,
         password_hash,
         role,
@@ -235,13 +245,14 @@ async function resetPassword(req: Request, res: Response) {
 async function updateUserById(req: Request, res: Response) {
   try {
     const id = req.params.id;
-    const { name, email, password_hash, role, last_login } = req.body;
+    const { name, surname, email, password_hash, role, last_login } = req.body;
 
     if (MOCKDATA_ON === true) {
       const user = getMockUserById(parseInt(id));
 
       if (user) {
         user.name = name || user.name;
+        user.surname = surname || user.surname;
         user.email = email || user.email;
         user.password_hash = password_hash || user.password_hash;
         user.role = role || user.role;
@@ -257,6 +268,7 @@ async function updateUserById(req: Request, res: Response) {
       if (user) {
         const updatedUser = await updateUserByIdQuery(id, {
           name: name || user.name,
+          surname: surname || user.surname,
           email: email || user.email,
           password_hash: password_hash || user.password_hash,
           role: role || user.role,
@@ -327,6 +339,86 @@ async function checkUserExists(
   }
 }
 
+async function calculateProgress(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  try {
+    const id = parseInt(req.params.id)
+    const userProjects = await getUserProjects(id)
+
+    let assessmentsMetadata = []
+    let allTotalAssessments = 0
+    let allDoneAssessments = 0
+
+    let controlsMetadata = []
+    let allTotalSubControls = 0
+    let allDoneSubControls = 0
+
+    for (const userProject of userProjects) {
+      let totalSubControls = 0
+      let doneSubControls = 0
+      const controlcategories = await getControlCategoriesForProject(userProject.id)
+      for (const controlcategory of controlcategories) {
+        const controls = await getControlForControlCategory(controlcategory.id)
+        for (const control of controls) {
+          const subControls = await getSubControlForControl(control.id)
+          for (const subControl of subControls) {
+            totalSubControls++;
+            if (subControl.status === "Done") {
+              doneSubControls++;
+            }
+          }
+        }
+      }
+      allTotalSubControls += totalSubControls
+      allDoneSubControls += doneSubControls
+      controlsMetadata.push({ projectId: userProject.id, totalSubControls, doneSubControls })
+
+      let totalAssessments = 0
+      let doneAssessments = 0
+      const assessments = await getAssessmentsForProject(userProject.id)
+      for (const assessment of assessments) {
+        const topics = await getTopicsForAssessment(assessment.id)
+        for (const topic of topics) {
+          const subTopics = await getSubTopicsForTopic(topic.id)
+          for (const subTopic of subTopics) {
+            const questions = await getQuestionsForSubTopic(subTopic.id)
+            for (const question of questions) {
+              totalAssessments++;
+              if (question.answer) {
+                doneAssessments++
+              }
+            }
+          }
+        }
+      }
+      allTotalAssessments += totalAssessments
+      allDoneAssessments += doneAssessments
+      assessmentsMetadata.push({ projectId: userProject.id, totalAssessments, doneAssessments })
+    }
+
+    const response = {
+      controls: {
+        projects: controlsMetadata,
+        totalSubControls: allTotalSubControls,
+        doneSubControls: allDoneSubControls,
+        percentageComplete: Number(((allDoneSubControls / allTotalSubControls) * 100).toFixed(2))
+      },
+      assessments: {
+        projects: assessmentsMetadata,
+        totalAssessments: allTotalAssessments,
+        doneAssessments: allDoneAssessments,
+        percentageComplete: Number(((allDoneAssessments / allTotalAssessments) * 100).toFixed(2))
+      }
+    }
+    return res.status(200).json(response)
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 export {
   getAllUsers,
   getUserByEmail,
@@ -337,4 +429,5 @@ export {
   updateUserById,
   deleteUserById,
   checkUserExists,
+  calculateProgress
 };

@@ -1,8 +1,10 @@
 export interface FileUploadProps {
-  onSuccess?: (file: any, response: any) => void;
-  onError?: (error: Error) => void;
+  onSuccess?: (file: any) => void;
+  onStart?: () => void;
+  onError?: (message: string) => void;
   onProgress?: (progress: number) => void;
   maxFileSize?: number;
   allowedFileTypes?: string[];
   uploadEndpoint?: string;
+  onHeightChange?: (newHeight: number) => void;
 }

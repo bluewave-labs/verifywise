@@ -6,30 +6,21 @@ import React, {
   ChangeEvent,
   useMemo,
 } from "react";
-import {
-  Box,
-  Button,
-  Divider,
-  Stack,
-  Typography,
-  Dialog,
-  DialogActions,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-} from "@mui/material";
+import { Box, Button, Divider, Stack, Typography } from "@mui/material";
 import { useTheme } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import Avatar from "../../../components/Avatar/VWAvatar/index";
-import DeleteAccountConfirmation from "../../../components/Modals/DeleteAccount/index";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import validator from "validator";
 import {
+  deleteEntityById,
   getEntityById,
   updateEntityById,
 } from "../../../../application/repository/entity.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
 import localStorage from "redux-persist/es/storage";
+import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
+import Alert from "../../../components/Alert"; // Import Alert component
 
 /**
  * Interface representing a user object.
@@ -64,11 +55,24 @@ const ProfileForm: React.FC = () => {
   const [firstnameError, setFirstnameError] = useState<string | null>(null);
   const [lastnameError, setLastnameError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
-
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
-  const [isConfirmationModalOpen, setIsConfirmationModalOpen] =
-    useState<boolean>(false);
   const [loading, setLoading] = useState(false);
+
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const [alert, setAlert] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    title: string;
+    body: string;
+    isToast: boolean;
+    visible: boolean;
+  }>({
+    variant: "info",
+    title: "",
+    body: "",
+    isToast: true,
+    visible: false,
+  });
 
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -81,26 +85,30 @@ const ProfileForm: React.FC = () => {
    */
   useEffect(() => {
     const fetchUserData = async () => {
-      setLoading(true); 
+      setLoading(true);
       try {
-        const userId = localStorage.getItem("userId") || "1";
-        const user = await getEntityById({ routeUrl: `/users/${userId}` });
+        // const userId = localStorage.getItem("userId") || 1;
+        const response = await getEntityById({ routeUrl: `/users/1` });
 
-        setFirstname(user.firstname || "");
-        setLastname(user.lastname || "");
-        setEmail(user.email || "");
+            setFirstname(response.data.firstname || "");
+            setLastname(response.data.lastname || "");
+            setEmail(response.data.email || "");
+
         setProfilePhoto(
-          user.pathToImage || "/placeholder.svg?height=80&width=80"
+          response.data.pathToImage || "/placeholder.svg?height=80&width=80"
         );
+        console.log(`user ${user.firstname} ${user.lastname} fetched`);
+        console.log(firstname);
       } catch (error) {
+        console.log(error);
         logEngine({
-          type:"error",
-          message:"Failed to fetch user data.",
-          user:{
+          type: "error",
+          message: "Failed to fetch user data.",
+          user: {
             id: String(localStorage.getItem("userId")) || "N/A",
             email: "N/A",
             firstname: "N/A",
-            lastname:"N/A"
+            lastname: "N/A",
           },
         });
       } finally {
@@ -108,6 +116,7 @@ const ProfileForm: React.FC = () => {
       }
     };
     fetchUserData();
+    console.log("fetchUserData");
   }, []);
 
   /**
@@ -129,35 +138,53 @@ const ProfileForm: React.FC = () => {
             lastname,
           },
         });
+        setAlert({
+          variant: "error",
+          title: "Error",
+          body: "Validation errors occurred while saving the profile.",
+          isToast: true,
+          visible: true,
+        });
         return;
       }
-      const userId = localStorage.getItem("userId") || "1";
+      // const userId = localStorage.getItem("userId") || "1";
       const updatedUser = {
         firstname,
         lastname,
         email,
         pathToImage: profilePhoto,
       };
-
-      await updateEntityById({
-        routeUrl: `/users/${userId}`,
+      
+      const response = await updateEntityById({
+        routeUrl: `/users/1`,
         body: updatedUser,
       });
-      alert("Profile updated successfully");
-      setIsConfirmationModalOpen(false);
+      console.log(response);
+      setAlert({
+        variant: "success",
+        title: "Success",
+        body: "Profile updated successfully.",
+        isToast: true,
+        visible: true,
+      });
     } catch (error) {
-
-       logEngine({
-         type: "error",
-         message: "An error occured while updating the profile.",
-         user: {
-           id:String(localStorage.getItem("userId")) || "N/A",
-           email,
-           firstname,
-           lastname,
-         },
-       });
-      alert("Failed to update profile. Please try again.");
+      logEngine({
+        type: "error",
+        message: "An error occured while updating the profile.",
+        user: {
+          id: String(localStorage.getItem("userId")) || "N/A",
+          email,
+          firstname,
+          lastname,
+        },
+      });
+      setAlert({
+        variant: "error",
+        title: "Error",
+        body: "Failed to update profile. Please try again.",
+        isToast: true,
+        visible: true,
+      });
     }
   }, [
     firstname,
@@ -193,7 +220,7 @@ const ProfileForm: React.FC = () => {
    * Opens the delete account confirmation dialog.
    */
   const handleOpenDeleteDialog = useCallback((): void => {
-    setIsDeleteDialogOpen(true);
+    setIsDeleteModalOpen(true);
   }, []);
 
   /**
@@ -202,7 +229,7 @@ const ProfileForm: React.FC = () => {
    * Closes the delete account confirmation dialog.
    */
   const handleCloseDeleteDialog = useCallback((): void => {
-    setIsDeleteDialogOpen(false);
+    setIsDeleteModalOpen(false);
   }, []);
 
   /**
@@ -295,40 +322,103 @@ const ProfileForm: React.FC = () => {
    * Close confirmation modal.
    *
    * Closes the save changes confirmation modal.
-   */
+  */
   const handleCloseConfirmationModal = useCallback(() => {
-    setIsConfirmationModalOpen(false);
+    setIsSaveModalOpen(false);
   }, []);
+ 
+  /**
+   * Handle save confirmation.
+   *
+   * Proceeds with saving the profile.
+   */
+  const handleConfirmSave = useCallback(() => {
+    handleSave();
+    setIsSaveModalOpen(false);
+  }, [handleSave]);
+
+  /**
+   * Handle delete confirmation.
+   *
+   * Proceeds with deleting the account.
+   */
+
+  const handleConfirmDelete = useCallback(async () => {
+    try {
+      // const userId = localStorage.getItem("userId") || "1";
+      await deleteEntityById({ routeUrl: `/users/1` });
+      setAlert({
+        variant: "success",
+        title: "Success",
+        body: "Account deleted successfully.",
+        isToast: true,
+        visible: true,
+      });
+      // Add any additional logic needed after account deletion, e.g., redirecting to a login page
+    } catch (error) {
+      logEngine({
+        type: "error",
+        message: "An error occured while deleting the account.",
+        user: {
+          id: String(localStorage.getItem("userId")) || "N/A",
+          email,
+          firstname,
+          lastname,
+        },
+      });
+      setAlert({
+        variant: "error",
+        title: "Error",
+        body: "Failed to delete account. Please try again.",
+        isToast: true,
+        visible: true,
+      });
+    } finally {
+      setIsDeleteModalOpen(false);
+    }
+  }, [email, firstname, lastname]);
 
   // User object for Avatar component
   const user: User = useMemo(
-    () => ({ 
+    () => ({
       firstname,
       lastname,
       pathToImage: profilePhoto,
       email,
     }),
-    [firstname, lastname, profilePhoto, email]
+    [ firstname, lastname, profilePhoto, email]
   );
 
   return (
-    <Box sx={{ position: "relative" ,mt: 3, width: { xs: "90%", md: "70%" } }}>
+    <Box
+      sx={{ position: "relative", mt: 3, width: { xs: "90%", md: "70%" } }}
+    >
       {loading && (
         <Box
-        sx={{ position: "absolute",
-          top:0,
-          left: 0,
-          width:"100%",
-          height:"100%",
-          display:"flex",
-          justifyContent:"center",
-          alignItems:"center",
-          backgroundColor: "rgba(255,255,255,0.8)",
-          zIndex: 10,
-        }}
+          sx={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(255,255,255,0.8)",
+            zIndex: 10,
+          }}
         >
           <Typography>Loading...</Typography>
         </Box>
+      )}
+      {alert.visible && (
+        <Alert
+          variant={alert.variant}
+          title={alert.title}
+          body={alert.body}
+          isToast={alert.isToast}
+          onClick={() => setAlert((prev) => ({ ...prev, visible: false }))}
+        />
       )}
       <Box
         sx={{
@@ -343,7 +433,7 @@ const ProfileForm: React.FC = () => {
         <Box sx={{ width: { xs: "100%", md: "40%" } }}>
           <Field
             id="First name"
-            label="First name"
+            label="Name"
             value={firstname}
             onChange={handleFirstnameChange}
             sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
@@ -355,7 +445,7 @@ const ProfileForm: React.FC = () => {
           )}
           <Field
             id="Last name"
-            label="Last name"
+            label="Surname"
             value={lastname}
             onChange={handleLastnameChange}
             sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
@@ -371,6 +461,7 @@ const ProfileForm: React.FC = () => {
             value={email}
             onChange={handleEmailChange}
             sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
+            disabled
           />
           {emailError && (
             <Typography color="error" variant="caption">
@@ -386,7 +477,12 @@ const ProfileForm: React.FC = () => {
         </Box>
         <Box sx={{ width: { xs: "100%", md: "40%" }, textAlign: "center" }}>
           <Stack direction="column" alignItems="center" spacing={2}>
-            <Typography fontWeight="600" variant="subtitle1">
+            <Typography
+              fontWeight="600"
+              variant="subtitle1"
+              color="#344054"
+              pb={theme.spacing(5)}
+            >
               Your photo
             </Typography>
             <Avatar user={user} size="medium" sx={{ width: 80, height: 80 }} />
@@ -401,7 +497,7 @@ const ProfileForm: React.FC = () => {
               direction="row"
               spacing={2}
               alignItems={"center"}
-              sx={{ paddingTop: theme.spacing(19) }}
+              sx={{ paddingTop: theme.spacing(10) }}
             >
               <Typography
                 sx={{
@@ -409,6 +505,7 @@ const ProfileForm: React.FC = () => {
                   cursor: "pointer",
                   textDecoration: "none",
                   "&:hover": { textDecoration: "underline" },
+                  fontSize: 13,
                 }}
                 onClick={handleDeletePhoto}
               >
@@ -421,6 +518,7 @@ const ProfileForm: React.FC = () => {
                   textDecoration: "none",
                   "&:hover": { textDecoration: "underline" },
                   paddingLeft: theme.spacing(5),
+                  fontSize: 13,
                 }}
                 onClick={handleUpdatePhoto}
               >
@@ -430,47 +528,38 @@ const ProfileForm: React.FC = () => {
           </Stack>
         </Box>
       </Box>
-      <Button
-        disableRipple
-        variant="contained"
+      <Stack
         sx={{
-          width: { xs: "100%", sm: theme.spacing(80) },
-          mb: theme.spacing(4),
-          backgroundColor: "#4c7de7",
-          color: "#fff",
-          position: { md: "relative" },
-          left: { md: theme.spacing(0) },
-          mt: theme.spacing(5),
-          "&:hover": {
-            backgroundColor: "#175CD3 ",
-          },
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "flex-end",
+          alignItems: "center",
         }}
-        onClick={() => setIsConfirmationModalOpen(true)}
       >
-        Save
-      </Button>
+        <Button
+          disableRipple
+          variant="contained"
+          sx={{
+            width: { xs: "100%", sm: theme.spacing(80) },
+            mb: theme.spacing(4),
+            backgroundColor: "#4c7de7",
+            color: "#fff",
+            position: { md: "relative" },
+            left: { md: theme.spacing(0) },
+            mt: theme.spacing(5),
+            "&:hover": {
+              backgroundColor: "#175CD3 ",
+            },
+          }}
+          onClick={() => setIsSaveModalOpen(true)}
+          disabled={!!firstnameError || !!lastnameError || !!emailError}
+        >
+          Save
+        </Button>
+      </Stack>
 
-      {/* Confirmation modal */}
-      <Dialog
-        open={isConfirmationModalOpen}
-        onClose={handleCloseConfirmationModal}
-      >
-        <DialogTitle>Save Changes?</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to save the changes?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseConfirmationModal}>Cancel</Button>
-          <Button onClick={handleSave} color="primary"
-          aria-label = "Save profile changes">
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
       <Box>
-        <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
         <Stack>
           <Typography fontWeight={"600"} gutterBottom sx={{ mb: 2, mt: 10 }}>
             Delete account
@@ -483,25 +572,64 @@ const ProfileForm: React.FC = () => {
             Note that deleting your account will remove all data from our
             system. This is permanent and non-recoverable.
           </Typography>
-          <Button
-            disableRipple
-            variant="contained"
-            onClick={handleOpenDeleteDialog}
+          <Stack
             sx={{
-              width: { xs: "100%", sm: theme.spacing(80) },
-              mb: theme.spacing(4),
-              backgroundColor: "#DB504A",
-              color: "#fff",
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "flex-end",
+              alignItems: "center",
             }}
           >
-            Delete account
-          </Button>
-          <DeleteAccountConfirmation
-            open={isDeleteDialogOpen}
-            onClose={handleCloseDeleteDialog}
-          />
+            <Button
+              disableRipple
+              variant="contained"
+              onClick={handleOpenDeleteDialog}
+              sx={{
+                width: { xs: "100%", sm: theme.spacing(80) },
+                mb: theme.spacing(4),
+                backgroundColor: "#DB504A",
+                color: "#fff",
+              }}
+            >
+              Delete account
+            </Button>
+          </Stack>
         </Stack>
       </Box>
+      {isSaveModalOpen && (
+        <DualButtonModal
+          title="Confirm Save"
+          body={
+            <Typography fontSize={13}>
+              Are you sure you want to save the changes?
+            </Typography>
+          }
+          cancelText="Cancel"
+          proceedText="Save"
+          onCancel={handleCloseConfirmationModal}
+          onProceed={handleConfirmSave}
+          proceedButtonColor="primary"
+          proceedButtonVariant="contained"
+        />
+      )}
+
+      {isDeleteModalOpen && (
+        <DualButtonModal
+          title="Confirm Delete"
+          body={
+            <Typography fontSize={13}>
+              Are you sure you want to delete your account? This action is
+              permanent and cannot be undone.
+            </Typography>
+          }
+          cancelText="Cancel"
+          proceedText="Delete"
+          onCancel={handleCloseDeleteDialog}
+          onProceed={handleConfirmDelete}
+          proceedButtonColor="error"
+          proceedButtonVariant="contained"
+        />
+      )}
     </Box>
   );
 };

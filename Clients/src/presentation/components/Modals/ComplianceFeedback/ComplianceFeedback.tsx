@@ -47,7 +47,14 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
 
   const handleContentChange = (content: string) => {
     onChange({
-      target: { value: content },
+      target: {
+        value:
+          " " +
+          content
+            .replace(/^<p>/, "")
+            .replace(/<\/p>$/, "")
+            .trim(),
+      },
     } as React.ChangeEvent<HTMLInputElement>);
   };
 

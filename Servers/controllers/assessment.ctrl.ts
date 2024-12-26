@@ -219,6 +219,7 @@ export async function saveAnswers(req: Request, res: Response): Promise<any> {
           createMockQuestion(subtopicId, question);
         }
       }
+      res.status(200).json(STATUS_CODE[200]({ message: "Answers saved" }));
     } catch (error) {
       return res.status(500).json(STATUS_CODE[500]((error as Error).message));
     }

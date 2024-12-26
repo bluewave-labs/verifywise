@@ -14,6 +14,8 @@ import DropDowns from "../../Inputs/Dropdowns";
 import { useState } from "react";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
 import { Dayjs } from "dayjs";
+import { apiServices } from "../../../../infrastructure/api/networkServices";
+import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 
 interface SubControlState {
   controlId: string;
@@ -47,24 +49,29 @@ interface State {
 
 const NewControlPane = ({
   id,
+  numbering,
   isOpen,
   handleClose,
   title,
   content,
   subControls,
+  controlCategory,
   OnSave,
 }: {
   id: string;
+  numbering: string;
   isOpen: boolean;
   handleClose: () => void;
   title: string;
   content: string;
   subControls: any[];
+  controlCategory: string;
   OnSave?: (state: State) => void;
 }) => {
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const initialSubControlState = subControls.map((subControl) => ({
     controlId: id,
@@ -148,10 +155,29 @@ const NewControlPane = ({
   };
 
   const handleSave = () => {
-    console.log(state);
+    setIsModalOpen(true);
+  };
+
+  const confirmSave = async () => {
+    const controlToSave = {
+      controlCategoryTitle: controlCategory,
+      control: state,
+    };
+    console.log(controlToSave);
+
+    try {
+      const response = await apiServices.post(
+        "/projects/saveControls",
+        controlToSave
+      );
+      console.log("Controls saved successfully:", response);
+    } catch (error) {
+      console.error("Error saving controls:", error);
+    }
     if (OnSave) {
       OnSave(state);
     }
+    setIsModalOpen(false);
   };
 
   return (
@@ -191,7 +217,7 @@ const NewControlPane = ({
           }}
         >
           <Typography fontSize={16} fontWeight={600} sx={{ textAlign: "left" }}>
-            {id} {title}
+            {numbering} {title}
           </Typography>
           <CloseIcon onClick={handleClose} style={{ cursor: "pointer" }} />
         </Stack>
@@ -257,7 +283,7 @@ const NewControlPane = ({
             fontWeight={600}
             sx={{ textAlign: "left", mb: 3 }}
           >
-            {`${id}.${subControls[selectedTab].id}`}{" "}
+            {`${numbering}.${subControls[selectedTab].id}`}{" "}
             {subControls[selectedTab].title}
           </Typography>
           <Typography sx={{ mb: 5 }}>
@@ -320,6 +346,22 @@ const NewControlPane = ({
             Save
           </Button>
         </Stack>
+        {isModalOpen && (
+          <DualButtonModal
+            title="Confirm Save"
+            body={
+              <Typography>
+                Are you sure you want to save the changes?
+              </Typography>
+            }
+            cancelText="Cancel"
+            proceedText="Save"
+            onCancel={() => setIsModalOpen(false)}
+            onProceed={confirmSave}
+            proceedButtonColor="primary"
+            proceedButtonVariant="contained"
+          />
+        )}
       </Stack>
     </Modal>
   );

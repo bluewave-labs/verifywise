@@ -16,6 +16,12 @@ import {
   getProjectByIdQuery,
   updateProjectByIdQuery,
 } from "../utils/project.utils";
+import { createMockControlCategory } from "../mocks/tools/controlCategory.mock.db";
+import { createMockControl } from "../mocks/tools/control.mock.db";
+import { createMockSubcontrol } from "../mocks/tools/subcontrol.mock.db";
+import { createControlCategoryQuery } from "../utils/controlCategory.util";
+import { createNewControlQuery } from "../utils/control.utils";
+import { createNewSubcontrolQuery } from "../utils/subControl.utils";
 
 export async function getAllProjects(
   req: Request,

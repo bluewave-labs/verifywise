@@ -83,10 +83,14 @@ const Select: React.FC<SelectProps> = ({
           color={theme.palette.text.secondary}
           fontWeight={500}
           fontSize={13}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+          }}
         >
           {label}
           {isRequired && (
-            <Typography ml={theme.spacing(1)} color={theme.palette.error.text}>
+            <Typography component="span" ml={theme.spacing(1)} color={theme.palette.error.text}>
               *
             </Typography>
           )}

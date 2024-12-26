@@ -86,9 +86,6 @@ const Sidebar = ({ projects }: { projects: any }) => {
   const [selectedProjectId, setSelectedProjectId] = useState<string | number>(
     projects.length > 0 ? projects[0]._id : ""
   );
-  
-  console.log('project length', projects.length)
-  console.log('project-id', selectedProjectId)
 
   const { dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);
 
@@ -96,8 +93,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
 
   const handleProjectChange = (event: SelectChangeEvent<string | number>) => {
     
-    const selectedProjectId = event.target.value as string;
-    console.log('hi', selectedProjectId)
+    const selectedProjectId = event.target.value as string;    
     setSelectedProjectId(selectedProjectId);
     // Update the dashboardValues in the context
     setDashboardValues({

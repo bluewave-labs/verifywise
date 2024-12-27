@@ -337,9 +337,14 @@ const RiskSection: FC<RiskSectionProps> = ({ closePopup }) => {
             type="description"
             value={values.reviewNotes}
             onChange={handleOnTextFieldChange("reviewNotes")}
-            sx={{ backgroundColor: theme.palette.background.main }}
+            sx={{ backgroundColor: theme.palette.background.main ,
+                "& #review-notes-input": {
+                    maxHeight: "120px",
+                  },
+            }}
             isOptional
             error={errors.reviewNotes}
+            
           />
         </Stack>
         <Button

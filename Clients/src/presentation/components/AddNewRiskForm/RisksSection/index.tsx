@@ -208,12 +208,10 @@ const RiskSection: FC<RiskSectionProps> = ({ closePopup }) => {
                 sx={{
                   gridRow: "1 / 2",
                   gridColumn: "1 / 2",
+                  width: "325px"
                 }}
                 isRequired
                 error={errors.riskName}
-                sx={{
-                    width: "325px",     
-                  }}
               />
               <Select
                 id="action-owner-input"

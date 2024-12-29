@@ -17,7 +17,7 @@ import "./index.css";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 import { useTheme } from "@mui/material";
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect} from "react";
 import { toggleSidebar } from "../../tools/uiSlice";
 
 import { ReactComponent as ArrowLeft } from "../../assets/icons/left-arrow.svg";
@@ -86,12 +86,14 @@ const Sidebar = ({ projects }: { projects: any }) => {
   const [selectedProjectId, setSelectedProjectId] = useState<string | number>(
     projects.length > 0 ? projects[0]._id : ""
   );
+
   const { dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);
 
   const collapsed = useSelector((state: any) => state.ui?.sidebar?.collapsed);
 
   const handleProjectChange = (event: SelectChangeEvent<string | number>) => {
-    const selectedProjectId = event.target.value as string;
+    
+    const selectedProjectId = event.target.value as string;    
     setSelectedProjectId(selectedProjectId);
     // Update the dashboardValues in the context
     setDashboardValues({
@@ -125,6 +127,21 @@ const Sidebar = ({ projects }: { projects: any }) => {
     // Navigate to the login page
     navigate("/login");
   };
+
+  const customMenuHandler = () => {
+    switch (location.pathname) {
+      case "/all-assessments":
+        return "/assessment";
+      default:
+        return null;
+    }
+  }
+
+  useEffect(() => {
+    if(projects.length > 0){
+      setSelectedProjectId(projects[0]._id)
+    }
+  }, [projects]);
 
   return (
     <Stack
@@ -258,7 +275,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
                     ?.disableRipple
                 }
                 className={
-                  location.pathname === item.path
+                  (location.pathname === item.path) || customMenuHandler() === item.path
                     ? "selected-path"
                     : "unselected"
                 }
@@ -269,7 +286,8 @@ const Sidebar = ({ projects }: { projects: any }) => {
                   borderRadius: theme.shape.borderRadius,
                   px: theme.spacing(4),
                   backgroundColor:
-                    location.pathname === item.path ? "#F9F9F9" : "transparent",
+                    (location.pathname === item.path) || customMenuHandler() === item.path
+                    ? "#F9F9F9" : "transparent",
 
                   "&:hover": {
                     backgroundColor: "#F9F9F9",

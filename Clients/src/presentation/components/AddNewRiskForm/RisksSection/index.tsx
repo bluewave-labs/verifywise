@@ -222,7 +222,7 @@ const RiskSection: FC<RiskSectionProps> = ({ closePopup }) => {
                             error={errors.actionOwner}
                         />
                         <Select
-                            id="risk-category-input"
+                            id="risk-category-minput"
                             label="Risk category"
                             placeholder="Select category"
                             value={values.riskCategory}

@@ -93,7 +93,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
 
   const handleProjectChange = (event: SelectChangeEvent<string | number>) => {
     
-    const selectedProjectId = event.target.value as string;    
+    const selectedProjectId = event.target.value as string;      
     setSelectedProjectId(selectedProjectId);
     // Update the dashboardValues in the context
     setDashboardValues({
@@ -138,7 +138,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
   }
 
   useEffect(() => {
-    if(projects.length > 0){
+    if(projects.length > 0 && selectedProjectId === ''){
       setSelectedProjectId(projects[0]._id)
     }
   }, [projects]);

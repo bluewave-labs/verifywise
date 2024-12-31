@@ -20,7 +20,6 @@ interface RichTextEditorProps {
 const RichTextEditor: React.FC<RichTextEditorProps> = ({
   onContentChange,
   headerSx,
-  bodySx,
   initialContent = "",
 }) => {
   const [activeList, setActiveList] = useState<"bulleted" | "numbered" | null>(null);
@@ -105,13 +104,15 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           editor={editor}
           style={{
             border: "1px solid #c4c4c4",
-            height: "90px",
+            height: "90px", // Set height of the editor container
             overflowY: "auto",
             padding: "8px",
             paddingTop: "0px",
             borderTop: "none",
             marginBottom: "5px",
             outline: "none",
+            display: "flex", // Allow flex behavior
+            alignItems: "flex-start", // Align content at the top
           }}
         />
       </Stack>
@@ -119,13 +120,13 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
       <style>
         {`
           .ProseMirror {
-            border: none !important;
-            outline: none !important;
-            box-shadow: none !important;
-            white-space: pre-wrap;
+         flex: 1; /* Allow content to grow naturally */
+        outline: none !important;
+        box-shadow: none !important;
+        white-space: pre-wrap;
           }
           .custom-tip-tap-editor .ProseMirror p {
-            height: 90px;
+            margin: 0; 
           }
         `}
       </style>

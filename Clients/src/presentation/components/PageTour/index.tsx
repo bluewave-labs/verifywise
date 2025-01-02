@@ -1,0 +1,1 @@
+//joyride global component to show the tour

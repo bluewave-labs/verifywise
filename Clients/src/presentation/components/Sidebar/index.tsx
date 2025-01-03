@@ -280,7 +280,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
                     ? "selected-path"
                     : "unselected"
                 }
-                data-joyride-id={item.name.toLowerCase().replace(" ", "-")}
+                data-joyride-id={item.name.toLowerCase().replace(/ /g, "-")}
                 onClick={() => navigate(`${item.path}`)}
                 sx={{
                   height: "37px",

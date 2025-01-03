@@ -14,66 +14,51 @@ interface RichTextEditorProps {
   onContentChange?: (content: string) => void;
   headerSx?: object;
   bodySx?: object;
-  initialContent?: string; // Add content prop
+  initialContent?: string;
 }
 
 const RichTextEditor: React.FC<RichTextEditorProps> = ({
   onContentChange,
   headerSx,
-  bodySx,
-  initialContent = "", // Default value for content
+  initialContent = "",
 }) => {
-  const [bulleted, setBulleted] = useState<boolean>(false);
-  const [numbered, setNumbered] = useState<boolean>(false);
+  const [activeList, setActiveList] = useState<"bulleted" | "numbered" | null>(null);
 
   const editor = useEditor({
     extensions: [StarterKit],
     content: initialContent,
     autofocus: true,
-    onUpdate({ editor }) {
-      if (onContentChange) {
-        onContentChange(editor.getHTML());
-      }
-    },
+    immediatelyRender: true,
+    onUpdate: ({ editor }) => {
+      onContentChange?.(editor.getHTML());
+    }
   });
 
   useEffect(() => {
-    if (editor && initialContent) {
-      editor.commands.setContent(initialContent);
-    }
-  }, [editor, initialContent]);
+    return () => {
+      editor?.destroy();
+    };
+  }, [editor]);
 
   const applyFormatting = (type: string) => {
     if (!editor) return;
-
-    switch (type) {
-      case "bold":
-        editor.chain().focus().toggleBold().run();
-        break;
-      case "italic":
-        editor.chain().focus().toggleItalic().run();
-        break;
-      case "uppercase":
-        const uppercaseText = editor.getText().toUpperCase();
-        editor.commands.setContent(uppercaseText);
-        break;
-      case "lowercase":
-        const lowercaseText = editor.getText().toLowerCase();
-        editor.commands.setContent(lowercaseText);
-        break;
-      case "bullets":
+    
+    const toggleFormatting: { [key: string]: () => void } = {
+      bold: () => editor.chain().focus().toggleBold().run(),
+      italic: () => editor.chain().focus().toggleItalic().run(),
+      uppercase: () => editor.commands.setContent(editor.getText().toUpperCase()),
+      lowercase: () => editor.commands.setContent(editor.getText().toLowerCase()),
+      bullets: () => {
         editor.chain().focus().toggleBulletList().run();
-        setBulleted(!bulleted);
-        setNumbered(false);
-        break;
-      case "numbers":
+        setActiveList((prev) => (prev === "bulleted" ? null : "bulleted"));
+      },
+      numbers: () => {
         editor.chain().focus().toggleOrderedList().run();
-        setNumbered(!numbered);
-        setBulleted(false);
-        break;
-      default:
-        break;
-    }
+        setActiveList((prev) => (prev === "numbered" ? null : "numbered"));
+      },
+    };
+
+    toggleFormatting[type]();
   };
 
   return (
@@ -89,64 +74,61 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           ...headerSx,
         }}
       >
-        <Tooltip title="Bold">
-          <IconButton onClick={() => applyFormatting("bold")} disableRipple>
-            <FormatBold />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Italic">
-          <IconButton onClick={() => applyFormatting("italic")} disableRipple>
-            <FormatItalic />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Bullets">
-          <IconButton
-            onClick={() => applyFormatting("bullets")}
-            disableRipple
-            color={bulleted ? "primary" : "default"}
-          >
-            <FormatListBulleted />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Numbers">
-          <IconButton
-            onClick={() => applyFormatting("numbers")}
-            disableRipple
-            color={numbered ? "primary" : "default"}
-          >
-            <FormatListNumbered />
-          </IconButton>
-        </Tooltip>
+        {[
+          { title: "Bold", icon: <FormatBold />, action: "bold" },
+          { title: "Italic", icon: <FormatItalic />, action: "italic" },
+          { title: "Bullets", icon: <FormatListBulleted />, action: "bullets" },
+          { title: "Numbers", icon: <FormatListNumbered />, action: "numbers" },
+        ].map(({ title, icon, action }) => (
+          <Tooltip key={action} title={title} aria-label={title}>
+            <IconButton
+              onClick={() => applyFormatting(action)}
+              disableRipple
+              color={
+                (action === "bullets" && activeList === "bulleted") ||
+                (action === "numbers" && activeList === "numbered")
+                  ? "primary"
+                  : "default"
+              }
+            >
+              {icon}
+            </IconButton>
+          </Tooltip>
+        ))}
       </Box>
 
       {/* Tiptap Editor */}
-      <Box>
+      <Stack>
         <EditorContent
           className="custom-tip-tap-editor"
           editor={editor}
           style={{
             border: "1px solid #c4c4c4",
-            height: "90px",
+            height: "90px", // Set height of the editor container
             overflowY: "auto",
             padding: "8px",
             paddingTop: "0px",
             borderTop: "none",
-            outline: "none",
             marginBottom: "5px",
-            ...bodySx,
+            outline: "none",
+            display: "flex", // Allow flex behavior
+            alignItems: "flex-start", // Align content at the top
           }}
         />
-      </Box>
+      </Stack>
 
       <style>
         {`
-        .ProseMirror {
-          border: none !important;
-          outline: none !important;
-          box-shadow: none !important;
-          white-space: pre-wrap;
-        }
-      `}
+          .ProseMirror {
+         flex: 1; /* Allow content to grow naturally */
+        outline: none !important;
+        box-shadow: none !important;
+        white-space: pre-wrap;
+          }
+          .custom-tip-tap-editor .ProseMirror p {
+            margin: 0; 
+          }
+        `}
       </style>
     </Stack>
   );

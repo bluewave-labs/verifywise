@@ -131,7 +131,7 @@ const Home = () => {
               <MetricSection
                 title={`All projects ${metricType} status`}
                 metricType={metricType}
-                data-joyride-id={`${metricType}-status`}
+                data-joyride-id={`all-projects-${metricType}-status`}
               />
             </Suspense>
           ))}

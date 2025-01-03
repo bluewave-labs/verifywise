@@ -15,6 +15,7 @@ const Dashboard = () => {
   const [projects, setProjects] = useState([]);
   const [_, setUsers] = useState([]);
 
+  const [runTour, setRunTour] = useState(false);
 //joyride steps
 const steps = [
   // Sidebar steps
@@ -48,11 +49,11 @@ const steps = [
     content: "Click here to create a new project.",
   },
   {
-    target: '[data-joyride-id="compliance-status"]',
+    target: '[data-joyride-id="all-projects-compliance-status"]',
     content: "This section shows the compliance status of your projects.",
   },
   {
-    target: '[data-joyride-id="risk-status"]',
+    target: '[data-joyride-id="all-projects-risk-status"]',
     content: "Here you can track the risk status of your projects.",
   },
 ];
@@ -89,6 +90,13 @@ const steps = [
     fetchUsers();
   }, [setDashboardValues]);
 
+  useEffect(() => {
+    //start tour only after projects load
+    if (projects.length > 0) {
+      setRunTour(true);
+    }
+  }, [projects]);
+
   const mappedProjects = projects.map((project: any) => ({
     _id: project.id,
     name: project.project_title,
@@ -107,8 +115,8 @@ const steps = [
       <Sidebar projects={mappedProjects} />
 
       {/* Joyride */}
-      <PageTour steps={steps} 
-      onFinish={()=>console.log("tour finished")}/>
+      <PageTour steps={steps} run={runTour}
+      onFinish={()=>setRunTour(false)}/>
       <Outlet />
     </Stack>
   );

@@ -23,6 +23,7 @@ import Field from "../../../components/Inputs/Field";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
 import TablePaginationActions from "../../../components/TablePagination";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import InviteUserModal from "../../../components/Modals/InviteUser";
 
 // Enum for roles
 enum Role {
@@ -77,8 +78,9 @@ const TeamManagement: React.FC = (): JSX.Element => {
   ]);
 
   const [page, setPage] = useState(0); // Current page
-  const { dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);
+  const { dashboardValues} = useContext(VerifyWiseContext);
   const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
+  const [inviteUserModalOpen, setInviteUserModalOpen] = useState(false);
 
   // Handle saving organization name
   const handleSaveOrgName = useCallback(() => {
@@ -142,6 +144,11 @@ const TeamManagement: React.FC = (): JSX.Element => {
   //   const startIndex = page * rowsPerPage;
   //   return filteredMembers.slice(startIndex, startIndex + rowsPerPage);
   // }, [filteredMembers, page, rowsPerPage]);
+
+  const inviteTeamMember = () => {
+    console.log("Inviting team member");
+    setInviteUserModalOpen(true);
+  };
 
   return (
     <Stack sx={{ pt: theme.spacing(10) }}>
@@ -237,7 +244,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
             </Box>
 
             <Box sx={{ mt: 10 }}>
-              <Button variant="contained" disableRipple>
+              <Button variant="contained" disableRipple onClick={() => inviteTeamMember()}>
                 Invite team member
               </Button>
             </Box>
@@ -353,6 +360,16 @@ const TeamManagement: React.FC = (): JSX.Element => {
           </Box>
         </Stack>
       </Box>
+      {inviteUserModalOpen && (
+        <InviteUserModal
+          isOpen={inviteUserModalOpen}
+          setIsOpen={setInviteUserModalOpen}
+          onSendInvite={(data) => {
+            console.log('Invite sent:', data);
+            setInviteUserModalOpen(false);
+          }}
+        />
+      )}
     </Stack>
   );
 };

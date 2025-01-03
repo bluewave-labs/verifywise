@@ -8,11 +8,55 @@ import {
   getEntityById,
   getAllEntities,
 } from "../../../application/repository/entity.repository";
+import PageTour from "../../components/PageTour";
 
 const Dashboard = () => {
   const { token, setDashboardValues } = useContext(VerifyWiseContext);
   const [projects, setProjects] = useState([]);
   const [_, setUsers] = useState([]);
+
+//joyride steps
+const steps = [
+  // Sidebar steps
+  {
+    target: '[data-joyride-id="dashboard"]',
+    content: "This is the Dashboard section. Click here to view the overview.",
+  },
+  {
+    target: '[data-joyride-id="compliance-tracker"]',
+    content: "Track your compliance status here.",
+  },
+  {
+    target: '[data-joyride-id="assessment-tracker"]',
+    content: "Track your assessments here.",
+  },
+  {
+    target: '[data-joyride-id="vendors"]',
+    content: "Manage your vendors here.",
+  },
+  {
+    target: '[data-joyride-id="file-manager"]',
+    content: "Access your files in the File Manager.",
+  }, 
+  // Home Page steps
+  {
+    target: '[data-joyride-id="project-overview"]',
+    content: "This section gives you an overview of all your projects.",
+  },
+  {
+    target: '[data-joyride-id="new-project-button"]',
+    content: "Click here to create a new project.",
+  },
+  {
+    target: '[data-joyride-id="compliance-status"]',
+    content: "This section shows the compliance status of your projects.",
+  },
+  {
+    target: '[data-joyride-id="risk-status"]',
+    content: "Here you can track the risk status of your projects.",
+  },
+];
+
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -61,6 +105,10 @@ const Dashboard = () => {
       sx={{ backgroundColor: "#FCFCFD" }}
     >
       <Sidebar projects={mappedProjects} />
+
+      {/* Joyride */}
+      <PageTour steps={steps} 
+      onFinish={()=>console.log("tour finished")}/>
       <Outlet />
     </Stack>
   );

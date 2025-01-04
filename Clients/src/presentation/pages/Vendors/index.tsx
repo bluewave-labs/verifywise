@@ -123,7 +123,7 @@ const Vendors = () => {
                         Vendors list
                     </Typography>
                     <Typography sx={singleTheme.textStyles.pageDescription}>
-                        This table includes a list of external entity that provides
+                        This table includes a list of external entities that provides
                         AI-related products, services, or components. You can create and
                         manage all vendors here.
                     </Typography>

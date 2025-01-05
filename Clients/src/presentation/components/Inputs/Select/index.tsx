@@ -11,6 +11,7 @@
  * @param {Array<{ _id: string | number; name: string }>} props.items - The list of items to display in the select dropdown.
  * @param {function} props.onChange - The callback function to handle changes in the select input.
  * @param {object} [props.sx] - Additional styles to apply to the select component.
+ * @param {function} props.getOptionValue - The function to get the value of an option.
  * @returns {JSX.Element} The rendered select component.
  */
 
@@ -39,6 +40,7 @@ interface SelectProps {
     child: React.ReactNode
   ) => void;
   sx?: object;
+  getOptionValue?: (item: any) => any;
 }
 
 const Select: React.FC<SelectProps> = ({
@@ -52,6 +54,7 @@ const Select: React.FC<SelectProps> = ({
   error,
   onChange,
   sx,
+  getOptionValue,
 }) => {
   const theme = useTheme();
   const itemStyles = {
@@ -83,6 +86,10 @@ const Select: React.FC<SelectProps> = ({
           color={theme.palette.text.secondary}
           fontWeight={500}
           fontSize={13}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+          }}
         >
           {label}
           {isRequired && (
@@ -157,7 +164,7 @@ const Select: React.FC<SelectProps> = ({
         {items.map(
           (item: { _id: string | number; name: string; email?: string }) => (
             <MenuItem
-              value={item._id}
+              value={getOptionValue ? getOptionValue(item) : item._id}
               key={`${id}-${item._id}`}
               sx={{
                 display: "flex",

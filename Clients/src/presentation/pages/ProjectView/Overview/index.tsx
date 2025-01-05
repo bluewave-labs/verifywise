@@ -1,57 +1,24 @@
 import { Stack, Typography, useTheme } from "@mui/material";
 import ProgressBar from "../../../components/ProjectCard/ProgressBar";
-import { FC, memo, useCallback, useEffect, useMemo, useState } from "react";
-import { getEntityById } from "../../../../application/repository/entity.repository";
+import { FC, memo, useCallback, useMemo } from "react";
 import { formatDate } from "../../../tools/isoDateToString";
 import Risks from "../../../components/Risks";
 import { ProjectOverview } from "../../../mocks/projects/project-overview.data";
-import { useParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import useProjectData from "../../../../application/hooks/useProjectData";
 
 interface OverviewProps {
   mocProject: ProjectOverview;
 }
 
-type ProjectData = {
-  project_title: string;
-  owner: string;
-  last_updated: string;
-  last_updated_by: string;
-};
-
-const Overview: FC<OverviewProps> = memo(({mocProject}) => {
-  const [project, setProject] = useState<ProjectData | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const { projectId = 2 } = useParams<{ projectId: string }>(); // default project ID is 2
+const Overview: FC<OverviewProps> = memo(({ mocProject }) => {
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get("projectId") ?? "2"; // default project ID is 2
+  const { project, error, isLoading } = useProjectData({ projectId });
   const theme = useTheme();
-  const {
-    controlsStatus,
-    assessmentsStatus,
-    projectRisks,
-    vendorRisks,
-  } = mocProject;
-  
-  useEffect(() => {
-    const controller = new AbortController();
-    setIsLoading(true);
-    getEntityById({ routeUrl: `/projects/${projectId}` })
-      .then(({ data }) => {
-        setProject(data);
-        setError(null);
-      })
-      .catch((err) => {
-        if (!controller.signal.aborted) {
-          setError("Failed to fetch the project: " + err.message);
-          setProject(null);
-        }
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
-      });
-    return () => controller.abort();
-  }, []);
+
+  const { controlsStatus, assessmentsStatus, projectRisks, vendorRisks } =
+    mocProject;
 
   const styles = useMemo(
     () => ({
@@ -96,8 +63,8 @@ const Overview: FC<OverviewProps> = memo(({mocProject}) => {
     ),
     [styles.block, styles.title]
   );
-  
-  if(!project){
+
+  if (!project) {
     return "No project found";
   }
 
@@ -119,7 +86,9 @@ const Overview: FC<OverviewProps> = memo(({mocProject}) => {
         </Stack>
         <Stack sx={styles.block}>
           <Typography sx={styles.title}>Last updated</Typography>
-          <Typography sx={styles.value}>{formatDate(project.last_updated)}</Typography>
+          <Typography sx={styles.value}>
+            {formatDate(project.last_updated)}
+          </Typography>
         </Stack>
         <Stack sx={styles.block}>
           <Typography sx={styles.title}>Last updated by</Typography>

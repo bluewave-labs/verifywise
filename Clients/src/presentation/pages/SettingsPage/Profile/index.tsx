@@ -13,12 +13,14 @@ import Avatar from "../../../components/Avatar/VWAvatar/index";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import validator from "validator";
 import {
+  deleteEntityById,
   getEntityById,
   updateEntityById,
 } from "../../../../application/repository/entity.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
 import localStorage from "redux-persist/es/storage";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
+import Alert from "../../../components/Alert"; // Import Alert component
 
 /**
  * Interface representing a user object.
@@ -58,6 +60,20 @@ const ProfileForm: React.FC = () => {
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
+  const [alert, setAlert] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    title: string;
+    body: string;
+    isToast: boolean;
+    visible: boolean;
+  }>({
+    variant: "info",
+    title: "",
+    body: "",
+    isToast: true,
+    visible: false,
+  });
+
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -74,13 +90,17 @@ const ProfileForm: React.FC = () => {
         // const userId = localStorage.getItem("userId") || 1;
         const response = await getEntityById({ routeUrl: `/users/1` });
 
-        setFirstname(response.data.name || "");
-        setLastname(response.data.surname || "");
-        setEmail(response.data.email || "");
+            setFirstname(response.data.firstname || "");
+            setLastname(response.data.lastname || "");
+            setEmail(response.data.email || "");
+
         setProfilePhoto(
           response.data.pathToImage || "/placeholder.svg?height=80&width=80"
         );
+        console.log(`user ${user.firstname} ${user.lastname} fetched`);
+        console.log(firstname);
       } catch (error) {
+        console.log(error);
         logEngine({
           type: "error",
           message: "Failed to fetch user data.",
@@ -96,6 +116,7 @@ const ProfileForm: React.FC = () => {
       }
     };
     fetchUserData();
+    console.log("fetchUserData");
   }, []);
 
   /**
@@ -117,21 +138,35 @@ const ProfileForm: React.FC = () => {
             lastname,
           },
         });
+        setAlert({
+          variant: "error",
+          title: "Error",
+          body: "Validation errors occurred while saving the profile.",
+          isToast: true,
+          visible: true,
+        });
         return;
       }
-      const userId = localStorage.getItem("userId") || "1";
+      // const userId = localStorage.getItem("userId") || "1";
       const updatedUser = {
         firstname,
         lastname,
         email,
         pathToImage: profilePhoto,
       };
-
-      await updateEntityById({
-        routeUrl: `/users/${userId}`,
+      
+      const response = await updateEntityById({
+        routeUrl: `/users/1`,
         body: updatedUser,
       });
-      alert("Profile updated successfully");
+      console.log(response);
+      setAlert({
+        variant: "success",
+        title: "Success",
+        body: "Profile updated successfully.",
+        isToast: true,
+        visible: true,
+      });
     } catch (error) {
       logEngine({
         type: "error",
@@ -143,7 +178,13 @@ const ProfileForm: React.FC = () => {
           lastname,
         },
       });
-      alert("Failed to update profile. Please try again.");
+      setAlert({
+        variant: "error",
+        title: "Error",
+        body: "Failed to update profile. Please try again.",
+        isToast: true,
+        visible: true,
+      });
     }
   }, [
     firstname,
@@ -281,11 +322,11 @@ const ProfileForm: React.FC = () => {
    * Close confirmation modal.
    *
    * Closes the save changes confirmation modal.
-   */
+  */
   const handleCloseConfirmationModal = useCallback(() => {
     setIsSaveModalOpen(false);
   }, []);
-
+ 
   /**
    * Handle save confirmation.
    *
@@ -301,10 +342,41 @@ const ProfileForm: React.FC = () => {
    *
    * Proceeds with deleting the account.
    */
-  const handleConfirmDelete = useCallback(() => {
-    // Add delete account logic here
-    setIsDeleteModalOpen(false);
-  }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    try {
+      // const userId = localStorage.getItem("userId") || "1";
+      await deleteEntityById({ routeUrl: `/users/1` });
+      setAlert({
+        variant: "success",
+        title: "Success",
+        body: "Account deleted successfully.",
+        isToast: true,
+        visible: true,
+      });
+      // Add any additional logic needed after account deletion, e.g., redirecting to a login page
+    } catch (error) {
+      logEngine({
+        type: "error",
+        message: "An error occured while deleting the account.",
+        user: {
+          id: String(localStorage.getItem("userId")) || "N/A",
+          email,
+          firstname,
+          lastname,
+        },
+      });
+      setAlert({
+        variant: "error",
+        title: "Error",
+        body: "Failed to delete account. Please try again.",
+        isToast: true,
+        visible: true,
+      });
+    } finally {
+      setIsDeleteModalOpen(false);
+    }
+  }, [email, firstname, lastname]);
 
   // User object for Avatar component
   const user: User = useMemo(
@@ -314,11 +386,13 @@ const ProfileForm: React.FC = () => {
       pathToImage: profilePhoto,
       email,
     }),
-    [firstname, lastname, profilePhoto, email]
+    [ firstname, lastname, profilePhoto, email]
   );
 
   return (
-    <Box sx={{ position: "relative", mt: 3, width: { xs: "90%", md: "70%" } }}>
+    <Box
+      sx={{ position: "relative", mt: 3, width: { xs: "90%", md: "70%" } }}
+    >
       {loading && (
         <Box
           sx={{
@@ -336,6 +410,15 @@ const ProfileForm: React.FC = () => {
         >
           <Typography>Loading...</Typography>
         </Box>
+      )}
+      {alert.visible && (
+        <Alert
+          variant={alert.variant}
+          title={alert.title}
+          body={alert.body}
+          isToast={alert.isToast}
+          onClick={() => setAlert((prev) => ({ ...prev, visible: false }))}
+        />
       )}
       <Box
         sx={{
@@ -469,13 +552,13 @@ const ProfileForm: React.FC = () => {
             },
           }}
           onClick={() => setIsSaveModalOpen(true)}
+          disabled={!!firstnameError || !!lastnameError || !!emailError}
         >
           Save
         </Button>
       </Stack>
 
       <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
-
       <Box>
         <Stack>
           <Typography fontWeight={"600"} gutterBottom sx={{ mb: 2, mt: 10 }}>

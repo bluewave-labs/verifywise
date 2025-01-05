@@ -56,13 +56,18 @@ export async function loginUser({
  * @returns {Promise<any>} The user data retrieved from the API.
  * @throws Will throw an error if the request fails.
  */
+
+interface GetEntityByIdParams {
+  routeUrl: string;
+  signal?: AbortSignal;
+}
+
 export async function getEntityById({
   routeUrl,
-}: {
-  routeUrl: string;
-}): Promise<any> {
+  signal,
+}: GetEntityByIdParams) : Promise<any> {
   try {
-    const response = await apiServices.get(routeUrl);
+    const response = await apiServices.get(routeUrl, { signal });
     return response.data;
   } catch (error) {
     console.error("Error getting etity by ID:", error);
@@ -91,7 +96,7 @@ export async function updateEntityById({
     console.log(
       `The entity with the following details is updated: ${response.data}`
     );
-    return response.data;
+    return response;
   } catch (error) {
     console.error("Error updating user by ID:", error);
     throw error;

@@ -1,11 +1,22 @@
-import React, { useState, useCallback } from "react";
-import { useTheme, Alert, Box, Button, Stack, Typography } from "@mui/material";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  useTheme,
+  Alert as MuiAlert,
+  Box,
+  Button,
+  Stack,
+  Typography,
+} from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
-import { updateEntityById } from "../../../../application/repository/entity.repository";
+import {
+  getEntityById,
+  updateEntityById,
+} from "../../../../application/repository/entity.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
 import localStorage from "redux-persist/es/storage";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
+import Alert from "../../../components/Alert";
 
 const PasswordForm: React.FC = () => {
   const theme = useTheme();
@@ -25,7 +36,56 @@ const PasswordForm: React.FC = () => {
 
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] =
     useState<boolean>(false);
-  const [loading, _] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const [alert, setAlert] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    title: string;
+    body: string;
+    isToast: boolean;
+    visible: boolean;
+  }>({
+    variant: "info",
+    title: "",
+    body: "",
+    isToast: true,
+    visible: false,
+  });
+
+  // Fetch current user password on component mount
+  useEffect(() => {
+    const fetchUserPassword = async () => {
+      setLoading(true);
+      try {
+        const response = await getEntityById({ routeUrl: `/users/1` });
+        console.log("response , PasswordForm : ", response);
+        setCurrentPassword(
+          response.data.password_hash ? "••••••••••••••••••••••••" : ""
+        );
+      } catch (error) {
+        logEngine({
+          type: "error",
+          message: "Failed to fetch user password.",
+          user: {
+            id: String(localStorage.getItem("userId")) || "N/A",
+            email: "N/A",
+            firstname: "N/A",
+            lastname: "N/A",
+          },
+        });
+        setAlert({
+          variant: "error",
+          title: "Error",
+          body: "Failed to fetch user password.",
+          isToast: true,
+          visible: true,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUserPassword();
+  }, []);
 
   // Handle current password validation
   const handleCurrentPasswordChange = useCallback(
@@ -98,10 +158,17 @@ const PasswordForm: React.FC = () => {
             lastname: "N/A",
           },
         });
+        setAlert({
+          variant: "error",
+          title: "Error",
+          body: "Validation errors occurred while updating password.",
+          isToast: true,
+          visible: true,
+        });
         return;
       }
 
-      const userId = localStorage.getItem("userId") || "1";
+      // const userId = localStorage.getItem("userId") || "1";
       const updatedPassword = {
         currentPassword,
         newPassword,
@@ -109,10 +176,16 @@ const PasswordForm: React.FC = () => {
       };
 
       await updateEntityById({
-        routeUrl: `/users/${userId}/password`,
+        routeUrl: `/users/1`,
         body: updatedPassword,
       });
-      alert("Password updated successfully");
+      setAlert({
+        variant: "success",
+        title: "Success",
+        body: "Password updated successfully.",
+        isToast: true,
+        visible: true,
+      });
       setIsConfirmationModalOpen(false);
     } catch (error) {
       logEngine({
@@ -125,7 +198,13 @@ const PasswordForm: React.FC = () => {
           lastname: "N/A",
         },
       });
-      alert("Failed to update password. Please try again.");
+      setAlert({
+        variant: "error",
+        title: "Error",
+        body: "Failed to update password. Please try again.",
+        isToast: true,
+        visible: true,
+      });
     }
   }, [
     currentPassword,
@@ -143,6 +222,14 @@ const PasswordForm: React.FC = () => {
   const handleConfirmSave = useCallback(() => {
     handleSave();
   }, [handleSave]);
+
+  const isSaveDisabled =
+    !currentPassword ||
+    !newPassword ||
+    !confirmPassword ||
+    !!currentPasswordError ||
+    !!newPasswordError ||
+    !!confirmPasswordError;
 
   return (
     <Box sx={{ mt: 3, width: { xs: "90%", md: "70%" }, position: "relative" }}>
@@ -164,7 +251,15 @@ const PasswordForm: React.FC = () => {
           <Typography>Loading...</Typography>
         </Box>
       )}
-
+      {alert.visible && (
+        <Alert
+          variant={alert.variant}
+          title={alert.title}
+          body={alert.body}
+          isToast={alert.isToast}
+          onClick={() => setAlert((prev) => ({ ...prev, visible: false }))}
+        />
+      )}
       <Box sx={{ width: "100%", maxWidth: 600 }}>
         <Stack sx={{ marginTop: theme.spacing(15) }}>
           <Field
@@ -174,6 +269,7 @@ const PasswordForm: React.FC = () => {
             onChange={handleCurrentPasswordChange}
             type="password"
             sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
+            disabled
           />
           {currentPasswordError && (
             <Typography color="error" variant="caption">
@@ -209,10 +305,10 @@ const PasswordForm: React.FC = () => {
             </Typography>
           )}
 
-          <Alert severity="warning" sx={{ my: theme.spacing(5) }}>
+          <MuiAlert severity="warning" sx={{ my: theme.spacing(5) }}>
             Password must contain at least eight characters and must include an
             uppercase letter, a lowercase letter, a number, and a symbol.
-          </Alert>
+          </MuiAlert>
 
           <Stack
             sx={{
@@ -236,6 +332,7 @@ const PasswordForm: React.FC = () => {
                 },
               }}
               onClick={() => setIsConfirmationModalOpen(true)}
+              disabled={isSaveDisabled}
             >
               Save
             </Button>

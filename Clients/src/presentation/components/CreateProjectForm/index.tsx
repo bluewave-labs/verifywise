@@ -285,9 +285,9 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup }) => {
               value={values.owner}
               onChange={handleOnSelectChange("owner")}
               items={[
-                { _id: 1, name: "Some value 1" },
-                { _id: 2, name: "Some value 2" },
-                { _id: 3, name: "Some value 3" },
+                { _id: 1, name: "Some value 1", email: "email@email.com" },
+                { _id: 2, name: "Some value 2", email: "email@email.com" },
+                { _id: 3, name: "Some value 3", email: "email@email.com" },
               ]}
               sx={{
                 width: "350px",

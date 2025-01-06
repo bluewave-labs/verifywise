@@ -146,7 +146,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
   return (
     <Stack
       component="aside"
-      className={collapsed ? "collapsed" : "expanded"}
+      className={`sidebar-menu ${collapsed ? "collapsed" : "expanded"}`}
       py={theme.spacing(6)}
       gap={theme.spacing(6)}
       sx={{
@@ -170,7 +170,8 @@ const Sidebar = ({ projects }: { projects: any }) => {
         pb={theme.spacing(12)}
         pl={theme.spacing(12)}
       >
-        <Stack direction="row" alignItems="center" gap={theme.spacing(4)}>
+        <Stack direction="row" alignItems="center" gap={theme.spacing(4)}
+        className="app-title">
           <img src={Logo} alt="Logo" width={32} height={30} />
           <Typography
             component="span"
@@ -279,6 +280,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
                     ? "selected-path"
                     : "unselected"
                 }
+                data-joyride-id={item.name.toLowerCase().replace(/ /g, "-")}
                 onClick={() => navigate(`${item.path}`)}
                 sx={{
                   height: "37px",

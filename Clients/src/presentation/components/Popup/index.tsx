@@ -83,6 +83,7 @@ const Popup: FC<PopupProps> = ({
         onClick={handleOpenOrClose}
         sx={styles.openPopupButton}
         disableRipple={theme.components?.MuiButton?.defaultProps?.disableRipple}
+        data-joyride-id="new-project-button"
       >
         {openPopupButtonName}
       </Button>

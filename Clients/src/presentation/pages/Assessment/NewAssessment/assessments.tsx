@@ -11,8 +11,10 @@ import { BiasMonitoringAndMitigation } from "../../../structures/AssessmentTrack
 import { AccountabilityAndGovernance } from "../../../structures/AssessmentTracker/accountability-and-governance.subtopic";
 import { Explainability } from "../../../structures/AssessmentTracker/explainability.subtopic";
 import { EnvironmentalImpact } from "../../../structures/AssessmentTracker/environmental-impact.subtopic";
+import { ProjectScope } from "../../../structures/AssessmentTracker/project-scope.subtopic";
 
 export const assessments = [
+  { id: 0, title: "ProjectScope", component: ProjectScope },
   { id: 1, title: "RiskManagementSystem", component: RiskManagementSystem },
   { id: 2, title: "DataGovernance", component: DataGovernance },
   { id: 3, title: "TechnicalDocumentation", component: TechnicalDocumentation },

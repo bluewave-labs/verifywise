@@ -50,6 +50,7 @@ const AllAssessment = () => {
   const [assessmentsValues, setAssessmentsValue] = useState<
     Record<number, AssessmentValue>
   >({
+    0: { topic: "Project Scope", subtopic: [] },
     1: { topic: "Risk Management System", subtopic: [] },
     2: { topic: "Data Governance", subtopic: [] },
     3: { topic: "Technical Documentation", subtopic: [] },

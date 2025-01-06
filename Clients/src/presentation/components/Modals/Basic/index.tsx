@@ -96,7 +96,6 @@ const BasicModal: React.FC<BasicModalProps> = ({
             color="error"
             sx={{
               width: 140,
-              textTransform: "capitalize",
               fontSize: 13,
               backgroundColor: theme.palette.error.main,
               boxShadow: "none",

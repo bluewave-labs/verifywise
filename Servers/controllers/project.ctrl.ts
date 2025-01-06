@@ -22,6 +22,8 @@ import { createMockSubcontrol } from "../mocks/tools/subcontrol.mock.db";
 import { createControlCategoryQuery } from "../utils/controlCategory.util";
 import { createNewControlQuery } from "../utils/control.utils";
 import { createNewSubcontrolQuery } from "../utils/subControl.utils";
+import { Project } from "../models/project.model";
+import { getMockUserById } from "../mocks/tools/user.mock.db";
 
 export async function getAllProjects(
   req: Request,
@@ -198,4 +200,33 @@ export async function deleteProjectById(
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
+}
+
+export async function getProjectStatsById(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const projectId = parseInt(req.params.id);
+
+  // mock data sections
+  // first getting the project by id
+  const project: any = getMockProjectById(projectId);
+
+  const project_owner = project.owner; // (A user's id) Now, we get the user by this
+  const ownerUser: any = getMockUserById(project_owner);
+
+  const project_last_updated = project.last_updated;
+
+  const project_last_updated_by = project.last_updated_by;
+  const userWhoUpdated: any = getMockUserById(project_last_updated_by);
+
+  const overviewDetails = {
+    user: {
+      name: ownerUser.name,
+      surname: ownerUser.surname,
+      email: ownerUser.email,
+      project_last_updated,
+      userWhoUpdated,
+    },
+  };
 }

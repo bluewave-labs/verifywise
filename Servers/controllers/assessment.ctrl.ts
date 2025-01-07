@@ -264,3 +264,75 @@ export async function saveAnswers(req: Request, res: Response): Promise<any> {
     }
   }
 }
+
+export async function updateAnswers(req: Request, res: Response): Promise<any> {
+  if (MOCKDATA_ON === true) {
+    try {
+      // first get all assessments
+      const assessments = getAllMockAssessments();
+      // if the length is bigger than 1 get the first one
+      const assessmentId = assessments[0].id;
+
+      // now, create a topic using the assessmentId and the topic
+      const topic: any = createMockTopic(assessmentId, req.body.topic);
+
+      // now iterate over the subtopics, create a subtopic using topic id and the subtopic
+      const subtopics = req.body.subtopic;
+      for (const subtopic of subtopics) {
+        const subtopicToSave: any = createMockSubtopic(
+          topic.id,
+          subtopic.title
+        );
+        const subtopicId = subtopicToSave.id;
+        const questions = subtopic.questions;
+        console.log(questions);
+        // now iterate over the questions, create a question using subtopic id and the question
+        for (const question of questions) {
+          createMockQuestion(subtopicId, question);
+        }
+      }
+      res.status(200).json(STATUS_CODE[200]({ message: "Answers saved" }));
+    } catch (error) {
+      return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+    }
+    res.status(200);
+  } else {
+    // first get all assessments
+    const assessments = await getAllAssessmentsQuery();
+    // if the length is bigger than 1 get the first one
+    const assessmentId = assessments[0].id;
+
+    // now, create a topic using the assessmentId and the topic
+    const topic: any = createNewTopicQuery({
+      assessmentId,
+      title: req.body.topic.title,
+    });
+
+    // now iterate over the subtopics, create a subtopic using topic id and the subtopic
+    const subtopics = req.body.subtopic;
+    for (const subtopic of subtopics) {
+      const subtopicToSave: any = createNewSubtopicQuery({
+        topicId: topic.id,
+        name: subtopic.title,
+      });
+      const subtopicId = subtopicToSave.id;
+      const questions = subtopic.questions;
+      // now iterate over the questions, create a question using subtopic id and the question
+      for (const question of questions) {
+        createNewQuestionQuery(
+          {
+            subtopicId,
+            questionText: question.question,
+            answerType: question.answerType,
+            evidenceFileRequired: question.evidenceFileRequired,
+            hint: question.hint,
+            isRequired: question.isRequired,
+            priorityLevel: question.priorityLevel,
+            answer: question.answer,
+          },
+          question.evidenceFiles
+        );
+      }
+    }
+  }
+}

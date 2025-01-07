@@ -22,8 +22,9 @@ import { createMockSubcontrol } from "../mocks/tools/subcontrol.mock.db";
 import { createControlCategoryQuery } from "../utils/controlCategory.util";
 import { createNewControlQuery } from "../utils/control.utils";
 import { createNewSubcontrolQuery } from "../utils/subControl.utils";
-import { Project } from "../models/project.model";
 import { getMockUserById } from "../mocks/tools/user.mock.db";
+import { createNewAssessmentQuery } from "../utils/assessment.utils";
+import { createMockAssessment } from "../mocks/tools/assessment.mock.db";
 
 export async function getAllProjects(
   req: Request,
@@ -85,14 +86,14 @@ export async function createProject(req: Request, res: Response): Promise<any> {
   try {
     const newProject: {
       project_title: string;
-      owner: string;
+      owner: number;
       users: string;
       start_date: Date;
       ai_risk_classification: string;
       type_of_high_risk_role: string;
       goal: string;
       last_updated?: Date;
-      last_updated_by?: string;
+      last_updated_by?: number;
     } = req.body;
 
     if (!newProject.project_title || !newProject.owner) {
@@ -104,18 +105,22 @@ export async function createProject(req: Request, res: Response): Promise<any> {
     }
 
     if (MOCKDATA_ON === true) {
-      const createdProject = createMockProject(newProject);
+      const createdProject = createMockProject(newProject) as { id: string };
+      const assessment = createMockAssessment({ projectId: createdProject.id }) as { id: string, projectId: string };
+      console.log("project id ", createdProject.id, ", assessment id ", assessment.id);
 
       if (createdProject) {
-        return res.status(201).json(STATUS_CODE[201](createdProject));
+        return res.status(201).json(STATUS_CODE[201]({assessment: assessment, project: createdProject}));
       }
 
       return res.status(503).json(STATUS_CODE[503]({}));
     } else {
       const createdProject = await createNewProjectQuery(newProject);
+      const assessment = await createNewAssessmentQuery({ projectId: createdProject.id });
+      console.log("project id ", createdProject.id, ", assessment id ", assessment.id);
 
       if (createdProject) {
-        return res.status(201).json(STATUS_CODE[201](createdProject));
+        return res.status(201).json(STATUS_CODE[201]({assessment: assessment, project: createdProject}));
       }
 
       return res.status(503).json(STATUS_CODE[503]({}));

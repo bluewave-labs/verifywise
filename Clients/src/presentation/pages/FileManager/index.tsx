@@ -74,7 +74,7 @@ const EmptyState: React.FC = (): JSX.Element => (
       }}
     />
     <Typography variant="body2" color="text.secondary">
-      There are currently no evidences or documents uploaded.
+      There are currently no pieces of evidence or other documents uploaded.
     </Typography>
   </Stack>
 );

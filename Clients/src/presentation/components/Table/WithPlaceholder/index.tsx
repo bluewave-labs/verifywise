@@ -109,7 +109,7 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({ dashboardVa
                                 <TableCell sx={cellStyle}>{row.reviewStatus}</TableCell>
                                 <TableCell sx={cellStyle}>{row.riskStatus}</TableCell>
                                 <TableCell sx={cellStyle}>
-                                    {formatDate(row.reviewDate.toString())}
+                                {row.reviewDate ? formatDate(row.reviewDate.toString()) : "No review date"}
                                 </TableCell>
                                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                                     <IconButton vendorId={row.id}

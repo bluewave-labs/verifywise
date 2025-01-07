@@ -15,14 +15,14 @@ import {
 } from "@mui/material";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import RichTextEditor from "../../../components/RichTextEditor";
-
 import singleTheme from "../../../themes/v1SingleTheme";
 import { Topic, Topics } from "../../../structures/AssessmentTracker/Topics";
 import { assessments } from "./assessments";
 import { priorities, PriorityLevel } from "./priorities";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import Alert from "../../../components/Alert";
-import { useNavigate } from "react-router-dom";
+import FileUploadModal from "../../../components/Modals/FileUpload";
+import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 
 interface AssessmentValue {
   topic: string;
@@ -42,12 +42,15 @@ interface AssessmentValue {
     }[];
   }[];
 }
+
 const AllAssessment = () => {
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState<number>(0);
+
   const [assessmentsValues, setAssessmentsValue] = useState<
     Record<number, AssessmentValue>
   >({
+    0: { topic: "Project Scope", subtopic: [] },
     1: { topic: "Risk Management System", subtopic: [] },
     2: { topic: "Data Governance", subtopic: [] },
     3: { topic: "Technical Documentation", subtopic: [] },
@@ -65,35 +68,26 @@ const AllAssessment = () => {
 
   const [_, setAllQuestionsToCheck] = useState<{ title: string }[]>([]);
 
+  //modal
+  const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
+  const handleOpenFileUploadModal = () => setFileUploadModalOpen(true);
+  const handleCloseFileUploadModal = () => setFileUploadModalOpen(false);
+
   const [alert, setAlert] = useState<{ show: boolean; message: string }>({
     show: false,
     message: "",
   });
 
-  const handleSave = async (topicToSave: number) => {
-    /*
-    
-    This part will remain commented for now, as it is not needed for the current implementation
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [topicToSave, setTopicToSave] = useState<number | null>(null);
 
-    const unansweredRequiredQuestions = allQuestionsToCheck.filter(
-      (question) =>
-        !Object.values(assessmentsValues).some((assessment) =>
-          assessment.subtopic.some((subtopic) =>
-            subtopic.questions.some(
-              (q) => q.question === question.title && q.answer.trim() !== ""
-            )
-          )
-        )
-    );
+  const handleSave = (topicToSave: number) => {
+    setTopicToSave(topicToSave);
+    setIsModalOpen(true);
+  };
 
-    if (unansweredRequiredQuestions.length > 0) {
-      setAlert({
-        show: true,
-        message: `You need to answer all the required questions`,
-      });
-      return;
-    }
-    */
+  const confirmSave = async () => {
+    if (topicToSave === null) return;
 
     const assessmentToSave = assessmentsValues[topicToSave];
 
@@ -107,6 +101,9 @@ const AllAssessment = () => {
       console.log("Assessments saved successfully:", response);
     } catch (error) {
       console.error("Error saving assessments:", error);
+    } finally {
+      setIsModalOpen(false);
+      setTopicToSave(null);
     }
   };
 
@@ -249,7 +246,6 @@ const AllAssessment = () => {
 
   const renderQuestions = useCallback(
     (subtopicId: string, subtopicTitle: string, questions: any[]) => {
-      const navigate = useNavigate();
       const renderedQuestions = questions.map((question) => (
         <Box key={question.id} mt={10}>
           <Box
@@ -364,7 +360,7 @@ const AllAssessment = () => {
               disableRipple={
                 theme.components?.MuiButton?.defaultProps?.disableRipple
               }
-              onClick={() => navigate("/playground")}
+              onClick={handleOpenFileUploadModal}
             >
               Add evidence
             </Button>
@@ -464,7 +460,7 @@ const AllAssessment = () => {
         >
           <Button
             sx={{
-              ...singleTheme.buttons.primary,
+              ...singleTheme.buttons.primary.contained,
               color: "#FFFFFF",
               width: 140,
               "&:hover": {
@@ -485,6 +481,31 @@ const AllAssessment = () => {
           body={alert.message}
           isToast={true}
           onClick={() => setAlert({ show: false, message: "" })}
+        />
+      )}
+      {/* FileUploadModal*/}
+      <FileUploadModal
+        open={fileUploadModalOpen}
+        onClose={handleCloseFileUploadModal}
+        uploadProps={{
+          onSuccess: () => console.log("File uploaded successfully!"),
+          onError: (errorMessage: string) => console.error(errorMessage),
+          allowedFileTypes: ["application/pdf"],
+          maxFileSize: 50 * 1024 * 1024,
+        }}
+      />
+      {isModalOpen && (
+        <DualButtonModal
+          title="Confirm Save"
+          body={
+            <Typography>Are you sure you want to save the changes?</Typography>
+          }
+          cancelText="Cancel"
+          proceedText="Confirm"
+          onCancel={() => setIsModalOpen(false)}
+          onProceed={confirmSave}
+          proceedButtonColor="primary"
+          proceedButtonVariant="contained"
         />
       )}
     </Box>

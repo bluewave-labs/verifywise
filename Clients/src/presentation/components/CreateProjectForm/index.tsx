@@ -1,11 +1,18 @@
 import { FC, useState, useMemo, useCallback } from "react";
-import { Button, SelectChangeEvent, Stack, useTheme } from "@mui/material";
+import {
+  Button,
+  SelectChangeEvent,
+  Stack,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import dayjs, { Dayjs } from "dayjs";
-import { checkStringValidation } from '../../../application/validations/stringValidation';
-import selectValidation from '../../../application/validations/selectValidation';
-import { Suspense, lazy } from 'react';
-import { createNewUser } from '../../../application/repository/entity.repository';
+import { checkStringValidation } from "../../../application/validations/stringValidation";
+import selectValidation from "../../../application/validations/selectValidation";
+import { Suspense, lazy } from "react";
+import { createNewUser } from "../../../application/repository/entity.repository";
+import DualButtonModal from "../../vw-v2-components/Dialogs/DualButtonModal";
 
 const Select = lazy(() => import("../Inputs/Select"));
 const DatePicker = lazy(() => import("../Inputs/Datepicker"));
@@ -54,11 +61,11 @@ const initialState: FormValues = {
   start_date: "",
   ai_risk_classification: 0,
   type_of_high_risk_role: 0,
-  goal: ""
-}
+  goal: "",
+};
 
 interface CreateProjectFormProps {
-  closePopup: () => void
+  closePopup: () => void;
 }
 
 /**
@@ -70,7 +77,7 @@ interface CreateProjectFormProps {
  * @component
  * @returns {JSX.Element} The rendered component.
  */
-const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
+const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const [values, setValues] = useState<FormValues>(initialState);
@@ -81,10 +88,12 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
     body: string;
   } | null>(null);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const handleDateChange = useCallback((newDate: Dayjs | null) => {
     setValues((prevValues) => ({
       ...prevValues,
-      start_date: newDate ? newDate.toISOString() : ""
+      start_date: newDate ? newDate.toISOString() : "",
     }));
   }, []);
 
@@ -108,7 +117,12 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    const projectTitle = checkStringValidation("Project title", values.project_title, 1, 64);
+    const projectTitle = checkStringValidation(
+      "Project title",
+      values.project_title,
+      1,
+      64
+    );
     if (!projectTitle.accepted) {
       newErrors.projectTitle = projectTitle.message;
     }
@@ -128,11 +142,17 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
     if (!owner.accepted) {
       newErrors.owner = owner.message;
     }
-    const riskClassification = selectValidation("AI risk classification", values.ai_risk_classification);
+    const riskClassification = selectValidation(
+      "AI risk classification",
+      values.ai_risk_classification
+    );
     if (!riskClassification.accepted) {
       newErrors.riskClassification = riskClassification.message;
     }
-    const typeOfHighRiskRole = selectValidation("Type of high risk role", values.type_of_high_risk_role);
+    const typeOfHighRiskRole = selectValidation(
+      "Type of high risk role",
+      values.type_of_high_risk_role
+    );
     if (!typeOfHighRiskRole.accepted) {
       newErrors.typeOfHighRiskRole = typeOfHighRiskRole.message;
     }
@@ -141,30 +161,34 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (validateForm()) {
-      //request to the backend
-      await createNewUser({
-        routeUrl: "/projects",
-        body: values,
-      }).then((response) => {
-          // Reset form after successful submission
-          setValues(initialState);
-          setErrors({});
-          if (response.status === 201) {
-            setAlert({
-              variant: "success",
-              body: "Project created successfully",
-            });
-            setTimeout(() => {
-              setAlert(null);
-              navigate("/project-view");
-              closePopup();
-            }, 3000);
-          }
-        })
+      setIsModalOpen(true);
     }
+  };
+
+  const confirmSubmit = async () => {
+    await createNewUser({
+      routeUrl: "/projects",
+      body: values,
+    }).then((response) => {
+      // Reset form after successful submission
+      setValues(initialState);
+      setErrors({});
+      if (response.status === 201) {
+        setAlert({
+          variant: "success",
+          body: "Project created successfully",
+        });
+        setTimeout(() => {
+          setAlert(null);
+          navigate("/project-view");
+          closePopup();
+        }, 3000);
+      }
+    });
+    setIsModalOpen(false);
   };
 
   const riskClassificationItems = useMemo(
@@ -261,9 +285,9 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
               value={values.owner}
               onChange={handleOnSelectChange("owner")}
               items={[
-                { _id: 1, name: "Some value 1" },
-                { _id: 2, name: "Some value 2" },
-                { _id: 3, name: "Some value 3" },
+                { _id: 1, name: "Some value 1", email: "email@email.com" },
+                { _id: 2, name: "Some value 2", email: "email@email.com" },
+                { _id: 3, name: "Some value 3", email: "email@email.com" },
               ]}
               sx={{
                 width: "350px",
@@ -368,6 +392,20 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
           Create project
         </Button>
       </Stack>
+      {isModalOpen && (
+        <DualButtonModal
+          title="Confirm Submission"
+          body={
+            <Typography>Are you sure you want to submit the form?</Typography>
+          }
+          cancelText="Cancel"
+          proceedText="Submit"
+          onCancel={() => setIsModalOpen(false)}
+          onProceed={confirmSubmit}
+          proceedButtonColor="primary"
+          proceedButtonVariant="contained"
+        />
+      )}
     </Stack>
   );
 };

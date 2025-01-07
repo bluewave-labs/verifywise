@@ -102,7 +102,7 @@ const Home = () => {
 
   return (
     <Box>
-      <Box sx={styles.projectBox}>
+      <Box sx={styles.projectBox} data-joyride-id="project-overview">
         <Typography variant="h1" component="div" sx={styles.title}>
           Projects overview
         </Typography>
@@ -131,7 +131,7 @@ const Home = () => {
               <MetricSection
                 title={`All projects ${metricType} status`}
                 metricType={metricType}
-              />
+               />
             </Suspense>
           ))}
         </>

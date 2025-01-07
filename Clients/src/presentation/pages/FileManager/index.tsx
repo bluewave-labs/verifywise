@@ -50,13 +50,17 @@ type SortDirection = (typeof SORT_DIRECTIONS)[keyof typeof SORT_DIRECTIONS];
  * Displays an empty state when no files are available.
  * @returns {JSX.Element} The empty state component.
  */
-const EmptyState: React.FC = () => (
+const EmptyState: React.FC = (): JSX.Element => (
   <Stack
     direction="column"
     alignItems="center"
     justifyContent="center"
-    sx={{ height: "100%", textAlign: "center" }}
-    border="1px solid #eeeeee"
+    sx={{
+      height: "100%",
+      textAlign: "center",
+      border: "1px solid #eeeeee",
+      borderBottom: "1px solid #eeeeee",
+    }}
   >
     <Box
       component="img"
@@ -70,7 +74,7 @@ const EmptyState: React.FC = () => (
       }}
     />
     <Typography variant="body2" color="text.secondary">
-      There are currently no evidences or documents uploaded.
+      There are currently no pieces of evidence or other documents uploaded.
     </Typography>
   </Stack>
 );
@@ -304,6 +308,8 @@ const FileManager: React.FC = (): JSX.Element => {
           borderRadius: "4px",
           overflow: "hidden",
           minHeight: "400px",
+          borderBottom:
+            files.length === 0 ? "1px solid #eeeeee" : "none",
         }}
       >
         <FileTable

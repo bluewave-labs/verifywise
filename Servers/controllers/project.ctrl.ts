@@ -22,6 +22,7 @@ import { createMockSubcontrol } from "../mocks/tools/subcontrol.mock.db";
 import { createControlCategoryQuery } from "../utils/controlCategory.util";
 import { createNewControlQuery } from "../utils/control.utils";
 import { createNewSubcontrolQuery } from "../utils/subControl.utils";
+import { getMockUserById } from "../mocks/tools/user.mock.db";
 import { createNewAssessmentQuery } from "../utils/assessment.utils";
 import { createMockAssessment } from "../mocks/tools/assessment.mock.db";
 
@@ -206,96 +207,31 @@ export async function deleteProjectById(
   }
 }
 
-export async function saveControls(req: Request, res: Response): Promise<any> {
-  const projectId = req.body.projectId || 1;
+export async function getProjectStatsById(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const projectId = parseInt(req.params.id);
 
-  try {
-    if (MOCKDATA_ON === true) {
-      // first, the id of the project is needed and will be sent inside the req.body
-      const controlCategoryTitle = req.body.controlCategoryTitle;
+  // mock data sections
+  // first getting the project by id
+  const project: any = getMockProjectById(projectId);
 
-      // then, we need to create the control category and use the projectId as the foreign key
-      const controlCategory: any = createMockControlCategory({
-        projectId,
-        controlCategoryTitle,
-      });
+  const project_owner = project.owner; // (A user's id) Now, we get the user by this
+  const ownerUser: any = getMockUserById(project_owner);
 
-      // now, we need to create the control for the control category, and use the control category id as the foreign key
-      const control: any = createMockControl({
-        controlCategoryId: controlCategory.id,
-        control: {
-          contrlTitle: req.body.control.controlTitle,
-          controlDescription: req.body.control.controlDescription,
-          status: req.body.control.status,
-          approver: req.body.control.approver,
-          riskReview: req.body.control.riskReview,
-          owner: req.body.control.owner,
-          reviewer: req.body.control.reviewer,
-          description: req.body.control.description,
-          date: req.body.control.date,
-        },
-      });
-      const controlId = control.id;
+  const project_last_updated = project.last_updated;
 
-      // now we need to iterate over subcontrols inside the control, and create a subcontrol for each subcontrol
-      const subcontrols = req.body.control.subControls;
-      for (const subcontrol of subcontrols) {
-        const subcontrolToSave: any = createMockSubcontrol({
-          controlId,
-          subcontrol: subcontrol,
-        });
-        console.log("subcontrolToSave : ", subcontrolToSave);
-      }
-      res.status(200).json(
-        STATUS_CODE[200]({
-          message: "Controls saved",
-        })
-      );
-    } else {
-      // first the id of the project is needed and will be sent inside the req.body
-      const controlCategoryTitle = req.body.controlCategoryTitle;
+  const project_last_updated_by = project.last_updated_by;
+  const userWhoUpdated: any = getMockUserById(project_last_updated_by);
 
-      // then we need to create the control category and use the projectId as the foreign key
-      const controlCategory: any = await createControlCategoryQuery({
-        projectId,
-        name: controlCategoryTitle,
-      });
-
-      const controlCategoryId = controlCategory.id;
-
-      // now we need to create the control for the control category, and use the control category id as the foreign key
-      const control: any = await createNewControlQuery({
-        // controlCategoryId: controlCategory.id,
-        projectId: controlCategoryId, // now must be replaced with controlCategoryId
-        // title: req.body.control.title,
-        status: req.body.control.status,
-        approver: req.body.control.approver,
-        riskReview: req.body.control.riskReview,
-        owner: req.body.control.owner,
-        reviewer: req.body.control.reviewer,
-        dueDate: req.body.control.date,
-        implementationDetails: req.body.control.description,
-      });
-
-      const controlId = control.id;
-
-      // now we need to iterate over subcontrols inside the control, and create a subcontrol for each subcontrol
-      const subcontrols = req.body.control.subControls;
-      for (const subcontrol of subcontrols) {
-        const subcontrolToSave: any = await createNewSubcontrolQuery(
-          controlId,
-          subcontrol
-        );
-        console.log("subcontrolToSave : ", subcontrolToSave);
-      }
-
-      res.status(200).json(
-        STATUS_CODE[200]({
-          message: "Controls saved",
-        })
-      );
-    }
-  } catch (error) {
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
-  }
+  const overviewDetails = {
+    user: {
+      name: ownerUser.name,
+      surname: ownerUser.surname,
+      email: ownerUser.email,
+      project_last_updated,
+      userWhoUpdated,
+    },
+  };
 }

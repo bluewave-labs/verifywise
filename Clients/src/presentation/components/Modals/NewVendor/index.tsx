@@ -752,7 +752,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                         { _id: 1, name: "Rare" },
                         { _id: 2, name: "Unlikely" },
                         { _id: 3, name: "Possible" },
-                        { _id: 4, name: "Likely and Almost certain" },
+                        { _id: 4, name: "Likely" },
+                        { _id: 5, name: "Almost certain" },
                     ]}
                     label="Likelihood"
                     placeholder="Select risk severity"

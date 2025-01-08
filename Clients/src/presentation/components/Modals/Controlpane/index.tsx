@@ -14,7 +14,6 @@ import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import React, { useState } from "react";
 import DropDowns from "../../Inputs/Dropdowns";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
-import { STATUS_CODE } from "../../../../../../Servers/utils/statusCode.utils";
 
 interface CustomModalProps {
   isOpen: boolean;
@@ -30,7 +29,6 @@ const CustomModal: React.FC<CustomModalProps> = ({
   isOpen,
   setIsOpen,
   title,
-  onConfirm,
   content,
   subControlTlts,
 }) => {
@@ -38,9 +36,6 @@ const CustomModal: React.FC<CustomModalProps> = ({
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0); // State to track active tab
 
-  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
-    setSelectedTab(newValue);
-  };
   const [activeSection, setActiveSection] = useState<string>("Overview");
   const [responseMessage, setResponseMessage] = useState<string | null>(null);
 
@@ -224,7 +219,11 @@ const CustomModal: React.FC<CustomModalProps> = ({
             </Typography>
           )}
           {["Evidence", "Auditor Feedback"].includes(activeSection) && (
-            <AuditorFeedback activeSection={activeSection} />
+            <AuditorFeedback
+              activeSection={activeSection}
+              feedback=""
+              onChange={(e) => console.log(e.target.value)}
+            />
           )}
         </Box>
         <Stack

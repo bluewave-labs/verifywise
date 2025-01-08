@@ -11,6 +11,7 @@
   max-width: 230px;
   top: 0;
   left: 0;
+  z-index: 100;
 }
 
 .home-layout > div {

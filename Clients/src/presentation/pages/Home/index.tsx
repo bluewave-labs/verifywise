@@ -102,7 +102,7 @@ const Home = () => {
 
   return (
     <Box>
-      <Box sx={styles.projectBox} data-joyride-id="project-overview">
+      <Box sx={styles.projectBox} >
         <Typography variant="h1" component="div" sx={styles.title}>
           Projects overview
         </Typography>

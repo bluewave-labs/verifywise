@@ -10,9 +10,10 @@ const MitigationSection = lazy(() => import("./MitigationSection"));
 
 interface AddNewRiskFormProps {
     closePopup: () => void;
+    popupStatus: string;
 }
 
-const AddNewRiskForm: FC<AddNewRiskFormProps> = ({ closePopup }) => {
+const AddNewRiskForm: FC<AddNewRiskFormProps> = ({ closePopup, popupStatus }) => {
     const theme = useTheme();
     const disableRipple = theme.components?.MuiButton?.defaultProps?.disableRipple;
 
@@ -45,7 +46,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({ closePopup }) => {
                     </TabList>
                 </Box>
                 <Suspense fallback={<div>Loading...</div>}>
-                    <TabPanel value="risks" sx={{ p: "24px 0 0" }}><RiskSection closePopup={closePopup} /></TabPanel>
+                    <TabPanel value="risks" sx={{ p: "24px 0 0" }}><RiskSection closePopup={closePopup} status={popupStatus}/></TabPanel>
                     <TabPanel value="mitigation" sx={{ p: "24px 0 0" }}><MitigationSection closePopup={closePopup} /></TabPanel>
                 </Suspense>
             </TabContext>

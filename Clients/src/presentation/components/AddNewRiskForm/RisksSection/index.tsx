@@ -19,6 +19,7 @@ const RiskLevel = React.lazy(() => import("../../RiskLevel"));
 
 interface RiskSectionProps {
   closePopup: () => void;
+  status: string;
 }
 
 interface RiskFormValues {
@@ -75,7 +76,7 @@ const initialState: RiskFormValues = {
  *
  * @returns {JSX.Element} The rendered component.
  */
-const RiskSection: FC<RiskSectionProps> = ({ closePopup }) => {
+const RiskSection: FC<RiskSectionProps> = ({ closePopup, status }) => {
   const theme = useTheme();
   const [values, setValues] = useState<RiskFormValues>(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -364,7 +365,11 @@ const RiskSection: FC<RiskSectionProps> = ({ closePopup }) => {
             "&:hover": { boxShadow: "none" },
           }}
         >
-          Save
+          {status === 'new' ? 
+            <Typography>Save</Typography>
+            :
+            <Typography>Edit</Typography>
+          }
         </Button>
       </Stack>
     </Stack>

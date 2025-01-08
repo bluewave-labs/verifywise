@@ -15,7 +15,7 @@ const Dashboard = () => {
   const [projects, setProjects] = useState([]);
   const [_, setUsers] = useState([]);
 
-  const [isTourReady, setIsTourReady] = useState(false);
+  const [shouldRun, setShouldRun] = useState(false);
   //joyride steps
   const steps = [
     // Sidebar steps
@@ -70,7 +70,7 @@ const newProjectButton = document.querySelector('[data-joyride-id="new-project-b
 const dashboardNav= document.querySelector('[data-joyride-id="dashboard-navigation"]');
 
 if (newProjectButton && dashboardNav) {
-setIsTourReady(true);
+setShouldRun(true);
 }
 };
 const timeout = setTimeout(checkTourElements, 1000);
@@ -99,8 +99,8 @@ return () => clearTimeout(timeout);
       {/* Joyride */}
       <PageTour
         steps={steps}
-        run={isTourReady}
-        onFinish={() => setIsTourReady(false)}
+        run={shouldRun}
+        onFinish={() => setShouldRun(false)}
       />
       <Outlet />
     </Stack>

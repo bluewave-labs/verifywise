@@ -350,6 +350,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         } else {
             await createVendor(_vendorDetails);
         }
+        setIsModalOpen(false);
     };
 
     /**

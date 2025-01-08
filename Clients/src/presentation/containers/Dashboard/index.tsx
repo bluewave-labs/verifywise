@@ -9,6 +9,7 @@ import {
   getAllEntities,
 } from "../../../application/repository/entity.repository";
 import PageTour from "../../components/PageTour";
+import CustomStep from "../../components/PageTour/CustomStep";
 
 const Dashboard = () => {
   const { token, setDashboardValues } = useContext(VerifyWiseContext);
@@ -21,16 +22,30 @@ const Dashboard = () => {
     // Sidebar steps
     {
       target: '[data-joyride-id="new-project-button"]',
-      content:
-        "Create your first project. Each project corresponds to an AI activity in your company.",
+      content:(
+        <CustomStep
+          header="Create your first project."
+          body="Each project corresponds to an AI activity in your company."
+          />
+      )
     },
     {
       target: '[data-joyride-id="select-project"]',
-      content: "Select a project. Once created, you can select it here.",
+      content: (
+        <CustomStep 
+        header="Select a project."
+        body="Once created, you can select it here."
+        />
+      )
     },
     {
       target: '[data-joyride-id="dashboard-navigation"]',
-      content: "Fill in compliance,assessments, risks and vendors. Each project has its own set of questions and documents where you can fill in here.",
+      content: (
+        <CustomStep 
+        header="Fill in compliance,assessments, risks and vendors."
+        body="Each project has its own set of questions and documents where you can fill in here."
+        />
+      )
     },
   ];
 

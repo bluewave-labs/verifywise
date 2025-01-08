@@ -8,7 +8,7 @@ interface PageTourProps {
 }
 
 const PageTour: React.FC<PageTourProps> =({steps, run, onFinish}) => {
-   const [shouldRun, setShouldRun] = useState(false);
+   const [shouldRun, setShouldRun] = useState(true);
 
     useEffect (()=>{
         //always check if tour was seen first before running it
@@ -41,8 +41,8 @@ const PageTour: React.FC<PageTourProps> =({steps, run, onFinish}) => {
         styles={{
           options: {
             primaryColor: "rgba(23, 92, 211, 1)",
-            zIndex: 1000,
-            beaconSize: 20,
+            zIndex: 1500,
+            beaconSize: 30,
           },
         }}
       />

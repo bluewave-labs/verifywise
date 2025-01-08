@@ -368,7 +368,7 @@ const RiskSection: FC<RiskSectionProps> = ({ closePopup, status }) => {
           {status === 'new' ? 
             <Typography>Save</Typography>
             :
-            <Typography>Edit</Typography>
+            <Typography>Update</Typography>
           }
         </Button>
       </Stack>

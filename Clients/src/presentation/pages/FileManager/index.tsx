@@ -51,11 +51,13 @@ const EmptyState: React.FC = (): JSX.Element => (
     alignItems="center"
     justifyContent="center"
     sx={{
+      flex: 1,
       height: "100%",
+      width: "100%",
       textAlign: "center",
       border: "1px solid #eeeeee",
-      borderBottom: "1px solid #eeeeee",
-      
+      padding: 4,
+      boxSizing: "border-box",
     }}
   >
     <Box
@@ -69,7 +71,9 @@ const EmptyState: React.FC = (): JSX.Element => (
         mb: 4,
       }}
     />
-    <Typography variant="body2" color="text.secondary">
+    <Typography variant="body2" color="text.secondary"
+    sx={{margin:0}}
+    >
       There are currently no pieces of evidence or other documents uploaded.
     </Typography>
   </Stack>
@@ -214,7 +218,12 @@ const FileManager: React.FC = (): JSX.Element => {
       </Stack>
 
       <Box
-        sx={{
+        sx={{display: "flex",
+          flexDirection: "column",
+          flex: 1,
+          width: "100%",
+          justifyContent:files.length === 0 ? "center" : "flex-start",
+          alignItems: files.length === 0 ? "center": "stretch",
           position: "relative",
           borderRadius: "4px",
           overflow: "hidden",

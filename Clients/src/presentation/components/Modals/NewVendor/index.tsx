@@ -283,32 +283,21 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             newErrors.website = vendorWebsite.message;
         }
         if (!values.vendorDetails.projectId || Number(values.vendorDetails.projectId) === 0) {
-            newErrors.projectId = "Project is required";
+            newErrors.projectId = "Please select a project from the dropdown";
         }
         const vendorProvides = checkStringValidation("Vendor Provides", values.vendorDetails.vendorProvides, 1, 64);
         if (!vendorProvides.accepted) {
             newErrors.vendorProvides = vendorProvides.message;
         }
-        const vendorContactPerson = checkStringValidation(
-            "Vendor Contact Person",
-            values.vendorDetails.vendorContactPerson,
-            1,
-            64
-        );
+        const vendorContactPerson = checkStringValidation("Vendor Contact Person",values.vendorDetails.vendorContactPerson,1,64);
         if (!vendorContactPerson.accepted) {
             newErrors.vendorContactPerson = vendorContactPerson.message;
         }
-        const reviewStatus = checkStringValidation(
-            "Review Status",
-            values.vendorDetails.reviewStatus,
-            1,
-            64
-        );
-        if (!vendorContactPerson.accepted) {
-            newErrors.reviewStatus = reviewStatus.message;
+        if (!values.vendorDetails.reviewStatus || Number(values.vendorDetails.reviewStatus) === 0) {
+            newErrors.reviewStatus = "Please select a review status from the dropdown";
         }
         if (!values.vendorDetails.assignee || Number(values.vendorDetails.assignee) === 0) {
-            newErrors.assignee = "Assignee is required";
+            newErrors.assignee = "Please select an assignee from the dropdown";
         }
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -324,7 +313,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         const _vendorDetails = {
             projectId: values.vendorDetails.projectId,
             vendorName: values.vendorDetails.vendorName,
-            assignee: "Assignee 1",
+            assignee: values.vendorDetails.assignee,
             vendorProvides: values.vendorDetails.vendorProvides,
             website: values.vendorDetails.website,
             vendorContactPerson: values.vendorDetails.vendorContactPerson,

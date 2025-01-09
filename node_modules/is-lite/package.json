@@ -1,0 +1,130 @@
+{
+  "name": "is-lite",
+  "version": "1.2.1",
+  "description": "A tiny javascript type testing tool",
+  "author": "Gil Barbara <gilbarbara@gmail.com>",
+  "keywords": [
+    "type",
+    "check",
+    "assertion",
+    "validation",
+    "test",
+    "typeguard",
+    "typeof",
+    "instanceof"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gilbarbara/is-lite.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gilbarbara/is-lite/issues"
+  },
+  "homepage": "https://github.com/gilbarbara/is-lite#readme",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./exports": {
+      "import": "./dist/exports.mjs",
+      "require": "./dist/exports.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "typesVersions": {
+    "*": {
+      "exports": [
+        "dist/exports.d.ts"
+      ]
+    }
+  },
+  "types": "dist/index.d.ts",
+  "sideEffects": false,
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.13.5",
+    "@gilbarbara/esbuilder": "^0.2.0",
+    "@gilbarbara/eslint-config": "^0.7.2",
+    "@gilbarbara/prettier-config": "^1.0.0",
+    "@gilbarbara/tsconfig": "^0.2.3",
+    "@size-limit/preset-small-lib": "^11.0.1",
+    "@types/node": "^20.10.6",
+    "@vitest/coverage-v8": "^1.1.1",
+    "del-cli": "^5.1.0",
+    "happy-dom": "^12.10.3",
+    "husky": "^8.0.3",
+    "is-ci-cli": "^2.2.0",
+    "prettier": "^3.1.1",
+    "repo-tools": "^0.3.1",
+    "size-limit": "^11.0.1",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "vitest": "^1.1.1"
+  },
+  "scripts": {
+    "build": "npm run clean && tsup",
+    "watch": "tsup --watch",
+    "clean": "del dist/*",
+    "lint": "eslint --fix src test",
+    "test": "is-ci \"test:coverage\" \"test:watch\"",
+    "typecheck": "tsc",
+    "typevalidation": "attw -Pq",
+    "test:coverage": "TZ=UTC vitest run --coverage",
+    "test:watch": "TZ=UTC vitest watch",
+    "format": "prettier \"**/*.{js,jsx,json,yml,yaml,css,less,scss,ts,tsx,md,graphql,mdx}\" --write",
+    "validate": "npm run lint && npm run typecheck && npm run test:coverage && npm run build && npm run typevalidation && npm run size",
+    "size": "size-limit",
+    "prepublishOnly": "npm run validate",
+    "prepare": "husky install"
+  },
+  "tsup": {
+    "cjsInterop": true,
+    "dts": true,
+    "entry": [
+      "src/index.ts",
+      "src/exports.ts"
+    ],
+    "format": [
+      "cjs",
+      "esm"
+    ],
+    "sourcemap": true,
+    "splitting": false
+  },
+  "eslintConfig": {
+    "extends": [
+      "@gilbarbara/eslint-config/base",
+      "@gilbarbara/eslint-config/vitest"
+    ]
+  },
+  "prettier": "@gilbarbara/prettier-config",
+  "size-limit": [
+    {
+      "name": "commonjs",
+      "path": "./dist/index.js",
+      "limit": "1.5 kB"
+    },
+    {
+      "name": "esm",
+      "path": "./dist/index.mjs",
+      "limit": "1.5 kB"
+    },
+    {
+      "name": "exports-commonjs",
+      "path": "./dist/exports.js",
+      "limit": "2 kB"
+    },
+    {
+      "name": "exports-esm",
+      "path": "./dist/exports.mjs",
+      "limit": "2 kB"
+    }
+  ]
+}

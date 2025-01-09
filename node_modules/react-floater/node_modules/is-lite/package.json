@@ -1,0 +1,88 @@
+{
+  "name": "is-lite",
+  "version": "0.8.2",
+  "description": "A tiny javascript type testing tool",
+  "author": "Gil Barbara <gilbarbara@gmail.com>",
+  "keywords": [
+    "type",
+    "check",
+    "assertion",
+    "validation",
+    "test",
+    "typeguard",
+    "typeof",
+    "instanceof"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gilbarbara/is-lite.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gilbarbara/is-lite/issues"
+  },
+  "homepage": "https://github.com/gilbarbara/is-lite#readme",
+  "main": "lib/index.js",
+  "module": "esm/index.js",
+  "files": [
+    "lib",
+    "esm",
+    "src"
+  ],
+  "types": "lib",
+  "sideEffects": false,
+  "devDependencies": {
+    "@gilbarbara/eslint-config": "^0.2.1",
+    "@gilbarbara/prettier-config": "^0.1.0",
+    "@gilbarbara/tsconfig": "^0.1.0",
+    "@size-limit/preset-small-lib": "^7.0.8",
+    "@types/jest": "^27.4.1",
+    "@types/node": "^17.0.29",
+    "@typescript-eslint/eslint-plugin": "^5.21.0",
+    "@typescript-eslint/parser": "^5.21.0",
+    "husky": "^7.0.4",
+    "jest": "^27.5.1",
+    "prettier": "^2.6.2",
+    "repo-tools": "^0.2.2",
+    "rimraf": "^3.0.2",
+    "size-limit": "^7.0.8",
+    "ts-jest": "^27.1.4",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.3"
+  },
+  "scripts": {
+    "build": "npm run clean && npm run build:cjs && npm run build:esm",
+    "build:cjs": "tsc",
+    "build:esm": "tsc -m es6 --outDir esm",
+    "watch:cjs": "npm run build:cjs -- -w",
+    "watch:esm": "npm run build:esm -- -w",
+    "clean": "rimraf lib && rimraf esm",
+    "lint": "eslint --ext .ts,.tsx src test",
+    "test": "jest",
+    "test:coverage": "jest --bail --coverage",
+    "test:watch": "jest --watchAll --verbose",
+    "format": "prettier \"**/*.{js,jsx,json,yml,yaml,css,less,scss,ts,tsx,md,graphql,mdx}\" --write",
+    "validate": "npm run lint && npm run test:coverage && npm run build && npm run size",
+    "size": "size-limit",
+    "prepublishOnly": "npm run validate",
+    "prepare": "husky install"
+  },
+  "eslintConfig": {
+    "extends": [
+      "@gilbarbara/eslint-config"
+    ]
+  },
+  "prettier": "@gilbarbara/prettier-config",
+  "size-limit": [
+    {
+      "name": "commonjs",
+      "path": "./lib/index.js",
+      "limit": "1.5 kB"
+    },
+    {
+      "name": "esm",
+      "path": "./esm/index.js",
+      "limit": "1.5 kB"
+    }
+  ]
+}

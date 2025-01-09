@@ -1,0 +1,68 @@
+{
+  "name": "tree-changes",
+  "version": "0.9.3",
+  "description": "Get changes between two versions of data with similar shape",
+  "author": "Gil Barbara <gilbarbara@gmail.com>",
+  "keywords": [
+    "comparison",
+    "tree"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gilbarbara/tree-changes.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gilbarbara/tree-changes/issues"
+  },
+  "homepage": "https://github.com/gilbarbara/tree-changes#readme",
+  "main": "lib/index.js",
+  "module": "esm/index.js",
+  "files": [
+    "esm",
+    "lib",
+    "src"
+  ],
+  "types": "lib",
+  "sideEffects": false,
+  "dependencies": {
+    "@gilbarbara/deep-equal": "^0.1.1",
+    "is-lite": "^0.8.2"
+  },
+  "scripts": {
+    "build": "npm run clean && npm run build:cjs && npm run build:esm",
+    "build:cjs": "tsc",
+    "build:esm": "tsc -m es6 --outDir esm",
+    "watch:cjs": "npm run build:cjs -- -w",
+    "watch:esm": "npm run build:esm -- -w",
+    "clean": "del lib/* && del esm/*",
+    "lint": "eslint src test",
+    "test": "jest",
+    "test:coverage": "jest --coverage --bail",
+    "test:watch": "jest --watchAll --verbose",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier \"**/*.{js,jsx,json,yml,yaml,css,less,scss,ts,tsx,md,graphql,mdx}\" --write",
+    "validate": "npm run lint && npm run typecheck && npm run test:coverage && npm run build && npm run size",
+    "size": "size-limit",
+    "prepublishOnly": "npm run validate"
+  },
+  "eslintConfig": {
+    "extends": [
+      "@gilbarbara/eslint-config"
+    ]
+  },
+  "prettier": "@gilbarbara/prettier-config",
+  "size-limit": [
+    {
+      "name": "cjs",
+      "path": "./lib/index.js",
+      "limit": "4 kB"
+    },
+    {
+      "name": "esm",
+      "path": "./esm/index.js",
+      "limit": "3 kB"
+    }
+  ],
+  "gitHead": "e75858b421670c000067ba73f9987dc3a5c63424"
+}

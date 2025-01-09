@@ -1,0 +1,23 @@
+{
+  "name": "scroll",
+  "author": "Michael Rhodes",
+  "version": "3.0.1",
+  "main": "index.js",
+  "repository": "git@github.com:michaelrhodes/scroll",
+  "description": "animates the scroll top/left position of an element",
+  "keyword": [
+    "scrollTop",
+    "scrollLeft",
+    "scrollTo",
+    "animate"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "test": "wzrd test.js"
+  },
+  "devDependencies": {
+    "ease-component": "~1.0.0",
+    "tape": "~2.3.2",
+    "wzrd": "~1.5.0"
+  }
+}

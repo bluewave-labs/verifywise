@@ -54,6 +54,8 @@ const Playground = () => {
         value={selectedValue}
         getOptionValue={(option) => option._id}
         onChange={handleChange}
+        placeholder="Select multiple items"
+        width={600}
       />
     </Stack>
   );

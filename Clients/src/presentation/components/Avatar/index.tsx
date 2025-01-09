@@ -1,3 +1,5 @@
+// Ignore this file
+
 import { useEffect, useState } from "react";
 import "./index.css";
 import { Avatar as MuiAvatar } from "@mui/material";

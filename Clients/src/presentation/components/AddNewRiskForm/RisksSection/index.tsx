@@ -73,8 +73,25 @@ const initialState: RiskFormValues = {
  * @component
  * @param {RiskSectionProps} props - The props for the component.
  * @param {Function} props.closePopup - Function to close the popup.
+ * @param {string} props.status - The status of the form, either "new" or "update".
  *
  * @returns {JSX.Element} The rendered component.
+ */
+/**
+ * RiskSection component is a form used to add or update risk details.
+ * It includes fields for risk name, description, potential impact, review notes,
+ * action owner, AI lifecycle phase, and risk category. It also calculates the risk level
+ * based on likelihood and severity scores.
+ *
+ * @component
+ * @param {RiskSectionProps} props - The props for the RiskSection component.
+ * @param {Function} props.closePopup - Function to close the popup form.
+ * @param {string} props.status - The status of the form, either "new" or "update".
+ *
+ * @returns {JSX.Element} The rendered RiskSection component.
+ *
+ * @example
+ * <RiskSection closePopup={closePopupFunction} status="new" />
  */
 const RiskSection: FC<RiskSectionProps> = ({ closePopup, status }) => {
   const theme = useTheme();
@@ -209,7 +226,7 @@ const RiskSection: FC<RiskSectionProps> = ({ closePopup, status }) => {
                 sx={{
                   gridRow: "1 / 2",
                   gridColumn: "1 / 2",
-                  width: "325px"
+                  width: "325px",
                 }}
                 isRequired
                 error={errors.riskName}
@@ -228,8 +245,8 @@ const RiskSection: FC<RiskSectionProps> = ({ closePopup, status }) => {
                 isRequired
                 error={errors.actionOwner}
                 sx={{
-                    width: "325px",     
-                  }}
+                  width: "325px",
+                }}
               />
               <Select
                 id="ai-lifecycle-phase-input"
@@ -245,8 +262,8 @@ const RiskSection: FC<RiskSectionProps> = ({ closePopup, status }) => {
                 isRequired
                 error={errors.aiLifecyclePhase}
                 sx={{
-                    width: "325px",     
-                  }}
+                  width: "325px",
+                }}
               />
             </Stack>
 
@@ -270,7 +287,7 @@ const RiskSection: FC<RiskSectionProps> = ({ closePopup, status }) => {
                   isRequired
                   error={errors.riskDescription}
                   sx={{
-                    width: "325px",     
+                    width: "325px",
                   }}
                 />
                 <Select
@@ -287,7 +304,7 @@ const RiskSection: FC<RiskSectionProps> = ({ closePopup, status }) => {
                   isRequired
                   error={errors.riskCategory}
                   sx={{
-                    width: "325px",     
+                    width: "325px",
                   }}
                 />
               </Stack>
@@ -336,14 +353,14 @@ const RiskSection: FC<RiskSectionProps> = ({ closePopup, status }) => {
             type="description"
             value={values.reviewNotes}
             onChange={handleOnTextFieldChange("reviewNotes")}
-            sx={{ backgroundColor: theme.palette.background.main ,
-                "& #review-notes-input": {
-                    maxHeight: "120px",
-                  },
+            sx={{
+              backgroundColor: theme.palette.background.main,
+              "& #review-notes-input": {
+                maxHeight: "120px",
+              },
             }}
             isOptional
             error={errors.reviewNotes}
-            
           />
         </Stack>
         <Button
@@ -365,11 +382,11 @@ const RiskSection: FC<RiskSectionProps> = ({ closePopup, status }) => {
             "&:hover": { boxShadow: "none" },
           }}
         >
-          {status === 'new' ? 
+          {status === "new" ? (
             <Typography>Save</Typography>
-            :
+          ) : (
             <Typography>Update</Typography>
-          }
+          )}
         </Button>
       </Stack>
     </Stack>

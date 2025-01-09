@@ -9,23 +9,23 @@ import Alert from "../Alert";
 import Select from "../Inputs/Select";
 
 interface RiskSectionProps {
-  closePopup: () => void
+  closePopup: () => void;
 }
 
 interface FormValues {
-  vendorName: number,
-  actionOwner: number,
-  riskName: string,
-  reviewDate: string,
-  riskDescription: string
+  vendorName: number;
+  actionOwner: number;
+  riskName: string;
+  reviewDate: string;
+  riskDescription: string;
 }
 
 interface FormErrors {
-  vendorName?: string,
-  actionOwner?: string,
-  riskName?: string,
-  reviewDate?: string,
-  riskDescription?: string
+  vendorName?: string;
+  actionOwner?: string;
+  riskName?: string;
+  reviewDate?: string;
+  riskDescription?: string;
 }
 
 const initialState: FormValues = {
@@ -33,19 +33,52 @@ const initialState: FormValues = {
   actionOwner: 0,
   riskName: "",
   reviewDate: "",
-  riskDescription: ""
-}
+  riskDescription: "",
+};
 
 /**
  * `AddNewVendorRiskForm` is a functional component that renders a form for adding a new vendor risk.
  * It includes fields for vendor name, action owner, risk name, review date, and risk description.
  * The form validates the input fields before submission and displays any validation errors.
- * 
+ *
  * @component
  * @param {RiskSectionProps} props - The props for the component.
  * @param {Function} props.closePopup - Function to close the popup form.
- * 
+ *
  * @returns {JSX.Element} The rendered component.
+ */
+/**
+ * AddNewVendorRiskForm component allows users to add a new vendor risk.
+ *
+ * @component
+ * @param {RiskSectionProps} props - The properties for the component.
+ * @param {Function} props.closePopup - Function to close the popup.
+ *
+ * @returns {JSX.Element} The rendered component.
+ *
+ * @example
+ * <AddNewVendorRiskForm closePopup={handleClose} />
+ *
+ * @remarks
+ * This component uses several hooks:
+ * - `useTheme` to access the theme.
+ * - `useState` to manage form values, errors, and alert state.
+ *
+ * The form includes fields for:
+ * - Vendor name (select)
+ * - Action owner (select)
+ * - Risk name (text input)
+ * - Review date (date picker)
+ * - Risk description (text area)
+ *
+ * The form validates input values before submission and displays errors if any.
+ * On successful validation, it sends a request to the backend and closes the popup.
+ *
+ * @function handleDateChange - Updates the review date in the form values.
+ * @function handleOnSelectChange - Updates the selected value in the form values.
+ * @function handleOnTextFieldChange - Updates the text input value in the form values.
+ * @function validateForm - Validates the form values and sets errors if any.
+ * @function handleSubmit - Handles form submission, validates the form, and sends a request to the backend.
  */
 const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup }) => {
   const theme = useTheme();
@@ -60,17 +93,20 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup }) => {
   const handleDateChange = (newDate: Dayjs | null) => {
     setValues((prevValues) => ({
       ...prevValues,
-      reviewDate: newDate ? newDate.toISOString() : ""
+      reviewDate: newDate ? newDate.toISOString() : "",
     }));
   };
-  const handleOnSelectChange = (prop: keyof FormValues) => (event: SelectChangeEvent<string | number>) => {
-    setValues({ ...values, [prop]: event.target.value });
-    setErrors({ ...errors, [prop]: "" });
-  };
-  const handleOnTextFieldChange = (prop: keyof FormValues) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    setValues({ ...values, [prop]: event.target.value });
-    setErrors({ ...errors, [prop]: "" });
-  };
+  const handleOnSelectChange =
+    (prop: keyof FormValues) => (event: SelectChangeEvent<string | number>) => {
+      setValues({ ...values, [prop]: event.target.value });
+      setErrors({ ...errors, [prop]: "" });
+    };
+  const handleOnTextFieldChange =
+    (prop: keyof FormValues) =>
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setValues({ ...values, [prop]: event.target.value });
+      setErrors({ ...errors, [prop]: "" });
+    };
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -79,11 +115,20 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup }) => {
     if (!riskName.accepted) {
       newErrors.riskName = riskName.message;
     }
-    const riskDescription = checkStringValidation("Risk description", values.riskDescription, 1, 256);
+    const riskDescription = checkStringValidation(
+      "Risk description",
+      values.riskDescription,
+      1,
+      256
+    );
     if (!riskDescription.accepted) {
       newErrors.riskDescription = riskDescription.message;
     }
-    const reviewDate = checkStringValidation("Review date", values.reviewDate, 1);
+    const reviewDate = checkStringValidation(
+      "Review date",
+      values.reviewDate,
+      1
+    );
     if (!reviewDate.accepted) {
       newErrors.reviewDate = reviewDate.message;
     }
@@ -98,7 +143,7 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup }) => {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -106,14 +151,14 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup }) => {
       //request to the backend
       closePopup();
     }
-  }
+  };
 
   const fieldStyle = {
     backgroundColor: theme.palette.background.main,
     "& input": {
-      padding: "0 14px"
-    }
-  }
+      padding: "0 14px",
+    },
+  };
 
   return (
     <Stack>
@@ -127,7 +172,15 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup }) => {
         />
       )}
       <Stack component="form" onSubmit={handleSubmit}>
-        <Stack sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 20, rowGap: 8, mt: 13.5 }}>
+        <Stack
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            columnGap: 20,
+            rowGap: 8,
+            mt: 13.5,
+          }}
+        >
           <Select
             id="vendor-name-input"
             label="Vendor name"
@@ -139,7 +192,10 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup }) => {
               { _id: 2, name: "Some value 2" },
               { _id: 3, name: "Some value 3" },
             ]}
-            sx={{ width: "350px", backgroundColor: theme.palette.background.main }}
+            sx={{
+              width: "350px",
+              backgroundColor: theme.palette.background.main,
+            }}
             error={errors.vendorName}
             isRequired
           />
@@ -154,7 +210,10 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup }) => {
               { _id: 2, name: "Some value 2" },
               { _id: 3, name: "Some value 3" },
             ]}
-            sx={{ width: "350px", backgroundColor: theme.palette.background.main }}
+            sx={{
+              width: "350px",
+              backgroundColor: theme.palette.background.main,
+            }}
             error={errors.actionOwner}
             isRequired
           />
@@ -175,7 +234,7 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup }) => {
             handleDateChange={handleDateChange}
             sx={{
               width: "130px",
-              "& input": { width: "85px" }
+              "& input": { width: "85px" },
             }}
             isRequired
             error={errors.reviewDate}
@@ -196,9 +255,12 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup }) => {
         <Button
           type="submit"
           variant="contained"
-          disableRipple={theme.components?.MuiButton?.defaultProps?.disableRipple}
+          disableRipple={
+            theme.components?.MuiButton?.defaultProps?.disableRipple
+          }
           sx={{
-            borderRadius: 2, maxHeight: 34,
+            borderRadius: 2,
+            maxHeight: 34,
             textTransform: "inherit",
             backgroundColor: "#4C7DE7",
             boxShadow: "none",
@@ -206,12 +268,14 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup }) => {
             ml: "auto",
             mr: 0,
             mt: "30px",
-            "&:hover": { boxShadow: "none" }
+            "&:hover": { boxShadow: "none" },
           }}
-        >Save</Button>
+        >
+          Save
+        </Button>
       </Stack>
     </Stack>
-  )
-}
+  );
+};
 
 export default AddNewVendorRiskForm;

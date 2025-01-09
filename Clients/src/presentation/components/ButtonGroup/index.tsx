@@ -10,9 +10,22 @@ interface StyledButtonProps extends ButtonProps {
 const StyledButtonGroup = styled(ButtonGroup)({
   borderRadius: "4px",
   overflow: "hidden",
-  height: '34px'
+  height: "34px",
 });
 
+/**
+ * A styled button component that customizes the appearance of a button based on its props.
+ *
+ * @param {StyledButtonProps} props - The properties used to style the button.
+ * @param {object} props.theme - The theme object provided by the styled-components ThemeProvider.
+ * @param {boolean} props.isSelected - Determines if the button is selected.
+ * @param {boolean} props.isAllButton - Determines if the button is an "all" button.
+ *
+ * @returns {JSX.Element} A styled button component.
+ *
+ * @example
+ * <StyledButton isSelected={true} isAllButton={false}>Button</StyledButton>
+ */
 const StyledButton = styled(Button)<StyledButtonProps>(
   ({ theme, isSelected, isAllButton }) => ({
     color: isAllButton

@@ -89,6 +89,42 @@ export enum MitigationStatus {
  *
  * @returns {JSX.Element} The rendered MitigationSection component
  */
+/**
+ * MitigationSection component is a form used to capture and validate mitigation details.
+ *
+ * @component
+ * @param {MitigationSectionProps} props - The props for the MitigationSection component.
+ * @param {Function} props.closePopup - Function to close the popup.
+ *
+ * @returns {JSX.Element} The rendered MitigationSection component.
+ *
+ * @example
+ * <MitigationSection closePopup={handleClosePopup} />
+ *
+ * @remarks
+ * This component uses various hooks such as `useState`, `useCallback`, and `useMemo` to manage state and optimize performance.
+ * It includes form validation logic and handles form submission.
+ * The form fields include mitigation status, mitigation plan, current risk level, implementation strategy, start date, approver, approval status, and recommendations.
+ *
+ * @requires useTheme
+ * @requires useState
+ * @requires useCallback
+ * @requires useMemo
+ * @requires Suspense
+ * @requires Stack
+ * @requires Alert
+ * @requires Select
+ * @requires Field
+ * @requires DatePicker
+ * @requires FileUpload
+ * @requires Divider
+ * @requires Typography
+ * @requires RiskLevel
+ * @requires Button
+ * @requires checkStringValidation
+ * @requires selectValidation
+ * @requires dayjs
+ */
 const MitigationSection: FC<MitigationSectionProps> = ({ closePopup }) => {
   const theme = useTheme();
   const [values, setValues] = useState<MitigationFormValues>(initialState);

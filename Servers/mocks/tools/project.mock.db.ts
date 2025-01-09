@@ -10,7 +10,14 @@ export const getMockProjectById = (id: number): object | undefined => {
 };
 
 export const createMockProject = (newProject: any): object => {
+  // mockProjects.push(newProject);
+  // return newProject;
+
+  const newId = mockProjects.length + 1;
+  newProject.id = newId;
+  newProject.last_updated = new Date().toISOString();
   mockProjects.push(newProject);
+
   return newProject;
 };
 

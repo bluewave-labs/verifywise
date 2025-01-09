@@ -98,7 +98,7 @@ const Popup: FC<PopupProps> = ({
           top: 0,
           width: "100%",
           height: "100%",
-          backgroundColor: "#D9D9D980",
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",

@@ -1,0 +1,12 @@
+.vw-multi-select .vw-multi-select-label {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  font-size: 13px;
+  color: #344054;
+}
+
+.vw-multi-select-label .required {
+  color: #344054;
+  margin-left: 2px;
+}

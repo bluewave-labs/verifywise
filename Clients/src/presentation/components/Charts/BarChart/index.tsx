@@ -19,7 +19,34 @@ const formatDate = (date: any, customOptions: any) => {
     .replace(/\b(AM|PM)\b/g, (match: any) => match.toLowerCase());
 };
 
-const BarChart = ({ checks }: { checks: any[] }) => {
+/**
+ * BarChart component renders a bar chart with tooltips for each check.
+ *
+ * @param {Object} props - The component props.
+ * @param {Array} props.checks - An array of check objects to be displayed in the bar chart.
+ *
+ * @returns {JSX.Element} The rendered BarChart component.
+ *
+ * @example
+ * <BarChart checks={checksArray} />
+ *
+ * The component uses the following:
+ * - `useTheme` to access the theme properties.
+ * - `useState` to manage the animation state.
+ * - `useEffect` to trigger the animation on component mount.
+ *
+ * The component ensures that:
+ * - If there is only one check, it sets its response time to 50.
+ * - If there are fewer than 25 checks, it fills the remaining slots with placeholders.
+ *
+ * Each check is rendered as a bar with a tooltip that shows additional information:
+ * - The creation date of the check.
+ * - A status indicator (success or error).
+ * - The response time of the check.
+ *
+ * The tooltip is styled using the theme properties and includes custom offsets and styles.
+ */
+const BarChart = ({ checks }: { checks: any[] }): JSX.Element => {
   const theme = useTheme();
   const [animate, setAnimate] = useState(false);
 

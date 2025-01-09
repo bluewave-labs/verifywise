@@ -16,12 +16,12 @@ import {
   getAssessmentByIdQuery,
   updateAssessmentByIdQuery,
 } from "../utils/assessment.utils";
-import { createMockTopic } from "../mocks/tools/topic.mock.db";
-import { createMockSubtopic } from "../mocks/tools/subtopic.mock.db";
-import { createMockQuestion } from "../mocks/tools/question.mock.db";
-import { createNewTopicQuery } from "../utils/topic.utils";
-import { createNewSubtopicQuery } from "../utils/subtopic.utils";
-import { createNewQuestionQuery } from "../utils/question.utils";
+import { createMockTopic, updateMockTopicById } from "../mocks/tools/topic.mock.db";
+import { createMockSubtopic, updateMockSubtopicById } from "../mocks/tools/subtopic.mock.db";
+import { createMockQuestion, updateMockQuestionById } from "../mocks/tools/question.mock.db";
+import { createNewTopicQuery, updateTopicByIdQuery } from "../utils/topic.utils";
+import { createNewSubtopicQuery, updateSubtopicByIdQuery } from "../utils/subtopic.utils";
+import { createNewQuestionQuery, updateQuestionByIdQuery } from "../utils/question.utils";
 
 export async function getAllAssessments(
   req: Request,
@@ -248,6 +248,101 @@ export async function saveAnswers(req: Request, res: Response): Promise<any> {
       // now iterate over the questions, create a question using subtopic id and the question
       for (const question of questions) {
         createNewQuestionQuery(
+          {
+            subtopicId,
+            questionText: question.question,
+            answerType: question.answerType,
+            evidenceFileRequired: question.evidenceFileRequired,
+            hint: question.hint,
+            isRequired: question.isRequired,
+            priorityLevel: question.priorityLevel,
+            answer: question.answer,
+          },
+          question.evidenceFiles
+        );
+      }
+    }
+  }
+}
+
+export async function updateAnswers(req: Request, res: Response): Promise<any> {
+  const requestBody = req.body as {
+    assessmentId: number,
+    topic: string,
+    topicId: number,
+    subtopic: {
+      id: number
+      name: string,
+      questions: {
+        id: number,
+        subtopicId: number,
+        question: string,
+        answerType: string,
+        evidenceFileRequired: boolean,
+        hint: string,
+        isRequired: boolean,
+        priorityLevel: string,
+        answer: string,
+        evidenceFiles: []
+      }[]
+    }[]
+  }
+  if (MOCKDATA_ON === true) {
+    try {
+      const assessmentId = requestBody.assessmentId;
+
+      const topicId = requestBody.topicId
+      // now, update the topic based on id using the assessmentId and the topic
+      updateMockTopicById(topicId, { assessmentId, title: requestBody.topic });
+
+      // now iterate over the subtopics, update the subtopic by subtopic id using topic id and the subtopic
+      const subtopics = requestBody.subtopic;
+      for (const subtopic of subtopics) {
+        const subtopicId = subtopic.id
+        updateMockSubtopicById(
+          subtopicId,
+          {
+            topicId,
+            name: subtopic.name
+          }
+        );
+
+        const questions = subtopic.questions;
+        console.log(questions);
+        // now iterate over the questions, update the question by question id using subtopic id and the question
+        for (const question of questions) {
+          const questionId = question.id
+          updateMockQuestionById(questionId, { ...question });
+        }
+      }
+      res.status(200).json(STATUS_CODE[200]({ message: "Answers saved" }));
+    } catch (error) {
+      return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+    }
+    res.status(200);
+  } else {
+    const assessmentId = requestBody.assessmentId;
+
+    const topicId = requestBody.topicId
+    // now, update the topic using the assessmentId and the topic
+    updateTopicByIdQuery(topicId, {
+      assessmentId,
+      title: requestBody.topic,
+    });
+
+    // now iterate over the subtopics, update the subtopic using topic id and the subtopic
+    const subtopics = requestBody.subtopic;
+    for (const subtopic of subtopics) {
+      const subtopicId = subtopic.id
+      updateSubtopicByIdQuery(subtopicId, {
+        topicId,
+        name: subtopic.name,
+      });
+      const questions = subtopic.questions;
+      // now iterate over the questions, update the question using subtopic id and the question
+      for (const question of questions) {
+        const questionId = question.id
+        updateQuestionByIdQuery(questionId,
           {
             subtopicId,
             questionText: question.question,

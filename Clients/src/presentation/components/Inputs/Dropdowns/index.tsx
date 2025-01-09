@@ -13,7 +13,13 @@ interface User {
   email: string;
 }
 
-const DropDowns = () => {
+interface DropDownsProps {
+  elementId?: string;
+  state?: any;
+  setState?: (newState: any) => void;
+}
+
+const DropDowns: React.FC<DropDownsProps> = () => {
   const [status, setStatus] = useState<string | number>("");
   const [approver, setApprover] = useState<string | number>("");
   const [riskReview, setRiskReview] = useState<string | number>("");
@@ -35,7 +41,7 @@ const DropDowns = () => {
   };
 
   const [users, setUsers] = useState<User[]>([]);
-  
+
   useEffect(() => {
     const fetchUsers = async () => {
       const response = await getAllEntities({ routeUrl: "/users" });
@@ -43,12 +49,12 @@ const DropDowns = () => {
     };
     fetchUsers();
   }, []);
-  console.log("🚀 ~ DropDowns ~ usersssssssssss:", users)
+  console.log("🚀 ~ DropDowns ~ users:", users);
 
   const handleChange = (e: SelectChangeEvent<string | number>) => {
     const selectedValue = e.target.value;
     console.log("Selected value:", selectedValue);
-    const selectedUser = users.find(user => user.id === selectedValue);
+    const selectedUser = users.find((user) => user.id === selectedValue);
     console.log("Selected user:", selectedUser);
     setApprover(selectedValue);
   };
@@ -84,9 +90,9 @@ const DropDowns = () => {
           label="Approver:"
           value={approver || ""}
           onChange={handleChange}
-          items={users.map(user => ({ 
+          items={users.map((user) => ({
             _id: user.id,
-            name: user.name 
+            name: user.name,
           }))}
           sx={inputStyles}
         />
@@ -118,7 +124,7 @@ const DropDowns = () => {
           label="Owner:"
           value={owner}
           onChange={(e) => setOwner(e.target.value)}
-          items={users.map(user => ({ _id: user.id, name: user.name }))}
+          items={users.map((user) => ({ _id: user.id, name: user.name }))}
           sx={inputStyles}
         />
 
@@ -127,14 +133,14 @@ const DropDowns = () => {
           label="Reviewer:"
           value={reviewer}
           onChange={(e) => setReviewer(e.target.value)}
-          items={users.map(user => ({ _id: user.id, name: user.name }))}
+          items={users.map((user) => ({ _id: user.id, name: user.name }))}
           sx={inputStyles}
         />
 
         <DatePicker
           label="Due date:"
           sx={inputStyles}
-          date={date} 
+          date={date}
           handleDateChange={handleDateChange}
         />
       </Stack>

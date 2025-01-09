@@ -83,16 +83,24 @@ const RisksView: FC<RisksViewProps> = memo(
       [risksTableCols, risksTableRows]
     );
 
+    const [selectedRow, setSelectedRow] = useState({});
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+    const handleClosePopup = () => {
+      setAnchorEl(null); // Close the popup
+      setSelectedRow({});
+    };
+
     const AddNewRiskPopupRender = useCallback(() => {
       const [anchor, setAnchor] = useState<null | HTMLElement>(null);
-      const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
+      const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {        
         setAnchor(anchor ? null : event.currentTarget);
       };
 
       return (
         <Popup
           popupId="add-new-risk-popup"
-          popupContent={<AddNewRiskForm closePopup={() => setAnchor(null)} />}
+          popupContent={<AddNewRiskForm closePopup={() => setAnchor(null)} popupStatus="new" />}
           openPopupButtonName="Add new risk"
           popupTitle="Add a new risk"
           popupSubtitle="Create a detailed breakdown of risks and their mitigation strategies to assist in documenting your risk management activities effectively."
@@ -144,11 +152,24 @@ const RisksView: FC<RisksViewProps> = memo(
             <AddNewVendorRiskPopupRender />
           )}
         </Stack>
+        {Object.keys(selectedRow).length > 0 && anchorEl && (
+          <Popup
+            popupId="edit-new-risk-popup"
+            popupContent={<AddNewRiskForm closePopup={() => setAnchorEl(null)} popupStatus="edit" />}
+            openPopupButtonName="Edit risk"
+            popupTitle="Edit project risk"
+            // popupSubtitle="Create a detailed breakdown of risks and their mitigation strategies to assist in documenting your risk management activities effectively."
+            handleOpenOrClose={handleClosePopup}
+            anchor={anchorEl}
+          />
+        )}
         <BasicTable
           data={tableData}
           table="risksTable"
           paginated
           label={`${title} risks`}
+          setSelectedRow={setSelectedRow}
+          setAnchorEl={setAnchorEl}
         />
       </Stack>
     );

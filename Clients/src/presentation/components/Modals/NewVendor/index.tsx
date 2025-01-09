@@ -77,6 +77,7 @@ interface FormErrors {
     projectId?: string;
     vendorContactPerson?: string;
     reviewStatus?: string;
+    assignee?: string
 }
 const initialState = {
     vendorDetails: {
@@ -281,54 +282,38 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         if (!vendorWebsite.accepted) {
             newErrors.website = vendorWebsite.message;
         }
-        if (
-            !values.vendorDetails.projectId ||
-            Number(values.vendorDetails.projectId) === 0
-        ) {
-            newErrors.projectId = "Project is required";
+        if (!values.vendorDetails.projectId || Number(values.vendorDetails.projectId) === 0) {
+            newErrors.projectId = "Please select a project from the dropdown";
         }
-        const vendorProvides = checkStringValidation(
-            "Vendor Provides",
-            values.vendorDetails.vendorProvides,
-            1,
-            64
-        );
+        const vendorProvides = checkStringValidation("Vendor Provides", values.vendorDetails.vendorProvides, 1, 64);
         if (!vendorProvides.accepted) {
             newErrors.vendorProvides = vendorProvides.message;
         }
-        const vendorContactPerson = checkStringValidation(
-            "Vendor Contact Person",
-            values.vendorDetails.vendorContactPerson,
-            1,
-            64
-        );
+        const vendorContactPerson = checkStringValidation("Vendor Contact Person",values.vendorDetails.vendorContactPerson,1,64);
         if (!vendorContactPerson.accepted) {
             newErrors.vendorContactPerson = vendorContactPerson.message;
         }
-        const reviewStatus = checkStringValidation(
-            "Review Status",
-            values.vendorDetails.reviewStatus,
-            1,
-            64
-        );
-        if (!vendorContactPerson.accepted) {
-            newErrors.reviewStatus = reviewStatus.message;
+        if (!values.vendorDetails.reviewStatus || Number(values.vendorDetails.reviewStatus) === 0) {
+            newErrors.reviewStatus = "Please select a review status from the dropdown";
+        }
+        if (!values.vendorDetails.assignee || Number(values.vendorDetails.assignee) === 0) {
+            newErrors.assignee = "Please select an assignee from the dropdown";
         }
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
-     /**
-     * Handles the final save operation after confirmation
-     * Creates new vendor or updates existing one
-     */
+    /**
+    * Handles the final save operation after confirmation
+    * Creates new vendor or updates existing one
+    */
     const handleOnSave = async () => {
         console.log("Vendor Details:", values.vendorDetails);
         console.log("Risks:", values.risks);
         const _vendorDetails = {
             projectId: values.vendorDetails.projectId,
             vendorName: values.vendorDetails.vendorName,
-            assignee: "Assignee 1",
+            assignee: values.vendorDetails.assignee,
             vendorProvides: values.vendorDetails.vendorProvides,
             website: values.vendorDetails.website,
             vendorContactPerson: values.vendorDetails.vendorContactPerson,
@@ -354,12 +339,13 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         } else {
             await createVendor(_vendorDetails);
         }
+        setIsModalOpen(false);
     };
 
-     /**
-     * Creates a new vendor in the system
-     * @param vendorDetails - The vendor details to create
-     */
+    /**
+    * Creates a new vendor in the system
+    * @param vendorDetails - The vendor details to create
+    */
     const createVendor = async (vendorDetails: VendorDetails) => {
         await createNewUser({
             routeUrl: "/vendors",
@@ -592,6 +578,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                     sx={{
                         width: 220,
                     }}
+                    isRequired
+                    error={errors.assignee}
                 />
                 <DatePicker // reviewDate
                     label="Review date"
@@ -640,9 +628,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             >
                 <Select // impact
                     items={[
-                        { _id: 1, name: "High" },
-                        { _id: 2, name: "Moderate" },
-                        { _id: 3, name: "Low" },
+                        { _id: 1, name: "Negligible" },
+                        { _id: 2, name: "Minor" },
+                        { _id: 3, name: "Moderate" },
+                        { _id: 4, name: "Major and Critical" },
                     ]}
                     label="Impact"
                     placeholder="Select impact"
@@ -685,9 +674,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 >
                     <Select // riskSeverity
                         items={[
-                            { _id: 1, name: "Critical" },
-                            { _id: 2, name: "Major" },
-                            { _id: 3, name: "Minor" },
+                            { _id: 1, name: "Low" },
+                            { _id: 2, name: "Medium" },
+                            { _id: 3, name: "High and Critical" },
                         ]}
                         label="Risk severity"
                         placeholder="Select risk severity"
@@ -750,9 +739,11 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 />
                 <Select // likelihood
                     items={[
-                        { _id: 1, name: "Probable" },
-                        { _id: 2, name: "Possible" },
-                        { _id: 3, name: "Unlikely" },
+                        { _id: 1, name: "Rare" },
+                        { _id: 2, name: "Unlikely" },
+                        { _id: 3, name: "Possible" },
+                        { _id: 4, name: "Likely" },
+                        { _id: 5, name: "Almost certain" },
                     ]}
                     label="Likelihood"
                     placeholder="Select risk severity"

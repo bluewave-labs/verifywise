@@ -3,6 +3,23 @@ import { Box, Breadcrumbs as MUIBreadcrumbs, useTheme } from "@mui/material";
 import { ReactComponent as ArrowRight } from "../../assets/icons/right-arrow.svg";
 import { useNavigate } from "react-router-dom";
 
+/**
+ * Breadcrumbs component renders a breadcrumb navigation using Material-UI components.
+ *
+ * @param {Object} props - The properties object.
+ * @param {any[]} props.list - An array of breadcrumb items, each item should have a `name` and `path` property.
+ *
+ * @returns {JSX.Element} The rendered breadcrumb navigation component.
+ *
+ * @example
+ * const breadcrumbList = [
+ *   { name: 'Home', path: '/' },
+ *   { name: 'About', path: '/about' },
+ *   { name: 'Contact', path: '/contact' }
+ * ];
+ *
+ * <Breadcrumbs list={breadcrumbList} />
+ */
 const Breadcrumbs = ({ list }: { list: any[] }) => {
   const theme = useTheme();
   const navigate = useNavigate();

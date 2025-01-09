@@ -7,6 +7,7 @@ import {
   createControl,
   updateControlById,
   deleteControlById,
+  updateControls,
 } from "../controllers/control.ctrl";
 
 import authenticateJWT from "../middleware/auth.middleware";
@@ -20,6 +21,7 @@ router.get("/:id", /*authenticateJWT,*/ getControlById);
 router.post("/", /*authenticateJWT,*/ createControl);
 router.post("/saveControls", /*authenticateJWT,*/ saveControls);
 router.put("/:id", /*authenticateJWT,*/ updateControlById);
+router.put("/updateControls/:id", /*authenticateJWT,*/ updateControls);
 router.delete("/:id", /*authenticateJWT,*/ deleteControlById);
 
 export default router;

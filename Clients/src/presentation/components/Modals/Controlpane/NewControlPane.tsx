@@ -286,11 +286,11 @@ const NewControlPane = ({
             {`${numbering}.${subControls[selectedTab].id}`}{" "}
             {subControls[selectedTab].title}
           </Typography>
-          <Typography sx={{ mb: 5 }}>
+          <Typography sx={{ mb: 5, fontSize: 13 }}>
             {subControls[selectedTab].description}
           </Typography>
           {activeSection === "Overview" && (
-            <Typography>
+            <Typography fontSize={13}>
               <DropDowns
                 elementId={`sub-control-${id}.${subControls[selectedTab].subControlId}`}
                 state={state.subControls[selectedTab]}

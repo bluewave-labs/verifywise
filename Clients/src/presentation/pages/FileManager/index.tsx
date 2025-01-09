@@ -1,15 +1,12 @@
-import React, { useState, MouseEvent, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import {
   Stack,
   Box,
   Typography,
-  IconButton,
-  Menu,
-  MenuItem,
 } from "@mui/material";
 import BasicTable from "../../components/Table";
 
-import SettingsIcon from "../../assets/icons/setting.svg";
+
 import EmptyTableImage from "../../assets/imgs/empty-state.svg";
 import AscendingIcon from "../../assets/icons/up-arrow.svg";
 import DescendingIcon from "../../assets/icons/down-arrow.svg";
@@ -33,10 +30,8 @@ interface File {
 
 const COLUMN_NAMES = {
   FILE: "File",
-  TYPE: "Type",
   UPLOAD_DATE: "Upload Date",
   UPLOADER: "Uploader",
-  ACTION: "Action",
 };
 
 const SORT_DIRECTIONS = {
@@ -56,10 +51,13 @@ const EmptyState: React.FC = (): JSX.Element => (
     alignItems="center"
     justifyContent="center"
     sx={{
+      flex: 1,
       height: "100%",
+      width: "100%",
       textAlign: "center",
       border: "1px solid #eeeeee",
-      borderBottom: "1px solid #eeeeee",
+      padding: 4,
+      boxSizing: "border-box",
     }}
   >
     <Box
@@ -73,35 +71,12 @@ const EmptyState: React.FC = (): JSX.Element => (
         mb: 4,
       }}
     />
-    <Typography variant="body2" color="text.secondary">
-      There are currently no evidences or documents uploaded.
+    <Typography variant="body2" color="text.secondary"
+    sx={{margin:0}}
+    >
+      There are currently no pieces of evidence or other documents uploaded.
     </Typography>
   </Stack>
-);
-
-/**
- * Displays a menu with actions for a file.
- * @param {Object} props - The component props.
- * @param {HTMLElement|null} props.anchorEl - The element to which the menu is anchored.
- * @param {Function} props.onClose - Callback to close the menu.
- * @param {Function} props.onDownload - Callback to download the file.
- * @param {Function} props.onRemove - Callback to remove the file.
- * @returns {JSX.Element} The file actions menu component.
- */
-const FileActions: React.FC<{
-  anchorEl: HTMLElement | null;
-  onClose: () => void;
-  onDownload: () => void;
-  onRemove: () => void;
-}> = ({ anchorEl, onClose, onDownload, onRemove }) => (
-  <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={onClose}>
-    <MenuItem onClick={onDownload} aria-label="Download File">
-      Download
-    </MenuItem>
-    <MenuItem onClick={onRemove} aria-label="Remove File">
-      Remove
-    </MenuItem>
-  </Menu>
 );
 
 /**
@@ -174,8 +149,6 @@ const FileTable: React.FC<{
  */
 const FileManager: React.FC = (): JSX.Element => {
   const [files, setFiles] = useState<File[]>([]);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [sortField, setSortField] = useState<keyof File | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection | null>(
     null
@@ -220,75 +193,17 @@ const FileManager: React.FC = (): JSX.Element => {
         id: file.id,
         data: [
           { id: 1, data: file.name },
-          { id: 2, data: file.type },
-          { id: 3, data: file.uploadDate },
-          { id: 4, data: file.uploader },
-          {
-            id: 5,
-            data: (
-              <IconButton
-                onClick={(event) => handleActionsClick(event, file)}
-                aria-label="File Actions"
-              >
-                <Box
-                  component="img"
-                  src={SettingsIcon}
-                  alt="Settings"
-                  sx={{ width: 24, height: 24 }}
-                />
-              </IconButton>
-            ),
-          },
+          { id: 2, data: file.uploadDate },
+          { id: 3, data: file.uploader },
         ],
       })),
     [files]
   );
 
-  /**
-   * Handles the click event for file actions.
-   * @param {MouseEvent<HTMLElement>} event - The click event.
-   * @param {File} file - The file for which actions are being handled.
-   */
-  const handleActionsClick = useCallback(
-    (event: MouseEvent<HTMLElement>, file: File) => {
-      setAnchorEl(event.currentTarget);
-      setSelectedFile(file);
-    },
-    []
-  );
-
-  /**
-   * Closes the action menu.
-   */
-  const handleMenuClose = useCallback(() => {
-    setAnchorEl(null);
-    setSelectedFile(null);
-  }, []);
-
-  /**
-   * Handles the download action for a file.
-   */
-  const handleDownload = useCallback(() => {
-    console.log(`Downloading ${selectedFile?.name}`);
-    handleMenuClose();
-  }, [selectedFile, handleMenuClose]);
-
-  /**
-   * Handles the removal of a file.
-   */
-  const handleRemove = useCallback(() => {
-    if (selectedFile) {
-      setFiles(files.filter((file) => file.id !== selectedFile.id));
-    }
-    handleMenuClose();
-  }, [files, selectedFile, handleMenuClose]);
-
   const cols = [
-    { id: 1, name: COLUMN_NAMES.FILE },
-    { id: 2, name: COLUMN_NAMES.TYPE },
-    { id: 3, name: COLUMN_NAMES.UPLOAD_DATE },
-    { id: 4, name: COLUMN_NAMES.UPLOADER },
-    { id: 5, name: COLUMN_NAMES.ACTION },
+    { id: 1, name: COLUMN_NAMES.FILE, sx: { width: "50%" } },
+    { id: 2, name: COLUMN_NAMES.UPLOAD_DATE, sx: { width: "50%" } },
+    { id: 3, name: COLUMN_NAMES.UPLOADER, sx: { width: "50%" } },
   ];
 
   return (
@@ -303,13 +218,19 @@ const FileManager: React.FC = (): JSX.Element => {
       </Stack>
 
       <Box
-        sx={{
+        sx={{display: "flex",
+          flexDirection: "column",
+          flex: 1,
+          width: "100%",
+          justifyContent:files.length === 0 ? "center" : "flex-start",
+          alignItems: files.length === 0 ? "center": "stretch",
           position: "relative",
           borderRadius: "4px",
           overflow: "hidden",
           minHeight: "400px",
           borderBottom:
             files.length === 0 ? "1px solid #eeeeee" : "none",
+            
         }}
       >
         <FileTable
@@ -322,13 +243,6 @@ const FileManager: React.FC = (): JSX.Element => {
         />
         {files.length === 0 && <EmptyState />}
       </Box>
-
-      <FileActions
-        anchorEl={anchorEl}
-        onClose={handleMenuClose}
-        onDownload={handleDownload}
-        onRemove={handleRemove}
-      />
     </Stack>
   );
 };

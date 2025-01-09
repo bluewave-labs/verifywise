@@ -340,6 +340,9 @@ paths:
                 implementationDetails:
                   type: string
                   example: "Implement new feature"
+                controlGroup:
+                  type: string
+                  example: "AI Literacy"
         required: true
       responses:
         "201":
@@ -469,6 +472,9 @@ paths:
                 implementationDetails:
                   type: string
                   example: "Implement new feature"
+                controlGroup:
+                  type: string
+                  example: "AI Literacy"
         required: true
       responses:
         "202":
@@ -613,8 +619,8 @@ paths:
                   type: string
                   example: "AI Compliance Checker"
                 owner:
-                  type: string
-                  example: "Alice"
+                  type: integer
+                  example: 1
                 users:
                   type:
                   example:
@@ -649,8 +655,8 @@ paths:
                   format: date-time
                   example: "2024-10-30T00:00:00.000Z"
                 last_updated_by:
-                  type: string
-                  example: "Alice"
+                  type: integer
+                  example: 1
         required: true
       responses:
         "201":
@@ -759,8 +765,8 @@ paths:
                   type: string
                   example: "AI Compliance Checker"
                 owner:
-                  type: string
-                  example: "Alice"
+                  type: integer
+                  example: 1
                 users:
                   type:
                   example:
@@ -795,8 +801,8 @@ paths:
                   format: date-time
                   example: "2024-10-30T00:00:00.000Z"
                 last_updated_by:
-                  type: string
-                  example: "Alice"
+                  type: integer
+                  example: 1
         required: true
       responses:
         "202":
@@ -4250,6 +4256,9 @@ components:
         implementationDetails:
           type: string
           example: "Implement new feature"
+        controlGroup:
+          type: string
+          example: "AI Literacy"
     Project:
       type: object
       properties:
@@ -4260,8 +4269,8 @@ components:
           type: string
           example: "AI Compliance Checker"
         owner:
-          type: string
-          example: "Alice"
+          type: integer
+          example: 1
         users:
           type:
           example:
@@ -4296,8 +4305,8 @@ components:
           format: date-time
           example: "2024-10-30T00:00:00.000Z"
         last_updated_by:
-          type: string
-          example: "Alice"
+          type: integer
+          example: 1
     ProjectRisk:
       type: object
       properties:

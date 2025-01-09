@@ -11,6 +11,11 @@
   max-width: 230px;
   top: 0;
   left: 0;
+  z-index: 1;
+}
+
+.base-Popup-root{
+  z-index: 2;
 }
 
 .home-layout > div {

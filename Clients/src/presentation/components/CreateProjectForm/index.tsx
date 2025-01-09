@@ -66,6 +66,7 @@ const initialState: FormValues = {
 
 interface CreateProjectFormProps {
   closePopup: () => void;
+  setIsNewProjectCreate: (value: boolean) => void;
 }
 
 /**
@@ -77,22 +78,8 @@ interface CreateProjectFormProps {
  * @component
  * @returns {JSX.Element} The rendered component.
  */
-/**
- * CreateProjectForm component allows users to create a new project by filling out a form.
- * It includes fields for project title, users, owner, start date, AI risk classification,
- * type of high risk role, and goal. The form validates the input and displays errors if any.
- * On successful validation, it opens a modal to confirm submission.
- *
- * @component
- * @param {Object} props - Component props
- * @param {Function} props.closePopup - Function to close the popup
- *
- * @returns {JSX.Element} The rendered CreateProjectForm component
- *
- * @example
- * <CreateProjectForm closePopup={closePopupFunction} />
- */
-const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup }) => {
+
+const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, setIsNewProjectCreate }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const [values, setValues] = useState<FormValues>(initialState);
@@ -198,7 +185,8 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup }) => {
         });
         setTimeout(() => {
           setAlert(null);
-          navigate("/project-view");
+          setIsNewProjectCreate(true);
+          // navigate("/project-view");
           closePopup();
         }, 3000);
       }

@@ -95,7 +95,7 @@ setShouldRun(true);
 const timeout = setTimeout(checkTourElements, 1000);
 return () => clearTimeout(timeout);
 
-  }, [setDashboardValues]);
+  }, [setDashboardValues,reloadTrigger]);
 
 
   const mappedProjects = projects.map((project: any) => ({

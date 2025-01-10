@@ -9,6 +9,7 @@ import {
   getAllEntities,
 } from "../../../application/repository/entity.repository";
 import PageTour from "../../components/PageTour";
+import CustomStep from "../../components/PageTour/CustomStep";
 
 interface DashboardProps {
   reloadTrigger: boolean;
@@ -19,39 +20,36 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
   const [projects, setProjects] = useState([]);
   const [_, setUsers] = useState([]);
 
-  const [runTour, setRunTour] = useState(false);
+  const [shouldRun, setShouldRun] = useState(false);
   //joyride steps
   const steps = [
     // Sidebar steps
     {
-      target: '[data-joyride-id="dashboard"]',
-      content:
-        "This is the Dashboard section. Click here to view the overview.",
-    },
-    {
-      target: '[data-joyride-id="compliance-tracker"]',
-      content: "Track your compliance status here.",
-    },
-    {
-      target: '[data-joyride-id="assessment-tracker"]',
-      content: "Track your assessments here.",
-    },
-    {
-      target: '[data-joyride-id="vendors"]',
-      content: "Manage your vendors here.",
-    },
-    {
-      target: '[data-joyride-id="file-manager"]',
-      content: "Access your files in the File Manager.",
-    },
-    // Home Page steps
-    {
-      target: '[data-joyride-id="project-overview"]',
-      content: "This section gives you an overview of all your projects.",
-    },
-    {
       target: '[data-joyride-id="new-project-button"]',
-      content: "Click here to create a new project.",
+      content:(
+        <CustomStep
+          header="Create your first project"
+          body="Each project corresponds to an AI activity in your company."
+          />
+      )
+    },
+    {
+      target: '[data-joyride-id="select-project"]',
+      content: (
+        <CustomStep 
+        header="Select a project"
+        body="Once created, you can select it here."
+        />
+      )
+    },
+    {
+      target: '[data-joyride-id="dashboard-navigation"]',
+      content: (
+        <CustomStep 
+        header="Fill in compliance,assessments, risks and vendors"
+        body="Each project has its own set of questions and documents where you can fill in here."
+        />
+      )
     },
   ];
 
@@ -85,15 +83,20 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
     fetchProjects();
     fetchUsers();
 
-    console.log(reloadTrigger);
-  }, [setDashboardValues, reloadTrigger]);
+//check if required DOM elements are ready
+const checkTourElements = () => {
+const newProjectButton = document.querySelector('[data-joyride-id="new-project-button"]');
+const dashboardNav= document.querySelector('[data-joyride-id="dashboard-navigation"]');
 
-  useEffect(() => {
-    //start tour only after projects load
-    if (projects.length > 0) {
-      setRunTour(true);
-    }
-  }, [projects]);
+if (newProjectButton && dashboardNav) {
+setShouldRun(true);
+}
+};
+const timeout = setTimeout(checkTourElements, 1000);
+return () => clearTimeout(timeout);
+
+  }, [setDashboardValues,reloadTrigger]);
+
 
   const mappedProjects = projects.map((project: any) => ({
     _id: project.id,
@@ -115,8 +118,8 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
       {/* Joyride */}
       <PageTour
         steps={steps}
-        run={runTour}
-        onFinish={() => setRunTour(false)}
+        run={shouldRun}
+        onFinish={() => setShouldRun(false)}
       />
       <Outlet />
     </Stack>

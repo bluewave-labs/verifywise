@@ -243,6 +243,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
             justifyContent: "flex-start",
             width: "fit-content",
           }}
+          data-joyride-id="select-project"
         >
           <Select
             id="projects"
@@ -259,6 +260,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
         aria-labelledby="nested-menu-subheader"
         disablePadding
         sx={{ px: theme.spacing(8) }}
+        data-joyride-id="dashboard-navigation"
       >
         {/*
         Items of the menu
@@ -294,7 +296,6 @@ const Sidebar = ({ projects }: { projects: any }) => {
                     ? "selected-path"
                     : "unselected"
                 }
-                data-joyride-id={item.name.toLowerCase().replace(/ /g, "-")}
                 onClick={() => navigate(`${item.path}`)}
                 sx={{
                   height: "37px",

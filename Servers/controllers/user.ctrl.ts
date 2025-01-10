@@ -23,8 +23,16 @@ import {
   createMockUser,
   deleteMockUserById,
   getAllMockUsers,
+  getMockAssessmentsForProject,
+  getMockControlCategoriesForProject,
+  getMockControlForControlCategory,
+  getMockQuestionsForSubTopic,
+  getMockSubControlForControl,
+  getMockSubTopicsForTopic,
+  getMockTopicsForAssessment,
   getMockUserByEmail,
   getMockUserById,
+  getMockUserProjects,
 } from "../mocks/tools/user.mock.db";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { generateToken } from "../utils/jwt.util";
@@ -287,8 +295,8 @@ async function updateUserById(req: Request, res: Response) {
 
 async function deleteUserById(req: Request, res: Response) {
   try {
+    const id = parseInt(req.params.id);
     if (MOCKDATA_ON === true) {
-      const id = parseInt(req.params.id);
       const user = getMockUserById(id);
 
       if (user) {
@@ -343,79 +351,170 @@ async function calculateProgress(
   req: Request,
   res: Response
 ): Promise<Response> {
-  try {
-    const id = parseInt(req.params.id)
-    const userProjects = await getUserProjects(id)
+  const id = parseInt(req.params.id);
+  if (MOCKDATA_ON === true) {
+    const mockUserProjects = getMockUserProjects(id);
+    let mockAssessmentsMetadata = [];
+    let mockAllTotalAssessments = 0;
+    let mockAllDoneAssessments = 0;
 
-    let assessmentsMetadata = []
-    let allTotalAssessments = 0
-    let allDoneAssessments = 0
+    let mockControlsMetadata = [];
+    let mockAllTotalSubControls = 0;
+    let mockAllDoneSubControls = 0;
 
-    let controlsMetadata = []
-    let allTotalSubControls = 0
-    let allDoneSubControls = 0
-
-    for (const userProject of userProjects) {
-      let totalSubControls = 0
-      let doneSubControls = 0
-      const controlcategories = await getControlCategoriesForProject(userProject.id)
-      for (const controlcategory of controlcategories) {
-        const controls = await getControlForControlCategory(controlcategory.id)
-        for (const control of controls) {
-          const subControls = await getSubControlForControl(control.id)
-          for (const subControl of subControls) {
-            totalSubControls++;
-            if (subControl.status === "Done") {
-              doneSubControls++;
+    for (const mockUserProject of mockUserProjects) {
+      let mockTotalSubControls = 0;
+      let mockDoneSubControls = 0;
+      const mockControlcategories = getMockControlCategoriesForProject(
+        mockUserProject.id
+      );
+      for (const mockControlcategory of mockControlcategories) {
+        const mockControls = getMockControlForControlCategory(
+          mockControlcategory.id
+        );
+        for (const mockControl of mockControls) {
+          const mockSubControls = await getMockSubControlForControl(
+            mockControl.id
+          );
+          for (const mockSubControl of mockSubControls) {
+            mockTotalSubControls++;
+            if (mockSubControl.status === "Done") {
+              mockDoneSubControls++;
             }
           }
         }
       }
-      allTotalSubControls += totalSubControls
-      allDoneSubControls += doneSubControls
-      controlsMetadata.push({ projectId: userProject.id, totalSubControls, doneSubControls })
+      mockAllTotalSubControls += mockTotalSubControls;
+      mockAllDoneSubControls += mockDoneSubControls;
+      mockControlsMetadata.push({
+        projectId: mockUserProject.id,
+        totalSubControls: mockTotalSubControls,
+        doneSubControls: mockDoneSubControls,
+      });
 
-      let totalAssessments = 0
-      let doneAssessments = 0
-      const assessments = await getAssessmentsForProject(userProject.id)
-      for (const assessment of assessments) {
-        const topics = await getTopicsForAssessment(assessment.id)
-        for (const topic of topics) {
-          const subTopics = await getSubTopicsForTopic(topic.id)
-          for (const subTopic of subTopics) {
-            const questions = await getQuestionsForSubTopic(subTopic.id)
-            for (const question of questions) {
-              totalAssessments++;
-              if (question.answer) {
-                doneAssessments++
+      let mockTotalAssessments = 0;
+      let mockDoneAssessments = 0;
+      const mockAssessments = getMockAssessmentsForProject(mockUserProject.id);
+      for (const mockAssessment of mockAssessments) {
+        const mockTopics = getMockTopicsForAssessment(mockAssessment.id);
+        for (const mockTopic of mockTopics) {
+          const mockSubTopics = getMockSubTopicsForTopic(mockTopic.id);
+          for (const mockSubTopic of mockSubTopics) {
+            const mockQuestions = getMockQuestionsForSubTopic(mockSubTopic.id);
+            mockTotalAssessments++;
+            if (mockSubTopic.status === "Done") {
+              mockDoneAssessments++;
+            }
+          }
+        }
+      }
+      mockAllTotalAssessments += mockTotalAssessments;
+      mockAllDoneAssessments += mockDoneAssessments;
+      mockAssessmentsMetadata.push({
+        projectId: mockUserProject.id,
+        totalAssessments: mockTotalAssessments,
+        doneAssessments: mockDoneAssessments,
+      });
+    }
+
+    return res.status(200).json({
+      assessmentsMetadata: mockAssessmentsMetadata,
+      controlsMetadata: mockControlsMetadata,
+      allTotalAssessments: mockAllTotalAssessments,
+      allDoneAssessments: mockAllDoneAssessments,
+      allTotalSubControls: mockAllTotalSubControls,
+      allDoneSubControls: mockAllDoneSubControls,
+    });
+  } else {
+    try {
+      const userProjects = await getUserProjects(id);
+
+      let assessmentsMetadata = [];
+      let allTotalAssessments = 0;
+      let allDoneAssessments = 0;
+
+      let controlsMetadata = [];
+      let allTotalSubControls = 0;
+      let allDoneSubControls = 0;
+
+      for (const userProject of userProjects) {
+        let totalSubControls = 0;
+        let doneSubControls = 0;
+        const controlcategories = await getControlCategoriesForProject(
+          userProject.id
+        );
+        for (const controlcategory of controlcategories) {
+          const controls = await getControlForControlCategory(
+            controlcategory.id
+          );
+          for (const control of controls) {
+            const subControls = await getSubControlForControl(control.id);
+            for (const subControl of subControls) {
+              totalSubControls++;
+              if (subControl.status === "Done") {
+                doneSubControls++;
               }
             }
           }
         }
-      }
-      allTotalAssessments += totalAssessments
-      allDoneAssessments += doneAssessments
-      assessmentsMetadata.push({ projectId: userProject.id, totalAssessments, doneAssessments })
-    }
+        allTotalSubControls += totalSubControls;
+        allDoneSubControls += doneSubControls;
+        controlsMetadata.push({
+          projectId: userProject.id,
+          totalSubControls,
+          doneSubControls,
+        });
 
-    const response = {
-      controls: {
-        projects: controlsMetadata,
-        totalSubControls: allTotalSubControls,
-        doneSubControls: allDoneSubControls,
-        percentageComplete: Number(((allDoneSubControls / allTotalSubControls) * 100).toFixed(2))
-      },
-      assessments: {
-        projects: assessmentsMetadata,
-        totalAssessments: allTotalAssessments,
-        doneAssessments: allDoneAssessments,
-        percentageComplete: Number(((allDoneAssessments / allTotalAssessments) * 100).toFixed(2))
+        let totalAssessments = 0;
+        let doneAssessments = 0;
+        const assessments = await getAssessmentsForProject(userProject.id);
+        for (const assessment of assessments) {
+          const topics = await getTopicsForAssessment(assessment.id);
+          for (const topic of topics) {
+            const subTopics = await getSubTopicsForTopic(topic.id);
+            for (const subTopic of subTopics) {
+              const questions = await getQuestionsForSubTopic(subTopic.id);
+              for (const question of questions) {
+                totalAssessments++;
+                if (question.answer) {
+                  doneAssessments++;
+                }
+              }
+            }
+          }
+        }
+        allTotalAssessments += totalAssessments;
+        allDoneAssessments += doneAssessments;
+        assessmentsMetadata.push({
+          projectId: userProject.id,
+          totalAssessments,
+          doneAssessments,
+        });
       }
+
+      const response = {
+        controls: {
+          projects: controlsMetadata,
+          totalSubControls: allTotalSubControls,
+          doneSubControls: allDoneSubControls,
+          percentageComplete: Number(
+            ((allDoneSubControls / allTotalSubControls) * 100).toFixed(2)
+          ),
+        },
+        assessments: {
+          projects: assessmentsMetadata,
+          totalAssessments: allTotalAssessments,
+          doneAssessments: allDoneAssessments,
+          percentageComplete: Number(
+            ((allDoneAssessments / allTotalAssessments) * 100).toFixed(2)
+          ),
+        },
+      };
+      return res.status(200).json(response);
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ message: "Internal server error" });
     }
-    return res.status(200).json(response)
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -429,5 +528,5 @@ export {
   updateUserById,
   deleteUserById,
   checkUserExists,
-  calculateProgress
+  calculateProgress,
 };

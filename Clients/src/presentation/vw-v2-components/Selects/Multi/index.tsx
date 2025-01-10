@@ -148,10 +148,12 @@ const VWMultiSelect = ({
                 gap: 1,
               }}
             >
-              {item.name + " "}
+              <span style={{ marginRight: 1 }}>{`${item.name}`}</span>
               {item.email && (
-                <span style={{ fontSize: 11, color: "#9d9d9d" }}>
-                  email@email.com
+                <span
+                  style={{ fontSize: 11, color: "#9d9d9d", marginLeft: "4px" }}
+                >
+                  {`(${item.email})`}
                 </span>
               )}
             </MenuItem>

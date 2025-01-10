@@ -12,7 +12,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 interface VWMultiSelectProps {
   label: string;
   required?: boolean;
-  error?: boolean;
+  error?: boolean | string;
   value: string | number | (string | number)[];
   onChange: (
     event: SelectChangeEvent<string | number | (string | number)[]>,
@@ -23,11 +23,12 @@ interface VWMultiSelectProps {
   placeholder?: string;
   isHidden?: boolean;
   width?: number;
+  sx?: object;
 }
 
 const VWMultiSelect = ({
   label = "This is a multi-select",
-  required = true,
+  required = false,
   error,
   value = [],
   onChange,
@@ -36,6 +37,7 @@ const VWMultiSelect = ({
   placeholder,
   isHidden,
   width,
+  sx,
 }: VWMultiSelectProps) => {
   const theme = useTheme();
   const itemStyles = {
@@ -91,7 +93,7 @@ const VWMultiSelect = ({
         multiple
         displayEmpty
         IconComponent={KeyboardArrowDownIcon}
-        error={error}
+        error={!!error}
         MenuProps={{
           disableScrollLock: true,
           PaperProps: {
@@ -118,6 +120,7 @@ const VWMultiSelect = ({
             },
           },
         }}
+        sx={sx}
       >
         {placeholder && (
           <MenuItem

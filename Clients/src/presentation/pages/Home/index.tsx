@@ -12,6 +12,7 @@ import { NoProjectBox, styles } from "./styles";
 import emptyState from "../../assets/imgs/empty-state.svg";
 import { getAllEntities } from "../../../application/repository/entity.repository";
 import { ProjectCardProps } from "../../components/ProjectCard";
+import useProjectStatus from "../../../application/hooks/useProjectStatus";
 
 // Lazy load components
 const ProjectCard = lazy(() => import("../../components/ProjectCard"));
@@ -25,7 +26,7 @@ const MetricSection = lazy(() => import("../../components/MetricSection"));
 const useProjects = (isNewProject: boolean, resetIsNewProject: () => void) => {
   const [projects, setProjects] = useState<ProjectCardProps[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);  
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -63,7 +64,9 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
   const theme = useTheme();
   const [isNewProject, setIsNewProjectCreate] = useState(false);
   const { projects, error, isLoading } = useProjects(isNewProject, () => setIsNewProjectCreate(false));
-  
+  const userId = "1";
+  const { projectStatus, loading: loadingProjectStatus, error: errorFetchingProjectStatus } = useProjectStatus({ userId });
+
   const NoProjectsMessage = useMemo(
     () => (
       <NoProjectBox>
@@ -116,6 +119,10 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
     );
   }, []);
 
+  if (loadingProjectStatus) return <div>Loading...</div>;
+  if (errorFetchingProjectStatus) return <div>{errorFetchingProjectStatus}</div>;
+  const { assessments, controls } = projectStatus ;
+
   return (
     <Box>
       <Box sx={styles.projectBox} >
@@ -138,15 +145,17 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
           <Stack direction="row" justifyContent="space-between" spacing={15}>
             <Suspense fallback={<div>Loading...</div>}>
               {projects.map((item: ProjectCardProps) => (
-                <ProjectCard key={item.id} {...item} />
+                <ProjectCard key={item.id} {...item} projectAssessments={assessments.projects.find(project => project.projectId == item.id)} projectControls={controls.projects.find(project => project.projectId == item.id)} />
               ))}
             </Suspense>
           </Stack>
-          {(["compliance", "risk"] as const).map((metricType) => (
+          {(["compliance"] as const).map((metricType) => ( // "risk" was removed from the array, if we wanna the 'All projects risk status' Section back, we need to add it back to the array
             <Suspense key={metricType} fallback={<div>Loading...</div>}>
               <MetricSection
                 title={`All projects ${metricType} status`}
                 metricType={metricType}
+                assessments={assessments}
+                controls={controls}
                />
             </Suspense>
           ))}

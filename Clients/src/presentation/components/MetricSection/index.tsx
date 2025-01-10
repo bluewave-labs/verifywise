@@ -1,11 +1,13 @@
 import { FC, memo } from "react";
 import { Typography, Stack } from "@mui/material";
-import dashboardData from "../../mocks/dashboard/dashboard.data";
 import { StyledStack, styles } from "./styles";
+import { Assessments, Controls } from "../../../application/hooks/useProjectStatus";
 
 interface MetricSectionProps {
     title: string;
-    metricType: "compliance" | "risk";
+    metricType?: "compliance" | "risk";
+    assessments: Assessments;
+    controls: Controls;
 }
 
 /**
@@ -17,35 +19,37 @@ interface MetricSectionProps {
  * @param {string} props.metricType - The type of metrics to display, either "compliance" or "risk".
  * @returns {JSX.Element} The rendered MetricSection component.
  */
-const MetricSection: FC<MetricSectionProps> = ({ title, metricType }) => {
-    const { complianceStatus, riskStatus } = dashboardData;
+const MetricSection: FC<MetricSectionProps> = ({ title, assessments, controls }) => {
     const complianceMetrics: {
         title: string;
         value: string | number;
     }[] = [
             {
-                title: "Completed requirements",
-                value: `${complianceStatus.assessmentCompletionRate}%`,
+                title: "Compliance tracker completion rate",
+                value: `${controls.percentageComplete}%`,
             },
             {
-                title: "Completed assessments",
-                value: complianceStatus.completedAssessments,
+                title: "Assessment tracker completion rate",
+                value: `${assessments.percentageComplete}%`,
             },
-            {
-                title: "Assessment completion rate",
-                value: `${complianceStatus.completedRequirementsPercentage}%`,
-            },
+            // {
+            //     title: "Assessment completion rate",
+            //     value: `${complianceStatus.completedRequirementsPercentage}%`,
+            // },
         ];
-    const riskMetrics: {
-        title: string;
-        value: string | number;
-    }[] = [
-            { title: "Acceptable risks", value: riskStatus.acceptableRisks },
-            { title: "Residual risks", value: riskStatus.residualRisks },
-            { title: "Unacceptable risks", value: riskStatus.unacceptableRisks },
-        ];
+        // Uncomment the following code to display risk metrics
+    // const riskMetrics: {
+    //     title: string;
+    //     value: string | number;
+    // }[] = [
+    //         { title: "Acceptable risks", value: riskStatus.acceptableRisks },
+    //         { title: "Residual risks", value: riskStatus.residualRisks },
+    //         { title: "Unacceptable risks", value: riskStatus.unacceptableRisks },
+    //     ];
 
-    const metrics = metricType === "compliance" ? complianceMetrics : riskMetrics;
+    // Replace metrics with the appropriate metrics based on the metric type to display risk or compliance metrics
+    //  const metrics = metricType === "compliance" ? complianceMetrics : riskMetrics;
+    const metrics = complianceMetrics;
 
     return (
         <>

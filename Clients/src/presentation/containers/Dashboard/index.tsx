@@ -2,7 +2,7 @@ import { Stack } from "@mui/material";
 import "./index.css";
 import Sidebar from "../../components/Sidebar";
 import { Outlet } from "react-router";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, FC } from "react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import {
   getEntityById,
@@ -11,7 +11,11 @@ import {
 import PageTour from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
 
-const Dashboard = () => {
+interface DashboardProps {
+  reloadTrigger: boolean;
+}
+
+const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
   const { token, setDashboardValues } = useContext(VerifyWiseContext);
   const [projects, setProjects] = useState([]);
   const [_, setUsers] = useState([]);

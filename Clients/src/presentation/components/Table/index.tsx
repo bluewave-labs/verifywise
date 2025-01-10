@@ -68,6 +68,8 @@ const BasicTable = ({
   table,
   onRowClick,
   label,
+  setSelectedRow,
+  setAnchorEl,
 }: {
   data: TableData;
   paginated?: boolean;
@@ -75,6 +77,8 @@ const BasicTable = ({
   table: string;
   onRowClick?: (rowId: number | string) => void;
   label?: string;
+  setSelectedRow: (rowData: object) => void;  
+  setAnchorEl: ((anchor: HTMLElement | null) => void);
 }) => {
   const DEFAULT_ROWS_PER_PAGE = 5;
   const theme = useTheme();
@@ -152,6 +156,13 @@ const BasicTable = ({
     [data.cols]
   );
 
+  const onRowclickHandler = (event: React.MouseEvent<HTMLElement>, rowData: any) => {
+    // console.log(`Row clicked: ${rowData.id}`);    
+    setSelectedRow(rowData);
+    setAnchorEl(event.currentTarget);
+    onRowClick && onRowClick(rowData.id as number);
+  }
+
   const tableBody = useMemo(
     () => (
       <TableBody>
@@ -166,10 +177,7 @@ const BasicTable = ({
               }
             }}
             key={row.id}
-            onClick={() => {
-              console.log(`Row clicked: ${row.id}`);
-              onRowClick && onRowClick(row.id as number);
-            }}
+            onClick={(event) => onRowclickHandler(event, row)}
           >
             {row.icon && (
               <TableCell

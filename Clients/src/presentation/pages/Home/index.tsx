@@ -5,6 +5,7 @@ import React, {
   useState,
   useCallback,
   useMemo,
+  FC
 } from "react";
 import { Box, Stack, Typography, useTheme } from "@mui/material";
 import { NoProjectBox, styles } from "./styles";
@@ -21,10 +22,10 @@ const CreateProjectForm = lazy(
 const MetricSection = lazy(() => import("../../components/MetricSection"));
 
 // Custom hook for fetching projects
-const useProjects = () => {
+const useProjects = (isNewProject: boolean, resetIsNewProject: () => void) => {
   const [projects, setProjects] = useState<ProjectCardProps[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);  
 
   useEffect(() => {
     const controller = new AbortController();
@@ -33,28 +34,36 @@ const useProjects = () => {
       .then(({ data }) => {
         setProjects(data);
         setError(null);
+        resetIsNewProject();
       })
       .catch((err) => {
         if (!controller.signal.aborted) {
           setError("Failed to fetch projects: " + err.message);
           setProjects(null);
+          resetIsNewProject();
         }
       })
       .finally(() => {
         if (!controller.signal.aborted) {
           setIsLoading(false);
+          resetIsNewProject();
         }
       });
     return () => controller.abort();
-  }, []);
+  }, [isNewProject]);
 
   return { projects, error, isLoading };
 };
 
-const Home = () => {
-  const theme = useTheme();
-  const { projects, error, isLoading } = useProjects();
+interface HomeProps {
+  onProjectUpdate: () => void;
+}
 
+const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
+  const theme = useTheme();
+  const [isNewProject, setIsNewProjectCreate] = useState(false);
+  const { projects, error, isLoading } = useProjects(isNewProject, () => setIsNewProjectCreate(false));
+  
   const NoProjectsMessage = useMemo(
     () => (
       <NoProjectBox>
@@ -76,6 +85,13 @@ const Home = () => {
     [theme]
   );
 
+  const newProjectChecker = (data: boolean | ((prevState: boolean) => boolean)) => {
+    setIsNewProjectCreate(data)
+    if (onProjectUpdate) {
+      onProjectUpdate();
+    }
+  }
+
   const PopupRender = useCallback(() => {
     const [anchor, setAnchor] = useState<null | HTMLElement>(null);
     const handleOpenOrClose = useCallback(
@@ -89,7 +105,7 @@ const Home = () => {
       <Suspense fallback={<div>Loading...</div>}>
         <Popup
           popupId="create-project-popup"
-          popupContent={<CreateProjectForm closePopup={() => setAnchor(null)} />}
+          popupContent={<CreateProjectForm setIsNewProjectCreate={newProjectChecker} closePopup={() => setAnchor(null)} />}
           openPopupButtonName="New project"
           popupTitle="Create new project"
           popupSubtitle="Create a new project from scratch by filling in the following."

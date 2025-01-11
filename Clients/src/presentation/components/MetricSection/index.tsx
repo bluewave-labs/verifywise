@@ -16,7 +16,9 @@ interface MetricSectionProps {
  * @component
  * @param {Object} props - The props for the MetricSection component.
  * @param {string} props.title - The title of the metric section.
- * @param {string} props.metricType - The type of metrics to display, either "compliance" or "risk".
+ * @param {string} [props.metricType] - Optional type of metrics to display.
+ * @param {Assessments} props.assessments - The assessments data for metrics calculation.
+ * @param {Controls} props.controls - The controls data for metrics calculation.
  * @returns {JSX.Element} The rendered MetricSection component.
  */
 const MetricSection: FC<MetricSectionProps> = ({ title, assessments, controls }) => {

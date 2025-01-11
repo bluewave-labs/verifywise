@@ -12,7 +12,7 @@ import { NoProjectBox, styles } from "./styles";
 import emptyState from "../../assets/imgs/empty-state.svg";
 import { getAllEntities } from "../../../application/repository/entity.repository";
 import { ProjectCardProps } from "../../components/ProjectCard";
-import useProjectStatus from "../../../application/hooks/useProjectStatus";
+import useProjectStatus, { AssessmentsProject, ControlsProject } from "../../../application/hooks/useProjectStatus";
 
 // Lazy load components
 const ProjectCard = lazy(() => import("../../components/ProjectCard"));
@@ -119,10 +119,22 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
     );
   }, []);
 
-  if (loadingProjectStatus) return <div>Loading...</div>;
-  if (errorFetchingProjectStatus) return <div>{errorFetchingProjectStatus}</div>;
+  if (loadingProjectStatus) return (
+    <Typography component="div" sx={{ mb: 12 }}>
+      Project status is loading...
+    </Typography>
+  );
+  if (errorFetchingProjectStatus) return (
+    <Typography component="div" sx={{ mb: 12, color: theme.palette.error.main }}>
+      Failed to load project status: {errorFetchingProjectStatus}
+    </Typography>
+  );
   const { assessments, controls } = projectStatus ;
 
+  const getProjectData = (projectId: number) => ({
+    projectAssessments: assessments.projects.find(project => project.projectId === projectId) as AssessmentsProject,
+    projectControls: controls.projects.find(project => project.projectId === projectId) as ControlsProject,
+  })
   return (
     <Box>
       <Box sx={styles.projectBox} >
@@ -145,7 +157,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
           <Stack direction="row" justifyContent="space-between" spacing={15}>
             <Suspense fallback={<div>Loading...</div>}>
               {projects.map((item: ProjectCardProps) => (
-                <ProjectCard key={item.id} {...item} projectAssessments={assessments.projects.find(project => project.projectId == item.id)} projectControls={controls.projects.find(project => project.projectId == item.id)} />
+                <ProjectCard key={item.id} {...item} {...getProjectData(item.id)} />
               ))}
             </Suspense>
           </Stack>

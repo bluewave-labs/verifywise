@@ -64,7 +64,7 @@ const ProjectCard: FC<ProjectCardProps> = ({
                     <Typography variant="subtitle1" component="span" sx={styles.subtitle}>
                         Project owner
                     </Typography>
-                    <SubtitleValue>{`${ownerUser.name} ${ownerUser.surname}`}</SubtitleValue>
+                    <SubtitleValue>{ownerUser ? `${ownerUser.name} ${ownerUser.surname}` : 'Unknown User'}</SubtitleValue>
                 </Box>
                 <Box>
                     <Typography variant="subtitle1" component="span" sx={styles.subtitle}>

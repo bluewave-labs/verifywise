@@ -131,10 +131,19 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
   );
   const { assessments, controls } = projectStatus ;
 
-  const getProjectData = (projectId: number) => ({
-    projectAssessments: assessments.projects.find(project => project.projectId === projectId) as AssessmentsProject,
-    projectControls: controls.projects.find(project => project.projectId === projectId) as ControlsProject,
-  })
+  const getProjectData = (projectId: number) => {
+    const projectAssessments = assessments.projects.find(project => project.projectId === projectId);
+    const projectControls = controls.projects.find(project => project.projectId === projectId);
+    
+    if (!projectAssessments || !projectControls) {
+      throw new Error(`Project data not found for project ID: ${projectId}`);
+    }
+
+    return {
+      projectAssessments,
+      projectControls,
+    };
+  };
   return (
     <Box>
       <Box sx={styles.projectBox} >

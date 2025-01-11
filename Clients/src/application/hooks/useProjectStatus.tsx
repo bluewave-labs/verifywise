@@ -22,7 +22,7 @@ export interface ControlsProject {
 }
 
 export interface Assessments {
-  percentageComplete: string;
+  percentageComplete: number;
   doneAssessments: number;
   projects: AssessmentsProject[];
   totalAssessments: number;
@@ -61,7 +61,7 @@ const defaultAssessmentsProject: AssessmentsProject = {
 
 const defaultProjectStatus: ProjectStatus = {
   assessments: {
-    percentageComplete: "0%",
+    percentageComplete: 0,
     doneAssessments: 0,
     projects: [defaultAssessmentsProject],
     totalAssessments: 0,
@@ -93,10 +93,8 @@ const useProjectStatus = ({ userId }: { userId: string }) => {
           try {
               const response = await getEntityById({ routeUrl: `/users/${userId}/calculate-progress`, signal: controller.signal });
               setProjectStatus(response);
-              setLoading(false);
           } catch (error) {
               setError(error instanceof Error ? error.message : String(error));
-              setLoading(false);
           } finally {
             if (!controller.signal.aborted) {
               setLoading(false);
@@ -105,10 +103,7 @@ const useProjectStatus = ({ userId }: { userId: string }) => {
       }
       fetchProjectStatus();
 
-      return () => {
-      if (!controller.signal.aborted) {
-        controller.abort();
-      }}
+      return () => controller.abort();
     }, [userId]);
 
     return { projectStatus: projectStatus ?? defaultProjectStatus, loading, error };

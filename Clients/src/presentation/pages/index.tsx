@@ -1,38 +1,7 @@
-import { SelectChangeEvent, Stack } from "@mui/material";
-import VWMultiSelect from "../vw-v2-components/Selects/Multi";
-import { useState } from "react";
+import { Stack } from "@mui/material";
+import VWSkeleton from "../vw-v2-components/Skeletons";
 
 const Playground = () => {
-  // Define the data array
-  const data = [
-    {
-      _id: 1,
-      name: "John Doe",
-      email: "john.doe@email.com",
-      role: "Admin",
-      action: "Edit",
-    },
-    {
-      _id: 2,
-      name: "Jane Doe",
-      email: "jane.doe@email.com",
-      role: "User",
-      action: "View",
-    },
-    // ... other items
-  ];
-
-  const [selectedValue, setSelectedValue] = useState<
-    string | number | (string | number)[]
-  >([]);
-
-  const handleChange = (
-    event: SelectChangeEvent<string | number | (string | number)[]>
-  ) => {
-    setSelectedValue(event.target.value);
-    console.log("Selected:", event.target.value);
-  };
-
   return (
     <Stack
       sx={{
@@ -47,16 +16,7 @@ const Playground = () => {
         gap: 4,
       }}
     >
-      <VWMultiSelect
-        label="Select multiple items"
-        required
-        items={data}
-        value={selectedValue}
-        getOptionValue={(option) => option._id}
-        onChange={handleChange}
-        placeholder="Select multiple items"
-        width={600}
-      />
+      <VWSkeleton />
     </Stack>
   );
 };

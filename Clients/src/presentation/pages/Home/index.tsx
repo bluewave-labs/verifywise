@@ -16,6 +16,8 @@ import useProjectStatus, {
   Assessments,
   Controls,
 } from "../../../application/hooks/useProjectStatus";
+import VWSkeleton from "../../vw-v2-components/Skeletons";
+import { Card } from "../../components/ProjectCard/styles";
 
 // Lazy load components
 const ProjectCard = lazy(() => import("../../components/ProjectCard"));
@@ -137,18 +139,27 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
 
   if (loadingProjectStatus)
     return (
-      <Typography component="div" sx={{ mb: 12 }}>
-        Project status is loading...
-      </Typography>
+      <VWSkeleton
+        variant="rectangular"
+        minWidth="200"
+        width={"100%"}
+        height={"100%"}
+        maxWidth="1400"
+        minHeight="200"
+        maxHeight="100vh"
+      />
     );
   if (errorFetchingProjectStatus)
     return (
-      <Typography
-        component="div"
-        sx={{ mb: 12, color: theme.palette.error.main }}
-      >
-        Failed to load project status: {errorFetchingProjectStatus}
-      </Typography>
+      <VWSkeleton
+        variant="rectangular"
+        minWidth="200"
+        width={"100%"}
+        height={"100%"}
+        maxWidth="1400"
+        minHeight="200"
+        maxHeight="100vh"
+      />
     );
 
   const assessments: Assessments = {
@@ -213,7 +224,21 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
       {projects && projects.length > 0 ? (
         <>
           <Stack direction="row" justifyContent="space-between" spacing={15}>
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense
+              fallback={
+                <Card>
+                  <VWSkeleton
+                    variant="rectangular"
+                    minWidth="200"
+                    width={"100%"}
+                    height={"100%"}
+                    maxWidth="1400"
+                    minHeight="200"
+                    maxHeight="100vh"
+                  />
+                </Card>
+              }
+            >
               {projects.map((item: ProjectCardProps) => (
                 <ProjectCard
                   key={item.id}
@@ -227,7 +252,20 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
             (
               metricType // "risk" was removed from the array, if we wanna the 'All projects risk status' Section back, we need to add it back to the array
             ) => (
-              <Suspense key={metricType} fallback={<div>Loading...</div>}>
+              <Suspense
+                key={metricType}
+                fallback={
+                  <VWSkeleton
+                    variant="rectangular"
+                    minWidth="200"
+                    width={"100%"}
+                    height={"100%"}
+                    maxWidth="1400"
+                    minHeight="200"
+                    maxHeight="100vh"
+                  />
+                }
+              >
                 <MetricSection
                   title={`All projects ${metricType} status`}
                   metricType={metricType}

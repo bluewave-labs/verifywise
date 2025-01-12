@@ -13,14 +13,7 @@
  * <InviteUserModal isOpen={isOpen} setIsOpen={setIsOpen} onSendInvite={handleSendInvite} />
  */
 
-import {
-  Button,
-  MenuItem,
-  Modal,
-  Stack,
-  Typography,
-  useTheme,
-} from "@mui/material";
+import { Button, Modal, Stack, Typography, useTheme } from "@mui/material";
 import React, { useState } from "react";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";

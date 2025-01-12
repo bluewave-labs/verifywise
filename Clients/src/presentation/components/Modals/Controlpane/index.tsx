@@ -37,7 +37,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
   const [selectedTab, setSelectedTab] = useState<number>(0); // State to track active tab
 
   const [activeSection, setActiveSection] = useState<string>("Overview");
-  const [responseMessage, setResponseMessage] = useState<string | null>(null);
+  const [responseMessage, _] = useState<string | null>(null);
 
   const handleClose = () => setIsOpen(false);
 

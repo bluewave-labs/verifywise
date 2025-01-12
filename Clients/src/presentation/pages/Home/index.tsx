@@ -175,11 +175,20 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
     console.log("projectId *** ", projectId);
     const projectAssessments = assessments.projects.find(
       (project: any) => project.projectId === projectId
-    );
+    ) ?? {
+      doneAssessments: 0,
+      projectId,
+      totalAssessments: 1,
+    };
     console.log("projectAssessments *** ", projectAssessments);
+
     const projectControls = controls.projects.find(
       (project: any) => project.projectId === projectId
-    );
+    ) ?? {
+      doneSubControls: 0,
+      projectId,
+      totalSubControls: 0,
+    };
     console.log("projectControls *** ", projectControls);
 
     if (!projectAssessments || !projectControls) {

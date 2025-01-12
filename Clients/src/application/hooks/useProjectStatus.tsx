@@ -23,15 +23,15 @@ export interface ControlsProject {
 
 export interface Assessments {
   percentageComplete: number;
-  doneAssessments: number;
+  allDoneAssessments: number;
+  allTotalAssessments: number;
   projects: AssessmentsProject[];
-  totalAssessments: number;
 }
 
 export interface Controls {
   percentageComplete: number;
-  doneControls: number;
-  totalControls: number;
+  allDoneSubControls: number;
+  allTotalSubControls: number;
   projects: ControlsProject[];
 }
 
@@ -62,51 +62,77 @@ const defaultAssessmentsProject: AssessmentsProject = {
 const defaultProjectStatus: ProjectStatus = {
   assessments: {
     percentageComplete: 0,
-    doneAssessments: 0,
+    allDoneAssessments: 0,
     projects: [defaultAssessmentsProject],
-    totalAssessments: 0,
+    allTotalAssessments: 0,
   },
   controls: {
     percentageComplete: 0,
-    doneControls: 0,
-    totalControls: 0,
+    allDoneSubControls: 0,
+    allTotalSubControls: 0,
     projects: [defaultControlsProject],
   },
 };
 
 const useProjectStatus = ({ userId }: { userId: string }) => {
-    const [projectStatus, setProjectStatus] = useState<ProjectStatus>(defaultProjectStatus);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
+  const [projectStatus, setProjectStatus] =
+    useState<ProjectStatus>(defaultProjectStatus);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-      if (!userId) {
-        setError("No user ID provided");
-        setLoading(false);
-        return;
+  useEffect(() => {
+    if (!userId) {
+      setError("No user ID provided");
+      setLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    setLoading(true);
+
+    const fetchProjectStatus = async () => {
+      try {
+        const response = await getEntityById({
+          routeUrl: `/users/${userId}/calculate-progress`,
+          signal: controller.signal,
+        });
+
+        setProjectStatus({
+          assessments: {
+            percentageComplete:
+              (response.allDoneAssessments / response.allTotalAssessments) *
+              100,
+            allDoneAssessments: response.allDoneAssessments,
+            allTotalAssessments: response.allTotalAssessments,
+            projects: response.assessmentsMetadata,
+          },
+          controls: {
+            percentageComplete:
+              (response.allDoneSubControls / response.allTotalSubControls) *
+              100,
+            allDoneSubControls: response.allDoneSubControls,
+            allTotalSubControls: response.allTotalSubControls,
+            projects: response.controlsMetadata,
+          },
+        });
+      } catch (error) {
+        setError(error instanceof Error ? error.message : String(error));
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
+    };
+    fetchProjectStatus();
 
-      const controller = new AbortController();
-      setLoading(true);
+    return () => controller.abort();
+  }, [userId]);
 
-      const fetchProjectStatus = async () => {
-          try {
-              const response = await getEntityById({ routeUrl: `/users/${userId}/calculate-progress`, signal: controller.signal });
-              setProjectStatus(response);
-          } catch (error) {
-              setError(error instanceof Error ? error.message : String(error));
-          } finally {
-            if (!controller.signal.aborted) {
-              setLoading(false);
-            }
-          };
-      }
-      fetchProjectStatus();
-
-      return () => controller.abort();
-    }, [userId]);
-
-    return { projectStatus: projectStatus ?? defaultProjectStatus, loading, error };
-}
+  return {
+    projectStatus: projectStatus ?? defaultProjectStatus,
+    loading,
+    error,
+  };
+};
 
 export default useProjectStatus;

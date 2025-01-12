@@ -172,7 +172,6 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
   };
 
   const getProjectData = (projectId: number) => {
-    console.log("projectId *** ", projectId);
     const projectAssessments = assessments.projects.find(
       (project: any) => project.projectId === projectId
     ) ?? {
@@ -180,7 +179,6 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
       projectId,
       totalAssessments: 1,
     };
-    console.log("projectAssessments *** ", projectAssessments);
 
     const projectControls = controls.projects.find(
       (project: any) => project.projectId === projectId
@@ -189,11 +187,6 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
       projectId,
       totalSubControls: 0,
     };
-    console.log("projectControls *** ", projectControls);
-
-    if (!projectAssessments || !projectControls) {
-      throw new Error(`Project data not found for project ID: ${projectId}`);
-    }
 
     return {
       projectAssessments,

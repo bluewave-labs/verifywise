@@ -4,7 +4,7 @@ import { styled } from '@mui/material/styles';
 export const Card = styled(Box)(({ theme }) => ({
     display: "flex",
     flexDirection: "column",
-    minWidth: 300,
+    // minWidth: 300,
     width: "100%",
     maxWidth: "100%",
     padding: "19px 34px 15px 13px",

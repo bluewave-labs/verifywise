@@ -7,7 +7,7 @@ export const StyledStack = styled(Stack)(({ theme }) => ({
     border: `1px solid ${theme.palette.border.light}`,
     borderRadius: 2,
     backgroundColor: theme.palette.background.main,
-    minWidth: 300,
+    // minWidth: 300,
     width: "100%",
     maxWidth: "100%",
     padding: "10px 20px",

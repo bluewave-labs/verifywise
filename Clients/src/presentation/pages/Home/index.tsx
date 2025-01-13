@@ -8,6 +8,7 @@ import React, {
   FC,
 } from "react";
 import { Box, Stack, Typography, useTheme } from "@mui/material";
+import Grid from '@mui/material/Grid2';
 import { NoProjectBox, styles } from "./styles";
 import emptyState from "../../assets/imgs/empty-state.svg";
 import { getAllEntities } from "../../../application/repository/entity.repository";
@@ -223,7 +224,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
       ) : null}
       {projects && projects.length > 0 ? (
         <>
-          <Stack direction="row" justifyContent="space-between" spacing={15}>
+          <Stack direction="row" justifyContent={projects.length <= 3 ? "space-between" : "flex-start"} flexWrap={projects.length > 3 ? "wrap" : "nowrap"} spacing={15}>
             <Suspense
               fallback={
                 <Card>
@@ -238,7 +239,8 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
                   />
                 </Card>
               }
-            >
+            >  
+            {projects.length <= 3 ? <>
               {projects.map((item: ProjectCardProps) => (
                 <ProjectCard
                   key={item.id}
@@ -246,6 +248,18 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
                   {...getProjectData(item.id)}
                 />
               ))}
+            </> : <>
+              <Grid sx={{ width: "100%" }} container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>            
+                {projects.map((item: ProjectCardProps) => (
+                  <Grid key={item.id} size={{ xs: 4, sm: 8, md: 4 }}>
+                    <ProjectCard
+                      {...item}
+                      {...getProjectData(item.id)}
+                    />
+                  </Grid>
+                ))}
+              </Grid>
+            </>}
             </Suspense>
           </Stack>
           {(["compliance"] as const).map(

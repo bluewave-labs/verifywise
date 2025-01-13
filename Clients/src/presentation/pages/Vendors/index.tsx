@@ -9,6 +9,8 @@ import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.cont
 import { deleteEntityById, getAllEntities } from "../../../application/repository/entity.repository";
 import { logEngine } from "../../../application/tools/log.engine";
 import Alert from "../../components/Alert";
+import PageTour from "../../components/PageTour";
+import CustomStep from "../../components/PageTour/CustomStep";
 
 const Vendors = () => {
     const theme = useTheme();
@@ -21,6 +23,18 @@ const Vendors = () => {
         title?: string;
         body: string;
     } | null>(null);
+    const [runVendorTour,setRunVendorTour] = useState(false);
+
+    const vendorSteps = [
+        {
+            target:'[data-joyride-id="add-new-vendor"]',
+            content:(
+                <CustomStep 
+                body="Here, you can add AI providers that you use in our project, and input the necessary information to ensure compliance."
+                />
+            )
+        }
+    ]
 
     const openAddNewVendor = () => {
         setIsOpen(true);
@@ -45,6 +59,7 @@ const Vendors = () => {
 
     useEffect(() => {
         fetchVendors();
+        setRunVendorTour(true);
     }, [fetchVendors, vendorChangeTrigger]);
 
     const updateVendorChangeTrigger = () => {
@@ -105,67 +120,70 @@ const Vendors = () => {
     };
 
     return (
-        <div className="vendors-page">
-            <Stack gap={theme.spacing(10)} maxWidth={1400}>
-                {alert && (
-                    <Suspense fallback={<div>Loading...</div>}>
-                        <Alert
-                            variant={alert.variant}
-                            title={alert.title}
-                            body={alert.body}
-                            isToast={true}
-                            onClick={() => setAlert(null)}
-                        />
-                    </Suspense>
-                )}
-                <Stack>
-                    <Typography sx={singleTheme.textStyles.pageTitle}>
-                        Vendors list
-                    </Typography>
-                    <Typography sx={singleTheme.textStyles.pageDescription}>
-                        This table includes a list of external entities that provides
-                        AI-related products, services, or components. You can create and
-                        manage all vendors here.
-                    </Typography>
-                </Stack>
-                <Stack
-                    sx={{
-                        alignItems: "flex-end",
-                    }}
-                >
-                    <Button
-                        disableRipple={
-                            theme.components?.MuiButton?.defaultProps?.disableRipple
-                        }
-                        variant="contained"
-                        sx={{
-                            ...singleTheme.buttons.primary,
-                            width: 150,
-                            height: 34,
-                            "&:hover": {
-                                backgroundColor: "#175CD3 ",
-                            },
-                        }}
-                        onClick={() => {
-                            openAddNewVendor();
-                        }}
-                    >
-                        Add new vendor
-                    </Button>
-                </Stack>
-                <TableWithPlaceholder
-                    dashboardValues={dashboardValues}
-                    onVendorChange={updateVendorChangeTrigger}
-                    onDeleteVendor={handleDeleteVendor} />
-            </Stack>
-            <AddNewVendor
-                isOpen={isOpen}
-                handleChange={handleChange}
-                setIsOpen={() => setIsOpen(false)}
-                value={value}
-                onVendorChange={updateVendorChangeTrigger}
-            />
-        </div>
+      <div className="vendors-page">
+        <PageTour steps={vendorSteps} run={runVendorTour} onFinish={()=> setRunVendorTour(false)}/>
+        <Stack gap={theme.spacing(10)} maxWidth={1400}>
+          {alert && (
+            <Suspense fallback={<div>Loading...</div>}>
+              <Alert
+                variant={alert.variant}
+                title={alert.title}
+                body={alert.body}
+                isToast={true}
+                onClick={() => setAlert(null)}
+              />
+            </Suspense>
+          )}
+          <Stack>
+            <Typography sx={singleTheme.textStyles.pageTitle}>
+              Vendors list
+            </Typography>
+            <Typography sx={singleTheme.textStyles.pageDescription}>
+              This table includes a list of external entities that provides
+              AI-related products, services, or components. You can create and
+              manage all vendors here.
+            </Typography>
+          </Stack>
+          <Stack
+            sx={{
+              alignItems: "flex-end",
+            }}
+          >
+            <Button
+              data-joyride-id="add-new-vendor"
+              disableRipple={
+                theme.components?.MuiButton?.defaultProps?.disableRipple
+              }
+              variant="contained"
+              sx={{
+                ...singleTheme.buttons.primary,
+                width: 150,
+                height: 34,
+                "&:hover": {
+                  backgroundColor: "#175CD3 ",
+                },
+              }}
+              onClick={() => {
+                openAddNewVendor();
+              }}
+            >
+              Add new vendor
+            </Button>
+          </Stack>
+          <TableWithPlaceholder
+            dashboardValues={dashboardValues}
+            onVendorChange={updateVendorChangeTrigger}
+            onDeleteVendor={handleDeleteVendor}
+          />
+        </Stack>
+        <AddNewVendor
+          isOpen={isOpen}
+          handleChange={handleChange}
+          setIsOpen={() => setIsOpen(false)}
+          value={value}
+          onVendorChange={updateVendorChangeTrigger}
+        />
+      </div>
     );
 };
 

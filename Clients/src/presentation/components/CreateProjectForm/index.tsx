@@ -364,7 +364,6 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, setIsNewPro
                 value={values.goal}
                 onChange={handleOnTextFieldChange("goal")}
                 sx={{
-                  height: 101,
                   backgroundColor: theme.palette.background.main,
                 }}
                 isRequired

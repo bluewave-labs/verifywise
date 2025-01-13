@@ -40,7 +40,7 @@
 
 .field-description .MuiFormControl-root .MuiInputBase-root .MuiInputBase-input {
   padding: 0;
-  max-height: 53px;
+  /* max-height: 53px; */
 }
 
 .field-description .MuiFormControl-root .MuiInputBase-root {

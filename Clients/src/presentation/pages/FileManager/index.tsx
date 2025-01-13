@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import {
   Stack,
   Box,
@@ -10,6 +10,8 @@ import BasicTable from "../../components/Table";
 import EmptyTableImage from "../../assets/imgs/empty-state.svg";
 import AscendingIcon from "../../assets/icons/up-arrow.svg";
 import DescendingIcon from "../../assets/icons/down-arrow.svg";
+import PageTour from "../../components/PageTour";
+import CustomStep from "../../components/PageTour/CustomStep";
 
 /**
  * Represents a file with its metadata.
@@ -153,6 +155,23 @@ const FileManager: React.FC = (): JSX.Element => {
   const [sortDirection, setSortDirection] = useState<SortDirection | null>(
     null
   );
+  const [runFileTour, setRunFileTour] = useState(false);
+
+  const fileSteps =[
+    {
+      target:'[data-joyride-id="file-manager-title"]',
+      content:(
+        <CustomStep 
+        body="This table lists all the files uploaded to the system."
+        />
+      ),
+      placement:"left" as const,
+    }
+  ]
+
+  useEffect(()=>{
+    setRunFileTour(true);
+  }, [])
 
   /**
    * Handles sorting of files by a specified field.
@@ -208,7 +227,12 @@ const FileManager: React.FC = (): JSX.Element => {
 
   return (
     <Stack spacing={4} sx={{ padding: 4, marginBottom: 10 }}>
-      <Stack spacing={1}>
+      <PageTour
+        steps={fileSteps}
+        run={runFileTour}
+        onFinish={() => setRunFileTour(false)}
+      />
+      <Stack spacing={1} data-joyride-id="file-manager-title">
         <Typography variant="h6" fontWeight="bold" gutterBottom>
           Evidences & documents
         </Typography>
@@ -218,19 +242,18 @@ const FileManager: React.FC = (): JSX.Element => {
       </Stack>
 
       <Box
-        sx={{display: "flex",
+        sx={{
+          display: "flex",
           flexDirection: "column",
           flex: 1,
           width: "100%",
-          justifyContent:files.length === 0 ? "center" : "flex-start",
-          alignItems: files.length === 0 ? "center": "stretch",
+          justifyContent: files.length === 0 ? "center" : "flex-start",
+          alignItems: files.length === 0 ? "center" : "stretch",
           position: "relative",
           borderRadius: "4px",
           overflow: "hidden",
           minHeight: "400px",
-          borderBottom:
-            files.length === 0 ? "1px solid #eeeeee" : "none",
-            
+          borderBottom: files.length === 0 ? "1px solid #eeeeee" : "none",
         }}
       >
         <FileTable

@@ -149,7 +149,7 @@ const Field = forwardRef(
           autoComplete={autoComplete}
           placeholder={placeholder}
           multiline={type === "description"}
-          rows={type === "description" ? 4 : 1}
+          rows={type === "description" ? 5 : 1}
           value={value}
           onInput={onInput}
           onChange={onChange}

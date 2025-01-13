@@ -2,7 +2,7 @@ import React from "react";
 import { Box, Typography } from "@mui/material";
 
 interface CustomStepProps {
-    header: string;
+    header?: string;
     body:string;
 }
 

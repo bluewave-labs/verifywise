@@ -1,7 +1,7 @@
 import { Stack } from "@mui/material";
 import "./index.css";
 import Sidebar from "../../components/Sidebar";
-import { Outlet } from "react-router";
+import { Outlet, useLocation } from "react-router";
 import { useContext, useEffect, useState, FC } from "react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import {
@@ -19,10 +19,10 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
   const { token, setDashboardValues } = useContext(VerifyWiseContext);
   const [projects, setProjects] = useState([]);
   const [_, setUsers] = useState([]);
-
-  const [shouldRun, setShouldRun] = useState(false);
+const location = useLocation();
+  const [runHomeTour, setRunHomeTour] = useState(false);
   //joyride steps
-  const steps = [
+  const homeSteps = [
     // Sidebar steps
     {
       target: '[data-joyride-id="new-project-button"]',
@@ -88,14 +88,16 @@ const checkTourElements = () => {
 const newProjectButton = document.querySelector('[data-joyride-id="new-project-button"]');
 const dashboardNav= document.querySelector('[data-joyride-id="dashboard-navigation"]');
 
-if (newProjectButton && dashboardNav) {
-setShouldRun(true);
+if (location.pathname === "/" &&newProjectButton && dashboardNav) {
+setRunHomeTour(true);
+} else {
+  setRunHomeTour(false);
 }
 };
 const timeout = setTimeout(checkTourElements, 1000);
 return () => clearTimeout(timeout);
 
-  }, [setDashboardValues,reloadTrigger]);
+  }, [setDashboardValues,reloadTrigger, location.pathname]);
 
 
   const mappedProjects = projects.map((project: any) => ({
@@ -116,11 +118,12 @@ return () => clearTimeout(timeout);
       <Sidebar projects={mappedProjects} />
 
       {/* Joyride */}
+      { runHomeTour && (
       <PageTour
-        steps={steps}
-        run={shouldRun}
-        onFinish={() => setShouldRun(false)}
-      />
+        steps={homeSteps}
+        run={runHomeTour}
+        onFinish={() => setRunHomeTour(false)}
+      /> )}
       <Outlet />
     </Stack>
   );

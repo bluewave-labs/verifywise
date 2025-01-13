@@ -89,10 +89,10 @@ const ProfileForm: React.FC = () => {
       try {
         // const userId = localStorage.getItem("userId") || 1;
         const response = await getEntityById({ routeUrl: `/users/1` });
-
-            setFirstname(response.data.firstname || "");
-            setLastname(response.data.lastname || "");
-            setEmail(response.data.email || "");
+        console.log("response : ", response);
+        setFirstname(response.data.name || "");
+        setLastname(response.data.surname || "");
+        setEmail(response.data.email || "");
 
         setProfilePhoto(
           response.data.pathToImage || "/placeholder.svg?height=80&width=80"
@@ -154,7 +154,7 @@ const ProfileForm: React.FC = () => {
         email,
         pathToImage: profilePhoto,
       };
-      
+
       const response = await updateEntityById({
         routeUrl: `/users/1`,
         body: updatedUser,
@@ -322,11 +322,11 @@ const ProfileForm: React.FC = () => {
    * Close confirmation modal.
    *
    * Closes the save changes confirmation modal.
-  */
+   */
   const handleCloseConfirmationModal = useCallback(() => {
     setIsSaveModalOpen(false);
   }, []);
- 
+
   /**
    * Handle save confirmation.
    *
@@ -386,13 +386,11 @@ const ProfileForm: React.FC = () => {
       pathToImage: profilePhoto,
       email,
     }),
-    [ firstname, lastname, profilePhoto, email]
+    [firstname, lastname, profilePhoto, email]
   );
 
   return (
-    <Box
-      sx={{ position: "relative", mt: 3, width: { xs: "90%", md: "70%" } }}
-    >
+    <Box sx={{ position: "relative", mt: 3, width: { xs: "90%", md: "70%" } }}>
       {loading && (
         <Box
           sx={{

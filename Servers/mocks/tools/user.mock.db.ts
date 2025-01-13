@@ -48,7 +48,15 @@
  * @returns {boolean} True if any user exists, otherwise false.
  */
 
+import { getAllSubcontrolsQuery } from "../../utils/subControl.utils";
 import { users } from "../users.data";
+import { getAllMockAssessments } from "./assessment.mock.db";
+import { getAllMockControls } from "./control.mock.db";
+import { getAllMockControlCategories } from "./controlCategory.mock.db";
+import { getAllMockProjects } from "./project.mock.db";
+import { getAllMockQuestions } from "./question.mock.db";
+import { getAllMockSubtopics } from "./subtopic.mock.db";
+import { getAllMockTopics } from "./topic.mock.db";
 
 export const getAllMockUsers = () => {
   return users;
@@ -103,4 +111,51 @@ export const deleteMockUserById = (id: number) => {
 
 export const checkMockUserExists = (): boolean => {
   return users.length > 0;
+};
+
+export const getMockUserProjects = (userId: number) => {
+  return getAllMockProjects().filter((project) => project.owner === userId);
+};
+
+export const getMockControlCategoriesForProject = (projectId: number) => {
+  return getAllMockControlCategories().filter(
+    (category) => category.project_id === projectId
+  );
+};
+
+export const getMockControlForControlCategory = (controlCategoryId: number) => {
+  return getAllMockControls().filter(
+    (control) => control.controlGroup === controlCategoryId
+  );
+};
+
+export const getMockSubControlForControl = async (controlId: number) => {
+  const allSubcontrols = await getAllSubcontrolsQuery();
+  return allSubcontrols.filter(
+    (subcontrol) => subcontrol.controlId === controlId
+  );
+};
+
+export const getMockAssessmentsForProject = (projectId: number) => {
+  return getAllMockAssessments().filter(
+    (assessment) => assessment.projectId === projectId
+  );
+};
+
+export const getMockTopicsForAssessment = (assessmentId: number) => {
+  return getAllMockTopics().filter(
+    (topic) => topic.assessmentId === assessmentId
+  );
+};
+
+export const getMockSubTopicsForTopic = (topicId: number) => {
+  return getAllMockSubtopics().filter(
+    (subtopic) => subtopic.topicId === topicId
+  );
+};
+
+export const getMockQuestionsForSubTopic = (subtopicId: number) => {
+  return getAllMockQuestions().filter(
+    (question) => question.subtopicId === subtopicId
+  );
 };

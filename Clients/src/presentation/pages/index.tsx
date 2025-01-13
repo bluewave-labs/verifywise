@@ -1,4 +1,5 @@
 import { Stack } from "@mui/material";
+import VWSkeleton from "../vw-v2-components/Skeletons";
 
 const Playground = () => {
   return (
@@ -14,7 +15,9 @@ const Playground = () => {
         minHeight: "100vh",
         gap: 4,
       }}
-    ></Stack>
+    >
+      <VWSkeleton />
+    </Stack>
   );
 };
 

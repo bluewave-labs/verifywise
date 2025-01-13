@@ -51,6 +51,7 @@ function App() {
   });
   const [inputValues, setInputValues] = useState<unknown | undefined>({}); // for the input fields
   const [token, setToken] = useState<string | null>("");
+  const [triggerSidebar, setTriggerSidebar] = useState(false);
 
   const login = (token: string) => {
     setToken(token);
@@ -89,6 +90,10 @@ function App() {
     ]
   );
 
+  const triggerSidebarReload = () => {
+    setTriggerSidebar((prev) => !prev)
+  }
+
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
@@ -99,9 +104,9 @@ function App() {
               <Route
                 path="/"
                 // element={<ProtectedRoute Component={Dashboard} />} It's commented for now since we're working on other parts an it'll disturb
-                element={<Dashboard />}
+                element={<Dashboard reloadTrigger={triggerSidebar}/>}
               >
-                <Route path="/" element={<Home />} />
+                <Route path="/" element={<Home onProjectUpdate={triggerSidebarReload}/>} />
                 <Route
                   path="/compliance-tracker"
                   element={<NewComplianceTracker />}

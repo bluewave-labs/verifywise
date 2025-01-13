@@ -14,6 +14,7 @@ import Select from "../../../components/Inputs/Select";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import selectValidation from "../../../../application/validations/selectValidation";
 import Alert from "../../../components/Alert";
+import VWMultiSelect from "../../../vw-v2-components/Selects/Multi"
 
 interface ProjectSettingsProps {
   setTabValue: (value: string) => void;
@@ -24,7 +25,7 @@ interface FormValues {
   goal: string;
   owner: number;
   startDate: string;
-  addUsers: number;
+  addUsers: [];
   riskClassification: number;
   typeOfHighRiskRole: number;
 }
@@ -44,7 +45,7 @@ const initialState: FormValues = {
   goal: "",
   owner: 0,
   startDate: "",
-  addUsers: 0,
+  addUsers: [],
   riskClassification: 0,
   typeOfHighRiskRole: 0,
 };
@@ -73,6 +74,18 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
           setValues((prevValues) => ({
             ...prevValues,
             [prop]: event.target.value,
+          }));
+          setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
+        },
+      []
+    );
+
+    const handleMultiSelectChange = useCallback(
+      (prop: keyof FormValues) =>
+        (event: SelectChangeEvent<string | number | (string | number)[]>) => {
+          setValues((prevValues) => ({
+            ...prevValues,
+            [prop]: event.target.value as number[],
           }));
           setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
         },
@@ -115,10 +128,12 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
       if (!startDate.accepted) {
         newErrors.startDate = startDate.message;
       }
-      const addUsers = selectValidation("Team members", values.addUsers);
+
+      const addUsers = selectValidation("Team members", values.addUsers.length);
       if (!addUsers.accepted) {
         newErrors.addUsers = addUsers.message;
       }
+
       const owner = selectValidation("Owner", values.owner);
       if (!owner.accepted) {
         newErrors.owner = owner.message;
@@ -233,19 +248,18 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
               be able to see the project.
             </Typography>
           </Stack>
-          <Select
-            id="add-users"
-            placeholder="Add users"
+          <VWMultiSelect 
+            label="Team members"
+            onChange={handleMultiSelectChange("addUsers")}
             value={values.addUsers}
-            onChange={handleOnSelectChange("addUsers")}
             items={[
               { _id: 1, name: "Some value 1" },
               { _id: 2, name: "Some value 2" },
               { _id: 3, name: "Some value 3" },
             ]}
             sx={{ width: 357, backgroundColor: theme.palette.background.main }}
-            error={errors.addUsers}
-            isRequired
+            // error={errors.addUsers}
+            // required
           />
           <Stack gap="5px" sx={{ mt: "6px" }}>
             <Typography

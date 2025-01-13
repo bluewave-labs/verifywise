@@ -17,12 +17,17 @@ import {
   useTheme,
   SelectChangeEvent,
   TablePagination,
+  Dialog,
+  DialogTitle,
+  DialogContentText,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import Trashbin from "../../../../presentation/assets/icons/trash-01.svg";
-import Field from "../../../components/Inputs/Field";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
 import TablePaginationActions from "../../../components/TablePagination";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import InviteUserModal from "../../../components/Modals/InviteUser";
 
 // Enum for roles
 enum Role {
@@ -53,6 +58,8 @@ const TeamManagement: React.FC = (): JSX.Element => {
 
   // State management
   const [orgName, setOrgName] = useState("BlueWave Labs");
+  const [open, setOpen] = useState(false);
+  const [memberToDelete, setMemberToDelete] = useState<string | null>(null);
   const [filter, setFilter] = useState<Role | "All">("All");
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([
     {
@@ -77,13 +84,28 @@ const TeamManagement: React.FC = (): JSX.Element => {
   ]);
 
   const [page, setPage] = useState(0); // Current page
-  const { dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);
+  const { dashboardValues} = useContext(VerifyWiseContext);
   const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
+  const [inviteUserModalOpen, setInviteUserModalOpen] = useState(false);
 
   // Handle saving organization name
   const handleSaveOrgName = useCallback(() => {
     console.log("Saving organization name:", orgName);
   }, [orgName]);
+
+  const handleClose = () => {
+    setOpen(false);
+    setMemberToDelete(null);
+  };
+
+  const confirmDelete = () => {
+    if (memberToDelete) {
+      setTeamMembers((members) =>
+        members.filter((member) => member.id !== memberToDelete)
+      );
+    }
+    handleClose();
+  };
 
   // Handle role change
   const handleRoleChange = useCallback(
@@ -127,6 +149,11 @@ const TeamManagement: React.FC = (): JSX.Element => {
     console.log("Form Data:", formData);
   }, [orgName, filter, teamMembers]);
 
+  const handleDeleteClick = (memberId: string) => {
+    setMemberToDelete(memberId);
+    setOpen(true);
+  };
+
   const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);
   };
@@ -143,9 +170,14 @@ const TeamManagement: React.FC = (): JSX.Element => {
   //   return filteredMembers.slice(startIndex, startIndex + rowsPerPage);
   // }, [filteredMembers, page, rowsPerPage]);
 
+  const inviteTeamMember = () => {
+    console.log("Inviting team member");
+    setInviteUserModalOpen(true);
+  };
+
   return (
     <Stack sx={{ pt: theme.spacing(10) }}>
-      <Box sx={{ mb: 4 }}>
+      {/* <Box sx={{ mb: 4 }}>
         <Typography
           variant="h4"
           gutterBottom
@@ -186,7 +218,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
             Save
           </Button>
         </Box>
-      </Box>
+      </Box> */}
 
       <Box sx={{ mb: 4, maxWidth: theme.spacing(480) }}>
         <Typography
@@ -237,7 +269,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
             </Box>
 
             <Box sx={{ mt: 10 }}>
-              <Button variant="contained" disableRipple>
+              <Button variant="contained" disableRipple onClick={() => inviteTeamMember()}>
                 Invite team member
               </Button>
             </Box>
@@ -268,16 +300,30 @@ const TeamManagement: React.FC = (): JSX.Element => {
                           value={member.role}
                           onChange={(e) => handleRoleChange(e, member.id)}
                           size="small"
-                          sx={{ minWidth: 120 }}
+                          sx={{
+                            minWidth: 120,
+                            "& .MuiOutlinedInput-notchedOutline": {
+                              border: "none", // Remove the border from the notched outline
+                            },
+                          }}
                         >
                           {roles.map((role) => (
-                            <MenuItem key={role} value={role}>{role}</MenuItem>
+                            <MenuItem key={role} value={role}>
+                              {role}
+                            </MenuItem>
                           ))}
                         </Select>
                       </TableCell>
                       <TableCell>
-                        <IconButton onClick={() => handleDeleteMember(member.id)}>
-                          <img src={Trashbin} alt="Delete" width={20} height={20} />
+                        <IconButton
+                          onClick={() => handleDeleteClick(member.id)}
+                        >
+                          <img
+                            src={Trashbin}
+                            alt="Delete"
+                            width={20}
+                            height={20}
+                          />
                         </IconButton>
                       </TableCell>
                     </TableRow>
@@ -286,73 +332,138 @@ const TeamManagement: React.FC = (): JSX.Element => {
             </Table>
           </TableContainer>
 
+          <Dialog
+            open={open}
+            onClose={handleClose}
+            sx={{
+              maxWidth: "440px",
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              padding: "32px",
+              transform: "translate(-50%, -50%)",
+              "& .MuiDialog-paper": {
+                borderRadius: "8px",
+                boxShadow: "0 0px 0px rgba(0, 0, 0, 0.1)",
+                backgroundColor: "white",
+                padding: "32px",
+                margin: "0px",
+              },
+              "& .MuiBackdrop-root": {
+                backgroundColor: "rgba(0, 0, 0, 0)",
+              },
+              "& .css-7znkgh-MuiModal-root-MuiDialog-root": {
+                backgroundColor: "rgba(0, 0, 0, 0)",
+              },
+              "& .MuiDialog-container": {
+                backgroundColor: "rgba(0, 0, 0, 0)",
+              },
+            }}
+          >
+            <DialogTitle
+              sx={{ color: "#344054", fontSize: "16px", paddingBottom: "13px" }}
+            >
+              Confirm Delete
+            </DialogTitle>
+            <DialogContent>
+              <DialogContentText sx={{ color: "#344054", fontSize: "13px" }}>
+                Are you sure you want to delete this team member? This action
+                cannot be undone.
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions sx={{padding: "0px 0px"}}>
+              <Button onClick={handleClose} sx={{ color: "black" }}>
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmDelete}
+                sx={{ backgroundColor: "#DB504A" , height: "32px"}}
+                variant="contained"
+              >
+                Delete
+              </Button>
+            </DialogActions>
+          </Dialog>
+
           <TablePagination
-          count={dashboardValues.vendors.length}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPage={rowsPerPage}
-          rowsPerPageOptions={[5, 10, 15, 25]}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          ActionsComponent={(props) => <TablePaginationActions {...props} />}
-          labelRowsPerPage="Rows per page"
-          labelDisplayedRows={({ page, count }) =>
-            `Page ${page + 1} of ${Math.max(0, Math.ceil(count / rowsPerPage))}`
-          }
-          slotProps={{
-            select: {
-              MenuProps: {
-                keepMounted: true,
-                PaperProps: {
-                  className: "pagination-dropdown",
-                  sx: {
-                    mt: 0,
-                    mb: theme.spacing(2),
+            count={dashboardValues.vendors.length}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            rowsPerPageOptions={[5, 10, 15, 25]}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            ActionsComponent={(props) => <TablePaginationActions {...props} />}
+            labelRowsPerPage="Rows per page"
+            labelDisplayedRows={({ page, count }) =>
+              `Page ${page + 1} of ${Math.max(
+                0,
+                Math.ceil(count / rowsPerPage)
+              )}`
+            }
+            slotProps={{
+              select: {
+                MenuProps: {
+                  keepMounted: true,
+                  PaperProps: {
+                    className: "pagination-dropdown",
+                    sx: {
+                      mt: 0,
+                      mb: theme.spacing(2),
+                    },
+                  },
+                  transformOrigin: { vertical: "bottom", horizontal: "left" },
+                  anchorOrigin: { vertical: "top", horizontal: "left" },
+                  sx: { mt: theme.spacing(-2) },
+                },
+                inputProps: { id: "pagination-dropdown" },
+                IconComponent: SelectorVertical,
+                sx: {
+                  ml: theme.spacing(4),
+                  mr: theme.spacing(12),
+                  minWidth: theme.spacing(20),
+                  textAlign: "left",
+                  "&.Mui-focused > div": {
+                    backgroundColor: theme.palette.background.main,
                   },
                 },
-                transformOrigin: { vertical: "bottom", horizontal: "left" },
-                anchorOrigin: { vertical: "top", horizontal: "left" },
-                sx: { mt: theme.spacing(-2) },
               },
-              inputProps: { id: "pagination-dropdown" },
-              IconComponent: SelectorVertical,
-              sx: {
-                ml: theme.spacing(4),
-                mr: theme.spacing(12),
-                minWidth: theme.spacing(20),
-                textAlign: "left",
-                "&.Mui-focused > div": {
-                  backgroundColor: theme.palette.background.main,
-                },
+            }}
+            sx={{
+              mt: theme.spacing(6),
+              color: theme.palette.text.secondary,
+              "& .MuiSelect-icon": {
+                width: "24px",
+                height: "fit-content",
               },
-            },
-          }}
-          sx={{
-            mt: theme.spacing(6),
-            color: theme.palette.text.secondary,
-            "& .MuiSelect-icon": {
-              width: "24px",
-              height: "fit-content",
-            },
-            "& .MuiSelect-select": {
-              width: theme.spacing(10),
-              borderRadius: theme.shape.borderRadius,
-              border: `1px solid ${theme.palette.border.light}`,
-              padding: theme.spacing(4),
-            },
-          }}
-        />
+              "& .MuiSelect-select": {
+                width: theme.spacing(10),
+                border: `1px solid ${theme.palette.border.light}`,
+                padding: theme.spacing(4),
+              },
+            }}
+          />
 
           <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 20 }}>
-            <Button
+            {/* <Button
               variant="contained"
               disableRipple
               onClick={handleSaveAllData}
             >
               Save
-            </Button>
+            </Button> */}
           </Box>
         </Stack>
       </Box>
+      {inviteUserModalOpen && (
+        <InviteUserModal
+          isOpen={inviteUserModalOpen}
+          setIsOpen={setInviteUserModalOpen}
+          onSendInvite={(data) => {
+            console.log('Invite sent:', data);
+            setInviteUserModalOpen(false);
+          }}
+        />
+      )}
     </Stack>
   );
 };

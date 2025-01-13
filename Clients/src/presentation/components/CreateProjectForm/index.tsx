@@ -66,6 +66,7 @@ const initialState: FormValues = {
 
 interface CreateProjectFormProps {
   closePopup: () => void;
+  setIsNewProjectCreate: (value: boolean) => void;
 }
 
 /**
@@ -77,7 +78,8 @@ interface CreateProjectFormProps {
  * @component
  * @returns {JSX.Element} The rendered component.
  */
-const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup }) => {
+
+const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, setIsNewProjectCreate }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const [values, setValues] = useState<FormValues>(initialState);
@@ -183,7 +185,8 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup }) => {
         });
         setTimeout(() => {
           setAlert(null);
-          navigate("/project-view");
+          setIsNewProjectCreate(true);
+          // navigate("/project-view");
           closePopup();
         }, 3000);
       }
@@ -285,9 +288,9 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup }) => {
               value={values.owner}
               onChange={handleOnSelectChange("owner")}
               items={[
-                { _id: 1, name: "Some value 1" },
-                { _id: 2, name: "Some value 2" },
-                { _id: 3, name: "Some value 3" },
+                { _id: 1, name: "Some value 1", email: "email@email.com" },
+                { _id: 2, name: "Some value 2", email: "email@email.com" },
+                { _id: 3, name: "Some value 3", email: "email@email.com" },
               ]}
               sx={{
                 width: "350px",

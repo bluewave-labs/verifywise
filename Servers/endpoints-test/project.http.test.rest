@@ -2,6 +2,10 @@
 
 GET http://localhost:3000/projects
 
+### get project stats
+
+GET http://localhost:3000/projects/stats/1
+
 ### get project by id
 
 GET http://localhost:3000/projects/2

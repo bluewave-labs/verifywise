@@ -2,17 +2,56 @@ import { Stack } from "@mui/material";
 import "./index.css";
 import Sidebar from "../../components/Sidebar";
 import { Outlet } from "react-router";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, FC } from "react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import {
   getEntityById,
   getAllEntities,
 } from "../../../application/repository/entity.repository";
+import PageTour from "../../components/PageTour";
+import CustomStep from "../../components/PageTour/CustomStep";
 
-const Dashboard = () => {
+interface DashboardProps {
+  reloadTrigger: boolean;
+}
+
+const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
   const { token, setDashboardValues } = useContext(VerifyWiseContext);
   const [projects, setProjects] = useState([]);
   const [_, setUsers] = useState([]);
+
+  const [shouldRun, setShouldRun] = useState(false);
+  //joyride steps
+  const steps = [
+    // Sidebar steps
+    {
+      target: '[data-joyride-id="new-project-button"]',
+      content:(
+        <CustomStep
+          header="Create your first project"
+          body="Each project corresponds to an AI activity in your company."
+          />
+      )
+    },
+    {
+      target: '[data-joyride-id="select-project"]',
+      content: (
+        <CustomStep 
+        header="Select a project"
+        body="Once created, you can select it here."
+        />
+      )
+    },
+    {
+      target: '[data-joyride-id="dashboard-navigation"]',
+      content: (
+        <CustomStep 
+        header="Fill in compliance,assessments, risks and vendors"
+        body="Each project has its own set of questions and documents where you can fill in here."
+        />
+      )
+    },
+  ];
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -43,7 +82,21 @@ const Dashboard = () => {
 
     fetchProjects();
     fetchUsers();
-  }, [setDashboardValues]);
+
+//check if required DOM elements are ready
+const checkTourElements = () => {
+const newProjectButton = document.querySelector('[data-joyride-id="new-project-button"]');
+const dashboardNav= document.querySelector('[data-joyride-id="dashboard-navigation"]');
+
+if (newProjectButton && dashboardNav) {
+setShouldRun(true);
+}
+};
+const timeout = setTimeout(checkTourElements, 1000);
+return () => clearTimeout(timeout);
+
+  }, [setDashboardValues,reloadTrigger]);
+
 
   const mappedProjects = projects.map((project: any) => ({
     _id: project.id,
@@ -61,6 +114,13 @@ const Dashboard = () => {
       sx={{ backgroundColor: "#FCFCFD" }}
     >
       <Sidebar projects={mappedProjects} />
+
+      {/* Joyride */}
+      <PageTour
+        steps={steps}
+        run={shouldRun}
+        onFinish={() => setShouldRun(false)}
+      />
       <Outlet />
     </Stack>
   );

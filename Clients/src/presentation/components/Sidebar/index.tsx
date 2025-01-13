@@ -17,7 +17,7 @@ import "./index.css";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 import { useTheme } from "@mui/material";
-import React, { useContext, useState, useEffect} from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { toggleSidebar } from "../../tools/uiSlice";
 
 import { ReactComponent as ArrowLeft } from "../../assets/icons/left-arrow.svg";
@@ -39,6 +39,8 @@ import Avatar from "../Avatar/VWAvatar";
 import { clearAuthState } from "../../../application/authentication/authSlice";
 import { SelectChangeEvent } from "@mui/material";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import { Link as RouterLink } from "react-router-dom";
+import { Link as MuiLink } from "@mui/material";
 
 const menu = [
   {
@@ -92,8 +94,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
   const collapsed = useSelector((state: any) => state.ui?.sidebar?.collapsed);
 
   const handleProjectChange = (event: SelectChangeEvent<string | number>) => {
-    
-    const selectedProjectId = event.target.value as string;      
+    const selectedProjectId = event.target.value as string;
     setSelectedProjectId(selectedProjectId);
     // Update the dashboardValues in the context
     setDashboardValues({
@@ -135,18 +136,18 @@ const Sidebar = ({ projects }: { projects: any }) => {
       default:
         return null;
     }
-  }
+  };
 
   useEffect(() => {
-    if(projects.length > 0 && selectedProjectId === ''){
-      setSelectedProjectId(projects[0]._id)
+    if (projects.length > 0 && selectedProjectId === "") {
+      setSelectedProjectId(projects[0]._id);
     }
   }, [projects]);
 
   return (
     <Stack
       component="aside"
-      className={collapsed ? "collapsed" : "expanded"}
+      className={`sidebar-menu ${collapsed ? "collapsed" : "expanded"}`}
       py={theme.spacing(6)}
       gap={theme.spacing(6)}
       sx={{
@@ -170,23 +171,36 @@ const Sidebar = ({ projects }: { projects: any }) => {
         pb={theme.spacing(12)}
         pl={theme.spacing(12)}
       >
-        <Stack direction="row" alignItems="center" gap={theme.spacing(4)}>
-          <img src={Logo} alt="Logo" width={32} height={30} />
-          <Typography
-            component="span"
-            mt={theme.spacing(2)}
-            sx={{ opacity: 0.8, fontWeight: 500 }}
-            className="app-title"
+        <Stack
+          direction="row"
+          alignItems="center"
+          gap={theme.spacing(4)}
+          className="app-title"
+        >
+          <RouterLink to="/">
+            <img src={Logo} alt="Logo" width={32} height={30} />
+          </RouterLink>
+          <MuiLink
+            component={RouterLink}
+            to="/"
+            sx={{ textDecoration: "none" }}
           >
-            Verify
-            <span
-              style={{
-                color: "#0f604d",
-              }}
+            <Typography
+              component="span"
+              mt={theme.spacing(2)}
+              sx={{ opacity: 0.8, fontWeight: 500 }}
+              className="app-title"
             >
-              Wise
-            </span>
-          </Typography>
+              Verify
+              <span
+                style={{
+                  color: "#0f604d",
+                }}
+              >
+                Wise
+              </span>
+            </Typography>
+          </MuiLink>
         </Stack>
       </Stack>
 
@@ -229,6 +243,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
             justifyContent: "flex-start",
             width: "fit-content",
           }}
+          data-joyride-id="select-project"
         >
           <Select
             id="projects"
@@ -245,6 +260,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
         aria-labelledby="nested-menu-subheader"
         disablePadding
         sx={{ px: theme.spacing(8) }}
+        data-joyride-id="dashboard-navigation"
       >
         {/*
         Items of the menu
@@ -275,7 +291,8 @@ const Sidebar = ({ projects }: { projects: any }) => {
                     ?.disableRipple
                 }
                 className={
-                  (location.pathname === item.path) || customMenuHandler() === item.path
+                  location.pathname === item.path ||
+                  customMenuHandler() === item.path
                     ? "selected-path"
                     : "unselected"
                 }
@@ -286,8 +303,10 @@ const Sidebar = ({ projects }: { projects: any }) => {
                   borderRadius: theme.shape.borderRadius,
                   px: theme.spacing(4),
                   backgroundColor:
-                    (location.pathname === item.path) || customMenuHandler() === item.path
-                    ? "#F9F9F9" : "transparent",
+                    location.pathname === item.path ||
+                    customMenuHandler() === item.path
+                      ? "#F9F9F9"
+                      : "transparent",
 
                   "&:hover": {
                     backgroundColor: "#F9F9F9",

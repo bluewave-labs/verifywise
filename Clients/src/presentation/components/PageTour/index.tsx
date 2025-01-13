@@ -45,6 +45,12 @@ const PageTour: React.FC<PageTourProps> = ({ steps, run, onFinish }) => {
       showProgress
       showSkipButton
       callback={handleCallback}
+      locale={{
+        last:"Finish",
+        next:"Next",
+        back:"Back",
+        skip:"Skip",
+      }}
       styles={{
         options: {
           primaryColor: "rgba(76, 125, 231, 1)",

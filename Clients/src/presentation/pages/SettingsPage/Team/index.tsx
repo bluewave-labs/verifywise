@@ -57,7 +57,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const theme = useTheme();
 
   // State management
-  const [orgName, setOrgName] = useState("BlueWave Labs");
+  // const [orgName, _] = useState("BlueWave Labs");
   const [open, setOpen] = useState(false);
   const [memberToDelete, setMemberToDelete] = useState<string | null>(null);
   const [filter, setFilter] = useState<Role | "All">("All");
@@ -84,14 +84,14 @@ const TeamManagement: React.FC = (): JSX.Element => {
   ]);
 
   const [page, setPage] = useState(0); // Current page
-  const { dashboardValues} = useContext(VerifyWiseContext);
+  const { dashboardValues } = useContext(VerifyWiseContext);
   const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
   const [inviteUserModalOpen, setInviteUserModalOpen] = useState(false);
 
   // Handle saving organization name
-  const handleSaveOrgName = useCallback(() => {
-    console.log("Saving organization name:", orgName);
-  }, [orgName]);
+  // const handleSaveOrgName = useCallback(() => {
+  //   console.log("Saving organization name:", orgName);
+  // }, [orgName]);
 
   const handleClose = () => {
     setOpen(false);
@@ -121,11 +121,11 @@ const TeamManagement: React.FC = (): JSX.Element => {
   );
 
   // Handle deleting a team member
-  const handleDeleteMember = useCallback((memberId: string) => {
-    setTeamMembers((members) =>
-      members.filter((member) => member.id !== memberId)
-    );
-  }, []);
+  // const handleDeleteMember = useCallback((memberId: string) => {
+  //   setTeamMembers((members) =>
+  //     members.filter((member) => member.id !== memberId)
+  //   );
+  // }, []);
 
   // Filtered team members based on selected role
   const filteredMembers = useMemo(() => {
@@ -135,19 +135,19 @@ const TeamManagement: React.FC = (): JSX.Element => {
   }, [filter, teamMembers]);
 
   // Handle saving all data
-  const handleSaveAllData = useCallback(() => {
-    const formData = {
-      organizationName: orgName,
-      filterRole: filter,
-      teamMembers: teamMembers.map(({ id, name, email, role }) => ({
-        id,
-        name,
-        email,
-        role,
-      })),
-    };
-    console.log("Form Data:", formData);
-  }, [orgName, filter, teamMembers]);
+  // const handleSaveAllData = useCallback(() => {
+  //   const formData = {
+  //     organizationName: orgName,
+  //     filterRole: filter,
+  //     teamMembers: teamMembers.map(({ id, name, email, role }) => ({
+  //       id,
+  //       name,
+  //       email,
+  //       role,
+  //     })),
+  //   };
+  //   console.log("Form Data:", formData);
+  // }, [orgName, filter, teamMembers]);
 
   const handleDeleteClick = (memberId: string) => {
     setMemberToDelete(memberId);
@@ -269,7 +269,11 @@ const TeamManagement: React.FC = (): JSX.Element => {
             </Box>
 
             <Box sx={{ mt: 10 }}>
-              <Button variant="contained" disableRipple onClick={() => inviteTeamMember()}>
+              <Button
+                variant="contained"
+                disableRipple
+                onClick={() => inviteTeamMember()}
+              >
                 Invite team member
               </Button>
             </Box>
@@ -371,13 +375,13 @@ const TeamManagement: React.FC = (): JSX.Element => {
                 cannot be undone.
               </DialogContentText>
             </DialogContent>
-            <DialogActions sx={{padding: "0px 0px"}}>
+            <DialogActions sx={{ padding: "0px 0px" }}>
               <Button onClick={handleClose} sx={{ color: "black" }}>
                 Cancel
               </Button>
               <Button
                 onClick={confirmDelete}
-                sx={{ backgroundColor: "#DB504A" , height: "32px"}}
+                sx={{ backgroundColor: "#DB504A", height: "32px" }}
                 variant="contained"
               >
                 Delete
@@ -459,7 +463,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
           isOpen={inviteUserModalOpen}
           setIsOpen={setInviteUserModalOpen}
           onSendInvite={(data) => {
-            console.log('Invite sent:', data);
+            console.log("Invite sent:", data);
             setInviteUserModalOpen(false);
           }}
         />

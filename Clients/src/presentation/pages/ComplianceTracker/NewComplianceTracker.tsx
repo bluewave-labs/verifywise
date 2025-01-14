@@ -13,6 +13,8 @@ import { useContext, useEffect, useState } from "react";
 import AccordionTable from "../../components/Table/AccordionTable";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { getAllEntities } from "../../../application/repository/entity.repository";
+import PageTour from "../../components/PageTour";
+import CustomStep from "../../components/PageTour/CustomStep";
 
 const Table_Columns = [
   { id: 1, name: "Icon" },
@@ -24,7 +26,33 @@ const Table_Columns = [
 
 const NewComplianceTracker = () => {
   const [expanded, setExpanded] = useState<number | false>(false);
+
+  const [runComplianceTour, setRunComplianceTour] = useState(false);
   const { setDashboardValues } = useContext(VerifyWiseContext);
+
+  const complianceSteps = [
+    {
+      target: '[data-joyride-id="compliance-title"]',
+      content: (
+        <CustomStep body="Here you'll see a list of controls related to the regulation you selected." />
+      ),
+      placement: "left" as const,
+    },
+    {
+      target: '[data-joyride-id="compliance-metrics"]',
+      content: (
+        <CustomStep body="Check the status of your compliance tracker here." />
+      ),
+      placement: "bottom" as const,
+    },
+    {
+      target: '[data-joyride-id="compliance-accordion"]',
+      content: (
+        <CustomStep body="Those are the groups where controls and subcontrols reside. As you fill them, your statistics will improve." />
+      ),
+      placement: "bottom" as const,
+    },
+  ];
 
   const fetchComplianceTracker = async () => {
     try {
@@ -41,6 +69,7 @@ const NewComplianceTracker = () => {
 
   useEffect(() => {
     fetchComplianceTracker();
+    setRunComplianceTour(true);
   }, []);
 
   const handleAccordionChange = (panel: number) => {
@@ -55,7 +84,11 @@ const NewComplianceTracker = () => {
     controls: any
   ) => {
     return (
-      <Stack className="new-compliance-tracker-details" key={controlGroupIndex}>
+      <Stack
+        data-joyride-id="compliance-accordion"
+        className="new-compliance-tracker-details"
+        key={controlGroupIndex}
+      >
         <Accordion
           className="new-compliance-tracker-details-accordion"
           onChange={handleAccordionChange(controlGroupIndex)}
@@ -93,10 +126,22 @@ const NewComplianceTracker = () => {
 
   return (
     <Stack className="new-compliance-tracker">
-      <Typography className="new-compliance-tracker-title">
+      <PageTour
+        steps={complianceSteps}
+        run={runComplianceTour}
+        onFinish={() => setRunComplianceTour(false)}
+        
+      />
+      <Typography
+        data-joyride-id="compliance-title"
+        className="new-compliance-tracker-title"
+      >
         Compliance Tracker
       </Typography>
-      <Stack className="new-compliance-tracker-metrics">
+      <Stack
+        className="new-compliance-tracker-metrics"
+        data-joyride-id="compliance-metrics"
+      >
         {complianceMetrics.map((metric, metricIndex) => (
           <Stack className="metric-card" key={metricIndex}>
             <Typography className="metric-card-name">{metric.name}</Typography>

@@ -85,6 +85,7 @@ const insertQuery: TableList = [
     createString: `CREATE TABLE users (
       id SERIAL PRIMARY KEY,
       name VARCHAR(255),
+      surname VARCHAR(255),
       email VARCHAR(255),
       password_hash VARCHAR(255),
       role INT REFERENCES roles(id),
@@ -92,10 +93,11 @@ const insertQuery: TableList = [
       last_login DATE
     );`,
     insertString:
-      "INSERT INTO users(name, email, password_hash, role, created_at, last_login) VALUES ",
+      "INSERT INTO users(name, surname, email, password_hash, role, created_at, last_login) VALUES ",
     generateValuesString: function (user: User) {
       return `(
         '${user.name}',
+        '${user.surname}',
         '${user.email}',
         '${user.password_hash}',
         ${user.role},

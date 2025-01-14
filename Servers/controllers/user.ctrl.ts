@@ -40,7 +40,7 @@ import { MOCKDATA_ON } from "../flags";
 
 async function getAllUsers(req: Request, res: Response): Promise<any> {
   try {
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const users = getAllMockUsers();
 
       if (users) {
@@ -64,7 +64,7 @@ async function getAllUsers(req: Request, res: Response): Promise<any> {
 
 async function getUserByEmail(req: Request, res: Response) {
   try {
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const email = req.params.email;
       const user = getMockUserByEmail(email);
       if (user) {
@@ -89,7 +89,7 @@ async function getUserByEmail(req: Request, res: Response) {
 
 async function getUserById(req: Request, res: Response) {
   try {
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const id = parseInt(req.params.id);
       const user = getMockUserById(id);
       if (user) {
@@ -114,7 +114,7 @@ async function getUserById(req: Request, res: Response) {
 
 async function createNewUser(req: Request, res: Response) {
   try {
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const { name, email, password_hash, role, created_at, last_login } =
         req.body;
       const existingUser = getMockUserByEmail(email);
@@ -171,7 +171,7 @@ async function createNewUser(req: Request, res: Response) {
 
 async function loginUser(req: Request, res: Response): Promise<any> {
   try {
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const { email, password } = req.body;
       const user = getMockUserByEmail(email);
 
@@ -224,7 +224,7 @@ async function resetPassword(req: Request, res: Response) {
   try {
     const { email, newPassword } = req.body;
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const user = getMockUserByEmail(email);
       if (user) {
         user.password_hash = newPassword;
@@ -255,7 +255,7 @@ async function updateUserById(req: Request, res: Response) {
     const id = req.params.id;
     const { name, surname, email, password_hash, role, last_login } = req.body;
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const user = getMockUserById(parseInt(id));
 
       if (user) {
@@ -296,7 +296,7 @@ async function updateUserById(req: Request, res: Response) {
 async function deleteUserById(req: Request, res: Response) {
   try {
     const id = parseInt(req.params.id);
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const user = getMockUserById(id);
 
       if (user) {
@@ -335,7 +335,7 @@ async function checkUserExists(
 ): Promise<Response> {
   try {
     console.log("checkUserExists");
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const userExists = checkMockUserExists();
       return res.status(200).json(userExists);
     } else {
@@ -352,7 +352,7 @@ async function calculateProgress(
   res: Response
 ): Promise<Response> {
   const id = parseInt(req.params.id);
-  if (MOCKDATA_ON === true) {
+  if (MOCKDATA_ON) {
     const mockUserProjects = getMockUserProjects(id);
     let mockAssessmentsMetadata = [];
     let mockAllTotalAssessments = 0;
@@ -401,9 +401,11 @@ async function calculateProgress(
           const mockSubTopics = getMockSubTopicsForTopic(mockTopic.id);
           for (const mockSubTopic of mockSubTopics) {
             const mockQuestions = getMockQuestionsForSubTopic(mockSubTopic.id);
-            mockTotalAssessments++;
-            if (mockSubTopic.status === "Done") {
-              mockDoneAssessments++;
+            for (const mockQuestion of mockQuestions) {
+              mockTotalAssessments++;
+              if (mockQuestion.mockQuestion) {
+                mockDoneAssessments++;
+              }
             }
           }
         }
@@ -492,25 +494,14 @@ async function calculateProgress(
         });
       }
 
-      const response = {
-        controls: {
-          projects: controlsMetadata,
-          totalSubControls: allTotalSubControls,
-          doneSubControls: allDoneSubControls,
-          percentageComplete: Number(
-            ((allDoneSubControls / allTotalSubControls) * 100).toFixed(2)
-          ),
-        },
-        assessments: {
-          projects: assessmentsMetadata,
-          totalAssessments: allTotalAssessments,
-          doneAssessments: allDoneAssessments,
-          percentageComplete: Number(
-            ((allDoneAssessments / allTotalAssessments) * 100).toFixed(2)
-          ),
-        },
-      };
-      return res.status(200).json(response);
+      return res.status(200).json({
+        assessmentsMetadata,
+        controlsMetadata,
+        allTotalAssessments,
+        allDoneAssessments,
+        allTotalSubControls,
+        allDoneSubControls,
+      });
     } catch (error) {
       console.log(error);
       return res.status(500).json({ message: "Internal server error" });

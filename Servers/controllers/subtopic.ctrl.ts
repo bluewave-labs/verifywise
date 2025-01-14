@@ -22,7 +22,7 @@ export async function getAllSubtopics(
   res: Response
 ): Promise<any> {
   try {
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const subtopics = getAllMockSubtopics();
 
       if (subtopics) {
@@ -51,7 +51,7 @@ export async function getSubtopicById(
   try {
     const subtopicId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const subtopic = getMockSubtopicById(subtopicId);
 
       if (subtopic) {
@@ -78,7 +78,7 @@ export async function createNewSubtopic(
   res: Response
 ): Promise<any> {
   try {
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const subtopic = createMockSubtopic(req.body.topicId, req.body.name);
 
       if (subtopic) {
@@ -107,7 +107,7 @@ export async function updateSubtopicById(
   try {
     const subtopicId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const subtopic = updateMockSubtopicById(subtopicId, req.body);
 
       if (subtopic) {
@@ -136,7 +136,7 @@ export async function deleteSubtopicById(
   try {
     const subtopicId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const subtopic = deleteMockSubtopicById(subtopicId);
 
       if (subtopic) {

@@ -22,7 +22,7 @@ export async function getAllProjectScopes(
   res: Response
 ): Promise<any> {
   try {
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const projectScopes = getAllMockProjectScopes();
 
       if (projectScopes) {
@@ -51,7 +51,7 @@ export async function getProjectScopeById(
   try {
     const projectScopeId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const projectScope = getMockProjectScopeById(projectScopeId);
 
       if (projectScope) {
@@ -90,7 +90,7 @@ export async function createProjectScope(
       technologyDocumentation: string;
     };
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const createdProjectScope = createMockProjectScope(projectScope);
 
       if (createdProjectScope) {
@@ -130,7 +130,7 @@ export async function updateProjectScopeById(
       technologyDocumentation: string;
     };
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const updatedProjectScope = updateMockProjectScopeById(
         projectScopeId,
         projectScope
@@ -165,7 +165,7 @@ export async function deleteProjectScopeById(
   try {
     const projectScopeId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const deletedProjectScope = deleteMockProjectScopeById(projectScopeId);
 
       if (deletedProjectScope) {

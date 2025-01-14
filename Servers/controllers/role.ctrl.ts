@@ -19,7 +19,7 @@ import {
 
 export async function getAllRoles(req: Request, res: Response): Promise<any> {
   try {
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const roles = getAllMockRoles();
 
       if (roles) {
@@ -45,7 +45,7 @@ export async function getRoleById(req: Request, res: Response): Promise<any> {
   try {
     const roleId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const role = getMockRoleById(roleId);
 
       if (role) {
@@ -81,7 +81,7 @@ export async function createRole(req: Request, res: Response): Promise<any> {
       );
     }
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const createdRole = createMockRole(newRole);
 
       if (createdRole) {
@@ -121,7 +121,7 @@ export async function updateRoleById(
       );
     }
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const role = updateMockRoleById(roleId, updatedRole);
 
       if (role) {
@@ -150,7 +150,7 @@ export async function deleteRoleById(
   try {
     const roleId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const deletedRole = deleteMockRoleById(roleId);
 
       if (deletedRole) {

@@ -22,7 +22,7 @@ export async function getAllSubcontrols(
   res: Response
 ): Promise<any> {
   try {
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const subcontrols = getAllMockSubcontrols();
 
       if (subcontrols) {
@@ -51,7 +51,7 @@ export async function getSubcontrolById(
   try {
     const subcontrolId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const subcontrol = getMockSubcontrolById(subcontrolId);
 
       if (subcontrol) {
@@ -92,7 +92,7 @@ export async function createNewSubcontrol(
       feedback: string;
     } = req.body;
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const newSubcontrol = createMockSubcontrol(subcontrol);
 
       if (newSubcontrol) {
@@ -138,7 +138,7 @@ export async function updateSubcontrolById(
       feedback: string;
     }> = req.body;
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const updatedSubcontrol = updateMockSubcontrolById(
         subcontrolId,
         subcontrol
@@ -173,7 +173,7 @@ export async function deleteSubcontrolById(
   try {
     const subcontrolId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const deletedSubcontrol = deleteMockSubcontrolById(subcontrolId);
 
       if (deletedSubcontrol) {

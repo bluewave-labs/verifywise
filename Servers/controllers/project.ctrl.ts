@@ -31,7 +31,7 @@ export async function getAllProjects(
   res: Response
 ): Promise<any> {
   try {
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const projects = getAllMockProjects();
 
       if (projects) {
@@ -60,7 +60,7 @@ export async function getProjectById(
   try {
     const projectId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const project = getMockProjectById(projectId);
 
       if (project) {
@@ -104,7 +104,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
         );
     }
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const createdProject = createMockProject(newProject) as { id: string };
       const assessment = createMockAssessment({
         projectId: createdProject.id,
@@ -180,7 +180,7 @@ export async function updateProjectById(
         );
     }
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const project = updateMockProjectById(projectId, updatedProject);
 
       if (project) {
@@ -209,7 +209,7 @@ export async function deleteProjectById(
   try {
     const projectId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const deletedProject = deleteMockProjectById(projectId);
 
       if (deletedProject) {
@@ -235,7 +235,7 @@ export async function getProjectStatsById(
   req: Request,
   res: Response
 ): Promise<any> {
-  if (MOCKDATA_ON === true) {
+  if (MOCKDATA_ON) {
     const projectId = parseInt(req.params.id);
 
     // mock data sections

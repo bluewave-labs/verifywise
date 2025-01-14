@@ -6,3 +6,5 @@ GET http://localhost:3000/assessments
 
 GET http://localhost:3000/assessments/2
 
+###
+POST http://localhost:3000/autoDrivers

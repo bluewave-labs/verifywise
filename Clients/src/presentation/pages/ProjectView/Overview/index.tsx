@@ -15,6 +15,7 @@ const Overview: FC<OverviewProps> = memo(({ mocProject }) => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") ?? "2"; // default project ID is 2
   const { project, error, isLoading } = useProjectData({ projectId });
+  console.log("project ::: ", project);
   const theme = useTheme();
 
   const { controlsStatus, assessmentsStatus, projectRisks, vendorRisks } =

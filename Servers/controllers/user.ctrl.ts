@@ -401,9 +401,11 @@ async function calculateProgress(
           const mockSubTopics = getMockSubTopicsForTopic(mockTopic.id);
           for (const mockSubTopic of mockSubTopics) {
             const mockQuestions = getMockQuestionsForSubTopic(mockSubTopic.id);
-            mockTotalAssessments++;
-            if (mockSubTopic.status === "Done") {
-              mockDoneAssessments++;
+            for (const mockQuestion of mockQuestions) {
+              mockTotalAssessments++;
+              if (mockQuestion.mockQuestion) {
+                mockDoneAssessments++;
+              }
             }
           }
         }
@@ -492,25 +494,14 @@ async function calculateProgress(
         });
       }
 
-      const response = {
-        controls: {
-          projects: controlsMetadata,
-          totalSubControls: allTotalSubControls,
-          doneSubControls: allDoneSubControls,
-          percentageComplete: Number(
-            ((allDoneSubControls / allTotalSubControls) * 100).toFixed(2)
-          ),
-        },
-        assessments: {
-          projects: assessmentsMetadata,
-          totalAssessments: allTotalAssessments,
-          doneAssessments: allDoneAssessments,
-          percentageComplete: Number(
-            ((allDoneAssessments / allTotalAssessments) * 100).toFixed(2)
-          ),
-        },
-      };
-      return res.status(200).json(response);
+      return res.status(200).json({
+        assessmentsMetadata,
+        controlsMetadata,
+        allTotalAssessments,
+        allDoneAssessments,
+        allTotalSubControls,
+        allDoneSubControls,
+      });
     } catch (error) {
       console.log(error);
       return res.status(500).json({ message: "Internal server error" });

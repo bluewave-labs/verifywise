@@ -19,7 +19,7 @@ import {
 
 export async function getAllVendors(req: Request, res: Response): Promise<any> {
   try {
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const vendors = getAllMockVendors();
 
       if (vendors) {
@@ -45,7 +45,7 @@ export async function getVendorById(req: Request, res: Response): Promise<any> {
   try {
     const vendorId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const vendor = getMockVendorById(vendorId);
 
       if (vendor) {
@@ -100,7 +100,7 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
       );
     }
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const createdVendor = createMockVendor(newVendor);
 
       if (createdVendor) {
@@ -159,7 +159,7 @@ export async function updateVendorById(
       );
     }
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const vendor = updateMockVendorById(vendorId, updatedVendor);
 
       if (vendor) {
@@ -188,7 +188,7 @@ export async function deleteVendorById(
   try {
     const vendorId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const deletedVendor = deleteMockVendorById(vendorId);
 
       if (deletedVendor) {

@@ -22,7 +22,7 @@ export async function getAllVendorRisks(
   res: Response
 ): Promise<any> {
   try {
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const vendorRisks = getAllMockVendorRisks();
 
       if (vendorRisks) {
@@ -51,7 +51,7 @@ export async function getVendorRiskById(
   try {
     const vendorRiskId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const vendorRisk = getMockVendorRiskById(vendorRiskId);
 
       if (vendorRisk) {
@@ -103,7 +103,7 @@ export async function createVendorRisk(
       );
     }
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const createdVendorRisk = createMockVendorRisk(newVendorRisk);
 
       if (createdVendorRisk) {
@@ -156,7 +156,7 @@ export async function updateVendorRiskById(
       );
     }
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const vendorRisk = updateMockVendorRiskById(
         vendorRiskId,
         updatedVendorRisk
@@ -191,7 +191,7 @@ export async function deleteVendorRiskById(
   try {
     const vendorRiskId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const deletedVendorRisk = deleteMockVendorRiskById(vendorRiskId);
 
       if (deletedVendorRisk) {

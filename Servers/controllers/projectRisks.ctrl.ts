@@ -22,7 +22,7 @@ export async function getAllProjectRisks(
   res: Response
 ): Promise<any> {
   try {
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const projectRisks = getAllMockProjectRisks();
 
       if (projectRisks) {
@@ -51,7 +51,7 @@ export async function getProjectRiskById(
   try {
     const projectRiskId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const projectRisk = getMockProjectRiskById(projectRiskId);
 
       if (projectRisk) {
@@ -106,7 +106,7 @@ export async function createProjectRisk(
       date_of_assessment: Date;
     } = req.body;
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const newProjectRisk = createMockProjectRisk(projectRisk);
 
       if (newProjectRisk) {
@@ -162,7 +162,7 @@ export async function updateProjectRiskById(
       date_of_assessment: Date;
     }> = req.body;
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const updatedProjectRisk = updateMockProjectRiskById(
         projectRiskId,
         projectRisk
@@ -197,7 +197,7 @@ export async function deleteProjectRiskById(
   try {
     const projectRiskId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const deletedProjectRisk = deleteMockProjectRiskById(projectRiskId);
 
       if (deletedProjectRisk) {

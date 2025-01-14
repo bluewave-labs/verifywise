@@ -23,7 +23,7 @@ export async function getAllQuestions(
   res: Response
 ): Promise<any> {
   try {
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const questions = getAllMockQuestions();
 
       if (questions) {
@@ -52,7 +52,7 @@ export async function getQuestionById(
   try {
     const questionId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const question = getMockQuestionById(questionId);
 
       if (question) {
@@ -104,7 +104,7 @@ export async function createQuestion(
       );
     }
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const createdQuestion = createMockQuestion(
         newQuestion.subtopicId,
         newQuestion
@@ -162,7 +162,7 @@ export async function updateQuestionById(
       );
     }
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const question = updateMockQuestionById(questionId, updatedQuestion);
 
       if (question) {
@@ -195,7 +195,7 @@ export async function deleteQuestionById(
   try {
     const questionId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const deletedQuestion = deleteMockQuestionById(questionId);
 
       if (deletedQuestion) {

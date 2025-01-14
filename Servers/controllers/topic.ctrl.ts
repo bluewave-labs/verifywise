@@ -24,7 +24,7 @@ import { createNewSubtopicQuery } from "../utils/subtopic.utils";
 
 export async function getAllTopics(req: Request, res: Response): Promise<any> {
   try {
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const topics = getAllMockTopics();
 
       if (topics) {
@@ -50,7 +50,7 @@ export async function getTopicById(req: Request, res: Response): Promise<any> {
   try {
     const topicId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const topic = getMockTopicById(topicId);
 
       if (topic) {
@@ -84,11 +84,8 @@ export async function createNewTopic(
       title: string;
     } = req.body;
 
-    if (MOCKDATA_ON === true) {
-      const topic = createMockTopic(
-        newTopic.assessmentId,
-        newTopic.title
-      );
+    if (MOCKDATA_ON) {
+      const topic = createMockTopic(newTopic.assessmentId, newTopic.title);
 
       if (topic) {
         return res.status(201).json(STATUS_CODE[201](topic));
@@ -120,7 +117,7 @@ export async function updateTopicById(
       title: string;
     } = req.body;
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const topic = updateMockTopicById(topicId, updatedTopic);
 
       if (topic) {
@@ -149,7 +146,7 @@ export async function deleteTopicById(
   try {
     const topicId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const topic = deleteMockTopicById(topicId);
 
       if (topic) {

@@ -25,7 +25,7 @@ export async function getAllControlCategories(
   res: Response
 ): Promise<any> {
   try {
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const controlCategories = getAllMockControlCategories();
       return res.status(200).json(controlCategories);
     }
@@ -42,7 +42,7 @@ export async function getControlCategoryById(
 ): Promise<any> {
   try {
     const controlCategoryId = parseInt(req.params.id);
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const controlCategory = getMockControlCategoryById(controlCategoryId);
       return res.status(200).json(controlCategory);
     }
@@ -61,7 +61,7 @@ export async function createControlCategory(
 ): Promise<any> {
   try {
     const newControlCategory: ControlCategory = req.body;
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const createdControlCategory =
         createMockControlCategory(newControlCategory);
       return res.status(201).json(createdControlCategory);
@@ -82,7 +82,7 @@ export async function updateControlCategoryById(
   try {
     const controlCategoryId = parseInt(req.params.id);
     const updatedControlCategoryData: Partial<ControlCategory> = req.body;
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const updatedControlCategory = updateMockControlCategoryById(
         controlCategoryId,
         updatedControlCategoryData
@@ -105,7 +105,7 @@ export async function deleteControlCategoryById(
 ): Promise<any> {
   try {
     const controlCategoryId = parseInt(req.params.id);
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const deletedControlCategory =
         deleteMockControlCategoryById(controlCategoryId);
       return res.status(202).json(deletedControlCategory);

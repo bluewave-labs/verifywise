@@ -16,19 +16,37 @@ import {
   getAssessmentByIdQuery,
   updateAssessmentByIdQuery,
 } from "../utils/assessment.utils";
-import { createMockTopic, updateMockTopicById } from "../mocks/tools/topic.mock.db";
-import { createMockSubtopic, updateMockSubtopicById } from "../mocks/tools/subtopic.mock.db";
-import { createMockQuestion, updateMockQuestionById } from "../mocks/tools/question.mock.db";
-import { createNewTopicQuery, updateTopicByIdQuery } from "../utils/topic.utils";
-import { createNewSubtopicQuery, updateSubtopicByIdQuery } from "../utils/subtopic.utils";
-import { createNewQuestionQuery, updateQuestionByIdQuery } from "../utils/question.utils";
+import {
+  createMockTopic,
+  updateMockTopicById,
+} from "../mocks/tools/topic.mock.db";
+import {
+  createMockSubtopic,
+  updateMockSubtopicById,
+} from "../mocks/tools/subtopic.mock.db";
+import {
+  createMockQuestion,
+  updateMockQuestionById,
+} from "../mocks/tools/question.mock.db";
+import {
+  createNewTopicQuery,
+  updateTopicByIdQuery,
+} from "../utils/topic.utils";
+import {
+  createNewSubtopicQuery,
+  updateSubtopicByIdQuery,
+} from "../utils/subtopic.utils";
+import {
+  createNewQuestionQuery,
+  updateQuestionByIdQuery,
+} from "../utils/question.utils";
 
 export async function getAllAssessments(
   req: Request,
   res: Response
 ): Promise<any> {
   try {
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const assessments = getAllMockAssessments();
 
       if (assessments) {
@@ -57,7 +75,7 @@ export async function getAssessmentById(
   try {
     const assessmentId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const assessment = getMockAssessmentById(assessmentId);
 
       if (assessment) {
@@ -96,7 +114,7 @@ export async function createAssessment(
       );
     }
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const createdAssessment = createMockAssessment(newAssessment);
 
       if (createdAssessment) {
@@ -136,7 +154,7 @@ export async function updateAssessmentById(
       );
     }
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const assessment = updateMockAssessmentById(
         assessmentId,
         updatedAssessment
@@ -171,7 +189,7 @@ export async function deleteAssessmentById(
   try {
     const assessmentId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON === true) {
+    if (MOCKDATA_ON) {
       const deletedAssessment = deleteMockAssessmentById(assessmentId);
 
       if (deletedAssessment) {
@@ -194,7 +212,7 @@ export async function deleteAssessmentById(
 }
 
 export async function saveAnswers(req: Request, res: Response): Promise<any> {
-  if (MOCKDATA_ON === true) {
+  if (MOCKDATA_ON) {
     try {
       // // first get all assessments
       // const assessments = getAllMockAssessments();
@@ -207,10 +225,7 @@ export async function saveAnswers(req: Request, res: Response): Promise<any> {
       // now iterate over the subtopics, create a subtopic using topic id and the subtopic
       const subtopics = req.body.subtopic;
       for (const subtopic of subtopics) {
-        const subtopicToSave: any = createMockSubtopic(
-          topic.id,
-          subtopic.name
-        );
+        const subtopicToSave: any = createMockSubtopic(topic.id, subtopic.name);
         const subtopicId = subtopicToSave.id;
         const questions = subtopic.questions;
         console.log(questions);
@@ -267,51 +282,48 @@ export async function saveAnswers(req: Request, res: Response): Promise<any> {
 
 export async function updateAnswers(req: Request, res: Response): Promise<any> {
   const requestBody = req.body as {
-    assessmentId: number,
-    topic: string,
-    topicId: number,
+    assessmentId: number;
+    topic: string;
+    topicId: number;
     subtopic: {
-      id: number
-      name: string,
+      id: number;
+      name: string;
       questions: {
-        id: number,
-        subtopicId: number,
-        question: string,
-        answerType: string,
-        evidenceFileRequired: boolean,
-        hint: string,
-        isRequired: boolean,
-        priorityLevel: string,
-        answer: string,
-        evidenceFiles: []
-      }[]
-    }[]
-  }
-  if (MOCKDATA_ON === true) {
+        id: number;
+        subtopicId: number;
+        question: string;
+        answerType: string;
+        evidenceFileRequired: boolean;
+        hint: string;
+        isRequired: boolean;
+        priorityLevel: string;
+        answer: string;
+        evidenceFiles: [];
+      }[];
+    }[];
+  };
+  if (MOCKDATA_ON) {
     try {
       const assessmentId = requestBody.assessmentId;
 
-      const topicId = requestBody.topicId
+      const topicId = requestBody.topicId;
       // now, update the topic based on id using the assessmentId and the topic
       updateMockTopicById(topicId, { assessmentId, title: requestBody.topic });
 
       // now iterate over the subtopics, update the subtopic by subtopic id using topic id and the subtopic
       const subtopics = requestBody.subtopic;
       for (const subtopic of subtopics) {
-        const subtopicId = subtopic.id
-        updateMockSubtopicById(
-          subtopicId,
-          {
-            topicId,
-            name: subtopic.name
-          }
-        );
+        const subtopicId = subtopic.id;
+        updateMockSubtopicById(subtopicId, {
+          topicId,
+          name: subtopic.name,
+        });
 
         const questions = subtopic.questions;
         console.log(questions);
         // now iterate over the questions, update the question by question id using subtopic id and the question
         for (const question of questions) {
-          const questionId = question.id
+          const questionId = question.id;
           updateMockQuestionById(questionId, { ...question });
         }
       }
@@ -323,7 +335,7 @@ export async function updateAnswers(req: Request, res: Response): Promise<any> {
   } else {
     const assessmentId = requestBody.assessmentId;
 
-    const topicId = requestBody.topicId
+    const topicId = requestBody.topicId;
     // now, update the topic using the assessmentId and the topic
     updateTopicByIdQuery(topicId, {
       assessmentId,
@@ -333,7 +345,7 @@ export async function updateAnswers(req: Request, res: Response): Promise<any> {
     // now iterate over the subtopics, update the subtopic using topic id and the subtopic
     const subtopics = requestBody.subtopic;
     for (const subtopic of subtopics) {
-      const subtopicId = subtopic.id
+      const subtopicId = subtopic.id;
       updateSubtopicByIdQuery(subtopicId, {
         topicId,
         name: subtopic.name,
@@ -341,8 +353,9 @@ export async function updateAnswers(req: Request, res: Response): Promise<any> {
       const questions = subtopic.questions;
       // now iterate over the questions, update the question using subtopic id and the question
       for (const question of questions) {
-        const questionId = question.id
-        updateQuestionByIdQuery(questionId,
+        const questionId = question.id;
+        updateQuestionByIdQuery(
+          questionId,
           {
             subtopicId,
             questionText: question.question,

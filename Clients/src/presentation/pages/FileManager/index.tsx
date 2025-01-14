@@ -1,11 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
-import {
-  Stack,
-  Box,
-  Typography,
-} from "@mui/material";
+import { Stack, Box, Typography } from "@mui/material";
 import BasicTable from "../../components/Table";
-
 
 import EmptyTableImage from "../../assets/imgs/empty-state.svg";
 import AscendingIcon from "../../assets/icons/up-arrow.svg";
@@ -73,9 +68,7 @@ const EmptyState: React.FC = (): JSX.Element => (
         mb: 4,
       }}
     />
-    <Typography variant="body2" color="text.secondary"
-    sx={{margin:0}}
-    >
+    <Typography variant="body2" color="text.secondary" sx={{ margin: 0 }}>
       There are currently no pieces of evidence or other documents uploaded.
     </Typography>
   </Stack>
@@ -140,6 +133,8 @@ const FileTable: React.FC<{
       data={{ cols: sortedCols, rows }}
       paginated={files.length > 0}
       table="fileManager"
+      setSelectedRow={() => {}}
+      setAnchorEl={() => {}}
     />
   );
 };
@@ -157,21 +152,19 @@ const FileManager: React.FC = (): JSX.Element => {
   );
   const [runFileTour, setRunFileTour] = useState(false);
 
-  const fileSteps =[
+  const fileSteps = [
     {
-      target:'[data-joyride-id="file-manager-title"]',
-      content:(
-        <CustomStep 
-        body="This table lists all the files uploaded to the system."
-        />
+      target: '[data-joyride-id="file-manager-title"]',
+      content: (
+        <CustomStep body="This table lists all the files uploaded to the system." />
       ),
-      placement:"left" as const,
-    }
-  ]
+      placement: "left" as const,
+    },
+  ];
 
-  useEffect(()=>{
+  useEffect(() => {
     setRunFileTour(true);
-  }, [])
+  }, []);
 
   /**
    * Handles sorting of files by a specified field.

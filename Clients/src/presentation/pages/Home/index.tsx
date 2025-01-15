@@ -6,6 +6,7 @@ import React, {
   useCallback,
   useMemo,
   FC,
+  useContext,
 } from "react";
 import { Box, Stack, Typography, useTheme } from "@mui/material";
 import Grid from '@mui/material/Grid2';
@@ -13,12 +14,13 @@ import { NoProjectBox, styles } from "./styles";
 import emptyState from "../../assets/imgs/empty-state.svg";
 import { getAllEntities } from "../../../application/repository/entity.repository";
 import { ProjectCardProps } from "../../components/ProjectCard";
-import useProjectStatus, {
+import {
   Assessments,
   Controls,
 } from "../../../application/hooks/useProjectStatus";
 import VWSkeleton from "../../vw-v2-components/Skeletons";
 import { Card } from "../../components/ProjectCard/styles";
+import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 
 // Lazy load components
 const ProjectCard = lazy(() => import("../../components/ProjectCard"));
@@ -72,12 +74,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
   const { projects, error, isLoading } = useProjects(isNewProject, () =>
     setIsNewProjectCreate(false)
   );
-  const userId = "1";
-  const {
-    projectStatus,
-    loading: loadingProjectStatus,
-    error: errorFetchingProjectStatus,
-  } = useProjectStatus({ userId });
+  const { projectStatus, loadingProjectStatus, errorFetchingProjectStatus } = useContext(VerifyWiseContext);
 
   const NoProjectsMessage = useMemo(
     () => (
@@ -165,9 +162,9 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
 
   const assessments: Assessments = {
     percentageComplete:
-      (projectStatus.assessments.allDoneAssessments ??
-        0 / projectStatus.assessments.allTotalAssessments ??
-        1) * 100,
+      projectStatus.assessments.allTotalAssessments
+        ? (projectStatus.assessments.allDoneAssessments ?? 0) * 100 / projectStatus.assessments.allTotalAssessments
+        : 0,
     allDoneAssessments: projectStatus.assessments.allDoneAssessments,
     allTotalAssessments: projectStatus.assessments.allTotalAssessments,
     projects: projectStatus.assessments.projects,
@@ -175,36 +172,14 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
 
   const controls: Controls = {
     percentageComplete:
-      (projectStatus.controls.allDoneSubControls ??
-        0 / projectStatus.controls.allTotalSubControls ??
-        1) * 100,
+      projectStatus.controls.allTotalSubControls
+        ? (projectStatus.controls.allDoneSubControls ?? 0) * 100 / projectStatus.controls.allTotalSubControls
+        : 0,
     allDoneSubControls: projectStatus.controls.allDoneSubControls,
     allTotalSubControls: projectStatus.controls.allTotalSubControls,
     projects: projectStatus.controls.projects,
   };
 
-  const getProjectData = (projectId: number) => {
-    const projectAssessments = assessments.projects.find(
-      (project: any) => project.projectId === projectId
-    ) ?? {
-      doneAssessments: 0,
-      projectId,
-      totalAssessments: 1,
-    };
-
-    const projectControls = controls.projects.find(
-      (project: any) => project.projectId === projectId
-    ) ?? {
-      doneSubControls: 0,
-      projectId,
-      totalSubControls: 0,
-    };
-
-    return {
-      projectAssessments,
-      projectControls,
-    };
-  };
   return (
     <Box>
       <Box sx={styles.projectBox}>
@@ -239,22 +214,26 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
                   />
                 </Card>
               }
-            >  
+            >
             {projects.length <= 3 ? <>
               {projects.map((item: ProjectCardProps) => (
                 <ProjectCard
                   key={item.id}
                   {...item}
-                  {...getProjectData(item.id)}
+                  id={item.id}
+                  assessments={assessments}
+                  controls={controls}
                 />
               ))}
             </> : <>
-              <Grid sx={{ width: "100%" }} container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>            
+              <Grid sx={{ width: "100%" }} container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
                 {projects.map((item: ProjectCardProps) => (
                   <Grid key={item.id} size={{ xs: 4, sm: 8, md: 4 }}>
                     <ProjectCard
                       {...item}
-                      {...getProjectData(item.id)}
+                      id={item.id}
+                      assessments={assessments}
+                      controls={controls}
                     />
                   </Grid>
                 ))}

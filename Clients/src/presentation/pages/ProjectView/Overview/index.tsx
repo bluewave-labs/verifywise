@@ -1,14 +1,22 @@
 import { Stack, Typography, useTheme } from "@mui/material";
 import ProgressBar from "../../../components/ProjectCard/ProgressBar";
-import { FC, memo, useCallback, useMemo } from "react";
+import { FC, memo, useCallback, useContext, useMemo } from "react";
 import { formatDate } from "../../../tools/isoDateToString";
 import Risks from "../../../components/Risks";
 import { ProjectOverview } from "../../../mocks/projects/project-overview.data";
 import { useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import getProjectData from "../../../../application/tools/getProjectData";
 
 interface OverviewProps {
   mocProject: ProjectOverview;
+}
+
+interface ProgressBarCardProps {
+  progress: string;
+  label: string;
+  completed: number;
 }
 
 const Overview: FC<OverviewProps> = memo(({ mocProject }) => {
@@ -16,8 +24,20 @@ const Overview: FC<OverviewProps> = memo(({ mocProject }) => {
   const projectId = searchParams.get("projectId") ?? "2"; // default project ID is 2
   const { project, error, isLoading } = useProjectData({ projectId });
   const theme = useTheme();
+  const { projectStatus } = useContext(VerifyWiseContext);
 
-  const { controlsStatus, assessmentsStatus, projectRisks, vendorRisks } =
+  const {
+    controlsProgress,
+    requirementsProgress: assessmentsProgress,
+    controlsCompleted,
+    requirementsCompleted,
+  } = getProjectData({
+    projectId: parseInt(projectId),
+    assessments: projectStatus.assessments,
+    controls: projectStatus.controls,
+  });
+
+  const { projectRisks, vendorRisks } =
     mocProject;
 
   const styles = useMemo(
@@ -45,7 +65,7 @@ const Overview: FC<OverviewProps> = memo(({ mocProject }) => {
   );
 
   const progressBarCardRender = useCallback(
-    (progress: string, label: string) => (
+    ({ progress, label, completed }: ProgressBarCardProps) => (
       <Stack sx={styles.block}>
         <Typography
           sx={{
@@ -57,7 +77,7 @@ const Overview: FC<OverviewProps> = memo(({ mocProject }) => {
         </Typography>
         <ProgressBar progress={progress} />
         <Typography sx={{ fontSize: 11, color: "#8594AC" }}>
-          {progress} {label} completed
+          {progress} {label}{completed > 1 && 's'} completed
         </Typography>
       </Stack>
     ),
@@ -70,15 +90,16 @@ const Overview: FC<OverviewProps> = memo(({ mocProject }) => {
 
   return (
     <Stack>
-      {isLoading ? (
-        <Typography component="div" sx={{ mb: 12 }}>
+      {isLoading && (
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 12 }}>
           Project are loading...
         </Typography>
-      ) : error ? (
-        <Typography component="div" sx={{ mb: 12 }}>
+      )}
+      {error && (
+        <Typography variant="body1" color="error" sx={{ mb: 12 }}>
           {error}
         </Typography>
-      ) : null}
+      )}
       <Stack direction="row" spacing={18} sx={{ pb: "31px" }}>
         <Stack sx={styles.block}>
           <Typography sx={styles.title}>Owner</Typography>
@@ -96,14 +117,16 @@ const Overview: FC<OverviewProps> = memo(({ mocProject }) => {
         </Stack>
       </Stack>
       <Stack direction="row" spacing={18} sx={{ pb: "56px" }}>
-        {progressBarCardRender(
-          `${controlsStatus.completedControls}/${controlsStatus.totalControls}`,
-          "controls"
-        )}
-        {progressBarCardRender(
-          `${assessmentsStatus.completedAssessments}/${assessmentsStatus.totalAssessments}`,
-          "assessments"
-        )}
+        {progressBarCardRender({
+          progress: controlsProgress,
+          label: "control",
+          completed: controlsCompleted,
+        })}
+        {progressBarCardRender({
+          progress: assessmentsProgress,
+          label: "assessment",
+          completed: requirementsCompleted,
+        })}
         <Stack
           sx={{ minWidth: 228, width: "100%", p: "8px 36px 14px 14px" }}
         ></Stack>

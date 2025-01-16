@@ -106,11 +106,11 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
                 sx={singleTheme.tableStyles.primary.body.row}
               >
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                  {row.vendor_name}
+                  {row.vendorName}
                 </TableCell>
                 <TableCell sx={cellStyle}>{row.assignee}</TableCell>
-                <TableCell sx={cellStyle}>{row.review_status}</TableCell>
-                <TableCell sx={cellStyle}>{row.risk_status}</TableCell>
+                <TableCell sx={cellStyle}>{row.reviewStatus}</TableCell>
+                <TableCell sx={cellStyle}>{row.riskStatus}</TableCell>
                 <TableCell sx={cellStyle}>
                   {row.review_date
                     ? formatDate(row.review_date.toString())

@@ -29,9 +29,10 @@ const CreateProjectForm = lazy(
   () => import("../../components/CreateProjectForm")
 );
 const MetricSection = lazy(() => import("../../components/MetricSection"));
+const Alert = lazy(() => import("../../components/Alert"));
 
 // Custom hook for fetching projects
-const useProjects = (isNewProject: boolean, resetIsNewProject: () => void) => {
+const useProjects = (isNewProject: boolean, newProjectData: object, resetIsNewProject: () => void) => {
   const [projects, setProjects] = useState<ProjectCardProps[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -59,7 +60,16 @@ const useProjects = (isNewProject: boolean, resetIsNewProject: () => void) => {
         }
       });
     return () => controller.abort();
-  }, [isNewProject]);
+  }, []);
+
+  useEffect(() => {
+    if (isNewProject && newProjectData) {
+      setProjects((prevProjects) => [
+        ...(prevProjects || []),
+        ...(Array.isArray(newProjectData) ? newProjectData : [newProjectData]),
+      ]);
+    }
+  }, [isNewProject, newProjectData]);
 
   return { projects, error, isLoading };
 };
@@ -71,10 +81,17 @@ interface HomeProps {
 const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
   const theme = useTheme();
   const [isNewProject, setIsNewProjectCreate] = useState(false);
-  const { projects, error, isLoading } = useProjects(isNewProject, () =>
+  const [newProjectData, setNewProjectData] = useState({});
+  const { projects, error, isLoading } = useProjects(isNewProject, newProjectData, () =>
     setIsNewProjectCreate(false)
   );
   const { projectStatus, loadingProjectStatus, errorFetchingProjectStatus } = useContext(VerifyWiseContext);
+
+  const [alert, setAlert] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    title?: string;
+    body: string;
+  } | null>(null);
 
   const NoProjectsMessage = useMemo(
     () => (
@@ -97,12 +114,20 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
     [theme]
   );
 
-  const newProjectChecker = (
-    data: boolean | ((prevState: boolean) => boolean)
-  ) => {
-    setIsNewProjectCreate(data);
+  const newProjectChecker = (data: { isNewProject: boolean; project: any }) => {
+    setIsNewProjectCreate(data.isNewProject);
+    setNewProjectData(data.project);
+
     if (onProjectUpdate) {
       onProjectUpdate();
+      setAlert({
+        variant: "success",
+        body: "Project created successfully",
+      });
+
+      setTimeout(() => {
+        setAlert(null);
+      }, 2500);
     }
   };
 
@@ -121,7 +146,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
           popupId="create-project-popup"
           popupContent={
             <CreateProjectForm
-              setIsNewProjectCreate={newProjectChecker}
+              onNewProject={newProjectChecker}
               closePopup={() => setAnchor(null)}
             />
           }
@@ -182,6 +207,17 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
 
   return (
     <Box>
+      {alert && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Alert
+            variant={alert.variant}
+            title={alert.title}
+            body={alert.body}
+            isToast={true}
+            onClick={() => setAlert(null)}
+          />
+        </Suspense>
+      )}
       <Box sx={styles.projectBox}>
         <Typography variant="h1" component="div" sx={styles.title}>
           Projects overview

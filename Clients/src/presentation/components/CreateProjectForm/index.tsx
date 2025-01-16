@@ -3,21 +3,17 @@ import {
   Button,
   SelectChangeEvent,
   Stack,
-  Typography,
   useTheme,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
 import dayjs, { Dayjs } from "dayjs";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
 import selectValidation from "../../../application/validations/selectValidation";
 import { Suspense, lazy } from "react";
 import { createNewUser } from "../../../application/repository/entity.repository";
-import DualButtonModal from "../../vw-v2-components/Dialogs/DualButtonModal";
 
 const Select = lazy(() => import("../Inputs/Select"));
 const DatePicker = lazy(() => import("../Inputs/Datepicker"));
 const Field = lazy(() => import("../Inputs/Field"));
-const Alert = lazy(() => import("../Alert"));
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -66,31 +62,23 @@ const initialState: FormValues = {
 
 interface CreateProjectFormProps {
   closePopup: () => void;
-  setIsNewProjectCreate: (value: boolean) => void;
+  onNewProject: (value: { isNewProject: boolean; project: any }) => void;
 }
 
 /**
  * `CreateProjectForm` is a functional component that renders a form for creating a new project.
  * It includes fields for project title, users, owner, start date, AI risk classification, type of high risk role, and goal.
  * The form validates the input fields and displays error messages if validation fails.
- * On successful submission, it navigates to the project view page.
+ * On successful submission, it shows a newly created project on project overview page.
  *
  * @component
  * @returns {JSX.Element} The rendered component.
  */
 
-const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, setIsNewProjectCreate }) => {
-  const theme = useTheme();
-  const navigate = useNavigate();
+const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProject }) => {
+  const theme = useTheme();  
   const [values, setValues] = useState<FormValues>(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [alert, setAlert] = useState<{
-    variant: "success" | "info" | "warning" | "error";
-    title?: string;
-    body: string;
-  } | null>(null);
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleDateChange = useCallback((newDate: Dayjs | null) => {
     setValues((prevValues) => ({
@@ -166,7 +154,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, setIsNewPro
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (validateForm()) {
-      setIsModalOpen(true);
+      confirmSubmit();
     }
   };
 
@@ -178,20 +166,11 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, setIsNewPro
       // Reset form after successful submission
       setValues(initialState);
       setErrors({});
-      if (response.status === 201) {
-        setAlert({
-          variant: "success",
-          body: "Project created successfully",
-        });
-        setTimeout(() => {
-          setAlert(null);
-          setIsNewProjectCreate(true);
-          // navigate("/project-view");
-          closePopup();
-        }, 3000);
+      closePopup();
+      if (response.status === 201) {        
+        onNewProject({ isNewProject: true, project: response.data.data.project });       
       }
-    });
-    setIsModalOpen(false);
+    });    
   };
 
   const riskClassificationItems = useMemo(
@@ -227,17 +206,6 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, setIsNewPro
 
   return (
     <Stack>
-      {alert && (
-        <Suspense fallback={<div>Loading...</div>}>
-          <Alert
-            variant={alert.variant}
-            title={alert.title}
-            body={alert.body}
-            isToast={true}
-            onClick={() => setAlert(null)}
-          />
-        </Suspense>
-      )}
       <Stack component="form" onSubmit={handleSubmit}>
         <Stack
           sx={{
@@ -394,20 +362,6 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, setIsNewPro
           Create project
         </Button>
       </Stack>
-      {isModalOpen && (
-        <DualButtonModal
-          title="Confirm Submission"
-          body={
-            <Typography>Are you sure you want to submit the form?</Typography>
-          }
-          cancelText="Cancel"
-          proceedText="Submit"
-          onCancel={() => setIsModalOpen(false)}
-          onProceed={confirmSubmit}
-          proceedButtonColor="primary"
-          proceedButtonVariant="contained"
-        />
-      )}
     </Stack>
   );
 };

@@ -65,7 +65,7 @@ const ProjectCard: FC<ProjectCardProps> = ({
                     <Typography variant="subtitle1" component="span" sx={styles.subtitle}>
                         Last updated
                     </Typography>
-                    <SubtitleValue>{formatDate(last_updated)}</SubtitleValue>
+                    <SubtitleValue>{last_updated !== null && formatDate(last_updated)}</SubtitleValue>
                 </Box>
             </Box>
             <ProgressBarRender progress={controlsProgress} label="control" completed={controlsCompleted} />

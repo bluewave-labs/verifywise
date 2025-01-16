@@ -1,4 +1,4 @@
-import { FC, useState, useCallback, useMemo, lazy, Suspense } from "react";
+import { FC, useState, useCallback, useMemo, lazy, Suspense, Dispatch, SetStateAction } from "react";
 import {
   Button,
   Divider,
@@ -8,9 +8,10 @@ import {
   useTheme,
 } from "@mui/material";
 import dayjs, { Dayjs } from "dayjs";
-import { Likelihood, RISK_LABELS, Severity } from "../../RiskLevel/constants";
+import { RISK_LABELS } from "../../RiskLevel/constants";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import selectValidation from "../../../../application/validations/selectValidation";
+import { MitigationFormValues } from "../interface";
 
 // Lazy load components
 const Select = lazy(() => import("../../Inputs/Select"));
@@ -20,23 +21,25 @@ const FileUpload = lazy(() => import("../../Modals/FileUpload"));
 const RiskLevel = lazy(() => import("../../RiskLevel"));
 const Alert = lazy(() => import("../../Alert"));
 
+// export interface MitigationFormValues {
+//   mitigationStatus: number;
+//   mitigationPlan: string;
+//   currentRiskLevel: number;
+//   implementationStrategy: string;
+//   deadline: string;
+//   doc: string;
+//   likelihood: Likelihood;
+//   riskSeverity: Severity;
+//   approver: number;
+//   approvalStatus: number;
+//   dateOfAssessment: string;
+//   recommendations: string;
+// }
+
 interface MitigationSectionProps {
   closePopup: () => void;
-}
-
-export interface MitigationFormValues {
-  mitigationStatus: number;
-  mitigationPlan: string;
-  currentRiskLevel: number;
-  implementationStrategy: string;
-  deadline: string;
-  doc: string;
-  likelihood: Likelihood;
-  riskSeverity: Severity;
-  approver: number;
-  approvalStatus: number;
-  dateOfAssessment: string;
-  recommendations: string;
+  mitigationValues: MitigationFormValues;
+  setMitigationValues: Dispatch<SetStateAction<MitigationFormValues>>;
 }
 
 interface FormErrors {
@@ -51,21 +54,6 @@ interface FormErrors {
   dateOfAssessment?: string;
   recommendations?: string;
 }
-
-const initialState: MitigationFormValues = {
-  mitigationStatus: 0,
-  mitigationPlan: "",
-  currentRiskLevel: 0,
-  implementationStrategy: "",
-  deadline: "",
-  doc: "",
-  likelihood: 1 as Likelihood,
-  riskSeverity: 1 as Severity,
-  approver: 0,
-  approvalStatus: 0,
-  dateOfAssessment: "",
-  recommendations: "",
-};
 
 export enum MitigationStatus {
   NotStarted = "Not started",
@@ -125,9 +113,9 @@ export enum MitigationStatus {
  * @requires selectValidation
  * @requires dayjs
  */
-const MitigationSection: FC<MitigationSectionProps> = ({ closePopup }) => {
+const MitigationSection: FC<MitigationSectionProps> = ({ closePopup, mitigationValues, setMitigationValues }) => {
   const theme = useTheme();
-  const [values, setValues] = useState<MitigationFormValues>(initialState);
+  // const [values, setValues] = useState<MitigationFormValues>(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -138,7 +126,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup }) => {
   const handleOnSelectChange = useCallback(
     (prop: keyof MitigationFormValues) =>
       (event: SelectChangeEvent<string | number>) => {
-        setValues((prevValues) => ({
+        setMitigationValues((prevValues) => ({
           ...prevValues,
           [prop]: event.target.value,
         }));
@@ -149,7 +137,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup }) => {
 
   const handleDateChange = useCallback(
     (field: string, newDate: Dayjs | null) => {
-      setValues((prevValues) => ({
+      setMitigationValues((prevValues) => ({
         ...prevValues,
         [field]: newDate ? newDate.toISOString() : "",
       }));
@@ -160,7 +148,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup }) => {
   const handleOnTextFieldChange = useCallback(
     (prop: keyof MitigationFormValues) =>
       (event: React.ChangeEvent<HTMLInputElement>) => {
-        setValues((prevValues) => ({
+        setMitigationValues((prevValues) => ({
           ...prevValues,
           [prop]: event.target.value,
         }));
@@ -174,7 +162,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup }) => {
 
     const mitigationPlan = checkStringValidation(
       "Mitigation plan",
-      values.mitigationPlan,
+      mitigationValues.mitigationPlan,
       1,
       1024
     );
@@ -183,7 +171,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup }) => {
     }
     const implementationStrategy = checkStringValidation(
       "Implementation strategy",
-      values.implementationStrategy,
+      mitigationValues.implementationStrategy,
       1,
       1024
     );
@@ -192,7 +180,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup }) => {
     }
     const recommendations = checkStringValidation(
       "Recommendations",
-      values.recommendations,
+      mitigationValues.recommendations,
       1,
       1024
     );
@@ -201,7 +189,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup }) => {
     }
     const deadline = checkStringValidation(
       "Recommendations",
-      values.deadline,
+      mitigationValues.deadline,
       1
     );
     if (!deadline.accepted) {
@@ -209,7 +197,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup }) => {
     }
     const dateOfAssessment = checkStringValidation(
       "Recommendations",
-      values.dateOfAssessment,
+      mitigationValues.dateOfAssessment,
       1
     );
     if (!dateOfAssessment.accepted) {
@@ -217,25 +205,25 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup }) => {
     }
     const mitigationStatus = selectValidation(
       "Mitigation status",
-      values.mitigationStatus
+      mitigationValues.mitigationStatus
     );
     if (!mitigationStatus.accepted) {
       newErrors.mitigationStatus = mitigationStatus.message;
     }
     const currentRiskLevel = selectValidation(
       "Current risk level",
-      values.currentRiskLevel
+      mitigationValues.currentRiskLevel
     );
     if (!currentRiskLevel.accepted) {
       newErrors.currentRiskLevel = currentRiskLevel.message;
     }
-    const approver = selectValidation("Approver", values.approver);
+    const approver = selectValidation("Approver", mitigationValues.approver);
     if (!approver.accepted) {
       newErrors.approver = approver.message;
     }
     const approvalStatus = selectValidation(
       "Approval status",
-      values.approvalStatus
+      mitigationValues.approvalStatus
     );
     if (!approvalStatus.accepted) {
       newErrors.approvalStatus = approvalStatus.message;
@@ -243,7 +231,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup }) => {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [values]);
+  }, [mitigationValues]);
 
   const handleSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
@@ -319,7 +307,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup }) => {
                 id="mitigation-status-input"
                 label="Mitigation status"
                 placeholder="Select status"
-                value={values.mitigationStatus}
+                value={mitigationValues.mitigationStatus}
                 onChange={handleOnSelectChange("mitigationStatus")}
                 items={mitigationStatusItems}
                 sx={{
@@ -335,7 +323,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup }) => {
                 id="mitigation-plan-input"
                 label="Mitigation plan"
                 type="description"
-                value={values.mitigationPlan}
+                value={mitigationValues.mitigationPlan}
                 onChange={handleOnTextFieldChange("mitigationPlan")}
                 sx={{ backgroundColor: theme.palette.background.main }}
                 isRequired
@@ -349,7 +337,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup }) => {
                 id="current-risk-level-input"
                 label="Current risk level"
                 placeholder="Select risk level"
-                value={values.currentRiskLevel}
+                value={mitigationValues.currentRiskLevel}
                 onChange={handleOnSelectChange("currentRiskLevel")}
                 items={riskLevelItems}
                 sx={{
@@ -365,7 +353,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup }) => {
                 id="implementation-strategy-input"
                 label="Implementation strategy"
                 type="description"
-                value={values.implementationStrategy}
+                value={mitigationValues.implementationStrategy}
                 onChange={handleOnTextFieldChange("implementationStrategy")}
                 sx={{ backgroundColor: theme.palette.background.main }}
                 isRequired
@@ -377,7 +365,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup }) => {
             <Suspense fallback={<div>Loading...</div>}>
               <DatePicker
                 label="Start date"
-                date={values.deadline ? dayjs(values.deadline) : null}
+                date={mitigationValues.deadline ? dayjs(mitigationValues.deadline) : null}
                 handleDateChange={(e) => handleDateChange("deadline", e)}
                 sx={{
                   width: 130,
@@ -403,8 +391,8 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup }) => {
         </Typography>
         <Suspense fallback={<div>Loading...</div>}>
           <RiskLevel
-            likelihood={values.likelihood}
-            riskSeverity={values.riskSeverity}
+            likelihood={mitigationValues.likelihood}
+            riskSeverity={mitigationValues.riskSeverity}
             handleOnSelectChange={handleOnSelectChange}
           />
         </Suspense>
@@ -418,7 +406,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup }) => {
               id="approver-input"
               label="Approver"
               placeholder="Select approver"
-              value={values.approver}
+              value={mitigationValues.approver}
               onChange={handleOnSelectChange("approver")}
               items={approverItems}
               sx={{
@@ -434,7 +422,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup }) => {
               id="approval-status-input"
               label="Approval status"
               placeholder="Select status"
-              value={values.approvalStatus}
+              value={mitigationValues.approvalStatus}
               onChange={handleOnSelectChange("approvalStatus")}
               items={approvalStatusItems}
               sx={{
@@ -449,7 +437,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup }) => {
             <DatePicker
               label="Start date"
               date={
-                values.dateOfAssessment ? dayjs(values.dateOfAssessment) : null
+                mitigationValues.dateOfAssessment ? dayjs(mitigationValues.dateOfAssessment) : null
               }
               handleDateChange={(e) => handleDateChange("dateOfAssessment", e)}
               sx={{
@@ -466,7 +454,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup }) => {
             id="recommendations-input"
             label="Recommendations"
             type="description"
-            value={values.recommendations}
+            value={mitigationValues.recommendations}
             onChange={handleOnTextFieldChange("recommendations")}
             sx={{ backgroundColor: theme.palette.background.main }}
             isOptional

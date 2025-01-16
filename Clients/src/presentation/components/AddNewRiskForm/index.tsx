@@ -4,6 +4,8 @@ import TabPanel from "@mui/lab/TabPanel";
 import { Box, Stack, Tab, useTheme } from "@mui/material";
 import { FC, useState, useCallback, useMemo, lazy, Suspense } from "react";
 import "./styles.css";
+import { Likelihood, Severity } from "../RiskLevel/constants";
+import { RiskFormValues, MitigationFormValues } from "./interface";
 
 const RiskSection = lazy(() => import("./RisksSection"));
 const MitigationSection = lazy(() => import("./MitigationSection"));
@@ -12,6 +14,36 @@ interface AddNewRiskFormProps {
   closePopup: () => void;
   popupStatus: string;
 }
+
+const riskInitialState: RiskFormValues = {
+  riskName: "",
+  actionOwner: 0,
+  aiLifecyclePhase: 0,
+  riskDescription: "",
+  riskCategory: 0,
+  potentialImpact: "",
+  assessmentMapping: 0,
+  controlsMapping: 0,
+  likelihood: 1 as Likelihood,
+  riskSeverity: 1 as Severity,
+  riskLevel: 0,
+  reviewNotes: "",
+};
+
+const mitigationInitialState: MitigationFormValues = {
+  mitigationStatus: 0,
+  mitigationPlan: "",
+  currentRiskLevel: 0,
+  implementationStrategy: "",
+  deadline: "",
+  doc: "",
+  likelihood: 1 as Likelihood,
+  riskSeverity: 1 as Severity,
+  approver: 0,
+  approvalStatus: 0,
+  dateOfAssessment: "",
+  recommendations: "",
+};
 
 /**
  * AddNewRiskForm component allows users to add new risks and mitigations through a tabbed interface.
@@ -36,7 +68,9 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   const theme = useTheme();
   const disableRipple =
     theme.components?.MuiButton?.defaultProps?.disableRipple;
-
+  
+  const [riskValues, setRiskValues] = useState<RiskFormValues>(riskInitialState);
+  const [mitigationValues, setMitigationValues] = useState<MitigationFormValues>(mitigationInitialState);
   const [value, setValue] = useState("risks");
   const handleChange = useCallback(
     (_: React.SyntheticEvent, newValue: string) => {
@@ -85,10 +119,10 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         </Box>
         <Suspense fallback={<div>Loading...</div>}>
           <TabPanel value="risks" sx={{ p: "24px 0 0" }}>
-            <RiskSection closePopup={closePopup} status={popupStatus} />
+            <RiskSection closePopup={closePopup} status={popupStatus} riskValues={riskValues} setRiskValues={setRiskValues} />
           </TabPanel>
           <TabPanel value="mitigation" sx={{ p: "24px 0 0" }}>
-            <MitigationSection closePopup={closePopup} />
+            <MitigationSection closePopup={closePopup} mitigationValues={mitigationValues} setMitigationValues={setMitigationValues} />
           </TabPanel>
         </Suspense>
       </TabContext>

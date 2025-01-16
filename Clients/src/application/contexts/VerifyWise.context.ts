@@ -1,4 +1,5 @@
 import { createContext } from "react";
+import { defaultProjectStatus, ProjectStatus } from "../hooks/useProjectStatus";
 
 interface VerifyWiseContextProps {
   uiValues: any;
@@ -12,6 +13,9 @@ interface VerifyWiseContextProps {
   token: string | null;
   login: (token: string) => void;
   logout: () => void;
+  projectStatus: ProjectStatus;
+  loadingProjectStatus: boolean;
+  errorFetchingProjectStatus: boolean;
 }
 
 export const VerifyWiseContext = createContext<VerifyWiseContextProps>({
@@ -26,4 +30,7 @@ export const VerifyWiseContext = createContext<VerifyWiseContextProps>({
   token: null,
   login: () => {},
   logout: () => {},
+  projectStatus: defaultProjectStatus,
+  loadingProjectStatus: false,
+  errorFetchingProjectStatus: false,
 });

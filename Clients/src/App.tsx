@@ -29,6 +29,7 @@ import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./application/redux/store"; // Adjust the path as necessary
 import NewComplianceTracker from "./presentation/pages/ComplianceTracker/NewComplianceTracker";
+import useProjectStatus from "./application/hooks/useProjectStatus";
 // import ProtectedRoute from "./presentation/components/ProtectedRoute";
 
 function App() {
@@ -53,6 +54,9 @@ function App() {
   const [token, setToken] = useState<string | null>("");
   const [triggerSidebar, setTriggerSidebar] = useState(false);
 
+  const userId = "1"; // TODO: Replace with actual user ID
+  const { projectStatus, loading: loadingProjectStatus, error: errorFetchingProjectStatus } = useProjectStatus({ userId });
+
   const login = (token: string) => {
     setToken(token);
   };
@@ -74,6 +78,9 @@ function App() {
       token,
       login,
       logout,
+      projectStatus,
+      loadingProjectStatus,
+      errorFetchingProjectStatus
     }),
     [
       uiValues,
@@ -87,6 +94,9 @@ function App() {
       token,
       login,
       logout,
+      projectStatus,
+      loadingProjectStatus,
+      errorFetchingProjectStatus
     ]
   );
 

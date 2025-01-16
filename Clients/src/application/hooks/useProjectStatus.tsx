@@ -42,7 +42,7 @@ export interface MetricSectionProps {
   controls: Controls;
 }
 
-interface ProjectStatus {
+export interface ProjectStatus {
   assessments: Assessments;
   controls: Controls;
 }
@@ -59,7 +59,7 @@ const defaultAssessmentsProject: AssessmentsProject = {
   doneAssessments: 0,
 };
 
-const defaultProjectStatus: ProjectStatus = {
+export const defaultProjectStatus: ProjectStatus = {
   assessments: {
     percentageComplete: 0,
     allDoneAssessments: 0,
@@ -78,7 +78,7 @@ const useProjectStatus = ({ userId }: { userId: string }) => {
   const [projectStatus, setProjectStatus] =
     useState<ProjectStatus>(defaultProjectStatus);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | boolean>(false);
 
   useEffect(() => {
     if (!userId) {

@@ -7,29 +7,23 @@ import { formatDate } from "../../tools/isoDateToString";
 import useNavigateSearch from "../../../application/hooks/useNavigateSearch";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { User } from "../../../application/hooks/useProjectData";
+import getProjectData from "../../../application/tools/getProjectData";
+import { Assessments, Controls } from "../../../application/hooks/useProjectStatus";
 
 export interface ProjectCardProps {
     id: number;
     project_title: string;
     owner: string;
     last_updated: string;
-    projectAssessments: {
-      projectId: number;
-      totalAssessments: number;
-      doneAssessments: number;
-    };
-    projectControls: {
-      projectId: number;
-      totalSubControls: number;
-      doneSubControls: number;
-    };
+    assessments: Assessments;
+    controls: Controls;
 }
 
 const ProgressBarRender: FC<{ progress: string | null; label: string, completed: number }> = memo(({ progress, label, completed }) => (
     <>
         <ProgressBar progress={progress} />
         <Typography sx={styles.progressBarTitle}>
-            {completed} {label}{completed > 1 && 's'} completed
+            {progress} {label}{completed > 1 && 's'} completed
         </Typography>
     </>
 ));
@@ -39,8 +33,8 @@ const ProjectCard: FC<ProjectCardProps> = ({
     project_title,
     owner,
     last_updated,
-    projectAssessments,
-    projectControls,
+    assessments,
+    controls,
 }) => {
     const theme = useTheme();
     const navigate = useNavigateSearch();
@@ -49,10 +43,11 @@ const ProjectCard: FC<ProjectCardProps> = ({
 
     const ownerUser: User = users.find((user: User) => user.id === owner) ?? '';
 
-    // The default value '0/1' is been added because the mock data has just one subControl and one assessment and two projects.
-    // Once the real data is been used, the default value can be removed.
-    const controlsProgress = projectControls?.doneSubControls && projectControls?.totalSubControls ? `${projectControls?.doneSubControls}/${projectControls?.totalSubControls}` : '0/1'
-    const requirementsProgress = projectAssessments?.doneAssessments && projectAssessments?.totalAssessments ? `${projectAssessments?.doneAssessments}/${projectAssessments?.totalAssessments}` : '0/1'
+    const {
+      controlsProgress,
+      requirementsProgress,
+      controlsCompleted,
+      requirementsCompleted } = getProjectData({ projectId: id, assessments, controls });
 
     return (
         <Card>
@@ -73,8 +68,8 @@ const ProjectCard: FC<ProjectCardProps> = ({
                     <SubtitleValue>{formatDate(last_updated)}</SubtitleValue>
                 </Box>
             </Box>
-            <ProgressBarRender progress={controlsProgress} label="control" completed={projectControls?.doneSubControls ?? '0'} />
-            <ProgressBarRender progress={requirementsProgress} label="requirement" completed={projectAssessments?.doneAssessments ?? '0'} />
+            <ProgressBarRender progress={controlsProgress} label="control" completed={controlsCompleted} />
+            <ProgressBarRender progress={requirementsProgress} label="requirement" completed={requirementsCompleted} />
             <Box sx={styles.lowerBox}>
                 <Box sx={{ display: "flex", mb: 1.5 }}>
                     <Box sx={styles.imageBox}>

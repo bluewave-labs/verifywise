@@ -589,7 +589,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                     date={
                         values.vendorDetails.reviewDate
                             ? dayjs(values.vendorDetails.reviewDate)
-                            : null
+                            : new Date()
                     }
                     handleDateChange={handleDateChange}
                 />

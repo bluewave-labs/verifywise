@@ -6,7 +6,6 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { complianceMetrics } from "../../mocks/compliance.data";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { ControlGroups } from "../../structures/ComplianceTracker/controls";
 import { useContext, useEffect, useState } from "react";
@@ -29,6 +28,11 @@ const NewComplianceTracker = () => {
 
   const [runComplianceTour, setRunComplianceTour] = useState(false);
   const { setDashboardValues } = useContext(VerifyWiseContext);
+  const [complianceStatus, setComplianceStatus] = useState({
+    allTotalSubControls: 0,
+    allDoneSubControls: 0,
+    complianceStatus: 0,
+  });
 
   const complianceSteps = [
     {
@@ -67,7 +71,32 @@ const NewComplianceTracker = () => {
     }
   };
 
+  const fetchComplianceTrackerCalculation = async () => {
+    try {
+      const response = await getAllEntities({
+        routeUrl: "/users/1/calculate-progress",
+      });
+
+      setComplianceStatus({
+        allTotalSubControls: response.allTotalSubControls,
+        allDoneSubControls: response.allDoneSubControls,
+        complianceStatus: Number(
+          (
+            ((response.allDoneSubControls ?? 0) /
+              (response.allTotalSubControls ?? 1)) *
+            100
+          ).toFixed(2)
+        ),
+      });
+
+      console.log("Response for fetchComplianceTrackerCalculation:", response);
+    } catch (error) {
+      console.error("Error fetching compliance tracker:", error);
+    }
+  };
+
   useEffect(() => {
+    fetchComplianceTrackerCalculation();
     fetchComplianceTracker();
     setRunComplianceTour(true);
   }, []);
@@ -130,7 +159,6 @@ const NewComplianceTracker = () => {
         steps={complianceSteps}
         run={runComplianceTour}
         onFinish={() => setRunComplianceTour(false)}
-        
       />
       <Typography
         data-joyride-id="compliance-title"
@@ -142,14 +170,32 @@ const NewComplianceTracker = () => {
         className="new-compliance-tracker-metrics"
         data-joyride-id="compliance-metrics"
       >
-        {complianceMetrics.map((metric, metricIndex) => (
-          <Stack className="metric-card" key={metricIndex}>
-            <Typography className="metric-card-name">{metric.name}</Typography>
-            <Typography className="metric-card-amount">
-              {metric.amount}
-            </Typography>
-          </Stack>
-        ))}
+        <Stack className="metric-card">
+          <Typography className="metric-card-name">
+            Compliance Status
+          </Typography>
+          <Typography className="metric-card-amount">
+            {complianceStatus.complianceStatus}
+          </Typography>
+        </Stack>
+
+        <Stack className="metric-card">
+          <Typography className="metric-card-name">
+            Total number of subcontrols
+          </Typography>
+          <Typography className="metric-card-amount">
+            {complianceStatus.allTotalSubControls}
+          </Typography>
+        </Stack>
+
+        <Stack className="metric-card">
+          <Typography className="metric-card-name">
+            Implemented subcontrols
+          </Typography>
+          <Typography className="metric-card-amount">
+            {complianceStatus.allDoneSubControls}
+          </Typography>
+        </Stack>
       </Stack>
       {ControlGroups.map((controlGroup) =>
         renderAccordion(

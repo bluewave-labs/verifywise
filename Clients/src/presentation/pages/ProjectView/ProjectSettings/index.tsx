@@ -15,6 +15,10 @@ import { checkStringValidation } from "../../../../application/validations/strin
 import selectValidation from "../../../../application/validations/selectValidation";
 import Alert from "../../../components/Alert";
 import VWMultiSelect from "../../../vw-v2-components/Selects/Multi"
+import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
+import { deleteEntityById } from "../../../../application/repository/entity.repository";
+import { logEngine } from "../../../../application/tools/log.engine";
+import { useNavigate } from "react-router-dom";
 
 interface ProjectSettingsProps {
   setTabValue: (value: string) => void;
@@ -53,12 +57,17 @@ const initialState: FormValues = {
 const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
   ({ setTabValue }) => {
     const theme = useTheme();
+
+    const navigate = useNavigate();
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [values, setValues] = useState<FormValues>(initialState);
     const [errors, setErrors] = useState<FormErrors>({});
     const [alert, setAlert] = useState<{
       variant: "success" | "info" | "warning" | "error";
       title?: string;
       body: string;
+      isToast: boolean;
+      visible: boolean;
     } | null>(null);
 
     const handleDateChange = useCallback((newDate: Dayjs | null) => {
@@ -177,6 +186,59 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
       }),
       [theme.palette.background.main]
     );
+
+    const handleOpenDeleteDialog = useCallback((): void => {
+      setIsDeleteModalOpen(true);
+    }, []);
+
+    const handleCloseDeleteDialog = useCallback((): void => {
+      setIsDeleteModalOpen(false);
+    }, []);
+
+    const handleConfirmDelete = useCallback(async () => {
+      try {
+        // TO DO: Make a call to with dynamic project id
+        const response = await deleteEntityById({ routeUrl: `/projects/1` });
+        console.log(response);
+        if(response.status === 404){
+          setAlert({
+            variant: "error",
+            title: "Error",
+            body: "Failed to delete project. Please try again.",
+            isToast: true,
+            visible: true,
+          });
+        }else{
+          setAlert({
+            variant: "success",
+            title: "Success",
+            body: "Project deleted successfully.",
+            isToast: true,
+            visible: true,
+          });
+        navigate('/');
+      }
+      } catch (error) {  
+        logEngine({
+          type: "error",
+          message: "An error occured while deleting the project.",
+          user: {
+            id: String(localStorage.getItem("userId")) || "N/A",
+            firstname: "N/A",
+            lastname: "N/A"
+          },
+        });
+        setAlert({
+          variant: "error",
+          title: "Error",
+          body: "Failed to delete account. Please try again.",
+          isToast: true,
+          visible: true,
+        });
+      } finally {
+        setIsDeleteModalOpen(false);
+      }
+    }, [navigate]);
 
     return (
       <Stack>
@@ -311,20 +373,28 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
               </Link>
             </Typography>
           </Stack>
-          <Select
-            id="type-of-high-risk-role-input"
-            placeholder="Select an option"
-            value={values.typeOfHighRiskRole}
-            onChange={handleOnSelectChange("typeOfHighRiskRole")}
-            items={[
-              { _id: 1, name: "Some value 1" },
-              { _id: 2, name: "Some value 2" },
-              { _id: 3, name: "Some value 3" },
-            ]}
-            sx={{ width: 357, backgroundColor: theme.palette.background.main }}
-            error={errors.typeOfHighRiskRole}
-            isRequired
-          />
+          <Stack gap="5px" sx={{ mt: "6px" }}>
+            <Typography
+              sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}>
+              Delete project
+            </Typography>
+            <Typography sx={{ fontSize: theme.typography.fontSize, color: '#667085' }}>
+              Note that deleting a project will remove all data related to that project from our system. This is permanent and non-recoverable.
+            </Typography>
+          </Stack>
+          <Button
+              disableRipple
+              variant="contained"
+              onClick={handleOpenDeleteDialog}
+              sx={{
+                width: { xs: "100%", sm: theme.spacing(80) },
+                mb: theme.spacing(4),
+                backgroundColor: "#DB504A",
+                color: "#fff",
+              }}
+            >
+              Delete project
+            </Button>
           <Button
             variant="contained"
             type="submit"
@@ -345,6 +415,22 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             Save
           </Button>
         </Stack>
+        {isDeleteModalOpen && (
+        <DualButtonModal
+          title="Confirm Delete"
+          body={
+            <Typography fontSize={13}>
+              Are you sure you want to delete the project?
+            </Typography>
+          }
+          cancelText="Cancel"
+          proceedText="Delete"
+          onCancel={handleCloseDeleteDialog}
+          onProceed={handleConfirmDelete}
+          proceedButtonColor="error"
+          proceedButtonVariant="contained"
+        />
+      )}
       </Stack>
     );
   }

@@ -193,7 +193,7 @@ const NewComplianceTracker = () => {
             Implemented subcontrols
           </Typography>
           <Typography className="metric-card-amount">
-            {complianceStatus.allDoneSubControls}
+            {complianceStatus.allDoneSubControls} {" %"}
           </Typography>
         </Stack>
       </Stack>

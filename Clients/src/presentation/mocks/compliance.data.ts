@@ -23,10 +23,6 @@ export const complianceMetrics = [
     name: "Implemented subcontrols",
     amount: "31",
   },
-  {
-    name: "Auditor completed",
-    amount: "17",
-  },
 ];
 
 export const complianceDetails = {

@@ -198,7 +198,8 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
     const handleConfirmDelete = useCallback(async () => {
       try {
         // TO DO: Make a call to with dynamic project id
-        const response = await deleteEntityById({ routeUrl: `/projects/1` });
+        const projectId = 1;
+        const response = await deleteEntityById({ routeUrl: `/projects/${projectId}` });
         console.log(response);
         if(response.status === 404){
           setAlert({
@@ -231,7 +232,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
         setAlert({
           variant: "error",
           title: "Error",
-          body: "Failed to delete account. Please try again.",
+          body: "Failed to delete project. Please try again.",
           isToast: true,
           visible: true,
         });

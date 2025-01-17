@@ -3,6 +3,7 @@ import { MOCKDATA_ON } from "../flags";
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
+  calculateMockProjectRisks,
   createMockProject,
   deleteMockProjectById,
   getAllMockProjects,
@@ -10,6 +11,7 @@ import {
   updateMockProjectById,
 } from "../mocks/tools/project.mock.db";
 import {
+  calculateProjectRisks,
   createNewProjectQuery,
   deleteProjectByIdQuery,
   getAllProjectsQuery,
@@ -284,5 +286,32 @@ export async function getProjectStatsById(
       },
     };
     return res.status(202).json(STATUS_CODE[202](overviewDetails));
+  }
+}
+
+export async function getProjectRisksCalculations(
+  req: Request,
+  res: Response
+): Promise<any> {
+  try {
+    if (MOCKDATA_ON) {
+      const projects = calculateMockProjectRisks();
+
+      if (projects) {
+        return res.status(200).json(STATUS_CODE[200](projects));
+      }
+
+      return res.status(204).json(STATUS_CODE[204](projects));
+    } else {
+      const projectRisksCalculations = await calculateProjectRisks();
+
+      if (projectRisksCalculations) {
+        return res.status(200).json(STATUS_CODE[200](projectRisksCalculations));
+      }
+
+      return res.status(204).json(STATUS_CODE[204](projectRisksCalculations));
+    }
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

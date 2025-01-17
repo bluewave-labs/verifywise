@@ -6,6 +6,7 @@ import {
   deleteProjectById,
   getAllProjects,
   getProjectById,
+  getProjectRisksCalculations,
   getProjectStatsById,
   // saveControls,
   updateProjectById,
@@ -15,6 +16,7 @@ import authenticateJWT from "../middleware/auth.middleware";
 
 // GET requests
 router.get("/", /*authenticateJWT,*/ getAllProjects);
+router.get("/calculateProjectRisks", /*authenticateJWT,*/ getProjectRisksCalculations)
 router.get("/:id", /*authenticateJWT,*/ getProjectById);
 router.get("/stats/:id", getProjectStatsById);
 

@@ -1,4 +1,5 @@
 import mockProjects from "../project.mock.data";
+import mockProjectRisks from "../projectRisks.mock.data";
 import { Project } from "../../models/project.model";
 
 export const getAllMockProjects = (): Array<any> => {
@@ -41,3 +42,16 @@ export const deleteMockProjectById = (id: number): object | null => {
   }
   return null;
 };
+
+export const calculateMockProjectRisks = (): object[] => {
+  let projectRisksCalculations: Record<string, number> = {}
+  for (let mockProjectRisk of mockProjectRisks) {
+    if (projectRisksCalculations[mockProjectRisk.risk_level_autocalculated] === undefined) {
+      projectRisksCalculations[mockProjectRisk.risk_level_autocalculated] = 0
+    }
+    projectRisksCalculations[mockProjectRisk.risk_level_autocalculated] = projectRisksCalculations[mockProjectRisk.risk_level_autocalculated] + 1
+  }
+  return Object.entries(projectRisksCalculations).map(function ([risk, count]) {
+    return { risk_level_autocalculated: risk, count: count.toString() }
+  })
+}

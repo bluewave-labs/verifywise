@@ -1,22 +1,38 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
+import { store } from "../redux/store"; // Adjust the import path as necessary
+
+interface RequestParams {
+  routeUrl: string;
+  body?: any;
+  signal?: AbortSignal;
+  authToken?: string;
+}
+
+/**
+ * Retrieves the authToken from the Redux store.
+ *
+ * @returns {string} The authToken from the Redux store.
+ */
+const getAuthToken = (): string => {
+  const state = store.getState();
+  return state.auth.authToken;
+};
 
 /**
  * Creates a new user by sending a POST request to the specified route URL with the provided body.
  *
- * @param {Object} params - The parameters for creating a new user.
- * @param {string} [params.routeUrl] - The route URL to which the POST request will be sent.
- * @param {any} params.body - The body of the POST request containing user details.
+ * @param {RequestParams} params - The parameters for creating a new user.
  * @returns {Promise<any>} A promise that resolves to the response data of the created user.
  * @throws Will throw an error if the user creation fails.
  */
 export async function createNewUser({
   routeUrl,
   body,
-}: {
-  routeUrl: string;
-  body: any;
-}): Promise<any> {
-  const response = await apiServices.post(routeUrl, body);
+  authToken = getAuthToken(),
+}: RequestParams): Promise<any> {
+  const response = await apiServices.post(routeUrl, body, {
+    headers: { Authorization: `Bearer ${authToken}` },
+  });
   console.log(
     `The entity with the following details is created: ${response.data}`
   );
@@ -26,21 +42,19 @@ export async function createNewUser({
 /**
  * Logs in a user by sending a POST request to the specified route URL with the provided credentials.
  *
- * @param {Object} params - The parameters for the login request.
- * @param {string} [params.routeUrl] - The route URL to which the POST request will be sent.
- * @param {any} params.body - The body of the POST request containing login credentials.
+ * @param {RequestParams} params - The parameters for the login request.
  * @returns {Promise<any>} A promise that resolves to the response data of the logged-in user.
  * @throws Will throw an error if the login fails.
  */
 export async function loginUser({
   routeUrl,
   body,
-}: {
-  routeUrl: string;
-  body: any;
-}): Promise<any> {
+  authToken = getAuthToken(),
+}: RequestParams): Promise<any> {
   try {
-    const response = await apiServices.post(routeUrl, body);
+    const response = await apiServices.post(routeUrl, body, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
     return response;
   } catch (error) {
     console.error("Error logging in user:", error);
@@ -51,26 +65,23 @@ export async function loginUser({
 /**
  * Retrieves a user by their ID from the specified route URL.
  *
- * @param {Object} params - The parameters for the request.
- * @param {string} params.routeUrl - The URL route to fetch the user data from.
+ * @param {RequestParams} params - The parameters for the request.
  * @returns {Promise<any>} The user data retrieved from the API.
  * @throws Will throw an error if the request fails.
  */
-
-interface GetEntityByIdParams {
-  routeUrl: string;
-  signal?: AbortSignal;
-}
-
 export async function getEntityById({
   routeUrl,
   signal,
-}: GetEntityByIdParams) : Promise<any> {
+  authToken = getAuthToken(),
+}: RequestParams): Promise<any> {
   try {
-    const response = await apiServices.get(routeUrl, { signal });
+    const response = await apiServices.get(routeUrl, {
+      headers: { Authorization: `Bearer ${authToken}` },
+      signal,
+    });
     return response.data;
   } catch (error) {
-    console.error("Error getting etity by ID:", error);
+    console.error("Error getting entity by ID:", error);
     throw error;
   }
 }
@@ -78,21 +89,19 @@ export async function getEntityById({
 /**
  * Updates a user entity by its ID.
  *
- * @param {Object} params - The parameters for the update operation.
- * @param {string} params.routeUrl - The URL route for the update request.
- * @param {any} params.body - The request body containing the update details.
+ * @param {RequestParams} params - The parameters for the update operation.
  * @returns {Promise<any>} The updated entity data.
  * @throws Will throw an error if the update operation fails.
  */
 export async function updateEntityById({
   routeUrl,
   body,
-}: {
-  routeUrl: string;
-  body: any;
-}): Promise<any> {
+  authToken = getAuthToken(),
+}: RequestParams): Promise<any> {
   try {
-    const response = await apiServices.patch(routeUrl, body);
+    const response = await apiServices.patch(routeUrl, body, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
     console.log(
       `The entity with the following details is updated: ${response.data}`
     );
@@ -106,18 +115,18 @@ export async function updateEntityById({
 /**
  * Deletes a user by their ID.
  *
- * @param {Object} params - The parameters for the function.
- * @param {string} params.routeUrl - The URL route to delete the user.
+ * @param {RequestParams} params - The parameters for the function.
  * @returns {Promise<any>} The response data from the delete operation.
  * @throws Will throw an error if the delete operation fails.
  */
 export async function deleteEntityById({
   routeUrl,
-}: {
-  routeUrl: string;
-}): Promise<any> {
+  authToken = getAuthToken(),
+}: RequestParams): Promise<any> {
   try {
-    const response = await apiServices.delete(routeUrl);
+    const response = await apiServices.delete(routeUrl, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
     console.log(
       `The entity with the following details is removed: ${response}`
     );
@@ -131,17 +140,19 @@ export async function deleteEntityById({
 /**
  * Fetches all users from the API.
  *
+ * @param {RequestParams} params - The parameters for the request.
  * @returns {Promise<any>} A promise that resolves to the data of all users.
  * @throws Will throw an error if the API request fails.
  */
 export async function getAllEntities({
   routeUrl,
-}: {
-  routeUrl: string;
-}): Promise<any> {
+  authToken = getAuthToken(),
+}: RequestParams): Promise<any> {
   console.log("getAllEntities, routeUrl : ", routeUrl);
   try {
-    const response = await apiServices.get(routeUrl);
+    const response = await apiServices.get(routeUrl, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
     console.log("response ==> ", response);
     return response.data;
   } catch (error) {
@@ -153,18 +164,18 @@ export async function getAllEntities({
 /**
  * Checks if any user exists in the database.
  *
- * @param {Object} params - The parameters for the request.
- * @param {string} params.routeUrl - The URL route to check if a user exists.
+ * @param {RequestParams} params - The parameters for the request.
  * @returns {Promise<any>} The response data indicating if a user exists.
  * @throws Will throw an error if the request fails.
  */
 export async function checkUserExists({
   routeUrl,
-}: {
-  routeUrl: string;
-}): Promise<any> {
+  authToken = getAuthToken(),
+}: RequestParams): Promise<any> {
   try {
-    const response = await apiServices.get(routeUrl);
+    const response = await apiServices.get(routeUrl, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
     return response.data;
   } catch (error) {
     console.error("Error checking if user exists:", error);

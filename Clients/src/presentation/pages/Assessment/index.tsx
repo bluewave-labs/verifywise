@@ -140,7 +140,7 @@ const Assessment = memo(() => {
           </Paper>
           <Paper sx={paperStyle}>
             <Typography fontSize="12px" color={theme.palette.text.accent}>
-              Approved assessments
+              Implemented assessments
             </Typography>
             <Typography
               fontWeight="bold"

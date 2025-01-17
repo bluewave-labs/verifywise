@@ -1,4 +1,5 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
+import { store } from "../redux/store"; // Adjust the import path as necessary
 
 interface RequestParams {
   routeUrl: string;
@@ -6,6 +7,16 @@ interface RequestParams {
   signal?: AbortSignal;
   authToken?: string;
 }
+
+/**
+ * Retrieves the authToken from the Redux store.
+ *
+ * @returns {string} The authToken from the Redux store.
+ */
+const getAuthToken = (): string => {
+  const state = store.getState();
+  return state.auth.authToken;
+};
 
 /**
  * Creates a new user by sending a POST request to the specified route URL with the provided body.
@@ -17,7 +28,7 @@ interface RequestParams {
 export async function createNewUser({
   routeUrl,
   body,
-  authToken,
+  authToken = getAuthToken(),
 }: RequestParams): Promise<any> {
   const response = await apiServices.post(routeUrl, body, {
     headers: { Authorization: `Bearer ${authToken}` },
@@ -38,7 +49,7 @@ export async function createNewUser({
 export async function loginUser({
   routeUrl,
   body,
-  authToken,
+  authToken = getAuthToken(),
 }: RequestParams): Promise<any> {
   try {
     const response = await apiServices.post(routeUrl, body, {
@@ -61,7 +72,7 @@ export async function loginUser({
 export async function getEntityById({
   routeUrl,
   signal,
-  authToken,
+  authToken = getAuthToken(),
 }: RequestParams): Promise<any> {
   try {
     const response = await apiServices.get(routeUrl, {
@@ -85,7 +96,7 @@ export async function getEntityById({
 export async function updateEntityById({
   routeUrl,
   body,
-  authToken,
+  authToken = getAuthToken(),
 }: RequestParams): Promise<any> {
   try {
     const response = await apiServices.patch(routeUrl, body, {
@@ -110,7 +121,7 @@ export async function updateEntityById({
  */
 export async function deleteEntityById({
   routeUrl,
-  authToken,
+  authToken = getAuthToken(),
 }: RequestParams): Promise<any> {
   try {
     const response = await apiServices.delete(routeUrl, {
@@ -135,7 +146,7 @@ export async function deleteEntityById({
  */
 export async function getAllEntities({
   routeUrl,
-  authToken,
+  authToken = getAuthToken(),
 }: RequestParams): Promise<any> {
   console.log("getAllEntities, routeUrl : ", routeUrl);
   try {
@@ -159,7 +170,7 @@ export async function getAllEntities({
  */
 export async function checkUserExists({
   routeUrl,
-  authToken,
+  authToken = getAuthToken(),
 }: RequestParams): Promise<any> {
   try {
     const response = await apiServices.get(routeUrl, {

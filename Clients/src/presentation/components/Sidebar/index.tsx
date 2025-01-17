@@ -139,7 +139,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
   };
 
   useEffect(() => {
-    if (projects.length > 0 && selectedProjectId === "") {
+    if (projects.length > 0 && (selectedProjectId === "" || selectedProjectId != projects[0]._id)) {
       setSelectedProjectId(projects[0]._id);
     }
   }, [projects]);

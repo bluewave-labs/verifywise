@@ -3,7 +3,7 @@ import pool from "../database/db";
 
 export const getAllProjectScopesQuery = async (): Promise<ProjectScope[]> => {
   console.log("getAllProjectScopes");
-  const projectScopes = await pool.query("SELECT * FROM project_scopes");
+  const projectScopes = await pool.query("SELECT * FROM projectscopes");
   return projectScopes.rows;
 };
 
@@ -12,7 +12,7 @@ export const getProjectScopeByIdQuery = async (
 ): Promise<ProjectScope | null> => {
   console.log("getProjectScopeById", id);
   const result = await pool.query(
-    "SELECT * FROM project_scopes WHERE id = $1",
+    "SELECT * FROM projectscopes WHERE id = $1",
     [id]
   );
   return result.rows.length ? result.rows[0] : null;
@@ -33,7 +33,7 @@ export const createProjectScopeQuery = async (
 ): Promise<ProjectScope> => {
   console.log("createProjectScope", projectScope);
   const result = await pool.query(
-    "INSERT INTO project_scopes (assessment_id, describe_ai_environment, is_new_ai_technology, uses_personal_data, project_scope_documents, technology_type, has_ongoing_monitoring, unintended_outcomes, technology_documentation) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
+    "INSERT INTO projectscopes (assessment_id, describe_ai_environment, is_new_ai_technology, uses_personal_data, project_scope_documents, technology_type, has_ongoing_monitoring, unintended_outcomes, technology_documentation) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
     [
       projectScope.assessmentId,
       projectScope.describeAiEnvironment,
@@ -65,7 +65,7 @@ export const updateProjectScopeByIdQuery = async (
 ): Promise<ProjectScope | null> => {
   console.log("updateProjectScopeById", id, projectScope);
   const result = await pool.query(
-    `UPDATE project_scopes SET 
+    `UPDATE projectscopes SET 
       assessment_id = $1, 
       describe_ai_environment = $2, 
       is_new_ai_technology = $3, 
@@ -97,7 +97,7 @@ export const deleteProjectScopeByIdQuery = async (
 ): Promise<ProjectScope | null> => {
   console.log("deleteProjectScopeById", id);
   const result = await pool.query(
-    "DELETE FROM project_scopes WHERE id = $1 RETURNING *",
+    "DELETE FROM projectscopes WHERE id = $1 RETURNING *",
     [id]
   );
   return result.rows.length ? result.rows[0] : null;

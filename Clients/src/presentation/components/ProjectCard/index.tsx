@@ -76,9 +76,12 @@ const ProjectCard: FC<ProjectCardProps> = ({
               Last updated
             </Typography>
             <SubtitleValue>
-              {last_updated && /^\d{4}-\d{2}-\d{2}/.test(last_updated)
-                ? formatDate(last_updated)
-                : "N/A"}
+             {(()=>{
+                console.log("Raw Last Updated Value:", last_updated);
+                const result = last_updated && /^\d{4}-\d{2}-\d{2}/.test(last_updated) ? formatDate(last_updated) : "N/A";
+                console.log("Formatted last updated value:", result);
+                return result;
+             })()}
             </SubtitleValue>
           </Box>
         </Box>

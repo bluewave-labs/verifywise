@@ -8,7 +8,7 @@ interface PageTourProps {
 }
 
 const PageTour: React.FC<PageTourProps> = ({ steps, run, onFinish }) => {
-  const [shouldRun, setShouldRun] = useState(true);
+  const [shouldRun, setShouldRun] = useState(false);
 
   useEffect(() => {
     //always check if tour was seen first before running it

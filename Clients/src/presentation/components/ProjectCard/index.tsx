@@ -50,44 +50,68 @@ const ProjectCard: FC<ProjectCardProps> = ({
       requirementsCompleted } = getProjectData({ projectId: id, assessments, controls });
 
     return (
-        <Card>
-            <Title variant="h5">
-                {project_title}
-            </Title>
-            <Box sx={styles.upperBox}>
-                <Box>
-                    <Typography variant="subtitle1" component="span" sx={styles.subtitle}>
-                        Project owner
-                    </Typography>
-                    <SubtitleValue>{ownerUser ? `${ownerUser.name} ${ownerUser.surname}` : 'Unknown User'}</SubtitleValue>
-                </Box>
-                <Box>
-                    <Typography variant="subtitle1" component="span" sx={styles.subtitle}>
-                        Last updated
-                    </Typography>
-                    <SubtitleValue>{last_updated ? formatDate(last_updated) : "N/A"}</SubtitleValue>
-                </Box>
+      <Card>
+        <Title variant="h5">{project_title}</Title>
+        <Box sx={styles.upperBox}>
+          <Box>
+            <Typography
+              variant="subtitle1"
+              component="span"
+              sx={styles.subtitle}
+            >
+              Project owner
+            </Typography>
+            <SubtitleValue>
+              {ownerUser
+                ? `${ownerUser.name} ${ownerUser.surname}`
+                : "Unknown User"}
+            </SubtitleValue>
+          </Box>
+          <Box>
+            <Typography
+              variant="subtitle1"
+              component="span"
+              sx={styles.subtitle}
+            >
+              Last updated
+            </Typography>
+            <SubtitleValue>
+              {last_updated && /^\d{4}-\d{2}-\d{2}/.test(last_updated)
+                ? formatDate(last_updated)
+                : "N/A"}
+            </SubtitleValue>
+          </Box>
+        </Box>
+        <ProgressBarRender
+          progress={controlsProgress}
+          label="control"
+          completed={controlsCompleted}
+        />
+        <ProgressBarRender
+          progress={requirementsProgress}
+          label="requirement"
+          completed={requirementsCompleted}
+        />
+        <Box sx={styles.lowerBox}>
+          <Box sx={{ display: "flex", mb: 1.5 }}>
+            <Box sx={styles.imageBox}>
+              <img src={euimg} alt="EU AI Act" />
             </Box>
-            <ProgressBarRender progress={controlsProgress} label="control" completed={controlsCompleted} />
-            <ProgressBarRender progress={requirementsProgress} label="requirement" completed={requirementsCompleted} />
-            <Box sx={styles.lowerBox}>
-                <Box sx={{ display: "flex", mb: 1.5 }}>
-                    <Box sx={styles.imageBox}>
-                        <img src={euimg} alt="EU AI Act" />
-                    </Box>
-                    <Typography sx={styles.imageTitle}>
-                        EU AI Act
-                    </Typography>
-                </Box>
-                <Btn
-                    variant="outlined"
-                    disableRipple={theme.components?.MuiButton?.defaultProps?.disableRipple}
-                    onClick={() => navigate('/project-view', {projectId: id.toString()})}
-                >
-                    View project
-                </Btn>
-            </Box>
-        </Card>
+            <Typography sx={styles.imageTitle}>EU AI Act</Typography>
+          </Box>
+          <Btn
+            variant="outlined"
+            disableRipple={
+              theme.components?.MuiButton?.defaultProps?.disableRipple
+            }
+            onClick={() =>
+              navigate("/project-view", { projectId: id.toString() })
+            }
+          >
+            View project
+          </Btn>
+        </Box>
+      </Card>
     );
 };
 

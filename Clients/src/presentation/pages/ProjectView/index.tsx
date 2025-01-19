@@ -37,8 +37,6 @@ const ProjectView = ({ project = projectOverviewData }) => {
     projectTitle === "No Project found" ||
     Object.keys(project).length === 0;
 
-  console.log("Project:", project);
-  console.log("No project flag:", noProject);
 
   return (
     <Stack>

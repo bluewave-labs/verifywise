@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
-import { Stack, Box, Typography } from "@mui/material";
+import { Stack, Box, Typography, useTheme } from "@mui/material";
 import BasicTable from "../../components/Table";
 
 import EmptyTableImage from "../../assets/imgs/empty-state.svg";
@@ -145,6 +145,7 @@ const FileTable: React.FC<{
  * @returns {JSX.Element} The FileManager component.
  */
 const FileManager: React.FC = (): JSX.Element => {
+  const theme = useTheme();
   const [files, setFiles] = useState<File[]>([]);
   const [sortField, setSortField] = useState<keyof File | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection | null>(
@@ -226,7 +227,15 @@ const FileManager: React.FC = (): JSX.Element => {
         onFinish={() => setRunFileTour(false)}
       />
       <Stack spacing={1} data-joyride-id="file-manager-title">
-        <Typography variant="h6" fontWeight="bold" gutterBottom>
+      <Typography
+          data-joyride-id="assessment-status"
+          variant="h1"
+          component="div"
+          fontWeight="600"
+          fontSize="16px"
+          color={theme.palette.text.primary}
+          sx={{ fontFamily: "Inter" }}
+        >
           Evidences & documents
         </Typography>
         <Typography variant="body2" color="text.secondary">

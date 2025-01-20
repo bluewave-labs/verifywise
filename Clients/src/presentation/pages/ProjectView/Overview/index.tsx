@@ -3,14 +3,22 @@ import ProgressBar from "../../../components/ProjectCard/ProgressBar";
 import { FC, memo, useCallback, useContext, useMemo } from "react";
 import { formatDate } from "../../../tools/isoDateToString";
 import Risks from "../../../components/Risks";
-import { ProjectOverview } from "../../../mocks/projects/project-overview.data";
+import projectOverviewData from "../../../mocks/projects/project-overview.data";
 import { useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import getProjectData from "../../../../application/tools/getProjectData";
 
+export type RiskData = {
+  veryHighRisks: number;
+  highRisks: number;
+  mediumRisks: number;
+  lowRisks: number;
+  veryLowRisks: number;
+};
 interface OverviewProps {
-  mocProject: ProjectOverview;
+  vendorRisks: RiskData[];
+  projectRisksSummary: RiskData;
 }
 
 interface ProgressBarCardProps {
@@ -19,13 +27,12 @@ interface ProgressBarCardProps {
   completed: number;
 }
 
-const Overview: FC<OverviewProps> = memo(({ mocProject }) => {
+const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
   const [searchParams] = useSearchParams();
-  const projectId = searchParams.get("projectId") ?? "2"; // default project ID is 2
+  const projectId = searchParams.get("projectId") ?? "1"; // default project ID is 1
   const { project, error, isLoading } = useProjectData({ projectId });
   const theme = useTheme();
   const { projectStatus } = useContext(VerifyWiseContext);
-
   const {
     controlsProgress,
     requirementsProgress: assessmentsProgress,
@@ -37,8 +44,8 @@ const Overview: FC<OverviewProps> = memo(({ mocProject }) => {
     controls: projectStatus.controls,
   });
 
-  const { projectRisks, vendorRisks } =
-    mocProject;
+  const { vendorRisks  } =
+  projectOverviewData;
 
   const styles = useMemo(
     () => ({
@@ -137,7 +144,7 @@ const Overview: FC<OverviewProps> = memo(({ mocProject }) => {
         >
           Project risks
         </Typography>
-        <Risks {...projectRisks} />
+        <Risks {...projectRisksSummary} />
       </Stack>
       <Stack>
         <Typography

@@ -93,7 +93,7 @@ const RisksView: FC<RisksViewProps> = memo(
 
     const AddNewRiskPopupRender = useCallback(() => {
       const [anchor, setAnchor] = useState<null | HTMLElement>(null);
-      const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {        
+      const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
         setAnchor(anchor ? null : event.currentTarget);
       };
 
@@ -167,7 +167,7 @@ const RisksView: FC<RisksViewProps> = memo(
           data={tableData}
           table="risksTable"
           paginated
-          label={`${title} risks`}
+          label={`${title} risk`}
           setSelectedRow={setSelectedRow}
           setAnchorEl={setAnchorEl}
         />

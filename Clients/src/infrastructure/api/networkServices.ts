@@ -94,12 +94,17 @@ export const apiServices = {
    * @template T - The type of the response data.
    * @param {string} endpoint - The API endpoint to send the request to.
    * @param {any} [data={}] - Optional data payload to include in the request.
+   * @param {RequestParams} [config={}] - Optional configuration for the request.
    * @returns {Promise<ApiResponse<T>>} - A promise that resolves to the API response.
    */
-  async post<T>(endpoint: string, data: any = {}): Promise<ApiResponse<T>> {
+  async post<T>(
+    endpoint: string,
+    data: any = {},
+    config: RequestParams = {}
+  ): Promise<ApiResponse<T>> {
     logRequest("post", endpoint, undefined, data);
     try {
-      const response = await CustomAxios.post(endpoint, data);
+      const response = await CustomAxios.post(endpoint, data, config);
       logResponse("post", endpoint, response);
       return {
         data: response.data,
@@ -118,12 +123,17 @@ export const apiServices = {
    * @template T - The type of the response data.
    * @param {string} endpoint - The API endpoint to send the request to.
    * @param {any} [data={}] - Optional data payload to include in the request.
+   * @param {RequestParams} [config={}] - Optional configuration for the request.
    * @returns {Promise<ApiResponse<T>>} - A promise that resolves to the API response.
    */
-  async patch<T>(endpoint: string, data: any = {}): Promise<ApiResponse<T>> {
+  async patch<T>(
+    endpoint: string,
+    data: any = {},
+    config: RequestParams = {}
+  ): Promise<ApiResponse<T>> {
     logRequest("patch", endpoint, undefined, data);
     try {
-      const response = await CustomAxios.patch(endpoint, data);
+      const response = await CustomAxios.patch(endpoint, data, config);
       logResponse("patch", endpoint, response);
       return {
         data: response.data,
@@ -141,12 +151,16 @@ export const apiServices = {
    *
    * @template T - The type of the response data.
    * @param {string} endpoint - The API endpoint to send the request to.
+   * @param {RequestParams} [config={}] - Optional configuration for the request.
    * @returns {Promise<ApiResponse<T>>} - A promise that resolves to the API response.
    */
-  async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
+  async delete<T>(
+    endpoint: string,
+    config: RequestParams = {}
+  ): Promise<ApiResponse<T>> {
     logRequest("delete", endpoint);
     try {
-      const response = await CustomAxios.delete(endpoint);
+      const response = await CustomAxios.delete(endpoint, config);
       logResponse("delete", endpoint, response);
       return {
         data: response.data.data,

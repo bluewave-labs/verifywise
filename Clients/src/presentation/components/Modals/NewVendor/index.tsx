@@ -218,7 +218,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
      */
     const handleSave = () => {
         if (validateForm()) {
-            setIsModalOpen(true);
+            existingVendor ? setIsModalOpen(true) : handleOnSave();  
         }
     };
 
@@ -589,7 +589,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                     date={
                         values.vendorDetails.reviewDate
                             ? dayjs(values.vendorDetails.reviewDate)
-                            : null
+                            : dayjs(new Date())
                     }
                     handleDateChange={handleDateChange}
                 />
@@ -774,7 +774,12 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             )}
             <Modal
                 open={isOpen}
-                onClose={() => setIsOpen()}
+                onClose={(_event, reason) => {
+                    if (reason !== 'backdropClick') {
+                      setIsOpen();
+                    }
+                  }}
+                disableEscapeKeyDown
                 sx={{ overflowY: "scroll" }}
             >
                 <Stack

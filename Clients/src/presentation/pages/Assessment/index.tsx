@@ -31,7 +31,7 @@ const Assessment = memo(() => {
   const paperStyle = usePaperStyle(theme);
   const [runAssessmentTour, setRunAssessmentTour] = useState(false);
   const [assessmentsStatus, setAssessmentsStatus] = useState({
-    allPendingAssessments: 0,
+    allAssessments: 0,
     allDoneAssessments: 0,
     AssessmentsCompletion: 0,
   });
@@ -60,9 +60,7 @@ const Assessment = memo(() => {
       });
 
       setAssessmentsStatus({
-        allPendingAssessments:
-          (response.allTotalAssessments ?? 0) -
-          (response.allDoneAssessments ?? 0),
+        allAssessments: response.allTotalAssessments ?? 0,
         allDoneAssessments: response.allDoneAssessments,
         AssessmentsCompletion: Number(
           (
@@ -103,9 +101,11 @@ const Assessment = memo(() => {
           data-joyride-id="assessment-status"
           variant="h1"
           component="div"
-          fontWeight="bold"
+          fontWeight="600"
           fontSize="16px"
           color={theme.palette.text.primary}
+          sx={{ ...singleTheme.textStyles.pageTitle, fontFamily: "Inter" }}
+          marginBottom={12}
         >
           Assessment tracker
         </Typography>
@@ -130,19 +130,19 @@ const Assessment = memo(() => {
           </Paper>
           <Paper sx={paperStyle}>
             <Typography fontSize="12px" color={theme.palette.text.accent}>
-              Pending assessments
+              Total assessments
             </Typography>
             <Typography
               fontWeight="bold"
               fontSize="16px"
               color={theme.palette.text.primary}
             >
-              2
+              {assessmentsStatus.allAssessments}
             </Typography>
           </Paper>
           <Paper sx={paperStyle}>
             <Typography fontSize="12px" color={theme.palette.text.accent}>
-              Approved assessments
+              Implemented assessments
             </Typography>
             <Typography
               fontWeight="bold"

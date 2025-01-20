@@ -26,8 +26,8 @@ interface GetProjectDataTypes {
   projectId: number;
 }
 
-const getProjectData = ({projectId, assessments, controls } : GetProjectDataTypes) => {
-  const projectAssessments = assessments.projects.find(
+const getProjectData = ({ projectId, assessments, controls }: GetProjectDataTypes) => {
+  const projectAssessments = assessments.projects?.find(
     (project: AssessmentsProject) => project.projectId === projectId
   ) ?? {
     doneAssessments: DEFAULT_DONE_COUNT,
@@ -35,7 +35,7 @@ const getProjectData = ({projectId, assessments, controls } : GetProjectDataType
     totalAssessments: DEFAULT_TOTAL_COUNT,
   };
 
-  const projectControls = controls.projects.find(
+  const projectControls = controls.projects?.find(
     (project: ControlsProject) => project.projectId === projectId
   ) ?? {
     doneSubControls: DEFAULT_DONE_COUNT,

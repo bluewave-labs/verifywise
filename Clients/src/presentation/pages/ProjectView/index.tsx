@@ -1,6 +1,6 @@
 import { Box, Button, Stack, Tab, Typography, useTheme } from "@mui/material";
-import projectOverviewData from "../../mocks/projects/project-overview.data";
 import React from "react";
+import projectOverviewData from "../../mocks/projects/project-overview.data";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
@@ -10,10 +10,16 @@ import projectRisksData from "../../mocks/projects/project-risks.data";
 import vendorRisksData from "../../mocks/projects/project-vendor-risks.data";
 import ProjectSettings from "./ProjectSettings";
 import emptyStateImg from "../../assets/imgs/empty-state.svg";
-
+import useProjectRisks from "../../../application/hooks/useProjectRisks";
+import { useSearchParams } from "react-router-dom";
+        
 const ProjectView = ({ project = projectOverviewData}) => {
-  //project will be { } for testing 
-  const { projectTitle, projectRisks, vendorRisks } = project;
+  const { projectTitle, vendorRisks } = project;
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get("projectId") || "1"
+
+  const { loadingProjectRisks, error: errorFetchingProjectRisks, projectRisksSummary } = useProjectRisks({ id: parseInt(projectId) });
+    
   const theme = useTheme();
   const disableRipple =
     theme.components?.MuiButton?.defaultProps?.disableRipple;
@@ -37,6 +43,12 @@ const ProjectView = ({ project = projectOverviewData}) => {
     projectTitle === "No Project found" ||
     Object.keys(project).length === 0;
 
+  if (loadingProjectRisks) {
+     return <Typography>Loading project risks...</Typography>;
+    }
+  if (errorFetchingProjectRisks) {
+     return <Typography>Error fetching project risks. {errorFetchingProjectRisks}</Typography>;
+    }
 
   return (
     <Stack>
@@ -163,11 +175,11 @@ const ProjectView = ({ project = projectOverviewData}) => {
               </Box>
               {/* overview panel */}
               <TabPanel value="overview" sx={{ p: "32px 0 0" }}>
-                <Overview mocProject={project} />
+                <Overview vendorRisks={[]} projectRisksSummary={projectRisksSummary} />
               </TabPanel>
               <TabPanel value="project-risks" sx={{ p: "32px 0 0" }}>
                 <RisksView
-                  risksSummary={projectRisks}
+                  risksSummary={projectRisksSummary}
                   risksData={projectRisksData}
                   title="Project"
                 />

@@ -11,7 +11,7 @@ import vendorRisksData from "../../mocks/projects/project-vendor-risks.data";
 import ProjectSettings from "./ProjectSettings";
 import emptyStateImg from "../../assets/imgs/empty-state.svg";
 
-const ProjectView = ({ project = projectOverviewData }) => {
+const ProjectView = ({ project = projectOverviewData}) => {
   //project will be { } for testing 
   const { projectTitle, projectRisks, vendorRisks } = project;
   const theme = useTheme();
@@ -57,6 +57,7 @@ const ProjectView = ({ project = projectOverviewData }) => {
             width: { xs: "90%", sm: "90%", md: "1056px" },
             maxWidth: "100%",
             height: { xs: "100%", md: "418px" },
+            backgroundColor: "#FFFFFF",
           }}
         >
           {/* empty state image */}

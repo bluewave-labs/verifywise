@@ -81,13 +81,15 @@ export const deleteProjectByIdQuery = async (
   return result.rows.length ? result.rows[0] : null;
 };
 
-export const calculateProjectRisks = async (): Promise<
+export const calculateProjectRisks = async (project_id: number): Promise<
   {
     risk_level_autocalculated: string,
     count: string
   }[]
 > => {
   console.log("calculateProjectRisks");
-  const result = await pool.query("SELECT risk_level_autocalculated, count(*) AS count FROM projectrisks GROUP BY risk_level_autocalculated")
+  const result = await pool.query("SELECT risk_level_autocalculated, count(*) AS count FROM projectrisks WHERE project_id = $1 GROUP BY risk_level_autocalculated",
+    [project_id]
+  )
   return result.rows
 }

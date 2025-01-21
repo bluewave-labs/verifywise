@@ -294,8 +294,10 @@ export async function getProjectRisksCalculations(
   res: Response
 ): Promise<any> {
   try {
+    const projectId = parseInt(req.params.id);
+
     if (MOCKDATA_ON) {
-      const projects = calculateMockProjectRisks();
+      const projects = calculateMockProjectRisks(projectId);
 
       if (projects) {
         return res.status(200).json(STATUS_CODE[200](projects));
@@ -303,7 +305,7 @@ export async function getProjectRisksCalculations(
 
       return res.status(204).json(STATUS_CODE[204](projects));
     } else {
-      const projectRisksCalculations = await calculateProjectRisks();
+      const projectRisksCalculations = await calculateProjectRisks(projectId);
 
       if (projectRisksCalculations) {
         return res.status(200).json(STATUS_CODE[200](projectRisksCalculations));

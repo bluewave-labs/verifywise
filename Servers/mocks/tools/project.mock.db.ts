@@ -43,9 +43,12 @@ export const deleteMockProjectById = (id: number): object | null => {
   return null;
 };
 
-export const calculateMockProjectRisks = (): object[] => {
+export const calculateMockProjectRisks = (projectId: number): object[] => {
   let projectRisksCalculations: Record<string, number> = {}
   for (let mockProjectRisk of mockProjectRisks) {
+    if (mockProjectRisk.project_id !== projectId) {
+      continue
+    }
     if (projectRisksCalculations[mockProjectRisk.risk_level_autocalculated] === undefined) {
       projectRisksCalculations[mockProjectRisk.risk_level_autocalculated] = 0
     }

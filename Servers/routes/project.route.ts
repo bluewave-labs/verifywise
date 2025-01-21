@@ -16,7 +16,7 @@ import authenticateJWT from "../middleware/auth.middleware";
 
 // GET requests
 router.get("/", /*authenticateJWT,*/ getAllProjects);
-router.get("/calculateProjectRisks", /*authenticateJWT,*/ getProjectRisksCalculations)
+router.get("/calculateProjectRisks/:id", /*authenticateJWT,*/ getProjectRisksCalculations)
 router.get("/:id", /*authenticateJWT,*/ getProjectById);
 router.get("/stats/:id", getProjectStatsById);
 

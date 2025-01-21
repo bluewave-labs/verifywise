@@ -18,7 +18,8 @@ import VWMultiSelect from "../../../vw-v2-components/Selects/Multi"
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import { deleteEntityById } from "../../../../application/repository/entity.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import useProjectData from "../../../../application/hooks/useProjectData";
 
 interface ProjectSettingsProps {
   setTabValue: (value: string) => void;
@@ -56,8 +57,10 @@ const initialState: FormValues = {
 
 const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
   ({ setTabValue }) => {
+    const [searchParams] = useSearchParams();
+    const projectId = searchParams.get("projectId") ?? "2"; // default project ID is 2
     const theme = useTheme();
-
+    const { project, error, isLoading } = useProjectData({ projectId });
     const navigate = useNavigate();
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [values, setValues] = useState<FormValues>(initialState);
@@ -197,11 +200,10 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
 
     const handleConfirmDelete = useCallback(async () => {
       try {
-        // TO DO: Make a call to with dynamic project id
-        const projectId = 1;
         const response = await deleteEntityById({ routeUrl: `/projects/${projectId}` });
+        debugger;
         console.log(response);
-        if(response.status === 404){
+        if (response.status === 404 ||response.status === 500) {
           setAlert({
             variant: "error",
             title: "Error",
@@ -209,7 +211,10 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             isToast: true,
             visible: true,
           });
-        }else{
+          setTimeout(() => {
+            setAlert(null);
+          }, 3000);
+        } else {
           setAlert({
             variant: "success",
             title: "Success",
@@ -217,9 +222,12 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             isToast: true,
             visible: true,
           });
-        navigate('/');
-      }
-      } catch (error) {  
+          setTimeout(() => {
+            setAlert(null);
+          }, 3000);
+          navigate('/');
+        }
+      } catch (error) {
         logEngine({
           type: "error",
           message: "An error occured while deleting the project.",
@@ -257,7 +265,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             id="project-title-input"
             label="Project title"
             width={458}
-            value={values.projectTitle}
+            value={project?.project_title}
             onChange={handleOnTextFieldChange("projectTitle")}
             sx={fieldStyle}
             error={errors.projectTitle}
@@ -268,7 +276,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             label="Goal"
             width={458}
             type="description"
-            value={values.goal}
+            value={project?.goal}
             onChange={handleOnTextFieldChange("goal")}
             sx={{ height: 101, backgroundColor: theme.palette.background.main }}
             error={errors.goal}
@@ -311,7 +319,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
               be able to see the project.
             </Typography>
           </Stack>
-          <VWMultiSelect 
+          <VWMultiSelect
             label="Team members"
             onChange={handleMultiSelectChange("addUsers")}
             value={values.addUsers}
@@ -321,8 +329,8 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
               { _id: 3, name: "Some value 3" },
             ]}
             sx={{ width: 357, backgroundColor: theme.palette.background.main }}
-            // error={errors.addUsers}
-            // required
+          // error={errors.addUsers}
+          // required
           />
           <Stack gap="5px" sx={{ mt: "6px" }}>
             <Typography
@@ -384,18 +392,18 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             </Typography>
           </Stack>
           <Button
-              disableRipple
-              variant="contained"
-              onClick={handleOpenDeleteDialog}
-              sx={{
-                width: { xs: "100%", sm: theme.spacing(80) },
-                mb: theme.spacing(4),
-                backgroundColor: "#DB504A",
-                color: "#fff",
-              }}
-            >
-              Delete project
-            </Button>
+            disableRipple
+            variant="contained"
+            onClick={handleOpenDeleteDialog}
+            sx={{
+              width: { xs: "100%", sm: theme.spacing(80) },
+              mb: theme.spacing(4),
+              backgroundColor: "#DB504A",
+              color: "#fff",
+            }}
+          >
+            Delete project
+          </Button>
           <Button
             variant="contained"
             type="submit"
@@ -417,21 +425,21 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
           </Button>
         </Stack>
         {isDeleteModalOpen && (
-        <DualButtonModal
-          title="Confirm Delete"
-          body={
-            <Typography fontSize={13}>
-              Are you sure you want to delete the project?
-            </Typography>
-          }
-          cancelText="Cancel"
-          proceedText="Delete"
-          onCancel={handleCloseDeleteDialog}
-          onProceed={handleConfirmDelete}
-          proceedButtonColor="error"
-          proceedButtonVariant="contained"
-        />
-      )}
+          <DualButtonModal
+            title="Confirm Delete"
+            body={
+              <Typography fontSize={13}>
+                Are you sure you want to delete the project?
+              </Typography>
+            }
+            cancelText="Cancel"
+            proceedText="Delete"
+            onCancel={handleCloseDeleteDialog}
+            onProceed={handleConfirmDelete}
+            proceedButtonColor="error"
+            proceedButtonVariant="contained"
+          />
+        )}
       </Stack>
     );
   }

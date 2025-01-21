@@ -108,7 +108,7 @@ const ProjectCard: FC<ProjectCardProps> = ({
               theme.components?.MuiButton?.defaultProps?.disableRipple
             }
             onClick={() =>
-              navigate("/project-view", { projectId: id.toString() })
+              navigate("/project-view", { projectId: id.toString()})
             }
           >
             View project

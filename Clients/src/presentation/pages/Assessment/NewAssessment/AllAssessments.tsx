@@ -73,6 +73,8 @@ const AllAssessment = () => {
   const handleOpenFileUploadModal = () => setFileUploadModalOpen(true);
   const handleCloseFileUploadModal = () => setFileUploadModalOpen(false);
 
+  const activeAssessmentId = Topics[activeTab]?.id;
+
   const [alert, setAlert] = useState<{ show: boolean; message: string }>({
     show: false,
     message: "",
@@ -491,7 +493,7 @@ const AllAssessment = () => {
           onSuccess: () => console.log("File uploaded successfully!"),
           onError: (errorMessage: string) => console.error(errorMessage),
           allowedFileTypes: ["application/pdf"],
-          maxFileSize: 50 * 1024 * 1024,
+          assessmentId: activeAssessmentId,
         }}
       />
       {isModalOpen && (

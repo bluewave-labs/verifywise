@@ -100,7 +100,7 @@ export async function createControl(req: Request, res: Response): Promise<any> {
       reviewer: string;
       dueDate: Date;
       implementationDetails: string;
-      controlGroup: string;
+      controlGroup: number;
     } = req.body;
 
     if (MOCKDATA_ON) {
@@ -256,7 +256,6 @@ export async function saveControls(req: Request, res: Response): Promise<any> {
 
       // now we need to create the control for the control category, and use the control category id as the foreign key
       const control: any = await createNewControlQuery({
-        projectId: controlCategoryId, // now must be replaced with controlCategoryId
         // title: req.body.control.title,
         status: req.body.control.status,
         approver: req.body.control.approver,
@@ -265,6 +264,7 @@ export async function saveControls(req: Request, res: Response): Promise<any> {
         reviewer: req.body.control.reviewer,
         dueDate: req.body.control.date,
         implementationDetails: req.body.control.description,
+        controlGroup: controlCategoryId
       });
 
       const controlId = control.id;
@@ -399,7 +399,6 @@ export async function updateControls(
       const controlId = requestBody.control.id;
       // now we need to create the control for the control category, and use the control category id as the foreign key
       await updateControlByIdQuery(controlId, {
-        projectId: controlCategoryId, // now must be replaced with controlCategoryId
         // title: requestBody.control.title,
         status: requestBody.control.status,
         approver: requestBody.control.approver,
@@ -408,6 +407,7 @@ export async function updateControls(
         reviewer: requestBody.control.reviewer,
         dueDate: requestBody.control.date,
         implementationDetails: requestBody.control.description,
+        controlGroup: controlCategoryId
       });
 
       // now we need to iterate over subcontrols inside the control, and create a subcontrol for each subcontrol

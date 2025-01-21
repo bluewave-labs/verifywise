@@ -1,6 +1,5 @@
 import { Stack, Typography } from "@mui/material";
 import { RiskData } from "../../../mocks/projects/project-overview.data";
-import { ProjectRisk } from "../../../mocks/projects/project-risks.data";
 import { FC, useState, useMemo, useCallback, memo } from "react";
 import { VendorRisk } from "../../../mocks/projects/project-vendor-risks.data";
 import BasicTable from "../../../components/Table";
@@ -8,7 +7,42 @@ import Risks from "../../../components/Risks";
 import AddNewRiskForm from "../../../components/AddNewRiskForm";
 import Popup from "../../../components/Popup";
 import AddNewVendorRiskForm from "../../../components/AddNewVendorRiskForm";
+import { ProjectRisk } from "../../../../application/hooks/useProjectRisks";
 
+const projectRisksColNames = [
+  {
+      "id": "risk_name",
+      "name": "RISK NAME"
+  },
+  {
+      "id": "impact",
+      "name": "IMPACT"
+  },
+  {
+      "id": "risk_owner",
+      "name": "OWNER"
+  },
+  {
+      "id": "severity",
+      "name": "SEVERITY"
+  },
+  {
+      "id": "likelihood",
+      "name": "LIKELIHOOD"
+  },
+  {
+      "id": "risk_level_autocalculated",
+      "name": "RISK LEVEL"
+  },
+  {
+      "id": "mitigation_status",
+      "name": "MITIGATION"
+  },
+  {
+      "id": "final_risk_level",
+      "name": "FINAL RISK LEVEL"
+  }
+]
 interface RisksViewProps {
   risksSummary: RiskData;
   risksData: ProjectRisk[] | VendorRisk[];
@@ -17,19 +51,6 @@ interface RisksViewProps {
 
 const RisksView: FC<RisksViewProps> = memo(
   ({ risksSummary, risksData, title }) => {
-    const projectRisksColNames = useMemo(
-      () => [
-        "RISK NAME",
-        "IMPACT",
-        "OWNER",
-        "SEVERITY",
-        "LIKELIHOOD",
-        "RISK LEVEL",
-        "MITIGATION",
-        "FINAL RISK LEVEL",
-      ],
-      []
-    );
 
     const vendorRisksColNames = useMemo(
       () => ["VENDOR NAME", "RISK NAME", "OWNER", "RISK LEVEL", "REVIEW DATE"],
@@ -42,17 +63,21 @@ const RisksView: FC<RisksViewProps> = memo(
         : title === "Vendor"
         ? vendorRisksColNames
         : [];
-    }, [title, projectRisksColNames, vendorRisksColNames]);
+    }, [title, vendorRisksColNames]);
 
     const risksTableCols = useMemo(() => {
-      return colNames.reduce<{ id: string; name: string }[]>((acc, item, i) => {
-        acc.push({
-          id: Object.keys(risksData[0])[i],
-          name: item,
-        });
-        return acc;
-      }, []);
-    }, [colNames, risksData]);
+      if (title === "Project") {
+        return projectRisksColNames;
+      } else {
+        return colNames.reduce<{ id: string; name: string }[]>((acc, item, i) => {
+          acc.push({
+            id: Object.keys(risksData[0])[i],
+            name: typeof item === 'string' ? item : item.name,
+          });
+          return acc;
+        }, []);
+      }
+    }, [colNames, risksData, title]);
 
     const risksTableRows = useMemo(() => {
       return risksData.reduce<
@@ -60,20 +85,24 @@ const RisksView: FC<RisksViewProps> = memo(
       >((acc, item, i) => {
         const rowData = Object.keys(item).map((key, indexKey) => {
           const typedKey = key as keyof (ProjectRisk | VendorRisk);
-          return {
-            id: `${key}_${i}_${indexKey}`,
-            data: item[typedKey],
-          };
+          if (risksTableCols.some(col => col.id === key)) {
+            return {
+              id: `${key}_${i}_${indexKey}`,
+              data: String(item[typedKey]),
+            };
+          }
         });
 
+        const filteredRowData = rowData.filter((row): row is { id: string; data: string } => row !== undefined);
+
         acc.push({
-          id: `${item.riskName}_${i}`,
-          data: rowData,
+          id: `${'risk_name' in item ? item.risk_name : item.riskName}_${i}`,
+          data: filteredRowData,
         });
 
         return acc;
       }, []);
-    }, [risksData]);
+    }, [risksData, risksTableCols]);
 
     const tableData = useMemo(
       () => ({
@@ -93,7 +122,7 @@ const RisksView: FC<RisksViewProps> = memo(
 
     const AddNewRiskPopupRender = useCallback(() => {
       const [anchor, setAnchor] = useState<null | HTMLElement>(null);
-      const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {        
+      const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
         setAnchor(anchor ? null : event.currentTarget);
       };
 
@@ -167,7 +196,7 @@ const RisksView: FC<RisksViewProps> = memo(
           data={tableData}
           table="risksTable"
           paginated
-          label={`${title} risks`}
+          label={`${title} risk`}
           setSelectedRow={setSelectedRow}
           setAnchorEl={setAnchorEl}
         />

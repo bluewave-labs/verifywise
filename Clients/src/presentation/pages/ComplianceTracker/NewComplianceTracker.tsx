@@ -14,6 +14,8 @@ import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.cont
 import { getAllEntities } from "../../../application/repository/entity.repository";
 import PageTour from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
+import { useTheme } from "@mui/material/styles";
+// import { SxProps } from "@mui/system";
 
 const Table_Columns = [
   { id: 1, name: "Icon" },
@@ -23,7 +25,24 @@ const Table_Columns = [
   { id: 5, name: "Completion" },
 ];
 
+// const usePaperStyle = (theme: Theme): SxProps<Theme> => ({
+//   backgroundColor: theme.palette.background.main,
+//   ...theme.typography.body2,
+//   padding: theme.spacing(1),
+//   border: "1px solid",
+//   borderColor: theme.palette.border.light,
+//   boxShadow: "none",
+//   paddingRight: "150px",
+//   paddingLeft: "25px",
+//   paddingTop: "10px",
+//   paddingBottom: "10px",
+//   width: "calc(100% - 150px - 25px)",
+//   minWidth: "300px",
+//   maxWidth: "80%",
+// });
+
 const NewComplianceTracker = () => {
+  const theme = useTheme();
   const [expanded, setExpanded] = useState<number | false>(false);
 
   const [runComplianceTour, setRunComplianceTour] = useState(false);
@@ -161,10 +180,16 @@ const NewComplianceTracker = () => {
         onFinish={() => setRunComplianceTour(false)}
       />
       <Typography
-        data-joyride-id="compliance-title"
-        className="new-compliance-tracker-title"
+        data-joyride-id="assessment-status"
+        variant="h1"
+        component="div"
+        fontWeight="600"
+        fontSize="16px"
+        color={theme.palette.text.primary}
+        sx={{ fontFamily: "Inter" }}
+        marginBottom={12}
       >
-        Compliance Tracker
+        Compliance tracker
       </Typography>
       <Stack
         className="new-compliance-tracker-metrics"

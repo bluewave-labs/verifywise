@@ -14,8 +14,8 @@ interface VerifyWiseContextProps {
   login: (token: string) => void;
   logout: () => void;
   projectStatus: ProjectStatus;
-  loadingProjectStatus: boolean;
-  errorFetchingProjectStatus: boolean;
+  loadingProjectStatus: string | boolean;
+  errorFetchingProjectStatus: string | boolean;
 }
 
 export const VerifyWiseContext = createContext<VerifyWiseContextProps>({

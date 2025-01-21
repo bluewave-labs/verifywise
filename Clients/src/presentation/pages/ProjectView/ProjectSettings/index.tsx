@@ -201,32 +201,21 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
     const handleConfirmDelete = useCallback(async () => {
       try {
         const response = await deleteEntityById({ routeUrl: `/projects/${projectId}` });
-        debugger;
         console.log(response);
-        if (response.status === 404 ||response.status === 500) {
-          setAlert({
-            variant: "error",
-            title: "Error",
-            body: "Failed to delete project. Please try again.",
-            isToast: true,
-            visible: true,
-          });
-          setTimeout(() => {
-            setAlert(null);
-          }, 3000);
-        } else {
-          setAlert({
-            variant: "success",
-            title: "Success",
-            body: "Project deleted successfully.",
-            isToast: true,
-            visible: true,
-          });
-          setTimeout(() => {
-            setAlert(null);
-          }, 3000);
-          navigate('/');
-        }
+        const isError = response.status === 404 || response.status === 500;
+        setAlert({
+          variant: isError ? "error" : "success",
+          title: isError ? "Error" : "Success",
+          body: isError ? "Failed to delete project. Please try again." : "Project deleted successfully.",
+          isToast: true,
+          visible: true,
+        });
+        setTimeout(() => {
+          setAlert(null);
+          if (!isError) {
+            navigate('/');
+          }
+        }, 3000);
       } catch (error) {
         logEngine({
           type: "error",

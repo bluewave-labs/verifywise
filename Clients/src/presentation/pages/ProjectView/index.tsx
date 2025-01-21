@@ -10,8 +10,8 @@ import projectRisksData from "../../mocks/projects/project-risks.data"
 import vendorRisksData from "../../mocks/projects/project-vendor-risks.data";
 import ProjectSettings from "./ProjectSettings";
       
-const ProjectView = ({ project1 = projectOverviewData }) => {
-    const { projectTitle, projectRisks, vendorRisks } = project1;
+const ProjectView = ({ project = projectOverviewData }) => {
+    const { projectTitle, projectRisks, vendorRisks } = project;
     const theme = useTheme();
     const disableRipple = theme.components?.MuiButton?.defaultProps?.disableRipple;
 
@@ -48,7 +48,7 @@ const ProjectView = ({ project1 = projectOverviewData }) => {
                             <Tab label="Settings" value="settings" sx={tabStyle} disableRipple={disableRipple} />
                         </TabList>
                     </Box>
-                    <TabPanel value="overview" sx={{ p: "32px 0 0" }}><Overview mocProject={project1} /></TabPanel>
+                    <TabPanel value="overview" sx={{ p: "32px 0 0" }}><Overview mocProject={project} /></TabPanel>
                     <TabPanel value="project-risks" sx={{ p: "32px 0 0" }}>
                         <RisksView risksSummary={projectRisks} risksData={projectRisksData} title="Project" />
                     </TabPanel>

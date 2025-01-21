@@ -42,7 +42,7 @@ export interface ProjectRisk {
 }
 
 
-const useProjectRisks = ({ id }: { id?: number }) => {
+const useProjectRisks = ({ projectId }: { projectId?: string | null }) => {
   const [projectRisks, setProjectRisks] = useState<ProjectRisk[]>([]);
   const [loadingProjectRisks, setLoadingProjectRisks] = useState<boolean>(true);
   const [error, setError] = useState<string | boolean>(false);
@@ -50,17 +50,17 @@ const useProjectRisks = ({ id }: { id?: number }) => {
   useEffect(() => {
     const controller = new AbortController();
     const signal = controller.signal;
-    const routeUrl = id ? `/projectRisks/${id}` : '/projectRisks'
 
     const updateProjectRisks = async () => {
       setLoadingProjectRisks(true);
       try {
         const response = await  getEntityById({
-          routeUrl,
+          routeUrl: '/projectRisks',
           signal,
         })
         if(response.data) {
-          setProjectRisks(Array.isArray(response.data) ? response.data : [response.data])
+          const filteredProjectRisks = projectId ? response.data.filter((risk: ProjectRisk) => risk.project_id === Number(projectId)) : response.data
+          setProjectRisks(filteredProjectRisks)
         }
       } catch (err) {
         if (err instanceof Error){
@@ -76,7 +76,7 @@ const useProjectRisks = ({ id }: { id?: number }) => {
     return () => {
       controller.abort();
     };
-  }, [id])
+  }, [projectId])
 
   const projectRisksSummary = projectRisks.reduce((acc, risk) => {
     const riskLevel = risk.current_risk_level.charAt(0).toLowerCase() + risk.current_risk_level.slice(1);

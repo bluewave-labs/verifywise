@@ -6,20 +6,19 @@ import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import Overview from "./Overview";
 import RisksView from "./RisksView";
-import projectRisksData from "../../mocks/projects/project-risks.data";
 import vendorRisksData from "../../mocks/projects/project-vendor-risks.data";
 import ProjectSettings from "./ProjectSettings";
 import emptyStateImg from "../../assets/imgs/empty-state.svg";
 import useProjectRisks from "../../../application/hooks/useProjectRisks";
 import { useSearchParams } from "react-router-dom";
-        
+
 const ProjectView = ({ project = projectOverviewData}) => {
   const { projectTitle, vendorRisks } = project;
   const [searchParams] = useSearchParams();
-  const projectId = searchParams.get("projectId") || "1"
+  const projectId = searchParams.get("projectId")
 
-  const { loadingProjectRisks, error: errorFetchingProjectRisks, projectRisksSummary } = useProjectRisks({ id: parseInt(projectId) });
-    
+  const { projectRisks, loadingProjectRisks, error: errorFetchingProjectRisks, projectRisksSummary } = useProjectRisks({ projectId });
+
   const theme = useTheme();
   const disableRipple =
     theme.components?.MuiButton?.defaultProps?.disableRipple;
@@ -180,7 +179,7 @@ const ProjectView = ({ project = projectOverviewData}) => {
               <TabPanel value="project-risks" sx={{ p: "32px 0 0" }}>
                 <RisksView
                   risksSummary={projectRisksSummary}
-                  risksData={projectRisksData}
+                  risksData={projectRisks}
                   title="Project"
                 />
               </TabPanel>

@@ -1,5 +1,5 @@
 import { Stack } from "@mui/material";
-import VWSkeleton from "../vw-v2-components/Skeletons";
+import VWChecks from "../vw-v2-components/Checks";
 
 const Playground = () => {
   return (
@@ -16,7 +16,7 @@ const Playground = () => {
         gap: 4,
       }}
     >
-      <VWSkeleton />
+      <VWChecks title="Checkbox Title" />
     </Stack>
   );
 };

@@ -253,13 +253,14 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
             >
             {projects.length <= 3 ? <>
               {projects.map((item: ProjectCardProps) => (
-                <ProjectCard
-                  key={item.id}
-                  {...item}
-                  id={item.id}
-                  assessments={assessments}
-                  controls={controls}
-                />
+                <Box key={item.id} sx={{ width: projects.length === 1 ? '50%' : '100%' }}>
+                  <ProjectCard
+                    {...item}
+                    id={item.id}
+                    assessments={assessments}
+                    controls={controls}
+                  />
+                </Box>
               ))}
             </> : <>
               <Grid sx={{ width: "100%" }} container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>

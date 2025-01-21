@@ -27,8 +27,8 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
   onError,
   onStart,
   allowedFileTypes = ["application/pdf"],
-  maxFileSize = 5 * 1024 * 1024,
   onHeightChange,
+  assessmentId,
 }) => {
   const dispatch = useDispatch();
 
@@ -36,7 +36,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
 
   // Initialize Uppy
-  const uppy = useMemo(() => createUppyInstance(), []);
+  const uppy = useMemo(() => createUppyInstance(assessmentId), [assessmentId]);
 
   const locale = useMemo(
     () => ({
@@ -48,38 +48,6 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
     []
   );
 
-  //local storage
-  const uploadToLocalStorage = () => {
-    if (!uploadedFiles.length) {
-      alert("No files to upload");
-      return;
-    }
-    uploadedFiles.forEach((file) => {
-      if (file.data instanceof Blob) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const result = reader.result;
-          if (typeof result === "string") {
-            localStorage.setItem(
-              file.id,
-              JSON.stringify({
-                name: file.name,
-                type: file.type,
-                data: reader.result,
-              })
-            );
-            console.log(`file ${file.name} saved to local storage`);
-          } else {
-            console.error(`failed to process file ${file.name}`);
-          }
-        };
-        reader.readAsDataURL(file.data);
-      } else {
-        console.error(`Invalid file data for ${file.name}`);
-      }
-    });
-  };
-
   // File upload logic
   const handleFileAdded = (file: any) => {
     console.log("File added:", file);
@@ -87,14 +55,6 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
     if (!file || !file.data || !(file.data instanceof Blob)) {
       console.error(`Invalid file data for ${file.name}`);
       onError?.("invalid file data");
-
-      return;
-    }
-
-    if (file.size > maxFileSize) {
-      console.error(`File size exceeds the limit ${file.size}`);
-      onError?.("File size exceeds the allowed limit.");
-
       return;
     }
 
@@ -117,9 +77,6 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
         {
           id: file.id,
           name: file.name,
-          size: file.size
-            ? `${(file.size / 1024 / 1024).toFixed(2)} MB`
-            : "Unknown size",
           data: file.data,
         },
       ];
@@ -129,7 +86,6 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
 
   const handleUploadSuccess = (file: any) => {
     console.log("upload success:", file);
-
     onSuccess?.(file);
 
     // Update Redux state
@@ -146,7 +102,6 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
 
   const handleUploadError = (error: any, file: any) => {
     console.log("upload error", { error, file });
-
     onError?.("upload failed");
   };
   const handleUploadComplete = (result: any) => {
@@ -256,13 +211,6 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
             </Typography>
           </label>
 
-          <Typography
-            variant="body2"
-            sx={{ fontSize: 12, textAlign: "center" }}
-          >
-            Maximum size: {maxFileSize / (1024 * 1024)} MB
-          </Typography>
-
           {/* status bar */}
           <Stack sx={{ marginTop: 2, marginBottom: 1 }}>
             <div
@@ -326,7 +274,10 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
           <Button
             variant="contained"
             sx={{ marginTop:"8px", width: "100px", height: "34px" }}
-            onClick={() => uploadToLocalStorage()}
+            onClick={() => {
+              console.log("upload triggered");
+              uppy.upload();
+            }}
           >
             Upload
           </Button>

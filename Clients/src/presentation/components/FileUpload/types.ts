@@ -3,8 +3,8 @@ export interface FileUploadProps {
   onStart?: () => void;
   onError?: (message: string) => void;
   onProgress?: (progress: number) => void;
-  maxFileSize?: number;
   allowedFileTypes?: string[];
   uploadEndpoint?: string;
   onHeightChange?: (newHeight: number) => void;
+  assessmentId: string | number;
 }

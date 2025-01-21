@@ -76,7 +76,7 @@ interface CreateProjectFormProps {
  */
 
 const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProject }) => {
-  const theme = useTheme();  
+  const theme = useTheme();
   const [values, setValues] = useState<FormValues>(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
 
@@ -164,17 +164,17 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProjec
       body: {
         ...values,
         last_updated: values.start_date,
-        last_updated_by: "2" // TO DO: Upadte this id with dymanic user id
+        last_updated_by: values.users
       },
     }).then((response) => {
       // Reset form after successful submission
       setValues(initialState);
       setErrors({});
       closePopup();
-      if (response.status === 201) {        
-        onNewProject({ isNewProject: true, project: response.data.data.project });       
+      if (response.status === 201) {
+        onNewProject({ isNewProject: true, project: response.data.data.project });
       }
-    });    
+    });
   };
 
   const riskClassificationItems = useMemo(

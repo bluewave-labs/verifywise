@@ -12,6 +12,7 @@ import {
 } from "../mocks/tools/project.mock.db";
 import {
   calculateProjectRisks,
+  calculateVendirRisks,
   createNewProjectQuery,
   deleteProjectByIdQuery,
   getAllProjectsQuery,
@@ -312,6 +313,35 @@ export async function getProjectRisksCalculations(
       }
 
       return res.status(204).json(STATUS_CODE[204](projectRisksCalculations));
+    }
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getVendorRisksCalculations(
+  req: Request,
+  res: Response
+): Promise<any> {
+  try {
+    const projectId = parseInt(req.params.id);
+
+    if (MOCKDATA_ON) {
+      const projects = calculateMockProjectRisks(projectId);
+
+      if (projects) {
+        return res.status(200).json(STATUS_CODE[200](projects));
+      }
+
+      return res.status(204).json(STATUS_CODE[204](projects));
+    } else {
+      const vendorRisksCalculations = await calculateVendirRisks(projectId);
+
+      if (vendorRisksCalculations) {
+        return res.status(200).json(STATUS_CODE[200](vendorRisksCalculations));
+      }
+
+      return res.status(204).json(STATUS_CODE[204](vendorRisksCalculations));
     }
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

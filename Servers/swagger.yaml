@@ -886,6 +886,62 @@ paths:
                   example: internal server error
                 error:
                   type: object
+  /projects/calculateProjectRisks/{id}:
+    get:
+      tags: [projects]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the project
+      responses:
+        "200":
+          description: project
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        risk_level_autocalculated:
+                          type: string
+                          example: "High risk"
+                        count:
+                          type: string
+                          example: "1"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
 
   /projectRisks:
     get:

@@ -74,6 +74,13 @@ export const deleteProjectByIdQuery = async (
   id: number
 ): Promise<Project | null> => {
   console.log("deleteProjectById", id);
+  const dependantEntities = ["vendors", "assessments", "controlcategories", "projectrisks", "vendorrisks"]
+  for (let entity of dependantEntities) {
+    await pool.query(
+      `DELETE FROM ${entity} WHERE project_id = $1`,
+      [id]
+    );
+  }
   const result = await pool.query(
     "DELETE FROM projects WHERE id = $1 RETURNING *",
     [id]

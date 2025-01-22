@@ -4,10 +4,9 @@ import DropTarget from "@uppy/drop-target";
 
 
 
-export const createUppyInstance = () => {
+export const createUppyInstance = (assessmentId:string | number) => {
   const uppy = new Uppy({
     restrictions: {
-      maxFileSize: 50 * 1024 * 1024, 
       allowedFileTypes: ["application/pdf"], 
     },
     autoProceed: true, 
@@ -15,12 +14,14 @@ export const createUppyInstance = () => {
   }); 
 
   uppy.use(XHRUpload, {
-    endpoint: "http://localhost:3000/questions/2",
+    endpoint: "http://localhost:3000/assessments/saveAnswers",
     method: "POST",
     headers: {
-      Authorization: "Placeholder",
+      "Content-Type": "multipart/form-data",
+      "asseessmentId": String(assessmentId),
     },
     fieldName: "file",
+    formData: true,
   }); 
   uppy.use(DropTarget, {
     target: document.body, 

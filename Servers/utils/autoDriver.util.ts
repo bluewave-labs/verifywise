@@ -24,3 +24,12 @@ export async function deleteExistingData(tableName: string) {
 export async function insertData(insertQuery: string) {
   await pool.query(insertQuery);
 };
+
+export async function dropTable(tableName: string) {
+  await pool.query(`DROP TABLE ${tableName};`);
+}
+
+export async function checkDataExists(tableName: string) {
+  const result = await pool.query(`SELECT * from ${tableName} LIMIT 1;`)
+  return result.rows.length
+}

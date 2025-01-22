@@ -312,10 +312,7 @@ paths:
             schema:
               type: object
               properties:
-                id:
-                  type: integer
-                  example: 1
-                ProjectId:
+                projectId:
                   type: integer
                   example: 1
                 status:
@@ -341,8 +338,8 @@ paths:
                   type: string
                   example: "Implement new feature"
                 controlGroup:
-                  type: string
-                  example: "AI Literacy"
+                  type: integer
+                  example: 1
         required: true
       responses:
         "201":
@@ -444,10 +441,7 @@ paths:
             schema:
               type: object
               properties:
-                id:
-                  type: integer
-                  example: 1
-                ProjectId:
+                projectId:
                   type: integer
                   example: 1
                 status:
@@ -473,8 +467,8 @@ paths:
                   type: string
                   example: "Implement new feature"
                 controlGroup:
-                  type: string
-                  example: "AI Literacy"
+                  type: integer
+                  example: 1
         required: true
       responses:
         "202":
@@ -650,10 +644,6 @@ paths:
                 goal:
                   type: string
                   example: "To ensure compliance with AI governance standards"
-                last_updated:
-                  type: string
-                  format: date-time
-                  example: "2024-10-30T00:00:00.000Z"
                 last_updated_by:
                   type: integer
                   example: 1
@@ -873,6 +863,118 @@ paths:
                 message:
                   type: string
                   example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+  /projects/calculateProjectRisks/{id}:
+    get:
+      tags: [projects]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the project
+      responses:
+        "200":
+          description: project
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        risk_level_autocalculated:
+                          type: string
+                          example: "High risk"
+                        count:
+                          type: string
+                          example: "1"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+  /projects/calculateVendorRisks/{id}:
+    get:
+      tags: [projects]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the project
+      responses:
+        "200":
+          description: project
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        risk_level:
+                          type: string
+                          example: "High risk"
+                        count:
+                          type: string
+                          example: "1"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
                 data:
                   type: object
         "500":
@@ -4231,7 +4333,7 @@ components:
         id:
           type: integer
           example: 1
-        ProjectId:
+        projectId:
           type: integer
           example: 1
         status:

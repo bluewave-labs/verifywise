@@ -3,6 +3,7 @@ import { MOCKDATA_ON } from "../flags";
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
+  calculateMockProjectRisks,
   createMockProject,
   deleteMockProjectById,
   getAllMockProjects,
@@ -10,6 +11,8 @@ import {
   updateMockProjectById,
 } from "../mocks/tools/project.mock.db";
 import {
+  calculateProjectRisks,
+  calculateVendirRisks,
   createNewProjectQuery,
   deleteProjectByIdQuery,
   getAllProjectsQuery,
@@ -92,8 +95,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
       ai_risk_classification: string;
       type_of_high_risk_role: string;
       goal: string;
-      last_updated?: Date;
-      last_updated_by?: number;
+      last_updated_by: number;
     } = req.body;
 
     if (!newProject.project_title || !newProject.owner) {
@@ -105,7 +107,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
     }
 
     if (MOCKDATA_ON) {
-      const createdProject = createMockProject(newProject) as { id: string };
+      const createdProject = createMockProject({...newProject, last_updated: newProject.start_date}) as { id: string };
       const assessment = createMockAssessment({
         projectId: createdProject.id,
       }) as { id: string; projectId: string };
@@ -127,7 +129,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
 
       return res.status(503).json(STATUS_CODE[503]({}));
     } else {
-      const createdProject = await createNewProjectQuery(newProject);
+      const createdProject = await createNewProjectQuery({...newProject, last_updated: newProject.start_date});
       const assessment = await createNewAssessmentQuery({
         projectId: createdProject.id,
       });
@@ -284,5 +286,63 @@ export async function getProjectStatsById(
       },
     };
     return res.status(202).json(STATUS_CODE[202](overviewDetails));
+  }
+}
+
+export async function getProjectRisksCalculations(
+  req: Request,
+  res: Response
+): Promise<any> {
+  try {
+    const projectId = parseInt(req.params.id);
+
+    if (MOCKDATA_ON) {
+      const projects = calculateMockProjectRisks(projectId);
+
+      if (projects) {
+        return res.status(200).json(STATUS_CODE[200](projects));
+      }
+
+      return res.status(204).json(STATUS_CODE[204](projects));
+    } else {
+      const projectRisksCalculations = await calculateProjectRisks(projectId);
+
+      if (projectRisksCalculations) {
+        return res.status(200).json(STATUS_CODE[200](projectRisksCalculations));
+      }
+
+      return res.status(204).json(STATUS_CODE[204](projectRisksCalculations));
+    }
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getVendorRisksCalculations(
+  req: Request,
+  res: Response
+): Promise<any> {
+  try {
+    const projectId = parseInt(req.params.id);
+
+    if (MOCKDATA_ON) {
+      const projects = calculateMockProjectRisks(projectId);
+
+      if (projects) {
+        return res.status(200).json(STATUS_CODE[200](projects));
+      }
+
+      return res.status(204).json(STATUS_CODE[204](projects));
+    } else {
+      const vendorRisksCalculations = await calculateVendirRisks(projectId);
+
+      if (vendorRisksCalculations) {
+        return res.status(200).json(STATUS_CODE[200](vendorRisksCalculations));
+      }
+
+      return res.status(204).json(STATUS_CODE[204](vendorRisksCalculations));
+    }
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

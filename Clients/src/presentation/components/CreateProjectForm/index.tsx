@@ -54,7 +54,7 @@ const initialState: FormValues = {
   project_title: "",
   users: 0,
   owner: 0,
-  start_date: "",
+  start_date: new Date().toISOString(),
   ai_risk_classification: 0,
   type_of_high_risk_role: 0,
   goal: "",
@@ -76,7 +76,7 @@ interface CreateProjectFormProps {
  */
 
 const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProject }) => {
-  const theme = useTheme();  
+  const theme = useTheme();
   const [values, setValues] = useState<FormValues>(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
 
@@ -161,16 +161,20 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProjec
   const confirmSubmit = async () => {
     await createNewUser({
       routeUrl: "/projects",
-      body: values,
+      body: {
+        ...values,
+        last_updated: values.start_date,
+        last_updated_by: values.users
+      },
     }).then((response) => {
       // Reset form after successful submission
       setValues(initialState);
       setErrors({});
       closePopup();
-      if (response.status === 201) {        
-        onNewProject({ isNewProject: true, project: response.data.data.project });       
+      if (response.status === 201) {
+        onNewProject({ isNewProject: true, project: response.data.data.project });
       }
-    });    
+    });
   };
 
   const riskClassificationItems = useMemo(
@@ -271,7 +275,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProjec
           <Suspense fallback={<div>Loading...</div>}>
             <DatePicker
               label="Start date"
-              date={values.start_date ? dayjs(values.start_date) : null}
+              date={values.start_date ? dayjs(values.start_date) : dayjs(new Date)}
               handleDateChange={handleDateChange}
               sx={{
                 width: "130px",

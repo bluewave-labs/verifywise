@@ -40,10 +40,10 @@ export const createNewVendorQuery = async (vendor: {
   console.log("createNewVendor", vendor);
   const result = await pool.query(
     `INSERT INTO vendors (
-      projectId, vendorName, assignee, vendorProvides, website, vendorContactPerson, 
-      reviewResult, reviewStatus, reviewer, riskStatus, reviewDate, riskDescription, 
-      impactDescription, impact, probability, actionOwner, actionPlan, riskSeverity, 
-      riskLevel, likelihood
+      project_id, vendor_name, assignee, vendor_provides, website, vendor_contact_person, 
+      review_result, review_status, reviewer, risk_status, review_date, risk_description, 
+      impact_description, impact, probability, action_owner, action_plan, risk_severity, 
+      risk_level, likelihood
     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20) RETURNING *`,
     [
       vendor.projectId,
@@ -102,11 +102,11 @@ export const updateVendorByIdQuery = async (
   let query = "UPDATE vendors SET ";
 
   if (vendor.projectId !== undefined) {
-    fields.push(`projectId = $${fields.length + 1}`);
+    fields.push(`project_id = $${fields.length + 1}`);
     values.push(vendor.projectId);
   }
   if (vendor.vendorName !== undefined) {
-    fields.push(`vendorName = $${fields.length + 1}`);
+    fields.push(`vendor_name = $${fields.length + 1}`);
     values.push(vendor.vendorName);
   }
   if (vendor.assignee !== undefined) {
@@ -114,7 +114,7 @@ export const updateVendorByIdQuery = async (
     values.push(vendor.assignee);
   }
   if (vendor.vendorProvides !== undefined) {
-    fields.push(`vendorProvides = $${fields.length + 1}`);
+    fields.push(`vendor_provides = $${fields.length + 1}`);
     values.push(vendor.vendorProvides);
   }
   if (vendor.website !== undefined) {
@@ -122,15 +122,15 @@ export const updateVendorByIdQuery = async (
     values.push(vendor.website);
   }
   if (vendor.vendorContactPerson !== undefined) {
-    fields.push(`vendorContactPerson = $${fields.length + 1}`);
+    fields.push(`vendor_contact_person = $${fields.length + 1}`);
     values.push(vendor.vendorContactPerson);
   }
   if (vendor.reviewResult !== undefined) {
-    fields.push(`reviewResult = $${fields.length + 1}`);
+    fields.push(`review_result = $${fields.length + 1}`);
     values.push(vendor.reviewResult);
   }
   if (vendor.reviewStatus !== undefined) {
-    fields.push(`reviewStatus = $${fields.length + 1}`);
+    fields.push(`review_status = $${fields.length + 1}`);
     values.push(vendor.reviewStatus);
   }
   if (vendor.reviewer !== undefined) {
@@ -138,19 +138,19 @@ export const updateVendorByIdQuery = async (
     values.push(vendor.reviewer);
   }
   if (vendor.riskStatus !== undefined) {
-    fields.push(`riskStatus = $${fields.length + 1}`);
+    fields.push(`risk_status = $${fields.length + 1}`);
     values.push(vendor.riskStatus);
   }
   if (vendor.reviewDate !== undefined) {
-    fields.push(`reviewDate = $${fields.length + 1}`);
+    fields.push(`review_date = $${fields.length + 1}`);
     values.push(vendor.reviewDate);
   }
   if (vendor.riskDescription !== undefined) {
-    fields.push(`riskDescription = $${fields.length + 1}`);
+    fields.push(`risk_description = $${fields.length + 1}`);
     values.push(vendor.riskDescription);
   }
   if (vendor.impactDescription !== undefined) {
-    fields.push(`impactDescription = $${fields.length + 1}`);
+    fields.push(`impact_description = $${fields.length + 1}`);
     values.push(vendor.impactDescription);
   }
   if (vendor.impact !== undefined) {
@@ -162,19 +162,19 @@ export const updateVendorByIdQuery = async (
     values.push(vendor.probability);
   }
   if (vendor.actionOwner !== undefined) {
-    fields.push(`actionOwner = $${fields.length + 1}`);
+    fields.push(`action_owner = $${fields.length + 1}`);
     values.push(vendor.actionOwner);
   }
   if (vendor.actionPlan !== undefined) {
-    fields.push(`actionPlan = $${fields.length + 1}`);
+    fields.push(`action_plan = $${fields.length + 1}`);
     values.push(vendor.actionPlan);
   }
   if (vendor.riskSeverity !== undefined) {
-    fields.push(`riskSeverity = $${fields.length + 1}`);
+    fields.push(`risk_severity = $${fields.length + 1}`);
     values.push(vendor.riskSeverity);
   }
   if (vendor.riskLevel !== undefined) {
-    fields.push(`riskLevel = $${fields.length + 1}`);
+    fields.push(`risk_level = $${fields.length + 1}`);
     values.push(vendor.riskLevel);
   }
   if (vendor.likelihood !== undefined) {

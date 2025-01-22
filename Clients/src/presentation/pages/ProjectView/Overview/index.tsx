@@ -16,6 +16,7 @@ export type RiskData = {
   lowRisks: number;
   veryLowRisks: number;
 };
+
 interface OverviewProps {
   vendorRisks: RiskData[];
   projectRisksSummary: RiskData;
@@ -29,10 +30,11 @@ interface ProgressBarCardProps {
 
 const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
   const [searchParams] = useSearchParams();
-  const projectId = searchParams.get("projectId") ?? "1"; // default project ID is 1
+  const projectId = searchParams.get("projectId") ?? "1"; // default project ID is 2
   const { project, error, isLoading } = useProjectData({ projectId });
   const theme = useTheme();
   const { projectStatus } = useContext(VerifyWiseContext);
+
   const {
     controlsProgress,
     requirementsProgress: assessmentsProgress,
@@ -44,8 +46,7 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
     controls: projectStatus.controls,
   });
 
-  const { vendorRisks  } =
-  projectOverviewData;
+  const { vendorRisks  } = projectOverviewData
 
   const styles = useMemo(
     () => ({

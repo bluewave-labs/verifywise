@@ -137,10 +137,12 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup, mitigationV
 
   const handleDateChange = useCallback(
     (field: string, newDate: Dayjs | null) => {
-      setMitigationValues((prevValues) => ({
-        ...prevValues,
-        [field]: newDate ? newDate.toISOString() : "",
-      }));
+      if(newDate?.isValid()){
+        setMitigationValues((prevValues) => ({
+          ...prevValues,
+          [field]: newDate ? newDate.toISOString() : "",
+        }));
+      }
     },
     []
   );

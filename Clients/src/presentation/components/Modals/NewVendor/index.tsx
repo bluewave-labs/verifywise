@@ -227,13 +227,15 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
      * @param newDate - The new date value or null
      */
     const handleDateChange = (newDate: Dayjs | null) => {
-        setValues((prevValues) => ({
-            ...prevValues,
-            vendorDetails: {
-                ...prevValues.vendorDetails,
-                reviewDate: newDate ? newDate.toISOString() : "",
-            },
-        }));
+        if(newDate?.isValid()){
+            setValues((prevValues) => ({
+                ...prevValues,
+                vendorDetails: {
+                    ...prevValues.vendorDetails,
+                    reviewDate: newDate ? newDate.toISOString() : "",
+                },
+            }));
+        }
     };
 
     /**

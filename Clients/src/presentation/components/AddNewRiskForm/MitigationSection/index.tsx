@@ -1,6 +1,5 @@
 import { FC, useState, useCallback, useMemo, lazy, Suspense, Dispatch, SetStateAction } from "react";
 import {
-  Button,
   Divider,
   SelectChangeEvent,
   Stack,
@@ -12,6 +11,7 @@ import { RISK_LABELS } from "../../RiskLevel/constants";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import selectValidation from "../../../../application/validations/selectValidation";
 import { MitigationFormValues } from "../interface";
+import styles from "../styles.module.css";
 
 // Lazy load components
 const Select = lazy(() => import("../../Inputs/Select"));
@@ -299,7 +299,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup, mitigationV
           />
         </Suspense>
       )}
-      <Stack component="form" onSubmit={handleSubmit}>
+      <Stack component="form" onSubmit={handleSubmit} className={styles.popupBody}>
         <Stack sx={{ flexDirection: "row", columnGap: 12.5, mb: 8 }}>
           <Stack sx={{ rowGap: 8.5 }}>
             <Suspense fallback={<div>Loading...</div>}>
@@ -363,17 +363,19 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup, mitigationV
           </Stack>
           <Stack sx={{ rowGap: 8.5 }}>
             <Suspense fallback={<div>Loading...</div>}>
-              <DatePicker
-                label="Start date"
-                date={mitigationValues.deadline ? dayjs(mitigationValues.deadline) : null}
-                handleDateChange={(e) => handleDateChange("deadline", e)}
-                sx={{
-                  width: 130,
-                  "& input": { width: 85 },
-                }}
-                isRequired
-                error={errors.deadline}
-              />
+              <Stack style={{ minWidth: "303px" }}>
+                <DatePicker
+                  label="Start date"
+                  date={mitigationValues.deadline ? dayjs(mitigationValues.deadline) : null}
+                  handleDateChange={(e) => handleDateChange("deadline", e)}
+                  sx={{
+                    width: 130,
+                    "& input": { width: 85 },
+                  }}
+                  isRequired
+                  error={errors.deadline}
+                />
+              </Stack>
             </Suspense>
             <Suspense fallback={<div>Loading...</div>}>
               <FileUpload onClose={() => {}} uploadProps={{}} open={false} />
@@ -460,7 +462,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup, mitigationV
             isOptional
           />
         </Suspense>
-        <Button
+        {/* <Button
           type="submit"
           variant="contained"
           disableRipple={
@@ -480,7 +482,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup, mitigationV
           }}
         >
           Save
-        </Button>
+        </Button> */}
       </Stack>
     </Stack>
   );

@@ -1,11 +1,11 @@
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
-import { Box, Stack, Tab, useTheme } from "@mui/material";
+import { Box, Stack, Tab, useTheme, Typography, Button } from "@mui/material";
 import { FC, useState, useCallback, useMemo, lazy, Suspense } from "react";
-import "./styles.css";
+import "./styles.module.css";
 import { Likelihood, Severity } from "../RiskLevel/constants";
-import { RiskFormValues, MitigationFormValues } from "./interface";
+import { RiskFormValues, RiskFormErrors, MitigationFormValues, MitigationFormErrors } from "./interface";
 
 const RiskSection = lazy(() => import("./RisksSection"));
 const MitigationSection = lazy(() => import("./MitigationSection"));
@@ -119,12 +119,39 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         </Box>
         <Suspense fallback={<div>Loading...</div>}>
           <TabPanel value="risks" sx={{ p: "24px 0 0" }}>
-            <RiskSection closePopup={closePopup} status={popupStatus} riskValues={riskValues} setRiskValues={setRiskValues} />
+            <RiskSection closePopup={closePopup} riskValues={riskValues} setRiskValues={setRiskValues}/>
           </TabPanel>
           <TabPanel value="mitigation" sx={{ p: "24px 0 0" }}>
             <MitigationSection closePopup={closePopup} mitigationValues={mitigationValues} setMitigationValues={setMitigationValues} />
           </TabPanel>
         </Suspense>
+        <Box sx={{ display: 'flex'}}>
+          <Button
+            type="button"            
+            variant="contained"
+            disableRipple={
+              theme.components?.MuiButton?.defaultProps?.disableRipple
+            }
+            sx={{
+              borderRadius: 2,
+              maxHeight: 34,
+              textTransform: "inherit",
+              backgroundColor: "#4C7DE7",
+              boxShadow: "none",
+              border: "1px solid #175CD3",
+              ml: "auto",
+              mr: 0,
+              mt: "30px",
+              "&:hover": { boxShadow: "none" },
+            }}
+          >
+            {popupStatus === "new" ? (
+              <Typography>Save</Typography>
+            ) : (
+              <Typography>Update</Typography>
+            )}
+          </Button>
+        </Box>
       </TabContext>
     </Stack>
   );

@@ -3,7 +3,6 @@ import {
   Divider,
   Typography,
   useTheme,
-  Button,
   SelectChangeEvent,
 } from "@mui/material";
 import { FC, useState, useCallback, Suspense, Dispatch, SetStateAction } from "react";
@@ -19,7 +18,6 @@ const RiskLevel = React.lazy(() => import("../../RiskLevel"));
 
 interface RiskSectionProps {
   closePopup: () => void;
-  status: string;
   riskValues: RiskFormValues;
   setRiskValues: Dispatch<SetStateAction<RiskFormValues>>;
 }
@@ -65,7 +63,7 @@ interface FormErrors {
  * @example
  * <RiskSection closePopup={closePopupFunction} status="new" />
  */
-const RiskSection: FC<RiskSectionProps> = ({ closePopup, status, riskValues, setRiskValues }) => {
+const RiskSection: FC<RiskSectionProps> = ({ closePopup, riskValues, setRiskValues }) => {
   const theme = useTheme();
   // const [values, setValues] = useState<RiskFormValues>(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -335,7 +333,7 @@ const RiskSection: FC<RiskSectionProps> = ({ closePopup, status, riskValues, set
             error={errors.reviewNotes}
           />
         </Stack>
-        <Button
+        {/* <Button
           type="submit"
           variant="contained"
           disableRipple={
@@ -359,7 +357,7 @@ const RiskSection: FC<RiskSectionProps> = ({ closePopup, status, riskValues, set
           ) : (
             <Typography>Update</Typography>
           )}
-        </Button>
+        </Button> */}
       </Stack>
     </Stack>
   );

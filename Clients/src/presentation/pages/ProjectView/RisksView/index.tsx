@@ -10,36 +10,36 @@ import { ProjectRisk, VendorRisk } from "../../../../application/hooks/useProjec
 
 const projectRisksColNames = [
   {
-      "id": "risk_name",
-      "name": "RISK NAME"
+    "id": "risk_name",
+    "name": "RISK NAME"
   },
   {
-      "id": "impact",
-      "name": "IMPACT"
+    "id": "impact",
+    "name": "IMPACT"
   },
   {
-      "id": "risk_owner",
-      "name": "OWNER"
+    "id": "risk_owner",
+    "name": "OWNER"
   },
   {
-      "id": "severity",
-      "name": "SEVERITY"
+    "id": "severity",
+    "name": "SEVERITY"
   },
   {
-      "id": "likelihood",
-      "name": "LIKELIHOOD"
+    "id": "likelihood",
+    "name": "LIKELIHOOD"
   },
   {
-      "id": "risk_level_autocalculated",
-      "name": "RISK LEVEL"
+    "id": "risk_level_autocalculated",
+    "name": "RISK LEVEL"
   },
   {
-      "id": "mitigation_status",
-      "name": "MITIGATION"
+    "id": "mitigation_status",
+    "name": "MITIGATION"
   },
   {
-      "id": "final_risk_level",
-      "name": "FINAL RISK LEVEL"
+    "id": "final_risk_level",
+    "name": "FINAL RISK LEVEL"
   }
 ]
 interface RisksViewProps {
@@ -48,61 +48,75 @@ interface RisksViewProps {
   title: string;
 }
 
+/**
+ * Main component for displaying project or vendor risks view
+ * @param risksSummary Summary data for risks visualization
+ * @param risksData Array of project or vendor risks
+ * @param title Type of risks being displayed ("Project" or "Vendor")
+ */
+
 const RisksView: FC<RisksViewProps> = memo(
   ({ risksSummary, risksData, title }) => {
 
+    /**
+     * Defines column structure for vendor risks table
+     */
     const vendorRisksColNames = useMemo(
-      () => ["VENDOR NAME", "RISK NAME", "OWNER", "RISK LEVEL", "REVIEW DATE"],
+      () => [
+        { id: "vendor_name", name: "VENDOR NAME" },
+        { id: "risk_name", name: "RISK NAME" },
+        { id: "owner", name: "OWNER" },
+        { id: "risk_level", name: "RISK LEVEL" },
+        { id: "review_date", name: "REVIEW DATE" }
+      ],
       []
     );
 
-    const colNames = useMemo(() => {
-      return title === "Project"
-        ? projectRisksColNames
-        : title === "Vendor"
-        ? vendorRisksColNames
-        : [];
-    }, [title, vendorRisksColNames]);
-
+    /**
+     * Determines which column set to use based on risk type
+     */
     const risksTableCols = useMemo(() => {
       if (title === "Project") {
         return projectRisksColNames;
       } else {
-        return colNames.reduce<{ id: string; name: string }[]>((acc, item, i) => {
-          acc.push({
-            id: Object.keys(risksData[0])[i],
-            name: typeof item === 'string' ? item : item.name,
-          });
-          return acc;
-        }, []);
+        return vendorRisksColNames;
       }
-    }, [colNames, risksData, title]);
+    }, [title, vendorRisksColNames]);
 
+    /**
+     * Transforms risk data into table row format
+     * Handles special formatting for dates and ensures data matches column structure
+     */
     const risksTableRows = useMemo(() => {
       return risksData.reduce<
         { id: string; data: { id: string; data: string | number }[] }[]
       >((acc, item, i) => {
-        const rowData = Object.keys(item).map((key, indexKey) => {
-          const typedKey = key as keyof (ProjectRisk | VendorRisk);
-          if (risksTableCols.some(col => col.id === key)) {
-            return {
-              id: `${key}_${i}_${indexKey}`,
-              data: String(item[typedKey]),
-            };
-          }
-        });
+        const rowData = risksTableCols.map(col => {
+          const value = (item as any)[col.id];
+          let displayValue = value;
 
-        const filteredRowData = rowData.filter((row): row is { id: string; data: string } => row !== undefined);
+          if (col.id === 'review_date' && value) {
+            displayValue = new Date(value).toLocaleDateString();
+          }
+
+          return {
+            id: `${col.id}_${i}`,
+            data: String(displayValue || ''),
+          };
+        });
 
         acc.push({
           id: `${(item as ProjectRisk | VendorRisk).risk_name}_${i}`,
-          data: filteredRowData,
+          data: rowData,
         });
 
         return acc;
       }, []);
     }, [risksData, risksTableCols]);
 
+     /**
+     * Combines columns and rows data for table component
+     */
     const tableData = useMemo(
       () => ({
         cols: risksTableCols,
@@ -114,11 +128,17 @@ const RisksView: FC<RisksViewProps> = memo(
     const [selectedRow, setSelectedRow] = useState({});
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
+    /**
+     * Handles closing the risk edit popup
+     */
     const handleClosePopup = () => {
       setAnchorEl(null); // Close the popup
       setSelectedRow({});
     };
 
+    /**
+     * Renders the "Add New Risk" popup component for project risks
+     */
     const AddNewRiskPopupRender = useCallback(() => {
       const [anchor, setAnchor] = useState<null | HTMLElement>(null);
       const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
@@ -138,6 +158,9 @@ const RisksView: FC<RisksViewProps> = memo(
       );
     }, []);
 
+    /**
+     * Renders the "Add New Vendor Risk" popup component
+     */
     const AddNewVendorRiskPopupRender = useCallback(() => {
       const [anchor, setAnchor] = useState<null | HTMLElement>(null);
       const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {

@@ -10,7 +10,6 @@ import { checkStringValidation } from "../../../application/validations/stringVa
 import selectValidation from "../../../application/validations/selectValidation";
 import { Suspense, lazy } from "react";
 import { createNewUser } from "../../../application/repository/entity.repository";
-
 const Select = lazy(() => import("../Inputs/Select"));
 const DatePicker = lazy(() => import("../Inputs/Datepicker"));
 const Field = lazy(() => import("../Inputs/Field"));
@@ -81,10 +80,12 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProjec
   const [errors, setErrors] = useState<FormErrors>({});
 
   const handleDateChange = useCallback((newDate: Dayjs | null) => {
-    setValues((prevValues) => ({
-      ...prevValues,
-      start_date: newDate ? newDate.toISOString() : "",
-    }));
+    if(newDate?.isValid()){
+      setValues((prevValues) => ({
+        ...prevValues,
+        start_date: newDate ? newDate.toISOString() : "",
+      }));
+    }
   }, []);
 
   const handleOnSelectChange = useCallback(
@@ -154,7 +155,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProjec
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (validateForm()) {
-      confirmSubmit();
+      confirmSubmit();   
     }
   };
 

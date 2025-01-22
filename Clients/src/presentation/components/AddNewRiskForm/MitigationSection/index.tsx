@@ -1,6 +1,5 @@
 import { FC, useState, useCallback, useMemo, lazy, Suspense, Dispatch, SetStateAction } from "react";
 import {
-  Button,
   Divider,
   SelectChangeEvent,
   Stack,
@@ -9,9 +8,8 @@ import {
 } from "@mui/material";
 import dayjs, { Dayjs } from "dayjs";
 import { RISK_LABELS } from "../../RiskLevel/constants";
-import { checkStringValidation } from "../../../../application/validations/stringValidation";
-import selectValidation from "../../../../application/validations/selectValidation";
-import { MitigationFormValues } from "../interface";
+import { MitigationFormValues, MitigationFormErrors } from "../interface";
+import styles from "../styles.module.css";
 
 // Lazy load components
 const Select = lazy(() => import("../../Inputs/Select"));
@@ -21,38 +19,10 @@ const FileUpload = lazy(() => import("../../Modals/FileUpload"));
 const RiskLevel = lazy(() => import("../../RiskLevel"));
 const Alert = lazy(() => import("../../Alert"));
 
-// export interface MitigationFormValues {
-//   mitigationStatus: number;
-//   mitigationPlan: string;
-//   currentRiskLevel: number;
-//   implementationStrategy: string;
-//   deadline: string;
-//   doc: string;
-//   likelihood: Likelihood;
-//   riskSeverity: Severity;
-//   approver: number;
-//   approvalStatus: number;
-//   dateOfAssessment: string;
-//   recommendations: string;
-// }
-
 interface MitigationSectionProps {
-  closePopup: () => void;
   mitigationValues: MitigationFormValues;
   setMitigationValues: Dispatch<SetStateAction<MitigationFormValues>>;
-}
-
-interface FormErrors {
-  mitigationStatus?: string;
-  mitigationPlan?: string;
-  currentRiskLevel?: string;
-  implementationStrategy?: string;
-  deadline?: string;
-  doc?: string;
-  approver?: string;
-  approvalStatus?: string;
-  dateOfAssessment?: string;
-  recommendations?: string;
+  migitateErrors: MitigationFormErrors;
 }
 
 export enum MitigationStatus {
@@ -113,10 +83,10 @@ export enum MitigationStatus {
  * @requires selectValidation
  * @requires dayjs
  */
-const MitigationSection: FC<MitigationSectionProps> = ({ closePopup, mitigationValues, setMitigationValues }) => {
+const MitigationSection: FC<MitigationSectionProps> = ({ mitigationValues, setMitigationValues, migitateErrors }) => {
   const theme = useTheme();
   // const [values, setValues] = useState<MitigationFormValues>(initialState);
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [errors, setErrors] = useState<MitigationFormErrors>({});
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
@@ -137,10 +107,12 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup, mitigationV
 
   const handleDateChange = useCallback(
     (field: string, newDate: Dayjs | null) => {
-      setMitigationValues((prevValues) => ({
-        ...prevValues,
-        [field]: newDate ? newDate.toISOString() : "",
-      }));
+      if(newDate?.isValid()){
+        setMitigationValues((prevValues) => ({
+          ...prevValues,
+          [field]: newDate ? newDate.toISOString() : "",
+        }));
+      }
     },
     []
   );
@@ -155,94 +127,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup, mitigationV
         setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
       },
     []
-  );
-
-  const validateForm = useCallback((): boolean => {
-    const newErrors: FormErrors = {};
-
-    const mitigationPlan = checkStringValidation(
-      "Mitigation plan",
-      mitigationValues.mitigationPlan,
-      1,
-      1024
-    );
-    if (!mitigationPlan.accepted) {
-      newErrors.mitigationPlan = mitigationPlan.message;
-    }
-    const implementationStrategy = checkStringValidation(
-      "Implementation strategy",
-      mitigationValues.implementationStrategy,
-      1,
-      1024
-    );
-    if (!implementationStrategy.accepted) {
-      newErrors.implementationStrategy = implementationStrategy.message;
-    }
-    const recommendations = checkStringValidation(
-      "Recommendations",
-      mitigationValues.recommendations,
-      1,
-      1024
-    );
-    if (!recommendations.accepted) {
-      newErrors.recommendations = recommendations.message;
-    }
-    const deadline = checkStringValidation(
-      "Recommendations",
-      mitigationValues.deadline,
-      1
-    );
-    if (!deadline.accepted) {
-      newErrors.deadline = deadline.message;
-    }
-    const dateOfAssessment = checkStringValidation(
-      "Recommendations",
-      mitigationValues.dateOfAssessment,
-      1
-    );
-    if (!dateOfAssessment.accepted) {
-      newErrors.dateOfAssessment = dateOfAssessment.message;
-    }
-    const mitigationStatus = selectValidation(
-      "Mitigation status",
-      mitigationValues.mitigationStatus
-    );
-    if (!mitigationStatus.accepted) {
-      newErrors.mitigationStatus = mitigationStatus.message;
-    }
-    const currentRiskLevel = selectValidation(
-      "Current risk level",
-      mitigationValues.currentRiskLevel
-    );
-    if (!currentRiskLevel.accepted) {
-      newErrors.currentRiskLevel = currentRiskLevel.message;
-    }
-    const approver = selectValidation("Approver", mitigationValues.approver);
-    if (!approver.accepted) {
-      newErrors.approver = approver.message;
-    }
-    const approvalStatus = selectValidation(
-      "Approval status",
-      mitigationValues.approvalStatus
-    );
-    if (!approvalStatus.accepted) {
-      newErrors.approvalStatus = approvalStatus.message;
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }, [mitigationValues]);
-
-  const handleSubmit = useCallback(
-    async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      if (validateForm()) {
-        //request to the backend
-        closePopup();
-      }
-    },
-    [validateForm, closePopup]
-  );
+  );  
 
   const mitigationStatusItems = useMemo(
     () => [
@@ -299,7 +184,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup, mitigationV
           />
         </Suspense>
       )}
-      <Stack component="form" onSubmit={handleSubmit}>
+      <Stack component="form" className={styles.popupBody}>
         <Stack sx={{ flexDirection: "row", columnGap: 12.5, mb: 8 }}>
           <Stack sx={{ rowGap: 8.5 }}>
             <Suspense fallback={<div>Loading...</div>}>
@@ -315,7 +200,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup, mitigationV
                   backgroundColor: theme.palette.background.main,
                 }}
                 isRequired
-                error={errors.mitigationStatus}
+                error={migitateErrors.mitigationStatus}
               />
             </Suspense>
             <Suspense fallback={<div>Loading...</div>}>
@@ -327,7 +212,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup, mitigationV
                 onChange={handleOnTextFieldChange("mitigationPlan")}
                 sx={{ backgroundColor: theme.palette.background.main }}
                 isRequired
-                error={errors.mitigationPlan}
+                error={migitateErrors.mitigationPlan}
               />
             </Suspense>
           </Stack>
@@ -345,7 +230,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup, mitigationV
                   backgroundColor: theme.palette.background.main,
                 }}
                 isRequired
-                error={errors.currentRiskLevel}
+                error={migitateErrors.currentRiskLevel}
               />
             </Suspense>
             <Suspense fallback={<div>Loading...</div>}>
@@ -357,23 +242,25 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup, mitigationV
                 onChange={handleOnTextFieldChange("implementationStrategy")}
                 sx={{ backgroundColor: theme.palette.background.main }}
                 isRequired
-                error={errors.implementationStrategy}
+                error={migitateErrors.implementationStrategy}
               />
             </Suspense>
           </Stack>
           <Stack sx={{ rowGap: 8.5 }}>
             <Suspense fallback={<div>Loading...</div>}>
-              <DatePicker
-                label="Start date"
-                date={mitigationValues.deadline ? dayjs(mitigationValues.deadline) : null}
-                handleDateChange={(e) => handleDateChange("deadline", e)}
-                sx={{
-                  width: 130,
-                  "& input": { width: 85 },
-                }}
-                isRequired
-                error={errors.deadline}
-              />
+              <Stack style={{ minWidth: "303px" }}>
+                <DatePicker
+                  label="Start date"
+                  date={mitigationValues.deadline ? dayjs(mitigationValues.deadline) : null}
+                  handleDateChange={(e) => handleDateChange("deadline", e)}
+                  sx={{
+                    width: 130,
+                    "& input": { width: 85 },
+                  }}
+                  isRequired
+                  error={migitateErrors.deadline}
+                />
+              </Stack>
             </Suspense>
             <Suspense fallback={<div>Loading...</div>}>
               <FileUpload onClose={() => {}} uploadProps={{}} open={false} />
@@ -414,7 +301,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup, mitigationV
                 backgroundColor: theme.palette.background.main,
               }}
               isRequired
-              error={errors.approver}
+              error={migitateErrors.approver}
             />
           </Suspense>
           <Suspense fallback={<div>Loading...</div>}>
@@ -430,7 +317,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup, mitigationV
                 backgroundColor: theme.palette.background.main,
               }}
               isRequired
-              error={errors.approvalStatus}
+              error={migitateErrors.approvalStatus}
             />
           </Suspense>
           <Suspense fallback={<div>Loading...</div>}>
@@ -445,7 +332,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup, mitigationV
                 "& input": { width: 85 },
               }}
               isRequired
-              error={errors.dateOfAssessment}
+              error={migitateErrors.dateOfAssessment}
             />
           </Suspense>
         </Stack>
@@ -460,27 +347,6 @@ const MitigationSection: FC<MitigationSectionProps> = ({ closePopup, mitigationV
             isOptional
           />
         </Suspense>
-        <Button
-          type="submit"
-          variant="contained"
-          disableRipple={
-            theme.components?.MuiButton?.defaultProps?.disableRipple
-          }
-          sx={{
-            borderRadius: 2,
-            maxHeight: 34,
-            textTransform: "inherit",
-            backgroundColor: "#4C7DE7",
-            boxShadow: "none",
-            border: "1px solid #175CD3",
-            ml: "auto",
-            mr: 0,
-            mt: "30px",
-            "&:hover": { boxShadow: "none" },
-          }}
-        >
-          Save
-        </Button>
       </Stack>
     </Stack>
   );

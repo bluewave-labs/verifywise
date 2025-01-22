@@ -3,7 +3,6 @@ import { FC, memo, useContext } from "react";
 import euimg from "../../assets/imgs/eu-ai-act.jpg";
 import ProgressBar from "./ProgressBar";
 import { Btn, Card, styles, SubtitleValue, Title } from "./styles";
-import { formatDate } from "../../tools/isoDateToString";
 import useNavigateSearch from "../../../application/hooks/useNavigateSearch";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { User } from "../../../application/hooks/useProjectData";
@@ -14,7 +13,6 @@ export interface ProjectCardProps {
     id: number;
     project_title: string;
     owner: string;
-    last_updated: string;
     assessments: Assessments;
     controls: Controls;
 }
@@ -32,7 +30,6 @@ const ProjectCard: FC<ProjectCardProps> = ({
     id,
     project_title,
     owner,
-    last_updated,
     assessments,
     controls,
 }) => {
@@ -75,14 +72,6 @@ const ProjectCard: FC<ProjectCardProps> = ({
             >
               Last updated
             </Typography>
-            <SubtitleValue>
-             {(()=>{
-                console.log("Raw Last Updated Value:", last_updated);
-                const result = last_updated && /^\d{4}-\d{2}-\d{2}/.test(last_updated) ? formatDate(last_updated) : "N/A";
-                console.log("Formatted last updated value:", result);
-                return result;
-             })()}
-            </SubtitleValue>
           </Box>
         </Box>
         <ProgressBarRender

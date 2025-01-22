@@ -5,6 +5,7 @@ import {
   AccordionSummary,
   Stack,
   Typography,
+  useTheme,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { ControlGroups } from "../../structures/ComplianceTracker/controls";
@@ -14,8 +15,8 @@ import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.cont
 import { getAllEntities } from "../../../application/repository/entity.repository";
 import PageTour from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
-import { useTheme } from "@mui/material/styles";
-// import { SxProps } from "@mui/system";
+import { Theme } from "@mui/material/styles";
+import { SxProps } from "@mui/system";
 
 const Table_Columns = [
   { id: 1, name: "Icon" },
@@ -24,22 +25,6 @@ const Table_Columns = [
   { id: 4, name: "# of Subcontrols" },
   { id: 5, name: "Completion" },
 ];
-
-// const usePaperStyle = (theme: Theme): SxProps<Theme> => ({
-//   backgroundColor: theme.palette.background.main,
-//   ...theme.typography.body2,
-//   padding: theme.spacing(1),
-//   border: "1px solid",
-//   borderColor: theme.palette.border.light,
-//   boxShadow: "none",
-//   paddingRight: "150px",
-//   paddingLeft: "25px",
-//   paddingTop: "10px",
-//   paddingBottom: "10px",
-//   width: "calc(100% - 150px - 25px)",
-//   minWidth: "300px",
-//   maxWidth: "80%",
-// });
 
 const NewComplianceTracker = () => {
   const theme = useTheme();

@@ -399,6 +399,7 @@ const AllAssessment = () => {
     setAllQuestionsToCheck(allQuestions);
   }, [assessments]);
 
+  // TODO: remove this after testing
   // console.log("All Questions List:", allQuestionsToCheck); // Log the all questions list
 
   return (
@@ -490,7 +491,10 @@ const AllAssessment = () => {
         open={fileUploadModalOpen}
         onClose={handleCloseFileUploadModal}
         uploadProps={{
-          onSuccess: () => console.log("File uploaded successfully!"),
+          onSuccess: () => {
+            console.log("File uploaded successfully!");
+            handleCloseFileUploadModal();
+          },
           onError: (errorMessage: string) => console.error(errorMessage),
           allowedFileTypes: ["application/pdf"],
           assessmentId: activeAssessmentId,

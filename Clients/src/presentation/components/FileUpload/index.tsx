@@ -7,6 +7,10 @@ import {
   IconButton,
   Button,
   Stack,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
 } from "@mui/material";
 import { Container, DragDropArea, Icon } from "./FileUpload.styles";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -34,6 +38,10 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
 
   // Local state to display uploaded files
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
+  const [errorNoFiles, setErrorNoFiles] = useState<string | null>(null);
+
+  // State to control popup visibility
+  const [openPopup, setOpenPopup] = useState(false);
 
   // Initialize Uppy
   const uppy = useMemo(() => createUppyInstance(assessmentId), [assessmentId]);
@@ -53,6 +61,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
     console.log("File added:", file);
 
     if (!file || !file.data || !(file.data instanceof Blob)) {
+      setErrorNoFiles(errorNoFiles);
       console.error(`Invalid file data for ${file.name}`);
       onError?.("invalid file data");
       return;
@@ -98,6 +107,9 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
         uploader: "placeholder user",
       })
     );
+
+    // Close the popup after successful upload
+    setOpenPopup(false);
   };
 
   const handleUploadError = (error: any, file: any) => {
@@ -117,7 +129,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
     dispatch(removeFileFromRedux(fileId));
   };
 
-  //dynamically adjust based on uploaded files
+  // Dynamically adjust based on uploaded files
   useEffect(() => {
     if (onHeightChange) {
       const baseHeight = 338;
@@ -157,6 +169,14 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
       console.log("uppy cleanup");
     };
   }, [uppy]);
+
+  const handleUploadClick = () => {
+    if (uploadedFiles.length === 0) {
+      setOpenPopup(true); // Open popup if no file is selected
+    } else {
+      uppy.upload();
+    }
+  };
 
   return (
     <Container>
@@ -239,25 +259,22 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center",
-                      padding:"0",
-                     
+                      padding: "0",
                     }}
                   >
                     <ListItemText
                       primary={file.name}
                       secondary={`Size: ${file.size}`}
-                      sx={{ fontSize:"12px",wordBreak: "break-word",
-                        maxWidth:"100%"
-                      }}
+                      sx={{ fontSize: "12px", wordBreak: "break-word", maxWidth: "100%" }}
                     />
 
                     <IconButton
                       onClick={() => handleRemoveFile(file.id)}
                       edge="end"
                       size="small"
-                      sx={{padding:"4px"}}
+                      sx={{ padding: "4px" }}
                     >
-                      <DeleteIcon  fontSize="small"/>
+                      <DeleteIcon fontSize="small" />
                     </IconButton>
                   </ListItem>
                 ))}
@@ -266,22 +283,32 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
           )}
         </DragDropArea>
 
-        <Stack direction="row" justifyContent="space-between" sx={{ mt: 2}}>
+        <Stack direction="row" justifyContent="space-between" sx={{ mt: 2 }}>
           <Typography variant="caption" sx={{ fontSize: "12px" }}>
             Supported formats: PDF
           </Typography>
 
           <Button
             variant="contained"
-            sx={{ marginTop:"8px", width: "100px", height: "34px" }}
-            onClick={() => {
-              console.log("upload triggered");
-              uppy.upload();
-            }}
+            sx={{ marginTop: "8px", width: "100px", height: "34px" }}
+            onClick={handleUploadClick}
           >
             Upload
           </Button>
         </Stack>
+
+        {/* Popup when no file is selected */}
+        <Dialog open={openPopup} onClose={() => setOpenPopup(false)}>
+          <DialogTitle>No file selected</DialogTitle>
+          <DialogContent>
+            <Typography variant="body2">No file is selected yet.</Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenPopup(false)} color="primary">
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Stack>
     </Container>
   );

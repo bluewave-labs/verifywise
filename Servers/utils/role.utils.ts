@@ -18,12 +18,13 @@ export const getRoleByIdQuery = async (
 };
 
 export const createNewRoleQuery = async (role: {
-  projectId: number;
+  name: string;
+  description: string;
 }): Promise<Role> => {
   console.log("createNewRole", role);
   const result = await pool.query(
-    `INSERT INTO roles (project_id) VALUES ($1) RETURNING *`,
-    [role.projectId]
+    `INSERT INTO roles(name, description) VALUES ($1, $2) RETURNING *`,
+    [role.name, role.description]
   );
   return result.rows[0];
 };
@@ -31,13 +32,14 @@ export const createNewRoleQuery = async (role: {
 export const updateRoleByIdQuery = async (
   id: number,
   role: Partial<{
-    projectId: number;
+    name: string;
+    description: string;
   }>
 ): Promise<Role | null> => {
   console.log("updateRoleById", id, role);
   const result = await pool.query(
-    `UPDATE roles SET project_id = $1 WHERE id = $2 RETURNING *`,
-    [role.projectId, id]
+    `UPDATE roles SET name = $1, description = $2 WHERE id = $2 RETURNING *`,
+    [role.name, role.description, id]
   );
   return result.rows.length ? result.rows[0] : null;
 };

@@ -95,8 +95,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
       ai_risk_classification: string;
       type_of_high_risk_role: string;
       goal: string;
-      last_updated?: Date;
-      last_updated_by?: number;
+      last_updated_by: number;
     } = req.body;
 
     if (!newProject.project_title || !newProject.owner) {
@@ -108,7 +107,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
     }
 
     if (MOCKDATA_ON) {
-      const createdProject = createMockProject(newProject) as { id: string };
+      const createdProject = createMockProject({...newProject, last_updated: newProject.start_date}) as { id: string };
       const assessment = createMockAssessment({
         projectId: createdProject.id,
       }) as { id: string; projectId: string };
@@ -130,7 +129,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
 
       return res.status(503).json(STATUS_CODE[503]({}));
     } else {
-      const createdProject = await createNewProjectQuery(newProject);
+      const createdProject = await createNewProjectQuery({...newProject, last_updated: newProject.start_date});
       const assessment = await createNewAssessmentQuery({
         projectId: createdProject.id,
       });

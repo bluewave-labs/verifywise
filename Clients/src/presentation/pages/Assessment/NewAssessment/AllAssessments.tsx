@@ -399,6 +399,7 @@ const AllAssessment = () => {
     setAllQuestionsToCheck(allQuestions);
   }, [assessments]);
 
+  // TODO: remove this after testing
   // console.log("All Questions List:", allQuestionsToCheck); // Log the all questions list
 
   return (

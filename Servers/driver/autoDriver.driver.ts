@@ -35,6 +35,8 @@ import {
   checkTableExists,
   createTable,
   insertData,
+  dropTable,
+  checkDataExists,
 } from "../utils/autoDriver.util";
 
 interface TableEntry<T> {
@@ -463,6 +465,11 @@ const insertQuery: TableList = [
   },
 ];
 
+const deleteQueryExecutionOrder = [
+  "questions", "subtopics", "topics", "projectscopes", "projectrisks", "vendorrisks",
+  "subcontrols", "controls", "controlcategories", "assessments", "vendors", "projects"
+]
+
 export async function insertMockData() {
   for (let entry of insertQuery) {
     let {
@@ -475,9 +482,18 @@ export async function insertMockData() {
     if (!(await checkTableExists(tableName as string))) {
       await createTable(createString as string);
     }
-    await deleteExistingData(tableName as string);
+    if (await checkDataExists(tableName) === 1) {
+      continue
+    }
     const values = mockData.map((d) => generateValuesString(d as any));
     insertString += values.join(",") + ";";
     await insertData(insertString as string);
+  }
+}
+
+export async function deleteMockData() {
+  for (let tableName of deleteQueryExecutionOrder) {
+    await deleteExistingData(tableName)
+    await dropTable(tableName)
   }
 }

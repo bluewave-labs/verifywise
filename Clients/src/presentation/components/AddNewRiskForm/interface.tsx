@@ -15,6 +15,18 @@ export interface RiskFormValues {
     reviewNotes: string;
 }
 
+export interface RiskFormErrors {
+    riskName?: string;
+    actionOwner?: string;
+    aiLifecyclePhase?: string;
+    riskDescription?: string;
+    riskCategory?: string;
+    potentialImpact?: string;
+    assessmentMapping?: string;
+    controlsMapping?: string;
+    reviewNotes?: string;
+}
+
 export interface MitigationFormValues {
     mitigationStatus: number;
     mitigationPlan: string;
@@ -28,4 +40,17 @@ export interface MitigationFormValues {
     approvalStatus: number;
     dateOfAssessment: string;
     recommendations: string;
+}
+
+export interface MitigationFormErrors {
+    mitigationStatus?: string;
+    mitigationPlan?: string;
+    currentRiskLevel?: string;
+    implementationStrategy?: string;
+    deadline?: string;
+    doc?: string;
+    approver?: string;
+    approvalStatus?: string;
+    dateOfAssessment?: string;
+    recommendations?: string;
 }

@@ -1,0 +1,17 @@
+#add-new-risk-popup {
+    padding: 3% 0;
+    align-items: flex-start!important;
+}
+.popupBody{
+    overflow: auto; 
+    height: calc(100vh - 309px);
+    /* height: 572.08px; */
+}
+.popupBody::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 3px transparent; 
+    border-radius: 8px;
+}
+/* #add-new-risk-popup > div {
+    height: 100%
+} */
+

@@ -53,4 +53,4 @@ export interface MitigationFormErrors {
     approvalStatus?: string;
     dateOfAssessment?: string;
     recommendations?: string;
-  }
+}

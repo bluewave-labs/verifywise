@@ -74,10 +74,12 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
     } | null>(null);
 
     const handleDateChange = useCallback((newDate: Dayjs | null) => {
-      setValues((prevValues) => ({
-        ...prevValues,
-        startDate: newDate ? newDate.toISOString() : "",
-      }));
+      if(newDate?.isValid()){
+        setValues((prevValues) => ({
+          ...prevValues,
+          startDate: newDate ? newDate.toISOString() : "",
+        }));
+      }
     }, []);
 
     const handleOnSelectChange = useCallback(

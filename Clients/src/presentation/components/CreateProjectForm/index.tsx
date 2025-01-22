@@ -80,10 +80,12 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProjec
   const [errors, setErrors] = useState<FormErrors>({});
 
   const handleDateChange = useCallback((newDate: Dayjs | null) => {
-    setValues((prevValues) => ({
-      ...prevValues,
-      start_date: newDate ? newDate.toISOString() : "",
-    }));
+    if(newDate?.isValid()){
+      setValues((prevValues) => ({
+        ...prevValues,
+        start_date: newDate ? newDate.toISOString() : "",
+      }));
+    }
   }, []);
 
   const handleOnSelectChange = useCallback(
@@ -153,7 +155,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProjec
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (validateForm()) {
-      confirmSubmit();
+      confirmSubmit();   
     }
   };
 

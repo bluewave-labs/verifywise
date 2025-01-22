@@ -91,10 +91,12 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup }) => {
   } | null>(null);
 
   const handleDateChange = (newDate: Dayjs | null) => {
-    setValues((prevValues) => ({
-      ...prevValues,
-      reviewDate: newDate ? newDate.toISOString() : "",
-    }));
+    if(newDate?.isValid()){
+      setValues((prevValues) => ({
+        ...prevValues,
+        reviewDate: newDate ? newDate.toISOString() : "",
+      }));
+    }
   };
   const handleOnSelectChange =
     (prop: keyof FormValues) => (event: SelectChangeEvent<string | number>) => {

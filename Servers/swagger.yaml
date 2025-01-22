@@ -650,10 +650,6 @@ paths:
                 goal:
                   type: string
                   example: "To ensure compliance with AI governance standards"
-                last_updated:
-                  type: string
-                  format: date-time
-                  example: "2024-10-30T00:00:00.000Z"
                 last_updated_by:
                   type: integer
                   example: 1

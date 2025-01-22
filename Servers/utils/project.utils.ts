@@ -24,8 +24,8 @@ export const createNewProjectQuery = async (
     ai_risk_classification: string;
     type_of_high_risk_role: string;
     goal: string;
-    last_updated?: Date;
-    last_updated_by?: number;
+    last_updated: Date;
+    last_updated_by: number;
   }
 ): Promise<Project> => {
   console.log("createProject");

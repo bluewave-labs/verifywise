@@ -41,10 +41,22 @@ export interface ProjectRisk {
   date_of_assessment: string;
 }
 
+export interface VendorRisk {
+  id: number;
+  project_id: number;
+  vendor_name: string;
+  risk_name: string;
+  owner: string;
+  risk_level: string;
+  review_date: string;
+}
+
 
 const useProjectRisks = ({ projectId }: { projectId?: string | null }) => {
   const [projectRisks, setProjectRisks] = useState<ProjectRisk[]>([]);
+  const [vendorRisks, setVendorRisks] = useState<VendorRisk[]>([]);
   const [loadingProjectRisks, setLoadingProjectRisks] = useState<boolean>(true);
+  const [loadingVendorRisks , setLoadingVendorRisks]  = useState<boolean>(true);
   const [error, setError] = useState<string | boolean>(false);
 
   useEffect(() => {
@@ -72,11 +84,50 @@ const useProjectRisks = ({ projectId }: { projectId?: string | null }) => {
         setLoadingProjectRisks(false)
       }
     }
+
+    const updateVendorRisks = async () => {
+      setLoadingVendorRisks(true);
+      try {
+        const response = await  getEntityById({
+          routeUrl: '/vendorRisks',
+          signal,
+        })
+        if(response.data) {
+          const filteredVendorRisks = projectId ? response.data.filter((risk: VendorRisk) => risk.project_id === Number(projectId)) : response.data
+          setVendorRisks(filteredVendorRisks)
+        }
+      } catch (err) {
+        if (err instanceof Error){
+          setError(`Request failed: ${err.message}`)
+        } else {
+          setError(`Request failed`)
+        }
+      } finally {
+        setLoadingVendorRisks(false)
+      }
+    }
+
     updateProjectRisks();
+    updateVendorRisks();
+
     return () => {
       controller.abort();
     };
   }, [projectId])
+
+  const vendorRisksSummary = vendorRisks.reduce((acc, risk) => {
+    const riskLevel = risk.risk_level.charAt(0).toLowerCase() + risk.risk_level.slice(1);
+    const key = `${riskLevel.replace(/\s/g, '')}Risks` as keyof typeof acc;
+    acc[key] = acc[key] + 1;
+
+    return acc;
+  }, {
+    veryHighRisks: 0,
+    highRisks: 0,
+    mediumRisks: 0,
+    lowRisks: 0,
+    veryLowRisks: 0,
+  });
 
   const projectRisksSummary = projectRisks.reduce((acc, risk) => {
     const riskLevel = risk.current_risk_level.charAt(0).toLowerCase() + risk.current_risk_level.slice(1);
@@ -95,8 +146,11 @@ const useProjectRisks = ({ projectId }: { projectId?: string | null }) => {
   return {
     projectRisks,
     loadingProjectRisks,
+    loadingVendorRisks,
     error,
-    projectRisksSummary
+    projectRisksSummary,
+    vendorRisks,
+    vendorRisksSummary
   };
 }
 

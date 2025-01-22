@@ -1,13 +1,12 @@
 import { Stack, Typography } from "@mui/material";
 import { RiskData } from "../../../mocks/projects/project-overview.data";
 import { FC, useState, useMemo, useCallback, memo } from "react";
-import { VendorRisk } from "../../../mocks/projects/project-vendor-risks.data";
 import BasicTable from "../../../components/Table";
 import Risks from "../../../components/Risks";
 import AddNewRiskForm from "../../../components/AddNewRiskForm";
 import Popup from "../../../components/Popup";
 import AddNewVendorRiskForm from "../../../components/AddNewVendorRiskForm";
-import { ProjectRisk } from "../../../../application/hooks/useProjectRisks";
+import { ProjectRisk, VendorRisk } from "../../../../application/hooks/useProjectRisks";
 
 const projectRisksColNames = [
   {
@@ -96,7 +95,7 @@ const RisksView: FC<RisksViewProps> = memo(
         const filteredRowData = rowData.filter((row): row is { id: string; data: string } => row !== undefined);
 
         acc.push({
-          id: `${'risk_name' in item ? item.risk_name : item.riskName}_${i}`,
+          id: `${(item as ProjectRisk | VendorRisk).risk_name}_${i}`,
           data: filteredRowData,
         });
 

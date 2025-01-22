@@ -93,3 +93,16 @@ export const calculateProjectRisks = async (project_id: number): Promise<
   )
   return result.rows
 }
+
+export const calculateVendirRisks = async (project_id: number): Promise<
+  {
+    risk_level_autocalculated: string,
+    count: string
+  }[]
+> => {
+  console.log("calculateVendorRisks");
+  const result = await pool.query("SELECT risk_level, count(*) AS count FROM vendorrisks WHERE project_id = $1 GROUP BY risk_level",
+    [project_id]
+  )
+  return result.rows
+}

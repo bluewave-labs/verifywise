@@ -490,7 +490,10 @@ const AllAssessment = () => {
         open={fileUploadModalOpen}
         onClose={handleCloseFileUploadModal}
         uploadProps={{
-          onSuccess: () => console.log("File uploaded successfully!"),
+          onSuccess: () => {
+            console.log("File uploaded successfully!");
+            handleCloseFileUploadModal();
+          },
           onError: (errorMessage: string) => console.error(errorMessage),
           allowedFileTypes: ["application/pdf"],
           assessmentId: activeAssessmentId,

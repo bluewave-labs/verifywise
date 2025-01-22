@@ -101,7 +101,7 @@ const Assessment = memo(() => {
           data-joyride-id="assessment-status"
           variant="h1"
           component="div"
-          fontWeight="bold"
+          fontWeight="600"
           fontSize="16px"
           color={theme.palette.text.primary}
           sx={{ ...singleTheme.textStyles.pageTitle, fontFamily: "Inter" }}

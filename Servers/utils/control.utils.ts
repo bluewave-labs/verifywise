@@ -16,7 +16,6 @@ export const getControlByIdQuery = async (
 };
 
 export const createNewControlQuery = async (control: {
-  projectId: number;
   status: string;
   approver: string;
   riskReview: string;
@@ -24,14 +23,14 @@ export const createNewControlQuery = async (control: {
   reviewer: string;
   dueDate: Date;
   implementationDetails: string;
+  controlGroup: number;
 }): Promise<Control> => {
   console.log("createNewControl", control);
   const result = await pool.query(
     `INSERT INTO controls (
-      projectId, status, approver, riskReview, owner, reviewer, dueDate, implementationDetails
+      status, approver, risk_review, owner, reviewer, due_date, implementation_details, control_group
     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
     [
-      control.projectId,
       control.status,
       control.approver,
       control.riskReview,
@@ -39,6 +38,7 @@ export const createNewControlQuery = async (control: {
       control.reviewer,
       control.dueDate,
       control.implementationDetails,
+      control.controlGroup
     ]
   );
   return result.rows[0];
@@ -47,7 +47,6 @@ export const createNewControlQuery = async (control: {
 export const updateControlByIdQuery = async (
   id: number,
   control: Partial<{
-    projectId: number;
     status: string;
     approver: string;
     riskReview: string;
@@ -55,6 +54,7 @@ export const updateControlByIdQuery = async (
     reviewer: string;
     dueDate: Date;
     implementationDetails: string;
+    controlGroup: number;
   }>
 ): Promise<Control | null> => {
   console.log("updateControlById", id, control);
@@ -62,10 +62,6 @@ export const updateControlByIdQuery = async (
   const values = [];
   let query = "UPDATE controls SET ";
 
-  if (control.projectId !== undefined) {
-    fields.push(`projectId = $${fields.length + 1}`);
-    values.push(control.projectId);
-  }
   if (control.status !== undefined) {
     fields.push(`status = $${fields.length + 1}`);
     values.push(control.status);
@@ -75,7 +71,7 @@ export const updateControlByIdQuery = async (
     values.push(control.approver);
   }
   if (control.riskReview !== undefined) {
-    fields.push(`riskReview = $${fields.length + 1}`);
+    fields.push(`risk_review = $${fields.length + 1}`);
     values.push(control.riskReview);
   }
   if (control.owner !== undefined) {
@@ -87,12 +83,16 @@ export const updateControlByIdQuery = async (
     values.push(control.reviewer);
   }
   if (control.dueDate !== undefined) {
-    fields.push(`dueDate = $${fields.length + 1}`);
+    fields.push(`due_date = $${fields.length + 1}`);
     values.push(control.dueDate);
   }
   if (control.implementationDetails !== undefined) {
-    fields.push(`implementationDetails = $${fields.length + 1}`);
+    fields.push(`implementation_details = $${fields.length + 1}`);
     values.push(control.implementationDetails);
+  }
+  if (control.controlGroup !== undefined) {
+    fields.push(`control_group = $${fields.length + 1}`);
+    values.push(control.controlGroup)
   }
 
   query += fields.join(", ");

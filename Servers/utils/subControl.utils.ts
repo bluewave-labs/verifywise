@@ -35,8 +35,8 @@ export const createNewSubcontrolQuery = async (
   console.log("createNewSubcontrol", subcontrol);
   const result = await pool.query(
     `INSERT INTO subcontrols (
-      controlId, status, approver, riskReview, owner, reviewer, dueDate, 
-      implementationDetails, evidence, attachment, feedback
+      control_id, status, approver, risk_review, owner, reviewer, due_date, 
+      implementation_details, evidence, attachment, feedback
     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
     [
       controlId,
@@ -74,8 +74,8 @@ export const updateSubcontrolByIdQuery = async (
   console.log("updateSubcontrolById", id, subcontrol);
   const result = await pool.query(
     `UPDATE subcontrols SET 
-      controlId = $1, status = $2, approver = $3, riskReview = $4, owner = $5, 
-      reviewer = $6, dueDate = $7, implementationDetails = $8, evidence = $9, 
+      control_id = $1, status = $2, approver = $3, risk_review = $4, owner = $5, 
+      reviewer = $6, due_date = $7, implementation_details = $8, evidence = $9, 
       attachment = $10, feedback = $11 WHERE id = $12 RETURNING *`,
     [
       subcontrol.controlId,

@@ -70,16 +70,9 @@ export async function getRoleById(req: Request, res: Response): Promise<any> {
 export async function createRole(req: Request, res: Response): Promise<any> {
   try {
     const newRole: {
-      projectId: number;
+      name: string;
+      description: string;
     } = req.body;
-
-    if (!newRole.projectId) {
-      return res.status(400).json(
-        STATUS_CODE[400]({
-          message: "projectId is required",
-        })
-      );
-    }
 
     if (MOCKDATA_ON) {
       const createdRole = createMockRole(newRole);
@@ -110,16 +103,9 @@ export async function updateRoleById(
   try {
     const roleId = parseInt(req.params.id);
     const updatedRole: {
-      projectId: number;
+      name: string;
+      description: string;
     } = req.body;
-
-    if (!updatedRole.projectId) {
-      return res.status(400).json(
-        STATUS_CODE[400]({
-          message: "projectId is required",
-        })
-      );
-    }
 
     if (MOCKDATA_ON) {
       const role = updateMockRoleById(roleId, updatedRole);

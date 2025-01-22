@@ -312,10 +312,7 @@ paths:
             schema:
               type: object
               properties:
-                id:
-                  type: integer
-                  example: 1
-                project_id:
+                projectId:
                   type: integer
                   example: 1
                 status:
@@ -324,7 +321,7 @@ paths:
                 approver:
                   type: string
                   example: "John Doe"
-                risk_review:
+                riskReview:
                   type: string
                   example: "Acceptable risk"
                 owner:
@@ -333,16 +330,16 @@ paths:
                 reviewer:
                   type: string
                   example: "Alice Williams"
-                due_date:
+                dueDate:
                   type: string
                   format: date-time
                   example: "2024-09-20T00:00:00.000Z"
-                implementation_details:
+                implementationDetails:
                   type: string
                   example: "Implement new feature"
-                control_group:
-                  type: string
-                  example: "AI Literacy"
+                controlGroup:
+                  type: integer
+                  example: 1
         required: true
       responses:
         "201":
@@ -444,10 +441,7 @@ paths:
             schema:
               type: object
               properties:
-                id:
-                  type: integer
-                  example: 1
-                project_id:
+                projectId:
                   type: integer
                   example: 1
                 status:
@@ -456,7 +450,7 @@ paths:
                 approver:
                   type: string
                   example: "John Doe"
-                risk_review:
+                riskReview:
                   type: string
                   example: "Acceptable risk"
                 owner:
@@ -465,16 +459,16 @@ paths:
                 reviewer:
                   type: string
                   example: "Alice Williams"
-                due_date:
+                dueDate:
                   type: string
                   format: date-time
                   example: "2024-09-20T00:00:00.000Z"
-                implementation_details:
+                implementationDetails:
                   type: string
                   example: "Implement new feature"
-                control_group:
-                  type: string
-                  example: "AI Literacy"
+                controlGroup:
+                  type: integer
+                  example: 1
         required: true
       responses:
         "202":
@@ -2016,7 +2010,7 @@ paths:
             schema:
               type: object
               properties:
-                control_id:
+                controlId:
                   type: number
                   example: 1
                 status:
@@ -2030,7 +2024,7 @@ paths:
                 approver:
                   type: string
                   example: "John Doe"
-                risk_review:
+                riskReview:
                   anyOf:
                     - type: string
                       enum:
@@ -2044,10 +2038,10 @@ paths:
                 reviewer:
                   type: string
                   example: "Alice Williams"
-                due_date:
+                dueDate:
                   type: Date
                   example: "2023-12-31T00:00:00.000Z"
-                implementation_details:
+                implementationDetails:
                   type: string
                   example: "Implement new feature"
                 evidence:
@@ -2160,7 +2154,7 @@ paths:
             schema:
               type: object
               properties:
-                control_id:
+                controlId:
                   type: number
                   example: 1
                 status:
@@ -2174,7 +2168,7 @@ paths:
                 approver:
                   type: string
                   example: "John Doe"
-                risk_review:
+                riskReview:
                   anyOf:
                     - type: string
                       enum:
@@ -2188,10 +2182,10 @@ paths:
                 reviewer:
                   type: string
                   example: "Alice Williams"
-                due_date:
+                dueDate:
                   type: Date
                   example: "2023-12-31T00:00:00.000Z"
-                implementation_details:
+                implementationDetails:
                   type: string
                   example: "Implement new feature"
                 evidence:
@@ -2590,7 +2584,7 @@ paths:
             schema:
               type: object
               properties:
-                assessment_id:
+                assessmentId:
                   type: integer
                   example: 1
                 title:
@@ -2697,7 +2691,7 @@ paths:
             schema:
               type: object
               properties:
-                assessment_id:
+                assessmentId:
                   type: integer
                   example: 1
                 title:
@@ -2840,34 +2834,34 @@ paths:
             schema:
               type: object
               properties:
-                project_id:
+                projectId:
                   type: integer
                   example: 1
-                vendor_name:
+                vendorName:
                   type: string
                   example: "Vendor A"
                 assignee:
                   type: string
                   example: "John Doe"
-                vendor_provides:
+                vendorProvides:
                   type: string
                   example: "Consulting Services"
                 website:
                   type: string
                   example: "www.vendora.com"
-                vendor_contact_person:
+                vendorContactPerson:
                   type: string
                   example: "Jane Smith"
-                review_result:
+                reviewResult:
                   type: string
                   example: "Positive"
-                review_status:
+                reviewStatus:
                   type: string
                   example: "Completed"
                 reviewer:
                   type: string
                   example: "Bob Johnson"
-                risk_status:
+                riskStatus:
                   anyOf:
                     - type: string
                       enum:
@@ -2875,14 +2869,14 @@ paths:
                         - "Under review"
                         - "Not active"
                   example: "Not active"
-                review_date:
+                reviewDate:
                   type: string
                   format: date-time
                   example: "2023-05-15T00:00:00.000Z"
-                risk_description:
+                riskDescription:
                   type: string
                   example: "Limited experience with new technology"
-                impact_description:
+                impactDescription:
                   type: string
                   example: "Potential delays in project timeline"
                 impact:
@@ -2891,16 +2885,16 @@ paths:
                 probability:
                   type: number
                   example: 0.4
-                action_owner:
+                actionOwner:
                   type: string
                   example: "Alice Williams"
-                action_plan:
+                actionPlan:
                   type: string
                   example: "Provide additional training"
-                risk_severity:
+                riskSeverity:
                   type: integer
                   example: 2
-                risk_level:
+                riskLevel:
                   anyOf:
                     - type: string
                       enum:
@@ -3014,34 +3008,34 @@ paths:
             schema:
               type: object
               properties:
-                project_id:
+                projectId:
                   type: integer
                   example: 1
-                vendor_name:
+                vendorName:
                   type: string
                   example: "Vendor A"
                 assignee:
                   type: string
                   example: "John Doe"
-                vendor_provides:
+                vendorProvides:
                   type: string
                   example: "Consulting Services"
                 website:
                   type: string
                   example: "www.vendora.com"
-                vendor_contact_person:
+                vendorContactPerson:
                   type: string
                   example: "Jane Smith"
-                review_result:
+                reviewResult:
                   type: string
                   example: "Positive"
-                review_status:
+                reviewStatus:
                   type: string
                   example: "Completed"
                 reviewer:
                   type: string
                   example: "Bob Johnson"
-                risk_status:
+                riskStatus:
                   anyOf:
                     - type: string
                       enum:
@@ -3049,14 +3043,14 @@ paths:
                         - "Under review"
                         - "Not active"
                   example: "Not active"
-                review_date:
+                reviewDate:
                   type: string
                   format: date-time
                   example: "2023-05-15T00:00:00.000Z"
-                risk_description:
+                riskDescription:
                   type: string
                   example: "Limited experience with new technology"
-                impact_description:
+                impactDescription:
                   type: string
                   example: "Potential delays in project timeline"
                 impact:
@@ -3065,16 +3059,16 @@ paths:
                 probability:
                   type: number
                   example: 0.4
-                action_owner:
+                actionOwner:
                   type: string
                   example: "Alice Williams"
-                action_plan:
+                actionPlan:
                   type: string
                   example: "Provide additional training"
-                risk_severity:
+                riskSeverity:
                   type: integer
                   example: 2
-                risk_level:
+                riskLevel:
                   anyOf:
                     - type: string
                       enum:

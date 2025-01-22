@@ -16,8 +16,7 @@ services:
   backend:
     depends_on:
       - postgresdb
-    # image: pharsh4585/verifywise-backend:latest
-    build: .
+    image: pharsh4585/verifywise-backend:latest
     env_file:
       - ./.env
     ports:

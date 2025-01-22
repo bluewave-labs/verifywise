@@ -154,8 +154,7 @@ const Assessment = memo(() => {
           </Paper>
         </Stack>
         <Typography
-          variant="h5"
-          fontWeight="bold"
+          fontWeight="600"
           fontSize="16px"
           color={theme.palette.text.primary}
           sx={{ marginTop: "32px" }}

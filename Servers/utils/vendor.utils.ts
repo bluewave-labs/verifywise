@@ -43,7 +43,7 @@ export const createNewVendorQuery = async (vendor: {
       project_id, vendor_name, assignee, vendor_provides, website, vendor_contact_person, 
       review_result, review_status, reviewer, risk_status, review_date, risk_description, 
       impact_description, impact, probability, action_owner, action_plan, risk_severity, 
-      riskLevel, likelihood
+      risk_level, likelihood
     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20) RETURNING *`,
     [
       vendor.projectId,

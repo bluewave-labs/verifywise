@@ -3,22 +3,14 @@ import ProgressBar from "../../../components/ProjectCard/ProgressBar";
 import { FC, memo, useCallback, useContext, useMemo } from "react";
 import { formatDate } from "../../../tools/isoDateToString";
 import Risks from "../../../components/Risks";
-import projectOverviewData from "../../../mocks/projects/project-overview.data";
+import { ProjectOverview } from "../../../mocks/projects/project-overview.data";
 import { useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import getProjectData from "../../../../application/tools/getProjectData";
 
-export type RiskData = {
-  veryHighRisks: number;
-  highRisks: number;
-  mediumRisks: number;
-  lowRisks: number;
-  veryLowRisks: number;
-};
 interface OverviewProps {
-  vendorRisks: RiskData[];
-  projectRisksSummary: RiskData;
+  mocProject: ProjectOverview;
 }
 
 interface ProgressBarCardProps {
@@ -27,12 +19,13 @@ interface ProgressBarCardProps {
   completed: number;
 }
 
-const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
+const Overview: FC<OverviewProps> = memo(({ mocProject }) => {
   const [searchParams] = useSearchParams();
-  const projectId = searchParams.get("projectId") ?? "1"; // default project ID is 1
+  const projectId = searchParams.get("projectId") ?? "2"; // default project ID is 2
   const { project, error, isLoading } = useProjectData({ projectId });
   const theme = useTheme();
   const { projectStatus } = useContext(VerifyWiseContext);
+
   const {
     controlsProgress,
     requirementsProgress: assessmentsProgress,
@@ -44,8 +37,8 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
     controls: projectStatus.controls,
   });
 
-  const { vendorRisks  } =
-  projectOverviewData;
+  const { projectRisks, vendorRisks } =
+    mocProject;
 
   const styles = useMemo(
     () => ({
@@ -144,7 +137,7 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
         >
           Project risks
         </Typography>
-        <Risks {...projectRisksSummary} />
+        <Risks {...projectRisks} />
       </Stack>
       <Stack>
         <Typography

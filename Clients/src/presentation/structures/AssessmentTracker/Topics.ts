@@ -4,7 +4,7 @@ export type Topic = {
 };
 
 export const Topics: Topic[] = [
-  { id: 0, title: "Project Scope" },
+  { id: 0, title: "Project scope" },
   { id: 1, title: "Risk management system" },
   { id: 2, title: "Data governance" },
   { id: 3, title: "Technical documentation" },

@@ -362,11 +362,16 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                     onVendorChange();
                     setIsOpen();
                 }, 1000);
-            } else if (response.status == 400) {
+            } else if (response.status === 400 || response.status === 500) {
                 setAlert({
                     variant: "error",
                     body: response.data.data.message,
                 });
+                setTimeout(() => {
+                    setAlert(null);
+                    onVendorChange();
+                    setIsOpen();
+                }, 1000);
             }
         });
     };
@@ -381,7 +386,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         updatedVendorDetails: VendorDetails
     ) => {
         // Make a call to backend and update the vendor'
-        debugger;
         console.log("Edit Vendor", vendorId, updatedVendorDetails);
         await updateEntityById({
             routeUrl: `/vendors/${vendorId}`,

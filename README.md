@@ -10,9 +10,13 @@ We are democratizing AI best practices with an open-source solution that can be 
 
 <img width="1433" alt="VerifyWise" src="https://github.com/user-attachments/assets/268a2c44-01de-4f7b-8e10-1dd4f76e86a8">
 
-## Running the application
+## Developer Setup
 
-The application has two components: a frontend in Reactjs and backend in Nodejs. Do the following to run 
+The VerifyWise application has two components: a frontend in Reactjs and backend in Nodejs. At present, you can use Docker (recommended) or `npm` to run VerifyWise. 
+
+A PostGreSQL database is required.
+
+To run a development instance of VerifyWise via `npm`, follow these steps:
 
 1. Fork and clone the repository. Go to the Clients directory.
 2. Run `npm i; npm run dev`
@@ -20,7 +24,7 @@ The application has two components: a frontend in Reactjs and backend in Nodejs.
 4. Run `npm i; npm run watch`
 5. Now the application is up and running on `https://localhost:5173` 
 
-Currently the application is in its infancy state, so check back here often.
+Currently the application is in rapid development, so check back here often.
 
 ## Quick links
 

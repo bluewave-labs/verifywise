@@ -227,15 +227,7 @@ const FileManager: React.FC = (): JSX.Element => {
         onFinish={() => setRunFileTour(false)}
       />
       <Stack spacing={1} data-joyride-id="file-manager-title">
-      <Typography
-          data-joyride-id="assessment-status"
-          variant="h1"
-          component="div"
-          fontWeight="600"
-          fontSize="16px"
-          color={theme.palette.text.primary}
-          sx={{ fontFamily: "Inter" }}
-        >
+        <Typography variant="h6" fontWeight="bold" gutterBottom>
           Evidences & documents
         </Typography>
         <Typography variant="body2" color="text.secondary">

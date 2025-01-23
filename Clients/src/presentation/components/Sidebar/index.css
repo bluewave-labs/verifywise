@@ -59,6 +59,18 @@ aside .MuiList-root .MuiListItemText-root + svg {
   opacity: 0.9;
 }
 
+.empty-project{
+  width: 180px; 
+  border: 1px solid;
+  border-radius: 2px;
+  min-width: 125px;
+  padding: 0 10px;
+  font-size: 13px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+}
+
 /* TRANSITIONS */
 aside {
   flex: 1;

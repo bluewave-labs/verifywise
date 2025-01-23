@@ -11,14 +11,16 @@ import emptyStateImg from "../../assets/imgs/empty-state.svg";
 import useProjectRisks from "../../../application/hooks/useProjectRisks";
 import useVendorRisks from "../../../application/hooks/usevendorRisks";
 import { useSearchParams } from "react-router-dom";
+import useProjectData from "../../../application/hooks/useProjectData";
 
-const ProjectView = ({ project = projectOverviewData }) => {
-    const { projectTitle } = project;
+const ProjectView = () => {
     const [searchParams] = useSearchParams();
-    const projectId = searchParams.get("projectId")
+    const projectId = searchParams.get("projectId") ?? "1";
 
+    const { project } = useProjectData({ projectId })
     const { projectRisks, loadingProjectRisks, error: errorFetchingProjectRisks, projectRisksSummary } = useProjectRisks({ projectId });
     const { error: errorFetchingVendorRisks, vendorRisks, vendorRisksSummary } = useVendorRisks({ projectId })
+
     const theme = useTheme();
     const disableRipple =
         theme.components?.MuiButton?.defaultProps?.disableRipple;
@@ -39,7 +41,7 @@ const ProjectView = ({ project = projectOverviewData }) => {
 
     const noProject =
         !project ||
-        projectTitle === "No Project found" ||
+        project.project_title === "No Project found" ||
         Object.keys(project).length === 0;
 
     if (loadingProjectRisks) {
@@ -49,7 +51,7 @@ const ProjectView = ({ project = projectOverviewData }) => {
         return <Typography>Error fetching project risks. {errorFetchingProjectRisks}</Typography>;
     }
     if (errorFetchingVendorRisks) {
-        return <Typography>Error fetching project risks. {errorFetchingVendorRisks}</Typography>;
+        return <Typography>Error fetching vendor risks. {errorFetchingVendorRisks}</Typography>;
     }
 
     return (
@@ -125,7 +127,7 @@ const ProjectView = ({ project = projectOverviewData }) => {
                     <Typography
                         sx={{ color: "#1A1919", fontWeight: 600, mb: "6px", fontSize: 16 }}
                     >
-                        {projectTitle} project overview
+                        {project.project_title} project overview
                     </Typography>
                     <Typography
                         sx={{

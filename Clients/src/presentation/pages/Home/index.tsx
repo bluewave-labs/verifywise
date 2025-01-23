@@ -302,6 +302,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
                       id={item.id}
                       assessments={assessments}
                       controls={controls}
+                      last_updated={item.last_updated}
                     />
                   ))}
                 </>

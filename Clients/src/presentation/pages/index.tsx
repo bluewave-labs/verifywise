@@ -1,5 +1,5 @@
 import { Stack } from "@mui/material";
-import VWChecks from "../vw-v2-components/Checks";
+import VWAlert from "../vw-v2-components/Alerts";
 
 const Playground = () => {
   return (
@@ -16,7 +16,7 @@ const Playground = () => {
         gap: 4,
       }}
     >
-      <VWChecks title="Checkbox Title" />
+      <VWAlert status="error" />
     </Stack>
   );
 };

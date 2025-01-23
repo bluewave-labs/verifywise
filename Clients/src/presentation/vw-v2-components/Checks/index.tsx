@@ -16,8 +16,8 @@ interface VWCheckboxProps {
 
 const VWCheckbox = ({
   id,
-  isChecked,
-  color = "primary",
+  isChecked = true,
+  color = "success",
   size = "medium",
   disabled,
   required,

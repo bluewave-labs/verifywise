@@ -8,6 +8,7 @@ export const createUppyInstance = (assessmentId: number) => {
   const uppy = new Uppy({
     restrictions: {
       allowedFileTypes: ["application/pdf"], 
+      maxFileSize:null,
     },
     autoProceed: true, 
     debug: true,
@@ -25,6 +26,12 @@ export const createUppyInstance = (assessmentId: number) => {
   }); 
   uppy.use(DropTarget, {
     target: document.body, 
+  });
+  uppy.on('file-added', (file) => {
+    console.log(`File added: ${file.name}, Size: ${file.size}`);
+    if(!file.size || file.size === 0) {
+      console.log("File size is missing or 0");
+    }
   });
 
 

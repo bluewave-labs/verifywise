@@ -45,8 +45,6 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary, vendorRisksSumm
     controls: projectStatus.controls,
   });
 
-  // const { vendorRisks  } = projectOverviewData
-
   const styles = useMemo(
     () => ({
       block: {

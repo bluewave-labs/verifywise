@@ -153,6 +153,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
       hideAfterFinish: false,
       hideRetryButton: true,
       hidePauseResumeButton: true,
+      hideCancelButton: true,
     });
 
     uppy.on("file-added", handleFileAdded);

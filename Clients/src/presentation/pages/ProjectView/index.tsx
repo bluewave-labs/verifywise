@@ -6,18 +6,17 @@ import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import Overview from "./Overview";
 import RisksView from "./RisksView";
-import vendorRisksData from "../../mocks/projects/project-vendor-risks.data";
 import ProjectSettings from "./ProjectSettings";
 import emptyStateImg from "../../assets/imgs/empty-state.svg";
 import useProjectRisks from "../../../application/hooks/useProjectRisks";
 import { useSearchParams } from "react-router-dom";
 
 const ProjectView = ({ project = projectOverviewData}) => {
-  const { projectTitle, vendorRisks } = project;
+  const { projectTitle} = project;
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId")
 
-  const { projectRisks, loadingProjectRisks, error: errorFetchingProjectRisks, projectRisksSummary } = useProjectRisks({ projectId });
+  const { projectRisks, loadingProjectRisks, error: errorFetchingProjectRisks, projectRisksSummary, vendorRisks, vendorRisksSummary } = useProjectRisks({ projectId });
 
   const theme = useTheme();
   const disableRipple =
@@ -174,7 +173,7 @@ const ProjectView = ({ project = projectOverviewData}) => {
               </Box>
               {/* overview panel */}
               <TabPanel value="overview" sx={{ p: "32px 0 0" }}>
-                <Overview vendorRisks={[]} projectRisksSummary={projectRisksSummary} />
+                <Overview vendorRisksSummary={vendorRisksSummary} projectRisksSummary={projectRisksSummary} />
               </TabPanel>
               <TabPanel value="project-risks" sx={{ p: "32px 0 0" }}>
                 <RisksView
@@ -185,8 +184,8 @@ const ProjectView = ({ project = projectOverviewData}) => {
               </TabPanel>
               <TabPanel value="vendor-risks" sx={{ p: "32px 0 0" }}>
                 <RisksView
-                  risksSummary={vendorRisks}
-                  risksData={vendorRisksData}
+                  risksSummary={vendorRisksSummary}
+                  risksData={vendorRisks}
                   title="Vendor"
                 />
               </TabPanel>

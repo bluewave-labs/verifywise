@@ -3,7 +3,6 @@ import ProgressBar from "../../../components/ProjectCard/ProgressBar";
 import { FC, memo, useCallback, useContext, useMemo } from "react";
 import { formatDate } from "../../../tools/isoDateToString";
 import Risks from "../../../components/Risks";
-import projectOverviewData from "../../../mocks/projects/project-overview.data";
 import { useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
@@ -18,8 +17,8 @@ export type RiskData = {
 };
 
 interface OverviewProps {
-  vendorRisks: RiskData[];
   projectRisksSummary: RiskData;
+  vendorRisksSummary: RiskData;
 }
 
 interface ProgressBarCardProps {
@@ -28,7 +27,7 @@ interface ProgressBarCardProps {
   completed: number;
 }
 
-const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
+const Overview: FC<OverviewProps> = memo(({ projectRisksSummary, vendorRisksSummary }) => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") ?? "1"; // default project ID is 2
   const { project, error, isLoading } = useProjectData({ projectId });
@@ -46,7 +45,7 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
     controls: projectStatus.controls,
   });
 
-  const { vendorRisks  } = projectOverviewData
+  // const { vendorRisks  } = projectOverviewData
 
   const styles = useMemo(
     () => ({
@@ -153,7 +152,7 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
         >
           Vendor risks
         </Typography>
-        <Risks {...vendorRisks} />
+        <Risks {...vendorRisksSummary} />
       </Stack>
     </Stack>
   );

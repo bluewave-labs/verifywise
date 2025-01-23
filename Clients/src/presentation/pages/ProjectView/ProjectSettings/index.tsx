@@ -58,9 +58,9 @@ const initialState: FormValues = {
 const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
   ({ setTabValue }) => {
     const [searchParams] = useSearchParams();
-    const projectId = searchParams.get("projectId") ?? "2"; // default project ID is 2
+    const projectId = searchParams.get("projectId") ?? "1"; // default project ID is 2
     const theme = useTheme();
-    const { project, error, isLoading } = useProjectData({ projectId });
+    const { project } = useProjectData({ projectId });
     const navigate = useNavigate();
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [values, setValues] = useState<FormValues>(initialState);
@@ -74,10 +74,12 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
     } | null>(null);
 
     const handleDateChange = useCallback((newDate: Dayjs | null) => {
-      setValues((prevValues) => ({
-        ...prevValues,
-        startDate: newDate ? newDate.toISOString() : "",
-      }));
+      if(newDate?.isValid()){
+        setValues((prevValues) => ({
+          ...prevValues,
+          startDate: newDate ? newDate.toISOString() : "",
+        }));
+      }
     }, []);
 
     const handleOnSelectChange = useCallback(

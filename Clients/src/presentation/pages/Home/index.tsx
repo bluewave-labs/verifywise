@@ -227,7 +227,50 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
       )}
 
       {projects && projects.length > 0 ? (
-        <Stack sx={{ gap: theme.spacing(8) }}>
+        <>
+          <Stack direction="row" justifyContent={projects.length <= 3 ? "space-between" : "flex-start"} flexWrap={projects.length > 3 ? "wrap" : "nowrap"} spacing={15}>
+            <Suspense
+              fallback={
+                <Card>
+                  <VWSkeleton
+                    variant="rectangular"
+                    minWidth="200"
+                    width={"100%"}
+                    height={"100%"}
+                    maxWidth="1400"
+                    minHeight="200"
+                    maxHeight="100vh"
+                  />
+                </Card>
+              }
+            >
+            {projects.length <= 3 ? <>
+              {projects.map((item: ProjectCardProps) => (
+                <Box key={item.id} sx={{ width: projects.length === 1 ? '50%' : '100%' }}>
+                  <ProjectCard
+                    {...item}
+                    id={item.id}
+                    assessments={assessments}
+                    controls={controls}
+                  />
+                </Box>
+              ))}
+            </> : <>
+              <Grid sx={{ width: "100%" }} container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
+                {projects.map((item: ProjectCardProps) => (
+                  <Grid key={item.id} size={{ xs: 4, sm: 8, md: 4 }}>
+                    <ProjectCard
+                      {...item}
+                      id={item.id}
+                      assessments={assessments}
+                      controls={controls}
+                    />
+                  </Grid>
+                ))}
+              </Grid>
+            </>}
+            </Suspense>
+          </Stack>
           {(["compliance"] as const).map(
             (
               metricType // "risk" was removed from the array, if we wanna the 'All projects risk status' Section back, we need to add it back to the array

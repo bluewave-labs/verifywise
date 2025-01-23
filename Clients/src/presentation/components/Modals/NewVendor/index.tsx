@@ -42,7 +42,6 @@ import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 export interface VendorDetails {
     id?: number;
     vendorName: string;
-    projectVendorIsConnectedTo: string;
     vendorProvides: string;
     website: string;
     vendorContactPerson: string;
@@ -79,6 +78,7 @@ interface FormErrors {
     reviewStatus?: string;
     assignee?: string
 }
+
 const initialState = {
     vendorDetails: {
         vendorName: "",
@@ -91,7 +91,7 @@ const initialState = {
         reviewResult: "",
         riskStatus: "0",
         assignee: 0,
-        reviewDate: "",
+        reviewDate: new Date().toISOString(),
     },
     risks: {
         riskDescription: "",
@@ -115,6 +115,65 @@ interface AddNewVendorProps {
     onVendorChange?: () => void;
 }
 
+const ASSIGNEE_OPTIONS = [
+    { _id: 1, name: "Assignee 1" },
+    { _id: 2, name: "Assignee 2" },
+    { _id: 3, name: "Assignee 3" },
+]
+
+const REVIEW_STATUS_OPTIONS = [
+    { _id: "active", name: "Active" },
+    { _id: "underReview", name: "Under review" },
+    { _id: "notActive", name: "Not active" },
+]
+
+const REVIEWER_OPTIONS = [
+    { _id: "George Michael", name: "George Michael" },
+    { _id: "Sarah Lee", name: "Sarah Lee" },
+    { _id: "Michael Lee", name: "Michael Lee" },
+]
+
+const RISK_LEVEL_OPTIONS = [
+    { _id: 1, name: "Very high risk" },
+    { _id: 2, name: "High risk" },
+    { _id: 3, name: "Medium risk" },
+    { _id: 4, name: "Low risk" },
+    { _id: 5, name: "Very low risk" },
+];
+
+const LIKELIHOOD_OPTIONS = [
+    { _id: 1, name: "Rare" },
+    { _id: 2, name: "Unlikely" },
+    { _id: 3, name: "Possible" },
+    { _id: 4, name: "Likely" },
+    { _id: 5, name: "Almost certain" },
+]
+
+const ACTION_OWNER_OPTIONS = [
+    { _id: 1, name: "John McAllen" },
+    { _id: 2, name: "Jessica Parker" },
+    { _id: 3, name: "Michael Johnson" },
+]
+
+const IMPACT_OPTIONS = [
+    { _id: 1, name: "Negligible" },
+    { _id: 2, name: "Minor" },
+    { _id: 3, name: "Moderate" },
+    { _id: 4, name: "Major and Critical" },
+]
+
+const PROBABILITY_OPTIONS = [
+    { _id: 1, name: "4" },
+    { _id: 2, name: "3" },
+    { _id: 3, name: "2" },
+];
+
+const RISK_SEVERITY_OPTIONS = [
+    { _id: 1, name: "Low" },
+    { _id: 2, name: "Medium" },
+    { _id: 3, name: "High and Critical" },
+]
+
 const AddNewVendor: React.FC<AddNewVendorProps> = ({
     isOpen,
     setIsOpen,
@@ -136,7 +195,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             reviewResult: "",
             riskStatus: "0",
             assignee: 0,
-            reviewDate: "",
+            reviewDate: existingVendor?.reviewDate || new Date().toISOString(),
         },
         risks: {
             riskDescription: "",
@@ -218,7 +277,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
      */
     const handleSave = () => {
         if (validateForm()) {
-            existingVendor ? setIsModalOpen(true) : handleOnSave();  
+            existingVendor ? setIsModalOpen(true) : handleOnSave();
         }
     };
 
@@ -227,13 +286,15 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
      * @param newDate - The new date value or null
      */
     const handleDateChange = (newDate: Dayjs | null) => {
-        setValues((prevValues) => ({
-            ...prevValues,
-            vendorDetails: {
-                ...prevValues.vendorDetails,
-                reviewDate: newDate ? newDate.toISOString() : "",
-            },
-        }));
+        if (newDate?.isValid()) {
+            setValues((prevValues) => ({
+                ...prevValues,
+                vendorDetails: {
+                    ...prevValues.vendorDetails,
+                    reviewDate: newDate ? newDate.toISOString() : "",
+                },
+            }));
+        }
     };
 
     /**
@@ -264,21 +325,11 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
      */
     const validateForm = (): boolean => {
         const newErrors: FormErrors = {};
-        const vendorName = checkStringValidation(
-            "Vendor Name",
-            values.vendorDetails.vendorName,
-            1,
-            64
-        );
+        const vendorName = checkStringValidation("Vendor Name", values.vendorDetails.vendorName, 1, 64);
         if (!vendorName.accepted) {
             newErrors.vendorName = vendorName.message;
         }
-        const vendorWebsite = checkStringValidation(
-            "Vendor Website",
-            values.vendorDetails.website,
-            1,
-            64
-        );
+        const vendorWebsite = checkStringValidation("Vendor Website", values.vendorDetails.website, 1, 64);
         if (!vendorWebsite.accepted) {
             newErrors.website = vendorWebsite.message;
         }
@@ -289,7 +340,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         if (!vendorProvides.accepted) {
             newErrors.vendorProvides = vendorProvides.message;
         }
-        const vendorContactPerson = checkStringValidation("Vendor Contact Person",values.vendorDetails.vendorContactPerson,1,64);
+        const vendorContactPerson = checkStringValidation("Vendor Contact Person", values.vendorDetails.vendorContactPerson, 1, 64);
         if (!vendorContactPerson.accepted) {
             newErrors.vendorContactPerson = vendorContactPerson.message;
         }
@@ -308,33 +359,29 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     * Creates new vendor or updates existing one
     */
     const handleOnSave = async () => {
-        console.log("Vendor Details:", values.vendorDetails);
-        console.log("Risks:", values.risks);
         const _vendorDetails = {
             projectId: values.vendorDetails.projectId,
             vendorName: values.vendorDetails.vendorName,
-            assignee: values.vendorDetails.assignee,
+            assignee: ASSIGNEE_OPTIONS.find(a => a._id === Number(values.vendorDetails.assignee))?.name || "",
             vendorProvides: values.vendorDetails.vendorProvides,
             website: values.vendorDetails.website,
             vendorContactPerson: values.vendorDetails.vendorContactPerson,
             reviewResult: values.vendorDetails.reviewResult,
-            reviewStatus: values.vendorDetails.reviewStatus,
-            reviewer: values.vendorDetails.reviewer,
-            riskStatus: values.vendorDetails.riskStatus,
+            reviewStatus: REVIEW_STATUS_OPTIONS.find(s => s._id === values.vendorDetails.reviewStatus)?.name || "",
+            reviewer: REVIEWER_OPTIONS.find(r => r._id === values.vendorDetails.reviewer)?.name || "",
+            riskStatus: RISK_LEVEL_OPTIONS.find(s => s._id === Number(values.vendorDetails.riskStatus))?.name || "",
             reviewDate: values.vendorDetails.reviewDate,
             riskDescription: values.risks.riskDescription,
             impactDescription: values.risks.impactDescription,
-            impact: values.risks.impact,
-            probability: values.risks.probability,
-            actionOwner: values.risks.actionOwner,
+            impact: 1, //IMPACT_OPTIONS.find(i => i._id === Number(values.risks.impact))?.name || "",
+            probability: 2, //PROBABILITY_OPTIONS.find(p => p._id === Number(values.risks.probability))?.name || "",
+            actionOwner: ACTION_OWNER_OPTIONS.find(a => a._id === Number(values.risks.actionOwner))?.name || "",
             actionPlan: values.risks.actionPlan,
-            riskSeverity: values.risks.riskSeverity,
-            riskLevel: values.risks.riskLevel,
-            likelihood: values.risks.likelihood,
-            projectVendorIsConnectedTo: "", // Ensure this is included
+            riskSeverity: 3, //RISK_SEVERITY_OPTIONS.find(r => r._id === Number(values.risks.riskSeverity))?.name || "",
+            riskLevel: RISK_LEVEL_OPTIONS.find(r => r._id === values.risks.riskLevel)?.name || "",
+            likelihood: 0.5 // LIKELIHOOD_OPTIONS.find(l => l._id === Number(values.risks.likelihood))?.name || "",
         };
         if (existingVendor) {
-            // uuse vendor id
             await updateVendor(existingVendor.id!, _vendorDetails);
         } else {
             await createVendor(_vendorDetails);
@@ -347,6 +394,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     * @param vendorDetails - The vendor details to create
     */
     const createVendor = async (vendorDetails: VendorDetails) => {
+        console.log(vendorDetails);
         await createNewUser({
             routeUrl: "/vendors",
             body: vendorDetails,
@@ -485,11 +533,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                     error={errors.vendorContactPerson}
                 />
                 <Select // reviewStatus
-                    items={[
-                        { _id: "active", name: "Active" },
-                        { _id: "underReview", name: "Under review" },
-                        { _id: "notActive", name: "Not active" },
-                    ]}
+                    items={REVIEW_STATUS_OPTIONS}
                     label="Review status"
                     placeholder="Select review status"
                     isHidden={false}
@@ -505,11 +549,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                     isRequired
                 />
                 <Select // reviewer
-                    items={[
-                        { _id: "George Michael", name: "George Michael" },
-                        { _id: "Sarah Lee", name: "Sarah Lee" },
-                        { _id: "Michael Lee", name: "Michael Lee" },
-                    ]}
+                    items={REVIEWER_OPTIONS}
                     label="Reviewer"
                     placeholder="Select reviewer"
                     isHidden={false}
@@ -546,13 +586,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 flexDirection={"row"}
             >
                 <Select // riskStatus
-                    items={[
-                        { _id: "veryHighRisk", name: "Very high risk" },
-                        { _id: "highRisk", name: "High risk" },
-                        { _id: "mediumRisk", name: "Medium risk" },
-                        { _id: "lowRisk", name: "Low risk" },
-                        { _id: "veryLowRisk", name: "Very low risk" },
-                    ]}
+                    items={RISK_LEVEL_OPTIONS}
                     label="Risk status"
                     placeholder="Select risk status"
                     isHidden={false}
@@ -566,11 +600,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                     }}
                 />
                 <Select // assignee (not in the server model!)
-                    items={[
-                        { _id: 1, name: "Assignee 1" },
-                        { _id: 2, name: "Assignee 2" },
-                        { _id: 3, name: "Assignee 3" },
-                    ]}
+                    items={ASSIGNEE_OPTIONS}
                     label="Assignee"
                     placeholder="Select person"
                     isHidden={false}
@@ -631,12 +661,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 marginBottom={theme.spacing(8)}
             >
                 <Select // impact
-                    items={[
-                        { _id: 1, name: "Negligible" },
-                        { _id: 2, name: "Minor" },
-                        { _id: 3, name: "Moderate" },
-                        { _id: 4, name: "Major and Critical" },
-                    ]}
+                    items={IMPACT_OPTIONS}
                     label="Impact"
                     placeholder="Select impact"
                     isHidden={false}
@@ -649,11 +674,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 />
 
                 <Select // probability
-                    items={[
-                        { _id: 1, name: "4" },
-                        { _id: 2, name: "3" },
-                        { _id: 3, name: "2" },
-                    ]}
+                    items={PROBABILITY_OPTIONS}
                     label="Probability"
                     placeholder="Select probability"
                     isHidden={false}
@@ -677,11 +698,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                     gap={theme.spacing(8)}
                 >
                     <Select // riskSeverity
-                        items={[
-                            { _id: 1, name: "Low" },
-                            { _id: 2, name: "Medium" },
-                            { _id: 3, name: "High and Critical" },
-                        ]}
+                        items={RISK_SEVERITY_OPTIONS}
                         label="Risk severity"
                         placeholder="Select risk severity"
                         isHidden={false}
@@ -694,11 +711,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                     />
 
                     <Select // actionOwner
-                        items={[
-                            { _id: 1, name: "John McAllen" },
-                            { _id: 2, name: "Jessica Parker" },
-                            { _id: 3, name: "Michael Johnson" },
-                        ]}
+                        items={ACTION_OWNER_OPTIONS}
                         label="Action owner"
                         placeholder="Select owner"
                         isHidden={false}
@@ -724,13 +737,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 marginBottom={theme.spacing(8)}
             >
                 <Select // riskLevel
-                    items={[
-                        { _id: "Very high risk", name: "Very high risk" },
-                        { _id: "High risk", name: "High risk" },
-                        { _id: "Medium risk", name: "Medium risk" },
-                        { _id: "Low risk", name: "Low risk" },
-                        { _id: "Very low risk", name: "Very low risk" },
-                    ]}
+                    items={RISK_LEVEL_OPTIONS}
                     label="Risk level"
                     placeholder="Select risk level"
                     isHidden={false}
@@ -742,13 +749,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                     }}
                 />
                 <Select // likelihood
-                    items={[
-                        { _id: 1, name: "Rare" },
-                        { _id: 2, name: "Unlikely" },
-                        { _id: 3, name: "Possible" },
-                        { _id: 4, name: "Likely" },
-                        { _id: 5, name: "Almost certain" },
-                    ]}
+                    items={LIKELIHOOD_OPTIONS}
                     label="Likelihood"
                     placeholder="Select risk severity"
                     isHidden={false}
@@ -780,9 +781,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 open={isOpen}
                 onClose={(_event, reason) => {
                     if (reason !== 'backdropClick') {
-                      setIsOpen();
+                        setIsOpen();
                     }
-                  }}
+                }}
                 disableEscapeKeyDown
                 sx={{ overflowY: "scroll" }}
             >

@@ -28,10 +28,8 @@ export const createUppyInstance = (assessmentId: number) => {
     target: document.body, 
   });
   uppy.on('file-added', (file) => {
-    console.log(`File added: ${file.name}, Size: ${file.size}`);
-    if(!file.size || file.size === 0) {
-      console.log("File size is missing or 0");
-    }
+   const fileSizeInMB = file.size ? (file.size / (1024 * 1024)).toFixed(2) : "0.00";
+   console.log(`File added: ${file.name}, size: ${fileSizeInMB} MB`);
   });
 
 

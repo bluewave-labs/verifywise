@@ -28,9 +28,14 @@ export const createUppyInstance = (assessmentId: number) => {
     target: document.body, 
   });
   uppy.on('file-added', (file) => {
-   const fileSizeInMB = file.size ? (file.size / (1024 * 1024)).toFixed(2) : "0.00";
-   console.log(`File added: ${file.name}, size: ${fileSizeInMB} MB`);
+console.log('file object: ', file);
   });
+  //  uppy.on("file-added", (file) => {
+  //    const fileSizeInMB = file.size
+  //      ? (file.size / (1024 * 1024)).toFixed(2)
+  //      : "0.00";
+  //    console.log(`File added: ${file.name}, size: ${fileSizeInMB} MB`);
+  //  });
 
 
   return uppy;

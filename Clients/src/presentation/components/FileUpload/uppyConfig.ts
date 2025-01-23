@@ -4,7 +4,7 @@ import DropTarget from "@uppy/drop-target";
 
 
 
-export const createUppyInstance = (assessmentId:string | number) => {
+export const createUppyInstance = (assessmentId: number) => {
   const uppy = new Uppy({
     restrictions: {
       allowedFileTypes: ["application/pdf"], 

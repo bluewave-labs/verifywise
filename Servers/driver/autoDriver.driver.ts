@@ -18,6 +18,7 @@ import mockVendorRisks from "../mocks/vendorRisk.mock.data";
 import { Assessment } from "../models/assessment.model";
 import { Control } from "../models/control.model";
 import { ControlCategory } from "../models/controlCategory.model";
+import { File } from "../models/file.model";
 import { Project } from "../models/project.model";
 import { ProjectRisk } from "../models/projectRisk.model";
 import { ProjectScope } from "../models/projectScope.model";
@@ -61,7 +62,8 @@ type TableList = [
   TableEntry<ProjectScope>,
   TableEntry<Topic>,
   TableEntry<Subtopic>,
-  TableEntry<Question>
+  TableEntry<Question>,
+  TableEntry<File>
 ];
 
 const insertQuery: TableList = [
@@ -464,6 +466,22 @@ const insertQuery: TableList = [
         '${question.priorityLevel}',
         ARRAY[]::TEXT[],
         '${question.answer}'
+      )`;
+    },
+  },
+  {
+    mockData: [] as File[],
+    tableName: "files",
+    createString: `CREATE TABLE files (
+      id SERIAL PRIMARY KEY,
+      filename TEXT NOT NULL,
+      content BYTEA NOT NULL
+    );`,
+    insertString: "INSERT INTO files(filename, content) VALUES ",
+    generateValuesString: (file: File) => {
+      return `(
+        '${file.filename}',
+        '${file.content}'
       )`;
     },
   },

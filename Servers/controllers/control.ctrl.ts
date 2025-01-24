@@ -272,8 +272,8 @@ export async function saveControls(req: RequestWithFile, res: Response): Promise
 
       // now we need to iterate over subcontrols inside the control, and create a subcontrol for each subcontrol
       const subcontrols = requestControl.subControls;
+      const subControlResp = []
       for (const subcontrol of subcontrols) {
-        console.log(req.files);
         const subcontrolToSave: any = await createNewSubcontrolQuery(
           controlId,
           subcontrol,
@@ -284,12 +284,12 @@ export async function saveControls(req: RequestWithFile, res: Response): Promise
             [key: string]: UploadedFile[]
           }).feedbackFiles || []
         );
-        console.log("subcontrolToSave : ", subcontrolToSave);
+        subControlResp.push(subcontrolToSave)
       }
-
-      res.status(200).json(
+      const response = { ...{ controlCategory, ...{ control, subControls: subControlResp } } }
+      return res.status(200).json(
         STATUS_CODE[200]({
-          message: "Controls saved",
+          message: response,
         })
       );
     }

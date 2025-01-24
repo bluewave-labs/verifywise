@@ -74,6 +74,8 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
       return;
     }
 
+    const fileSizeInMB = file.size ? (file.size / (1024 * 1024)).toFixed(2) : "0.00";
+
     // Prevent duplicate files
     setUploadedFiles((prevFiles) => {
       const fileExists = prevFiles.some((f) => f.id === file.id);
@@ -86,6 +88,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
         {
           id: file.id,
           name: file.name,
+          size: `${fileSizeInMB} MB`,
           data: file.data,
         },
       ];
@@ -153,6 +156,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
       hideAfterFinish: false,
       hideRetryButton: true,
       hidePauseResumeButton: true,
+      hideCancelButton: true,
     });
 
     uppy.on("file-added", handleFileAdded);

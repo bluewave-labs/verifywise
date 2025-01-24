@@ -1,6 +1,5 @@
 import { Box, Button, Stack, Tab, Typography, useTheme } from "@mui/material";
 import React from "react";
-import projectOverviewData from "../../mocks/projects/project-overview.data";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
@@ -9,7 +8,7 @@ import RisksView from "./RisksView";
 import ProjectSettings from "./ProjectSettings";
 import emptyStateImg from "../../assets/imgs/empty-state.svg";
 import useProjectRisks from "../../../application/hooks/useProjectRisks";
-import useVendorRisks from "../../../application/hooks/usevendorRisks";
+import useVendorRisks from "../../../application/hooks/useVendorRisks";
 import { useSearchParams } from "react-router-dom";
 import useProjectData from "../../../application/hooks/useProjectData";
 

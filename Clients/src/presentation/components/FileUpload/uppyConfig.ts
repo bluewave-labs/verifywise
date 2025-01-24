@@ -4,10 +4,11 @@ import DropTarget from "@uppy/drop-target";
 
 
 
-export const createUppyInstance = (assessmentId:string | number) => {
+export const createUppyInstance = (assessmentId: number) => {
   const uppy = new Uppy({
     restrictions: {
       allowedFileTypes: ["application/pdf"], 
+      maxFileSize:null,
     },
     autoProceed: true, 
     debug: true,
@@ -26,6 +27,15 @@ export const createUppyInstance = (assessmentId:string | number) => {
   uppy.use(DropTarget, {
     target: document.body, 
   });
+  uppy.on('file-added', (file) => {
+console.log('file object: ', file);
+  });
+  //  uppy.on("file-added", (file) => {
+  //    const fileSizeInMB = file.size
+  //      ? (file.size / (1024 * 1024)).toFixed(2)
+  //      : "0.00";
+  //    console.log(`File added: ${file.name}, size: ${fileSizeInMB} MB`);
+  //  });
 
 
   return uppy;

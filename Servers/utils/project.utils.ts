@@ -95,11 +95,13 @@ export const deleteProjectByIdQuery = async (
   const deleteHelper = async (childObject: Record<string, any>, parent_id: number) => {
     const childTableName = Object.keys(childObject).filter(k => k !== "foreignKey")[0]
     const childIds = await pool.query(`SELECT id FROM ${childTableName} WHERE ${childObject[childTableName].foreignKey} = $1`, [parent_id])
-    Object.keys(childObject[childTableName]).filter(k => k !== "foreignKey").forEach(async k => {
-      for (let ch of childIds.rows) {
-        await deleteHelper({ [k]: childObject[childTableName][k] }, ch.id)
-      }
-    })
+    await Promise.all(Object.keys(childObject[childTableName])
+      .filter(k => k !== "foreignKey")
+      .map(async k => {
+        for (let ch of childIds.rows) {
+          await deleteHelper({ [k]: childObject[childTableName][k] }, ch.id)
+        }
+      }))
     await deleteTable(childTableName, childObject[childTableName].foreignKey, parent_id)
   }
 

@@ -44,7 +44,9 @@ export const getQuestionByIdQuery = async (
 };
 
 export interface RequestWithFile extends Request {
-  files?: UploadedFile[];
+  files?: UploadedFile[] | {
+    [key: string]: UploadedFile[]
+  };
 }
 export interface UploadedFile {
   originalname: string;

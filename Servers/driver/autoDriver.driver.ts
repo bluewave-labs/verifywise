@@ -265,11 +265,12 @@ const insertQuery: TableList = [
       due_date DATE,
       implementation_details TEXT,
       evidence VARCHAR(255),
-      attachment VARCHAR(255),
-      feedback TEXT
+      feedback TEXT,
+      evidenceFiles TEXT[],
+      feedbackFiles TEXT[]
     );`,
     insertString:
-      "INSERT INTO subcontrols(control_id, status, approver, risk_review, owner, reviewer, due_date, implementation_details, evidence, attachment, feedback) VALUES ",
+      "INSERT INTO subcontrols(control_id, status, approver, risk_review, owner, reviewer, due_date, implementation_details, evidence, feedback, evidenceFiles, feedbackFiles) VALUES ",
     generateValuesString: function (subControl: Subcontrol) {
       return `(
         '${subControl.controlId}',
@@ -281,8 +282,9 @@ const insertQuery: TableList = [
         '${subControl.dueDate.toISOString().split("T")[0]}',
         '${subControl.implementationDetails}',
         '${subControl.evidence}',
-        '${subControl.attachment}',
-        '${subControl.feedback}'
+        '${subControl.feedback}',
+        ARRAY[]::TEXT[],
+        ARRAY[]::TEXT[]
       )`;
     },
   },
@@ -481,15 +483,21 @@ export async function insertMockData() {
       insertString,
       generateValuesString,
     } = entry;
-    if (!(await checkTableExists(tableName as string))) {
-      await createTable(createString as string);
+    await createTable(createString as string)
+    if (tableName === "users" || tableName === "roles") {
+      const values = mockData.map((d) => generateValuesString(d as any));
+      insertString += values.join(",") + ";";
+      await insertData(insertString as string);
     }
-    if (await checkDataExists(tableName) === 1) {
-      continue
-    }
-    const values = mockData.map((d) => generateValuesString(d as any));
-    insertString += values.join(",") + ";";
-    await insertData(insertString as string);
+    // if (!(await checkTableExists(tableName as string))) {
+    //   await createTable(createString as string);
+    // }
+    // if (await checkDataExists(tableName) === 1) {
+    //   continue
+    // }
+    // const values = mockData.map((d) => generateValuesString(d as any));
+    // insertString += values.join(",") + ";";
+    // await insertData(insertString as string);
   }
 }
 

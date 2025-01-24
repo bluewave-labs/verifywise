@@ -1,5 +1,7 @@
 import { Subcontrol } from "../models/subcontrol.model";
 import pool from "../database/db";
+import { UploadedFile } from "./question.utils";
+import { uploadFile } from "./fileUpload.utils";
 
 export const getAllSubcontrolsQuery = async (): Promise<Subcontrol[]> => {
   console.log("getAllSubcontrols");
@@ -28,16 +30,34 @@ export const createNewSubcontrolQuery = async (
     dueDate: Date;
     implementationDetails: string;
     evidence: string;
-    attachment: string;
     feedback: string;
-  }
+  },
+  evidenceFiles?: UploadedFile[],
+  feedbackFiles?: UploadedFile[]
 ): Promise<Subcontrol> => {
   console.log("createNewSubcontrol", subcontrol);
+
+  let uploadedEvidenceFiles: { id: number, fileName: string }[] = [];
+  await Promise.all(
+    evidenceFiles!.map(async (file) => {
+      const uploadedFile = await uploadFile(file);
+      uploadedEvidenceFiles.push({ id: uploadedFile.id.toString(), fileName: uploadedFile.filename });
+    })
+  );
+
+  let uploadedFeedbackFiles: { id: number, fileName: string }[] = [];
+  await Promise.all(
+    feedbackFiles!.map(async (file) => {
+      const uploadedFile = await uploadFile(file);
+      uploadedFeedbackFiles.push({ id: uploadedFile.id.toString(), fileName: uploadedFile.filename });
+    })
+  );
+
   const result = await pool.query(
     `INSERT INTO subcontrols (
       control_id, status, approver, risk_review, owner, reviewer, due_date, 
-      implementation_details, evidence, attachment, feedback
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
+      implementation_details, evidence, feedback, evidenceFiles, feedbackFiles
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
     [
       controlId,
       subcontrol.status,
@@ -48,8 +68,9 @@ export const createNewSubcontrolQuery = async (
       subcontrol.dueDate,
       subcontrol.implementationDetails,
       subcontrol.evidence,
-      subcontrol.attachment,
       subcontrol.feedback,
+      uploadedEvidenceFiles,
+      uploadedFeedbackFiles
     ]
   );
   return result.rows[0];

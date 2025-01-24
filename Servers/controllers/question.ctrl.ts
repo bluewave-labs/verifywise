@@ -16,6 +16,7 @@ import {
   getQuestionByIdQuery,
   updateQuestionByIdQuery,
   RequestWithFile,
+  UploadedFile,
 } from "../utils/question.utils";
 
 export async function getAllQuestions(
@@ -118,7 +119,7 @@ export async function createQuestion(
     } else {
       const createdQuestion = await createNewQuestionQuery(
         newQuestion,
-        req.files!
+        req.files as UploadedFile[]
       );
 
       if (createdQuestion) {
@@ -174,7 +175,7 @@ export async function updateQuestionById(
       const question = await updateQuestionByIdQuery(
         questionId,
         updatedQuestion,
-        req.files!
+        req.files as UploadedFile[]
       );
 
       if (question) {

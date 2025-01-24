@@ -40,6 +40,7 @@ import {
   createNewQuestionQuery,
   RequestWithFile,
   updateQuestionByIdQuery,
+  UploadedFile,
 } from "../utils/question.utils";
 
 export async function getAllAssessments(
@@ -273,7 +274,7 @@ export async function saveAnswers(req: RequestWithFile, res: Response): Promise<
               priorityLevel: question.priorityLevel,
               answer: question.answer,
             },
-            req.files
+            req.files as UploadedFile[]
           );
           questionResp.push(questionSaved)
         }

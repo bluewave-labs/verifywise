@@ -74,13 +74,70 @@ export const deleteProjectByIdQuery = async (
   id: number
 ): Promise<Project | null> => {
   console.log("deleteProjectById", id);
-  const dependantEntities = ["vendors", "assessments", "controlcategories", "projectrisks", "vendorrisks"]
-  for (let entity of dependantEntities) {
+  // projects:
+  //    vendors
+  //    assessments: topics, projectscopes
+  //    topics: subtopics
+  //    subtopics: questions
+  //    controlcategories: controls
+  //    controls: subcontrols
+  //    projectrisks
+  //    vendorrisks
+
+  const deleteTable = async (entity: string, foreignKey: string, id: number) => {
     console.log(`Deleting from records from ${entity}`);
     await pool.query(
-      `DELETE FROM ${entity} WHERE project_id = $1`,
+      `DELETE FROM ${entity} WHERE ${foreignKey} = $1 `,
       [id]
     );
+  }
+
+  const deleteHelper = async (childObject: Record<string, any>, parent_id: number) => {
+    const childTableName = Object.keys(childObject).filter(k => k !== "foreignKey")[0]
+    const childIds = await pool.query(`SELECT id FROM ${childTableName} WHERE ${childObject[childTableName].foreignKey} = $1`, [parent_id])
+    Object.keys(childObject[childTableName]).filter(k => k !== "foreignKey").forEach(async k => {
+      for (let ch of childIds.rows) {
+        await deleteHelper({ [k]: childObject[childTableName][k] }, ch.id)
+      }
+    })
+    await deleteTable(childTableName, childObject[childTableName].foreignKey, parent_id)
+  }
+
+  const dependantEntities = [
+    { "vendors": { foreignKey: "project_id" } },
+    { "projectrisks": { foreignKey: "project_id" } },
+    { "vendorrisks": { foreignKey: "project_id" } },
+    {
+      "assessments": {
+        foreignKey: "project_id",
+        "topics": {
+          foreignKey: "assessment_id",
+          "subtopics": {
+            foreignKey: "topic_id",
+            "questions": {
+              foreignKey: "subtopic_id"
+            }
+          }
+        },
+        "projectscopes": {
+          foreignKey: "assessment_id"
+        }
+      }
+    },
+    {
+      "controlcategories": {
+        foreignKey: "project_id",
+        "controls": {
+          foreignKey: "control_group",
+          "subcontrols": {
+            foreignKey: "control_id"
+          }
+        }
+      }
+    }
+  ]
+  for (let entity of dependantEntities) {
+    await deleteHelper(entity, id)
   }
   console.log(`Deleting the project with id ${id}`);
 

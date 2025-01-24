@@ -15,6 +15,7 @@ import userRoutes from "./routes/user.route";
 import vendorRoutes from "./routes/vendor.route";
 import vendorRiskRoutes from "./routes/vendorRisk.route";
 import roleRoutes from "./routes/role.route";
+import fileRoutes from "./routes/file.route";
 
 import autoDriverRoutes from "./routes/autoDriver.route";
 import swaggerUi from "swagger-ui-express";
@@ -51,6 +52,7 @@ try {
   app.use("/subtopics", subtopicRoutes);
   app.use("/topics", topicRoutes);
   app.use("/roles", roleRoutes);
+  app.use("/files", fileRoutes);
 
   app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 

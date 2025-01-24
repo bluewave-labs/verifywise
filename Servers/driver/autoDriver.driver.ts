@@ -446,10 +446,11 @@ const insertQuery: TableList = [
       hint TEXT,
       is_required BOOLEAN,
       priority_level VARCHAR(255),
-      evidence_files TEXT[]
+      evidence_files TEXT[],
+      answer TEXT
     );`,
     insertString:
-      "INSERT INTO questions(subtopic_id, question_text, answer_type, evidence_file_required, hint, is_required, priority_level, evidence_files) VALUES ",
+      "INSERT INTO questions(subtopic_id, question_text, answer_type, evidence_file_required, hint, is_required, priority_level, evidence_files, answer) VALUES ",
     generateValuesString: function (question: Question) {
       return `(
         ${question.subtopicId},
@@ -459,7 +460,8 @@ const insertQuery: TableList = [
         '${question.hint}',
         ${question.isRequired},
         '${question.priorityLevel}',
-        ARRAY[]::TEXT[]
+        ARRAY[]::TEXT[],
+        '${question.answer}'
       )`;
     },
   },

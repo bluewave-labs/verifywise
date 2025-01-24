@@ -40,7 +40,12 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
   };
 
   return (
-    <Modal open={isOpen} onClose={() => setIsOpen(false)}>
+    <Modal open={isOpen}
+    onClose={(_event, reason) => {
+      if (reason !== 'backdropClick') {
+          setIsOpen(false);
+      }
+    }}>
       <Stack
         gap={theme.spacing(2)}
         color={theme.palette.text.secondary}

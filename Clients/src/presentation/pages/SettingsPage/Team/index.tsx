@@ -17,17 +17,13 @@ import {
   useTheme,
   SelectChangeEvent,
   TablePagination,
-  Dialog,
-  DialogTitle,
-  DialogContentText,
-  DialogContent,
-  DialogActions,
 } from "@mui/material";
 import Trashbin from "../../../../presentation/assets/icons/trash-01.svg";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
 import TablePaginationActions from "../../../components/TablePagination";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import InviteUserModal from "../../../components/Modals/InviteUser";
+import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 
 // Enum for roles
 enum Role {
@@ -336,58 +332,23 @@ const TeamManagement: React.FC = (): JSX.Element => {
             </Table>
           </TableContainer>
 
-          <Dialog
-            open={open}
-            onClose={handleClose}
-            sx={{
-              maxWidth: "440px",
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              padding: "32px",
-              transform: "translate(-50%, -50%)",
-              "& .MuiDialog-paper": {
-                borderRadius: "8px",
-                boxShadow: "0 0px 0px rgba(0, 0, 0, 0.1)",
-                backgroundColor: "white",
-                padding: "32px",
-                margin: "0px",
-              },
-              "& .MuiBackdrop-root": {
-                backgroundColor: "rgba(0, 0, 0, 0)",
-              },
-              "& .css-7znkgh-MuiModal-root-MuiDialog-root": {
-                backgroundColor: "rgba(0, 0, 0, 0)",
-              },
-              "& .MuiDialog-container": {
-                backgroundColor: "rgba(0, 0, 0, 0)",
-              },
-            }}
-          >
-            <DialogTitle
-              sx={{ color: "#344054", fontSize: "16px", paddingBottom: "13px" }}
-            >
-              Confirm Delete
-            </DialogTitle>
-            <DialogContent>
-              <DialogContentText sx={{ color: "#344054", fontSize: "13px" }}>
-                Are you sure you want to delete this team member? This action
-                cannot be undone.
-              </DialogContentText>
-            </DialogContent>
-            <DialogActions sx={{ padding: "0px 0px" }}>
-              <Button onClick={handleClose} sx={{ color: "black" }}>
-                Cancel
-              </Button>
-              <Button
-                onClick={confirmDelete}
-                sx={{ backgroundColor: "#DB504A", height: "32px" }}
-                variant="contained"
-              >
-                Delete
-              </Button>
-            </DialogActions>
-          </Dialog>
+          {open && (
+            <DualButtonModal
+              title="Confirm Delete"
+              body={
+                <Typography fontSize={13}>
+                  Are you sure you want to delete your account? This action is
+                  permanent and cannot be undone.
+                </Typography>
+              }
+              cancelText="Cancel"
+              proceedText="Delete"
+              onCancel={handleClose}
+              onProceed={confirmDelete}
+              proceedButtonColor="error"
+              proceedButtonVariant="contained"
+            />
+          )}
 
           <TablePagination
             count={dashboardValues.vendors.length}

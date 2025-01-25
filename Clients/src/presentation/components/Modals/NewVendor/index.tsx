@@ -373,13 +373,13 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             reviewDate: values.vendorDetails.reviewDate,
             riskDescription: values.risks.riskDescription,
             impactDescription: values.risks.impactDescription,
-            impact: 1, //IMPACT_OPTIONS.find(i => i._id === Number(values.risks.impact))?.name || "",
-            probability: 2, //PROBABILITY_OPTIONS.find(p => p._id === Number(values.risks.probability))?.name || "",
+            impact: Number(values.risks.impact), 
+            probability: Number(values.risks.probability), 
             actionOwner: ACTION_OWNER_OPTIONS.find(a => a._id === Number(values.risks.actionOwner))?.name || "",
             actionPlan: values.risks.actionPlan,
-            riskSeverity: 3, //RISK_SEVERITY_OPTIONS.find(r => r._id === Number(values.risks.riskSeverity))?.name || "",
+            riskSeverity: Number(values.risks.riskSeverity), 
             riskLevel: RISK_LEVEL_OPTIONS.find(r => r._id === values.risks.riskLevel)?.name || "",
-            likelihood: 0.5 // LIKELIHOOD_OPTIONS.find(l => l._id === Number(values.risks.likelihood))?.name || "",
+            likelihood: Number(values.risks.likelihood) 
         };
         if (existingVendor) {
             await updateVendor(existingVendor.id!, _vendorDetails);

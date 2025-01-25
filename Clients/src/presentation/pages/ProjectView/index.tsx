@@ -134,8 +134,7 @@ const ProjectView = () => {
                             color: theme.palette.text.secondary,
                         }}
                     >
-                        This project includes all the governance process status of the
-                        Chatbot AI project.
+                        This project includes all the governance process status of the {project.project_title} project.
                     </Typography>
                     <Stack
                         sx={{ minWidth: "968px", overflowX: "auto", whiteSpace: "nowrap" }}

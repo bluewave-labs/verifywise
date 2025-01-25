@@ -30,6 +30,7 @@ import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./application/redux/store"; // Adjust the path as necessary
 import NewComplianceTracker from "./presentation/pages/ComplianceTracker/NewComplianceTracker";
 import useProjectStatus from "./application/hooks/useProjectStatus";
+import ProtectedRoute from "./presentation/components/ProtectedRoute";
 // import ProtectedRoute from "./presentation/components/ProtectedRoute";
 
 function App() {
@@ -55,7 +56,11 @@ function App() {
   const [triggerSidebar, setTriggerSidebar] = useState(false);
 
   const userId = "1"; // TODO: Replace with actual user ID
-  const { projectStatus, loading: loadingProjectStatus, error: errorFetchingProjectStatus } = useProjectStatus({ userId });
+  const {
+    projectStatus,
+    loading: loadingProjectStatus,
+    error: errorFetchingProjectStatus,
+  } = useProjectStatus({ userId });
 
   const login = (token: string) => {
     setToken(token);
@@ -80,7 +85,7 @@ function App() {
       logout,
       projectStatus,
       loadingProjectStatus,
-      errorFetchingProjectStatus
+      errorFetchingProjectStatus,
     }),
     [
       uiValues,
@@ -96,13 +101,13 @@ function App() {
       logout,
       projectStatus,
       loadingProjectStatus,
-      errorFetchingProjectStatus
+      errorFetchingProjectStatus,
     ]
   );
 
   const triggerSidebarReload = () => {
-    setTriggerSidebar((prev) => !prev)
-  }
+    setTriggerSidebar((prev) => !prev);
+  };
 
   return (
     <Provider store={store}>
@@ -113,10 +118,18 @@ function App() {
             <Routes>
               <Route
                 path="/"
-                // element={<ProtectedRoute Component={Dashboard} />} It's commented for now since we're working on other parts an it'll disturb
-                element={<Dashboard reloadTrigger={triggerSidebar}/>}
+                element={
+                  <ProtectedRoute
+                    Component={Dashboard}
+                    reloadTrigger={triggerSidebar}
+                  />
+                }
+                // element={<Dashboard reloadTrigger={triggerSidebar}/>}
               >
-                <Route path="/" element={<Home onProjectUpdate={triggerSidebarReload}/>} />
+                <Route
+                  path="/"
+                  element={<Home onProjectUpdate={triggerSidebarReload} />}
+                />
                 <Route
                   path="/compliance-tracker"
                   element={<NewComplianceTracker />}

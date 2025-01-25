@@ -38,7 +38,9 @@ import {
 } from "../utils/subtopic.utils";
 import {
   createNewQuestionQuery,
+  RequestWithFile,
   updateQuestionByIdQuery,
+  UploadedFile,
 } from "../utils/question.utils";
 
 export async function getAllAssessments(
@@ -211,7 +213,7 @@ export async function deleteAssessmentById(
   }
 }
 
-export async function saveAnswers(req: Request, res: Response): Promise<any> {
+export async function saveAnswers(req: RequestWithFile, res: Response): Promise<any> {
   if (MOCKDATA_ON) {
     try {
       // // first get all assessments
@@ -240,42 +242,50 @@ export async function saveAnswers(req: Request, res: Response): Promise<any> {
     }
     res.status(200);
   } else {
-    // // first get all assessments
-    // const assessments = await getAllAssessmentsQuery();
-    // // if the length is bigger than 1 get the first one
-    const assessmentId = req.body.assessmentId;
-
-    // now, create a topic using the assessmentId and the topic
-    const topic: any = createNewTopicQuery({
-      assessmentId,
-      title: req.body.topic,
-    });
-
-    // now iterate over the subtopics, create a subtopic using topic id and the subtopic
-    const subtopics = req.body.subtopic;
-    for (const subtopic of subtopics) {
-      const subtopicToSave: any = createNewSubtopicQuery({
-        topicId: topic.id,
-        name: subtopic.name,
+    try {
+      const assessmentId = parseInt(req.body.assessmentId);
+      // now, create a topic using the assessmentId and the topic
+      const topic: any = await createNewTopicQuery({
+        assessmentId,
+        title: req.body.topic,
       });
-      const subtopicId = subtopicToSave.id;
-      const questions = subtopic.questions;
-      // now iterate over the questions, create a question using subtopic id and the question
-      for (const question of questions) {
-        createNewQuestionQuery(
-          {
-            subtopicId,
-            questionText: question.question,
-            answerType: question.answerType,
-            evidenceFileRequired: question.evidenceFileRequired,
-            hint: question.hint,
-            isRequired: question.isRequired,
-            priorityLevel: question.priorityLevel,
-            answer: question.answer,
-          },
-          question.evidenceFiles
-        );
+
+      // now iterate over the subtopics, create a subtopic using topic id and the subtopic
+      const subtopics = JSON.parse(req.body.subtopic);
+      const subTopicResp = []
+      for (const subtopic of subtopics) {
+        const subtopicToSave: any = await createNewSubtopicQuery({
+          topicId: topic.id,
+          name: subtopic.name,
+        });
+        const subtopicId = subtopicToSave.id;
+        const questions = subtopic.questions;
+        // now iterate over the questions, create a question using subtopic id and the question
+        const questionResp = []
+        for (const question of questions) {
+          const questionSaved = await createNewQuestionQuery(
+            {
+              subtopicId,
+              questionText: question.question,
+              answerType: question.answerType,
+              evidenceFileRequired: question.evidenceFileRequired,
+              hint: question.hint,
+              isRequired: question.isRequired,
+              priorityLevel: question.priorityLevel,
+              answer: question.answer,
+            },
+            req.files as UploadedFile[]
+          );
+          questionResp.push(questionSaved)
+        }
+        subtopicToSave[questions] = questionResp
+        subTopicResp.push(subtopicToSave)
       }
+      const response = { ...topic, subTopics: subTopicResp }
+      res.status(200).json(STATUS_CODE[200]({ message: response }));
+    }
+    catch (error) {
+      return res.status(500).json(STATUS_CODE[500]((error as Error).message));
     }
   }
 }

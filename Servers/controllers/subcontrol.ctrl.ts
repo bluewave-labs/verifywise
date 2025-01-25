@@ -16,6 +16,7 @@ import {
   getSubcontrolByIdQuery,
   updateSubcontrolByIdQuery,
 } from "../utils/subControl.utils";
+import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 
 export async function getAllSubcontrols(
   req: Request,
@@ -74,7 +75,7 @@ export async function getSubcontrolById(
 }
 
 export async function createNewSubcontrol(
-  req: Request,
+  req: RequestWithFile,
   res: Response
 ): Promise<any> {
   try {
@@ -88,7 +89,6 @@ export async function createNewSubcontrol(
       dueDate: Date;
       implementationDetails: string;
       evidence: string;
-      attachment: string;
       feedback: string;
     } = req.body;
 
@@ -104,7 +104,13 @@ export async function createNewSubcontrol(
       const controlIdFK = req.body.controlId;
       const newSubcontrol = await createNewSubcontrolQuery(
         controlIdFK,
-        subcontrol
+        subcontrol,
+        (req.files as {
+          [key: string]: UploadedFile[]
+        }).evidenceFiles,
+        (req.files as {
+          [key: string]: UploadedFile[]
+        }).feedbackFiles
       );
 
       if (newSubcontrol) {

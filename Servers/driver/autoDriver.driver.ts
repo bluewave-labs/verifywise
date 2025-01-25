@@ -18,6 +18,7 @@ import mockVendorRisks from "../mocks/vendorRisk.mock.data";
 import { Assessment } from "../models/assessment.model";
 import { Control } from "../models/control.model";
 import { ControlCategory } from "../models/controlCategory.model";
+import { File } from "../models/file.model";
 import { Project } from "../models/project.model";
 import { ProjectRisk } from "../models/projectRisk.model";
 import { ProjectScope } from "../models/projectScope.model";
@@ -61,7 +62,8 @@ type TableList = [
   TableEntry<ProjectScope>,
   TableEntry<Topic>,
   TableEntry<Subtopic>,
-  TableEntry<Question>
+  TableEntry<Question>,
+  TableEntry<File>
 ];
 
 const insertQuery: TableList = [
@@ -265,11 +267,12 @@ const insertQuery: TableList = [
       due_date DATE,
       implementation_details TEXT,
       evidence VARCHAR(255),
-      attachment VARCHAR(255),
-      feedback TEXT
+      feedback TEXT,
+      evidenceFiles TEXT[],
+      feedbackFiles TEXT[]
     );`,
     insertString:
-      "INSERT INTO subcontrols(control_id, status, approver, risk_review, owner, reviewer, due_date, implementation_details, evidence, attachment, feedback) VALUES ",
+      "INSERT INTO subcontrols(control_id, status, approver, risk_review, owner, reviewer, due_date, implementation_details, evidence, feedback, evidenceFiles, feedbackFiles) VALUES ",
     generateValuesString: function (subControl: Subcontrol) {
       return `(
         '${subControl.controlId}',
@@ -281,8 +284,9 @@ const insertQuery: TableList = [
         '${subControl.dueDate.toISOString().split("T")[0]}',
         '${subControl.implementationDetails}',
         '${subControl.evidence}',
-        '${subControl.attachment}',
-        '${subControl.feedback}'
+        '${subControl.feedback}',
+        ARRAY[]::TEXT[],
+        ARRAY[]::TEXT[]
       )`;
     },
   },
@@ -446,10 +450,11 @@ const insertQuery: TableList = [
       hint TEXT,
       is_required BOOLEAN,
       priority_level VARCHAR(255),
-      evidence_files TEXT[]
+      evidence_files TEXT[],
+      answer TEXT
     );`,
     insertString:
-      "INSERT INTO questions(subtopic_id, question_text, answer_type, evidence_file_required, hint, is_required, priority_level, evidence_files) VALUES ",
+      "INSERT INTO questions(subtopic_id, question_text, answer_type, evidence_file_required, hint, is_required, priority_level, evidence_files, answer) VALUES ",
     generateValuesString: function (question: Question) {
       return `(
         ${question.subtopicId},
@@ -459,7 +464,24 @@ const insertQuery: TableList = [
         '${question.hint}',
         ${question.isRequired},
         '${question.priorityLevel}',
-        ARRAY[]::TEXT[]
+        ARRAY[]::TEXT[],
+        '${question.answer}'
+      )`;
+    },
+  },
+  {
+    mockData: [] as File[],
+    tableName: "files",
+    createString: `CREATE TABLE files (
+      id SERIAL PRIMARY KEY,
+      filename TEXT NOT NULL,
+      content BYTEA NOT NULL
+    );`,
+    insertString: "INSERT INTO files(filename, content) VALUES ",
+    generateValuesString: (file: File) => {
+      return `(
+        '${file.filename}',
+        '${file.content}'
       )`;
     },
   },
@@ -479,15 +501,21 @@ export async function insertMockData() {
       insertString,
       generateValuesString,
     } = entry;
-    if (!(await checkTableExists(tableName as string))) {
-      await createTable(createString as string);
+    await createTable(createString as string)
+    if (tableName === "users" || tableName === "roles") {
+      const values = mockData.map((d) => generateValuesString(d as any));
+      insertString += values.join(",") + ";";
+      await insertData(insertString as string);
     }
-    if (await checkDataExists(tableName) === 1) {
-      continue
-    }
-    const values = mockData.map((d) => generateValuesString(d as any));
-    insertString += values.join(",") + ";";
-    await insertData(insertString as string);
+    // if (!(await checkTableExists(tableName as string))) {
+    //   await createTable(createString as string);
+    // }
+    // if (await checkDataExists(tableName) === 1) {
+    //   continue
+    // }
+    // const values = mockData.map((d) => generateValuesString(d as any));
+    // insertString += values.join(",") + ";";
+    // await insertData(insertString as string);
   }
 }
 

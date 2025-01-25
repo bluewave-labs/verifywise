@@ -12,7 +12,6 @@ export const subcontrols: Subcontrol[] = [
     dueDate: new Date("2023-12-31"),
     implementationDetails: "Implement new feature",
     evidence: "evidence1.pdf",
-    attachment: "attachment1.docx",
     feedback: "Great work so far.",
   },
   {
@@ -26,7 +25,6 @@ export const subcontrols: Subcontrol[] = [
     dueDate: new Date("2024-06-30"),
     implementationDetails: "Update existing functionality",
     evidence: "evidence2.png",
-    attachment: "attachment2.xlsx",
     feedback: "Please address the feedback provided.",
   },
   {
@@ -40,7 +38,6 @@ export const subcontrols: Subcontrol[] = [
     dueDate: new Date("2023-11-15"),
     implementationDetails: "Conduct security audit",
     evidence: "evidence3.doc",
-    attachment: "attachment3.pdf",
     feedback: "Audit completed successfully.",
   },
   {
@@ -54,7 +51,6 @@ export const subcontrols: Subcontrol[] = [
     dueDate: new Date("2024-01-20"),
     implementationDetails: "Develop new module",
     evidence: "evidence4.jpg",
-    attachment: "attachment4.pptx",
     feedback: "Module development is on track.",
   },
   {
@@ -68,9 +64,8 @@ export const subcontrols: Subcontrol[] = [
     dueDate: new Date("2024-01-20"),
     implementationDetails: "Develop new module",
     evidence: "evidence4.jpg",
-    attachment: "attachment4.pptx",
     feedback: "Module development is on track.",
-  },{
+  }, {
     id: 6,
     controlId: 3,
     status: "In progress",
@@ -81,9 +76,8 @@ export const subcontrols: Subcontrol[] = [
     dueDate: new Date("2024-01-20"),
     implementationDetails: "Develop new module",
     evidence: "evidence4.jpg",
-    attachment: "attachment4.pptx",
     feedback: "Module development is on track.",
-  },{
+  }, {
     id: 7,
     controlId: 4,
     status: "In progress",
@@ -94,9 +88,8 @@ export const subcontrols: Subcontrol[] = [
     dueDate: new Date("2024-01-20"),
     implementationDetails: "Develop new module",
     evidence: "evidence4.jpg",
-    attachment: "attachment4.pptx",
     feedback: "Module development is on track.",
-  },{
+  }, {
     id: 8,
     controlId: 4,
     status: "In progress",
@@ -107,9 +100,8 @@ export const subcontrols: Subcontrol[] = [
     dueDate: new Date("2024-01-20"),
     implementationDetails: "Develop new module",
     evidence: "evidence4.jpg",
-    attachment: "attachment4.pptx",
     feedback: "Module development is on track.",
-  },{
+  }, {
     id: 9,
     controlId: 5,
     status: "In progress",
@@ -120,9 +112,8 @@ export const subcontrols: Subcontrol[] = [
     dueDate: new Date("2024-01-20"),
     implementationDetails: "Develop new module",
     evidence: "evidence4.jpg",
-    attachment: "attachment4.pptx",
     feedback: "Module development is on track.",
-  },{
+  }, {
     id: 10,
     controlId: 5,
     status: "In progress",
@@ -133,9 +124,8 @@ export const subcontrols: Subcontrol[] = [
     dueDate: new Date("2024-01-20"),
     implementationDetails: "Develop new module",
     evidence: "evidence4.jpg",
-    attachment: "attachment4.pptx",
     feedback: "Module development is on track.",
-  },{
+  }, {
     id: 11,
     controlId: 6,
     status: "In progress",
@@ -146,9 +136,8 @@ export const subcontrols: Subcontrol[] = [
     dueDate: new Date("2024-01-20"),
     implementationDetails: "Develop new module",
     evidence: "evidence4.jpg",
-    attachment: "attachment4.pptx",
     feedback: "Module development is on track.",
-  },{
+  }, {
     id: 12,
     controlId: 6,
     status: "In progress",
@@ -159,7 +148,6 @@ export const subcontrols: Subcontrol[] = [
     dueDate: new Date("2024-01-20"),
     implementationDetails: "Develop new module",
     evidence: "evidence4.jpg",
-    attachment: "attachment4.pptx",
     feedback: "Module development is on track.",
   },
 ];

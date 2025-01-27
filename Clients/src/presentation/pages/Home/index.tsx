@@ -100,53 +100,84 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
     body: string;
   } | null>(null);
 
-  const NoProjectsMessage = useMemo(
-    () => (
-      <NoProjectBox>
-        <Box sx={{ display: "flex", justifyContent: "center" }}>
-          <img src={emptyState} alt="Empty project state" />
-        </Box>
-        <Typography
-          sx={{
-            textAlign: "center",
-            mt: 13.5,
-            color: theme.palette.text.tertiary,
-          }}
-        >
-          You have no projects, yet. Click on the "New Project" button to start
-          one.
-        </Typography>
-      </NoProjectBox>
-    ),
-    [theme]
+  const newProjectChecker = useCallback(
+    (data: { isNewProject: boolean; project: any }) => {
+      setIsNewProjectCreate(data.isNewProject);
+      setNewProjectData(data.project);
+
+      if (onProjectUpdate) {
+        onProjectUpdate();
+        setAlert({
+          variant: "success",
+          body: "Project created successfully",
+        });
+
+        setTimeout(() => {
+          setAlert(null);
+        }, 2500);
+      }
+    },
+    [onProjectUpdate]
   );
 
-  const newProjectChecker = (data: { isNewProject: boolean; project: any }) => {
-    setIsNewProjectCreate(data.isNewProject);
-    setNewProjectData(data.project);
+  const [anchor, setAnchor] = useState<null | HTMLElement>(null);
+  const handleOpenOrClose = useCallback(
+    (event: React.MouseEvent<HTMLElement>) => {
+      console.log("handleOpenOrClose called");
+      setAnchor(anchor ? null : event.currentTarget);
+    },
+    [anchor]
+  );
 
-    if (onProjectUpdate) {
-      onProjectUpdate();
-      setAlert({
-        variant: "success",
-        body: "Project created successfully",
-      });
-
-      setTimeout(() => {
-        setAlert(null);
-      }, 2500);
-    }
-  };
+  const NoProjectsMessage = useMemo(() => {
+    return (
+      <>
+        <Stack
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "flex-end",
+            marginBottom: theme.spacing(10),
+          }}
+        >
+          <Suspense fallback={<div>Loading...</div>}>
+            <Popup
+              popupId="create-project-popup"
+              popupContent={
+                <CreateProjectForm
+                  onNewProject={newProjectChecker}
+                  closePopup={() => setAnchor(null)}
+                />
+              }
+              openPopupButtonName="New project"
+              popupTitle="Create new project"
+              popupSubtitle="Create a new project from scratch by filling in the following."
+              handleOpenOrClose={handleOpenOrClose}
+              anchor={anchor}
+              key={anchor ? "open" : "closed"}
+            />
+          </Suspense>
+        </Stack>
+        <NoProjectBox>
+          <Box sx={{ display: "flex", justifyContent: "center" }}>
+            <img src={emptyState} alt="Empty project state" />
+          </Box>
+          <Typography
+            sx={{
+              textAlign: "center",
+              mt: 13.5,
+              color: theme.palette.text.tertiary,
+            }}
+          >
+            You have no projects, yet. Click on the "New Project" button to
+            start one.
+          </Typography>
+        </NoProjectBox>
+      </>
+    );
+  }, [theme, newProjectChecker, anchor]);
 
   const PopupRender = useCallback(() => {
-    const [anchor, setAnchor] = useState<null | HTMLElement>(null);
-    const handleOpenOrClose = useCallback(
-      (event: React.MouseEvent<HTMLElement>) => {
-        setAnchor(anchor ? null : event.currentTarget);
-      },
-      [anchor]
-    );
-
     return (
       <Suspense fallback={<div>Loading...</div>}>
         <Popup
@@ -165,7 +196,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
         />
       </Suspense>
     );
-  }, []);
+  }, [newProjectChecker, handleOpenOrClose, anchor]);
 
   if (loadingProjectStatus)
     return (

@@ -221,7 +221,10 @@ const Login: React.FC = () => {
                 label="Remember for 30 days"
                 isChecked={values.rememberMe}
                 value={values.rememberMe ? "true" : "false"}
-                onChange={() => {}}
+                onChange={(e) => {
+                  setValues({ ...values, rememberMe: e.target.checked });
+                  console.log(values);
+                }}
                 size="small"
               />
               <Typography

@@ -17,7 +17,7 @@ const mockProjects: Project[] = [
   {
     id: 2,
     project_title: "Data Analyzer",
-    owner: 2,
+    owner: 1,
     users: "[4, 5]",
     start_date: new Date("2023-03-22"),
     ai_risk_classification: "limited risk",

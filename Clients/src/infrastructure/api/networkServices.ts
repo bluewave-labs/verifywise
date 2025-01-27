@@ -146,6 +146,35 @@ export const apiServices = {
     }
   },
 
+   /**
+   * Makes a PUT request to the specified endpoint with optional data payload.
+   *
+   * @template T - The type of the response data.
+   * @param {string} endpoint - The API endpoint to send the request to.
+   * @param {any} [data={}] - Optional data payload to include in the request.
+   * @param {RequestParams} [config={}] - Optional configuration for the request.
+   * @returns {Promise<ApiResponse<T>>} - A promise that resolves to the API response.
+   */
+  async put<T>(
+    endpoint: string,
+    data: any = {},
+    config: RequestParams = {}
+  ): Promise<ApiResponse<T>> {
+    logRequest("patch", endpoint, undefined, data);
+    try {
+      const response = await CustomAxios.put(endpoint, data, config);
+      logResponse("patch", endpoint, response);
+      return {
+        data: response.data,
+        status: response.status,
+        statusText: response.statusText,
+      };
+    } catch (error) {
+      handleError(error);
+      return undefined as unknown as ApiResponse<T>;
+    }
+  },
+
   /**
    * Makes a DELETE request to the specified endpoint.
    *

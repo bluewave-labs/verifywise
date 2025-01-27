@@ -99,7 +99,7 @@ export async function updateEntityById({
   authToken = getAuthToken(),
 }: RequestParams): Promise<any> {
   try {
-    const response = await apiServices.patch(routeUrl, body, {
+    const response = await apiServices.put(routeUrl, body, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
     console.log(

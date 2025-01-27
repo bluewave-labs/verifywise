@@ -21,7 +21,7 @@ import { assessments } from "./assessments";
 import { priorities, PriorityLevel } from "./priorities";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import Alert from "../../../components/Alert";
-import FileUploadModal from "../../../components/Modals/FileUpload";
+import FileUploadComponent from "../../../components/FileUpload";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 
 interface AssessmentValue {
@@ -71,7 +71,9 @@ const AllAssessment = () => {
   //modal
   const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
   const handleOpenFileUploadModal = () => setFileUploadModalOpen(true);
-  const handleCloseFileUploadModal = () => setFileUploadModalOpen(false);
+  const handleCloseFileUploadModal = () => {
+    console.log("Closing file upload modal");
+    setFileUploadModalOpen(false);}
 
   const activeAssessmentId = Topics[activeTab]?.id;
 
@@ -486,19 +488,19 @@ const AllAssessment = () => {
           onClick={() => setAlert({ show: false, message: "" })}
         />
       )}
-      {/* FileUploadModal*/}
-      <FileUploadModal
-        open={fileUploadModalOpen}
-        onClose={handleCloseFileUploadModal}
-        uploadProps={{
-          onSuccess: () => {
-            console.log("File uploaded successfully!");
-            handleCloseFileUploadModal();
-          },
-          onError: (errorMessage: string) => console.error(errorMessage),
-          allowedFileTypes: ["application/pdf"],
-          assessmentId: activeAssessmentId,
-        }}
+      {/* FileUploadComponent*/}
+      
+      <FileUploadComponent
+      open={fileUploadModalOpen}
+       onSuccess={()=>{
+        console.log("File uploaded successfully");
+        handleCloseFileUploadModal();
+       }}
+       onError={(message)=>console.log("Error uploading file: ", message)}
+       onStart={()=>console.log("File upload started")}
+       onClose={handleCloseFileUploadModal}
+       allowedFileTypes={["application/pdf"]}
+       assessmentId={activeAssessmentId}
       />
       {isModalOpen && (
         <DualButtonModal

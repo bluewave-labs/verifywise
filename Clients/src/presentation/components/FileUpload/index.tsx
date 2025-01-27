@@ -27,6 +27,7 @@ import {
 } from "../../../application/redux/slices/fileSlice";
 
 const FileUploadComponent: React.FC<FileUploadProps> = ({
+  open,
   onSuccess,
   onError,
   onStart,
@@ -35,6 +36,9 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
   onHeightChange,
   assessmentId,
 }) => {
+  if(!open) {
+    return null;
+  }
   const dispatch = useDispatch();
 
   // Local state to display uploaded files
@@ -51,6 +55,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
     () => ({
       strings: {
         dropHereOr: "Click to upload or drag and drop",
+      
       },
       pluralize: (count: number) => count,
     }),
@@ -75,7 +80,9 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
       return;
     }
 
-    const fileSizeInMB = file.size ? (file.size / (1024 * 1024)).toFixed(2) : "0.00";
+    const fileSizeInMB = file.size
+      ? (file.size / (1024 * 1024)).toFixed(2)
+      : "0.00";
 
     // Prevent duplicate files
     setUploadedFiles((prevFiles) => {
@@ -100,6 +107,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
   const handleUploadSuccess = (file: any) => {
     console.log("upload success:", file);
     onSuccess?.(file);
+    onClose?.();
 
     // Update Redux state
     dispatch(
@@ -120,14 +128,8 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
     console.log("upload error", { error, file });
     onError?.("upload failed");
   };
-
-
   const handleUploadComplete = (result: any) => {
     console.log("all uploads complete", result);
-    onSuccess?.(result);
-     if (onClose) {
-       onClose();
-     }
   };
 
   //file removal logic
@@ -182,14 +184,17 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
   }, [uppy]);
 
   const handleUploadClick = () => {
+    console.log("upload clicked");
     if (uploadedFiles.length === 0) {
       setOpenPopup(true); // Open popup if no file is selected
-    } else {
+      return;
+    } 
       uppy.upload();
-       if (onClose) {
-         onClose();
-       }
-    }
+
+      if(onClose) {
+        onClose();
+      }
+    
   };
 
   return (
@@ -279,7 +284,11 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
                     <ListItemText
                       primary={file.name}
                       secondary={`Size: ${file.size}`}
-                      sx={{ fontSize: "12px", wordBreak: "break-word", maxWidth: "100%" }}
+                      sx={{
+                        fontSize: "12px",
+                        wordBreak: "break-word",
+                        maxWidth: "100%",
+                      }}
                     />
 
                     <IconButton

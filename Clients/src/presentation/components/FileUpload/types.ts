@@ -1,4 +1,5 @@
 export interface FileUploadProps {
+  open: boolean;
   onSuccess?: (file: any) => void;
   onStart?: () => void;
   onError?: (message: string) => void;

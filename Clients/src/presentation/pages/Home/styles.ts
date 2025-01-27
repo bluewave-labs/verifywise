@@ -1,7 +1,7 @@
 import { Box } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
-export const NoProjectBox = styled(Box)(({ theme }) => ({ 
+export const NoProjectBox = styled(Box)(({ theme }) => ({
   display: "block",
   width: "100%",
   border: `1px solid ${theme.palette.border.light}`,
@@ -22,5 +22,9 @@ export const styles = {
       justifyContent: "space-between",
       alignItems: "flex-end",
       mb: 9,
-    }
+    },
+    newProjectButtonBox: {
+      display: "flex",
+      justifyContent: "flex-end"
+    },
 }

@@ -4,7 +4,6 @@ import React, {
   useEffect,
   useState,
   useCallback,
-  useMemo,
   FC,
   useContext,
 } from "react";
@@ -362,7 +361,15 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
           </Stack>
         </>
       ) : (
-        NoProjectsMessage
+        <Stack spacing={9}>
+          <Box sx={styles.projectBox}>
+            <Typography variant="h1" component="div" sx={styles.title}>
+              Projects overview
+            </Typography>
+            <PopupRender />
+          </Box>
+          <NoProjectsMessage />
+        </Stack>
       )}
     </Box>
   );

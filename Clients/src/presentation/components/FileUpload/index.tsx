@@ -30,6 +30,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
   onSuccess,
   onError,
   onStart,
+  onClose,
   allowedFileTypes = ["application/pdf"],
   onHeightChange,
   assessmentId,
@@ -119,8 +120,14 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
     console.log("upload error", { error, file });
     onError?.("upload failed");
   };
+
+
   const handleUploadComplete = (result: any) => {
     console.log("all uploads complete", result);
+    onSuccess?.(result);
+     if (onClose) {
+       onClose();
+     }
   };
 
   //file removal logic
@@ -179,6 +186,9 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
       setOpenPopup(true); // Open popup if no file is selected
     } else {
       uppy.upload();
+       if (onClose) {
+         onClose();
+       }
     }
   };
 

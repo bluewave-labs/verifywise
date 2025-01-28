@@ -10,6 +10,7 @@ import Alert from "../../../components/Alert";
 import useRegisterUser from "../../../../application/hooks/useRegisterUser";
 import { useNavigate } from "react-router-dom";
 import { ALERT_TIMEOUT } from "../../../../application/constants/apiResponses";
+import DisabledOverlay from "../../../components/DisabledOverlay";
 
 export interface AlertType {
   variant: "success" | "info" | "warning" | "error";
@@ -37,6 +38,9 @@ const RegisterUser: React.FC = () => {
   // Password checks based on the password input
   const passwordChecks = validatePassword(values);
 
+  //disabled overlay state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // Handle input field changes
   const handleChange =
     (prop: keyof FormValues) =>
@@ -48,6 +52,8 @@ const RegisterUser: React.FC = () => {
   // Handle form submission
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+setIsSubmitting(true);
+
     const user = {
       id: "At register level as user",
       firstname: values.name || "",
@@ -57,12 +63,18 @@ const RegisterUser: React.FC = () => {
     const { isFormValid, errors } = validateForm(values);
     if (!isFormValid) {
       setErrors(errors);
+      setIsSubmitting(false);
     } else {
       const { isSuccess } = await registerUser({ values, user, setAlert });
       if (isSuccess) {
         setValues(initialState);
         setErrors({});
-        setTimeout(() => navigate("/login"), ALERT_TIMEOUT);
+        setTimeout(() => {
+          navigate("/login");
+          setIsSubmitting(false);
+        }, ALERT_TIMEOUT + 1000);
+      } else{
+        setIsSubmitting(false);
       }
     }
   };
@@ -101,6 +113,7 @@ const RegisterUser: React.FC = () => {
           onClick={() => setAlert(null)}
         />
       )}
+      <DisabledOverlay isActive={isSubmitting} />
       <form onSubmit={handleSubmit}>
         <Stack
           className="reg-user-form"

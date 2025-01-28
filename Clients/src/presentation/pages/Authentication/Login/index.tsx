@@ -11,6 +11,7 @@ import Alert from "../../../components/Alert";
 import { logEngine } from "../../../../application/tools/log.engine";
 import { useDispatch } from "react-redux";
 import { setAuthToken } from "../../../../application/authentication/authSlice";
+import DisabledOverlay from "../../../components/DisabledOverlay";
 
 // Define the shape of form values
 interface FormValues {
@@ -39,6 +40,9 @@ const Login: React.FC = () => {
     body: string;
   } | null>(null);
 
+  //disabled overlay state 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // Handle changes in input fields
   const handleChange =
     (prop: keyof FormValues) =>
@@ -49,6 +53,7 @@ const Login: React.FC = () => {
   // Handle form submission
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setIsSubmitting(true);
 
     const user = {
       id: "At login level", // Replace with actual user ID
@@ -127,6 +132,8 @@ const Login: React.FC = () => {
           user,
         });
         setTimeout(() => setAlert(null), 3000);
+      }).finally(() => {
+        setIsSubmitting(false);
       });
   };
 
@@ -164,6 +171,7 @@ const Login: React.FC = () => {
           onClick={() => setAlert(null)}
         />
       )}
+      <DisabledOverlay isActive={isSubmitting} />
       <form onSubmit={handleSubmit}>
         <Stack
           className="reg-admin-form"

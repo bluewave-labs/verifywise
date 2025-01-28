@@ -10,25 +10,13 @@ In order to use VerifyWise via Docker, you will need a `.env` file and a `docker
 
 To set up VerifyWise in Docker, do the following:
 
-1. From the root of our [GitHub repository,](https://github.com/bluewave-labs/verifywise) download `env-example` and `docker-compose.yml`.
-2. Move `env-example` and `docker-compose.yml` to the directory where your VerifyWise container will be running. This directory will be referred to as your working directory from now on.
-3. Open `env-example` in a text editor, modify environment variables as needed, and save your work to `.env`. Alternatively, you can supply your own `.env` file. 
-4. Start your local Docker instance.
-5. In your working directory, run `docker-compose up`.
+1. From the root of our [GitHub repository,](https://github.com/bluewave-labs/verifywise) download `.env`, `docker-compose.yml`, `SQL_Commands_1.sql` and `SQL_Commands_2.sql`.
+2. Move all the downloaded files to the directory where your VerifyWise container will be running. This directory will be referred to as your working directory from now on.
+3. Start your local Docker instance.
+4. In your working directory, open bash terminal
+5. Run `chmod +x init-script.sh` followed by `./install.sh`.
 
-### PostGreSQL setup
-
-Now, you need to connect VerifyWise to your PostGreSQL database. We will use PgAdmin to demonstrate the process here with a completely new PostGreSQL instance.
-
-1. Install and run PgAdmin.
-2. Register a new server in PgAdmin. The following steps will all be carried out in the PgAdmin user interface.
-3. Call the new instance `docker-postgres`.
-4. Change the server port to the value of `LOCAL_DB_PORT`, as specified in your `.env` file. The default (in `env.example) is port `5433`.
-5. Add DB_NAME (from `.env`) as the database username.
-6. Add DB_PASSWORD (from `.env`) as the database password.
-7. Save your changes.
-
-You're done! By default, the VerifyWise backend runs on `localhost:3000` and the VerifyWise frontend runs on `localhost:8080`. This can be configured by modifying the `.env` file in your working directory.
+#### NOTE: The `.env` file is configured as per the default settings. Alternatively, you can supply your own `.env` file.
 
 ## Developer Setup for VerifyWise via `npm`
 

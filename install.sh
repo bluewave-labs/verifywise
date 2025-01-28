@@ -44,29 +44,29 @@ initialize_db() {
     PG_CONTAINER=$(docker-compose ps | grep postgresdb | grep Up | awk '{print $1}')
     
     # Check if SQL files exist
-    if [ ! -f "initialize.sql" ] || [ ! -f "setup.sql" ]; then
-        echo "Error: Required SQL files (initialize.sql and/or setup.sql) not found"
+    if [ ! -f "SQL_Commands_1.sql" ] || [ ! -f "SQL_Commands_2.sql" ]; then
+        echo "Error: Required SQL files (SQL_Commands_1.sql and/or SQL_Commands_2.sql) not found"
         exit 1
     fi
 
     # Copy SQL files to container
     echo "Copying SQL files to container..."
-    docker cp ./initialize.sql $PG_CONTAINER:/initialize.sql
-    docker cp ./setup.sql $PG_CONTAINER:/setup.sql
+    docker cp ./SQL_Commands_1.sql $PG_CONTAINER:/SQL_Commands_1.sql
+    docker cp ./SQL_Commands_2.sql $PG_CONTAINER:/SQL_Commands_2.sql
 
     # Execute SQL files inside container
-    echo "Executing initialize.sql..."
-    docker exec -i $PG_CONTAINER psql -U $DB_USER -d $DB_NAME -f ./initialize.sql
+    echo "Executing SQL_Commands_1.sql..."
+    docker exec -i $PG_CONTAINER psql -U $DB_USER -d $DB_NAME -f ./SQL_Commands_1.sql
     
-    echo "Executing setup.sql..."
-    docker exec -i $PG_CONTAINER psql -U $DB_USER -d $DB_NAME -f ./setup.sql
+    echo "Executing SQL_Commands_2.sql..."
+    docker exec -i $PG_CONTAINER psql -U $DB_USER -d $DB_NAME -f ./SQL_Commands_2.sql
 
     if [ $? -eq 0 ]; then
         touch .db_initialized
         echo "Database initialized successfully"
         
         # Clean up SQL files from container
-        docker exec $PG_CONTAINER rm ./initialize.sql ./setup.sql
+        docker exec $PG_CONTAINER rm ./SQL_Commands_1.sql ./SQL_Commands_2.sql
     else
         echo "Error: Failed to initialize database"
         exit 1

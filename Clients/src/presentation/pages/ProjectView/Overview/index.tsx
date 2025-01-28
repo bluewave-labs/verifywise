@@ -30,7 +30,7 @@ interface ProgressBarCardProps {
 const Overview: FC<OverviewProps> = memo(({ projectRisksSummary, vendorRisksSummary }) => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") ?? "1"; // default project ID is 2
-  const { project, error, isLoading } = useProjectData({ projectId });
+  const { project, projectOwner, error, isLoading } = useProjectData({ projectId });
   const theme = useTheme();
   const { projectStatus } = useContext(VerifyWiseContext);
 
@@ -108,7 +108,7 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary, vendorRisksSumm
       <Stack direction="row" spacing={18} sx={{ pb: "31px" }}>
         <Stack sx={styles.block}>
           <Typography sx={styles.title}>Owner</Typography>
-          <Typography sx={styles.value}>{project.owner}</Typography>
+          <Typography sx={styles.value}>{projectOwner}</Typography>
         </Stack>
         <Stack sx={styles.block}>
           <Typography sx={styles.title}>Last updated</Typography>

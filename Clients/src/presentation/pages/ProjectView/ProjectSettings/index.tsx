@@ -6,7 +6,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import React, { FC, useState, useCallback, useMemo } from "react";
+import React, { FC, useState, useCallback, useMemo, useEffect } from "react";
 import Field from "../../../components/Inputs/Field";
 import DatePicker from "../../../components/Inputs/Datepicker";
 import dayjs, { Dayjs } from "dayjs";
@@ -30,7 +30,7 @@ interface FormValues {
   goal: string;
   owner: number;
   startDate: string;
-  addUsers: [];
+  addUsers: number[];
   riskClassification: number;
   typeOfHighRiskRole: number;
 }
@@ -73,6 +73,31 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
       visible: boolean;
     } | null>(null);
 
+    useEffect(() => {
+      if(project){
+        initialState.projectTitle = project?.project_title ?? ''
+        setValues(initialState)
+      }
+      
+    }, [project])
+
+    useEffect(() => {
+      if (project) {
+        const returnedData: FormValues = {
+          ...initialState,
+          projectTitle: project.project_title ?? "",
+          goal: project.goal ?? "",
+          owner: parseInt(project.owner) ?? 0,
+          startDate: project.start_date.toString() ?? "",
+          addUsers: [parseInt(project.users)] ?? [],
+          riskClassification: parseInt(project.ai_risk_classification) ?? 0,
+          typeOfHighRiskRole: parseInt(project.type_of_high_risk_role) ?? 0,
+        };
+    
+        setValues(returnedData);
+      }
+    }, [project]);
+
     const handleDateChange = useCallback((newDate: Dayjs | null) => {
       if(newDate?.isValid()){
         setValues((prevValues) => ({
@@ -101,15 +126,13 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             ...prevValues,
             [prop]: event.target.value as number[],
           }));
-          setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
+          setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));          
         },
       []
     );
 
-    const handleOnTextFieldChange = useCallback(
-      (prop: keyof FormValues) =>
-        (event: React.ChangeEvent<HTMLInputElement>) => {
-          setValues((prevValues) => ({
+    const handleOnTextFieldChange = useCallback((prop: keyof FormValues) => (event: React.ChangeEvent<HTMLInputElement>) => {      
+      setValues((prevValues) => ({
             ...prevValues,
             [prop]: event.target.value,
           }));
@@ -117,6 +140,16 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
         },
       []
     );
+    
+//     useCallback((prop: keyof FormValues) => (event: React.ChangeEvent<HTMLInputElement>) => {
+//       setValues((prevValues) => ({
+//         ...prevValues,
+//         [prop]: event.target.value,
+//       }));
+//       setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
+//     },
+//   []
+// );
 
     const validateForm = useCallback((): boolean => {
       const newErrors: FormErrors = {};
@@ -176,7 +209,8 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
         event.preventDefault();
         if (validateForm()) {
           //request to the backend
-          setTabValue("overview");
+          // setTabValue("overview");
+          // console.log(values)
         }
       },
       [validateForm, setTabValue]
@@ -256,7 +290,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             id="project-title-input"
             label="Project title"
             width={458}
-            value={project?.project_title}
+            value={values.projectTitle}
             onChange={handleOnTextFieldChange("projectTitle")}
             sx={fieldStyle}
             error={errors.projectTitle}
@@ -267,7 +301,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             label="Goal"
             width={458}
             type="description"
-            value={project?.goal}
+            value={values.goal}
             onChange={handleOnTextFieldChange("goal")}
             sx={{ height: 101, backgroundColor: theme.palette.background.main }}
             error={errors.goal}
@@ -288,6 +322,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             error={errors.owner}
             isRequired
           />
+          
           <DatePicker
             label="Start date"
             date={values.startDate ? dayjs(values.startDate) : null}
@@ -418,18 +453,15 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
         {isDeleteModalOpen && (
           <DualButtonModal
             title="Confirm Delete"
-            body={
-              <Typography fontSize={13}>
-                Are you sure you want to delete the project?
-              </Typography>
-            }
+            body={<Typography fontSize={13}>
+              Are you sure you want to delete the project?
+            </Typography>}
             cancelText="Cancel"
             proceedText="Delete"
             onCancel={handleCloseDeleteDialog}
             onProceed={handleConfirmDelete}
             proceedButtonColor="error"
-            proceedButtonVariant="contained"
-          />
+            proceedButtonVariant="contained" TitleFontSize={0}          />
         )}
       </Stack>
     );

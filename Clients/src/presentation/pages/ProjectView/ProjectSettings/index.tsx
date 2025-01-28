@@ -19,7 +19,6 @@ import { deleteEntityById } from "../../../../application/repository/entity.repo
 import { logEngine } from "../../../../application/tools/log.engine";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
-import VWMultiSelect from "../../../vw-v2-components/Selects/Multi";
 
 interface ProjectSettingsProps {
   setTabValue: (value: string) => void;
@@ -30,7 +29,7 @@ interface FormValues {
   goal: string;
   owner: number;
   startDate: string;
-  addUsers: (string | number)[];
+  addUsers: string | number;
   riskClassification: number;
   typeOfHighRiskRole: number;
 }
@@ -50,7 +49,7 @@ const initialState: FormValues = {
   goal: "",
   owner: 0,
   startDate: "",
-  addUsers: [],
+  addUsers: "",
   riskClassification: 0,
   typeOfHighRiskRole: 0,
 };
@@ -94,22 +93,6 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
       []
     );
 
-    const handleTeamMembersChange = useCallback(
-      (
-        event: SelectChangeEvent<string | number | (string | number)[]>,
-        child: React.ReactNode
-      ) => {
-        setValues((prevValues) => ({
-          ...prevValues,
-          addUsers: Array.isArray(event.target.value)
-            ? event.target.value
-            : [event.target.value],
-        }));
-        setErrors((prevErrors) => ({ ...prevErrors, addUsers: "" }));
-      },
-      []
-    );
-
     const handleOnTextFieldChange = useCallback(
       (prop: keyof FormValues) =>
         (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -121,9 +104,6 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
         },
       []
     );
-
-    console.log("valuesssssss", values);
-    console.log("projjjjj", project);
 
     React.useEffect(() => {
       if (project && !isLoading) {
@@ -179,7 +159,14 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
         newErrors.startDate = startDate.message;
       }
 
-      const addUsers = selectValidation("Team members", values.addUsers.length);
+      const addUsers = selectValidation(
+        "Team members",
+        Array.isArray(values.addUsers)
+          ? values.addUsers.length
+          : values.addUsers
+          ? 1
+          : 0
+      );
       if (!addUsers.accepted) {
         newErrors.addUsers = addUsers.message;
       }
@@ -288,6 +275,10 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
       return item ? item._id : 0; // Return 0 or a fallback value if not found
     };
 
+    console.log("valuesssssss", values);
+    console.log("projjjjj", project);
+    console.log("values.addUsers", values.addUsers);
+
     return (
       <Stack>
         {alert && (
@@ -358,9 +349,10 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
               be able to see the project.
             </Typography>
           </Stack>
-          <VWMultiSelect
+          <Select
+            id="team-members"
             label="Team members"
-            onChange={handleTeamMembersChange}
+            onChange={handleOnSelectChange("addUsers")}
             value={values.addUsers}
             placeholder="Select team members"
             items={[
@@ -370,7 +362,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             ]}
             sx={{ width: 357, backgroundColor: theme.palette.background.main }}
             error={errors.addUsers}
-            required
+            isRequired
           />
           <Stack gap="5px" sx={{ mt: "6px" }}>
             <Typography

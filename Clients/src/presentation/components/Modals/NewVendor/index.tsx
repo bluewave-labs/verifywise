@@ -41,15 +41,17 @@ import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 
 export interface VendorDetails {
     id?: number;
-    vendorName: string;
-    vendorProvides: string;
+    project_id: number,
+    vendor_name: string;
+    vendor_provides: string;
     website: string;
-    vendorContactPerson: string;
-    reviewResult: string;
-    reviewStatus: string;
+    vendor_contact_person: string;
+    review_result: string;
+    review_status: string;
     reviewer: string;
-    riskStatus: string;
-    reviewDate: string;
+    risk_status: string;
+    review_date: string;
+    assignee: string;
 }
 
 interface Risks {
@@ -90,7 +92,7 @@ const initialState = {
         reviewer: "0",
         reviewResult: "",
         riskStatus: "0",
-        assignee: 0,
+        assignee: "0",
         reviewDate: new Date().toISOString(),
     },
     risks: {
@@ -185,17 +187,17 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     const theme = useTheme();
     const [values, setValues] = useState({
         vendorDetails: {
-            vendorName: existingVendor?.vendorName || "",
+            vendorName: existingVendor?.vendor_name || "",
             website: "",
-            projectId: 0,
+            projectId: existingVendor?.project_id || "" ,
             vendorProvides: "",
             vendorContactPerson: "",
             reviewStatus: "0",
             reviewer: "0",
             reviewResult: "",
             riskStatus: "0",
-            assignee: 0,
-            reviewDate: existingVendor?.reviewDate || new Date().toISOString(),
+            assignee: existingVendor?.assignee || "",
+            reviewDate: existingVendor?.review_date || new Date().toISOString(),
         },
         risks: {
             riskDescription: "",
@@ -256,17 +258,17 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 ...prevValues,
                 vendorDetails: {
                     ...prevValues.vendorDetails,
-                    vendorName: existingVendor.vendorName,
+                    vendorName: existingVendor.vendor_name,
                     website: existingVendor.website,
-                    projectId: 0,
-                    vendorProvides: existingVendor.vendorProvides,
-                    vendorContactPerson: existingVendor.vendorContactPerson,
-                    reviewStatus: existingVendor.reviewStatus,
+                    projectId: existingVendor.project_id,
+                    vendorProvides: existingVendor.vendor_provides,
+                    vendorContactPerson: existingVendor.vendor_contact_person,
+                    reviewStatus:  REVIEW_STATUS_OPTIONS.find(s => s.name === existingVendor.review_status)?._id || "",
                     reviewer: existingVendor.reviewer,
-                    reviewResult: existingVendor.reviewResult,
-                    riskStatus: existingVendor.riskStatus,
-                    assignee: 0,
-                    reviewDate: existingVendor.reviewDate,
+                    reviewResult: existingVendor.review_result,
+                    riskStatus: String(RISK_LEVEL_OPTIONS.find(s => s.name === existingVendor.risk_status)?._id) || ""  ,
+                    assignee: String(ASSIGNEE_OPTIONS.find(s => s.name === existingVendor.assignee)?._id) || "0",
+                    reviewDate: existingVendor.review_date,
                 },
             }));
         }
@@ -365,11 +367,11 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             assignee: ASSIGNEE_OPTIONS.find(a => a._id === Number(values.vendorDetails.assignee))?.name || "",
             vendorProvides: values.vendorDetails.vendorProvides,
             website: values.vendorDetails.website,
-            vendorContactPerson: values.vendorDetails.vendorContactPerson,
+            vendorContact_person: values.vendorDetails.vendorContactPerson,
             reviewResult: values.vendorDetails.reviewResult,
             reviewStatus: REVIEW_STATUS_OPTIONS.find(s => s._id === values.vendorDetails.reviewStatus)?.name || "",
             reviewer: REVIEWER_OPTIONS.find(r => r._id === values.vendorDetails.reviewer)?.name || "",
-            riskStatus: RISK_LEVEL_OPTIONS.find(s => s._id === Number(values.vendorDetails.riskStatus))?.name || "",
+            risk_status: RISK_LEVEL_OPTIONS.find(s => s._id === Number(values.vendorDetails.riskStatus))?.name || "",
             reviewDate: values.vendorDetails.reviewDate,
             riskDescription: values.risks.riskDescription,
             impactDescription: values.risks.impactDescription,
@@ -393,7 +395,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     * Creates a new vendor in the system
     * @param vendorDetails - The vendor details to create
     */
-    const createVendor = async (vendorDetails: VendorDetails) => {
+    const createVendor = async (vendorDetails:object) => {
         console.log(vendorDetails);
         await createNewUser({
             routeUrl: "/vendors",
@@ -431,7 +433,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
      */
     const updateVendor = async (
         vendorId: number,
-        updatedVendorDetails: VendorDetails
+        updatedVendorDetails: object
     ) => {
         // Make a call to backend and update the vendor'
         console.log("Edit Vendor", vendorId, updatedVendorDetails);

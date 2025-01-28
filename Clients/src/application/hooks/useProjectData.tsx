@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { getEntityById } from "../repository/entity.repository";
 import { VerifyWiseContext } from "../contexts/VerifyWise.context";
+
 interface ProjectData {
   id: number;
   project_title: string;
@@ -18,6 +19,7 @@ interface UseProjectDataParams {
 }
 interface UseProjectDataResult {
   project: ProjectData | null;
+  projectOwner: string | null;
   error: string | null;
   isLoading: boolean;
 }
@@ -29,6 +31,7 @@ export interface User {
 
 const useProjectData = ({ projectId }: UseProjectDataParams): UseProjectDataResult => {
   const [project, setProject] = useState<ProjectData | null>(null);
+  const [projectOwner, setProjectOwner] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { dashboardValues } = useContext(VerifyWiseContext);
@@ -46,6 +49,7 @@ const useProjectData = ({ projectId }: UseProjectDataParams): UseProjectDataResu
 
     getEntityById({ routeUrl: `/projects/${projectId}`, signal: controller.signal })
       .then(({ data }) => {
+        
         const ownerUser = users.find(
           (user: User) => user.id === data.owner
         );
@@ -56,8 +60,11 @@ const useProjectData = ({ projectId }: UseProjectDataParams): UseProjectDataResu
           data.last_updated_by = lastUpdatedByUser.name + ` ` + lastUpdatedByUser.surname;
         }
         if (ownerUser) {
-          data.owner = ownerUser.name + ` ` + ownerUser.surname;
+          // data.owner = ownerUser.name + ` ` + ownerUser.surname;
+          const temp = ownerUser.name + ` ` + ownerUser.surname;
+          setProjectOwner(temp);
         }
+        console.log("~~~", data)
         setProject(data);
         setError(null);
       })
@@ -75,7 +82,7 @@ const useProjectData = ({ projectId }: UseProjectDataParams): UseProjectDataResu
     return () => controller.abort();
   }, [projectId, selectedProjectId, users]);
 
-  return { project, error, isLoading };
+  return { project, projectOwner, error, isLoading };
 }
 
 export default useProjectData;

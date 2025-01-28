@@ -5,6 +5,7 @@ import {
   Stack,
   useTheme,
 } from "@mui/material";
+import { useSelector } from "react-redux";
 import dayjs, { Dayjs } from "dayjs";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
 import selectValidation from "../../../application/validations/selectValidation";
@@ -13,6 +14,8 @@ import { createNewUser } from "../../../application/repository/entity.repository
 const Select = lazy(() => import("../Inputs/Select"));
 const DatePicker = lazy(() => import("../Inputs/Datepicker"));
 const Field = lazy(() => import("../Inputs/Field"));
+import { extractUserToken } from "../../../application/tools/extractToken";
+
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -78,6 +81,9 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProjec
   const theme = useTheme();
   const [values, setValues] = useState<FormValues>(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
+  const authState = useSelector(
+    (state: { auth: { authToken: string; userExists: boolean } }) => state.auth
+  );
 
   const handleDateChange = useCallback((newDate: Dayjs | null) => {
     if(newDate?.isValid()){
@@ -160,12 +166,14 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProjec
   };
 
   const confirmSubmit = async () => {
+    const userInfo = extractUserToken(authState.authToken)    
+
     await createNewUser({
       routeUrl: "/projects",
       body: {
         ...values,
         last_updated: values.start_date,
-        last_updated_by: values.users
+        last_updated_by: userInfo?.id
       },
     }).then((response) => {
       // Reset form after successful submission

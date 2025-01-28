@@ -14,12 +14,12 @@ import Select from "../../../components/Inputs/Select";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import selectValidation from "../../../../application/validations/selectValidation";
 import Alert from "../../../components/Alert";
-import VWMultiSelect from "../../../vw-v2-components/Selects/Multi"
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import { deleteEntityById } from "../../../../application/repository/entity.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
+import VWMultiSelect from "../../../vw-v2-components/Selects/Multi";
 
 interface ProjectSettingsProps {
   setTabValue: (value: string) => void;
@@ -30,7 +30,7 @@ interface FormValues {
   goal: string;
   owner: number;
   startDate: string;
-  addUsers: [];
+  addUsers: (string | number)[];
   riskClassification: number;
   typeOfHighRiskRole: number;
 }
@@ -60,7 +60,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
     const [searchParams] = useSearchParams();
     const projectId = searchParams.get("projectId") ?? "2"; // default project ID is 2
     const theme = useTheme();
-    const { project, error, isLoading } = useProjectData({ projectId });
+    const { project, isLoading } = useProjectData({ projectId });
     const navigate = useNavigate();
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [values, setValues] = useState<FormValues>(initialState);
@@ -74,7 +74,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
     } | null>(null);
 
     const handleDateChange = useCallback((newDate: Dayjs | null) => {
-      if(newDate?.isValid()){
+      if (newDate?.isValid()) {
         setValues((prevValues) => ({
           ...prevValues,
           startDate: newDate ? newDate.toISOString() : "",
@@ -94,15 +94,19 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
       []
     );
 
-    const handleMultiSelectChange = useCallback(
-      (prop: keyof FormValues) =>
-        (event: SelectChangeEvent<string | number | (string | number)[]>) => {
-          setValues((prevValues) => ({
-            ...prevValues,
-            [prop]: event.target.value as number[],
-          }));
-          setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
-        },
+    const handleTeamMembersChange = useCallback(
+      (
+        event: SelectChangeEvent<string | number | (string | number)[]>,
+        child: React.ReactNode
+      ) => {
+        setValues((prevValues) => ({
+          ...prevValues,
+          addUsers: Array.isArray(event.target.value)
+            ? event.target.value
+            : [event.target.value],
+        }));
+        setErrors((prevErrors) => ({ ...prevErrors, addUsers: "" }));
+      },
       []
     );
 
@@ -117,6 +121,38 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
         },
       []
     );
+
+    console.log("valuesssssss", values);
+    console.log("projjjjj", project);
+
+    React.useEffect(() => {
+      if (project && !isLoading) {
+        setValues((prevValues) => ({
+          ...prevValues,
+          projectTitle: project.project_title || "",
+          goal: project.goal || "",
+          owner: getMappedId(project.owner, [
+            { _id: 1, name: "John Doe" },
+            { _id: 2, name: "Jane Smith" },
+            { _id: 3, name: "Bob Johnson" },
+          ]),
+          startDate: project.start_date
+            ? new Date(project.start_date).toISOString()
+            : "",
+          riskClassification: getMappedId(project.ai_risk_classification, [
+            { _id: 1, name: "Limited Risk" },
+            { _id: 2, name: "Medium Risk" },
+            { _id: 3, name: "High Risk" },
+          ]),
+          typeOfHighRiskRole: getMappedId(project.type_of_high_risk_role, [
+            { _id: 1, name: "Provider" },
+            { _id: 2, name: "Controller" },
+            { _id: 3, name: "User" },
+          ]),
+          addUsers: JSON.parse(project.users || ""),
+        }));
+      }
+    }, [project, isLoading]);
 
     const validateForm = useCallback((): boolean => {
       const newErrors: FormErrors = {};
@@ -202,20 +238,24 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
 
     const handleConfirmDelete = useCallback(async () => {
       try {
-        const response = await deleteEntityById({ routeUrl: `/projects/${projectId}` });
+        const response = await deleteEntityById({
+          routeUrl: `/projects/${projectId}`,
+        });
         console.log(response);
         const isError = response.status === 404 || response.status === 500;
         setAlert({
           variant: isError ? "error" : "success",
           title: isError ? "Error" : "Success",
-          body: isError ? "Failed to delete project. Please try again." : "Project deleted successfully.",
+          body: isError
+            ? "Failed to delete project. Please try again."
+            : "Project deleted successfully.",
           isToast: true,
           visible: true,
         });
         setTimeout(() => {
           setAlert(null);
           if (!isError) {
-            navigate('/');
+            navigate("/");
           }
         }, 3000);
       } catch (error) {
@@ -225,7 +265,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
           user: {
             id: String(localStorage.getItem("userId")) || "N/A",
             firstname: "N/A",
-            lastname: "N/A"
+            lastname: "N/A",
           },
         });
         setAlert({
@@ -239,6 +279,14 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
         setIsDeleteModalOpen(false);
       }
     }, [navigate]);
+
+    const getMappedId = (
+      name: string,
+      items: { _id: number; name: string }[]
+    ) => {
+      const item = items.find((item) => item.name === name);
+      return item ? item._id : 0; // Return 0 or a fallback value if not found
+    };
 
     return (
       <Stack>
@@ -312,16 +360,17 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
           </Stack>
           <VWMultiSelect
             label="Team members"
-            onChange={handleMultiSelectChange("addUsers")}
+            onChange={handleTeamMembersChange}
             value={values.addUsers}
+            placeholder="Select team members"
             items={[
               { _id: 1, name: "Some value 1" },
               { _id: 2, name: "Some value 2" },
               { _id: 3, name: "Some value 3" },
             ]}
             sx={{ width: 357, backgroundColor: theme.palette.background.main }}
-          // error={errors.addUsers}
-          // required
+            error={errors.addUsers}
+            required
           />
           <Stack gap="5px" sx={{ mt: "6px" }}>
             <Typography
@@ -375,11 +424,15 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
           </Stack>
           <Stack gap="5px" sx={{ mt: "6px" }}>
             <Typography
-              sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}>
+              sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
+            >
               Delete project
             </Typography>
-            <Typography sx={{ fontSize: theme.typography.fontSize, color: '#667085' }}>
-              Note that deleting a project will remove all data related to that project from our system. This is permanent and non-recoverable.
+            <Typography
+              sx={{ fontSize: theme.typography.fontSize, color: "#667085" }}
+            >
+              Note that deleting a project will remove all data related to that
+              project from our system. This is permanent and non-recoverable.
             </Typography>
           </Stack>
           <Button

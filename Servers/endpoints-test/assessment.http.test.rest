@@ -8,3 +8,6 @@ GET http://localhost:3000/assessments/2
 
 ###
 POST http://localhost:3000/autoDrivers
+
+###
+DELETE  http://localhost:3000/autoDrivers

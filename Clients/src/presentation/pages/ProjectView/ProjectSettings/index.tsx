@@ -14,7 +14,7 @@ import Select from "../../../components/Inputs/Select";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import selectValidation from "../../../../application/validations/selectValidation";
 import Alert from "../../../components/Alert";
-import VWMultiSelect from "../../../vw-v2-components/Selects/Multi"
+import VWMultiSelect from "../../../vw-v2-components/Selects/Multi";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import { deleteEntityById } from "../../../../application/repository/entity.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
@@ -74,12 +74,11 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
     } | null>(null);
 
     useEffect(() => {
-      if(project){
-        initialState.projectTitle = project?.project_title ?? ''
-        setValues(initialState)
+      if (project) {
+        initialState.projectTitle = project?.project_title ?? "";
+        setValues(initialState);
       }
-      
-    }, [project])
+    }, [project]);
 
     useEffect(() => {
       if (project) {
@@ -88,18 +87,20 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
           projectTitle: project.project_title ?? "",
           goal: project.goal ?? "",
           owner: parseInt(project.owner) ?? 0,
-          startDate: project.start_date.toString() ?? "",
-          addUsers: [parseInt(project.users)] ?? [],
+          startDate: project.start_date
+            ? dayjs(project.start_date).toISOString()
+            : "",
+          addUsers: [parseInt(project.users)],
           riskClassification: parseInt(project.ai_risk_classification) ?? 0,
           typeOfHighRiskRole: parseInt(project.type_of_high_risk_role) ?? 0,
         };
-    
+
         setValues(returnedData);
       }
     }, [project]);
 
     const handleDateChange = useCallback((newDate: Dayjs | null) => {
-      if(newDate?.isValid()){
+      if (newDate?.isValid()) {
         setValues((prevValues) => ({
           ...prevValues,
           startDate: newDate ? newDate.toISOString() : "",
@@ -126,13 +127,15 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             ...prevValues,
             [prop]: event.target.value as number[],
           }));
-          setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));          
+          setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
         },
       []
     );
 
-    const handleOnTextFieldChange = useCallback((prop: keyof FormValues) => (event: React.ChangeEvent<HTMLInputElement>) => {      
-      setValues((prevValues) => ({
+    const handleOnTextFieldChange = useCallback(
+      (prop: keyof FormValues) =>
+        (event: React.ChangeEvent<HTMLInputElement>) => {
+          setValues((prevValues) => ({
             ...prevValues,
             [prop]: event.target.value,
           }));
@@ -140,16 +143,16 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
         },
       []
     );
-    
-//     useCallback((prop: keyof FormValues) => (event: React.ChangeEvent<HTMLInputElement>) => {
-//       setValues((prevValues) => ({
-//         ...prevValues,
-//         [prop]: event.target.value,
-//       }));
-//       setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
-//     },
-//   []
-// );
+
+    //     useCallback((prop: keyof FormValues) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    //       setValues((prevValues) => ({
+    //         ...prevValues,
+    //         [prop]: event.target.value,
+    //       }));
+    //       setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
+    //     },
+    //   []
+    // );
 
     const validateForm = useCallback((): boolean => {
       const newErrors: FormErrors = {};
@@ -236,20 +239,24 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
 
     const handleConfirmDelete = useCallback(async () => {
       try {
-        const response = await deleteEntityById({ routeUrl: `/projects/${projectId}` });
+        const response = await deleteEntityById({
+          routeUrl: `/projects/${projectId}`,
+        });
         console.log(response);
         const isError = response.status === 404 || response.status === 500;
         setAlert({
           variant: isError ? "error" : "success",
           title: isError ? "Error" : "Success",
-          body: isError ? "Failed to delete project. Please try again." : "Project deleted successfully.",
+          body: isError
+            ? "Failed to delete project. Please try again."
+            : "Project deleted successfully.",
           isToast: true,
           visible: true,
         });
         setTimeout(() => {
           setAlert(null);
           if (!isError) {
-            navigate('/');
+            navigate("/");
           }
         }, 3000);
       } catch (error) {
@@ -259,7 +266,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
           user: {
             id: String(localStorage.getItem("userId")) || "N/A",
             firstname: "N/A",
-            lastname: "N/A"
+            lastname: "N/A",
           },
         });
         setAlert({
@@ -303,7 +310,9 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             type="description"
             value={values.goal}
             onChange={handleOnTextFieldChange("goal")}
-            sx={{ height: 101, backgroundColor: theme.palette.background.main }}
+            sx={{
+              backgroundColor: theme.palette.background.main,
+            }}
             error={errors.goal}
             isRequired
           />
@@ -322,7 +331,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             error={errors.owner}
             isRequired
           />
-          
+
           <DatePicker
             label="Start date"
             date={values.startDate ? dayjs(values.startDate) : null}
@@ -355,8 +364,8 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
               { _id: 3, name: "Some value 3" },
             ]}
             sx={{ width: 357, backgroundColor: theme.palette.background.main }}
-          // error={errors.addUsers}
-          // required
+            // error={errors.addUsers}
+            // required
           />
           <Stack gap="5px" sx={{ mt: "6px" }}>
             <Typography
@@ -378,13 +387,12 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
           </Stack>
           <Select
             id="risk-classification-input"
-            placeholder="Select an option"
-            value={values.riskClassification}
+            value={values.riskClassification ? values.riskClassification : 1}
             onChange={handleOnSelectChange("riskClassification")}
             items={[
-              { _id: 1, name: "Some value 1" },
-              { _id: 2, name: "Some value 2" },
-              { _id: 3, name: "Some value 3" },
+              { _id: 1, name: "High risk" },
+              { _id: 2, name: "Limited risk" },
+              { _id: 3, name: "Minimal risk" },
             ]}
             sx={{ width: 357, backgroundColor: theme.palette.background.main }}
             error={errors.riskClassification}
@@ -410,11 +418,15 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
           </Stack>
           <Stack gap="5px" sx={{ mt: "6px" }}>
             <Typography
-              sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}>
+              sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
+            >
               Delete project
             </Typography>
-            <Typography sx={{ fontSize: theme.typography.fontSize, color: '#667085' }}>
-              Note that deleting a project will remove all data related to that project from our system. This is permanent and non-recoverable.
+            <Typography
+              sx={{ fontSize: theme.typography.fontSize, color: "#667085" }}
+            >
+              Note that deleting a project will remove all data related to that
+              project from our system. This is permanent and non-recoverable.
             </Typography>
           </Stack>
           <Button
@@ -453,15 +465,19 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
         {isDeleteModalOpen && (
           <DualButtonModal
             title="Confirm Delete"
-            body={<Typography fontSize={13}>
-              Are you sure you want to delete the project?
-            </Typography>}
+            body={
+              <Typography fontSize={13}>
+                Are you sure you want to delete the project?
+              </Typography>
+            }
             cancelText="Cancel"
             proceedText="Delete"
             onCancel={handleCloseDeleteDialog}
             onProceed={handleConfirmDelete}
             proceedButtonColor="error"
-            proceedButtonVariant="contained" TitleFontSize={0}          />
+            proceedButtonVariant="contained"
+            TitleFontSize={0}
+          />
         )}
       </Stack>
     );

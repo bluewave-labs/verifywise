@@ -3,7 +3,6 @@ import XHRUpload from "@uppy/xhr-upload";
 import DropTarget from "@uppy/drop-target";
 
 
-
 export const createUppyInstance = (assessmentId: number) => {
   const uppy = new Uppy({
     restrictions: {
@@ -30,13 +29,5 @@ export const createUppyInstance = (assessmentId: number) => {
   uppy.on('file-added', (file) => {
 console.log('file object: ', file);
   });
-  //  uppy.on("file-added", (file) => {
-  //    const fileSizeInMB = file.size
-  //      ? (file.size / (1024 * 1024)).toFixed(2)
-  //      : "0.00";
-  //    console.log(`File added: ${file.name}, size: ${fileSizeInMB} MB`);
-  //  });
-
-
   return uppy;
 };

@@ -21,7 +21,7 @@ import {
 import "./index.css";
 
 import { ReactComponent as CheckboxOutline } from "../../../assets/icons/checkbox-outline.svg";
-import { ReactComponent as CheckboxFilled } from "../../../assets/icons/checkbox-outline.svg";
+import { ReactComponent as CheckboxFilled } from "../../../assets/icons/checkbox-filled.svg";
 import { FC } from "react";
 
 interface CheckboxProps {

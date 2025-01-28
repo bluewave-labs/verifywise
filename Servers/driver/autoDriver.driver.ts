@@ -488,7 +488,7 @@ const insertQuery: TableList = [
 ];
 
 const deleteQueryExecutionOrder = [
-  "questions", "subtopics", "topics", "projectscopes", "projectrisks", "vendorrisks",
+  "questions", "subtopics", "files", "topics", "projectscopes", "projectrisks", "vendorrisks",
   "subcontrols", "controls", "controlcategories", "assessments", "vendors", "projects"
 ]
 
@@ -501,21 +501,19 @@ export async function insertMockData() {
       insertString,
       generateValuesString,
     } = entry;
-    await createTable(createString as string)
-    if (tableName === "users" || tableName === "roles") {
+    if (!(await checkTableExists(tableName as string))) {
+      await createTable(createString as string);
+    }
+    // if (tableName === "users" || tableName === "roles") {
+    if (await checkDataExists(tableName) === 1) {
+      continue
+    }
+    if (mockData.length !== 0) {
       const values = mockData.map((d) => generateValuesString(d as any));
       insertString += values.join(",") + ";";
       await insertData(insertString as string);
     }
-    // if (!(await checkTableExists(tableName as string))) {
-    //   await createTable(createString as string);
     // }
-    // if (await checkDataExists(tableName) === 1) {
-    //   continue
-    // }
-    // const values = mockData.map((d) => generateValuesString(d as any));
-    // insertString += values.join(",") + ";";
-    // await insertData(insertString as string);
   }
 }
 

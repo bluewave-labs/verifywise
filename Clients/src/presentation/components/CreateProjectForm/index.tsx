@@ -86,7 +86,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProjec
   );
 
   const handleDateChange = useCallback((newDate: Dayjs | null) => {
-    if(newDate?.isValid()){
+    if (newDate?.isValid()) {
       setValues((prevValues) => ({
         ...prevValues,
         start_date: newDate ? newDate.toISOString() : "",
@@ -161,17 +161,19 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProjec
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (validateForm()) {
-      confirmSubmit();   
+      confirmSubmit();
     }
   };
 
   const confirmSubmit = async () => {
-    const userInfo = extractUserToken(authState.authToken)    
+    const userInfo = extractUserToken(authState.authToken)
 
     await createNewUser({
       routeUrl: "/projects",
       body: {
         ...values,
+        type_of_high_risk_role: highRiskRoleItems.find(item => item._id === values.type_of_high_risk_role)?.name,
+        ai_risk_classification: riskClassificationItems.find(item => item._id === values.ai_risk_classification)?.name,
         last_updated: values.start_date,
         last_updated_by: userInfo?.id
       },

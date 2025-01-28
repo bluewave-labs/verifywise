@@ -84,6 +84,7 @@ const Login: React.FC = () => {
           setTimeout(() => {
             setAlert(null);
             navigate("/");
+            setIsSubmitting(false);
           }, 3000);
         } else if (response.status === 404) {
           setAlert({
@@ -96,6 +97,7 @@ const Login: React.FC = () => {
             user,
           });
           setTimeout(() => setAlert(null), 3000);
+          setIsSubmitting(false);
         } else if (response.status === 406) {
           setAlert({
             variant: "warning",
@@ -107,6 +109,7 @@ const Login: React.FC = () => {
             user,
           });
           setTimeout(() => setAlert(null), 3000);
+          setIsSubmitting(false);
         } else {
           setAlert({
             variant: "error",
@@ -118,6 +121,7 @@ const Login: React.FC = () => {
             user,
           });
           setTimeout(() => setAlert(null), 3000);
+          setIsSubmitting(false);
         }
       })
       .catch((error) => {
@@ -132,9 +136,8 @@ const Login: React.FC = () => {
           user,
         });
         setTimeout(() => setAlert(null), 3000);
-      }).finally(() => {
         setIsSubmitting(false);
-      });
+      })
   };
 
   const theme = useTheme();

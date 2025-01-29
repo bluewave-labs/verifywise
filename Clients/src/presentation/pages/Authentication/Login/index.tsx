@@ -40,7 +40,7 @@ const Login: React.FC = () => {
     body: string;
   } | null>(null);
 
-  //disabled overlay state 
+  //disabled overlay state
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Handle changes in input fields
@@ -97,8 +97,10 @@ const Login: React.FC = () => {
             message: "User not found. Please try again.",
             user,
           });
-          setTimeout(() => setAlert(null), 3000);
-          setIsSubmitting(false);
+          setTimeout(() => {
+            setAlert(null);
+            setIsSubmitting(false);
+          }, 3000);
         } else if (response.status === 406) {
           setAlert({
             variant: "warning",
@@ -109,8 +111,10 @@ const Login: React.FC = () => {
             message: "Invalid password. Please try again.",
             user,
           });
-          setTimeout(() => setAlert(null), 3000);
-          setIsSubmitting(false);
+          setTimeout(() => {
+            setAlert(null);
+            setIsSubmitting(false);
+          }, 3000);
         } else {
           setAlert({
             variant: "error",
@@ -121,8 +125,10 @@ const Login: React.FC = () => {
             message: "Unexpected response. Please try again.",
             user,
           });
-          setTimeout(() => setAlert(null), 3000);
-          setIsSubmitting(false);
+          setTimeout(() => {
+            setAlert(null);
+            setIsSubmitting(false);
+          }, 3000);
         }
       })
       .catch((error) => {
@@ -136,9 +142,11 @@ const Login: React.FC = () => {
           message: `An error occurred: ${error.message}`,
           user,
         });
-        setTimeout(() => setAlert(null), 3000);
-        setIsSubmitting(false);
-      })
+        setTimeout(() => {
+          setAlert(null);
+          setIsSubmitting(false);
+        }, 3000);
+      });
   };
 
   const theme = useTheme();

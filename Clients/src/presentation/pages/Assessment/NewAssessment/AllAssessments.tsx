@@ -73,7 +73,8 @@ const AllAssessment = () => {
   const handleOpenFileUploadModal = () => setFileUploadModalOpen(true);
   const handleCloseFileUploadModal = () => {
     console.log("Closing file upload modal");
-    setFileUploadModalOpen(false);}
+    setFileUploadModalOpen(false);
+  };
 
   const activeAssessmentId = Topics[activeTab]?.id;
 
@@ -489,18 +490,18 @@ const AllAssessment = () => {
         />
       )}
       {/* FileUploadComponent*/}
-      
+
       <FileUploadComponent
-      open={fileUploadModalOpen}
-       onSuccess={()=>{
-        console.log("File uploaded successfully");
-        handleCloseFileUploadModal();
-       }}
-       onError={(message)=>console.log("Error uploading file: ", message)}
-       onStart={()=>console.log("File upload started")}
-       onClose={handleCloseFileUploadModal}
-       allowedFileTypes={["application/pdf"]}
-       assessmentId={activeAssessmentId}
+        open={fileUploadModalOpen}
+        onSuccess={() => {
+          console.log("File uploaded successfully");
+          handleCloseFileUploadModal();
+        }}
+        onError={(message) => console.log("Error uploading file: ", message)}
+        onStart={() => console.log("File upload started")}
+        onClose={handleCloseFileUploadModal}
+        allowedFileTypes={["application/pdf"]}
+        assessmentId={activeAssessmentId}
       />
       {isModalOpen && (
         <DualButtonModal
@@ -514,6 +515,7 @@ const AllAssessment = () => {
           onProceed={confirmSave}
           proceedButtonColor="primary"
           proceedButtonVariant="contained"
+          TitleFontSize={13}
         />
       )}
     </Box>

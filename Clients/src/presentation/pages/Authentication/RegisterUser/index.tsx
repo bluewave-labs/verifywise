@@ -94,6 +94,7 @@ setIsSubmitting(true);
         minHeight: "100vh",
       }}
     >
+      <DisabledOverlay isActive={isSubmitting} />
       <Background
         style={{
           position: "absolute",
@@ -113,7 +114,7 @@ setIsSubmitting(true);
           onClick={() => setAlert(null)}
         />
       )}
-      <DisabledOverlay isActive={isSubmitting} />
+
       <form onSubmit={handleSubmit}>
         <Stack
           className="reg-user-form"

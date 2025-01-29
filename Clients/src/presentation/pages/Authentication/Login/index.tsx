@@ -54,6 +54,7 @@ const Login: React.FC = () => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
+    console.log("Submitting form...", isSubmitting);
 
     const user = {
       id: "At login level", // Replace with actual user ID
@@ -155,6 +156,7 @@ const Login: React.FC = () => {
         minHeight: "100vh",
       }}
     >
+      <DisabledOverlay isActive={isSubmitting} />
       <Background
         style={{
           position: "absolute",
@@ -174,7 +176,7 @@ const Login: React.FC = () => {
           onClick={() => setAlert(null)}
         />
       )}
-      <DisabledOverlay isActive={isSubmitting} />
+
       <form onSubmit={handleSubmit}>
         <Stack
           className="reg-admin-form"

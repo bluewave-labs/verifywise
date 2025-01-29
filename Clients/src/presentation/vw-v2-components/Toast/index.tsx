@@ -30,7 +30,7 @@ const VWToast = ({ title = "Request is in the process. Please wait..." }) => {
           width: "fit-content",
           height: "fit-content",
           position: "fixed",
-          top: "65%",
+          top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
           zIndex: 9999,

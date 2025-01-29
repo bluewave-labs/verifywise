@@ -21,6 +21,7 @@ import { logEngine } from "../../../../application/tools/log.engine";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import { User } from "../../../components/Inputs/Dropdowns";
+import { stringToArray } from "../../../../application/tools/stringUtil";
 
 interface ProjectSettingsProps {
   setTabValue: (value: string) => void;
@@ -134,7 +135,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
           goal: project.goal ?? "",
           owner: parseInt(project.owner) ?? 0,
           startDate: project.start_date ? dayjs(project.start_date).toISOString() : "",
-          addUsers: [parseInt(project.users)],
+          addUsers: stringToArray(project.users),
           riskClassification: riskClassificationItems.find(item => item.name.toLowerCase() === project.ai_risk_classification.toLowerCase())?._id || 0,
           typeOfHighRiskRole: highRiskRoleItems.find(item => item.name.toLowerCase() === project.type_of_high_risk_role.toLowerCase())?._id || 0
         };

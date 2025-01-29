@@ -27,7 +27,7 @@ console.log("vars");
 
 console.log(ENV_VARs.URL);
 
-console.log(process.env);
+// console.log(process.env);
 
 // Create an instance of axios with default configurations
 const CustomAxios = axios.create({

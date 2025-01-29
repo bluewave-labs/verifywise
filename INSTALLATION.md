@@ -12,9 +12,10 @@ To set up VerifyWise in Docker, do the following:
 
 1. From the root of our [GitHub repository,](https://github.com/bluewave-labs/verifywise) download `.env`, `docker-compose.yml`, `SQL_Commands_1.sql` and `SQL_Commands_2.sql`.
 2. Move all the downloaded files to the directory where your VerifyWise container will be running. This directory will be referred to as your working directory from now on.
-3. Start your local Docker instance.
-4. In your working directory, open bash terminal
-5. Run `chmod +x init-script.sh` followed by `./install.sh`.
+3. Update the `VITE_APP_API_HOST` to your server URL. <strong>Please do not keep the trailing `/` after the hostname.</strong>
+4. Start your local Docker instance.
+5. In your working directory, open bash terminal.
+6. Run `chmod +x ./install.sh` followed by `./install.sh`.
 
 #### NOTE: The `.env` file is configured as per the default settings. Alternatively, you can supply your own `.env` file.
 

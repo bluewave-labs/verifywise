@@ -4,6 +4,9 @@
 load_env() {
     if [ -f .env ]; then
         export $(cat .env | grep -v '#' | awk '/=/ {print $1}')
+
+        # Store the backend api url in the env file of frontend
+        echo "VITE_APP_API_BASE_URL=$VITE_APP_API_HOST:$BACKEND_PORT" > ./Clients/.env
     else
         echo "Error: .env file not found"
         exit 1
@@ -57,7 +60,7 @@ initialize_db() {
     # Execute SQL files inside container
     echo "Executing SQL_Commands_1.sql..."
     docker exec -i $PG_CONTAINER psql -U $DB_USER -d $DB_NAME -f ./SQL_Commands_1.sql
-    
+
     echo "Executing SQL_Commands_2.sql..."
     docker exec -i $PG_CONTAINER psql -U $DB_USER -d $DB_NAME -f ./SQL_Commands_2.sql
 

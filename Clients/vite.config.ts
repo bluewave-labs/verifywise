@@ -9,4 +9,6 @@ export default defineConfig({
     host: "0.0.0.0",
   },
   define: { global: "globalThis" },
+  envPrefix: 'VITE_',
+  envDir: '.'
 });

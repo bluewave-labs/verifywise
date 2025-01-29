@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --host",
     "build": "tsc -b && vite build",
+    "build-dev": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -49,6 +50,7 @@
   "devDependencies": {
     "@eslint/js": "^9.9.0",
     "@svgr/webpack": "^8.1.0",
+    "@types/node": "^22.12.0",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@types/validator": "^13.12.2",

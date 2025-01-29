@@ -1,1 +1,1 @@
-export const ENV_VARs = { URL: "http://localhost:3000" }; // Change according to your ip
+export const ENV_VARs = { URL: import.meta.env.VITE_APP_API_BASE_URL || "http://localhost:3000" };

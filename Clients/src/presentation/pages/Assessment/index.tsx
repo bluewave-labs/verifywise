@@ -1,12 +1,12 @@
-import { memo, useCallback, useState, useEffect } from "react";
-import { Stack, Button, Typography, useTheme, Paper } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { memo, useState, useEffect, useRef } from "react";
+import { Stack, Typography, useTheme, Paper, Divider } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";
 import { Theme } from "@mui/material/styles";
 import { SxProps } from "@mui/system";
 import PageTour from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
 import { getAllEntities } from "../../../application/repository/entity.repository";
+import AllAssessment from "./NewAssessment/AllAssessments";
 
 // Define styles outside the component to avoid recreation on each render
 const usePaperStyle = (theme: Theme): SxProps<Theme> => ({
@@ -16,7 +16,7 @@ const usePaperStyle = (theme: Theme): SxProps<Theme> => ({
   border: "1px solid",
   borderColor: theme.palette.border.light,
   boxShadow: "none",
-  paddingRight: "150px",
+  paddingRight: "100px",
   paddingLeft: "25px",
   paddingTop: "10px",
   paddingBottom: "10px",
@@ -26,7 +26,6 @@ const usePaperStyle = (theme: Theme): SxProps<Theme> => ({
 });
 
 const Assessment = memo(() => {
-  const navigate = useNavigate();
   const theme = useTheme();
   const paperStyle = usePaperStyle(theme);
   const [runAssessmentTour, setRunAssessmentTour] = useState(false);
@@ -35,6 +34,7 @@ const Assessment = memo(() => {
     allDoneAssessments: 0,
     AssessmentsCompletion: 0,
   });
+  const hasScrolledRef = useRef(false);
 
   const assessmentSteps = [
     {
@@ -80,11 +80,11 @@ const Assessment = memo(() => {
   useEffect(() => {
     fetchComplianceTrackerCalculation();
     setRunAssessmentTour(true);
+    if (!hasScrolledRef.current) {
+      window.scrollTo(0, 0);
+      hasScrolledRef.current = true;
+    }
   }, []);
-
-  const handleAssessment = useCallback(() => {
-    navigate("/all-assessments");
-  }, [navigate]);
 
   return (
     <div className="assessment-page">
@@ -105,7 +105,7 @@ const Assessment = memo(() => {
           fontSize="16px"
           color={theme.palette.text.primary}
           sx={{ ...singleTheme.textStyles.pageTitle, fontFamily: "Inter" }}
-          marginBottom={12}
+          marginBottom={6}
         >
           Assessment tracker
         </Typography>
@@ -114,7 +114,7 @@ const Assessment = memo(() => {
           justifyContent="space-between"
           display="flex"
           gap={theme.spacing(10)}
-          sx={{ maxWidth: 1400, marginTop: "20px" }}
+          sx={{ maxWidth: 1400, marginTop: "10px" }}
         >
           <Paper sx={paperStyle}>
             <Typography fontSize="12px" color={theme.palette.text.accent}>
@@ -153,39 +153,8 @@ const Assessment = memo(() => {
             </Typography>
           </Paper>
         </Stack>
-        <Typography
-          fontWeight="600"
-          fontSize="16px"
-          color={theme.palette.text.primary}
-          sx={{ marginTop: "32px" }}
-        >
-          Ongoing assessments
-        </Typography>
-        <Typography fontSize="14px" color={theme.palette.text.secondary}>
-          Those are the assessments you started. Each assessment has a
-          completion status on the left hand side of the table.
-        </Typography>
-        <Stack>
-          <Button
-            data-joyride-id="go-to-assessments"
-            disableRipple={
-              theme.components?.MuiButton?.defaultProps?.disableRipple
-            }
-            variant="contained"
-            sx={{
-              ...singleTheme.buttons.primary,
-              width: "fit-content",
-              height: 34,
-              marginTop: "20px",
-              "&:hover": {
-                backgroundColor: "#175CD3 ",
-              },
-            }}
-            onClick={handleAssessment}
-          >
-            Go to assessments
-          </Button>
-        </Stack>
+        <Divider sx={{ marginY: 10 }} />
+        <AllAssessment />
       </Stack>
     </div>
   );

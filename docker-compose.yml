@@ -17,6 +17,7 @@ services:
     depends_on:
       - postgresdb
     image: pharsh4585/verifywise-backend:latest
+    pull_policy: always
     env_file:
       - ./.env
     ports:
@@ -34,6 +35,7 @@ services:
     depends_on:
       - backend
     image: pharsh4585/verifywise-frontend:latest
+    pull_policy: always
     env_file:
       - ./.env
     ports:

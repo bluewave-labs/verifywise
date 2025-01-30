@@ -182,7 +182,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProjec
   };
 
   const confirmSubmit = async () => {
-    const userInfo = extractUserToken(authState.authToken)
+   // const userInfo = extractUserToken(authState.authToken)
 
     await createNewUser({
       routeUrl: "/projects",
@@ -191,7 +191,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProjec
         type_of_high_risk_role: highRiskRoleItems.find(item => item._id === values.type_of_high_risk_role)?.name,
         ai_risk_classification: riskClassificationItems.find(item => item._id === values.ai_risk_classification)?.name,
         last_updated: values.start_date,
-        last_updated_by: userInfo?.id
+        last_updated_by: values.users // TO Do: get user id from token
       },
     }).then((response) => {
       // Reset form after successful submission

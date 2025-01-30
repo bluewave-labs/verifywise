@@ -16,7 +16,7 @@ import selectValidation from "../../../../application/validations/selectValidati
 import Alert from "../../../components/Alert";
 import VWMultiSelect from "../../../vw-v2-components/Selects/Multi";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
-import { deleteEntityById, getAllEntities } from "../../../../application/repository/entity.repository";
+import { deleteEntityById, getAllEntities, updateEntityById } from "../../../../application/repository/entity.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
@@ -96,6 +96,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
     const { project } = useProjectData({ projectId });
     const navigate = useNavigate();
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
     const [values, setValues] = useState<FormValues>(initialState);
     const [errors, setErrors] = useState<FormErrors>({});
     const [alert, setAlert] = useState<{
@@ -119,7 +120,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
       const fetchUsers = async () => {
         const response = await getAllEntities({ routeUrl: "/users" });
         let users = response.data.map((item: { id: number; _id: number }) => {
-          item._id = item.id; 
+          item._id = item.id;
           return item;
         });
         setUsers(users);
@@ -201,12 +202,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
     const validateForm = useCallback((): boolean => {
       const newErrors: FormErrors = {};
 
-      const projectTitle = checkStringValidation(
-        "Project title",
-        values.projectTitle,
-        1,
-        64
-      );
+      const projectTitle = checkStringValidation("Project title", values.projectTitle, 1, 64);
       if (!projectTitle.accepted) {
         newErrors.projectTitle = projectTitle.message;
       }
@@ -214,11 +210,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
       if (!goal.accepted) {
         newErrors.goal = goal.message;
       }
-      const startDate = checkStringValidation(
-        "Start date",
-        values.startDate,
-        1
-      );
+      const startDate = checkStringValidation("Start date", values.startDate, 1);
       if (!startDate.accepted) {
         newErrors.startDate = startDate.message;
       }
@@ -249,6 +241,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
       async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (validateForm()) {
+          handleOpenSaveDialog();
           //request to the backend
           // setTabValue("overview");
           // console.log(values)
@@ -274,6 +267,59 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
     const handleCloseDeleteDialog = useCallback((): void => {
       setIsDeleteModalOpen(false);
     }, []);
+
+    const handleOpenSaveDialog = useCallback((): void => {
+      setIsSaveModalOpen(true);
+    }, []);
+
+    const handleCloseSaveDialog = useCallback((): void => {
+      setIsSaveModalOpen(false);
+    }, []);
+
+    const handleSaveConfirm = useCallback(async () => {
+      const selectedRiskClass = riskClassificationItems.find(item => item._id === values.riskClassification)?.name || '';
+      const selectedHighRiskRole = highRiskRoleItems.find(item => item._id === values.typeOfHighRiskRole)?.name || '';
+      const userIds = Array.isArray(values.addUsers) && values.addUsers.length > 1
+        ? `[${values.addUsers.join(',')}]`
+        : values.addUsers[0]?.toString() || '';
+
+      await updateEntityById({
+        routeUrl: `/projects/${projectId}`,
+        body: {
+          "id": projectId,
+          "project_title": values.projectTitle,
+          "owner": values.owner,
+          "users": userIds,
+          "start_date": values.startDate,
+          "ai_risk_classification": selectedRiskClass,
+          "type_of_high_risk_role": selectedHighRiskRole,
+          "goal": values.goal,
+          "last_updated": new Date().toISOString(),
+          "last_updated_by": 1
+        },
+      }).then((response) => {
+        if (response.status === 202) {
+          setAlert({
+            variant: "success",
+            body: "Project updated successfully",
+            isToast: true,
+            visible: true,
+          });
+          setTimeout(() => {
+            setAlert(null);
+            setIsSaveModalOpen(false);
+            navigate("/");
+          }, 1000);
+        } else if (response.status === 400) {
+          setAlert({
+            variant: "error",
+            body: response.data.data.message,
+            isToast: true,
+            visible: true,
+          });
+        }
+      });
+    }, [values, projectId]);
 
     const handleConfirmDelete = useCallback(async () => {
       try {
@@ -501,6 +547,23 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             Save
           </Button>
         </Stack>
+        {isSaveModalOpen && (
+          <DualButtonModal
+            title="Confirm Save"
+            body={
+              <Typography fontSize={13}>
+                Are you sure you want to save the changes?
+              </Typography>
+            }
+            cancelText="Cancel"
+            proceedText="Save"
+            onCancel={handleCloseSaveDialog}
+            onProceed={handleSaveConfirm}
+            proceedButtonColor="primary"
+            proceedButtonVariant="contained"
+          />
+        )}
+
         {isDeleteModalOpen && (
           <DualButtonModal
             title="Confirm Delete"

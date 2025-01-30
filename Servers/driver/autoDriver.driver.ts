@@ -504,8 +504,7 @@ export async function insertMockData() {
     if (!(await checkTableExists(tableName as string))) {
       await createTable(createString as string);
     }
-    // if (tableName === "users" || tableName === "roles") {
-    if (await checkDataExists(tableName) === 1) {
+    if (await checkDataExists(tableName) > 1) {
       continue
     }
     if (mockData.length !== 0) {
@@ -513,13 +512,12 @@ export async function insertMockData() {
       insertString += values.join(",") + ";";
       await insertData(insertString as string);
     }
-    // }
   }
 }
 
 export async function deleteMockData() {
   for (let tableName of deleteQueryExecutionOrder) {
     await deleteExistingData(tableName)
-    await dropTable(tableName)
+    // await dropTable(tableName)
   }
 }

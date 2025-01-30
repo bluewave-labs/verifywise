@@ -36,7 +36,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
   onHeightChange,
   assessmentId,
 }) => {
-  if(!open) {
+  if (!open) {
     return null;
   }
   const dispatch = useDispatch();
@@ -55,7 +55,6 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
     () => ({
       strings: {
         dropHereOr: "Click to upload or drag and drop",
-      
       },
       pluralize: (count: number) => count,
     }),
@@ -188,152 +187,187 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
     if (uploadedFiles.length === 0) {
       setOpenPopup(true); // Open popup if no file is selected
       return;
-    } 
-      uppy.upload();
+    }
+    uppy.upload();
 
-      if(onClose) {
-        onClose();
-      }
-    
+    if (onClose) {
+      onClose();
+    }
   };
 
   return (
-    <Container>
-      <Stack
-        spacing={3}
+    <Stack
+      className="file-upload-overlay"
+      sx={{
+        width: "100%",
+        maxWidth: "100%",
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        position: "fixed",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        zIndex: 9999,
+
+        backdropFilter: "blur(8px)", // Glass effect
+        background: "rgba(0, 0, 0, 0.5)", // Slightly dark and blue with opacity
+      }}
+      onClick={onClose}
+    >
+      <Container
+        className="file-upload-container"
         sx={{
-          width: "100%",
-          maxWidth: "100%",
-          mt: 0,
-          pt: 0,
+          width: "fit-content",
+          height: "fit-content",
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 9999,
+          backgroundColor: "white",
+          padding: "20px",
+          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+          borderRadius: "8px",
         }}
       >
-        <Typography
-          variant="h6"
-          sx={{ fontWeight: 600, fontSize: "16px", pb: 2 }}
+        <Stack
+          className="file-upload-stack"
+          spacing={3}
+          sx={{
+            width: "fit-content",
+            mt: 0,
+            pt: 0,
+          }}
         >
-          Upload a new file
-        </Typography>
-
-        <DragDropArea uploadedFilesCount={uploadedFiles.length}>
-          <Icon src={UploadSmallIcon} alt="Upload Icon" sx={{ mb: 2 }} />
-          <DragDrop uppy={uppy} locale={locale} />
-
-          <input
-            type="file"
-            hidden
-            id="fileInput"
-            onChange={(e) => {
-              if (e.target.files) {
-                Array.from(e.target.files).forEach((file) => {
-                  try {
-                    uppy.addFile({
-                      name: file.name,
-                      type: file.type,
-                      data: file,
-                    });
-                  } catch (err) {
-                    console.error("Error adding file:", err);
-                  }
-                });
-              }
-            }}
-          />
-
-          <label
-            htmlFor="fileInput"
-            style={{ cursor: "pointer", textAlign: "center" }}
+          <Typography
+            variant="h6"
+            sx={{ fontWeight: 600, fontSize: "16px", pb: 2 }}
           >
-            <Typography variant="body2">
-              <span style={{ color: "#3b82f6" }}>Click to upload</span> or drag
-              and drop
-            </Typography>
-          </label>
-
-          {/* status bar */}
-          <Stack sx={{ marginTop: 2, marginBottom: 1 }}>
-            <div
-              id="status-bar"
-              style={{ marginTop: "8px", marginBottom: "0", padding: "4px" }}
-            ></div>
-          </Stack>
-
-          {uploadedFiles.length > 0 && (
-            <Stack
-              sx={{
-                mt: 2,
-                borderTop: "1px solid #e5e7eb",
-                width: "100%",
-                padding: "8px",
-                maxHeight: "300px",
-                overflowY: "auto",
-                boxSizing: "border-box",
-              }}
-            >
-              <List>
-                {uploadedFiles.map((file, index) => (
-                  <ListItem
-                    key={file.id || index}
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      padding: "0",
-                    }}
-                  >
-                    <ListItemText
-                      primary={file.name}
-                      secondary={`Size: ${file.size}`}
-                      sx={{
-                        fontSize: "12px",
-                        wordBreak: "break-word",
-                        maxWidth: "100%",
-                      }}
-                    />
-
-                    <IconButton
-                      onClick={() => handleRemoveFile(file.id)}
-                      edge="end"
-                      size="small"
-                      sx={{ padding: "4px" }}
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </ListItem>
-                ))}
-              </List>
-            </Stack>
-          )}
-        </DragDropArea>
-
-        <Stack direction="row" justifyContent="space-between" sx={{ mt: 2 }}>
-          <Typography variant="caption" sx={{ fontSize: "12px" }}>
-            Supported formats: PDF
+            Upload a new file
           </Typography>
 
-          <Button
-            variant="contained"
-            sx={{ marginTop: "8px", width: "100px", height: "34px" }}
-            onClick={handleUploadClick}
-          >
-            Upload
-          </Button>
-        </Stack>
+          <DragDropArea uploadedFilesCount={uploadedFiles.length}>
+            <Icon src={UploadSmallIcon} alt="Upload Icon" sx={{ mb: 2 }} />
+            <DragDrop uppy={uppy} locale={locale} />
 
-        {/* Popup when no file is selected */}
-        <Dialog open={openPopup} onClose={() => setOpenPopup(false)}>
-          <DialogTitle>No file selected</DialogTitle>
-          <DialogContent>
-            <Typography variant="body2">No file is selected yet.</Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenPopup(false)} color="primary">
-              Close
+            <input
+              type="file"
+              hidden
+              id="fileInput"
+              onChange={(e) => {
+                if (e.target.files) {
+                  Array.from(e.target.files).forEach((file) => {
+                    try {
+                      uppy.addFile({
+                        name: file.name,
+                        type: file.type,
+                        data: file,
+                      });
+                    } catch (err) {
+                      console.error("Error adding file:", err);
+                    }
+                  });
+                }
+              }}
+            />
+
+            <label
+              htmlFor="fileInput"
+              style={{ cursor: "pointer", textAlign: "center" }}
+            >
+              <Typography variant="body2">
+                <span style={{ color: "#3b82f6" }}>Click to upload</span> or
+                drag and drop
+              </Typography>
+            </label>
+
+            {/* status bar */}
+            <Stack sx={{ marginTop: 2, marginBottom: 1 }}>
+              <div
+                id="status-bar"
+                style={{ marginTop: "8px", marginBottom: "0", padding: "4px" }}
+              ></div>
+            </Stack>
+
+            {uploadedFiles.length > 0 && (
+              <Stack
+                sx={{
+                  mt: 2,
+                  borderTop: "1px solid #e5e7eb",
+                  width: "100%",
+                  padding: "8px",
+                  maxHeight: "300px",
+                  overflowY: "auto",
+                  boxSizing: "border-box",
+                }}
+              >
+                <List>
+                  {uploadedFiles.map((file, index) => (
+                    <ListItem
+                      key={file.id || index}
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        padding: "0",
+                      }}
+                    >
+                      <ListItemText
+                        primary={file.name}
+                        secondary={`Size: ${file.size}`}
+                        sx={{
+                          fontSize: "12px",
+                          wordBreak: "break-word",
+                          maxWidth: "100%",
+                        }}
+                      />
+
+                      <IconButton
+                        onClick={() => handleRemoveFile(file.id)}
+                        edge="end"
+                        size="small"
+                        sx={{ padding: "4px" }}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </ListItem>
+                  ))}
+                </List>
+              </Stack>
+            )}
+          </DragDropArea>
+
+          <Stack direction="row" justifyContent="space-between" sx={{ mt: 2 }}>
+            <Typography variant="caption" sx={{ fontSize: "12px" }}>
+              Supported formats: PDF
+            </Typography>
+
+            <Button
+              variant="contained"
+              sx={{ marginTop: "8px", width: "100px", height: "34px" }}
+              onClick={handleUploadClick}
+            >
+              Upload
             </Button>
-          </DialogActions>
-        </Dialog>
-      </Stack>
-    </Container>
+          </Stack>
+
+          {/* Popup when no file is selected */}
+          <Dialog open={openPopup} onClose={() => setOpenPopup(false)}>
+            <DialogTitle>No file selected</DialogTitle>
+            <DialogContent>
+              <Typography variant="body2">No file is selected yet.</Typography>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setOpenPopup(false)} color="primary">
+                Close
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </Stack>
+      </Container>
+    </Stack>
   );
 };
 

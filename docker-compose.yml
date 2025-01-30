@@ -40,7 +40,7 @@ services:
       - $FRONTEND_PORT:80
     # environment:
     #   # backend URL
-    #   - VITE_API_URL=http://localhost:${PORT}
+    #   - VITE_APP_API_BASE_URL=$VITE_APP_API_HOST:$BACKEND_PORT
 
 volumes:
   db:

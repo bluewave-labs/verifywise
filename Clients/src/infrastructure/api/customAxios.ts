@@ -23,12 +23,6 @@ import axios from "axios";
 import { store } from "../../application/redux/store"; // Adjust the path to your store
 import { ENV_VARs } from "../../../env.vars";
 
-console.log("vars");
-
-console.log(ENV_VARs.URL);
-
-console.log(process.env);
-
 // Create an instance of axios with default configurations
 const CustomAxios = axios.create({
   baseURL: ENV_VARs.URL,

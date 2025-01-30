@@ -6,10 +6,16 @@ import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate } from "react-router-dom";
 import { createNewUser } from "../../../../application/repository/entity.repository";
-import Alert from "../../../components/Alert";
 import { logEngine } from "../../../../application/tools/log.engine";
-import { validatePassword, validateForm } from "../../../../application/validations/formValidation";
-import type { FormValues, FormErrors } from "../../../../application/validations/formValidation";
+import {
+  validatePassword,
+  validateForm,
+} from "../../../../application/validations/formValidation";
+import type {
+  FormValues,
+  FormErrors,
+} from "../../../../application/validations/formValidation";
+import VWToast from "../../../vw-v2-components/Toast";
 
 // Initial state for form values
 const initialState: FormValues = {
@@ -26,12 +32,9 @@ const RegisterAdmin: React.FC = () => {
   const [values, setValues] = useState<FormValues>(initialState);
   // State for form errors
   const [errors, setErrors] = useState<FormErrors>({});
-  // State for alert
-  const [alert, setAlert] = useState<{
-    variant: "success" | "info" | "warning" | "error";
-    title?: string;
-    body: string;
-  } | null>(null);
+
+  //state for overlay modal
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const passwordChecks = validatePassword(values);
 
@@ -41,11 +44,13 @@ const RegisterAdmin: React.FC = () => {
     (event: React.ChangeEvent<HTMLInputElement>) => {
       setValues({ ...values, [prop]: event.target.value });
       setErrors({ ...errors, [prop]: "" }); // Clear error for the specific field
-  };
+    };
 
   // Handle form submission
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setIsSubmitting(true);
+
     const user = {
       id: "At register level as admin", // Replace with actual user ID
       email: values.email ?? "", // Replace with actual user email
@@ -55,6 +60,8 @@ const RegisterAdmin: React.FC = () => {
     const { isFormValid, errors } = validateForm(values);
     if (!isFormValid) {
       setErrors(errors);
+      setIsSubmitting(false);
+      return;
     } else {
       await createNewUser({
         routeUrl: "/users/register",
@@ -65,76 +72,52 @@ const RegisterAdmin: React.FC = () => {
           setValues(initialState);
           setErrors({});
           if (response.status === 201) {
-            setAlert({
-              variant: "success",
-              body: "Account created successfully. Redirecting to login...",
-            });
             logEngine({
               type: "info",
               message: "Account created successfully.",
               user,
             });
             setTimeout(() => {
-              setAlert(null);
               navigate("/login");
+              setIsSubmitting(false);
             }, 3000);
           } else if (response.status === 400) {
-            setAlert({
-              variant: "error",
-              body: "Bad request. Please check your input.",
-            });
             logEngine({
               type: "error",
               message: "Bad request. Please check your input.",
               user,
             });
-            setTimeout(() => setAlert(null), 3000);
+            setIsSubmitting(false);
           } else if (response.status === 409) {
-            setAlert({
-              variant: "warning",
-              body: "Account already exists.",
-            });
             logEngine({
               type: "event",
               message: "Account already exists.",
               user,
             });
-            setTimeout(() => setAlert(null), 3000);
+            setIsSubmitting(false);
           } else if (response.status === 500) {
-            setAlert({
-              variant: "error",
-              body: "Internal server error. Please try again later.",
-            });
             logEngine({
               type: "error",
               message: "Internal server error. Please try again later.",
               user,
             });
-            setTimeout(() => setAlert(null), 3000);
+            setIsSubmitting(false);
           } else {
-            setAlert({
-              variant: "error",
-              body: "Unexpected response. Please try again.",
-            });
             logEngine({
               type: "error",
               message: "Unexpected response. Please try again.",
               user,
             });
-            setTimeout(() => setAlert(null), 3000);
+            setIsSubmitting(false);
           }
         })
         .catch((error) => {
-          setAlert({
-            variant: "error",
-            body: "An error occurred. Please try again.",
-          });
           logEngine({
             type: "error",
             message: `An error occurred: ${error.message}`,
             user,
           });
-          setTimeout(() => setAlert(null), 3000);
+          setIsSubmitting(false);
         });
     }
   };
@@ -155,6 +138,8 @@ const RegisterAdmin: React.FC = () => {
         marginBottom: theme.spacing(20),
       }}
     >
+      {/* Toast component */}
+      {isSubmitting && <VWToast title="Processing your request. Please wait..." />}
       <Background
         style={{
           position: "absolute",
@@ -165,15 +150,6 @@ const RegisterAdmin: React.FC = () => {
           transform: "translateX(-50%)",
         }}
       />
-      {alert && (
-        <Alert
-          variant={alert.variant}
-          title={alert.title}
-          body={alert.body}
-          isToast={true}
-          onClick={() => setAlert(null)}
-        />
-      )}
       <form onSubmit={handleSubmit}>
         <Stack
           className="reg-admin-form"

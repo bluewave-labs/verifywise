@@ -6,11 +6,10 @@ import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { validatePassword, validateForm } from "../../../../application/validations/formValidation";
 import type { FormValues, FormErrors } from "../../../../application/validations/formValidation";
-import Alert from "../../../components/Alert";
 import useRegisterUser from "../../../../application/hooks/useRegisterUser";
 import { useNavigate } from "react-router-dom";
-import { ALERT_TIMEOUT } from "../../../../application/constants/apiResponses";
-import DisabledOverlay from "../../../components/DisabledOverlay";
+import { logEngine } from "../../../../application/tools/log.engine";
+import VWToast from "../../../vw-v2-components/Toast";
 
 export interface AlertType {
   variant: "success" | "info" | "warning" | "error";
@@ -33,12 +32,10 @@ const RegisterUser: React.FC = () => {
   const [values, setValues] = useState<FormValues>(initialState);
   // State for form errors
   const [errors, setErrors] = useState<FormErrors>({});
-  // State for alert
-  const [alert, setAlert] = useState<AlertType | null>(null);
   // Password checks based on the password input
   const passwordChecks = validatePassword(values);
 
-  //disabled overlay state
+  //disabled overlay modal state
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Handle input field changes
@@ -65,15 +62,20 @@ setIsSubmitting(true);
       setErrors(errors);
       setIsSubmitting(false);
     } else {
-      const { isSuccess } = await registerUser({ values, user, setAlert });
+      const { isSuccess } = await registerUser({ values, user,setIsSubmitting });
       if (isSuccess) {
         setValues(initialState);
         setErrors({});
         setTimeout(() => {
           navigate("/login");
           setIsSubmitting(false);
-        }, ALERT_TIMEOUT + 1000);
+        }, 3000);
       } else{
+        logEngine({
+          type: "error",
+          message: "Registration failed.",
+          user,
+        })
         setIsSubmitting(false);
       }
     }
@@ -94,7 +96,8 @@ setIsSubmitting(true);
         minHeight: "100vh",
       }}
     >
-      <DisabledOverlay isActive={isSubmitting} />
+      {/* Toast component */}
+      {isSubmitting && <VWToast title="Processing your request. Please wait..." />}
       <Background
         style={{
           position: "absolute",
@@ -105,16 +108,6 @@ setIsSubmitting(true);
           transform: "translateX(-50%)",
         }}
       />
-      {alert && (
-        <Alert
-          variant={alert.variant}
-          title={alert.title}
-          body={alert.body}
-          isToast={true}
-          onClick={() => setAlert(null)}
-        />
-      )}
-
       <form onSubmit={handleSubmit}>
         <Stack
           className="reg-user-form"

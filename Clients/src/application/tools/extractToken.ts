@@ -12,7 +12,6 @@ export const extractUserToken = (
       console.error("Invalid token format");
       return null;
     }
-debugger
     const payloadBase64 = parts[1];
     const payloadJson = atob(payloadBase64);
     const payload = JSON.parse(payloadJson);

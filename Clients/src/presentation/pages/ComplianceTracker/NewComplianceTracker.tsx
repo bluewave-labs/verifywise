@@ -165,14 +165,15 @@ const NewComplianceTracker = () => {
         onFinish={() => setRunComplianceTour(false)}
       />
       <Typography
-        data-joyride-id="assessment-status"
-        variant="h1"
+       data-joyride-id="assessment-status"
+        variant="h2"
         component="div"
-        fontWeight="600"
-        fontSize="16px"
-        color={theme.palette.text.primary}
-        sx={{ fontFamily: "Inter" }}
-        marginBottom={12}
+        sx={{
+          pb: 8.5,
+          color: "#1A1919",
+          fontSize: 16,
+          fontWeight: 600,
+        }}
       >
         Compliance tracker
       </Typography>

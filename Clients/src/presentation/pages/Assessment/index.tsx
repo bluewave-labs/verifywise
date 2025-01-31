@@ -98,17 +98,18 @@ const Assessment = memo(() => {
         sx={{ backgroundColor: theme.palette.background.alt }}
       >
         <Typography
-          data-joyride-id="assessment-status"
-          variant="h1"
-          component="div"
-          fontWeight="600"
-          fontSize="16px"
-          color={theme.palette.text.primary}
-          sx={{ ...singleTheme.textStyles.pageTitle, fontFamily: "Inter" }}
-          marginBottom={6}
-        >
-          Assessment tracker
-        </Typography>
+       data-joyride-id="assessment-status"
+        variant="h2"
+        component="div"
+        sx={{
+          pb: 8.5,
+          color: "#1A1919",
+          fontSize: 16,
+          fontWeight: 600,
+        }}
+      >
+        Assessment tracker
+      </Typography>
         <Stack
           direction="row"
           justifyContent="space-between"

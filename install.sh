@@ -79,7 +79,11 @@ main() {
 
     # Start Docker Compose
     echo "Starting Docker Compose..."
-    docker-compose up -d
+    if [ $ENVIRONMENT == "development" ]; then
+        docker-compose up --build -d
+    else
+        docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+    fi
 
     # Check if database needs initialization
     if ! check_db_initialized; then

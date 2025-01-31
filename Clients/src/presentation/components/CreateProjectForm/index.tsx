@@ -182,8 +182,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProjec
   };
 
   const confirmSubmit = async () => {
-   // const userInfo = extractUserToken(authState.authToken)
-
+    const userInfo = extractUserToken(authState.authToken)
     await createNewUser({
       routeUrl: "/projects",
       body: {

@@ -17,8 +17,8 @@ export async function createTable(createQuery: string) {
 };
 
 export async function deleteExistingData(tableName: string) {
-  const query = `DELETE FROM ${tableName} WHERE 1=1;`;
-  await pool.query(query);
+  await pool.query(`DELETE FROM ${tableName} WHERE 1=1;`);
+  await pool.query(`ALTER SEQUENCE ${tableName}_id_seq RESTART WITH 1;`);
 };
 
 export async function insertData(insertQuery: string) {
@@ -30,6 +30,6 @@ export async function dropTable(tableName: string) {
 }
 
 export async function checkDataExists(tableName: string) {
-  const result = await pool.query(`SELECT * from ${tableName} LIMIT 1;`)
+  const result = await pool.query(`SELECT * from ${tableName} LIMIT 2;`)
   return result.rows.length
 }

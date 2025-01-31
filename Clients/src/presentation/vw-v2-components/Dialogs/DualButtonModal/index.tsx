@@ -17,7 +17,7 @@ interface DualButtonModalProps {
     | "error"
     | "info";
   proceedButtonVariant: "contained" | "outlined" | "text";
-  TitleFontSize: number;
+  TitleFontSize?: number;
 }
 
 const DualButtonModal: React.FC<DualButtonModalProps> = ({

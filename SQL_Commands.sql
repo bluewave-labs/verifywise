@@ -30,7 +30,6 @@ CREATE TABLE projects (
 
 CREATE TABLE vendors (
   id SERIAL PRIMARY KEY,
-  project_id INT REFERENCES projects(id),
   vendor_name VARCHAR(255),
   assignee VARCHAR(255),
   vendor_provides TEXT,
@@ -128,6 +127,12 @@ CREATE TABLE vendorrisks (
   owner VARCHAR(255),
   risk_level VARCHAR(255),
   review_date DATE
+);
+
+CREATE TABLE vendors_projects (
+  vendor_id INT REFERENCES vendors(id),
+  project_id INT REFERENCES projects(id),
+  PRIMARY KEY (vendor_id, project_id)
 );
 
 CREATE TABLE projectscopes (

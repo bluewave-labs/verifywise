@@ -86,22 +86,26 @@ export const deleteProjectByIdQuery = async (
 
   const deleteTable = async (entity: string, foreignKey: string, id: number) => {
     console.log(`Deleting from records from ${entity}`);
+    let tableToDelete = entity;
+    if (entity === "vendors") tableToDelete = "vendors_projects";
     await pool.query(
-      `DELETE FROM ${entity} WHERE ${foreignKey} = $1 `,
+      `DELETE FROM ${tableToDelete} WHERE ${foreignKey} = $1;`,
       [id]
     );
   }
 
   const deleteHelper = async (childObject: Record<string, any>, parent_id: number) => {
     const childTableName = Object.keys(childObject).filter(k => k !== "foreignKey")[0]
-    const childIds = await pool.query(`SELECT id FROM ${childTableName} WHERE ${childObject[childTableName].foreignKey} = $1`, [parent_id])
-    await Promise.all(Object.keys(childObject[childTableName])
-      .filter(k => k !== "foreignKey")
-      .map(async k => {
-        for (let ch of childIds.rows) {
-          await deleteHelper({ [k]: childObject[childTableName][k] }, ch.id)
-        }
-      }))
+    if (childTableName !== "vendors") {
+      const childIds = await pool.query(`SELECT id FROM ${childTableName} WHERE ${childObject[childTableName].foreignKey} = $1`, [parent_id])
+      await Promise.all(Object.keys(childObject[childTableName])
+        .filter(k => k !== "foreignKey")
+        .map(async k => {
+          for (let ch of childIds.rows) {
+            await deleteHelper({ [k]: childObject[childTableName][k] }, ch.id)
+          }
+        }))
+    }
     await deleteTable(childTableName, childObject[childTableName].foreignKey, parent_id)
   }
 

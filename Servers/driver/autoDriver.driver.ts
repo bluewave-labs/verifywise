@@ -14,6 +14,7 @@ import { topics } from "../mocks/topic.mock.data";
 import { users } from "../mocks/users.data";
 import { vendors } from "../mocks/vendor.mock.data";
 import mockVendorRisks from "../mocks/vendorRisk.mock.data";
+import { vendorsProjects } from "../mocks/vendorsProjects.mock.data";
 
 import { Assessment } from "../models/assessment.model";
 import { Control } from "../models/control.model";
@@ -30,6 +31,7 @@ import { Topic } from "../models/topic.model";
 import { User } from "../models/user.model";
 import { Vendor } from "../models/vendor.model";
 import { VendorRisk } from "../models/vendorRisk.model";
+import { VendorsProjects } from "../models/vendorsProjects.model";
 
 import {
   deleteExistingData,
@@ -63,7 +65,8 @@ type TableList = [
   TableEntry<Topic>,
   TableEntry<Subtopic>,
   TableEntry<Question>,
-  TableEntry<File>
+  TableEntry<File>,
+  TableEntry<VendorsProjects>
 ];
 
 const insertQuery: TableList = [
@@ -146,7 +149,6 @@ const insertQuery: TableList = [
     tableName: "vendors",
     createString: `CREATE TABLE vendors (
       id SERIAL PRIMARY KEY,
-      project_id INT REFERENCES projects(id),
       vendor_name VARCHAR(255),
       assignee VARCHAR(255),
       vendor_provides TEXT,
@@ -168,10 +170,9 @@ const insertQuery: TableList = [
       likelihood FLOAT
     );`,
     insertString:
-      "INSERT INTO vendors(project_id, vendor_name, assignee, vendor_provides, website, vendor_contact_person, review_result, review_status, reviewer, risk_status, review_date, risk_description, impact_description, impact, probability, action_owner, action_plan, risk_severity, risk_level, likelihood) VALUES ",
+      "INSERT INTO vendors(vendor_name, assignee, vendor_provides, website, vendor_contact_person, review_result, review_status, reviewer, risk_status, review_date, risk_description, impact_description, impact, probability, action_owner, action_plan, risk_severity, risk_level, likelihood) VALUES ",
     generateValuesString: function (vendor: Vendor) {
       return `(
-        ${vendor.projectId},
         '${vendor.vendorName}',
         '${vendor.assignee}',
         '${vendor.vendorProvides}',
@@ -485,11 +486,27 @@ const insertQuery: TableList = [
       )`;
     },
   },
+  {
+    mockData: vendorsProjects,
+    tableName: "vendors_projects",
+    createString: `CREATE TABLE vendors_projects (
+      vendor_id INT REFERENCES vendors(id),
+      project_id INT REFERENCES projects(id),
+      PRIMARY KEY (vendor_id, project_id)
+    );`,
+    insertString: "INSERT INTO vendors_projects(vendor_id, project_id) VALUES ",
+    generateValuesString: (vendors_projects: VendorsProjects) => {
+      return `(
+        '${vendors_projects.vendor_id}',
+        '${vendors_projects.project_id}'
+      )`;
+    },
+  },
 ];
 
 const deleteQueryExecutionOrder = [
   "questions", "subtopics", "files", "topics", "projectscopes", "projectrisks", "vendorrisks",
-  "subcontrols", "controls", "controlcategories", "assessments", "vendors", "projects"
+  "subcontrols", "controls", "controlcategories", "assessments", "vendors_projects", "vendors", "projects"
 ]
 
 export async function insertMockData() {
@@ -510,6 +527,7 @@ export async function insertMockData() {
     if (mockData.length !== 0) {
       const values = mockData.map((d) => generateValuesString(d as any));
       insertString += values.join(",") + ";";
+      console.log(`Inserting ${mockData.length} records for ${tableName}`);
       await insertData(insertString as string);
     }
   }

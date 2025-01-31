@@ -7,7 +7,7 @@ import { Dayjs } from "dayjs";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 
 // Add interface for user type
-interface User {
+export interface User {
   id: number;
   name: string;
   email: string;

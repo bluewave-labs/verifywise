@@ -16,10 +16,12 @@ import selectValidation from "../../../../application/validations/selectValidati
 import Alert from "../../../components/Alert";
 import VWMultiSelect from "../../../vw-v2-components/Selects/Multi";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
-import { deleteEntityById } from "../../../../application/repository/entity.repository";
+import { deleteEntityById, getAllEntities } from "../../../../application/repository/entity.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
+import { User } from "../../../components/Inputs/Dropdowns";
+import { stringToArray } from "../../../../application/tools/stringUtil";
 
 interface ProjectSettingsProps {
   setTabValue: (value: string) => void;
@@ -111,6 +113,20 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
       }
     }, [project]);
 
+    const [users, setUsers] = useState<[]>([]);
+
+    useEffect(() => {
+      const fetchUsers = async () => {
+        const response = await getAllEntities({ routeUrl: "/users" });
+        let users = response.data.map((item: { id: number; _id: number }) => {
+          item._id = item.id; 
+          return item;
+        });
+        setUsers(users);
+      };
+      fetchUsers();
+    }, []);
+
     useEffect(() => {
       if (project) {
         const returnedData: FormValues = {
@@ -119,7 +135,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
           goal: project.goal ?? "",
           owner: parseInt(project.owner) ?? 0,
           startDate: project.start_date ? dayjs(project.start_date).toISOString() : "",
-          addUsers: [parseInt(project.users)],
+          addUsers: stringToArray(project.users),
           riskClassification: riskClassificationItems.find(item => item.name.toLowerCase() === project.ai_risk_classification.toLowerCase())?._id || 0,
           typeOfHighRiskRole: highRiskRoleItems.find(item => item.name.toLowerCase() === project.type_of_high_risk_role.toLowerCase())?._id || 0
         };
@@ -380,11 +396,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             label="Team members"
             onChange={handleMultiSelectChange("addUsers")}
             value={values.addUsers}
-            items={[
-              { _id: 1, name: "Some value 1" },
-              { _id: 2, name: "Some value 2" },
-              { _id: 3, name: "Some value 3" },
-            ]}
+            items={users}
             sx={{ width: 357, backgroundColor: theme.palette.background.main }}
           // error={errors.addUsers}
           // required
@@ -436,7 +448,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
           </Stack>
           <Select
             id="risk-classification-input"
-            value={values?.typeOfHighRiskRole ||  1}
+            value={values?.typeOfHighRiskRole || 1}
             onChange={handleOnSelectChange("typeOfHighRiskRole")}
             items={highRiskRoleItems}
             sx={{ width: 357, backgroundColor: theme.palette.background.main }}

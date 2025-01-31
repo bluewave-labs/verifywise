@@ -47,6 +47,14 @@ const VWMultiSelect = ({
     margin: theme.spacing(2),
   };
 
+  const renderValue = (value: unknown) => {
+    const selected = value as (string | number)[];
+    const selectedItems = items.filter(item => 
+      selected.includes(getOptionValue ? getOptionValue(item) : item._id)
+    );
+    return selectedItems.map(item => item.name).join(', ');
+  };
+
   return (
     <Stack
       className="vw-multi-select"
@@ -92,6 +100,7 @@ const VWMultiSelect = ({
         onChange={onChange}
         multiple
         displayEmpty
+        renderValue={renderValue}
         IconComponent={KeyboardArrowDownIcon}
         error={!!error}
         MenuProps={{

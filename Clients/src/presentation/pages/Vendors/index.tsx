@@ -141,17 +141,18 @@ const Vendors = () => {
         )}
         <Stack>
         <Typography
-          data-joyride-id="assessment-status"
-          variant="h1"
-          component="div"
-          fontWeight="600"
-          fontSize="16px"
-          color={theme.palette.text.primary}
-          sx={{ fontFamily: "Inter" }}
-          marginBottom={12}
-        >
-          Vendor list
-        </Typography>
+       data-joyride-id="assessment-status"
+        variant="h2"
+        component="div"
+        sx={{
+          pb: 8.5,
+          color: "#1A1919",
+          fontSize: 16,
+          fontWeight: 600,
+        }}
+      >
+         Vendor list
+      </Typography>
           <Typography sx={singleTheme.textStyles.pageDescription}>
             This table includes a list of external entities that provides
             AI-related products, services, or components. You can create and

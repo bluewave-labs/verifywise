@@ -241,10 +241,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
       async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (validateForm()) {
-          handleOpenSaveDialog();
-          //request to the backend
-          // setTabValue("overview");
-          // console.log(values)
+          handleSaveConfirm();
         }
       },
       [validateForm, setTabValue]
@@ -268,13 +265,6 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
       setIsDeleteModalOpen(false);
     }, []);
 
-    const handleOpenSaveDialog = useCallback((): void => {
-      setIsSaveModalOpen(true);
-    }, []);
-
-    const handleCloseSaveDialog = useCallback((): void => {
-      setIsSaveModalOpen(false);
-    }, []);
 
     const handleSaveConfirm = useCallback(async () => {
       const selectedRiskClass = riskClassificationItems.find(item => item._id === values.riskClassification)?.name || '';
@@ -307,8 +297,6 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
           });
           setTimeout(() => {
             setAlert(null);
-            setIsSaveModalOpen(false);
-            navigate("/");
           }, 1000);
         } else if (response.status === 400) {
           setAlert({
@@ -547,23 +535,6 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             Save
           </Button>
         </Stack>
-        {isSaveModalOpen && (
-          <DualButtonModal
-            title="Confirm Save"
-            body={
-              <Typography fontSize={13}>
-                Are you sure you want to save the changes?
-              </Typography>
-            }
-            cancelText="Cancel"
-            proceedText="Save"
-            onCancel={handleCloseSaveDialog}
-            onProceed={handleSaveConfirm}
-            proceedButtonColor="primary"
-            proceedButtonVariant="contained"
-          />
-        )}
-
         {isDeleteModalOpen && (
           <DualButtonModal
             title="Confirm Delete"

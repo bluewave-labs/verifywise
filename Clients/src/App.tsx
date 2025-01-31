@@ -31,7 +31,7 @@ import { store, persistor } from "./application/redux/store"; // Adjust the path
 import NewComplianceTracker from "./presentation/pages/ComplianceTracker/NewComplianceTracker";
 import useProjectStatus from "./application/hooks/useProjectStatus";
 import ProtectedRoute from "./presentation/components/ProtectedRoute";
-// import ProtectedRoute from "./presentation/components/ProtectedRoute";
+import { extractUserToken } from "./application/tools/extractToken"; // Import the token extraction function
 
 function App() {
   const mode = useSelector((state: any) => state.ui?.mode || "light");
@@ -55,7 +55,8 @@ function App() {
   const [token, setToken] = useState<string | null>("");
   const [triggerSidebar, setTriggerSidebar] = useState(false);
 
-  const userId = "1"; // TODO: Replace with actual user ID
+  // Extract userId from token
+  const userId = token ? extractUserToken(token)?.id ?? "1" : "1";
   const {
     projectStatus,
     loading: loadingProjectStatus,

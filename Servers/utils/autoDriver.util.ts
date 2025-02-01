@@ -18,7 +18,9 @@ export async function createTable(createQuery: string) {
 
 export async function deleteExistingData(tableName: string) {
   await pool.query(`DELETE FROM ${tableName} WHERE 1=1;`);
-  await pool.query(`ALTER SEQUENCE ${tableName}_id_seq RESTART WITH 1;`);
+  if (tableName !== "vendors_projects") {
+    await pool.query(`ALTER SEQUENCE ${tableName}_id_seq RESTART WITH 1;`);
+  }
 };
 
 export async function insertData(insertQuery: string) {

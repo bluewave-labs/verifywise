@@ -4,6 +4,10 @@ import pool from "../database/db";
 export const getAllProjectsQuery = async (): Promise<Project[]> => {
   console.log("getAllProjects");
   const projects = await pool.query("SELECT * FROM projects");
+  for (let project of projects.rows) {
+    const assessment = await pool.query(`SELECT id FROM assessments WHERE project_id = $1`, [project.id])
+    project["assessment_id"] = assessment.rows[0].id
+  }
   return projects.rows;
 };
 
@@ -12,7 +16,11 @@ export const getProjectByIdQuery = async (
 ): Promise<Project | null> => {
   console.log("getProjectById", id);
   const result = await pool.query("SELECT * FROM projects WHERE id = $1", [id]);
-  return result.rows.length ? result.rows[0] : null;
+  if (result.rows.length === 0) return null;
+  const project = result.rows[0];
+  const assessment = await pool.query(`SELECT id FROM assessments WHERE project_id = $1`, [project.id]);
+  project["assessment_id"] = assessment.rows[0].id
+  return project
 };
 
 export const createNewProjectQuery = async (

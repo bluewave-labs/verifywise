@@ -3,12 +3,10 @@ import { compileMjmlToHtml } from "../tools/mjmlCompiler";
 
 // Create a transporter object using the default SMTP transport
 const transporter = nodemailer.createTransport({
-  host: "smtp.example.com", // Replace with your SMTP server
-  port: 587, // Replace with your SMTP port
-  secure: false, // true for 465, false for other ports
+  service: "gmail",
   auth: {
-    user: "your-email@example.com", // Replace with your email
-    pass: "your-email-password", // Replace with your email password
+    user: "verifywise.bwl@gmail.com", // Replace with your email
+    pass: "@VerifyWise.bwl.25", // Replace with your email password
   },
 });
 
@@ -24,7 +22,7 @@ export const sendEmail = async (
   const html = compileMjmlToHtml(template, data);
 
   const mailOptions = {
-    from: '"Your Name" <your-email@example.com>', // sender address
+    from: "verifywise.bwl@gmail.com", // sender address
     to, // list of receivers
     subject, // Subject line
     text, // plain text body

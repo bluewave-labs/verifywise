@@ -38,52 +38,28 @@ import {
   insertData,
   dropTable,
   checkDataExists,
+  getDEMOProjects,
 } from "../utils/autoDriver.util";
+import { deleteProjectByIdQuery } from "../utils/project.utils";
 
-interface TableEntry<T> {
-  mockData: T[];
-  tableName: string;
-  createString: string;
-  insertString: string;
-  generateValuesString: (item: T) => string;
-}
-
-type TableList = [
-  TableEntry<Role>,
-  TableEntry<User>,
-  TableEntry<Project>,
-  TableEntry<Vendor>,
-  TableEntry<Assessment>,
-  TableEntry<ControlCategory>,
-  TableEntry<Control>,
-  TableEntry<Subcontrol>,
-  TableEntry<ProjectRisk>,
-  TableEntry<VendorRisk>,
-  TableEntry<ProjectScope>,
-  TableEntry<Topic>,
-  TableEntry<Subtopic>,
-  TableEntry<Question>,
-  TableEntry<File>
-];
-
-const insertQuery: TableList = [
-  {
+const insertQuery = {
+  roles: {
     mockData: roles,
     tableName: "roles",
     createString: `CREATE TABLE roles (
       id SERIAL PRIMARY KEY,
       name VARCHAR(255),
       description TEXT
-        );`,
+    );`,
     insertString: "INSERT INTO roles(name, description) VALUES ",
     generateValuesString: function (role: Role) {
       return `(
-        '${role.name}',
+        'DEMO - ${role.name}',
         '${role.description}'
       )`;
     },
   },
-  {
+  users: {
     mockData: users,
     tableName: "users",
     createString: `CREATE TABLE users (
@@ -100,7 +76,7 @@ const insertQuery: TableList = [
       "INSERT INTO users(name, surname, email, password_hash, role, created_at, last_login) VALUES ",
     generateValuesString: function (user: User) {
       return `(
-        '${user.name}',
+        'DEMO - ${user.name}',
         '${user.surname}',
         '${user.email}',
         '${user.password_hash}',
@@ -110,7 +86,7 @@ const insertQuery: TableList = [
       )`;
     },
   },
-  {
+  projects: {
     mockData: Projects,
     tableName: "projects",
     createString: `CREATE TABLE projects (
@@ -129,7 +105,7 @@ const insertQuery: TableList = [
       "INSERT INTO projects(project_title, owner, users, start_date, ai_risk_classification, type_of_high_risk_role, goal, last_updated, last_updated_by) VALUES ",
     generateValuesString: function (project: Project) {
       return `(
-        '${project.project_title}',
+        'DEMO - ${project.project_title}',
         '${project.owner}',
         '${project.users}',
         '${project.start_date.toISOString().split("T")[0]}',
@@ -141,7 +117,7 @@ const insertQuery: TableList = [
       )`;
     },
   },
-  {
+  vendors: {
     mockData: vendors,
     tableName: "vendors",
     createString: `CREATE TABLE vendors (
@@ -172,7 +148,7 @@ const insertQuery: TableList = [
     generateValuesString: function (vendor: Vendor) {
       return `(
         ${vendor.projectId},
-        '${vendor.vendorName}',
+        'DEMO - ${vendor.vendorName}',
         '${vendor.assignee}',
         '${vendor.vendorProvides}',
         '${vendor.website}',
@@ -194,7 +170,7 @@ const insertQuery: TableList = [
       )`;
     },
   },
-  {
+  assessments: {
     mockData: Assessments,
     tableName: "assessments",
     createString: `CREATE TABLE assessments (
@@ -208,7 +184,7 @@ const insertQuery: TableList = [
       )`;
     },
   },
-  {
+  controlCategories: {
     mockData: ControlCategories,
     tableName: "controlcategories",
     createString: `CREATE TABLE controlcategories (
@@ -220,11 +196,11 @@ const insertQuery: TableList = [
     generateValuesString: function (controlCategory: ControlCategory) {
       return `(
         '${controlCategory.projectId}',
-        '${controlCategory.name}'
+        'DEMO - ${controlCategory.name}'
       )`;
     },
   },
-  {
+  mockControls: {
     mockData: mockControls,
     tableName: "controls",
     createString: `CREATE TABLE controls (
@@ -248,12 +224,12 @@ const insertQuery: TableList = [
         '${control.owner}',
         '${control.reviewer}',
         '${control.dueDate.toISOString().split("T")[0]}',
-        '${control.implementationDetails}',
+        'DEMO - ${control.implementationDetails}',
         '${control.controlGroup}'
       )`;
     },
   },
-  {
+  subcontrols: {
     mockData: subcontrols,
     tableName: "subcontrols",
     createString: `CREATE TABLE subcontrols (
@@ -282,7 +258,7 @@ const insertQuery: TableList = [
         '${subControl.owner}',
         '${subControl.reviewer}',
         '${subControl.dueDate.toISOString().split("T")[0]}',
-        '${subControl.implementationDetails}',
+        'DEMO - ${subControl.implementationDetails}',
         '${subControl.evidence}',
         '${subControl.feedback}',
         ARRAY[]::TEXT[],
@@ -290,7 +266,7 @@ const insertQuery: TableList = [
       )`;
     },
   },
-  {
+  mockProjectRisks: {
     mockData: mockProjectRisks,
     tableName: "projectrisks",
     createString: `CREATE TABLE projectrisks (
@@ -326,7 +302,7 @@ const insertQuery: TableList = [
     generateValuesString: function (projectRisk: ProjectRisk) {
       return `(
         '${projectRisk.project_id}',
-        '${projectRisk.risk_name}',
+        'DEMO - ${projectRisk.risk_name}',
         '${projectRisk.risk_owner}',
         '${projectRisk.ai_lifecycle_phase}',
         '${projectRisk.risk_description}',
@@ -353,7 +329,7 @@ const insertQuery: TableList = [
       )`;
     },
   },
-  {
+  mockVendorRisks: {
     mockData: mockVendorRisks,
     tableName: "vendorrisks",
     createString: `CREATE TABLE vendorrisks (
@@ -370,7 +346,7 @@ const insertQuery: TableList = [
     generateValuesString: function (vendorRisk: VendorRisk) {
       return `(
         '${vendorRisk.project_id}',
-        '${vendorRisk.vendor_name}',
+        'DEMO - ${vendorRisk.vendor_name}',
         '${vendorRisk.risk_name}',
         '${vendorRisk.owner}',
         '${vendorRisk.risk_level}',
@@ -378,7 +354,7 @@ const insertQuery: TableList = [
       )`;
     },
   },
-  {
+  projectScopes: {
     mockData: projectScopes,
     tableName: "projectscopes",
     createString: `CREATE TABLE projectscopes (
@@ -398,7 +374,7 @@ const insertQuery: TableList = [
     generateValuesString: function (projectScope: ProjectScope) {
       return `(
         '${projectScope.assessmentId}',
-        '${projectScope.describeAiEnvironment}',
+        'DEMO - ${projectScope.describeAiEnvironment}',
         '${projectScope.isNewAiTechnology}',
         '${projectScope.usesPersonalData}',
         '${projectScope.projectScopeDocuments}',
@@ -409,7 +385,7 @@ const insertQuery: TableList = [
       )`;
     },
   },
-  {
+  topics: {
     mockData: topics,
     tableName: "topics",
     createString: `CREATE TABLE topics (
@@ -419,10 +395,10 @@ const insertQuery: TableList = [
         );`,
     insertString: "INSERT INTO topics(assessment_id, title) VALUES ",
     generateValuesString: function (topic: Topic) {
-      return `(${topic.assessmentId}, '${topic.title}')`;
+      return `(${topic.assessmentId}, 'DEMO - ${topic.title}')`;
     },
   },
-  {
+  subtopics: {
     mockData: subtopics,
     tableName: "subtopics",
     createString: `CREATE TABLE subtopics (
@@ -434,11 +410,11 @@ const insertQuery: TableList = [
     generateValuesString: function (subTopic: Subtopic) {
       return `(
         ${subTopic.topicId},
-        '${subTopic.name}'
+        'DEMO - ${subTopic.name}'
       )`;
     },
   },
-  {
+  questions: {
     mockData: questions,
     tableName: "questions",
     createString: `CREATE TABLE questions (
@@ -458,7 +434,7 @@ const insertQuery: TableList = [
     generateValuesString: function (question: Question) {
       return `(
         ${question.subtopicId},
-        '${question.questionText}',
+        'DEMO - ${question.questionText}',
         '${question.answerType}',
         ${question.evidenceFileRequired},
         '${question.hint}',
@@ -469,7 +445,7 @@ const insertQuery: TableList = [
       )`;
     },
   },
-  {
+  files: {
     mockData: [] as File[],
     tableName: "files",
     createString: `CREATE TABLE files (
@@ -485,39 +461,268 @@ const insertQuery: TableList = [
       )`;
     },
   },
-];
-
-const deleteQueryExecutionOrder = [
-  "questions", "subtopics", "files", "topics", "projectscopes", "projectrisks", "vendorrisks",
-  "subcontrols", "controls", "controlcategories", "assessments", "vendors", "projects"
-]
+};
 
 export async function insertMockData() {
-  for (let entry of insertQuery) {
-    let {
-      mockData,
-      tableName,
-      createString,
-      insertString,
-      generateValuesString,
-    } = entry;
-    if (!(await checkTableExists(tableName as string))) {
-      await createTable(createString as string);
-    }
-    if (await checkDataExists(tableName) > 1) {
-      continue
-    }
-    if (mockData.length !== 0) {
-      const values = mockData.map((d) => generateValuesString(d as any));
-      insertString += values.join(",") + ";";
-      await insertData(insertString as string);
-    }
+  var {
+    mockData: roleMockData,
+    tableName,
+    createString,
+    insertString,
+    generateValuesString: roleGenerateValuesString,
+  } = insertQuery["roles"];
+  let roles;
+  if (roleMockData.length !== 0) {
+    const values = roleMockData.map((d) => roleGenerateValuesString(d as any));
+    insertString += values.join(",") + "RETURNING id;";
+    roles = await insertData(insertString as string);
+  }
+
+  var {
+    mockData: userMockData,
+    tableName,
+    createString,
+    insertString,
+    generateValuesString: userGenerateValuesString,
+  } = insertQuery["users"];
+  let users;
+  if (userMockData.length !== 0) {
+    const values = userMockData(-1, roles![0].id, roles![1].id, roles![2].id).map((d) => userGenerateValuesString(d as any));
+    insertString += values.join(",") + "RETURNING id;";
+    users = await insertData(insertString as string);
+  }
+
+  var {
+    mockData: projectMockData,
+    tableName,
+    createString,
+    insertString,
+    generateValuesString: projectGenerateValuesString,
+  } = insertQuery["projects"];
+  let projects;
+  if (projectMockData.length !== 0) {
+    const values = projectMockData(users![0].id, users![1].id).map((d) => projectGenerateValuesString(d as any));
+    insertString += values.join(",") + "RETURNING id;";
+    projects = await insertData(insertString as string);
+  }
+
+  var {
+    mockData: vendorMockData,
+    tableName,
+    createString,
+    insertString,
+    generateValuesString: vendorGenerateValuesString,
+  } = insertQuery["vendors"];
+  let vendors;
+  if (vendorMockData.length !== 0) {
+    const values = vendorMockData(projects![0].id, projects![1].id).map((d) => vendorGenerateValuesString(d as any));
+    insertString += values.join(",") + "RETURNING id;";
+    vendors = await insertData(insertString as string);
+  }
+
+  var {
+    mockData: assessmentMockData,
+    tableName,
+    createString,
+    insertString,
+    generateValuesString: assessmentGenerateValuesString,
+  } = insertQuery["assessments"];
+  let assessments;
+  if (assessmentMockData.length !== 0) {
+    const values = assessmentMockData(projects![0].id, projects![1].id).map((d) => assessmentGenerateValuesString(d as any));
+    insertString += values.join(",") + "RETURNING id;";
+    assessments = await insertData(insertString as string);
+  }
+
+  var {
+    mockData: controlCategoriesMockData,
+    tableName,
+    createString,
+    insertString,
+    generateValuesString: controlCategoriesGenerateValuesString,
+  } = insertQuery["controlCategories"];
+  let controlCategories;
+  if (controlCategoriesMockData.length !== 0) {
+    const values = controlCategoriesMockData(projects![0].id, projects![1].id).map((d) => controlCategoriesGenerateValuesString(d as any));
+    insertString += values.join(",") + "RETURNING id;";
+    controlCategories = await insertData(insertString as string);
+  }
+
+  var {
+    mockData: controlMockData,
+    tableName,
+    createString,
+    insertString,
+    generateValuesString: controlGenerateValuesString,
+  } = insertQuery["mockControls"];
+  let controls;
+  if (controlMockData.length !== 0) {
+    const values = controlMockData(controlCategories![0].id, controlCategories![1].id).map((d) => controlGenerateValuesString(d as any));
+    insertString += values.join(",") + "RETURNING id;";
+    controls = await insertData(insertString as string);
+  }
+
+  var {
+    mockData: subControlMockData,
+    tableName,
+    createString,
+    insertString,
+    generateValuesString: subControlGenerateValuesString,
+  } = insertQuery["subcontrols"];
+  let subControls;
+  if (controlMockData.length !== 0) {
+    const values = subControlMockData(
+      controls![0].id,
+      controls![1].id,
+      controls![2].id,
+      controls![3].id,
+      controls![4].id,
+      controls![5].id,
+    ).map((d) => subControlGenerateValuesString(d as any));
+    insertString += values.join(",") + "RETURNING id;";
+    subControls = await insertData(insertString as string);
+  }
+
+  var {
+    mockData: projectRisksMockData,
+    tableName,
+    createString,
+    insertString,
+    generateValuesString: projectRisksGenerateValuesString,
+  } = insertQuery["mockProjectRisks"];
+  let projectRisks;
+  if (controlMockData.length !== 0) {
+    const values = projectRisksMockData(
+      projects![0].id,
+    ).map((d) => projectRisksGenerateValuesString(d as any));
+    insertString += values.join(",") + "RETURNING id;";
+    projectRisks = await insertData(insertString as string);
+  }
+
+  var {
+    mockData: vendorRisksMockData,
+    tableName,
+    createString,
+    insertString,
+    generateValuesString: vendorRisksGenerateValuesString,
+  } = insertQuery["mockVendorRisks"];
+  let vendorRisks;
+  if (controlMockData.length !== 0) {
+    const values = vendorRisksMockData(
+      projects![0].id,
+      projects![0].id,
+    ).map((d) => vendorRisksGenerateValuesString(d as any));
+    insertString += values.join(",") + "RETURNING id;";
+    vendorRisks = await insertData(insertString as string);
+  }
+
+  var {
+    mockData: projectScopeMockData,
+    tableName,
+    createString,
+    insertString,
+    generateValuesString: projectScopeGenerateValuesString,
+  } = insertQuery["projectScopes"];
+  let projectScopes;
+  if (projectScopeMockData.length !== 0) {
+    const values = projectScopeMockData(assessments![0].id).map((d) => projectScopeGenerateValuesString(d as any));
+    insertString += values.join(",") + "RETURNING id;";
+    projectScopes = await insertData(insertString as string);
+  }
+
+  var {
+    mockData: topicMockData,
+    tableName,
+    createString,
+    insertString,
+    generateValuesString: topicGenerateValuesString,
+  } = insertQuery["topics"];
+  let topics;
+  if (topicMockData.length !== 0) {
+    const values = topicMockData(assessments![0].id, assessments![1].id).map((d) => topicGenerateValuesString(d as any));
+    insertString += values.join(",") + "RETURNING id;";
+    topics = await insertData(insertString as string);
+  }
+
+  var {
+    mockData: subTopicMockData,
+    tableName,
+    createString,
+    insertString,
+    generateValuesString: subTopicGenerateValuesString,
+  } = insertQuery["subtopics"];
+  let subTopics;
+  if (subTopicMockData.length !== 0) {
+    const values = subTopicMockData(
+      topics![0].id,
+      topics![1].id,
+      topics![2].id,
+      topics![3].id,
+      topics![4].id,
+      topics![5].id,
+      topics![6].id,
+      topics![7].id,
+      topics![8].id,
+      topics![9].id,
+      topics![10].id,
+      topics![11].id,
+      topics![12].id,
+      topics![13].id,
+      topics![14].id,
+      topics![15].id,
+      topics![16].id,
+      topics![17].id,
+      topics![18].id,
+      topics![19].id,
+      topics![20].id,
+      topics![21].id,
+      topics![22].id,
+      topics![23].id,
+      topics![24].id,
+      topics![25].id,
+    ).map((d) => subTopicGenerateValuesString(d as any));
+    insertString += values.join(",") + "RETURNING id;";
+    subTopics = await insertData(insertString as string);
+  }
+
+  var {
+    mockData: questionMockData,
+    tableName,
+    createString,
+    insertString,
+    generateValuesString: questionGenerateValuesString,
+  } = insertQuery["questions"];
+  let questions;
+  if (questionMockData.length !== 0) {
+    const values = questionMockData(
+      subTopics![0].id,
+      subTopics![1].id,
+      subTopics![2].id,
+      subTopics![3].id,
+      subTopics![4].id,
+      subTopics![5].id,
+      subTopics![6].id,
+      subTopics![7].id,
+      subTopics![8].id,
+      subTopics![9].id,
+      subTopics![10].id,
+      subTopics![11].id,
+      subTopics![12].id,
+      subTopics![13].id,
+      subTopics![14].id,
+      subTopics![15].id,
+      subTopics![16].id,
+    ).map((d) => questionGenerateValuesString(d as any));
+    insertString += values.join(",") + "RETURNING id;";
+    questions = await insertData(insertString as string);
   }
 }
 
 export async function deleteMockData() {
-  for (let tableName of deleteQueryExecutionOrder) {
-    await deleteExistingData(tableName)
-    // await dropTable(tableName)
+  const projects = await getDEMOProjects()
+  for (let project of projects) {
+    await deleteProjectByIdQuery(project.id)
   }
+  await deleteExistingData("users", "name")
+  await deleteExistingData("roles", "name")
 }

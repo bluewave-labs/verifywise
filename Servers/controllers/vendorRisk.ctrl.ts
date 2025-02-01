@@ -3,13 +3,6 @@ import { MOCKDATA_ON } from "../flags";
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
-  createMockVendorRisk,
-  deleteMockVendorRiskById,
-  getAllMockVendorRisks,
-  getMockVendorRiskById,
-  updateMockVendorRiskById,
-} from "../mocks/tools/vendorRisk.mock.db";
-import {
   createNewVendorRiskQuery,
   deleteVendorRiskByIdQuery,
   getAllVendorRisksQuery,
@@ -22,23 +15,13 @@ export async function getAllVendorRisks(
   res: Response
 ): Promise<any> {
   try {
-    if (MOCKDATA_ON) {
-      const vendorRisks = getAllMockVendorRisks();
+    const vendorRisks = await getAllVendorRisksQuery();
 
-      if (vendorRisks) {
-        return res.status(200).json(STATUS_CODE[200](vendorRisks));
-      }
-
-      return res.status(204).json(STATUS_CODE[204](vendorRisks));
-    } else {
-      const vendorRisks = await getAllVendorRisksQuery();
-
-      if (vendorRisks) {
-        return res.status(200).json(STATUS_CODE[200](vendorRisks));
-      }
-
-      return res.status(204).json(STATUS_CODE[204](vendorRisks));
+    if (vendorRisks) {
+      return res.status(200).json(STATUS_CODE[200](vendorRisks));
     }
+
+    return res.status(204).json(STATUS_CODE[204](vendorRisks));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -51,23 +34,13 @@ export async function getVendorRiskById(
   try {
     const vendorRiskId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON) {
-      const vendorRisk = getMockVendorRiskById(vendorRiskId);
+    const vendorRisk = await getVendorRiskByIdQuery(vendorRiskId);
 
-      if (vendorRisk) {
-        return res.status(200).json(STATUS_CODE[200](vendorRisk));
-      }
-
-      return res.status(404).json(STATUS_CODE[404](vendorRisk));
-    } else {
-      const vendorRisk = await getVendorRiskByIdQuery(vendorRiskId);
-
-      if (vendorRisk) {
-        return res.status(200).json(STATUS_CODE[200](vendorRisk));
-      }
-
-      return res.status(404).json(STATUS_CODE[404](vendorRisk));
+    if (vendorRisk) {
+      return res.status(200).json(STATUS_CODE[200](vendorRisk));
     }
+
+    return res.status(404).json(STATUS_CODE[404](vendorRisk));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -103,23 +76,13 @@ export async function createVendorRisk(
       );
     }
 
-    if (MOCKDATA_ON) {
-      const createdVendorRisk = createMockVendorRisk(newVendorRisk);
+    const createdVendorRisk = await createNewVendorRiskQuery(newVendorRisk);
 
-      if (createdVendorRisk) {
-        return res.status(201).json(STATUS_CODE[201](createdVendorRisk));
-      }
-
-      return res.status(503).json(STATUS_CODE[503]({}));
-    } else {
-      const createdVendorRisk = await createNewVendorRiskQuery(newVendorRisk);
-
-      if (createdVendorRisk) {
-        return res.status(201).json(STATUS_CODE[201](createdVendorRisk));
-      }
-
-      return res.status(503).json(STATUS_CODE[503]({}));
+    if (createdVendorRisk) {
+      return res.status(201).json(STATUS_CODE[201](createdVendorRisk));
     }
+
+    return res.status(503).json(STATUS_CODE[503]({}));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -156,29 +119,16 @@ export async function updateVendorRiskById(
       );
     }
 
-    if (MOCKDATA_ON) {
-      const vendorRisk = updateMockVendorRiskById(
-        vendorRiskId,
-        updatedVendorRisk
-      );
+    const vendorRisk = await updateVendorRiskByIdQuery(
+      vendorRiskId,
+      updatedVendorRisk
+    );
 
-      if (vendorRisk) {
-        return res.status(202).json(STATUS_CODE[202](vendorRisk));
-      }
-
-      return res.status(404).json(STATUS_CODE[404]({}));
-    } else {
-      const vendorRisk = await updateVendorRiskByIdQuery(
-        vendorRiskId,
-        updatedVendorRisk
-      );
-
-      if (vendorRisk) {
-        return res.status(202).json(STATUS_CODE[202](vendorRisk));
-      }
-
-      return res.status(404).json(STATUS_CODE[404]({}));
+    if (vendorRisk) {
+      return res.status(202).json(STATUS_CODE[202](vendorRisk));
     }
+
+    return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -191,23 +141,13 @@ export async function deleteVendorRiskById(
   try {
     const vendorRiskId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON) {
-      const deletedVendorRisk = deleteMockVendorRiskById(vendorRiskId);
+    const deletedVendorRisk = await deleteVendorRiskByIdQuery(vendorRiskId);
 
-      if (deletedVendorRisk) {
-        return res.status(202).json(STATUS_CODE[202](deletedVendorRisk));
-      }
-
-      return res.status(404).json(STATUS_CODE[404]({}));
-    } else {
-      const deletedVendorRisk = await deleteVendorRiskByIdQuery(vendorRiskId);
-
-      if (deletedVendorRisk) {
-        return res.status(202).json(STATUS_CODE[202](deletedVendorRisk));
-      }
-
-      return res.status(404).json(STATUS_CODE[404]({}));
+    if (deletedVendorRisk) {
+      return res.status(202).json(STATUS_CODE[202](deletedVendorRisk));
     }
+
+    return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

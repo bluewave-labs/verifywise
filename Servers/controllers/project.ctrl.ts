@@ -3,14 +3,6 @@ import { MOCKDATA_ON } from "../flags";
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
-  calculateMockProjectRisks,
-  createMockProject,
-  deleteMockProjectById,
-  getAllMockProjects,
-  getMockProjectById,
-  updateMockProjectById,
-} from "../mocks/tools/project.mock.db";
-import {
   calculateProjectRisks,
   calculateVendirRisks,
   createNewProjectQuery,
@@ -19,38 +11,21 @@ import {
   getProjectByIdQuery,
   updateProjectByIdQuery,
 } from "../utils/project.utils";
-import { createMockControlCategory } from "../mocks/tools/controlCategory.mock.db";
-import { createMockControl } from "../mocks/tools/control.mock.db";
-import { createMockSubcontrol } from "../mocks/tools/subcontrol.mock.db";
-import { createControlCategoryQuery } from "../utils/controlCategory.util";
-import { createNewControlQuery } from "../utils/control.utils";
-import { createNewSubcontrolQuery } from "../utils/subControl.utils";
-import { getMockUserById } from "../mocks/tools/user.mock.db";
 import { createNewAssessmentQuery } from "../utils/assessment.utils";
-import { createMockAssessment } from "../mocks/tools/assessment.mock.db";
+import { getUserByIdQuery } from "../utils/user.utils";
 
 export async function getAllProjects(
   req: Request,
   res: Response
 ): Promise<any> {
   try {
-    if (MOCKDATA_ON) {
-      const projects = getAllMockProjects();
+    const projects = await getAllProjectsQuery();
 
-      if (projects) {
-        return res.status(200).json(STATUS_CODE[200](projects));
-      }
-
-      return res.status(204).json(STATUS_CODE[204](projects));
-    } else {
-      const projects = await getAllProjectsQuery();
-
-      if (projects) {
-        return res.status(200).json(STATUS_CODE[200](projects));
-      }
-
-      return res.status(204).json(STATUS_CODE[204](projects));
+    if (projects) {
+      return res.status(200).json(STATUS_CODE[200](projects));
     }
+
+    return res.status(204).json(STATUS_CODE[204](projects));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -63,23 +38,13 @@ export async function getProjectById(
   try {
     const projectId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON) {
-      const project = getMockProjectById(projectId);
+    const project = await getProjectByIdQuery(projectId);
 
-      if (project) {
-        return res.status(200).json(STATUS_CODE[200](project));
-      }
-
-      return res.status(404).json(STATUS_CODE[404](project));
-    } else {
-      const project = await getProjectByIdQuery(projectId);
-
-      if (project) {
-        return res.status(200).json(STATUS_CODE[200](project));
-      }
-
-      return res.status(404).json(STATUS_CODE[404](project));
+    if (project) {
+      return res.status(200).json(STATUS_CODE[200](project));
     }
+
+    return res.status(404).json(STATUS_CODE[404](project));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -106,51 +71,27 @@ export async function createProject(req: Request, res: Response): Promise<any> {
         );
     }
 
-    if (MOCKDATA_ON) {
-      const createdProject = createMockProject({...newProject, last_updated: newProject.start_date}) as { id: string };
-      const assessment = createMockAssessment({
-        projectId: createdProject.id,
-      }) as { id: string; projectId: string };
-      console.log(
-        "project id ",
-        createdProject.id,
-        ", assessment id ",
-        assessment.id
+    const createdProject = await createNewProjectQuery({ ...newProject, last_updated: newProject.start_date });
+    const assessment = await createNewAssessmentQuery({
+      projectId: createdProject.id,
+    });
+    console.log(
+      "project id ",
+      createdProject.id,
+      ", assessment id ",
+      assessment.id
+    );
+
+    if (createdProject) {
+      return res.status(201).json(
+        STATUS_CODE[201]({
+          assessment: assessment,
+          project: createdProject,
+        })
       );
-
-      if (createdProject) {
-        return res.status(201).json(
-          STATUS_CODE[201]({
-            assessment: assessment,
-            project: createdProject,
-          })
-        );
-      }
-
-      return res.status(503).json(STATUS_CODE[503]({}));
-    } else {
-      const createdProject = await createNewProjectQuery({...newProject, last_updated: newProject.start_date});
-      const assessment = await createNewAssessmentQuery({
-        projectId: createdProject.id,
-      });
-      console.log(
-        "project id ",
-        createdProject.id,
-        ", assessment id ",
-        assessment.id
-      );
-
-      if (createdProject) {
-        return res.status(201).json(
-          STATUS_CODE[201]({
-            assessment: assessment,
-            project: createdProject,
-          })
-        );
-      }
-
-      return res.status(503).json(STATUS_CODE[503]({}));
     }
+
+    return res.status(503).json(STATUS_CODE[503]({}));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -182,23 +123,13 @@ export async function updateProjectById(
         );
     }
 
-    if (MOCKDATA_ON) {
-      const project = updateMockProjectById(projectId, updatedProject);
+    const project = await updateProjectByIdQuery(projectId, updatedProject);
 
-      if (project) {
-        return res.status(202).json(STATUS_CODE[202](project));
-      }
-
-      return res.status(404).json(STATUS_CODE[404]({}));
-    } else {
-      const project = await updateProjectByIdQuery(projectId, updatedProject);
-
-      if (project) {
-        return res.status(202).json(STATUS_CODE[202](project));
-      }
-
-      return res.status(404).json(STATUS_CODE[404]({}));
+    if (project) {
+      return res.status(202).json(STATUS_CODE[202](project));
     }
+
+    return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -211,23 +142,13 @@ export async function deleteProjectById(
   try {
     const projectId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON) {
-      const deletedProject = deleteMockProjectById(projectId);
+    const deletedProject = await deleteProjectByIdQuery(projectId);
 
-      if (deletedProject) {
-        return res.status(202).json(STATUS_CODE[202](deletedProject));
-      }
-
-      return res.status(404).json(STATUS_CODE[404]({}));
-    } else {
-      const deletedProject = await deleteProjectByIdQuery(projectId);
-
-      if (deletedProject) {
-        return res.status(202).json(STATUS_CODE[202](deletedProject));
-      }
-
-      return res.status(404).json(STATUS_CODE[404]({}));
+    if (deletedProject) {
+      return res.status(202).json(STATUS_CODE[202](deletedProject));
     }
+
+    return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -237,56 +158,29 @@ export async function getProjectStatsById(
   req: Request,
   res: Response
 ): Promise<any> {
-  if (MOCKDATA_ON) {
-    const projectId = parseInt(req.params.id);
+  const projectId = parseInt(req.params.id);
 
-    // mock data sections
-    // first getting the project by id
-    const project: any = getMockProjectById(projectId);
+  // first getting the project by id
+  const project: any = await getProjectByIdQuery(projectId);
 
-    const project_owner = project.owner; // (A user's id) Now, we get the user by this
-    const ownerUser: any = getMockUserById(project_owner);
+  const project_owner = project.owner; // (A user's id) Now, we get the user by this
+  const ownerUser: any = getUserByIdQuery(project_owner);
 
-    const project_last_updated = project.last_updated;
+  const project_last_updated = project.last_updated;
 
-    const project_last_updated_by = project.last_updated_by;
-    const userWhoUpdated: any = getMockUserById(project_last_updated_by);
+  const project_last_updated_by = project.last_updated_by;
+  const userWhoUpdated: any = getUserByIdQuery(project_last_updated_by);
 
-    const overviewDetails = {
-      user: {
-        name: ownerUser.name,
-        surname: ownerUser.surname,
-        email: ownerUser.email,
-        project_last_updated,
-        userWhoUpdated,
-      },
-    };
-    return res.status(202).json(STATUS_CODE[202](overviewDetails));
-  } else {
-    const projectId = parseInt(req.params.id);
-
-    // first getting the project by id
-    const project: any = await getProjectByIdQuery(projectId);
-
-    const project_owner = project.owner; // (A user's id) Now, we get the user by this
-    const ownerUser: any = getMockUserById(project_owner);
-
-    const project_last_updated = project.last_updated;
-
-    const project_last_updated_by = project.last_updated_by;
-    const userWhoUpdated: any = getMockUserById(project_last_updated_by);
-
-    const overviewDetails = {
-      user: {
-        name: ownerUser.name,
-        surname: ownerUser.surname,
-        email: ownerUser.email,
-        project_last_updated,
-        userWhoUpdated,
-      },
-    };
-    return res.status(202).json(STATUS_CODE[202](overviewDetails));
-  }
+  const overviewDetails = {
+    user: {
+      name: ownerUser.name,
+      surname: ownerUser.surname,
+      email: ownerUser.email,
+      project_last_updated,
+      userWhoUpdated,
+    },
+  };
+  return res.status(202).json(STATUS_CODE[202](overviewDetails));
 }
 
 export async function getProjectRisksCalculations(
@@ -296,23 +190,13 @@ export async function getProjectRisksCalculations(
   try {
     const projectId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON) {
-      const projects = calculateMockProjectRisks(projectId);
+    const projectRisksCalculations = await calculateProjectRisks(projectId);
 
-      if (projects) {
-        return res.status(200).json(STATUS_CODE[200](projects));
-      }
-
-      return res.status(204).json(STATUS_CODE[204](projects));
-    } else {
-      const projectRisksCalculations = await calculateProjectRisks(projectId);
-
-      if (projectRisksCalculations) {
-        return res.status(200).json(STATUS_CODE[200](projectRisksCalculations));
-      }
-
-      return res.status(204).json(STATUS_CODE[204](projectRisksCalculations));
+    if (projectRisksCalculations) {
+      return res.status(200).json(STATUS_CODE[200](projectRisksCalculations));
     }
+
+    return res.status(204).json(STATUS_CODE[204](projectRisksCalculations));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -325,23 +209,13 @@ export async function getVendorRisksCalculations(
   try {
     const projectId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON) {
-      const projects = calculateMockProjectRisks(projectId);
+    const vendorRisksCalculations = await calculateVendirRisks(projectId);
 
-      if (projects) {
-        return res.status(200).json(STATUS_CODE[200](projects));
-      }
-
-      return res.status(204).json(STATUS_CODE[204](projects));
-    } else {
-      const vendorRisksCalculations = await calculateVendirRisks(projectId);
-
-      if (vendorRisksCalculations) {
-        return res.status(200).json(STATUS_CODE[200](vendorRisksCalculations));
-      }
-
-      return res.status(204).json(STATUS_CODE[204](vendorRisksCalculations));
+    if (vendorRisksCalculations) {
+      return res.status(200).json(STATUS_CODE[200](vendorRisksCalculations));
     }
+
+    return res.status(204).json(STATUS_CODE[204](vendorRisksCalculations));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

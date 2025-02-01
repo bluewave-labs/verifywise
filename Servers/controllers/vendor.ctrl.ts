@@ -3,13 +3,6 @@ import { MOCKDATA_ON } from "../flags";
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
-  createMockVendor,
-  deleteMockVendorById,
-  getAllMockVendors,
-  getMockVendorById,
-  updateMockVendorById,
-} from "../mocks/tools/vendor.mock.db";
-import {
   createNewVendorQuery,
   deleteVendorByIdQuery,
   getAllVendorsQuery,
@@ -19,23 +12,13 @@ import {
 
 export async function getAllVendors(req: Request, res: Response): Promise<any> {
   try {
-    if (MOCKDATA_ON) {
-      const vendors = getAllMockVendors();
+    const vendors = await getAllVendorsQuery();
 
-      if (vendors) {
-        return res.status(200).json(STATUS_CODE[200](vendors));
-      }
-
-      return res.status(204).json(STATUS_CODE[204](vendors));
-    } else {
-      const vendors = await getAllVendorsQuery();
-
-      if (vendors) {
-        return res.status(200).json(STATUS_CODE[200](vendors));
-      }
-
-      return res.status(204).json(STATUS_CODE[204](vendors));
+    if (vendors) {
+      return res.status(200).json(STATUS_CODE[200](vendors));
     }
+
+    return res.status(204).json(STATUS_CODE[204](vendors));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -45,23 +28,13 @@ export async function getVendorById(req: Request, res: Response): Promise<any> {
   try {
     const vendorId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON) {
-      const vendor = getMockVendorById(vendorId);
+    const vendor = await getVendorByIdQuery(vendorId);
 
-      if (vendor) {
-        return res.status(200).json(STATUS_CODE[200](vendor));
-      }
-
-      return res.status(404).json(STATUS_CODE[404](vendor));
-    } else {
-      const vendor = await getVendorByIdQuery(vendorId);
-
-      if (vendor) {
-        return res.status(200).json(STATUS_CODE[200](vendor));
-      }
-
-      return res.status(404).json(STATUS_CODE[404](vendor));
+    if (vendor) {
+      return res.status(200).json(STATUS_CODE[200](vendor));
     }
+
+    return res.status(404).json(STATUS_CODE[404](vendor));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -100,23 +73,13 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
       );
     }
 
-    if (MOCKDATA_ON) {
-      const createdVendor = createMockVendor(newVendor);
+    const createdVendor = await createNewVendorQuery(newVendor);
 
-      if (createdVendor) {
-        return res.status(201).json(STATUS_CODE[201](createdVendor));
-      }
-
-      return res.status(503).json(STATUS_CODE[503]({}));
-    } else {
-      const createdVendor = await createNewVendorQuery(newVendor);
-
-      if (createdVendor) {
-        return res.status(201).json(STATUS_CODE[201](createdVendor));
-      }
-
-      return res.status(503).json(STATUS_CODE[503]({}));
+    if (createdVendor) {
+      return res.status(201).json(STATUS_CODE[201](createdVendor));
     }
+
+    return res.status(503).json(STATUS_CODE[503]({}));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -159,23 +122,13 @@ export async function updateVendorById(
       );
     }
 
-    if (MOCKDATA_ON) {
-      const vendor = updateMockVendorById(vendorId, updatedVendor);
+    const vendor = await updateVendorByIdQuery(vendorId, updatedVendor);
 
-      if (vendor) {
-        return res.status(202).json(STATUS_CODE[202](vendor));
-      }
-
-      return res.status(404).json(STATUS_CODE[404]({}));
-    } else {
-      const vendor = await updateVendorByIdQuery(vendorId, updatedVendor);
-
-      if (vendor) {
-        return res.status(202).json(STATUS_CODE[202](vendor));
-      }
-
-      return res.status(404).json(STATUS_CODE[404]({}));
+    if (vendor) {
+      return res.status(202).json(STATUS_CODE[202](vendor));
     }
+
+    return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -188,23 +141,13 @@ export async function deleteVendorById(
   try {
     const vendorId = parseInt(req.params.id);
 
-    if (MOCKDATA_ON) {
-      const deletedVendor = deleteMockVendorById(vendorId);
+    const deletedVendor = await deleteVendorByIdQuery(vendorId);
 
-      if (deletedVendor) {
-        return res.status(202).json(STATUS_CODE[202](deletedVendor));
-      }
-
-      return res.status(404).json(STATUS_CODE[404]({}));
-    } else {
-      const deletedVendor = await deleteVendorByIdQuery(vendorId);
-
-      if (deletedVendor) {
-        return res.status(202).json(STATUS_CODE[202](deletedVendor));
-      }
-
-      return res.status(404).json(STATUS_CODE[404]({}));
+    if (deletedVendor) {
+      return res.status(202).json(STATUS_CODE[202](deletedVendor));
     }
+
+    return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

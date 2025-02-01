@@ -125,7 +125,7 @@ function App() {
                     reloadTrigger={triggerSidebar}
                   />
                 }
-                // element={<Dashboard reloadTrigger={triggerSidebar}/>}
+                // element={<Dashboard reloadTrigger={triggerSidebar}/> }
               >
                 <Route
                   path="/"
@@ -143,7 +143,10 @@ function App() {
                 <Route path="/project-view" element={<ProjectView />} />
                 <Route path="/file-manager" element={<FileManager />} />
               </Route>
-              <Route path="/admin-reg" element={<RegisterAdmin />} />
+              <Route
+                path="/admin-reg"
+                element={<ProtectedRoute Component={RegisterAdmin} />}
+              />
               <Route path="/user-reg" element={<RegisterUser />} />
               <Route path="/login" element={<Login />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />

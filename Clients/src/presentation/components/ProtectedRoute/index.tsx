@@ -28,6 +28,7 @@ const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
         console.log("Data ==> ", data);
         if (data) {
           dispatch(setUserExists(true));
+          console.log("authState.userExists ==> ", authState.userExists);
         } else {
           dispatch(setUserExists(false));
         }
@@ -45,14 +46,14 @@ const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
     return <div>Loading...</div>; // Show a loading indicator while checking user existence
   }
 
-  // Redirect to "/admin-reg" if no user exists and the current path is not "/admin-reg"
-  if (!authState.userExists && location.pathname !== "/admin-reg") {
-    return <Navigate to="/admin-reg" replace />;
+  // Redirect to login if user exists and trying to access "/admin-reg"
+  if (authState.userExists && location.pathname === "/admin-reg") {
+    return <Navigate to="/login" replace />;
   }
 
-  // Redirect to home if user exists and trying to access "/admin-reg"
-  if (authState.userExists && location.pathname === "/admin-reg") {
-    return <Navigate to="/" replace />;
+  // Allow access to RegisterAdmin if no users exist in the database
+  if (!authState.userExists) {
+    return <Navigate to="/admin-reg" replace />;
   }
 
   return authState.authToken ? (

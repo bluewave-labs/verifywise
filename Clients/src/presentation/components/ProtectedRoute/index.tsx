@@ -25,10 +25,8 @@ const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
         const data = await checkUserExists({
           routeUrl: "/users/check/exists",
         });
-        console.log("Data ==> ", data);
-        if (data) {
+        if (data.status === 200) {
           dispatch(setUserExists(true));
-          console.log("authState.userExists ==> ", authState.userExists);
         } else {
           dispatch(setUserExists(false));
         }
@@ -46,16 +44,22 @@ const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
     return <div>Loading...</div>; // Show a loading indicator while checking user existence
   }
 
+  // Allow access to RegisterAdmin if no users exist in the database and the current route is "/admin-reg"
+  if (!authState.userExists && location.pathname === "/admin-reg") {
+    return <Component {...rest} />;
+  }
+
+  // Redirect to /admin-reg if no users exist in the database and trying to access any other route
+  if (!authState.userExists && location.pathname !== "/admin-reg") {
+    return <Navigate to="/admin-reg" />;
+  }
+
   // Redirect to login if user exists and trying to access "/admin-reg"
   if (authState.userExists && location.pathname === "/admin-reg") {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" />;
   }
 
-  // Allow access to RegisterAdmin if no users exist in the database
-  if (!authState.userExists) {
-    return <Navigate to="/admin-reg" replace />;
-  }
-
+  // Allow access to the requested component if user exists
   return authState.authToken ? (
     <Component {...rest} />
   ) : (

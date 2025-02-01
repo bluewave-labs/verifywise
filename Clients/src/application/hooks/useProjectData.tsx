@@ -49,7 +49,7 @@ const useProjectData = ({ projectId }: UseProjectDataParams): UseProjectDataResu
 
     getEntityById({ routeUrl: `/projects/${projectId}`, signal: controller.signal })
       .then(({ data }) => {
-        
+
         const ownerUser = users.find(
           (user: User) => user.id === data.owner
         );

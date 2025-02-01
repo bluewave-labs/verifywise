@@ -176,6 +176,7 @@ export async function checkUserExists({
     const response = await apiServices.get(routeUrl, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
+    console.log("response :::> ", response);
     return response.data;
   } catch (error) {
     console.error("Error checking if user exists:", error);

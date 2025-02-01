@@ -1,9 +1,9 @@
 export const roles = [
-  {
-    id: 1,
-    name: "Admin",
-    description: "Administrator with full access to the system.",
-  },
+  // {
+  //   id: 1,
+  //   name: "Admin",
+  //   description: "Administrator with full access to the system.",
+  // },
   {
     id: 2,
     name: "Reviewer",

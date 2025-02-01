@@ -18,7 +18,7 @@ interface VWMultiSelectProps {
     event: SelectChangeEvent<string | number | (string | number)[]>,
     child: React.ReactNode
   ) => void;
-  items: { _id: string | number; name: string; email?: string }[];
+  items: { _id: string | number; name: string; email?: string; surname?: string }[];
   getOptionValue?: (item: any) => any;
   placeholder?: string;
   isHidden?: boolean;
@@ -45,6 +45,14 @@ const VWMultiSelect = ({
     color: theme.palette.text.tertiary,
     borderRadius: theme.shape.borderRadius,
     margin: theme.spacing(2),
+  };
+
+  const renderValue = (value: unknown) => {
+    const selected = value as (string | number)[];
+    const selectedItems = items.filter(item => 
+      selected.includes(getOptionValue ? getOptionValue(item) : item._id)
+    );
+    return selectedItems.map(item => item.name + (item.surname ? " " + item.surname : "")).join(', ');
   };
 
   return (
@@ -92,6 +100,7 @@ const VWMultiSelect = ({
         onChange={onChange}
         multiple
         displayEmpty
+        renderValue={renderValue}
         IconComponent={KeyboardArrowDownIcon}
         error={!!error}
         MenuProps={{
@@ -136,7 +145,7 @@ const VWMultiSelect = ({
           </MenuItem>
         )}
         {items.map(
-          (item: { _id: string | number; name: string; email?: string }) => (
+          (item: { _id: string | number; name: string; email?: string; surname?: string }) => (
             <MenuItem
               value={getOptionValue ? getOptionValue(item) : item._id}
               key={`${item._id}`}
@@ -148,12 +157,12 @@ const VWMultiSelect = ({
                 gap: 1,
               }}
             >
-              <span style={{ marginRight: 1 }}>{`${item.name}`}</span>
+              <span style={{ marginRight: 1 }}>{`${item.name} ${item.surname ? item.surname : ""}`}</span>
               {item.email && (
                 <span
                   style={{ fontSize: 11, color: "#9d9d9d", marginLeft: "4px" }}
                 >
-                  {`(${item.email})`}
+                  {`${item.email}`}
                 </span>
               )}
             </MenuItem>

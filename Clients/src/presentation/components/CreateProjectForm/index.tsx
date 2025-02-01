@@ -1,4 +1,4 @@
-import { FC, useState, useMemo, useCallback } from "react";
+import { FC, useState, useMemo, useCallback, useEffect } from "react";
 import {
   Button,
   SelectChangeEvent,
@@ -10,11 +10,12 @@ import dayjs, { Dayjs } from "dayjs";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
 import selectValidation from "../../../application/validations/selectValidation";
 import { Suspense, lazy } from "react";
-import { createNewUser } from "../../../application/repository/entity.repository";
+import { createNewUser, getAllEntities } from "../../../application/repository/entity.repository";
 const Select = lazy(() => import("../Inputs/Select"));
 const DatePicker = lazy(() => import("../Inputs/Datepicker"));
 const Field = lazy(() => import("../Inputs/Field"));
 import { extractUserToken } from "../../../application/tools/extractToken";
+import React from "react";
 
 
 enum RiskClassificationEnum {
@@ -85,8 +86,23 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProjec
     (state: { auth: { authToken: string; userExists: boolean } }) => state.auth
   );
 
+  const [users, setUsers] = useState<[]>([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const response = await getAllEntities({ routeUrl: "/users" });
+      let users = response.data.map((item: { id: number; _id: number }) => {
+        item._id = item.id;
+        return item;
+      });
+      setUsers(users);
+    };
+    fetchUsers();
+  }, []);
+
+
   const handleDateChange = useCallback((newDate: Dayjs | null) => {
-    if(newDate?.isValid()){
+    if (newDate?.isValid()) {
       setValues((prevValues) => ({
         ...prevValues,
         start_date: newDate ? newDate.toISOString() : "",
@@ -161,19 +177,20 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProjec
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (validateForm()) {
-      confirmSubmit();   
+      confirmSubmit();
     }
   };
 
   const confirmSubmit = async () => {
-    const userInfo = extractUserToken(authState.authToken)    
-
+    const userInfo = extractUserToken(authState.authToken)
     await createNewUser({
       routeUrl: "/projects",
       body: {
         ...values,
+        type_of_high_risk_role: highRiskRoleItems.find(item => item._id === values.type_of_high_risk_role)?.name,
+        ai_risk_classification: riskClassificationItems.find(item => item._id === values.ai_risk_classification)?.name,
         last_updated: values.start_date,
-        last_updated_by: userInfo?.id
+        last_updated_by: values.users // TO Do: get user id from token
       },
     }).then((response) => {
       // Reset form after successful submission
@@ -248,11 +265,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProjec
               placeholder="Select users"
               value={values.users}
               onChange={handleOnSelectChange("users")}
-              items={[
-                { _id: 1, name: "Some value 1", email: "email@email.com" },
-                { _id: 2, name: "Some value 2", email: "email@email.com" },
-                { _id: 3, name: "Some value 3", email: "email@email.com" },
-              ]}
+              items={users}
               sx={{
                 width: "350px",
                 backgroundColor: theme.palette.background.main,

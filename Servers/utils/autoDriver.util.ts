@@ -16,15 +16,14 @@ export async function createTable(createQuery: string) {
   await pool.query(createQuery);
 };
 
-export async function deleteExistingData(tableName: string) {
-  await pool.query(`DELETE FROM ${tableName} WHERE 1=1;`);
-  if (tableName !== "vendors_projects") {
-    await pool.query(`ALTER SEQUENCE ${tableName}_id_seq RESTART WITH 1;`);
-  }
+export async function deleteExistingData(tableName: string, key: string) {
+  await pool.query(`DELETE FROM ${tableName} WHERE ${key} LIKE 'DEMO - %';`);
+  // await pool.query(`ALTER SEQUENCE ${tableName}_id_seq RESTART WITH 1;`);
 };
 
 export async function insertData(insertQuery: string) {
-  await pool.query(insertQuery);
+  const result = await pool.query(insertQuery);
+  return result.rows
 };
 
 export async function dropTable(tableName: string) {
@@ -34,4 +33,9 @@ export async function dropTable(tableName: string) {
 export async function checkDataExists(tableName: string) {
   const result = await pool.query(`SELECT * from ${tableName} LIMIT 2;`)
   return result.rows.length
+}
+
+export async function getDEMOProjects() {
+  const result = await pool.query(`SELECT id FROM projects WHERE project_title LIKE 'DEMO - %';`)
+  return result.rows
 }

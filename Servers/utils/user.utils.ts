@@ -88,7 +88,7 @@ export const getUserByEmailQuery = async (email: string): Promise<User> => {
  *   });
  * ```
  */
-export const getUserByIdQuery = async (id: string): Promise<User> => {
+export const getUserByIdQuery = async (id: number): Promise<User> => {
   const user = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
   return user.rows[0];
 };
@@ -175,7 +175,7 @@ export const resetPasswordQuery = async (
  * console.log(updatedUser);
  */
 export const updateUserByIdQuery = async (
-  id: string,
+  id: number,
   user: Partial<User>
 ): Promise<User> => {
   const { name, email, password_hash, role, last_login } = user;
@@ -198,7 +198,7 @@ export const updateUserByIdQuery = async (
  *
  * @throws {Error} If the query fails or the user does not exist.
  */
-export const deleteUserByIdQuery = async (id: string): Promise<User> => {
+export const deleteUserByIdQuery = async (id: number): Promise<User> => {
   const result = await pool.query(
     "DELETE FROM users WHERE id = $1 RETURNING *",
     [id]

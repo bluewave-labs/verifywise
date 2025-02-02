@@ -4,14 +4,6 @@ import { MOCKDATA_ON } from "../flags";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 
 import {
-  getAllMockControlCategories,
-  getMockControlCategoryById,
-  createMockControlCategory,
-  updateMockControlCategoryById,
-  deleteMockControlCategoryById,
-} from "../mocks/tools/controlCategory.mock.db";
-
-import {
   getAllControlCategoriesQuery,
   getControlCategoryByIdQuery,
   createControlCategoryQuery,
@@ -25,10 +17,6 @@ export async function getAllControlCategories(
   res: Response
 ): Promise<any> {
   try {
-    if (MOCKDATA_ON) {
-      const controlCategories = getAllMockControlCategories();
-      return res.status(200).json(controlCategories);
-    }
     const controlCategories = await getAllControlCategoriesQuery();
     return res.status(200).json(controlCategories);
   } catch (error) {
@@ -42,10 +30,6 @@ export async function getControlCategoryById(
 ): Promise<any> {
   try {
     const controlCategoryId = parseInt(req.params.id);
-    if (MOCKDATA_ON) {
-      const controlCategory = getMockControlCategoryById(controlCategoryId);
-      return res.status(200).json(controlCategory);
-    }
     const controlCategory = await getControlCategoryByIdQuery(
       controlCategoryId
     );
@@ -61,11 +45,6 @@ export async function createControlCategory(
 ): Promise<any> {
   try {
     const newControlCategory: ControlCategory = req.body;
-    if (MOCKDATA_ON) {
-      const createdControlCategory =
-        createMockControlCategory(newControlCategory);
-      return res.status(201).json(createdControlCategory);
-    }
     const createdControlCategory = await createControlCategoryQuery(
       newControlCategory
     );
@@ -82,13 +61,6 @@ export async function updateControlCategoryById(
   try {
     const controlCategoryId = parseInt(req.params.id);
     const updatedControlCategoryData: Partial<ControlCategory> = req.body;
-    if (MOCKDATA_ON) {
-      const updatedControlCategory = updateMockControlCategoryById(
-        controlCategoryId,
-        updatedControlCategoryData
-      );
-      return res.status(202).json(updatedControlCategory);
-    }
     const updatedControlCategory = await updateControlCategoryByIdQuery(
       controlCategoryId,
       updatedControlCategoryData
@@ -105,11 +77,6 @@ export async function deleteControlCategoryById(
 ): Promise<any> {
   try {
     const controlCategoryId = parseInt(req.params.id);
-    if (MOCKDATA_ON) {
-      const deletedControlCategory =
-        deleteMockControlCategoryById(controlCategoryId);
-      return res.status(202).json(deletedControlCategory);
-    }
     const deletedControlCategory = await deleteControlCategoryByIdQuery(
       controlCategoryId
     );

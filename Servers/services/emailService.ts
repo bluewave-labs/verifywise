@@ -6,7 +6,7 @@ const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: "verifywise.bwl@gmail.com", // Replace with your email
-    pass: "@VerifyWise.bwl.25", // Replace with your email password
+    pass: "cdey jngh dfbf mqoh", // Replace with your email password
   },
 });
 

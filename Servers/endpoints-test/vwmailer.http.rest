@@ -3,7 +3,7 @@ Content-Type: application/json
 
 {
     "to": "muhammadkhalilzadeh1998@gmail.com",
-    "name": "To Mohammad",
+    "name": "Mohammad",
     "link": "http://www.google.com"
 }
 
@@ -14,7 +14,7 @@ Content-Type: application/json
 
 {
     "to": "muhammadkhalilzadeh1998@gmail.com",
-    "name": "To Mohammad",
+    "name": "Mohammad",
     "email": "muhammadkhalilzadeh1998@gmail.com",
     "url": "http://www.google.com"
 }

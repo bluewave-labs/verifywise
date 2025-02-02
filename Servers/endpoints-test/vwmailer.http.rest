@@ -1,0 +1,21 @@
+POST http://localhost:3000/mail/invite
+Content-Type: application/json
+
+{
+    "to": "muhammadkhalilzadeh1998@gmail.com",
+    "name": "To Mohammad",
+    "link": "http://www.google.com"
+}
+
+###
+
+POST http://localhost:3000/mail/reset-password
+Content-Type: application/json
+
+{
+    "to": "muhammadkhalilzadeh1998@gmail.com",
+    "name": "To Mohammad",
+    "email": "muhammadkhalilzadeh1998@gmail.com",
+    "url": "http://www.google.com"
+}
+

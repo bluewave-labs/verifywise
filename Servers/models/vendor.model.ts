@@ -3,7 +3,6 @@ export type Vendor = {
   // Vendor details tab
   vendorName: string;
   website: string;
-  projectId: number;
   vendorProvides: string;
   vendorContactPerson: string;
   reviewStatus: string;
@@ -21,10 +20,10 @@ export type Vendor = {
   actionOwner: string;
   actionPlan: string;
   riskLevel:
-    | "Very high risk"
-    | "High risk"
-    | "Medium risk"
-    | "Low risk"
-    | "Very low risk";
+  | "Very high risk"
+  | "High risk"
+  | "Medium risk"
+  | "Low risk"
+  | "Very low risk";
   likelihood: number;
 };

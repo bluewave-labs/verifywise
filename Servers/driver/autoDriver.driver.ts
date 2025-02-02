@@ -14,6 +14,7 @@ import { topics } from "../mocks/topic.mock.data";
 import { users } from "../mocks/users.data";
 import { vendors } from "../mocks/vendor.mock.data";
 import mockVendorRisks from "../mocks/vendorRisk.mock.data";
+import { vendorsProjects } from "../mocks/vendorsProjects.mock.data";
 
 import { Assessment } from "../models/assessment.model";
 import { Control } from "../models/control.model";
@@ -30,6 +31,7 @@ import { Topic } from "../models/topic.model";
 import { User } from "../models/user.model";
 import { Vendor } from "../models/vendor.model";
 import { VendorRisk } from "../models/vendorRisk.model";
+import { VendorsProjects } from "../models/vendorsProjects.model";
 
 import {
   deleteExistingData,
@@ -122,7 +124,6 @@ const insertQuery = {
     tableName: "vendors",
     createString: `CREATE TABLE vendors (
       id SERIAL PRIMARY KEY,
-      project_id INT REFERENCES projects(id),
       vendor_name VARCHAR(255),
       assignee VARCHAR(255),
       vendor_provides TEXT,
@@ -144,10 +145,9 @@ const insertQuery = {
       likelihood FLOAT
     );`,
     insertString:
-      "INSERT INTO vendors(project_id, vendor_name, assignee, vendor_provides, website, vendor_contact_person, review_result, review_status, reviewer, risk_status, review_date, risk_description, impact_description, impact, probability, action_owner, action_plan, risk_severity, risk_level, likelihood) VALUES ",
+      "INSERT INTO vendors(vendor_name, assignee, vendor_provides, website, vendor_contact_person, review_result, review_status, reviewer, risk_status, review_date, risk_description, impact_description, impact, probability, action_owner, action_plan, risk_severity, risk_level, likelihood) VALUES ",
     generateValuesString: function (vendor: Vendor) {
       return `(
-        ${vendor.projectId},
         'DEMO - ${vendor.vendorName}',
         '${vendor.assignee}',
         '${vendor.vendorProvides}',
@@ -461,6 +461,22 @@ const insertQuery = {
       )`;
     },
   },
+  vendorsProjects: {
+    mockData: vendorsProjects,
+    tableName: "vendors_projects",
+    createString: `CREATE TABLE vendors_projects (
+      vendor_id INT REFERENCES vendors(id),
+      project_id INT REFERENCES projects(id),
+      PRIMARY KEY (vendor_id, project_id)
+    );`,
+    insertString: "INSERT INTO vendors_projects(vendor_id, project_id) VALUES ",
+    generateValuesString: (vendors_projects: VendorsProjects) => {
+      return `(
+        '${vendors_projects.vendor_id}',
+        '${vendors_projects.project_id}'
+      )`;
+    },
+  },
 };
 
 export async function insertMockData() {
@@ -515,9 +531,30 @@ export async function insertMockData() {
   } = insertQuery["vendors"];
   let vendors;
   if (vendorMockData.length !== 0) {
-    const values = vendorMockData(projects![0].id, projects![1].id).map((d) => vendorGenerateValuesString(d as any));
+    const values = vendorMockData.map((d) => vendorGenerateValuesString(d as any));
     insertString += values.join(",") + "RETURNING id;";
     vendors = await insertData(insertString as string);
+  }
+
+  var {
+    mockData: vendorsProjectsMockData,
+    tableName,
+    createString,
+    insertString,
+    generateValuesString: vendorsProjectsGenerateValuesString,
+  } = insertQuery["vendorsProjects"];
+  let vendorsProjects;
+  if (vendorsProjectsMockData.length !== 0) {
+    const values = vendorsProjectsMockData(
+      vendors![0].id,
+      vendors![1].id,
+      vendors![2].id,
+      vendors![3].id,
+      projects![0].id,
+      projects![1].id
+    ).map((d) => vendorsProjectsGenerateValuesString(d as any));
+    insertString += values.join(",") + ";";
+    vendorsProjects = await insertData(insertString as string);
   }
 
   var {
@@ -722,7 +759,8 @@ export async function deleteMockData() {
   const projects = await getDEMOProjects()
   for (let project of projects) {
     await deleteProjectByIdQuery(project.id)
-  }
-  await deleteExistingData("users", "name")
-  await deleteExistingData("roles", "name")
+  };
+  await deleteExistingData("vendors", "vendor_name");
+  await deleteExistingData("users", "name");
+  await deleteExistingData("roles", "name");
 }

@@ -4409,6 +4409,9 @@ components:
         last_updated_by:
           type: integer
           example: 1
+        assessment_id:
+          type: integer
+          example: 1
     ProjectRisk:
       type: object
       properties:

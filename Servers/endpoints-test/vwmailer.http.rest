@@ -1,0 +1,8 @@
+POST http://localhost:3000/mail
+Content-Type: application/json
+
+{
+    "to": "muhammadkhalilzadeh1998@gmail.com",
+    "name": "To Mohammad",
+    "link": "http://www.google.com"
+}

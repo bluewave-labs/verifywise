@@ -14,7 +14,7 @@ router.post("/", async (req, res) => {
 
   try {
     // Read the MJML template file
-    const templatePath = path.join(
+    const templatePath = path.resolve(
       __dirname,
       "../templates/account-creation-email.mjml"
     );

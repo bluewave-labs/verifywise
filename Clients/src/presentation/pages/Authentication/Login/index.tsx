@@ -7,10 +7,10 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../../../../application/repository/entity.repository";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import Alert from "../../../components/Alert";
 import { logEngine } from "../../../../application/tools/log.engine";
 import { useDispatch } from "react-redux";
 import { setAuthToken } from "../../../../application/authentication/authSlice";
+import VWToast from "../../../vw-v2-components/Toast";
 
 // Define the shape of form values
 interface FormValues {
@@ -32,12 +32,9 @@ const Login: React.FC = () => {
   const dispatch = useDispatch();
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
-  // State for alert
-  const [alert, setAlert] = useState<{
-    variant: "success" | "info" | "warning" | "error";
-    title?: string;
-    body: string;
-  } | null>(null);
+  
+  //disabled overlay state/modal
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Handle changes in input fields
   const handleChange =
@@ -49,6 +46,8 @@ const Login: React.FC = () => {
   // Handle form submission
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setIsSubmitting(true);
+    console.log("Submitting form...", isSubmitting);
 
     const user = {
       id: "At login level", // Replace with actual user ID
@@ -67,66 +66,46 @@ const Login: React.FC = () => {
           const token = response.data.data.token;
           login(token);
           dispatch(setAuthToken(token)); // Dispatch the action to set the token in Redux state
-          setAlert({
-            variant: "success",
-            body: "Login successful. Redirecting...",
-          });
           logEngine({
             type: "info",
             message: "Login successful.",
             user,
           });
           setTimeout(() => {
-            setAlert(null);
+            setIsSubmitting(false);
             navigate("/");
           }, 3000);
         } else if (response.status === 404) {
-          setAlert({
-            variant: "error",
-            body: "User not found. Please try again.",
-          });
           logEngine({
             type: "event",
             message: "User not found. Please try again.",
             user,
           });
-          setTimeout(() => setAlert(null), 3000);
+          setIsSubmitting(false);
         } else if (response.status === 406) {
-          setAlert({
-            variant: "warning",
-            body: "Invalid password. Please try again.",
-          });
           logEngine({
             type: "event",
             message: "Invalid password. Please try again.",
             user,
           });
-          setTimeout(() => setAlert(null), 3000);
+          setIsSubmitting(false);
         } else {
-          setAlert({
-            variant: "error",
-            body: "Unexpected response. Please try again.",
-          });
           logEngine({
             type: "error",
             message: "Unexpected response. Please try again.",
             user,
           });
-          setTimeout(() => setAlert(null), 3000);
+           setIsSubmitting(false);
         }
       })
       .catch((error) => {
         console.error("Error submitting form:", error);
-        setAlert({
-          variant: "error",
-          body: "An error occurred. Please try again.",
-        });
         logEngine({
           type: "error",
           message: `An error occurred: ${error.message}`,
           user,
         });
-        setTimeout(() => setAlert(null), 3000);
+        setIsSubmitting(false);
       });
   };
 
@@ -145,6 +124,8 @@ const Login: React.FC = () => {
         minHeight: "100vh",
       }}
     >
+      {/* Toast component  */}
+      {isSubmitting && <VWToast title="Processing your request. Please wait..." />}
       <Background
         style={{
           position: "absolute",
@@ -155,15 +136,7 @@ const Login: React.FC = () => {
           transform: "translateX(-50%)",
         }}
       />
-      {alert && (
-        <Alert
-          variant={alert.variant}
-          title={alert.title}
-          body={alert.body}
-          isToast={true}
-          onClick={() => setAlert(null)}
-        />
-      )}
+
       <form onSubmit={handleSubmit}>
         <Stack
           className="reg-admin-form"

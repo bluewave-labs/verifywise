@@ -1,5 +1,5 @@
 import { Button, Stack, Typography, useTheme } from "@mui/material";
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Check from "../../../components/Checks";
 import Field from "../../../components/Inputs/Field";
@@ -16,6 +16,7 @@ import type {
   FormErrors,
 } from "../../../../application/validations/formValidation";
 import VWToast from "../../../vw-v2-components/Toast";
+import Alert from "../../../components/Alert";
 
 // Initial state for form values
 const initialState: FormValues = {
@@ -37,6 +38,12 @@ const RegisterAdmin: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const passwordChecks = validatePassword(values);
+
+  const [alert, setAlert] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    title?: string;
+    body: string;
+} | null>(null);
 
   // Handle input field changes
   const handleChange =
@@ -72,14 +79,12 @@ const RegisterAdmin: React.FC = () => {
           setValues(initialState);
           setErrors({});
           if (response.status === 201) {
-            logEngine({
-              type: "info",
-              message: "Account created successfully.",
-              user,
-            });
+            logEngine({ type: "info",message: "Account created successfully.",user,});
+            setIsSubmitting(false);
+            setAlert({variant: "success", body: "Account created successfully",});
             setTimeout(() => {
+              setAlert(null);
               navigate("/login");
-              setIsSubmitting(false);
             }, 3000);
           } else if (response.status === 400) {
             logEngine({
@@ -88,6 +93,10 @@ const RegisterAdmin: React.FC = () => {
               user,
             });
             setIsSubmitting(false);
+            setAlert({variant: "error", body: "Bad request. Please check your input.",});
+            setTimeout(() => {
+              setAlert(null);
+            }, 3000);
           } else if (response.status === 409) {
             logEngine({
               type: "event",
@@ -95,6 +104,10 @@ const RegisterAdmin: React.FC = () => {
               user,
             });
             setIsSubmitting(false);
+            setAlert({variant: "error", body: "Account already exists.",});
+            setTimeout(() => {
+              setAlert(null);
+            }, 3000);
           } else if (response.status === 500) {
             logEngine({
               type: "error",
@@ -102,13 +115,17 @@ const RegisterAdmin: React.FC = () => {
               user,
             });
             setIsSubmitting(false);
+            setAlert({variant: "error", body: "Internal server error. Please try again later.",});
+            setTimeout(() => {
+              setAlert(null);
+            }, 3000);
           } else {
-            logEngine({
-              type: "error",
-              message: "Unexpected response. Please try again.",
-              user,
-            });
+            logEngine({type: "error",message: "Unexpected response. Please try again.", user,});
             setIsSubmitting(false);
+            setAlert({variant: "error", body: "Unexpected response. Please try again.",});
+            setTimeout(() => {
+              setAlert(null);
+            }, 3000);
           }
         })
         .catch((error) => {
@@ -138,7 +155,17 @@ const RegisterAdmin: React.FC = () => {
         marginBottom: theme.spacing(20),
       }}
     >
-      {/* Toast component */}
+     {alert && (
+                <Suspense fallback={<div>Loading...</div>}>
+                    <Alert
+                        variant={alert.variant}
+                        title={alert.title}
+                        body={alert.body}
+                        isToast={true}
+                        onClick={() => setAlert(null)}
+                    />
+                </Suspense>
+            )}
       {isSubmitting && <VWToast title="Processing your request. Please wait..." />}
       <Background
         style={{
@@ -236,6 +263,14 @@ const RegisterAdmin: React.FC = () => {
               <Check
                 text="Must contain one special character"
                 variant={passwordChecks.specialChar ? "success" : "info"}
+              />
+               <Check
+                text="Must contain at least one uppercase letter"
+                variant={passwordChecks.uppercase ? "success" : "info"}
+              />
+                <Check
+                text="Must contain atleast one number"
+                variant={passwordChecks.number ? "success" : "info"}
               />
             </Stack>
             <Button

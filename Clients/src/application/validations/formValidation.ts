@@ -35,6 +35,8 @@ interface ValidationResult {
 interface PasswordValidationResult {
   length: boolean;
   specialChar: boolean;
+  uppercase: boolean;
+  number: boolean;
 }
 
 /**
@@ -119,5 +121,7 @@ export const validatePassword = (values: FormValues): PasswordValidationResult =
   return {
     length: values.password.length >= VALIDATION_RULES.PASSWORD.min,
     specialChar: PASSWORD_REGEX.test(values.password),
+    uppercase: /[A-Z]/.test(values.password),
+    number: /[0-9]/.test(values.password),
   };
 };

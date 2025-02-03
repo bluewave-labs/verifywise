@@ -1,5 +1,5 @@
 import { Button, Stack, Typography, useTheme } from "@mui/material";
-import React, { useContext, useState } from "react";
+import React, { Suspense, useContext, useState } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Checkbox from "../../../components/Inputs/Checkbox";
 import Field from "../../../components/Inputs/Field";
@@ -11,6 +11,7 @@ import { logEngine } from "../../../../application/tools/log.engine";
 import { useDispatch } from "react-redux";
 import { setAuthToken } from "../../../../application/authentication/authSlice";
 import VWToast from "../../../vw-v2-components/Toast";
+import Alert from "../../../components/Alert";
 
 // Define the shape of form values
 interface FormValues {
@@ -32,16 +33,21 @@ const Login: React.FC = () => {
   const dispatch = useDispatch();
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
-  
+
   //disabled overlay state/modal
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [alert, setAlert] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    title?: string;
+    body: string;
+  } | null>(null);
 
   // Handle changes in input fields
   const handleChange =
     (prop: keyof FormValues) =>
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setValues({ ...values, [prop]: event.target.value });
-    };
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        setValues({ ...values, [prop]: event.target.value });
+      };
 
   // Handle form submission
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -82,6 +88,10 @@ const Login: React.FC = () => {
             user,
           });
           setIsSubmitting(false);
+          setAlert({ variant: "error", body: "User not found. Please try again.", });
+          setTimeout(() => {
+            setAlert(null);
+          }, 3000);
         } else if (response.status === 406) {
           logEngine({
             type: "event",
@@ -89,13 +99,21 @@ const Login: React.FC = () => {
             user,
           });
           setIsSubmitting(false);
+          setAlert({ variant: "error", body: "Invalid password. Please try again.", });
+          setTimeout(() => {
+            setAlert(null);
+          }, 3000);
         } else {
           logEngine({
             type: "error",
             message: "Unexpected response. Please try again.",
             user,
           });
-           setIsSubmitting(false);
+          setIsSubmitting(false);
+          setAlert({ variant: "error", body: "Unexpected response. Please try again.", });
+          setTimeout(() => {
+            setAlert(null);
+          }, 3000);
         }
       })
       .catch((error) => {
@@ -106,6 +124,10 @@ const Login: React.FC = () => {
           user,
         });
         setIsSubmitting(false);
+        setAlert({ variant: "error", body: "Error submitting form", });
+        setTimeout(() => {
+          setAlert(null);
+        }, 3000);
       });
   };
 
@@ -124,7 +146,19 @@ const Login: React.FC = () => {
         minHeight: "100vh",
       }}
     >
-      {/* Toast component  */}
+
+      {alert && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Alert
+            variant={alert.variant}
+            title={alert.title}
+            body={alert.body}
+            isToast={true}
+            onClick={() => setAlert(null)}
+          />
+        </Suspense>
+      )}
+
       {isSubmitting && <VWToast title="Processing your request. Please wait..." />}
       <Background
         style={{

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Stack, Box, Typography} from "@mui/material"; //useTheme is not used
 import BasicTable from "../../components/Table";
-
+import axios from "axios";
 import EmptyTableImage from "../../assets/imgs/empty-state.svg";
 import AscendingIcon from "../../assets/icons/up-arrow.svg";
 import DescendingIcon from "../../assets/icons/down-arrow.svg";
@@ -151,6 +151,9 @@ const FileManager: React.FC = (): JSX.Element => {
   const [sortDirection, setSortDirection] = useState<SortDirection | null>(
     null
   );
+  //loading while fetching files
+  const [loading, setLoading] = useState(true);
+  //page tour
   const [runFileTour, setRunFileTour] = useState(false);
 
   const fileSteps = [
@@ -165,6 +168,25 @@ const FileManager: React.FC = (): JSX.Element => {
 
   useEffect(() => {
     setRunFileTour(true);
+
+    const fetchFiles = async () => {
+      try {
+        const response = await axios.get("https://localhost:5000/api/assessments/files");
+        const filesData: File[] = response.data.map((file:any) =>({
+          id: file.id,
+          name: file.filename,
+          type: file.type || "N/A",
+          uploadDate: new Date(file.uploadDate).toLocaleDateString(),
+          uploader: file.uploader || "N/A",
+        }));
+        setFiles(filesData);
+      } catch (error) {
+        console.error("Error fetching files", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFiles();
   }, []);
 
   /**
@@ -218,6 +240,17 @@ const FileManager: React.FC = (): JSX.Element => {
     { id: 2, name: COLUMN_NAMES.UPLOAD_DATE, sx: { width: "50%" } },
     { id: 3, name: COLUMN_NAMES.UPLOADER, sx: { width: "50%" } },
   ];
+
+  //loading state before fetching files
+  if(loading){
+    return (
+     <Stack
+     sx={{ textAlign: "center", padding: 4 }}
+     >
+      <Typography variant="h6">Loading files...</Typography>
+     </Stack>
+    )
+  }
 
   return (
     <Stack spacing={4} sx={{ padding: 4, marginBottom: 10 }}>

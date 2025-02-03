@@ -66,10 +66,10 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
     const start = page * rowsPerPage + 1;
     const end = Math.min(
       page * rowsPerPage + rowsPerPage,
-      dashboardValues.vendors.length
+      dashboardValues?.vendors?.length ?? 0
     );
     return `${start} - ${end}`;
-  }, [page, rowsPerPage, dashboardValues.vendors.length]);
+  }, [page, rowsPerPage, dashboardValues?.vendors?.length ?? 0]);
 
   const tableHeader = useMemo(
     () => (
@@ -144,7 +144,7 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
           {tableHeader}
           {tableBody}
         </Table>
-        {!dashboardValues.vendors.length && (
+        {!dashboardValues.vendors?.length && (
           <div
             style={{
               display: "grid",
@@ -177,10 +177,10 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
         }}
       >
         <Typography px={theme.spacing(2)} fontSize={12} sx={{ opacity: 0.7 }}>
-          Showing {getRange} of {dashboardValues.vendors.length} vendor(s)
+          Showing {getRange} of {dashboardValues.vendors?.length} vendor(s)
         </Typography>
         <TablePagination
-          count={dashboardValues.vendors.length}
+          count={dashboardValues.vendors?.length}
           page={page}
           onPageChange={handleChangePage}
           rowsPerPage={rowsPerPage}

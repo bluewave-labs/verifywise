@@ -19,37 +19,37 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
   const { token, setDashboardValues } = useContext(VerifyWiseContext);
   const [projects, setProjects] = useState([]);
   const [_, setUsers] = useState([]);
-const location = useLocation();
+  const location = useLocation();
   const [runHomeTour, setRunHomeTour] = useState(false);
   //joyride steps
   const homeSteps = [
     // Sidebar steps
     {
       target: '[data-joyride-id="new-project-button"]',
-      content:(
+      content: (
         <CustomStep
           header="Create your first project"
           body="Each project corresponds to an AI activity in your company."
-          />
-      )
+        />
+      ),
     },
     {
       target: '[data-joyride-id="select-project"]',
       content: (
-        <CustomStep 
-        header="Select a project"
-        body="Once created, you can select it here."
+        <CustomStep
+          header="Select a project"
+          body="Once created, you can select it here."
         />
-      )
+      ),
     },
     {
       target: '[data-joyride-id="dashboard-navigation"]',
       content: (
-        <CustomStep 
-        header="Fill in compliance,assessments, risks and vendors"
-        body="Each project has its own set of questions and documents where you can fill in here."
+        <CustomStep
+          header="Fill in compliance,assessments, risks and vendors"
+          body="Each project has its own set of questions and documents where you can fill in here."
         />
-      )
+      ),
     },
   ];
 
@@ -83,27 +83,30 @@ const location = useLocation();
     fetchProjects();
     fetchUsers();
 
-//check if required DOM elements are ready
-const checkTourElements = () => {
-const newProjectButton = document.querySelector('[data-joyride-id="new-project-button"]');
-const dashboardNav= document.querySelector('[data-joyride-id="dashboard-navigation"]');
+    //check if required DOM elements are ready
+    const checkTourElements = () => {
+      const newProjectButton = document.querySelector(
+        '[data-joyride-id="new-project-button"]'
+      );
+      const dashboardNav = document.querySelector(
+        '[data-joyride-id="dashboard-navigation"]'
+      );
 
-if (location.pathname === "/" &&newProjectButton && dashboardNav) {
-setRunHomeTour(true);
-} else {
-  setRunHomeTour(false);
-}
-};
-const timeout = setTimeout(checkTourElements, 1000);
-return () => clearTimeout(timeout);
+      if (location.pathname === "/" && newProjectButton && dashboardNav) {
+        setRunHomeTour(true);
+      } else {
+        setRunHomeTour(false);
+      }
+    };
+    const timeout = setTimeout(checkTourElements, 1000);
+    return () => clearTimeout(timeout);
+  }, [setDashboardValues, reloadTrigger, location.pathname]);
 
-  }, [setDashboardValues,reloadTrigger, location.pathname]);
-
-
-  const mappedProjects = projects.map((project: any) => ({
-    _id: project.id,
-    name: project.project_title,
-  }));
+  const mappedProjects =
+    projects?.map((project: any) => ({
+      _id: project.id,
+      name: project.project_title,
+    })) || [];
 
   console.log("This is the token in the dashboard :", token);
 
@@ -118,12 +121,13 @@ return () => clearTimeout(timeout);
       <Sidebar projects={mappedProjects} />
 
       {/* Joyride */}
-      { runHomeTour && (
-      <PageTour
-        steps={homeSteps}
-        run={runHomeTour}
-        onFinish={() => setRunHomeTour(false)}
-      /> )}
+      {runHomeTour && (
+        <PageTour
+          steps={homeSteps}
+          run={runHomeTour}
+          onFinish={() => setRunHomeTour(false)}
+        />
+      )}
       <Outlet />
     </Stack>
   );

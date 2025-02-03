@@ -480,19 +480,19 @@ const insertQuery = {
 };
 
 export async function insertMockData() {
-  var {
-    mockData: roleMockData,
-    tableName,
-    createString,
-    insertString,
-    generateValuesString: roleGenerateValuesString,
-  } = insertQuery["roles"];
-  let roles;
-  if (roleMockData.length !== 0) {
-    const values = roleMockData.map((d) => roleGenerateValuesString(d as any));
-    insertString += values.join(",") + "RETURNING id;";
-    roles = await insertData(insertString as string);
-  }
+  // var {
+  //   mockData: roleMockData,
+  //   tableName,
+  //   createString,
+  //   insertString,
+  //   generateValuesString: roleGenerateValuesString,
+  // } = insertQuery["roles"];
+  // let roles;
+  // if (roleMockData.length !== 0) {
+  //   const values = roleMockData.map((d) => roleGenerateValuesString(d as any));
+  //   insertString += values.join(",") + "RETURNING id;";
+  //   roles = await insertData(insertString as string);
+  // }
 
   var {
     mockData: userMockData,
@@ -503,7 +503,7 @@ export async function insertMockData() {
   } = insertQuery["users"];
   let users;
   if (userMockData.length !== 0) {
-    const values = userMockData(-1, roles![0].id, roles![1].id, roles![2].id).map((d) => userGenerateValuesString(d as any));
+    const values = userMockData(1, 2, 3, 4).map((d) => userGenerateValuesString(d as any));
     insertString += values.join(",") + "RETURNING id;";
     users = await insertData(insertString as string);
   }
@@ -762,5 +762,5 @@ export async function deleteMockData() {
   };
   await deleteExistingData("vendors", "vendor_name");
   await deleteExistingData("users", "name");
-  await deleteExistingData("roles", "name");
+  // await deleteExistingData("roles", "name");
 }

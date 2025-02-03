@@ -26,7 +26,7 @@ router.post("/invite", async (req, res) => {
     // Send the email
     await sendEmail(
       to,
-      "Account Creation",
+      "Create your account",
       "Please use the link to create your account.",
       template,
       data

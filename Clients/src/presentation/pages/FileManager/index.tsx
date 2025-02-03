@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
-import { Stack, Box, Typography, useTheme } from "@mui/material";
+import { Stack, Box, Typography} from "@mui/material"; //useTheme is not used
 import BasicTable from "../../components/Table";
 
 import EmptyTableImage from "../../assets/imgs/empty-state.svg";
@@ -145,7 +145,7 @@ const FileTable: React.FC<{
  * @returns {JSX.Element} The FileManager component.
  */
 const FileManager: React.FC = (): JSX.Element => {
-  const theme = useTheme();
+  // const theme = useTheme();
   const [files, setFiles] = useState<File[]>([]);
   const [sortField, setSortField] = useState<keyof File | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection | null>(

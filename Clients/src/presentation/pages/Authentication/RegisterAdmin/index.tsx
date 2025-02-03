@@ -80,10 +80,8 @@ const RegisterAdmin: React.FC = () => {
           setErrors({});
           if (response.status === 201) {
             logEngine({ type: "info",message: "Account created successfully.",user,});
-            setIsSubmitting(false);
-            setAlert({variant: "success", body: "Account created successfully",});
             setTimeout(() => {
-              setAlert(null);
+              setIsSubmitting(false);
               navigate("/login");
             }, 3000);
           } else if (response.status === 400) {

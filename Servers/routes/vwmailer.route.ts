@@ -60,7 +60,7 @@ router.post("/reset-password", async (req, res) => {
     // Send the email
     await sendEmail(
       to,
-      "Password Reset Request",
+      "Password reset request",
       "Please use the link to reset your password.",
       template,
       data

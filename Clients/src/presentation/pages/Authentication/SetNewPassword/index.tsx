@@ -10,6 +10,7 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate } from "react-router-dom";
 import { validatePassword, validateForm } from "../../../../application/validations/formValidation";
 import type { FormValues, FormErrors } from "../../../../application/validations/formValidation";
+import VWAlert from "../../../vw-v2-components/Alerts";
 
 // Initial state for form values
 const initialState: FormValues = {
@@ -26,6 +27,9 @@ const SetNewPassword: React.FC = () => {
   // Password checks based on the password input
   const passwordChecks = validatePassword(values);
 
+  //state for overlay modal
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // Handle input field changes
   const handleChange =
     (prop: keyof FormValues) =>
@@ -41,11 +45,13 @@ const SetNewPassword: React.FC = () => {
     const { isFormValid, errors } = validateForm(values);
     if (!isFormValid) {
       setErrors(errors);
+      setIsSubmitting(false);
     } else {
       console.log("Form submitted:", values);
       // Reset form after successful submission
       setValues(initialState);
       setErrors({});
+      setIsSubmitting(false);
     }
   };
 
@@ -63,6 +69,8 @@ const SetNewPassword: React.FC = () => {
         minHeight: "100vh",
       }}
     >
+      {/* toast component */}
+      {isSubmitting && <VWAlert title="Updating password. Please wait..."  />}
       <Background
         style={{
           position: "absolute",

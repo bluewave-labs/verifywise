@@ -1,6 +1,6 @@
 import { Vendor } from "../models/vendor.model";
 
-export const vendors: Vendor[] = [
+export const vendors = [
   {
     id: 1,
     vendorName: "Vendor A",

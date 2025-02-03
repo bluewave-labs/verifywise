@@ -119,13 +119,13 @@ function App() {
             <Routes>
               <Route
                 path="/"
-                element={
-                  <ProtectedRoute
-                    Component={Dashboard}
-                    reloadTrigger={triggerSidebar}
-                  />
-                }
-                // element={<Dashboard reloadTrigger={triggerSidebar}/> }
+                // element={
+                //   <ProtectedRoute
+                //     Component={Dashboard}
+                //     reloadTrigger={triggerSidebar}
+                //   />
+                // }
+                element={<Dashboard reloadTrigger={triggerSidebar}/> }
               >
                 <Route
                   path="/"

@@ -184,9 +184,17 @@ export async function checkUserExists({
   }
 }
 
-export async function postAutoDrivers(): Promise<any> {
+/**
+ * Creates demo data by sending a POST request to the autoDrivers endpoint.
+ *
+ * @returns {Promise<any>} A promise that resolves to the response data.
+ * @throws Will throw an error if the request fails.
+ */
+export async function postAutoDrivers(authToken = getAuthToken()): Promise<any> {
   try {
-    const response = await apiServices.post("/autoDrivers");
+    const response = await apiServices.post("/autoDrivers", null, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
 
     return response;
   } catch (error) {

@@ -89,7 +89,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
     projects.length > 0 ? projects[0]._id : ""
   );
 
-  const { dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);
+  const { dashboardValues, setDashboardValues, setCurrentProjectId } = useContext(VerifyWiseContext);
 
   const collapsed = useSelector((state: any) => state.ui?.sidebar?.collapsed);
 
@@ -139,8 +139,10 @@ const Sidebar = ({ projects }: { projects: any }) => {
   };
 
   useEffect(() => {
-    if (projects.length > 0 && (selectedProjectId === "" || selectedProjectId != projects[0]._id)) {
+    if (projects.length > 0 && selectedProjectId === "") {
       setSelectedProjectId(projects[0]._id);
+    }else{
+      setCurrentProjectId(String(selectedProjectId));
     }
   }, [projects]);
 

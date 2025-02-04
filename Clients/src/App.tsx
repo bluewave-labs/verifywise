@@ -33,140 +33,132 @@ import ProtectedRoute from "./presentation/components/ProtectedRoute";
 import { extractUserToken } from "./application/tools/extractToken"; // Import the token extraction function
 
 function App() {
-  const mode = useSelector((state: any) => state.ui?.mode || "light");
+	const mode = useSelector((state: any) => state.ui?.mode || "light");
 
-  const [uiValues, setUiValues] = useState<unknown | undefined>({}); // responsible for things like: Sidebar, light/dark mode, etc.
-  const [authValues, setAuthValues] = useState<unknown | undefined>({}); // for user authentication
-  const [dashboardValues, setDashboardValues] = useState<{
-    dashboard: Record<string, unknown>;
-    projects: Record<string, unknown>;
-    compliance: Record<string, unknown>;
-    assessments: Record<string, unknown>;
-    vendors: unknown[];
-  }>({
-    dashboard: {},
-    projects: {},
-    compliance: {},
-    assessments: {},
-    vendors: [],
-  });
-  const [inputValues, setInputValues] = useState<unknown | undefined>({}); // for the input fields
-  const [token, setToken] = useState<string | null>("");
-  const [triggerSidebar, setTriggerSidebar] = useState(false);
+	const [uiValues, setUiValues] = useState<unknown | undefined>({}); // responsible for things like: Sidebar, light/dark mode, etc.
+	const [authValues, setAuthValues] = useState<unknown | undefined>({}); // for user authentication
+	const [dashboardValues, setDashboardValues] = useState<{
+		dashboard: Record<string, unknown>;
+		projects: Record<string, unknown>;
+		compliance: Record<string, unknown>;
+		assessments: Record<string, unknown>;
+		vendors: unknown[];
+	}>({
+		dashboard: {},
+		projects: {},
+		compliance: {},
+		assessments: {},
+		vendors: [],
+	});
+	const [inputValues, setInputValues] = useState<unknown | undefined>({}); // for the input fields
+	const [token, setToken] = useState<string | null>("");
+	const [triggerSidebar, setTriggerSidebar] = useState(false);
 
-  // Extract userId from token
-  const userId = token ? extractUserToken(token)?.id ?? "1" : "1";
-  const {
-    projectStatus,
-    loading: loadingProjectStatus,
-    error: errorFetchingProjectStatus,
-  } = useProjectStatus({ userId });
+	// Extract userId from token
+	const userId = token ? extractUserToken(token)?.id ?? "1" : "1";
+	const {
+		projectStatus,
+		loading: loadingProjectStatus,
+		error: errorFetchingProjectStatus,
+	} = useProjectStatus({ userId });
 
-  const login = (token: string) => {
-    setToken(token);
-  };
+	const login = (token: string) => {
+		setToken(token);
+	};
 
-  const logout = () => {
-    setToken(null);
-  };
+	const logout = () => {
+		setToken(null);
+	};
 
-  const [currentProjectId, setCurrentProjectId] = useState<string | null>("");
+	const [currentProjectId, setCurrentProjectId] = useState<string | null>("");
 
-  const contextValues = useMemo(
-    () => ({
-      uiValues,
-      setUiValues,
-      authValues,
-      setAuthValues,
-      dashboardValues,
-      setDashboardValues,
-      inputValues,
-      setInputValues,
-      token,
-      login,
-      logout,
-      projectStatus,
-      loadingProjectStatus,
-      errorFetchingProjectStatus,
-      currentProjectId,
-      setCurrentProjectId
-    }),
-    [
-      uiValues,
-      setUiValues,
-      authValues,
-      setAuthValues,
-      dashboardValues,
-      setDashboardValues,
-      inputValues,
-      setInputValues,
-      token,
-      login,
-      logout,
-      projectStatus,
-      loadingProjectStatus,
-      errorFetchingProjectStatus,
-      currentProjectId,
-      setCurrentProjectId
-    ]
-  );
+	const contextValues = useMemo(
+		() => ({
+			uiValues,
+			setUiValues,
+			authValues,
+			setAuthValues,
+			dashboardValues,
+			setDashboardValues,
+			inputValues,
+			setInputValues,
+			token,
+			login,
+			logout,
+			projectStatus,
+			loadingProjectStatus,
+			errorFetchingProjectStatus,
+			currentProjectId,
+			setCurrentProjectId
+		}),
+		[
+			uiValues,
+			setUiValues,
+			authValues,
+			setAuthValues,
+			dashboardValues,
+			setDashboardValues,
+			inputValues,
+			setInputValues,
+			token,
+			login,
+			logout,
+			projectStatus,
+			loadingProjectStatus,
+			errorFetchingProjectStatus,
+			currentProjectId,
+			setCurrentProjectId
+		]
+	);
 
-  const triggerSidebarReload = () => {
-    setTriggerSidebar((prev) => !prev);
-  };
+	const triggerSidebarReload = () => {
+		setTriggerSidebar((prev) => !prev);
+	};
 
-  return (
-    <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        <VerifyWiseContext.Provider value={contextValues}>
-          <ThemeProvider theme={mode === "light" ? light : dark}>
-            <CssBaseline />
-            <Routes>
-              <Route
-                path="/"
-                // element={
-                //   <ProtectedRoute
-                //     Component={Dashboard}
-                //     reloadTrigger={triggerSidebar}
-                //   />
-                // }
-                element={<Dashboard reloadTrigger={triggerSidebar}/> }
-              >
-                <Route
-                  path="/"
-                  element={<Home onProjectUpdate={triggerSidebarReload} />}
-                />
-                <Route
-                  path="/compliance-tracker"
-                  element={<NewComplianceTracker />}
-                />
-                <Route path="/assessment" element={<Assessment />} />
-                <Route path="/all-assessments" element={<AllAssessment />} />
-                <Route path="/vendors" element={<Vendors />} />
-                <Route path="/setting" element={<Setting />} />
-                <Route path="/team" element={<Team />} />
-                <Route path="/project-view" element={<ProjectView />} />
-                <Route path="/file-manager" element={<FileManager />} />
-              </Route>
-              <Route
-                path="/admin-reg"
-                element={<ProtectedRoute Component={RegisterAdmin} />}
-              />
-              <Route path="/user-reg" element={<RegisterUser />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/set-new-password" element={<SetNewPassword />} />
-              <Route
-                path="/reset-password-continue"
-                element={<ResetPasswordContinue />}
-              />
-            </Routes>
-          </ThemeProvider>
-        </VerifyWiseContext.Provider>
-      </PersistGate>
-    </Provider>
-  );
+	return (
+		<Provider store={store}>
+			<PersistGate loading={null} persistor={persistor}>
+				<VerifyWiseContext.Provider value={contextValues}>
+					<ThemeProvider theme={mode === "light" ? light : dark}>
+						<CssBaseline />
+						<Routes>
+							<Route path="/"
+								element={
+									<ProtectedRoute
+										Component={Dashboard}
+										reloadTrigger={triggerSidebar}
+									/>
+								}
+							>
+								<Route
+									path="/"
+									element={<Home onProjectUpdate={triggerSidebarReload} />}
+								/>
+								<Route
+									path="/compliance-tracker"
+									element={<NewComplianceTracker />}
+								/>
+								<Route path="/assessment" element={<Assessment />} />
+								<Route path="/all-assessments" element={<AllAssessment />} />
+								<Route path="/vendors" element={<Vendors />} />
+								<Route path="/setting" element={<Setting />} />
+								<Route path="/team" element={<Team />} />
+								<Route path="/project-view" element={<ProjectView />} />
+								<Route path="/file-manager" element={<FileManager />} />
+							</Route>
+							<Route path="/admin-reg" element={<ProtectedRoute Component={RegisterAdmin} />} />
+							<Route path="/user-reg" element={<ProtectedRoute Component={RegisterUser} />} />
+							<Route path="/login" element={<ProtectedRoute Component={Login} />} />
+							<Route path="/forgot-password" element={<ProtectedRoute Component={ForgotPassword} />} />
+							<Route path="/reset-password" element={<ProtectedRoute Component={ResetPassword} />} />
+							<Route path="/set-new-password" element={<ProtectedRoute Component={SetNewPassword} />} />
+							<Route path="/reset-password-continue" element={<ProtectedRoute Component={ResetPasswordContinue} />} />
+						</Routes>
+					</ThemeProvider>
+				</VerifyWiseContext.Provider>
+			</PersistGate>
+		</Provider>
+	);
 }
 
 export default App;

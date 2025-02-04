@@ -192,7 +192,7 @@ export async function checkUserExists({
  */
 export async function postAutoDrivers(authToken = getAuthToken()): Promise<any> {
   try {
-    const response = await apiServices.post("/autoDrivers", null, {
+    const response = await apiServices.post("/autoDrivers", {
       headers: { Authorization: `Bearer ${authToken}` },
     });
 

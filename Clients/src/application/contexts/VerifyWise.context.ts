@@ -16,6 +16,8 @@ interface VerifyWiseContextProps {
   projectStatus: ProjectStatus;
   loadingProjectStatus: string | boolean;
   errorFetchingProjectStatus: string | boolean;
+  currentProjectId: string | null;
+  setCurrentProjectId: (id: string) => void;
 }
 
 export const VerifyWiseContext = createContext<VerifyWiseContextProps>({
@@ -33,4 +35,6 @@ export const VerifyWiseContext = createContext<VerifyWiseContextProps>({
   projectStatus: defaultProjectStatus,
   loadingProjectStatus: false,
   errorFetchingProjectStatus: false,
+  currentProjectId: "",
+  setCurrentProjectId: () => {},
 });

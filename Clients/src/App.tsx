@@ -70,6 +70,8 @@ function App() {
     setToken(null);
   };
 
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>("");
+
   const contextValues = useMemo(
     () => ({
       uiValues,
@@ -86,6 +88,8 @@ function App() {
       projectStatus,
       loadingProjectStatus,
       errorFetchingProjectStatus,
+      currentProjectId,
+      setCurrentProjectId
     }),
     [
       uiValues,
@@ -102,6 +106,8 @@ function App() {
       projectStatus,
       loadingProjectStatus,
       errorFetchingProjectStatus,
+      currentProjectId,
+      setCurrentProjectId
     ]
   );
 

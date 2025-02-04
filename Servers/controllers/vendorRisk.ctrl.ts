@@ -15,7 +15,8 @@ export async function getAllVendorRisks(
   res: Response
 ): Promise<any> {
   try {
-    const vendorRisks = await getAllVendorRisksQuery();
+    const projectId = parseInt(req.params.id);
+    const vendorRisks = await getAllVendorRisksQuery(projectId);
 
     if (vendorRisks) {
       return res.status(200).json(STATUS_CODE[200](vendorRisks));

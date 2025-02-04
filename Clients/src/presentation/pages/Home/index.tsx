@@ -12,7 +12,10 @@ import { Box, Stack, Typography, useTheme } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { NoProjectBox, styles } from "./styles";
 import emptyState from "../../assets/imgs/empty-state.svg";
-import { getAllEntities, postAutoDrivers } from "../../../application/repository/entity.repository";
+import {
+  getAllEntities,
+  postAutoDrivers,
+} from "../../../application/repository/entity.repository";
 import { ProjectCardProps } from "../../components/ProjectCard";
 import {
   Assessments,
@@ -70,10 +73,9 @@ const useProjects = (
             setIsLoading(false);
             resetIsNewProject();
           }
-        }
-      );
+        });
     }
-  }
+  };
 
   useEffect(() => {
     const controller = new AbortController();
@@ -94,7 +96,7 @@ const useProjects = (
     const controller = new AbortController();
     fetchProjects({ controller });
     return () => controller.abort();
-  }
+  };
 
   return { projects, error, isLoading, refetchProjects };
 };
@@ -133,37 +135,37 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
     setOpenDemoDataModal((prev) => !prev);
   }, []);
 
-+const [isCreatingDemoData, setIsCreatingDemoData] = useState(false);
+  const [isCreatingDemoData, setIsCreatingDemoData] = useState(false);
 
   const createDemoData = useCallback(async () => {
-+  setIsCreatingDemoData(true);
-   try {
-     const response = await postAutoDrivers();
-     if (response.status === 201) {
-       handleAlert({
-         variant: "success",
-         body: "Demo Data created successfully",
-       });
-       setOpenDemoDataModal(false);
-       refetchProjects();
-     }
-   } catch (error) {
-     console.error(error);
-     handleAlert({
-       variant: "error",
-       body: "Failed to create Demo Data",
-     });
-   } finally {
-+    setIsCreatingDemoData(false);
-   }
- }, []);
+    setIsCreatingDemoData(true);
+    try {
+      const response = await postAutoDrivers();
+      if (response.status === 201) {
+        handleAlert({
+          variant: "success",
+          body: "Demo Data created successfully",
+        });
+        setOpenDemoDataModal(false);
+        refetchProjects();
+      }
+    } catch (error) {
+      console.error(error);
+      handleAlert({
+        variant: "error",
+        body: "Failed to create Demo Data",
+      });
+    } finally {
+      setIsCreatingDemoData(false);
+    }
+  }, []);
 
   // Later in the component's render/return block:
   <VWButton
     text="Create Demo Data"
-+   loading={isCreatingDemoData}
+    loading={isCreatingDemoData}
     onClick={handleOpenOrCloseDemoDataModal}
-  />
+  />;
 
   const newProjectChecker = useCallback(
     (data: { isNewProject: boolean; project: any }) => {
@@ -196,7 +198,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
         <Stack
           spacing={8}
           direction="row"
-          justifyContent= "flex-end"
+          justifyContent="flex-end"
           sx={{
             paddingBottom: theme.spacing(10),
           }}
@@ -238,10 +240,23 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
             start one.
           </Typography>
         </NoProjectBox>
-        { openDemoDataModal && <CreateDemoData handleCancelDemoData={handleOpenOrCloseDemoDataModal} handleCreateDemoData={createDemoData} />}
+        {openDemoDataModal && (
+          <CreateDemoData
+            handleCancelDemoData={handleOpenOrCloseDemoDataModal}
+            handleCreateDemoData={createDemoData}
+          />
+        )}
       </>
     );
-  }, [theme, newProjectChecker, anchor, handleOpenOrClose, openDemoDataModal, createDemoData, handleOpenOrCloseDemoDataModal]);
+  }, [
+    theme,
+    newProjectChecker,
+    anchor,
+    handleOpenOrClose,
+    openDemoDataModal,
+    createDemoData,
+    handleOpenOrCloseDemoDataModal,
+  ]);
 
   const PopupRender = useCallback(() => {
     return (
@@ -313,7 +328,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
     <Box>
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
-          <Box sx={{paddingTop: theme.spacing(2)}}>
+          <Box sx={{ paddingTop: theme.spacing(2) }}>
             <Alert
               variant={alert.variant}
               title={alert.title}

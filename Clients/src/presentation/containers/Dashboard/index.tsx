@@ -70,7 +70,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
     const fetchUsers = async () => {
       try {
         const response = await getAllEntities({ routeUrl: "/users" });
-        if (!response?.data) return
+        if (!response?.data) return;
         setDashboardValues((prevValues: any) => ({
           ...prevValues,
           users: response.data,
@@ -102,10 +102,11 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
     return () => clearTimeout(timeout);
   }, [setDashboardValues, reloadTrigger, location.pathname]);
 
-  const mappedProjects = projects?.map((project: any) => ({
-    _id: project.id,
-    name: project.project_title,
-  }));
+  const mappedProjects =
+    projects?.map((project: any) => ({
+      _id: project.id,
+      name: project.project_title,
+    })) || [];
 
   console.log("This is the token in the dashboard :", token);
 

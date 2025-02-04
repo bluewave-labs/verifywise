@@ -12,7 +12,7 @@ import { Box, Stack, Typography, useTheme } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { NoProjectBox, styles } from "./styles";
 import emptyState from "../../assets/imgs/empty-state.svg";
-import { getAllEntities } from "../../../application/repository/entity.repository";
+import { getAllEntities, postAutoDrivers } from "../../../application/repository/entity.repository";
 import { ProjectCardProps } from "../../components/ProjectCard";
 import {
   Assessments,
@@ -21,6 +21,8 @@ import {
 import VWSkeleton from "../../vw-v2-components/Skeletons";
 import { Card } from "../../components/ProjectCard/styles";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import CreateDemoData from "../../components/CreateDemoData";
+import VWButton from "../../vw-v2-components/Buttons";
 
 // Lazy load components
 const ProjectCard = lazy(() => import("../../components/ProjectCard"));
@@ -30,6 +32,12 @@ const CreateProjectForm = lazy(
 );
 const MetricSection = lazy(() => import("../../components/MetricSection"));
 const Alert = lazy(() => import("../../components/Alert"));
+
+interface AlertProps {
+  variant: "success" | "info" | "warning" | "error";
+  title?: string;
+  body: string;
+}
 
 // Custom hook for fetching projects
 const useProjects = (
@@ -41,28 +49,35 @@ const useProjects = (
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const fetchProjects = ({ controller }: { controller: AbortController }) => {
+    if (controller) {
+      setIsLoading(true);
+      getAllEntities({ routeUrl: "/projects" })
+        .then(({ data }) => {
+          setProjects(data);
+          setError(null);
+          resetIsNewProject();
+        })
+        .catch((err) => {
+          if (!controller.signal.aborted) {
+            setError("Failed to fetch projects: " + err.message);
+            setProjects(null);
+            resetIsNewProject();
+          }
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) {
+            setIsLoading(false);
+            resetIsNewProject();
+          }
+        }
+      );
+    }
+  }
+
   useEffect(() => {
     const controller = new AbortController();
-    setIsLoading(true);
-    getAllEntities({ routeUrl: "/projects" })
-      .then(({ data }) => {
-        setProjects(data);
-        setError(null);
-        resetIsNewProject();
-      })
-      .catch((err) => {
-        if (!controller.signal.aborted) {
-          setError("Failed to fetch projects: " + err.message);
-          setProjects(null);
-          resetIsNewProject();
-        }
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-          resetIsNewProject();
-        }
-      });
+    fetchProjects({ controller });
     return () => controller.abort();
   }, []);
 
@@ -75,7 +90,13 @@ const useProjects = (
     }
   }, [isNewProject, newProjectData]);
 
-  return { projects, error, isLoading };
+  const refetchProjects = () => {
+    const controller = new AbortController();
+    fetchProjects({ controller });
+    return () => controller.abort();
+  }
+
+  return { projects, error, isLoading, refetchProjects };
 };
 
 interface HomeProps {
@@ -86,7 +107,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
   const theme = useTheme();
   const [isNewProject, setIsNewProjectCreate] = useState(false);
   const [newProjectData, setNewProjectData] = useState({});
-  const { projects, error, isLoading } = useProjects(
+  const { projects, error, isLoading, refetchProjects } = useProjects(
     isNewProject,
     newProjectData,
     () => setIsNewProjectCreate(false)
@@ -94,11 +115,55 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
   const { projectStatus, loadingProjectStatus, errorFetchingProjectStatus } =
     useContext(VerifyWiseContext);
 
-  const [alert, setAlert] = useState<{
-    variant: "success" | "info" | "warning" | "error";
-    title?: string;
-    body: string;
-  } | null>(null);
+  const [alert, setAlert] = useState<AlertProps | null>(null);
+  const [openDemoDataModal, setOpenDemoDataModal] = useState(false);
+
+  const handleAlert = ({ variant, body, title }: AlertProps) => {
+    setAlert({
+      variant,
+      title,
+      body,
+    });
+    setTimeout(() => {
+      setAlert(null);
+    }, 2500);
+  };
+
+  const handleOpenOrCloseDemoDataModal = useCallback(() => {
+    setOpenDemoDataModal((prev) => !prev);
+  }, []);
+
++const [isCreatingDemoData, setIsCreatingDemoData] = useState(false);
+
+  const createDemoData = useCallback(async () => {
++  setIsCreatingDemoData(true);
+   try {
+     const response = await postAutoDrivers();
+     if (response.status === 201) {
+       handleAlert({
+         variant: "success",
+         body: "Demo Data created successfully",
+       });
+       setOpenDemoDataModal(false);
+       refetchProjects();
+     }
+   } catch (error) {
+     console.error(error);
+     handleAlert({
+       variant: "error",
+       body: "Failed to create Demo Data",
+     });
+   } finally {
++    setIsCreatingDemoData(false);
+   }
+ }, []);
+
+  // Later in the component's render/return block:
+  <VWButton
+    text="Create Demo Data"
++   loading={isCreatingDemoData}
+    onClick={handleOpenOrCloseDemoDataModal}
+  />
 
   const newProjectChecker = useCallback(
     (data: { isNewProject: boolean; project: any }) => {
@@ -107,14 +172,10 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
 
       if (onProjectUpdate) {
         onProjectUpdate();
-        setAlert({
+        handleAlert({
           variant: "success",
           body: "Project created successfully",
         });
-
-        setTimeout(() => {
-          setAlert(null);
-        }, 2500);
       }
     },
     [onProjectUpdate]
@@ -133,13 +194,17 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
     return (
       <>
         <Stack
+          spacing={8}
+          direction="row"
+          justifyContent= "flex-end"
           sx={{
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "flex-end",
-            marginBottom: theme.spacing(10),
+            paddingBottom: theme.spacing(10),
           }}
         >
+          <VWButton
+            text="Create Demo Data"
+            onClick={handleOpenOrCloseDemoDataModal}
+          />
           <Suspense fallback={<div>Loading...</div>}>
             <Popup
               popupId="create-project-popup"
@@ -149,7 +214,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
                   closePopup={() => setAnchor(null)}
                 />
               }
-              openPopupButtonName="New project"
+              openPopupButtonName="New Project"
               popupTitle="Create new project"
               popupSubtitle="Create a new project from scratch by filling in the following."
               handleOpenOrClose={handleOpenOrClose}
@@ -173,9 +238,10 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
             start one.
           </Typography>
         </NoProjectBox>
+        { openDemoDataModal && <CreateDemoData handleCancelDemoData={handleOpenOrCloseDemoDataModal} handleCreateDemoData={createDemoData} />}
       </>
     );
-  }, [theme, newProjectChecker, anchor]);
+  }, [theme, newProjectChecker, anchor, handleOpenOrClose, openDemoDataModal, createDemoData, handleOpenOrCloseDemoDataModal]);
 
   const PopupRender = useCallback(() => {
     return (
@@ -247,13 +313,15 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
     <Box>
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
-          <Alert
-            variant={alert.variant}
-            title={alert.title}
-            body={alert.body}
-            isToast={true}
-            onClick={() => setAlert(null)}
-          />
+          <Box sx={{paddingTop: theme.spacing(2)}}>
+            <Alert
+              variant={alert.variant}
+              title={alert.title}
+              body={alert.body}
+              isToast={true}
+              onClick={() => setAlert(null)}
+            />
+          </Box>
         </Suspense>
       )}
 

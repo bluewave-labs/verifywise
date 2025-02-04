@@ -24,23 +24,24 @@ import Alert from "../../../components/Alert";
 import FileUploadComponent from "../../../components/FileUpload";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 
-interface AssessmentValue {
+interface AssessmentValue {  
   topic: string;
   subtopic: {
     id: string;
-    title: string;
+    name: string; // title
     questions: {
       id: string;
-      question: string;
+      questionText: string;
       answer: string;
       answerType: string;
       evidenceFileRequired: boolean;
       hint: string;
       isRequired: boolean;
       priorityLevel: "high priority" | "medium priority" | "low priority";
-      evidenceFiles?: string[];
+      // evidenceFiles?: string[];
     }[];
   }[];
+  file: Blob[];
 }
 
 const AllAssessment = () => {
@@ -50,20 +51,20 @@ const AllAssessment = () => {
   const [assessmentsValues, setAssessmentsValue] = useState<
     Record<number, AssessmentValue>
   >({
-    0: { topic: "Project Scope", subtopic: [] },
-    1: { topic: "Risk Management System", subtopic: [] },
-    2: { topic: "Data Governance", subtopic: [] },
-    3: { topic: "Technical Documentation", subtopic: [] },
-    4: { topic: "Record Keeping", subtopic: [] },
-    5: { topic: "Transparency and User Information", subtopic: [] },
-    6: { topic: "Human Oversight", subtopic: [] },
-    7: { topic: "Accuracy, Robustness, Cyber Security", subtopic: [] },
-    8: { topic: "Conformity Assessment", subtopic: [] },
-    9: { topic: "Post Market Monitoring", subtopic: [] },
-    10: { topic: "Bias Monitoring and Mitigation", subtopic: [] },
-    11: { topic: "Accountability and Governance", subtopic: [] },
-    12: { topic: "Explainability", subtopic: [] },
-    13: { topic: "Environmental Impact", subtopic: [] },
+    0: { topic: "Project Scope", subtopic: [], file: [] },
+    1: { topic: "Risk Management System", subtopic: [], file: [] },
+    2: { topic: "Data Governance", subtopic: [], file: [] },
+    3: { topic: "Technical Documentation", subtopic: [], file: [] },
+    4: { topic: "Record Keeping", subtopic: [], file: [] },
+    5: { topic: "Transparency and User Information", subtopic: [], file: [] },
+    6: { topic: "Human Oversight", subtopic: [], file: [] },
+    7: { topic: "Accuracy, Robustness, Cyber Security", subtopic: [], file: [] },
+    8: { topic: "Conformity Assessment", subtopic: [], file: [] },
+    9: { topic: "Post Market Monitoring", subtopic: [], file: [] },
+    10: { topic: "Bias Monitoring and Mitigation", subtopic: [], file: [] },
+    11: { topic: "Accountability and Governance", subtopic: [], file: [] },
+    12: { topic: "Explainability", subtopic: [], file: [] },
+    13: { topic: "Environmental Impact", subtopic: [], file: [] },
   });
 
   const [_, setAllQuestionsToCheck] = useState<{ title: string }[]>([]);
@@ -98,11 +99,27 @@ const AllAssessment = () => {
 
     console.log(assessmentToSave);
 
+    const formData = new FormData();
+
+    // formData.append("assessmentId", String(activeAssessmentId));
+    formData.append("assessmentId", "2"); // static projectId    
+    formData.append("topic", assessmentToSave.topic);
+    formData.append("subtopic", JSON.stringify(assessmentToSave.subtopic)); 
+
+    if (assessmentToSave.file && assessmentToSave.file.length > 0) {
+      assessmentToSave.file.forEach((file, index) => {
+        formData.append(`file[${index}]`, file);
+      });
+    }else{
+      formData.append("file", new Blob([], { type: "application/octet-stream" }), "empty-file.txt");
+    }    
+
     try {
-      const response = await apiServices.post(
-        "/assessments/saveAnswers",
-        assessmentToSave
-      );
+      const response = await apiServices.post("/assessments/saveAnswers", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       console.log("Assessments saved successfully:", response);
     } catch (error) {
       console.error("Error saving assessments:", error);
@@ -114,6 +131,7 @@ const AllAssessment = () => {
 
   const handleAssessmentChange = useCallback(
     (
+      // project related      
       // topic relateds
       topicid: number,
       topic: string,
@@ -122,7 +140,7 @@ const AllAssessment = () => {
       subtopic: string,
       // question relateds
       questionId: string,
-      question: string,
+      questionText: string,
       answer: string,
       answerType: string,
       evidenceFileRequired: boolean,
@@ -137,7 +155,7 @@ const AllAssessment = () => {
         subtopicId,
         subtopicTitle: subtopic,
         questionId: questionId,
-        question: question,
+        questionText: questionText,
         answer: answer,
         answerType: answerType,
         evidenceFileRequired: evidenceFileRequired,
@@ -149,7 +167,7 @@ const AllAssessment = () => {
       setAssessmentsValue((prevValues) => {
         const updatedValues = { ...prevValues };
         if (!updatedValues[topicid]) {
-          updatedValues[topicid] = { topic, subtopic: [] };
+          updatedValues[topicid] = { topic, subtopic: [], file: [] };
         }
         const subtopicIndex = updatedValues[topicid].subtopic.findIndex(
           (st) => st.id === subtopicId
@@ -157,18 +175,18 @@ const AllAssessment = () => {
         if (subtopicIndex === -1) {
           updatedValues[topicid].subtopic.push({
             id: subtopicId,
-            title: subtopic,
+            name: subtopic,
             questions: [
               {
                 id: questionId,
-                question,
+                questionText,
                 answer,
                 answerType,
                 evidenceFileRequired,
                 hint,
                 isRequired,
                 priorityLevel,
-                evidenceFiles,
+                // evidenceFiles,
               },
             ],
           });
@@ -179,14 +197,14 @@ const AllAssessment = () => {
           if (questionIndex === -1) {
             updatedValues[topicid].subtopic[subtopicIndex].questions.push({
               id: questionId,
-              question,
+              questionText,
               answer,
               answerType,
               evidenceFileRequired,
               hint,
               isRequired,
               priorityLevel,
-              evidenceFiles,
+              // evidenceFiles,
             });
           } else {
             updatedValues[topicid].subtopic[subtopicIndex].questions[
@@ -301,6 +319,7 @@ const AllAssessment = () => {
               });
 
               handleAssessmentChange(
+                // 
                 // topic relateds
                 Topics[activeTab].id,
                 Topics[activeTab].title,

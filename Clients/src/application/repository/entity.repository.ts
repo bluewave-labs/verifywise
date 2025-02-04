@@ -183,3 +183,14 @@ export async function checkUserExists({
     throw error;
   }
 }
+
+export async function postAutoDrivers(): Promise<any> {
+  try {
+    const response = await apiServices.post("/autoDrivers");
+
+    return response;
+  } catch (error) {
+    console.error("Error creating demo data:", error);
+    throw error;
+  }
+}

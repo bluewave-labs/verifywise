@@ -18,7 +18,6 @@ interface DashboardProps {
 const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
   const { token, setDashboardValues } = useContext(VerifyWiseContext);
   const [projects, setProjects] = useState([]);
-  const [_, setUsers] = useState([]);
   const location = useLocation();
   const [runHomeTour, setRunHomeTour] = useState(false);
   //joyride steps
@@ -71,7 +70,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
     const fetchUsers = async () => {
       try {
         const response = await getAllEntities({ routeUrl: "/users" });
-        setUsers(response);
+        if (!response?.data) return
         setDashboardValues((prevValues: any) => ({
           ...prevValues,
           users: response.data,

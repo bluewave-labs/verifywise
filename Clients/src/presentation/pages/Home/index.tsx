@@ -133,25 +133,37 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
     setOpenDemoDataModal((prev) => !prev);
   }, []);
 
-  const createDemoData = useCallback( async () => {
-    try {
-      const response = await postAutoDrivers();
-      if (response.status === 201) {
-        handleAlert({
-          variant: "success",
-          body: "Demo Data created successfully",
-        });
-        setOpenDemoDataModal(false);
-        refetchProjects();
-      }
-    } catch (error) {
-      console.error(error);
-      handleAlert({
-        variant: "error",
-        body: "Failed to create Demo Data",
-      });
-    }
-  }, []);
++const [isCreatingDemoData, setIsCreatingDemoData] = useState(false);
+
+  const createDemoData = useCallback(async () => {
++  setIsCreatingDemoData(true);
+   try {
+     const response = await postAutoDrivers();
+     if (response.status === 201) {
+       handleAlert({
+         variant: "success",
+         body: "Demo Data created successfully",
+       });
+       setOpenDemoDataModal(false);
+       refetchProjects();
+     }
+   } catch (error) {
+     console.error(error);
+     handleAlert({
+       variant: "error",
+       body: "Failed to create Demo Data",
+     });
+   } finally {
++    setIsCreatingDemoData(false);
+   }
+ }, []);
+
+  // Later in the component's render/return block:
+  <VWButton
+    text="Create Demo Data"
++   loading={isCreatingDemoData}
+    onClick={handleOpenOrCloseDemoDataModal}
+  />
 
   const newProjectChecker = useCallback(
     (data: { isNewProject: boolean; project: any }) => {

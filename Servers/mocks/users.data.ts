@@ -2,17 +2,17 @@ import { User } from "../models/user.model";
 
 export const users = (role1: number, role2: number, role3: number, role4: number): User[] => {
   return [
-    // {
-    //   id: 1,
-    //   name: "Alice",
-    //   surname: "Smith",
-    //   email: "alice.smith@example.com",
-    //   password_hash:
-    //     "$2b$10$c7Mtd3kRpMjr6VexlxuAleT8Sy3SwPcT.YLCazH5QWBgnATDo5N6O",
-    //   role: 1, // Admin
-    //   created_at: new Date("2024-01-01"),
-    //   last_login: new Date("2024-10-01"),
-    // },
+    {
+      id: 1,
+      name: "Alice",
+      surname: "Smith",
+      email: "alice.smith@example.com",
+      password_hash:
+        "$2b$10$c7Mtd3kRpMjr6VexlxuAleT8Sy3SwPcT.YLCazH5QWBgnATDo5N6O",
+      role: role1, // Admin
+      created_at: new Date("2024-01-01"),
+      last_login: new Date("2024-10-01"),
+    },
     {
       id: 2,
       name: "Bob",

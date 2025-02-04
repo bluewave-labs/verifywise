@@ -351,7 +351,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
           )}
 
           <TablePagination
-            count={dashboardValues.vendors.length}
+            count={dashboardValues.vendors ? dashboardValues.vendors.length : 0}
             page={page}
             onPageChange={handleChangePage}
             rowsPerPage={rowsPerPage}

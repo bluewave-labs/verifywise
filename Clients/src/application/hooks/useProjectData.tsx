@@ -22,6 +22,8 @@ interface UseProjectDataResult {
   projectOwner: string | null;
   error: string | null;
   isLoading: boolean;
+  projectRisks: any; // Add projectRisks to the return type
+  setProject: (project: ProjectData | null) => void; // Add setProject to the return type
 }
 export interface User {
   id: string;
@@ -29,11 +31,14 @@ export interface User {
   surname: string;
 }
 
-const useProjectData = ({ projectId }: UseProjectDataParams): UseProjectDataResult => {
+const useProjectData = ({
+  projectId,
+}: UseProjectDataParams): UseProjectDataResult => {
   const [project, setProject] = useState<ProjectData | null>(null);
   const [projectOwner, setProjectOwner] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [projectRisks, setProjectRisks] = useState<any>(null); // Add state for projectRisks
   const { dashboardValues } = useContext(VerifyWiseContext);
   const { selectedProjectId, users } = dashboardValues;
 
@@ -47,25 +52,25 @@ const useProjectData = ({ projectId }: UseProjectDataParams): UseProjectDataResu
     const controller = new AbortController();
     setIsLoading(true);
 
-    getEntityById({ routeUrl: `/projects/${projectId}`, signal: controller.signal })
+    getEntityById({
+      routeUrl: `/projects/${projectId}`,
+      signal: controller.signal,
+    })
       .then(({ data }) => {
-
-        const ownerUser = users.find(
-          (user: User) => user.id === data.owner
-        );
+        const ownerUser = users.find((user: User) => user.id === data.owner);
         const lastUpdatedByUser = users.find(
           (user: User) => user.id === data.last_updated_by
         );
         if (lastUpdatedByUser) {
-          data.last_updated_by = lastUpdatedByUser.name + ` ` + lastUpdatedByUser.surname;
+          data.last_updated_by =
+            lastUpdatedByUser.name + ` ` + lastUpdatedByUser.surname;
         }
         if (ownerUser) {
-          // data.owner = ownerUser.name + ` ` + ownerUser.surname;
           const temp = ownerUser.name + ` ` + ownerUser.surname;
           setProjectOwner(temp);
         }
-        console.log("~~~", data)
-        setProject(data);
+        setProjectRisks(data.risks); // Set projectRisks from the fetched data
+        setProject(data); // Ensure project is set correctly
         setError(null);
       })
       .catch((err) => {
@@ -82,7 +87,7 @@ const useProjectData = ({ projectId }: UseProjectDataParams): UseProjectDataResu
     return () => controller.abort();
   }, [projectId, selectedProjectId, users]);
 
-  return { project, projectOwner, error, isLoading };
-}
+  return { project, projectOwner, error, isLoading, projectRisks, setProject }; // Return setProject
+};
 
 export default useProjectData;

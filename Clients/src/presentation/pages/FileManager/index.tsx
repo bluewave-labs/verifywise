@@ -171,7 +171,7 @@ const FileManager: React.FC = (): JSX.Element => {
 
     const fetchFiles = async () => {
       try {
-        const response = await axios.get("https://localhost:5000/api/assessments/files");
+        const response = await axios.get("https://localhost:3000/api/assessments/files");
         const filesData: File[] = response.data.map((file:any) =>({
           id: file.id,
           name: file.filename,

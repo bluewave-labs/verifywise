@@ -147,7 +147,6 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
           body: "Demo Data created successfully",
         });
         setOpenDemoDataModal(false);
-        refetchProjects();
       }
     } catch (error) {
       console.error(error);
@@ -157,13 +156,17 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
       });
     } finally {
       setIsCreatingDemoData(false);
+      setTimeout(() => {
+        refetchProjects()
+      }, 500);
+
     }
   }, []);
 
   // Later in the component's render/return block:
   <VWButton
     text="Create Demo Data"
-    loading={isCreatingDemoData}
+    isDisabled={isCreatingDemoData}
     onClick={handleOpenOrCloseDemoDataModal}
   />;
 

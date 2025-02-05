@@ -1,4 +1,13 @@
-import { FC, useState, useCallback, useMemo, lazy, Suspense, Dispatch, SetStateAction } from "react";
+import {
+  FC,
+  useState,
+  useCallback,
+  useMemo,
+  lazy,
+  Suspense,
+  Dispatch,
+  SetStateAction,
+} from "react";
 import {
   Divider,
   SelectChangeEvent,
@@ -83,7 +92,11 @@ export enum MitigationStatus {
  * @requires selectValidation
  * @requires dayjs
  */
-const MitigationSection: FC<MitigationSectionProps> = ({ mitigationValues, setMitigationValues, migitateErrors }) => {
+const MitigationSection: FC<MitigationSectionProps> = ({
+  mitigationValues,
+  setMitigationValues,
+  migitateErrors,
+}) => {
   const theme = useTheme();
   // const [values, setValues] = useState<MitigationFormValues>(initialState);
   const [errors, setErrors] = useState<MitigationFormErrors>({});
@@ -107,7 +120,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ mitigationValues, setMi
 
   const handleDateChange = useCallback(
     (field: string, newDate: Dayjs | null) => {
-      if(newDate?.isValid()){
+      if (newDate?.isValid()) {
         setMitigationValues((prevValues) => ({
           ...prevValues,
           [field]: newDate ? newDate.toISOString() : "",
@@ -127,7 +140,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ mitigationValues, setMi
         setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
       },
     []
-  );  
+  );
 
   const mitigationStatusItems = useMemo(
     () => [
@@ -251,7 +264,11 @@ const MitigationSection: FC<MitigationSectionProps> = ({ mitigationValues, setMi
               <Stack style={{ minWidth: "303px" }}>
                 <DatePicker
                   label="Start date"
-                  date={mitigationValues.deadline ? dayjs(mitigationValues.deadline) : null}
+                  date={
+                    mitigationValues.deadline
+                      ? dayjs(mitigationValues.deadline)
+                      : null
+                  }
                   handleDateChange={(e) => handleDateChange("deadline", e)}
                   sx={{
                     width: 130,
@@ -324,7 +341,9 @@ const MitigationSection: FC<MitigationSectionProps> = ({ mitigationValues, setMi
             <DatePicker
               label="Start date"
               date={
-                mitigationValues.dateOfAssessment ? dayjs(mitigationValues.dateOfAssessment) : null
+                mitigationValues.dateOfAssessment
+                  ? dayjs(mitigationValues.dateOfAssessment)
+                  : null
               }
               handleDateChange={(e) => handleDateChange("dateOfAssessment", e)}
               sx={{

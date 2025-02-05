@@ -31,6 +31,10 @@ services:
       - DB_NAME=$DB_NAME
       - MOCK_DATA_ON=$MOCK_DATA_ON
       - JWT_SECRET=$JWT_SECRET
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USERNAME=pharsh4585@gmail.com
+      - SMTP_PASSWORD=tfln hkkh imxz rpyz
   frontend:
     depends_on:
       - backend

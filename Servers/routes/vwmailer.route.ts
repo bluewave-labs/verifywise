@@ -2,13 +2,14 @@ import express from "express";
 import { sendEmail } from "../services/emailService";
 import fs from "fs";
 import path from "path";
+import { generateToken } from "../utils/jwt.util";
 
 const router = express.Router();
 
 router.post("/invite", async (req, res) => {
-  const { to, name, link } = req.body;
+  const { to, name } = req.body;
 
-  if (!to || !name || !link) {
+  if (!to || !name) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
@@ -19,6 +20,17 @@ router.post("/invite", async (req, res) => {
       "../templates/account-creation-email.mjml"
     );
     const template = fs.readFileSync(templatePath, "utf8");
+
+    const token = generateToken({
+      name: name,
+      email: to
+    }) as string
+
+    const link = `${req.protocol}://${req.hostname}:${process.env.FRONTEND_PORT}/user-reg?${new URLSearchParams(
+      { token }
+    ).toString()}`
+
+    console.log(link);
 
     // Data to be replaced in the template
     const data = { name, link };
@@ -32,10 +44,10 @@ router.post("/invite", async (req, res) => {
       data
     );
 
-    res.status(200).json({ message: "Email sent successfully" });
+    return res.status(200).json({ message: "Email sent successfully" });
   } catch (error) {
     console.error("Error sending email:", error);
-    res.status(500).json({ error: "Failed to send email" });
+    return res.status(500).json({ error: "Failed to send email" });
   }
 });
 

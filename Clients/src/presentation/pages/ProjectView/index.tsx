@@ -220,6 +220,7 @@ const ProjectView = () => {
                   risksSummary={projectRisksSummary}
                   risksData={projectRisks}
                   title="Project"
+                  projectId={projectId}
                 />
               </TabPanel>
               <TabPanel value="vendor-risks" sx={{ p: "32px 0 0" }}>
@@ -227,6 +228,7 @@ const ProjectView = () => {
                   risksSummary={vendorRisksSummary}
                   risksData={vendorRisks}
                   title="Vendor"
+                  projectId={projectId}
                 />
               </TabPanel>
               <TabPanel value="settings" sx={{ p: "32px 0 0" }}>

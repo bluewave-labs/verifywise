@@ -3,11 +3,16 @@ import { compileMjmlToHtml } from "../tools/mjmlCompiler";
 
 // Create a transporter object using the default SMTP transport
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: 'smtp.gmail.com',
+  port: 587, // Use 587 for STARTTLS
+  secure: false, // Use TLS
   auth: {
-    user: "verifywise.bwl@gmail.com", // Replace with your email
-    pass: "cdey jngh dfbf mqoh", // Replace with your email password
+    user: process.env.EMAIL_ID,
+    pass: process.env.EMAIL_PASSWORD,
   },
+  tls: {
+    ciphers: 'SSLv3'
+  }
 });
 
 // Function to send an email
@@ -22,11 +27,8 @@ export const sendEmail = async (
   const html = compileMjmlToHtml(template, data);
 
   const mailOptions = {
-    from: "verifywise.bwl@gmail.com", // sender address
-    to, // list of receivers
-    subject, // Subject line
-    text, // plain text body
-    html, // html body
+    from: process.env.EMAIL_ID,
+    to, subject, text, html
   };
 
   // Send mail with defined transport object

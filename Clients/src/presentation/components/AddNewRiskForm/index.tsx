@@ -5,7 +5,12 @@ import { Box, Stack, Tab, useTheme, Typography, Button } from "@mui/material";
 import { FC, useState, useCallback, useMemo, lazy, Suspense } from "react";
 import "./styles.module.css";
 import { Likelihood, Severity } from "../RiskLevel/constants";
-import { RiskFormValues, RiskFormErrors, MitigationFormValues, MitigationFormErrors } from "./interface";
+import {
+  RiskFormValues,
+  RiskFormErrors,
+  MitigationFormValues,
+  MitigationFormErrors,
+} from "./interface";
 
 import { checkStringValidation } from "../../../application/validations/stringValidation";
 import selectValidation from "../../../application/validations/selectValidation";
@@ -16,6 +21,8 @@ const MitigationSection = lazy(() => import("./MitigationSection"));
 interface AddNewRiskFormProps {
   closePopup: () => void;
   popupStatus: string;
+  initialRiskValues?: RiskFormValues; // New prop for initial values
+  initialMitigationValues?: MitigationFormValues; // New prop for initial values
 }
 
 const riskInitialState: RiskFormValues = {
@@ -67,15 +74,21 @@ const mitigationInitialState: MitigationFormValues = {
 const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   closePopup,
   popupStatus,
+  initialRiskValues = riskInitialState, // Default to initial state if not provided
+  initialMitigationValues = mitigationInitialState,
 }) => {
   const theme = useTheme();
   const disableRipple =
     theme.components?.MuiButton?.defaultProps?.disableRipple;
-  
+
   const [riskErrors, setRiskErrors] = useState<RiskFormErrors>({});
-  const [migitateErrors, setMigitateErrors] = useState<MitigationFormErrors>({});
-  const [riskValues, setRiskValues] = useState<RiskFormValues>(riskInitialState);
-  const [mitigationValues, setMitigationValues] = useState<MitigationFormValues>(mitigationInitialState);
+  const [migitateErrors, setMigitateErrors] = useState<MitigationFormErrors>(
+    {}
+  );
+  const [riskValues, setRiskValues] =
+    useState<RiskFormValues>(initialRiskValues); // Use initialValues
+  const [mitigationValues, setMitigationValues] =
+    useState<MitigationFormValues>(initialMitigationValues);
   const [value, setValue] = useState("risks");
   const handleChange = useCallback(
     (_: React.SyntheticEvent, newValue: string) => {
@@ -100,7 +113,12 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     const newErrors: RiskFormErrors = {};
     const newMitigationErrors: MitigationFormErrors = {};
 
-    const riskName = checkStringValidation("Risk name", riskValues.riskName, 3, 50);
+    const riskName = checkStringValidation(
+      "Risk name",
+      riskValues.riskName,
+      3,
+      50
+    );
     if (!riskName.accepted) {
       newErrors.riskName = riskName.message;
     }
@@ -131,7 +149,10 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     if (!reviewNotes.accepted) {
       newErrors.reviewNotes = reviewNotes.message;
     }
-    const actionOwner = selectValidation("Action owner", riskValues.actionOwner);
+    const actionOwner = selectValidation(
+      "Action owner",
+      riskValues.actionOwner
+    );
     if (!actionOwner.accepted) {
       newErrors.actionOwner = actionOwner.message;
     }
@@ -142,7 +163,10 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     if (!aiLifecyclePhase.accepted) {
       newErrors.aiLifecyclePhase = aiLifecyclePhase.message;
     }
-    const riskCategory = selectValidation("Risk category", riskValues.riskCategory);
+    const riskCategory = selectValidation(
+      "Risk category",
+      riskValues.riskCategory
+    );
     if (!riskCategory.accepted) {
       newErrors.riskCategory = riskCategory.message;
     }
@@ -163,7 +187,8 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
       1024
     );
     if (!implementationStrategy.accepted) {
-      newMitigationErrors.implementationStrategy = implementationStrategy.message;
+      newMitigationErrors.implementationStrategy =
+        implementationStrategy.message;
     }
     // const recommendations = checkStringValidation(
     //   "Recommendations",
@@ -219,18 +244,21 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     setMigitateErrors(newMitigationErrors);
     setRiskErrors(newErrors);
 
-    return Object.keys(newErrors).length === 0 && Object.keys(newMitigationErrors).length === 0;  // Return true if no errors exist    
+    return (
+      Object.keys(newErrors).length === 0 &&
+      Object.keys(newMitigationErrors).length === 0
+    ); // Return true if no errors exist
   }, [riskValues, mitigationValues]);
 
   const riskFormSubmitHandler = () => {
-    // check forms validate    
-    if(validateForm()){
-      // call backend 
+    // check forms validate
+    if (validateForm()) {
+      // call backend
       closePopup();
-    }else{
-      console.log('validation fails')
+    } else {
+      console.log("validation fails");
     }
-  }
+  };
 
   return (
     <Stack>
@@ -260,16 +288,24 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         </Box>
         <Suspense fallback={<div>Loading...</div>}>
           <TabPanel value="risks" sx={{ p: "24px 0 0" }}>
-            <RiskSection riskValues={riskValues} setRiskValues={setRiskValues} riskErrors={riskErrors}/>
+            <RiskSection
+              riskValues={riskValues}
+              setRiskValues={setRiskValues}
+              riskErrors={riskErrors}
+            />
           </TabPanel>
           <TabPanel value="mitigation" sx={{ p: "24px 0 0" }}>
-            <MitigationSection mitigationValues={mitigationValues} setMitigationValues={setMitigationValues} migitateErrors={migitateErrors} />
+            <MitigationSection
+              mitigationValues={mitigationValues}
+              setMitigationValues={setMitigationValues}
+              migitateErrors={migitateErrors}
+            />
           </TabPanel>
         </Suspense>
-        <Box sx={{ display: 'flex'}}>
+        <Box sx={{ display: "flex" }}>
           <Button
-            type="submit" 
-            onClick={riskFormSubmitHandler}           
+            type="submit"
+            onClick={riskFormSubmitHandler}
             variant="contained"
             disableRipple={
               theme.components?.MuiButton?.defaultProps?.disableRipple

@@ -24,7 +24,7 @@ import styles from "../styles.module.css";
 const Select = lazy(() => import("../../Inputs/Select"));
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
-const FileUpload = lazy(() => import("../../Modals/FileUpload"));
+const FileUploadModal = lazy(() => import("../../Modals/FileUpload"));
 const RiskLevel = lazy(() => import("../../RiskLevel"));
 const Alert = lazy(() => import("../../Alert"));
 
@@ -83,7 +83,7 @@ export enum MitigationStatus {
  * @requires Select
  * @requires Field
  * @requires DatePicker
- * @requires FileUpload
+ * @requires FileUploadModal
  * @requires Divider
  * @requires Typography
  * @requires RiskLevel
@@ -99,12 +99,13 @@ const MitigationSection: FC<MitigationSectionProps> = ({
 }) => {
   const theme = useTheme();
   // const [values, setValues] = useState<MitigationFormValues>(initialState);
-  const [errors, setErrors] = useState<MitigationFormErrors>({});
+  const [_, setErrors] = useState<MitigationFormErrors>({});
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
     body: string;
   } | null>(null);
+  const [fileUploadOpen, setFileUploadOpen] = useState(false);
 
   const handleOnSelectChange = useCallback(
     (prop: keyof MitigationFormValues) =>
@@ -183,6 +184,10 @@ const MitigationSection: FC<MitigationSectionProps> = ({
     ],
     []
   );
+
+  const handleFileUploadClose = useCallback(() => {
+    setFileUploadOpen(false);
+  }, []);
 
   return (
     <Stack>
@@ -280,7 +285,11 @@ const MitigationSection: FC<MitigationSectionProps> = ({
               </Stack>
             </Suspense>
             <Suspense fallback={<div>Loading...</div>}>
-              <FileUpload onClose={() => {}} uploadProps={{}} open={false} />
+              <FileUploadModal
+                open={fileUploadOpen}
+                onClose={handleFileUploadClose}
+                uploadProps={{ open: false }}
+              />
             </Suspense>
           </Stack>
         </Stack>

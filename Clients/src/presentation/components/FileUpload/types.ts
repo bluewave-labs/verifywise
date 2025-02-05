@@ -8,5 +8,5 @@ export interface FileUploadProps {
   allowedFileTypes?: string[];
   uploadEndpoint?: string;
   onHeightChange?: (newHeight: number) => void;
-  assessmentId: number;
+  assessmentId?: number;
 }

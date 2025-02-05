@@ -128,9 +128,12 @@ const FileTable: React.FC<{
     [cols, handleSort, sortField, sortDirection]
   );
 
+  const [fileData, setFileData] = useState([]);
+
   return (
     <BasicTable
       data={{ cols: sortedCols, rows }}
+      bodyData={fileData}
       paginated={files.length > 0}
       table="fileManager"
       setSelectedRow={() => {}}

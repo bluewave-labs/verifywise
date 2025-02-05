@@ -1,4 +1,4 @@
-import { Stack, Typography, Box, useTheme } from "@mui/material";
+import { Stack, Typography, Box } from "@mui/material";
 import { RiskData } from "../../../mocks/projects/project-overview.data";
 import {
   FC,
@@ -141,7 +141,6 @@ const RisksView: FC<RisksViewProps> = memo(
 
     const [selectedRow, setSelectedRow] = useState<ProjectRisk>();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const theme = useTheme();
     const [riskData, setRiskData] = useState<ProjectRisk[] | VendorRisk[]>([]);
 
     const [alert, setAlert] = useState<{

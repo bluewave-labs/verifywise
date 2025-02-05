@@ -40,12 +40,14 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
   };
 
   return (
-    <Modal open={isOpen}
-    onClose={(_event, reason) => {
-      if (reason !== 'backdropClick') {
+    <Modal
+      open={isOpen}
+      onClose={(_event, reason) => {
+        if (reason !== "backdropClick") {
           setIsOpen(false);
-      }
-    }}>
+        }
+      }}
+    >
       <Stack
         gap={theme.spacing(2)}
         color={theme.palette.text.secondary}
@@ -98,6 +100,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
             { _id: "editor", name: "Editor" },
           ]}
           sx={{ mt: theme.spacing(2) }}
+          placeholder="Please select a role"
         />
         <Stack
           direction="row"

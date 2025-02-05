@@ -169,6 +169,21 @@ const FileManager: React.FC = (): JSX.Element => {
   useEffect(() => {
     setRunFileTour(true);
 
+//     const mockFile: {
+//       id: "1";
+//       name: "test-file.pdf";
+//       type: "pdf";
+//       uploadDate: string;
+//       uploader: "John Doe";
+//     } = {
+//       id: "1",
+//       name: "test-file.pdf",
+//       type: "pdf",
+//       uploadDate: new Date().toLocaleDateString(),
+//       uploader: "John Doe",
+//     };
+// setFiles([mockFile]);
+// setLoading(false);
     const fetchFileById = async (fileId:string) => {
       try {
         const response = await axios.get(`https://localhost:3000/files/${fileId}`);

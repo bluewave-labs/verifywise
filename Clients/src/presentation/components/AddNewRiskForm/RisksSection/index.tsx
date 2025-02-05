@@ -19,6 +19,7 @@ import Alert from "../../Alert";
 import React from "react";
 import { RiskFormValues, RiskFormErrors } from "../interface";
 import styles from "../styles.module.css";
+import useUsers from "../../../../application/hooks/useUsers";
 
 const RiskLevel = React.lazy(() => import("../../RiskLevel"));
 
@@ -70,6 +71,7 @@ const RiskSection: FC<RiskSectionProps> = ({
     title?: string;
     body: string;
   } | null>(null);
+  const {users, loading, error } = useUsers();
 
   const handleOnSelectChange = useCallback(
     (prop: keyof RiskFormValues) =>
@@ -139,11 +141,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                 placeholder="Select owner"
                 value={riskValues.actionOwner}
                 onChange={handleOnSelectChange("actionOwner")}
-                items={[
-                  { _id: 1, name: "Owner 1" },
-                  { _id: 2, name: "Owner 2" },
-                  { _id: 3, name: "Owner 3" },
-                ]}
+                items={users?.map((user) => ({ _id: user.id, name: user.name })) || []}
                 isRequired
                 error={riskErrors.actionOwner}
                 sx={{

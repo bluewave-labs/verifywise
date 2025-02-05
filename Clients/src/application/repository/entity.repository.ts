@@ -202,3 +202,35 @@ export async function postAutoDrivers(authToken = getAuthToken()): Promise<any> 
     throw error;
   }
 }
+
+export async function resetPassword({
+  routeUrl,
+  body,
+  authToken = getAuthToken(),
+}: RequestParams): Promise<any> {
+  const response = await apiServices.post(routeUrl, body, {
+    headers: { Authorization: `Bearer ${authToken}` },
+  });
+  return response;
+}
+
+/**
+ * Fetches all users from the database.
+ * 
+ * @param {RequestParams} params - The parameters for the request.
+ * @returns {Promise<any>} A promise that resolves to the list of users.
+ * @throws Will throw an error if the request fails.
+ */
+export async function getAllUsers({
+  authToken = getAuthToken(),
+}: RequestParams): Promise<any> {
+  try {
+    const response = await apiServices.get("/users", {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error getting all users:", error);
+    throw error;
+  }
+}

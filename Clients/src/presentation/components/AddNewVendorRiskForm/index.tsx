@@ -8,6 +8,7 @@ import { checkStringValidation } from "../../../application/validations/stringVa
 import Select from "../Inputs/Select";
 import { apiServices } from "../../../infrastructure/api/networkServices";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import useUsers from "../../../application/hooks/useUsers";
 
 interface RiskSectionProps {
   closePopup: () => void;
@@ -88,7 +89,13 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, pop
   const { currentProjectId, inputValues } = useContext(VerifyWiseContext);
 
   const [values, setValues] = useState<FormValues>(initialState);
-  const [errors, setErrors] = useState<FormErrors>({});  
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [alert, setAlert] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    title?: string;
+    body: string;
+  } | null>(null);
+  const { users, loading, error } = useUsers();
 
   const handleDateChange = (newDate: Dayjs | null) => {
     if(newDate?.isValid()){
@@ -246,11 +253,7 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, pop
             placeholder="Select owner"
             value={values.actionOwner}
             onChange={handleOnSelectChange("actionOwner")}
-            items={[
-              { _id: 1, name: "Some value 1" },
-              { _id: 2, name: "Some value 2" },
-              { _id: 3, name: "Some value 3" },
-            ]}
+            items={users.map((user) => ({ _id: user.id, name: user.name }))}
             sx={{
               width: "350px",
               backgroundColor: theme.palette.background.main,

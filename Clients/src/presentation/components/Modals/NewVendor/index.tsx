@@ -38,6 +38,7 @@ import {
 import Alert from "../../Alert";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
+import useUsers from "../../../../application/hooks/useUsers";
 
 export interface VendorDetails {
     id?: number;
@@ -100,7 +101,7 @@ const initialState = {
         impactDescription: "",
         impact: 0,
         probability: 0,
-        actionOwner: 0,
+        actionOwner: "0",
         riskSeverity: 0,
         likelihood: 0,
         riskLevel: 0,
@@ -117,11 +118,11 @@ interface AddNewVendorProps {
     onVendorChange?: () => void;
 }
 
-const ASSIGNEE_OPTIONS = [
-    { _id: 1, name: "Assignee 1" },
-    { _id: 2, name: "Assignee 2" },
-    { _id: 3, name: "Assignee 3" },
-]
+// const ASSIGNEE_OPTIONS = [
+//     { _id: 1, name: "Assignee 1" },
+//     { _id: 2, name: "Assignee 2" },
+//     { _id: 3, name: "Assignee 3" },
+// ]
 
 const REVIEW_STATUS_OPTIONS = [
     { _id: "active", name: "Active" },
@@ -149,12 +150,6 @@ const LIKELIHOOD_OPTIONS = [
     { _id: 3, name: "Possible" },
     { _id: 4, name: "Likely" },
     { _id: 5, name: "Almost certain" },
-]
-
-const ACTION_OWNER_OPTIONS = [
-    { _id: 1, name: "John McAllen" },
-    { _id: 2, name: "Jessica Parker" },
-    { _id: 3, name: "Michael Johnson" },
 ]
 
 const IMPACT_OPTIONS = [
@@ -204,7 +199,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             impactDescription: "",
             impact: 0,
             probability: 0,
-            actionOwner: 0,
+            actionOwner: "",
             riskSeverity: 0,
             likelihood: 0,
             riskLevel: 0,
@@ -223,6 +218,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     >([]);
     const [projectsLoaded, setProjectsLoaded] = useState(false); // Track if projects are loaded
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const {users, loading, error } = useUsers();
 
     const fetchProjects = async () => {
         try {
@@ -267,7 +263,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                     reviewer: existingVendor.reviewer,
                     reviewResult: existingVendor.review_result,
                     riskStatus: String(RISK_LEVEL_OPTIONS.find(s => s.name === existingVendor.risk_status)?._id) || ""  ,
-                    assignee: String(ASSIGNEE_OPTIONS.find(s => s.name === existingVendor.assignee)?._id) || "0",
+                    assignee: String(users?.find(s => s.name === existingVendor.assignee)?.id) || "0",
                     reviewDate: existingVendor.review_date,
                 },
             }));
@@ -364,7 +360,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         const _vendorDetails = {
             projectId: values.vendorDetails.projectId,
             vendorName: values.vendorDetails.vendorName,
-            assignee: ASSIGNEE_OPTIONS.find(a => a._id === Number(values.vendorDetails.assignee))?.name || "",
+            assignee: users?.find(a => a.id === values.vendorDetails.assignee)?.name,
             vendorProvides: values.vendorDetails.vendorProvides,
             website: values.vendorDetails.website,
             vendorContact_person: values.vendorDetails.vendorContactPerson,
@@ -377,7 +373,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             impactDescription: values.risks.impactDescription,
             impact: Number(values.risks.impact), 
             probability: Number(values.risks.probability), 
-            actionOwner: ACTION_OWNER_OPTIONS.find(a => a._id === Number(values.risks.actionOwner))?.name || "",
+            actionOwner: users.find(a => a.id === values.risks.actionOwner)?.name || "",
             actionPlan: values.risks.actionPlan,
             riskSeverity: Number(values.risks.riskSeverity), 
             riskLevel: RISK_LEVEL_OPTIONS.find(r => r._id === values.risks.riskLevel)?.name || "",
@@ -602,7 +598,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                     }}
                 />
                 <Select // assignee (not in the server model!)
-                    items={ASSIGNEE_OPTIONS}
+                    items={users?.map(user => ({
+                        _id: user.id,
+                        name: `${user.name} ${user.surname}`
+                    })) || []}
                     label="Assignee"
                     placeholder="Select person"
                     isHidden={false}
@@ -713,7 +712,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                     />
 
                     <Select // actionOwner
-                        items={ACTION_OWNER_OPTIONS}
+                        items={users?.map((user) => ({
+                            _id: String(user.id),
+                            name: `${user.name} ${user.surname}`
+                        })) || []}
                         label="Action owner"
                         placeholder="Select owner"
                         isHidden={false}

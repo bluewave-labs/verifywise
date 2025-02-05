@@ -166,10 +166,31 @@ const RisksView: FC<RisksViewProps> = memo(
      */
     const handleClosePopup = () => {
       setAnchorEl(null); // Close the popup
-      setSelectedRow(undefined); // Reset selected row to undefined
+
+      setSelectedRow({});
+    }; 
+    
+    const handleSuccess = () => {
+      console.log('create vendor is success!')
+      handleAlert({
+        variant: "success",
+        body: title + " risk created successfully",
+      });
+
+      fetchRiskData();        
     };
 
-    const fetch = useCallback(async () => {
+    const handleUpdate = () => {
+      console.log('update vendor is success!')
+      handleAlert({
+        variant: "success",
+        body: title + " risk updated successfully",
+      });
+
+      fetchRiskData();
+    };
+
+    const fetchRiskData = useCallback(async () => {
       try {
         const url =
           title === "Project"
@@ -183,10 +204,10 @@ const RisksView: FC<RisksViewProps> = memo(
       }
     }, []);
 
-    useEffect(() => {
-      console.log("***", title);
-      fetch();
-    }, [title]);
+    useEffect(()=> {
+      console.log("***", title)
+      fetchRiskData();
+    }, [title])
 
     /**
      * Renders the "Add New Risk" popup component for project risks
@@ -224,25 +245,15 @@ const RisksView: FC<RisksViewProps> = memo(
         setAnchor(anchor ? null : event.currentTarget);
       };
 
-      const handleSuccess = () => {
-        console.log("create vendor is success!");
-        handleAlert({
-          variant: "success",
-          body: title + " risk created successfully",
-        });
-
-        fetch();
-        // setAnchor(null); // Close the popup
-      };
-
       return (
         <Popup
           popupId="add-new-vendor-risk-popup"
           popupContent={
-            <AddNewVendorRiskForm
-              closePopup={() => setAnchor(null)}
+            <AddNewVendorRiskForm 
+              closePopup={() => setAnchor(null)} 
               onSuccess={handleSuccess}
-            />
+              popupStatus="new"
+              />
           }
           openPopupButtonName="Add new risk"
           popupTitle="Add a new vendor risk"
@@ -257,7 +268,7 @@ const RisksView: FC<RisksViewProps> = memo(
       <Stack sx={{ maxWidth: 1220 }}>
         {alert && (
           <Suspense fallback={<div>Loading...</div>}>
-            <Box sx={{ paddingTop: theme.spacing(2) }}>
+            <Box>
               <Alert
                 variant={alert.variant}
                 title={alert.title}
@@ -287,7 +298,8 @@ const RisksView: FC<RisksViewProps> = memo(
             <AddNewVendorRiskPopupRender />
           )}
         </Stack>
-        {selectedRow && anchorEl && (
+
+        {Object.keys(selectedRow).length > 0 && anchorEl && title === 'Project' && (
           <Popup
             popupId="edit-new-risk-popup"
             popupContent={
@@ -329,7 +341,27 @@ const RisksView: FC<RisksViewProps> = memo(
             handleOpenOrClose={handleClosePopup}
             anchor={anchorEl}
           />
-        )}
+        )
+        }
+
+        {Object.keys(selectedRow).length > 0 && anchorEl && title === 'Vendor' && (
+          <Popup
+            popupId="edit-vendor-risk-popup"
+            popupContent={
+              <AddNewVendorRiskForm
+                closePopup={() => setAnchorEl(null)}
+                onSuccess={handleUpdate}
+                popupStatus="edit"
+              />
+            }
+            openPopupButtonName="Edit risk"
+            popupTitle="Edit vendor risk"
+            handleOpenOrClose={handleClosePopup}
+            anchor={anchorEl}
+          />
+        )
+        }
+        
         {/* map the data */}
         <BasicTable
           data={tableData}

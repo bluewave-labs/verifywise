@@ -169,24 +169,27 @@ const FileManager: React.FC = (): JSX.Element => {
   useEffect(() => {
     setRunFileTour(true);
 
-    const fetchFiles = async () => {
+    const fetchFileById = async (fileId:string) => {
       try {
-        const response = await axios.get("https://localhost:3000/api/assessments/files");
-        const filesData: File[] = response.data.map((file:any) =>({
+        const response = await axios.get(`https://localhost:3000/files/${fileId}`);
+        const file = response.data
+        
+       const fileData: File ={
           id: file.id,
-          name: file.filename,
+          name: file.name,
           type: file.type || "N/A",
           uploadDate: new Date(file.uploadDate).toLocaleDateString(),
           uploader: file.uploader || "N/A",
-        }));
-        setFiles(filesData);
-      } catch (error) {
+        }
+        setFiles([fileData]);
+       }
+       catch (error) {
         console.error("Error fetching files", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchFiles();
+    fetchFileById("1");
   }, []);
 
   /**

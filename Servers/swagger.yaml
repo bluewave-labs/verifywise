@@ -3733,13 +3733,16 @@ paths:
               properties:
                 name:
                   type: string
-                  example: "Alice Smith"
+                  example: "Alice"
+                surname:
+                  type: string
+                  example: "Smith"
                 email:
                   type: string
                   example: "alice.smith@example.com"
-                password_hash:
+                password:
                   type: string
-                  example: "$2b$10$c7Mtd3kRpMjr6VexlxuAleT8Sy3SwPcT.YLCazH5QWBgnATDo5N6O"
+                  example: "Alice@123"
                 role:
                   type: integer
                   example: 1
@@ -4657,7 +4660,10 @@ components:
           example: 1
         name:
           type: string
-          example: "Alice Smith"
+          example: "Alice"
+        surname:
+          type: string
+          example: "Smith"
         email:
           type: string
           example: "alice.smith@example.com"

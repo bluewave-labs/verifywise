@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useContext } from "react";
 import {
   Typography,
   useTheme,
@@ -23,6 +23,7 @@ import { apiServices } from "../../../../infrastructure/api/networkServices";
 import Alert from "../../../components/Alert";
 import FileUploadComponent from "../../../components/FileUpload";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 interface AssessmentValue {  
   topic: string;
@@ -47,6 +48,7 @@ interface AssessmentValue {
 const AllAssessment = () => {
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState<number>(0);
+  const { currentProjectId } = useContext(VerifyWiseContext);
 
   const [assessmentsValues, setAssessmentsValue] = useState<
     Record<number, AssessmentValue>
@@ -100,9 +102,8 @@ const AllAssessment = () => {
     console.log(assessmentToSave);
 
     const formData = new FormData();
-
-    // formData.append("assessmentId", String(activeAssessmentId));
-    formData.append("assessmentId", "2"); // static projectId    
+    
+    formData.append("assessmentId", String(currentProjectId)); // set projectId selected from sidebar
     formData.append("topic", assessmentToSave.topic);
     formData.append("subtopic", JSON.stringify(assessmentToSave.subtopic)); 
 

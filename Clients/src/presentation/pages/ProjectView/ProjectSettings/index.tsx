@@ -20,7 +20,6 @@ import { deleteEntityById, getAllEntities, updateEntityById } from "../../../../
 import { logEngine } from "../../../../application/tools/log.engine";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
-import { User } from "../../../components/Inputs/Dropdowns";
 import { stringToArray } from "../../../../application/tools/stringUtil";
 
 interface ProjectSettingsProps {
@@ -96,7 +95,6 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
     const { project } = useProjectData({ projectId });
     const navigate = useNavigate();
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
     const [values, setValues] = useState<FormValues>(initialState);
     const [errors, setErrors] = useState<FormErrors>({});
     const [alert, setAlert] = useState<{
@@ -115,6 +113,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
     }, [project]);
 
     const [users, setUsers] = useState<[]>([]);
+    const [owners, setOwner] = useState<{ _id: number, name: string }[]>([]);
 
     useEffect(() => {
       const fetchUsers = async () => {
@@ -124,6 +123,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
           return item;
         });
         setUsers(users);
+        setOwner(users);
       };
       fetchUsers();
     }, []);
@@ -391,14 +391,9 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
           <Select
             id="owner"
             label="Owner"
-            placeholder="Add owner"
             value={values.owner}
             onChange={handleOnSelectChange("owner")}
-            items={[
-              { _id: 1, name: "Some value 1" },
-              { _id: 2, name: "Some value 2" },
-              { _id: 3, name: "Some value 3" },
-            ]}
+            items={owners}
             sx={{ width: 357, backgroundColor: theme.palette.background.main }}
             error={errors.owner}
             isRequired

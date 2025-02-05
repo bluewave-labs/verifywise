@@ -117,16 +117,15 @@ export const getUserByIdQuery = async (id: number): Promise<User> => {
 export const createNewUserQuery = async (
   user: Omit<User, "id">
 ): Promise<User> => {
-  const { name, surname, email, password_hash } = user;
-  const role = 1;
+  const { name, surname, email, password_hash, role } = user;
   const created_at = new Date();
   const last_login = new Date();
 
   try {
     const result = await pool.query(
-      `INSERT INTO users (name, email, password_hash, role, created_at, last_login)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [name, email, password_hash, role, created_at, last_login]
+      `INSERT INTO users (name, surname, email, password_hash, role, created_at, last_login)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [name, surname, email, password_hash, role, created_at, last_login]
     );
 
     return result.rows[0];

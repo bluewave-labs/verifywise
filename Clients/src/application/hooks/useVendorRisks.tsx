@@ -14,75 +14,80 @@ import { getEntityById } from "../repository/entity.repository";
 import { convertToCamelCaseRiskKey } from "../tools/stringUtil";
 
 export interface VendorRisk {
-    id: number;
-    project_id: number;
-    vendor_name: string;
-    risk_name: string;
-    owner: string;
-    risk_level: string;
-    review_date: string;
+  id: number;
+  project_id: number;
+  vendor_name: string;
+  risk_name: string;
+  owner: string;
+  risk_level: string;
+  review_date: string;
 }
-
 
 const useVendorRisks = ({ projectId }: { projectId?: string | null }) => {
-    const [vendorRisks, setVendorRisks] = useState<VendorRisk[]>([]);
-    const [loadingVendorRisks, setLoadingVendorRisks] = useState<boolean>(true);
-    const [error, setError] = useState<string | boolean>(false);
+  const [vendorRisks, setVendorRisks] = useState<VendorRisk[]>([]);
+  const [loadingVendorRisks, setLoadingVendorRisks] = useState<boolean>(true);
+  const [error, setError] = useState<string | boolean>(false);
 
-    useEffect(() => {
-        const controller = new AbortController();
-        const signal = controller.signal;
+  useEffect(() => {
+    const controller = new AbortController();
+    const signal = controller.signal;
 
-        const updateVendorRisks = async () => {
-            setLoadingVendorRisks(true);
-            try {
-                const response = await getEntityById({
-                    routeUrl: '/vendorRisks',
-                    signal,
-                })
-                if (response.data) {
-                    const filteredVendorRisks = projectId ? response.data.filter((risk: VendorRisk) => risk.project_id === Number(projectId)) : response.data
-                    setVendorRisks(filteredVendorRisks)
-                }
-            } catch (err) {
-                if (err instanceof Error) {
-                    setError(`Request failed: ${err.message}`)
-                } else {
-                    setError(`Request failed`)
-                }
-            } finally {
-                setLoadingVendorRisks(false)
-            }
+    const updateVendorRisks = async () => {
+      setLoadingVendorRisks(true);
+      try {
+        const response = await getEntityById({
+          routeUrl: `/vendorRisks/by-projid/${projectId}`,
+          signal,
+        });
+        if (response.data) {
+          const filteredVendorRisks = projectId
+            ? response.data.filter(
+                (risk: VendorRisk) => risk.project_id === Number(projectId)
+              )
+            : response.data;
+          setVendorRisks(filteredVendorRisks);
         }
-
-        updateVendorRisks();
-
-        return () => {
-            controller.abort();
-        };
-    }, [projectId])
-
-
-    const vendorRisksSummary = vendorRisks.reduce((acc, risk) => {
-        const _risk = convertToCamelCaseRiskKey(risk.risk_level);
-        const key = `${_risk.replace(/risks?$/i, '')}Risks` as keyof typeof acc;
-        acc[key] = acc[key] + 1;
-
-        return acc;
-    }, {
-        veryHighRisks: 0,
-        highRisks: 0,
-        mediumRisks: 0,
-        lowRisks: 0,
-        veryLowRisks: 0,
-    });
-
-    return {
-        loadingVendorRisks,
-        error,
-        vendorRisks,
-        vendorRisksSummary
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(`Request failed: ${err.message}`);
+        } else {
+          setError(`Request failed`);
+        }
+      } finally {
+        setLoadingVendorRisks(false);
+      }
     };
-}
+
+    updateVendorRisks();
+
+    return () => {
+      controller.abort();
+    };
+  }, [projectId]);
+
+  const vendorRisksSummary = vendorRisks.reduce(
+    (acc, risk) => {
+      const _risk = convertToCamelCaseRiskKey(risk.risk_level);
+      const key = `${_risk.replace(/risks?$/i, "")}Risks` as keyof typeof acc;
+      acc[key] = acc[key] + 1;
+
+      return acc;
+    },
+    {
+      veryHighRisks: 0,
+      highRisks: 0,
+      mediumRisks: 0,
+      lowRisks: 0,
+      veryLowRisks: 0,
+    }
+  );
+
+  return {
+    loadingVendorRisks,
+    error,
+    vendorRisks,
+    vendorRisksSummary,
+  };
+};
 
 export default useVendorRisks;

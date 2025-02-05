@@ -32,7 +32,7 @@ interface SelectProps {
   placeholder?: string;
   isHidden?: boolean;
   value: string | number;
-  items: { _id: string | number; name: string; email?: string }[];
+  items: { _id: string | number; name: string; email?: string; surname?: string }[];
   isRequired?: boolean;
   error?: string;
   onChange: (
@@ -62,6 +62,14 @@ const Select: React.FC<SelectProps> = ({
     color: theme.palette.text.tertiary,
     borderRadius: theme.shape.borderRadius,
     margin: theme.spacing(2),
+  };
+
+  const renderValue = (value: unknown) => {
+    const selected = value as (string | number)[];
+    const selectedItem = items.find(item => 
+      (getOptionValue ? getOptionValue(item) : item._id).toString() === selected.toString()
+    );
+    return selectedItem ? selectedItem.name + (selectedItem.surname ? " " + selectedItem.surname : "") : placeholder;
   };
 
   return (
@@ -105,6 +113,7 @@ const Select: React.FC<SelectProps> = ({
         onChange={onChange}
         displayEmpty
         inputProps={{ id: id }}
+        renderValue={renderValue}
         IconComponent={KeyboardArrowDownIcon}
         MenuProps={{
           disableScrollLock: true,
@@ -148,21 +157,8 @@ const Select: React.FC<SelectProps> = ({
           ...sx,
         }}
       >
-        {placeholder && (
-          <MenuItem
-            className="select-placeholder"
-            value="0"
-            sx={{
-              display: isHidden ? "none" : "flex",
-              visibility: isHidden ? "none" : "visible",
-              ...itemStyles,
-            }}
-          >
-            {placeholder}
-          </MenuItem>
-        )}
         {items.map(
-          (item: { _id: string | number; name: string; email?: string }) => (
+          (item: { _id: string | number; name: string; email?: string; surname?: string }) => (
             <MenuItem
               value={getOptionValue ? getOptionValue(item) : item._id}
               key={`${id}-${item._id}`}
@@ -173,10 +169,10 @@ const Select: React.FC<SelectProps> = ({
                 flexDirection: "row",
               }}
             >
-              {item.name}
+              {`${item.name} ${item.surname ? item.surname : ""}`}
               {item.email && (
                 <span style={{ fontSize: 11, color: "#9d9d9d" }}>
-                  email@email.com
+                  {item.email}
                 </span>
               )}
             </MenuItem>

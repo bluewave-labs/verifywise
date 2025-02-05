@@ -43,7 +43,7 @@ const RegisterAdmin: React.FC = () => {
     variant: "success" | "info" | "warning" | "error";
     title?: string;
     body: string;
-} | null>(null);
+  } | null>(null);
 
   // Handle input field changes
   const handleChange =
@@ -79,9 +79,14 @@ const RegisterAdmin: React.FC = () => {
           setValues(initialState);
           setErrors({});
           if (response.status === 201) {
-            logEngine({ type: "info",message: "Account created successfully.",user,});
+            logEngine({
+              type: "info",
+              message: "Account created successfully.",
+              user,
+            });
             setTimeout(() => {
               setIsSubmitting(false);
+              window.location.reload();
               navigate("/login");
             }, 3000);
           } else if (response.status === 400) {
@@ -91,7 +96,10 @@ const RegisterAdmin: React.FC = () => {
               user,
             });
             setIsSubmitting(false);
-            setAlert({variant: "error", body: "Bad request. Please check your input.",});
+            setAlert({
+              variant: "error",
+              body: "Bad request. Please check your input.",
+            });
             setTimeout(() => {
               setAlert(null);
             }, 3000);
@@ -102,7 +110,7 @@ const RegisterAdmin: React.FC = () => {
               user,
             });
             setIsSubmitting(false);
-            setAlert({variant: "error", body: "Account already exists.",});
+            setAlert({ variant: "error", body: "Account already exists." });
             setTimeout(() => {
               setAlert(null);
             }, 3000);
@@ -113,14 +121,24 @@ const RegisterAdmin: React.FC = () => {
               user,
             });
             setIsSubmitting(false);
-            setAlert({variant: "error", body: "Internal server error. Please try again later.",});
+            setAlert({
+              variant: "error",
+              body: "Internal server error. Please try again later.",
+            });
             setTimeout(() => {
               setAlert(null);
             }, 3000);
           } else {
-            logEngine({type: "error",message: "Unexpected response. Please try again.", user,});
+            logEngine({
+              type: "error",
+              message: "Unexpected response. Please try again.",
+              user,
+            });
             setIsSubmitting(false);
-            setAlert({variant: "error", body: "Unexpected response. Please try again.",});
+            setAlert({
+              variant: "error",
+              body: "Unexpected response. Please try again.",
+            });
             setTimeout(() => {
               setAlert(null);
             }, 3000);
@@ -153,18 +171,25 @@ const RegisterAdmin: React.FC = () => {
         marginBottom: theme.spacing(20),
       }}
     >
-     {alert && (
-                <Suspense fallback={<div>Loading...</div>}>
-                    <Alert
-                        variant={alert.variant}
-                        title={alert.title}
-                        body={alert.body}
-                        isToast={true}
-                        onClick={() => setAlert(null)}
-                    />
-                </Suspense>
-            )}
-      {isSubmitting && <VWToast title="Processing your request. Please wait..." />}
+      {alert && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Alert
+            variant={alert.variant}
+            title={alert.title}
+            body={alert.body}
+            isToast={true}
+            onClick={() => {
+              setAlert(null);
+              console.log("Before /login");
+              navigate("/login");
+              console.log("After /login");
+            }}
+          />
+        </Suspense>
+      )}
+      {isSubmitting && (
+        <VWToast title="Processing your request. Please wait..." />
+      )}
       <Background
         style={{
           position: "absolute",
@@ -262,11 +287,11 @@ const RegisterAdmin: React.FC = () => {
                 text="Must contain one special character"
                 variant={passwordChecks.specialChar ? "success" : "info"}
               />
-               <Check
+              <Check
                 text="Must contain at least one uppercase letter"
                 variant={passwordChecks.uppercase ? "success" : "info"}
               />
-                <Check
+              <Check
                 text="Must contain atleast one number"
                 variant={passwordChecks.number ? "success" : "info"}
               />

@@ -32,7 +32,12 @@ interface SelectProps {
   placeholder?: string;
   isHidden?: boolean;
   value: string | number;
-  items: { _id: string | number; name: string; email?: string; surname?: string }[];
+  items: {
+    _id: string | number;
+    name: string;
+    email?: string;
+    surname?: string;
+  }[];
   isRequired?: boolean;
   error?: string;
   onChange: (
@@ -47,7 +52,6 @@ const Select: React.FC<SelectProps> = ({
   id,
   label,
   placeholder,
-  isHidden,
   value,
   items,
   isRequired,
@@ -66,10 +70,13 @@ const Select: React.FC<SelectProps> = ({
 
   const renderValue = (value: unknown) => {
     const selected = value as (string | number)[];
-    const selectedItem = items.find(item => 
-      (getOptionValue ? getOptionValue(item) : item._id).toString() === selected.toString()
+    const selectedItem = items.find(
+      (item) => (getOptionValue ? getOptionValue(item) : item._id) === selected
     );
-    return selectedItem ? selectedItem.name + (selectedItem.surname ? " " + selectedItem.surname : "") : placeholder;
+    return selectedItem
+      ? selectedItem.name +
+          (selectedItem.surname ? " " + selectedItem.surname : "")
+      : placeholder;
   };
 
   return (
@@ -101,7 +108,11 @@ const Select: React.FC<SelectProps> = ({
         >
           {label}
           {isRequired && (
-            <Typography component="span" ml={theme.spacing(1)} color={theme.palette.error.text}>
+            <Typography
+              component="span"
+              ml={theme.spacing(1)}
+              color={theme.palette.error.text}
+            >
               *
             </Typography>
           )}
@@ -158,7 +169,12 @@ const Select: React.FC<SelectProps> = ({
         }}
       >
         {items.map(
-          (item: { _id: string | number; name: string; email?: string; surname?: string }) => (
+          (item: {
+            _id: string | number;
+            name: string;
+            email?: string;
+            surname?: string;
+          }) => (
             <MenuItem
               value={getOptionValue ? getOptionValue(item) : item._id}
               key={`${id}-${item._id}`}

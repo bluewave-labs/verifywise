@@ -139,10 +139,10 @@ const RisksView: FC<RisksViewProps> = memo(
 
     console.log("tableData", tableData);
 
-    const [selectedRow, setSelectedRow] = useState({});
+    const [selectedRow, setSelectedRow] = useState<ProjectRisk>();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const theme = useTheme();
-    const [riskData, setRiskData] = useState([]);
+    const [riskData, setRiskData] = useState<ProjectRisk[] | VendorRisk[]>([]);
 
     const [alert, setAlert] = useState<{
       variant: "success" | "info" | "warning" | "error";
@@ -166,7 +166,7 @@ const RisksView: FC<RisksViewProps> = memo(
      */
     const handleClosePopup = () => {
       setAnchorEl(null); // Close the popup
-      setSelectedRow({});
+      setSelectedRow(undefined); // Reset selected row to undefined
     };
 
     const fetch = useCallback(async () => {
@@ -287,18 +287,45 @@ const RisksView: FC<RisksViewProps> = memo(
             <AddNewVendorRiskPopupRender />
           )}
         </Stack>
-        {Object.keys(selectedRow).length > 0 && anchorEl && (
+        {selectedRow && anchorEl && (
           <Popup
             popupId="edit-new-risk-popup"
             popupContent={
               <AddNewRiskForm
                 closePopup={() => setAnchorEl(null)}
                 popupStatus="edit"
+                initialRiskValues={{
+                  riskName: selectedRow.risk_name,
+                  actionOwner: selectedRow.risk_owner, // Assuming this maps correctly
+                  aiLifecyclePhase: selectedRow.ai_lifecycle_phase, // Adjust as necessary
+                  riskDescription: selectedRow.risk_description,
+                  riskCategory: selectedRow.risk_category, // Adjust as necessary
+                  potentialImpact: selectedRow.impact,
+                  assessmentMapping: selectedRow.assessment_mapping,
+                  controlsMapping: selectedRow.controls_mapping,
+                  likelihood: selectedRow.likelihood, // Adjust as necessary
+                  riskSeverity: selectedRow.risk_severity, // Adjust as necessary
+                  riskLevel: selectedRow.final_risk_level, // Adjust as necessary
+                  reviewNotes: selectedRow.review_notes,
+                }}
+                initialMitigationValues={{
+                  mitigationStatus: selectedRow.mitigation_status, // Adjust as necessary
+                  mitigationPlan: selectedRow.mitigation_plan,
+                  currentRiskLevel: selectedRow.current_risk_level, // Adjust as necessary
+                  implementationStrategy: selectedRow.implementation_strategy,
+                  deadline: selectedRow.deadline,
+                  doc: selectedRow.mitigation_evidence_document, // Adjust as necessary
+                  likelihood: selectedRow.likelihood_mitigation, // Adjust as necessary
+                  riskSeverity: selectedRow.risk_severity, // Adjust as necessary
+                  approver: selectedRow.risk_approval || 0, // Adjust as necessary
+                  approvalStatus: selectedRow.approval_status, // Adjust as necessary
+                  dateOfAssessment: selectedRow.date_of_assessment,
+                  recommendations: selectedRow.recommendations || "", // Adjust as necessary
+                }}
               />
             }
             openPopupButtonName="Edit risk"
             popupTitle="Edit project risk"
-            // popupSubtitle="Create a detailed breakdown of risks and their mitigation strategies to assist in documenting your risk management activities effectively."
             handleOpenOrClose={handleClosePopup}
             anchor={anchorEl}
           />
@@ -310,7 +337,7 @@ const RisksView: FC<RisksViewProps> = memo(
           table="risksTable"
           paginated
           label={`${title} risk`}
-          setSelectedRow={setSelectedRow}
+          setSelectedRow={(row) => setSelectedRow(row as ProjectRisk)}
           setAnchorEl={setAnchorEl}
         />
       </Stack>

@@ -15,7 +15,8 @@ export async function getAllProjectRisks(
   res: Response
 ): Promise<any> {
   try {
-    const projectRisks = await getAllProjectRisksQuery();
+    const projectId = parseInt(req.params.id);
+    const projectRisks = await getAllProjectRisksQuery(projectId);
 
     if (projectRisks) {
       return res.status(200).json(STATUS_CODE[200](projectRisks));
@@ -147,9 +148,7 @@ export async function deleteProjectRiskById(
   try {
     const projectRiskId = parseInt(req.params.id);
 
-    const deletedProjectRisk = await deleteProjectRiskByIdQuery(
-      projectRiskId
-    );
+    const deletedProjectRisk = await deleteProjectRiskByIdQuery(projectRiskId);
 
     if (deletedProjectRisk) {
       return res.status(200).json(STATUS_CODE[200](deletedProjectRisk));

@@ -12,7 +12,7 @@ import {
 import authenticateJWT from "../middleware/auth.middleware";
 
 // GET requests
-router.get("/", /*authenticateJWT,*/ getAllVendorRisks);
+router.get("/by-projid/:id", /*authenticateJWT,*/ getAllVendorRisks);
 router.get("/:id", /*authenticateJWT,*/ getVendorRiskById);
 
 // POST, PUT, DELETE requests

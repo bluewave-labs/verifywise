@@ -1,6 +1,6 @@
-import { Stack, Typography } from "@mui/material";
+import { Stack, Typography, Box, useTheme } from "@mui/material";
 import { RiskData } from "../../../mocks/projects/project-overview.data";
-import { FC, useState, useMemo, useCallback, memo } from "react";
+import { FC, useState, useMemo, useCallback, memo, lazy, Suspense, useEffect } from "react";
 import BasicTable from "../../../components/Table";
 import Risks from "../../../components/Risks";
 import AddNewRiskForm from "../../../components/AddNewRiskForm";
@@ -8,6 +8,9 @@ import Popup from "../../../components/Popup";
 import AddNewVendorRiskForm from "../../../components/AddNewVendorRiskForm";
 import { ProjectRisk } from "../../../../application/hooks/useProjectRisks";
 import { VendorRisk } from "../../../../application/hooks/useVendorRisks";
+import { getAllEntities } from "../../../../application/repository/entity.repository";
+
+const Alert = lazy(() => import("../../../components/Alert"));
 
 const projectRisksColNames = [
   {
@@ -47,6 +50,12 @@ interface RisksViewProps {
   risksSummary: RiskData;
   risksData: ProjectRisk[] | VendorRisk[];
   title: string;
+}
+
+interface AlertProps {
+  variant: "success" | "info" | "warning" | "error";
+  title?: string;
+  body: string;
 }
 
 const vendorRisksColNames = [
@@ -119,8 +128,29 @@ const RisksView: FC<RisksViewProps> = memo(
       [risksTableCols, risksTableRows]
     );
 
+    console.log("tableData", tableData)
+
     const [selectedRow, setSelectedRow] = useState({});
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const theme = useTheme();
+    const [riskData, setRiskData] = useState([]);
+
+    const [alert, setAlert] = useState<{
+      variant: "success" | "info" | "warning" | "error";
+      title?: string;
+      body: string;
+    } | null>(null);
+
+    const handleAlert = ({ variant, body, title }: AlertProps) => {
+      setAlert({
+        variant,
+        title,
+        body,
+      });
+      setTimeout(() => {
+        setAlert(null);
+      }, 2500);
+    };
 
     /**
      * Handles closing the risk edit popup
@@ -128,7 +158,23 @@ const RisksView: FC<RisksViewProps> = memo(
     const handleClosePopup = () => {
       setAnchorEl(null); // Close the popup
       setSelectedRow({});
-    };
+    };    
+
+    const fetch = useCallback(async () => {
+      try {
+        const url = (title === 'Project') ? "/projectRisks" : "/vendorRisks"; 
+        const response = await getAllEntities({ routeUrl: url });
+        console.log("response :::: > ", response);
+        setRiskData(response.data)
+      } catch (error) {
+        console.error("Error fetching vendor risks:", error);
+      }
+    }, [])
+
+    useEffect(()=> {
+      console.log("***", title)
+      fetch();
+    }, [title])
 
     /**
      * Renders the "Add New Risk" popup component for project risks
@@ -166,11 +212,22 @@ const RisksView: FC<RisksViewProps> = memo(
         setAnchor(anchor ? null : event.currentTarget);
       };
 
+      const handleSuccess = () => {
+        console.log('create vendor is success!')
+        handleAlert({
+          variant: "success",
+          body: title + " risk created successfully",
+        });
+
+        fetch();
+        // setAnchor(null); // Close the popup
+      };
+
       return (
         <Popup
           popupId="add-new-vendor-risk-popup"
           popupContent={
-            <AddNewVendorRiskForm closePopup={() => setAnchor(null)} />
+            <AddNewVendorRiskForm closePopup={() => setAnchor(null)} onSuccess={handleSuccess}/>
           }
           openPopupButtonName="Add new risk"
           popupTitle="Add a new vendor risk"
@@ -183,6 +240,19 @@ const RisksView: FC<RisksViewProps> = memo(
 
     return (
       <Stack sx={{ maxWidth: 1220 }}>
+        {alert && (
+          <Suspense fallback={<div>Loading...</div>}>
+            <Box sx={{ paddingTop: theme.spacing(2) }}>
+              <Alert
+                variant={alert.variant}
+                title={alert.title}
+                body={alert.body}
+                isToast={true}
+                onClick={() => setAlert(null)}
+              />
+            </Box>
+          </Suspense>
+        )}
         <Risks {...risksSummary} />
         <Stack
           sx={{ mt: "32px", mb: "28px" }}
@@ -218,8 +288,10 @@ const RisksView: FC<RisksViewProps> = memo(
             anchor={anchorEl}
           />
         )}
+        {/* map the data */}
         <BasicTable
           data={tableData}
+          bodyData={riskData}
           table="risksTable"
           paginated
           label={`${title} risk`}

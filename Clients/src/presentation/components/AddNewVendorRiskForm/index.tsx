@@ -1,15 +1,18 @@
 import { Button, SelectChangeEvent, Stack, useTheme } from "@mui/material";
 import dayjs, { Dayjs } from "dayjs";
-import { FC, useState } from "react";
+import { FC, useState, useContext } from "react";
 import Field from "../Inputs/Field";
 import DatePicker from "../Inputs/Datepicker";
 import selectValidation from "../../../application/validations/selectValidation";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
 import Alert from "../Alert";
 import Select from "../Inputs/Select";
+import { apiServices } from "../../../infrastructure/api/networkServices";
+import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 
 interface RiskSectionProps {
   closePopup: () => void;
+  onSuccess: () => void;
 }
 
 interface FormValues {
@@ -80,8 +83,10 @@ const initialState: FormValues = {
  * @function validateForm - Validates the form values and sets errors if any.
  * @function handleSubmit - Handles form submission, validates the form, and sends a request to the backend.
  */
-const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup }) => {
+const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess }) => {
   const theme = useTheme();
+  const { currentProjectId } = useContext(VerifyWiseContext);
+
   const [values, setValues] = useState<FormValues>(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
   const [alert, setAlert] = useState<{
@@ -151,7 +156,25 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup }) => {
     event.preventDefault();
     if (validateForm()) {
       //request to the backend
-      closePopup();
+      const formData = {
+        "project_id": currentProjectId,
+        "vendor_name": values.vendorName,
+        "risk_name": values.riskName,
+        "owner": values.actionOwner,
+        "risk_level": "High Risk", // Need to change the form field
+        "review_date": values.reviewDate
+      }
+
+      try {
+        const response = await apiServices.post("/vendorRisks", formData);
+        console.log(response)
+        if (response.status === 201) { 
+          closePopup();
+          onSuccess();
+        }
+      } catch (error) {
+        console.error("Error sending request", error);
+      }
     }
   };
 

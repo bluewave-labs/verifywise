@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 const initialState = {
 	isLoading: false,
-	authToken: "",
+	authToken: localStorage.getItem("authToken") || "",
 	user: "",
 	userExists: false,
 	success: null as boolean | null,
@@ -132,10 +132,12 @@ const authSlice = createSlice({
 			state.isLoading = false;
 			state.success = true;
 			state.message = "Logged out successfully";
+			localStorage.removeItem("authToken");
 		},
 		setAuthToken: (state, action: PayloadAction<string>) => {
 			debugger
 			state.authToken = action.payload;
+			localStorage.setItem("authToken", action.payload);
 		},
 		setUserExists: (state, action: PayloadAction<boolean>) => {
 			state.userExists = action.payload;

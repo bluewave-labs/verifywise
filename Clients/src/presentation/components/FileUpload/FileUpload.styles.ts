@@ -4,6 +4,8 @@ import { Dialog, DialogContent } from "@mui/material";
 export const StyledDialog = styled(Dialog, {
   shouldForwardProp: (prop) => prop !== "modalHeight",
 })<{ modalHeight?: number }>(({ modalHeight = 338 }) => ({
+  backdropFilter: "blur(8px)", // Glass effect
+  background: "rgba(0, 0, 0, 0.5)", // Slightly dark and blue with opacity
   ".MuiDialog-paper": {
     width: "384px",
     height: `${modalHeight}px`,
@@ -23,7 +25,7 @@ export const StyledDialogContent = styled(DialogContent)(() => ({
   justifyContent: "space-between",
   padding: "32px",
   overflow: "visible",
-  
+
   width: "100%",
   height: "100%",
 }));
@@ -59,7 +61,7 @@ export const DragDropArea = styled("div", {
     display: "none !important",
     //remove default uppy container while maintaining drag drop functionality
   },
-  
+
 }));
 
 export const Icon = styled("img")({
@@ -71,5 +73,5 @@ export const Icon = styled("img")({
 export const ButtonWrapper = styled("div")({
   display: "flex",
   justifyContent: "flex-end",
-  
+
 });

@@ -21,11 +21,13 @@ import { assessments } from "./assessments";
 import { priorities, PriorityLevel } from "./priorities";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import Alert from "../../../components/Alert";
-import FileUploadComponent from "../../../components/FileUpload";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import FileUploadModal from "../../../components/Modals/FileUpload";
+import { Project } from "../../../../application/hooks/useProjectData";
+import { FileProps } from "../../../components/FileUpload/types";
 
-interface AssessmentValue {  
+export interface AssessmentValue {
   topic: string;
   subtopic: {
     id: string;
@@ -42,13 +44,17 @@ interface AssessmentValue {
       // evidenceFiles?: string[];
     }[];
   }[];
-  file: Blob[];
+  file: FileProps[];
 }
 
 const AllAssessment = () => {
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState<number>(0);
-  const { currentProjectId } = useContext(VerifyWiseContext);
+  const { currentProjectId, dashboardValues } = useContext(VerifyWiseContext);
+  const { projects } = dashboardValues
+
+  const currentProject: Project | null = currentProjectId ? projects.find((project: Project) => project.id === Number(currentProjectId)) : null
+  const activeAssessmentId = currentProject?.assessment_id;
 
   const [assessmentsValues, setAssessmentsValue] = useState<
     Record<number, AssessmentValue>
@@ -79,8 +85,6 @@ const AllAssessment = () => {
     setFileUploadModalOpen(false);
   };
 
-  const activeAssessmentId = Topics[activeTab]?.id;
-
   const [alert, setAlert] = useState<{ show: boolean; message: string }>({
     show: false,
     message: "",
@@ -102,18 +106,18 @@ const AllAssessment = () => {
     console.log(assessmentToSave);
 
     const formData = new FormData();
-    
-    formData.append("assessmentId", String(currentProjectId)); // set projectId selected from sidebar
+
+    formData.append("assessmentId", String(activeAssessmentId));
     formData.append("topic", assessmentToSave.topic);
-    formData.append("subtopic", JSON.stringify(assessmentToSave.subtopic)); 
+    formData.append("subtopic", JSON.stringify(assessmentToSave.subtopic));
 
     if (assessmentToSave.file && assessmentToSave.file.length > 0) {
       assessmentToSave.file.forEach((file, index) => {
-        formData.append(`file[${index}]`, file);
+        formData.append(`file[${index}]`, file as any);
       });
     }else{
-      formData.append("file", new Blob([], { type: "application/octet-stream" }), "empty-file.txt");
-    }    
+     formData.append("file", new Blob(), "empty-file.txt");
+    }
 
     try {
       const response = await apiServices.post("/assessments/saveAnswers", formData, {
@@ -132,7 +136,7 @@ const AllAssessment = () => {
 
   const handleAssessmentChange = useCallback(
     (
-      // project related      
+      // project related
       // topic relateds
       topicid: number,
       topic: string,
@@ -320,7 +324,7 @@ const AllAssessment = () => {
               });
 
               handleAssessmentChange(
-                // 
+                //
                 // topic relateds
                 Topics[activeTab].id,
                 Topics[activeTab].title,
@@ -375,7 +379,7 @@ const AllAssessment = () => {
               sx={{
                 mt: 2,
                 borderRadius: 2,
-                width: 120,
+                width: 155,
                 height: 25,
                 fontSize: 11,
                 border: "1px solid #D0D5DD",
@@ -387,7 +391,7 @@ const AllAssessment = () => {
               }
               onClick={handleOpenFileUploadModal}
             >
-              Add evidence
+              Add/Remove evidence
             </Button>
             <Typography
               sx={{ fontSize: 11, color: "#344054", fontWeight: "300" }}
@@ -421,9 +425,6 @@ const AllAssessment = () => {
 
     setAllQuestionsToCheck(allQuestions);
   }, [assessments]);
-
-  // TODO: remove this after testing
-  // console.log("All Questions List:", allQuestionsToCheck); // Log the all questions list
 
   return (
     <Box sx={{ display: "flex", height: "100vh", px: "8px !important" }}>
@@ -473,7 +474,7 @@ const AllAssessment = () => {
               {renderQuestions(
                 `${Topics[activeTab].id}-${subtopic.id}`,
                 subtopic.title,
-                subtopic.questions
+                subtopic.questions,
               )}
             </Stack>
           ))}
@@ -509,20 +510,21 @@ const AllAssessment = () => {
           onClick={() => setAlert({ show: false, message: "" })}
         />
       )}
-      {/* FileUploadComponent*/}
-
-      <FileUploadComponent
-        open={fileUploadModalOpen}
-        onSuccess={() => {
-          console.log("File uploaded successfully");
-          handleCloseFileUploadModal();
-        }}
-        onError={(message) => console.log("Error uploading file: ", message)}
-        onStart={() => console.log("File upload started")}
-        onClose={handleCloseFileUploadModal}
-        allowedFileTypes={["application/pdf"]}
-        assessmentId={activeAssessmentId}
-      />
+       <FileUploadModal
+          uploadProps={{
+            open: fileUploadModalOpen,
+            onClose: handleCloseFileUploadModal,
+            onSuccess: () => {
+              console.log("File uploaded successfully");
+              handleCloseFileUploadModal();
+            },
+            allowedFileTypes: ["application/pdf"],
+            assessmentId: activeAssessmentId ?? 0,
+            topicId: activeTab,
+            setAssessmentsValue,
+            assessmentsValues
+          }}
+        />
       {isModalOpen && (
         <DualButtonModal
           title="Confirm Save"

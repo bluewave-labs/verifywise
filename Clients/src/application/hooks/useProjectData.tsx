@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { getEntityById } from "../repository/entity.repository";
 import { VerifyWiseContext } from "../contexts/VerifyWise.context";
 
-interface ProjectData {
+export interface Project {
   id: number;
   project_title: string;
   owner: string;
@@ -13,17 +13,18 @@ interface ProjectData {
   goal: string;
   last_updated: string;
   last_updated_by: string;
+  assessment_id: number;
 }
 interface UseProjectDataParams {
   projectId: string;
 }
 interface UseProjectDataResult {
-  project: ProjectData | null;
+  project: Project | null;
   projectOwner: string | null;
   error: string | null;
   isLoading: boolean;
   projectRisks: any; // Add projectRisks to the return type
-  setProject: (project: ProjectData | null) => void; // Add setProject to the return type
+  setProject: (project: Project | null) => void; // Add setProject to the return type
 }
 export interface User {
   id: string;
@@ -31,10 +32,8 @@ export interface User {
   surname: string;
 }
 
-const useProjectData = ({
-  projectId,
-}: UseProjectDataParams): UseProjectDataResult => {
-  const [project, setProject] = useState<ProjectData | null>(null);
+const useProjectData = ({ projectId }: UseProjectDataParams): UseProjectDataResult => {
+  const [project, setProject] = useState<Project | null>(null);
   const [projectOwner, setProjectOwner] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);

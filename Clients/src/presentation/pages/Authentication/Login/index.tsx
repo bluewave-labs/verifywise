@@ -30,7 +30,6 @@ const initialState: FormValues = {
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useContext(VerifyWiseContext);
   const dispatch = useDispatch();
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
@@ -73,16 +72,15 @@ const Login: React.FC = () => {
           const token = response.data.data.token;
 
           //handle remember me logic for 30 days
-        if (values.rememberMe){
-          const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
-          dispatch(setAuthToken(token)); // Dispatch the action to set the token in Redux state
-          dispatch(setExpiration(expirationDate))
-        } else{
-          dispatch(setAuthToken(token));
-          dispatch(setExpiration(null));
-        }
+          if (values.rememberMe){
+            const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
+            dispatch(setAuthToken(token)); // Dispatch the action to set the token in Redux state
+            dispatch(setExpiration(expirationDate))
+          } else{
+            dispatch(setAuthToken(token));
+            dispatch(setExpiration(null));
+          }
 
-        login(token);
           logEngine({
             type: "info",
             message: "Login successful.",

@@ -2,7 +2,7 @@ import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import { Box, Stack, Tab, useTheme, Typography, Button } from "@mui/material";
-import { FC, useState, useCallback, useMemo, lazy, Suspense } from "react";
+import { FC, useState, useCallback, useMemo, lazy, Suspense, useContext } from "react";
 import "./styles.module.css";
 import { Likelihood, Severity } from "../RiskLevel/constants";
 import {
@@ -15,6 +15,9 @@ import {
 import { checkStringValidation } from "../../../application/validations/stringValidation";
 import selectValidation from "../../../application/validations/selectValidation";
 
+import { apiServices } from "../../../infrastructure/api/networkServices";
+import { useSearchParams } from "react-router-dom";
+
 const RiskSection = lazy(() => import("./RisksSection"));
 const MitigationSection = lazy(() => import("./MitigationSection"));
 
@@ -23,6 +26,7 @@ interface AddNewRiskFormProps {
   popupStatus: string;
   initialRiskValues?: RiskFormValues; // New prop for initial values
   initialMitigationValues?: MitigationFormValues; // New prop for initial values
+  onSuccess: () => void;
 }
 
 const riskInitialState: RiskFormValues = {
@@ -73,6 +77,7 @@ const mitigationInitialState: MitigationFormValues = {
  */
 const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   closePopup,
+  onSuccess,
   popupStatus,
   initialRiskValues = riskInitialState, // Default to initial state if not provided
   initialMitigationValues = mitigationInitialState,
@@ -96,6 +101,9 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     },
     []
   );
+
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get("projectId");
 
   const tabStyle = useMemo(
     () => ({
@@ -250,11 +258,51 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     ); // Return true if no errors exist
   }, [riskValues, mitigationValues]);
 
-  const riskFormSubmitHandler = () => {
+  const riskFormSubmitHandler = async() => {
     // check forms validate
     if (validateForm()) {
-      // call backend
-      closePopup();
+      const formData = {
+        "project_id": projectId,
+        "risk_name": riskValues.riskName,
+        "risk_owner": riskValues.actionOwner,
+        "ai_lifecycle_phase": riskValues.aiLifecyclePhase,
+        "risk_description": riskValues.riskDescription,
+        "risk_category": riskValues.riskCategory,
+        "impact": riskValues.potentialImpact,
+        "assessment_mapping": riskValues.assessmentMapping,
+        "controls_mapping": riskValues.controlsMapping,
+        "likelihood": riskValues.likelihood,
+        "severity": riskValues.riskSeverity,
+        "risk_level_autocalculated": riskValues.riskLevel,
+        "review_notes": riskValues.reviewNotes,
+        "mitigation_status": mitigationValues.mitigationStatus,
+        "current_risk_level": mitigationValues.currentRiskLevel,
+        "deadline": mitigationValues.deadline,
+        "mitigation_plan": mitigationValues.mitigationPlan,
+        "implementation_strategy": mitigationValues.implementationStrategy,
+        "mitigation_evidence_document": mitigationValues.doc,
+        "likelihood_mitigation": mitigationValues.likelihood,
+        "risk_severity": mitigationValues.riskSeverity,
+        "final_risk_level": "",
+        "risk_approval": mitigationValues.approver,
+        "approval_status": mitigationValues.approvalStatus,
+        "date_of_assessment": mitigationValues.dateOfAssessment
+      }
+
+      if(popupStatus !== 'new'){
+        // call update API
+      }else{        
+        try {
+          const response = await apiServices.post("/projectRisks", formData);
+          console.log(response)
+          if (response.status === 201) { 
+            closePopup();
+            onSuccess();
+          }
+        } catch (error) {
+          console.error("Error sending request", error);
+        }
+      }
     } else {
       console.log("validation fails");
     }

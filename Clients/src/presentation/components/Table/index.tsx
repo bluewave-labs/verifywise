@@ -183,49 +183,43 @@ const BasicTable = ({
           {bodyData !== null && (
             <>
               {bodyData?.map((row) => (
-                <>
-                  {String(row.project_id) === currentProjectId && (
+                <TableRow
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.row,
+                    height: "36px",
+                    "&:hover": {
+                      backgroundColor: "#FBFBFB",
+                      cursor: "pointer",
+                    },
+                  }}
+                  key={row.id}
+                  onClick={(event) => onRowclickHandler(event, row)}
+                >
+                  {label === "Project risk" ? (
                     <>
-                      <TableRow
-                        sx={{
-                          ...singleTheme.tableStyles.primary.body.row,
-                          height: "36px",
-                          "&:hover": {
-                            backgroundColor: "#FBFBFB",
-                            cursor: "pointer",
-                          },
-                        }}
-                        key={row.id}
-                        onClick={(event) => onRowclickHandler(event, row)}
-                      >
-                        {label === "Project risk" ? (
-                          <>
-                            <TableCell>{row.risk_name}</TableCell>
-                            <TableCell>{row.impact}</TableCell>
-                            <TableCell>{row.risk_owner}</TableCell>
-                            <TableCell>{row.severity}</TableCell>
-                            <TableCell>{row.likelihood}</TableCell>
-                            <TableCell>{row.current_risk_level}</TableCell>
-                            <TableCell>{row.mitigation_status}</TableCell>
-                            <TableCell>{row.final_risk_level}</TableCell>
-                          </>
-                        ) : (
-                          <>
-                            <TableCell>{row.vendor_name}</TableCell>
-                            <TableCell>{row.risk_name}</TableCell>
-                            <TableCell>{row.owner}</TableCell>
-                            <TableCell>{row.risk_level}</TableCell>
-                            <TableCell>
-                              {row.review_date
-                                ? formatDate(row.review_date.toString())
-                                : "No review date"}
-                            </TableCell>
-                          </>
-                        )}
-                      </TableRow>
+                      <TableCell>{row.risk_name}</TableCell>
+                      <TableCell>{row.impact}</TableCell>
+                      <TableCell>{row.risk_owner}</TableCell>
+                      <TableCell>{row.severity}</TableCell>
+                      <TableCell>{row.likelihood}</TableCell>
+                      <TableCell>{row.current_risk_level}</TableCell>
+                      <TableCell>{row.mitigation_status}</TableCell>
+                      <TableCell>{row.final_risk_level}</TableCell>
+                    </>
+                  ) : (
+                    <>
+                      <TableCell>{row.vendor_name}</TableCell>
+                      <TableCell>{row.risk_name}</TableCell>
+                      <TableCell>{row.owner}</TableCell>
+                      <TableCell>{row.risk_level}</TableCell>
+                      <TableCell>
+                        {row.review_date
+                          ? formatDate(row.review_date.toString())
+                          : "No review date"}
+                      </TableCell>
                     </>
                   )}
-                </>
+                </TableRow>
               ))}
             </>
           )}

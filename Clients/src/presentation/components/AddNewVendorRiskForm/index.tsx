@@ -8,7 +8,9 @@ import { checkStringValidation } from "../../../application/validations/stringVa
 import Select from "../Inputs/Select";
 import { apiServices } from "../../../infrastructure/api/networkServices";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import { useSearchParams } from "react-router-dom";
 import useUsers from "../../../application/hooks/useUsers";
+
 
 interface RiskSectionProps {
   closePopup: () => void;
@@ -87,6 +89,9 @@ const initialState: FormValues = {
 const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, popupStatus }) => {
   const theme = useTheme();
   const { currentProjectId, inputValues } = useContext(VerifyWiseContext);
+  
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get("projectId");
 
   const [values, setValues] = useState<FormValues>(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -159,7 +164,7 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, pop
     if (validateForm()) {
       //request to the backend
       const formData = {
-        "project_id": currentProjectId,
+        "project_id": projectId,
         "vendor_name": values.vendorName,
         "risk_name": values.riskName,
         "owner": values.actionOwner,
@@ -181,6 +186,7 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, pop
           console.error("Error updating request", error);
         }
       }else{
+        console.log(formData)
         try {
           const response = await apiServices.post("/vendorRisks", formData);
           console.log(response)

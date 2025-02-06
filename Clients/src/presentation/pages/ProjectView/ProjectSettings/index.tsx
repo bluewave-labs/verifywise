@@ -21,6 +21,7 @@ import { logEngine } from "../../../../application/tools/log.engine";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import { stringToArray } from "../../../../application/tools/stringUtil";
+import useUsers, { User } from "../../../../application/hooks/useUsers";
 
 interface ProjectSettingsProps {
   setTabValue: (value: string) => void;
@@ -112,21 +113,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
       }
     }, [project]);
 
-    const [users, setUsers] = useState<[]>([]);
-    const [owners, setOwner] = useState<{ _id: number, name: string }[]>([]);
-
-    useEffect(() => {
-      const fetchUsers = async () => {
-        const response = await getAllEntities({ routeUrl: "/users" });
-        let users = response.data.map((item: { id: number; _id: number }) => {
-          item._id = item.id;
-          return item;
-        });
-        setUsers(users);
-        setOwner(users);
-      };
-      fetchUsers();
-    }, []);
+    const {users, loading, error } = useUsers();
 
     useEffect(() => {
       if (project) {
@@ -393,7 +380,11 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             label="Owner"
             value={values.owner}
             onChange={handleOnSelectChange("owner")}
-            items={owners}
+            items={users?.map(user => ({
+              _id: user.id,
+              name: `${user.name} ${user.surname}`,
+              email: user.email
+            })) || []}
             sx={{ width: 357, backgroundColor: theme.palette.background.main }}
             error={errors.owner}
             isRequired
@@ -425,7 +416,11 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             label="Team members"
             onChange={handleMultiSelectChange("addUsers")}
             value={values.addUsers}
-            items={users}
+            items={users?.map(user => ({
+              _id: user.id,
+              name: `${user.name} ${user.surname}`,
+              email: user.email
+            })) || []}
             sx={{ width: 357, backgroundColor: theme.palette.background.main }}
           // error={errors.addUsers}
           // required

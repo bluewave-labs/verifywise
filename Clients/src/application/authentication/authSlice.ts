@@ -135,7 +135,6 @@ const authSlice = createSlice({
 			localStorage.removeItem("authToken");
 		},
 		setAuthToken: (state, action: PayloadAction<string>) => {
-			debugger
 			state.authToken = action.payload;
 			localStorage.setItem("authToken", action.payload);
 		},

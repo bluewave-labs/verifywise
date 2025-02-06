@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { MOCKDATA_ON } from "../flags";
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
 

@@ -141,7 +141,7 @@ const BasicTable = ({
     return "#008000"; // 91-100%
   }, []);
 
-  const { currentProjectId } = useContext(VerifyWiseContext);
+  const { currentProjectId, setInputValues } = useContext(VerifyWiseContext);  
 
   const tableHeader = useMemo(
     () => (
@@ -166,12 +166,12 @@ const BasicTable = ({
     [data.cols]
   );
 
-  const onRowclickHandler = (
-    event: React.MouseEvent<HTMLElement>,
-    rowData: any
-  ) => {
-    console.log(`Row clicked: ${rowData.id}`);
+
+  const onRowclickHandler = (event: React.MouseEvent<HTMLElement>, rowData: any) => {
+    console.log(`Row clicked: ${rowData.id}`);    
+    console.log(rowData)
     setSelectedRow(rowData);
+    setInputValues(rowData);
     setAnchorEl(event.currentTarget);
     onRowClick && onRowClick(rowData.id as number);
   };

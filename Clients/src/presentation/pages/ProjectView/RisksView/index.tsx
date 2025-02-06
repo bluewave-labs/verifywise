@@ -1,4 +1,4 @@
-import { Stack, Typography, Box, useTheme } from "@mui/material";
+import { Stack, Typography, Box } from "@mui/material";
 import { RiskData } from "../../../mocks/projects/project-overview.data";
 import {
   FC,
@@ -141,7 +141,6 @@ const RisksView: FC<RisksViewProps> = memo(
 
     const [selectedRow, setSelectedRow] = useState<ProjectRisk>();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const theme = useTheme();
     const [riskData, setRiskData] = useState<ProjectRisk[] | VendorRisk[]>([]);
 
     const [alert, setAlert] = useState<{
@@ -166,10 +165,31 @@ const RisksView: FC<RisksViewProps> = memo(
      */
     const handleClosePopup = () => {
       setAnchorEl(null); // Close the popup
-      setSelectedRow(undefined); // Reset selected row to undefined
+
+      setSelectedRow(undefined);
     };
 
-    const fetch = useCallback(async () => {
+    const handleSuccess = () => {
+      console.log("create vendor is success!");
+      handleAlert({
+        variant: "success",
+        body: title + " risk created successfully",
+      });
+
+      fetchRiskData();
+    };
+
+    const handleUpdate = () => {
+      console.log("update vendor is success!");
+      handleAlert({
+        variant: "success",
+        body: title + " risk updated successfully",
+      });
+
+      fetchRiskData();
+    };
+
+    const fetchRiskData = useCallback(async () => {
       try {
         const url =
           title === "Project"
@@ -185,7 +205,7 @@ const RisksView: FC<RisksViewProps> = memo(
 
     useEffect(() => {
       console.log("***", title);
-      fetch();
+      fetchRiskData();
     }, [title]);
 
     /**
@@ -224,17 +244,6 @@ const RisksView: FC<RisksViewProps> = memo(
         setAnchor(anchor ? null : event.currentTarget);
       };
 
-      const handleSuccess = () => {
-        console.log("create vendor is success!");
-        handleAlert({
-          variant: "success",
-          body: title + " risk created successfully",
-        });
-
-        fetch();
-        // setAnchor(null); // Close the popup
-      };
-
       return (
         <Popup
           popupId="add-new-vendor-risk-popup"
@@ -242,6 +251,7 @@ const RisksView: FC<RisksViewProps> = memo(
             <AddNewVendorRiskForm
               closePopup={() => setAnchor(null)}
               onSuccess={handleSuccess}
+              popupStatus="new"
             />
           }
           openPopupButtonName="Add new risk"
@@ -257,7 +267,7 @@ const RisksView: FC<RisksViewProps> = memo(
       <Stack sx={{ maxWidth: 1220 }}>
         {alert && (
           <Suspense fallback={<div>Loading...</div>}>
-            <Box sx={{ paddingTop: theme.spacing(2) }}>
+            <Box>
               <Alert
                 variant={alert.variant}
                 title={alert.title}
@@ -287,49 +297,73 @@ const RisksView: FC<RisksViewProps> = memo(
             <AddNewVendorRiskPopupRender />
           )}
         </Stack>
-        {selectedRow && anchorEl && (
-          <Popup
-            popupId="edit-new-risk-popup"
-            popupContent={
-              <AddNewRiskForm
-                closePopup={() => setAnchorEl(null)}
-                popupStatus="edit"
-                initialRiskValues={{
-                  riskName: selectedRow.risk_name,
-                  actionOwner: selectedRow.risk_owner, // Assuming this maps correctly
-                  aiLifecyclePhase: selectedRow.ai_lifecycle_phase, // Adjust as necessary
-                  riskDescription: selectedRow.risk_description,
-                  riskCategory: selectedRow.risk_category, // Adjust as necessary
-                  potentialImpact: selectedRow.impact,
-                  assessmentMapping: selectedRow.assessment_mapping,
-                  controlsMapping: selectedRow.controls_mapping,
-                  likelihood: selectedRow.likelihood, // Adjust as necessary
-                  riskSeverity: selectedRow.risk_severity, // Adjust as necessary
-                  riskLevel: selectedRow.final_risk_level, // Adjust as necessary
-                  reviewNotes: selectedRow.review_notes,
-                }}
-                initialMitigationValues={{
-                  mitigationStatus: selectedRow.mitigation_status, // Adjust as necessary
-                  mitigationPlan: selectedRow.mitigation_plan,
-                  currentRiskLevel: selectedRow.current_risk_level, // Adjust as necessary
-                  implementationStrategy: selectedRow.implementation_strategy,
-                  deadline: selectedRow.deadline,
-                  doc: selectedRow.mitigation_evidence_document, // Adjust as necessary
-                  likelihood: selectedRow.likelihood_mitigation, // Adjust as necessary
-                  riskSeverity: selectedRow.risk_severity, // Adjust as necessary
-                  approver: selectedRow.risk_approval || 0, // Adjust as necessary
-                  approvalStatus: selectedRow.approval_status, // Adjust as necessary
-                  dateOfAssessment: selectedRow.date_of_assessment,
-                  recommendations: selectedRow.recommendations || "", // Adjust as necessary
-                }}
-              />
-            }
-            openPopupButtonName="Edit risk"
-            popupTitle="Edit project risk"
-            handleOpenOrClose={handleClosePopup}
-            anchor={anchorEl}
-          />
-        )}
+
+        {Object.keys(selectedRow || {}).length > 0 &&
+          anchorEl &&
+          title === "Project" && (
+            <Popup
+              popupId="edit-new-risk-popup"
+              popupContent={
+                <AddNewRiskForm
+                  closePopup={() => setAnchorEl(null)}
+                  popupStatus="edit"
+                  initialRiskValues={{
+                    riskName: selectedRow?.risk_name || "", // Use optional chaining
+                    actionOwner: selectedRow?.risk_owner || 0, // Use optional chaining
+                    aiLifecyclePhase: selectedRow?.ai_lifecycle_phase || 0, // Use optional chaining
+                    riskDescription: selectedRow?.risk_description || "", // Use optional chaining
+                    riskCategory: selectedRow?.risk_category || 0, // Use optional chaining
+                    potentialImpact: selectedRow?.impact || "", // Use optional chaining
+                    assessmentMapping: selectedRow?.assessment_mapping || 0, // Use optional chaining
+                    controlsMapping: selectedRow?.controls_mapping || 0, // Use optional chaining
+                    likelihood: selectedRow?.likelihood || 1, // Use optional chaining
+                    riskSeverity: selectedRow?.risk_severity || 1, // Use optional chaining
+                    riskLevel: selectedRow?.final_risk_level || 0, // Use optional chaining
+                    reviewNotes: selectedRow?.review_notes || "", // Use optional chaining
+                  }}
+                  initialMitigationValues={{
+                    mitigationStatus: selectedRow?.mitigation_status || 0, // Use optional chaining
+                    mitigationPlan: selectedRow?.mitigation_plan || "", // Use optional chaining
+                    currentRiskLevel: selectedRow?.current_risk_level || 0, // Use optional chaining
+                    implementationStrategy:
+                      selectedRow?.implementation_strategy || "", // Use optional chaining
+                    deadline: selectedRow?.deadline || "", // Use optional chaining
+                    doc: selectedRow?.mitigation_evidence_document || "", // Use optional chaining
+                    likelihood: selectedRow?.likelihood_mitigation || 1, // Use optional chaining
+                    riskSeverity: selectedRow?.risk_severity || 1, // Use optional chaining
+                    approver: selectedRow?.risk_approval || 0, // Use optional chaining
+                    approvalStatus: selectedRow?.approval_status || 0, // Use optional chaining
+                    dateOfAssessment: selectedRow?.date_of_assessment || "", // Use optional chaining
+                    recommendations: selectedRow?.recommendations || "", // Use optional chaining
+                  }}
+                />
+              }
+              openPopupButtonName="Edit risk"
+              popupTitle="Edit project risk"
+              handleOpenOrClose={handleClosePopup}
+              anchor={anchorEl}
+            />
+          )}
+
+        {Object.keys(selectedRow || {}).length > 0 &&
+          anchorEl &&
+          title === "Vendor" && (
+            <Popup
+              popupId="edit-vendor-risk-popup"
+              popupContent={
+                <AddNewVendorRiskForm
+                  closePopup={() => setAnchorEl(null)}
+                  onSuccess={handleUpdate}
+                  popupStatus="edit"
+                />
+              }
+              openPopupButtonName="Edit risk"
+              popupTitle="Edit vendor risk"
+              handleOpenOrClose={handleClosePopup}
+              anchor={anchorEl}
+            />
+          )}
+
         {/* map the data */}
         <BasicTable
           data={tableData}

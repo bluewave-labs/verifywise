@@ -1,11 +1,10 @@
-import { Button, SelectChangeEvent, Stack, useTheme } from "@mui/material";
+import { Button, SelectChangeEvent, Stack, useTheme, Typography } from "@mui/material";
 import dayjs, { Dayjs } from "dayjs";
-import { FC, useState, useContext } from "react";
+import { FC, useState, useContext, useEffect } from "react";
 import Field from "../Inputs/Field";
 import DatePicker from "../Inputs/Datepicker";
 import selectValidation from "../../../application/validations/selectValidation";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
-import Alert from "../Alert";
 import Select from "../Inputs/Select";
 import { apiServices } from "../../../infrastructure/api/networkServices";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
@@ -13,6 +12,7 @@ import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.cont
 interface RiskSectionProps {
   closePopup: () => void;
   onSuccess: () => void;
+  popupStatus: string;  
 }
 
 interface FormValues {
@@ -83,17 +83,12 @@ const initialState: FormValues = {
  * @function validateForm - Validates the form values and sets errors if any.
  * @function handleSubmit - Handles form submission, validates the form, and sends a request to the backend.
  */
-const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess }) => {
+const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, popupStatus }) => {
   const theme = useTheme();
-  const { currentProjectId } = useContext(VerifyWiseContext);
+  const { currentProjectId, inputValues } = useContext(VerifyWiseContext);
 
   const [values, setValues] = useState<FormValues>(initialState);
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [alert, setAlert] = useState<{
-    variant: "success" | "info" | "warning" | "error";
-    title?: string;
-    body: string;
-  } | null>(null);
+  const [errors, setErrors] = useState<FormErrors>({});  
 
   const handleDateChange = (newDate: Dayjs | null) => {
     if(newDate?.isValid()){
@@ -165,15 +160,30 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess }) =
         "review_date": values.reviewDate
       }
 
-      try {
-        const response = await apiServices.post("/vendorRisks", formData);
-        console.log(response)
-        if (response.status === 201) { 
-          closePopup();
-          onSuccess();
+      console.log(formData)
+
+      if(popupStatus !== 'new'){
+        try {
+          const response = await apiServices.put("/vendorRisks/" + inputValues.id, formData);
+          console.log(response)
+          if (response.status === 202) { 
+            closePopup();
+            onSuccess();
+          }
+        } catch (error) {
+          console.error("Error updating request", error);
         }
-      } catch (error) {
-        console.error("Error sending request", error);
+      }else{
+        try {
+          const response = await apiServices.post("/vendorRisks", formData);
+          console.log(response)
+          if (response.status === 201) { 
+            closePopup();
+            onSuccess();
+          }
+        } catch (error) {
+          console.error("Error sending request", error);
+        }
       }
     }
   };
@@ -185,17 +195,23 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess }) =
     },
   };
 
+  useEffect(() => {
+    if(popupStatus === 'edit'){
+      // riskData
+      const currentRiskData: FormValues = {
+        ...initialState,
+        riskName: inputValues.risk_name ?? "",  
+        reviewDate: inputValues.review_date ? dayjs(inputValues.review_date).toISOString() : "",         
+        vendorName: parseInt(inputValues.vendor_name) ?? 0,
+        actionOwner: parseInt(inputValues.owner) ?? 0,
+        riskDescription: inputValues.risk_description ?? "",  
+      };
+      setValues(currentRiskData);
+    }
+  }, [popupStatus])
+
   return (
     <Stack>
-      {alert && (
-        <Alert
-          variant={alert.variant}
-          title={alert.title}
-          body={alert.body}
-          isToast={true}
-          onClick={() => setAlert(null)}
-        />
-      )}
       <Stack component="form" onSubmit={handleSubmit}>
         <Stack
           sx={{
@@ -296,7 +312,11 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess }) =
             "&:hover": { boxShadow: "none" },
           }}
         >
-          Save
+          {popupStatus === "new" ? (
+            <Typography>Save</Typography>
+          ) : (
+            <Typography>Update</Typography>
+          )}
         </Button>
       </Stack>
     </Stack>

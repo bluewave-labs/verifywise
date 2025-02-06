@@ -1,6 +1,5 @@
 import { memo, useState, useEffect, useRef } from "react";
 import { Stack, Typography, useTheme, Paper, Divider } from "@mui/material";
-import singleTheme from "../../themes/v1SingleTheme";
 import { Theme } from "@mui/material/styles";
 import { SxProps } from "@mui/system";
 import PageTour from "../../components/PageTour";

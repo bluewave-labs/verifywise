@@ -10,6 +10,7 @@ import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.c
 import { logEngine } from "../../../../application/tools/log.engine";
 import { useDispatch } from "react-redux";
 import { setAuthToken } from "../../../../application/authentication/authSlice";
+import { setExpiration } from "../../../../application/authentication/authSlice";
 import VWToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 
@@ -71,13 +72,17 @@ const Login: React.FC = () => {
         if (response.status === 202) {
           const token = response.data.data.token;
 
-          if (values.rememberMe) {
-            localStorage.setItem("authToken", token);
-          } else {
-            dispatch(setAuthToken(token)); // Dispatch the action to set the token in Redux state
-          }
-          login(token);
+          //handle remember me logic for 30 days
+        if (values.rememberMe){
+          const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
+          dispatch(setAuthToken(token)); // Dispatch the action to set the token in Redux state
+          dispatch(setExpiration(expirationDate))
+        } else{
+          dispatch(setAuthToken(token));
+          dispatch(setExpiration(null));
+        }
 
+        login(token);
           logEngine({
             type: "info",
             message: "Login successful.",

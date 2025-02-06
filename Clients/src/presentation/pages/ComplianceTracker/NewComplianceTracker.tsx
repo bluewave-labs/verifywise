@@ -5,7 +5,6 @@ import {
   AccordionSummary,
   Stack,
   Typography,
-  useTheme,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { ControlGroups } from "../../structures/ComplianceTracker/controls";
@@ -16,7 +15,6 @@ import { getAllEntities } from "../../../application/repository/entity.repositor
 import PageTour from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
 
-
 const Table_Columns = [
   { id: 1, name: "Icon" },
   { id: 2, name: "Control Name" },
@@ -26,7 +24,6 @@ const Table_Columns = [
 ];
 
 const NewComplianceTracker = () => {
-  const theme = useTheme();
   const [expanded, setExpanded] = useState<number | false>(false);
 
   const [runComplianceTour, setRunComplianceTour] = useState(false);
@@ -164,7 +161,7 @@ const NewComplianceTracker = () => {
         onFinish={() => setRunComplianceTour(false)}
       />
       <Typography
-       data-joyride-id="assessment-status"
+        data-joyride-id="assessment-status"
         variant="h2"
         component="div"
         sx={{

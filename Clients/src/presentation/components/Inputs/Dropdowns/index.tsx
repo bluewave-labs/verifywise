@@ -19,14 +19,19 @@ interface DropDownsProps {
   setState?: (newState: any) => void;
 }
 
-const DropDowns: React.FC<DropDownsProps> = () => {
-  const [status, setStatus] = useState<string | number>("");
-  const [approver, setApprover] = useState<string | number>("");
-  const [riskReview, setRiskReview] = useState<string | number>("");
-  const [owner, setOwner] = useState<string | number>("");
-  const [reviewer, setReviewer] = useState<string | number>("");
-
-  const [date, setDate] = useState<Dayjs | null>(null);
+const DropDowns: React.FC<DropDownsProps> = ({ elementId, state = {} }) => {
+  const [status, setStatus] = useState<string | number>(state.status || ""); // Default to empty string
+  const [approver, setApprover] = useState<string | number>(
+    state.approver || ""
+  ); // Default to empty string
+  const [riskReview, setRiskReview] = useState<string | number>(
+    state.riskReview || ""
+  ); // Default to empty string
+  const [owner, setOwner] = useState<string | number>(state.owner || ""); // Default to empty string
+  const [reviewer, setReviewer] = useState<string | number>(
+    state.reviewer || ""
+  ); // Default to empty string
+  const [date, setDate] = useState<Dayjs | null>(state.date || null);
   const theme = useTheme();
 
   const inputStyles = {
@@ -49,18 +54,17 @@ const DropDowns: React.FC<DropDownsProps> = () => {
     };
     fetchUsers();
   }, []);
-  console.log("🚀 ~ DropDowns ~ users:", users);
 
   const handleChange = (e: SelectChangeEvent<string | number>) => {
     const selectedValue = e.target.value;
-    console.log("Selected value:", selectedValue);
     const selectedUser = users.find((user) => user.id === selectedValue);
-    console.log("Selected user:", selectedUser);
+    console.log(selectedUser);
     setApprover(selectedValue);
   };
 
   return (
     <Stack
+      id={elementId}
       style={{
         gap: theme.spacing(8),
       }}
@@ -78,11 +82,12 @@ const DropDowns: React.FC<DropDownsProps> = () => {
           value={status}
           onChange={(e) => setStatus(e.target.value)}
           items={[
-            { _id: 10, name: "Waiting" },
-            { _id: 20, name: "In progress" },
-            { _id: 30, name: "Done" },
+            { _id: "Waiting", name: "Waiting" },
+            { _id: "In progress", name: "In progress" },
+            { _id: "Done", name: "Done" },
           ]}
           sx={inputStyles}
+          placeholder="Select status"
         />
 
         <Select
@@ -95,6 +100,7 @@ const DropDowns: React.FC<DropDownsProps> = () => {
             name: user.name,
           }))}
           sx={inputStyles}
+          placeholder="Select approver"
         />
 
         <Select
@@ -103,11 +109,12 @@ const DropDowns: React.FC<DropDownsProps> = () => {
           value={riskReview}
           onChange={(e) => setRiskReview(e.target.value)}
           items={[
-            { _id: 10, name: "Acceptable risk" },
-            { _id: 20, name: "Residual risk" },
-            { _id: 30, name: "Unacceptable risk" },
+            { _id: "Acceptable risk", name: "Acceptable risk" },
+            { _id: "Residual risk", name: "Residual risk" },
+            { _id: "Unacceptable risk", name: "Unacceptable risk" },
           ]}
           sx={inputStyles}
+          placeholder="Select risk review"
         />
       </Stack>
 
@@ -126,6 +133,7 @@ const DropDowns: React.FC<DropDownsProps> = () => {
           onChange={(e) => setOwner(e.target.value)}
           items={users.map((user) => ({ _id: user.id, name: user.name }))}
           sx={inputStyles}
+          placeholder="Select owner"
         />
 
         <Select
@@ -135,6 +143,7 @@ const DropDowns: React.FC<DropDownsProps> = () => {
           onChange={(e) => setReviewer(e.target.value)}
           items={users.map((user) => ({ _id: user.id, name: user.name }))}
           sx={inputStyles}
+          placeholder="Select reviewer"
         />
 
         <DatePicker

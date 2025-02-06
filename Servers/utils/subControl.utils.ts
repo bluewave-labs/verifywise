@@ -9,6 +9,17 @@ export const getAllSubcontrolsQuery = async (): Promise<Subcontrol[]> => {
   return subcontrols.rows;
 };
 
+export const getAllSubcontrolsByControlIdQuery = async (
+  controlId: number
+): Promise<Subcontrol[]> => {
+  console.log("getAllSubcontrolsByControlId", controlId);
+  const subcontrols = await pool.query(
+    "SELECT * FROM subcontrols WHERE control_id = $1",
+    [controlId]
+  );
+  return subcontrols.rows;
+};
+
 export const getSubcontrolByIdQuery = async (
   id: number
 ): Promise<Subcontrol | null> => {
@@ -37,19 +48,25 @@ export const createNewSubcontrolQuery = async (
 ): Promise<Subcontrol> => {
   console.log("createNewSubcontrol", subcontrol);
 
-  let uploadedEvidenceFiles: { id: number, fileName: string }[] = [];
+  let uploadedEvidenceFiles: { id: number; fileName: string }[] = [];
   await Promise.all(
     evidenceFiles!.map(async (file) => {
       const uploadedFile = await uploadFile(file);
-      uploadedEvidenceFiles.push({ id: uploadedFile.id.toString(), fileName: uploadedFile.filename });
+      uploadedEvidenceFiles.push({
+        id: uploadedFile.id.toString(),
+        fileName: uploadedFile.filename,
+      });
     })
   );
 
-  let uploadedFeedbackFiles: { id: number, fileName: string }[] = [];
+  let uploadedFeedbackFiles: { id: number; fileName: string }[] = [];
   await Promise.all(
     feedbackFiles!.map(async (file) => {
       const uploadedFile = await uploadFile(file);
-      uploadedFeedbackFiles.push({ id: uploadedFile.id.toString(), fileName: uploadedFile.filename });
+      uploadedFeedbackFiles.push({
+        id: uploadedFile.id.toString(),
+        fileName: uploadedFile.filename,
+      });
     })
   );
 
@@ -70,7 +87,7 @@ export const createNewSubcontrolQuery = async (
       subcontrol.evidence,
       subcontrol.feedback,
       uploadedEvidenceFiles,
-      uploadedFeedbackFiles
+      uploadedFeedbackFiles,
     ]
   );
   return result.rows[0];

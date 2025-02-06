@@ -188,6 +188,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                   error={riskErrors.riskDescription}
                   sx={{
                     width: "325px",
+                    mb: 8
                   }}
                 />
                 <Select

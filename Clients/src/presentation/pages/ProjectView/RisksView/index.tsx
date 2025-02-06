@@ -312,35 +312,6 @@ const RisksView: FC<RisksViewProps> = memo(
                 <AddNewRiskForm
                   closePopup={() => setAnchorEl(null)}
                   popupStatus="edit"
-                  initialRiskValues={{
-                    riskName: selectedRow?.risk_name || "", // Use optional chaining
-                    actionOwner: selectedRow?.risk_owner || 0, // Use optional chaining
-                    aiLifecyclePhase: selectedRow?.ai_lifecycle_phase || 0, // Use optional chaining
-                    riskDescription: selectedRow?.risk_description || "", // Use optional chaining
-                    riskCategory: selectedRow?.risk_category || 0, // Use optional chaining
-                    potentialImpact: selectedRow?.impact || "", // Use optional chaining
-                    assessmentMapping: selectedRow?.assessment_mapping || 0, // Use optional chaining
-                    controlsMapping: selectedRow?.controls_mapping || 0, // Use optional chaining
-                    likelihood: selectedRow?.likelihood || 1, // Use optional chaining
-                    riskSeverity: selectedRow?.risk_severity || 1, // Use optional chaining
-                    riskLevel: selectedRow?.final_risk_level || 0, // Use optional chaining
-                    reviewNotes: selectedRow?.review_notes || "", // Use optional chaining
-                  }}
-                  initialMitigationValues={{
-                    mitigationStatus: selectedRow?.mitigation_status || 0, // Use optional chaining
-                    mitigationPlan: selectedRow?.mitigation_plan || "", // Use optional chaining
-                    currentRiskLevel: selectedRow?.current_risk_level || 0, // Use optional chaining
-                    implementationStrategy:
-                      selectedRow?.implementation_strategy || "", // Use optional chaining
-                    deadline: selectedRow?.deadline || "", // Use optional chaining
-                    doc: selectedRow?.mitigation_evidence_document || "", // Use optional chaining
-                    likelihood: selectedRow?.likelihood_mitigation || 1, // Use optional chaining
-                    riskSeverity: selectedRow?.risk_severity || 1, // Use optional chaining
-                    approver: selectedRow?.risk_approval || 0, // Use optional chaining
-                    approvalStatus: selectedRow?.approval_status || 0, // Use optional chaining
-                    dateOfAssessment: selectedRow?.date_of_assessment || "", // Use optional chaining
-                    recommendations: selectedRow?.recommendations || "", // Use optional chaining
-                  }}
                   onSuccess={handleUpdate}
                 />
               }

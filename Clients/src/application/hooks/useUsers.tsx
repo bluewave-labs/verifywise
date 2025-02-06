@@ -6,7 +6,7 @@ export interface User {
   name: string;
   surname: string;
   email: string;
-  role?: string;
+  role?: number;
 }
 
 const useUsers = () => {
@@ -34,4 +34,4 @@ const useUsers = () => {
   return { users, loading, error };
 };
 
-export default useUsers; 
+export default useUsers;

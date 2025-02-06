@@ -68,12 +68,16 @@ export async function createNewSubcontrol(
     const newSubcontrol = await createNewSubcontrolQuery(
       controlIdFK,
       subcontrol,
-      (req.files as {
-        [key: string]: UploadedFile[]
-      }).evidenceFiles,
-      (req.files as {
-        [key: string]: UploadedFile[]
-      }).feedbackFiles
+      (
+        req.files as {
+          [key: string]: UploadedFile[];
+        }
+      ).evidenceFiles,
+      (
+        req.files as {
+          [key: string]: UploadedFile[];
+        }
+      ).feedbackFiles
     );
 
     if (newSubcontrol) {

@@ -11,41 +11,12 @@ import {
 } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import DropDowns from "../../Inputs/Dropdowns";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
-import { Dayjs } from "dayjs";
-import { apiServices } from "../../../../infrastructure/api/networkServices";
+import { getEntityById } from "../../../../application/repository/entity.repository";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
-
-interface SubControlState {
-  controlId: string;
-  subControlId: string;
-  subControlTitle: string;
-  subControlDescription: string;
-  status: string | number;
-  approver: string | number;
-  riskReview: string | number;
-  owner: string | number;
-  reviewer: string | number;
-  description: string;
-  date: Dayjs | null;
-  evidence: string;
-  feedback: string;
-}
-
-interface State {
-  controlId: string;
-  controlTitle: string;
-  controlDescription: string;
-  status: string | number;
-  approver: string | number;
-  riskReview: string | number;
-  owner: string | number;
-  reviewer: string | number;
-  description: string;
-  date: Dayjs | null;
-  subControls: SubControlState[];
-}
+import { apiServices } from "../../../../infrastructure/api/networkServices";
+import { State, SubControlState } from "./paneInterfaces";
 
 const NewControlPane = ({
   id,
@@ -72,34 +43,62 @@ const NewControlPane = ({
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [initialValues, setInitialValues] = useState<State | null>(null);
 
-  const initialSubControlState = subControls.map((subControl) => ({
-    controlId: id,
-    subControlId: subControl.id,
-    subControlTitle: subControl.title,
-    subControlDescription: subControl.description,
-    status: "Choose status", // Set default value
-    approver: "Choose approver", // Set default value
-    riskReview: "Acceptable risk", // Set default value
-    owner: "Choose owner", // Set default value
-    reviewer: "Choose reviewer", // Set default value
-    description: "",
-    date: null,
-    evidence: "",
-    feedback: "",
-  }));
+  useEffect(() => {
+    const fetchControl = async () => {
+      try {
+        const response = await getEntityById({
+          routeUrl: `/controls/compliance/${id}`,
+        });
+        setInitialValues(response.data);
+      } catch (error) {
+        console.error("Error fetching control:", error);
+      }
+    };
+    fetchControl();
+  }, [id]);
+
+  const initialSubControlState = subControls.map(
+    (subControl: SubControlState, index) => ({
+      control_id: initialValues?.subControls[index]?.control_id || id,
+      subControlId:
+        initialValues?.subControls[index]?.subControlId ||
+        subControl.subControlId,
+      subControlTitle:
+        initialValues?.subControls[index]?.subControlTitle ||
+        subControl.subControlTitle,
+      subControlDescription:
+        initialValues?.subControls[index]?.subControlDescription ||
+        subControl.description,
+      status: initialValues?.subControls[index]?.status || "Choose status", // Set default value
+      approver:
+        initialValues?.subControls[index]?.approver || "Choose approver", // Set default value
+      riskReview:
+        initialValues?.subControls[index]?.riskReview || "Acceptable risk", // Set default value
+      owner: initialValues?.subControls[index]?.owner || "Choose owner", // Set default value
+      reviewer:
+        initialValues?.subControls[index]?.reviewer || "Choose reviewer", // Set default value
+      description: initialValues?.subControls[index]?.description || "",
+      date: initialValues?.subControls[index]?.date || null,
+      evidence: initialValues?.subControls[index]?.evidence || "",
+      feedback: initialValues?.subControls[index]?.feedback || "",
+    })
+  );
 
   const [state, setState] = useState<State>({
-    controlId: id,
-    controlTitle: title,
-    controlDescription: content,
-    status: "Choose status", // Set default value
-    approver: "Choose approver", // Set default value
-    riskReview: "Acceptable risk", // Set default value
-    owner: "Choose owner", // Set default value
-    reviewer: "Choose reviewer", // Set default value
-    description: "",
-    date: null,
+    control: {
+      id: id,
+      controlTitle: title,
+      controlDescription: content,
+      status: "Choose status", // Set default value
+      approver: "Choose approver", // Set default value
+      riskReview: "Acceptable risk", // Set default value
+      owner: "Choose owner", // Set default value
+      reviewer: "Choose reviewer", // Set default value
+      description: "",
+      date: null,
+    },
     subControls: initialSubControlState,
   });
 
@@ -163,7 +162,6 @@ const NewControlPane = ({
       controlCategoryTitle: controlCategory,
       control: state,
     };
-    console.log(controlToSave);
 
     try {
       const response = await apiServices.post(
@@ -224,9 +222,9 @@ const NewControlPane = ({
         <Typography fontSize={13}>{content}</Typography>
         <DropDowns
           elementId={`control-${id}`}
-          state={state}
+          state={initialValues?.control}
           setState={(newState) => setState({ ...state, ...newState })}
-        />{" "}
+        />
         {/* this is working fine */}
         <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
         <Box sx={{ width: "100%", bgcolor: "#FCFCFD" }}>

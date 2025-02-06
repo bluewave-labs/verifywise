@@ -1,5 +1,5 @@
 import { Stack, Typography, Box } from "@mui/material";
-import { RiskData } from "../../../mocks/projects/project-overview.data";
+import { RiskData } from "./riskkViewValues";
 import {
   FC,
   useState,

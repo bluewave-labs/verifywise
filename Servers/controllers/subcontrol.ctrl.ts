@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { MOCKDATA_ON } from "../flags";
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
@@ -69,12 +68,16 @@ export async function createNewSubcontrol(
     const newSubcontrol = await createNewSubcontrolQuery(
       controlIdFK,
       subcontrol,
-      (req.files as {
-        [key: string]: UploadedFile[]
-      }).evidenceFiles,
-      (req.files as {
-        [key: string]: UploadedFile[]
-      }).feedbackFiles
+      (
+        req.files as {
+          [key: string]: UploadedFile[];
+        }
+      ).evidenceFiles,
+      (
+        req.files as {
+          [key: string]: UploadedFile[];
+        }
+      ).feedbackFiles
     );
 
     if (newSubcontrol) {

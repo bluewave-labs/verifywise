@@ -9,6 +9,7 @@ import {
   lazy,
   Suspense,
   useEffect,
+  useContext
 } from "react";
 import BasicTable from "../../../components/Table";
 import Risks from "../../../components/Risks";
@@ -18,6 +19,7 @@ import AddNewVendorRiskForm from "../../../components/AddNewVendorRiskForm";
 import { ProjectRisk } from "../../../../application/hooks/useProjectRisks";
 import { VendorRisk } from "../../../../application/hooks/useVendorRisks";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 const Alert = lazy(() => import("../../../components/Alert"));
 
@@ -141,7 +143,8 @@ const RisksView: FC<RisksViewProps> = memo(
 
     const [selectedRow, setSelectedRow] = useState<ProjectRisk>();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const [riskData, setRiskData] = useState<ProjectRisk[] | VendorRisk[]>([]);
+    const [riskData1, setRiskData] = useState<ProjectRisk[] | VendorRisk[]>([]);
+    const {currentProjectId} = useContext(VerifyWiseContext);
 
     const [alert, setAlert] = useState<{
       variant: "success" | "info" | "warning" | "error";
@@ -190,13 +193,14 @@ const RisksView: FC<RisksViewProps> = memo(
     };
 
     const fetchRiskData = useCallback(async () => {
+      console.log(`/projectRisks/by-projid/${currentProjectId}`)
       try {
         const url =
           title === "Project"
             ? `/projectRisks/by-projid/${projectId}`
             : `/vendorRisks/by-projid/${projectId}`;
         const response = await getAllEntities({ routeUrl: url });
-        console.log("response :::: > ", response);
+        console.log("response :::: > ", response);        
         setRiskData(response.data);
       } catch (error) {
         console.error("Error fetching vendor risks:", error);
@@ -224,6 +228,7 @@ const RisksView: FC<RisksViewProps> = memo(
             <AddNewRiskForm
               closePopup={() => setAnchor(null)}
               popupStatus="new"
+              onSuccess={handleSuccess}
             />
           }
           openPopupButtonName="Add new risk"
@@ -336,6 +341,7 @@ const RisksView: FC<RisksViewProps> = memo(
                     dateOfAssessment: selectedRow?.date_of_assessment || "", // Use optional chaining
                     recommendations: selectedRow?.recommendations || "", // Use optional chaining
                   }}
+                  onSuccess={handleUpdate}
                 />
               }
               openPopupButtonName="Edit risk"
@@ -367,7 +373,7 @@ const RisksView: FC<RisksViewProps> = memo(
         {/* map the data */}
         <BasicTable
           data={tableData}
-          bodyData={riskData}
+          bodyData={riskData1}
           table="risksTable"
           paginated
           label={`${title} risk`}

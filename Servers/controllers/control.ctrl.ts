@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { MOCKDATA_ON } from "../flags";
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
@@ -11,6 +10,7 @@ import {
 } from "../utils/control.utils";
 import {
   createNewSubcontrolQuery,
+  getAllSubcontrolsByControlIdQuery,
   updateSubcontrolByIdQuery,
 } from "../utils/subControl.utils";
 import {
@@ -129,7 +129,10 @@ export async function deleteControlById(
   }
 }
 
-export async function saveControls(req: RequestWithFile, res: Response): Promise<any> {
+export async function saveControls(
+  req: RequestWithFile,
+  res: Response
+): Promise<any> {
   try {
     const projectId = req.body.projectId;
 
@@ -149,7 +152,7 @@ export async function saveControls(req: RequestWithFile, res: Response): Promise
     });
 
     const controlCategoryId = controlCategory.id;
-    const requestControl = JSON.parse(req.body.control)
+    const requestControl = JSON.parse(req.body.control);
 
     // now we need to create the control for the control category, and use the control category id as the foreign key
     const control: any = await createNewControlQuery({
@@ -160,28 +163,34 @@ export async function saveControls(req: RequestWithFile, res: Response): Promise
       reviewer: requestControl.reviewer,
       dueDate: requestControl.date,
       implementationDetails: requestControl.description,
-      controlGroup: controlCategoryId
+      controlGroup: controlCategoryId,
     });
 
     const controlId = control.id;
 
     // now we need to iterate over subcontrols inside the control, and create a subcontrol for each subcontrol
     const subcontrols = requestControl.subControls;
-    const subControlResp = []
+    const subControlResp = [];
     for (const subcontrol of subcontrols) {
       const subcontrolToSave: any = await createNewSubcontrolQuery(
         controlId,
         subcontrol,
-        (req.files as {
-          [key: string]: UploadedFile[]
-        }).evidenceFiles || [],
-        (req.files as {
-          [key: string]: UploadedFile[]
-        }).feedbackFiles || []
+        (
+          req.files as {
+            [key: string]: UploadedFile[];
+          }
+        ).evidenceFiles || [],
+        (
+          req.files as {
+            [key: string]: UploadedFile[];
+          }
+        ).feedbackFiles || []
       );
-      subControlResp.push(subcontrolToSave)
+      subControlResp.push(subcontrolToSave);
     }
-    const response = { ...{ controlCategory, ...{ control, subControls: subControlResp } } }
+    const response = {
+      ...{ controlCategory, ...{ control, subControls: subControlResp } },
+    };
     return res.status(200).json(
       STATUS_CODE[200]({
         message: response,
@@ -262,7 +271,7 @@ export async function updateControls(
       reviewer: requestBody.control.reviewer,
       dueDate: requestBody.control.date,
       implementationDetails: requestBody.control.description,
-      controlGroup: controlCategoryId
+      controlGroup: controlCategoryId,
     });
 
     // now we need to iterate over subcontrols inside the control, and create a subcontrol for each subcontrol
@@ -281,6 +290,24 @@ export async function updateControls(
         message: "Controls saved",
       })
     );
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getComplianceById(
+  req: Request,
+  res: Response
+): Promise<any> {
+  try {
+    const controlId = parseInt(req.params.id);
+    const control = await getControlByIdQuery(controlId);
+    const subControls = await getAllSubcontrolsByControlIdQuery(controlId);
+    const result = {
+      control,
+      subControls,
+    };
+    return res.status(200).json(STATUS_CODE[200](result));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

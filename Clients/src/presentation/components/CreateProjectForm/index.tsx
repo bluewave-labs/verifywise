@@ -16,6 +16,7 @@ const DatePicker = lazy(() => import("../Inputs/Datepicker"));
 const Field = lazy(() => import("../Inputs/Field"));
 import { extractUserToken } from "../../../application/tools/extractToken";
 import React from "react";
+import useUsers from "../../../application/hooks/useUsers";
 
 
 enum RiskClassificationEnum {
@@ -82,20 +83,14 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProjec
   const theme = useTheme();
   const [values, setValues] = useState<FormValues>(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
+  const {users, loading, error } = useUsers();
   const authState = useSelector(
     (state: { auth: { authToken: string; userExists: boolean } }) => state.auth
   );
 
-  const [users, setUsers] = useState<[]>([]);
-
   useEffect(() => {
     const fetchUsers = async () => {
-      const response = await getAllEntities({ routeUrl: "/users" });
-      let users = response.data.map((item: { id: number; _id: number }) => {
-        item._id = item.id;
-        return item;
-      });
-      setUsers(users);
+     
     };
     fetchUsers();
   }, []);
@@ -265,7 +260,11 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProjec
               placeholder="Select users"
               value={values.users}
               onChange={handleOnSelectChange("users")}
-              items={users}
+              items={users?.map(user => ({
+                _id: user.id,
+                name: `${user.name} ${user.surname}`,
+                email: user.email
+              })) || []}
               sx={{
                 width: "350px",
                 backgroundColor: theme.palette.background.main,
@@ -281,11 +280,11 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProjec
               placeholder="Select owner"
               value={values.owner}
               onChange={handleOnSelectChange("owner")}
-              items={[
-                { _id: 1, name: "Some value 1", email: "email@email.com" },
-                { _id: 2, name: "Some value 2", email: "email@email.com" },
-                { _id: 3, name: "Some value 3", email: "email@email.com" },
-              ]}
+              items={users?.map(user => ({
+                _id: user.id,
+                name: `${user.name} ${user.surname}`,
+                email: user.email
+              })) || []}
               sx={{
                 width: "350px",
                 backgroundColor: theme.palette.background.main,

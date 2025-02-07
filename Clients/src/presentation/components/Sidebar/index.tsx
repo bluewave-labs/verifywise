@@ -144,7 +144,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
     }else{
       setCurrentProjectId(String(selectedProjectId));
     }
-  }, [projects]);
+  }, [projects, selectedProjectId]);
 
   return (
     <Stack
@@ -247,19 +247,19 @@ const Sidebar = ({ projects }: { projects: any }) => {
           }}
           data-joyride-id="select-project"
         >
-          {projects.length > 0 ? 
+          {projects.length > 0 ?
             <Select
               id="projects"
               value={selectedProjectId}
               items={projects}
               onChange={handleProjectChange}
               sx={{ width: "180px", marginLeft: theme.spacing(8) }}
-            /> : 
-            <Box 
-              className="empty-project" 
-              sx={{ 
-                marginLeft: theme.spacing(8), 
-                borderColor: theme.palette.border.dark 
+            /> :
+            <Box
+              className="empty-project"
+              sx={{
+                marginLeft: theme.spacing(8),
+                borderColor: theme.palette.border.dark
               }}>No Project</Box>
             }
         </Stack>

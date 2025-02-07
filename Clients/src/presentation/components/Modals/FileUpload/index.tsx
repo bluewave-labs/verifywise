@@ -3,29 +3,26 @@ import {
   StyledDialog,
   StyledDialogContent,
 } from "../../FileUpload/FileUpload.styles";
-import FileUploadComponent from "../../FileUpload";
 import { FileUploadProps } from "../../FileUpload/types";
 import CloseIcon from "@mui/icons-material/Close";
 import { IconButton } from "@mui/material";
+import FileUploadComponent from "../../FileUpload";
 
 interface FileUploadModalProps {
-  open: boolean;
-  onClose: () => void;
   uploadProps: FileUploadProps;
 }
 
 const FileUploadModal: React.FC<FileUploadModalProps> = ({
-  open,
-  onClose,
   uploadProps,
 }) => {
+  const { open, onClose } = uploadProps
   const [modalHeight, setModalHeight] = useState(338);
   const handleHeightChange = (newHeight: number) => {
     setModalHeight(newHeight);
   };
 
   return (
-    <StyledDialog open={open} onClose={onClose} modalHeight={modalHeight}>
+    <StyledDialog open={open} onClose={onClose} modalHeight={modalHeight} >
       <StyledDialogContent>
         <IconButton
           onClick={onClose}
@@ -40,8 +37,8 @@ const FileUploadModal: React.FC<FileUploadModalProps> = ({
         </IconButton>
 
         <FileUploadComponent
-          {...uploadProps}
           onHeightChange={handleHeightChange}
+          {...uploadProps}
         />
       </StyledDialogContent>
     </StyledDialog>

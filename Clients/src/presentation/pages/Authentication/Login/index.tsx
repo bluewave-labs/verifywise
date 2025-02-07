@@ -10,6 +10,7 @@ import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.c
 import { logEngine } from "../../../../application/tools/log.engine";
 import { useDispatch } from "react-redux";
 import { setAuthToken } from "../../../../application/authentication/authSlice";
+import { setExpiration } from "../../../../application/authentication/authSlice";
 import VWToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 
@@ -45,9 +46,9 @@ const Login: React.FC = () => {
   // Handle changes in input fields
   const handleChange =
     (prop: keyof FormValues) =>
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        setValues({ ...values, [prop]: event.target.value });
-      };
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setValues({ ...values, [prop]: event.target.value });
+    };
 
   // Handle form submission
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -70,8 +71,18 @@ const Login: React.FC = () => {
         setValues(initialState);
         if (response.status === 202) {
           const token = response.data.data.token;
-          login(token);
+
+          //handle remember me logic for 30 days
+        if (values.rememberMe){
+          const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
           dispatch(setAuthToken(token)); // Dispatch the action to set the token in Redux state
+          dispatch(setExpiration(expirationDate))
+        } else{
+          dispatch(setAuthToken(token));
+          dispatch(setExpiration(null));
+        }
+
+        login(token);
           logEngine({
             type: "info",
             message: "Login successful.",
@@ -88,7 +99,10 @@ const Login: React.FC = () => {
             user,
           });
           setIsSubmitting(false);
-          setAlert({ variant: "error", body: "User not found. Please try again.", });
+          setAlert({
+            variant: "error",
+            body: "User not found. Please try again.",
+          });
           setTimeout(() => {
             setAlert(null);
           }, 3000);
@@ -99,7 +113,10 @@ const Login: React.FC = () => {
             user,
           });
           setIsSubmitting(false);
-          setAlert({ variant: "error", body: "Invalid password. Please try again.", });
+          setAlert({
+            variant: "error",
+            body: "Invalid password. Please try again.",
+          });
           setTimeout(() => {
             setAlert(null);
           }, 3000);
@@ -110,7 +127,10 @@ const Login: React.FC = () => {
             user,
           });
           setIsSubmitting(false);
-          setAlert({ variant: "error", body: "Unexpected response. Please try again.", });
+          setAlert({
+            variant: "error",
+            body: "Unexpected response. Please try again.",
+          });
           setTimeout(() => {
             setAlert(null);
           }, 3000);
@@ -124,7 +144,7 @@ const Login: React.FC = () => {
           user,
         });
         setIsSubmitting(false);
-        setAlert({ variant: "error", body: "Error submitting form", });
+        setAlert({ variant: "error", body: "Error submitting form" });
         setTimeout(() => {
           setAlert(null);
         }, 3000);
@@ -146,7 +166,6 @@ const Login: React.FC = () => {
         minHeight: "100vh",
       }}
     >
-
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
           <Alert
@@ -159,7 +178,9 @@ const Login: React.FC = () => {
         </Suspense>
       )}
 
-      {isSubmitting && <VWToast title="Processing your request. Please wait..." />}
+      {isSubmitting && (
+        <VWToast title="Processing your request. Please wait..." />
+      )}
       <Background
         style={{
           position: "absolute",

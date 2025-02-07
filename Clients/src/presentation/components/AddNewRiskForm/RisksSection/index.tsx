@@ -5,12 +5,21 @@ import {
   useTheme,
   SelectChangeEvent,
 } from "@mui/material";
-import { FC, useState, useCallback, Suspense, Dispatch, SetStateAction } from "react";
+import {
+  FC,
+  useState,
+  useCallback,
+  Suspense,
+  Dispatch,
+  SetStateAction,
+} from "react";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import Alert from "../../Alert";
 import React from "react";
 import { RiskFormValues, RiskFormErrors } from "../interface";
+import styles from "../styles.module.css";
+import useUsers from "../../../../application/hooks/useUsers";
 
 const RiskLevel = React.lazy(() => import("../../RiskLevel"));
 
@@ -49,15 +58,20 @@ interface RiskSectionProps {
  * @example
  * <RiskSection closePopup={closePopupFunction} status="new" />
  */
-const RiskSection: FC<RiskSectionProps> = ({ riskValues, setRiskValues, riskErrors }) => {
+const RiskSection: FC<RiskSectionProps> = ({
+  riskValues,
+  setRiskValues,
+  riskErrors,
+}) => {
   const theme = useTheme();
   // const [values, setValues] = useState<RiskFormValues>(initialState);
-  const [errors, setErrors] = useState<RiskFormErrors>({});
+  const [_, setErrors] = useState<RiskFormErrors>({});
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
     body: string;
-  } | null>(null);  
+  } | null>(null);
+  const {users, loading, error } = useUsers();
 
   const handleOnSelectChange = useCallback(
     (prop: keyof RiskFormValues) =>
@@ -84,7 +98,7 @@ const RiskSection: FC<RiskSectionProps> = ({ riskValues, setRiskValues, riskErro
   );
 
   return (
-    <Stack>
+    <Stack sx={{}}>
       {alert && (
         <Alert
           variant={alert.variant}
@@ -94,10 +108,7 @@ const RiskSection: FC<RiskSectionProps> = ({ riskValues, setRiskValues, riskErro
           onClick={() => setAlert(null)}
         />
       )}
-      <Stack
-        className="AddNewRiskForm"
-        component="form"
-      >
+      <Stack component="form" className={`AddNewRiskForm ${styles.popupBody}`}>
         <Stack sx={{ width: "100%", mb: 10 }}>
           <Stack sx={{ gap: 8.5 }}>
             {/* Row 1 */}
@@ -130,11 +141,7 @@ const RiskSection: FC<RiskSectionProps> = ({ riskValues, setRiskValues, riskErro
                 placeholder="Select owner"
                 value={riskValues.actionOwner}
                 onChange={handleOnSelectChange("actionOwner")}
-                items={[
-                  { _id: 1, name: "Owner 1" },
-                  { _id: 2, name: "Owner 2" },
-                  { _id: 3, name: "Owner 3" },
-                ]}
+                items={users?.map((user) => ({ _id: user.id, name: user.name })) || []}
                 isRequired
                 error={riskErrors.actionOwner}
                 sx={{

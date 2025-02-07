@@ -2,13 +2,21 @@ import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import { Box, Stack, Tab, useTheme, Typography, Button } from "@mui/material";
-import { FC, useState, useCallback, useMemo, lazy, Suspense } from "react";
+import { FC, useState, useCallback, useMemo, lazy, Suspense, useContext } from "react";
 import "./styles.module.css";
 import { Likelihood, Severity } from "../RiskLevel/constants";
-import { RiskFormValues, RiskFormErrors, MitigationFormValues, MitigationFormErrors } from "./interface";
+import {
+  RiskFormValues,
+  RiskFormErrors,
+  MitigationFormValues,
+  MitigationFormErrors,
+} from "./interface";
 
 import { checkStringValidation } from "../../../application/validations/stringValidation";
 import selectValidation from "../../../application/validations/selectValidation";
+
+import { apiServices } from "../../../infrastructure/api/networkServices";
+import { useSearchParams } from "react-router-dom";
 
 const RiskSection = lazy(() => import("./RisksSection"));
 const MitigationSection = lazy(() => import("./MitigationSection"));
@@ -16,6 +24,9 @@ const MitigationSection = lazy(() => import("./MitigationSection"));
 interface AddNewRiskFormProps {
   closePopup: () => void;
   popupStatus: string;
+  initialRiskValues?: RiskFormValues; // New prop for initial values
+  initialMitigationValues?: MitigationFormValues; // New prop for initial values
+  onSuccess: () => void;
 }
 
 const riskInitialState: RiskFormValues = {
@@ -66,16 +77,23 @@ const mitigationInitialState: MitigationFormValues = {
  */
 const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   closePopup,
+  onSuccess,
   popupStatus,
+  initialRiskValues = riskInitialState, // Default to initial state if not provided
+  initialMitigationValues = mitigationInitialState,
 }) => {
   const theme = useTheme();
   const disableRipple =
     theme.components?.MuiButton?.defaultProps?.disableRipple;
-  
+
   const [riskErrors, setRiskErrors] = useState<RiskFormErrors>({});
-  const [migitateErrors, setMigitateErrors] = useState<MitigationFormErrors>({});
-  const [riskValues, setRiskValues] = useState<RiskFormValues>(riskInitialState);
-  const [mitigationValues, setMitigationValues] = useState<MitigationFormValues>(mitigationInitialState);
+  const [migitateErrors, setMigitateErrors] = useState<MitigationFormErrors>(
+    {}
+  );
+  const [riskValues, setRiskValues] =
+    useState<RiskFormValues>(initialRiskValues); // Use initialValues
+  const [mitigationValues, setMitigationValues] =
+    useState<MitigationFormValues>(initialMitigationValues);
   const [value, setValue] = useState("risks");
   const handleChange = useCallback(
     (_: React.SyntheticEvent, newValue: string) => {
@@ -83,6 +101,9 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     },
     []
   );
+
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get("projectId");
 
   const tabStyle = useMemo(
     () => ({
@@ -100,7 +121,12 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     const newErrors: RiskFormErrors = {};
     const newMitigationErrors: MitigationFormErrors = {};
 
-    const riskName = checkStringValidation("Risk name", riskValues.riskName, 3, 50);
+    const riskName = checkStringValidation(
+      "Risk name",
+      riskValues.riskName,
+      3,
+      50
+    );
     if (!riskName.accepted) {
       newErrors.riskName = riskName.message;
     }
@@ -131,7 +157,10 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     if (!reviewNotes.accepted) {
       newErrors.reviewNotes = reviewNotes.message;
     }
-    const actionOwner = selectValidation("Action owner", riskValues.actionOwner);
+    const actionOwner = selectValidation(
+      "Action owner",
+      riskValues.actionOwner
+    );
     if (!actionOwner.accepted) {
       newErrors.actionOwner = actionOwner.message;
     }
@@ -142,7 +171,10 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     if (!aiLifecyclePhase.accepted) {
       newErrors.aiLifecyclePhase = aiLifecyclePhase.message;
     }
-    const riskCategory = selectValidation("Risk category", riskValues.riskCategory);
+    const riskCategory = selectValidation(
+      "Risk category",
+      riskValues.riskCategory
+    );
     if (!riskCategory.accepted) {
       newErrors.riskCategory = riskCategory.message;
     }
@@ -163,7 +195,8 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
       1024
     );
     if (!implementationStrategy.accepted) {
-      newMitigationErrors.implementationStrategy = implementationStrategy.message;
+      newMitigationErrors.implementationStrategy =
+        implementationStrategy.message;
     }
     // const recommendations = checkStringValidation(
     //   "Recommendations",
@@ -219,18 +252,61 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     setMigitateErrors(newMitigationErrors);
     setRiskErrors(newErrors);
 
-    return Object.keys(newErrors).length === 0 && Object.keys(newMitigationErrors).length === 0;  // Return true if no errors exist    
+    return (
+      Object.keys(newErrors).length === 0 &&
+      Object.keys(newMitigationErrors).length === 0
+    ); // Return true if no errors exist
   }, [riskValues, mitigationValues]);
 
-  const riskFormSubmitHandler = () => {
-    // check forms validate    
-    if(validateForm()){
-      // call backend 
-      closePopup();
-    }else{
-      console.log('validation fails')
+  const riskFormSubmitHandler = async() => {
+    // check forms validate
+    if (validateForm()) {
+      const formData = {
+        "project_id": projectId,
+        "risk_name": riskValues.riskName,
+        "risk_owner": riskValues.actionOwner,
+        "ai_lifecycle_phase": riskValues.aiLifecyclePhase,
+        "risk_description": riskValues.riskDescription,
+        "risk_category": riskValues.riskCategory,
+        "impact": riskValues.potentialImpact,
+        "assessment_mapping": riskValues.assessmentMapping,
+        "controls_mapping": riskValues.controlsMapping,
+        "likelihood": riskValues.likelihood,
+        "severity": riskValues.riskSeverity,
+        "risk_level_autocalculated": riskValues.riskLevel,
+        "review_notes": riskValues.reviewNotes,
+        "mitigation_status": mitigationValues.mitigationStatus,
+        "current_risk_level": mitigationValues.currentRiskLevel,
+        "deadline": mitigationValues.deadline,
+        "mitigation_plan": mitigationValues.mitigationPlan,
+        "implementation_strategy": mitigationValues.implementationStrategy,
+        "mitigation_evidence_document": mitigationValues.doc,
+        "likelihood_mitigation": mitigationValues.likelihood,
+        "risk_severity": mitigationValues.riskSeverity,
+        "final_risk_level": "",
+        "risk_approval": mitigationValues.approver,
+        "approval_status": mitigationValues.approvalStatus,
+        "date_of_assessment": mitigationValues.dateOfAssessment
+      }
+
+      if(popupStatus !== 'new'){
+        // call update API
+      }else{        
+        try {
+          const response = await apiServices.post("/projectRisks", formData);
+          console.log(response)
+          if (response.status === 201) { 
+            closePopup();
+            onSuccess();
+          }
+        } catch (error) {
+          console.error("Error sending request", error);
+        }
+      }
+    } else {
+      console.log("validation fails");
     }
-  }
+  };
 
   return (
     <Stack>
@@ -260,16 +336,24 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         </Box>
         <Suspense fallback={<div>Loading...</div>}>
           <TabPanel value="risks" sx={{ p: "24px 0 0" }}>
-            <RiskSection riskValues={riskValues} setRiskValues={setRiskValues} riskErrors={riskErrors}/>
+            <RiskSection
+              riskValues={riskValues}
+              setRiskValues={setRiskValues}
+              riskErrors={riskErrors}
+            />
           </TabPanel>
           <TabPanel value="mitigation" sx={{ p: "24px 0 0" }}>
-            <MitigationSection mitigationValues={mitigationValues} setMitigationValues={setMitigationValues} migitateErrors={migitateErrors} />
+            <MitigationSection
+              mitigationValues={mitigationValues}
+              setMitigationValues={setMitigationValues}
+              migitateErrors={migitateErrors}
+            />
           </TabPanel>
         </Suspense>
-        <Box sx={{ display: 'flex'}}>
+        <Box sx={{ display: "flex" }}>
           <Button
-            type="submit" 
-            onClick={riskFormSubmitHandler}           
+            type="submit"
+            onClick={riskFormSubmitHandler}
             variant="contained"
             disableRipple={
               theme.components?.MuiButton?.defaultProps?.disableRipple

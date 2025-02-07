@@ -2,11 +2,12 @@ import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 const initialState = {
 	isLoading: false,
-	authToken: "",
+	authToken:"",
 	user: "",
 	userExists: false,
 	success: null as boolean | null,
 	message: null as string | null,
+	expirationDate: null as number | null,
 };
 
 export const register = createAsyncThunk(
@@ -132,10 +133,14 @@ const authSlice = createSlice({
 			state.isLoading = false;
 			state.success = true;
 			state.message = "Logged out successfully";
+			state.expirationDate = null;
 		},
 		setAuthToken: (state, action: PayloadAction<string>) => {
-			debugger
 			state.authToken = action.payload;
+
+		},
+		setExpiration: (state, action: PayloadAction<number | null>) => {
+			state.expirationDate = action.payload
 		},
 		setUserExists: (state, action: PayloadAction<boolean>) => {
 			state.userExists = action.payload;
@@ -195,6 +200,6 @@ const authSlice = createSlice({
 	},
 });
 
-export const { clearAuthState, setAuthToken, setUserExists } =
+export const { clearAuthState, setAuthToken, setUserExists, setExpiration } =
 	authSlice.actions;
 export default authSlice.reducer;

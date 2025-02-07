@@ -20,7 +20,6 @@ import {
 import bcrypt from "bcrypt";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { generateToken } from "../utils/jwt.util";
-import { MOCKDATA_ON } from "../flags";
 
 async function getAllUsers(req: Request, res: Response): Promise<any> {
   try {

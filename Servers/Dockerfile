@@ -7,6 +7,8 @@ RUN npm install
 COPY ./ ./
 RUN npm run build
 
+COPY ./templates ./dist/templates
+
 EXPOSE 3000
 
 CMD ["npm", "start"]

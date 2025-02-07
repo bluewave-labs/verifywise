@@ -5,11 +5,13 @@ import DatePicker from "../Datepicker";
 import Field from "../Field";
 import { Dayjs } from "dayjs";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
+import { formatDate } from "../../../tools/isoDateToString";
 
 // Add interface for user type
 export interface User {
   id: number;
   name: string;
+  surname: string;
   email: string;
 }
 
@@ -17,25 +19,27 @@ interface DropDownsProps {
   elementId?: string;
   state?: any;
   setState?: (newState: any) => void;
+  isControl: boolean;
 }
 
 const DropDowns: React.FC<DropDownsProps> = ({
   elementId,
   state = {},
   setState,
+  isControl,
 }) => {
   const [status, setStatus] = useState<string | number>(state?.status || "");
-  const [approver, setApprover] = useState<string | number>(
-    state?.approver || ""
-  );
-  const [riskReview, setRiskReview] = useState<string | number>(
-    state?.riskReview || ""
-  );
-  const [owner, setOwner] = useState<string | number>(state?.owner || "");
-  const [reviewer, setReviewer] = useState<string | number>(
-    state?.reviewer || ""
-  );
+  const [approver, setApprover] = useState(state?.approver || "");
+  const [riskReview, setRiskReview] = useState(state?.riskReview || "");
+  const [owner, setOwner] = useState(state?.owner || "");
+  const [reviewer, setReviewer] = useState(state?.reviewer || "");
   const [date, setDate] = useState<Dayjs | null>(state?.date || null);
+  const [controlDescription, setControlDescription] = useState(
+    state?.controlDescription || ""
+  );
+  const [subControlDescription, setsubControlDescription] = useState(
+    state?.subControlDescription || ""
+  );
   const theme = useTheme();
 
   const inputStyles = {
@@ -58,7 +62,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
   const handleChange = (e: SelectChangeEvent<string | number>) => {
     const selectedValue = e.target.value;
     const selectedUser = users.find((user) => user.id === selectedValue);
-    console.log(selectedUser);
+    console.log("selectedUser : ", selectedUser);
     setApprover(selectedValue);
 
     // Update the state in the parent component
@@ -106,7 +110,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
           value={approver || ""}
           onChange={handleChange}
           items={users.map((user) => ({
-            _id: user.id,
+            _id: `${user.name} ${user.surname}`,
             name: user.name,
           }))}
           sx={inputStyles}
@@ -151,7 +155,10 @@ const DropDowns: React.FC<DropDownsProps> = ({
               setState({ ...state, owner: e.target.value });
             }
           }}
-          items={users.map((user) => ({ _id: user.id, name: user.name }))}
+          items={users.map((user) => ({
+            _id: `${user.name} ${user.surname}`,
+            name: user.name,
+          }))}
           sx={inputStyles}
           placeholder="Select owner"
         />
@@ -166,7 +173,10 @@ const DropDowns: React.FC<DropDownsProps> = ({
               setState({ ...state, reviewer: e.target.value });
             }
           }}
-          items={users.map((user) => ({ _id: user.id, name: user.name }))}
+          items={users.map((user) => ({
+            _id: `${user.name} ${user.surname}`,
+            name: user.name,
+          }))}
           sx={inputStyles}
           placeholder="Select reviewer"
         />
@@ -177,8 +187,11 @@ const DropDowns: React.FC<DropDownsProps> = ({
           date={date}
           handleDateChange={(newDate) => {
             setDate(newDate);
-            if (setState) {
-              setState({ ...state, date: newDate });
+            if (setState && newDate) {
+              setState({
+                ...state,
+                date: formatDate(newDate.format("YYYY-MM-DD")),
+              });
             }
           }}
         />
@@ -200,12 +213,36 @@ const DropDowns: React.FC<DropDownsProps> = ({
           marginBottom: theme.spacing(4),
         }}
       >
-        <Field
-          type="description"
-          sx={{
-            cursor: "text",
-          }}
-        />
+        {" "}
+        {isControl ? (
+          <Field
+            type="description"
+            sx={{
+              cursor: "text",
+            }}
+            value={controlDescription}
+            onChange={(e) => {
+              setControlDescription(e.target.value);
+              if (setState) {
+                setState({ ...state, description: e.target.value });
+              }
+            }}
+          />
+        ) : (
+          <Field
+            type="description"
+            sx={{
+              cursor: "text",
+            }}
+            value={subControlDescription}
+            onChange={(e) => {
+              setsubControlDescription(e.target.value);
+              if (setState) {
+                setState({ ...state, subControlDescription: e.target.value });
+              }
+            }}
+          />
+        )}
       </Stack>
     </Stack>
   );

@@ -38,7 +38,7 @@ export const createNewControlQuery = async (control: {
       control.reviewer,
       control.dueDate,
       control.implementationDetails,
-      control.controlGroup
+      control.controlGroup,
     ]
   );
   return result.rows[0];
@@ -92,7 +92,7 @@ export const updateControlByIdQuery = async (
   }
   if (control.controlGroup !== undefined) {
     fields.push(`control_group = $${fields.length + 1}`);
-    values.push(control.controlGroup)
+    values.push(control.controlGroup);
   }
 
   query += fields.join(", ");

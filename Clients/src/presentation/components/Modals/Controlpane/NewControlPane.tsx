@@ -98,11 +98,11 @@ const NewControlPane = ({
       id: id,
       controlTitle: initialValues?.control?.controlTitle || "",
       controlDescription: initialValues?.control?.controlDescription || "",
-      status: initialValues?.control?.status || "Choose status", // Set default value
-      approver: initialValues?.control?.approver || "Choose approver", // Set default value
-      riskReview: initialValues?.control?.riskReview || "Acceptable risk", // Set default value
-      owner: initialValues?.control?.owner || "Choose owner", // Set default value
-      reviewer: initialValues?.control?.reviewer || "Choose reviewer", // Set default value
+      status: initialValues?.control?.status || "",
+      approver: initialValues?.control?.approver || "",
+      riskReview: initialValues?.control?.riskReview || "",
+      owner: initialValues?.control?.owner || "",
+      reviewer: initialValues?.control?.reviewer || "",
       description: initialValues?.control?.description || "",
       date: initialValues?.control?.date || null,
     },
@@ -172,9 +172,11 @@ const NewControlPane = ({
     const controlToSave = {
       controlCategoryTitle: controlCategory,
       control: state,
-      projectId: dashboardValues.selectedProjectId,
+      projectId:
+        dashboardValues.selectedProjectId ||
+        parseInt(localStorage.getItem("selectedProjectId") || "0", 10),
     };
-
+    console.log("controlToSave : ", controlToSave);
     try {
       const response = await apiServices.post(
         "/controls/saveControls",
@@ -235,7 +237,12 @@ const NewControlPane = ({
         <DropDowns
           elementId={`control-${id}`}
           state={initialValues?.control}
-          setState={(newState) => setState({ ...state, ...newState })}
+          setState={(newState) =>
+            setState((prevState) => ({
+              ...prevState,
+              control: { ...prevState.control, ...newState },
+            }))
+          } // Update the control state correctly
         />
         {/* this is working fine */}
         <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />

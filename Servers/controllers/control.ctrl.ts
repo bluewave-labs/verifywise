@@ -135,15 +135,17 @@ export async function saveControls(
 ): Promise<any> {
   try {
     const projectId = req.body.projectId;
-
+    console.log("1");
     if (!projectId) {
       res
         .status(400)
         .json(STATUS_CODE[400]({ message: "project_id is required" }));
     }
+    console.log("2");
 
     // first the id of the project is needed and will be sent inside the req.body
     const controlCategoryTitle = req.body.controlCategoryTitle;
+    console.log("3");
 
     // then we need to create the control category and use the projectId as the foreign key
     const controlCategory: any = await createControlCategoryQuery({
@@ -151,8 +153,12 @@ export async function saveControls(
       name: controlCategoryTitle,
     });
 
+    console.log("4");
+
     const controlCategoryId = controlCategory.id;
-    const requestControl = JSON.parse(req.body.control);
+    console.log("5");
+    const requestControl = req.body.control.control;
+    console.log("6");
 
     // now we need to create the control for the control category, and use the control category id as the foreign key
     const control: any = await createNewControlQuery({
@@ -165,12 +171,15 @@ export async function saveControls(
       implementationDetails: requestControl.description,
       controlGroup: controlCategoryId,
     });
+    console.log("7");
 
     const controlId = control.id;
 
     // now we need to iterate over subcontrols inside the control, and create a subcontrol for each subcontrol
-    const subcontrols = requestControl.subControls;
+    const subcontrols = req.body.control.subControls;
     const subControlResp = [];
+
+    console.log("8");
     for (const subcontrol of subcontrols) {
       const subcontrolToSave: any = await createNewSubcontrolQuery(
         controlId,
@@ -179,18 +188,22 @@ export async function saveControls(
           req.files as {
             [key: string]: UploadedFile[];
           }
-        ).evidenceFiles || [],
+        )?.evidenceFiles || [],
         (
           req.files as {
             [key: string]: UploadedFile[];
           }
-        ).feedbackFiles || []
+        )?.feedbackFiles || []
       );
       subControlResp.push(subcontrolToSave);
     }
+
+    console.log("9");
     const response = {
       ...{ controlCategory, ...{ control, subControls: subControlResp } },
     };
+
+    console.log("10");
     return res.status(200).json(
       STATUS_CODE[200]({
         message: response,

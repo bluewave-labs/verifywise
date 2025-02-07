@@ -19,18 +19,22 @@ interface DropDownsProps {
   setState?: (newState: any) => void;
 }
 
-const DropDowns: React.FC<DropDownsProps> = ({ elementId, state = {} }) => {
-  const [status, setStatus] = useState<string | number>(state?.status || ""); // Default to empty string
+const DropDowns: React.FC<DropDownsProps> = ({
+  elementId,
+  state = {},
+  setState,
+}) => {
+  const [status, setStatus] = useState<string | number>(state?.status || "");
   const [approver, setApprover] = useState<string | number>(
     state?.approver || ""
-  ); // Default to empty string
+  );
   const [riskReview, setRiskReview] = useState<string | number>(
     state?.riskReview || ""
-  ); // Default to empty string
-  const [owner, setOwner] = useState<string | number>(state?.owner || ""); // Default to empty string
+  );
+  const [owner, setOwner] = useState<string | number>(state?.owner || "");
   const [reviewer, setReviewer] = useState<string | number>(
     state?.reviewer || ""
-  ); // Default to empty string
+  );
   const [date, setDate] = useState<Dayjs | null>(state?.date || null);
   const theme = useTheme();
 
@@ -39,10 +43,6 @@ const DropDowns: React.FC<DropDownsProps> = ({ elementId, state = {} }) => {
     maxWidth: 400,
     flexGrow: 1,
     height: 34,
-  };
-
-  const handleDateChange = (newDate: Dayjs | null) => {
-    setDate(newDate);
   };
 
   const [users, setUsers] = useState<User[]>([]);
@@ -60,6 +60,11 @@ const DropDowns: React.FC<DropDownsProps> = ({ elementId, state = {} }) => {
     const selectedUser = users.find((user) => user.id === selectedValue);
     console.log(selectedUser);
     setApprover(selectedValue);
+
+    // Update the state in the parent component
+    if (setState) {
+      setState({ ...state, approver: selectedValue });
+    }
   };
 
   return (
@@ -80,7 +85,12 @@ const DropDowns: React.FC<DropDownsProps> = ({ elementId, state = {} }) => {
           id="status"
           label="Status:"
           value={status}
-          onChange={(e) => setStatus(e.target.value)}
+          onChange={(e) => {
+            setStatus(e.target.value);
+            if (setState) {
+              setState({ ...state, status: e.target.value });
+            }
+          }}
           items={[
             { _id: "Waiting", name: "Waiting" },
             { _id: "In progress", name: "In progress" },
@@ -107,7 +117,12 @@ const DropDowns: React.FC<DropDownsProps> = ({ elementId, state = {} }) => {
           id="Risk review"
           label="Risk review:"
           value={riskReview}
-          onChange={(e) => setRiskReview(e.target.value)}
+          onChange={(e) => {
+            setRiskReview(e.target.value);
+            if (setState) {
+              setState({ ...state, riskReview: e.target.value });
+            }
+          }}
           items={[
             { _id: "Acceptable risk", name: "Acceptable risk" },
             { _id: "Residual risk", name: "Residual risk" },
@@ -130,7 +145,12 @@ const DropDowns: React.FC<DropDownsProps> = ({ elementId, state = {} }) => {
           id="Owner"
           label="Owner:"
           value={owner}
-          onChange={(e) => setOwner(e.target.value)}
+          onChange={(e) => {
+            setOwner(e.target.value);
+            if (setState) {
+              setState({ ...state, owner: e.target.value });
+            }
+          }}
           items={users.map((user) => ({ _id: user.id, name: user.name }))}
           sx={inputStyles}
           placeholder="Select owner"
@@ -140,7 +160,12 @@ const DropDowns: React.FC<DropDownsProps> = ({ elementId, state = {} }) => {
           id="Reviewer"
           label="Reviewer:"
           value={reviewer}
-          onChange={(e) => setReviewer(e.target.value)}
+          onChange={(e) => {
+            setReviewer(e.target.value);
+            if (setState) {
+              setState({ ...state, reviewer: e.target.value });
+            }
+          }}
           items={users.map((user) => ({ _id: user.id, name: user.name }))}
           sx={inputStyles}
           placeholder="Select reviewer"
@@ -150,7 +175,12 @@ const DropDowns: React.FC<DropDownsProps> = ({ elementId, state = {} }) => {
           label="Due date:"
           sx={inputStyles}
           date={date}
-          handleDateChange={handleDateChange}
+          handleDateChange={(newDate) => {
+            setDate(newDate);
+            if (setState) {
+              setState({ ...state, date: newDate });
+            }
+          }}
         />
       </Stack>
 

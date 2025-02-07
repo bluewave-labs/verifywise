@@ -44,7 +44,7 @@ const NewControlPane = ({
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [initialValues, setInitialValues] = useState<State | null>(null);
+  const [initialValues, setInitialValues] = useState<State>();
   const { dashboardValues } = useContext(VerifyWiseContext);
 
   useEffect(() => {
@@ -96,15 +96,15 @@ const NewControlPane = ({
   const [state, setState] = useState<State>({
     control: {
       id: id,
-      controlTitle: title,
-      controlDescription: content,
-      status: "Choose status", // Set default value
-      approver: "Choose approver", // Set default value
-      riskReview: "Acceptable risk", // Set default value
-      owner: "Choose owner", // Set default value
-      reviewer: "Choose reviewer", // Set default value
-      description: "",
-      date: null,
+      controlTitle: initialValues?.control?.controlTitle || "",
+      controlDescription: initialValues?.control?.controlDescription || "",
+      status: initialValues?.control?.status || "Choose status", // Set default value
+      approver: initialValues?.control?.approver || "Choose approver", // Set default value
+      riskReview: initialValues?.control?.riskReview || "Acceptable risk", // Set default value
+      owner: initialValues?.control?.owner || "Choose owner", // Set default value
+      reviewer: initialValues?.control?.reviewer || "Choose reviewer", // Set default value
+      description: initialValues?.control?.description || "",
+      date: initialValues?.control?.date || null,
     },
     subControls: initialSubControlState,
   });

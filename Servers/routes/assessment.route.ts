@@ -7,6 +7,7 @@ import {
   createAssessment,
   deleteAssessmentById,
   getAllAssessments,
+  getAnswers,
   getAssessmentById,
   saveAnswers,
   updateAnswers,
@@ -17,6 +18,7 @@ import authenticateJWT from "../middleware/auth.middleware";
 
 // GET requests
 router.get("/", /*authenticateJWT, */ getAllAssessments);
+router.get("/getAnswers/:id", getAnswers);
 router.get("/:id", /*authenticateJWT, */ getAssessmentById);
 
 // POSTs

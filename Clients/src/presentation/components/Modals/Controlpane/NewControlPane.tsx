@@ -11,12 +11,13 @@ import {
 } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import DropDowns from "../../Inputs/Dropdowns";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { State, SubControlState } from "./paneInterfaces";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 const NewControlPane = ({
   id,
@@ -44,6 +45,7 @@ const NewControlPane = ({
   const [activeSection, setActiveSection] = useState<string>("Overview");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [initialValues, setInitialValues] = useState<State | null>(null);
+  const { dashboardValues } = useContext(VerifyWiseContext);
 
   useEffect(() => {
     const fetchControl = async () => {
@@ -51,6 +53,7 @@ const NewControlPane = ({
         const response = await getEntityById({
           routeUrl: `/controls/compliance/${id}`,
         });
+        console.log("response.data ", response.data);
         setInitialValues(response.data);
       } catch (error) {
         console.error("Error fetching control:", error);
@@ -162,14 +165,19 @@ const NewControlPane = ({
   };
 
   const confirmSave = async () => {
+    console.log(
+      "projectId: dashboardValues.selectedProjectId",
+      dashboardValues.selectedProjectId
+    );
     const controlToSave = {
       controlCategoryTitle: controlCategory,
       control: state,
+      projectId: dashboardValues.selectedProjectId,
     };
 
     try {
       const response = await apiServices.post(
-        "/projects/saveControls",
+        "/controls/saveControls",
         controlToSave
       );
       console.log("Controls saved successfully:", response);

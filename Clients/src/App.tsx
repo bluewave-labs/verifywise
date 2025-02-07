@@ -34,6 +34,7 @@ import { extractUserToken } from "./application/tools/extractToken"; // Import t
 
 function App() {
 	const mode = useSelector((state: any) => state.ui?.mode || "light");
+  const token = useSelector((state: { auth: { authToken: string } }) => state.auth.authToken);
 
 	const [uiValues, setUiValues] = useState<unknown | undefined>({}); // responsible for things like: Sidebar, light/dark mode, etc.
 	const [authValues, setAuthValues] = useState<unknown | undefined>({}); // for user authentication
@@ -51,7 +52,6 @@ function App() {
 		vendors: [],
 	});
 	const [inputValues, setInputValues] = useState<unknown | undefined>({}); // for the input fields
-	const [token, setToken] = useState<string | null>("");
 	const [triggerSidebar, setTriggerSidebar] = useState(false);
 
 	// Extract userId from token
@@ -61,14 +61,6 @@ function App() {
 		loading: loadingProjectStatus,
 		error: errorFetchingProjectStatus,
 	} = useProjectStatus({ userId });
-
-	const login = (token: string) => {
-		setToken(token);
-	};
-
-	const logout = () => {
-		setToken(null);
-	};
 
 	const [currentProjectId, setCurrentProjectId] = useState<string | null>("");
 
@@ -83,13 +75,12 @@ function App() {
 			inputValues,
 			setInputValues,
 			token,
-			login,
-			logout,
 			projectStatus,
 			loadingProjectStatus,
 			errorFetchingProjectStatus,
 			currentProjectId,
-			setCurrentProjectId
+			setCurrentProjectId,
+      userId
 		}),
 		[
 			uiValues,
@@ -101,13 +92,12 @@ function App() {
 			inputValues,
 			setInputValues,
 			token,
-			login,
-			logout,
 			projectStatus,
 			loadingProjectStatus,
 			errorFetchingProjectStatus,
 			currentProjectId,
-			setCurrentProjectId
+			setCurrentProjectId,
+      userId
 		]
 	);
 

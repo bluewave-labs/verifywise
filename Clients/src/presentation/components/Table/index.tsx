@@ -197,8 +197,8 @@ const BasicTable = ({
                 >
                   {label === "Project risk" ? (
                     <>
-                      <TableCell>{row.risk_name}</TableCell>
-                      <TableCell>{row.impact}</TableCell>
+                      <TableCell>{(row.risk_name.length > 30) ? row.risk_name.slice(0, 30) + `...` : row.risk_name}</TableCell>
+                      <TableCell>{(row.impact.length > 30) ? row.impact.slice(0, 30) + `...` : row.impact}</TableCell>
                       <TableCell>{row.risk_owner}</TableCell>
                       <TableCell>{row.severity}</TableCell>
                       <TableCell>{row.likelihood}</TableCell>
@@ -209,7 +209,7 @@ const BasicTable = ({
                   ) : (
                     <>
                       <TableCell>{row.vendor_name}</TableCell>
-                      <TableCell>{row.risk_name}</TableCell>
+                      <TableCell>{(row.risk_name.length > 30) ? row.risk_name.slice(0,30) + `...` : row.risk_name}</TableCell>
                       <TableCell>{row.owner}</TableCell>
                       <TableCell>{row.risk_level}</TableCell>
                       <TableCell>

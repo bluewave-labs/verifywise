@@ -258,6 +258,42 @@ paths:
                   example: internal server error
                 error:
                   type: object
+  /assessments/getAnswers/{id}:
+    get:
+      tags: [assessments]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the assessment
+      responses:
+        "200":
+          description: assessment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#components/schemas/Assessment"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
 
   /controls:
     get:
@@ -4792,3 +4828,26 @@ components:
           type: string
           format: date-time
           example: "2024-10-20T00:00:00.000Z"
+    AssessmentTracker:
+      allOf:
+        - $ref: '#/components/schemas/Assessment'
+      type: object  # Define the type explicitly
+      properties:
+        topics:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/Topic'
+            type: object  # Explicitly define the type
+            properties:
+              subtopics:
+                type: array
+                items:
+                  allOf:
+                    - $ref: '#/components/schemas/SubTopic'
+                  type: object  # Explicitly define the type
+                  properties:
+                    questions:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Question'

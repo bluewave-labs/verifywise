@@ -11,12 +11,13 @@ import {
 } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import DropDowns from "../../Inputs/Dropdowns";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { State, SubControlState } from "./paneInterfaces";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 const NewControlPane = ({
   id,
@@ -44,6 +45,7 @@ const NewControlPane = ({
   const [activeSection, setActiveSection] = useState<string>("Overview");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [initialValues, setInitialValues] = useState<State | null>(null);
+  const { dashboardValues } = useContext(VerifyWiseContext);
 
   useEffect(() => {
     const fetchControl = async () => {
@@ -51,6 +53,7 @@ const NewControlPane = ({
         const response = await getEntityById({
           routeUrl: `/controls/compliance/${id}`,
         });
+        console.log("response.data ", response.data);
         setInitialValues(response.data);
       } catch (error) {
         console.error("Error fetching control:", error);
@@ -71,18 +74,22 @@ const NewControlPane = ({
       subControlDescription:
         initialValues?.subControls[index]?.subControlDescription ||
         subControl.description,
-      status: initialValues?.subControls[index]?.status || "Choose status", // Set default value
+      status: initialValues?.subControls[index]?.status || subControl.status, // Set default value
       approver:
-        initialValues?.subControls[index]?.approver || "Choose approver", // Set default value
+        initialValues?.subControls[index]?.approver || subControl.approver, // Set default value
       riskReview:
-        initialValues?.subControls[index]?.riskReview || "Acceptable risk", // Set default value
-      owner: initialValues?.subControls[index]?.owner || "Choose owner", // Set default value
+        initialValues?.subControls[index]?.riskReview || subControl.riskReview, // Set default value
+      owner: initialValues?.subControls[index]?.owner || subControl.owner, // Set default value
       reviewer:
-        initialValues?.subControls[index]?.reviewer || "Choose reviewer", // Set default value
-      description: initialValues?.subControls[index]?.description || "",
-      date: initialValues?.subControls[index]?.date || null,
-      evidence: initialValues?.subControls[index]?.evidence || "",
-      feedback: initialValues?.subControls[index]?.feedback || "",
+        initialValues?.subControls[index]?.reviewer || subControl.reviewer, // Set default value
+      description:
+        initialValues?.subControls[index]?.description ||
+        subControl.description,
+      date: initialValues?.subControls[index]?.date || subControl.date,
+      evidence:
+        initialValues?.subControls[index]?.evidence || subControl.evidence,
+      feedback:
+        initialValues?.subControls[index]?.feedback || subControl.feedback,
     })
   );
 
@@ -158,14 +165,19 @@ const NewControlPane = ({
   };
 
   const confirmSave = async () => {
+    console.log(
+      "projectId: dashboardValues.selectedProjectId",
+      dashboardValues.selectedProjectId
+    );
     const controlToSave = {
       controlCategoryTitle: controlCategory,
       control: state,
+      projectId: dashboardValues.selectedProjectId,
     };
 
     try {
       const response = await apiServices.post(
-        "/projects/saveControls",
+        "/controls/saveControls",
         controlToSave
       );
       console.log("Controls saved successfully:", response);

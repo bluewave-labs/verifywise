@@ -1,12 +1,11 @@
 import { Button, Stack, Typography, useTheme } from "@mui/material";
-import React, { Suspense, useContext, useState } from "react";
+import React, { Suspense, useState } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Checkbox from "../../../components/Inputs/Checkbox";
 import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../../../../application/repository/entity.repository";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import { logEngine } from "../../../../application/tools/log.engine";
 import { useDispatch } from "react-redux";
 import { setAuthToken } from "../../../../application/authentication/authSlice";
@@ -30,7 +29,6 @@ const initialState: FormValues = {
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useContext(VerifyWiseContext);
   const dispatch = useDispatch();
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
@@ -73,16 +71,15 @@ const Login: React.FC = () => {
           const token = response.data.data.token;
 
           //handle remember me logic for 30 days
-        if (values.rememberMe){
-          const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
-          dispatch(setAuthToken(token)); // Dispatch the action to set the token in Redux state
-          dispatch(setExpiration(expirationDate))
-        } else{
-          dispatch(setAuthToken(token));
-          dispatch(setExpiration(null));
-        }
+          if (values.rememberMe) {
+            const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
+            dispatch(setAuthToken(token)); // Dispatch the action to set the token in Redux state
+            dispatch(setExpiration(expirationDate));
+          } else {
+            dispatch(setAuthToken(token));
+            dispatch(setExpiration(null));
+          }
 
-        login(token);
           logEngine({
             type: "info",
             message: "Login successful.",
@@ -277,35 +274,6 @@ const Login: React.FC = () => {
             >
               Sign in
             </Button>
-            <Stack
-              sx={{
-                mt: theme.spacing(20),
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <Typography
-                sx={{
-                  fontSize: 13,
-                  color: theme.palette.secondary.contrastText,
-                }}
-              >
-                Don't have an account?{" "}
-                <span
-                  style={{
-                    color: theme.palette.primary.main,
-                    fontWeight: "bold",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => {
-                    navigate("/user-reg");
-                  }}
-                >
-                  Sign up
-                </span>
-              </Typography>
-            </Stack>
           </Stack>
         </Stack>
       </form>

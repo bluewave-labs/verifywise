@@ -151,12 +151,15 @@ const ProfileForm: React.FC = () => {
           isToast: true,
           visible: true,
         });
+        setTimeout(() => {
+          setAlert((prev) => ({ ...prev, visible: false }));
+        }, 3000); // Alert will disappear after 3 seconds
         return;
       }
       // const userId = localStorage.getItem("userId") || "1";
       const updatedUser = {
-        firstname,
-        lastname,
+        name: firstname,
+        surname: lastname,
         email,
         pathToImage: profilePhoto,
       };
@@ -173,6 +176,9 @@ const ProfileForm: React.FC = () => {
         isToast: true,
         visible: true,
       });
+      setTimeout(() => {
+        setAlert((prev) => ({ ...prev, visible: false }));
+      }, 3000); // Alert will disappear after 3 seconds
     } catch (error) {
       logEngine({
         type: "error",
@@ -191,6 +197,9 @@ const ProfileForm: React.FC = () => {
         isToast: true,
         visible: true,
       });
+      setTimeout(() => {
+        setAlert((prev) => ({ ...prev, visible: false }));
+      }, 3000); // Alert will disappear after 3 seconds
     }
   }, [
     firstname,

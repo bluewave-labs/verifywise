@@ -13,16 +13,36 @@
  * <InviteUserModal isOpen={isOpen} setIsOpen={setIsOpen} onSendInvite={handleSendInvite} />
  */
 
-import { Button, Modal, Stack, Typography, useTheme } from "@mui/material";
+import { Button, Modal, Stack, Typography, useTheme, SelectChangeEvent } from "@mui/material";
 import React, { useState } from "react";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
+import { apiServices } from "../../../../infrastructure/api/networkServices";
+import { checkStringValidation } from "../../../../application/validations/stringValidation";
 
 interface InviteUserModalProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  onSendInvite: (email: string, role: string) => void;
+  onSendInvite: (email: string, status: number | string) => void;
 }
+
+interface FormValues {
+  name: string;
+  email: string;
+  role: string;
+}
+
+interface FormErrors {
+  name?: string;
+  email?: string;
+  role?: string;
+}
+
+const initialState: FormValues = {
+  name: "",
+  email: "",
+  role: ""
+};
 
 const InviteUserModal: React.FC<InviteUserModalProps> = ({
   isOpen,
@@ -31,12 +51,57 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
 }) => {
   const theme = useTheme();
 
-  const [email, setEmail] = useState<string>("");
-  const [role, setRole] = useState<string>("");
+  const [values, setValues] = useState<FormValues>(initialState)
+  const [errors, setErrors] = useState<FormErrors>({}); 
 
-  const handleSendInvite = () => {
-    onSendInvite(email, role);
-    setIsOpen(false);
+  const handleFormFieldChange =
+    (prop: keyof FormValues) =>
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setValues({ ...values, [prop]: event.target.value });
+      setErrors({ ...errors, [prop]: "" });
+  };
+
+  const handleOnSelectChange =
+  (prop: keyof FormValues) => (event: SelectChangeEvent<string | number>) => {
+    setValues({ ...values, [prop]: event.target.value });
+    setErrors({ ...errors, [prop]: "" });
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    const name = checkStringValidation("Name", values.name, 1, 64);
+    if (!name.accepted) {
+      newErrors.name = name.message;
+    }
+
+    const email = checkStringValidation("Email", values.email, 1, 64);
+    if (!email.accepted) {
+      newErrors.email = email.message;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }
+
+  const handleSendInvitation = async() => {
+    if(validateForm()){
+      const formData = {
+        "to": values.email,
+        "email": values.email,
+        "name": values.name,
+        "role": values.role
+      }
+
+      try {
+        const response = await apiServices.post("/mail/invite", formData);        
+        onSendInvite(values.email, response.status);
+      } catch (error) {
+        onSendInvite(values.email, "error");
+      }finally{
+        setIsOpen(false);
+      }
+    }
   };
 
   return (
@@ -63,7 +128,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
           borderRadius: theme.shape.borderRadius,
           boxShadow: 24,
           p: theme.spacing(4),
-          padding: theme.spacing(12),
+          padding: theme.spacing(18),
           "&:focus": {
             outline: "none",
           },
@@ -80,33 +145,44 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
         >
           When you add a new team member, they will get access to all monitors.
         </Typography>
-        <Field
-          placeholder="Email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          isRequired
-          sx={{
-            marginBottom: theme.spacing(4),
-          }}
-        />
-        <Select
-          id="role-select"
-          value={role}
-          onChange={(e) => setRole(e.target.value as string)}
-          items={[
-            { _id: "administrator", name: "Administrator" },
-            { _id: "reviewer", name: "Reviewer" },
-            { _id: "editor", name: "Editor" },
-          ]}
-          sx={{ mt: theme.spacing(2) }}
-          placeholder="Please select a role"
-        />
+        <Stack 
+          gap={theme.spacing(12)}
+        >
+          <Field
+            placeholder="Name"
+            type="name"
+            value={values.name}
+            onChange={handleFormFieldChange("name")}
+            isRequired
+            error={errors.name}
+          />
+          <Field
+            placeholder="Email"
+            type="email"
+            value={values.email}
+            onChange={handleFormFieldChange("email")}
+            isRequired
+            error={errors.email}
+          />
+          <Select
+            id="role-select"
+            value={values.role}
+            onChange={handleOnSelectChange("role")}
+            items={[
+              { _id: "administrator", name: "Administrator" },
+              { _id: "reviewer", name: "Reviewer" },
+              { _id: "editor", name: "Editor" },
+            ]}
+            placeholder="Please select a role"
+            error={errors.role}
+          />
+        </Stack>
         <Stack
           direction="row"
           gap={theme.spacing(4)}
           mt={theme.spacing(4)}
           justifyContent="flex-end"
+          paddingTop={theme.spacing(8)}
           paddingBottom={theme.spacing(4)}
         >
           <Button
@@ -133,9 +209,10 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
             disableRipple
             disableFocusRipple
             disableTouchRipple
+            type="submit"
             variant="contained"
             color="primary"
-            disabled={!email || !role}
+            // disabled={!email || !role}
             sx={{
               width: 140,
               textTransform: "capitalize",
@@ -146,7 +223,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
                 boxShadow: "none",
               },
             }}
-            onClick={handleSendInvite}
+            onClick={handleSendInvitation}
           >
             Send Invite
           </Button>

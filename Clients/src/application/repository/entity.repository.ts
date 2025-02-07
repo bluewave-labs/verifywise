@@ -99,7 +99,7 @@ export async function updateEntityById({
   authToken = getAuthToken(),
 }: RequestParams): Promise<any> {
   try {
-    const response = await apiServices.put(routeUrl, body, {
+    const response = await apiServices.patch(routeUrl, body, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
     console.log(
@@ -153,7 +153,6 @@ export async function getAllEntities({
     const response = await apiServices.get(routeUrl, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
-    console.log("response ==> ", response);
     return response.data;
   } catch (error) {
     console.error("Error getting all users:", error);
@@ -190,7 +189,9 @@ export async function checkUserExists({
  * @returns {Promise<any>} A promise that resolves to the response data.
  * @throws Will throw an error if the request fails.
  */
-export async function postAutoDrivers(authToken = getAuthToken()): Promise<any> {
+export async function postAutoDrivers(
+  authToken = getAuthToken()
+): Promise<any> {
   try {
     const response = await apiServices.post("/autoDrivers", {
       headers: { Authorization: `Bearer ${authToken}` },
@@ -216,7 +217,7 @@ export async function resetPassword({
 
 /**
  * Fetches all users from the database.
- * 
+ *
  * @param {RequestParams} params - The parameters for the request.
  * @returns {Promise<any>} A promise that resolves to the list of users.
  * @throws Will throw an error if the request fails.

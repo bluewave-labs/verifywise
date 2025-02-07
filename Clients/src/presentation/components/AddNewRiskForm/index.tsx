@@ -2,7 +2,7 @@ import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import { Box, Stack, Tab, useTheme, Typography, Button } from "@mui/material";
-import { FC, useState, useCallback, useMemo, lazy, Suspense, useContext } from "react";
+import { FC, useState, useCallback, useMemo, lazy, Suspense, useContext, useEffect } from "react";
 import "./styles.module.css";
 import { Likelihood, Severity } from "../RiskLevel/constants";
 import {
@@ -17,6 +17,8 @@ import selectValidation from "../../../application/validations/selectValidation"
 
 import { apiServices } from "../../../infrastructure/api/networkServices";
 import { useSearchParams } from "react-router-dom";
+import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import dayjs from "dayjs";
 
 const RiskSection = lazy(() => import("./RisksSection"));
 const MitigationSection = lazy(() => import("./MitigationSection"));
@@ -104,6 +106,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
 
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId");
+  const {inputValues} = useContext(VerifyWiseContext);
 
   const tabStyle = useMemo(
     () => ({
@@ -116,6 +119,44 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     }),
     []
   );
+
+  useEffect(() => {
+    if(popupStatus === 'edit'){
+      // riskData
+      const currentRiskData: RiskFormValues = {
+        ...riskInitialState,
+        riskName: inputValues.risk_name ?? "",   
+        actionOwner: parseInt(inputValues.risk_owner) ?? 0,
+        riskDescription: inputValues.risk_description ?? "",         
+        aiLifecyclePhase: parseInt(inputValues.ai_lifecycle_phase) ?? 0,        
+        riskCategory: parseInt(inputValues.risk_category) ?? 0,
+        potentialImpact: inputValues.impact ?? "",
+        assessmentMapping: inputValues.assessment_mapping,
+        controlsMapping: inputValues.controlsMapping,
+        likelihood: parseInt(inputValues.likelihood) ?? 0,
+        riskSeverity: parseInt(inputValues.severity) ?? 0,
+        riskLevel: inputValues.riskLevel,
+        reviewNotes: inputValues.review_notes ?? "",
+      };
+
+      const currentMitigationData: MitigationFormValues = {
+        ...mitigationInitialState,
+        mitigationStatus: parseInt(inputValues.mitigation_status) ?? 0,
+        mitigationPlan: inputValues.mitigation_plan,
+        currentRiskLevel: parseInt(inputValues.current_risk_level) ?? 0,
+        implementationStrategy: inputValues.implementation_strategy,
+        deadline: inputValues.deadline ? dayjs(inputValues.deadline).toISOString() : "",
+        doc: inputValues.mitigation_evidence_document,
+        likelihood: parseInt(inputValues.likelihood_mitigation) ?? 0,
+        riskSeverity: parseInt(inputValues.risk_severity) ?? 0,
+        approver: parseInt(inputValues.risk_approval) ?? 0,
+        approvalStatus: parseInt(inputValues.approval_status) ?? 0,
+        dateOfAssessment: inputValues.date_of_assessment ? dayjs(inputValues.date_of_assessment).toISOString() : "",         
+      }
+      setRiskValues(currentRiskData);
+      setMitigationValues(currentMitigationData)
+    }
+  }, [popupStatus])
 
   const validateForm = useCallback((): boolean => {
     const newErrors: RiskFormErrors = {};
@@ -291,6 +332,17 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
 
       if(popupStatus !== 'new'){
         // call update API
+        console.log(formData)
+        try {
+          const response = await apiServices.put("/projectRisks/" + inputValues.id, formData);
+          console.log(response)
+          if (response.status === 200) { 
+            closePopup();
+            onSuccess();
+          }
+        } catch (error) {
+          console.error("Error sending request", error);
+        }
       }else{        
         try {
           const response = await apiServices.post("/projectRisks", formData);

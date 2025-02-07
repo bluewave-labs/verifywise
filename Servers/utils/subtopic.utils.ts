@@ -57,3 +57,14 @@ export const deleteSubtopicByIdQuery = async (
   );
   return result.rows.length ? result.rows[0] : null;
 };
+
+export const getSubTopicByTopicIdQuery = async (
+  topicId: number
+): Promise<Subtopic[]> => {
+  console.log("getSubTopicByTopicId", topicId);
+  const result = await pool.query(
+    `SELECT * FROM subtopics WHERE topic_id = $1`,
+    [topicId]
+  );
+  return result.rows;
+}

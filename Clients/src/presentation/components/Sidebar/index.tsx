@@ -41,6 +41,8 @@ import { SelectChangeEvent } from "@mui/material";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { Link as RouterLink } from "react-router-dom";
 import { Link as MuiLink } from "@mui/material";
+import { User } from "../../../application/hooks/useUsers";
+import { ROLES } from "../../../application/constants/roles";
 
 const menu = [
   {
@@ -78,6 +80,14 @@ const other = [
   },
 ];
 
+const DEFAULT_USER: User = {
+  id: "1",
+  name: "",
+  surname: "",
+  email: "",
+  role: 1
+}
+
 const Sidebar = ({ projects }: { projects: any }) => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -89,7 +99,10 @@ const Sidebar = ({ projects }: { projects: any }) => {
     projects.length > 0 ? projects[0]._id : ""
   );
 
-  const { dashboardValues, setDashboardValues, setCurrentProjectId } = useContext(VerifyWiseContext);
+  const { dashboardValues, setDashboardValues, setCurrentProjectId, userId } = useContext(VerifyWiseContext);
+  const { users } = dashboardValues;
+
+  const user: User = users ? users.find((user: User) => user.id === userId) : DEFAULT_USER;
 
   const collapsed = useSelector((state: any) => state.ui?.sidebar?.collapsed);
 
@@ -537,10 +550,10 @@ const Sidebar = ({ projects }: { projects: any }) => {
             {/* <Avatar small={true} /> */}
             <Box ml={theme.spacing(2)}>
               <Typography component="span" fontWeight={500}>
-                {"Mohammad"} {"Khalilzadeh"}
+                {user.name} {user.surname}
               </Typography>
               <Typography sx={{ textTransform: "capitalize" }}>
-                {"Admin"}
+                {ROLES[user.role as keyof typeof ROLES]}
               </Typography>
             </Box>
             <Tooltip title="Controls" disableInteractive>
@@ -604,10 +617,10 @@ const Sidebar = ({ projects }: { projects: any }) => {
             <MenuItem sx={{ cursor: "default", minWidth: "150px" }}>
               <Box mb={theme.spacing(2)}>
                 <Typography component="span" fontWeight={500} fontSize={13}>
-                  {"Mohammad"} {"Khalilzadeh"}
+                  {user.name} {user.surname}
                 </Typography>
                 <Typography sx={{ textTransform: "capitalize", fontSize: 12 }}>
-                  {"Admin"}
+                  {ROLES[user.role as keyof typeof ROLES]}
                 </Typography>
               </Box>
             </MenuItem>

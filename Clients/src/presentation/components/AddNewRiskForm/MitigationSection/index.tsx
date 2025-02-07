@@ -19,6 +19,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { RISK_LABELS } from "../../RiskLevel/constants";
 import { MitigationFormValues, MitigationFormErrors } from "../interface";
 import styles from "../styles.module.css";
+import useUsers from "../../../../application/hooks/useUsers";
 
 // Lazy load components
 const Select = lazy(() => import("../../Inputs/Select"));
@@ -106,6 +107,8 @@ const MitigationSection: FC<MitigationSectionProps> = ({
     body: string;
   } | null>(null);
   const [fileUploadOpen, setFileUploadOpen] = useState(false);
+
+  const {users } = useUsers();
 
   const handleOnSelectChange = useCallback(
     (prop: keyof MitigationFormValues) =>
@@ -285,11 +288,11 @@ const MitigationSection: FC<MitigationSectionProps> = ({
               </Stack>
             </Suspense>
             <Suspense fallback={<div>Loading...</div>}>
-              <FileUploadModal
+              {/* <FileUploadModal
                 open={fileUploadOpen}
                 onClose={handleFileUploadClose}
                 uploadProps={{ open: false }}
-              />
+              /> */}
             </Suspense>
           </Stack>
         </Stack>
@@ -321,7 +324,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
               placeholder="Select approver"
               value={mitigationValues.approver}
               onChange={handleOnSelectChange("approver")}
-              items={approverItems}
+              items={users?.map((user) => ({ _id: user.id, name: user.name })) || []}
               sx={{
                 width: 324,
                 backgroundColor: theme.palette.background.main,

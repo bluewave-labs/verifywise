@@ -11,14 +11,17 @@ import {
 } from "../utils/assessment.utils";
 import {
   createNewTopicQuery,
+  getTopicByAssessmentIdQuery,
   updateTopicByIdQuery,
 } from "../utils/topic.utils";
 import {
   createNewSubtopicQuery,
+  getSubTopicByTopicIdQuery,
   updateSubtopicByIdQuery,
 } from "../utils/subtopic.utils";
 import {
   createNewQuestionQuery,
+  getQuestionBySubTopicIdQuery,
   RequestWithFile,
   updateQuestionByIdQuery,
   UploadedFile,
@@ -181,6 +184,28 @@ export async function saveAnswers(req: RequestWithFile, res: Response): Promise<
     res.status(200).json(STATUS_CODE[200]({ message: response }));
   }
   catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getAnswers(req: Request, res: Response): Promise<any> {
+  try {
+    const assessmentId = parseInt(req.params.id);
+    const assessment = await getAssessmentByIdQuery(assessmentId);
+    const topics = await getTopicByAssessmentIdQuery(assessment!.id)
+    for (let topic of topics) {
+      const subTopics = await getSubTopicByTopicIdQuery(topic.id)
+
+      for (let subTopic of subTopics) {
+        const questions = await getQuestionBySubTopicIdQuery(subTopic.id);
+        (subTopic as any)["questions"] = questions;
+      }
+      (topic as any)["subTopics"] = subTopics;
+    }
+    (assessment as any)["topics"] = topics;
+
+    return res.status(200).json(STATUS_CODE[200]({ message: assessment }));
+  } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

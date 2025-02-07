@@ -12,6 +12,7 @@ import {
   Suspense,
   Dispatch,
   SetStateAction,
+  useMemo
 } from "react";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
@@ -71,7 +72,20 @@ const RiskSection: FC<RiskSectionProps> = ({
     title?: string;
     body: string;
   } | null>(null);
-  const {users, loading, error } = useUsers();
+  const {users} = useUsers();
+
+  const aiLifecyclePhase = useMemo(
+    () => [
+      { _id: 1, name: "Problem definition & planning"},
+      { _id: 2, name: "Data collection & processing"},
+      { _id: 3, name: "Model development & training"},
+      { _id: 4, name: "Model validation & testing"},
+      { _id: 5, name: "Deployment & integration"},
+      { _id: 6, name: "Monitoring & maintenance"},
+      { _id: 7, name: "Decommissioning & retirement"}
+    ],
+    []
+  );
 
   const handleOnSelectChange = useCallback(
     (prop: keyof RiskFormValues) =>
@@ -154,11 +168,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                 placeholder="Select phase"
                 value={riskValues.aiLifecyclePhase}
                 onChange={handleOnSelectChange("aiLifecyclePhase")}
-                items={[
-                  { _id: 1, name: "Phase 1" },
-                  { _id: 2, name: "Phase 2" },
-                  { _id: 3, name: "Phase 3" },
-                ]}
+                items={aiLifecyclePhase}
                 isRequired
                 error={riskErrors.aiLifecyclePhase}
                 sx={{

@@ -11,13 +11,12 @@ interface VerifyWiseContextProps {
   inputValues: any;
   setInputValues: (values: any) => void;
   token: string | null;
-  login: (token: string) => void;
-  logout: () => void;
   projectStatus: ProjectStatus;
   loadingProjectStatus: string | boolean;
   errorFetchingProjectStatus: string | boolean;
   currentProjectId: string | null;
   setCurrentProjectId: (id: string) => void;
+  userId: string;
 }
 
 export const VerifyWiseContext = createContext<VerifyWiseContextProps>({
@@ -30,11 +29,10 @@ export const VerifyWiseContext = createContext<VerifyWiseContextProps>({
   inputValues: {},
   setInputValues: () => {},
   token: null,
-  login: () => {},
-  logout: () => {},
   projectStatus: defaultProjectStatus,
   loadingProjectStatus: false,
   errorFetchingProjectStatus: false,
   currentProjectId: "",
   setCurrentProjectId: () => {},
+  userId: ""
 });

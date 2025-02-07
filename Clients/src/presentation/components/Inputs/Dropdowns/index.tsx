@@ -20,7 +20,6 @@ interface DropDownsProps {
 }
 
 const DropDowns: React.FC<DropDownsProps> = ({ elementId, state = {} }) => {
-  console.log("DropDowns state ", state);
   const [status, setStatus] = useState<string | number>(state?.status || ""); // Default to empty string
   const [approver, setApprover] = useState<string | number>(
     state?.approver || ""
@@ -171,7 +170,12 @@ const DropDowns: React.FC<DropDownsProps> = ({ elementId, state = {} }) => {
           marginBottom: theme.spacing(4),
         }}
       >
-        <Field type="description" />
+        <Field
+          type="description"
+          sx={{
+            cursor: "text",
+          }}
+        />
       </Stack>
     </Stack>
   );

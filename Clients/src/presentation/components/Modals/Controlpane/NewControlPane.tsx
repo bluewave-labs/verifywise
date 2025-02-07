@@ -71,18 +71,22 @@ const NewControlPane = ({
       subControlDescription:
         initialValues?.subControls[index]?.subControlDescription ||
         subControl.description,
-      status: initialValues?.subControls[index]?.status || "Choose status", // Set default value
+      status: initialValues?.subControls[index]?.status || subControl.status, // Set default value
       approver:
-        initialValues?.subControls[index]?.approver || "Choose approver", // Set default value
+        initialValues?.subControls[index]?.approver || subControl.approver, // Set default value
       riskReview:
-        initialValues?.subControls[index]?.riskReview || "Acceptable risk", // Set default value
-      owner: initialValues?.subControls[index]?.owner || "Choose owner", // Set default value
+        initialValues?.subControls[index]?.riskReview || subControl.riskReview, // Set default value
+      owner: initialValues?.subControls[index]?.owner || subControl.owner, // Set default value
       reviewer:
-        initialValues?.subControls[index]?.reviewer || "Choose reviewer", // Set default value
-      description: initialValues?.subControls[index]?.description || "",
-      date: initialValues?.subControls[index]?.date || null,
-      evidence: initialValues?.subControls[index]?.evidence || "",
-      feedback: initialValues?.subControls[index]?.feedback || "",
+        initialValues?.subControls[index]?.reviewer || subControl.reviewer, // Set default value
+      description:
+        initialValues?.subControls[index]?.description ||
+        subControl.description,
+      date: initialValues?.subControls[index]?.date || subControl.date,
+      evidence:
+        initialValues?.subControls[index]?.evidence || subControl.evidence,
+      feedback:
+        initialValues?.subControls[index]?.feedback || subControl.feedback,
     })
   );
 

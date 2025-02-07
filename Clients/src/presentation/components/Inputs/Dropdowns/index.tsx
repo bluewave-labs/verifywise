@@ -20,18 +20,19 @@ interface DropDownsProps {
 }
 
 const DropDowns: React.FC<DropDownsProps> = ({ elementId, state = {} }) => {
-  const [status, setStatus] = useState<string | number>(state.status || ""); // Default to empty string
+  console.log("DropDowns state ", state);
+  const [status, setStatus] = useState<string | number>(state?.status || ""); // Default to empty string
   const [approver, setApprover] = useState<string | number>(
-    state.approver || ""
+    state?.approver || ""
   ); // Default to empty string
   const [riskReview, setRiskReview] = useState<string | number>(
-    state.riskReview || ""
+    state?.riskReview || ""
   ); // Default to empty string
-  const [owner, setOwner] = useState<string | number>(state.owner || ""); // Default to empty string
+  const [owner, setOwner] = useState<string | number>(state?.owner || ""); // Default to empty string
   const [reviewer, setReviewer] = useState<string | number>(
-    state.reviewer || ""
+    state?.reviewer || ""
   ); // Default to empty string
-  const [date, setDate] = useState<Dayjs | null>(state.date || null);
+  const [date, setDate] = useState<Dayjs | null>(state?.date || null);
   const theme = useTheme();
 
   const inputStyles = {

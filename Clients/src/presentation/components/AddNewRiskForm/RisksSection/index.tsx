@@ -12,6 +12,7 @@ import {
   Suspense,
   Dispatch,
   SetStateAction,
+  useMemo
 } from "react";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
@@ -72,6 +73,27 @@ const RiskSection: FC<RiskSectionProps> = ({
     body: string;
   } | null>(null);
   const {users, loading, error } = useUsers();
+
+  const riskCategorylItems = useMemo(
+    () => [
+      { _id: 1, name: "Strategic risk" },
+      { _id: 2, name: "Operational risk" },
+      { _id: 3, name: "Compliance risk" },
+      { _id: 4, name: "Financial risk" },
+      { _id: 5, name: "Cybersecurity risk" },
+      { _id: 6, name: "Reputational risk" },
+      { _id: 7, name: "Legal risk" },
+      { _id: 8, name: "Technological risk" },
+      { _id: 9, name: "Third-party/vendor risk" },
+      { _id: 10, name: "Environmental risk"},
+      { _id: 11, name: "Human resources risk"},
+      { _id: 12, name: "Geopolitical risk"},
+      { _id: 13, name: "Fraud risk"},
+      { _id: 14, name: "Data privacy risk"},
+      { _id: 15, name: "Health and safety risk"}
+    ],
+    []
+  );
 
   const handleOnSelectChange = useCallback(
     (prop: keyof RiskFormValues) =>
@@ -197,11 +219,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                   placeholder="Select category"
                   value={riskValues.riskCategory}
                   onChange={handleOnSelectChange("riskCategory")}
-                  items={[
-                    { _id: 1, name: "Category 1" },
-                    { _id: 2, name: "Category 2" },
-                    { _id: 3, name: "Category 3" },
-                  ]}
+                  items={riskCategorylItems}
                   isRequired
                   error={riskErrors.riskCategory}
                   sx={{

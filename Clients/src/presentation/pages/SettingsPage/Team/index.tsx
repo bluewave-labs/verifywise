@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useContext } from "react";
+import React, { useState, useCallback, useMemo, useContext, lazy, Suspense } from "react";
 import {
   Box,
   Button,
@@ -24,6 +24,14 @@ import TablePaginationActions from "../../../components/TablePagination";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import InviteUserModal from "../../../components/Modals/InviteUser";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
+
+const Alert = lazy(() => import("../../../components/Alert"));
+
+interface AlertProps {
+  variant: "success" | "info" | "warning" | "error";
+  title?: string;
+  body: string;
+}
 
 // Enum for roles
 enum Role {
@@ -51,6 +59,24 @@ const roles = Object.values(Role);
  */
 const TeamManagement: React.FC = (): JSX.Element => {
   const theme = useTheme();
+
+  const [alert, setAlert] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    title?: string;
+    body: string;
+  } | null>(null);
+
+  const handleAlert = ({ variant, body, title }: AlertProps) => {
+    setAlert({
+      variant,
+      title,
+      body,
+    });
+    setTimeout(() => {
+      setAlert(null);
+    }, 2500);
+  };
+
 
   // State management
   // const [orgName, _] = useState("BlueWave Labs");
@@ -171,8 +197,31 @@ const TeamManagement: React.FC = (): JSX.Element => {
     setInviteUserModalOpen(true);
   };
 
+  const handleInvitation = (email: string, status: number | string) => {
+    console.log("Inviatation to ", email , "is ", status)
+    handleAlert({
+      variant: (status === 200) ? "success" : "error",
+      body: (status === 200) ? "Inviatation is successful" : "Inviatation fails",
+    });
+    
+    setInviteUserModalOpen(false);
+  }
+
   return (
     <Stack sx={{ pt: theme.spacing(10) }}>
+      {alert && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Box>
+            <Alert
+              variant={alert.variant}
+              title={alert.title}
+              body={alert.body}
+              isToast={true}
+              onClick={() => setAlert(null)}
+            />
+          </Box>
+        </Suspense>
+      )}
       {/* <Box sx={{ mb: 4 }}>
         <Typography
           variant="h4"
@@ -423,10 +472,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
         <InviteUserModal
           isOpen={inviteUserModalOpen}
           setIsOpen={setInviteUserModalOpen}
-          onSendInvite={(data) => {
-            console.log("Invite sent:", data);
-            setInviteUserModalOpen(false);
-          }}
+          onSendInvite={handleInvitation}
         />
       )}
     </Stack>

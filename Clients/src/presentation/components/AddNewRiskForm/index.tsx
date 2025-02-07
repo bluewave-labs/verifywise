@@ -18,7 +18,7 @@ import selectValidation from "../../../application/validations/selectValidation"
 import { apiServices } from "../../../infrastructure/api/networkServices";
 import { useSearchParams } from "react-router-dom";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 
 const RiskSection = lazy(() => import("./RisksSection"));
 const MitigationSection = lazy(() => import("./MitigationSection"));

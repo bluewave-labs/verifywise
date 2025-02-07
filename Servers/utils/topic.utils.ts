@@ -62,3 +62,14 @@ export const deleteTopicByIdQuery = async (
   );
   return result.rows.length ? result.rows[0] : null;
 };
+
+export const getTopicByAssessmentIdQuery = async (
+  assessmentId: number
+): Promise<Topic[]> => {
+  console.log("getTopicByAssessmentId", assessmentId);
+  const result = await pool.query(
+    `SELECT * FROM topics WHERE assessment_id = $1`,
+    [assessmentId]
+  );
+  return result.rows;
+}

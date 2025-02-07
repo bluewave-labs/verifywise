@@ -32,7 +32,9 @@ export interface User {
   surname: string;
 }
 
-const useProjectData = ({ projectId }: UseProjectDataParams): UseProjectDataResult => {
+const useProjectData = ({
+  projectId,
+}: UseProjectDataParams): UseProjectDataResult => {
   const [project, setProject] = useState<Project | null>(null);
   const [projectOwner, setProjectOwner] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);

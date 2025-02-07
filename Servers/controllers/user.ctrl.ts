@@ -235,9 +235,7 @@ async function calculateProgress(
         userProject.id
       );
       for (const controlcategory of controlcategories) {
-        const controls = await getControlForControlCategory(
-          controlcategory.id
-        );
+        const controls = await getControlForControlCategory(controlcategory.id);
         for (const control of controls) {
           const subControls = await getSubControlForControl(control.id);
           for (const subControl of subControls) {

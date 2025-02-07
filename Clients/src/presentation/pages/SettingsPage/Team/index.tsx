@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useContext } from "react";
 import {
   Box,
   Button,
@@ -19,7 +19,11 @@ import {
   TablePagination,
 } from "@mui/material";
 import Trashbin from "../../../../presentation/assets/icons/trash-01.svg";
-import Field from "../../../components/Inputs/Field";
+import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import TablePaginationActions from "../../../components/TablePagination";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import InviteUserModal from "../../../components/Modals/InviteUser";
+import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 
 // Enum for roles
 enum Role {
@@ -49,7 +53,9 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const theme = useTheme();
 
   // State management
-  const [orgName, setOrgName] = useState("BlueWave Labs");
+  // const [orgName, _] = useState("BlueWave Labs");
+  const [open, setOpen] = useState(false);
+  const [memberToDelete, setMemberToDelete] = useState<string | null>(null);
   const [filter, setFilter] = useState<Role | "All">("All");
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([
     {
@@ -74,12 +80,28 @@ const TeamManagement: React.FC = (): JSX.Element => {
   ]);
 
   const [page, setPage] = useState(0); // Current page
+  const { dashboardValues } = useContext(VerifyWiseContext);
   const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
+  const [inviteUserModalOpen, setInviteUserModalOpen] = useState(false);
 
   // Handle saving organization name
-  const handleSaveOrgName = useCallback(() => {
-    console.log("Saving organization name:", orgName);
-  }, [orgName]);
+  // const handleSaveOrgName = useCallback(() => {
+  //   console.log("Saving organization name:", orgName);
+  // }, [orgName]);
+
+  const handleClose = () => {
+    setOpen(false);
+    setMemberToDelete(null);
+  };
+
+  const confirmDelete = () => {
+    if (memberToDelete) {
+      setTeamMembers((members) =>
+        members.filter((member) => member.id !== memberToDelete)
+      );
+    }
+    handleClose();
+  };
 
   // Handle role change
   const handleRoleChange = useCallback(
@@ -95,11 +117,11 @@ const TeamManagement: React.FC = (): JSX.Element => {
   );
 
   // Handle deleting a team member
-  const handleDeleteMember = useCallback((memberId: string) => {
-    setTeamMembers((members) =>
-      members.filter((member) => member.id !== memberId)
-    );
-  }, []);
+  // const handleDeleteMember = useCallback((memberId: string) => {
+  //   setTeamMembers((members) =>
+  //     members.filter((member) => member.id !== memberId)
+  //   );
+  // }, []);
 
   // Filtered team members based on selected role
   const filteredMembers = useMemo(() => {
@@ -109,21 +131,26 @@ const TeamManagement: React.FC = (): JSX.Element => {
   }, [filter, teamMembers]);
 
   // Handle saving all data
-  const handleSaveAllData = useCallback(() => {
-    const formData = {
-      organizationName: orgName,
-      filterRole: filter,
-      teamMembers: teamMembers.map(({ id, name, email, role }) => ({
-        id,
-        name,
-        email,
-        role,
-      })),
-    };
-    console.log("Form Data:", formData);
-  }, [orgName, filter, teamMembers]);
+  // const handleSaveAllData = useCallback(() => {
+  //   const formData = {
+  //     organizationName: orgName,
+  //     filterRole: filter,
+  //     teamMembers: teamMembers.map(({ id, name, email, role }) => ({
+  //       id,
+  //       name,
+  //       email,
+  //       role,
+  //     })),
+  //   };
+  //   console.log("Form Data:", formData);
+  // }, [orgName, filter, teamMembers]);
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleDeleteClick = (memberId: string) => {
+    setMemberToDelete(memberId);
+    setOpen(true);
+  };
+
+  const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);
   };
 
@@ -134,14 +161,19 @@ const TeamManagement: React.FC = (): JSX.Element => {
     setPage(0);
   };
 
-  const paginatedMembers = useMemo(() => {
-    const startIndex = page * rowsPerPage;
-    return filteredMembers.slice(startIndex, startIndex + rowsPerPage);
-  }, [filteredMembers, page, rowsPerPage]);
+  // const paginatedMembers = useMemo(() => {
+  //   const startIndex = page * rowsPerPage;
+  //   return filteredMembers.slice(startIndex, startIndex + rowsPerPage);
+  // }, [filteredMembers, page, rowsPerPage]);
+
+  const inviteTeamMember = () => {
+    console.log("Inviting team member");
+    setInviteUserModalOpen(true);
+  };
 
   return (
     <Stack sx={{ pt: theme.spacing(10) }}>
-      <Box sx={{ mb: 4 }}>
+      {/* <Box sx={{ mb: 4 }}>
         <Typography
           variant="h4"
           gutterBottom
@@ -182,7 +214,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
             Save
           </Button>
         </Box>
-      </Box>
+      </Box> */}
 
       <Box sx={{ mb: 4, maxWidth: theme.spacing(480) }}>
         <Typography
@@ -233,7 +265,11 @@ const TeamManagement: React.FC = (): JSX.Element => {
             </Box>
 
             <Box sx={{ mt: 10 }}>
-              <Button variant="contained" disableRipple>
+              <Button
+                variant="contained"
+                disableRipple
+                onClick={() => inviteTeamMember()}
+              >
                 Invite team member
               </Button>
             </Box>
@@ -246,15 +282,15 @@ const TeamManagement: React.FC = (): JSX.Element => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ color: "#667085" }}>NAME</TableCell>
-                  <TableCell sx={{ color: "#667085" }}>EMAIL</TableCell>
-                  <TableCell sx={{ color: "#667085" }}>ROLE</TableCell>
-                  <TableCell sx={{ color: "#667085" }}>ACTION</TableCell>
+                  <TableCell>NAME</TableCell>
+                  <TableCell>EMAIL</TableCell>
+                  <TableCell>ROLE</TableCell>
+                  <TableCell>ACTION</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {filteredMembers
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) // Apply pagination to filtered members
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((member) => (
                     <TableRow key={member.id}>
                       <TableCell>{member.name}</TableCell>
@@ -262,19 +298,13 @@ const TeamManagement: React.FC = (): JSX.Element => {
                       <TableCell>
                         <Select
                           value={member.role}
-                          onChange={(event) =>
-                            handleRoleChange(event, member.id)
-                          }
+                          onChange={(e) => handleRoleChange(e, member.id)}
                           size="small"
                           sx={{
-                            textAlign: "left",
-                            paddingLeft: 0,
-                            marginLeft: 0,
+                            minWidth: 120,
                             "& .MuiOutlinedInput-notchedOutline": {
-                              border: "none",
+                              border: "none", // Remove the border from the notched outline
                             },
-                            color: "#667085",
-                            fontSize: 13,
                           }}
                         >
                           {roles.map((role) => (
@@ -286,8 +316,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                       </TableCell>
                       <TableCell>
                         <IconButton
-                          aria-label="delete"
-                          onClick={() => handleDeleteMember(member.id)}
+                          onClick={() => handleDeleteClick(member.id)}
                         >
                           <img
                             src={Trashbin}
@@ -303,26 +332,103 @@ const TeamManagement: React.FC = (): JSX.Element => {
             </Table>
           </TableContainer>
 
+          {open && (
+            <DualButtonModal
+              title="Confirm Delete"
+              body={
+                <Typography fontSize={13}>
+                  Are you sure you want to delete your account? This action is
+                  permanent and cannot be undone.
+                </Typography>
+              }
+              cancelText="Cancel"
+              proceedText="Delete"
+              onCancel={handleClose}
+              onProceed={confirmDelete}
+              proceedButtonColor="error"
+              proceedButtonVariant="contained"
+            />
+          )}
+
           <TablePagination
-          component="div"
-          count={filteredMembers.length}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
+            count={dashboardValues.vendors ? dashboardValues.vendors.length : 0}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            rowsPerPageOptions={[5, 10, 15, 25]}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            ActionsComponent={(props) => <TablePaginationActions {...props} />}
+            labelRowsPerPage="Rows per page"
+            labelDisplayedRows={({ page, count }) =>
+              `Page ${page + 1} of ${Math.max(
+                0,
+                Math.ceil(count / rowsPerPage)
+              )}`
+            }
+            slotProps={{
+              select: {
+                MenuProps: {
+                  keepMounted: true,
+                  PaperProps: {
+                    className: "pagination-dropdown",
+                    sx: {
+                      mt: 0,
+                      mb: theme.spacing(2),
+                    },
+                  },
+                  transformOrigin: { vertical: "bottom", horizontal: "left" },
+                  anchorOrigin: { vertical: "top", horizontal: "left" },
+                  sx: { mt: theme.spacing(-2) },
+                },
+                inputProps: { id: "pagination-dropdown" },
+                IconComponent: SelectorVertical,
+                sx: {
+                  ml: theme.spacing(4),
+                  mr: theme.spacing(12),
+                  minWidth: theme.spacing(20),
+                  textAlign: "left",
+                  "&.Mui-focused > div": {
+                    backgroundColor: theme.palette.background.main,
+                  },
+                },
+              },
+            }}
+            sx={{
+              mt: theme.spacing(6),
+              color: theme.palette.text.secondary,
+              "& .MuiSelect-icon": {
+                width: "24px",
+                height: "fit-content",
+              },
+              "& .MuiSelect-select": {
+                width: theme.spacing(10),
+                border: `1px solid ${theme.palette.border.light}`,
+                padding: theme.spacing(4),
+              },
+            }}
+          />
 
           <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 20 }}>
-            <Button
+            {/* <Button
               variant="contained"
               disableRipple
               onClick={handleSaveAllData}
             >
               Save
-            </Button>
+            </Button> */}
           </Box>
         </Stack>
       </Box>
+      {inviteUserModalOpen && (
+        <InviteUserModal
+          isOpen={inviteUserModalOpen}
+          setIsOpen={setInviteUserModalOpen}
+          onSendInvite={(data) => {
+            console.log("Invite sent:", data);
+            setInviteUserModalOpen(false);
+          }}
+        />
+      )}
     </Stack>
   );
 };

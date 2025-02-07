@@ -1,18 +1,12 @@
-import React, { useState, MouseEvent, useMemo, useCallback } from "react";
-import {
-  Stack,
-  Box,
-  Typography,
-  IconButton,
-  Menu,
-  MenuItem,
-} from "@mui/material";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
+import { Stack, Box, Typography} from "@mui/material"; //useTheme is not used
 import BasicTable from "../../components/Table";
-
-import SettingsIcon from "../../assets/icons/setting.svg";
+import axios from "axios";
 import EmptyTableImage from "../../assets/imgs/empty-state.svg";
 import AscendingIcon from "../../assets/icons/up-arrow.svg";
 import DescendingIcon from "../../assets/icons/down-arrow.svg";
+import PageTour from "../../components/PageTour";
+import CustomStep from "../../components/PageTour/CustomStep";
 
 /**
  * Represents a file with its metadata.
@@ -33,10 +27,8 @@ interface File {
 
 const COLUMN_NAMES = {
   FILE: "File",
-  TYPE: "Type",
   UPLOAD_DATE: "Upload Date",
   UPLOADER: "Uploader",
-  ACTION: "Action",
 };
 
 const SORT_DIRECTIONS = {
@@ -50,13 +42,20 @@ type SortDirection = (typeof SORT_DIRECTIONS)[keyof typeof SORT_DIRECTIONS];
  * Displays an empty state when no files are available.
  * @returns {JSX.Element} The empty state component.
  */
-const EmptyState: React.FC = () => (
+const EmptyState: React.FC = (): JSX.Element => (
   <Stack
     direction="column"
     alignItems="center"
     justifyContent="center"
-    sx={{ height: "100%", textAlign: "center" }}
-    border="1px solid #eeeeee"
+    sx={{
+      flex: 1,
+      height: "100%",
+      width: "100%",
+      textAlign: "center",
+      border: "1px solid #eeeeee",
+      padding: 4,
+      boxSizing: "border-box",
+    }}
   >
     <Box
       component="img"
@@ -69,35 +68,10 @@ const EmptyState: React.FC = () => (
         mb: 4,
       }}
     />
-    <Typography variant="body2" color="text.secondary">
-      There are currently no evidences or documents uploaded.
+    <Typography variant="body2" color="text.secondary" sx={{ margin: 0 }}>
+      There are currently no pieces of evidence or other documents uploaded.
     </Typography>
   </Stack>
-);
-
-/**
- * Displays a menu with actions for a file.
- * @param {Object} props - The component props.
- * @param {HTMLElement|null} props.anchorEl - The element to which the menu is anchored.
- * @param {Function} props.onClose - Callback to close the menu.
- * @param {Function} props.onDownload - Callback to download the file.
- * @param {Function} props.onRemove - Callback to remove the file.
- * @returns {JSX.Element} The file actions menu component.
- */
-const FileActions: React.FC<{
-  anchorEl: HTMLElement | null;
-  onClose: () => void;
-  onDownload: () => void;
-  onRemove: () => void;
-}> = ({ anchorEl, onClose, onDownload, onRemove }) => (
-  <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={onClose}>
-    <MenuItem onClick={onDownload} aria-label="Download File">
-      Download
-    </MenuItem>
-    <MenuItem onClick={onRemove} aria-label="Remove File">
-      Remove
-    </MenuItem>
-  </Menu>
 );
 
 /**
@@ -154,11 +128,16 @@ const FileTable: React.FC<{
     [cols, handleSort, sortField, sortDirection]
   );
 
+  const [fileData, setFileData] = useState([]);
+
   return (
     <BasicTable
       data={{ cols: sortedCols, rows }}
+      bodyData={fileData}
       paginated={files.length > 0}
       table="fileManager"
+      setSelectedRow={() => {}}
+      setAnchorEl={() => {}}
     />
   );
 };
@@ -169,13 +148,67 @@ const FileTable: React.FC<{
  * @returns {JSX.Element} The FileManager component.
  */
 const FileManager: React.FC = (): JSX.Element => {
+  // const theme = useTheme();
   const [files, setFiles] = useState<File[]>([]);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [sortField, setSortField] = useState<keyof File | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection | null>(
     null
   );
+  //loading while fetching files
+  const [loading, setLoading] = useState(true);
+  //page tour
+  const [runFileTour, setRunFileTour] = useState(false);
+
+  const fileSteps = [
+    {
+      target: '[data-joyride-id="file-manager-title"]',
+      content: (
+        <CustomStep body="This table lists all the files uploaded to the system." />
+      ),
+      placement: "left" as const,
+    },
+  ];
+
+  useEffect(() => {
+    setRunFileTour(true);
+
+//     const mockFile: {
+//       id: "1";
+//       name: "test-file.pdf";
+//       type: "pdf";
+//       uploadDate: string;
+//       uploader: "John Doe";
+//     } = {
+//       id: "1",
+//       name: "test-file.pdf",
+//       type: "pdf",
+//       uploadDate: new Date().toLocaleDateString(),
+//       uploader: "John Doe",
+//     };
+// setFiles([mockFile]);
+// setLoading(false);
+    const fetchFileById = async (fileId:string) => {
+      try {
+        const response = await axios.get(`https://localhost:3000/files/${fileId}`);
+        const file = response.data
+        
+       const fileData: File ={
+          id: file.id,
+          name: file.name,
+          type: file.type || "N/A",
+          uploadDate: new Date(file.uploadDate).toLocaleDateString(),
+          uploader: file.uploader || "N/A",
+        }
+        setFiles([fileData]);
+       }
+       catch (error) {
+        console.error("Error fetching files", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFileById("1");
+  }, []);
 
   /**
    * Handles sorting of files by a specified field.
@@ -216,80 +249,38 @@ const FileManager: React.FC = (): JSX.Element => {
         id: file.id,
         data: [
           { id: 1, data: file.name },
-          { id: 2, data: file.type },
-          { id: 3, data: file.uploadDate },
-          { id: 4, data: file.uploader },
-          {
-            id: 5,
-            data: (
-              <IconButton
-                onClick={(event) => handleActionsClick(event, file)}
-                aria-label="File Actions"
-              >
-                <Box
-                  component="img"
-                  src={SettingsIcon}
-                  alt="Settings"
-                  sx={{ width: 24, height: 24 }}
-                />
-              </IconButton>
-            ),
-          },
+          { id: 2, data: file.uploadDate },
+          { id: 3, data: file.uploader },
         ],
       })),
     [files]
   );
 
-  /**
-   * Handles the click event for file actions.
-   * @param {MouseEvent<HTMLElement>} event - The click event.
-   * @param {File} file - The file for which actions are being handled.
-   */
-  const handleActionsClick = useCallback(
-    (event: MouseEvent<HTMLElement>, file: File) => {
-      setAnchorEl(event.currentTarget);
-      setSelectedFile(file);
-    },
-    []
-  );
-
-  /**
-   * Closes the action menu.
-   */
-  const handleMenuClose = useCallback(() => {
-    setAnchorEl(null);
-    setSelectedFile(null);
-  }, []);
-
-  /**
-   * Handles the download action for a file.
-   */
-  const handleDownload = useCallback(() => {
-    console.log(`Downloading ${selectedFile?.name}`);
-    handleMenuClose();
-  }, [selectedFile, handleMenuClose]);
-
-  /**
-   * Handles the removal of a file.
-   */
-  const handleRemove = useCallback(() => {
-    if (selectedFile) {
-      setFiles(files.filter((file) => file.id !== selectedFile.id));
-    }
-    handleMenuClose();
-  }, [files, selectedFile, handleMenuClose]);
-
   const cols = [
-    { id: 1, name: COLUMN_NAMES.FILE },
-    { id: 2, name: COLUMN_NAMES.TYPE },
-    { id: 3, name: COLUMN_NAMES.UPLOAD_DATE },
-    { id: 4, name: COLUMN_NAMES.UPLOADER },
-    { id: 5, name: COLUMN_NAMES.ACTION },
+    { id: 1, name: COLUMN_NAMES.FILE, sx: { width: "50%" } },
+    { id: 2, name: COLUMN_NAMES.UPLOAD_DATE, sx: { width: "50%" } },
+    { id: 3, name: COLUMN_NAMES.UPLOADER, sx: { width: "50%" } },
   ];
+
+  //loading state before fetching files
+  if(loading){
+    return (
+     <Stack
+     sx={{ textAlign: "center", padding: 4 }}
+     >
+      <Typography variant="h6">Loading files...</Typography>
+     </Stack>
+    )
+  }
 
   return (
     <Stack spacing={4} sx={{ padding: 4, marginBottom: 10 }}>
-      <Stack spacing={1}>
+      <PageTour
+        steps={fileSteps}
+        run={runFileTour}
+        onFinish={() => setRunFileTour(false)}
+      />
+      <Stack spacing={1} data-joyride-id="file-manager-title">
         <Typography variant="h6" fontWeight="bold" gutterBottom>
           Evidences & documents
         </Typography>
@@ -300,10 +291,17 @@ const FileManager: React.FC = (): JSX.Element => {
 
       <Box
         sx={{
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+          width: "100%",
+          justifyContent: files.length === 0 ? "center" : "flex-start",
+          alignItems: files.length === 0 ? "center" : "stretch",
           position: "relative",
           borderRadius: "4px",
           overflow: "hidden",
           minHeight: "400px",
+          borderBottom: files.length === 0 ? "1px solid #eeeeee" : "none",
         }}
       >
         <FileTable
@@ -316,13 +314,6 @@ const FileManager: React.FC = (): JSX.Element => {
         />
         {files.length === 0 && <EmptyState />}
       </Box>
-
-      <FileActions
-        anchorEl={anchorEl}
-        onClose={handleMenuClose}
-        onDownload={handleDownload}
-        onRemove={handleRemove}
-      />
     </Stack>
   );
 };

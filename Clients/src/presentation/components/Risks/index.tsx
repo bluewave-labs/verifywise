@@ -1,7 +1,7 @@
 import { Theme } from "@emotion/react";
 import { SxProps, Stack, Typography, useTheme } from "@mui/material";
 import { FC } from "react";
-import { RiskData } from "../../mocks/projects/project-overview.data";
+import { RiskData } from "../../pages/ProjectView/Overview";
 
 const Risks: FC<RiskData & { sx?: SxProps<Theme> | undefined }> = ({
   veryHighRisks,

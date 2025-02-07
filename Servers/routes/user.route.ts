@@ -19,6 +19,7 @@ import {
   loginUser,
   resetPassword,
   updateUserById,
+  calculateProgress,
 } from "../controllers/user.ctrl";
 import authenticateJWT from "../middleware/auth.middleware";
 
@@ -118,7 +119,7 @@ router.post("/reset-password", resetPassword);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.patch("/:id", authenticateJWT, updateUserById);
+router.patch("/:id", /* authenticateJWT,*/ updateUserById);
 
 /**
  * DELETE /users/:id
@@ -132,7 +133,7 @@ router.patch("/:id", authenticateJWT, updateUserById);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.delete("/:id", authenticateJWT, deleteUserById);
+router.delete("/:id", /* authenticateJWT,*/ deleteUserById);
 
 /**
  * GET /users/check-user-exists
@@ -148,4 +149,28 @@ router.delete("/:id", authenticateJWT, deleteUserById);
  */
 router.get("/check/exists", checkUserExists);
 
+router.get("/:id/calculate-progress", calculateProgress);
+
 export default router;
+
+/** 
+Code snippet for using emailService to send emails here
+
+import express from 'express';
+import { sendWelcomeEmail } from '../services/emailService';
+
+const router = express.Router();
+
+router.post('/register', async (req, res) => {
+  const { email, name } = req.body;
+
+  try {
+    await sendWelcomeEmail(email, name);
+    res.status(200).send('Registration successful and welcome email sent.');
+  } catch (error) {
+    res.status(500).send('Error sending welcome email.');
+  }
+});
+
+export default router; 
+*/

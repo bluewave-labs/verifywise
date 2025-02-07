@@ -17,7 +17,7 @@ import "./index.css";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 import { useTheme } from "@mui/material";
-import React, { useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { toggleSidebar } from "../../tools/uiSlice";
 
 import { ReactComponent as ArrowLeft } from "../../assets/icons/left-arrow.svg";
@@ -37,6 +37,10 @@ import Logo from "../../assets/imgs/logo.png";
 import Select from "../Inputs/Select";
 import Avatar from "../Avatar/VWAvatar";
 import { clearAuthState } from "../../../application/authentication/authSlice";
+import { SelectChangeEvent } from "@mui/material";
+import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import { Link as RouterLink } from "react-router-dom";
+import { Link as MuiLink } from "@mui/material";
 
 const menu = [
   {
@@ -74,15 +78,30 @@ const other = [
   },
 ];
 
-const Sidebar = () => {
+const Sidebar = ({ projects }: { projects: any }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
   const [anchorEl, setAnchorEl] = useState(null);
   const [popup, setPopup] = useState();
+  const [selectedProjectId, setSelectedProjectId] = useState<string | number>(
+    projects.length > 0 ? projects[0]._id : ""
+  );
+
+  const { dashboardValues, setDashboardValues, setCurrentProjectId } = useContext(VerifyWiseContext);
 
   const collapsed = useSelector((state: any) => state.ui?.sidebar?.collapsed);
+
+  const handleProjectChange = (event: SelectChangeEvent<string | number>) => {
+    const selectedProjectId = event.target.value as string;
+    setSelectedProjectId(selectedProjectId);
+    // Update the dashboardValues in the context
+    setDashboardValues({
+      ...dashboardValues,
+      selectedProjectId,
+    });
+  };
 
   const [open, setOpen] = useState<{ [key: string]: boolean }>({
     Dashboard: false,
@@ -110,12 +129,27 @@ const Sidebar = () => {
     navigate("/login");
   };
 
-  console.log("collapsed -> ", collapsed);
+  const customMenuHandler = () => {
+    switch (location.pathname) {
+      case "/all-assessments":
+        return "/assessment";
+      default:
+        return null;
+    }
+  };
+
+  useEffect(() => {
+    if (projects.length > 0 && selectedProjectId === "") {
+      setSelectedProjectId(projects[0]._id);
+    }else{
+      setCurrentProjectId(String(selectedProjectId));
+    }
+  }, [projects, selectedProjectId]);
 
   return (
     <Stack
       component="aside"
-      className={collapsed ? "collapsed" : "expanded"}
+      className={`sidebar-menu ${collapsed ? "collapsed" : "expanded"}`}
       py={theme.spacing(6)}
       gap={theme.spacing(6)}
       sx={{
@@ -139,23 +173,36 @@ const Sidebar = () => {
         pb={theme.spacing(12)}
         pl={theme.spacing(12)}
       >
-        <Stack direction="row" alignItems="center" gap={theme.spacing(4)}>
-          <img src={Logo} alt="Logo" width={32} height={30} />
-          <Typography
-            component="span"
-            mt={theme.spacing(2)}
-            sx={{ opacity: 0.8, fontWeight: 500 }}
-            className="app-title"
+        <Stack
+          direction="row"
+          alignItems="center"
+          gap={theme.spacing(4)}
+          className="app-title"
+        >
+          <RouterLink to="/">
+            <img src={Logo} alt="Logo" width={32} height={30} />
+          </RouterLink>
+          <MuiLink
+            component={RouterLink}
+            to="/"
+            sx={{ textDecoration: "none" }}
           >
-            Verify
-            <span
-              style={{
-                color: "#0f604d",
-              }}
+            <Typography
+              component="span"
+              mt={theme.spacing(2)}
+              sx={{ opacity: 0.8, fontWeight: 500 }}
+              className="app-title"
             >
-              Wise
-            </span>
-          </Typography>
+              Verify
+              <span
+                style={{
+                  color: "#0f604d",
+                }}
+              >
+                Wise
+              </span>
+            </Typography>
+          </MuiLink>
         </Stack>
       </Stack>
 
@@ -198,17 +245,23 @@ const Sidebar = () => {
             justifyContent: "flex-start",
             width: "fit-content",
           }}
+          data-joyride-id="select-project"
         >
-          <Select
-            id="projects"
-            value={"1"}
-            items={[
-              { _id: "1", name: "ChatBot AI" },
-              { _id: "2", name: "Chat-GPT 4" },
-            ]}
-            onChange={() => {}}
-            sx={{ width: "180px", marginLeft: theme.spacing(8) }}
-          />
+          {projects.length > 0 ?
+            <Select
+              id="projects"
+              value={selectedProjectId}
+              items={projects}
+              onChange={handleProjectChange}
+              sx={{ width: "180px", marginLeft: theme.spacing(8) }}
+            /> :
+            <Box
+              className="empty-project"
+              sx={{
+                marginLeft: theme.spacing(8),
+                borderColor: theme.palette.border.dark
+              }}>No Project</Box>
+            }
         </Stack>
       )}
       {/* menu */}
@@ -217,6 +270,7 @@ const Sidebar = () => {
         aria-labelledby="nested-menu-subheader"
         disablePadding
         sx={{ px: theme.spacing(8) }}
+        data-joyride-id="dashboard-navigation"
       >
         {/*
         Items of the menu
@@ -247,7 +301,8 @@ const Sidebar = () => {
                     ?.disableRipple
                 }
                 className={
-                  location.pathname === item.path
+                  location.pathname === item.path ||
+                  customMenuHandler() === item.path
                     ? "selected-path"
                     : "unselected"
                 }
@@ -258,7 +313,10 @@ const Sidebar = () => {
                   borderRadius: theme.shape.borderRadius,
                   px: theme.spacing(4),
                   backgroundColor:
-                    location.pathname === item.path ? "#F9F9F9" : "transparent",
+                    location.pathname === item.path ||
+                    customMenuHandler() === item.path
+                      ? "#F9F9F9"
+                      : "transparent",
 
                   "&:hover": {
                     backgroundColor: "#F9F9F9",

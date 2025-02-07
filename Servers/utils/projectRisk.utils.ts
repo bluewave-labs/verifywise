@@ -1,9 +1,14 @@
 import { ProjectRisk } from "../models/projectRisk.model";
 import pool from "../database/db";
 
-export const getAllProjectRisksQuery = async (): Promise<ProjectRisk[]> => {
-  console.log("getAllProjectRisks");
-  const projectRisks = await pool.query("SELECT * FROM project_risks");
+export const getAllProjectRisksQuery = async (
+  projectId: number
+): Promise<ProjectRisk[]> => {
+  console.log("getAllProjectRisks for project", projectId);
+  const projectRisks = await pool.query(
+    "SELECT * FROM projectrisks WHERE project_id = $1",
+    [projectId]
+  );
   return projectRisks.rows;
 };
 
@@ -11,44 +16,42 @@ export const getProjectRiskByIdQuery = async (
   id: number
 ): Promise<ProjectRisk | null> => {
   console.log("getProjectRiskById", id);
-  const result = await pool.query("SELECT * FROM project_risks WHERE id = $1", [
+  const result = await pool.query("SELECT * FROM projectrisks WHERE id = $1", [
     id,
   ]);
   return result.rows.length ? result.rows[0] : null;
 };
 
-export const createProjectRiskQuery = async (
-  projectRisk: {
-    project_id: number; // Foreign key to refer to the project
-    risk_name: string;
-    risk_owner: string;
-    ai_lifecycle_phase: string;
-    risk_description: string;
-    risk_category: string;
-    impact: string;
-    assessment_mapping: string;
-    controls_mapping: string;
-    likelihood: string;
-    severity: string;
-    risk_level_autocalculated: string;
-    review_notes: string;
-    mitigation_status: string;
-    current_risk_level: string;
-    deadline: Date;
-    mitigation_plan: string;
-    implementation_strategy: string;
-    mitigation_evidence_document: string;
-    likelihood_mitigation: string;
-    risk_severity: string;
-    final_risk_level: string;
-    risk_approval: string;
-    approval_status: string;
-    date_of_assessment: Date;
-  }
-): Promise<ProjectRisk> => {
+export const createProjectRiskQuery = async (projectRisk: {
+  project_id: number; // Foreign key to refer to the project
+  risk_name: string;
+  risk_owner: string;
+  ai_lifecycle_phase: string;
+  risk_description: string;
+  risk_category: string;
+  impact: string;
+  assessment_mapping: string;
+  controls_mapping: string;
+  likelihood: string;
+  severity: string;
+  risk_level_autocalculated: string;
+  review_notes: string;
+  mitigation_status: string;
+  current_risk_level: string;
+  deadline: Date;
+  mitigation_plan: string;
+  implementation_strategy: string;
+  mitigation_evidence_document: string;
+  likelihood_mitigation: string;
+  risk_severity: string;
+  final_risk_level: string;
+  risk_approval: string;
+  approval_status: string;
+  date_of_assessment: Date;
+}): Promise<ProjectRisk> => {
   console.log("createProjectRisk");
   const result = await pool.query(
-    "INSERT INTO project_risks (project_id, risk_name, risk_owner, ai_lifecycle_phase, risk_description, risk_category, impact, assessment_mapping, controls_mapping, likelihood, severity, risk_level_autocalculated, review_notes, mitigation_status, current_risk_level, deadline, mitigation_plan, implementation_strategy, mitigation_evidence_document, likelihood_mitigation, risk_severity, final_risk_level, risk_approval, approval_status, date_of_assessment) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25) RETURNING *",
+    "INSERT INTO projectrisks (project_id, risk_name, risk_owner, ai_lifecycle_phase, risk_description, risk_category, impact, assessment_mapping, controls_mapping, likelihood, severity, risk_level_autocalculated, review_notes, mitigation_status, current_risk_level, deadline, mitigation_plan, implementation_strategy, mitigation_evidence_document, likelihood_mitigation, risk_severity, final_risk_level, risk_approval, approval_status, date_of_assessment) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25) RETURNING *",
     [
       projectRisk.project_id,
       projectRisk.risk_name,
@@ -112,7 +115,7 @@ export const updateProjectRiskByIdQuery = async (
 ): Promise<ProjectRisk | null> => {
   console.log("updateProjectRiskById", id, projectRisk);
   const result = await pool.query(
-    `UPDATE project_risks SET 
+    `UPDATE projectrisks SET 
       project_id = $1, 
       risk_name = $2, 
       risk_owner = $3, 
@@ -176,7 +179,7 @@ export const deleteProjectRiskByIdQuery = async (
 ): Promise<ProjectRisk | null> => {
   console.log("deleteProjectRiskById", id);
   const result = await pool.query(
-    "DELETE FROM project_risks WHERE id = $1 RETURNING *",
+    "DELETE FROM projectrisks WHERE id = $1 RETURNING *",
     [id]
   );
   return result.rows.length ? result.rows[0] : null;

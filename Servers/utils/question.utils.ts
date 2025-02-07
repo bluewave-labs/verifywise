@@ -44,7 +44,9 @@ export const getQuestionByIdQuery = async (
 };
 
 export interface RequestWithFile extends Request {
-  files?: UploadedFile[];
+  files?: UploadedFile[] | {
+    [key: string]: UploadedFile[]
+  };
 }
 export interface UploadedFile {
   originalname: string;
@@ -66,11 +68,11 @@ export const createNewQuestionQuery = async (
   files?: UploadedFile[]
 ): Promise<Question> => {
   console.log("createNewQuestion", question);
-  let uploadedFiles: string[] = [];
+  let uploadedFiles: { id: number, fileName: string }[] = [];
   await Promise.all(
     files!.map(async (file) => {
       const uploadedFile = await uploadFile(file);
-      uploadedFiles.push(uploadedFile.id.toString());
+      uploadedFiles.push({ id: uploadedFile.id.toString(), fileName: uploadedFile.filename });
     })
   );
   const result = await pool.query(
@@ -102,6 +104,7 @@ export const updateQuestionByIdQuery = async (
     hint: string;
     isRequired: boolean;
     priorityLevel: string;
+    answer: string;
   }>,
   files: UploadedFile[]
 ): Promise<Question | null> => {
@@ -115,8 +118,8 @@ export const updateQuestionByIdQuery = async (
   );
   const result = await pool.query(
     `UPDATE questions SET 
-      subtopic_id = $1, question_text = $2, answer_type = $3, evidence_file_required = $4, hint = $5, is_required = $7, priority_level = $7, evidence_files = $8
-      WHERE id = $9 RETURNING *`,
+      subtopic_id = $1, question_text = $2, answer_type = $3, evidence_file_required = $4, hint = $5, is_required = $7, priority_level = $7, evidence_files = $8, answer = $9
+      WHERE id = $10 RETURNING *`,
     [
       question.subtopicId,
       question.questionText,
@@ -126,6 +129,7 @@ export const updateQuestionByIdQuery = async (
       question.isRequired,
       question.priorityLevel,
       uploadedFiles,
+      question.answer,
       id,
     ]
   );

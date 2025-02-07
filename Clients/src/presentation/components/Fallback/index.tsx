@@ -17,6 +17,17 @@ interface FallbackProps {
   isAdmin: boolean;
 }
 
+/**
+ * Fallback component that displays a fallback UI with a title, checks, and an optional link for admin users.
+ *
+ * @param {Object} props - The properties object.
+ * @param {string} props.title - The title to display in the fallback UI.
+ * @param {string[]} props.checks - An array of check descriptions to display.
+ * @param {string} [props.link="/"] - The link to navigate to when the button is clicked (only for admin users).
+ * @param {boolean} props.isAdmin - Flag indicating if the user is an admin.
+ *
+ * @returns {JSX.Element} The rendered Fallback component.
+ */
 const Fallback: FC<FallbackProps> = ({
   title,
   checks,

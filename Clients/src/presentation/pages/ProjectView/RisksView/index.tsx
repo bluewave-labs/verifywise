@@ -1,80 +1,136 @@
-import { Stack, Typography } from "@mui/material";
-import { RiskData } from "../../../mocks/projects/project-overview.data";
-import { ProjectRisk } from "../../../mocks/projects/project-risks.data";
-import { FC, useState, useMemo, useCallback, memo } from "react";
-import { VendorRisk } from "../../../mocks/projects/project-vendor-risks.data";
+import { Stack, Typography, Box } from "@mui/material";
+import { RiskData } from "./riskkViewValues";
+import {
+  FC,
+  useState,
+  useMemo,
+  useCallback,
+  memo,
+  lazy,
+  Suspense,
+  useEffect,
+  useContext
+} from "react";
 import BasicTable from "../../../components/Table";
 import Risks from "../../../components/Risks";
 import AddNewRiskForm from "../../../components/AddNewRiskForm";
 import Popup from "../../../components/Popup";
 import AddNewVendorRiskForm from "../../../components/AddNewVendorRiskForm";
+import { ProjectRisk } from "../../../../application/hooks/useProjectRisks";
+import { VendorRisk } from "../../../../application/hooks/useVendorRisks";
+import { getAllEntities } from "../../../../application/repository/entity.repository";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
+const Alert = lazy(() => import("../../../components/Alert"));
+
+const projectRisksColNames = [
+  {
+    id: "risk_name",
+    name: "RISK NAME",
+  },
+  {
+    id: "impact",
+    name: "IMPACT",
+  },
+  {
+    id: "risk_owner",
+    name: "OWNER",
+  },
+  {
+    id: "severity",
+    name: "SEVERITY",
+  },
+  {
+    id: "likelihood",
+    name: "LIKELIHOOD",
+  },
+  {
+    id: "risk_level_autocalculated",
+    name: "RISK LEVEL",
+  },
+  {
+    id: "mitigation_status",
+    name: "MITIGATION",
+  },
+  {
+    id: "final_risk_level",
+    name: "FINAL RISK LEVEL",
+  },
+];
 interface RisksViewProps {
   risksSummary: RiskData;
   risksData: ProjectRisk[] | VendorRisk[];
   title: string;
+  projectId: string;
 }
 
+interface AlertProps {
+  variant: "success" | "info" | "warning" | "error";
+  title?: string;
+  body: string;
+}
+
+const vendorRisksColNames = [
+  { id: "vendor_name", name: "VENDOR NAME" },
+  { id: "risk_name", name: "RISK NAME" },
+  { id: "owner", name: "OWNER" },
+  { id: "risk_level", name: "RISK LEVEL" },
+  { id: "review_date", name: "REVIEW DATE" },
+];
+
+/**
+ * Main component for displaying project or vendor risks view
+ * @param risksSummary Summary data for risks visualization
+ * @param risksData Array of project or vendor risks
+ * @param title Type of risks being displayed ("Project" or "Vendor")
+ */
+
 const RisksView: FC<RisksViewProps> = memo(
-  ({ risksSummary, risksData, title }) => {
-    const projectRisksColNames = useMemo(
-      () => [
-        "RISK NAME",
-        "IMPACT",
-        "OWNER",
-        "SEVERITY",
-        "LIKELIHOOD",
-        "RISK LEVEL",
-        "MITIGATION",
-        "FINAL RISK LEVEL",
-      ],
-      []
-    );
-
-    const vendorRisksColNames = useMemo(
-      () => ["VENDOR NAME", "RISK NAME", "OWNER", "RISK LEVEL", "REVIEW DATE"],
-      []
-    );
-
-    const colNames = useMemo(() => {
-      return title === "Project"
-        ? projectRisksColNames
-        : title === "Vendor"
-        ? vendorRisksColNames
-        : [];
-    }, [title, projectRisksColNames, vendorRisksColNames]);
-
+  ({ risksSummary, risksData, title, projectId }) => {
+    /**
+     * Determines which column set to use based on risk type
+     */
     const risksTableCols = useMemo(() => {
-      return colNames.reduce<{ id: string; name: string }[]>((acc, item, i) => {
-        acc.push({
-          id: Object.keys(risksData[0])[i],
-          name: item,
-        });
-        return acc;
-      }, []);
-    }, [colNames, risksData]);
+      if (title === "Project") {
+        return projectRisksColNames;
+      } else {
+        return vendorRisksColNames;
+      }
+    }, [title, vendorRisksColNames]);
 
+    /**
+     * Transforms risk data into table row format
+     * Handles special formatting for dates and ensures data matches column structure
+     */
     const risksTableRows = useMemo(() => {
       return risksData.reduce<
-        { id: string; data: { id: string; data: string | number }[] }[]
+        { id: string; data: { id: string; data: any }[] }[]
       >((acc, item, i) => {
-        const rowData = Object.keys(item).map((key, indexKey) => {
-          const typedKey = key as keyof (ProjectRisk | VendorRisk);
+        const rowData = risksTableCols.map((col) => {
+          const value = (item as any)[col.id];
+          let displayValue = value;
+          if (col.id === "review_date" && value) {
+            displayValue = new Date(value).toLocaleDateString();
+          }
+
           return {
-            id: `${key}_${i}_${indexKey}`,
-            data: item[typedKey],
+            id: `${col.id}_${i}`,
+            data: String(displayValue || ""),
           };
         });
 
         acc.push({
-          id: `${item.riskName}_${i}`,
+          id: `${(item as ProjectRisk | VendorRisk).risk_name}_${i}`,
           data: rowData,
         });
 
         return acc;
       }, []);
-    }, [risksData]);
+    }, [risksData, risksTableCols]);
 
+    /**
+     * Combines columns and rows data for table component
+     */
     const tableData = useMemo(
       () => ({
         cols: risksTableCols,
@@ -83,6 +139,82 @@ const RisksView: FC<RisksViewProps> = memo(
       [risksTableCols, risksTableRows]
     );
 
+    console.log("tableData", tableData);
+
+    const [selectedRow, setSelectedRow] = useState<ProjectRisk>();
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const [riskData1, setRiskData] = useState<ProjectRisk[] | VendorRisk[]>([]);
+    const {currentProjectId} = useContext(VerifyWiseContext);
+
+    const [alert, setAlert] = useState<{
+      variant: "success" | "info" | "warning" | "error";
+      title?: string;
+      body: string;
+    } | null>(null);
+
+    const handleAlert = ({ variant, body, title }: AlertProps) => {
+      setAlert({
+        variant,
+        title,
+        body,
+      });
+      setTimeout(() => {
+        setAlert(null);
+      }, 2500);
+    };
+
+    /**
+     * Handles closing the risk edit popup
+     */
+    const handleClosePopup = () => {
+      setAnchorEl(null); // Close the popup
+
+      setSelectedRow(undefined);
+    };
+
+    const handleSuccess = () => {
+      console.log("create vendor is success!");
+      handleAlert({
+        variant: "success",
+        body: title + " risk created successfully",
+      });
+
+      fetchRiskData();
+    };
+
+    const handleUpdate = () => {
+      console.log("update vendor is success!");
+      handleAlert({
+        variant: "success",
+        body: title + " risk updated successfully",
+      });
+
+      fetchRiskData();
+    };
+
+    const fetchRiskData = useCallback(async () => {
+      console.log(`/projectRisks/by-projid/${currentProjectId}`)
+      try {
+        const url =
+          title === "Project"
+            ? `/projectRisks/by-projid/${projectId}`
+            : `/vendorRisks/by-projid/${projectId}`;
+        const response = await getAllEntities({ routeUrl: url });
+        console.log("response :::: > ", response);        
+        setRiskData(response.data);
+      } catch (error) {
+        console.error("Error fetching vendor risks:", error);
+      }
+    }, []);
+
+    useEffect(() => {
+      console.log("***", title);
+      fetchRiskData();
+    }, [title]);
+
+    /**
+     * Renders the "Add New Risk" popup component for project risks
+     */
     const AddNewRiskPopupRender = useCallback(() => {
       const [anchor, setAnchor] = useState<null | HTMLElement>(null);
       const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
@@ -92,7 +224,13 @@ const RisksView: FC<RisksViewProps> = memo(
       return (
         <Popup
           popupId="add-new-risk-popup"
-          popupContent={<AddNewRiskForm closePopup={() => setAnchor(null)} />}
+          popupContent={
+            <AddNewRiskForm
+              closePopup={() => setAnchor(null)}
+              popupStatus="new"
+              onSuccess={handleSuccess}
+            />
+          }
           openPopupButtonName="Add new risk"
           popupTitle="Add a new risk"
           popupSubtitle="Create a detailed breakdown of risks and their mitigation strategies to assist in documenting your risk management activities effectively."
@@ -102,6 +240,9 @@ const RisksView: FC<RisksViewProps> = memo(
       );
     }, []);
 
+    /**
+     * Renders the "Add New Vendor Risk" popup component
+     */
     const AddNewVendorRiskPopupRender = useCallback(() => {
       const [anchor, setAnchor] = useState<null | HTMLElement>(null);
       const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
@@ -112,7 +253,11 @@ const RisksView: FC<RisksViewProps> = memo(
         <Popup
           popupId="add-new-vendor-risk-popup"
           popupContent={
-            <AddNewVendorRiskForm closePopup={() => setAnchor(null)} />
+            <AddNewVendorRiskForm
+              closePopup={() => setAnchor(null)}
+              onSuccess={handleSuccess}
+              popupStatus="new"
+            />
           }
           openPopupButtonName="Add new risk"
           popupTitle="Add a new vendor risk"
@@ -125,6 +270,19 @@ const RisksView: FC<RisksViewProps> = memo(
 
     return (
       <Stack sx={{ maxWidth: 1220 }}>
+        {alert && (
+          <Suspense fallback={<div>Loading...</div>}>
+            <Box>
+              <Alert
+                variant={alert.variant}
+                title={alert.title}
+                body={alert.body}
+                isToast={true}
+                onClick={() => setAlert(null)}
+              />
+            </Box>
+          </Suspense>
+        )}
         <Risks {...risksSummary} />
         <Stack
           sx={{ mt: "32px", mb: "28px" }}
@@ -144,11 +302,83 @@ const RisksView: FC<RisksViewProps> = memo(
             <AddNewVendorRiskPopupRender />
           )}
         </Stack>
+
+        {Object.keys(selectedRow || {}).length > 0 &&
+          anchorEl &&
+          title === "Project" && (
+            <Popup
+              popupId="edit-new-risk-popup"
+              popupContent={
+                <AddNewRiskForm
+                  closePopup={() => setAnchorEl(null)}
+                  popupStatus="edit"
+                  initialRiskValues={{
+                    riskName: selectedRow?.risk_name || "", // Use optional chaining
+                    actionOwner: selectedRow?.risk_owner || 0, // Use optional chaining
+                    aiLifecyclePhase: selectedRow?.ai_lifecycle_phase || 0, // Use optional chaining
+                    riskDescription: selectedRow?.risk_description || "", // Use optional chaining
+                    riskCategory: selectedRow?.risk_category || 0, // Use optional chaining
+                    potentialImpact: selectedRow?.impact || "", // Use optional chaining
+                    assessmentMapping: selectedRow?.assessment_mapping || 0, // Use optional chaining
+                    controlsMapping: selectedRow?.controls_mapping || 0, // Use optional chaining
+                    likelihood: selectedRow?.likelihood || 1, // Use optional chaining
+                    riskSeverity: selectedRow?.risk_severity || 1, // Use optional chaining
+                    riskLevel: selectedRow?.final_risk_level || 0, // Use optional chaining
+                    reviewNotes: selectedRow?.review_notes || "", // Use optional chaining
+                  }}
+                  initialMitigationValues={{
+                    mitigationStatus: selectedRow?.mitigation_status || 0, // Use optional chaining
+                    mitigationPlan: selectedRow?.mitigation_plan || "", // Use optional chaining
+                    currentRiskLevel: selectedRow?.current_risk_level || 0, // Use optional chaining
+                    implementationStrategy:
+                      selectedRow?.implementation_strategy || "", // Use optional chaining
+                    deadline: selectedRow?.deadline || "", // Use optional chaining
+                    doc: selectedRow?.mitigation_evidence_document || "", // Use optional chaining
+                    likelihood: selectedRow?.likelihood_mitigation || 1, // Use optional chaining
+                    riskSeverity: selectedRow?.risk_severity || 1, // Use optional chaining
+                    approver: selectedRow?.risk_approval || 0, // Use optional chaining
+                    approvalStatus: selectedRow?.approval_status || 0, // Use optional chaining
+                    dateOfAssessment: selectedRow?.date_of_assessment || "", // Use optional chaining
+                    recommendations: selectedRow?.recommendations || "", // Use optional chaining
+                  }}
+                  onSuccess={handleUpdate}
+                />
+              }
+              openPopupButtonName="Edit risk"
+              popupTitle="Edit project risk"
+              handleOpenOrClose={handleClosePopup}
+              anchor={anchorEl}
+            />
+          )}
+
+        {Object.keys(selectedRow || {}).length > 0 &&
+          anchorEl &&
+          title === "Vendor" && (
+            <Popup
+              popupId="edit-vendor-risk-popup"
+              popupContent={
+                <AddNewVendorRiskForm
+                  closePopup={() => setAnchorEl(null)}
+                  onSuccess={handleUpdate}
+                  popupStatus="edit"
+                />
+              }
+              openPopupButtonName="Edit risk"
+              popupTitle="Edit vendor risk"
+              handleOpenOrClose={handleClosePopup}
+              anchor={anchorEl}
+            />
+          )}
+
+        {/* map the data */}
         <BasicTable
           data={tableData}
+          bodyData={riskData1}
           table="risksTable"
           paginated
-          label={`${title} risks`}
+          label={`${title} risk`}
+          setSelectedRow={(row) => setSelectedRow(row as ProjectRisk)}
+          setAnchorEl={setAnchorEl}
         />
       </Stack>
     );

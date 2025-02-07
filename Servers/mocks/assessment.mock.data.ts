@@ -1,6 +1,8 @@
 import { Assessment } from "../models/assessment.model";
 
-export const Assessments: Assessment[] = [
-  { id: 1, projectId: 1 },
-  { id: 2, projectId: 2 },
-];
+export const Assessments = (projectId1: number, projectId2: number): Assessment[] => {
+  return [
+    { id: 1, projectId: projectId1 },
+    { id: 2, projectId: projectId2 },
+  ]
+};

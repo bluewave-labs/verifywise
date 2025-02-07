@@ -1,79 +1,117 @@
 import { Typography, Box, useTheme } from "@mui/material";
-import { FC, memo } from "react";
+import { FC, memo, useContext } from "react";
 import euimg from "../../assets/imgs/eu-ai-act.jpg";
 import ProgressBar from "./ProgressBar";
 import { Btn, Card, styles, SubtitleValue, Title } from "./styles";
-import { useNavigate } from "react-router-dom";
+import useNavigateSearch from "../../../application/hooks/useNavigateSearch";
+import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import { User } from "../../../application/hooks/useProjectData";
+import getProjectData from "../../../application/tools/getProjectData";
+import {
+  Assessments,
+  Controls,
+} from "../../../application/hooks/useProjectStatus";
 import { formatDate } from "../../tools/isoDateToString";
 
 export interface ProjectCardProps {
-    id: number;
-    project_title: string;
-    owner: string;
-    start_date: string;
-    controls_completed: string | null;
-    requirements_completed: string | null;
+  id: number;
+  project_title: string;
+  owner: string;
+  assessments: Assessments;
+  controls: Controls;
+  last_updated: string;
 }
 
-const ProgressBarRender: FC<{ progress: string | null; label: string }> = memo(({ progress, label }) => (
-    <>
-        <ProgressBar progress={progress} />
-        <Typography sx={styles.progressBarTitle}>
-            {progress} {label} completed
-        </Typography>
-    </>
+const ProgressBarRender: FC<{
+  progress: string | null;
+  label: string;
+  completed: number;
+}> = memo(({ progress, label, completed }) => (
+  <>
+    <ProgressBar progress={progress} />
+    <Typography sx={styles.progressBarTitle}>
+      {progress} {label}
+      {completed > 1 && "s"} completed
+    </Typography>
+  </>
 ));
 
 const ProjectCard: FC<ProjectCardProps> = ({
-    project_title,
-    owner,
-    start_date,
-    controls_completed,
-    requirements_completed
+  id,
+  project_title,
+  owner,
+  assessments,
+  controls,
+  last_updated,
 }) => {
-    const theme = useTheme();
-    const navigate = useNavigate();
+  const theme = useTheme();
+  const navigate = useNavigateSearch();
+  const { dashboardValues } = useContext(VerifyWiseContext);
+  const { users } = dashboardValues;
 
-    return (
-        <Card>
-            <Title variant="h5">
-                {project_title}
-            </Title>
-            <Box sx={styles.upperBox}>
-                <Box>
-                    <Typography variant="subtitle1" component="span" sx={styles.subtitle}>
-                        Project owner
-                    </Typography>
-                    <SubtitleValue>{owner}</SubtitleValue>
-                </Box>
-                <Box>
-                    <Typography variant="subtitle1" component="span" sx={styles.subtitle}>
-                        Last updated
-                    </Typography>
-                    <SubtitleValue>{formatDate(start_date)}</SubtitleValue>
-                </Box>
-            </Box>
-            <ProgressBarRender progress={controls_completed} label="controls" />
-            <ProgressBarRender progress={requirements_completed} label="requirements" />
-            <Box sx={styles.lowerBox}>
-                <Box sx={{ display: "flex", mb: 1.5 }}>
-                    <Box sx={styles.imageBox}>
-                        <img src={euimg} alt="EU AI Act" />
-                    </Box>
-                    <Typography sx={styles.imageTitle}>
-                        EU AI Act
-                    </Typography>
-                </Box>
-                <Btn
-                    variant="outlined"
-                    disableRipple={theme.components?.MuiButton?.defaultProps?.disableRipple}
-                    onClick={() => navigate("/project-view")}
-                >
-                    View project
-                </Btn>
-            </Box>
-        </Card>
-    );
+  const ownerUser: User = users.find((user: User) => user.id === owner) ?? "";
+
+  const {
+    controlsProgress,
+    requirementsProgress,
+    controlsCompleted,
+    requirementsCompleted,
+  } = getProjectData({ projectId: id, assessments, controls });
+
+  return (
+    <Card>
+      <Title variant="h5">{project_title}</Title>
+      <Box sx={styles.upperBox}>
+        <Box>
+          <Typography variant="subtitle1" component="span" sx={styles.subtitle}>
+            Project owner
+          </Typography>
+          <SubtitleValue>
+            {ownerUser
+              ? `${ownerUser.name} ${ownerUser.surname}`
+              : "Unknown User"}
+          </SubtitleValue>
+        </Box>
+        <Box>
+          <Typography variant="subtitle1" component="span" sx={styles.subtitle}>
+            Last updated
+          </Typography>
+          <SubtitleValue>
+            {last_updated ? formatDate(last_updated.toString()) : "NA"}
+          </SubtitleValue>
+        </Box>
+      </Box>
+      <ProgressBarRender
+        progress={controlsProgress}
+        label="control"
+        completed={controlsCompleted}
+      />
+      <ProgressBarRender
+        progress={requirementsProgress}
+        label="requirement"
+        completed={requirementsCompleted}
+      />
+      <Box sx={styles.lowerBox}>
+        <Box sx={{ display: "flex", mb: 1.5 }}>
+          <Box sx={styles.imageBox}>
+            <img src={euimg} alt="EU AI Act" />
+          </Box>
+          <Typography sx={styles.imageTitle}>EU AI Act</Typography>
+        </Box>
+        <Btn
+          variant="outlined"
+          disableRipple={
+            theme.components?.MuiButton?.defaultProps?.disableRipple
+          }
+          onClick={() =>
+            navigate("/project-view", { projectId: id.toString() })
+          }
+        >
+          View project
+        </Btn>
+      </Box>
+    </Card>
+  );
 };
 
 export default ProjectCard;

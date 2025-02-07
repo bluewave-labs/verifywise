@@ -1,16 +1,23 @@
-import { FC, useState, useMemo, useCallback } from "react";
-import { Button, SelectChangeEvent, Stack, useTheme } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { FC, useState, useMemo, useCallback, useEffect } from "react";
+import {
+  Button,
+  SelectChangeEvent,
+  Stack,
+  useTheme,
+} from "@mui/material";
+import { useSelector } from "react-redux";
 import dayjs, { Dayjs } from "dayjs";
-import { checkStringValidation } from '../../../application/validations/stringValidation';
-import selectValidation from '../../../application/validations/selectValidation';
-import { Suspense, lazy } from 'react';
-import { createNewUser } from '../../../application/repository/entity.repository';
-
+import { checkStringValidation } from "../../../application/validations/stringValidation";
+import selectValidation from "../../../application/validations/selectValidation";
+import { Suspense, lazy } from "react";
+import { createNewUser, getAllEntities } from "../../../application/repository/entity.repository";
 const Select = lazy(() => import("../Inputs/Select"));
 const DatePicker = lazy(() => import("../Inputs/Datepicker"));
 const Field = lazy(() => import("../Inputs/Field"));
-const Alert = lazy(() => import("../Alert"));
+import { extractUserToken } from "../../../application/tools/extractToken";
+import React from "react";
+import useUsers from "../../../application/hooks/useUsers";
+
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -51,41 +58,51 @@ const initialState: FormValues = {
   project_title: "",
   users: 0,
   owner: 0,
-  start_date: "",
+  start_date: new Date().toISOString(),
   ai_risk_classification: 0,
   type_of_high_risk_role: 0,
-  goal: ""
-}
+  goal: "",
+};
 
 interface CreateProjectFormProps {
-  closePopup: () => void
+  closePopup: () => void;
+  onNewProject: (value: { isNewProject: boolean; project: any }) => void;
 }
 
 /**
  * `CreateProjectForm` is a functional component that renders a form for creating a new project.
  * It includes fields for project title, users, owner, start date, AI risk classification, type of high risk role, and goal.
  * The form validates the input fields and displays error messages if validation fails.
- * On successful submission, it navigates to the project view page.
+ * On successful submission, it shows a newly created project on project overview page.
  *
  * @component
  * @returns {JSX.Element} The rendered component.
  */
-const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
+
+const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProject }) => {
   const theme = useTheme();
-  const navigate = useNavigate();
   const [values, setValues] = useState<FormValues>(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [alert, setAlert] = useState<{
-    variant: "success" | "info" | "warning" | "error";
-    title?: string;
-    body: string;
-  } | null>(null);
+  const {users, loading, error } = useUsers();
+  const authState = useSelector(
+    (state: { auth: { authToken: string; userExists: boolean } }) => state.auth
+  );
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+     
+    };
+    fetchUsers();
+  }, []);
+
 
   const handleDateChange = useCallback((newDate: Dayjs | null) => {
-    setValues((prevValues) => ({
-      ...prevValues,
-      start_date: newDate ? newDate.toISOString() : ""
-    }));
+    if (newDate?.isValid()) {
+      setValues((prevValues) => ({
+        ...prevValues,
+        start_date: newDate ? newDate.toISOString() : "",
+      }));
+    }
   }, []);
 
   const handleOnSelectChange = useCallback(
@@ -108,7 +125,12 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    const projectTitle = checkStringValidation("Project title", values.project_title, 1, 64);
+    const projectTitle = checkStringValidation(
+      "Project title",
+      values.project_title,
+      1,
+      64
+    );
     if (!projectTitle.accepted) {
       newErrors.projectTitle = projectTitle.message;
     }
@@ -128,11 +150,17 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
     if (!owner.accepted) {
       newErrors.owner = owner.message;
     }
-    const riskClassification = selectValidation("AI risk classification", values.ai_risk_classification);
+    const riskClassification = selectValidation(
+      "AI risk classification",
+      values.ai_risk_classification
+    );
     if (!riskClassification.accepted) {
       newErrors.riskClassification = riskClassification.message;
     }
-    const typeOfHighRiskRole = selectValidation("Type of high risk role", values.type_of_high_risk_role);
+    const typeOfHighRiskRole = selectValidation(
+      "Type of high risk role",
+      values.type_of_high_risk_role
+    );
     if (!typeOfHighRiskRole.accepted) {
       newErrors.typeOfHighRiskRole = typeOfHighRiskRole.message;
     }
@@ -141,30 +169,33 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (validateForm()) {
-      //request to the backend
-      await createNewUser({
-        routeUrl: "/projects",
-        body: values,
-      }).then((response) => {
-          // Reset form after successful submission
-          setValues(initialState);
-          setErrors({});
-          if (response.status === 201) {
-            setAlert({
-              variant: "success",
-              body: "Project created successfully",
-            });
-            setTimeout(() => {
-              setAlert(null);
-              navigate("/project-view");
-              closePopup();
-            }, 3000);
-          }
-        })
+      confirmSubmit();
     }
+  };
+
+  const confirmSubmit = async () => {
+    const userInfo = extractUserToken(authState.authToken)
+    await createNewUser({
+      routeUrl: "/projects",
+      body: {
+        ...values,
+        type_of_high_risk_role: highRiskRoleItems.find(item => item._id === values.type_of_high_risk_role)?.name,
+        ai_risk_classification: riskClassificationItems.find(item => item._id === values.ai_risk_classification)?.name,
+        last_updated: values.start_date,
+        last_updated_by: values.users // TO Do: get user id from token
+      },
+    }).then((response) => {
+      // Reset form after successful submission
+      setValues(initialState);
+      setErrors({});
+      closePopup();
+      if (response.status === 201) {
+        onNewProject({ isNewProject: true, project: response.data.data.project });
+      }
+    });
   };
 
   const riskClassificationItems = useMemo(
@@ -200,17 +231,6 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
 
   return (
     <Stack>
-      {alert && (
-        <Suspense fallback={<div>Loading...</div>}>
-          <Alert
-            variant={alert.variant}
-            title={alert.title}
-            body={alert.body}
-            isToast={true}
-            onClick={() => setAlert(null)}
-          />
-        </Suspense>
-      )}
       <Stack component="form" onSubmit={handleSubmit}>
         <Stack
           sx={{
@@ -240,11 +260,11 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
               placeholder="Select users"
               value={values.users}
               onChange={handleOnSelectChange("users")}
-              items={[
-                { _id: 1, name: "Some value 1", email: "email@email.com" },
-                { _id: 2, name: "Some value 2", email: "email@email.com" },
-                { _id: 3, name: "Some value 3", email: "email@email.com" },
-              ]}
+              items={users?.map(user => ({
+                _id: user.id,
+                name: `${user.name} ${user.surname}`,
+                email: user.email
+              })) || []}
               sx={{
                 width: "350px",
                 backgroundColor: theme.palette.background.main,
@@ -260,11 +280,11 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
               placeholder="Select owner"
               value={values.owner}
               onChange={handleOnSelectChange("owner")}
-              items={[
-                { _id: 1, name: "Some value 1" },
-                { _id: 2, name: "Some value 2" },
-                { _id: 3, name: "Some value 3" },
-              ]}
+              items={users?.map(user => ({
+                _id: user.id,
+                name: `${user.name} ${user.surname}`,
+                email: user.email
+              })) || []}
               sx={{
                 width: "350px",
                 backgroundColor: theme.palette.background.main,
@@ -276,7 +296,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
           <Suspense fallback={<div>Loading...</div>}>
             <DatePicker
               label="Start date"
-              date={values.start_date ? dayjs(values.start_date) : null}
+              date={values.start_date ? dayjs(values.start_date) : dayjs(new Date)}
               handleDateChange={handleDateChange}
               sx={{
                 width: "130px",
@@ -337,7 +357,6 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({closePopup}) => {
                 value={values.goal}
                 onChange={handleOnTextFieldChange("goal")}
                 sx={{
-                  height: 101,
                   backgroundColor: theme.palette.background.main,
                 }}
                 isRequired

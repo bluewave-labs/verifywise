@@ -1,138 +1,176 @@
-import React from "react";
-import { Typography, Button } from "@mui/material";
-import {
-  Container,
-  DragDropArea,
-  Icon,
-  ButtonWrapper,
-} from "./FileUpload.styles";
-import { createUppyInstance } from "./uppyConfig";
-import {
-  handleUploadSuccess,
-  handleUploadError,
-  handleUploadProgress,
-  uploadToLocalStorage,
-} from "./eventHandlers";
-import { DragDrop } from "@uppy/react";
-import UploadSmallIcon from "../../assets/icons/file-upload.svg";
-import { FileUploadProps } from "./types";
+import { useEffect, useRef, useState } from 'react';
+import './drop-file-input.css';
+import UploadSmallIcon from '../../assets/icons/folder-upload.svg';
+import { FileProps, FileUploadProps } from './types';
+import { DragDropArea, Icon } from './FileUpload.styles';
+import { List, ListItem, ListItemText, Stack, Typography, IconButton, Button } from '@mui/material';
+import DeleteIcon from "@mui/icons-material/Delete";
 
-const FileUploadComponent: React.FC<FileUploadProps> = ({
-  onSuccess,
-  onError,
-  onProgress,
-}) => {
-  // Configure Uppy instance
-  const uppy = React.useMemo(() => createUppyInstance(), []); // Attach event handlers
+const FileUploadComponent = ({onClose, onHeightChange, topicId = 0, assessmentsValues = {}, setAssessmentsValue, allowedFileTypes}: FileUploadProps) => {
 
-  React.useEffect(() => {
-    uppy.on("upload-success", handleUploadSuccess(onSuccess));
-    uppy.on("upload-error", handleUploadError(onError));
-    uppy.on("upload-progress", handleUploadProgress(onProgress));
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
-    return () => uppy.cancelAll();
-  }, [uppy, onSuccess, onError, onProgress]);
+  const [fileList, setFileList] = useState<FileProps[]>(assessmentsValues[topicId].file || []);
 
-  const locale = React.useMemo(
-    () => ({
-      strings: {
-        dropHereOr: "Click to upload or drag and drop",
-      },
-      pluralize: (count: number) => count,
-    }),
-    []
-  );
+  const onDragEnter = () => wrapperRef?.current?.classList.add('dragover');
+
+  const onDragLeave = () => wrapperRef?.current?.classList.remove('dragover');
+
+  const onDrop = () => wrapperRef?.current?.classList.remove('dragover');
+
+  // Dynamically adjust based on uploaded files
+  useEffect(() => {
+    if (onHeightChange) {
+      const baseHeight = 338;
+      const fileHeightIncrement = 55;
+      const maxHeight = 600;
+
+      const newHeight = Math.min(
+        baseHeight + fileList.length * fileHeightIncrement,
+        maxHeight
+      );
+
+      onHeightChange?.(newHeight);
+    }
+  }, [fileList.length, onHeightChange]);
+
+  const onFileDrop = (e) => {
+    const newFile = e.target.files[0];
+
+    if (!allowedFileTypes?.includes(newFile.type)) {
+      console.error(`invalid file type: ${newFile.type}`);
+      return;
+    }
+    // Prevent duplicate files
+    if (newFile) {
+      const fileExists = fileList.some(
+        (f) => f.name === newFile.name || f.size === newFile.size
+      );
+      if (fileExists) {
+        console.warn(`File ${newFile.name} already exists.`);
+        return
+      }
+    // Update the file list
+    const updatedList = [...fileList, newFile];
+    setFileList(updatedList);
+    }
+  }
+
+  const handleRemoveFile = (index: number) => {
+    const newFiles = fileList.filter((_, i) => i !== index);
+    setFileList(newFiles);
+  };
+
+  const handleUploadClick = () => {
+    if (assessmentsValues != null && topicId != null && assessmentsValues[topicId] != null && typeof assessmentsValues === "object" && assessmentsValues[topicId].file != null ) {
+      const newAssessmentValues = { ...assessmentsValues,
+      [topicId]: {
+        ...assessmentsValues[topicId],
+        file: fileList,
+      }}
+      setAssessmentsValue?.(newAssessmentValues);
+    }
+
+    if (onClose) {
+      onClose();
+    }
+  };
 
   return (
-    <Container>
-      {/* Title */}
-      <Typography
-        variant="h6"
+    <>
+      <Stack
+        spacing={3}
         sx={{
-          fontWeight: 600,
-          fontSize: "16px",
-          color: "#374151",
-          paddingBottom: "10px",
+          width: "fit-content",
+          mt: 0,
+          pt: 0,
         }}
       >
-        Upload a new file
-      </Typography>
-      {/* Drag-and-Drop Area */}
-      <DragDropArea>
-        <Icon
-          src={UploadSmallIcon}
-          alt="Upload Icon"
-          sx={{ marginBottom: "6px" }}
-        />
-        <label htmlFor="fileInput" style={{ cursor: "pointer" }}>
-          <Typography
-            variant="body2"
-            sx={{
-              fontSize: "14px",
-              color: "#6B7280",
-              marginBottom: "6px",
-            }}
+        <Typography
+          variant="h6"
+          sx={{ fontWeight: 600, fontSize: "16px", pb: 2 }}
+        >
+          Upload a new file
+        </Typography>
+
+        <DragDropArea uploadedFilesCount={fileList.length}>
+          <div
+            ref={wrapperRef}
+            className="drop-file-input"
+            onDragEnter={onDragEnter}
+            onDragLeave={onDragLeave}
+            onDrop={onDrop}
           >
-            <span
-              style={{
-                color: "#3B82F6",
-                cursor: "pointer",
+            <div className="drop-file-input__label">
+              <Icon src={UploadSmallIcon} alt="Upload Icon" sx={{ mb: 2 }} />
+              <Typography variant="body2">
+                <span style={{ color: "#3b82f6" }}>Click to upload</span> or
+                drag and drop
+              </Typography>
+            </div>
+            <input type="file" value="" onChange={onFileDrop} />
+          </div>
+          {fileList.length > 0 && (
+            <Stack
+              sx={{
+                mt: 2,
+                borderTop: "1px solid #e5e7eb",
+                width: "100%",
+                padding: "8px",
+                maxHeight: "300px",
+                overflowY: "auto",
+                boxSizing: "border-box",
               }}
             >
-              Click to upload
-            </span>{" "}
-            or drag and drop
+              <List>
+                {fileList.map((file, index) => (
+                  <ListItem
+                    key={index}
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "0",
+                    }}
+                  >
+                    <ListItemText
+                      primary={file.name}
+                      secondary={`Size: ${file.size}`}
+                      sx={{
+                        fontSize: "12px",
+                        wordBreak: "break-word",
+                        maxWidth: "100%",
+                      }}
+                    />
+                    <IconButton
+                      onClick={() => handleRemoveFile(index)}
+                      edge="end"
+                      size="small"
+                      sx={{ padding: "4px" }}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </ListItem>
+                ))}
+              </List>
+            </Stack>
+          )}
+        </DragDropArea>
+        <Stack direction="row" justifyContent="space-between" sx={{ mt: 2 }}>
+          <Typography variant="caption" sx={{ fontSize: "12px" }}>
+            Supported formats: PDF
           </Typography>
-        </label>
-        <input
-          type="file"
-          id="fileInput"
-          hidden
-          onChange={(e) => {
-            if (e.target.files) {
-              Array.from(e.target.files).forEach((file) =>
-                uppy.addFile({
-                  name: file.name,
-                  type: file.type,
-                  data: file,
-                })
-              );
-            }
-          }}
-        />
-        <Typography
-          variant="caption"
-          sx={{
-            fontSize: "12px",
-            color: "#6B7280",
-          }}
-        >
-          (maximum size: 50 MB)
-        </Typography>
-        {/* DragDrop Component */}
-        <DragDrop uppy={uppy} locale={locale} />
-      </DragDropArea>
-
-      {/* Supported Formats */}
-      <Typography variant="caption" sx={{ fontSize: "12px", color: "#6B7280" }}>
-        Supported formats: PDF
-      </Typography>
-      {/* Upload Button */}
-      <ButtonWrapper>
-        <Button
-          variant="contained"
-          sx={{
-            width: "120px",
-            backgroundColor: "#3B82F6",
-            textTransform: "none",
-          }}
-          onClick={() => uploadToLocalStorage(uppy)}
-        >
-          Upload
-        </Button>
-      </ButtonWrapper>
-    </Container>
+          <Button
+            variant="contained"
+            sx={{ marginTop: "8px", width: "100px", height: "34px" }}
+            onClick={handleUploadClick}
+          >
+            Save
+          </Button>
+        </Stack>
+      </Stack>
+    </>
   );
-};
+}
 
 export default FileUploadComponent;

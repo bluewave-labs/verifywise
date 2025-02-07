@@ -2,6 +2,12 @@
 
 GET http://localhost:3000/projectRisks
 
+### get projectRisks by projectId
+GET http://localhost:3000/projectRisks/by-projid/1
+
+### get vendor risks by projectId
+GET http://localhost:3000/vendorRisks/by-projid/1
+
 ### get projectRisk by id
 
 GET http://localhost:3000/projectRisks/2

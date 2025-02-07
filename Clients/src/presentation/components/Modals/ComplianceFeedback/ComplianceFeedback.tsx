@@ -47,7 +47,14 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
 
   const handleContentChange = (content: string) => {
     onChange({
-      target: { value: content },
+      target: {
+        value:
+          " " +
+          content
+            .replace(/^<p>/, "")
+            .replace(/<\/p>$/, "")
+            .trim(),
+      },
     } as React.ChangeEvent<HTMLInputElement>);
   };
 
@@ -85,7 +92,7 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
         <Typography
           sx={{ color: "black", padding: 5, marginLeft: 1, paddingLeft: 0 }}
         >
-          You can also drag and drop, or click to upload a feedback.
+          You can also drag and drop, or click to upload an evidence file.
         </Typography>
         <Tooltip title="Attach a file">
           <IconButton component="label">

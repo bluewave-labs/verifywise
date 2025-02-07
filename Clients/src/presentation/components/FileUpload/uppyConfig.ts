@@ -1,40 +1,34 @@
 import Uppy from "@uppy/core";
-//import XHRUpload from "@uppy/xhr-upload";
-
-import GoldenRetriever from "@uppy/golden-retriever";
+import XHRUpload from "@uppy/xhr-upload";
 import DropTarget from "@uppy/drop-target";
+import { ENV_VARs } from "../../../../env.vars";
 
 
-export const createUppyInstance = ()=> { return new Uppy({
-  autoProceed: false,
-  debug: true,
-})
-  .use(DropTarget, {
-    target: document.body,
-  })
-  .use(GoldenRetriever);}
+export const createUppyInstance = (assessmentId: number) => {
+  const uppy = new Uppy({
+    restrictions: {
+      allowedFileTypes: ["application/pdf"], 
+      maxFileSize:null,
+    },
+    autoProceed: true, 
+    debug: true,
+  }); 
 
-// export const createUppyInstance = (
-//   //uploadEndpoint: string | undefined,
-//   allowedFileTypes: string[],
-//   maxFileSize: number
-// ) => {
-//   return new Uppy({
-//     restrictions: {
-//       maxNumberOfFiles: 1,
-//       allowedFileTypes,
-//       maxFileSize,
-//     },
-//     autoProceed: true,
-//   }).use(GoldenRetriever
-    
-    
-//     //XHRUpload, {
-//     //endpoint: uploadEndpoint || "api/replaceendpoint",
-//     //formData: true,
-//     //fieldName: "file",
-//   //}
-
-
-// );
-// };
+  uppy.use(XHRUpload, {
+    endpoint: `${ENV_VARs.URL}/assessments/saveAnswers`,
+    method: "POST",
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "asseessmentId": String(assessmentId),
+    },
+    fieldName: "file",
+    formData: true,
+  }); 
+  uppy.use(DropTarget, {
+    target: document.body, 
+  });
+  uppy.on('file-added', (file) => {
+console.log('file object: ', file);
+  });
+  return uppy;
+};

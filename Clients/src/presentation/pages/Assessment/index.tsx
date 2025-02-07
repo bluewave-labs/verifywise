@@ -1,9 +1,11 @@
-import { memo, useCallback } from "react";
-import { Stack, Button, Typography, useTheme, Paper } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import singleTheme from "../../themes/v1SingleTheme";
+import { memo, useState, useEffect, useRef } from "react";
+import { Stack, Typography, useTheme, Paper, Divider } from "@mui/material";
 import { Theme } from "@mui/material/styles";
 import { SxProps } from "@mui/system";
+import PageTour from "../../components/PageTour";
+import CustomStep from "../../components/PageTour/CustomStep";
+import { getAllEntities } from "../../../application/repository/entity.repository";
+import AllAssessment from "./NewAssessment/AllAssessments";
 
 // Define styles outside the component to avoid recreation on each render
 const usePaperStyle = (theme: Theme): SxProps<Theme> => ({
@@ -13,7 +15,7 @@ const usePaperStyle = (theme: Theme): SxProps<Theme> => ({
   border: "1px solid",
   borderColor: theme.palette.border.light,
   boxShadow: "none",
-  paddingRight: "150px",
+  paddingRight: "100px",
   paddingLeft: "25px",
   paddingTop: "10px",
   paddingBottom: "10px",
@@ -23,35 +25,96 @@ const usePaperStyle = (theme: Theme): SxProps<Theme> => ({
 });
 
 const Assessment = memo(() => {
-  const navigate = useNavigate();
   const theme = useTheme();
   const paperStyle = usePaperStyle(theme);
+  const [runAssessmentTour, setRunAssessmentTour] = useState(false);
+  const [assessmentsStatus, setAssessmentsStatus] = useState({
+    allAssessments: 0,
+    allDoneAssessments: 0,
+    AssessmentsCompletion: 0,
+  });
+  const hasScrolledRef = useRef(false);
 
-  const handleAssessment = useCallback(() => {
-    navigate("/all-assessments");
-  }, [navigate]);
+  const assessmentSteps = [
+    {
+      target: '[data-joyride-id="assessment-status"]',
+      content: (
+        <CustomStep body="Check the status of your assessment tracker here." />
+      ),
+      placement: "left" as const,
+    },
+    {
+      target: '[data-joyride-id="go-to-assessments"]',
+      content: (
+        <CustomStep body="Go to your assessments and start filling in the assessment questions for you project." />
+      ),
+      placement: "bottom" as const,
+    },
+  ];
+
+  const fetchComplianceTrackerCalculation = async () => {
+    try {
+      const response = await getAllEntities({
+        routeUrl: "/users/1/calculate-progress",
+      });
+
+      setAssessmentsStatus({
+        allAssessments: response.allTotalAssessments ?? 0,
+        allDoneAssessments: response.allDoneAssessments,
+        AssessmentsCompletion: Number(
+          (
+            ((response.allDoneAssessments ?? 0) /
+              (response.allTotalAssessments ?? 1)) *
+            100
+          ).toFixed(2)
+        ),
+      });
+
+      console.log("Response for fetchComplianceTrackerCalculation:", response);
+    } catch (error) {
+      console.error("Error fetching compliance tracker:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchComplianceTrackerCalculation();
+    setRunAssessmentTour(true);
+    if (!hasScrolledRef.current) {
+      window.scrollTo(0, 0);
+      hasScrolledRef.current = true;
+    }
+  }, []);
 
   return (
     <div className="assessment-page">
+      <PageTour
+        steps={assessmentSteps}
+        run={runAssessmentTour}
+        onFinish={() => setRunAssessmentTour(false)}
+      />
       <Stack
         gap={theme.spacing(2)}
         sx={{ backgroundColor: theme.palette.background.alt }}
       >
         <Typography
-          variant="h1"
-          component="div"
-          fontWeight="bold"
-          fontSize="16px"
-          color={theme.palette.text.primary}
-        >
-          Assessment tracker
-        </Typography>
+       data-joyride-id="assessment-status"
+        variant="h2"
+        component="div"
+        sx={{
+          pb: 8.5,
+          color: "#1A1919",
+          fontSize: 16,
+          fontWeight: 600,
+        }}
+      >
+        Assessment tracker
+      </Typography>
         <Stack
           direction="row"
           justifyContent="space-between"
           display="flex"
           gap={theme.spacing(10)}
-          sx={{ maxWidth: 1400, marginTop: "20px" }}
+          sx={{ maxWidth: 1400, marginTop: "10px" }}
         >
           <Paper sx={paperStyle}>
             <Typography fontSize="12px" color={theme.palette.text.accent}>
@@ -62,67 +125,36 @@ const Assessment = memo(() => {
               fontSize="16px"
               color={theme.palette.text.primary}
             >
-              85%
+              {assessmentsStatus.AssessmentsCompletion} {" %"}
             </Typography>
           </Paper>
           <Paper sx={paperStyle}>
             <Typography fontSize="12px" color={theme.palette.text.accent}>
-              Pending assessments
+              Total assessments
             </Typography>
             <Typography
               fontWeight="bold"
               fontSize="16px"
               color={theme.palette.text.primary}
             >
-              2
+              {assessmentsStatus.allAssessments}
             </Typography>
           </Paper>
           <Paper sx={paperStyle}>
             <Typography fontSize="12px" color={theme.palette.text.accent}>
-              Approved assessments
+              Implemented assessments
             </Typography>
             <Typography
               fontWeight="bold"
               fontSize="16px"
               color={theme.palette.text.primary}
             >
-              12
+              {assessmentsStatus.allDoneAssessments}
             </Typography>
           </Paper>
         </Stack>
-        <Typography
-          variant="h5"
-          fontWeight="bold"
-          fontSize="16px"
-          color={theme.palette.text.primary}
-          sx={{ marginTop: "32px" }}
-        >
-          Ongoing assessments
-        </Typography>
-        <Typography fontSize="14px" color={theme.palette.text.secondary}>
-          Those are the assessments you started. Each assessment has a
-          completion status on the left hand side of the table.
-        </Typography>
-        <Stack>
-          <Button
-            disableRipple={
-              theme.components?.MuiButton?.defaultProps?.disableRipple
-            }
-            variant="contained"
-            sx={{
-              ...singleTheme.buttons.primary,
-              width: "fit-content",
-              height: 34,
-              marginTop: "20px",
-              "&:hover": {
-                backgroundColor: "#175CD3 ",
-              },
-            }}
-            onClick={handleAssessment}
-          >
-            Go to assessments
-          </Button>
-        </Stack>
+        <Divider sx={{ marginY: 10 }} />
+        <AllAssessment />
       </Stack>
     </div>
   );

@@ -9,6 +9,7 @@ export type Subcontrol = {
   dueDate: Date;
   implementationDetails: string;
   evidence: string;
-  attachment: string;
   feedback: string;
+  evidenceFiles?: string[];
+  feedbackFiles?: string[];
 };

@@ -312,10 +312,7 @@ paths:
             schema:
               type: object
               properties:
-                id:
-                  type: integer
-                  example: 1
-                ProjectId:
+                projectId:
                   type: integer
                   example: 1
                 status:
@@ -340,6 +337,9 @@ paths:
                 implementationDetails:
                   type: string
                   example: "Implement new feature"
+                controlGroup:
+                  type: integer
+                  example: 1
         required: true
       responses:
         "201":
@@ -441,10 +441,7 @@ paths:
             schema:
               type: object
               properties:
-                id:
-                  type: integer
-                  example: 1
-                ProjectId:
+                projectId:
                   type: integer
                   example: 1
                 status:
@@ -469,6 +466,9 @@ paths:
                 implementationDetails:
                   type: string
                   example: "Implement new feature"
+                controlGroup:
+                  type: integer
+                  example: 1
         required: true
       responses:
         "202":
@@ -613,8 +613,8 @@ paths:
                   type: string
                   example: "AI Compliance Checker"
                 owner:
-                  type: string
-                  example: "Alice"
+                  type: integer
+                  example: 1
                 users:
                   type:
                   example:
@@ -644,13 +644,9 @@ paths:
                 goal:
                   type: string
                   example: "To ensure compliance with AI governance standards"
-                last_updated:
-                  type: string
-                  format: date-time
-                  example: "2024-10-30T00:00:00.000Z"
                 last_updated_by:
-                  type: string
-                  example: "Alice"
+                  type: integer
+                  example: 1
         required: true
       responses:
         "201":
@@ -759,8 +755,8 @@ paths:
                   type: string
                   example: "AI Compliance Checker"
                 owner:
-                  type: string
-                  example: "Alice"
+                  type: integer
+                  example: 1
                 users:
                   type:
                   example:
@@ -795,8 +791,8 @@ paths:
                   format: date-time
                   example: "2024-10-30T00:00:00.000Z"
                 last_updated_by:
-                  type: string
-                  example: "Alice"
+                  type: integer
+                  example: 1
         required: true
       responses:
         "202":
@@ -867,6 +863,118 @@ paths:
                 message:
                   type: string
                   example: not found
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+  /projects/calculateProjectRisks/{id}:
+    get:
+      tags: [projects]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the project
+      responses:
+        "200":
+          description: project
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        risk_level_autocalculated:
+                          type: string
+                          example: "High risk"
+                        count:
+                          type: string
+                          example: "1"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+  /projects/calculateVendorRisks/{id}:
+    get:
+      tags: [projects]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the project
+      responses:
+        "200":
+          description: project
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        risk_level:
+                          type: string
+                          example: "High risk"
+                        count:
+                          type: string
+                          example: "1"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
                 data:
                   type: object
         "500":
@@ -3625,13 +3733,16 @@ paths:
               properties:
                 name:
                   type: string
-                  example: "Alice Smith"
+                  example: "Alice"
+                surname:
+                  type: string
+                  example: "Smith"
                 email:
                   type: string
                   example: "alice.smith@example.com"
-                password_hash:
+                password:
                   type: string
-                  example: "$2b$10$c7Mtd3kRpMjr6VexlxuAleT8Sy3SwPcT.YLCazH5QWBgnATDo5N6O"
+                  example: "Alice@123"
                 role:
                   type: integer
                   example: 1
@@ -3844,6 +3955,90 @@ paths:
                   example: "Not Found"
                 error:
                   type: object
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+  /users/{id}/calculate-progress:
+    get:
+      tags: [users]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the user
+      responses:
+        "200":
+          description: user
+          content:
+            application/json:
+              type: object
+              properties:
+                controls:
+                  type: object
+                  properties:
+                    projects:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          projectId:
+                            type: integer
+                            example: 1
+                          totalSubControls:
+                            type: integer
+                            example: 12
+                          doneSubControls:
+                            type: integer
+                            example: 1
+                    totalSubControls:
+                      type: integer
+                      example: 12
+                    doneSubControls:
+                      type: integer
+                      example: 1
+                    percentageComplete:
+                      type: number
+                      format: float
+                      example: 8.33
+                assessments:
+                  type: object
+                  properties:
+                    projects:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          projectId:
+                            type: integer
+                            example: 1
+                          totalAssessments:
+                            type: integer
+                            example: 34
+                          doneAssessments:
+                            type: integer
+                            example: 0
+                    totalAssessments:
+                      type: integer
+                      example: 34
+                    doneAssessments:
+                      type: integer
+                      example: 0
+                    percentageComplete:
+                      type: number
+                      format: float
+                      example: 0
         "500":
           description: internal server error
           content:
@@ -4141,7 +4336,7 @@ components:
         id:
           type: integer
           example: 1
-        ProjectId:
+        projectId:
           type: integer
           example: 1
         status:
@@ -4166,6 +4361,9 @@ components:
         implementationDetails:
           type: string
           example: "Implement new feature"
+        controlGroup:
+          type: string
+          example: "AI Literacy"
     Project:
       type: object
       properties:
@@ -4176,8 +4374,8 @@ components:
           type: string
           example: "AI Compliance Checker"
         owner:
-          type: string
-          example: "Alice"
+          type: integer
+          example: 1
         users:
           type:
           example:
@@ -4212,8 +4410,11 @@ components:
           format: date-time
           example: "2024-10-30T00:00:00.000Z"
         last_updated_by:
-          type: string
-          example: "Alice"
+          type: integer
+          example: 1
+        assessment_id:
+          type: integer
+          example: 1
     ProjectRisk:
       type: object
       properties:
@@ -4459,7 +4660,10 @@ components:
           example: 1
         name:
           type: string
-          example: "Alice Smith"
+          example: "Alice"
+        surname:
+          type: string
+          example: "Smith"
         email:
           type: string
           example: "alice.smith@example.com"

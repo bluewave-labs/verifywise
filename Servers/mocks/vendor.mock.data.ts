@@ -1,9 +1,8 @@
 import { Vendor } from "../models/vendor.model";
 
-export const vendors: Vendor[] = [
+export const vendors = [
   {
     id: 1,
-    projectId: 1,
     vendorName: "Vendor A",
     assignee: "John Doe",
     vendorProvides: "Consulting Services",
@@ -26,7 +25,6 @@ export const vendors: Vendor[] = [
   },
   {
     id: 2,
-    projectId: 1,
     vendorName: "Vendor B",
     assignee: "Emily Clark",
     vendorProvides: "Software Development",
@@ -49,7 +47,6 @@ export const vendors: Vendor[] = [
   },
   {
     id: 3,
-    projectId: 2,
     vendorName: "Vendor C",
     assignee: "James White",
     vendorProvides: "IT Support",
@@ -72,7 +69,6 @@ export const vendors: Vendor[] = [
   },
   {
     id: 4,
-    projectId: 2,
     vendorName: "Vendor D",
     assignee: "Olivia Harris",
     vendorProvides: "Marketing Services",

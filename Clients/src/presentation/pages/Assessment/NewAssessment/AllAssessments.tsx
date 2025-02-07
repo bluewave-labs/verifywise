@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useContext } from "react";
 import {
   Typography,
   useTheme,
@@ -15,103 +15,128 @@ import {
 } from "@mui/material";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import RichTextEditor from "../../../components/RichTextEditor";
-
 import singleTheme from "../../../themes/v1SingleTheme";
 import { Topic, Topics } from "../../../structures/AssessmentTracker/Topics";
 import { assessments } from "./assessments";
 import { priorities, PriorityLevel } from "./priorities";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import Alert from "../../../components/Alert";
-import { useNavigate } from "react-router-dom";
+import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import FileUploadModal from "../../../components/Modals/FileUpload";
+import { Project } from "../../../../application/hooks/useProjectData";
+import { FileProps } from "../../../components/FileUpload/types";
 
-interface AssessmentValue {
+export interface AssessmentValue {
   topic: string;
   subtopic: {
     id: string;
-    title: string;
+    name: string; // title
     questions: {
       id: string;
-      question: string;
+      questionText: string;
       answer: string;
       answerType: string;
       evidenceFileRequired: boolean;
       hint: string;
       isRequired: boolean;
       priorityLevel: "high priority" | "medium priority" | "low priority";
-      evidenceFiles?: string[];
+      // evidenceFiles?: string[];
     }[];
   }[];
+  file: FileProps[];
 }
+
 const AllAssessment = () => {
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState<number>(0);
+  const { currentProjectId, dashboardValues } = useContext(VerifyWiseContext);
+  const { projects } = dashboardValues
+
+  const currentProject: Project | null = currentProjectId ? projects.find((project: Project) => project.id === Number(currentProjectId)) : null
+  const activeAssessmentId = currentProject?.assessment_id;
+
   const [assessmentsValues, setAssessmentsValue] = useState<
     Record<number, AssessmentValue>
   >({
-    1: { topic: "Risk Management System", subtopic: [] },
-    2: { topic: "Data Governance", subtopic: [] },
-    3: { topic: "Technical Documentation", subtopic: [] },
-    4: { topic: "Record Keeping", subtopic: [] },
-    5: { topic: "Transparency and User Information", subtopic: [] },
-    6: { topic: "Human Oversight", subtopic: [] },
-    7: { topic: "Accuracy, Robustness, Cyber Security", subtopic: [] },
-    8: { topic: "Conformity Assessment", subtopic: [] },
-    9: { topic: "Post Market Monitoring", subtopic: [] },
-    10: { topic: "Bias Monitoring and Mitigation", subtopic: [] },
-    11: { topic: "Accountability and Governance", subtopic: [] },
-    12: { topic: "Explainability", subtopic: [] },
-    13: { topic: "Environmental Impact", subtopic: [] },
+    0: { topic: "Project Scope", subtopic: [], file: [] },
+    1: { topic: "Risk Management System", subtopic: [], file: [] },
+    2: { topic: "Data Governance", subtopic: [], file: [] },
+    3: { topic: "Technical Documentation", subtopic: [], file: [] },
+    4: { topic: "Record Keeping", subtopic: [], file: [] },
+    5: { topic: "Transparency and User Information", subtopic: [], file: [] },
+    6: { topic: "Human Oversight", subtopic: [], file: [] },
+    7: { topic: "Accuracy, Robustness, Cyber Security", subtopic: [], file: [] },
+    8: { topic: "Conformity Assessment", subtopic: [], file: [] },
+    9: { topic: "Post Market Monitoring", subtopic: [], file: [] },
+    10: { topic: "Bias Monitoring and Mitigation", subtopic: [], file: [] },
+    11: { topic: "Accountability and Governance", subtopic: [], file: [] },
+    12: { topic: "Explainability", subtopic: [], file: [] },
+    13: { topic: "Environmental Impact", subtopic: [], file: [] },
   });
 
   const [_, setAllQuestionsToCheck] = useState<{ title: string }[]>([]);
+
+  //modal
+  const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
+  const handleOpenFileUploadModal = () => setFileUploadModalOpen(true);
+  const handleCloseFileUploadModal = () => {
+    console.log("Closing file upload modal");
+    setFileUploadModalOpen(false);
+  };
 
   const [alert, setAlert] = useState<{ show: boolean; message: string }>({
     show: false,
     message: "",
   });
 
-  const handleSave = async (topicToSave: number) => {
-    /*
-    
-    This part will remain commented for now, as it is not needed for the current implementation
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [topicToSave, setTopicToSave] = useState<number | null>(null);
 
-    const unansweredRequiredQuestions = allQuestionsToCheck.filter(
-      (question) =>
-        !Object.values(assessmentsValues).some((assessment) =>
-          assessment.subtopic.some((subtopic) =>
-            subtopic.questions.some(
-              (q) => q.question === question.title && q.answer.trim() !== ""
-            )
-          )
-        )
-    );
+  const handleSave = (topicToSave: number) => {
+    setTopicToSave(topicToSave);
+    setIsModalOpen(true);
+  };
 
-    if (unansweredRequiredQuestions.length > 0) {
-      setAlert({
-        show: true,
-        message: `You need to answer all the required questions`,
-      });
-      return;
-    }
-    */
+  const confirmSave = async () => {
+    if (topicToSave === null) return;
 
     const assessmentToSave = assessmentsValues[topicToSave];
 
     console.log(assessmentToSave);
 
+    const formData = new FormData();
+
+    formData.append("assessmentId", String(activeAssessmentId));
+    formData.append("topic", assessmentToSave.topic);
+    formData.append("subtopic", JSON.stringify(assessmentToSave.subtopic));
+
+    if (assessmentToSave.file && assessmentToSave.file.length > 0) {
+      assessmentToSave.file.forEach((file, index) => {
+        formData.append(`file[${index}]`, file as any);
+      });
+    }else{
+     formData.append("file", new Blob(), "empty-file.txt");
+    }
+
     try {
-      const response = await apiServices.post(
-        "/assessments/saveAnswers",
-        assessmentToSave
-      );
+      const response = await apiServices.post("/assessments/saveAnswers", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       console.log("Assessments saved successfully:", response);
     } catch (error) {
       console.error("Error saving assessments:", error);
+    } finally {
+      setIsModalOpen(false);
+      setTopicToSave(null);
     }
   };
 
   const handleAssessmentChange = useCallback(
     (
+      // project related
       // topic relateds
       topicid: number,
       topic: string,
@@ -120,7 +145,7 @@ const AllAssessment = () => {
       subtopic: string,
       // question relateds
       questionId: string,
-      question: string,
+      questionText: string,
       answer: string,
       answerType: string,
       evidenceFileRequired: boolean,
@@ -135,7 +160,7 @@ const AllAssessment = () => {
         subtopicId,
         subtopicTitle: subtopic,
         questionId: questionId,
-        question: question,
+        questionText: questionText,
         answer: answer,
         answerType: answerType,
         evidenceFileRequired: evidenceFileRequired,
@@ -147,7 +172,7 @@ const AllAssessment = () => {
       setAssessmentsValue((prevValues) => {
         const updatedValues = { ...prevValues };
         if (!updatedValues[topicid]) {
-          updatedValues[topicid] = { topic, subtopic: [] };
+          updatedValues[topicid] = { topic, subtopic: [], file: [] };
         }
         const subtopicIndex = updatedValues[topicid].subtopic.findIndex(
           (st) => st.id === subtopicId
@@ -155,18 +180,18 @@ const AllAssessment = () => {
         if (subtopicIndex === -1) {
           updatedValues[topicid].subtopic.push({
             id: subtopicId,
-            title: subtopic,
+            name: subtopic,
             questions: [
               {
                 id: questionId,
-                question,
+                questionText,
                 answer,
                 answerType,
                 evidenceFileRequired,
                 hint,
                 isRequired,
                 priorityLevel,
-                evidenceFiles,
+                // evidenceFiles,
               },
             ],
           });
@@ -177,14 +202,14 @@ const AllAssessment = () => {
           if (questionIndex === -1) {
             updatedValues[topicid].subtopic[subtopicIndex].questions.push({
               id: questionId,
-              question,
+              questionText,
               answer,
               answerType,
               evidenceFileRequired,
               hint,
               isRequired,
               priorityLevel,
-              evidenceFiles,
+              // evidenceFiles,
             });
           } else {
             updatedValues[topicid].subtopic[subtopicIndex].questions[
@@ -249,7 +274,6 @@ const AllAssessment = () => {
 
   const renderQuestions = useCallback(
     (subtopicId: string, subtopicTitle: string, questions: any[]) => {
-      const navigate = useNavigate();
       const renderedQuestions = questions.map((question) => (
         <Box key={question.id} mt={10}>
           <Box
@@ -270,7 +294,7 @@ const AllAssessment = () => {
               {question.question}
               {question.hint && (
                 <Box component="span" ml={2}>
-                  <Tooltip title={question.hint}>
+                  <Tooltip title={question.hint} sx={{ fontSize: 12 }}>
                     <InfoOutlinedIcon fontSize="inherit" />
                   </Tooltip>
                 </Box>
@@ -300,6 +324,7 @@ const AllAssessment = () => {
               });
 
               handleAssessmentChange(
+                //
                 // topic relateds
                 Topics[activeTab].id,
                 Topics[activeTab].title,
@@ -354,7 +379,7 @@ const AllAssessment = () => {
               sx={{
                 mt: 2,
                 borderRadius: 2,
-                width: 120,
+                width: 155,
                 height: 25,
                 fontSize: 11,
                 border: "1px solid #D0D5DD",
@@ -364,9 +389,9 @@ const AllAssessment = () => {
               disableRipple={
                 theme.components?.MuiButton?.defaultProps?.disableRipple
               }
-              onClick={() => navigate("/playground")}
+              onClick={handleOpenFileUploadModal}
             >
-              Add evidence
+              Add/Remove evidence
             </Button>
             <Typography
               sx={{ fontSize: 11, color: "#344054", fontWeight: "300" }}
@@ -400,8 +425,6 @@ const AllAssessment = () => {
 
     setAllQuestionsToCheck(allQuestions);
   }, [assessments]);
-
-  // console.log("All Questions List:", allQuestionsToCheck); // Log the all questions list
 
   return (
     <Box sx={{ display: "flex", height: "100vh", px: "8px !important" }}>
@@ -451,7 +474,7 @@ const AllAssessment = () => {
               {renderQuestions(
                 `${Topics[activeTab].id}-${subtopic.id}`,
                 subtopic.title,
-                subtopic.questions
+                subtopic.questions,
               )}
             </Stack>
           ))}
@@ -464,7 +487,7 @@ const AllAssessment = () => {
         >
           <Button
             sx={{
-              ...singleTheme.buttons.primary,
+              ...singleTheme.buttons.primary.contained,
               color: "#FFFFFF",
               width: 140,
               "&:hover": {
@@ -485,6 +508,36 @@ const AllAssessment = () => {
           body={alert.message}
           isToast={true}
           onClick={() => setAlert({ show: false, message: "" })}
+        />
+      )}
+       <FileUploadModal
+          uploadProps={{
+            open: fileUploadModalOpen,
+            onClose: handleCloseFileUploadModal,
+            onSuccess: () => {
+              console.log("File uploaded successfully");
+              handleCloseFileUploadModal();
+            },
+            allowedFileTypes: ["application/pdf"],
+            assessmentId: activeAssessmentId ?? 0,
+            topicId: activeTab,
+            setAssessmentsValue,
+            assessmentsValues
+          }}
+        />
+      {isModalOpen && (
+        <DualButtonModal
+          title="Confirm Save"
+          body={
+            <Typography>Are you sure you want to save the changes?</Typography>
+          }
+          cancelText="Cancel"
+          proceedText="Confirm"
+          onCancel={() => setIsModalOpen(false)}
+          onProceed={confirmSave}
+          proceedButtonColor="primary"
+          proceedButtonVariant="contained"
+          TitleFontSize={13}
         />
       )}
     </Box>

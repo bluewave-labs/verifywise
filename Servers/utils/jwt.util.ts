@@ -17,7 +17,7 @@ const getTokenPayload = (token: any): any => {
  * @param payload id and email of the user
  * @returns generated token
  */
-const generateToken = (payload: { id: number; email: string }) => {
+const generateToken = (payload: { id?: number; email: string, name?: string }) => {
   try {
     return Jwt.sign(
       {

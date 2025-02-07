@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import { checkAndCreateTables } from "./database/db";
 
 import assessmentRoutes from "./routes/assessment.route";
 import controlRoutes from "./routes/control.route";
@@ -15,6 +16,8 @@ import userRoutes from "./routes/user.route";
 import vendorRoutes from "./routes/vendor.route";
 import vendorRiskRoutes from "./routes/vendorRisk.route";
 import roleRoutes from "./routes/role.route";
+import fileRoutes from "./routes/file.route";
+import mailRoutes from "./routes/vwmailer.route";
 
 import autoDriverRoutes from "./routes/autoDriver.route";
 import swaggerUi from "swagger-ui-express";
@@ -27,6 +30,9 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 try {
+  (async () => {
+    await checkAndCreateTables();
+  })();
   // Middlewares
   app.use(
     cors({
@@ -51,6 +57,8 @@ try {
   app.use("/subtopics", subtopicRoutes);
   app.use("/topics", topicRoutes);
   app.use("/roles", roleRoutes);
+  app.use("/files", fileRoutes);
+  app.use("/mail", mailRoutes);
 
   app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 

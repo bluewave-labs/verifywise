@@ -3,16 +3,22 @@
  * all the similar values, merging them and then adding them to the main theme files
  */
 
+import { alertStyles } from "./alerts";
+import { tableStyles } from "./tables";
+
 const backgroundColors = {
   primary: "#4C7DE7",
+  error: "#DB504A",
 };
 
 const borderColors = {
   primary: "#175CD3",
+  error: "#DB504A",
 };
 
 const textColors = {
   theme: "#0f604d",
+  error: "#DB504A",
 };
 
 const effects = {
@@ -33,16 +39,62 @@ const fontSizes = {
 
 const buttons = {
   primary: {
-    height: 34,
-    fontSize: fontSizes.medium,
-    backgroundColor: backgroundColors.primary,
-    borderRadius: "4px",
-    border: `1px solid ${borderColors.primary}`,
-    "&:hover": {
-      boxShadow: shadowEffect.NoShadow,
-      backgroundColor: "#175CD3 ",
+    contained: {
+      height: 34,
+      fontSize: fontSizes.medium,
+      backgroundColor: backgroundColors.primary,
+      boxShadow: "none",
+      textTransform: "Inherit",
+      borderRadius: "4px",
+      border: `1px solid ${borderColors.primary}`,
+      "&:hover": {
+        boxShadow: shadowEffect.NoShadow,
+      },
     },
-    fontSizes: fontSizes.medium,
+    outlined: {},
+    text: {
+      "&:hover": {
+        boxShadow: shadowEffect.NoShadow,
+        backgroundColor: "#fff",
+      },
+    },
+  },
+  secondary: {
+    contained: {},
+    outlined: {},
+    text: {},
+  },
+  success: {
+    contained: {},
+    outlined: {},
+    text: {},
+  },
+  warning: {
+    contained: {},
+    outlined: {},
+    text: {},
+  },
+  error: {
+    contained: {
+      height: 34,
+      fontSize: fontSizes.medium,
+      backgroundColor: backgroundColors.error,
+      boxShadow: "none",
+      textTransform: "Inherit",
+      borderRadius: "4px",
+      border: `1px solid ${borderColors.error}`,
+      "&:hover": {
+        boxShadow: shadowEffect.NoShadow,
+        backgroundColor: "#d32f2f",
+      },
+    },
+    outlined: {},
+    text: {},
+  },
+  info: {
+    contained: {},
+    outlined: {},
+    text: {},
   },
 };
 
@@ -55,40 +107,6 @@ const textStyles = {
   pageDescription: {
     color: "#344054",
     fontSize: fontSizes.medium,
-  },
-};
-
-const tableStyles = {
-  primary: {
-    frame: {
-      border: "1px solid #EEEEEE",
-      borderRadius: "4px",
-      "& td, & th": {
-        border: 0,
-      },
-    },
-    header: {
-      backgroundColors: "#fafafa",
-      row: {
-        textTransform: "uppercase",
-        borderBottom: "1px solid #EEEEEE",
-      },
-      cell: {
-        color: "#a1afc6",
-        fontWeight: 400,
-        paddingLeft: "16px",
-      },
-    },
-    body: {
-      row: {
-        textTransform: "capitalize",
-        borderBottom: "1px solid #EEEEEE",
-      },
-      cell: {
-        fontSize: fontSizes.medium,
-        paddingY: "12px",
-      },
-    },
   },
 };
 
@@ -120,36 +138,6 @@ const iconButtons = {
   },
   "&:hover": {
     backgroundColor: "transparent",
-  },
-};
-
-const alertStyles = {
-  info: {
-    text: "#0288d1",
-    main: "#475467",
-    bg: "#e5f6fd",
-    light: "#FFFFFF",
-    border: "#d0d5dd",
-  },
-  success: {
-    text: "#079455",
-    main: "#17b26a",
-    light: "#d4f4e1",
-    bg: "#ecfdf3",
-  },
-  error: {
-    text: "#f04438",
-    main: "#d32f2f",
-    light: "#fbd1d1",
-    bg: "#f9eced",
-    border: "#f04438",
-  },
-  warning: {
-    text: "#DC6803",
-    main: "#fdb022",
-    light: "#ffecbc",
-    bg: "#fffcf5",
-    border: "#fec84b",
   },
 };
 

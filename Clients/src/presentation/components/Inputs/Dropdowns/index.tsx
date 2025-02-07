@@ -1,48 +1,74 @@
 import { Stack, Typography, useTheme, SelectChangeEvent } from "@mui/material";
+import { useEffect, useState } from "react";
 import Select from "../Select";
 import DatePicker from "../Datepicker";
 import Field from "../Field";
 import { Dayjs } from "dayjs";
+import { getAllEntities } from "../../../../application/repository/entity.repository";
 
-interface State {
-  status: string | number;
-  approver: string | number;
-  riskReview: string | number;
-  owner: string | number;
-  reviewer: string | number;
-  description: string;
-  date: Dayjs | null;
+// Add interface for user type
+export interface User {
+  id: number;
+  name: string;
+  email: string;
 }
 
-const inputStyles = {
-  minWidth: 200,
-  maxWidth: 400,
-  flexGrow: 1,
-  height: 34,
-};
+interface DropDownsProps {
+  elementId?: string;
+  state?: any;
+  setState?: (newState: any) => void;
+}
 
-const DropDowns = ({
-  elementId,
-  state,
-  setState,
-}: {
-  elementId: string;
-  state: State;
-  setState: (newState: Partial<State>) => void;
-}) => {
+const DropDowns: React.FC<DropDownsProps> = ({ elementId, state = {} }) => {
+  const [status, setStatus] = useState<string | number>(state.status || ""); // Default to empty string
+  const [approver, setApprover] = useState<string | number>(
+    state.approver || ""
+  ); // Default to empty string
+  const [riskReview, setRiskReview] = useState<string | number>(
+    state.riskReview || ""
+  ); // Default to empty string
+  const [owner, setOwner] = useState<string | number>(state.owner || ""); // Default to empty string
+  const [reviewer, setReviewer] = useState<string | number>(
+    state.reviewer || ""
+  ); // Default to empty string
+  const [date, setDate] = useState<Dayjs | null>(state.date || null);
   const theme = useTheme();
 
-  const handleSelectChange =
-    (field: keyof State) => (event: SelectChangeEvent<string | number>) => {
-      setState({ [field]: event.target.value });
-    };
+  const inputStyles = {
+    minWidth: 200,
+    maxWidth: 400,
+    flexGrow: 1,
+    height: 34,
+  };
 
   const handleDateChange = (newDate: Dayjs | null) => {
-    setState({ date: newDate });
+    setDate(newDate);
+  };
+
+  const [users, setUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const response = await getAllEntities({ routeUrl: "/users" });
+      setUsers(response.data);
+    };
+    fetchUsers();
+  }, []);
+
+  const handleChange = (e: SelectChangeEvent<string | number>) => {
+    const selectedValue = e.target.value;
+    const selectedUser = users.find((user) => user.id === selectedValue);
+    console.log(selectedUser);
+    setApprover(selectedValue);
   };
 
   return (
-    <Stack style={{ gap: theme.spacing(8) }}>
+    <Stack
+      id={elementId}
+      style={{
+        gap: theme.spacing(8),
+      }}
+    >
       <Stack
         display="flex"
         flexDirection="row"
@@ -51,45 +77,44 @@ const DropDowns = ({
         gap={theme.spacing(15)}
       >
         <Select
-          id={`${elementId}-status`}
+          id="status"
           label="Status:"
-          value={state.status}
-          onChange={handleSelectChange("status")}
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
           items={[
-            { _id: "Choose status", name: "Choose status" },
             { _id: "Waiting", name: "Waiting" },
             { _id: "In progress", name: "In progress" },
             { _id: "Done", name: "Done" },
           ]}
           sx={inputStyles}
+          placeholder="Select status"
         />
 
         <Select
-          id={`${elementId}-approver`}
+          id="Approver"
           label="Approver:"
-          value={state.approver}
-          onChange={handleSelectChange("approver")}
-          items={[
-            { _id: "Choose approver", name: "Choose approver" },
-            { _id: "Option 1", name: "Option 1" },
-            { _id: "Option 2", name: "Option 2" },
-            { _id: "Option 3", name: "Option 3" },
-          ]}
+          value={approver || ""}
+          onChange={handleChange}
+          items={users.map((user) => ({
+            _id: user.id,
+            name: user.name,
+          }))}
           sx={inputStyles}
+          placeholder="Select approver"
         />
 
         <Select
-          id={`${elementId}-riskReview`}
+          id="Risk review"
           label="Risk review:"
-          value={state.riskReview}
-          onChange={handleSelectChange("riskReview")}
+          value={riskReview}
+          onChange={(e) => setRiskReview(e.target.value)}
           items={[
-            { _id: "Choose risk review", name: "Choose risk review" },
             { _id: "Acceptable risk", name: "Acceptable risk" },
             { _id: "Residual risk", name: "Residual risk" },
             { _id: "Unacceptable risk", name: "Unacceptable risk" },
           ]}
           sx={inputStyles}
+          placeholder="Select risk review"
         />
       </Stack>
 
@@ -102,37 +127,29 @@ const DropDowns = ({
         gap={theme.spacing(15)}
       >
         <Select
-          id={`${elementId}-owner`}
+          id="Owner"
           label="Owner:"
-          value={state.owner}
-          onChange={handleSelectChange("owner")}
-          items={[
-            { _id: "Choose owner", name: "Choose owner" },
-            { _id: "Option 1", name: "Option 1" },
-            { _id: "Option 2", name: "Option 2" },
-            { _id: "Option 3", name: "Option 3" },
-          ]}
+          value={owner}
+          onChange={(e) => setOwner(e.target.value)}
+          items={users.map((user) => ({ _id: user.id, name: user.name }))}
           sx={inputStyles}
+          placeholder="Select owner"
         />
 
         <Select
-          id={`${elementId}-reviewer`}
+          id="Reviewer"
           label="Reviewer:"
-          value={state.reviewer}
-          onChange={handleSelectChange("reviewer")}
-          items={[
-            { _id: "Choose reviewer", name: "Choose reviewer" },
-            { _id: "Option 1", name: "Option 1" },
-            { _id: "Option 2", name: "Option 2" },
-            { _id: "Option 3", name: "Option 3" },
-          ]}
+          value={reviewer}
+          onChange={(e) => setReviewer(e.target.value)}
+          items={users.map((user) => ({ _id: user.id, name: user.name }))}
           sx={inputStyles}
+          placeholder="Select reviewer"
         />
 
         <DatePicker
           label="Due date:"
           sx={inputStyles}
-          date={state.date}
+          date={date}
           handleDateChange={handleDateChange}
         />
       </Stack>
@@ -153,11 +170,7 @@ const DropDowns = ({
           marginBottom: theme.spacing(4),
         }}
       >
-        <Field
-          type="description"
-          value={state.description}
-          onChange={(e) => setState({ description: e.target.value })}
-        />
+        <Field type="description" />
       </Stack>
     </Stack>
   );

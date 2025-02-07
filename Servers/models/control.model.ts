@@ -1,6 +1,5 @@
 export type Control = {
   id: number;
-  projectId: number;
   status: string;
   approver: string;
   riskReview: string;
@@ -8,5 +7,5 @@ export type Control = {
   reviewer: string;
   dueDate: Date;
   implementationDetails: string;
-  controlGroup: string;
+  controlGroup: number;
 };

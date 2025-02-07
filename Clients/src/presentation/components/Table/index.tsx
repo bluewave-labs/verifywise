@@ -11,11 +11,12 @@ import {
   useTheme,
 } from "@mui/material";
 import "./index.css";
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useContext } from "react";
 import TablePaginationActions from "../TablePagination";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
 import singleTheme from "../../themes/v1SingleTheme";
-import { LinearProgress } from "@mui/material";
+import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import { formatDate } from "../../tools/isoDateToString";
 
 interface RowData {
   id: number | string;
@@ -35,6 +36,11 @@ interface TableData {
   cols: ColData[];
   rows: RowData[];
 }
+
+type TableRow = {
+  id: number | string;
+  [key: string]: any;
+};
 
 /**
  * BasicTable component renders a table with optional pagination, sorting options, row click handling, and custom styling.
@@ -63,18 +69,24 @@ interface TableData {
 
 const BasicTable = ({
   data,
+  bodyData,
   paginated,
   reversed,
   table,
   onRowClick,
   label,
+  setSelectedRow,
+  setAnchorEl,
 }: {
   data: TableData;
+  bodyData: TableRow[];
   paginated?: boolean;
   reversed?: boolean;
   table: string;
   onRowClick?: (rowId: number | string) => void;
   label?: string;
+  setSelectedRow: (rowData: object) => void;
+  setAnchorEl: (anchor: HTMLElement | null) => void;
 }) => {
   const DEFAULT_ROWS_PER_PAGE = 5;
   const theme = useTheme();
@@ -129,6 +141,8 @@ const BasicTable = ({
     return "#008000"; // 91-100%
   }, []);
 
+  const { currentProjectId, setInputValues } = useContext(VerifyWiseContext);  
+
   const tableHeader = useMemo(
     () => (
       <TableHead
@@ -152,62 +166,116 @@ const BasicTable = ({
     [data.cols]
   );
 
+
+  const onRowclickHandler = (event: React.MouseEvent<HTMLElement>, rowData: any) => {
+    console.log(`Row clicked: ${rowData.id}`);    
+    console.log(rowData)
+    setSelectedRow(rowData);
+    setInputValues(rowData);
+    setAnchorEl(event.currentTarget);
+    onRowClick && onRowClick(rowData.id as number);
+  };
+
   const tableBody = useMemo(
     () => (
-      <TableBody>
-        {displayData.map((row) => (
-          <TableRow
-            sx={{
-              ...singleTheme.tableStyles.primary.body.row, 
-              height: "36px", 
-              "&:hover":{
-                backgroundColor: "#FBFBFB",
-                cursor: "pointer",
-              }
-            }}
-            key={row.id}
-            onClick={() => {
-              console.log(`Row clicked: ${row.id}`);
-              onRowClick && onRowClick(row.id as number);
-            }}
-          >
-            {row.icon && (
-              <TableCell
-                sx={{ ...cellStyle, ...iconCell }}
-                key={`icon-${row.id}`}
-              >
-                <img src={row.icon} alt="status icon" width={20} />
-              </TableCell>
-            )}
-            {row.data.map((cell: any) => (
-              <TableCell sx={cellStyle} key={cell.id}>
-                {cell.id === "4" ? (
-                  <Stack direction="row" alignItems="center" spacing={1}>
-                    <Typography variant="body2">{cell.data}</Typography>
-                    <LinearProgress
-                      variant="determinate"
-                      value={parseFloat(cell.data)}
-                      sx={{
-                        width: "100px",
-                        height: "8px",
-                        borderRadius: "4px",
-                        backgroundColor: theme.palette.grey[200],
-                        "& .MuiLinearProgress-bar": {
-                          backgroundColor: getProgressColor(
-                            parseFloat(cell.data)
-                          ),
-                        },
-                      }}
-                    />
-                  </Stack>
-                ) : (
-                  cell.data
-                )}
-              </TableCell>
-            ))}
-          </TableRow>
-        ))}
-      </TableBody>
+      <>
+        <TableBody>
+          {bodyData !== null && (
+            <>
+              {bodyData?.map((row) => (
+                <TableRow
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.row,
+                    height: "36px",
+                    "&:hover": {
+                      backgroundColor: "#FBFBFB",
+                      cursor: "pointer",
+                    },
+                  }}
+                  key={row.id}
+                  onClick={(event) => onRowclickHandler(event, row)}
+                >
+                  {label === "Project risk" ? (
+                    <>
+                      <TableCell>{row.risk_name}</TableCell>
+                      <TableCell>{row.impact}</TableCell>
+                      <TableCell>{row.risk_owner}</TableCell>
+                      <TableCell>{row.severity}</TableCell>
+                      <TableCell>{row.likelihood}</TableCell>
+                      <TableCell>{row.current_risk_level}</TableCell>
+                      <TableCell>{row.mitigation_status}</TableCell>
+                      <TableCell>{row.final_risk_level}</TableCell>
+                    </>
+                  ) : (
+                    <>
+                      <TableCell>{row.vendor_name}</TableCell>
+                      <TableCell>{row.risk_name}</TableCell>
+                      <TableCell>{row.owner}</TableCell>
+                      <TableCell>{row.risk_level}</TableCell>
+                      <TableCell>
+                        {row.review_date
+                          ? formatDate(row.review_date.toString())
+                          : "No review date"}
+                      </TableCell>
+                    </>
+                  )}
+                </TableRow>
+              ))}
+            </>
+          )}
+        </TableBody>
+        {/* <TableBody>
+          {displayData.map((row) => (
+            <TableRow
+              sx={{
+                ...singleTheme.tableStyles.primary.body.row, 
+                height: "36px", 
+                "&:hover":{
+                  backgroundColor: "#FBFBFB",
+                  cursor: "pointer",
+                }
+              }}
+              key={row.id}
+              onClick={(event) => onRowclickHandler(event, row)}
+            >
+              {row.icon && (
+                <TableCell
+                  sx={{ ...cellStyle, ...iconCell }}
+                  key={`icon-${row.id}`}
+                >
+                  <img src={row.icon} alt="status icon" width={20} />
+                </TableCell>
+              )}
+              {row.data.map((cell: any) => (
+                <TableCell sx={cellStyle} key={cell.id}>
+                  {cell.id === "4" ? (
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <Typography variant="body2">{cell.data}</Typography>
+                      <LinearProgress
+                        variant="determinate"
+                        value={parseFloat(cell.data)}
+                        sx={{
+                          width: "100px",
+                          height: "8px",
+                          borderRadius: "4px",
+                          backgroundColor: theme.palette.grey[200],
+                          "& .MuiLinearProgress-bar": {
+                            backgroundColor: getProgressColor(
+                              parseFloat(cell.data)
+                            ),
+                          },
+                        }}
+                      />
+                    </Stack>
+                  ) : (
+                    cell.data
+                  )}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody> */}
+      </>
     ),
     [
       displayData,

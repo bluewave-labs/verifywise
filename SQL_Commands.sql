@@ -64,6 +64,8 @@ CREATE TABLE controlcategories (
 
 CREATE TABLE controls (
   id SERIAL PRIMARY KEY,
+  control_title TEXT,
+  control_description TEXT,
   status VARCHAR(255),
   approver VARCHAR(255),
   risk_review TEXT,

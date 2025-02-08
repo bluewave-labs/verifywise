@@ -62,6 +62,8 @@ export async function createControl(req: Request, res: Response): Promise<any> {
   try {
     const newControl: {
       projectId: number;
+      controlTitle: string;
+      controlDescription: string;
       status: string;
       approver: string;
       riskReview: string;
@@ -92,6 +94,8 @@ export async function updateControlById(
     const controlId = parseInt(req.params.id);
     const updatedControl: {
       projectId: number;
+      controlTitle: string;
+      controlDescription: string;
       status: string;
       approver: string;
       riskReview: string;
@@ -171,13 +175,15 @@ export async function saveControls(
 
       // Now, we need to create the control
       const newControl = {
-        status: requestBody.control.status,
-        approver: requestBody.control.approver,
-        riskReview: requestBody.control.riskReview,
-        owner: requestBody.control.owner,
-        reviewer: requestBody.control.reviewer,
-        dueDate: requestBody.control.date,
-        implementationDetails: requestBody.control.description,
+        controlTitle: requestBody.control.control.controlTitle,
+        controlDescription: requestBody.control.control.controlDescription,
+        status: requestBody.control.control.status,
+        approver: requestBody.control.control.approver,
+        riskReview: requestBody.control.control.riskReview,
+        owner: requestBody.control.control.owner,
+        reviewer: requestBody.control.control.reviewer,
+        dueDate: requestBody.control.control.date,
+        implementationDetails: requestBody.control.control.description,
         controlGroup: newControlCategory.id ?? requestBody.controlCategoryId,
       };
       const resultControl = await createNewControlQuery(newControl);
@@ -234,6 +240,8 @@ export async function saveControls(
           console.log("controlCategory controls.length === 0 4");
           // No controls found for this control category, then we need to create the control
           const controlData = {
+            controlTitle: requestBody.control.control.controlTitle,
+            controlDescription: requestBody.control.control.controlDescription,
             status: requestBody.control.control.status,
             approver: requestBody.control.control.approver,
             riskReview: requestBody.control.control.riskReview,
@@ -298,13 +306,16 @@ export async function saveControls(
             const control: any = await updateControlByIdQuery(
               controlToUpdate.id,
               {
-                status: controlToUpdate.status,
-                approver: controlToUpdate.approver,
-                riskReview: controlToUpdate.riskReview,
-                owner: controlToUpdate.owner,
-                reviewer: controlToUpdate.reviewer,
-                dueDate: controlToUpdate.date,
-                implementationDetails: controlToUpdate.description,
+                controlTitle: requestBody.control.control.controlTitle,
+                controlDescription:
+                  requestBody.control.control.controlDescription,
+                status: requestBody.control.control.status,
+                approver: requestBody.control.control.approver,
+                riskReview: requestBody.control.control.riskReview,
+                owner: requestBody.control.control.owner,
+                reviewer: requestBody.control.control.reviewer,
+                dueDate: requestBody.control.control.date,
+                implementationDetails: requestBody.control.control.description,
                 controlGroup: requestBody.controlCategoryId,
               }
             );

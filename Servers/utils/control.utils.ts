@@ -28,6 +28,8 @@ export const getAllControlsByControlGroupQuery = async (
 };
 
 export const createNewControlQuery = async (control: {
+  controlTitle: string;
+  controlDescription: string;
   status: string;
   approver: string;
   riskReview: string;
@@ -39,9 +41,11 @@ export const createNewControlQuery = async (control: {
 }): Promise<Control> => {
   const result = await pool.query(
     `INSERT INTO controls (
-      status, approver, risk_review, owner, reviewer, due_date, implementation_details, control_group
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      control_title, control_description, status, approver, risk_review, owner, reviewer, due_date, implementation_details, control_group
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
     [
+      control.controlTitle,
+      control.controlDescription,
       control.status,
       control.approver,
       control.riskReview,
@@ -58,6 +62,8 @@ export const createNewControlQuery = async (control: {
 export const updateControlByIdQuery = async (
   id: number,
   control: Partial<{
+    controlTitle: string;
+    controlDescription: string;
     status: string;
     approver: string;
     riskReview: string;
@@ -72,6 +78,14 @@ export const updateControlByIdQuery = async (
   const fields = [];
   const values = [];
   let query = "UPDATE controls SET ";
+  if (control.controlTitle !== undefined) {
+    fields.push(`control_title = $${fields.length + 1}`);
+    values.push(control.controlTitle);
+  }
+  if (control.controlDescription !== undefined) {
+    fields.push(`control_description = $${fields.length + 1}`);
+    values.push(control.controlDescription);
+  }
 
   if (control.status !== undefined) {
     fields.push(`status = $${fields.length + 1}`);

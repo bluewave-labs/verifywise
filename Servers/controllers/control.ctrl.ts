@@ -137,6 +137,7 @@ export async function saveControls(
   res: Response
 ): Promise<any> {
   try {
+    console.log("0");
     const requestBody: any = {
       projectId: req.body.projectId,
       controlCategoryTitle: req.body.controlCategoryTitle,
@@ -144,7 +145,6 @@ export async function saveControls(
       control: req.body.control,
     };
     const projectId = requestBody.projectId;
-
     if (!projectId) {
       res
         .status(400)
@@ -153,6 +153,7 @@ export async function saveControls(
 
     // First, we need to see if we have a control category with such title for the project
     const controlCategoryTitle = requestBody.controlCategoryTitle;
+    console.log("1");
 
     const controlCategory = await getControlCategoryByTitleAndProjectIdQuery(
       controlCategoryTitle,
@@ -160,11 +161,13 @@ export async function saveControls(
     );
 
     if (!controlCategory) {
+      console.log("!controlCategory 2");
       // Now that such control Category does not exist, first we create the controlCategory
       const newControlCategory = await createControlCategoryQuery({
         projectId,
         name: controlCategoryTitle,
       });
+      console.log("!controlCategory newControlCategory 3");
 
       // Now, we need to create the control
       const newControl = {
@@ -179,6 +182,7 @@ export async function saveControls(
       };
       const resultControl = await createNewControlQuery(newControl);
       const subControlResp = [];
+      console.log("!controlCategory createNewControlQuery 4");
 
       // Now, we need to create subControls
       const subcontrols = requestBody.control.subControls;
@@ -202,6 +206,7 @@ export async function saveControls(
         );
         subControlResp.push(subcontrolToSave);
       }
+      console.log("!controlCategory createNewSubcontrolQuery 5");
 
       // Creating the final response
       const response = {
@@ -217,25 +222,32 @@ export async function saveControls(
         })
       );
     } else {
+      console.log("controlCategory 2");
       // Now that there is a controlCategory with such details
       if (controlCategory.id) {
         const controls = await getAllControlsByControlGroupQuery(
           controlCategory.id
         );
+        console.log("controlCategory getAllControlsByControlGroupQuery 3");
+
         if (controls.length === 0) {
+          console.log("controlCategory controls.length === 0 4");
           // No controls found for this control category, then we need to create the control
           const controlData = {
-            status: requestBody.control.status,
-            approver: requestBody.control.approver,
-            riskReview: requestBody.control.riskReview,
-            owner: requestBody.control.owner,
-            reviewer: requestBody.control.reviewer,
-            dueDate: requestBody.control.date,
-            implementationDetails: requestBody.control.description,
+            status: requestBody.control.control.status,
+            approver: requestBody.control.control.approver,
+            riskReview: requestBody.control.control.riskReview,
+            owner: requestBody.control.control.owner,
+            reviewer: requestBody.control.control.reviewer,
+            dueDate: requestBody.control.control.date,
+            implementationDetails: requestBody.control.control.description,
             controlGroup: controlCategory.id,
           };
           const newControl = await createNewControlQuery(controlData);
           const subControlResp = [];
+          console.log(
+            "controlCategory controls.length createNewControlQuery 5"
+          );
 
           // the control is create, now its subControls
           const subcontrols = requestBody.control.subControls;
@@ -259,6 +271,9 @@ export async function saveControls(
             );
             subControlResp.push(subcontrolToSave);
           }
+          console.log(
+            "controlCategory controls.length createNewSubcontrolQuery 6"
+          );
 
           // Creating the final response
           const response = {
@@ -274,10 +289,12 @@ export async function saveControls(
             })
           );
         } else {
+          console.log("controlCategory controls.length !== 0 4");
           // Controls found for this control category, then we need to get the control that has the same id
           const controlToUpdate = requestBody.control.control;
           const existingControl = await getControlByIdQuery(controlToUpdate.id);
           if (existingControl) {
+            console.log("controlCategory existingControl 5");
             const control: any = await updateControlByIdQuery(
               controlToUpdate.id,
               {
@@ -290,6 +307,9 @@ export async function saveControls(
                 implementationDetails: controlToUpdate.description,
                 controlGroup: requestBody.controlCategoryId,
               }
+            );
+            console.log(
+              "controlCategory existingControl updateControlByIdQuery 6"
             );
 
             const subcontrols = requestBody.control.subControls;
@@ -312,6 +332,9 @@ export async function saveControls(
               );
               subControlResp.push(subcontrolToSave);
             }
+            console.log(
+              "controlCategory existingControl updateSubcontrolByIdQuery 7"
+            );
 
             const response = {
               ...{

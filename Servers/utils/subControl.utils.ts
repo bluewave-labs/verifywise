@@ -46,8 +46,6 @@ export const createNewSubcontrolQuery = async (
   evidenceFiles?: UploadedFile[],
   feedbackFiles?: UploadedFile[]
 ): Promise<Subcontrol> => {
-  console.log("createNewSubcontrol", subcontrol);
-
   let uploadedEvidenceFiles: { id: number; fileName: string }[] = [];
   await Promise.all(
     evidenceFiles!.map(async (file) => {
@@ -135,7 +133,7 @@ export const updateSubcontrolByIdQuery = async (
     })
   );
 
-  // control_id, status, approver, risk_review, owner, reviewer, due_date, 
+  // control_id, status, approver, risk_review, owner, reviewer, due_date,
   //     implementation_details, evidence, feedback, evidenceFiles, feedbackFiles
   const result = await pool.query(
     `UPDATE subcontrols SET 
@@ -249,17 +247,15 @@ const subControlsMock = (controlIds: number[]) => {
     ...Array(1).fill({ controlId: controlIds[72] }),
     ...Array(1).fill({ controlId: controlIds[73] }),
     ...Array(1).fill({ controlId: controlIds[74] }),
-  ]
-}
+  ];
+};
 
-export const createNewSubControlsQuery = async (
-  controlIds: number[]
-) => {
-  let query = "INSERT INTO subcontrols(control_id) VALUES "
+export const createNewSubControlsQuery = async (controlIds: number[]) => {
+  let query = "INSERT INTO subcontrols(control_id) VALUES ";
   const data = subControlsMock(controlIds).map((d) => {
     return `(${d.controlId})`;
-  })
-  query += data.join(",") + " RETURNING *;"
-  const result = await pool.query(query)
-  return result.rows
-}
+  });
+  query += data.join(",") + " RETURNING *;";
+  const result = await pool.query(query);
+  return result.rows;
+};

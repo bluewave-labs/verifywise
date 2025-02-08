@@ -177,15 +177,15 @@ const NewControlPane = ({
         parseInt(localStorage.getItem("selectedProjectId") || "0", 10),
     };
     console.log("controlToSave : ", controlToSave);
-    // try {
-    //   const response = await apiServices.post(
-    //     "/controls/saveControls",
-    //     controlToSave
-    //   );
-    //   console.log("Controls saved successfully:", response);
-    // } catch (error) {
-    //   console.error("Error saving controls:", error);
-    // }
+    try {
+      const response = await apiServices.post(
+        "/controls/saveControls",
+        controlToSave
+      );
+      console.log("Controls saved successfully:", response);
+    } catch (error) {
+      console.error("Error saving controls:", error);
+    }
     if (OnSave) {
       OnSave(state);
     }

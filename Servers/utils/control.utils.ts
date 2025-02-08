@@ -37,7 +37,6 @@ export const createNewControlQuery = async (control: {
   implementationDetails: string;
   controlGroup: number;
 }): Promise<Control> => {
-  console.log("createNewControl", control);
   const result = await pool.query(
     `INSERT INTO controls (
       status, approver, risk_review, owner, reviewer, due_date, implementation_details, control_group

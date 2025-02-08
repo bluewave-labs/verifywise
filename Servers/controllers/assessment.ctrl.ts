@@ -183,6 +183,7 @@ export async function saveAnswers(req: RequestWithFile, res: Response): Promise<
       // now iterate over the questions, create a question using subtopic id and the question
       const questionResp = []
       for (const question of questions) {
+        console.log(req.files);
         const questionSaved = await updateQuestionByIdQuery(
           question.id,
           {

@@ -109,11 +109,11 @@ export const updateQuestionByIdQuery = async (
   files: UploadedFile[]
 ): Promise<Question | null> => {
   console.log("updateQuestionById", id, question);
-  let uploadedFiles: string[] = [];
+  let uploadedFiles: { id: number, fileName: string }[] = [];
   await Promise.all(
     files.map(async (file) => {
       const uploadedFile = await uploadFile(file);
-      uploadedFiles.push(uploadedFile.id.toString());
+      uploadedFiles.push({ id: uploadedFile.id.toString(), fileName: uploadedFile.filename });
     })
   );
   const result = await pool.query(

@@ -12,6 +12,7 @@ import {
 } from "../utils/project.utils";
 import { createNewAssessmentQuery } from "../utils/assessment.utils";
 import { getUserByIdQuery } from "../utils/user.utils";
+import { createNewControlCategories } from "../utils/controlCategory.util";
 
 export async function getAllProjects(
   req: Request,
@@ -74,18 +75,14 @@ export async function createProject(req: Request, res: Response): Promise<any> {
     const assessment = await createNewAssessmentQuery({
       projectId: createdProject.id,
     });
-    console.log(
-      "project id ",
-      createdProject.id,
-      ", assessment id ",
-      assessment.id
-    );
+    const controlCategories = await createNewControlCategories(createdProject.id)
 
     if (createdProject) {
       return res.status(201).json(
         STATUS_CODE[201]({
-          assessment: assessment,
           project: createdProject,
+          assessment,
+          controlCategories
         })
       );
     }

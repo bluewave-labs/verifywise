@@ -1,5 +1,6 @@
 import { Topic } from "../models/topic.model";
 import pool from "../database/db";
+import { createNewSubTopicsQuery } from "./subtopic.utils";
 
 export const getAllTopicsQuery = async (): Promise<Topic[]> => {
   console.log("getAllTopics");
@@ -72,4 +73,106 @@ export const getTopicByAssessmentIdQuery = async (
     [assessmentId]
   );
   return result.rows;
+}
+
+const topicsMock = (assessmentId: number): Topic[] => {
+  return [
+    {
+      id: 1,
+      assessmentId: assessmentId,
+      title: "Project Scope",
+    },
+    {
+      id: 2,
+      assessmentId: assessmentId,
+      title: "Risk management system",
+    },
+    {
+      id: 3,
+      assessmentId: assessmentId,
+      title: "Data governance",
+    },
+    {
+      id: 4,
+      assessmentId: assessmentId,
+      title: "Technical documentation",
+    },
+    {
+      id: 5,
+      assessmentId: assessmentId,
+      title: "Record keeping",
+    },
+    {
+      id: 6,
+      assessmentId: assessmentId,
+      title: "Transparency & user information",
+    },
+    {
+      id: 7,
+      assessmentId: assessmentId,
+      title: "Human oversight",
+    },
+    {
+      id: 8,
+      assessmentId: assessmentId,
+      title: "Accuracy, robustness, cyber security",
+    },
+    {
+      id: 9,
+      assessmentId: assessmentId,
+      title: "Conformity assessment",
+    },
+    {
+      id: 10,
+      assessmentId: assessmentId,
+      title: "Post-market monitoring",
+    },
+    {
+      id: 11,
+      assessmentId: assessmentId,
+      title: "Bias monitoring and mitigation",
+    },
+    {
+      id: 12,
+      assessmentId: assessmentId,
+      title: "Accountability and governance",
+    },
+    {
+      id: 13,
+      assessmentId: assessmentId,
+      title: "Explainability",
+    },
+    {
+      id: 14,
+      assessmentId: assessmentId,
+      title: "Environmental impact",
+    }
+  ]
+}
+
+export const createNewTopicsQuery = async (
+  assessmentId: number
+) => {
+  let query = "INSERT INTO topics(assessment_id, title) VALUES "
+  const data = topicsMock(assessmentId).map((d) => {
+    return `(${d.assessmentId}, '${d.title}')`;
+  })
+  query += data.join(",") + "RETURNING *;"
+  const result = await pool.query(query)
+  const subTopics = await createNewSubTopicsQuery(
+    result.rows.map(r => Number(r.id))
+  );
+  const topics = result.rows
+
+  let stPtr = 0, tPtr = 0;
+  while (stPtr < subTopics.length) {
+    (topics[tPtr] as any).subtopics = []
+    while (topics[tPtr].id === (subTopics[stPtr] as any)["topic_id"]) {
+      (topics[tPtr] as any).subtopics.push(subTopics[stPtr])
+      stPtr += 1
+      if (stPtr === subTopics.length) break;
+    }
+    tPtr += 1
+  }
+  return topics
 }

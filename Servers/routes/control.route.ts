@@ -9,12 +9,11 @@ import {
   createControl,
   updateControlById,
   deleteControlById,
-  updateControls,
   getComplianceById,
+  saveControls,
 } from "../controllers/control.ctrl";
 
 import authenticateJWT from "../middleware/auth.middleware";
-import { saveControls } from "../controllers/control.ctrl";
 
 // GET requests
 router.get("/", /*authenticateJWT,*/ getAllControls);
@@ -31,8 +30,10 @@ router.post(
   ]),
   saveControls
 );
+
 router.put("/:id", /*authenticateJWT,*/ updateControlById);
-router.put("/updateControls/:id", /*authenticateJWT,*/ updateControls);
+// router.put("/updateControls/:id", /*authenticateJWT,*/ updateControls);
+
 router.delete("/:id", /*authenticateJWT,*/ deleteControlById);
 
 export default router;

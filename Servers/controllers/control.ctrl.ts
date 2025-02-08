@@ -134,8 +134,14 @@ export async function saveControls(
   res: Response
 ): Promise<any> {
   try {
-    const projectId = req.body.projectId;
-    console.log("1");
+    const requestBody = req.body as {
+      projectId: number;
+      controlCategoryTitle: string;
+      controlCategoryId: number;
+      control: string;
+    };
+    const projectId = requestBody.projectId;
+
     if (!projectId) {
       res
         .status(400)
@@ -143,47 +149,71 @@ export async function saveControls(
     }
     console.log("2");
 
-    // first the id of the project is needed and will be sent inside the req.body
-    const controlCategoryTitle = req.body.controlCategoryTitle;
-    console.log("3");
+    // first the id of the project is needed and will be sent inside the requestBody
+    const controlCategoryTitle = requestBody.controlCategoryTitle;
 
     // then we need to create the control category and use the projectId as the foreign key
-    const controlCategory: any = await createControlCategoryQuery({
-      projectId,
-      name: controlCategoryTitle,
-    });
+    const controlCategory: any = await updateControlCategoryByIdQuery(
+      requestBody.controlCategoryId,
+      {
+        projectId,
+        name: controlCategoryTitle,
+      }
+    );
 
-    console.log("4");
-
-    const controlCategoryId = controlCategory.id;
-    console.log("5");
-    const requestControl = req.body.control.control;
-    console.log("6");
+    const controlToUpdate = JSON.parse(requestBody.control) as {
+      id: number;
+      controlCategoryId: number;
+      controlId: number;
+      controlTitle: string;
+      controlDescription: string;
+      status: string;
+      approver: string;
+      riskReview: string;
+      owner: string;
+      reviewer: string;
+      dueDate: Date;
+      implementationDetails: string;
+      subControls: {
+        id: number;
+        controlId: number;
+        subControlTitle: string;
+        subControlDescription: string;
+        status: string;
+        approver: string;
+        riskReview: string;
+        owner: string;
+        reviewer: string;
+        dueDate: Date;
+        description: string;
+        evidence: string;
+        evidenceFiles: [];
+        feedback: string;
+        feedbackFiles: [];
+      }[];
+    };
 
     // now we need to create the control for the control category, and use the control category id as the foreign key
-    const control: any = await createNewControlQuery({
-      status: requestControl.status,
-      approver: requestControl.approver,
-      riskReview: requestControl.riskReview,
-      owner: requestControl.owner,
-      reviewer: requestControl.reviewer,
-      dueDate: requestControl.date,
-      implementationDetails: requestControl.description,
-      controlGroup: controlCategoryId,
+    const control: any = await updateControlByIdQuery(controlToUpdate.id, {
+      status: controlToUpdate.status,
+      approver: controlToUpdate.approver,
+      riskReview: controlToUpdate.riskReview,
+      owner: controlToUpdate.owner,
+      reviewer: controlToUpdate.reviewer,
+      dueDate: controlToUpdate.dueDate,
+      implementationDetails: controlToUpdate.implementationDetails,
+      controlGroup: requestBody.controlCategoryId,
     });
-    console.log("7");
-
-    const controlId = control.id;
 
     // now we need to iterate over subcontrols inside the control, and create a subcontrol for each subcontrol
-    const subcontrols = req.body.control.subControls;
+    const subcontrols = controlToUpdate.subControls;
     const subControlResp = [];
 
     console.log("8");
     for (const subcontrol of subcontrols) {
-      const subcontrolToSave: any = await createNewSubcontrolQuery(
-        controlId,
-        subcontrol,
+      const subcontrolToSave: any = await updateSubcontrolByIdQuery(
+        subcontrol.id,
+        { ...subcontrol, controlId: controlToUpdate.id },
         (
           req.files as {
             [key: string]: UploadedFile[];
@@ -214,99 +244,99 @@ export async function saveControls(
   }
 }
 
-export async function updateControls(
-  req: Request,
-  res: Response
-): Promise<any> {
-  const requestBody = req.body as {
-    projectId: number;
-    controlCategoryTitle: string;
-    controlCategoryId: number;
-    control: {
-      id: number;
-      controlCategoryId: number;
-      controlId: number;
-      controlTitle: string;
-      controlDescription: string;
-      status: string;
-      approver: string;
-      riskReview: string;
-      owner: string;
-      reviewer: string;
-      date: Date;
-      description: string;
-      subControls: {
-        id: number;
-        controlId: number;
-        subControlTitle: string;
-        subControlDescription: string;
-        status: string;
-        approver: string;
-        riskReview: string;
-        owner: string;
-        reviewer: string;
-        date: Date;
-        description: string;
-        evidence: string;
-        evidenceFiles: [];
-        feedback: string;
-        feedbackFiles: [];
-      }[];
-    };
-  };
-  try {
-    const projectId = requestBody.projectId;
+// export async function updateControls(
+//   req: Request,
+//   res: Response
+// ): Promise<any> {
+//   const requestBody = req.body as {
+//     projectId: number;
+//     controlCategoryTitle: string;
+//     controlCategoryId: number;
+//     control: {
+//       id: number;
+//       controlCategoryId: number;
+//       controlId: number;
+//       controlTitle: string;
+//       controlDescription: string;
+//       status: string;
+//       approver: string;
+//       riskReview: string;
+//       owner: string;
+//       reviewer: string;
+//       date: Date;
+//       description: string;
+//       subControls: {
+//         id: number;
+//         controlId: number;
+//         subControlTitle: string;
+//         subControlDescription: string;
+//         status: string;
+//         approver: string;
+//         riskReview: string;
+//         owner: string;
+//         reviewer: string;
+//         date: Date;
+//         description: string;
+//         evidence: string;
+//         evidenceFiles: [];
+//         feedback: string;
+//         feedbackFiles: [];
+//       }[];
+//     };
+//   };
+//   try {
+//     const projectId = requestBody.projectId;
 
-    if (!projectId) {
-      res
-        .status(400)
-        .json(STATUS_CODE[400]({ message: "project_id is required" }));
-    }
+//     if (!projectId) {
+//       res
+//         .status(400)
+//         .json(STATUS_CODE[400]({ message: "project_id is required" }));
+//     }
 
-    // first the id of the project is needed and will be sent inside the requestBody
-    const controlCategoryId = requestBody.controlCategoryId;
-    const controlCategoryTitle = requestBody.controlCategoryTitle;
+//     // first the id of the project is needed and will be sent inside the requestBody
+//     const controlCategoryId = requestBody.controlCategoryId;
+//     const controlCategoryTitle = requestBody.controlCategoryTitle;
 
-    // then we need to create the control category and use the projectId as the foreign key
-    await updateControlCategoryByIdQuery(controlCategoryId, {
-      projectId,
-      name: controlCategoryTitle,
-    });
+//     // then we need to create the control category and use the projectId as the foreign key
+//     await updateControlCategoryByIdQuery(controlCategoryId, {
+//       projectId,
+//       name: controlCategoryTitle,
+//     });
 
-    const controlId = requestBody.control.id;
-    // now we need to create the control for the control category, and use the control category id as the foreign key
-    await updateControlByIdQuery(controlId, {
-      // title: requestBody.control.title,
-      status: requestBody.control.status,
-      approver: requestBody.control.approver,
-      riskReview: requestBody.control.riskReview,
-      owner: requestBody.control.owner,
-      reviewer: requestBody.control.reviewer,
-      dueDate: requestBody.control.date,
-      implementationDetails: requestBody.control.description,
-      controlGroup: controlCategoryId,
-    });
+//     const controlId = requestBody.control.id;
+//     // now we need to create the control for the control category, and use the control category id as the foreign key
+//     await updateControlByIdQuery(controlId, {
+//       // title: requestBody.control.title,
+//       status: requestBody.control.status,
+//       approver: requestBody.control.approver,
+//       riskReview: requestBody.control.riskReview,
+//       owner: requestBody.control.owner,
+//       reviewer: requestBody.control.reviewer,
+//       dueDate: requestBody.control.date,
+//       implementationDetails: requestBody.control.description,
+//       controlGroup: controlCategoryId,
+//     });
 
-    // now we need to iterate over subcontrols inside the control, and create a subcontrol for each subcontrol
-    const subcontrols = requestBody.control.subControls;
-    for (const subcontrol of subcontrols) {
-      const subControlId = subcontrol.id;
-      const subcontrolToSave: any = await updateSubcontrolByIdQuery(
-        subControlId,
-        subcontrol
-      );
-      console.log("subcontrolToSave : ", subcontrolToSave);
-    }
+//     // now we need to iterate over subcontrols inside the control, and create a subcontrol for each subcontrol
+//     const subcontrols = requestBody.control.subControls;
+//     for (const subcontrol of subcontrols) {
+//       const subControlId = subcontrol.id;
+//       const subcontrolToSave: any = await updateSubcontrolByIdQuery(
+//         subControlId,
+//         subcontrol
+//       );
+//       console.log("subcontrolToSave : ", subcontrolToSave);
+//     }
 
-    res.status(200).json(
-      STATUS_CODE[200]({
-        message: "Controls saved",
-      })
-    );
-  } catch (error) {
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
-  }
-}
+//     res.status(200).json(
+//       STATUS_CODE[200]({
+//         message: "Controls saved",
+//       })
+//     );
+//   } catch (error) {
+//     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+//   }
+// }
 
 export async function getComplianceById(
   req: Request,

@@ -15,6 +15,7 @@ import {
 } from "../utils/subControl.utils";
 import {
   createControlCategoryQuery,
+  getControlCategoryByIdQuery,
   updateControlCategoryByIdQuery,
 } from "../utils/controlCategory.util";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
@@ -165,53 +166,125 @@ export async function saveControls(
     const controlToUpdate = requestBody.control.control;
     console.log("5");
 
-    // now we need to create the control for the control category, and use the control category id as the foreign key
-    const control: any = await updateControlByIdQuery(controlToUpdate.id, {
-      status: controlToUpdate.status,
-      approver: controlToUpdate.approver,
-      riskReview: controlToUpdate.riskReview,
-      owner: controlToUpdate.owner,
-      reviewer: controlToUpdate.reviewer,
-      date: controlToUpdate.date,
-      description: controlToUpdate.description,
-      controlGroup: requestBody.controlCategoryId,
-    });
-    console.log("6");
+    if (controlToUpdate.id) {
+      const existingControl = await getControlByIdQuery(controlToUpdate.id);
+      if (!existingControl) {
+        // Check if the control category exists before creating a new control
+        const existingControlCategory = await getControlCategoryByIdQuery(
+          requestBody.controlCategoryId
+        );
+        if (!existingControlCategory) {
+          const newControlCategory = await createControlCategoryQuery({
+            projectId,
+            name: controlCategoryTitle,
+          });
+          requestBody.controlCategoryId = newControlCategory.id;
+        }
+        // now we need to create the control for the control category, and use the control category id as the foreign key
+        const newControl = {
+          status: controlToUpdate.status,
+          approver: controlToUpdate.approver,
+          riskReview: controlToUpdate.riskReview,
+          owner: controlToUpdate.owner,
+          reviewer: controlToUpdate.reviewer,
+          dueDate: controlToUpdate.date,
+          implementationDetails: controlToUpdate.description,
+          controlGroup: requestBody.controlCategoryId,
+        };
+        const createdControl = await createNewControlQuery(newControl);
 
-    // now we need to iterate over subcontrols inside the control, and create a subcontrol for each subcontrol
-    const subcontrols = requestBody.control.subControls;
-    const subControlResp = [];
+        console.log("6 create");
 
-    console.log("7");
-    for (const subcontrol of subcontrols) {
-      const subcontrolToSave: any = await updateSubcontrolByIdQuery(
-        subcontrol.id,
-        { ...subcontrol, controlId: controlToUpdate.id },
-        (
-          req.files as {
-            [key: string]: UploadedFile[];
-          }
-        )?.evidenceFiles || [],
-        (
-          req.files as {
-            [key: string]: UploadedFile[];
-          }
-        )?.feedbackFiles || []
-      );
-      subControlResp.push(subcontrolToSave);
+        const subcontrols = requestBody.control.subControls;
+        const subControlResp = [];
+
+        for (const subcontrol of subcontrols) {
+          const subcontrolToSave: any = await createNewSubcontrolQuery(
+            createdControl.id,
+            {
+              ...subcontrol,
+              controlId: createdControl.id,
+            },
+            (
+              req.files as {
+                [key: string]: UploadedFile[];
+              }
+            )?.evidenceFiles || [],
+            (
+              req.files as {
+                [key: string]: UploadedFile[];
+              }
+            )?.feedbackFiles || []
+          );
+          subControlResp.push(subcontrolToSave);
+        }
+
+        console.log("7 create");
+
+        const response = {
+          ...{
+            controlCategory,
+            ...{ control: createdControl, subControls: subControlResp },
+          },
+        };
+
+        console.log("8 create");
+        return res.status(201).json(
+          STATUS_CODE[201]({
+            message: response,
+          })
+        );
+      } else {
+        // now we need to update the control for the control category, and use the control category id as the foreign key
+        const control: any = await updateControlByIdQuery(controlToUpdate.id, {
+          status: controlToUpdate.status,
+          approver: controlToUpdate.approver,
+          riskReview: controlToUpdate.riskReview,
+          owner: controlToUpdate.owner,
+          reviewer: controlToUpdate.reviewer,
+          dueDate: controlToUpdate.date,
+          implementationDetails: controlToUpdate.description,
+          controlGroup: requestBody.controlCategoryId,
+        });
+        console.log("6 update");
+
+        const subcontrols = requestBody.control.subControls;
+        const subControlResp = [];
+
+        // now we need to iterate over subcontrols inside the control, and create a subcontrol for each subcontrol
+
+        console.log("7 update");
+        for (const subcontrol of subcontrols) {
+          const subcontrolToSave: any = await updateSubcontrolByIdQuery(
+            subcontrol.id,
+            { ...subcontrol, controlId: controlToUpdate.id },
+            (
+              req.files as {
+                [key: string]: UploadedFile[];
+              }
+            )?.evidenceFiles || [],
+            (
+              req.files as {
+                [key: string]: UploadedFile[];
+              }
+            )?.feedbackFiles || []
+          );
+          subControlResp.push(subcontrolToSave);
+        }
+
+        console.log("8 update");
+        const response = {
+          ...{ controlCategory, ...{ control, subControls: subControlResp } },
+        };
+
+        console.log("9 update");
+        return res.status(200).json(
+          STATUS_CODE[200]({
+            message: response,
+          })
+        );
+      }
     }
-
-    console.log("8");
-    const response = {
-      ...{ controlCategory, ...{ control, subControls: subControlResp } },
-    };
-
-    console.log("9");
-    return res.status(200).json(
-      STATUS_CODE[200]({
-        message: response,
-      })
-    );
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

@@ -53,8 +53,8 @@ export const updateControlByIdQuery = async (
     riskReview: string;
     owner: string;
     reviewer: string;
-    date: Date;
-    description: string;
+    dueDate: Date;
+    implementationDetails: string;
     controlGroup: number;
   }>
 ): Promise<Control | null> => {
@@ -83,13 +83,13 @@ export const updateControlByIdQuery = async (
     fields.push(`reviewer = $${fields.length + 1}`);
     values.push(control.reviewer);
   }
-  if (control.date !== undefined) {
+  if (control.dueDate !== undefined) {
     fields.push(`due_date = $${fields.length + 1}`);
-    values.push(control.date);
+    values.push(control.dueDate);
   }
-  if (control.description !== undefined) {
+  if (control.implementationDetails !== undefined) {
     fields.push(`implementation_details = $${fields.length + 1}`);
-    values.push(control.description);
+    values.push(control.implementationDetails);
   }
   if (control.controlGroup !== undefined) {
     fields.push(`control_group = $${fields.length + 1}`);

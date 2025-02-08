@@ -4,6 +4,7 @@ import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
   createNewControlQuery,
   deleteControlByIdQuery,
+  getAllControlsByControlGroupQuery,
   getAllControlsQuery,
   getControlByIdQuery,
   updateControlByIdQuery,
@@ -16,6 +17,7 @@ import {
 import {
   createControlCategoryQuery,
   getControlCategoryByIdQuery,
+  getControlCategoryByTitleAndProjectIdQuery,
   updateControlCategoryByIdQuery,
 } from "../utils/controlCategory.util";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
@@ -148,141 +150,183 @@ export async function saveControls(
         .status(400)
         .json(STATUS_CODE[400]({ message: "project_id is required" }));
     }
-    console.log("2");
 
-    // first the id of the project is needed and will be sent inside the requestBody
+    // First, we need to see if we have a control category with such title for the project
     const controlCategoryTitle = requestBody.controlCategoryTitle;
-    console.log("3");
 
-    // then we need to create the control category and use the projectId as the foreign key
-    const controlCategory: any = await updateControlCategoryByIdQuery(
-      requestBody.controlCategoryId,
-      {
+    const controlCategory = await getControlCategoryByTitleAndProjectIdQuery(
+      controlCategoryTitle,
+      projectId
+    );
+
+    if (!controlCategory) {
+      // Now that such control Category does not exist, first we create the controlCategory
+      const newControlCategory = await createControlCategoryQuery({
         projectId,
         name: controlCategoryTitle,
-      }
-    );
-    console.log("4");
-    const controlToUpdate = requestBody.control.control;
-    console.log("5");
+      });
 
-    if (controlToUpdate.id) {
-      const existingControl = await getControlByIdQuery(controlToUpdate.id);
-      if (!existingControl) {
-        // Check if the control category exists before creating a new control
-        const existingControlCategory = await getControlCategoryByIdQuery(
-          requestBody.controlCategoryId
-        );
-        if (!existingControlCategory) {
-          const newControlCategory = await createControlCategoryQuery({
-            projectId,
-            name: controlCategoryTitle,
-          });
-          requestBody.controlCategoryId = newControlCategory.id;
-        }
-        // now we need to create the control for the control category, and use the control category id as the foreign key
-        const newControl = {
-          status: controlToUpdate.status,
-          approver: controlToUpdate.approver,
-          riskReview: controlToUpdate.riskReview,
-          owner: controlToUpdate.owner,
-          reviewer: controlToUpdate.reviewer,
-          dueDate: controlToUpdate.date,
-          implementationDetails: controlToUpdate.description,
-          controlGroup: requestBody.controlCategoryId,
-        };
-        const createdControl = await createNewControlQuery(newControl);
+      // Now, we need to create the control
+      const newControl = {
+        status: requestBody.control.status,
+        approver: requestBody.control.approver,
+        riskReview: requestBody.control.riskReview,
+        owner: requestBody.control.owner,
+        reviewer: requestBody.control.reviewer,
+        dueDate: requestBody.control.date,
+        implementationDetails: requestBody.control.description,
+        controlGroup: newControlCategory.id ?? requestBody.controlCategoryId,
+      };
+      const resultControl = await createNewControlQuery(newControl);
+      const subControlResp = [];
 
-        console.log("6 create");
-
-        const subcontrols = requestBody.control.subControls;
-        const subControlResp = [];
-
-        for (const subcontrol of subcontrols) {
-          const subcontrolToSave: any = await createNewSubcontrolQuery(
-            createdControl.id,
-            {
-              ...subcontrol,
-              controlId: createdControl.id,
-            },
-            (
-              req.files as {
-                [key: string]: UploadedFile[];
-              }
-            )?.evidenceFiles || [],
-            (
-              req.files as {
-                [key: string]: UploadedFile[];
-              }
-            )?.feedbackFiles || []
-          );
-          subControlResp.push(subcontrolToSave);
-        }
-
-        console.log("7 create");
-
-        const response = {
-          ...{
-            controlCategory,
-            ...{ control: createdControl, subControls: subControlResp },
+      // Now, we need to create subControls
+      const subcontrols = requestBody.control.subControls;
+      for (const subcontrol of subcontrols) {
+        const subcontrolToSave: any = await createNewSubcontrolQuery(
+          resultControl.id,
+          {
+            ...subcontrol,
+            controlId: resultControl.id,
           },
-        };
-
-        console.log("8 create");
-        return res.status(201).json(
-          STATUS_CODE[201]({
-            message: response,
-          })
+          (
+            req.files as {
+              [key: string]: UploadedFile[];
+            }
+          )?.evidenceFiles || [],
+          (
+            req.files as {
+              [key: string]: UploadedFile[];
+            }
+          )?.feedbackFiles || []
         );
-      } else {
-        // now we need to update the control for the control category, and use the control category id as the foreign key
-        const control: any = await updateControlByIdQuery(controlToUpdate.id, {
-          status: controlToUpdate.status,
-          approver: controlToUpdate.approver,
-          riskReview: controlToUpdate.riskReview,
-          owner: controlToUpdate.owner,
-          reviewer: controlToUpdate.reviewer,
-          dueDate: controlToUpdate.date,
-          implementationDetails: controlToUpdate.description,
-          controlGroup: requestBody.controlCategoryId,
-        });
-        console.log("6 update");
+        subControlResp.push(subcontrolToSave);
+      }
 
-        const subcontrols = requestBody.control.subControls;
-        const subControlResp = [];
+      // Creating the final response
+      const response = {
+        ...{
+          controlCategory,
+          ...{ control: resultControl, subControls: subControlResp },
+        },
+      };
 
-        // now we need to iterate over subcontrols inside the control, and create a subcontrol for each subcontrol
+      return res.status(201).json(
+        STATUS_CODE[201]({
+          message: response,
+        })
+      );
+    } else {
+      // Now that there is a controlCategory with such details
+      if (controlCategory.id) {
+        const controls = await getAllControlsByControlGroupQuery(
+          controlCategory.id
+        );
+        if (controls.length === 0) {
+          // No controls found for this control category, then we need to create the control
+          const controlData = {
+            status: requestBody.control.status,
+            approver: requestBody.control.approver,
+            riskReview: requestBody.control.riskReview,
+            owner: requestBody.control.owner,
+            reviewer: requestBody.control.reviewer,
+            dueDate: requestBody.control.date,
+            implementationDetails: requestBody.control.description,
+            controlGroup: controlCategory.id,
+          };
+          const newControl = await createNewControlQuery(controlData);
+          const subControlResp = [];
 
-        console.log("7 update");
-        for (const subcontrol of subcontrols) {
-          const subcontrolToSave: any = await updateSubcontrolByIdQuery(
-            subcontrol.id,
-            { ...subcontrol, controlId: controlToUpdate.id },
-            (
-              req.files as {
-                [key: string]: UploadedFile[];
-              }
-            )?.evidenceFiles || [],
-            (
-              req.files as {
-                [key: string]: UploadedFile[];
-              }
-            )?.feedbackFiles || []
+          // the control is create, now its subControls
+          const subcontrols = requestBody.control.subControls;
+          for (const subcontrol of subcontrols) {
+            const subcontrolToSave: any = await createNewSubcontrolQuery(
+              newControl.id,
+              {
+                ...subcontrol,
+                controlId: newControl.id,
+              },
+              (
+                req.files as {
+                  [key: string]: UploadedFile[];
+                }
+              )?.evidenceFiles || [],
+              (
+                req.files as {
+                  [key: string]: UploadedFile[];
+                }
+              )?.feedbackFiles || []
+            );
+            subControlResp.push(subcontrolToSave);
+          }
+
+          // Creating the final response
+          const response = {
+            ...{
+              controlCategory,
+              ...{ control: newControl, subControls: subControlResp },
+            },
+          };
+
+          return res.status(201).json(
+            STATUS_CODE[201]({
+              message: response,
+            })
           );
-          subControlResp.push(subcontrolToSave);
+        } else {
+          // Controls found for this control category, then we need to get the control that has the same id
+          const controlToUpdate = requestBody.control.control;
+          const existingControl = await getControlByIdQuery(controlToUpdate.id);
+          if (existingControl) {
+            const control: any = await updateControlByIdQuery(
+              controlToUpdate.id,
+              {
+                status: controlToUpdate.status,
+                approver: controlToUpdate.approver,
+                riskReview: controlToUpdate.riskReview,
+                owner: controlToUpdate.owner,
+                reviewer: controlToUpdate.reviewer,
+                dueDate: controlToUpdate.date,
+                implementationDetails: controlToUpdate.description,
+                controlGroup: requestBody.controlCategoryId,
+              }
+            );
+
+            const subcontrols = requestBody.control.subControls;
+            const subControlResp = [];
+
+            for (const subcontrol of subcontrols) {
+              const subcontrolToSave: any = await updateSubcontrolByIdQuery(
+                subcontrol.id,
+                { ...subcontrol, controlId: controlToUpdate.id },
+                (
+                  req.files as {
+                    [key: string]: UploadedFile[];
+                  }
+                )?.evidenceFiles || [],
+                (
+                  req.files as {
+                    [key: string]: UploadedFile[];
+                  }
+                )?.feedbackFiles || []
+              );
+              subControlResp.push(subcontrolToSave);
+            }
+
+            const response = {
+              ...{
+                controlCategory,
+                ...{ control, subControls: subControlResp },
+              },
+            };
+
+            return res.status(200).json(
+              STATUS_CODE[200]({
+                message: response,
+              })
+            );
+          }
         }
-
-        console.log("8 update");
-        const response = {
-          ...{ controlCategory, ...{ control, subControls: subControlResp } },
-        };
-
-        console.log("9 update");
-        return res.status(200).json(
-          STATUS_CODE[200]({
-            message: response,
-          })
-        );
       }
     }
   } catch (error) {

@@ -16,6 +16,17 @@ export const getControlByIdQuery = async (
   return result.rows.length ? result.rows[0] : null;
 };
 
+export const getAllControlsByControlGroupQuery = async (
+  controlGroupId: number
+): Promise<Control[]> => {
+  console.log("getAllControlsByControlGroup", controlGroupId);
+  const controls = await pool.query(
+    "SELECT * FROM controls WHERE control_group = $1",
+    [controlGroupId]
+  );
+  return controls.rows;
+};
+
 export const createNewControlQuery = async (control: {
   status: string;
   approver: string;

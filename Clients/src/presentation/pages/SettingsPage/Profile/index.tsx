@@ -23,6 +23,7 @@ import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import Alert from "../../../components/Alert"; // Import Alert component
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
+import { clearAuthState } from "../../../../application/authentication/authSlice";
 
 /**
  * Interface representing a user object.
@@ -369,7 +370,10 @@ const ProfileForm: React.FC = () => {
         isToast: true,
         visible: true,
       });
+      //clear redux state
+      store.dispatch(clearAuthState());
       // Add any additional logic needed after account deletion, e.g., redirecting to a login page
+      window.location.href = "/login";
     } catch (error) {
       logEngine({
         type: "error",

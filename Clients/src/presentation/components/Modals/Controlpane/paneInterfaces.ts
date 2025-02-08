@@ -1,6 +1,8 @@
 import { Dayjs } from "dayjs";
 
 export interface SubControlState {
+  id?: any;
+  title?: any;
   control_id: string;
   subControlId: string;
   subControlTitle: string;

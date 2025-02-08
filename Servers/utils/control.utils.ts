@@ -16,6 +16,17 @@ export const getControlByIdQuery = async (
   return result.rows.length ? result.rows[0] : null;
 };
 
+export const getAllControlsByControlGroupQuery = async (
+  controlGroupId: number
+): Promise<Control[]> => {
+  console.log("getAllControlsByControlGroup", controlGroupId);
+  const controls = await pool.query(
+    "SELECT * FROM controls WHERE control_group = $1",
+    [controlGroupId]
+  );
+  return controls.rows;
+};
+
 export const createNewControlQuery = async (control: {
   status: string;
   approver: string;
@@ -26,7 +37,6 @@ export const createNewControlQuery = async (control: {
   implementationDetails: string;
   controlGroup: number;
 }): Promise<Control> => {
-  console.log("createNewControl", control);
   const result = await pool.query(
     `INSERT INTO controls (
       status, approver, risk_review, owner, reviewer, due_date, implementation_details, control_group
@@ -39,7 +49,7 @@ export const createNewControlQuery = async (control: {
       control.reviewer,
       control.dueDate,
       control.implementationDetails,
-      control.controlGroup
+      control.controlGroup,
     ]
   );
   return result.rows[0];
@@ -93,7 +103,7 @@ export const updateControlByIdQuery = async (
   }
   if (control.controlGroup !== undefined) {
     fields.push(`control_group = $${fields.length + 1}`);
-    values.push(control.controlGroup)
+    values.push(control.controlGroup);
   }
 
   query += fields.join(", ");
@@ -116,44 +126,45 @@ export const deleteControlByIdQuery = async (
 
 const controlsMock = (controlCategoryIds: number[]) => {
   return [
-    ...Array(2).fill({controlGroup: controlCategoryIds[0]}),
-    ...Array(7).fill({controlGroup: controlCategoryIds[1]}),
-    ...Array(3).fill({controlGroup: controlCategoryIds[2]}),
-    ...Array(4).fill({controlGroup: controlCategoryIds[3]}),
-    ...Array(9).fill({controlGroup: controlCategoryIds[4]}),
-    ...Array(9).fill({controlGroup: controlCategoryIds[5]}),
-    ...Array(10).fill({controlGroup: controlCategoryIds[6]}),
-    ...Array(4).fill({controlGroup: controlCategoryIds[7]}),
-    ...Array(7).fill({controlGroup: controlCategoryIds[8]}),
-    ...Array(4).fill({controlGroup: controlCategoryIds[9]}),
-    ...Array(5).fill({controlGroup: controlCategoryIds[10]}),
-    ...Array(5).fill({controlGroup: controlCategoryIds[11]}),
-    ...Array(6).fill({controlGroup: controlCategoryIds[12]}),
-  ]
-}
+    ...Array(2).fill({ controlGroup: controlCategoryIds[0] }),
+    ...Array(7).fill({ controlGroup: controlCategoryIds[1] }),
+    ...Array(3).fill({ controlGroup: controlCategoryIds[2] }),
+    ...Array(4).fill({ controlGroup: controlCategoryIds[3] }),
+    ...Array(9).fill({ controlGroup: controlCategoryIds[4] }),
+    ...Array(9).fill({ controlGroup: controlCategoryIds[5] }),
+    ...Array(10).fill({ controlGroup: controlCategoryIds[6] }),
+    ...Array(4).fill({ controlGroup: controlCategoryIds[7] }),
+    ...Array(7).fill({ controlGroup: controlCategoryIds[8] }),
+    ...Array(4).fill({ controlGroup: controlCategoryIds[9] }),
+    ...Array(5).fill({ controlGroup: controlCategoryIds[10] }),
+    ...Array(5).fill({ controlGroup: controlCategoryIds[11] }),
+    ...Array(6).fill({ controlGroup: controlCategoryIds[12] }),
+  ];
+};
 
-export const createNewControlsQuery = async (
-  controlCategoryIds: number[]
-) => {
-  let query = "INSERT INTO controls(control_group) VALUES "
+export const createNewControlsQuery = async (controlCategoryIds: number[]) => {
+  let query = "INSERT INTO controls(control_group) VALUES ";
   const data = controlsMock(controlCategoryIds).map((d) => {
     return `(${d.controlGroup})`;
-  })
-  query += data.join(",") + " RETURNING *;"
-  const result = await pool.query(query)
-  const controls = result.rows
-  const subControls = await createNewSubControlsQuery(controls.map(r => Number(r.id)))
+  });
+  query += data.join(",") + " RETURNING *;";
+  const result = await pool.query(query);
+  const controls = result.rows;
+  const subControls = await createNewSubControlsQuery(
+    controls.map((r) => Number(r.id))
+  );
 
-  let scPtr = 0, cPtr = 0;
+  let scPtr = 0,
+    cPtr = 0;
 
   while (scPtr < subControls.length) {
-    (controls[cPtr] as any).subcontrols = []
+    (controls[cPtr] as any).subcontrols = [];
     while (controls[cPtr].id === (subControls[scPtr] as any)["control_id"]) {
-      (controls[cPtr] as any).subcontrols.push(subControls[scPtr])
-      scPtr += 1
-      if (scPtr === subControls.length) break
+      (controls[cPtr] as any).subcontrols.push(subControls[scPtr]);
+      scPtr += 1;
+      if (scPtr === subControls.length) break;
     }
-    cPtr += 1
+    cPtr += 1;
   }
-  return controls
-}
+  return controls;
+};

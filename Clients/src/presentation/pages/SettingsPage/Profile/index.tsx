@@ -360,9 +360,15 @@ const ProfileForm: React.FC = () => {
    */
 
   const handleConfirmDelete = useCallback(async () => {
+    setLoading(true);
     try {
       // const userId = localStorage.getItem("userId") || "1";
       await deleteEntityById({ routeUrl: `/users/${id}` });
+      //clear all storage
+      await localStorage.removeItem("userId");
+      await localStorage.removeItem("authToken");
+      //clear redux state
+      store.dispatch(clearAuthState());
       setAlert({
         variant: "success",
         title: "Success",
@@ -370,10 +376,10 @@ const ProfileForm: React.FC = () => {
         isToast: true,
         visible: true,
       });
-      //clear redux state
-      store.dispatch(clearAuthState());
       // Add any additional logic needed after account deletion, e.g., redirecting to a login page
-      window.location.href = "/login";
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 3000); // Redirect to login page after 3 seconds
     } catch (error) {
       logEngine({
         type: "error",
@@ -394,6 +400,7 @@ const ProfileForm: React.FC = () => {
       });
     } finally {
       setIsDeleteModalOpen(false);
+      setLoading(false);
     }
   }, [email, firstname, lastname]);
 

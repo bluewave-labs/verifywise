@@ -73,14 +73,14 @@ const NewControlPane = ({
       subControlDescription:
         initialValues?.subControls[index]?.subControlDescription ||
         subControl.subControlDescription,
-      status: initialValues?.subControls[index]?.status || subControl.status, // Set default value
+      status: initialValues?.subControls[index]?.status || subControl.status,
       approver:
-        initialValues?.subControls[index]?.approver || subControl.approver, // Set default value
+        initialValues?.subControls[index]?.approver || subControl.approver,
       riskReview:
-        initialValues?.subControls[index]?.riskReview || subControl.riskReview, // Set default value
-      owner: initialValues?.subControls[index]?.owner || subControl.owner, // Set default value
+        initialValues?.subControls[index]?.riskReview || subControl.riskReview,
+      owner: initialValues?.subControls[index]?.owner || subControl.owner,
       reviewer:
-        initialValues?.subControls[index]?.reviewer || subControl.reviewer, // Set default value
+        initialValues?.subControls[index]?.reviewer || subControl.reviewer,
       description:
         initialValues?.subControls[index]?.description ||
         subControl.description,

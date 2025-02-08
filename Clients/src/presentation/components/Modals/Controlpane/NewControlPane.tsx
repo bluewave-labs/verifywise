@@ -28,6 +28,7 @@ const NewControlPane = ({
   content,
   subControls,
   controlCategory,
+  controlCategoryId,
   OnSave,
 }: {
   id: string;
@@ -38,6 +39,7 @@ const NewControlPane = ({
   content: string;
   subControls: any[];
   controlCategory: string;
+  controlCategoryId: string;
   OnSave?: (state: State) => void;
 }) => {
   const theme = useTheme();
@@ -168,6 +170,7 @@ const NewControlPane = ({
     );
     const controlToSave = {
       controlCategoryTitle: controlCategory,
+      controlCategoryId: controlCategoryId,
       control: state,
       projectId:
         dashboardValues.selectedProjectId ||

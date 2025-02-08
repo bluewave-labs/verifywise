@@ -146,6 +146,7 @@ const NewComplianceTracker = () => {
               cols={Table_Columns}
               rows={controls}
               controlCategory={controlGroupTitle}
+              controlCategoryId={controlGroupIndex.toString()}
             />
           </AccordionDetails>
         </Accordion>

@@ -24,11 +24,13 @@ const AccordionTable = ({
   cols,
   rows,
   controlCategory,
+  controlCategoryId,
 }: {
   id: any;
   cols: ITableCol[];
   rows: any[];
   controlCategory: string;
+  controlCategoryId: string;
 }) => {
   const theme = useTheme();
   const [selectedRow, setSelectedRow] = useState<number | null>(null);
@@ -106,6 +108,7 @@ const AccordionTable = ({
                   // fetchComplianceTracker();
                 }}
                 controlCategory={controlCategory}
+                controlCategoryId={controlCategoryId}
               />
             )}
             <TableRow

@@ -94,8 +94,8 @@ export async function updateControlById(
       riskReview: string;
       owner: string;
       reviewer: string;
-      dueDate: Date;
-      implementationDetails: string;
+      date: Date;
+      description: string;
     } = req.body;
 
     const control = await updateControlByIdQuery(controlId, updatedControl);
@@ -134,11 +134,11 @@ export async function saveControls(
   res: Response
 ): Promise<any> {
   try {
-    const requestBody = req.body as {
-      projectId: number;
-      controlCategoryTitle: string;
-      controlCategoryId: number;
-      control: string;
+    const requestBody: any = {
+      projectId: req.body.projectId,
+      controlCategoryTitle: req.body.controlCategoryTitle,
+      controlCategoryId: req.body.controlCategoryId,
+      control: req.body.control,
     };
     const projectId = requestBody.projectId;
 
@@ -151,6 +151,7 @@ export async function saveControls(
 
     // first the id of the project is needed and will be sent inside the requestBody
     const controlCategoryTitle = requestBody.controlCategoryTitle;
+    console.log("3");
 
     // then we need to create the control category and use the projectId as the foreign key
     const controlCategory: any = await updateControlCategoryByIdQuery(
@@ -160,38 +161,9 @@ export async function saveControls(
         name: controlCategoryTitle,
       }
     );
-
-    const controlToUpdate = JSON.parse(requestBody.control) as {
-      id: number;
-      controlCategoryId: number;
-      controlId: number;
-      controlTitle: string;
-      controlDescription: string;
-      status: string;
-      approver: string;
-      riskReview: string;
-      owner: string;
-      reviewer: string;
-      dueDate: Date;
-      implementationDetails: string;
-      subControls: {
-        id: number;
-        controlId: number;
-        subControlTitle: string;
-        subControlDescription: string;
-        status: string;
-        approver: string;
-        riskReview: string;
-        owner: string;
-        reviewer: string;
-        dueDate: Date;
-        description: string;
-        evidence: string;
-        evidenceFiles: [];
-        feedback: string;
-        feedbackFiles: [];
-      }[];
-    };
+    console.log("4");
+    const controlToUpdate = requestBody.control.control;
+    console.log("5");
 
     // now we need to create the control for the control category, and use the control category id as the foreign key
     const control: any = await updateControlByIdQuery(controlToUpdate.id, {
@@ -200,16 +172,17 @@ export async function saveControls(
       riskReview: controlToUpdate.riskReview,
       owner: controlToUpdate.owner,
       reviewer: controlToUpdate.reviewer,
-      dueDate: controlToUpdate.dueDate,
-      implementationDetails: controlToUpdate.implementationDetails,
+      date: controlToUpdate.date,
+      description: controlToUpdate.description,
       controlGroup: requestBody.controlCategoryId,
     });
+    console.log("6");
 
     // now we need to iterate over subcontrols inside the control, and create a subcontrol for each subcontrol
-    const subcontrols = controlToUpdate.subControls;
+    const subcontrols = requestBody.control.subControls;
     const subControlResp = [];
 
-    console.log("8");
+    console.log("7");
     for (const subcontrol of subcontrols) {
       const subcontrolToSave: any = await updateSubcontrolByIdQuery(
         subcontrol.id,
@@ -228,12 +201,12 @@ export async function saveControls(
       subControlResp.push(subcontrolToSave);
     }
 
-    console.log("9");
+    console.log("8");
     const response = {
       ...{ controlCategory, ...{ control, subControls: subControlResp } },
     };
 
-    console.log("10");
+    console.log("9");
     return res.status(200).json(
       STATUS_CODE[200]({
         message: response,

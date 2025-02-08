@@ -10,7 +10,6 @@ import {
   getAnswers,
   getAssessmentById,
   saveAnswers,
-  updateAnswers,
   updateAssessmentById,
 } from "../controllers/assessment.ctrl";
 
@@ -27,7 +26,7 @@ router.post("/saveAnswers", /*authenticateJWT, */ upload.any("files"), saveAnswe
 
 // PUTs
 router.put("/:id", /*authenticateJWT, */ updateAssessmentById);
-router.put("/updateAnswers/:id", /*authenticateJWT, */ updateAnswers);
+// router.put("/updateAnswers/:id", /*authenticateJWT, */ updateAnswers);
 
 // DELETEs
 router.delete("/:id", /*authenticateJWT, */ deleteAssessmentById);

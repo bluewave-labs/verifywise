@@ -1,5 +1,6 @@
 import { Assessment } from "../models/assessment.model";
 import pool from "../database/db";
+import { createNewTopicsQuery } from "./topic.utils";
 
 export const getAllAssessmentsQuery = async (): Promise<Assessment[]> => {
   console.log("getAllAssessments");
@@ -19,13 +20,14 @@ export const getAssessmentByIdQuery = async (
 
 export const createNewAssessmentQuery = async (assessment: {
   projectId: number;
-}): Promise<Assessment> => {
+}): Promise<Object> => {
   console.log("createNewAssessment", assessment);
   const result = await pool.query(
     `INSERT INTO assessments (project_id) VALUES ($1) RETURNING *`,
     [assessment.projectId]
   );
-  return result.rows[0];
+  const topics = await createNewTopicsQuery(result.rows[0].id)
+  return { assessment: result.rows[0], topics };
 };
 
 export const updateAssessmentByIdQuery = async (

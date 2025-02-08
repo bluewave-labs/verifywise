@@ -142,30 +142,52 @@ export async function deleteAssessmentById(
 
 export async function saveAnswers(req: RequestWithFile, res: Response): Promise<any> {
   try {
-    const assessmentId = parseInt(req.body.assessmentId);
+    const requestBody = req.body as {
+      assessmentId: number;
+      topic: string;
+      topicId: number;
+      subtopic: string;
+    };
+    const assessmentId = requestBody.assessmentId;
     // now, create a topic using the assessmentId and the topic
-    const topic: any = await createNewTopicQuery({
+    const topic: any = await updateTopicByIdQuery(requestBody.topicId, {
       assessmentId,
-      title: req.body.topic,
+      title: requestBody.topic,
     });
 
     // now iterate over the subtopics, create a subtopic using topic id and the subtopic
-    const subtopics = JSON.parse(req.body.subtopic);
+    const subtopics = JSON.parse(requestBody.subtopic) as {
+      id: number;
+      name: string;
+      questions: {
+        id: number;
+        subtopicId: number;
+        questionText: string;
+        answerType: string;
+        evidenceFileRequired: boolean;
+        hint: string;
+        isRequired: boolean;
+        priorityLevel: string;
+        answer: string;
+        evidenceFiles: [];
+      }[];
+    }[];
     const subTopicResp = []
     for (const subtopic of subtopics) {
-      const subtopicToSave: any = await createNewSubtopicQuery({
+      const subtopicToUpdate: any = await updateSubtopicByIdQuery(subtopic.id, {
         topicId: topic.id,
         name: subtopic.name,
       });
-      const subtopicId = subtopicToSave.id;
+      const subtopicId = subtopicToUpdate.id;
       const questions = subtopic.questions;
       // now iterate over the questions, create a question using subtopic id and the question
       const questionResp = []
       for (const question of questions) {
-        const questionSaved = await createNewQuestionQuery(
+        const questionSaved = await updateQuestionByIdQuery(
+          question.id,
           {
             subtopicId,
-            questionText: question.question,
+            questionText: question.questionText,
             answerType: question.answerType,
             evidenceFileRequired: question.evidenceFileRequired,
             hint: question.hint,
@@ -177,8 +199,8 @@ export async function saveAnswers(req: RequestWithFile, res: Response): Promise<
         );
         questionResp.push(questionSaved)
       }
-      subtopicToSave[questions] = questionResp
-      subTopicResp.push(subtopicToSave)
+      subtopicToUpdate["questions"] = questionResp
+      subTopicResp.push(subtopicToUpdate)
     }
     const response = { ...topic, subTopics: subTopicResp }
     res.status(200).json(STATUS_CODE[200]({ message: response }));
@@ -210,63 +232,63 @@ export async function getAnswers(req: Request, res: Response): Promise<any> {
   }
 }
 
-export async function updateAnswers(req: Request, res: Response): Promise<any> {
-  const requestBody = req.body as {
-    assessmentId: number;
-    topic: string;
-    topicId: number;
-    subtopic: {
-      id: number;
-      name: string;
-      questions: {
-        id: number;
-        subtopicId: number;
-        question: string;
-        answerType: string;
-        evidenceFileRequired: boolean;
-        hint: string;
-        isRequired: boolean;
-        priorityLevel: string;
-        answer: string;
-        evidenceFiles: [];
-      }[];
-    }[];
-  };
-  const assessmentId = requestBody.assessmentId;
+// export async function updateAnswers(req: Request, res: Response): Promise<any> {
+//   const requestBody = req.body as {
+//     assessmentId: number;
+//     topic: string;
+//     topicId: number;
+//     subtopic: {
+//       id: number;
+//       name: string;
+//       questions: {
+//         id: number;
+//         subtopicId: number;
+//         question: string;
+//         answerType: string;
+//         evidenceFileRequired: boolean;
+//         hint: string;
+//         isRequired: boolean;
+//         priorityLevel: string;
+//         answer: string;
+//         evidenceFiles: [];
+//       }[];
+//     }[];
+//   };
+//   const assessmentId = requestBody.assessmentId;
 
-  const topicId = requestBody.topicId;
-  // now, update the topic using the assessmentId and the topic
-  updateTopicByIdQuery(topicId, {
-    assessmentId,
-    title: requestBody.topic,
-  });
+//   const topicId = requestBody.topicId;
+//   // now, update the topic using the assessmentId and the topic
+//   updateTopicByIdQuery(topicId, {
+//     assessmentId,
+//     title: requestBody.topic,
+//   });
 
-  // now iterate over the subtopics, update the subtopic using topic id and the subtopic
-  const subtopics = requestBody.subtopic;
-  for (const subtopic of subtopics) {
-    const subtopicId = subtopic.id;
-    updateSubtopicByIdQuery(subtopicId, {
-      topicId,
-      name: subtopic.name,
-    });
-    const questions = subtopic.questions;
-    // now iterate over the questions, update the question using subtopic id and the question
-    for (const question of questions) {
-      const questionId = question.id;
-      updateQuestionByIdQuery(
-        questionId,
-        {
-          subtopicId,
-          questionText: question.question,
-          answerType: question.answerType,
-          evidenceFileRequired: question.evidenceFileRequired,
-          hint: question.hint,
-          isRequired: question.isRequired,
-          priorityLevel: question.priorityLevel,
-          answer: question.answer,
-        },
-        question.evidenceFiles
-      );
-    }
-  }
-}
+//   // now iterate over the subtopics, update the subtopic using topic id and the subtopic
+//   const subtopics = requestBody.subtopic;
+//   for (const subtopic of subtopics) {
+//     const subtopicId = subtopic.id;
+//     updateSubtopicByIdQuery(subtopicId, {
+//       topicId,
+//       name: subtopic.name,
+//     });
+//     const questions = subtopic.questions;
+//     // now iterate over the questions, update the question using subtopic id and the question
+//     for (const question of questions) {
+//       const questionId = question.id;
+//       updateQuestionByIdQuery(
+//         questionId,
+//         {
+//           subtopicId,
+//           questionText: question.question,
+//           answerType: question.answerType,
+//           evidenceFileRequired: question.evidenceFileRequired,
+//           hint: question.hint,
+//           isRequired: question.isRequired,
+//           priorityLevel: question.priorityLevel,
+//           answer: question.answer,
+//         },
+//         question.evidenceFiles
+//       );
+//     }
+//   }
+// }

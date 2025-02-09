@@ -360,7 +360,6 @@ const ProfileForm: React.FC = () => {
    */
 
   const handleConfirmDelete = useCallback(async () => {
-    setLoading(true);
     try {
       // const userId = localStorage.getItem("userId") || "1";
       await deleteEntityById({ routeUrl: `/users/${id}` });
@@ -369,6 +368,7 @@ const ProfileForm: React.FC = () => {
       await localStorage.removeItem("authToken");
       //clear redux state
       store.dispatch(clearAuthState());
+      //success alert
       setAlert({
         variant: "success",
         title: "Success",
@@ -400,7 +400,6 @@ const ProfileForm: React.FC = () => {
       });
     } finally {
       setIsDeleteModalOpen(false);
-      setLoading(false);
     }
   }, [email, firstname, lastname]);
 

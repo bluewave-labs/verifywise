@@ -79,6 +79,8 @@ CREATE TABLE controls (
 CREATE TABLE subcontrols (
   id SERIAL PRIMARY KEY,
   control_id INT REFERENCES controls(id),
+  sub_control_title TEXT,
+  sub_control_description TEXT,
   status VARCHAR(255),
   approver VARCHAR(255),
   risk_review TEXT,

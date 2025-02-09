@@ -33,6 +33,8 @@ export const getSubcontrolByIdQuery = async (
 export const createNewSubcontrolQuery = async (
   controlId: number,
   subcontrol: {
+    subControlTitle: string;
+    subControlDescription: string;
     status: string;
     approver: string;
     riskReview: string;
@@ -70,11 +72,13 @@ export const createNewSubcontrolQuery = async (
 
   const result = await pool.query(
     `INSERT INTO subcontrols (
-      control_id, status, approver, risk_review, owner, reviewer, due_date, 
+      control_id, sub_control_title , sub_control_description, status, approver, risk_review, owner, reviewer, due_date, 
       implementation_details, evidence, feedback, evidenceFiles, feedbackFiles
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`,
     [
       controlId,
+      subcontrol.subControlTitle,
+      subcontrol.subControlDescription,
       subcontrol.status,
       subcontrol.approver,
       subcontrol.riskReview,
@@ -95,6 +99,8 @@ export const updateSubcontrolByIdQuery = async (
   id: number,
   subcontrol: Partial<{
     controlId: number;
+    subControlTitle: string;
+    subControlDescription: string;
     status: string;
     approver: string;
     riskReview: string;
@@ -133,15 +139,17 @@ export const updateSubcontrolByIdQuery = async (
     })
   );
 
-  // control_id, status, approver, risk_review, owner, reviewer, due_date,
+  // control_id, subControlTitle, subControlDescription, status, approver, risk_review, owner, reviewer, due_date,
   //     implementation_details, evidence, feedback, evidenceFiles, feedbackFiles
   const result = await pool.query(
     `UPDATE subcontrols SET 
-      control_id = $1, status = $2, approver = $3, risk_review = $4, owner = $5, 
-      reviewer = $6, due_date = $7, implementation_details = $8, evidence = $9, 
-      feedback = $10, evidenceFiles = $11, feedbackFiles = $12 WHERE id = $13 RETURNING *`,
+      control_id = $1, sub_control_title = $2, sub_control_description = $3, status = $4, approver = $5, 
+      risk_review = $6, owner = $7, reviewer = $8, due_date = $9, implementation_details = $10, evidence = $11, 
+      feedback = $12, evidenceFiles = $13, feedbackFiles = $14 WHERE id = $15 RETURNING *`,
     [
       subcontrol.controlId,
+      subcontrol.subControlTitle,
+      subcontrol.subControlDescription,
       subcontrol.status,
       subcontrol.approver,
       subcontrol.riskReview,

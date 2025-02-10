@@ -190,7 +190,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             riskDescription: "",
             impactDescription: "",
             impact: 0,
-            probability: 0,
             actionOwner: "",
             riskSeverity: 0,
             likelihood: 0,
@@ -364,7 +363,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             riskDescription: values.risks.riskDescription,
             impactDescription: values.risks.impactDescription,
             impact: Number(values.risks.impact), 
-            probability: Number(values.risks.probability), 
             actionOwner: users.find(a => a.id === values.risks.actionOwner)?.name || "",
             actionPlan: values.risks.actionPlan,
             riskSeverity: Number(values.risks.riskSeverity), 
@@ -661,19 +659,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                     id=""
                     onChange={(e) => handleOnChange("risks", "impact", e.target.value)}
                     value={values.risks.impact}
-                    sx={{
-                        width: 350,
-                    }}
-                />
-
-                <Select // probability
-                    items={PROBABILITY_OPTIONS}
-                    label="Probability"
-                    placeholder="Select probability"
-                    isHidden={false}
-                    id=""
-                    value={values.risks.probability}
-                    onChange={(e) => handleOnChange("risks", "probability", e.target.value)}
                     sx={{
                         width: 350,
                     }}

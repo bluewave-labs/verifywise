@@ -59,7 +59,6 @@ interface Risks {
     riskDescription: string;
     impactDescription: string;
     projectName: string;
-    probability: string;
     impact: string;
     actionOwner: string;
     riskSeverity: string;
@@ -100,7 +99,6 @@ const initialState = {
         riskDescription: "",
         impactDescription: "",
         impact: 0,
-        probability: 0,
         actionOwner: "0",
         riskSeverity: 0,
         likelihood: 0,
@@ -158,12 +156,6 @@ const IMPACT_OPTIONS = [
     { _id: 3, name: "Moderate" },
     { _id: 4, name: "Major and Critical" },
 ]
-
-const PROBABILITY_OPTIONS = [
-    { _id: 1, name: "4" },
-    { _id: 2, name: "3" },
-    { _id: 3, name: "2" },
-];
 
 const RISK_SEVERITY_OPTIONS = [
     { _id: 1, name: "Low" },

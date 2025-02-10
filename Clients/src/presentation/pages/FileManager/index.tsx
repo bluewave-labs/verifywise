@@ -300,8 +300,8 @@ const FileManager: React.FC = (): JSX.Element => {
           position: "relative",
           borderRadius: "4px",
           overflow: "hidden",
-          minHeight: "400px",
-          borderBottom: files.length === 0 ? "1px solid #eeeeee" : "none",
+          maxHeight: "400px",
+          // borderBottom: files.length === 0 ? "1px solid #eeeeee" : "none",
         }}
       >
         <FileTable

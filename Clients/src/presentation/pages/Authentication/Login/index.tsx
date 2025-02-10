@@ -260,7 +260,7 @@ const Login: React.FC = () => {
                   cursor: "pointer",
                 }}
                 onClick={() => {
-                  navigate("/forgot-password");
+                  navigate("/forgot-password", { state: { email: values.email } });
                 }}
               >
                 Forgot password

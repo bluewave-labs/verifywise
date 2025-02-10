@@ -64,8 +64,7 @@ const NewControlPane = ({
           },
         });
         if (response.status === 200) {
-          console.log("response.data ", response);
-          setInitialValues(response.data);
+          setInitialValues(response.data.data);
         } else {
           console.log("Error: ", response.status);
         }
@@ -74,6 +73,7 @@ const NewControlPane = ({
       }
     };
     fetchControl();
+    console.log("initialValues :==>> ", initialValues);
   }, [id]);
 
   const initialSubControlState = subControls.map(
@@ -81,22 +81,23 @@ const NewControlPane = ({
       control_id: initialValues?.subControls[index]?.control_id || id,
       subControlId: initialValues?.subControls[index]?.id || subControl.id,
       subControlTitle:
-        initialValues?.subControls[index]?.subControlTitle || subControl.title,
+        initialValues?.subControls[index]?.sub_control_title ||
+        subControl.title,
       subControlDescription:
-        initialValues?.subControls[index]?.subControlDescription ||
+        initialValues?.subControls[index]?.sub_control_description ||
         subControl.subControlDescription,
       status: initialValues?.subControls[index]?.status || subControl.status,
       approver:
         initialValues?.subControls[index]?.approver || subControl.approver,
       riskReview:
-        initialValues?.subControls[index]?.riskReview || subControl.riskReview,
+        initialValues?.subControls[index]?.risk_review || subControl.riskReview,
       owner: initialValues?.subControls[index]?.owner || subControl.owner,
       reviewer:
         initialValues?.subControls[index]?.reviewer || subControl.reviewer,
       description:
-        initialValues?.subControls[index]?.description ||
+        initialValues?.subControls[index]?.implementation_details ||
         subControl.description,
-      date: initialValues?.subControls[index]?.date || subControl.date,
+      date: initialValues?.subControls[index]?.due_date || subControl.date,
       evidence:
         initialValues?.subControls[index]?.evidence || subControl.evidence,
       feedback:

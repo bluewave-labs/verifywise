@@ -1,0 +1,16 @@
+export const Topics = [
+  { order_no: 0, title: "Project scope" },
+  { order_no: 1, title: "Risk management system" },
+  { order_no: 2, title: "Data governance" },
+  { order_no: 3, title: "Technical documentation" },
+  { order_no: 4, title: "Record keeping" },
+  { order_no: 5, title: "Transparency & user information" },
+  { order_no: 6, title: "Human oversight" },
+  { order_no: 7, title: "Accuracy, robustness, cyber security" },
+  { order_no: 8, title: "Conformity assessment" },
+  { order_no: 9, title: "Post-market monitoring" },
+  { order_no: 10, title: "Bias monitoring and mitigation" },
+  { order_no: 11, title: "Accountability and governance" },
+  { order_no: 12, title: "Explainability" },
+  { order_no: 13, title: "Environmental impact" },
+];

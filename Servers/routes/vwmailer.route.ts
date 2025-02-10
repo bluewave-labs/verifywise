@@ -7,9 +7,9 @@ import { generateToken } from "../utils/jwt.util";
 const router = express.Router();
 
 router.post("/invite", async (req, res) => {
-  const { to, name } = req.body;
+  const { to, name, role } = req.body;
 
-  if (!to || !name) {
+  if (!to || !name || !role) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
@@ -22,7 +22,8 @@ router.post("/invite", async (req, res) => {
     const template = fs.readFileSync(templatePath, "utf8");
 
     const token = generateToken({
-      name: name,
+      name,
+      role,
       email: to
     }) as string
 

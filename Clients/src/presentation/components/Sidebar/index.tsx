@@ -85,8 +85,8 @@ const DEFAULT_USER: User = {
   name: "",
   surname: "",
   email: "",
-  role: 1
-}
+  role: 1,
+};
 
 const Sidebar = ({ projects }: { projects: any }) => {
   const theme = useTheme();
@@ -99,10 +99,20 @@ const Sidebar = ({ projects }: { projects: any }) => {
     projects.length > 0 ? projects[0]._id : ""
   );
 
-  const { dashboardValues, setDashboardValues, setCurrentProjectId, userId } = useContext(VerifyWiseContext);
+  useEffect(() => {
+    localStorage.setItem(
+      "selectedProjectId",
+      projects.length > 0 ? projects[0]._id : ""
+    );
+  }, [selectedProjectId]);
+
+  const { dashboardValues, setDashboardValues, setCurrentProjectId, userId } =
+    useContext(VerifyWiseContext);
   const { users } = dashboardValues;
 
-  const user: User = users ? users.find((user: User) => user.id === userId) : DEFAULT_USER;
+  const user: User = users
+    ? users.find((user: User) => user.id === userId)
+    : DEFAULT_USER;
 
   const collapsed = useSelector((state: any) => state.ui?.sidebar?.collapsed);
 
@@ -154,7 +164,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
   useEffect(() => {
     if (projects.length > 0 && selectedProjectId === "") {
       setSelectedProjectId(projects[0]._id);
-    }else{
+    } else {
       setCurrentProjectId(String(selectedProjectId));
     }
   }, [projects, selectedProjectId]);
@@ -260,21 +270,25 @@ const Sidebar = ({ projects }: { projects: any }) => {
           }}
           data-joyride-id="select-project"
         >
-          {projects.length > 0 ?
+          {projects.length > 0 ? (
             <Select
               id="projects"
               value={selectedProjectId}
               items={projects}
               onChange={handleProjectChange}
               sx={{ width: "180px", marginLeft: theme.spacing(8) }}
-            /> :
+            />
+          ) : (
             <Box
               className="empty-project"
               sx={{
                 marginLeft: theme.spacing(8),
-                borderColor: theme.palette.border.dark
-              }}>No Project</Box>
-            }
+                borderColor: theme.palette.border.dark,
+              }}
+            >
+              No Project
+            </Box>
+          )}
         </Stack>
       )}
       {/* menu */}

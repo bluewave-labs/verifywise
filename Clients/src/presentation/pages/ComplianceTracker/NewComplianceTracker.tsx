@@ -27,7 +27,6 @@ const Table_Columns = [
 ];
 
 const NewComplianceTracker = () => {
-  console.log("Opened");
   const [expanded, setExpanded] = useState<number | false>(false);
 
   const [runComplianceTour, setRunComplianceTour] = useState(false);
@@ -220,7 +219,7 @@ const NewComplianceTracker = () => {
             Compliance Status
           </Typography>
           <Typography className="metric-card-amount">
-            {complianceStatus.complianceStatus}
+            {`${complianceStatus.complianceStatus}%`}
           </Typography>
         </Stack>
 

@@ -184,7 +184,8 @@ export async function saveControls(
         owner: requestBody.control.control.owner,
         reviewer: requestBody.control.control.reviewer,
         dueDate: requestBody.control.control.date,
-        implementationDetails: requestBody.control.control.description,
+        implementationDetails:
+          requestBody.control.control.subControlDescription,
         controlGroup: newControlCategory.id ?? requestBody.controlCategoryId,
       };
       const resultControl = await createNewControlQuery(newControl);

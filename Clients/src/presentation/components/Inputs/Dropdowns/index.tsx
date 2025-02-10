@@ -24,15 +24,10 @@ interface DropDownsProps {
 
 const DropDowns: React.FC<DropDownsProps> = ({
   elementId,
-  state = {},
+  state,
   setState,
   isControl,
 }) => {
-  if (isControl) {
-    console.log("Control DropDowns : ", state);
-  } else {
-    console.log("subControl DropDowns : ", state);
-  }
   const [status, setStatus] = useState<string | number>(state?.status || "");
   const [approver, setApprover] = useState(state?.approver || "");
   const [riskReview, setRiskReview] = useState(state?.riskReview || "");
@@ -66,14 +61,16 @@ const DropDowns: React.FC<DropDownsProps> = ({
 
   // Update local state when the state prop changes
   useEffect(() => {
-    setStatus(state?.status || "");
-    setApprover(state?.approver || "");
-    setRiskReview(state?.riskReview || "");
-    setOwner(state?.owner || "");
-    setReviewer(state?.reviewer || "");
-    setDate(state?.date || null);
-    setControlDescription(state?.implementation_details || "");
-    setsubControlDescription(state?.subControlDescription || "");
+    if (state) {
+      setStatus(state?.status || "");
+      setApprover(state?.approver || "");
+      setRiskReview(state?.riskReview || "");
+      setOwner(state?.owner || "");
+      setReviewer(state?.reviewer || "");
+      setDate(state?.date || null);
+      setControlDescription(state?.implementation_details || "");
+      setsubControlDescription(state?.subControlDescription || "");
+    }
   }, [state]);
 
   const handleChange = (e: SelectChangeEvent<string | number>) => {

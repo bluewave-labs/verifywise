@@ -204,7 +204,7 @@ const NewControlPane = ({
     }
     setIsModalOpen(false);
   };
-
+  console.log("initialSubControlState : ----> : ", initialSubControlState);
   return (
     <Modal
       id={`${id}-modal`}

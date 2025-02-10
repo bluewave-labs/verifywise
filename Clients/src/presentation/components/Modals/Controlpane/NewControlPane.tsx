@@ -13,7 +13,7 @@ import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import DropDowns from "../../Inputs/Dropdowns";
 import { useState, useEffect, useContext } from "react";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
-import { getEntityById } from "../../../../application/repository/entity.repository";
+import { createNewUser } from "../../../../application/repository/entity.repository";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { State, SubControlState } from "./paneInterfaces";
@@ -30,6 +30,7 @@ const NewControlPane = ({
   controlCategory,
   controlCategoryId,
   OnSave,
+  controlGroupId,
 }: {
   id: string;
   numbering: string;
@@ -41,6 +42,7 @@ const NewControlPane = ({
   controlCategory: string;
   controlCategoryId: string;
   OnSave?: (state: State) => void;
+  controlGroupId: string;
 }) => {
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
@@ -50,13 +52,23 @@ const NewControlPane = ({
   const { dashboardValues } = useContext(VerifyWiseContext);
 
   useEffect(() => {
+    console.log("useEffect triggered with id:", id);
     const fetchControl = async () => {
       try {
-        const response = await getEntityById({
-          routeUrl: `/controls/compliance/${id}`,
+        console.log("Fetching control...");
+        const response = await createNewUser({
+          routeUrl: `/controls/compliance/${controlGroupId}`,
+          body: {
+            controlTitle: title,
+            controlDescription: content,
+          },
         });
-        console.log("response.data ", response.data);
-        setInitialValues(response.data);
+        if (response.status === 200) {
+          console.log("response.data ", response);
+          setInitialValues(response.data);
+        } else {
+          console.log("Error: ", response.status);
+        }
       } catch (error) {
         console.error("Error fetching control:", error);
       }

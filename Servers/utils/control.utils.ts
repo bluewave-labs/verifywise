@@ -3,7 +3,6 @@ import pool from "../database/db";
 import { createNewSubControlsQuery } from "./subControl.utils";
 
 export const getAllControlsQuery = async (): Promise<Control[]> => {
-  console.log("getAllControls");
   const controls = await pool.query("SELECT * FROM controls");
   return controls.rows;
 };
@@ -11,20 +10,30 @@ export const getAllControlsQuery = async (): Promise<Control[]> => {
 export const getControlByIdQuery = async (
   id: number
 ): Promise<Control | null> => {
-  console.log("getControlById", id);
   const result = await pool.query("SELECT * FROM controls WHERE id = $1", [id]);
   return result.rows.length ? result.rows[0] : null;
 };
 
 export const getAllControlsByControlGroupQuery = async (
-  controlGroupId: number
+  controlGroupId: any
 ): Promise<Control[]> => {
-  console.log("getAllControlsByControlGroup", controlGroupId);
   const controls = await pool.query(
     "SELECT * FROM controls WHERE control_group = $1",
     [controlGroupId]
   );
   return controls.rows;
+};
+
+export const getControlByIdAndControlTitleAndControlDescriptionQuery = async (
+  id: number,
+  controlTitle: string,
+  controlDescription: string
+): Promise<Control | null> => {
+  const result = await pool.query(
+    "SELECT * FROM controls WHERE control_group = $1 AND control_title = $2 AND control_description = $3",
+    [id, controlTitle, controlDescription]
+  );
+  return result.rows.length ? result.rows[0] : null;
 };
 
 export const createNewControlQuery = async (control: {

@@ -6,6 +6,7 @@ import {
   deleteControlByIdQuery,
   getAllControlsByControlGroupQuery,
   getAllControlsQuery,
+  getControlByIdAndControlTitleAndControlDescriptionQuery,
   getControlByIdQuery,
   updateControlByIdQuery,
 } from "../utils/control.utils";
@@ -466,15 +467,42 @@ export async function getComplianceById(
   req: Request,
   res: Response
 ): Promise<any> {
+  const controlCategoryId = parseInt(req.params.id);
+  const controlTitle = req.body.controlTitle;
+  const controlDescription = req.body.controlDescription;
+  console.log(`controlCategoryId :|${controlCategoryId}|`);
+  console.log(`controlTitle :|${controlTitle}|`);
+  console.log(`controlDescription :|${controlDescription}|`);
   try {
-    const controlId = parseInt(req.params.id);
-    const control = await getControlByIdQuery(controlId);
-    const subControls = await getAllSubcontrolsByControlIdQuery(controlId);
-    const result = {
-      control,
-      subControls,
-    };
-    return res.status(200).json(STATUS_CODE[200](result));
+    const control =
+      await getControlByIdAndControlTitleAndControlDescriptionQuery(
+        controlCategoryId,
+        controlTitle,
+        controlDescription
+      );
+    if (control) {
+      const subControls = await getAllSubcontrolsByControlIdQuery(control.id);
+      const result = {
+        control,
+        subControls,
+      };
+      return res.status(200).json(STATUS_CODE[200](result));
+    } else {
+      return res.status(204).json(STATUS_CODE[204](control));
+    }
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getControlsByControlCategoryId(
+  req: Request,
+  res: Response
+): Promise<any> {
+  try {
+    const controlCategoryId = parseInt(req.params.id);
+    const controls = await getAllControlsByControlGroupQuery(controlCategoryId);
+    return res.status(200).json(STATUS_CODE[200](controls));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

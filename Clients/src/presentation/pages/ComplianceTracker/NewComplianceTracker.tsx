@@ -11,7 +11,10 @@ import { ControlGroups } from "../../structures/ComplianceTracker/controls";
 import { useContext, useEffect, useState } from "react";
 import AccordionTable from "../../components/Table/AccordionTable";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import { getAllEntities } from "../../../application/repository/entity.repository";
+import {
+  getAllEntities,
+  getEntityById,
+} from "../../../application/repository/entity.repository";
 import PageTour from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
 
@@ -33,6 +36,37 @@ const NewComplianceTracker = () => {
     allDoneSubControls: 0,
     complianceStatus: 0,
   });
+
+  const [fetchedControlCategories, setFetchedControlCategories] = useState<
+    any[]
+  >([]);
+
+  const fetchControlCategoriesByProjectId = async (projectId: number) => {
+    try {
+      const response = await getEntityById({
+        routeUrl: `/controlCategory/byprojectid/${projectId}`,
+      });
+      const filteredControlCategories = response.filter(
+        (category: any) => !category.name.startsWith("DEMO - ")
+      );
+      setFetchedControlCategories(filteredControlCategories);
+      console.log(
+        "Filtered control categories by project ID:",
+        fetchedControlCategories
+      );
+    } catch (error) {
+      console.error("Error fetching control categories by project ID:", error);
+    }
+  };
+
+  useEffect(() => {
+    const selectedProjectId = localStorage.getItem("selectedProjectId");
+    if (selectedProjectId) {
+      console.log("Selected project ID from localStorage:", selectedProjectId);
+      const projectId = parseInt(selectedProjectId, 10); // Convert string to number
+      fetchControlCategoriesByProjectId(projectId);
+    }
+  }, []);
 
   const complianceSteps = [
     {
@@ -110,7 +144,8 @@ const NewComplianceTracker = () => {
   const renderAccordion = (
     controlGroupIndex: number,
     controlGroupTitle: string,
-    controls: any
+    controls: any,
+    controlCategoryId: any
   ) => {
     return (
       <Stack
@@ -147,6 +182,7 @@ const NewComplianceTracker = () => {
               rows={controls}
               controlCategory={controlGroupTitle}
               controlCategoryId={controlGroupIndex.toString()}
+              controlGroupId={controlCategoryId}
             />
           </AccordionDetails>
         </Accordion>
@@ -205,13 +241,21 @@ const NewComplianceTracker = () => {
           </Typography>
         </Stack>
       </Stack>
-      {ControlGroups.map((controlGroup) =>
-        renderAccordion(
+      {ControlGroups.map((controlGroup) => {
+        const matchingCategory = fetchedControlCategories.find(
+          (category: any) => category.name === controlGroup.controlGroupTitle
+        );
+        const controlCategoryId = matchingCategory
+          ? matchingCategory.id
+          : controlGroup.id;
+
+        return renderAccordion(
           controlGroup.id,
           controlGroup.controlGroupTitle,
-          controlGroup.control.controls
-        )
-      )}
+          controlGroup.control.controls,
+          controlCategoryId
+        );
+      })}
     </Stack>
   );
 };

@@ -30,6 +30,16 @@ export const getControlCategoryByTitleAndProjectIdQuery = async (
   return result.rows.length ? result.rows[0] : null;
 };
 
+export const getControlCategoryByProjectIdQuery = async (
+  projectId: number
+): Promise<ControlCategory[]> => {
+  const result = await pool.query(
+    "SELECT * FROM controlcategories WHERE project_id = $1",
+    [projectId]
+  );
+  return result.rows;
+};
+
 export const createControlCategoryQuery = async (
   controlCategory: ControlCategory
 ): Promise<ControlCategory> => {

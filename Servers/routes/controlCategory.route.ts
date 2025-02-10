@@ -7,12 +7,17 @@ import {
   deleteControlCategoryById,
   getAllControlCategories,
   getControlCategoryById,
+  getControlCategoryByProjectId,
   updateControlCategoryById,
 } from "../controllers/controlCategory.ctrl";
 
 // GET requests
 router.get("/" /*authenticateJWT, */, getAllControlCategories);
 router.get("/:id" /*authenticateJWT, */, getControlCategoryById);
+router.get(
+  "/byprojectid/:id" /*authenticateJWT, */,
+  getControlCategoryByProjectId
+);
 
 // POSTs
 router.post("/" /*authenticateJWT, */, createControlCategory);

@@ -11,6 +11,7 @@ import {
   deleteControlById,
   getComplianceById,
   saveControls,
+  getControlsByControlCategoryId,
 } from "../controllers/control.ctrl";
 
 import authenticateJWT from "../middleware/auth.middleware";
@@ -18,7 +19,7 @@ import authenticateJWT from "../middleware/auth.middleware";
 // GET requests
 router.get("/", /*authenticateJWT,*/ getAllControls);
 router.get("/:id", /*authenticateJWT,*/ getControlById);
-router.get("/compliance/:id", /*authenticateJWT,*/ getComplianceById);
+router.get("/all/bycategory/:id", getControlsByControlCategoryId);
 
 // POST, PUT, DELETE requests
 router.post("/", /*authenticateJWT,*/ createControl);
@@ -30,6 +31,7 @@ router.post(
   ]),
   saveControls
 );
+router.post("/compliance/:id", /*authenticateJWT,*/ getComplianceById);
 
 router.put("/:id", /*authenticateJWT,*/ updateControlById);
 // router.put("/updateControls/:id", /*authenticateJWT,*/ updateControls);

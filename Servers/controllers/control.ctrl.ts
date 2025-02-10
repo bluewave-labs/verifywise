@@ -6,6 +6,7 @@ import {
   deleteControlByIdQuery,
   getAllControlsByControlGroupQuery,
   getAllControlsQuery,
+  getControlByIdAndControlTitleAndControlDescriptionQuery,
   getControlByIdQuery,
   updateControlByIdQuery,
 } from "../utils/control.utils";
@@ -62,6 +63,8 @@ export async function createControl(req: Request, res: Response): Promise<any> {
   try {
     const newControl: {
       projectId: number;
+      controlTitle: string;
+      controlDescription: string;
       status: string;
       approver: string;
       riskReview: string;
@@ -92,6 +95,8 @@ export async function updateControlById(
     const controlId = parseInt(req.params.id);
     const updatedControl: {
       projectId: number;
+      controlTitle: string;
+      controlDescription: string;
       status: string;
       approver: string;
       riskReview: string;
@@ -171,13 +176,16 @@ export async function saveControls(
 
       // Now, we need to create the control
       const newControl = {
-        status: requestBody.control.status,
-        approver: requestBody.control.approver,
-        riskReview: requestBody.control.riskReview,
-        owner: requestBody.control.owner,
-        reviewer: requestBody.control.reviewer,
-        dueDate: requestBody.control.date,
-        implementationDetails: requestBody.control.description,
+        controlTitle: requestBody.control.control.controlTitle,
+        controlDescription: requestBody.control.control.controlDescription,
+        status: requestBody.control.control.status,
+        approver: requestBody.control.control.approver,
+        riskReview: requestBody.control.control.riskReview,
+        owner: requestBody.control.control.owner,
+        reviewer: requestBody.control.control.reviewer,
+        dueDate: requestBody.control.control.date,
+        implementationDetails:
+          requestBody.control.control.subControlDescription,
         controlGroup: newControlCategory.id ?? requestBody.controlCategoryId,
       };
       const resultControl = await createNewControlQuery(newControl);
@@ -234,6 +242,8 @@ export async function saveControls(
           console.log("controlCategory controls.length === 0 4");
           // No controls found for this control category, then we need to create the control
           const controlData = {
+            controlTitle: requestBody.control.control.controlTitle,
+            controlDescription: requestBody.control.control.controlDescription,
             status: requestBody.control.control.status,
             approver: requestBody.control.control.approver,
             riskReview: requestBody.control.control.riskReview,
@@ -298,13 +308,16 @@ export async function saveControls(
             const control: any = await updateControlByIdQuery(
               controlToUpdate.id,
               {
-                status: controlToUpdate.status,
-                approver: controlToUpdate.approver,
-                riskReview: controlToUpdate.riskReview,
-                owner: controlToUpdate.owner,
-                reviewer: controlToUpdate.reviewer,
-                dueDate: controlToUpdate.date,
-                implementationDetails: controlToUpdate.description,
+                controlTitle: requestBody.control.control.controlTitle,
+                controlDescription:
+                  requestBody.control.control.controlDescription,
+                status: requestBody.control.control.status,
+                approver: requestBody.control.control.approver,
+                riskReview: requestBody.control.control.riskReview,
+                owner: requestBody.control.control.owner,
+                reviewer: requestBody.control.control.reviewer,
+                dueDate: requestBody.control.control.date,
+                implementationDetails: requestBody.control.control.description,
                 controlGroup: requestBody.controlCategoryId,
               }
             );
@@ -455,15 +468,42 @@ export async function getComplianceById(
   req: Request,
   res: Response
 ): Promise<any> {
+  const controlCategoryId = parseInt(req.params.id);
+  const controlTitle = req.body.controlTitle;
+  const controlDescription = req.body.controlDescription;
+  console.log(`controlCategoryId :|${controlCategoryId}|`);
+  console.log(`controlTitle :|${controlTitle}|`);
+  console.log(`controlDescription :|${controlDescription}|`);
   try {
-    const controlId = parseInt(req.params.id);
-    const control = await getControlByIdQuery(controlId);
-    const subControls = await getAllSubcontrolsByControlIdQuery(controlId);
-    const result = {
-      control,
-      subControls,
-    };
-    return res.status(200).json(STATUS_CODE[200](result));
+    const control =
+      await getControlByIdAndControlTitleAndControlDescriptionQuery(
+        controlCategoryId,
+        controlTitle,
+        controlDescription
+      );
+    if (control) {
+      const subControls = await getAllSubcontrolsByControlIdQuery(control.id);
+      const result = {
+        control,
+        subControls,
+      };
+      return res.status(200).json(STATUS_CODE[200](result));
+    } else {
+      return res.status(204).json(STATUS_CODE[204](control));
+    }
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getControlsByControlCategoryId(
+  req: Request,
+  res: Response
+): Promise<any> {
+  try {
+    const controlCategoryId = parseInt(req.params.id);
+    const controls = await getAllControlsByControlGroupQuery(controlCategoryId);
+    return res.status(200).json(STATUS_CODE[200](controls));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

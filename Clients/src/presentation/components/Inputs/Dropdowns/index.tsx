@@ -24,7 +24,7 @@ interface DropDownsProps {
 
 const DropDowns: React.FC<DropDownsProps> = ({
   elementId,
-  state = {},
+  state,
   setState,
   isControl,
 }) => {
@@ -35,7 +35,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
   const [reviewer, setReviewer] = useState(state?.reviewer || "");
   const [date, setDate] = useState<Dayjs | null>(state?.date || null);
   const [controlDescription, setControlDescription] = useState(
-    state?.controlDescription || ""
+    state?.implementation_details || ""
   );
   const [subControlDescription, setsubControlDescription] = useState(
     state?.subControlDescription || ""
@@ -58,6 +58,20 @@ const DropDowns: React.FC<DropDownsProps> = ({
     };
     fetchUsers();
   }, []);
+
+  // Update local state when the state prop changes
+  useEffect(() => {
+    if (state) {
+      setStatus(state?.status || "");
+      setApprover(state?.approver || "");
+      setRiskReview(state?.riskReview || "");
+      setOwner(state?.owner || "");
+      setReviewer(state?.reviewer || "");
+      setDate(state?.date || null);
+      setControlDescription(state?.implementation_details || "");
+      setsubControlDescription(state?.subControlDescription || "");
+    }
+  }, [state]);
 
   const handleChange = (e: SelectChangeEvent<string | number>) => {
     const selectedValue = e.target.value;
@@ -101,7 +115,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
             { _id: "Done", name: "Done" },
           ]}
           sx={inputStyles}
-          placeholder="Select status"
+          placeholder={status.toString() || "Select status"}
         />
 
         <Select
@@ -114,7 +128,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
             name: user.name,
           }))}
           sx={inputStyles}
-          placeholder="Select approver"
+          placeholder={approver.toString() || "Select approver"}
         />
 
         <Select
@@ -133,7 +147,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
             { _id: "Unacceptable risk", name: "Unacceptable risk" },
           ]}
           sx={inputStyles}
-          placeholder="Select risk review"
+          placeholder={riskReview.toString() || "Select risk review"}
         />
       </Stack>
 
@@ -160,7 +174,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
             name: user.name,
           }))}
           sx={inputStyles}
-          placeholder="Select owner"
+          placeholder={owner.toString() || "Select owner"}
         />
 
         <Select
@@ -178,7 +192,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
             name: user.name,
           }))}
           sx={inputStyles}
-          placeholder="Select reviewer"
+          placeholder={reviewer.toString() || "Select reviewer"}
         />
 
         <DatePicker
@@ -227,6 +241,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
                 setState({ ...state, description: e.target.value });
               }
             }}
+            placeholder={controlDescription.toString() || ""}
           />
         ) : (
           <Field
@@ -241,6 +256,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
                 setState({ ...state, subControlDescription: e.target.value });
               }
             }}
+            placeholder={subControlDescription.toString() || ""}
           />
         )}
       </Stack>

@@ -53,6 +53,8 @@ export async function createNewSubcontrol(
   try {
     const subcontrol: {
       controlId: number;
+      subControlTitle: string;
+      subControlDescription: string;
       status: string;
       approver: string;
       riskReview: string;
@@ -98,6 +100,8 @@ export async function updateSubcontrolById(
     const subcontrolId = parseInt(req.params.id);
     const subcontrol: Partial<{
       controlId: number;
+      subControlTitle: string;
+      subControlDescription: string;
       status: string;
       approver: string;
       riskReview: string;

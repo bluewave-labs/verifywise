@@ -13,7 +13,7 @@ import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import DropDowns from "../../Inputs/Dropdowns";
 import { useState, useEffect, useContext } from "react";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
-import { getEntityById } from "../../../../application/repository/entity.repository";
+import { createNewUser } from "../../../../application/repository/entity.repository";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { State, SubControlState } from "./paneInterfaces";
@@ -30,6 +30,7 @@ const NewControlPane = ({
   controlCategory,
   controlCategoryId,
   OnSave,
+  controlGroupId,
 }: {
   id: string;
   numbering: string;
@@ -41,6 +42,7 @@ const NewControlPane = ({
   controlCategory: string;
   controlCategoryId: string;
   OnSave?: (state: State) => void;
+  controlGroupId: string;
 }) => {
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
@@ -50,18 +52,28 @@ const NewControlPane = ({
   const { dashboardValues } = useContext(VerifyWiseContext);
 
   useEffect(() => {
+    console.log("useEffect triggered with id:", id);
     const fetchControl = async () => {
       try {
-        const response = await getEntityById({
-          routeUrl: `/controls/compliance/${id}`,
+        console.log("Fetching control...");
+        const response = await createNewUser({
+          routeUrl: `/controls/compliance/${controlGroupId}`,
+          body: {
+            controlTitle: title,
+            controlDescription: content,
+          },
         });
-        console.log("response.data ", response.data);
-        setInitialValues(response.data);
+        if (response.status === 200) {
+          setInitialValues(response.data.data);
+        } else {
+          console.log("Error: ", response.status);
+        }
       } catch (error) {
         console.error("Error fetching control:", error);
       }
     };
     fetchControl();
+    console.log("initialValues :==>> ", initialValues);
   }, [id]);
 
   const initialSubControlState = subControls.map(
@@ -69,22 +81,23 @@ const NewControlPane = ({
       control_id: initialValues?.subControls[index]?.control_id || id,
       subControlId: initialValues?.subControls[index]?.id || subControl.id,
       subControlTitle:
-        initialValues?.subControls[index]?.subControlTitle || subControl.title,
+        initialValues?.subControls[index]?.sub_control_title ||
+        subControl.title,
       subControlDescription:
-        initialValues?.subControls[index]?.subControlDescription ||
+        initialValues?.subControls[index]?.sub_control_description ||
         subControl.subControlDescription,
       status: initialValues?.subControls[index]?.status || subControl.status,
       approver:
         initialValues?.subControls[index]?.approver || subControl.approver,
       riskReview:
-        initialValues?.subControls[index]?.riskReview || subControl.riskReview,
+        initialValues?.subControls[index]?.risk_review || subControl.riskReview,
       owner: initialValues?.subControls[index]?.owner || subControl.owner,
       reviewer:
         initialValues?.subControls[index]?.reviewer || subControl.reviewer,
       description:
-        initialValues?.subControls[index]?.description ||
+        initialValues?.subControls[index]?.implementation_details ||
         subControl.description,
-      date: initialValues?.subControls[index]?.date || subControl.date,
+      date: initialValues?.subControls[index]?.due_date || subControl.date,
       evidence:
         initialValues?.subControls[index]?.evidence || subControl.evidence,
       feedback:
@@ -191,7 +204,7 @@ const NewControlPane = ({
     }
     setIsModalOpen(false);
   };
-
+  console.log("initialSubControlState : ----> : ", initialSubControlState);
   return (
     <Modal
       id={`${id}-modal`}

@@ -1,4 +1,4 @@
-export const ReportingSeriousIncidents = [
+export const GeneralPurposeAImodels = [
   {
     order_no: 1,
     title: "Unexpected Impact Integration",

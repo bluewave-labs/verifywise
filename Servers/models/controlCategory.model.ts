@@ -1,9 +1,9 @@
 /*
 
-This is the new control category model(Schema) and will be replaced with the new one.
+This is the new ControlCategory model(Schema) and will be replaced with the new one.
 Please align other files with this
 
-export type control_category = {
+export type ControlCategory = {
   id?: number; //automatically created by database
   project_id: number; // FK to the project table
   title: string; // gets assigned from the structure

@@ -23,6 +23,7 @@ import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import Alert from "../../../components/Alert"; // Import Alert component
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
+import { clearAuthState } from "../../../../application/authentication/authSlice";
 
 /**
  * Interface representing a user object.
@@ -362,6 +363,12 @@ const ProfileForm: React.FC = () => {
     try {
       // const userId = localStorage.getItem("userId") || "1";
       await deleteEntityById({ routeUrl: `/users/${id}` });
+      //clear all storage
+      await localStorage.removeItem("userId");
+      await localStorage.removeItem("authToken");
+      //clear redux state
+      store.dispatch(clearAuthState());
+      //success alert
       setAlert({
         variant: "success",
         title: "Success",
@@ -370,6 +377,9 @@ const ProfileForm: React.FC = () => {
         visible: true,
       });
       // Add any additional logic needed after account deletion, e.g., redirecting to a login page
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 3000); // Redirect to login page after 3 seconds
     } catch (error) {
       logEngine({
         type: "error",

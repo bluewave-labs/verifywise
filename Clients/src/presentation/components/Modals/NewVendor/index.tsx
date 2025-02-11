@@ -118,22 +118,11 @@ interface AddNewVendorProps {
     onVendorChange?: () => void;
 }
 
-// const ASSIGNEE_OPTIONS = [
-//     { _id: 1, name: "Assignee 1" },
-//     { _id: 2, name: "Assignee 2" },
-//     { _id: 3, name: "Assignee 3" },
-// ]
 
 const REVIEW_STATUS_OPTIONS = [
     { _id: "active", name: "Active" },
     { _id: "underReview", name: "Under review" },
     { _id: "notActive", name: "Not active" },
-]
-
-const REVIEWER_OPTIONS = [
-    { _id: "George Michael", name: "George Michael" },
-    { _id: "Sarah Lee", name: "Sarah Lee" },
-    { _id: "Michael Lee", name: "Michael Lee" },
 ]
 
 const RISK_LEVEL_OPTIONS = [
@@ -260,7 +249,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                     vendorProvides: existingVendor.vendor_provides,
                     vendorContactPerson: existingVendor.vendor_contact_person,
                     reviewStatus:  REVIEW_STATUS_OPTIONS.find(s => s.name === existingVendor.review_status)?._id || "",
-                    reviewer: existingVendor.reviewer,
+                    reviewer: String(users?.find(s => s.name === existingVendor.reviewer)?.id) || "0",
                     reviewResult: existingVendor.review_result,
                     riskStatus: String(RISK_LEVEL_OPTIONS.find(s => s.name === existingVendor.risk_status)?._id) || ""  ,
                     assignee: String(users?.find(s => s.name === existingVendor.assignee)?.id) || "0",
@@ -366,7 +355,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             vendorContact_person: values.vendorDetails.vendorContactPerson,
             reviewResult: values.vendorDetails.reviewResult,
             reviewStatus: REVIEW_STATUS_OPTIONS.find(s => s._id === values.vendorDetails.reviewStatus)?.name || "",
-            reviewer: REVIEWER_OPTIONS.find(r => r._id === values.vendorDetails.reviewer)?.name || "",
+            reviewer: users?.find(a => a.id === values.vendorDetails.reviewer)?.name,
             risk_status: RISK_LEVEL_OPTIONS.find(s => s._id === Number(values.vendorDetails.riskStatus))?.name || "",
             reviewDate: values.vendorDetails.reviewDate,
             riskDescription: values.risks.riskDescription,
@@ -547,7 +536,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                     isRequired
                 />
                 <Select // reviewer
-                    items={REVIEWER_OPTIONS}
+                    items={users?.map(user => ({
+                        _id: user.id,
+                        name: `${user.name} ${user.surname}`
+                    })) || []}
                     label="Reviewer"
                     placeholder="Select reviewer"
                     isHidden={false}

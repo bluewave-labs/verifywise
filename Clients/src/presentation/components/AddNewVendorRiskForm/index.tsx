@@ -1,6 +1,6 @@
 import { Button, SelectChangeEvent, Stack, useTheme, Typography } from "@mui/material";
 import dayjs, { Dayjs } from "dayjs";
-import { FC, useState, useContext, useEffect } from "react";
+import { FC, useState, useContext, useEffect, lazy, Suspense } from "react";
 import Field from "../Inputs/Field";
 import DatePicker from "../Inputs/Datepicker";
 import selectValidation from "../../../application/validations/selectValidation";
@@ -11,6 +11,7 @@ import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.cont
 import { useSearchParams } from "react-router-dom";
 import useUsers from "../../../application/hooks/useUsers";
 
+const Alert = lazy(() => import("../Alert"));
 
 interface RiskSectionProps {
   closePopup: () => void;
@@ -41,6 +42,12 @@ const initialState: FormValues = {
   reviewDate: "",
   riskDescription: "",
 };
+
+interface AlertProps {
+  variant: "success" | "info" | "warning" | "error";
+  title?: string;
+  body: string;
+}
 
 /**
  * `AddNewVendorRiskForm` is a functional component that renders a form for adding a new vendor risk.
@@ -88,7 +95,7 @@ const initialState: FormValues = {
  */
 const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, popupStatus }) => {
   const theme = useTheme();
-  const { currentProjectId, inputValues } = useContext(VerifyWiseContext);
+  const { inputValues, dashboardValues } = useContext(VerifyWiseContext);
   
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId");
@@ -100,7 +107,7 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, pop
     title?: string;
     body: string;
   } | null>(null);
-  const { users, loading, error } = useUsers();
+  const { users } = useUsers();
 
   const handleDateChange = (newDate: Dayjs | null) => {
     if(newDate?.isValid()){
@@ -159,6 +166,17 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, pop
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleAlert = ({ variant, body, title }: AlertProps) => {
+    setAlert({
+      variant,
+      title,
+      body,
+    });
+    setTimeout(() => {
+      setAlert(null);
+    }, 2500);
+  };
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (validateForm()) {
@@ -168,8 +186,9 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, pop
         "vendor_name": values.vendorName,
         "risk_name": values.riskName,
         "owner": values.actionOwner,
-        "risk_level": "High Risk", // Need to change the form field
-        "review_date": values.reviewDate
+        "risk_level": "High Risk", // Need to remove the field
+        "review_date": values.reviewDate,
+        // "description": values.riskDescription 
       }
 
       console.log(formData)
@@ -179,11 +198,19 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, pop
           const response = await apiServices.put("/vendorRisks/" + inputValues.id, formData);
           console.log(response)
           if (response.status === 202) { 
-            closePopup();
             onSuccess();
+            closePopup();
+          }else{
+            handleAlert({
+              variant: "error",
+              body: "Error occurs while updating the risk.",
+            });
           }
         } catch (error) {
-          console.error("Error updating request", error);
+          handleAlert({
+            variant: "error",
+            body: error + " occurs while sending a request.",
+          });
         }
       }else{
         console.log(formData)
@@ -191,11 +218,19 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, pop
           const response = await apiServices.post("/vendorRisks", formData);
           console.log(response)
           if (response.status === 201) { 
-            closePopup();
             onSuccess();
+            closePopup();
+          }else{
+            handleAlert({
+              variant: "error",
+              body: "Error occurs while creating a risk.",
+            });
           }
         } catch (error) {
-          console.error("Error sending request", error);
+          handleAlert({
+            variant: "error",
+            body: error + " occurs while sending a request.",
+          });
         }
       }
     }
@@ -221,10 +256,21 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, pop
       };
       setValues(currentRiskData);
     }
-  }, [popupStatus])
+  }, [popupStatus])  
 
   return (
     <Stack>
+      {alert && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Alert
+            variant={alert.variant}
+            title={alert.title}
+            body={alert.body}
+            isToast={true}
+            onClick={() => setAlert(null)}
+          />
+        </Suspense>
+      )}
       <Stack component="form" onSubmit={handleSubmit}>
         <Stack
           sx={{
@@ -238,14 +284,10 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, pop
           <Select
             id="vendor-name-input"
             label="Vendor name"
-            placeholder="Select vendor"
+            placeholder={dashboardValues.vendors.length === 0 ? "Vendor list is empty. Create a vendor first." : "Select vendor"}
             value={values.vendorName}
             onChange={handleOnSelectChange("vendorName")}
-            items={[
-              { _id: 1, name: "Some value 1" },
-              { _id: 2, name: "Some value 2" },
-              { _id: 3, name: "Some value 3" },
-            ]}
+            items={dashboardValues.vendors.map((vendor: { id: any; vendor_name: any; }) => ({ _id: vendor.id, name: vendor.vendor_name }))}
             sx={{
               width: "350px",
               backgroundColor: theme.palette.background.main,
@@ -297,7 +339,7 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, pop
             type="description"
             value={values.riskDescription}
             onChange={handleOnTextFieldChange("riskDescription")}
-            sx={{ height: 101, backgroundColor: theme.palette.background.main }}
+            sx={{ backgroundColor: theme.palette.background.main }}
             isRequired
             error={errors.riskDescription}
           />
@@ -308,13 +350,14 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, pop
           disableRipple={
             theme.components?.MuiButton?.defaultProps?.disableRipple
           }
+          disabled={dashboardValues.vendors.length === 0}
           sx={{
             borderRadius: 2,
             maxHeight: 34,
             textTransform: "inherit",
             backgroundColor: "#4C7DE7",
             boxShadow: "none",
-            border: "1px solid #175CD3",
+            // border: "1px solid #175CD3",
             ml: "auto",
             mr: 0,
             mt: "30px",

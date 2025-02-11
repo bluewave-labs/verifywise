@@ -5,8 +5,16 @@ type Project = {
   owner: number;
   members: number[];
   start_date: Date;
-  ai_risk_classification: string;
-  type_of_high_risk_role: string;
+  ai_risk_classification: "High risk" | "Limited risk" | "Minimal risk";
+  type_of_high_risk_role:
+    | "Deployer"
+    | "Provider"
+    | "Distributor"
+    | "Importer"
+    | "Product"
+    | "manufacturer"
+    | "Authorized"
+    | "representative";
   goal: string;
   last_updated: Date;
   last_updated_by: number;

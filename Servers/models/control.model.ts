@@ -8,9 +8,9 @@ export type Control = {
   title: string; // gets assigned from the structure
   description: string; // gets assigned from the structure
   order_no: number; // gets assigned from the structure
-  status?: string; // won't get any values, will be filled by user
+  status?: "Waiting" | "In progress" | "Done"; // won't get any values, will be filled by user
   approver?: string; // won't get any values, will be filled by user
-  risk_review?: string; // won't get any values, will be filled by user
+  risk_review?: "Acceptable risk" | "Residual risk" | "Unacceptable risk"; // won't get any values, will be filled by user
   owner?: string; // won't get any values, will be filled by user
   reviewer?: string; // won't get any values, will be filled by user
   due_date?: Date; // won't get any values, will be filled by user

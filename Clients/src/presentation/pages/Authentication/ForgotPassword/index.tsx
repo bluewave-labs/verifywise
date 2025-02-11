@@ -5,7 +5,8 @@ import { ReactComponent as LeftArrowLong } from "../../../assets/icons/left-arro
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { resetPassword } from "../../../../application/repository/entity.repository";
 
 // Define the shape of form values
 interface FormValues {
@@ -19,6 +20,13 @@ const initialState: FormValues = {
 
 const ForgotPassword: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Update initial state to use the email from navigation state if available
+  const initialState: FormValues = {
+    email: location.state?.email || "",
+  };
+  
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
 
@@ -30,10 +38,18 @@ const ForgotPassword: React.FC = () => {
     };
 
   // Handle form submission
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     console.log("Form submitted:", values);
     // Reset form after successful submission
+    const response = await resetPassword({
+      routeUrl: "/invite",
+      body: { email: values.email },
+    });
+    console.log("Response:", response);
+    if(response.status === 200) {
+      navigate("/reset-password", { state: { email: values.email } });
+    }
     setValues(initialState);
   };
 
@@ -95,7 +111,7 @@ const ForgotPassword: React.FC = () => {
               Forgot password?
             </Typography>
             <Typography fontSize={13}>
-              No worries, we’ll send you reset instructions.
+              No worries, we'll send you reset instructions.
             </Typography>
           </Stack>
           <Stack sx={{ gap: theme.spacing(12) }}>
@@ -113,6 +129,7 @@ const ForgotPassword: React.FC = () => {
               disableRipple
               variant="contained"
               sx={singleTheme.buttons.primary}
+              disabled={values.email === ""}
             >
               Reset password
             </Button>

@@ -17,6 +17,9 @@ import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-
 import singleTheme from "../../themes/v1SingleTheme";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { formatDate } from "../../tools/isoDateToString";
+import { RiskLikelihood, RiskSeverity, MitigationStatus } from "../RiskLevel/riskValues";
+import { Likelihood, RISK_LABELS, Severity } from "../../components/RiskLevel/constants";
+import { getAllEntities } from "../../../application/repository/entity.repository";
 
 interface RowData {
   id: number | string;
@@ -93,6 +96,9 @@ const BasicTable = ({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
 
+  const { setInputValues, dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);  
+  console.log(dashboardValues)  
+
   useEffect(() => {
     setPage(0);
   }, [data]);
@@ -141,7 +147,70 @@ const BasicTable = ({
     return "#008000"; // 91-100%
   }, []);
 
-  const { currentProjectId, setInputValues } = useContext(VerifyWiseContext);  
+  const mitigationStatusItems = useMemo(
+    () => [
+      { _id: 1, name: MitigationStatus.NotStarted},
+      { _id: 2, name: MitigationStatus.InProgress},
+      { _id: 3, name: MitigationStatus.Completed },
+      { _id: 4, name: MitigationStatus.OnHold },
+      { _id: 5, name: MitigationStatus.Deferred },
+      { _id: 6, name: MitigationStatus.Canceled },
+      { _id: 7, name: MitigationStatus.RequiresReview },
+    ],
+    []
+  );
+
+  const riskLevelItems = useMemo(
+    () => [
+      { _id: 1, name: RISK_LABELS.low.text },
+      { _id: 2, name: RISK_LABELS.medium.text },
+      { _id: 3, name: RISK_LABELS.high.text },
+      { _id: 4, name: RISK_LABELS.critical.text },
+      { _id: 5, name: RISK_LABELS.noRisk.text },
+    ],
+    []
+  );
+
+  const likelihoodItems = useMemo(
+    () => [
+      { _id: Likelihood.Rare, name: RiskLikelihood.Rare },
+      { _id: Likelihood.Unlikely, name: RiskLikelihood.Unlikely },
+      { _id: Likelihood.Possible, name: RiskLikelihood.Possible },
+      { _id: Likelihood.Likely, name: RiskLikelihood.Likely },
+      { _id: Likelihood.AlmostCertain, name: RiskLikelihood.AlmostCertain }
+    ],
+    []
+  );
+
+  const severityItems = useMemo(
+    () => [
+      { _id: Severity.Negligible, name: RiskSeverity.Negligible },
+      { _id: Severity.Minor, name: RiskSeverity.Minor },
+      { _id: Severity.Moderate, name: RiskSeverity.Moderate },
+      { _id: Severity.Major, name: RiskSeverity.Major },
+      { _id: Severity.Critical, name: RiskSeverity.Critical }
+    ],
+    []
+  );
+
+  const fetchVendors = useCallback(async () => {
+    try {
+      const response = await getAllEntities({ routeUrl: "/vendors" });
+      console.log("response :::: > ", response);
+      setDashboardValues((prevValues: any) => ({
+        ...prevValues,
+        vendors: response.data,
+      }));
+    } catch (error) {
+      console.error("Error fetching vendors:", error);
+    }
+  }, [setDashboardValues]);
+
+  useEffect(() => {
+    if(label !== 'Project risk'){
+      fetchVendors()
+    }  
+  }, [label])
 
   const tableHeader = useMemo(
     () => (
@@ -166,6 +235,23 @@ const BasicTable = ({
     [data.cols]
   );
 
+  const riskLevelChecker = (score: string) => {
+    const parsedScore = parseInt(score);
+
+    if (!isNaN(parsedScore)) {
+      if (parsedScore <= 3) {
+        return RISK_LABELS.low.text;
+      } else if (parsedScore <= 6) {
+        return RISK_LABELS.medium.text;
+      } else if (parsedScore <= 9) {
+        return RISK_LABELS.high.text;
+      } else {
+        return RISK_LABELS.critical.text;
+      }
+    }
+
+    return score;
+  }
 
   const onRowclickHandler = (event: React.MouseEvent<HTMLElement>, rowData: any) => {
     console.log(`Row clicked: ${rowData.id}`);    
@@ -175,6 +261,8 @@ const BasicTable = ({
     setAnchorEl(event.currentTarget);
     onRowClick && onRowClick(rowData.id as number);
   };
+
+  const renderValue = () => "Hello";
 
   const tableBody = useMemo(
     () => (
@@ -199,19 +287,36 @@ const BasicTable = ({
                     <>
                       <TableCell>{(row.risk_name.length > 30) ? row.risk_name.slice(0, 30) + `...` : row.risk_name}</TableCell>
                       <TableCell>{(row.impact.length > 30) ? row.impact.slice(0, 30) + `...` : row.impact}</TableCell>
-                      <TableCell>{row.risk_owner}</TableCell>
-                      <TableCell>{row.severity}</TableCell>
-                      <TableCell>{row.likelihood}</TableCell>
-                      <TableCell>{row.current_risk_level}</TableCell>
-                      <TableCell>{row.mitigation_status}</TableCell>
-                      <TableCell>{row.final_risk_level}</TableCell>
+                      <TableCell>
+                        {dashboardValues.users.length !== 0 && <>
+                          {dashboardValues.users.find((user: { id: any; }) => user.id === parseInt(row.risk_owner))?.name || row.risk_owner}
+                        </>}
+                      </TableCell>
+                      <TableCell>
+                        {severityItems.find((item: {_id: any;}) => item._id === parseInt(row.severity))?.name || row.severity}
+                      </TableCell>
+                      <TableCell>
+                        {likelihoodItems.find((item: {_id: any;}) => item._id === parseInt(row.likelihood))?.name || row.likelihood}
+                      </TableCell>
+                      <TableCell>{riskLevelChecker(row.risk_level_autocalculated)}</TableCell>
+                      <TableCell>
+                        {mitigationStatusItems.find((item: {_id: any;}) => item._id === parseInt(row.mitigation_status))?.name || row.mitigation_status}
+                      </TableCell>
+                      <TableCell>{riskLevelChecker(row.final_risk_level)}</TableCell>
                     </>
                   ) : (
                     <>
-                      <TableCell>{row.vendor_name}</TableCell>
-                      <TableCell>{(row.risk_name.length > 30) ? row.risk_name.slice(0,30) + `...` : row.risk_name}</TableCell>
-                      <TableCell>{row.owner}</TableCell>
-                      <TableCell>{row.risk_level}</TableCell>
+                      <TableCell>
+                        {dashboardValues.vendors.length !== 0 && <>
+                          {dashboardValues.vendors.find((vendor: { id: any; }) => vendor.id === parseInt(row.vendor_name))?.vendor_name || row.vendor_name}
+                        </>}
+                      </TableCell>
+                      <TableCell>{(row.risk_name.length > 50) ? row.risk_name.slice(0,50) + `...` : row.risk_name}</TableCell>
+                      <TableCell>
+                        {dashboardValues.users.length !== 0 && <>
+                          {dashboardValues.users.find((user: { id: any; }) => user.id === parseInt(row.owner))?.name || row.owner}
+                        </>}
+                      </TableCell>                      
                       <TableCell>
                         {row.review_date
                           ? formatDate(row.review_date.toString())

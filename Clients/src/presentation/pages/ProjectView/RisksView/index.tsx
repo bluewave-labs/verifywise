@@ -74,7 +74,7 @@ const vendorRisksColNames = [
   { id: "vendor_name", name: "VENDOR NAME" },
   { id: "risk_name", name: "RISK NAME" },
   { id: "owner", name: "OWNER" },
-  { id: "risk_level", name: "RISK LEVEL" },
+  // { id: "risk_level", name: "RISK LEVEL" },
   { id: "review_date", name: "REVIEW DATE" },
 ];
 

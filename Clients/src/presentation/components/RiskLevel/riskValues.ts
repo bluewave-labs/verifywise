@@ -24,13 +24,14 @@ enum RiskLevel {
   }
   
   // New enums for mitigation form
-  enum MitigationStatus {
+  export enum MitigationStatus {
     NotStarted = "Not Started",
     InProgress = "In Progress",
     Completed = "Completed",
     OnHold = "On Hold",
     Deferred = "Deferred",
     Canceled = "Canceled",
+    RequiresReview = "Requires review",
   }
   
   enum ApprovalStatus {

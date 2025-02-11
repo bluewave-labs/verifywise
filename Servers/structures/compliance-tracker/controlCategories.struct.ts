@@ -13,65 +13,63 @@ import { ReportingSeriousIncidents } from "./controls/12-report-serious-incident
 import { GeneralPurposeAImodels } from "./controls/13-general-purpose-ai.control";
 
 export const ControlCategories = [
-  { order_no: 1, controlGroupTitle: "AI literacy", controls: AIliteracy },
+  { order_no: 1, title: "AI literacy", controls: AIliteracy },
   {
     order_no: 2,
-    controlGroupTitle: "Transparency and provision of information to deployers",
+    title: "Transparency and provision of information to deployers",
     controls: TransparencyProvision,
   },
   {
     order_no: 3,
-    controlGroupTitle: "Human oversight",
+    title: "Human oversight",
     controls: HumanOversight,
   },
   {
     order_no: 4,
-    controlGroupTitle: "Corrective actions and duty of information",
+    title: "Corrective actions and duty of information",
     controls: CorrectiveActionsDutyOfInfo,
   },
   {
     order_no: 5,
-    controlGroupTitle: "Responsibilities along the AI value chain",
+    title: "Responsibilities along the AI value chain",
     controls: ResponsibilitiesAlongAI,
   },
   {
     order_no: 6,
-    controlGroupTitle: "Obligations of deployers of high-risk AI systems",
+    title: "Obligations of deployers of high-risk AI systems",
     controls: ObligationsOfDeployersAIsystems,
   },
   {
     order_no: 7,
-    controlGroupTitle:
-      "Fundamental rights impact assessments for high-risk AI systems",
+    title: "Fundamental rights impact assessments for high-risk AI systems",
     controls: FundamentalRightsImpactAssessments,
   },
   {
     order_no: 8,
-    controlGroupTitle:
+    title:
       "Transparency obligations for providers and users of certain AI systems",
     controls: TransparencyObligationsForProviders,
   },
-  { order_no: 9, controlGroupTitle: "Registration", controls: Registration },
+  { order_no: 9, title: "Registration", controls: Registration },
   {
     order_no: 10,
-    controlGroupTitle:
-      "EU database for high-risk AI systems listed in Annex III",
+    title: "EU database for high-risk AI systems listed in Annex III",
     controls: EUdatabaseForHighRiskAI,
   },
   {
     order_no: 11,
-    controlGroupTitle:
+    title:
       "Post-market monitoring by providers and post-market monitoring plan for high-risk AI systems",
     controls: PostMarketMonitoringByProviders,
   },
   {
     order_no: 12,
-    controlGroupTitle: "Reporting of serious incidents",
+    title: "Reporting of serious incidents",
     controls: ReportingSeriousIncidents,
   },
   {
     order_no: 13,
-    controlGroupTitle: "General-purpose AI models",
+    title: "General-purpose AI models",
     controls: GeneralPurposeAImodels,
   },
 ];

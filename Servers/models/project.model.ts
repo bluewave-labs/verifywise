@@ -1,4 +1,4 @@
-// project.model.ts
+// this model will be replaced by the one inside structures/new-mock-data/projects.mock.ts directory
 
 export type Project = {
   id: number;

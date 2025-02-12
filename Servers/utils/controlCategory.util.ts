@@ -44,8 +44,8 @@ export const createControlCategoryQuery = async (
   controlCategory: ControlCategory
 ): Promise<ControlCategory> => {
   const result = await pool.query(
-    "INSERT INTO controlcategories (project_id, name) VALUES ($1, $2) RETURNING *",
-    [controlCategory.projectId, controlCategory.name]
+    "INSERT INTO controlcategories (project_id, name, order_no) VALUES ($1, $2, $3) RETURNING *",
+    [controlCategory.projectId, controlCategory.name, controlCategory.orderNo]
   );
   return result.rows[0];
 };
@@ -73,66 +73,78 @@ export const deleteControlCategoryByIdQuery = async (
 
 const controlCategoriesMock = (projectId: number): ControlCategory[] => {
   return [
-    { id: 1, projectId: projectId, name: "AI literacy" },
+    { id: 1, projectId: projectId, name: "AI literacy", orderNo: 1 },
     {
       id: 2,
       projectId: projectId,
       name: "Transparency and provision of information to deployers",
+      orderNo: 2
     },
-    { id: 3, projectId: projectId, name: "Human oversight" },
+    {
+      id: 3, projectId: projectId, name: "Human oversight", orderNo: 3
+    },
     {
       id: 4,
       projectId: projectId,
       name: "Corrective actions and duty of information",
+      orderNo: 4
     },
     {
       id: 5,
       projectId: projectId,
       name: "Responsibilities along the AI value chain",
+      orderNo: 5
     },
     {
       id: 6,
       projectId: projectId,
       name: "Obligations of deployers of high-risk AI systems",
+      orderNo: 6
     },
     {
       id: 7,
       projectId: projectId,
       name: "Fundamental rights impact assessments for high-risk AI systems",
+      orderNo: 7
     },
     {
       id: 8,
       projectId: projectId,
       name: "Transparency obligations for providers and users of certain AI systems",
+      orderNo: 8
     },
-    { id: 9, projectId: projectId, name: "Registration" },
+    { id: 9, projectId: projectId, name: "Registration", orderNo: 9 },
     {
       id: 10,
       projectId: projectId,
       name: "EU database for high-risk AI systems listed in Annex III",
+      orderNo: 10
     },
     {
       id: 11,
       projectId: projectId,
       name: "Post-market monitoring by providers and post-market monitoring plan for high-risk AI systems",
+      orderNo: 11
     },
     {
       id: 12,
       projectId: projectId,
       name: "Reporting of serious incidents",
+      orderNo: 12
     },
     {
       id: 13,
       projectId: projectId,
       name: "General-purpose AI models",
+      orderNo: 13
     },
   ];
 };
 
 export const createNewControlCategories = async (projectId: number) => {
-  let query = "INSERT INTO controlcategories(project_id, name) VALUES ";
+  let query = "INSERT INTO controlcategories(project_id, name, order_no) VALUES ";
   const data = controlCategoriesMock(projectId).map((d) => {
-    return `(${d.projectId}, '${d.name}')`;
+    return `(${d.projectId}, '${d.name}', ${d.orderNo})`;
   });
   query += data.join(",") + " RETURNING *;";
   const result = await pool.query(query);
@@ -147,7 +159,7 @@ export const createNewControlCategories = async (projectId: number) => {
   while (cPtr < controls.length) {
     (controlCategories[ccPtr] as any).controls = [];
     while (
-      controlCategories[ccPtr].id === (controls[cPtr] as any)["control_group"]
+      controlCategories[ccPtr].id === (controls[cPtr] as any)["control_category_id"]
     ) {
       (controlCategories[ccPtr] as any).controls.push(controls[cPtr]);
       cPtr += 1;

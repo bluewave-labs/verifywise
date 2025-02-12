@@ -24,30 +24,20 @@ export const getProjectByIdQuery = async (
 };
 
 export const createNewProjectQuery = async (
-  project: {
-    project_title: string;
-    owner: number;
-    users: string;
-    start_date: Date;
-    ai_risk_classification: string;
-    type_of_high_risk_role: string;
-    goal: string;
-    last_updated: Date;
-    last_updated_by: number;
-  }
+  project: Partial<Project>
 ): Promise<Project> => {
   console.log("createProject");
   const result = await pool.query(
-    "INSERT INTO projects (project_title, owner, users, start_date, ai_risk_classification, type_of_high_risk_role, goal, last_updated, last_updated_by) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
+    "INSERT INTO projects (project_title, owner, members, start_date, ai_risk_classification, type_of_high_risk_role, goal, last_updated, last_updated_by) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
     [
       project.project_title,
       project.owner,
-      project.users,
+      project.members,
       project.start_date,
       project.ai_risk_classification,
       project.type_of_high_risk_role,
       project.goal,
-      project.last_updated,
+      project.start_date,
       project.last_updated_by,
     ]
   );
@@ -56,17 +46,7 @@ export const createNewProjectQuery = async (
 
 export const updateProjectByIdQuery = async (
   id: number,
-  project: Partial<{
-    project_title: string;
-    owner: string;
-    users: string;
-    start_date: Date;
-    ai_risk_classification: string;
-    type_of_high_risk_role: string;
-    goal: string;
-    last_updated: Date;
-    last_updated_by: string;
-  }>
+  project: Partial<Project>
 ): Promise<Project | null> => {
   console.log("updateProjectById", id);
   const result = await pool.query(
@@ -142,7 +122,7 @@ export const deleteProjectByIdQuery = async (
       "controlcategories": {
         foreignKey: "project_id",
         "controls": {
-          foreignKey: "control_group",
+          foreignKey: "control_category_id",
           "subcontrols": {
             foreignKey: "control_id"
           }

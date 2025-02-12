@@ -1,9 +1,12 @@
 import { Control } from "../models/control.model";
 
-export const mockControls = (controlGroup1: number, controlGroup2: number): Control[] => {
+export const mockControls = (controlCategoryId1: number, controlCategoryId2: number): Control[] => {
   return [
     {
       id: 1,
+      title: "AI Literacy and Responsible AI Training",
+      description: "Develop the AI literacy of staff and others who operate or use AI systems on behalf of the organization.",
+      orderNo: 1,
       status: "In progress",
       approver: "John Doe",
       riskReview: "Acceptable risk",
@@ -11,10 +14,13 @@ export const mockControls = (controlGroup1: number, controlGroup2: number): Cont
       reviewer: "Alice Williams",
       dueDate: new Date("2023-12-31"),
       implementationDetails: "Implement new feature",
-      controlGroup: controlGroup1,
+      controlCategoryId: controlCategoryId1,
     },
     {
       id: 2,
+      title: "Regulatory Training and Response Procedures",
+      description: "Train personnel on regulatory requirements and procedures for responding to authority requests.",
+      orderNo: 2,
       status: "Waiting",
       approver: "Sarah Lee",
       riskReview: "Residual risk",
@@ -22,10 +28,13 @@ export const mockControls = (controlGroup1: number, controlGroup2: number): Cont
       reviewer: "David Wilson",
       dueDate: new Date("2024-06-30"),
       implementationDetails: "Update existing functionality",
-      controlGroup: controlGroup1,
+      controlCategoryId: controlCategoryId1,
     },
     {
       id: 3,
+      title: "Intended Use Description",
+      description: "Review and verify technical documentation from AI system providers.",
+      orderNo: 1,
       status: "Done",
       approver: "Lisa Taylor",
       riskReview: "Unacceptable risk",
@@ -33,10 +42,13 @@ export const mockControls = (controlGroup1: number, controlGroup2: number): Cont
       reviewer: "Alex Ramirez",
       dueDate: new Date("2025-03-31"),
       implementationDetails: "Migrate to new platform",
-      controlGroup: controlGroup1,
+      controlCategoryId: controlCategoryId1,
     },
     {
       id: 4,
+      title: "Technical Documentation Review",
+      description: "Review and verify technical documentation from AI system providers.",
+      orderNo: 2,
       status: "Done",
       approver: "Kevin Nguyen",
       riskReview: "Acceptable risk",
@@ -44,10 +56,13 @@ export const mockControls = (controlGroup1: number, controlGroup2: number): Cont
       reviewer: "Sophia Morales",
       dueDate: new Date("2023-09-30"),
       implementationDetails: "Resolve bug issues",
-      controlGroup: controlGroup2,
+      controlCategoryId: controlCategoryId2,
     },
     {
       id: 5,
+      title: "Record Maintenance of AI System Activities",
+      description: "Maintain accurate records of all AI system activities, including modifications and third-party involvements.",
+      orderNo: 3,
       status: "In progress",
       approver: "Jessica Gonzalez",
       riskReview: "Residual risk",
@@ -55,10 +70,13 @@ export const mockControls = (controlGroup1: number, controlGroup2: number): Cont
       reviewer: "Jose Gutierrez",
       dueDate: new Date("2024-12-31"),
       implementationDetails: "Enhance user experience",
-      controlGroup: controlGroup2,
+      controlCategoryId: controlCategoryId2,
     },
     {
       id: 6,
+      title: "System Information Documentation",
+      description: "Document all information about the AI system, including its capabilities, limitations, and any relevant technical details.",
+      orderNo: 4,
       status: "In progress",
       approver: "Bob Henry",
       riskReview: "Residual risk",
@@ -66,7 +84,7 @@ export const mockControls = (controlGroup1: number, controlGroup2: number): Cont
       reviewer: "Jose Gutierrez",
       dueDate: new Date("2024-11-30"),
       implementationDetails: "Enhance user experience",
-      controlGroup: controlGroup2,
+      controlCategoryId: controlCategoryId2,
     },
   ]
 };

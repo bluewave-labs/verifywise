@@ -1,6 +1,9 @@
 export type Subcontrol = {
   id: number;
   controlId: number;
+  title: string;
+  description: string;
+  orderNo: number;
   status: "Waiting" | "In progress" | "Done";
   approver: string;
   riskReview: "Acceptable risk" | "Residual risk" | "Unacceptable risk";
@@ -8,8 +11,8 @@ export type Subcontrol = {
   reviewer: string;
   dueDate: Date;
   implementationDetails: string;
-  evidence: string;
-  feedback: string;
+  evidenceDescription: string;
+  feedbackDescription: string;
   evidenceFiles?: string[];
   feedbackFiles?: string[];
 };

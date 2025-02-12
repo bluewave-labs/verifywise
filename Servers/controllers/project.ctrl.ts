@@ -13,6 +13,7 @@ import {
 import { createNewAssessmentQuery } from "../utils/assessment.utils";
 import { getUserByIdQuery } from "../utils/user.utils";
 import { createNewControlCategories } from "../utils/controlCategory.util";
+import { Project } from "../models/project.model";
 
 export async function getAllProjects(
   req: Request,
@@ -52,16 +53,7 @@ export async function getProjectById(
 
 export async function createProject(req: Request, res: Response): Promise<any> {
   try {
-    const newProject: {
-      project_title: string;
-      owner: number;
-      users: string;
-      start_date: Date;
-      ai_risk_classification: string;
-      type_of_high_risk_role: string;
-      goal: string;
-      last_updated_by: number;
-    } = req.body;
+    const newProject: Partial<Project> = req.body;
 
     if (!newProject.project_title || !newProject.owner) {
       return res
@@ -71,7 +63,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
         );
     }
 
-    const createdProject = await createNewProjectQuery({ ...newProject, last_updated: newProject.start_date });
+    const createdProject = await createNewProjectQuery(newProject);
     const assessment = await createNewAssessmentQuery({
       projectId: createdProject.id,
     });
@@ -99,17 +91,7 @@ export async function updateProjectById(
 ): Promise<any> {
   try {
     const projectId = parseInt(req.params.id);
-    const updatedProject: {
-      project_title: string;
-      owner: string;
-      users: string;
-      start_date: Date;
-      ai_risk_classification: string;
-      type_of_high_risk_role: string;
-      goal: string;
-      last_updated: Date;
-      last_updated_by: string;
-    } = req.body;
+    const updatedProject: Partial<Project> = req.body;
 
     if (!updatedProject.project_title || !updatedProject.owner) {
       return res

@@ -58,7 +58,7 @@ const mitigationInitialState: MitigationFormValues = {
   approver: 0,
   approvalStatus: 0,
   dateOfAssessment: "",
-  recommendations: "",
+  recommendations: ""
 };
 
 /**
@@ -314,7 +314,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         "controls_mapping": riskValues.controlsMapping,
         "likelihood": riskValues.likelihood,
         "severity": riskValues.riskSeverity,
-        "risk_level_autocalculated": riskValues.riskLevel,
+        "risk_level_autocalculated": riskValues.likelihood * riskValues.riskSeverity,
         "review_notes": riskValues.reviewNotes,
         "mitigation_status": mitigationValues.mitigationStatus,
         "current_risk_level": mitigationValues.currentRiskLevel,
@@ -324,15 +324,14 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         "mitigation_evidence_document": mitigationValues.doc,
         "likelihood_mitigation": mitigationValues.likelihood,
         "risk_severity": mitigationValues.riskSeverity,
-        "final_risk_level": "",
+        "final_risk_level": mitigationValues.likelihood * mitigationValues.riskSeverity,
         "risk_approval": mitigationValues.approver,
         "approval_status": mitigationValues.approvalStatus,
         "date_of_assessment": mitigationValues.dateOfAssessment
-      }
+      }      
 
       if(popupStatus !== 'new'){
         // call update API
-        console.log(formData)
         try {
           const response = await apiServices.put("/projectRisks/" + inputValues.id, formData);
           console.log(response)

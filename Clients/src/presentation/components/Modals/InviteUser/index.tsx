@@ -80,6 +80,11 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
       newErrors.email = email.message;
     }
 
+    const role = checkStringValidation("Role", values.role, 1, 64);
+    if (!role.accepted) {
+      newErrors.role = role.message;
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }
@@ -175,6 +180,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
             ]}
             placeholder="Please select a role"
             error={errors.role}
+            isRequired
           />
         </Stack>
         <Stack

@@ -51,9 +51,13 @@ const AllAssessment = () => {
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState<number>(0);
   const { currentProjectId, dashboardValues } = useContext(VerifyWiseContext);
-  const { projects } = dashboardValues
+  const { projects } = dashboardValues;
 
-  const currentProject: Project | null = currentProjectId ? projects.find((project: Project) => project.id === Number(currentProjectId)) : null
+  const currentProject: Project | null = currentProjectId
+    ? projects.find(
+        (project: Project) => project.id === Number(currentProjectId)
+      )
+    : null;
   const activeAssessmentId = currentProject?.assessment_id;
 
   const [assessmentsValues, setAssessmentsValue] = useState<
@@ -66,7 +70,11 @@ const AllAssessment = () => {
     4: { topic: "Record Keeping", subtopic: [], file: [] },
     5: { topic: "Transparency and User Information", subtopic: [], file: [] },
     6: { topic: "Human Oversight", subtopic: [], file: [] },
-    7: { topic: "Accuracy, Robustness, Cyber Security", subtopic: [], file: [] },
+    7: {
+      topic: "Accuracy, Robustness, Cyber Security",
+      subtopic: [],
+      file: [],
+    },
     8: { topic: "Conformity Assessment", subtopic: [], file: [] },
     9: { topic: "Post Market Monitoring", subtopic: [], file: [] },
     10: { topic: "Bias Monitoring and Mitigation", subtopic: [], file: [] },
@@ -115,16 +123,20 @@ const AllAssessment = () => {
       assessmentToSave.file.forEach((file, index) => {
         formData.append(`file[${index}]`, file as any);
       });
-    }else{
-     formData.append("file", new Blob(), "empty-file.txt");
+    } else {
+      formData.append("file", new Blob(), "empty-file.txt");
     }
 
     try {
-      const response = await apiServices.post("/assessments/saveAnswers", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const response = await apiServices.post(
+        "/assessments/saveAnswers",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
       console.log("Assessments saved successfully:", response);
     } catch (error) {
       console.error("Error saving assessments:", error);
@@ -446,7 +458,7 @@ const AllAssessment = () => {
         <List>
           {Topics.map((topic, index) => assessmentItem(index, topic))}
         </List>
-        <Typography
+        {/* <Typography
           sx={{
             color: "#667085",
             fontSize: 11,
@@ -454,7 +466,7 @@ const AllAssessment = () => {
           }}
         >
           Files
-        </Typography>
+        </Typography> */}
       </Stack>
       <Divider orientation="vertical" flexItem />
       <Stack
@@ -474,7 +486,7 @@ const AllAssessment = () => {
               {renderQuestions(
                 `${Topics[activeTab].id}-${subtopic.id}`,
                 subtopic.title,
-                subtopic.questions,
+                subtopic.questions
               )}
             </Stack>
           ))}
@@ -510,21 +522,21 @@ const AllAssessment = () => {
           onClick={() => setAlert({ show: false, message: "" })}
         />
       )}
-       <FileUploadModal
-          uploadProps={{
-            open: fileUploadModalOpen,
-            onClose: handleCloseFileUploadModal,
-            onSuccess: () => {
-              console.log("File uploaded successfully");
-              handleCloseFileUploadModal();
-            },
-            allowedFileTypes: ["application/pdf"],
-            assessmentId: activeAssessmentId ?? 0,
-            topicId: activeTab,
-            setAssessmentsValue,
-            assessmentsValues
-          }}
-        />
+      <FileUploadModal
+        uploadProps={{
+          open: fileUploadModalOpen,
+          onClose: handleCloseFileUploadModal,
+          onSuccess: () => {
+            console.log("File uploaded successfully");
+            handleCloseFileUploadModal();
+          },
+          allowedFileTypes: ["application/pdf"],
+          assessmentId: activeAssessmentId ?? 0,
+          topicId: activeTab,
+          setAssessmentsValue,
+          assessmentsValues,
+        }}
+      />
       {isModalOpen && (
         <DualButtonModal
           title="Confirm Save"

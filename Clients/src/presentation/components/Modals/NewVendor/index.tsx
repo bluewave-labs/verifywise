@@ -615,113 +615,137 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     );
 
     const risksPanel = (
-        <TabPanel value="2" sx={{ paddingTop: theme.spacing(15), paddingX: 0 }}>
-            <Stack
-                direction={"row"}
-                justifyContent={"space-between"}
-                marginBottom={theme.spacing(8)}
-            >
-                <Field // riskDescription
-                    label="Risk description"
-                    width={350}
-                    value={values.risks.riskDescription}
-                    onChange={(e) =>
-                        handleOnChange("risks", "riskDescription", e.target.value)
-                    }
-                />
-                <Field // impactDescription
-                    label="Impact description"
-                    width={350}
-                    value={values.risks.impactDescription}
-                    onChange={(e) =>
-                        handleOnChange("risks", "impactDescription", e.target.value)
-                    }
-                />
-            </Stack>
-            <Stack
-                direction={"row"}
-                justifyContent={"space-between"}
-                marginBottom={theme.spacing(8)}
-            >
-                <Select // impact
-                    items={IMPACT_OPTIONS}
-                    label="Impact"
-                    placeholder="Select impact"
-                    isHidden={false}
-                    id=""
-                    onChange={(e) => handleOnChange("risks", "impact", e.target.value)}
-                    value={values.risks.impact}
-                    sx={{
-                        width: 350,
-                    }}
-                />
-            </Stack>
-            <Stack
-                display={"flex"}
-                justifyContent={"space-between"}
-                marginBottom={theme.spacing(8)}
-                flexDirection={"row"}
-            >
-                <Box
-                    justifyContent={"space-between"}
-                    display={"grid"}
-                    gap={theme.spacing(8)}
-                >
-                    <Select // riskSeverity
-                        items={RISK_SEVERITY_OPTIONS}
-                        label="Risk severity"
-                        placeholder="Select risk severity"
-                        isHidden={false}
-                        id=""
-                        onChange={(e) => handleOnChange("risks", "riskSeverity", e.target.value)}
-                        value={values.risks.riskSeverity}
-                        sx={{
-                            width: 350,
-                        }}
-                    />
+      <TabPanel value="2" sx={{ paddingTop: theme.spacing(15), paddingX: 0 }}>
+        <Stack
+          direction={"row"}
+          justifyContent={"space-between"}
+          marginBottom={theme.spacing(8)}
+        >
+          <Field // riskDescription
+            label="Risk description"
+            width={350}
+            value={values.risks.riskDescription}
+            onChange={(e) =>
+              handleOnChange("risks", "riskDescription", e.target.value)
+            }
+          />
+          <Field // impactDescription
+            label="Impact description"
+            width={350}
+            value={values.risks.impactDescription}
+            onChange={(e) =>
+              handleOnChange("risks", "impactDescription", e.target.value)
+            }
+          />
+        </Stack>
+        <Stack
+          direction={"row"}
+          justifyContent={"space-between"}
+          marginBottom={theme.spacing(8)}
+        >
+          <Select // impact
+            items={IMPACT_OPTIONS}
+            label="Impact"
+            placeholder="Select impact"
+            isHidden={false}
+            id=""
+            onChange={(e) => handleOnChange("risks", "impact", e.target.value)}
+            value={values.risks.impact}
+            sx={{
+              width: 350,
+            }}
+          />
+          <Select // likelihood
+            items={LIKELIHOOD_OPTIONS}
+            label="Likelihood"
+            placeholder="Select risk severity"
+            isHidden={false}
+            id=""
+            onChange={(e) =>
+              handleOnChange("risks", "likelihood", e.target.value)
+            }
+            value={values.risks.likelihood}
+            sx={{
+              width: 350,
+            }}
+          />
+        </Stack>
+        <Stack
+          display={"flex"}
+          justifyContent={"space-between"}
+          marginBottom={theme.spacing(8)}
+          flexDirection={"row"}
+        >
+          <Box
+            justifyContent={"space-between"}
+            display={"grid"}
+            gap={theme.spacing(8)}
+          >
+            <Select // riskSeverity
+              items={RISK_SEVERITY_OPTIONS}
+              label="Risk severity"
+              placeholder="Select risk severity"
+              isHidden={false}
+              id=""
+              onChange={(e) =>
+                handleOnChange("risks", "riskSeverity", e.target.value)
+              }
+              value={values.risks.riskSeverity}
+              sx={{
+                width: 350,
+              }}
+            />
 
-                    <Select // actionOwner
-                        items={users?.map((user) => ({
-                            _id: String(user.id),
-                            name: `${user.name} ${user.surname}`
-                        })) || []}
-                        label="Action owner"
-                        placeholder="Select owner"
-                        isHidden={false}
-                        id=""
-                        onChange={(e) => handleOnChange("risks", "actionOwner", e.target.value)}
-                        value={values.risks.actionOwner}
-                        sx={{
-                            width: 350,
-                        }}
-                    />
-                </Box>
-                <Field // actionPlan
-                    label="Action plan"
-                    width={350}
-                    type="description"
-                    value={values.risks.actionPlan}
-                    onChange={(e) => handleOnChange("risks", "actionPlan", e.target.value)}
-                />
-            </Stack>
-            <Stack
-                direction={"row"}
-                justifyContent={"space-between"}
-                marginBottom={theme.spacing(8)}
-            >
-                <Select // riskLevel
-                    items={RISK_LEVEL_OPTIONS}
-                    label="Risk level"
-                    placeholder="Select risk level"
-                    isHidden={false}
-                    id=""
-                    onChange={(e) => handleOnChange("risks", "riskLevel", e.target.value)}
-                    value={values.risks.riskLevel}
-                    sx={{
-                        width: 350,
-                    }}
-                />
-                <Select // likelihood
+            <Select // actionOwner
+              items={
+                users?.map((user) => ({
+                  _id: String(user.id),
+                  name: `${user.name} ${user.surname}`,
+                })) || []
+              }
+              label="Action owner"
+              placeholder="Select owner"
+              isHidden={false}
+              id=""
+              onChange={(e) =>
+                handleOnChange("risks", "actionOwner", e.target.value)
+              }
+              value={values.risks.actionOwner}
+              sx={{
+                width: 350,
+              }}
+            />
+          </Box>
+          <Field // actionPlan
+            label="Action plan"
+            width={350}
+            type="description"
+            value={values.risks.actionPlan}
+            onChange={(e) =>
+              handleOnChange("risks", "actionPlan", e.target.value)
+            }
+          />
+        </Stack>
+        <Stack
+          direction={"row"}
+          justifyContent={"space-between"}
+          marginBottom={theme.spacing(8)}
+        >
+          <Select // riskLevel
+            items={RISK_LEVEL_OPTIONS}
+            label="Risk level"
+            placeholder="Select risk level"
+            isHidden={false}
+            id=""
+            onChange={(e) =>
+              handleOnChange("risks", "riskLevel", e.target.value)
+            }
+            value={values.risks.riskLevel}
+            sx={{
+              width: 350,
+            }}
+          />
+          {/* <Select // likelihood
                     items={LIKELIHOOD_OPTIONS}
                     label="Likelihood"
                     placeholder="Select risk severity"
@@ -732,9 +756,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                     sx={{
                         width: 350,
                     }}
-                />
-            </Stack>
-        </TabPanel>
+                /> */}
+        </Stack>
+      </TabPanel>
     );
 
     return (

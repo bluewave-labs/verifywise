@@ -10,8 +10,7 @@ import React, {
 } from "react";
 import { Box, Stack, Typography, useTheme } from "@mui/material";
 import Grid from "@mui/material/Grid2";
-import { NoProjectBox, styles } from "./styles";
-import emptyState from "../../assets/imgs/empty-state.svg";
+import { styles } from "./styles";
 import {
   getAllEntities,
   postAutoDrivers,
@@ -26,6 +25,7 @@ import { Card } from "../../components/ProjectCard/styles";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import CreateDemoData from "../../components/CreateDemoData";
 import VWButton from "../../vw-v2-components/Buttons";
+import NoProject from "../../components/NoProject/NoProject";
 
 // Lazy load components
 const ProjectCard = lazy(() => import("../../components/ProjectCard"));
@@ -228,21 +228,11 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
             />
           </Suspense>
         </Stack>
-        <NoProjectBox>
-          <Box sx={{ display: "flex", justifyContent: "center" }}>
-            <img src={emptyState} alt="Empty project state" />
-          </Box>
-          <Typography
-            sx={{
-              textAlign: "center",
-              mt: 13.5,
-              color: theme.palette.text.tertiary,
-            }}
-          >
-            You have no projects, yet. Click on the "New Project" button to
-            start one.
-          </Typography>
-        </NoProjectBox>
+        <NoProject
+          message='You have no projects, yet. Click on the "New Project" button to
+            start one.'
+        />
+
         {openDemoDataModal && (
           <CreateDemoData
             handleCancelDemoData={handleOpenOrCloseDemoDataModal}

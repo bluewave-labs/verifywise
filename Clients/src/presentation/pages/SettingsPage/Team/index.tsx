@@ -77,39 +77,28 @@ const TeamManagement: React.FC = (): JSX.Element => {
     }, 2500);
   };
 
+  const roleItems = useMemo(
+    () => [
+      { _id: 1, name: "Administrator" },
+      { _id: 2, name: "Reviewer" },
+      { _id: 3, name: "Editor" },
+    ],
+    []
+  );
 
   // State management
   // const [orgName, _] = useState("BlueWave Labs");
   const [open, setOpen] = useState(false);
   const [memberToDelete, setMemberToDelete] = useState<string | null>(null);
-  const [filter, setFilter] = useState<Role | "All">("All");
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([
-    {
-      id: "1",
-      name: "John Connor",
-      email: "john@domain.com",
-      role: Role.Administrator,
-    },
-    {
-      id: "2",
-      name: "Adam McFadden",
-      email: "adam@domain.com",
-      role: Role.Reviewer,
-    },
-    {
-      id: "3",
-      name: "Cris Cross",
-      email: "cris@domain.com",
-      role: Role.Editor,
-    },
-    { id: "4", name: "Prince", email: "prince@domain.com", role: Role.Editor },
-  ]);
+  const [filter, setFilter] = useState(0);
 
   const [page, setPage] = useState(0); // Current page
   const { dashboardValues } = useContext(VerifyWiseContext);
+  const [teamUsers, setTeamUsers] = useState<TeamMember[]>(dashboardValues.users)
   const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
   const [inviteUserModalOpen, setInviteUserModalOpen] = useState(false);
-
+  
+  
   // Handle saving organization name
   // const handleSaveOrgName = useCallback(() => {
   //   console.log("Saving organization name:", orgName);
@@ -122,7 +111,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
 
   const confirmDelete = () => {
     if (memberToDelete) {
-      setTeamMembers((members) =>
+      setTeamUsers((members) =>
         members.filter((member) => member.id !== memberToDelete)
       );
     }
@@ -133,11 +122,11 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const handleRoleChange = useCallback(
     (event: SelectChangeEvent<Role>, memberId: string) => {
       const newRole = event.target.value as Role;
-      setTeamMembers((members) =>
-        members.map((member) =>
-          member.id === memberId ? { ...member, role: newRole } : member
-        )
-      );
+      // setTeamMembers((members) =>
+      //   members.map((member) =>
+      //     member.id === memberId ? { ...member, role: newRole } : member
+      //   )
+      // );
     },
     []
   );
@@ -151,10 +140,12 @@ const TeamManagement: React.FC = (): JSX.Element => {
 
   // Filtered team members based on selected role
   const filteredMembers = useMemo(() => {
-    return filter === "All"
-      ? teamMembers
-      : teamMembers.filter((member) => member.role === filter);
-  }, [filter, teamMembers]);
+    console.log('@', filter)
+    return filter === 0
+      ? teamUsers
+      : teamUsers.filter((member) => parseInt(member.id) === filter);
+  }, [filter, teamUsers]);
+
 
   // Handle saving all data
   // const handleSaveAllData = useCallback(() => {
@@ -288,7 +279,32 @@ const TeamManagement: React.FC = (): JSX.Element => {
               justifyContent: "space-between",
             }}
           >
-            <Box sx={{ display: "flex", mb: 12, mt: 10 }}>
+            <Box sx={{ display: "flex", mb: 12, mt: 10 }}>              
+              {[{ _id: 0, name: "All" }, ...roleItems].map((role) => (
+                <Button 
+                  key={role._id}
+                  disableRipple
+                  variant={filter === role._id ? "contained" : "outlined"}
+                  onClick={() => setFilter(role._id | 0)}
+                  sx={{
+                    borderRadius: 0,
+                    color: "#344054",
+                    borderColor: "#EAECF0",
+                    backgroundColor:
+                      filter === role._id ? "#EAECF0" : "transparent",
+                    "&:hover": {
+                      backgroundColor:
+                        filter === role._id ? "#D0D4DA" : "transparent",
+                    },
+                    fontWeight: filter === role._id ? "medium" : "normal",
+                  }}
+                >
+                  {role.name}
+                </Button>
+              ))}
+            </Box>
+
+            {/* <Box sx={{ display: "flex", mb: 12, mt: 10 }}>  
               {["All", ...roles].map((role) => (
                 <Button
                   key={role}
@@ -311,7 +327,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                   {role}
                 </Button>
               ))}
-            </Box>
+            </Box> */}
 
             <Box sx={{ mt: 10 }}>
               <Button
@@ -328,55 +344,66 @@ const TeamManagement: React.FC = (): JSX.Element => {
             component={Paper}
             sx={{ maxWidth: theme.spacing(480) }}
           >
-            <Table>
+            <Table sx={{ tableLayout: "fixed", width: "100%" }}>
               <TableHead>
                 <TableRow>
-                  <TableCell>NAME</TableCell>
-                  <TableCell>EMAIL</TableCell>
-                  <TableCell>ROLE</TableCell>
-                  <TableCell>ACTION</TableCell>
+                  <TableCell sx={{ width: "25%" }}>NAME</TableCell>
+                  <TableCell sx={{ width: "25%" }}>EMAIL</TableCell>
+                  <TableCell sx={{ width: "25%" }}>ROLE</TableCell>
+                  <TableCell sx={{ width: "25%" }}>ACTION</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredMembers
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((member) => (
-                    <TableRow key={member.id}>
-                      <TableCell>{member.name}</TableCell>
-                      <TableCell>{member.email}</TableCell>
-                      <TableCell>
-                        <Select
-                          value={member.role}
-                          onChange={(e) => handleRoleChange(e, member.id)}
-                          size="small"
-                          sx={{
-                            minWidth: 120,
-                            "& .MuiOutlinedInput-notchedOutline": {
-                              border: "none", // Remove the border from the notched outline
-                            },
-                          }}
-                        >
-                          {roles.map((role) => (
-                            <MenuItem key={role} value={role}>
-                              {role}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </TableCell>
-                      <TableCell>
-                        <IconButton
-                          onClick={() => handleDeleteClick(member.id)}
-                        >
-                          <img
-                            src={Trashbin}
-                            alt="Delete"
-                            width={20}
-                            height={20}
-                          />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                {filteredMembers.length !== 0 ? <>
+                  {filteredMembers
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    .map((member) => (
+                      <TableRow key={member.id}>
+                        <TableCell sx={{ width: "25%" }}>{member.name}</TableCell>
+                        <TableCell sx={{ width: "25%" }}>{member.email}</TableCell>
+                        <TableCell sx={{ width: "25%" }}>
+                          {roleItems.find((item: {_id: any;}) => item._id === parseInt(member.role))?.name || "-"}
+                          <Select
+                            value={member.role}
+                            onChange={(e) => handleRoleChange(e, member.id)}
+                            size="small"
+                            sx={{
+                              minWidth: "auto",
+                              "& .MuiOutlinedInput-notchedOutline": {
+                                border: "none", // Remove the border from the notched outline
+                              },
+                            }}
+                          >
+                            {roles.map((role) => (
+                              <MenuItem key={role} value={role}>
+                                {role}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </TableCell>
+                        <TableCell sx={{ width: "25%" }}>
+                          <IconButton
+                            onClick={() => handleDeleteClick(member.id)}
+                          >
+                            <img
+                              src={Trashbin}
+                              alt="Delete"
+                              width={20}
+                              height={20}
+                            />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </> : <>
+                <TableRow>
+                  <TableCell sx={{ width: "25%" }}>-</TableCell>
+                  <TableCell sx={{ width: "25%" }}>-</TableCell>
+                  <TableCell sx={{ width: "25%" }}>-</TableCell>
+                  <TableCell sx={{ width: "25%" }}>-</TableCell>
+                </TableRow>
+                </>}
+                
               </TableBody>
             </Table>
           </TableContainer>

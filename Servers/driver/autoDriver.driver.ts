@@ -82,7 +82,7 @@ const insertQuery = {
       return `(
         'DEMO - ${project.project_title}',
         '${project.owner}',
-        '${project.members}',
+        '{${project.members}}',
         '${project.start_date.toISOString().split("T")[0]}',
         '${project.ai_risk_classification}',
         '${project.type_of_high_risk_role}',
@@ -146,7 +146,7 @@ const insertQuery = {
     mockData: mockControls,
     tableName: "controls",
     insertString:
-      "INSERT INTO controls(status, approver, risk_review, owner, reviewer, due_date, implementation_details, controlCategoryId) VALUES ",
+      "INSERT INTO controls(status, approver, risk_review, owner, reviewer, due_date, implementation_details, control_category_id) VALUES ",
     generateValuesString: function (control: Control) {
       return `(
         '${control.status}',
@@ -156,7 +156,7 @@ const insertQuery = {
         '${control.reviewer}',
         '${control.dueDate.toISOString().split("T")[0]}',
         'DEMO - ${control.implementationDetails}',
-        '${control.controlCategoryId}'
+        ${control.controlCategoryId}
       )`;
     },
   },
@@ -164,7 +164,7 @@ const insertQuery = {
     mockData: subcontrols,
     tableName: "subcontrols",
     insertString:
-      "INSERT INTO subcontrols(control_id, status, approver, risk_review, owner, reviewer, due_date, implementation_details, evidenceDescription, feedbackDescription, evidenceFiles, feedbackFiles) VALUES ",
+      "INSERT INTO subcontrols(control_id, status, approver, risk_review, owner, reviewer, due_date, implementation_details, evidence_description, feedback_description, evidenceFiles, feedbackFiles) VALUES ",
     generateValuesString: function (subControl: Subcontrol) {
       return `(
         '${subControl.controlId}',
@@ -255,19 +255,20 @@ const insertQuery = {
   topics: {
     mockData: topics,
     tableName: "topics",
-    insertString: "INSERT INTO topics(assessment_id, title) VALUES ",
+    insertString: "INSERT INTO topics(assessment_id, title, order_no) VALUES ",
     generateValuesString: function (topic: Topic) {
-      return `(${topic.assessmentId}, 'DEMO - ${topic.title}')`;
+      return `(${topic.assessment_id}, 'DEMO - ${topic.title}', ${topic.order_no})`;
     },
   },
   subtopics: {
     mockData: subtopics,
     tableName: "subtopics",
-    insertString: "INSERT INTO subtopics(topic_id, name) VALUES ",
+    insertString: "INSERT INTO subtopics(topic_id, title, order_no) VALUES ",
     generateValuesString: function (subTopic: Subtopic) {
       return `(
-        ${subTopic.topicId},
-        'DEMO - ${subTopic.name}'
+        ${subTopic.topic_id},
+        'DEMO - ${subTopic.title}',
+        ${subTopic.order_no}
       )`;
     },
   },
@@ -275,18 +276,24 @@ const insertQuery = {
     mockData: questions,
     tableName: "questions",
     insertString:
-      "INSERT INTO questions(subtopic_id, question_text, answer_type, evidence_file_required, hint, is_required, priority_level, evidence_files, answer) VALUES ",
+      `INSERT INTO questions(subtopic_id, question, 
+        answer_type, evidence_required, hint, 
+        is_required, priority_level, evidence_files,
+        dropdown_options, answer, input_type, order_id) VALUES `,
     generateValuesString: function (question: Question) {
       return `(
-        ${question.subtopicId},
-        'DEMO - ${question.questionText}',
-        '${question.answerType}',
-        ${question.evidenceFileRequired},
+        ${question.subtopic_id},
+        'DEMO - ${question.question}',
+        '${question.answer_type}',
+        ${question.evidence_required},
         '${question.hint}',
-        ${question.isRequired},
-        '${question.priorityLevel}',
+        ${question.is_required},
+        '${question.priority_level}',
         ARRAY[]::TEXT[],
-        '${question.answer}'
+        ARRAY[]::TEXT[],
+        '${question.answer}',
+        '${question.input_type}',
+        ${question.order_id}
       )`;
     },
   },
@@ -511,34 +518,7 @@ export async function insertMockData() {
   } = insertQuery["subtopics"];
   let subTopics;
   if (subTopicMockData.length !== 0) {
-    const values = subTopicMockData(
-      topics![0].id,
-      topics![1].id,
-      topics![2].id,
-      topics![3].id,
-      topics![4].id,
-      topics![5].id,
-      topics![6].id,
-      topics![7].id,
-      topics![8].id,
-      topics![9].id,
-      topics![10].id,
-      topics![11].id,
-      topics![12].id,
-      topics![13].id,
-      topics![14].id,
-      topics![15].id,
-      topics![16].id,
-      topics![17].id,
-      topics![18].id,
-      topics![19].id,
-      topics![20].id,
-      topics![21].id,
-      topics![22].id,
-      topics![23].id,
-      topics![24].id,
-      topics![25].id,
-    ).map((d) => subTopicGenerateValuesString(d as any));
+    const values = subTopicMockData(topics!.map(t => t.id)).map((d) => subTopicGenerateValuesString(d as any));
     insertString += values.join(",") + "RETURNING id;";
     subTopics = await insertData(insertString as string);
   }
@@ -551,25 +531,7 @@ export async function insertMockData() {
   } = insertQuery["questions"];
   let questions;
   if (questionMockData.length !== 0) {
-    const values = questionMockData(
-      subTopics![0].id,
-      subTopics![1].id,
-      subTopics![2].id,
-      subTopics![3].id,
-      subTopics![4].id,
-      subTopics![5].id,
-      subTopics![6].id,
-      subTopics![7].id,
-      subTopics![8].id,
-      subTopics![9].id,
-      subTopics![10].id,
-      subTopics![11].id,
-      subTopics![12].id,
-      subTopics![13].id,
-      subTopics![14].id,
-      subTopics![15].id,
-      subTopics![16].id,
-    ).map((d) => questionGenerateValuesString(d as any));
+    const values = questionMockData(subTopics!.map(s => s.id)).map((d) => questionGenerateValuesString(d as any));
     insertString += values.join(",") + "RETURNING id;";
     questions = await insertData(insertString as string);
   }

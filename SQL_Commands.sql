@@ -158,26 +158,31 @@ CREATE TABLE projectscopes (
 CREATE TABLE topics (
   id SERIAL PRIMARY KEY,
   assessment_id INT REFERENCES assessments(id),
-  title VARCHAR(255)
+  title TEXT,
+  order_no INT
 );
 
 CREATE TABLE subtopics (
   id SERIAL PRIMARY KEY,
   topic_id INT REFERENCES topics(id),
-  name VARCHAR(255)
+  title TEXT,
+  order_no INT
 );
 
 CREATE TABLE questions (
   id SERIAL PRIMARY KEY,
   subtopic_id INT REFERENCES subtopics(id),
-  question_text TEXT,
+  question TEXT,
   answer_type VARCHAR(255),
-  evidence_file_required BOOLEAN,
+  evidence_required BOOLEAN,
   hint TEXT,
   is_required BOOLEAN,
   priority_level VARCHAR(255),
   evidence_files TEXT[],
-  answer TEXT
+  answer TEXT,
+  dropdown_options TEXT[],
+  order_id INT,
+  input_type VARCHAR(255)
 );
 
 CREATE TABLE files (

@@ -6,7 +6,7 @@ export const TechnicalDocumentation = [
       {
         order_no: 1,
         question:
-          "What is the source of the model being used? If it's a pre-existing model, how was it selected? If it's being developed in-house, what was the development process?",
+          "What is the source of the model being used? If it''s a pre-existing model, how was it selected? If it''s being developed in-house, what was the development process?",
         hint: "Detail your reasoning for choosing the high-risk AI system, referencing the AI provider’s documentation, or describe your involvement in any modifications or development processes.",
         priority_level: "high priority",
         answer_type: "Long text",

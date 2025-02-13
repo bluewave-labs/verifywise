@@ -64,9 +64,7 @@ const PasswordForm: React.FC = () => {
       try {
         const response = await getEntityById({ routeUrl: `/users/${id}` });
         console.log("response , PasswordForm : ", response);
-        setCurrentPassword(
-          response.data.password_hash ? "••••••••••••••••••••••••" : ""
-        );
+
       } catch (error) {
         logEngine({
           type: "error",
@@ -151,74 +149,34 @@ const PasswordForm: React.FC = () => {
 
   // Handle save
   const handleSave = useCallback(async () => {
-    try {
-      if (currentPasswordError || newPasswordError || confirmPasswordError) {
-        logEngine({
-          type: "error",
-          message: "Validation errors occurred while updating password.",
-          user: {
-            id: String(localStorage.getItem("userId")) || "N/A",
-            email: "N/A",
-            firstname: "N/A",
-            lastname: "N/A",
-          },
-        });
-        setAlert({
-          variant: "error",
-          title: "Error",
-          body: "Validation errors occurred while updating password.",
-          isToast: true,
-          visible: true,
-        });
-        return;
-      }
-
-      // const userId = localStorage.getItem("userId") || "1";
-      const updatedPassword = {
-        currentPassword,
-        newPassword,
-        confirmPassword,
-      };
-
-      await updateEntityById({
-        routeUrl: `/users/1`,
-        body: updatedPassword,
-      });
-      setAlert({
-        variant: "success",
-        title: "Success",
-        body: "Password updated successfully.",
-        isToast: true,
-        visible: true,
-      });
-      setIsConfirmationModalOpen(false);
-    } catch (error) {
-      logEngine({
-        type: "error",
-        message: "An error occurred while updating the password.",
-        user: {
-          id: String(localStorage.getItem("userId")) || "N/A",
-          email: "N/A",
-          firstname: "N/A",
-          lastname: "N/A",
-        },
-      });
-      setAlert({
-        variant: "error",
-        title: "Error",
-        body: "Failed to update password. Please try again.",
-        isToast: true,
-        visible: true,
-      });
+    setCurrentPasswordError(null);
+    setNewPasswordError(null);
+    setConfirmPasswordError(null);
+  
+    const validation = checkStringValidation("New password", newPassword, 8, 128, true, true, true, true);
+    if (!validation.accepted) {
+      setNewPasswordError(validation.message);
+      return;
     }
-  }, [
-    currentPassword,
-    newPassword,
-    confirmPassword,
-    currentPasswordError,
-    newPasswordError,
-    confirmPasswordError,
-  ]);
+  
+    if (newPassword !== confirmPassword) {
+      setConfirmPasswordError("Passwords do not match");
+      return;
+    }
+  
+    try {
+      await updateEntityById({ routeUrl: `/users/${id}`, body: { currentPassword, newPassword } });
+
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+
+      setAlert({ variant: "success", title: "Success", body: "Password updated successfully.", isToast: true, visible: true });
+    } catch (error) {
+      setAlert({ variant: "error", title: "Error", body: "Failed to update password. Please try again.", isToast: true, visible: true });
+    }
+  }, [currentPassword, newPassword, confirmPassword]);
+  
 
   const handleCloseConfirmationModal = useCallback(() => {
     setIsConfirmationModalOpen(false);
@@ -226,6 +184,7 @@ const PasswordForm: React.FC = () => {
 
   const handleConfirmSave = useCallback(() => {
     handleSave();
+    setIsConfirmationModalOpen(false);
   }, [handleSave]);
 
   const isSaveDisabled =
@@ -274,7 +233,6 @@ const PasswordForm: React.FC = () => {
             onChange={handleCurrentPasswordChange}
             type="password"
             sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
-            disabled
           />
           {currentPasswordError && (
             <Typography color="error" variant="caption">

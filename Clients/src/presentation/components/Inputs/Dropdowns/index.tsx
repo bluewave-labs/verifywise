@@ -1,4 +1,4 @@
-import { Stack, Typography, useTheme, SelectChangeEvent } from "@mui/material";
+import { Stack, Typography, useTheme } from "@mui/material";
 import { useEffect, useState } from "react";
 import Select from "../Select";
 import DatePicker from "../Datepicker";
@@ -56,10 +56,9 @@ const DropDowns: React.FC<DropDownsProps> = ({
 
   // Update local state when the state prop changes
   useEffect(() => {
-    console.log("State updated:", state); // Debugging log
     if (state) {
       setStatus(state?.status);
-      setApprover(state?.approver);
+      setApprover(state?.approver); // Ensure this line is present
       setRiskReview(state?.risk_review);
       setOwner(state?.owner);
       setReviewer(state?.reviewer);
@@ -67,18 +66,6 @@ const DropDowns: React.FC<DropDownsProps> = ({
       setImplementationDetails(state?.implementation_details);
     }
   }, [state]);
-
-  const handleChange = (e: SelectChangeEvent<string | number>) => {
-    const selectedUser = users.find(
-      (user) => user.id.toString() === e.target.value
-    );
-    console.log("Selected user:", selectedUser);
-    setApprover(selectedUser?.id || "");
-
-    if (setState) {
-      setState({ ...state, approver: selectedUser?.id || "" });
-    }
-  };
 
   return (
     <Stack
@@ -97,9 +84,10 @@ const DropDowns: React.FC<DropDownsProps> = ({
         <Select
           id="status"
           label="Status:"
-          value={status}
+          value={status || ""}
           onChange={(e) => {
             setStatus(e.target.value);
+            console.log("Status: ", e.target.value);
             if (setState) {
               setState({ ...state, status: e.target.value });
             }
@@ -116,11 +104,17 @@ const DropDowns: React.FC<DropDownsProps> = ({
         <Select
           id="Approver"
           label="Approver:"
-          value={approver}
-          onChange={handleChange}
+          value={approver || ""}
+          onChange={(e) => {
+            setApprover(e.target.value);
+            console.log("Approver: ", e.target.value);
+            if (setState) {
+              setState({ ...state, approver: e.target.value });
+            }
+          }}
           items={users.map((user) => ({
             _id: `${user.name} ${user.surname}`,
-            name: user.name,
+            name: `${user.name} ${user.surname}`,
           }))}
           sx={inputStyles}
           placeholder={"Select approver"}
@@ -129,9 +123,10 @@ const DropDowns: React.FC<DropDownsProps> = ({
         <Select
           id="Risk review"
           label="Risk review:"
-          value={riskReview}
+          value={riskReview || ""}
           onChange={(e) => {
             setRiskReview(e.target.value);
+            console.log("Risk review: ", e.target.value);
             if (setState) {
               setState({ ...state, risk_review: e.target.value });
             }
@@ -157,16 +152,17 @@ const DropDowns: React.FC<DropDownsProps> = ({
         <Select
           id="Owner"
           label="Owner:"
-          value={owner}
+          value={owner || ""}
           onChange={(e) => {
             setOwner(e.target.value);
+            console.log("Owner: ", e.target.value);
             if (setState) {
               setState({ ...state, owner: e.target.value });
             }
           }}
           items={users.map((user) => ({
             _id: `${user.name} ${user.surname}`,
-            name: user.name,
+            name: `${user.name} ${user.surname}`,
           }))}
           sx={inputStyles}
           placeholder={"Select owner"}
@@ -175,16 +171,17 @@ const DropDowns: React.FC<DropDownsProps> = ({
         <Select
           id="Reviewer"
           label="Reviewer:"
-          value={reviewer}
+          value={reviewer || ""}
           onChange={(e) => {
             setReviewer(e.target.value);
+            console.log("Reviewer: ", e.target.value);
             if (setState) {
               setState({ ...state, reviewer: e.target.value });
             }
           }}
           items={users.map((user) => ({
             _id: `${user.name} ${user.surname}`,
-            name: user.name,
+            name: `${user.name} ${user.surname}`,
           }))}
           sx={inputStyles}
           placeholder={"Select reviewer"}

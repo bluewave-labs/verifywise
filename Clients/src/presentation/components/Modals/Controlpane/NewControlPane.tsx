@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import DropDowns from "../../Inputs/Dropdowns";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
 import { createNewUser } from "../../../../application/repository/entity.repository";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
@@ -35,32 +35,11 @@ const NewControlPane = ({
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [initialValues, setInitialValues] = useState<Control>();
-
-  useEffect(() => {
-    console.log("useEffect triggered with id:", data.id);
-    const fetchControl = async () => {
-      try {
-        console.log("Fetching control...");
-        const response = await createNewUser({
-          routeUrl: `/controls/compliance/${data.id}`,
-        });
-        if (response.status === 200) {
-          setInitialValues(response.data.data);
-        } else {
-          console.log("Error: ", response.status);
-        }
-      } catch (error) {
-        console.error("Error fetching control:", error);
-      }
-    };
-    fetchControl();
-  }, [data.id]);
 
   const initialSubControlState = data.subControls!.map(
     (subControl: Subcontrol, index: number) => ({
       control_id: subControl.control_id,
-      subControlId: subControl.id,
+      id: subControl.id,
       order_no: index,
       title: subControl.title,
       description: subControl.description,
@@ -69,7 +48,7 @@ const NewControlPane = ({
       risk_review: subControl.risk_review,
       owner: subControl.owner,
       reviewer: subControl.reviewer,
-      implementation_details: subControl.description,
+      implementation_details: subControl.implementation_details,
       due_date: subControl.due_date,
       evidence_description: subControl.evidence_description,
       feedback_description: subControl.feedback_description,
@@ -214,7 +193,7 @@ const NewControlPane = ({
         <DropDowns
           isControl={true}
           elementId={`control-${data.id}`}
-          state={initialValues || data} // Fallback to `data` if `initialValues` isn't set yet
+          state={state} // Fallback to `data` if `initialValues` isn't set yet
           setState={(newState) =>
             setState((prevState) => ({
               ...prevState,
@@ -294,7 +273,7 @@ const NewControlPane = ({
                 elementId={`sub-control-${data.order_no}.${
                   data.subControls![selectedTab].id
                 }`}
-                state={initialValues?.subControls?.[selectedTab]}
+                state={state?.subControls?.[selectedTab]}
                 setState={(newState) =>
                   handleSubControlStateChange(selectedTab, newState)
                 }

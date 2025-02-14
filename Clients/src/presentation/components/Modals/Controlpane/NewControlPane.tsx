@@ -11,12 +11,11 @@ import {
 } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import DropDowns from "../../Inputs/Dropdowns";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect } from "react";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
 import { createNewUser } from "../../../../application/repository/entity.repository";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import { Subcontrol } from "../../../../domain/Subcontrol";
 import { Control } from "../../../../domain/Control";
 
@@ -24,14 +23,12 @@ const NewControlPane = ({
   data,
   isOpen,
   handleClose,
-  controlCategory,
   controlCategoryId,
   OnSave,
 }: {
   data: Control;
   isOpen: boolean;
   handleClose: () => void;
-  controlCategory: string;
   controlCategoryId: string;
   OnSave?: (state: Control) => void;
 }) => {
@@ -40,7 +37,6 @@ const NewControlPane = ({
   const [activeSection, setActiveSection] = useState<string>("Overview");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [initialValues, setInitialValues] = useState<Control>();
-  const { dashboardValues } = useContext(VerifyWiseContext);
 
   useEffect(() => {
     console.log("useEffect triggered with id:", data.id);
@@ -48,11 +44,7 @@ const NewControlPane = ({
       try {
         console.log("Fetching control...");
         const response = await createNewUser({
-          routeUrl: `/controls/compliance/${1}`,
-          body: {
-            controlTitle: data.title,
-            controlDescription: data.description,
-          },
+          routeUrl: `/controls/compliance/${data.id}`,
         });
         if (response.status === 200) {
           setInitialValues(response.data.data);
@@ -64,11 +56,10 @@ const NewControlPane = ({
       }
     };
     fetchControl();
-    console.log("initialValues :==>> ", initialValues);
   }, [data.id]);
 
-  const initialSubControlState =
-    data.subControls!.map((subControl: Subcontrol, index: number) => ({
+  const initialSubControlState = data.subControls!.map(
+    (subControl: Subcontrol, index: number) => ({
       control_id: subControl.control_id,
       subControlId: subControl.id,
       order_no: index,
@@ -85,7 +76,8 @@ const NewControlPane = ({
       feedback_description: subControl.feedback_description,
       evidence_files: subControl.evidence_files,
       feedback_files: subControl.feedback_files,
-    })) || [];
+    })
+  );
 
   const [state, setState] = useState<Control>(() => ({
     id: data.id,
@@ -159,18 +151,7 @@ const NewControlPane = ({
   };
 
   const confirmSave = async () => {
-    console.log(
-      "projectId: dashboardValues.selectedProjectId",
-      dashboardValues.selectedProjectId
-    );
-    const controlToSave = {
-      controlCategoryTitle: controlCategory,
-      controlCategoryId: controlCategoryId,
-      control: state,
-      projectId:
-        dashboardValues.selectedProjectId ||
-        parseInt(localStorage.getItem("selectedProjectId") || "0", 10),
-    };
+    const controlToSave = {};
     console.log("controlToSave : ", controlToSave);
     try {
       const response = await apiServices.post(

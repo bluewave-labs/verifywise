@@ -449,27 +449,26 @@ export async function saveControls(
   res: Response
 ): Promise<any> {
   try {
-    const controlId = parseInt(req.params.id)
-    const requestBody = req.body as Control & { subcontrols: string }
-    const subControlToUpdate = JSON.parse(requestBody.subcontrols) as Subcontrol[];
+    const controlId = parseInt(req.params.id);
+    const requestBody = req.body as Control & { subcontrols: string };
+    const subControlToUpdate = JSON.parse(
+      requestBody.subcontrols
+    ) as Subcontrol[];
 
     // now we need to create the control for the control category, and use the control category id as the foreign key
-    const control: any = await updateControlByIdQuery(
-      controlId,
-      {
-        title: requestBody.title,
-        description: requestBody.description,
-        order_no: requestBody.order_no,
-        status: requestBody.status,
-        approver: requestBody.approver,
-        risk_review: requestBody.risk_review,
-        owner: requestBody.owner,
-        reviewer: requestBody.reviewer,
-        due_date: requestBody.due_date,
-        implementation_details: requestBody.implementation_details,
-        control_category_id: requestBody.control_category_id
-      }
-    );
+    const control: any = await updateControlByIdQuery(controlId, {
+      title: requestBody.title,
+      description: requestBody.description,
+      order_no: requestBody.order_no,
+      status: requestBody.status,
+      approver: requestBody.approver,
+      risk_review: requestBody.risk_review,
+      owner: requestBody.owner,
+      reviewer: requestBody.reviewer,
+      due_date: requestBody.due_date,
+      implementation_details: requestBody.implementation_details,
+      control_category_id: requestBody.control_category_id,
+    });
 
     // now we need to iterate over subcontrols inside the control, and create a subcontrol for each subcontrol
     const subControlResp = [];
@@ -480,9 +479,17 @@ export async function saveControls(
           title: subcontrol.title,
           description: subcontrol.description,
           order_no: subcontrol.order_no,
-          status: subcontrol.status as "Waiting" | "In progress" | "Done" | undefined,
+          status: subcontrol.status as
+            | "Waiting"
+            | "In progress"
+            | "Done"
+            | undefined,
           approver: subcontrol.approver,
-          risk_review: subcontrol.risk_review as "Acceptable risk" | "Residual risk" | "Unacceptable risk" | undefined,
+          risk_review: subcontrol.risk_review as
+            | "Acceptable risk"
+            | "Residual risk"
+            | "Unacceptable risk"
+            | undefined,
           owner: subcontrol.owner,
           reviewer: subcontrol.reviewer,
           due_date: subcontrol.due_date,
@@ -521,28 +528,15 @@ export async function getComplianceById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const controlCategoryId = parseInt(req.params.id);
-  const controlTitle = req.body.controlTitle;
-  const controlDescription = req.body.controlDescription;
-  console.log(`controlCategoryId :|${controlCategoryId}|`);
-  console.log(`controlTitle :|${controlTitle}|`);
-  console.log(`controlDescription :|${controlDescription}|`);
+  const control_id = req.params.id;
   try {
-    const control =
-      await getControlByIdAndControlTitleAndControlDescriptionQuery(
-        controlCategoryId,
-        controlTitle,
-        controlDescription
-      );
-    if (control) {
-      const subControls = await getAllSubcontrolsByControlIdQuery(control.id!);
-      const result = {
-        control,
-        subControls,
-      };
-      return res.status(200).json(STATUS_CODE[200](result));
+    const control = await getControlByIdQuery(parseInt(control_id));
+    if (control && control.id) {
+      const subControls = await getAllSubcontrolsByControlIdQuery(control.id);
+      control.subControls = subControls;
+      return res.status(200).json(STATUS_CODE[200](control));
     } else {
-      return res.status(204).json(STATUS_CODE[204](control));
+      return res.status(404).json(STATUS_CODE[404]("Control not found"));
     }
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

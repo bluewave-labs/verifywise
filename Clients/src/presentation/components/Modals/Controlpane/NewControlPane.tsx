@@ -13,7 +13,7 @@ import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import DropDowns from "../../Inputs/Dropdowns";
 import { useState } from "react";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
-import { createNewUser } from "../../../../application/repository/entity.repository";
+import { updateEntityById } from "../../../../application/repository/entity.repository";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import { Subcontrol } from "../../../../domain/Subcontrol";
 import { Control } from "../../../../domain/Control";
@@ -129,19 +129,16 @@ const NewControlPane = ({
   };
 
   const confirmSave = async () => {
-    const controlToSave = {
-      state,
-    };
-    console.log("controlToSave : ", controlToSave);
-    // try {
-    //   const response = await apiServices.post(
-    //     "/controls/saveControls",
-    //     controlToSave
-    //   );
-    //   console.log("Controls saved successfully:", response);
-    // } catch (error) {
-    //   console.error("Error saving controls:", error);
-    // }
+    console.log("state controlToSave : ", state);
+    try {
+      const response = await updateEntityById({
+        routeUrl: `/controls/saveControls/${state.id}`,
+        body: state,
+      });
+      console.log("Controls updated successfully:", response);
+    } catch (error) {
+      console.error("Error updating controls:", error);
+    }
     if (OnSave) {
       OnSave(state);
     }

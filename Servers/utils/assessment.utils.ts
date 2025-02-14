@@ -18,13 +18,11 @@ export const getAssessmentByIdQuery = async (
   return result.rows.length ? result.rows[0] : null;
 };
 
-export const createNewAssessmentQuery = async (assessment: {
-  projectId: number;
-}): Promise<Object> => {
+export const createNewAssessmentQuery = async (assessment: Assessment): Promise<Object> => {
   console.log("createNewAssessment", assessment);
   const result = await pool.query(
     `INSERT INTO assessments (project_id) VALUES ($1) RETURNING *`,
-    [assessment.projectId]
+    [assessment.project_id]
   );
   const topics = await createNewTopicsQuery(result.rows[0].id)
   return { assessment: result.rows[0], topics };
@@ -32,14 +30,12 @@ export const createNewAssessmentQuery = async (assessment: {
 
 export const updateAssessmentByIdQuery = async (
   id: number,
-  assessment: Partial<{
-    projectId: number;
-  }>
+  assessment: Partial<Assessment>
 ): Promise<Assessment | null> => {
   console.log("updateAssessmentById", id, assessment);
   const result = await pool.query(
     `UPDATE assessments SET project_id = $1 WHERE id = $2 RETURNING *`,
-    [assessment.projectId, id]
+    [assessment.project_id, id]
   );
   return result.rows.length ? result.rows[0] : null;
 };

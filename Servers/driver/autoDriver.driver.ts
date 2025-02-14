@@ -127,18 +127,18 @@ const insertQuery = {
     insertString: "INSERT INTO assessments(project_id) VALUES ",
     generateValuesString: function (assessment: Assessment) {
       return `(
-        '${assessment.projectId}'
+        '${assessment.project_id}'
       )`;
     },
   },
   controlCategories: {
     mockData: ControlCategories,
     tableName: "controlcategories",
-    insertString: "INSERT INTO controlcategories(project_id, name) VALUES ",
+    insertString: "INSERT INTO controlcategories(project_id, title) VALUES ",
     generateValuesString: function (controlCategory: ControlCategory) {
       return `(
-        '${controlCategory.projectId}',
-        'DEMO - ${controlCategory.name}'
+        '${controlCategory.project_id}',
+        'DEMO - ${controlCategory.title}'
       )`;
     },
   },
@@ -146,17 +146,24 @@ const insertQuery = {
     mockData: mockControls,
     tableName: "controls",
     insertString:
-      "INSERT INTO controls(status, approver, risk_review, owner, reviewer, due_date, implementation_details, control_category_id) VALUES ",
+      `INSERT INTO controls(
+        title, description, order_no,
+        status, approver, risk_review, 
+        owner, reviewer, due_date, 
+        implementation_details, control_category_id) VALUES `,
     generateValuesString: function (control: Control) {
       return `(
+        '${control.title}',
+        '${control.description}',
+        ${control.order_no},
         '${control.status}',
         '${control.approver}',
-        '${control.riskReview}',
+        '${control.risk_review}',
         '${control.owner}',
         '${control.reviewer}',
-        '${control.dueDate.toISOString().split("T")[0]}',
-        'DEMO - ${control.implementationDetails}',
-        ${control.controlCategoryId}
+        '${control.due_date!.toISOString().split("T")[0]}',
+        'DEMO - ${control.implementation_details}',
+        ${control.control_category_id}
       )`;
     },
   },
@@ -164,21 +171,29 @@ const insertQuery = {
     mockData: subcontrols,
     tableName: "subcontrols",
     insertString:
-      "INSERT INTO subcontrols(control_id, status, approver, risk_review, owner, reviewer, due_date, implementation_details, evidence_description, feedback_description, evidenceFiles, feedbackFiles) VALUES ",
+      `INSERT INTO subcontrols(
+        title, description, order_no, 
+        status, approver, risk_review, 
+        owner, reviewer, due_date, 
+        implementation_details, evidence_description, feedback_description, 
+        evidence_files, feedback_files, control_id) VALUES `,
     generateValuesString: function (subControl: Subcontrol) {
       return `(
-        '${subControl.controlId}',
+        '${subControl.title}',
+        '${subControl.description}',
+        ${subControl.order_no},
         '${subControl.status}',
         '${subControl.approver}',
-        '${subControl.riskReview}',
+        '${subControl.risk_review}',
         '${subControl.owner}',
         '${subControl.reviewer}',
-        '${subControl.dueDate.toISOString().split("T")[0]}',
-        'DEMO - ${subControl.implementationDetails}',
-        '${subControl.evidenceDescription}',
-        '${subControl.feedbackDescription}',
+        '${subControl.due_date!.toISOString().split("T")[0]}',
+        'DEMO - ${subControl.implementation_details}',
+        '${subControl.evidence_description}',
+        '${subControl.feedback_description}',
         ARRAY[]::TEXT[],
-        ARRAY[]::TEXT[]
+        ARRAY[]::TEXT[],
+        '${subControl.control_id}'
       )`;
     },
   },

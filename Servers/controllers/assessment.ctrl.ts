@@ -26,6 +26,7 @@ import {
   updateQuestionByIdQuery,
   UploadedFile,
 } from "../utils/question.utils";
+import { Assessment } from "../models/assessment.model";
 
 export async function getAllAssessments(
   req: Request,
@@ -67,11 +68,9 @@ export async function createAssessment(
   res: Response
 ): Promise<any> {
   try {
-    const newAssessment: {
-      projectId: number;
-    } = req.body;
+    const newAssessment: Assessment = req.body;
 
-    if (!newAssessment.projectId) {
+    if (!newAssessment.project_id) {
       return res.status(400).json(
         STATUS_CODE[400]({
           message: "projectId is required",
@@ -96,11 +95,9 @@ export async function updateAssessmentById(
 ): Promise<any> {
   try {
     const assessmentId = parseInt(req.params.id);
-    const updatedAssessment: {
-      projectId: number;
-    } = req.body;
+    const updatedAssessment: Assessment = req.body;
 
-    if (!updatedAssessment.projectId) {
+    if (!updatedAssessment.project_id) {
       return res.status(400).json(
         STATUS_CODE[400]({
           message: "projectId is required",
@@ -215,7 +212,7 @@ export async function getAnswers(req: Request, res: Response): Promise<any> {
   try {
     const assessmentId = parseInt(req.params.id);
     const assessment = await getAssessmentByIdQuery(assessmentId);
-    const topics = await getTopicByAssessmentIdQuery(assessment!.id)
+    const topics = await getTopicByAssessmentIdQuery(assessment!.id!)
     for (let topic of topics) {
       const subTopics = await getSubTopicByTopicIdQuery(topic.id!)
 

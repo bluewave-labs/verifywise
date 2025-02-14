@@ -3,7 +3,7 @@ export const FundamentalRightsImpactAssessments = [
     order_no: 1,
     title: "Fundamental Rights Impact Assessment Process Development",
     description:
-      "Conduct assessments to evaluate AI systems' impact on fundamental rights and notify authorities of findings.",
+      "Conduct assessments to evaluate AI systems'' impact on fundamental rights and notify authorities of findings.",
     subControls: [
       {
         order_no: 1,

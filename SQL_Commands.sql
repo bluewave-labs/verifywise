@@ -59,7 +59,7 @@ CREATE TABLE assessments (
 CREATE TABLE controlcategories (
   id SERIAL PRIMARY KEY,
   project_id INT REFERENCES projects(id),
-  name VARCHAR(255),
+  title TEXT,
   order_no INT
 );
 
@@ -91,10 +91,10 @@ CREATE TABLE subcontrols (
   reviewer VARCHAR(255),
   due_date DATE,
   implementation_details TEXT,
-  evidence_description VARCHAR(255),
+  evidence_description TEXT,
   feedback_description TEXT,
-  evidenceFiles TEXT[],
-  feedbackFiles TEXT[]
+  evidence_files TEXT[],
+  feedback_files TEXT[]
 );
 
 CREATE TABLE projectrisks (

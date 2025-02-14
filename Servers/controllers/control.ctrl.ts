@@ -23,6 +23,7 @@ import {
 } from "../utils/controlCategory.util";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { Control } from "../models/control.model";
+import { Subcontrol } from "../models/subcontrol.model";
 
 export async function getAllControls(
   req: Request,
@@ -82,18 +83,7 @@ export async function updateControlById(
 ): Promise<any> {
   try {
     const controlId = parseInt(req.params.id);
-    const updatedControl: {
-      projectId: number;
-      controlTitle: string;
-      controlDescription: string;
-      status: string;
-      approver: string;
-      riskReview: string;
-      owner: string;
-      reviewer: string;
-      date: Date;
-      description: string;
-    } = req.body;
+    const updatedControl: Control = req.body;
 
     const control = await updateControlByIdQuery(controlId, updatedControl);
 
@@ -459,78 +449,47 @@ export async function saveControls(
   res: Response
 ): Promise<any> {
   try {
-    const requestBody = req.body as {
-      id: number;
-      controlCategoryId: number;
-      controlTitle: string;
-      controlDescription: string;
-      orderNo: number;
-      status: string;
-      approver: string;
-      riskReview: string;
-      owner: string;
-      reviewer: string;
-      dueDate: Date;
-      implementationDetails: string;
-      subControls: string;
-    };
-
-    const subControlToUpdate = JSON.parse(requestBody.subControls) as {
-      id: number;
-      controlId: number;
-      subControlTitle: string;
-      orderNo: number;
-      subControlDescription: string;
-      status: string;
-      approver: string;
-      riskReview: string;
-      owner: string;
-      reviewer: string;
-      dueDate: Date;
-      description: string;
-      implementationDetails: string;
-      evidenceDescription: string;
-      evidenceFiles: [];
-      feedbackDescription: string;
-      feedbackFiles: [];
-    }[];
+    const controlId = parseInt(req.params.id)
+    const requestBody = req.body as Control & { subcontrols: string }
+    const subControlToUpdate = JSON.parse(requestBody.subcontrols) as Subcontrol[];
 
     // now we need to create the control for the control category, and use the control category id as the foreign key
     const control: any = await updateControlByIdQuery(
-      requestBody.id,
+      controlId,
       {
-        controlCategoryId: requestBody.controlCategoryId,
-        title: requestBody.controlTitle,
-        description: requestBody.controlDescription,
-        orderNo: requestBody.orderNo,
+        title: requestBody.title,
+        description: requestBody.description,
+        order_no: requestBody.order_no,
         status: requestBody.status,
         approver: requestBody.approver,
-        riskReview: requestBody.riskReview,
+        risk_review: requestBody.risk_review,
         owner: requestBody.owner,
         reviewer: requestBody.reviewer,
-        dueDate: requestBody.dueDate,
-        implementationDetails: requestBody.implementationDetails
-      });
+        due_date: requestBody.due_date,
+        implementation_details: requestBody.implementation_details,
+        control_category_id: requestBody.control_category_id
+      }
+    );
 
     // now we need to iterate over subcontrols inside the control, and create a subcontrol for each subcontrol
     const subControlResp = [];
     for (const subcontrol of subControlToUpdate) {
       const subcontrolToSave: any = await updateSubcontrolByIdQuery(
-        subcontrol.id,
+        subcontrol.id!,
         {
-          controlId: subcontrol.controlId,
-          title: subcontrol.subControlTitle,
-          description: subcontrol.subControlDescription,
-          orderNo: subcontrol.orderNo,
+          title: subcontrol.title,
+          description: subcontrol.description,
+          order_no: subcontrol.order_no,
           status: subcontrol.status as "Waiting" | "In progress" | "Done" | undefined,
           approver: subcontrol.approver,
-          riskReview: subcontrol.riskReview as "Acceptable risk" | "Residual risk" | "Unacceptable risk" | undefined,
+          risk_review: subcontrol.risk_review as "Acceptable risk" | "Residual risk" | "Unacceptable risk" | undefined,
           owner: subcontrol.owner,
           reviewer: subcontrol.reviewer,
-          dueDate: subcontrol.dueDate,
-          implementationDetails: subcontrol.implementationDetails,
-          evidenceDescription: subcontrol.evidenceDescription,
-          feedbackDescription: subcontrol.feedbackDescription
+          due_date: subcontrol.due_date,
+          implementation_details: subcontrol.implementation_details,
+          evidence_description: subcontrol.evidence_description,
+          feedback_description: subcontrol.feedback_description,
+          control_id: subcontrol.control_id,
         },
         (
           req.files as {
@@ -546,7 +505,7 @@ export async function saveControls(
       subControlResp.push(subcontrolToSave);
     }
     const response = {
-      ...{ control, subControls: subControlResp },
+      ...{ control, subcontrols: subControlResp },
     };
     return res.status(200).json(
       STATUS_CODE[200]({
@@ -576,7 +535,7 @@ export async function getComplianceById(
         controlDescription
       );
     if (control) {
-      const subControls = await getAllSubcontrolsByControlIdQuery(control.id);
+      const subControls = await getAllSubcontrolsByControlIdQuery(control.id!);
       const result = {
         control,
         subControls,

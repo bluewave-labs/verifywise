@@ -64,17 +64,17 @@ export async function createProject(req: Request, res: Response): Promise<any> {
     }
 
     const createdProject = await createNewProjectQuery(newProject);
-    const assessment = await createNewAssessmentQuery({
-      projectId: createdProject.id,
+    const assessments = await createNewAssessmentQuery({
+      project_id: createdProject.id,
     });
-    const controlCategories = await createNewControlCategories(createdProject.id)
+    const controls = await createNewControlCategories(createdProject.id)
 
     if (createdProject) {
       return res.status(201).json(
         STATUS_CODE[201]({
           project: createdProject,
-          assessment,
-          controlCategories
+          assessment_tracker: assessments,
+          compliance_tracker: controls
         })
       );
     }

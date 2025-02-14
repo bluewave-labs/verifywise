@@ -64,6 +64,9 @@ const PasswordForm: React.FC = () => {
       try {
         const response = await getEntityById({ routeUrl: `/users/${id}` });
         console.log("response , PasswordForm : ", response);
+        setCurrentPassword(
+          response.data.password_hash ? "••••••••••••••••••••••••" : ""
+        );
 
       } catch (error) {
         logEngine({
@@ -233,6 +236,7 @@ const PasswordForm: React.FC = () => {
             onChange={handleCurrentPasswordChange}
             type="password"
             sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
+            disabled
           />
           {currentPasswordError && (
             <Typography color="error" variant="caption">

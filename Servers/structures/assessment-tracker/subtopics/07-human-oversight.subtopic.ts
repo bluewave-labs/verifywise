@@ -32,7 +32,7 @@ export const HumanOversight = [
       {
         order_no: 3,
         question:
-          "What is your organization's strategy for conducting periodic reviews of the AI application with regard to ethical values? Who will be involved in these reviews?",
+          "What is your organization''s strategy for conducting periodic reviews of the AI application with regard to ethical values? Who will be involved in these reviews?",
         hint: "Detail your strategy for conducting periodic conformity reviews of the AI system and identify the roles involved in these reviews.",
         priority_level: "medium priority",
         answer_type: "Long text",
@@ -51,7 +51,7 @@ export const HumanOversight = [
       {
         order_no: 1,
         question:
-          "How is human oversight empowered to stop or alter the AI system's operations, ensuring the ability to intervene throughout its lifecycle and mitigate fundamental rights risks?",
+          "How is human oversight empowered to stop or alter the AI system''s operations, ensuring the ability to intervene throughout its lifecycle and mitigate fundamental rights risks?",
         hint: "Describe how human oversight is empowered to intervene, stop, or alter AI system operations, ensuring control throughout the lifecycle.",
         priority_level: "high priority",
         answer_type: "Long text",

@@ -1,204 +1,213 @@
 import { Subtopic } from "../models/subtopic.model";
 
 export const subtopics = (
-  topic1: number,
-  topic2: number,
-  topic3: number,
-  topic4: number,
-  topic5: number,
-  topic6: number,
-  topic7: number,
-  topic8: number,
-  topic9: number,
-  topic10: number,
-  topic11: number,
-  topic12: number,
-  topic13: number,
-  topic14: number,
-  topic15: number,
-  topic16: number,
-  topic17: number,
-  topic18: number,
-  topic19: number,
-  topic20: number,
-  topic21: number,
-  topic22: number,
-  topic23: number,
-  topic24: number,
-  topic25: number,
-  topic26: number,
+  topics: number[]
 ): Subtopic[] => {
   return [
     {
       id: 1,
-      topicId: topic1,
-      name: "Transparency and provision of information to deployers",
+      topic_id: topics[0],
+      title: "Transparency and provision of information to deployers",
+      order_no: 1
     },
     {
       id: 2,
-      topicId: topic1,
-      name: "Responsibilities along the AI value chain",
+      topic_id: topics[0],
+      title: "Responsibilities along the AI value chain",
+      order_no: 2
     },
     {
       id: 3,
-      topicId: topic2,
-      name: "Responsibilities along the AI value chain",
+      topic_id: topics[1],
+      title: "Responsibilities along the AI value chain",
+      order_no: 1
     },
     {
       id: 4,
-      topicId: topic2,
-      name: "Fundamental rights impact assessments for high-risk AI systems",
+      topic_id: topics[1],
+      title: "Fundamental rights impact assessments for high-risk AI systems",
+      order_no: 2
     },
     {
       id: 5,
-      topicId: topic3,
-      name: "AI model capability assessment",
+      topic_id: topics[2],
+      title: "AI model capability assessment",
+      order_no: 1
     },
     {
       id: 6,
-      topicId: topic4,
-      name: "AI model capability assessment",
+      topic_id: topics[3],
+      title: "AI model capability assessment",
+      order_no: 1
     },
     {
       id: 7,
-      topicId: topic5,
-      name: "User notification of AI system use",
+      topic_id: topics[4],
+      title: "User notification of AI system use",
+      order_no: 1
     },
     {
       id: 8,
-      topicId: topic6,
-      name: "Oversight documentation",
+      topic_id: topics[5],
+      title: "Oversight documentation",
+      order_no: 1
     },
     {
       id: 9,
-      topicId: topic6,
-      name: "Human intervention mechanisms",
+      topic_id: topics[5],
+      title: "Human intervention mechanisms",
+      order_no: 2
     },
     {
       id: 10,
-      topicId: topic7,
-      name: "System validation and reliability documentation",
+      topic_id: topics[6],
+      title: "System validation and reliability documentation",
+      order_no: 1
     },
     {
       id: 11,
-      topicId: topic7,
-      name: "AI system change documentation",
+      topic_id: topics[6],
+      title: "AI system change documentation",
+      order_no: 2
     },
     {
       id: 12,
-      topicId: topic8,
-      name: "EU database registration",
+      topic_id: topics[7],
+      title: "EU database registration",
+      order_no: 1
     },
     {
       id: 13,
-      topicId: topic9,
-      name: "Post-market monitoring by providers and post-market monitoring plan for high-risk AI systems",
+      topic_id: topics[8],
+      title: "Post-market monitoring by providers and post-market monitoring plan for high-risk AI systems",
+      order_no: 1
     },
     {
       id: 14,
-      topicId: topic10,
-      name: "Bias and fairness evaluation",
+      topic_id: topics[9],
+      title: "Bias and fairness evaluation",
+      order_no: 1
     },
     {
       id: 15,
-      topicId: topic11,
-      name: "System information documentation",
+      topic_id: topics[10],
+      title: "System information documentation",
+      order_no: 1
     },
     {
       id: 16,
-      topicId: topic12,
-      name: "Transparency obligations for providers and users of certain AI systems",
+      topic_id: topics[11],
+      title: "Transparency obligations for providers and users of certain AI systems",
+      order_no: 1
     },
     {
       id: 17,
-      topicId: topic13,
-      name: "Environmental impact",
+      topic_id: topics[12],
+      title: "Environmental impact",
+      order_no: 1
     },
 
     {
       id: 18,
-      topicId: topic14,
-      name: "Transparency and provision of information to deployers",
+      topic_id: topics[13],
+      title: "Transparency and provision of information to deployers",
+      order_no: 1
     },
     {
       id: 19,
-      topicId: topic14,
-      name: "Responsibilities along the AI value chain",
+      topic_id: topics[13],
+      title: "Responsibilities along the AI value chain",
+      order_no: 2
     },
     {
       id: 20,
-      topicId: topic15,
-      name: "Responsibilities along the AI value chain",
+      topic_id: topics[14],
+      title: "Responsibilities along the AI value chain",
+      order_no: 1
     },
     {
       id: 21,
-      topicId: topic15,
-      name: "Fundamental rights impact assessments for high-risk AI systems",
+      topic_id: topics[14],
+      title: "Fundamental rights impact assessments for high-risk AI systems",
+      order_no: 2
     },
     {
       id: 22,
-      topicId: topic16,
-      name: "AI model capability assessment",
+      topic_id: topics[15],
+      title: "AI model capability assessment",
+      order_no: 1
     },
     {
       id: 23,
-      topicId: topic17,
-      name: "AI model capability assessment",
+      topic_id: topics[16],
+      title: "AI model capability assessment",
+      order_no: 1
     },
     {
       id: 24,
-      topicId: topic18,
-      name: "User notification of AI system use",
+      topic_id: topics[17],
+      title: "User notification of AI system use",
+      order_no: 1
     },
     {
       id: 25,
-      topicId: topic19,
-      name: "Oversight documentation",
+      topic_id: topics[18],
+      title: "Oversight documentation",
+      order_no: 1
     },
     {
       id: 26,
-      topicId: topic19,
-      name: "Human intervention mechanisms",
+      topic_id: topics[18],
+      title: "Human intervention mechanisms",
+      order_no: 2
     },
     {
       id: 27,
-      topicId: topic20,
-      name: "System validation and reliability documentation",
+      topic_id: topics[19],
+      title: "System validation and reliability documentation",
+      order_no: 1
     },
     {
       id: 28,
-      topicId: topic20,
-      name: "AI system change documentation",
+      topic_id: topics[19],
+      title: "AI system change documentation",
+      order_no: 2
     },
     {
       id: 29,
-      topicId: topic21,
-      name: "EU database registration",
+      topic_id: topics[20],
+      title: "EU database registration",
+      order_no: 1
     },
     {
       id: 30,
-      topicId: topic22,
-      name: "Post-market monitoring by providers and post-market monitoring plan for high-risk AI systems",
+      topic_id: topics[21],
+      title: "Post-market monitoring by providers and post-market monitoring plan for high-risk AI systems",
+      order_no: 1
     },
     {
       id: 31,
-      topicId: topic23,
-      name: "Bias and fairness evaluation",
+      topic_id: topics[22],
+      title: "Bias and fairness evaluation",
+      order_no: 1
     },
     {
       id: 32,
-      topicId: topic24,
-      name: "System information documentation",
+      topic_id: topics[23],
+      title: "System information documentation",
+      order_no: 1
     },
     {
       id: 33,
-      topicId: topic25,
-      name: "Transparency obligations for providers and users of certain AI systems",
+      topic_id: topics[24],
+      title: "Transparency obligations for providers and users of certain AI systems",
+      order_no: 1
     },
     {
       id: 34,
-      topicId: topic26,
-      name: "Environmental impact",
+      topic_id: topics[25],
+      title: "Environmental impact",
+      order_no: 1
     },
   ]
 };

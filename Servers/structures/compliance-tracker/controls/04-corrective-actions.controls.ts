@@ -18,7 +18,7 @@ export const CorrectiveActionsDutyOfInfo = [
     order_no: 2,
     title: "System Validation and Reliability Documentation",
     description:
-      "Demonstrate and document the system's validity, reliability, and standards compliance.",
+      "Demonstrate and document the system''s validity, reliability, and standards compliance.",
     subControls: [
       {
         order_no: 1,

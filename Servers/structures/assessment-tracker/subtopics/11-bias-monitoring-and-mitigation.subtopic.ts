@@ -6,7 +6,7 @@ export const BiasMonitoringAndMitigation = [
       {
         order_no: 1,
         question:
-          "What measures have been undertaken to address bias in the AI system's training data, and what guardrails are in place to ensure non-discriminatory responses?",
+          "What measures have been undertaken to address bias in the AI system''s training data, and what guardrails are in place to ensure non-discriminatory responses?",
         hint: "Explain how bias in training data is addressed and the guardrails in place to ensure non-discriminatory responses.",
         priority_level: "high priority",
         answer_type: "Long text",

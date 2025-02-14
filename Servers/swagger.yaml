@@ -4372,7 +4372,13 @@ components:
         id:
           type: integer
           example: 1
-        projectId:
+        title:
+          type: string
+          example: "Regulatory Training and Response Procedures"
+        description:
+          type: string
+          example: "Train personnel on regulatory requirements and procedures for responding to authority requests."
+        orderNo:
           type: integer
           example: 1
         status:
@@ -4397,9 +4403,9 @@ components:
         implementationDetails:
           type: string
           example: "Implement new feature"
-        controlGroup:
+        controlCategoryId:
           type: string
-          example: "AI Literacy"
+          example: 1
     Project:
       type: object
       properties:
@@ -4412,8 +4418,11 @@ components:
         owner:
           type: integer
           example: 1
-        users:
-          type:
+        members:
+          type: array
+          items:
+            type: string
+            example: "1"
           example:
         start_date:
           type: string
@@ -4448,9 +4457,9 @@ components:
         last_updated_by:
           type: integer
           example: 1
-        assessment_id:
-          type: integer
-          example: 1
+        # assessment_id:
+        #   type: integer
+        #   example: 1
     ProjectRisk:
       type: object
       properties:
@@ -4624,6 +4633,15 @@ components:
         controlId:
           type: number
           example: 1
+        title:
+          type: string
+          example: ""
+        description:
+          type: string
+          example: ""
+        orderNo:
+          type: integer
+          example: 1
         status:
           anyOf:
             - type: string
@@ -4655,13 +4673,13 @@ components:
         implementationDetails:
           type: string
           example: "Implement new feature"
-        evidence:
+        evidenceDescription:
           type: string
           example: "evidence1.pdf"
-        attachment:
-          type: string
-          example: "attachment1.docx"
-        feedback:
+        # attachment:
+        #   type: string
+        #   example: "attachment1.docx"
+        feedbackDescription:
           type: string
           example: "Great work so far."
     SubTopic:
@@ -4830,24 +4848,39 @@ components:
           example: "2024-10-20T00:00:00.000Z"
     AssessmentTracker:
       allOf:
-        - $ref: '#/components/schemas/Assessment'
-      type: object  # Define the type explicitly
+        - $ref: "#/components/schemas/Assessment"
+      type: object # Define the type explicitly
       properties:
         topics:
           type: array
           items:
             allOf:
-              - $ref: '#/components/schemas/Topic'
-            type: object  # Explicitly define the type
+              - $ref: "#/components/schemas/Topic"
+            type: object # Explicitly define the type
             properties:
               subtopics:
                 type: array
                 items:
                   allOf:
-                    - $ref: '#/components/schemas/SubTopic'
-                  type: object  # Explicitly define the type
+                    - $ref: "#/components/schemas/SubTopic"
+                  type: object # Explicitly define the type
                   properties:
                     questions:
                       type: array
                       items:
-                        $ref: '#/components/schemas/Question'
+                        $ref: "#/components/schemas/Question"
+    ControlCategories:
+      type: object
+      properties:
+        id:
+          type: integer
+          exampele: 1
+        projectId:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "AI literacy"
+        orderNo:
+          type: integer
+          example: 1

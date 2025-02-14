@@ -9,6 +9,7 @@ import {
   updateSubcontrolByIdQuery,
 } from "../utils/subControl.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
+import { Subcontrol } from "../models/subcontrol.model";
 
 export async function getAllSubcontrols(
   req: Request,
@@ -51,20 +52,7 @@ export async function createNewSubcontrol(
   res: Response
 ): Promise<any> {
   try {
-    const subcontrol: {
-      controlId: number;
-      subControlTitle: string;
-      subControlDescription: string;
-      status: string;
-      approver: string;
-      riskReview: string;
-      owner: string;
-      reviewer: string;
-      dueDate: Date;
-      implementationDetails: string;
-      evidence: string;
-      feedback: string;
-    } = req.body;
+    const subcontrol: Subcontrol = req.body;
 
     const controlIdFK = req.body.controlId;
     const newSubcontrol = await createNewSubcontrolQuery(
@@ -98,21 +86,7 @@ export async function updateSubcontrolById(
 ): Promise<any> {
   try {
     const subcontrolId = parseInt(req.params.id);
-    const subcontrol: Partial<{
-      controlId: number;
-      subControlTitle: string;
-      subControlDescription: string;
-      status: string;
-      approver: string;
-      riskReview: string;
-      owner: string;
-      reviewer: string;
-      dueDate: Date;
-      implementationDetails: string;
-      evidence: string;
-      attachment: string;
-      feedback: string;
-    }> = req.body;
+    const subcontrol: Partial<Subcontrol> = req.body;
 
     const updatedSubcontrol = await updateSubcontrolByIdQuery(
       subcontrolId,

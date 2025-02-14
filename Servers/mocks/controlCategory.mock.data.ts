@@ -2,111 +2,87 @@ import { ControlCategory } from "../models/controlCategory.model";
 
 export const ControlCategories = (projectId1: number, projectId2: number): ControlCategory[] => {
   return [
-    { id: 1, projectId: projectId1, name: "AI literacy" },
+    { id: 1, project_id: projectId1, title: "AI literacy", order_no: 1 },
     {
       id: 2,
-      projectId: projectId1,
-      name: "Transparency and provision of information to deployers",
+      project_id: projectId1,
+      title: "Transparency and provision of information to deployers",
+      order_no: 2
     },
-    { id: 3, projectId: projectId1, name: "Human oversight" },
+    {
+      id: 3, project_id: projectId1, title: "Human oversight",
+      order_no: 3
+    },
     {
       id: 4,
-      projectId: projectId1,
-      name: "Corrective actions and duty of information",
+      project_id: projectId1,
+      title: "Corrective actions and duty of information",
+      order_no: 4
     },
     {
       id: 5,
-      projectId: projectId1,
-      name: "Responsibilities along the AI value chain",
+      project_id: projectId1,
+      title: "Responsibilities along the AI value chain",
+      order_no: 5
     },
     {
       id: 6,
-      projectId: projectId1,
-      name: "Obligations of deployers of high-risk AI systems",
+      project_id: projectId1,
+      title: "Obligations of deployers of high-risk AI systems",
+      order_no: 6
     },
     {
       id: 7,
-      projectId: projectId1,
-      name: "Fundamental rights impact assessments for high-risk AI systems",
+      project_id: projectId1,
+      title: "Fundamental rights impact assessments for high-risk AI systems",
+      order_no: 7
     },
     {
       id: 8,
-      projectId: projectId1,
-      name: "Transparency obligations for providers and users of certain AI systems",
+      project_id: projectId1,
+      title: "Transparency obligations for providers and users of certain AI systems",
+      order_no: 8
     },
-    { id: 9, projectId: projectId1, name: "Registration" },
+    { id: 1, project_id: projectId2, title: "AI literacy", order_no: 1 },
     {
-      id: 10,
-      projectId: projectId1,
-      name: "EU database for high-risk AI systems listed in Annex III",
-    },
-    {
-      id: 11,
-      projectId: projectId1,
-      name: "Post-market monitoring by providers and post-market monitoring plan for high-risk AI systems",
+      id: 2,
+      project_id: projectId2,
+      title: "Transparency and provision of information to deployers",
+      order_no: 2
     },
     {
-      id: 12,
-      projectId: projectId1,
-      name: "Reporting of serious incidents",
+      id: 3, project_id: projectId2, title: "Human oversight",
+      order_no: 3
     },
     {
-      id: 13,
-      projectId: projectId1,
-      name: "General-purpose AI models",
-    },
-    { id: 14, projectId: projectId2, name: "AI literacy" },
-    {
-      id: 15,
-      projectId: projectId2,
-      name: "Transparency and provision of information to deployers",
-    },
-    { id: 16, projectId: projectId2, name: "Human oversight" },
-    {
-      id: 17,
-      projectId: projectId2,
-      name: "Corrective actions and duty of information",
+      id: 4,
+      project_id: projectId2,
+      title: "Corrective actions and duty of information",
+      order_no: 4
     },
     {
-      id: 18,
-      projectId: projectId2,
-      name: "Responsibilities along the AI value chain",
+      id: 5,
+      project_id: projectId2,
+      title: "Responsibilities along the AI value chain",
+      order_no: 5
     },
     {
-      id: 19,
-      projectId: projectId2,
-      name: "Obligations of deployers of high-risk AI systems",
+      id: 6,
+      project_id: projectId2,
+      title: "Obligations of deployers of high-risk AI systems",
+      order_no: 6
     },
     {
-      id: 20,
-      projectId: projectId2,
-      name: "Fundamental rights impact assessments for high-risk AI systems",
+      id: 7,
+      project_id: projectId2,
+      title: "Fundamental rights impact assessments for high-risk AI systems",
+      order_no: 7
     },
     {
-      id: 21,
-      projectId: projectId2,
-      name: "Transparency obligations for providers and users of certain AI systems",
-    },
-    { id: 22, projectId: projectId2, name: "Registration" },
-    {
-      id: 23,
-      projectId: projectId2,
-      name: "EU database for high-risk AI systems listed in Annex III",
-    },
-    {
-      id: 24,
-      projectId: projectId2,
-      name: "Post-market monitoring by providers and post-market monitoring plan for high-risk AI systems",
-    },
-    {
-      id: 25,
-      projectId: projectId2,
-      name: "Reporting of serious incidents",
-    },
-    {
-      id: 26,
-      projectId: projectId2,
-      name: "General-purpose AI models",
+      id: 8,
+      project_id: projectId2,
+      title: "Transparency obligations for providers and users of certain AI systems",
+      order_no: 8
     },
   ]
 };

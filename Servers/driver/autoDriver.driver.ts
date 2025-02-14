@@ -308,7 +308,7 @@ const insertQuery = {
         ARRAY[]::TEXT[],
         '${question.answer}',
         '${question.input_type}',
-        ${question.order_id}
+        ${question.order_no}
       )`;
     },
   },

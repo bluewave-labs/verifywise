@@ -10,6 +10,7 @@ import {
   RequestWithFile,
   UploadedFile,
 } from "../utils/question.utils";
+import { Question } from "../models/question.model";
 
 export async function getAllQuestions(
   req: Request,
@@ -52,22 +53,13 @@ export async function createQuestion(
   res: Response
 ): Promise<any> {
   try {
-    const newQuestion: {
-      subtopicId: number;
-      questionText: string;
-      answerType: string;
-      evidenceFileRequired: boolean;
-      hint: string;
-      isRequired: boolean;
-      priorityLevel: string;
-      answer: string;
-    } = req.body;
+    const newQuestion: Question = req.body;
 
     if (
-      !newQuestion.subtopicId ||
-      !newQuestion.questionText ||
-      !newQuestion.answerType ||
-      newQuestion.isRequired === undefined
+      !newQuestion.subtopic_id ||
+      !newQuestion.question ||
+      !newQuestion.answer_type ||
+      newQuestion.is_required === undefined
     ) {
       return res.status(400).json(
         STATUS_CODE[400]({
@@ -98,21 +90,14 @@ export async function updateQuestionById(
 ): Promise<any> {
   try {
     const questionId = parseInt(req.params.id);
-    const updatedQuestion: {
-      subtopicId: number;
-      questionText: string;
-      answerType: string;
-      evidenceFileRequired: boolean;
-      hint: string;
-      isRequired: boolean;
-      priorityLevel: string;
-    } = req.body;
+    const updatedQuestion: Question = req.body;
+    console.log(req);
 
     if (
-      !updatedQuestion.subtopicId ||
-      !updatedQuestion.questionText ||
-      !updatedQuestion.answerType ||
-      updatedQuestion.isRequired === undefined
+      !updatedQuestion.subtopic_id ||
+      !updatedQuestion.question ||
+      !updatedQuestion.answer_type ||
+      updatedQuestion.is_required === undefined
     ) {
       return res.status(400).json(
         STATUS_CODE[400]({

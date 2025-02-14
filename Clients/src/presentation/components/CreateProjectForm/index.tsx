@@ -258,7 +258,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProjec
               id="users-input"
               label="Users"
               placeholder="Select users"
-              value={values.users}
+              value={values.users === 0 ? '' : values.users}
               onChange={handleOnSelectChange("users")}
               items={users?.map(user => ({
                 _id: user.id,
@@ -278,7 +278,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProjec
               id="owner-input"
               label="Owner"
               placeholder="Select owner"
-              value={values.owner}
+              value={values.owner === 0 ? '' : values.owner}
               onChange={handleOnSelectChange("owner")}
               items={users?.map(user => ({
                 _id: user.id,
@@ -320,7 +320,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProjec
                 id="risk-classification-input"
                 label="AI risk classification"
                 placeholder="Select an option"
-                value={values.ai_risk_classification}
+                value={values.ai_risk_classification === 0 ? '' : values.ai_risk_classification}
                 onChange={handleOnSelectChange("ai_risk_classification")}
                 items={riskClassificationItems}
                 sx={{
@@ -336,7 +336,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({ closePopup, onNewProjec
                 id="type-of-high-risk-role-input"
                 label="Type of high risk role"
                 placeholder="Select an option"
-                value={values.type_of_high_risk_role}
+                value={values.type_of_high_risk_role === 0 ? '' : values.type_of_high_risk_role}
                 onChange={handleOnSelectChange("type_of_high_risk_role")}
                 items={highRiskRoleItems}
                 sx={{

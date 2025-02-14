@@ -20,7 +20,7 @@ export const RiskManagementSystem = [
         order_no: 2,
         question:
           "What business problem does the AI system solve, and what are its capabilities? What other techniques were considered before deciding to use AI to address this problem?",
-        hint: "It's important to provide transparent information about why you are choosing a high-risk AI system, including a mapping of key stages within the project and an assessment of resources and capabilities within your team or organization.",
+        hint: "It''s important to provide transparent information about why you are choosing a high-risk AI system, including a mapping of key stages within the project and an assessment of resources and capabilities within your team or organization.",
         priority_level: "high priority",
         answer_type: "Long text",
         input_type: "Tiptap area",

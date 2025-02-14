@@ -48,11 +48,6 @@ const insertQuery = {
   roles: {
     mockData: roles,
     tableName: "roles",
-    createString: `CREATE TABLE roles (
-      id SERIAL PRIMARY KEY,
-      name VARCHAR(255),
-      description TEXT
-    );`,
     insertString: "INSERT INTO roles(name, description) VALUES ",
     generateValuesString: function (role: Role) {
       return `(
@@ -64,16 +59,6 @@ const insertQuery = {
   users: {
     mockData: users,
     tableName: "users",
-    createString: `CREATE TABLE users (
-      id SERIAL PRIMARY KEY,
-      name VARCHAR(255),
-      surname VARCHAR(255),
-      email VARCHAR(255),
-      password_hash VARCHAR(255),
-      role INT REFERENCES roles(id),
-      created_at DATE,
-      last_login DATE
-    );`,
     insertString:
       "INSERT INTO users(name, surname, email, password_hash, role, created_at, last_login) VALUES ",
     generateValuesString: function (user: User) {
@@ -91,25 +76,13 @@ const insertQuery = {
   projects: {
     mockData: Projects,
     tableName: "projects",
-    createString: `CREATE TABLE projects (
-      id SERIAL PRIMARY KEY,
-      project_title VARCHAR(255),
-      owner INTEGER REFERENCES users(id),
-      users TEXT,
-      start_date DATE,
-      ai_risk_classification VARCHAR(255),
-      type_of_high_risk_role VARCHAR(255),
-      goal VARCHAR(255),
-      last_updated DATE,
-      last_updated_by INTEGER REFERENCES users(id)
-    );`,
     insertString:
-      "INSERT INTO projects(project_title, owner, users, start_date, ai_risk_classification, type_of_high_risk_role, goal, last_updated, last_updated_by) VALUES ",
+      "INSERT INTO projects(project_title, owner, members, start_date, ai_risk_classification, type_of_high_risk_role, goal, last_updated, last_updated_by) VALUES ",
     generateValuesString: function (project: Project) {
       return `(
         'DEMO - ${project.project_title}',
         '${project.owner}',
-        '${project.users}',
+        '{${project.members}}',
         '${project.start_date.toISOString().split("T")[0]}',
         '${project.ai_risk_classification}',
         '${project.type_of_high_risk_role}',
@@ -122,28 +95,6 @@ const insertQuery = {
   vendors: {
     mockData: vendors,
     tableName: "vendors",
-    createString: `CREATE TABLE vendors (
-      id SERIAL PRIMARY KEY,
-      vendor_name VARCHAR(255),
-      assignee VARCHAR(255),
-      vendor_provides TEXT,
-      website VARCHAR(255),
-      vendor_contact_person VARCHAR(255),
-      review_result VARCHAR(255),
-      review_status VARCHAR(255),
-      reviewer VARCHAR(255),
-      risk_status VARCHAR(255),
-      review_date DATE,
-      risk_description TEXT,
-      impact_description TEXT,
-      impact INT,
-      probability FLOAT,
-      action_owner VARCHAR(255),
-      action_plan TEXT,
-      risk_severity INT,
-      risk_level VARCHAR(255),
-      likelihood FLOAT
-    );`,
     insertString:
       "INSERT INTO vendors(vendor_name, assignee, vendor_provides, website, vendor_contact_person, review_result, review_status, reviewer, risk_status, review_date, risk_description, impact_description, impact, probability, action_owner, action_plan, risk_severity, risk_level, likelihood) VALUES ",
     generateValuesString: function (vendor: Vendor) {
@@ -173,130 +124,82 @@ const insertQuery = {
   assessments: {
     mockData: Assessments,
     tableName: "assessments",
-    createString: `CREATE TABLE assessments (
-      id SERIAL PRIMARY KEY,
-      project_id INT REFERENCES projects(id)
-    );`,
     insertString: "INSERT INTO assessments(project_id) VALUES ",
     generateValuesString: function (assessment: Assessment) {
       return `(
-        '${assessment.projectId}'
+        '${assessment.project_id}'
       )`;
     },
   },
   controlCategories: {
     mockData: ControlCategories,
     tableName: "controlcategories",
-    createString: `CREATE TABLE controlcategories (
-      id SERIAL PRIMARY KEY,
-      project_id INT REFERENCES projects(id),
-      name VARCHAR(255)
-    );`,
-    insertString: "INSERT INTO controlcategories(project_id, name) VALUES ",
+    insertString: "INSERT INTO controlcategories(project_id, title) VALUES ",
     generateValuesString: function (controlCategory: ControlCategory) {
       return `(
-        '${controlCategory.projectId}',
-        'DEMO - ${controlCategory.name}'
+        '${controlCategory.project_id}',
+        'DEMO - ${controlCategory.title}'
       )`;
     },
   },
   mockControls: {
     mockData: mockControls,
     tableName: "controls",
-    createString: `CREATE TABLE controls (
-      id SERIAL PRIMARY KEY,
-      status VARCHAR(255),
-      approver VARCHAR(255),
-      risk_review TEXT,
-      owner VARCHAR(255),
-      reviewer VARCHAR(255),
-      due_date DATE,
-      implementation_details TEXT,
-      control_group INT REFERENCES controlcategories(id)
-    );`,
     insertString:
-      "INSERT INTO controls(status, approver, risk_review, owner, reviewer, due_date, implementation_details, control_group) VALUES ",
+      `INSERT INTO controls(
+        title, description, order_no,
+        status, approver, risk_review, 
+        owner, reviewer, due_date, 
+        implementation_details, control_category_id) VALUES `,
     generateValuesString: function (control: Control) {
       return `(
+        '${control.title}',
+        '${control.description}',
+        ${control.order_no},
         '${control.status}',
         '${control.approver}',
-        '${control.riskReview}',
+        '${control.risk_review}',
         '${control.owner}',
         '${control.reviewer}',
-        '${control.dueDate.toISOString().split("T")[0]}',
-        'DEMO - ${control.implementationDetails}',
-        '${control.controlGroup}'
+        '${control.due_date!.toISOString().split("T")[0]}',
+        'DEMO - ${control.implementation_details}',
+        ${control.control_category_id}
       )`;
     },
   },
   subcontrols: {
     mockData: subcontrols,
     tableName: "subcontrols",
-    createString: `CREATE TABLE subcontrols (
-      id SERIAL PRIMARY KEY,
-      control_id INT REFERENCES controls(id),
-      status VARCHAR(255),
-      approver VARCHAR(255),
-      risk_review TEXT,
-      owner VARCHAR(255),
-      reviewer VARCHAR(255),
-      due_date DATE,
-      implementation_details TEXT,
-      evidence VARCHAR(255),
-      feedback TEXT,
-      evidenceFiles TEXT[],
-      feedbackFiles TEXT[]
-    );`,
     insertString:
-      "INSERT INTO subcontrols(control_id, status, approver, risk_review, owner, reviewer, due_date, implementation_details, evidence, feedback, evidenceFiles, feedbackFiles) VALUES ",
+      `INSERT INTO subcontrols(
+        title, description, order_no, 
+        status, approver, risk_review, 
+        owner, reviewer, due_date, 
+        implementation_details, evidence_description, feedback_description, 
+        evidence_files, feedback_files, control_id) VALUES `,
     generateValuesString: function (subControl: Subcontrol) {
       return `(
-        '${subControl.controlId}',
+        '${subControl.title}',
+        '${subControl.description}',
+        ${subControl.order_no},
         '${subControl.status}',
         '${subControl.approver}',
-        '${subControl.riskReview}',
+        '${subControl.risk_review}',
         '${subControl.owner}',
         '${subControl.reviewer}',
-        '${subControl.dueDate.toISOString().split("T")[0]}',
-        'DEMO - ${subControl.implementationDetails}',
-        '${subControl.evidence}',
-        '${subControl.feedback}',
+        '${subControl.due_date!.toISOString().split("T")[0]}',
+        'DEMO - ${subControl.implementation_details}',
+        '${subControl.evidence_description}',
+        '${subControl.feedback_description}',
         ARRAY[]::TEXT[],
-        ARRAY[]::TEXT[]
+        ARRAY[]::TEXT[],
+        '${subControl.control_id}'
       )`;
     },
   },
   mockProjectRisks: {
     mockData: mockProjectRisks,
     tableName: "projectrisks",
-    createString: `CREATE TABLE projectrisks (
-      id SERIAL PRIMARY KEY,
-      project_id INT REFERENCES projects(id),
-      risk_name VARCHAR(255),
-      risk_owner VARCHAR(255),
-      ai_lifecycle_phase VARCHAR(255),
-      risk_description TEXT,
-      risk_category VARCHAR(255),
-      impact VARCHAR(255),
-      assessment_mapping TEXT,
-      controls_mapping TEXT,
-      likelihood VARCHAR(255),
-      severity VARCHAR(255),
-      risk_level_autocalculated VARCHAR(255),
-      review_notes TEXT,
-      mitigation_status VARCHAR(255),
-      current_risk_level VARCHAR(255),
-      deadline DATE,
-      mitigation_plan TEXT,
-      implementation_strategy TEXT,
-      mitigation_evidence_document VARCHAR(255),
-      likelihood_mitigation VARCHAR(255),
-      risk_severity VARCHAR(255),
-      final_risk_level VARCHAR(255),
-      risk_approval VARCHAR(255),
-      approval_status VARCHAR(255),
-      date_of_assessment DATE
-    );`,
     insertString:
       "INSERT INTO projectrisks(project_id, risk_name, risk_owner, ai_lifecycle_phase, risk_description, risk_category, impact, assessment_mapping, controls_mapping, likelihood, severity, risk_level_autocalculated, review_notes, mitigation_status, current_risk_level, deadline, mitigation_plan, implementation_strategy, mitigation_evidence_document, likelihood_mitigation, risk_severity, final_risk_level, risk_approval, approval_status, date_of_assessment) VALUES ",
     generateValuesString: function (projectRisk: ProjectRisk) {
@@ -332,15 +235,6 @@ const insertQuery = {
   mockVendorRisks: {
     mockData: mockVendorRisks,
     tableName: "vendorrisks",
-    createString: `CREATE TABLE vendorrisks (
-      id SERIAL PRIMARY KEY,
-      project_id INT REFERENCES projects(id),
-      vendor_name VARCHAR(255),
-      risk_name VARCHAR(255),
-      owner VARCHAR(255),
-      risk_level VARCHAR(255),
-      review_date DATE
-    );`,
     insertString:
       "INSERT INTO vendorrisks(project_id, vendor_name, risk_name, owner, risk_level, review_date) VALUES ",
     generateValuesString: function (vendorRisk: VendorRisk) {
@@ -357,18 +251,6 @@ const insertQuery = {
   projectScopes: {
     mockData: projectScopes,
     tableName: "projectscopes",
-    createString: `CREATE TABLE projectscopes (
-      id SERIAL PRIMARY KEY,
-      assessment_id INT REFERENCES assessments(id),
-      describe_ai_environment TEXT,
-      is_new_ai_technology BOOLEAN,
-      uses_personal_data BOOLEAN,
-      project_scope_documents VARCHAR(255),
-      technology_type VARCHAR(255),
-      has_ongoing_monitoring BOOLEAN,
-      unintended_outcomes TEXT,
-      technology_documentation VARCHAR(255)
-    );`,
     insertString:
       "INSERT INTO projectscopes(assessment_id, describe_ai_environment, is_new_ai_technology, uses_personal_data, project_scope_documents, technology_type, has_ongoing_monitoring, unintended_outcomes, technology_documentation) VALUES ",
     generateValuesString: function (projectScope: ProjectScope) {
@@ -388,71 +270,51 @@ const insertQuery = {
   topics: {
     mockData: topics,
     tableName: "topics",
-    createString: `CREATE TABLE topics (
-      id SERIAL PRIMARY KEY,
-      assessment_id INT REFERENCES assessments(id),
-      title VARCHAR(255)
-        );`,
-    insertString: "INSERT INTO topics(assessment_id, title) VALUES ",
+    insertString: "INSERT INTO topics(assessment_id, title, order_no) VALUES ",
     generateValuesString: function (topic: Topic) {
-      return `(${topic.assessmentId}, 'DEMO - ${topic.title}')`;
+      return `(${topic.assessment_id}, 'DEMO - ${topic.title}', ${topic.order_no})`;
     },
   },
   subtopics: {
     mockData: subtopics,
     tableName: "subtopics",
-    createString: `CREATE TABLE subtopics (
-      id SERIAL PRIMARY KEY,
-      topic_id INT REFERENCES topics(id),
-      name VARCHAR(255)
-        );`,
-    insertString: "INSERT INTO subtopics(topic_id, name) VALUES ",
+    insertString: "INSERT INTO subtopics(topic_id, title, order_no) VALUES ",
     generateValuesString: function (subTopic: Subtopic) {
       return `(
-        ${subTopic.topicId},
-        'DEMO - ${subTopic.name}'
+        ${subTopic.topic_id},
+        'DEMO - ${subTopic.title}',
+        ${subTopic.order_no}
       )`;
     },
   },
   questions: {
     mockData: questions,
     tableName: "questions",
-    createString: `CREATE TABLE questions (
-      id SERIAL PRIMARY KEY,
-      subtopic_id INT REFERENCES subtopics(id),
-      question_text TEXT,
-      answer_type VARCHAR(255),
-      evidence_file_required BOOLEAN,
-      hint TEXT,
-      is_required BOOLEAN,
-      priority_level VARCHAR(255),
-      evidence_files TEXT[],
-      answer TEXT
-    );`,
     insertString:
-      "INSERT INTO questions(subtopic_id, question_text, answer_type, evidence_file_required, hint, is_required, priority_level, evidence_files, answer) VALUES ",
+      `INSERT INTO questions(subtopic_id, question, 
+        answer_type, evidence_required, hint, 
+        is_required, priority_level, evidence_files,
+        dropdown_options, answer, input_type, order_id) VALUES `,
     generateValuesString: function (question: Question) {
       return `(
-        ${question.subtopicId},
-        'DEMO - ${question.questionText}',
-        '${question.answerType}',
-        ${question.evidenceFileRequired},
+        ${question.subtopic_id},
+        'DEMO - ${question.question}',
+        '${question.answer_type}',
+        ${question.evidence_required},
         '${question.hint}',
-        ${question.isRequired},
-        '${question.priorityLevel}',
+        ${question.is_required},
+        '${question.priority_level}',
         ARRAY[]::TEXT[],
-        '${question.answer}'
+        ARRAY[]::TEXT[],
+        '${question.answer}',
+        '${question.input_type}',
+        ${question.order_no}
       )`;
     },
   },
   files: {
     mockData: [] as File[],
     tableName: "files",
-    createString: `CREATE TABLE files (
-      id SERIAL PRIMARY KEY,
-      filename TEXT NOT NULL,
-      content BYTEA NOT NULL
-    );`,
     insertString: "INSERT INTO files(filename, content) VALUES ",
     generateValuesString: (file: File) => {
       return `(
@@ -464,11 +326,6 @@ const insertQuery = {
   vendorsProjects: {
     mockData: vendorsProjects,
     tableName: "vendors_projects",
-    createString: `CREATE TABLE vendors_projects (
-      vendor_id INT REFERENCES vendors(id),
-      project_id INT REFERENCES projects(id),
-      PRIMARY KEY (vendor_id, project_id)
-    );`,
     insertString: "INSERT INTO vendors_projects(vendor_id, project_id) VALUES ",
     generateValuesString: (vendors_projects: VendorsProjects) => {
       return `(
@@ -483,7 +340,6 @@ export async function insertMockData() {
   // var {
   //   mockData: roleMockData,
   //   tableName,
-  //   createString,
   //   insertString,
   //   generateValuesString: roleGenerateValuesString,
   // } = insertQuery["roles"];
@@ -497,7 +353,6 @@ export async function insertMockData() {
   var {
     mockData: userMockData,
     tableName,
-    createString,
     insertString,
     generateValuesString: userGenerateValuesString,
   } = insertQuery["users"];
@@ -511,7 +366,6 @@ export async function insertMockData() {
   var {
     mockData: projectMockData,
     tableName,
-    createString,
     insertString,
     generateValuesString: projectGenerateValuesString,
   } = insertQuery["projects"];
@@ -525,7 +379,6 @@ export async function insertMockData() {
   var {
     mockData: vendorMockData,
     tableName,
-    createString,
     insertString,
     generateValuesString: vendorGenerateValuesString,
   } = insertQuery["vendors"];
@@ -539,7 +392,6 @@ export async function insertMockData() {
   var {
     mockData: vendorsProjectsMockData,
     tableName,
-    createString,
     insertString,
     generateValuesString: vendorsProjectsGenerateValuesString,
   } = insertQuery["vendorsProjects"];
@@ -560,7 +412,6 @@ export async function insertMockData() {
   var {
     mockData: assessmentMockData,
     tableName,
-    createString,
     insertString,
     generateValuesString: assessmentGenerateValuesString,
   } = insertQuery["assessments"];
@@ -574,7 +425,6 @@ export async function insertMockData() {
   var {
     mockData: controlCategoriesMockData,
     tableName,
-    createString,
     insertString,
     generateValuesString: controlCategoriesGenerateValuesString,
   } = insertQuery["controlCategories"];
@@ -588,7 +438,6 @@ export async function insertMockData() {
   var {
     mockData: controlMockData,
     tableName,
-    createString,
     insertString,
     generateValuesString: controlGenerateValuesString,
   } = insertQuery["mockControls"];
@@ -602,7 +451,6 @@ export async function insertMockData() {
   var {
     mockData: subControlMockData,
     tableName,
-    createString,
     insertString,
     generateValuesString: subControlGenerateValuesString,
   } = insertQuery["subcontrols"];
@@ -623,7 +471,6 @@ export async function insertMockData() {
   var {
     mockData: projectRisksMockData,
     tableName,
-    createString,
     insertString,
     generateValuesString: projectRisksGenerateValuesString,
   } = insertQuery["mockProjectRisks"];
@@ -639,7 +486,6 @@ export async function insertMockData() {
   var {
     mockData: vendorRisksMockData,
     tableName,
-    createString,
     insertString,
     generateValuesString: vendorRisksGenerateValuesString,
   } = insertQuery["mockVendorRisks"];
@@ -656,7 +502,6 @@ export async function insertMockData() {
   var {
     mockData: projectScopeMockData,
     tableName,
-    createString,
     insertString,
     generateValuesString: projectScopeGenerateValuesString,
   } = insertQuery["projectScopes"];
@@ -670,7 +515,6 @@ export async function insertMockData() {
   var {
     mockData: topicMockData,
     tableName,
-    createString,
     insertString,
     generateValuesString: topicGenerateValuesString,
   } = insertQuery["topics"];
@@ -684,40 +528,12 @@ export async function insertMockData() {
   var {
     mockData: subTopicMockData,
     tableName,
-    createString,
     insertString,
     generateValuesString: subTopicGenerateValuesString,
   } = insertQuery["subtopics"];
   let subTopics;
   if (subTopicMockData.length !== 0) {
-    const values = subTopicMockData(
-      topics![0].id,
-      topics![1].id,
-      topics![2].id,
-      topics![3].id,
-      topics![4].id,
-      topics![5].id,
-      topics![6].id,
-      topics![7].id,
-      topics![8].id,
-      topics![9].id,
-      topics![10].id,
-      topics![11].id,
-      topics![12].id,
-      topics![13].id,
-      topics![14].id,
-      topics![15].id,
-      topics![16].id,
-      topics![17].id,
-      topics![18].id,
-      topics![19].id,
-      topics![20].id,
-      topics![21].id,
-      topics![22].id,
-      topics![23].id,
-      topics![24].id,
-      topics![25].id,
-    ).map((d) => subTopicGenerateValuesString(d as any));
+    const values = subTopicMockData(topics!.map(t => t.id)).map((d) => subTopicGenerateValuesString(d as any));
     insertString += values.join(",") + "RETURNING id;";
     subTopics = await insertData(insertString as string);
   }
@@ -725,31 +541,12 @@ export async function insertMockData() {
   var {
     mockData: questionMockData,
     tableName,
-    createString,
     insertString,
     generateValuesString: questionGenerateValuesString,
   } = insertQuery["questions"];
   let questions;
   if (questionMockData.length !== 0) {
-    const values = questionMockData(
-      subTopics![0].id,
-      subTopics![1].id,
-      subTopics![2].id,
-      subTopics![3].id,
-      subTopics![4].id,
-      subTopics![5].id,
-      subTopics![6].id,
-      subTopics![7].id,
-      subTopics![8].id,
-      subTopics![9].id,
-      subTopics![10].id,
-      subTopics![11].id,
-      subTopics![12].id,
-      subTopics![13].id,
-      subTopics![14].id,
-      subTopics![15].id,
-      subTopics![16].id,
-    ).map((d) => questionGenerateValuesString(d as any));
+    const values = questionMockData(subTopics!.map(s => s.id)).map((d) => questionGenerateValuesString(d as any));
     insertString += values.join(",") + "RETURNING id;";
     questions = await insertData(insertString as string);
   }

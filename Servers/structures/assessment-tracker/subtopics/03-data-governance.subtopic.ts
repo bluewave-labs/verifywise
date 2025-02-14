@@ -98,7 +98,7 @@ export const DataGovernance = [
         order_no: 8,
         question:
           "Does the repository track and manage intellectual property rights and restrictions on the use of its content as required by deposit agreements, contracts, or licenses?",
-        hint: "Describe your findings on data quality, completeness, and balance, using the provider's documentation as a starting point. Discuss issues such as missing data, outliers, and unbalanced classes.",
+        hint: "Describe your findings on data quality, completeness, and balance, using the provider''s documentation as a starting point. Discuss issues such as missing data, outliers, and unbalanced classes.",
         priority_level: "high priority",
         answer_type: "Long text",
         input_type: "Tiptap area",
@@ -156,7 +156,7 @@ export const DataGovernance = [
         order_no: 4,
         question:
           "Describe the measures in place to ensure that the AI system does not leak private or sensitive data, especially in the context of adversarial attacks.",
-        hint: "Detail the AI provider's safety frameworks and add any organizational measures implemented to prevent data leaks.",
+        hint: "Detail the AI provider''s safety frameworks and add any organizational measures implemented to prevent data leaks.",
         priority_level: "high priority",
         answer_type: "Long text",
         input_type: "Tiptap area",
@@ -195,7 +195,7 @@ export const DataGovernance = [
         order_no: 7,
         question:
           "Has the organization determined how the privacy of those involved is protected? What specific measures are in place?",
-        hint: "Describe the privacy risks and how they are mitigated through organizational and technical measures, complementing the AI provider's safeguards.",
+        hint: "Describe the privacy risks and how they are mitigated through organizational and technical measures, complementing the AI provider''s safeguards.",
         priority_level: "high priority",
         answer_type: "Long text",
         input_type: "Tiptap area",

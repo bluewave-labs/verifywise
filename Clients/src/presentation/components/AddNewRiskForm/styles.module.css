@@ -5,7 +5,7 @@
 .popupBody {
   padding: 10px;
   overflow: auto;
-  height: calc(100vh - 309px);
+  max-height: calc(100vh - 309px);
   /* height: 572.08px; */
 }
 .popupBody::-webkit-scrollbar-track {

@@ -19,32 +19,23 @@ export const getSubtopicByIdQuery = async (
   return result.rows.length ? result.rows[0] : null;
 };
 
-export const createNewSubtopicQuery = async (subtopic: {
-  topicId: number;
-  name: string;
-}): Promise<{
-  topicId: number;
-  name: string;
-}> => {
+export const createNewSubtopicQuery = async (subtopic: Subtopic): Promise<Subtopic> => {
   console.log("createNewSubtopic", subtopic);
   const result = await pool.query(
-    `INSERT INTO subtopics (topic_id, name) VALUES ($1, $2) RETURNING *`,
-    [subtopic.topicId, subtopic.name]
+    `INSERT INTO subtopics (topic_id, title) VALUES ($1, $2) RETURNING *`,
+    [subtopic.topic_id, subtopic.title]
   );
   return result.rows[0];
 };
 
 export const updateSubtopicByIdQuery = async (
   id: number,
-  subtopic: Partial<{
-    topicId: number;
-    name: string;
-  }>
+  subtopic: Partial<Subtopic>
 ): Promise<Subtopic | null> => {
   console.log("updateSubtopicById", id, subtopic);
   const result = await pool.query(
-    `UPDATE subtopics SET topic_id = $1, name = $2 WHERE id = $3 RETURNING *`,
-    [subtopic.topicId, subtopic.name, id]
+    `UPDATE subtopics SET topic_id = $1, title = $2 WHERE id = $3 RETURNING *`,
+    [subtopic.topic_id, subtopic.title, id]
   );
   return result.rows.length ? result.rows[0] : null;
 };
@@ -71,131 +62,33 @@ export const getSubTopicByTopicIdQuery = async (
   return result.rows;
 }
 
-const subTopicsMock = (
-  topicIds: number[]
-): Subtopic[] => {
-  return [
-    {
-      id: 1,
-      topicId: topicIds[0],
-      name: "General",
-    },
-    {
-      id: 2,
-      topicId: topicIds[0],
-      name: "Technology details",
-    },
-    {
-      id: 3,
-      topicId: topicIds[1],
-      name: "Transparency and provision of information to deployers",
-    },
-    {
-      id: 4,
-      topicId: topicIds[1],
-      name: "Responsibilities along the AI value chain",
-    },
-    {
-      id: 5,
-      topicId: topicIds[2],
-      name: "Responsibilities along the AI value chain",
-    },
-    {
-      id: 6,
-      topicId: topicIds[2],
-      name: "Fundamental rights impact assessments for high-risk AI systems",
-    },
-    {
-      id: 7,
-      topicId: topicIds[3],
-      name: "AI model capability assessment",
-    },
-    {
-      id: 8,
-      topicId: topicIds[4],
-      name: "AI model capability assessment",
-    },
-    {
-      id: 9,
-      topicId: topicIds[5],
-      name: "User notification of AI system use",
-    },
-    {
-      id: 10,
-      topicId: topicIds[6],
-      name: "Oversight documentation",
-    },
-    {
-      id: 11,
-      topicId: topicIds[6],
-      name: "Human intervention mechanisms",
-    },
-    {
-      id: 12,
-      topicId: topicIds[7],
-      name: "System validation and reliability documentation",
-    },
-    {
-      id: 13,
-      topicId: topicIds[7],
-      name: "AI system change documentation",
-    },
-    {
-      id: 14,
-      topicId: topicIds[8],
-      name: "EU database registration",
-    },
-    {
-      id: 15,
-      topicId: topicIds[9],
-      name: "Post-market monitoring by providers and post-market monitoring plan for high-risk AI systems",
-    },
-    {
-      id: 16,
-      topicId: topicIds[10],
-      name: "Bias and fairness evaluation",
-    },
-    {
-      id: 17,
-      topicId: topicIds[11],
-      name: "System information documentation",
-    },
-    {
-      id: 18,
-      topicId: topicIds[12],
-      name: "Transparency obligations for providers and users of certain AI systems",
-    },
-    {
-      id: 19,
-      topicId: topicIds[13],
-      name: "Environmental impact",
-    },
-  ]
-}
-
 export const createNewSubTopicsQuery = async (
-  topicIds: number[]
+  topicId: number,
+  subTopics: {
+    order_no: number;
+    title: string;
+    questions: {
+      order_no: number;
+      question: string;
+      hint: string;
+      priority_level: string;
+      answer_type: string;
+      input_type: string;
+      evidence_required: boolean;
+      isrequired: boolean;
+      evidence_files: never[];
+      dropdown_options: never[];
+    }[];
+  }[]
 ) => {
-  let query = "INSERT INTO subtopics(topic_id, name) VALUES "
-  const data = subTopicsMock(topicIds).map((d) => {
-    return `(${d.topicId}, '${d.name}')`;
-  })
-  query += data.join(",") + "RETURNING *;"
-  const result = await pool.query(query)
-  const questions: Question[] = await createNewQuestionsQuery(result.rows.map(r => Number(r.id)))
-  const subTopics = result.rows as Subtopic[]
-
-  let stPtr = 0, qPtr = 0;
-  while (qPtr < questions.length) {
-    (subTopics[stPtr] as any).questions = []
-    while (subTopics[stPtr].id === (questions[qPtr] as any)["subtopic_id"]) {
-      (subTopics[stPtr] as any).questions.push(questions[qPtr])
-      qPtr += 1
-      if (qPtr === questions.length) break;
-    }
-    stPtr += 1
+  const createdSubTopics = []
+  let query = "INSERT INTO subtopics(topic_id, title, order_no) VALUES ($1, $2, $3) RETURNING *;"
+  for (let subTopicStruct of subTopics) {
+    const result = await pool.query(query, [topicId, subTopicStruct.title, subTopicStruct.order_no])
+    const subtopic_id = result.rows[0].id
+    const questions = await createNewQuestionsQuery(subtopic_id, subTopicStruct.questions)
+    createdSubTopics.push({ ...result.rows[0], questions })
   }
-
-  return subTopics
+  return createdSubTopics
 }
 

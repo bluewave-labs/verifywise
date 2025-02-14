@@ -9,7 +9,7 @@ import {
   getAllAssessments,
   getAnswers,
   getAssessmentById,
-  saveAnswers,
+  // saveAnswers,
   updateAssessmentById,
 } from "../controllers/assessment.ctrl";
 
@@ -22,7 +22,7 @@ router.get("/:id", /*authenticateJWT, */ getAssessmentById);
 
 // POSTs
 router.post("/", /*authenticateJWT, */ createAssessment);
-router.post("/saveAnswers", /*authenticateJWT, */ upload.any("files"), saveAnswers);
+// router.post("/saveAnswers", /*authenticateJWT, */ upload.any("files"), saveAnswers);
 
 // PUTs
 router.put("/:id", /*authenticateJWT, */ updateAssessmentById);

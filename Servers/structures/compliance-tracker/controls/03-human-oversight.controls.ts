@@ -22,7 +22,7 @@ export const HumanOversight = [
       {
         order_no: 3,
         title:
-          "We align oversight measures with provider's instructions for use.",
+          "We align oversight measures with provider''s instructions for use.",
         description:
           "Aligning measures with provider instructions ensures system use remains within intended boundaries and purposes.",
       },
@@ -63,9 +63,9 @@ export const HumanOversight = [
       {
         order_no: 2,
         title:
-          "We proportion oversight measures to match AI system's risk level and autonomy.",
+          "We proportion oversight measures to match AI system''s risk level and autonomy.",
         description:
-          "Oversight measures are scaled appropriately to reflect the system's complexity, risk, and decision-making autonomy.",
+          "Oversight measures are scaled appropriately to reflect the system''s complexity, risk, and decision-making autonomy.",
       },
     ],
   },

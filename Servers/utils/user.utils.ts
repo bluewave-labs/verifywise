@@ -245,7 +245,7 @@ export const getControlCategoriesForProject = async (id: number) => {
 
 export const getControlForControlCategory = async (id: number) => {
   const result = await pool.query(
-    "SELECT id FROM controls WHERE control_group = $1",
+    "SELECT id FROM controls WHERE control_category_id = $1",
     [id]
   );
   return result.rows;

@@ -26,6 +26,7 @@ import {
   updateQuestionByIdQuery,
   UploadedFile,
 } from "../utils/question.utils";
+import { Assessment } from "../models/assessment.model";
 
 export async function getAllAssessments(
   req: Request,
@@ -67,11 +68,9 @@ export async function createAssessment(
   res: Response
 ): Promise<any> {
   try {
-    const newAssessment: {
-      projectId: number;
-    } = req.body;
+    const newAssessment: Assessment = req.body;
 
-    if (!newAssessment.projectId) {
+    if (!newAssessment.project_id) {
       return res.status(400).json(
         STATUS_CODE[400]({
           message: "projectId is required",
@@ -96,11 +95,9 @@ export async function updateAssessmentById(
 ): Promise<any> {
   try {
     const assessmentId = parseInt(req.params.id);
-    const updatedAssessment: {
-      projectId: number;
-    } = req.body;
+    const updatedAssessment: Assessment = req.body;
 
-    if (!updatedAssessment.projectId) {
+    if (!updatedAssessment.project_id) {
       return res.status(400).json(
         STATUS_CODE[400]({
           message: "projectId is required",
@@ -140,87 +137,87 @@ export async function deleteAssessmentById(
   }
 }
 
-export async function saveAnswers(req: RequestWithFile, res: Response): Promise<any> {
-  try {
-    const requestBody = req.body as {
-      assessmentId: number;
-      topic: string;
-      topicId: number;
-      subtopic: string;
-    };
-    const assessmentId = requestBody.assessmentId;
-    // now, create a topic using the assessmentId and the topic
-    const topic: any = await updateTopicByIdQuery(requestBody.topicId, {
-      assessmentId,
-      title: requestBody.topic,
-    });
+// export async function saveAnswers(req: RequestWithFile, res: Response): Promise<any> {
+//   try {
+//     const requestBody = req.body as {
+//       assessmentId: number;
+//       topic: string;
+//       topicId: number;
+//       subtopic: string;
+//     };
+//     const assessmentId = requestBody.assessmentId;
+//     // now, create a topic using the assessmentId and the topic
+//     const topic: any = await updateTopicByIdQuery(requestBody.topicId, {
+//       assessmentId,
+//       title: requestBody.topic,
+//     });
 
-    // now iterate over the subtopics, create a subtopic using topic id and the subtopic
-    const subtopics = JSON.parse(requestBody.subtopic) as {
-      id: number;
-      name: string;
-      questions: {
-        id: number;
-        subtopicId: number;
-        questionText: string;
-        answerType: string;
-        evidenceFileRequired: boolean;
-        hint: string;
-        isRequired: boolean;
-        priorityLevel: string;
-        answer: string;
-        evidenceFiles: [];
-      }[];
-    }[];
-    const subTopicResp = []
-    for (const subtopic of subtopics) {
-      const subtopicToUpdate: any = await updateSubtopicByIdQuery(subtopic.id, {
-        topicId: topic.id,
-        name: subtopic.name,
-      });
-      const subtopicId = subtopicToUpdate.id;
-      const questions = subtopic.questions;
-      // now iterate over the questions, create a question using subtopic id and the question
-      const questionResp = []
-      for (const question of questions) {
-        console.log(req.files);
-        const questionSaved = await updateQuestionByIdQuery(
-          question.id,
-          {
-            subtopicId,
-            questionText: question.questionText,
-            answerType: question.answerType,
-            evidenceFileRequired: question.evidenceFileRequired,
-            hint: question.hint,
-            isRequired: question.isRequired,
-            priorityLevel: question.priorityLevel,
-            answer: question.answer,
-          },
-          req.files as UploadedFile[]
-        );
-        questionResp.push(questionSaved)
-      }
-      subtopicToUpdate["questions"] = questionResp
-      subTopicResp.push(subtopicToUpdate)
-    }
-    const response = { ...topic, subTopics: subTopicResp }
-    res.status(200).json(STATUS_CODE[200]({ message: response }));
-  }
-  catch (error) {
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
-  }
-}
+//     // now iterate over the subtopics, create a subtopic using topic id and the subtopic
+//     const subtopics = JSON.parse(requestBody.subtopic) as {
+//       id: number;
+//       name: string;
+//       questions: {
+//         id: number;
+//         subtopicId: number;
+//         questionText: string;
+//         answerType: string;
+//         evidenceFileRequired: boolean;
+//         hint: string;
+//         isRequired: boolean;
+//         priorityLevel: string;
+//         answer: string;
+//         evidenceFiles: [];
+//       }[];
+//     }[];
+//     const subTopicResp = []
+//     for (const subtopic of subtopics) {
+//       const subtopicToUpdate: any = await updateSubtopicByIdQuery(subtopic.id, {
+//         topicId: topic.id,
+//         name: subtopic.name,
+//       });
+//       const subtopicId = subtopicToUpdate.id;
+//       const questions = subtopic.questions;
+//       // now iterate over the questions, create a question using subtopic id and the question
+//       const questionResp = []
+//       for (const question of questions) {
+//         console.log(req.files);
+//         const questionSaved = await updateQuestionByIdQuery(
+//           question.id,
+//           {
+//             subtopicId,
+//             questionText: question.questionText,
+//             answerType: question.answerType,
+//             evidenceFileRequired: question.evidenceFileRequired,
+//             hint: question.hint,
+//             isRequired: question.isRequired,
+//             priorityLevel: question.priorityLevel,
+//             answer: question.answer,
+//           },
+//           req.files as UploadedFile[]
+//         );
+//         questionResp.push(questionSaved)
+//       }
+//       subtopicToUpdate["questions"] = questionResp
+//       subTopicResp.push(subtopicToUpdate)
+//     }
+//     const response = { ...topic, subTopics: subTopicResp }
+//     res.status(200).json(STATUS_CODE[200]({ message: response }));
+//   }
+//   catch (error) {
+//     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+//   }
+// }
 
 export async function getAnswers(req: Request, res: Response): Promise<any> {
   try {
     const assessmentId = parseInt(req.params.id);
     const assessment = await getAssessmentByIdQuery(assessmentId);
-    const topics = await getTopicByAssessmentIdQuery(assessment!.id)
+    const topics = await getTopicByAssessmentIdQuery(assessment!.id!)
     for (let topic of topics) {
-      const subTopics = await getSubTopicByTopicIdQuery(topic.id)
+      const subTopics = await getSubTopicByTopicIdQuery(topic.id!)
 
       for (let subTopic of subTopics) {
-        const questions = await getQuestionBySubTopicIdQuery(subTopic.id);
+        const questions = await getQuestionBySubTopicIdQuery(subTopic.id!);
         (subTopic as any)["questions"] = questions;
       }
       (topic as any)["subTopics"] = subTopics;

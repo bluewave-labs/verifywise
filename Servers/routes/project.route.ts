@@ -5,6 +5,7 @@ import {
   createProject,
   deleteProjectById,
   getAllProjects,
+  getCompliances,
   getProjectById,
   getProjectRisksCalculations,
   getProjectStatsById,
@@ -27,6 +28,8 @@ router.get(
 );
 router.get("/:id", /*authenticateJWT,*/ getProjectById);
 router.get("/stats/:id", getProjectStatsById);
+
+router.get("/complainces/:projid", getCompliances);
 
 // POSTs
 router.post("/", /*authenticateJWT,*/ createProject);

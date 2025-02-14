@@ -16,51 +16,42 @@ import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
 import { createNewUser } from "../../../../application/repository/entity.repository";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
-import { State, SubControlState } from "./paneInterfaces";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import { Subcontrol } from "../../../../domain/Subcontrol";
+import { Control } from "../../../../domain/Control";
 
 const NewControlPane = ({
-  id,
-  numbering,
+  data,
   isOpen,
   handleClose,
-  title,
-  content,
-  subControls,
   controlCategory,
   controlCategoryId,
   OnSave,
-  controlGroupId,
 }: {
-  id: string;
-  numbering: string;
+  data: Control;
   isOpen: boolean;
   handleClose: () => void;
-  title: string;
-  content: string;
-  subControls: any[];
   controlCategory: string;
   controlCategoryId: string;
-  OnSave?: (state: State) => void;
-  controlGroupId: string;
+  OnSave?: (state: Control) => void;
 }) => {
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [initialValues, setInitialValues] = useState<State>();
+  const [initialValues, setInitialValues] = useState<Control>();
   const { dashboardValues } = useContext(VerifyWiseContext);
 
   useEffect(() => {
-    console.log("useEffect triggered with id:", id);
+    console.log("useEffect triggered with id:", data.id);
     const fetchControl = async () => {
       try {
         console.log("Fetching control...");
         const response = await createNewUser({
-          routeUrl: `/controls/compliance/${controlGroupId}`,
+          routeUrl: `/controls/compliance/${1}`,
           body: {
-            controlTitle: title,
-            controlDescription: content,
+            controlTitle: data.title,
+            controlDescription: data.description,
           },
         });
         if (response.status === 200) {
@@ -74,52 +65,43 @@ const NewControlPane = ({
     };
     fetchControl();
     console.log("initialValues :==>> ", initialValues);
-  }, [id]);
+  }, [data.id]);
 
-  const initialSubControlState = subControls.map(
-    (subControl: SubControlState, index) => ({
-      control_id: initialValues?.subControls[index]?.control_id || id,
-      subControlId: initialValues?.subControls[index]?.id || subControl.id,
-      subControlTitle:
-        initialValues?.subControls[index]?.sub_control_title ||
-        subControl.title,
-      subControlDescription:
-        initialValues?.subControls[index]?.sub_control_description ||
-        subControl.subControlDescription,
-      status: initialValues?.subControls[index]?.status || subControl.status,
-      approver:
-        initialValues?.subControls[index]?.approver || subControl.approver,
-      riskReview:
-        initialValues?.subControls[index]?.risk_review || subControl.riskReview,
-      owner: initialValues?.subControls[index]?.owner || subControl.owner,
-      reviewer:
-        initialValues?.subControls[index]?.reviewer || subControl.reviewer,
-      description:
-        initialValues?.subControls[index]?.implementation_details ||
-        subControl.description,
-      date: initialValues?.subControls[index]?.due_date || subControl.date,
-      evidence:
-        initialValues?.subControls[index]?.evidence || subControl.evidence,
-      feedback:
-        initialValues?.subControls[index]?.feedback || subControl.feedback,
-    })
-  );
+  const initialSubControlState =
+    data.subControls!.map((subControl: Subcontrol, index: number) => ({
+      control_id: subControl.control_id,
+      subControlId: subControl.id,
+      order_no: index,
+      title: subControl.title,
+      description: subControl.description,
+      status: subControl.status,
+      approver: subControl.approver,
+      risk_review: subControl.risk_review,
+      owner: subControl.owner,
+      reviewer: subControl.reviewer,
+      implementation_details: subControl.description,
+      due_date: subControl.due_date,
+      evidence_description: subControl.evidence_description,
+      feedback_description: subControl.feedback_description,
+      evidence_files: subControl.evidence_files,
+      feedback_files: subControl.feedback_files,
+    })) || [];
 
-  const [state, setState] = useState<State>({
-    control: {
-      id: id,
-      controlTitle: title,
-      controlDescription: content,
-      status: initialValues?.control?.status || "",
-      approver: initialValues?.control?.approver || "",
-      riskReview: initialValues?.control?.riskReview || "",
-      owner: initialValues?.control?.owner || "",
-      reviewer: initialValues?.control?.reviewer || "",
-      description: initialValues?.control?.description || "",
-      date: initialValues?.control?.date || null,
-    },
+  const [state, setState] = useState<Control>(() => ({
+    id: data.id,
+    title: data.title,
+    description: data.description,
+    status: data.status,
+    approver: data.approver,
+    risk_review: data.risk_review,
+    owner: data.owner,
+    reviewer: data.reviewer,
+    implementation_details: data.implementation_details,
+    due_date: data.due_date,
+    control_category_id: data.control_category_id, // Added missing property
+
     subControls: initialSubControlState,
-  });
+  }));
 
   const handleSelectedTab = (_: React.SyntheticEvent, newValue: number) => {
     setSelectedTab(newValue);
@@ -135,10 +117,10 @@ const NewControlPane = ({
 
   const handleSubControlStateChange = (
     index: number,
-    newState: Partial<SubControlState>
+    newState: Partial<Subcontrol>
   ) => {
     setState((prevState) => {
-      const updatedSubControls = [...prevState.subControls];
+      const updatedSubControls = [...prevState.subControls!];
       updatedSubControls[index] = { ...updatedSubControls[index], ...newState };
       return { ...prevState, subControls: updatedSubControls };
     });
@@ -207,7 +189,7 @@ const NewControlPane = ({
   console.log("initialSubControlState : ----> : ", initialSubControlState);
   return (
     <Modal
-      id={`${id}-modal`}
+      id={`${data.id}-modal`}
       open={isOpen}
       onClose={handleClose}
       className="new-control-pane-modal"
@@ -242,19 +224,19 @@ const NewControlPane = ({
           }}
         >
           <Typography fontSize={16} fontWeight={600} sx={{ textAlign: "left" }}>
-            {numbering} {title}
+            {`${controlCategoryId + "." + data.order_no}`} {data.title}
           </Typography>
           <CloseIcon onClick={handleClose} style={{ cursor: "pointer" }} />
         </Stack>
-        <Typography fontSize={13}>{content}</Typography>
+        <Typography fontSize={13}>{data.description}</Typography>
         <DropDowns
           isControl={true}
-          elementId={`control-${id}`}
-          state={initialValues?.control}
+          elementId={`control-${data.id}`}
+          state={initialValues}
           setState={(newState) =>
             setState((prevState) => ({
               ...prevState,
-              control: { ...prevState.control, ...newState },
+              control: { ...prevState, ...newState },
             }))
           } // Update the control state correctly
         />
@@ -268,11 +250,11 @@ const NewControlPane = ({
             textColor="primary"
             sx={{ justifyContent: "flex-start" }}
           >
-            {subControls.map((subControl) => (
+            {data.subControls!.map((subControl) => (
               <Tab
-                id={`${id}.${subControl.id}`}
+                id={`${data.id}.${subControl.id}`}
                 key={subControl.id}
-                label={`Subcontrol ${subControl.id}`}
+                label={`Subcontrol ${subControl.order_no}`}
                 disableRipple
                 sx={{ textTransform: "none" }}
               />
@@ -314,18 +296,22 @@ const NewControlPane = ({
             fontWeight={600}
             sx={{ textAlign: "left", mb: 3 }}
           >
-            {`${numbering}.${subControls[selectedTab].id}`}{" "}
-            {subControls[selectedTab].title}
+            {`${controlCategoryId}.${data.order_no}.${
+              data.subControls![selectedTab].order_no
+            }`}{" "}
+            {data.subControls![selectedTab].title}
           </Typography>
           <Typography sx={{ mb: 5, fontSize: 13 }}>
-            {subControls[selectedTab].description}
+            {data.subControls![selectedTab].description}
           </Typography>
           {activeSection === "Overview" && (
             <Typography fontSize={13}>
               <DropDowns
                 isControl={false}
-                elementId={`sub-control-${id}.${subControls[selectedTab].id}`}
-                state={state.subControls[selectedTab]}
+                elementId={`sub-control-${data.order_no}.${
+                  data.subControls![selectedTab].id
+                }`}
+                state={state.subControls![selectedTab]}
                 setState={(newState) =>
                   handleSubControlStateChange(selectedTab, newState)
                 }
@@ -335,10 +321,11 @@ const NewControlPane = ({
           {activeSection === "Evidence" && (
             <AuditorFeedback
               activeSection={activeSection}
-              feedback={state.subControls[selectedTab].evidence}
+              feedback={state.subControls![selectedTab].evidence_description}
               onChange={(e) => {
-                const updatedSubControls = [...state.subControls];
-                updatedSubControls[selectedTab].evidence = e.target.value;
+                const updatedSubControls = [...state.subControls!];
+                updatedSubControls[selectedTab].evidence_description =
+                  e.target.value;
                 setState({ ...state, subControls: updatedSubControls });
               }}
             />
@@ -346,10 +333,11 @@ const NewControlPane = ({
           {activeSection === "Auditor Feedback" && (
             <AuditorFeedback
               activeSection={activeSection}
-              feedback={state.subControls[selectedTab].feedback}
+              feedback={state.subControls![selectedTab].feedback_description}
               onChange={(e) => {
-                const updatedSubControls = [...state.subControls];
-                updatedSubControls[selectedTab].feedback = e.target.value;
+                const updatedSubControls = [...state.subControls!];
+                updatedSubControls[selectedTab].feedback_description =
+                  e.target.value;
                 setState({ ...state, subControls: updatedSubControls });
               }}
             />

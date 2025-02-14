@@ -15,7 +15,6 @@ import { useState, useEffect } from "react";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
 import { createNewUser } from "../../../../application/repository/entity.repository";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
-import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { Subcontrol } from "../../../../domain/Subcontrol";
 import { Control } from "../../../../domain/Control";
 
@@ -151,23 +150,25 @@ const NewControlPane = ({
   };
 
   const confirmSave = async () => {
-    const controlToSave = {};
+    const controlToSave = {
+      state,
+    };
     console.log("controlToSave : ", controlToSave);
-    try {
-      const response = await apiServices.post(
-        "/controls/saveControls",
-        controlToSave
-      );
-      console.log("Controls saved successfully:", response);
-    } catch (error) {
-      console.error("Error saving controls:", error);
-    }
+    // try {
+    //   const response = await apiServices.post(
+    //     "/controls/saveControls",
+    //     controlToSave
+    //   );
+    //   console.log("Controls saved successfully:", response);
+    // } catch (error) {
+    //   console.error("Error saving controls:", error);
+    // }
     if (OnSave) {
       OnSave(state);
     }
     setIsModalOpen(false);
   };
-  console.log("initialSubControlState : ----> : ", initialSubControlState);
+
   return (
     <Modal
       id={`${data.id}-modal`}
@@ -213,14 +214,15 @@ const NewControlPane = ({
         <DropDowns
           isControl={true}
           elementId={`control-${data.id}`}
-          state={initialValues}
+          state={initialValues || data} // Fallback to `data` if `initialValues` isn't set yet
           setState={(newState) =>
             setState((prevState) => ({
               ...prevState,
-              control: { ...prevState, ...newState },
+              ...newState,
             }))
-          } // Update the control state correctly
+          }
         />
+
         {/* this is working fine */}
         <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
         <Box sx={{ width: "100%", bgcolor: "#FCFCFD" }}>
@@ -292,7 +294,7 @@ const NewControlPane = ({
                 elementId={`sub-control-${data.order_no}.${
                   data.subControls![selectedTab].id
                 }`}
-                state={state.subControls![selectedTab]}
+                state={initialValues?.subControls?.[selectedTab]}
                 setState={(newState) =>
                   handleSubControlStateChange(selectedTab, newState)
                 }

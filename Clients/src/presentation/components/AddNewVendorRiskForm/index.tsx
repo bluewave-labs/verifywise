@@ -285,7 +285,7 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, pop
             id="vendor-name-input"
             label="Vendor name"
             placeholder={dashboardValues.vendors.length === 0 ? "Vendor list is empty. Create a vendor first." : "Select vendor"}
-            value={values.vendorName}
+            value={values.vendorName === 0 ? '' : values.vendorName}
             onChange={handleOnSelectChange("vendorName")}
             items={dashboardValues.vendors.map((vendor: { id: any; vendor_name: any; }) => ({ _id: vendor.id, name: vendor.vendor_name }))}
             sx={{
@@ -299,7 +299,7 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, pop
             id="action-owner-input"
             label="Action owner"
             placeholder="Select owner"
-            value={values.actionOwner}
+            value={values.actionOwner === 0 ? '' : values.actionOwner}
             onChange={handleOnSelectChange("actionOwner")}
             items={users.map((user) => ({ _id: user.id, name: user.name }))}
             sx={{

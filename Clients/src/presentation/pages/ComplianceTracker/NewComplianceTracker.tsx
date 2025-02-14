@@ -11,9 +11,13 @@ import { ControlGroups } from "../../structures/ComplianceTracker/controls";
 import { useContext, useEffect, useState } from "react";
 import AccordionTable from "../../components/Table/AccordionTable";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import { getAllEntities } from "../../../application/repository/entity.repository";
+import {
+  getAllEntities,
+  getEntityById,
+} from "../../../application/repository/entity.repository";
 import PageTour from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
+import NoProject from "../../components/NoProject/NoProject";
 
 const Table_Columns = [
   { id: 1, name: "Icon" },
@@ -27,12 +31,44 @@ const NewComplianceTracker = () => {
   const [expanded, setExpanded] = useState<number | false>(false);
 
   const [runComplianceTour, setRunComplianceTour] = useState(false);
-  const { setDashboardValues } = useContext(VerifyWiseContext);
+  const { setDashboardValues, dashboardValues } = useContext(VerifyWiseContext);
+  const { projects } = dashboardValues;
   const [complianceStatus, setComplianceStatus] = useState({
     allTotalSubControls: 0,
     allDoneSubControls: 0,
     complianceStatus: 0,
   });
+
+  const [fetchedControlCategories, setFetchedControlCategories] = useState<
+    any[]
+  >([]);
+
+  const fetchControlCategoriesByProjectId = async (projectId: number) => {
+    try {
+      const response = await getEntityById({
+        routeUrl: `/controlCategory/byprojectid/${projectId}`,
+      });
+      const filteredControlCategories = response.filter(
+        (category: any) => !category.name.startsWith("DEMO - ")
+      );
+      setFetchedControlCategories(filteredControlCategories);
+      console.log(
+        "Filtered control categories by project ID:",
+        fetchedControlCategories
+      );
+    } catch (error) {
+      console.error("Error fetching control categories by project ID:", error);
+    }
+  };
+
+  useEffect(() => {
+    const selectedProjectId = localStorage.getItem("selectedProjectId");
+    if (selectedProjectId) {
+      console.log("Selected project ID from localStorage:", selectedProjectId);
+      const projectId = parseInt(selectedProjectId, 10); // Convert string to number
+      fetchControlCategoriesByProjectId(projectId);
+    }
+  }, []);
 
   const complianceSteps = [
     {
@@ -110,7 +146,8 @@ const NewComplianceTracker = () => {
   const renderAccordion = (
     controlGroupIndex: number,
     controlGroupTitle: string,
-    controls: any
+    controls: any,
+    controlCategoryId: any
   ) => {
     return (
       <Stack
@@ -146,6 +183,8 @@ const NewComplianceTracker = () => {
               cols={Table_Columns}
               rows={controls}
               controlCategory={controlGroupTitle}
+              controlCategoryId={controlGroupIndex.toString()}
+              controlGroupId={controlCategoryId}
             />
           </AccordionDetails>
         </Accordion>
@@ -173,43 +212,60 @@ const NewComplianceTracker = () => {
       >
         Compliance tracker
       </Typography>
-      <Stack
-        className="new-compliance-tracker-metrics"
-        data-joyride-id="compliance-metrics"
-      >
-        <Stack className="metric-card">
-          <Typography className="metric-card-name">
-            Compliance Status
-          </Typography>
-          <Typography className="metric-card-amount">
-            {complianceStatus.complianceStatus}
-          </Typography>
-        </Stack>
 
-        <Stack className="metric-card">
-          <Typography className="metric-card-name">
-            Total number of subcontrols
-          </Typography>
-          <Typography className="metric-card-amount">
-            {complianceStatus.allTotalSubControls}
-          </Typography>
-        </Stack>
+      {projects?.length > 0 ? (
+        <>
+          <Stack
+            className="new-compliance-tracker-metrics"
+            data-joyride-id="compliance-metrics"
+          >
+            <Stack className="metric-card">
+              <Typography className="metric-card-name">
+                Compliance Status
+              </Typography>
+              <Typography className="metric-card-amount">
+                {`${complianceStatus.complianceStatus}%`}
+              </Typography>
+            </Stack>
 
-        <Stack className="metric-card">
-          <Typography className="metric-card-name">
-            Implemented subcontrols
-          </Typography>
-          <Typography className="metric-card-amount">
-            {complianceStatus.allDoneSubControls} {" %"}
-          </Typography>
-        </Stack>
-      </Stack>
-      {ControlGroups.map((controlGroup) =>
-        renderAccordion(
-          controlGroup.id,
-          controlGroup.controlGroupTitle,
-          controlGroup.control.controls
-        )
+            <Stack className="metric-card">
+              <Typography className="metric-card-name">
+                Total number of subcontrols
+              </Typography>
+              <Typography className="metric-card-amount">
+                {complianceStatus.allTotalSubControls}
+              </Typography>
+            </Stack>
+
+            <Stack className="metric-card">
+              <Typography className="metric-card-name">
+                Implemented subcontrols
+              </Typography>
+              <Typography className="metric-card-amount">
+                {complianceStatus.allDoneSubControls} {" %"}
+              </Typography>
+            </Stack>
+          </Stack>
+
+          {ControlGroups.map((controlGroup) => {
+            const matchingCategory = fetchedControlCategories.find(
+              (category: any) =>
+                category.name === controlGroup.controlGroupTitle
+            );
+            const controlCategoryId = matchingCategory
+              ? matchingCategory.id
+              : controlGroup.id;
+
+            return renderAccordion(
+              controlGroup.id,
+              controlGroup.controlGroupTitle,
+              controlGroup.control.controls,
+              controlCategoryId
+            );
+          })}
+        </>
+      ) : (
+        <NoProject message="You have no projects. First create a project on the main dashboard to see the Compliance Tracker." />
       )}
     </Stack>
   );

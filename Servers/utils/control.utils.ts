@@ -1,8 +1,8 @@
 import { Control } from "../models/control.model";
 import pool from "../database/db";
+import { createNewSubControlsQuery } from "./subControl.utils";
 
 export const getAllControlsQuery = async (): Promise<Control[]> => {
-  console.log("getAllControls");
   const controls = await pool.query("SELECT * FROM controls");
   return controls.rows;
 };
@@ -10,12 +10,35 @@ export const getAllControlsQuery = async (): Promise<Control[]> => {
 export const getControlByIdQuery = async (
   id: number
 ): Promise<Control | null> => {
-  console.log("getControlById", id);
   const result = await pool.query("SELECT * FROM controls WHERE id = $1", [id]);
   return result.rows.length ? result.rows[0] : null;
 };
 
+export const getAllControlsByControlGroupQuery = async (
+  controlGroupId: any
+): Promise<Control[]> => {
+  const controls = await pool.query(
+    "SELECT * FROM controls WHERE control_group = $1",
+    [controlGroupId]
+  );
+  return controls.rows;
+};
+
+export const getControlByIdAndControlTitleAndControlDescriptionQuery = async (
+  id: number,
+  controlTitle: string,
+  controlDescription: string
+): Promise<Control | null> => {
+  const result = await pool.query(
+    "SELECT * FROM controls WHERE control_group = $1 AND control_title = $2 AND control_description = $3",
+    [id, controlTitle, controlDescription]
+  );
+  return result.rows.length ? result.rows[0] : null;
+};
+
 export const createNewControlQuery = async (control: {
+  controlTitle: string;
+  controlDescription: string;
   status: string;
   approver: string;
   riskReview: string;
@@ -25,12 +48,13 @@ export const createNewControlQuery = async (control: {
   implementationDetails: string;
   controlGroup: number;
 }): Promise<Control> => {
-  console.log("createNewControl", control);
   const result = await pool.query(
     `INSERT INTO controls (
-      status, approver, risk_review, owner, reviewer, due_date, implementation_details, control_group
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      control_title, control_description, status, approver, risk_review, owner, reviewer, due_date, implementation_details, control_group
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
     [
+      control.controlTitle,
+      control.controlDescription,
       control.status,
       control.approver,
       control.riskReview,
@@ -38,7 +62,7 @@ export const createNewControlQuery = async (control: {
       control.reviewer,
       control.dueDate,
       control.implementationDetails,
-      control.controlGroup
+      control.controlGroup,
     ]
   );
   return result.rows[0];
@@ -47,6 +71,8 @@ export const createNewControlQuery = async (control: {
 export const updateControlByIdQuery = async (
   id: number,
   control: Partial<{
+    controlTitle: string;
+    controlDescription: string;
     status: string;
     approver: string;
     riskReview: string;
@@ -61,6 +87,14 @@ export const updateControlByIdQuery = async (
   const fields = [];
   const values = [];
   let query = "UPDATE controls SET ";
+  if (control.controlTitle !== undefined) {
+    fields.push(`control_title = $${fields.length + 1}`);
+    values.push(control.controlTitle);
+  }
+  if (control.controlDescription !== undefined) {
+    fields.push(`control_description = $${fields.length + 1}`);
+    values.push(control.controlDescription);
+  }
 
   if (control.status !== undefined) {
     fields.push(`status = $${fields.length + 1}`);
@@ -92,7 +126,7 @@ export const updateControlByIdQuery = async (
   }
   if (control.controlGroup !== undefined) {
     fields.push(`control_group = $${fields.length + 1}`);
-    values.push(control.controlGroup)
+    values.push(control.controlGroup);
   }
 
   query += fields.join(", ");
@@ -111,4 +145,49 @@ export const deleteControlByIdQuery = async (
     [id]
   );
   return result.rows.length ? result.rows[0] : null;
+};
+
+const controlsMock = (controlCategoryIds: number[]) => {
+  return [
+    ...Array(2).fill({ controlGroup: controlCategoryIds[0] }),
+    ...Array(7).fill({ controlGroup: controlCategoryIds[1] }),
+    ...Array(3).fill({ controlGroup: controlCategoryIds[2] }),
+    ...Array(4).fill({ controlGroup: controlCategoryIds[3] }),
+    ...Array(9).fill({ controlGroup: controlCategoryIds[4] }),
+    ...Array(9).fill({ controlGroup: controlCategoryIds[5] }),
+    ...Array(10).fill({ controlGroup: controlCategoryIds[6] }),
+    ...Array(4).fill({ controlGroup: controlCategoryIds[7] }),
+    ...Array(7).fill({ controlGroup: controlCategoryIds[8] }),
+    ...Array(4).fill({ controlGroup: controlCategoryIds[9] }),
+    ...Array(5).fill({ controlGroup: controlCategoryIds[10] }),
+    ...Array(5).fill({ controlGroup: controlCategoryIds[11] }),
+    ...Array(6).fill({ controlGroup: controlCategoryIds[12] }),
+  ];
+};
+
+export const createNewControlsQuery = async (controlCategoryIds: number[]) => {
+  let query = "INSERT INTO controls(control_group) VALUES ";
+  const data = controlsMock(controlCategoryIds).map((d) => {
+    return `(${d.controlGroup})`;
+  });
+  query += data.join(",") + " RETURNING *;";
+  const result = await pool.query(query);
+  const controls = result.rows;
+  const subControls = await createNewSubControlsQuery(
+    controls.map((r) => Number(r.id))
+  );
+
+  let scPtr = 0,
+    cPtr = 0;
+
+  while (scPtr < subControls.length) {
+    (controls[cPtr] as any).subcontrols = [];
+    while (controls[cPtr].id === (subControls[scPtr] as any)["control_id"]) {
+      (controls[cPtr] as any).subcontrols.push(subControls[scPtr]);
+      scPtr += 1;
+      if (scPtr === subControls.length) break;
+    }
+    cPtr += 1;
+  }
+  return controls;
 };

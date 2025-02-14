@@ -181,9 +181,13 @@ const MitigationSection: FC<MitigationSectionProps> = ({
 
   const approvalStatusItems = useMemo(
     () => [
-      { _id: 1, name: "Some value 1" },
-      { _id: 2, name: "Some value 2" },
-      { _id: 3, name: "Some value 3" },
+      { _id: 1, name: MitigationStatus.NotStarted },
+      { _id: 2, name: MitigationStatus.InProgress },
+      { _id: 3, name: MitigationStatus.Completed },
+      { _id: 4, name: MitigationStatus.OnHold },
+      { _id: 5, name: MitigationStatus.Deferred },
+      { _id: 6, name: MitigationStatus.Canceled },
+      { _id: 7, name: MitigationStatus.RequiresReview },
     ],
     []
   );

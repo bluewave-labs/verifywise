@@ -8,6 +8,7 @@ import {
   createControlCategoryQuery,
   updateControlCategoryByIdQuery,
   deleteControlCategoryByIdQuery,
+  getControlCategoryByProjectIdQuery,
 } from "../utils/controlCategory.util";
 import { ControlCategory } from "../models/controlCategory.model";
 
@@ -33,6 +34,21 @@ export async function getControlCategoryById(
       controlCategoryId
     );
     return res.status(200).json(controlCategory);
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getControlCategoryByProjectId(
+  req: Request,
+  res: Response
+): Promise<any> {
+  try {
+    const projectId = parseInt(req.params.id);
+    const controlCategories = await getControlCategoryByProjectIdQuery(
+      projectId
+    );
+    return res.status(200).json(controlCategories);
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

@@ -1,4 +1,4 @@
-import { memo, useState, useEffect, useRef } from "react";
+import { memo, useState, useEffect, useRef, useContext } from "react";
 import { Stack, Typography, useTheme, Paper, Divider } from "@mui/material";
 import { Theme } from "@mui/material/styles";
 import { SxProps } from "@mui/system";
@@ -6,6 +6,8 @@ import PageTour from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
 import { getAllEntities } from "../../../application/repository/entity.repository";
 import AllAssessment from "./NewAssessment/AllAssessments";
+import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import NoProject from "../../components/NoProject/NoProject";
 
 // Define styles outside the component to avoid recreation on each render
 const usePaperStyle = (theme: Theme): SxProps<Theme> => ({
@@ -27,6 +29,8 @@ const usePaperStyle = (theme: Theme): SxProps<Theme> => ({
 const Assessment = memo(() => {
   const theme = useTheme();
   const paperStyle = usePaperStyle(theme);
+  const { dashboardValues } = useContext(VerifyWiseContext);
+  const { projects } = dashboardValues;
   const [runAssessmentTour, setRunAssessmentTour] = useState(false);
   const [assessmentsStatus, setAssessmentsStatus] = useState({
     allAssessments: 0,
@@ -97,64 +101,73 @@ const Assessment = memo(() => {
         sx={{ backgroundColor: theme.palette.background.alt }}
       >
         <Typography
-       data-joyride-id="assessment-status"
-        variant="h2"
-        component="div"
-        sx={{
-          pb: 8.5,
-          color: "#1A1919",
-          fontSize: 16,
-          fontWeight: 600,
-        }}
-      >
-        Assessment tracker
-      </Typography>
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          display="flex"
-          gap={theme.spacing(10)}
-          sx={{ maxWidth: 1400, marginTop: "10px" }}
+          data-joyride-id="assessment-status"
+          variant="h2"
+          component="div"
+          sx={{
+            pb: 8.5,
+            color: "#1A1919",
+            fontSize: 16,
+            fontWeight: 600,
+          }}
         >
-          <Paper sx={paperStyle}>
-            <Typography fontSize="12px" color={theme.palette.text.accent}>
-              Assessment completion
-            </Typography>
-            <Typography
-              fontWeight="bold"
-              fontSize="16px"
-              color={theme.palette.text.primary}
+          Assessment tracker
+        </Typography>
+
+        { projects?.length > 0 ? (
+          <>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              display="flex"
+              gap={theme.spacing(10)}
+              sx={{ maxWidth: 1400, marginTop: "10px" }}
             >
-              {assessmentsStatus.AssessmentsCompletion} {" %"}
-            </Typography>
-          </Paper>
-          <Paper sx={paperStyle}>
-            <Typography fontSize="12px" color={theme.palette.text.accent}>
-              Total assessments
-            </Typography>
-            <Typography
-              fontWeight="bold"
-              fontSize="16px"
-              color={theme.palette.text.primary}
-            >
-              {assessmentsStatus.allAssessments}
-            </Typography>
-          </Paper>
-          <Paper sx={paperStyle}>
-            <Typography fontSize="12px" color={theme.palette.text.accent}>
-              Implemented assessments
-            </Typography>
-            <Typography
-              fontWeight="bold"
-              fontSize="16px"
-              color={theme.palette.text.primary}
-            >
-              {assessmentsStatus.allDoneAssessments}
-            </Typography>
-          </Paper>
-        </Stack>
-        <Divider sx={{ marginY: 10 }} />
-        <AllAssessment />
+              <Paper sx={paperStyle}>
+                <Typography fontSize="12px" color={theme.palette.text.accent}>
+                  Assessment completion
+                </Typography>
+                <Typography
+                  fontWeight="bold"
+                  fontSize="16px"
+                  color={theme.palette.text.primary}
+                >
+                  {assessmentsStatus.AssessmentsCompletion} {" %"}
+                </Typography>
+              </Paper>
+              <Paper sx={paperStyle}>
+                <Typography fontSize="12px" color={theme.palette.text.accent}>
+                  Total assessments
+                </Typography>
+                <Typography
+                  fontWeight="bold"
+                  fontSize="16px"
+                  color={theme.palette.text.primary}
+                >
+                  {assessmentsStatus.allAssessments}
+                </Typography>
+              </Paper>
+              <Paper sx={paperStyle}>
+                <Typography fontSize="12px" color={theme.palette.text.accent}>
+                  Implemented assessments
+                </Typography>
+                <Typography
+                  fontWeight="bold"
+                  fontSize="16px"
+                  color={theme.palette.text.primary}
+                >
+                  {assessmentsStatus.allDoneAssessments}
+                </Typography>
+              </Paper>
+            </Stack>
+            <Divider sx={{ marginY: 10 }} />
+            <AllAssessment />
+          </>
+        ) : (
+          <NoProject
+            message="You have no projects. First create a project on the main dashboard to see the Assessment Tracker."
+          />
+        )}
       </Stack>
     </div>
   );

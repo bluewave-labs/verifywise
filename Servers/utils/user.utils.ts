@@ -38,7 +38,6 @@ import pool from "../database/db";
  * @throws {Error} If there is an error executing the SQL query.
  */
 export const getAllUsersQuery = async (): Promise<User[]> => {
-  console.log("getAllUsers");
   const users = await pool.query("SELECT * FROM users");
   return users.rows;
 };
@@ -230,65 +229,64 @@ export const checkUserExistsQuery = async (): Promise<boolean> => {
 };
 
 export const getUserProjects = async (id: number) => {
-  const result = await pool.query(
-    "SELECT id FROM projects WHERE id = $1",
-    [id]
-  )
-  return result.rows
-}
+  const result = await pool.query("SELECT id FROM projects WHERE id = $1", [
+    id,
+  ]);
+  return result.rows;
+};
 
 export const getControlCategoriesForProject = async (id: number) => {
   const result = await pool.query(
     "SELECT id FROM controlcategories WHERE project_id = $1",
     [id]
-  )
-  return result.rows
-}
+  );
+  return result.rows;
+};
 
 export const getControlForControlCategory = async (id: number) => {
   const result = await pool.query(
     "SELECT id FROM controls WHERE control_group = $1",
     [id]
-  )
-  return result.rows
-}
+  );
+  return result.rows;
+};
 
 export const getSubControlForControl = async (id: number) => {
   const result = await pool.query(
     "SELECT * FROM subcontrols WHERE control_id = $1",
     [id]
-  )
-  return result.rows
-}
+  );
+  return result.rows;
+};
 
 export const getAssessmentsForProject = async (id: number) => {
   const result = await pool.query(
     "SELECT id FROM assessments WHERE project_id = $1",
     [id]
-  )
-  return result.rows
-}
+  );
+  return result.rows;
+};
 
 export const getTopicsForAssessment = async (id: number) => {
   const result = await pool.query(
     "SELECT id FROM topics WHERE assessment_id = $1",
     [id]
-  )
-  return result.rows
-}
+  );
+  return result.rows;
+};
 
 export const getSubTopicsForTopic = async (id: number) => {
   const result = await pool.query(
     "SELECT id FROM subtopics WHERE topic_id = $1",
     [id]
-  )
-  return result.rows
-}
+  );
+  return result.rows;
+};
 
 export const getQuestionsForSubTopic = async (id: number) => {
   const result = await pool.query(
     "SELECT * FROM questions WHERE subtopic_id = $1",
     [id]
-  )
-  return result.rows
-}
+  );
+  return result.rows;
+};

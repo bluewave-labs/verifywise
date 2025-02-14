@@ -13,7 +13,7 @@ import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import DropDowns from "../../Inputs/Dropdowns";
 import { useState, useEffect, useContext } from "react";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
-import { getEntityById } from "../../../../application/repository/entity.repository";
+import { createNewUser } from "../../../../application/repository/entity.repository";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { State, SubControlState } from "./paneInterfaces";
@@ -28,7 +28,9 @@ const NewControlPane = ({
   content,
   subControls,
   controlCategory,
+  controlCategoryId,
   OnSave,
+  controlGroupId,
 }: {
   id: string;
   numbering: string;
@@ -38,54 +40,64 @@ const NewControlPane = ({
   content: string;
   subControls: any[];
   controlCategory: string;
+  controlCategoryId: string;
   OnSave?: (state: State) => void;
+  controlGroupId: string;
 }) => {
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [initialValues, setInitialValues] = useState<State | null>(null);
+  const [initialValues, setInitialValues] = useState<State>();
   const { dashboardValues } = useContext(VerifyWiseContext);
 
   useEffect(() => {
+    console.log("useEffect triggered with id:", id);
     const fetchControl = async () => {
       try {
-        const response = await getEntityById({
-          routeUrl: `/controls/compliance/${id}`,
+        console.log("Fetching control...");
+        const response = await createNewUser({
+          routeUrl: `/controls/compliance/${controlGroupId}`,
+          body: {
+            controlTitle: title,
+            controlDescription: content,
+          },
         });
-        console.log("response.data ", response.data);
-        setInitialValues(response.data);
+        if (response.status === 200) {
+          setInitialValues(response.data.data);
+        } else {
+          console.log("Error: ", response.status);
+        }
       } catch (error) {
         console.error("Error fetching control:", error);
       }
     };
     fetchControl();
+    console.log("initialValues :==>> ", initialValues);
   }, [id]);
 
   const initialSubControlState = subControls.map(
     (subControl: SubControlState, index) => ({
       control_id: initialValues?.subControls[index]?.control_id || id,
-      subControlId:
-        initialValues?.subControls[index]?.subControlId ||
-        subControl.subControlId,
+      subControlId: initialValues?.subControls[index]?.id || subControl.id,
       subControlTitle:
-        initialValues?.subControls[index]?.subControlTitle ||
-        subControl.subControlTitle,
+        initialValues?.subControls[index]?.sub_control_title ||
+        subControl.title,
       subControlDescription:
-        initialValues?.subControls[index]?.subControlDescription ||
-        subControl.description,
-      status: initialValues?.subControls[index]?.status || subControl.status, // Set default value
+        initialValues?.subControls[index]?.sub_control_description ||
+        subControl.subControlDescription,
+      status: initialValues?.subControls[index]?.status || subControl.status,
       approver:
-        initialValues?.subControls[index]?.approver || subControl.approver, // Set default value
+        initialValues?.subControls[index]?.approver || subControl.approver,
       riskReview:
-        initialValues?.subControls[index]?.riskReview || subControl.riskReview, // Set default value
-      owner: initialValues?.subControls[index]?.owner || subControl.owner, // Set default value
+        initialValues?.subControls[index]?.risk_review || subControl.riskReview,
+      owner: initialValues?.subControls[index]?.owner || subControl.owner,
       reviewer:
-        initialValues?.subControls[index]?.reviewer || subControl.reviewer, // Set default value
+        initialValues?.subControls[index]?.reviewer || subControl.reviewer,
       description:
-        initialValues?.subControls[index]?.description ||
+        initialValues?.subControls[index]?.implementation_details ||
         subControl.description,
-      date: initialValues?.subControls[index]?.date || subControl.date,
+      date: initialValues?.subControls[index]?.due_date || subControl.date,
       evidence:
         initialValues?.subControls[index]?.evidence || subControl.evidence,
       feedback:
@@ -98,13 +110,13 @@ const NewControlPane = ({
       id: id,
       controlTitle: title,
       controlDescription: content,
-      status: "Choose status", // Set default value
-      approver: "Choose approver", // Set default value
-      riskReview: "Acceptable risk", // Set default value
-      owner: "Choose owner", // Set default value
-      reviewer: "Choose reviewer", // Set default value
-      description: "",
-      date: null,
+      status: initialValues?.control?.status || "",
+      approver: initialValues?.control?.approver || "",
+      riskReview: initialValues?.control?.riskReview || "",
+      owner: initialValues?.control?.owner || "",
+      reviewer: initialValues?.control?.reviewer || "",
+      description: initialValues?.control?.description || "",
+      date: initialValues?.control?.date || null,
     },
     subControls: initialSubControlState,
   });
@@ -171,10 +183,13 @@ const NewControlPane = ({
     );
     const controlToSave = {
       controlCategoryTitle: controlCategory,
+      controlCategoryId: controlCategoryId,
       control: state,
-      projectId: dashboardValues.selectedProjectId,
+      projectId:
+        dashboardValues.selectedProjectId ||
+        parseInt(localStorage.getItem("selectedProjectId") || "0", 10),
     };
-
+    console.log("controlToSave : ", controlToSave);
     try {
       const response = await apiServices.post(
         "/controls/saveControls",
@@ -189,7 +204,7 @@ const NewControlPane = ({
     }
     setIsModalOpen(false);
   };
-
+  console.log("initialSubControlState : ----> : ", initialSubControlState);
   return (
     <Modal
       id={`${id}-modal`}
@@ -233,9 +248,15 @@ const NewControlPane = ({
         </Stack>
         <Typography fontSize={13}>{content}</Typography>
         <DropDowns
+          isControl={true}
           elementId={`control-${id}`}
           state={initialValues?.control}
-          setState={(newState) => setState({ ...state, ...newState })}
+          setState={(newState) =>
+            setState((prevState) => ({
+              ...prevState,
+              control: { ...prevState.control, ...newState },
+            }))
+          } // Update the control state correctly
         />
         {/* this is working fine */}
         <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
@@ -302,7 +323,8 @@ const NewControlPane = ({
           {activeSection === "Overview" && (
             <Typography fontSize={13}>
               <DropDowns
-                elementId={`sub-control-${id}.${subControls[selectedTab].subControlId}`}
+                isControl={false}
+                elementId={`sub-control-${id}.${subControls[selectedTab].id}`}
                 state={state.subControls[selectedTab]}
                 setState={(newState) =>
                   handleSubControlStateChange(selectedTab, newState)

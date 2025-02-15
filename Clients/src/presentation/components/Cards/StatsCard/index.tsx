@@ -38,9 +38,9 @@ const StatsCard = ({
           {`${completed} ${title} out of ${total} is completed`}
         </Typography>
       </Stack>
-      <Typography sx={StatsCardRate}>{`${
+      <Typography sx={StatsCardRate}>{`${Math.floor(
         (completed / total) * 100
-      }%`}</Typography>
+      )}%`}</Typography>
     </Stack>
   );
 };

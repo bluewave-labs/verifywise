@@ -214,7 +214,7 @@ const NewControlPane = ({
             {state.subControls!.map((subControl, index) => (
               <Tab
                 id={`${data.id}.${subControl.id}`}
-                key={subControl.id}
+                key={index}
                 label={`Subcontrol ${index + 1}`}
                 disableRipple
                 sx={{ textTransform: "none" }}

@@ -21,7 +21,7 @@ const ProgressBar: FC<ProgressBarProps> = ({
 }) => {
   const theme = useTheme();
   const progressCount = (progressString: string): number => {
-    // Function to calculatea number showing how full the indicator is
+    // Function to calculate a number showing how full the indicator is
     const [completed, total] = progressString.split("/").map(Number); // Getting values ​​from a slash separated string. The first value shows how full it is, the second is the total value.
     if (Number.isNaN(completed) || Number.isNaN(total)) {
       throw new Error(
@@ -39,7 +39,10 @@ const ProgressBar: FC<ProgressBarProps> = ({
     }
     return completed / total;
   };
-  const value = progress ? progressCount(progress) * 100 : 0; // Calculating the percentage of how full the indicator is
+  const value =
+    progress && progress.split("/")[1] !== "0"
+      ? progressCount(progress) * 100
+      : 0; // Calculating the percentage of how full the indicator is
 
   return (
     <Stack

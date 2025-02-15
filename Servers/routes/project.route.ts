@@ -5,6 +5,7 @@ import {
   createProject,
   deleteProjectById,
   getAllProjects,
+  getCompliances,
   getProjectById,
   getProjectRisksCalculations,
   getProjectStatsById,
@@ -17,17 +18,25 @@ import authenticateJWT from "../middleware/auth.middleware";
 
 // GET requests
 router.get("/", /*authenticateJWT,*/ getAllProjects);
-router.get("/calculateProjectRisks/:id", /*authenticateJWT,*/ getProjectRisksCalculations)
-router.get("/calculateVendorRisks/:id", /*authenticateJWT,*/ getVendorRisksCalculations)
+router.get(
+  "/calculateProjectRisks/:id",
+  /*authenticateJWT,*/ getProjectRisksCalculations
+);
+router.get(
+  "/calculateVendorRisks/:id",
+  /*authenticateJWT,*/ getVendorRisksCalculations
+);
 router.get("/:id", /*authenticateJWT,*/ getProjectById);
 router.get("/stats/:id", getProjectStatsById);
+
+router.get("/complainces/:projid", getCompliances);
 
 // POSTs
 router.post("/", /*authenticateJWT,*/ createProject);
 // router.post("/saveControls", /*authenticateJWT,*/ saveControls);
 
-// PUTs
-router.put("/:id", /*authenticateJWT,*/ updateProjectById);
+// Patches
+router.patch("/:id", /*authenticateJWT,*/ updateProjectById);
 
 // DELETEs
 router.delete("/:id", /*authenticateJWT,*/ deleteProjectById);

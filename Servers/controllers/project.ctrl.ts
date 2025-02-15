@@ -12,8 +12,13 @@ import {
 } from "../utils/project.utils";
 import { createNewAssessmentQuery } from "../utils/assessment.utils";
 import { getUserByIdQuery } from "../utils/user.utils";
-import { createNewControlCategories } from "../utils/controlCategory.util";
+import {
+  createNewControlCategories,
+  getControlCategoryByProjectIdQuery,
+} from "../utils/controlCategory.util";
 import { Project } from "../models/project.model";
+import { getAllControlsByControlGroupQuery } from "../utils/control.utils";
+import { getAllSubcontrolsByControlIdQuery } from "../utils/subControl.utils";
 
 export async function getAllProjects(
   req: Request,
@@ -67,14 +72,14 @@ export async function createProject(req: Request, res: Response): Promise<any> {
     const assessments = await createNewAssessmentQuery({
       project_id: createdProject.id,
     });
-    const controls = await createNewControlCategories(createdProject.id)
+    const controls = await createNewControlCategories(createdProject.id);
 
     if (createdProject) {
       return res.status(201).json(
         STATUS_CODE[201]({
           project: createdProject,
           assessment_tracker: assessments,
-          compliance_tracker: controls
+          compliance_tracker: controls,
         })
       );
     }
@@ -194,6 +199,41 @@ export async function getVendorRisksCalculations(
     }
 
     return res.status(204).json(STATUS_CODE[204](vendorRisksCalculations));
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getCompliances(req: Request, res: Response) {
+  const projectId = parseInt(req.params.projid);
+  try {
+    const project = await getProjectByIdQuery(projectId);
+    if (project) {
+      const controlCategories = await getControlCategoryByProjectIdQuery(
+        project.id
+      );
+      for (const category of controlCategories) {
+        if (category) {
+          const controls = await getAllControlsByControlGroupQuery(category.id);
+          for (const control of controls) {
+            if (control && control.id) {
+              const subControls = await getAllSubcontrolsByControlIdQuery(
+                control.id
+              );
+              control.numberOfSubcontrols = subControls.length;
+              control.numberOfDoneSubcontrols = subControls.filter(
+                (subControl) => subControl.status === "Done"
+              ).length;
+              control.subControls = subControls;
+            }
+          }
+          category.controls = controls;
+        }
+      }
+      return res.status(200).json(STATUS_CODE[200](controlCategories));
+    } else {
+      return res.status(404).json(STATUS_CODE[404](project));
+    }
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

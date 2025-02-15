@@ -8,5 +8,5 @@ GET http://localhost:3000/controls/2
 
 ### get compliance by id
 
-GET http://localhost:3000/controls/compliance/2
+POST http://localhost:3000/controls/compliance/1
 

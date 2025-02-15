@@ -7,7 +7,6 @@ import {
   Typography,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { ControlGroups } from "../../structures/ComplianceTracker/controls";
 import { useContext, useEffect, useState } from "react";
 import AccordionTable from "../../components/Table/AccordionTable";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
@@ -20,11 +19,10 @@ import CustomStep from "../../components/PageTour/CustomStep";
 import NoProject from "../../components/NoProject/NoProject";
 
 const Table_Columns = [
-  { id: 1, name: "Icon" },
-  { id: 2, name: "Control Name" },
-  { id: 3, name: "Owner" },
-  { id: 4, name: "# of Subcontrols" },
-  { id: 5, name: "Completion" },
+  { id: 1, name: "Control Name" },
+  { id: 2, name: "Owner" },
+  { id: 3, name: "# of Subcontrols" },
+  { id: 4, name: "Completion" },
 ];
 
 const NewComplianceTracker = () => {
@@ -46,12 +44,9 @@ const NewComplianceTracker = () => {
   const fetchControlCategoriesByProjectId = async (projectId: number) => {
     try {
       const response = await getEntityById({
-        routeUrl: `/controlCategory/byprojectid/${projectId}`,
+        routeUrl: `/projects/complainces/${projectId}`,
       });
-      const filteredControlCategories = response.filter(
-        (category: any) => !category.name.startsWith("DEMO - ")
-      );
-      setFetchedControlCategories(filteredControlCategories);
+      setFetchedControlCategories(response.data);
       console.log(
         "Filtered control categories by project ID:",
         fetchedControlCategories
@@ -144,10 +139,10 @@ const NewComplianceTracker = () => {
   };
 
   const renderAccordion = (
+    controlGroupId: number,
     controlGroupIndex: number,
     controlGroupTitle: string,
-    controls: any,
-    controlCategoryId: any
+    controls: any
   ) => {
     return (
       <Stack
@@ -157,7 +152,7 @@ const NewComplianceTracker = () => {
       >
         <Accordion
           className="new-compliance-tracker-details-accordion"
-          onChange={handleAccordionChange(controlGroupIndex)}
+          onChange={handleAccordionChange(controlGroupId)}
         >
           <AccordionSummary
             className="new-compliance-tracker-details-accordion-summary"
@@ -165,7 +160,7 @@ const NewComplianceTracker = () => {
               <ExpandMoreIcon
                 sx={{
                   transform:
-                    expanded === controlGroupIndex
+                    expanded === controlGroupId
                       ? "rotate(180deg)"
                       : "rotate(270deg)",
                   transition: "transform 0.5s ease-in",
@@ -179,12 +174,10 @@ const NewComplianceTracker = () => {
           </AccordionSummary>
           <AccordionDetails>
             <AccordionTable
-              id={controlGroupIndex}
+              id={controlGroupId}
               cols={Table_Columns}
               rows={controls}
-              controlCategory={controlGroupTitle}
               controlCategoryId={controlGroupIndex.toString()}
-              controlGroupId={controlCategoryId}
             />
           </AccordionDetails>
         </Accordion>
@@ -242,25 +235,17 @@ const NewComplianceTracker = () => {
                 Implemented subcontrols
               </Typography>
               <Typography className="metric-card-amount">
-                {complianceStatus.allDoneSubControls} {" %"}
+                {complianceStatus.allDoneSubControls}
               </Typography>
             </Stack>
           </Stack>
 
-          {ControlGroups.map((controlGroup) => {
-            const matchingCategory = fetchedControlCategories.find(
-              (category: any) =>
-                category.name === controlGroup.controlGroupTitle
-            );
-            const controlCategoryId = matchingCategory
-              ? matchingCategory.id
-              : controlGroup.id;
-
+          {fetchedControlCategories.map((controlGroup) => {
             return renderAccordion(
               controlGroup.id,
-              controlGroup.controlGroupTitle,
-              controlGroup.control.controls,
-              controlCategoryId
+              controlGroup.order_no,
+              controlGroup.title,
+              controlGroup.controls
             );
           })}
         </>

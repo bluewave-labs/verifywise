@@ -1,3 +1,5 @@
+import { Control } from "./control.model";
+
 /*
 
 This is the new ControlCategory model(Schema) and will be replaced with the new one.
@@ -9,7 +11,8 @@ export type ControlCategory = {
   project_id: number; // FK to the project table
   title: string; // gets assigned from the structure
   order_no?: number; // gets assigned from the structure
-}
+  controls?: Control[];
+};
 
 // export type ControlCategory = {
 //   id?: number;

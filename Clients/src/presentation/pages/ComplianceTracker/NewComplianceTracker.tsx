@@ -139,6 +139,7 @@ const NewComplianceTracker = () => {
   };
 
   const renderAccordion = (
+    controlGroupId: number,
     controlGroupIndex: number,
     controlGroupTitle: string,
     controls: any
@@ -151,7 +152,7 @@ const NewComplianceTracker = () => {
       >
         <Accordion
           className="new-compliance-tracker-details-accordion"
-          onChange={handleAccordionChange(controlGroupIndex)}
+          onChange={handleAccordionChange(controlGroupId)}
         >
           <AccordionSummary
             className="new-compliance-tracker-details-accordion-summary"
@@ -159,7 +160,7 @@ const NewComplianceTracker = () => {
               <ExpandMoreIcon
                 sx={{
                   transform:
-                    expanded === controlGroupIndex
+                    expanded === controlGroupId
                       ? "rotate(180deg)"
                       : "rotate(270deg)",
                   transition: "transform 0.5s ease-in",
@@ -173,7 +174,7 @@ const NewComplianceTracker = () => {
           </AccordionSummary>
           <AccordionDetails>
             <AccordionTable
-              id={controlGroupIndex}
+              id={controlGroupId}
               cols={Table_Columns}
               rows={controls}
               controlCategoryId={controlGroupIndex.toString()}
@@ -241,6 +242,7 @@ const NewComplianceTracker = () => {
 
           {fetchedControlCategories.map((controlGroup) => {
             return renderAccordion(
+              controlGroup.id,
               controlGroup.order_no,
               controlGroup.title,
               controlGroup.controls

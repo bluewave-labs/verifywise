@@ -88,10 +88,14 @@ const AccordionTable = ({
     setModalOpen(true);
   };
 
+  const sortedRows = useMemo(() => {
+    return rows.slice().sort((a, b) => a.order_no - b.order_no);
+  }, [rows]);
+
   const tableBody = useMemo(
     () => (
       <TableBody id={`${id}-table-body`} className="accordion-table-body">
-        {rows.map((row: Control, index: number) => (
+        {sortedRows.map((row: Control) => (
           <Fragment key={row.id}>
             {modalOpen && selectedRow === row.id && (
               <NewControlPane
@@ -112,7 +116,7 @@ const AccordionTable = ({
               onClick={() => handleRowClick(row.id!)}
             >
               <TableCell sx={cellStyle} key={`${id}-${row.id}`}>
-                {id}.{`${index + 1}`} {row.title}{" "}
+                {id}.{`${row.order_no}`} {row.title}{" "}
                 {`(${row.description}`.substring(0, 20) + `...)`}
               </TableCell>
               <TableCell sx={cellStyle} key={`owner-${row.id}`}>
@@ -165,7 +169,14 @@ const AccordionTable = ({
         ))}
       </TableBody>
     ),
-    [rows, modalOpen, selectedRow, getProgressColor, theme.palette.grey, id]
+    [
+      sortedRows,
+      modalOpen,
+      selectedRow,
+      getProgressColor,
+      theme.palette.grey,
+      id,
+    ]
   );
 
   return (

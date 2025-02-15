@@ -208,13 +208,13 @@ const DropDowns: React.FC<DropDownsProps> = ({
       </Typography>
       <Stack
         sx={{
-          height: 73,
+          height: 90,
           borderRadius: theme.shape.borderRadius,
           "& .MuiInputBase-root": {
-            height: "73px",
+            height: "90px",
           },
           "& .MuiOutlinedInput-input": {
-            paddingTop: "20px",
+            padding: "30px",
           },
           marginBottom: theme.spacing(4),
         }}
@@ -224,6 +224,10 @@ const DropDowns: React.FC<DropDownsProps> = ({
           type="description"
           sx={{
             cursor: "text",
+            "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
+              {
+                height: "73px",
+              },
           }}
           value={implementationDetails}
           onChange={(e) => {

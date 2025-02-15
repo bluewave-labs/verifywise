@@ -36,11 +36,13 @@ const NewControlPane = ({
   const [activeSection, setActiveSection] = useState<string>("Overview");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const initialSubControlState = data.subControls!.map(
-    (subControl: Subcontrol, index: number) => ({
+  const initialSubControlState = data
+    .subControls!.slice()
+    .sort((a, b) => a.order_no! - b.order_no!)
+    .map((subControl: Subcontrol) => ({
       control_id: subControl.control_id,
       id: subControl.id,
-      order_no: index,
+      order_no: subControl.order_no,
       title: subControl.title,
       description: subControl.description,
       status: subControl.status,
@@ -54,8 +56,7 @@ const NewControlPane = ({
       feedback_description: subControl.feedback_description,
       evidence_files: subControl.evidence_files,
       feedback_files: subControl.feedback_files,
-    })
-  );
+    }));
 
   const [state, setState] = useState<Control>(() => ({
     id: data.id,
@@ -90,8 +91,9 @@ const NewControlPane = ({
     newState: Partial<Subcontrol>
   ) => {
     setState((prevState) => {
-      const updatedSubControls = [...prevState.subControls!];
-      updatedSubControls[index] = { ...updatedSubControls[index], ...newState };
+      const updatedSubControls = prevState.subControls!.map((sc, i) =>
+        i === index ? { ...sc, ...newState } : { ...sc }
+      );
       return { ...prevState, subControls: updatedSubControls };
     });
   };
@@ -209,11 +211,11 @@ const NewControlPane = ({
             textColor="primary"
             sx={{ justifyContent: "flex-start" }}
           >
-            {data.subControls!.map((subControl) => (
+            {state.subControls!.map((subControl, index) => (
               <Tab
                 id={`${data.id}.${subControl.id}`}
                 key={subControl.id}
-                label={`Subcontrol ${subControl.order_no}`}
+                label={`Subcontrol ${index + 1}`}
                 disableRipple
                 sx={{ textTransform: "none" }}
               />
@@ -256,21 +258,21 @@ const NewControlPane = ({
             sx={{ textAlign: "left", mb: 3 }}
           >
             {`${controlCategoryId}.${data.order_no}.${
-              data.subControls![selectedTab].order_no
+              state.subControls![selectedTab].order_no
             }`}{" "}
-            {data.subControls![selectedTab].title}
+            {state.subControls![selectedTab].title}
           </Typography>
           <Typography sx={{ mb: 5, fontSize: 13 }}>
-            {data.subControls![selectedTab].description}
+            {state.subControls![selectedTab].description}
           </Typography>
           {activeSection === "Overview" && (
             <Typography fontSize={13}>
               <DropDowns
                 isControl={false}
                 elementId={`sub-control-${data.order_no}.${
-                  data.subControls![selectedTab].id
+                  state.subControls![selectedTab].id
                 }`}
-                state={state?.subControls?.[selectedTab]}
+                state={state.subControls![selectedTab]}
                 setState={(newState) =>
                   handleSubControlStateChange(selectedTab, newState)
                 }

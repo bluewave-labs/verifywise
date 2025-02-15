@@ -17,6 +17,7 @@ import {
 import PageTour from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
 import NoProject from "../../components/NoProject/NoProject";
+import StatsCard from "../../components/Cards/StatsCard";
 
 const Table_Columns = [
   { id: 1, name: "Control Name" },
@@ -212,32 +213,12 @@ const NewComplianceTracker = () => {
             className="new-compliance-tracker-metrics"
             data-joyride-id="compliance-metrics"
           >
-            <Stack className="metric-card">
-              <Typography className="metric-card-name">
-                Compliance Status
-              </Typography>
-              <Typography className="metric-card-amount">
-                {`${complianceStatus.complianceStatus}%`}
-              </Typography>
-            </Stack>
-
-            <Stack className="metric-card">
-              <Typography className="metric-card-name">
-                Total number of subcontrols
-              </Typography>
-              <Typography className="metric-card-amount">
-                {complianceStatus.allTotalSubControls}
-              </Typography>
-            </Stack>
-
-            <Stack className="metric-card">
-              <Typography className="metric-card-name">
-                Implemented subcontrols
-              </Typography>
-              <Typography className="metric-card-amount">
-                {complianceStatus.allDoneSubControls}
-              </Typography>
-            </Stack>
+            <StatsCard
+              title={"subControls"}
+              completed={complianceStatus.allDoneSubControls}
+              total={complianceStatus.allTotalSubControls}
+              progressbarColor={"#13715B"}
+            />
           </Stack>
 
           {fetchedControlCategories.map((controlGroup) => {

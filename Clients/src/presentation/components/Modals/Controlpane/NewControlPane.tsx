@@ -190,6 +190,7 @@ const NewControlPane = ({
         </Stack>
         <Typography fontSize={13}>{data.description}</Typography>
         <DropDowns
+          key={`control-${data.id}`}
           isControl={true}
           elementId={`control-${data.id}`}
           state={state} // Fallback to `data` if `initialValues` isn't set yet
@@ -214,7 +215,7 @@ const NewControlPane = ({
             {state.subControls!.map((subControl, index) => (
               <Tab
                 id={`${data.id}.${subControl.id}`}
-                key={index}
+                key={subControl.id}
                 label={`Subcontrol ${index + 1}`}
                 disableRipple
                 sx={{ textTransform: "none" }}
@@ -235,7 +236,9 @@ const NewControlPane = ({
           {["Overview", "Evidence", "Auditor Feedback"].map(
             (section, index) => (
               <Button
-                key={index}
+                key={`sub-control-${data.order_no}.${
+                  state.subControls![selectedTab].id
+                }.${index}`}
                 variant={getVariant(activeSection, section)}
                 onClick={() => handleSectionChange(section)}
                 disableRipple
@@ -268,6 +271,9 @@ const NewControlPane = ({
           {activeSection === "Overview" && (
             <Typography fontSize={13}>
               <DropDowns
+                key={`sub-control-${data.order_no}.${
+                  state.subControls![selectedTab].id
+                }`}
                 isControl={false}
                 elementId={`sub-control-${data.order_no}.${
                   state.subControls![selectedTab].id
@@ -281,6 +287,9 @@ const NewControlPane = ({
           )}
           {activeSection === "Evidence" && (
             <AuditorFeedback
+              key={`sub-control-${data.order_no}.${
+                state.subControls![selectedTab].id
+              }.evidence`}
               activeSection={activeSection}
               feedback={state.subControls![selectedTab].evidence_description}
               onChange={(e) => {
@@ -293,6 +302,9 @@ const NewControlPane = ({
           )}
           {activeSection === "Auditor Feedback" && (
             <AuditorFeedback
+              key={`sub-control-${data.order_no}.${
+                state.subControls![selectedTab].id
+              }.auditor-feedback`}
               activeSection={activeSection}
               feedback={state.subControls![selectedTab].feedback_description}
               onChange={(e) => {

@@ -18,6 +18,7 @@ import PageTour from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
 import NoProject from "../../components/NoProject/NoProject";
 import StatsCard from "../../components/Cards/StatsCard";
+import VWSkeleton from "../../vw-v2-components/Skeletons";
 
 const Table_Columns = [
   { id: 1, name: "Control Name" },
@@ -28,6 +29,8 @@ const Table_Columns = [
 
 const NewComplianceTracker = () => {
   const [expanded, setExpanded] = useState<number | false>(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [runComplianceTour, setRunComplianceTour] = useState(false);
   const { setDashboardValues, dashboardValues } = useContext(VerifyWiseContext);
@@ -54,6 +57,9 @@ const NewComplianceTracker = () => {
       );
     } catch (error) {
       console.error("Error fetching control categories by project ID:", error);
+      setError("Error fetching control categories by project ID.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -63,6 +69,8 @@ const NewComplianceTracker = () => {
       console.log("Selected project ID from localStorage:", selectedProjectId);
       const projectId = parseInt(selectedProjectId, 10); // Convert string to number
       fetchControlCategoriesByProjectId(projectId);
+    } else {
+      setLoading(false);
     }
   }, []);
 
@@ -100,6 +108,7 @@ const NewComplianceTracker = () => {
       }));
     } catch (error) {
       console.error("Error fetching compliance tracker:", error);
+      setError("Error fetching compliance tracker.");
     }
   };
 
@@ -124,6 +133,7 @@ const NewComplianceTracker = () => {
       console.log("Response for fetchComplianceTrackerCalculation:", response);
     } catch (error) {
       console.error("Error fetching compliance tracker:", error);
+      setError("Error fetching compliance tracker calculation.");
     }
   };
 
@@ -185,6 +195,24 @@ const NewComplianceTracker = () => {
       </Stack>
     );
   };
+
+  if (loading) {
+    return (
+      <Stack className="new-compliance-tracker">
+        <VWSkeleton variant="rectangular" width="100%" height={200} />
+      </Stack>
+    );
+  }
+
+  if (error) {
+    return (
+      <Stack className="new-compliance-tracker">
+        <Typography variant="h6" color="error">
+          {error}
+        </Typography>
+      </Stack>
+    );
+  }
 
   return (
     <Stack className="new-compliance-tracker">

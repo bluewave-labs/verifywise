@@ -25,7 +25,7 @@ router.get("/all/bycategory/:id", getControlsByControlCategoryId);
 router.post("/", /*authenticateJWT,*/ createControl);
 router.post("/compliance/:id", /*authenticateJWT,*/ getComplianceById);
 
-router.put(
+router.patch(
   "/saveControls/:id",
   /*authenticateJWT,*/ upload.fields([
     { name: "evidenceFiles" },

@@ -13,6 +13,7 @@ import {
 import singleTheme from "../../../themes/v1SingleTheme";
 import { Fragment, useCallback, useMemo, useState } from "react";
 import NewControlPane from "../../Modals/Controlpane/NewControlPane";
+import { Control } from "../../../../domain/Control";
 
 interface ITableCol {
   id: number;
@@ -23,16 +24,12 @@ const AccordionTable = ({
   id,
   cols,
   rows,
-  controlCategory,
   controlCategoryId,
-  controlGroupId,
 }: {
   id: any;
   cols: ITableCol[];
   rows: any[];
-  controlCategory: string;
   controlCategoryId: string;
-  controlGroupId: string;
 }) => {
   const theme = useTheme();
   const [selectedRow, setSelectedRow] = useState<number | null>(null);
@@ -62,11 +59,11 @@ const AccordionTable = ({
         }}
       >
         <TableRow className="accordion-table-header-row">
-          {cols.map((col: ITableCol) => (
+          {cols.map((col: ITableCol, index: number) => (
             <TableCell
               className="accordion-table-header-cell"
               style={singleTheme.tableStyles.primary.header.cell}
-              key={col.id}
+              key={index}
             >
               {col.name}
             </TableCell>
@@ -91,84 +88,95 @@ const AccordionTable = ({
     setModalOpen(true);
   };
 
+  const sortedRows = useMemo(() => {
+    return rows.slice().sort((a, b) => a.order_no - b.order_no);
+  }, [rows]);
+
   const tableBody = useMemo(
     () => (
       <TableBody id={`${id}-table-body`} className="accordion-table-body">
-        {rows.map((row) => (
+        {sortedRows.map((row: Control) => (
           <Fragment key={row.id}>
             {modalOpen && selectedRow === row.id && (
               <NewControlPane
-                id={row.id}
-                numbering={`${id}.${row.id}`}
+                data={row}
                 isOpen={modalOpen}
                 handleClose={() => setModalOpen(false)}
-                title={row.title}
-                content={row.description}
-                subControls={row.subControls}
                 OnSave={() => {
                   console.log("Save clicked");
                   // fetchComplianceTracker();
                 }}
-                controlCategory={controlCategory}
                 controlCategoryId={controlCategoryId}
-                controlGroupId={controlGroupId}
               />
             )}
             <TableRow
               className="accordion-table-body-row"
               key={`${id}-${row.id}-row`}
               sx={cellStyle}
-              onClick={() => handleRowClick(row.id)}
+              onClick={() => handleRowClick(row.id!)}
             >
-              {row.icon && (
-                <TableCell sx={cellStyle} key={`icon-${row.id}`}>
-                  <img src={row.icon} alt="status icon" width={20} />
-                </TableCell>
-              )}
-              {row.title && (
-                <TableCell sx={cellStyle} key={`${id}-${row.id}`}>
-                  {id}.{row.id} {row.title}{" "}
-                  {`(${row.description}`.substring(0, 20) + `...)`}
-                </TableCell>
-              )}
-              {row.owner && (
-                <TableCell sx={cellStyle} key={`owner-${row.id}`}>
-                  {row.owner}
-                </TableCell>
-              )}
-              {row.noOfSubControls && (
-                <TableCell sx={cellStyle} key={`noOfSubControls-${row.id}`}>
-                  {row.noOfSubControls}
-                </TableCell>
-              )}
-              {row.completion && (
-                <TableCell sx={cellStyle} key={`completion-${row.id}`}>
-                  <Stack direction="row" alignItems="center" spacing={1}>
-                    <Typography variant="body2">{row.completion} </Typography>
-                    <LinearProgress
-                      variant="determinate"
-                      value={parseFloat(row.completion)}
-                      sx={{
-                        width: "100px",
-                        height: "5px",
-                        borderRadius: "4px",
-                        backgroundColor: theme.palette.grey[200],
-                        "& .MuiLinearProgress-bar": {
-                          backgroundColor: getProgressColor(
-                            parseFloat(row.completion)
-                          ),
-                        },
-                      }}
-                    />
-                  </Stack>
-                </TableCell>
-              )}
+              <TableCell sx={cellStyle} key={`${id}-${row.id}`}>
+                {id}.{`${row.order_no}`} {row.title}{" "}
+                {`(${row.description}`.substring(0, 20) + `...)`}
+              </TableCell>
+              <TableCell sx={cellStyle} key={`owner-${row.id}`}>
+                {row.owner ? row.owner : "Not set"}
+              </TableCell>
+              <TableCell sx={cellStyle} key={`noOfSubControls-${row.id}`}>
+                {`${row.numberOfSubcontrols} Subcontrols`}
+              </TableCell>
+              <TableCell sx={cellStyle} key={`completion-${row.id}`}>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <Typography variant="body2">
+                    {`${
+                      row.numberOfSubcontrols
+                        ? (
+                            row.numberOfDoneSubcontrols! /
+                            row.numberOfSubcontrols
+                          ).toFixed(2)
+                        : "0"
+                    }%`}
+                  </Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={
+                      row.numberOfSubcontrols
+                        ? (row.numberOfDoneSubcontrols! /
+                            row.numberOfSubcontrols) *
+                          100
+                        : 0
+                    }
+                    sx={{
+                      width: "100px",
+                      height: "5px",
+                      borderRadius: "4px",
+                      backgroundColor: theme.palette.grey[200],
+                      "& .MuiLinearProgress-bar": {
+                        backgroundColor: getProgressColor(
+                          row.numberOfSubcontrols
+                            ? (row.numberOfDoneSubcontrols! /
+                                row.numberOfSubcontrols) *
+                                100
+                            : 0
+                        ),
+                      },
+                    }}
+                  />
+                </Stack>
+              </TableCell>
             </TableRow>
           </Fragment>
         ))}
       </TableBody>
     ),
-    [rows, modalOpen, selectedRow, getProgressColor, theme.palette.grey, id]
+    [
+      sortedRows,
+      modalOpen,
+      selectedRow,
+      getProgressColor,
+      theme.palette.grey,
+      id,
+    ]
   );
 
   return (

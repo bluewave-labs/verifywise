@@ -16,17 +16,19 @@ import selectValidation from "../../../../application/validations/selectValidati
 import Alert from "../../../components/Alert";
 import VWMultiSelect from "../../../vw-v2-components/Selects/Multi";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
-import { deleteEntityById, getAllEntities, updateEntityById } from "../../../../application/repository/entity.repository";
+import {
+  deleteEntityById,
+  updateEntityById,
+} from "../../../../application/repository/entity.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import { stringToArray } from "../../../../application/tools/stringUtil";
-import useUsers, { User } from "../../../../application/hooks/useUsers";
+import useUsers from "../../../../application/hooks/useUsers";
 
 interface ProjectSettingsProps {
   setTabValue: (value: string) => void;
 }
-
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -38,7 +40,7 @@ const riskClassificationItems = [
   { _id: 1, name: RiskClassificationEnum.HighRisk },
   { _id: 2, name: RiskClassificationEnum.LimitedRisk },
   { _id: 3, name: RiskClassificationEnum.MinimalRisk },
-]
+];
 
 enum HighRiskRoleEnum {
   Deployer = "Deployer",
@@ -56,7 +58,7 @@ const highRiskRoleItems = [
   { _id: 4, name: HighRiskRoleEnum.Importer },
   { _id: 5, name: HighRiskRoleEnum.ProductManufacturer },
   { _id: 6, name: HighRiskRoleEnum.AuthorizedRepresentative },
-]
+];
 
 interface FormValues {
   projectTitle: string;
@@ -113,7 +115,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
       }
     }, [project]);
 
-    const {users, loading, error } = useUsers();
+    const { users } = useUsers();
 
     useEffect(() => {
       if (project) {
@@ -122,10 +124,22 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
           projectTitle: project.project_title ?? "",
           goal: project.goal ?? "",
           owner: parseInt(project.owner) ?? 0,
-          startDate: project.start_date ? dayjs(project.start_date).toISOString() : "",
-          addUsers: stringToArray(project.users),
-          riskClassification: riskClassificationItems.find(item => item.name.toLowerCase() === project.ai_risk_classification.toLowerCase())?._id || 0,
-          typeOfHighRiskRole: highRiskRoleItems.find(item => item.name.toLowerCase() === project.type_of_high_risk_role.toLowerCase())?._id || 0
+          startDate: project.start_date
+            ? dayjs(project.start_date).toISOString()
+            : "",
+          addUsers: project.users ? stringToArray(project.users) : [],
+          riskClassification:
+            riskClassificationItems.find(
+              (item) =>
+                item.name.toLowerCase() ===
+                project.ai_risk_classification.toLowerCase()
+            )?._id || 0,
+          typeOfHighRiskRole:
+            highRiskRoleItems.find(
+              (item) =>
+                item.name.toLowerCase() ===
+                project.type_of_high_risk_role.toLowerCase()
+            )?._id || 0,
         };
         setValues(returnedData);
       }
@@ -189,7 +203,12 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
     const validateForm = useCallback((): boolean => {
       const newErrors: FormErrors = {};
 
-      const projectTitle = checkStringValidation("Project title", values.projectTitle, 1, 64);
+      const projectTitle = checkStringValidation(
+        "Project title",
+        values.projectTitle,
+        1,
+        64
+      );
       if (!projectTitle.accepted) {
         newErrors.projectTitle = projectTitle.message;
       }
@@ -197,7 +216,11 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
       if (!goal.accepted) {
         newErrors.goal = goal.message;
       }
-      const startDate = checkStringValidation("Start date", values.startDate, 1);
+      const startDate = checkStringValidation(
+        "Start date",
+        values.startDate,
+        1
+      );
       if (!startDate.accepted) {
         newErrors.startDate = startDate.message;
       }
@@ -211,11 +234,17 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
       if (!owner.accepted) {
         newErrors.owner = owner.message;
       }
-      const riskClassification = selectValidation("AI risk classification", values.riskClassification);
+      const riskClassification = selectValidation(
+        "AI risk classification",
+        values.riskClassification
+      );
       if (!riskClassification.accepted) {
         newErrors.riskClassification = riskClassification.message;
       }
-      const typeOfHighRiskRole = selectValidation("Type of high risk role", values.typeOfHighRiskRole);
+      const typeOfHighRiskRole = selectValidation(
+        "Type of high risk role",
+        values.typeOfHighRiskRole
+      );
       if (!typeOfHighRiskRole.accepted) {
         newErrors.typeOfHighRiskRole = typeOfHighRiskRole.message;
       }
@@ -252,27 +281,32 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
       setIsDeleteModalOpen(false);
     }, []);
 
-
     const handleSaveConfirm = useCallback(async () => {
-      const selectedRiskClass = riskClassificationItems.find(item => item._id === values.riskClassification)?.name || '';
-      const selectedHighRiskRole = highRiskRoleItems.find(item => item._id === values.typeOfHighRiskRole)?.name || '';
-      const userIds = Array.isArray(values.addUsers) && values.addUsers.length > 1
-        ? `[${values.addUsers.join(',')}]`
-        : values.addUsers[0]?.toString() || '';
+      const selectedRiskClass =
+        riskClassificationItems.find(
+          (item) => item._id === values.riskClassification
+        )?.name || "";
+      const selectedHighRiskRole =
+        highRiskRoleItems.find((item) => item._id === values.typeOfHighRiskRole)
+          ?.name || "";
+      const userIds =
+        Array.isArray(values.addUsers) && values.addUsers.length > 1
+          ? `[${values.addUsers.join(",")}]`
+          : values.addUsers[0]?.toString() || "";
 
       await updateEntityById({
         routeUrl: `/projects/${projectId}`,
         body: {
-          "id": projectId,
-          "project_title": values.projectTitle,
-          "owner": values.owner,
-          "users": userIds,
-          "start_date": values.startDate,
-          "ai_risk_classification": selectedRiskClass,
-          "type_of_high_risk_role": selectedHighRiskRole,
-          "goal": values.goal,
-          "last_updated": new Date().toISOString(),
-          "last_updated_by": 1
+          id: projectId,
+          project_title: values.projectTitle,
+          owner: values.owner,
+          users: userIds,
+          start_date: values.startDate,
+          ai_risk_classification: selectedRiskClass,
+          type_of_high_risk_role: selectedHighRiskRole,
+          goal: values.goal,
+          last_updated: new Date().toISOString(),
+          last_updated_by: 1,
         },
       }).then((response) => {
         if (response.status === 202) {
@@ -380,11 +414,13 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             label="Owner"
             value={values.owner}
             onChange={handleOnSelectChange("owner")}
-            items={users?.map(user => ({
-              _id: user.id,
-              name: `${user.name} ${user.surname}`,
-              email: user.email
-            })) || []}
+            items={
+              users?.map((user) => ({
+                _id: user.id,
+                name: `${user.name} ${user.surname}`,
+                email: user.email,
+              })) || []
+            }
             sx={{ width: 357, backgroundColor: theme.palette.background.main }}
             error={errors.owner}
             isRequired
@@ -416,14 +452,16 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             label="Team members"
             onChange={handleMultiSelectChange("addUsers")}
             value={values.addUsers}
-            items={users?.map(user => ({
-              _id: user.id,
-              name: `${user.name} ${user.surname}`,
-              email: user.email
-            })) || []}
+            items={
+              users?.map((user) => ({
+                _id: user.id,
+                name: `${user.name} ${user.surname}`,
+                email: user.email,
+              })) || []
+            }
             sx={{ width: 357, backgroundColor: theme.palette.background.main }}
-          // error={errors.addUsers}
-          // required
+            // error={errors.addUsers}
+            // required
           />
           <Stack gap="5px" sx={{ mt: "6px" }}>
             <Typography
@@ -517,8 +555,6 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
               boxShadow: "none",
               borderRadius: 2,
               border: "1px solid #175CD3",
-              ml: "auto",
-              mr: 0,
               "&:hover": { boxShadow: "none", backgroundColor: "#175CD3 " },
             }}
           >

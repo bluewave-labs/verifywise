@@ -17,6 +17,7 @@ import { updateEntityById } from "../../../../application/repository/entity.repo
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import { Subcontrol } from "../../../../domain/Subcontrol";
 import { Control } from "../../../../domain/Control";
+import Alert from "../../Alert";
 
 const NewControlPane = ({
   data,
@@ -35,6 +36,10 @@ const NewControlPane = ({
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [alert, setAlert] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const initialSubControlState = data
     .subControls!.slice()
@@ -138,8 +143,14 @@ const NewControlPane = ({
         body: state,
       });
       console.log("Controls updated successfully:", response);
+      setAlert({ type: "success", message: "Controls updated successfully" });
+      setTimeout(() => {
+        setAlert(null);
+        handleClose();
+      }, 3000);
     } catch (error) {
       console.error("Error updating controls:", error);
+      setAlert({ type: "error", message: "Error updating controls" });
     }
     if (OnSave) {
       OnSave(state);
@@ -148,215 +159,238 @@ const NewControlPane = ({
   };
 
   return (
-    <Modal
-      id={`${data.id}-modal`}
-      open={isOpen}
-      onClose={handleClose}
-      className="new-control-pane-modal"
-    >
-      <Stack
-        className="new-control-pane-modal-frame"
-        sx={{
-          gap: theme.spacing(4),
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: 800,
-          bgcolor: theme.palette.background.alt,
-          borderRadius: theme.shape.borderRadius,
-          boxShadow: 24,
-          paddingY: theme.spacing(15),
-          paddingX: theme.spacing(20),
-          "&:focus": {
-            outline: "none",
-          },
-          maxHeight: "90vh",
-          overflowY: "auto",
-        }}
+    <>
+      {alert && (
+        <Box
+          sx={{
+            position: "fixed",
+            top: theme.spacing(2),
+            right: theme.spacing(2),
+            zIndex: 1400, // Ensure it's on top of other components including DualButtonModal
+          }}
+        >
+          <Alert
+            variant={alert.type}
+            body={alert.message}
+            isToast={true}
+            onClick={() => setAlert(null)}
+          />
+        </Box>
+      )}
+
+      {isModalOpen && (
+        <DualButtonModal
+          title="Confirm Save"
+          body={
+            <Typography>Are you sure you want to save the changes?</Typography>
+          }
+          cancelText="Cancel"
+          proceedText="Save"
+          onCancel={() => setIsModalOpen(false)}
+          onProceed={confirmSave}
+          proceedButtonColor="primary"
+          proceedButtonVariant="contained"
+        />
+      )}
+      <Modal
+        id={`${data.id}-modal`}
+        open={isOpen}
+        onClose={handleClose}
+        className="new-control-pane-modal"
+        sx={{ zIndex: 1100 }}
       >
         <Stack
+          className="new-control-pane-modal-frame"
           sx={{
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
+            gap: theme.spacing(4),
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 800,
+            bgcolor: theme.palette.background.alt,
+            borderRadius: theme.shape.borderRadius,
+            boxShadow: 24,
+            paddingY: theme.spacing(15),
+            paddingX: theme.spacing(20),
+            "&:focus": {
+              outline: "none",
+            },
+            maxHeight: "90vh",
+            overflowY: "auto",
           }}
         >
-          <Typography fontSize={16} fontWeight={600} sx={{ textAlign: "left" }}>
-            {`${controlCategoryId + "." + data.order_no}`} {data.title}
-          </Typography>
-          <CloseIcon onClick={handleClose} style={{ cursor: "pointer" }} />
-        </Stack>
-        <Typography fontSize={13}>{data.description}</Typography>
-        <DropDowns
-          key={`control-${data.id}`}
-          isControl={true}
-          elementId={`control-${data.id}`}
-          state={state} // Fallback to `data` if `initialValues` isn't set yet
-          setState={(newState) =>
-            setState((prevState) => ({
-              ...prevState,
-              ...newState,
-            }))
-          }
-        />
-
-        {/* this is working fine */}
-        <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
-        <Box sx={{ width: "100%", bgcolor: "#FCFCFD" }}>
-          <Tabs
-            value={selectedTab}
-            onChange={handleSelectedTab}
-            indicatorColor="primary"
-            textColor="primary"
-            sx={{ justifyContent: "flex-start" }}
-          >
-            {state.subControls!.map((subControl, index) => (
-              <Tab
-                id={`${data.id}.${subControl.id}`}
-                key={subControl.id}
-                label={`Subcontrol ${index + 1}`}
-                disableRipple
-                sx={{ textTransform: "none" }}
-              />
-            ))}
-          </Tabs>
-        </Box>
-        <Stack
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "flex-start",
-            borderRadius: "4px",
-            border: "1px solid #EAECF0",
-            width: "fit-content",
-          }}
-        >
-          {["Overview", "Evidence", "Auditor Feedback"].map(
-            (section, index) => (
-              <Button
-                key={`sub-control-${data.order_no}.${
-                  state.subControls![selectedTab].id
-                }.${index}`}
-                variant={getVariant(activeSection, section)}
-                onClick={() => handleSectionChange(section)}
-                disableRipple
-                sx={{
-                  ...buttonTabStyles,
-                  backgroundColor:
-                    activeSection === section ? "#EAECF0" : "transparent",
-                  fontWeight: activeSection === section ? "500" : 300,
-                }}
-              >
-                {section}
-              </Button>
-            )
-          )}
-        </Stack>
-        <Box>
-          <Typography
-            fontSize={16}
-            fontWeight={600}
-            sx={{ textAlign: "left", mb: 3 }}
-          >
-            {`${controlCategoryId}.${data.order_no}.${
-              state.subControls![selectedTab].order_no
-            }`}{" "}
-            {state.subControls![selectedTab].title}
-          </Typography>
-          <Typography sx={{ mb: 5, fontSize: 13 }}>
-            {state.subControls![selectedTab].description}
-          </Typography>
-          {activeSection === "Overview" && (
-            <Typography fontSize={13}>
-              <DropDowns
-                key={`sub-control-${data.order_no}.${
-                  state.subControls![selectedTab].id
-                }`}
-                isControl={false}
-                elementId={`sub-control-${data.order_no}.${
-                  state.subControls![selectedTab].id
-                }`}
-                state={state.subControls![selectedTab]}
-                setState={(newState) =>
-                  handleSubControlStateChange(selectedTab, newState)
-                }
-              />
-            </Typography>
-          )}
-          {activeSection === "Evidence" && (
-            <AuditorFeedback
-              key={`sub-control-${data.order_no}.${
-                state.subControls![selectedTab].id
-              }.evidence`}
-              activeSection={activeSection}
-              feedback={state.subControls![selectedTab].evidence_description}
-              onChange={(e) => {
-                const updatedSubControls = [...state.subControls!];
-                updatedSubControls[selectedTab].evidence_description =
-                  e.target.value;
-                setState({ ...state, subControls: updatedSubControls });
-              }}
-            />
-          )}
-          {activeSection === "Auditor Feedback" && (
-            <AuditorFeedback
-              key={`sub-control-${data.order_no}.${
-                state.subControls![selectedTab].id
-              }.auditor-feedback`}
-              activeSection={activeSection}
-              feedback={state.subControls![selectedTab].feedback_description}
-              onChange={(e) => {
-                const updatedSubControls = [...state.subControls!];
-                updatedSubControls[selectedTab].feedback_description =
-                  e.target.value;
-                setState({ ...state, subControls: updatedSubControls });
-              }}
-            />
-          )}
-        </Box>
-        <Stack
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "flex-end",
-            mt: 2,
-          }}
-        >
-          <Button
-            variant="contained"
-            onClick={handleSave}
+          <Stack
             sx={{
-              ...buttonStyle,
-              width: 68,
-              "&:hover": {
-                backgroundColor: "#175CD3 ",
-              },
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
             }}
-            disableRipple
           >
-            Save
-          </Button>
-        </Stack>
-        {isModalOpen && (
-          <DualButtonModal
-            title="Confirm Save"
-            body={
-              <Typography>
-                Are you sure you want to save the changes?
-              </Typography>
+            <Typography
+              fontSize={16}
+              fontWeight={600}
+              sx={{ textAlign: "left" }}
+            >
+              {`${controlCategoryId + "." + data.order_no}`} {data.title}
+            </Typography>
+            <CloseIcon onClick={handleClose} style={{ cursor: "pointer" }} />
+          </Stack>
+          <Typography fontSize={13}>{data.description}</Typography>
+          <DropDowns
+            key={`control-${data.id}`}
+            isControl={true}
+            elementId={`control-${data.id}`}
+            state={state} // Fallback to `data` if `initialValues` isn't set yet
+            setState={(newState) =>
+              setState((prevState) => ({
+                ...prevState,
+                ...newState,
+              }))
             }
-            cancelText="Cancel"
-            proceedText="Save"
-            onCancel={() => setIsModalOpen(false)}
-            onProceed={confirmSave}
-            proceedButtonColor="primary"
-            proceedButtonVariant="contained"
           />
-        )}
-      </Stack>
-    </Modal>
+
+          {/* this is working fine */}
+          <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
+          <Box sx={{ width: "100%", bgcolor: "#FCFCFD" }}>
+            <Tabs
+              value={selectedTab}
+              onChange={handleSelectedTab}
+              indicatorColor="primary"
+              textColor="primary"
+              sx={{ justifyContent: "flex-start" }}
+            >
+              {state.subControls!.map((subControl, index) => (
+                <Tab
+                  id={`${data.id}.${subControl.id}`}
+                  key={subControl.id}
+                  label={`Subcontrol ${index + 1}`}
+                  disableRipple
+                  sx={{ textTransform: "none" }}
+                />
+              ))}
+            </Tabs>
+          </Box>
+          <Stack
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "flex-start",
+              borderRadius: "4px",
+              border: "1px solid #EAECF0",
+              width: "fit-content",
+            }}
+          >
+            {["Overview", "Evidence", "Auditor Feedback"].map(
+              (section, index) => (
+                <Button
+                  key={`sub-control-${data.order_no}.${
+                    state.subControls![selectedTab].id
+                  }.${index}`}
+                  variant={getVariant(activeSection, section)}
+                  onClick={() => handleSectionChange(section)}
+                  disableRipple
+                  sx={{
+                    ...buttonTabStyles,
+                    backgroundColor:
+                      activeSection === section ? "#EAECF0" : "transparent",
+                    fontWeight: activeSection === section ? "500" : 300,
+                  }}
+                >
+                  {section}
+                </Button>
+              )
+            )}
+          </Stack>
+          <Box>
+            <Typography
+              fontSize={16}
+              fontWeight={600}
+              sx={{ textAlign: "left", mb: 3 }}
+            >
+              {`${controlCategoryId}.${data.order_no}.${
+                state.subControls![selectedTab].order_no
+              }`}{" "}
+              {state.subControls![selectedTab].title}
+            </Typography>
+            <Typography sx={{ mb: 5, fontSize: 13 }}>
+              {state.subControls![selectedTab].description}
+            </Typography>
+            {activeSection === "Overview" && (
+              <Typography fontSize={13}>
+                <DropDowns
+                  key={`sub-control-${data.order_no}.${
+                    state.subControls![selectedTab].id
+                  }`}
+                  isControl={false}
+                  elementId={`sub-control-${data.order_no}.${
+                    state.subControls![selectedTab].id
+                  }`}
+                  state={state.subControls![selectedTab]}
+                  setState={(newState) =>
+                    handleSubControlStateChange(selectedTab, newState)
+                  }
+                />
+              </Typography>
+            )}
+            {activeSection === "Evidence" && (
+              <AuditorFeedback
+                key={`sub-control-${data.order_no}.${
+                  state.subControls![selectedTab].id
+                }.evidence`}
+                activeSection={activeSection}
+                feedback={state.subControls![selectedTab].evidence_description}
+                onChange={(e) => {
+                  const updatedSubControls = [...state.subControls!];
+                  updatedSubControls[selectedTab].evidence_description =
+                    e.target.value;
+                  setState({ ...state, subControls: updatedSubControls });
+                }}
+              />
+            )}
+            {activeSection === "Auditor Feedback" && (
+              <AuditorFeedback
+                key={`sub-control-${data.order_no}.${
+                  state.subControls![selectedTab].id
+                }.auditor-feedback`}
+                activeSection={activeSection}
+                feedback={state.subControls![selectedTab].feedback_description}
+                onChange={(e) => {
+                  const updatedSubControls = [...state.subControls!];
+                  updatedSubControls[selectedTab].feedback_description =
+                    e.target.value;
+                  setState({ ...state, subControls: updatedSubControls });
+                }}
+              />
+            )}
+          </Box>
+          <Stack
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "flex-end",
+              mt: 2,
+            }}
+          >
+            <Button
+              variant="contained"
+              onClick={handleSave}
+              sx={{
+                ...buttonStyle,
+                width: 68,
+                "&:hover": {
+                  backgroundColor: "#175CD3 ",
+                },
+              }}
+              disableRipple
+            >
+              Save
+            </Button>
+          </Stack>
+        </Stack>
+      </Modal>
+    </>
   );
 };
 

@@ -50,7 +50,7 @@ const StatsCard = ({
         <Typography
           sx={{
             color: "#8594AC",
-            fontSize: 16,
+            fontSize: 13,
           }}
         >
           {`${completed} ${title} out of ${total} is completed`}

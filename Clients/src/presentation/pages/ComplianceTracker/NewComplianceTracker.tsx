@@ -159,7 +159,7 @@ const NewComplianceTracker = () => {
       <Stack
         data-joyride-id="compliance-accordion"
         className="new-compliance-tracker-details"
-        key={controlGroupIndex}
+        key={controlGroupId}
       >
         <Accordion
           className="new-compliance-tracker-details-accordion"
@@ -188,7 +188,9 @@ const NewComplianceTracker = () => {
               id={controlGroupId}
               cols={Table_Columns}
               rows={controls}
-              controlCategoryId={controlGroupIndex.toString()}
+              controlCategoryId={
+                controlGroupIndex != null ? controlGroupIndex.toString() : ""
+              }
             />
           </AccordionDetails>
         </Accordion>

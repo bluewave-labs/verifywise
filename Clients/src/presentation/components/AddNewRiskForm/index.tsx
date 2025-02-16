@@ -99,6 +99,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   const [value, setValue] = useState("risks");
   const handleChange = useCallback(
     (_: React.SyntheticEvent, newValue: string) => {
+      console.log(newValue)
       setValue(newValue);
     },
     []
@@ -158,19 +159,19 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     }
   }, [popupStatus])
 
-  const validateForm = useCallback((): boolean => {
+  const validateForm = useCallback((): { isValid: boolean, errors: RiskFormErrors, mitigationErrors: MitigationFormErrors } => {
     const newErrors: RiskFormErrors = {};
     const newMitigationErrors: MitigationFormErrors = {};
 
-    const riskName = checkStringValidation(
-      "Risk name",
-      riskValues.riskName,
-      3,
-      50
-    );
-    if (!riskName.accepted) {
-      newErrors.riskName = riskName.message;
-    }
+    // const riskName = checkStringValidation(
+    //   "Risk name",
+    //   riskValues.riskName,
+    //   3,
+    //   50
+    // );
+    // if (!riskName.accepted) {
+    //   newErrors.riskName = riskName.message;
+    // }
     const riskDescription = checkStringValidation(
       "Risk description",
       riskValues.riskDescription,
@@ -293,15 +294,23 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     setMigitateErrors(newMitigationErrors);
     setRiskErrors(newErrors);
 
-    return (
-      Object.keys(newErrors).length === 0 &&
-      Object.keys(newMitigationErrors).length === 0
-    ); // Return true if no errors exist
+    // return (
+    //   Object.keys(newErrors).length === 0 &&
+    //   Object.keys(newMitigationErrors).length === 0,
+    // ); // Return true if no errors exist
+
+    return {
+      isValid: Object.keys(newErrors).length === 0 && Object.keys(newMitigationErrors).length === 0,
+      errors: newErrors,
+      mitigationErrors: newMitigationErrors
+    };
   }, [riskValues, mitigationValues]);
 
   const riskFormSubmitHandler = async() => {
+    const { isValid, errors } = validateForm();
+
     // check forms validate
-    if (validateForm()) {
+    if (isValid) {
       const formData = {
         "project_id": projectId,
         "risk_name": riskValues.riskName,
@@ -355,7 +364,11 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         }
       }
     } else {
-      console.log("validation fails");
+      if(Object.keys(errors).length){
+        setValue('risks');
+      }else{   
+        setValue('mitigation');
+      }
     }
   };
 

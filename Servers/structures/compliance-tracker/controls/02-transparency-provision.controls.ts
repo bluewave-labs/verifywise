@@ -8,7 +8,7 @@ export const TransparencyProvision = [
       {
         order_no: 1,
         title:
-          "We provide detailed descriptions of the AI system's intended use.",
+          "We provide detailed descriptions of the AI system''s intended use.",
         description:
           "Describing intended use prevents misuse, aligning AI deployment with specified legal and ethical boundaries.",
       },

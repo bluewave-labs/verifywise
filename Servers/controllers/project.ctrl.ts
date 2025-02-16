@@ -12,7 +12,13 @@ import {
 } from "../utils/project.utils";
 import { createNewAssessmentQuery } from "../utils/assessment.utils";
 import { getUserByIdQuery } from "../utils/user.utils";
-import { createNewControlCategories } from "../utils/controlCategory.util";
+import {
+  createNewControlCategories,
+  getControlCategoryByProjectIdQuery,
+} from "../utils/controlCategory.util";
+import { Project } from "../models/project.model";
+import { getAllControlsByControlGroupQuery } from "../utils/control.utils";
+import { getAllSubcontrolsByControlIdQuery } from "../utils/subControl.utils";
 
 export async function getAllProjects(
   req: Request,
@@ -52,16 +58,7 @@ export async function getProjectById(
 
 export async function createProject(req: Request, res: Response): Promise<any> {
   try {
-    const newProject: {
-      project_title: string;
-      owner: number;
-      users: string;
-      start_date: Date;
-      ai_risk_classification: string;
-      type_of_high_risk_role: string;
-      goal: string;
-      last_updated_by: number;
-    } = req.body;
+    const newProject: Partial<Project> = req.body;
 
     if (!newProject.project_title || !newProject.owner) {
       return res
@@ -71,18 +68,18 @@ export async function createProject(req: Request, res: Response): Promise<any> {
         );
     }
 
-    const createdProject = await createNewProjectQuery({ ...newProject, last_updated: newProject.start_date });
-    const assessment = await createNewAssessmentQuery({
-      projectId: createdProject.id,
+    const createdProject = await createNewProjectQuery(newProject);
+    const assessments = await createNewAssessmentQuery({
+      project_id: createdProject.id,
     });
-    const controlCategories = await createNewControlCategories(createdProject.id)
+    const controls = await createNewControlCategories(createdProject.id);
 
     if (createdProject) {
       return res.status(201).json(
         STATUS_CODE[201]({
           project: createdProject,
-          assessment,
-          controlCategories
+          assessment_tracker: assessments,
+          compliance_tracker: controls,
         })
       );
     }
@@ -99,17 +96,7 @@ export async function updateProjectById(
 ): Promise<any> {
   try {
     const projectId = parseInt(req.params.id);
-    const updatedProject: {
-      project_title: string;
-      owner: string;
-      users: string;
-      start_date: Date;
-      ai_risk_classification: string;
-      type_of_high_risk_role: string;
-      goal: string;
-      last_updated: Date;
-      last_updated_by: string;
-    } = req.body;
+    const updatedProject: Partial<Project> = req.body;
 
     if (!updatedProject.project_title || !updatedProject.owner) {
       return res
@@ -212,6 +199,41 @@ export async function getVendorRisksCalculations(
     }
 
     return res.status(204).json(STATUS_CODE[204](vendorRisksCalculations));
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getCompliances(req: Request, res: Response) {
+  const projectId = parseInt(req.params.projid);
+  try {
+    const project = await getProjectByIdQuery(projectId);
+    if (project) {
+      const controlCategories = await getControlCategoryByProjectIdQuery(
+        project.id
+      );
+      for (const category of controlCategories) {
+        if (category) {
+          const controls = await getAllControlsByControlGroupQuery(category.id);
+          for (const control of controls) {
+            if (control && control.id) {
+              const subControls = await getAllSubcontrolsByControlIdQuery(
+                control.id
+              );
+              control.numberOfSubcontrols = subControls.length;
+              control.numberOfDoneSubcontrols = subControls.filter(
+                (subControl) => subControl.status === "Done"
+              ).length;
+              control.subControls = subControls;
+            }
+          }
+          category.controls = controls;
+        }
+      }
+      return res.status(200).json(STATUS_CODE[200](controlCategories));
+    } else {
+      return res.status(404).json(STATUS_CODE[404](project));
+    }
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

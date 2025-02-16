@@ -13,6 +13,7 @@ import {
   RequestWithFile,
 } from "../utils/question.utils";
 import { createNewSubtopicQuery } from "../utils/subtopic.utils";
+import { Topic } from "../models/topic.model";
 
 export async function getAllTopics(req: Request, res: Response): Promise<any> {
   try {
@@ -50,11 +51,7 @@ export async function createNewTopic(
 ): Promise<any> {
   console.log("Create topics", req.body);
   try {
-    const newTopic: {
-      id: number;
-      assessmentId: number;
-      title: string;
-    } = req.body;
+    const newTopic: Topic = req.body;
 
     const createdTopic = await createNewTopicQuery(newTopic);
 
@@ -74,10 +71,7 @@ export async function updateTopicById(
 ): Promise<any> {
   try {
     const topicId = parseInt(req.params.id);
-    const updatedTopic: {
-      assessmentId: number;
-      title: string;
-    } = req.body;
+    const updatedTopic: Topic = req.body;
 
     const topic = await updateTopicByIdQuery(topicId, updatedTopic);
 

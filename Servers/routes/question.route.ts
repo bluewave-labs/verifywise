@@ -18,8 +18,8 @@ router.get("/", /*authenticateJWT,*/ getAllQuestions);
 router.get("/:id", /*authenticateJWT,*/ getQuestionById);
 
 // POST, PUT, DELETE requests
-router.post("/", /*authenticateJWT,*/ upload.any("files"),  createQuestion);
-router.put("/:id", /*authenticateJWT,*/ updateQuestionById);
+router.post("/", /*authenticateJWT,*/ upload.any("files"), createQuestion);
+router.put("/:id", /*authenticateJWT,*/ upload.any("files"), updateQuestionById);
 router.delete("/:id", /*authenticateJWT,*/ deleteQuestionById);
 
 export default router;

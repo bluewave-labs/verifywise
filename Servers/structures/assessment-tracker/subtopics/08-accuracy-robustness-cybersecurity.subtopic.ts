@@ -38,7 +38,7 @@ export const AccuracyRobustnessCyberSecurity = [
       {
         order_no: 1,
         question:
-          "What monitoring systems will be in place to track the AI system's performance in the production environment? How will this data be used to maintain or improve the system?",
+          "What monitoring systems will be in place to track the AI system''s performance in the production environment? How will this data be used to maintain or improve the system?",
         hint: "Detail the monitoring systems in place to track performance in production and how this data is used to maintain or improve the AI system.",
         priority_level: "medium priority",
         answer_type: "Long text",

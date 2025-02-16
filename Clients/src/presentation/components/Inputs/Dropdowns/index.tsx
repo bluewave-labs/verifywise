@@ -1,9 +1,8 @@
-import { Stack, Typography, useTheme, SelectChangeEvent } from "@mui/material";
+import { Stack, Typography, useTheme } from "@mui/material";
 import { useEffect, useState } from "react";
 import Select from "../Select";
 import DatePicker from "../Datepicker";
 import Field from "../Field";
-import { Dayjs } from "dayjs";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { formatDate } from "../../../tools/isoDateToString";
 
@@ -19,26 +18,22 @@ interface DropDownsProps {
   elementId?: string;
   state?: any;
   setState?: (newState: any) => void;
-  isControl: boolean;
+  isControl?: boolean;
 }
 
 const DropDowns: React.FC<DropDownsProps> = ({
   elementId,
   state,
   setState,
-  isControl,
 }) => {
-  const [status, setStatus] = useState<string | number>(state?.status || "");
+  const [status, setStatus] = useState(state?.status || "");
   const [approver, setApprover] = useState(state?.approver || "");
-  const [riskReview, setRiskReview] = useState(state?.riskReview || "");
+  const [riskReview, setRiskReview] = useState(state?.risk_review || "");
   const [owner, setOwner] = useState(state?.owner || "");
   const [reviewer, setReviewer] = useState(state?.reviewer || "");
-  const [date, setDate] = useState<Dayjs | null>(state?.date || null);
-  const [controlDescription, setControlDescription] = useState(
+  const [date, setDate] = useState(state?.due_date || null);
+  const [implementationDetails, setImplementationDetails] = useState(
     state?.implementation_details || ""
-  );
-  const [subControlDescription, setsubControlDescription] = useState(
-    state?.subControlDescription || ""
   );
   const theme = useTheme();
 
@@ -62,28 +57,15 @@ const DropDowns: React.FC<DropDownsProps> = ({
   // Update local state when the state prop changes
   useEffect(() => {
     if (state) {
-      setStatus(state?.status || "");
-      setApprover(state?.approver || "");
-      setRiskReview(state?.riskReview || "");
-      setOwner(state?.owner || "");
-      setReviewer(state?.reviewer || "");
-      setDate(state?.date || null);
-      setControlDescription(state?.implementation_details || "");
-      setsubControlDescription(state?.subControlDescription || "");
+      setStatus(state?.status);
+      setApprover(state?.approver); // Ensure this line is present
+      setRiskReview(state?.risk_review);
+      setOwner(state?.owner);
+      setReviewer(state?.reviewer);
+      setDate(state?.due_date);
+      setImplementationDetails(state?.implementation_details);
     }
   }, [state]);
-
-  const handleChange = (e: SelectChangeEvent<string | number>) => {
-    const selectedValue = e.target.value;
-    const selectedUser = users.find((user) => user.id === selectedValue);
-    console.log("selectedUser : ", selectedUser);
-    setApprover(selectedValue);
-
-    // Update the state in the parent component
-    if (setState) {
-      setState({ ...state, approver: selectedValue });
-    }
-  };
 
   return (
     <Stack
@@ -102,9 +84,10 @@ const DropDowns: React.FC<DropDownsProps> = ({
         <Select
           id="status"
           label="Status:"
-          value={status}
+          value={status || ""}
           onChange={(e) => {
             setStatus(e.target.value);
+            console.log("Status: ", e.target.value);
             if (setState) {
               setState({ ...state, status: e.target.value });
             }
@@ -115,30 +98,37 @@ const DropDowns: React.FC<DropDownsProps> = ({
             { _id: "Done", name: "Done" },
           ]}
           sx={inputStyles}
-          placeholder={status.toString() || "Select status"}
+          placeholder={"Select status"}
         />
 
         <Select
           id="Approver"
           label="Approver:"
           value={approver || ""}
-          onChange={handleChange}
+          onChange={(e) => {
+            setApprover(e.target.value);
+            console.log("Approver: ", e.target.value);
+            if (setState) {
+              setState({ ...state, approver: e.target.value });
+            }
+          }}
           items={users.map((user) => ({
             _id: `${user.name} ${user.surname}`,
-            name: user.name,
+            name: `${user.name} ${user.surname}`,
           }))}
           sx={inputStyles}
-          placeholder={approver.toString() || "Select approver"}
+          placeholder={"Select approver"}
         />
 
         <Select
           id="Risk review"
           label="Risk review:"
-          value={riskReview}
+          value={riskReview || ""}
           onChange={(e) => {
             setRiskReview(e.target.value);
+            console.log("Risk review: ", e.target.value);
             if (setState) {
-              setState({ ...state, riskReview: e.target.value });
+              setState({ ...state, risk_review: e.target.value });
             }
           }}
           items={[
@@ -147,7 +137,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
             { _id: "Unacceptable risk", name: "Unacceptable risk" },
           ]}
           sx={inputStyles}
-          placeholder={riskReview.toString() || "Select risk review"}
+          placeholder={"Select risk review"}
         />
       </Stack>
 
@@ -162,37 +152,39 @@ const DropDowns: React.FC<DropDownsProps> = ({
         <Select
           id="Owner"
           label="Owner:"
-          value={owner}
+          value={owner || ""}
           onChange={(e) => {
             setOwner(e.target.value);
+            console.log("Owner: ", e.target.value);
             if (setState) {
               setState({ ...state, owner: e.target.value });
             }
           }}
           items={users.map((user) => ({
             _id: `${user.name} ${user.surname}`,
-            name: user.name,
+            name: `${user.name} ${user.surname}`,
           }))}
           sx={inputStyles}
-          placeholder={owner.toString() || "Select owner"}
+          placeholder={"Select owner"}
         />
 
         <Select
           id="Reviewer"
           label="Reviewer:"
-          value={reviewer}
+          value={reviewer || ""}
           onChange={(e) => {
             setReviewer(e.target.value);
+            console.log("Reviewer: ", e.target.value);
             if (setState) {
               setState({ ...state, reviewer: e.target.value });
             }
           }}
           items={users.map((user) => ({
             _id: `${user.name} ${user.surname}`,
-            name: user.name,
+            name: `${user.name} ${user.surname}`,
           }))}
           sx={inputStyles}
-          placeholder={reviewer.toString() || "Select reviewer"}
+          placeholder={"Select reviewer"}
         />
 
         <DatePicker
@@ -204,7 +196,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
             if (setState && newDate) {
               setState({
                 ...state,
-                date: formatDate(newDate.format("YYYY-MM-DD")),
+                due_date: formatDate(newDate.format("YYYY-MM-DD")),
               });
             }
           }}
@@ -216,49 +208,35 @@ const DropDowns: React.FC<DropDownsProps> = ({
       </Typography>
       <Stack
         sx={{
-          height: 73,
+          height: 90,
           borderRadius: theme.shape.borderRadius,
           "& .MuiInputBase-root": {
-            height: "73px",
+            height: "90px",
           },
           "& .MuiOutlinedInput-input": {
-            paddingTop: "20px",
+            padding: "30px",
           },
           marginBottom: theme.spacing(4),
         }}
       >
         {" "}
-        {isControl ? (
-          <Field
-            type="description"
-            sx={{
-              cursor: "text",
-            }}
-            value={controlDescription}
-            onChange={(e) => {
-              setControlDescription(e.target.value);
-              if (setState) {
-                setState({ ...state, description: e.target.value });
-              }
-            }}
-            placeholder={controlDescription.toString() || ""}
-          />
-        ) : (
-          <Field
-            type="description"
-            sx={{
-              cursor: "text",
-            }}
-            value={subControlDescription}
-            onChange={(e) => {
-              setsubControlDescription(e.target.value);
-              if (setState) {
-                setState({ ...state, subControlDescription: e.target.value });
-              }
-            }}
-            placeholder={subControlDescription.toString() || ""}
-          />
-        )}
+        <Field
+          type="description"
+          sx={{
+            cursor: "text",
+            "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
+              {
+                height: "73px",
+              },
+          }}
+          value={implementationDetails}
+          onChange={(e) => {
+            setImplementationDetails(e.target.value);
+            if (setState) {
+              setState({ ...state, implementation_details: e.target.value });
+            }
+          }}
+        />
       </Stack>
     </Stack>
   );

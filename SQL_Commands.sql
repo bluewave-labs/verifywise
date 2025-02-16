@@ -19,7 +19,7 @@ CREATE TABLE projects (
   id SERIAL PRIMARY KEY,
   project_title VARCHAR(255),
   owner INTEGER REFERENCES users(id),
-  users TEXT,
+  members TEXT[],
   start_date DATE,
   ai_risk_classification VARCHAR(255),
   type_of_high_risk_role VARCHAR(255),
@@ -59,13 +59,14 @@ CREATE TABLE assessments (
 CREATE TABLE controlcategories (
   id SERIAL PRIMARY KEY,
   project_id INT REFERENCES projects(id),
-  name VARCHAR(255)
+  title TEXT,
+  order_no INT
 );
 
 CREATE TABLE controls (
   id SERIAL PRIMARY KEY,
-  control_title TEXT,
-  control_description TEXT,
+  title TEXT,
+  description TEXT,
   status VARCHAR(255),
   approver VARCHAR(255),
   risk_review TEXT,
@@ -73,14 +74,16 @@ CREATE TABLE controls (
   reviewer VARCHAR(255),
   due_date DATE,
   implementation_details TEXT,
-  control_group INT REFERENCES controlcategories(id)
+  order_no INT,
+  control_category_id INT REFERENCES controlcategories(id)
 );
 
 CREATE TABLE subcontrols (
   id SERIAL PRIMARY KEY,
   control_id INT REFERENCES controls(id),
-  sub_control_title TEXT,
-  sub_control_description TEXT,
+  title TEXT,
+  description TEXT,
+  order_no INT,
   status VARCHAR(255),
   approver VARCHAR(255),
   risk_review TEXT,
@@ -88,10 +91,10 @@ CREATE TABLE subcontrols (
   reviewer VARCHAR(255),
   due_date DATE,
   implementation_details TEXT,
-  evidence VARCHAR(255),
-  feedback TEXT,
-  evidenceFiles TEXT[],
-  feedbackFiles TEXT[]
+  evidence_description TEXT,
+  feedback_description TEXT,
+  evidence_files TEXT[],
+  feedback_files TEXT[]
 );
 
 CREATE TABLE projectrisks (
@@ -155,26 +158,31 @@ CREATE TABLE projectscopes (
 CREATE TABLE topics (
   id SERIAL PRIMARY KEY,
   assessment_id INT REFERENCES assessments(id),
-  title VARCHAR(255)
+  title TEXT,
+  order_no INT
 );
 
 CREATE TABLE subtopics (
   id SERIAL PRIMARY KEY,
   topic_id INT REFERENCES topics(id),
-  name VARCHAR(255)
+  title TEXT,
+  order_no INT
 );
 
 CREATE TABLE questions (
   id SERIAL PRIMARY KEY,
   subtopic_id INT REFERENCES subtopics(id),
-  question_text TEXT,
+  question TEXT,
   answer_type VARCHAR(255),
-  evidence_file_required BOOLEAN,
+  evidence_required BOOLEAN,
   hint TEXT,
   is_required BOOLEAN,
   priority_level VARCHAR(255),
   evidence_files TEXT[],
-  answer TEXT
+  answer TEXT,
+  dropdown_options TEXT[],
+  order_id INT,
+  input_type VARCHAR(255)
 );
 
 CREATE TABLE files (

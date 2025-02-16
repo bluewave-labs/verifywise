@@ -7,7 +7,7 @@ export const Explainability = [
       {
         order_no: 1,
         question:
-          "What are the primary objectives of your AI application? How do these objectives align with your organization's overall mission and values?",
+          "What are the primary objectives of your AI application? How do these objectives align with your organization''s overall mission and values?",
         hint: "Explain how the AI system’s objectives align with your organization’s mission and values, emphasizing clarity and accessibility.",
         priority_level: "high priority",
         answer_type: "Long text",
@@ -34,7 +34,7 @@ export const Explainability = [
         order_no: 3,
         question:
           "To what extent can the operation of the application/algorithm be explained to end users and those involved?",
-        hint: "Describe efforts to explain the AI system's operations to users in a clear and understandable way, tailored to their needs and skills.",
+        hint: "Describe efforts to explain the AI system''s operations to users in a clear and understandable way, tailored to their needs and skills.",
         priority_level: "medium priority",
         answer_type: "Long text",
         input_type: "Tiptap area",

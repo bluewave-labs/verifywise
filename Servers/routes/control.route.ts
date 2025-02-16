@@ -23,16 +23,16 @@ router.get("/all/bycategory/:id", getControlsByControlCategoryId);
 
 // POST, PUT, DELETE requests
 router.post("/", /*authenticateJWT,*/ createControl);
-router.post(
-  "/saveControls",
+router.post("/compliance/:id", /*authenticateJWT,*/ getComplianceById);
+
+router.patch(
+  "/saveControls/:id",
   /*authenticateJWT,*/ upload.fields([
     { name: "evidenceFiles" },
     { name: "feedbackFiles" },
   ]),
   saveControls
 );
-router.post("/compliance/:id", /*authenticateJWT,*/ getComplianceById);
-
 router.put("/:id", /*authenticateJWT,*/ updateControlById);
 // router.put("/updateControls/:id", /*authenticateJWT,*/ updateControls);
 

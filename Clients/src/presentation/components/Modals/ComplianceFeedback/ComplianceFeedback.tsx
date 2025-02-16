@@ -8,7 +8,7 @@ import { ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from "../constants";
 
 interface AuditorFeedbackProps {
   activeSection?: string;
-  feedback: string;
+  feedback: string | undefined;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 

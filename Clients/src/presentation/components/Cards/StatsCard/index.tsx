@@ -1,6 +1,7 @@
 import { Stack, Typography } from "@mui/material";
 import { StatsCardFrame, StatsCardRate } from "./style";
 import ProgressBar from "../../ProjectCard/ProgressBar";
+import { useMemo } from "react";
 
 interface StatsCardProps {
   title: string;
@@ -15,7 +16,24 @@ const StatsCard = ({
   total,
   progressbarColor,
 }: StatsCardProps) => {
-  const progress = `${completed}/${total}`;
+  const progress = useMemo(() => `${completed}/${total}`, [completed, total]);
+  const percentage = useMemo(() => {
+    if (total === 0 || isNaN(completed) || isNaN(total)) return 0;
+    const result = Math.floor((Number(completed) / Number(total)) * 100);
+    return isNaN(result) ? 0 : result;
+  }, [completed, total]);
+
+  if (
+    typeof completed !== "number" ||
+    typeof total !== "number" ||
+    total < 0 ||
+    completed < 0
+  ) {
+    console.error(
+      "Invalid props: completed and total should be non-negative numbers."
+    );
+    return null;
+  }
 
   return (
     <Stack sx={StatsCardFrame}>
@@ -38,9 +56,7 @@ const StatsCard = ({
           {`${completed} ${title} out of ${total} is completed`}
         </Typography>
       </Stack>
-      <Typography sx={StatsCardRate}>{`${Math.floor(
-        (completed / total) * 100
-      )}%`}</Typography>
+      <Typography sx={StatsCardRate}>{`${percentage}%`}</Typography>
     </Stack>
   );
 };

@@ -238,3 +238,45 @@ export async function getCompliances(req: Request, res: Response) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
+
+export async function projectProgress(req: Request, res: Response) {
+  const projectId = parseInt(req.params.id);
+  let totalNumberOfSubcontrols = 0;
+  let totalNumberOfDoneSubcontrols = 0;
+  try {
+    const project = await getProjectByIdQuery(projectId);
+    if (project) {
+      const controlCategories = await getControlCategoryByProjectIdQuery(
+        project.id
+      );
+      for (const category of controlCategories) {
+        if (category) {
+          const controls = await getAllControlsByControlGroupQuery(category.id);
+          for (const control of controls) {
+            if (control && control.id) {
+              const subControls = await getAllSubcontrolsByControlIdQuery(
+                control.id
+              );
+              control.numberOfSubcontrols = subControls.length;
+              control.numberOfDoneSubcontrols = subControls.filter(
+                (subControl) => subControl.status === "Done"
+              ).length;
+              totalNumberOfSubcontrols += subControls.length;
+              totalNumberOfDoneSubcontrols += control.numberOfDoneSubcontrols;
+            }
+          }
+        }
+      }
+      return res.status(200).json(
+        STATUS_CODE[200]({
+          allsubControls: totalNumberOfSubcontrols,
+          allDonesubControls: totalNumberOfDoneSubcontrols,
+        })
+      );
+    } else {
+      return res.status(404).json(STATUS_CODE[404](project));
+    }
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}

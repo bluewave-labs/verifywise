@@ -185,7 +185,7 @@ const NewComplianceTracker = () => {
           </AccordionSummary>
           <AccordionDetails>
             <AccordionTable
-              id={controlGroupId}
+              id={controlGroupIndex}
               cols={Table_Columns}
               rows={controls}
               controlCategoryId={

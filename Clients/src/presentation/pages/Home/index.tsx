@@ -403,14 +403,16 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
               {projects.length <= 3 ? (
                 <>
                   {projects.map((item: ProjectCardProps) => (
-                    <ProjectCard
-                      key={item.id}
-                      {...item}
-                      id={item.id}
-                      assessments={assessments}
-                      controls={controls}
-                      last_updated={item.last_updated}
-                    />
+                    <Box key={item.id} sx={{ width: projects.length === 1 ? '50%' : '100%' }}>
+                      <ProjectCard
+                        key={item.id}
+                        {...item}
+                        id={item.id}
+                        assessments={assessments}
+                        controls={controls}
+                        last_updated={item.last_updated}
+                      />
+                    </Box>
                   ))}
                 </>
               ) : (

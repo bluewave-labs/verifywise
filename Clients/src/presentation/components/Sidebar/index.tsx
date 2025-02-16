@@ -274,7 +274,13 @@ const Sidebar = ({ projects }: { projects: any }) => {
             <Select
               id="projects"
               value={selectedProjectId}
-              items={projects}
+              items={projects.map((project: any) => ({
+                ...project,
+                name:
+                  project.name.length > 18
+                    ? project.name.slice(0, 18) + "..."
+                    : project.name,
+              }))}
               onChange={handleProjectChange}
               sx={{ width: "180px", marginLeft: theme.spacing(8) }}
             />

@@ -1,0 +1,78 @@
+version: 2.1
+
+executors:
+  docker-executor:
+    machine: true
+
+jobs:
+  build-and-push:
+    executor: docker-executor
+    steps:
+      - checkout
+
+      - run:
+          name: Set up Docker Buildx
+          command: |
+            docker buildx create --use
+            docker buildx ls
+
+      - run:
+          name: Debug Secret Access
+          command: |
+            if [ -z "$DOCKER_HUB_USERNAME" ]; then
+              echo "DOCKER_HUB_USERNAME is NOT set"
+              exit 1
+            else
+              echo "DOCKER_HUB_USERNAME is set"
+            fi
+
+            if [ -z "$DOCKER_HUB_ACCESS_TOKEN" ]; then
+              echo "DOCKER_HUB_ACCESS_TOKEN is NOT set"
+              exit 1
+            else
+              echo "DOCKER_HUB_ACCESS_TOKEN is set"
+            fi
+
+      - run:
+          name: Log in to Docker Hub
+          command: |
+            echo "$DOCKER_HUB_ACCESS_TOKEN" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
+
+      - run:
+          name: Build and push Clients image
+          command: |
+            docker buildx build \
+              --platform linux/amd64,linux/arm64 \
+              --push \
+              -t "$DOCKER_HUB_USERNAME/verifywise-frontend:testing" \
+              ./Clients
+
+      - run:
+          name: Build and push Servers image
+          command: |
+            docker buildx build \
+              --platform linux/amd64,linux/arm64 \
+              --push \
+              -t "$DOCKER_HUB_USERNAME/verifywise-backend:testing" \
+              ./Servers
+
+workflows:
+  version: 2
+  # run at midnight UTC daily
+  daily-build:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only: master
+    jobs:
+      - build-and-push
+
+  # run at every push
+  # build-and-push-workflow:
+  #   jobs:
+  #     - build-and-push:
+  #         filters:
+  #           branches:
+  #             only: master

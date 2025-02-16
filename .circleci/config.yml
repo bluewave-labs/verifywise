@@ -20,17 +20,17 @@ jobs:
           name: Debug Secret Access
           command: |
             if [ -z "$DOCKER_HUB_USERNAME" ]; then
-              echo "❌ DOCKER_HUB_USERNAME is NOT set!"
+              echo "DOCKER_HUB_USERNAME is NOT set"
               exit 1
             else
-              echo "✅ DOCKER_HUB_USERNAME is set!"
+              echo "DOCKER_HUB_USERNAME is set"
             fi
 
             if [ -z "$DOCKER_HUB_ACCESS_TOKEN" ]; then
-              echo "❌ DOCKER_HUB_ACCESS_TOKEN is NOT set!"
+              echo "DOCKER_HUB_ACCESS_TOKEN is NOT set"
               exit 1
             else
-              echo "✅ DOCKER_HUB_ACCESS_TOKEN is set!"
+              echo "DOCKER_HUB_ACCESS_TOKEN is set"
             fi
 
       - run:
@@ -58,9 +58,21 @@ jobs:
 
 workflows:
   version: 2
-  build-and-push-workflow:
-    jobs:
-      - build-and-push:
+  # run at midnight UTC daily
+  daily-build:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
           filters:
             branches:
-              only: 054-add-github-actions
+              only: master
+    jobs:
+      - build-and-push
+
+  # run at every push
+  # build-and-push-workflow:
+  #   jobs:
+  #     - build-and-push:
+  #         filters:
+  #           branches:
+  #             only: master

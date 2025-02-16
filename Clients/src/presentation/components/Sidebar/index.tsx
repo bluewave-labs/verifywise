@@ -95,14 +95,12 @@ const Sidebar = ({ projects }: { projects: any }) => {
   const dispatch = useDispatch();
   const [anchorEl, setAnchorEl] = useState(null);
   const [popup, setPopup] = useState();
-  const [selectedProjectId, setSelectedProjectId] = useState<string | number>(
-    projects.length > 0 ? projects[0]._id : ""
-  );
+  const [selectedProjectId, setSelectedProjectId] = useState("");
 
   useEffect(() => {
     localStorage.setItem(
       "selectedProjectId",
-      projects.length > 0 ? projects[0]._id : ""
+      projects.length > 0 ? selectedProjectId : ""
     );
   }, [selectedProjectId]);
 
@@ -124,6 +122,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
       ...dashboardValues,
       selectedProjectId,
     });
+    setCurrentProjectId(selectedProjectId);
   };
 
   const [open, setOpen] = useState<{ [key: string]: boolean }>({
@@ -163,9 +162,9 @@ const Sidebar = ({ projects }: { projects: any }) => {
 
   useEffect(() => {
     if (projects.length > 0 && selectedProjectId === "") {
-      setSelectedProjectId(projects[0]._id);
+      setSelectedProjectId(selectedProjectId);
     } else {
-      setCurrentProjectId(String(selectedProjectId));
+      setCurrentProjectId(selectedProjectId);
     }
   }, [projects, selectedProjectId]);
 
@@ -274,7 +273,13 @@ const Sidebar = ({ projects }: { projects: any }) => {
             <Select
               id="projects"
               value={selectedProjectId}
-              items={projects}
+              items={projects.map((project: any) => ({
+                ...project,
+                name:
+                  project.name.length > 18
+                    ? project.name.slice(0, 18) + "..."
+                    : project.name,
+              }))}
               onChange={handleProjectChange}
               sx={{ width: "180px", marginLeft: theme.spacing(8) }}
             />

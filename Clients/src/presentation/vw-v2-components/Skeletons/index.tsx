@@ -20,7 +20,7 @@ const VWSkeleton = ({
   minHeight?: number | string;
 }) => {
   return (
-    <Stack sx={{ padding: 4, paddingLeft: 0 }}>
+    <Stack sx={{ padding: 4, paddingX: 0 }}>
       <Skeleton
         variant={variant}
         sx={{ width, height, maxWidth, minWidth, maxHeight, minHeight }}

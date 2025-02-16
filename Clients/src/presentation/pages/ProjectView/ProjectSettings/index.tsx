@@ -565,7 +565,6 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
               boxShadow: "none",
               borderRadius: 2,
               border: "1px solid #175CD3",
-              
               mr: 0,
               "&:hover": { boxShadow: "none", backgroundColor: "#175CD3 " },
              

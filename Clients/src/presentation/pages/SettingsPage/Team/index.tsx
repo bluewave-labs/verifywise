@@ -1,4 +1,11 @@
-import React, { useState, useCallback, useMemo, useContext, lazy, Suspense } from "react";
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useContext,
+  lazy,
+  Suspense,
+} from "react";
 import {
   Box,
   Button,
@@ -24,6 +31,7 @@ import TablePaginationActions from "../../../components/TablePagination";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import InviteUserModal from "../../../components/Modals/InviteUser";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 
 const Alert = lazy(() => import("../../../components/Alert"));
 
@@ -94,11 +102,12 @@ const TeamManagement: React.FC = (): JSX.Element => {
 
   const [page, setPage] = useState(0); // Current page
   const { dashboardValues } = useContext(VerifyWiseContext);
-  const [teamUsers, setTeamUsers] = useState<TeamMember[]>(dashboardValues.users)
+  const [teamUsers, setTeamUsers] = useState<TeamMember[]>(
+    dashboardValues.users
+  );
   const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
   const [inviteUserModalOpen, setInviteUserModalOpen] = useState(false);
-  
-  
+
   // Handle saving organization name
   // const handleSaveOrgName = useCallback(() => {
   //   console.log("Saving organization name:", orgName);
@@ -140,12 +149,11 @@ const TeamManagement: React.FC = (): JSX.Element => {
 
   // Filtered team members based on selected role
   const filteredMembers = useMemo(() => {
-    console.log('@', filter)
+    console.log("@", filter);
     return filter === 0
       ? teamUsers
       : teamUsers.filter((member) => parseInt(member.id) === filter);
   }, [filter, teamUsers]);
-
 
   // Handle saving all data
   // const handleSaveAllData = useCallback(() => {
@@ -189,14 +197,14 @@ const TeamManagement: React.FC = (): JSX.Element => {
   };
 
   const handleInvitation = (email: string, status: number | string) => {
-    console.log("Inviatation to ", email , "is ", status)
+    console.log("Inviatation to ", email, "is ", status);
     handleAlert({
-      variant: (status === 200) ? "success" : "error",
-      body: (status === 200) ? "Inviatation is successful" : "Inviatation fails",
+      variant: status === 200 ? "success" : "error",
+      body: status === 200 ? "Inviatation is successful" : "Inviatation fails",
     });
-    
+
     setInviteUserModalOpen(false);
-  }
+  };
 
   return (
     <Stack sx={{ pt: theme.spacing(10) }}>
@@ -279,9 +287,9 @@ const TeamManagement: React.FC = (): JSX.Element => {
               justifyContent: "space-between",
             }}
           >
-            <Box sx={{ display: "flex", mb: 12, mt: 10 }}>              
+            <Box sx={{ display: "flex", mb: 12, mt: 10 }}>
               {[{ _id: 0, name: "All" }, ...roleItems].map((role) => (
-                <Button 
+                <Button
                   key={role._id}
                   disableRipple
                   variant={filter === role._id ? "contained" : "outlined"}
@@ -354,56 +362,67 @@ const TeamManagement: React.FC = (): JSX.Element => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredMembers.length !== 0 ? <>
-                  {filteredMembers
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((member) => (
-                      <TableRow key={member.id}>
-                        <TableCell sx={{ width: "25%" }}>{member.name}</TableCell>
-                        <TableCell sx={{ width: "25%" }}>{member.email}</TableCell>
-                        <TableCell sx={{ width: "25%" }}>
-                          {roleItems.find((item: {_id: any;}) => item._id === parseInt(member.role))?.name || "-"}
-                          <Select
-                            value={member.role}
-                            onChange={(e) => handleRoleChange(e, member.id)}
-                            size="small"
-                            sx={{
-                              minWidth: "auto",
-                              "& .MuiOutlinedInput-notchedOutline": {
-                                border: "none", // Remove the border from the notched outline
-                              },
-                            }}
-                          >
-                            {roles.map((role) => (
-                              <MenuItem key={role} value={role}>
-                                {role}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </TableCell>
-                        <TableCell sx={{ width: "25%" }}>
-                          <IconButton
-                            onClick={() => handleDeleteClick(member.id)}
-                          >
-                            <img
-                              src={Trashbin}
-                              alt="Delete"
-                              width={20}
-                              height={20}
-                            />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                </> : <>
-                <TableRow>
-                  <TableCell sx={{ width: "25%" }}>-</TableCell>
-                  <TableCell sx={{ width: "25%" }}>-</TableCell>
-                  <TableCell sx={{ width: "25%" }}>-</TableCell>
-                  <TableCell sx={{ width: "25%" }}>-</TableCell>
-                </TableRow>
-                </>}
-                
+                {filteredMembers.length !== 0 ? (
+                  <>
+                    {filteredMembers
+                      .slice(
+                        page * rowsPerPage,
+                        page * rowsPerPage + rowsPerPage
+                      )
+                      .map((member) => (
+                        <TableRow key={member.id}>
+                          <TableCell sx={{ width: "25%" }}>
+                            {member.name}
+                          </TableCell>
+                          <TableCell sx={{ width: "25%" }}>
+                            {member.email.length > 15
+                              ? `${member.email.substring(0, 15)}...`
+                              : member.email}
+                          </TableCell>
+                          <TableCell sx={{ width: "25%" }}>
+                            {roleItems.find(
+                              (item: { _id: any }) =>
+                                item._id === parseInt(member.role)
+                            )?.name || "Not set"}
+                            <Select
+                              value={member.role}
+                              onChange={(e) => handleRoleChange(e, member.id)}
+                              size="small"
+                              sx={{
+                                minWidth: "auto",
+                                "& .MuiOutlinedInput-notchedOutline": {
+                                  border: "none", // Remove the border from the notched outline
+                                },
+                              }}
+                            >
+                              {roles.map((role) => (
+                                <MenuItem key={role} value={role}>
+                                  {role}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </TableCell>
+                          <TableCell sx={{ width: "25%" }}>
+                            <IconButton
+                              onClick={() => handleDeleteClick(member.id)}
+                              disableRipple
+                            >
+                              <DeleteOutlineOutlinedIcon />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </>
+                ) : (
+                  <>
+                    <TableRow>
+                      <TableCell sx={{ width: "25%" }}>-</TableCell>
+                      <TableCell sx={{ width: "25%" }}>-</TableCell>
+                      <TableCell sx={{ width: "25%" }}>-</TableCell>
+                      <TableCell sx={{ width: "25%" }}>-</TableCell>
+                    </TableRow>
+                  </>
+                )}
               </TableBody>
             </Table>
           </TableContainer>

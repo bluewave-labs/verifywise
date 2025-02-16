@@ -1,10 +1,11 @@
 import { Stack } from "@mui/material";
-import StatsCard from "../components/Cards/StatsCard";
+import VWSkeleton from "../vw-v2-components/Skeletons";
 
 const Playground = () => {
   return (
     <Stack
       sx={{
+        width: "100%",
         display: "flex",
         flexDirection: "row",
         justifyContent: "center",
@@ -13,11 +14,12 @@ const Playground = () => {
         padding: "50px",
       }}
     >
-      <StatsCard
-        title={"subControls"}
-        completed={75}
-        total={100}
-        progressbarColor={"#13715B"}
+      <VWSkeleton
+        minHeight={"48px"}
+        minWidth={"300px"}
+        width={"100%"}
+        maxWidth={"100%"}
+        variant="rectangular"
       />
     </Stack>
   );

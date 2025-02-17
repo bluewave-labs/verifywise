@@ -10,6 +10,7 @@ import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.cont
 import NoProject from "../../components/NoProject/NoProject";
 import useAssessmentAnswers from "../../../application/hooks/useAssessmentAnswers";
 import { Project } from "../../../application/hooks/useProjectData";
+import VWToast from "../../vw-v2-components/Toast";
 
 // Define styles outside the component to avoid recreation on each render
 const usePaperStyle = (theme: Theme): SxProps<Theme> => ({
@@ -100,14 +101,20 @@ const Assessment = memo(() => {
     }
   }, []);
 
-  //TODO: replace for a better component
-  if ( isLoading || error) {
+  if (isLoading) {
     return (
-      <Stack>
-        <Typography>Loading...</Typography>
+      <Stack
+        spacing={2}
+        alignItems="center"
+        justifyContent="center"
+        minHeight="200px"
+      >
+        <VWToast title="Loading assessment data..." />
       </Stack>
     );
   }
+
+  const noProjectsMessage = error ? "An error occurred while retrieving your assessments." : "You have no projects. First create a project on the main dashboard to see the Assessment Tracker."
 
   return (
     <div className="assessment-page">
@@ -134,7 +141,7 @@ const Assessment = memo(() => {
           Assessment tracker
         </Typography>
 
-        {projects?.length > 0 ? (
+        {projects?.length > 0 && error === null ? (
           <>
             <Stack
               direction="row"
@@ -184,7 +191,7 @@ const Assessment = memo(() => {
             <AllAssessment initialAssessmentsValues={topics} />
           </>
         ) : (
-          <NoProject message="You have no projects. First create a project on the main dashboard to see the Assessment Tracker." />
+          <NoProject message={noProjectsMessage} />
         )}
       </Stack>
     </div>

@@ -231,7 +231,7 @@ const AllAssessment = ({ initialAssessmentsValues }: { initialAssessmentsValues:
           },
           allowedFileTypes: ["application/pdf"],
           assessmentId: activeAssessmentId ? Number(activeAssessmentId) : 0,
-          topicId: activeTab,
+          topicId: assessmentsValues[activeTab].id,
           setAssessmentsValue,
           assessmentsValues,
         }}

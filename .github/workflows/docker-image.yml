@@ -3,8 +3,7 @@ name: Build and Push Docker Images
 on:
   push:
     branches:
-      # - master
-      - add-github-actions
+      - master
 
 jobs:
   build-and-push:
@@ -20,17 +19,17 @@ jobs:
       - name: Debug Secret Access
         run: |
           if [ -z "${{ secrets.DOCKER_HUB_USERNAME }}" ]; then
-            echo "❌ DOCKER_HUB_USERNAME is NOT set!"
+            echo "DOCKER_HUB_USERNAME is NOT set"
             exit 1
           else
-            echo "✅ DOCKER_HUB_USERNAME is set!"
+            echo "DOCKER_HUB_USERNAME is set"
           fi
 
           if [ -z "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" ]; then
-            echo "❌ DOCKER_HUB_ACCESS_TOKEN is NOT set!"
+            echo "DOCKER_HUB_ACCESS_TOKEN is NOT set"
             exit 1
           else
-            echo "✅ DOCKER_HUB_ACCESS_TOKEN is set!"
+            echo "DOCKER_HUB_ACCESS_TOKEN is set"
           fi
 
       - name: Log in to Docker Hub
@@ -45,7 +44,7 @@ jobs:
           context: ./Clients
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/verifywise-frontend:testing
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/verifywise-frontend:latest
 
       - name: Build and push Servers image
         uses: docker/build-push-action@v4
@@ -53,4 +52,4 @@ jobs:
           context: ./Servers
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/verifywise-backend:testing
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/verifywise-backend:latest

@@ -29,13 +29,13 @@ import singleTheme from "../../themes/v1SingleTheme";
  * @property {boolean} [hasIcon] - Whether to display an icon in the alert. Defaults to true.
  * @property {() => void} onClick - Callback function to handle click events.
  */
-interface AlertProps {
+export interface AlertProps {
   variant: "success" | "info" | "warning" | "error";
   title?: string;
   body: string;
-  isToast: boolean;
+  isToast?: boolean;
   hasIcon?: boolean;
-  onClick: () => void;
+  onClick?: () => void;
 }
 
 /**

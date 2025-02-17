@@ -74,16 +74,16 @@ const Assessment = memo(() => {
         routeUrl: "/users/1/calculate-progress",
       });
 
+      const doneAssessments = response.allDoneAssessments ?? 0;
+      const totalAssessments = response.allTotalAssessments ?? 0;
+      const progress = totalAssessments === 0
+        ? 0
+        : (doneAssessments / totalAssessments) * 100;
+
       setAssessmentsStatus({
         allAssessments: response.allTotalAssessments ?? 0,
         allDoneAssessments: response.allDoneAssessments,
-        AssessmentsCompletion: Number(
-          (
-            ((response.allDoneAssessments ?? 0) /
-              (response.allTotalAssessments || 1)) *
-            100
-          ).toFixed(2)
-        ),
+        AssessmentsCompletion: Number(progress.toFixed(2)),
       });
 
       console.log("Response for fetchComplianceTrackerCalculation:", response);

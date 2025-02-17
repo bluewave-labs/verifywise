@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
-import Alert from "../../../components/Alert";
+import Alert, { AlertProps } from "../../../components/Alert";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import FileUploadModal from "../../../components/Modals/FileUpload";
@@ -18,6 +18,7 @@ import AssessmentItem from "./AssessmentItem/AssessmentItem";
 import VWToast from "../../../vw-v2-components/Toast";
 import { Topic } from "../../../../application/hooks/useAssessmentAnswers";
 import AssessmentQuestions from "./AssessmentQuestions/AssessmentQuestions";
+import { handleAlert } from "../../../../application/tools/alertUtils";
 
 export interface AssessmentValue {
   topic: string;
@@ -39,12 +40,6 @@ export interface AssessmentValue {
   file: FileProps[];
 }
 
-interface AlertStateProps {
-  variant: "success" | "info" | "warning" | "error";
-  title?: string;
-  body: string;
-}
-
 const AllAssessment = ({ initialAssessmentsValues }: { initialAssessmentsValues: Topic[] }) => {
   const { currentProjectId, dashboardValues } = useContext(VerifyWiseContext);
   const { projects } = dashboardValues;
@@ -53,7 +48,7 @@ const AllAssessment = ({ initialAssessmentsValues }: { initialAssessmentsValues:
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [assessmentsValues, setAssessmentsValue] = useState<Topic[]>(initialAssessmentsValues)
   const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
-  const [alert, setAlert] = useState<AlertStateProps | null>(null);
+  const [alert, setAlert] = useState<AlertProps | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [topicIdToSave, setTopicIdToSave] = useState<number | null>(null);
 
@@ -70,18 +65,6 @@ const AllAssessment = ({ initialAssessmentsValues }: { initialAssessmentsValues:
   const handleCloseFileUploadModal = () => {
     console.log("Closing file upload modal");
     setFileUploadModalOpen(false);
-  };
-
-
-  const handleAlert = ({ variant, body, title }: AlertStateProps) => {
-    setAlert({
-      variant,
-      title,
-      body,
-    });
-    setTimeout(() => {
-      setAlert(null);
-    }, 2500);
   };
 
   const handleSave = (topicIdToSave: number) => {
@@ -124,19 +107,22 @@ const AllAssessment = ({ initialAssessmentsValues }: { initialAssessmentsValues:
       if (response.status === 200) {
         handleAlert({
           variant: "success",
-          body: "Assessments saved successfully."
+          body: "Assessments saved successfully.",
+          setAlert
         });
       } else {
         handleAlert({
           variant: "error",
-          body: "Error: Could not save answers."
+          body: "Error: Could not save answers.",
+          setAlert
         });
       }
 
     } catch (error) {
       handleAlert({
         variant: "error",
-        body: "Error: Could not save answers."
+        body: "Error: Could not save answers.",
+        setAlert
       });
       console.error("Error saving assessments:", error);
     } finally {

@@ -8,6 +8,8 @@ import { getAllEntities } from "../../../application/repository/entity.repositor
 import AllAssessment from "./NewAssessment/AllAssessments";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import NoProject from "../../components/NoProject/NoProject";
+import useAssessmentAnswers from "../../../application/hooks/useAssessmentAnswers";
+import { Project } from "../../../application/hooks/useProjectData";
 
 // Define styles outside the component to avoid recreation on each render
 const usePaperStyle = (theme: Theme): SxProps<Theme> => ({
@@ -29,8 +31,17 @@ const usePaperStyle = (theme: Theme): SxProps<Theme> => ({
 const Assessment = memo(() => {
   const theme = useTheme();
   const paperStyle = usePaperStyle(theme);
-  const { dashboardValues } = useContext(VerifyWiseContext);
+  const { dashboardValues, currentProjectId } = useContext(VerifyWiseContext);
   const { projects } = dashboardValues;
+  const currentProject: Project | null = currentProjectId
+      ? projects.find(
+          (project: Project) => project.id === Number(currentProjectId)
+        )
+      : null;
+    const activeAssessmentId = currentProject?.assessment_id.toString();
+  const { topics, isLoading, error } = useAssessmentAnswers({
+    assessmentId: activeAssessmentId,
+  });
   const [runAssessmentTour, setRunAssessmentTour] = useState(false);
   const [assessmentsStatus, setAssessmentsStatus] = useState({
     allAssessments: 0,
@@ -68,7 +79,7 @@ const Assessment = memo(() => {
         AssessmentsCompletion: Number(
           (
             ((response.allDoneAssessments ?? 0) /
-              (response.allTotalAssessments ?? 1)) *
+              (response.allTotalAssessments || 1)) *
             100
           ).toFixed(2)
         ),
@@ -88,6 +99,15 @@ const Assessment = memo(() => {
       hasScrolledRef.current = true;
     }
   }, []);
+
+  //TODO: replace for a better component
+  if ( isLoading || error) {
+    return (
+      <Stack>
+        <Typography>Loading...</Typography>
+      </Stack>
+    );
+  }
 
   return (
     <div className="assessment-page">
@@ -114,7 +134,7 @@ const Assessment = memo(() => {
           Assessment tracker
         </Typography>
 
-        { projects?.length > 0 ? (
+        {projects?.length > 0 ? (
           <>
             <Stack
               direction="row"
@@ -161,12 +181,10 @@ const Assessment = memo(() => {
               </Paper>
             </Stack>
             <Divider sx={{ marginY: 10 }} />
-            <AllAssessment />
+            <AllAssessment initialAssessmentsValues={topics} />
           </>
         ) : (
-          <NoProject
-            message="You have no projects. First create a project on the main dashboard to see the Assessment Tracker."
-          />
+          <NoProject message="You have no projects. First create a project on the main dashboard to see the Assessment Tracker." />
         )}
       </Stack>
     </div>

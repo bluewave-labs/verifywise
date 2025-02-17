@@ -198,7 +198,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     >([]);
     const [projectsLoaded, setProjectsLoaded] = useState(false); // Track if projects are loaded
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const {users, loading, error } = useUsers();
+    const {users} = useUsers();
 
     const fetchProjects = async () => {
         try {

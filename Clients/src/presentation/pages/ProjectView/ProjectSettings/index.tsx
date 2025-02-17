@@ -530,6 +530,16 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
               project from our system. This is permanent and non-recoverable.
             </Typography>
           </Stack>
+          <Stack direction="row" justifyContent="space-between" 
+          alignItems="center"
+          spacing={2}
+          sx={{
+            paddingX: theme.spacing(2),
+            width:  "fit-content",
+            marginTop: theme.spacing(4),
+          }}
+          
+         > 
           <Button
             disableRipple
             variant="contained"
@@ -555,11 +565,15 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
               boxShadow: "none",
               borderRadius: 2,
               border: "1px solid #175CD3",
+              mr: 0,
               "&:hover": { boxShadow: "none", backgroundColor: "#175CD3 " },
+             
+           
             }}
           >
             Save
           </Button>
+          </Stack>
         </Stack>
         {isDeleteModalOpen && (
           <DualButtonModal

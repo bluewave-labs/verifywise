@@ -161,8 +161,12 @@ const Sidebar = ({ projects }: { projects: any }) => {
   };
 
   useEffect(() => {
-    if (projects.length > 0 && selectedProjectId === "") {
-      setSelectedProjectId(selectedProjectId);
+    if(projects.length === 0){
+      setSelectedProjectId("")
+    }
+    const isValidProject = projects.find((p:any) => p._id === selectedProjectId);
+     if (projects.length > 0 && !isValidProject) {
+      setSelectedProjectId(projects[0]._id);
     } else {
       setCurrentProjectId(selectedProjectId);
     }

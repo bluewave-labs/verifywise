@@ -4,7 +4,6 @@ import pool from "../database/db";
 export const getAllProjectRisksQuery = async (
   projectId: number
 ): Promise<ProjectRisk[]> => {
-  console.log("getAllProjectRisks for project", projectId);
   const projectRisks = await pool.query(
     "SELECT * FROM projectrisks WHERE project_id = $1",
     [projectId]
@@ -15,7 +14,6 @@ export const getAllProjectRisksQuery = async (
 export const getProjectRiskByIdQuery = async (
   id: number
 ): Promise<ProjectRisk | null> => {
-  console.log("getProjectRiskById", id);
   const result = await pool.query("SELECT * FROM projectrisks WHERE id = $1", [
     id,
   ]);
@@ -49,7 +47,6 @@ export const createProjectRiskQuery = async (projectRisk: {
   approval_status: string;
   date_of_assessment: Date;
 }): Promise<ProjectRisk> => {
-  console.log("createProjectRisk");
   const result = await pool.query(
     "INSERT INTO projectrisks (project_id, risk_name, risk_owner, ai_lifecycle_phase, risk_description, risk_category, impact, assessment_mapping, controls_mapping, likelihood, severity, risk_level_autocalculated, review_notes, mitigation_status, current_risk_level, deadline, mitigation_plan, implementation_strategy, mitigation_evidence_document, likelihood_mitigation, risk_severity, final_risk_level, risk_approval, approval_status, date_of_assessment) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25) RETURNING *",
     [
@@ -113,7 +110,6 @@ export const updateProjectRiskByIdQuery = async (
     date_of_assessment: Date;
   }>
 ): Promise<ProjectRisk | null> => {
-  console.log("updateProjectRiskById", id, projectRisk);
   const result = await pool.query(
     `UPDATE projectrisks SET 
       project_id = $1, 
@@ -177,7 +173,6 @@ export const updateProjectRiskByIdQuery = async (
 export const deleteProjectRiskByIdQuery = async (
   id: number
 ): Promise<ProjectRisk | null> => {
-  console.log("deleteProjectRiskById", id);
   const result = await pool.query(
     "DELETE FROM projectrisks WHERE id = $1 RETURNING *",
     [id]

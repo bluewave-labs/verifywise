@@ -4,7 +4,6 @@ import { UploadedFile } from "./question.utils";
 import { uploadFile } from "./fileUpload.utils";
 
 export const getAllSubcontrolsQuery = async (): Promise<Subcontrol[]> => {
-  console.log("getAllSubcontrols");
   const subcontrols = await pool.query("SELECT * FROM subcontrols");
   return subcontrols.rows;
 };
@@ -12,7 +11,6 @@ export const getAllSubcontrolsQuery = async (): Promise<Subcontrol[]> => {
 export const getAllSubcontrolsByControlIdQuery = async (
   controlId: number
 ): Promise<Subcontrol[]> => {
-  console.log("getAllSubcontrolsByControlId", controlId);
   const subcontrols = await pool.query(
     "SELECT * FROM subcontrols WHERE control_id = $1",
     [controlId]
@@ -23,7 +21,6 @@ export const getAllSubcontrolsByControlIdQuery = async (
 export const getSubcontrolByIdQuery = async (
   id: number
 ): Promise<Subcontrol | null> => {
-  console.log("getSubcontrolById", id);
   const result = await pool.query("SELECT * FROM subcontrols WHERE id = $1", [
     id,
   ]);
@@ -93,8 +90,6 @@ export const updateSubcontrolByIdQuery = async (
   evidenceFiles?: UploadedFile[],
   feedbackFiles?: UploadedFile[]
 ): Promise<Subcontrol | null> => {
-  console.log("updateSubcontrolById", id, subcontrol);
-
   let uploadedEvidenceFiles: { id: number; fileName: string }[] = [];
   await Promise.all(
     evidenceFiles!.map(async (file) => {
@@ -151,7 +146,6 @@ export const updateSubcontrolByIdQuery = async (
 export const deleteSubcontrolByIdQuery = async (
   id: number
 ): Promise<Subcontrol | null> => {
-  console.log("deleteSubcontrolById", id);
   const result = await pool.query(
     "DELETE FROM subcontrols WHERE id = $1 RETURNING *",
     [id]
@@ -167,7 +161,8 @@ export const createNewSubControlsQuery = async (
     description: string;
   }[]
 ) => {
-  let query = "INSERT INTO subcontrols(title, description, control_id, order_no) VALUES ";
+  let query =
+    "INSERT INTO subcontrols(title, description, control_id, order_no) VALUES ";
   const data = subControls.map((d) => {
     return `('${d.title}', '${d.description}', ${controlId}, ${d.order_no})`;
   });

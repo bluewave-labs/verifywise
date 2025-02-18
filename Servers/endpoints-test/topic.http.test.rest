@@ -6,3 +6,7 @@ GET http://localhost:3000/topics
 
 GET http://localhost:3000/topics/2
 
+### get topic by id
+
+GET http://localhost:3000/topics/byassessmentid/3
+

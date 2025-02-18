@@ -7,6 +7,7 @@ import {
   createNewTopic,
   updateTopicById,
   deleteTopicById,
+  getTopicByAssessmentId,
 } from "../controllers/topic.ctrl";
 
 import authenticateJWT from "../middleware/auth.middleware";
@@ -14,6 +15,7 @@ import authenticateJWT from "../middleware/auth.middleware";
 // GET requests
 router.get("/", /*authenticateJWT,*/ getAllTopics);
 router.get("/:id", /*authenticateJWT,*/ getTopicById);
+router.get("/byassessmentid/:id", getTopicByAssessmentId);
 
 // POST, PUT, DELETE requests
 router.post("/", /*authenticateJWT,*/ createNewTopic);

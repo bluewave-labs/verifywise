@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
-import { Divider, Stack, Typography, useTheme } from "@mui/material";
-import { pageHeadingStyle } from "./index.style";
+import { Divider, List, Stack, Typography, useTheme } from "@mui/material";
+import {
+  pageHeadingStyle,
+  subHeadingStyle,
+  topicsListStyle,
+} from "./index.style";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import StatsCard from "../../../components/Cards/StatsCard";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
@@ -63,6 +67,14 @@ const AssessmentTracker = () => {
           )}
         </Stack>
         <Divider sx={{ marginY: 10 }} />
+        <Stack sx={{ display: "flex", height: "100vh", paddingX: "8px" }}>
+          <Stack sx={topicsListStyle}>
+            <Typography sx={subHeadingStyle}>
+              High risk conformity assessment
+            </Typography>
+            <List></List>
+          </Stack>
+        </Stack>
       </Stack>
     </Stack>
   );

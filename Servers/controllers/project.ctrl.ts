@@ -239,7 +239,7 @@ export async function getCompliances(req: Request, res: Response) {
   }
 }
 
-export async function projectProgress(req: Request, res: Response) {
+export async function projectComplianceProgress(req: Request, res: Response) {
   const projectId = parseInt(req.params.id);
   let totalNumberOfSubcontrols = 0;
   let totalNumberOfDoneSubcontrols = 0;
@@ -279,4 +279,15 @@ export async function projectProgress(req: Request, res: Response) {
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
+}
+
+export async function projectAssessmentProgress(req: Request, res: Response) {
+  const projectId = parseInt(req.params.id);
+  let totalNumberOfQuestions = 0;
+  let totalNumberOfAnsweredQuestions = 0;
+  try {
+    const project = await getProjectByIdQuery(projectId);
+    if (project) {
+    }
+  } catch (error) {}
 }

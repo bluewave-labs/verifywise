@@ -9,6 +9,7 @@ import {
   getAllAssessments,
   getAnswers,
   getAssessmentById,
+  getAssessmentByProjectId,
   // saveAnswers,
   updateAssessmentById,
 } from "../controllers/assessment.ctrl";
@@ -19,6 +20,7 @@ import authenticateJWT from "../middleware/auth.middleware";
 router.get("/", /*authenticateJWT, */ getAllAssessments);
 router.get("/getAnswers/:id", getAnswers);
 router.get("/:id", /*authenticateJWT, */ getAssessmentById);
+router.get("/byprojectid/:id", getAssessmentByProjectId);
 
 // POSTs
 router.post("/", /*authenticateJWT, */ createAssessment);

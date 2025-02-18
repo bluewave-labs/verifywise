@@ -18,13 +18,26 @@ export const getAssessmentByIdQuery = async (
   return result.rows.length ? result.rows[0] : null;
 };
 
-export const createNewAssessmentQuery = async (assessment: Assessment): Promise<Object> => {
+export const getAssessmentByProjectIdQuery = async (
+  projectId: number
+): Promise<Assessment[]> => {
+  console.log("getAssessmentByProjectId", projectId);
+  const result = await pool.query(
+    "SELECT * FROM assessments WHERE project_id = $1",
+    [projectId]
+  );
+  return result.rows;
+};
+
+export const createNewAssessmentQuery = async (
+  assessment: Assessment
+): Promise<Object> => {
   console.log("createNewAssessment", assessment);
   const result = await pool.query(
     `INSERT INTO assessments (project_id) VALUES ($1) RETURNING *`,
     [assessment.project_id]
   );
-  const topics = await createNewTopicsQuery(result.rows[0].id)
+  const topics = await createNewTopicsQuery(result.rows[0].id);
   return { assessment: result.rows[0], topics };
 };
 

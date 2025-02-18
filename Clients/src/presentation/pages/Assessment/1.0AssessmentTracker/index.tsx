@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Stack, Typography, useTheme } from "@mui/material";
+import { Divider, Stack, Typography, useTheme } from "@mui/material";
 import { pageHeadingStyle } from "./index.style";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import StatsCard from "../../../components/Cards/StatsCard";
@@ -62,6 +62,7 @@ const AssessmentTracker = () => {
             </Typography>
           )}
         </Stack>
+        <Divider sx={{ marginY: 10 }} />
       </Stack>
     </Stack>
   );

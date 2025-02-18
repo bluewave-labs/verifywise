@@ -298,7 +298,6 @@ export async function getAssessmentByProjectId(req: Request, res: Response) {
     const assessment = await getAssessmentByProjectIdQuery(projectId);
     if (assessment && assessment[0].id !== undefined) {
       const topics = await getTopicByAssessmentIdQuery(assessment[0].id);
-      console.log("Topics : ", topics);
     }
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

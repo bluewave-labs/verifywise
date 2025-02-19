@@ -50,15 +50,15 @@ const Questions = ({ subtopic, index }: QuestionsProps) => {
       </Typography>
       {loadingQuestions ? (
         <VWSkeleton
-          height={30}
-          minHeight={30}
+          height={50}
+          minHeight={50}
           minWidth={260}
           width={"100%"}
-          maxWidth={300}
+          maxWidth={"100%"}
           variant="rectangular"
         />
       ) : questionsData ? (
-        questionsData.map((question: any, qIndex: number) => (
+        questionsData!.map((question: any, qIndex: number) => (
           <Box key={qIndex} mt={10}>
             <Box
               sx={{

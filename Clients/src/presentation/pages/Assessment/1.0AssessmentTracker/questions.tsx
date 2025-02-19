@@ -4,6 +4,7 @@ import { getEntityById } from "../../../../application/repository/entity.reposit
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { priorities, PriorityLevel } from "../NewAssessment/priorities";
 import RichTextEditor from "../../../components/RichTextEditor";
+import VWSkeleton from "../../../vw-v2-components/Skeletons";
 
 type QuestionsProps = {
   subtopic: any;
@@ -41,7 +42,14 @@ const Questions = ({ subtopic, index }: QuestionsProps) => {
         {subtopic.title}
       </Typography>
       {loadingQuestions ? (
-        <Typography>Loading questions...</Typography>
+        <VWSkeleton
+          height={30}
+          minHeight={30}
+          minWidth={260}
+          width={"100%"}
+          maxWidth={300}
+          variant="rectangular"
+        />
       ) : questionsData ? (
         questionsData.map((question: any, qIndex: number) => (
           <Box key={qIndex} mt={10}>

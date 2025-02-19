@@ -1,6 +1,16 @@
-import { useEffect, useState } from "react";
-import { Divider, List, Stack, Typography, useTheme } from "@mui/material";
+import { useCallback, useEffect, useState } from "react";
 import {
+  Divider,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  Stack,
+  Typography,
+  useTheme,
+} from "@mui/material";
+import {
+  listItemStyle,
   pageHeadingStyle,
   subHeadingStyle,
   topicsListStyle,
@@ -11,25 +21,113 @@ import VWSkeleton from "../../../vw-v2-components/Skeletons";
 
 const AssessmentTracker = () => {
   const theme = useTheme();
+  const [activeTab, setActiveTab] = useState<number>(0);
   const [progressData, setProgressData] = useState<any>(null);
+  const [assessmentData, setAssessmentData] = useState<any>(null);
+  const [topicsData, setTopicsData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadingTopics, setLoadingTopics] = useState<boolean>(true);
+  const [projectId, setProjectId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const storedProjectId = localStorage.getItem("selectedProjectId");
+    setProjectId(storedProjectId);
+  }, []);
 
   useEffect(() => {
     const fetchProgressData = async () => {
+      if (!projectId) return;
+
       try {
         const response = await getEntityById({
-          routeUrl: "/projects/assessment/progress/3",
+          routeUrl: `/projects/assessment/progress/${projectId}`,
         });
         setProgressData(response.data);
       } catch (error) {
-        console.error("Failed to fetch user data:", error);
+        console.error("Failed to fetch progress data:", error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchProgressData();
+  }, [projectId]);
+
+  useEffect(() => {
+    const fetchAssessmentData = async () => {
+      if (!projectId) return;
+
+      try {
+        const response = await getEntityById({
+          routeUrl: `/assessments/project/byid/${projectId}`,
+        });
+        setAssessmentData(response.data[0]);
+      } catch (error) {
+        console.error("Failed to fetch assessment data:", error);
+      }
+    };
+
+    fetchAssessmentData();
+  }, [projectId]);
+
+  useEffect(() => {
+    const fetchTopicsData = async () => {
+      if (!assessmentData?.id) return;
+
+      setLoadingTopics(true);
+      try {
+        const response = await getEntityById({
+          routeUrl: `/topics/byassessmentid/${assessmentData.id}`,
+        });
+        setTopicsData(response.data);
+      } catch (error) {
+        console.error("Failed to fetch topics data:", error);
+        setTopicsData(null);
+      } finally {
+        setLoadingTopics(false);
+      }
+    };
+
+    fetchTopicsData();
+  }, [assessmentData]);
+
+  const handleListItemClick = useCallback((index: number) => {
+    setActiveTab(index);
   }, []);
+
+  const topicsList = useCallback(
+    (topic: any, index: number) => (
+      <ListItem key={index} disablePadding sx={listItemStyle}>
+        <ListItemButton
+          disableRipple
+          selected={index === activeTab}
+          onClick={() => handleListItemClick(index)}
+          sx={{
+            padding: 2,
+            paddingLeft: 4,
+            borderRadius: 2,
+            backgroundColor: index === activeTab ? "#13715B" : "transparent",
+            width: "100%",
+            textWrap: "wrap",
+          }}
+        >
+          <ListItemText
+            primary={
+              <Typography
+                color={
+                  index === activeTab ? "#fff" : theme.palette.text.primary
+                }
+                sx={{ fontSize: 13 }}
+              >
+                {topic.title}
+              </Typography>
+            }
+          />
+        </ListItemButton>
+      </ListItem>
+    ),
+    [activeTab, handleListItemClick, theme.palette.text.primary]
+  );
 
   return (
     <Stack className="assessment-tracker">
@@ -72,8 +170,26 @@ const AssessmentTracker = () => {
             <Typography sx={subHeadingStyle}>
               High risk conformity assessment
             </Typography>
-            <List></List>
+            <List>
+              {loadingTopics ? (
+                <VWSkeleton
+                  height={30}
+                  minHeight={30}
+                  minWidth={260}
+                  width={"100%"}
+                  maxWidth={300}
+                  variant="rectangular"
+                />
+              ) : topicsData ? (
+                topicsData.map((topic: any, index: number) =>
+                  topicsList(topic, index)
+                )
+              ) : (
+                <Typography>Unable to get topics</Typography>
+              )}
+            </List>
           </Stack>
+          <Divider orientation="vertical" flexItem />
         </Stack>
       </Stack>
     </Stack>

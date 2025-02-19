@@ -20,7 +20,7 @@ import authenticateJWT from "../middleware/auth.middleware";
 router.get("/", /*authenticateJWT, */ getAllAssessments);
 router.get("/getAnswers/:id", getAnswers);
 router.get("/:id", /*authenticateJWT, */ getAssessmentById);
-router.get("/byprojectid/:id", getAssessmentByProjectId);
+router.get("/project/byid/:id", getAssessmentByProjectId);
 
 // POSTs
 router.post("/", /*authenticateJWT, */ createAssessment);

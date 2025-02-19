@@ -294,10 +294,14 @@ export async function getAnswers(req: Request, res: Response): Promise<any> {
 
 export async function getAssessmentByProjectId(req: Request, res: Response) {
   const projectId = parseInt(req.params.id);
+  console.log("projectId : ", projectId);
   try {
-    const assessment = await getAssessmentByProjectIdQuery(projectId);
-    if (assessment && assessment[0].id !== undefined) {
-      const topics = await getTopicByAssessmentIdQuery(assessment[0].id);
+    const assessments = await getAssessmentByProjectIdQuery(projectId);
+    console.log("assessment: ", assessments);
+    if (assessments && assessments.length !== 0) {
+      return res.status(200).json(STATUS_CODE[200](assessments));
+    } else {
+      return res.status(204).json(STATUS_CODE[204]({}));
     }
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

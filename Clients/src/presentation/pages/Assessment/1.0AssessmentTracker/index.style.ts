@@ -9,6 +9,7 @@ export const topicsListStyle = {
   minWidth: "fit-content",
   maxWidth: "max-content",
   padding: 8,
+  paddingTop: 0,
   overflowY: "auto",
 };
 

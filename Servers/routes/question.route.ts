@@ -8,6 +8,7 @@ import {
   deleteQuestionById,
   getAllQuestions,
   getQuestionById,
+  getQuestionsBySubtopicId,
   updateQuestionById,
 } from "../controllers/question.ctrl";
 
@@ -16,10 +17,15 @@ import authenticateJWT from "../middleware/auth.middleware";
 // GET requests
 router.get("/", /*authenticateJWT,*/ getAllQuestions);
 router.get("/:id", /*authenticateJWT,*/ getQuestionById);
+router.get("/bysubtopic/:id", getQuestionsBySubtopicId);
 
 // POST, PUT, DELETE requests
 router.post("/", /*authenticateJWT,*/ upload.any("files"), createQuestion);
-router.put("/:id", /*authenticateJWT,*/ upload.any("files"), updateQuestionById);
+router.put(
+  "/:id",
+  /*authenticateJWT,*/ upload.any("files"),
+  updateQuestionById
+);
 router.delete("/:id", /*authenticateJWT,*/ deleteQuestionById);
 
 export default router;

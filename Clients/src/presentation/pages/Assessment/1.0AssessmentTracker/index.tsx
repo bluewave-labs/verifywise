@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
+  Box,
   Divider,
   List,
   ListItem,
@@ -18,6 +19,7 @@ import {
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import StatsCard from "../../../components/Cards/StatsCard";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
+import Questions from "./questions";
 
 const AssessmentTracker = () => {
   const theme = useTheme();
@@ -25,8 +27,10 @@ const AssessmentTracker = () => {
   const [progressData, setProgressData] = useState<any>(null);
   const [assessmentData, setAssessmentData] = useState<any>(null);
   const [topicsData, setTopicsData] = useState<any>(null);
+  const [subtopicsData, setSubtopicsData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [loadingTopics, setLoadingTopics] = useState<boolean>(true);
+  const [loadingSubtopics, setLoadingSubtopics] = useState<boolean>(true);
   const [projectId, setProjectId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -91,6 +95,27 @@ const AssessmentTracker = () => {
     fetchTopicsData();
   }, [assessmentData]);
 
+  useEffect(() => {
+    const fetchSubtopicsData = async () => {
+      if (!topicsData || topicsData.length === 0) return;
+
+      setLoadingSubtopics(true);
+      try {
+        const response = await getEntityById({
+          routeUrl: `/subtopics/bytopic/${topicsData[activeTab]?.id}`,
+        });
+        setSubtopicsData(response.data);
+      } catch (error) {
+        console.error("Failed to fetch subtopics data:", error);
+        setSubtopicsData(null);
+      } finally {
+        setLoadingSubtopics(false);
+      }
+    };
+
+    fetchSubtopicsData();
+  }, [topicsData, activeTab]);
+
   const handleListItemClick = useCallback((index: number) => {
     setActiveTab(index);
   }, []);
@@ -103,7 +128,7 @@ const AssessmentTracker = () => {
           selected={index === activeTab}
           onClick={() => handleListItemClick(index)}
           sx={{
-            padding: 2,
+            padding: 1,
             paddingLeft: 4,
             borderRadius: 2,
             backgroundColor: index === activeTab ? "#13715B" : "transparent",
@@ -165,7 +190,7 @@ const AssessmentTracker = () => {
           )}
         </Stack>
         <Divider sx={{ marginY: 10 }} />
-        <Stack sx={{ display: "flex", height: "100vh", paddingX: "8px" }}>
+        <Box sx={{ display: "flex", height: "100vh", paddingX: "8px" }}>
           <Stack sx={topicsListStyle}>
             <Typography sx={subHeadingStyle}>
               High risk conformity assessment
@@ -190,7 +215,32 @@ const AssessmentTracker = () => {
             </List>
           </Stack>
           <Divider orientation="vertical" flexItem />
-        </Stack>
+          <Stack
+            minWidth={"60%"}
+            width={"100%"}
+            maxWidth={1400}
+            paddingY={2}
+            paddingX={8}
+            sx={{ overflowY: "auto" }}
+          >
+            {loadingSubtopics ? (
+              <VWSkeleton
+                height={30}
+                minHeight={30}
+                minWidth={260}
+                width={"100%"}
+                maxWidth={300}
+                variant="rectangular"
+              />
+            ) : subtopicsData ? (
+              subtopicsData.map((subtopic: any, index: number) => (
+                <Questions index={index} subtopic={subtopic} />
+              ))
+            ) : (
+              <Typography>Unable to get subtopics</Typography>
+            )}
+          </Stack>
+        </Box>
       </Stack>
     </Stack>
   );

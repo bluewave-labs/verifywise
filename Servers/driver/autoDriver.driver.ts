@@ -96,28 +96,23 @@ const insertQuery = {
     mockData: vendors,
     tableName: "vendors",
     insertString:
-      "INSERT INTO vendors(vendor_name, assignee, vendor_provides, website, vendor_contact_person, review_result, review_status, reviewer, risk_status, review_date, risk_description, impact_description, impact, probability, action_owner, action_plan, risk_severity, risk_level, likelihood) VALUES ",
+      `INSERT INTO vendors (
+      order_no, vendor_name, vendor_provides, assignee, website, vendor_contact_person, 
+      review_result, review_status, reviewer, risk_status, review_date
+    ) VALUES `,
     generateValuesString: function (vendor: Vendor) {
       return `(
-        'DEMO - ${vendor.vendorName}',
+        ${vendor.order_no},
+        'DEMO - ${vendor.vendor_name}',
+        '${vendor.vendor_provides}',
         '${vendor.assignee}',
-        '${vendor.vendorProvides}',
         '${vendor.website}',
-        '${vendor.vendorContactPerson}',
-        '${vendor.reviewResult}',
-        '${vendor.reviewStatus}',
+        '${vendor.vendor_contact_person}',
+        '${vendor.review_result}',
+        '${vendor.review_status}',
         '${vendor.reviewer}',
-        '${vendor.riskStatus}',
-        '${vendor.reviewDate.toISOString().split("T")[0]}',
-        '${vendor.riskDescription}',
-        '${vendor.impactDescription}',
-        ${vendor.impact},
-        '${vendor.probability}',
-        '${vendor.actionOwner}',
-        '${vendor.actionPlan}',
-        ${vendor.riskSeverity},
-        '${vendor.riskLevel}',
-        '${vendor.likelihood}'
+        '${vendor.risk_status}',
+        '${vendor.review_date.toISOString().split("T")[0]}'
       )`;
     },
   },
@@ -236,15 +231,22 @@ const insertQuery = {
     mockData: mockVendorRisks,
     tableName: "vendorrisks",
     insertString:
-      "INSERT INTO vendorrisks(project_id, vendor_name, risk_name, owner, risk_level, review_date) VALUES ",
+      `INSERT INTO vendorRisks (
+        vendor_id, order_no, risk_description, impact_description, impact, 
+        likelihood, risk_severity, action_plan, action_owner, risk_level
+      ) VALUES `,
     generateValuesString: function (vendorRisk: VendorRisk) {
       return `(
-        '${vendorRisk.project_id}',
-        'DEMO - ${vendorRisk.vendor_name}',
-        '${vendorRisk.risk_name}',
-        '${vendorRisk.owner}',
-        '${vendorRisk.risk_level}',
-        '${vendorRisk.review_date.toISOString().split("T")[0]}'
+        ${vendorRisk.vendor_id},
+        ${vendorRisk.order_no},
+        'DEMO - ${vendorRisk.risk_description}',
+        '${vendorRisk.impact_description}',
+        '${vendorRisk.impact}',
+        '${vendorRisk.likelihood}',
+        '${vendorRisk.risk_severity}',
+        '${vendorRisk.action_plan}',
+        '${vendorRisk.action_owner}',
+        '${vendorRisk.risk_level}'
       )`;
     },
   },

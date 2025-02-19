@@ -4,9 +4,11 @@ import pool from "../database/db";
 export const getAllProjectsQuery = async (): Promise<Project[]> => {
   console.log("getAllProjects");
   const projects = await pool.query("SELECT * FROM projects");
-  for (let project of projects.rows) {
-    const assessment = await pool.query(`SELECT id FROM assessments WHERE project_id = $1`, [project.id])
-    project["assessment_id"] = assessment.rows[0].id
+  if (projects.rows.length) {
+    for (let project of projects.rows) {
+      const assessment = await pool.query(`SELECT id FROM assessments WHERE project_id = $1`, [project.id])
+      project["assessment_id"] = assessment.rows[0].id
+    }
   }
   return projects.rows;
 };
@@ -84,23 +86,22 @@ export const deleteProjectByIdQuery = async (
 
   const deleteHelper = async (childObject: Record<string, any>, parent_id: number) => {
     const childTableName = Object.keys(childObject).filter(k => k !== "foreignKey")[0]
-    if (childTableName !== "vendors") {
-      const childIds = await pool.query(`SELECT id FROM ${childTableName} WHERE ${childObject[childTableName].foreignKey} = $1`, [parent_id])
-      await Promise.all(Object.keys(childObject[childTableName])
-        .filter(k => k !== "foreignKey")
-        .map(async k => {
-          for (let ch of childIds.rows) {
-            await deleteHelper({ [k]: childObject[childTableName][k] }, ch.id)
-          }
-        }))
-    }
+    // if (childTableName !== "vendors") {
+    const childIds = await pool.query(`SELECT id FROM ${childTableName} WHERE ${childObject[childTableName].foreignKey} = $1`, [parent_id])
+    await Promise.all(Object.keys(childObject[childTableName])
+      .filter(k => k !== "foreignKey")
+      .map(async k => {
+        for (let ch of childIds.rows) {
+          await deleteHelper({ [k]: childObject[childTableName][k] }, ch.id)
+        }
+      }))
+    // }
     await deleteTable(childTableName, childObject[childTableName].foreignKey, parent_id)
   }
 
   const dependantEntities = [
-    { "vendors": { foreignKey: "project_id" } },
+    { "vendors": { foreignKey: "projects", "vendorrisks": { foreignKey: "vendor_id" } } },
     { "projectrisks": { foreignKey: "project_id" } },
-    { "vendorrisks": { foreignKey: "project_id" } },
     {
       "assessments": {
         foreignKey: "project_id",

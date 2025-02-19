@@ -30,25 +30,17 @@ CREATE TABLE projects (
 
 CREATE TABLE vendors (
   id SERIAL PRIMARY KEY,
+  order_no INT,
   vendor_name VARCHAR(255),
-  assignee VARCHAR(255),
   vendor_provides TEXT,
+  assignee VARCHAR(255),
   website VARCHAR(255),
   vendor_contact_person VARCHAR(255),
   review_result VARCHAR(255),
   review_status VARCHAR(255),
   reviewer VARCHAR(255),
   risk_status VARCHAR(255),
-  review_date DATE,
-  risk_description TEXT,
-  impact_description TEXT,
-  impact INT,
-  probability FLOAT,
-  action_owner VARCHAR(255),
-  action_plan TEXT,
-  risk_severity INT,
-  risk_level VARCHAR(255),
-  likelihood FLOAT
+  review_date DATE
 );
 
 CREATE TABLE assessments (
@@ -128,12 +120,16 @@ CREATE TABLE projectrisks (
 
 CREATE TABLE vendorrisks (
   id SERIAL PRIMARY KEY,
-  project_id INT REFERENCES projects(id),
-  vendor_name VARCHAR(255),
-  risk_name VARCHAR(255),
-  owner VARCHAR(255),
-  risk_level VARCHAR(255),
-  review_date DATE
+  vendor_id INT REFERENCES vendors(id),
+  order_no INT,
+  risk_description TEXT,
+  impact_description TEXT,
+  impact VARCHAR(255),
+  likelihood VARCHAR(255),
+  risk_severity VARCHAR(255),
+  action_plan TEXT,
+  action_owner VARCHAR(255),
+  risk_level VARCHAR(255)
 );
 
 CREATE TABLE vendors_projects (

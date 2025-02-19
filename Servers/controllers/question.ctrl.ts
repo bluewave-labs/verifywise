@@ -9,6 +9,7 @@ import {
   updateQuestionByIdQuery,
   RequestWithFile,
   UploadedFile,
+  getQuestionBySubTopicIdQuery,
 } from "../utils/question.utils";
 import { Question } from "../models/question.model";
 
@@ -137,6 +138,30 @@ export async function deleteQuestionById(
     }
 
     return res.status(404).json(STATUS_CODE[404]({}));
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getQuestionsBySubtopicId(req: Request, res: Response) {
+  try {
+    const subtopicId = parseInt(req.params.id);
+    if (isNaN(subtopicId)) {
+      return res
+        .status(400)
+        .json(STATUS_CODE[400]({ message: "Invalid subtopic ID" }));
+    }
+
+    const questions = await getQuestionBySubTopicIdQuery(subtopicId);
+    if (questions && questions.length !== 0) {
+      return res.status(200).json(STATUS_CODE[200](questions));
+    }
+
+    return res.status(404).json(
+      STATUS_CODE[404]({
+        message: "No questions found for the given subtopic ID",
+      })
+    );
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

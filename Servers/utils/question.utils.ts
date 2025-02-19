@@ -4,7 +4,6 @@ import { deleteFileById, getFileById, uploadFile } from "./fileUpload.utils";
 import { Request } from "express";
 
 export const getAllQuestionsQuery = async (): Promise<Question[]> => {
-  console.log("getAllQuestions");
   const questions = await pool.query("SELECT * FROM questions");
   const questionsUpdated = await Promise.all(
     questions.rows.map(async (question) => {
@@ -24,7 +23,6 @@ export const getAllQuestionsQuery = async (): Promise<Question[]> => {
 export const getQuestionByIdQuery = async (
   id: number
 ): Promise<Question | null> => {
-  console.log("getQuestionById", id);
   const result = await pool.query("SELECT * FROM questions WHERE id = $1", [
     id,
   ]);
@@ -44,9 +42,11 @@ export const getQuestionByIdQuery = async (
 };
 
 export interface RequestWithFile extends Request {
-  files?: UploadedFile[] | {
-    [key: string]: UploadedFile[]
-  };
+  files?:
+    | UploadedFile[]
+    | {
+        [key: string]: UploadedFile[];
+      };
 }
 export interface UploadedFile {
   originalname: string;
@@ -58,12 +58,14 @@ export const createNewQuestionQuery = async (
   question: Question,
   files?: UploadedFile[]
 ): Promise<Question> => {
-  console.log("createNewQuestion", question);
-  let uploadedFiles: { id: number, fileName: string }[] = [];
+  let uploadedFiles: { id: number; fileName: string }[] = [];
   await Promise.all(
     files!.map(async (file) => {
       const uploadedFile = await uploadFile(file);
-      uploadedFiles.push({ id: uploadedFile.id.toString(), fileName: uploadedFile.filename });
+      uploadedFiles.push({
+        id: uploadedFile.id.toString(),
+        fileName: uploadedFile.filename,
+      });
     })
   );
   const result = await pool.query(
@@ -92,12 +94,14 @@ export const updateQuestionByIdQuery = async (
   question: Question,
   files: UploadedFile[]
 ): Promise<Question | null> => {
-  console.log("updateQuestionById", id, question);
-  let uploadedFiles: { id: number, fileName: string }[] = [];
+  let uploadedFiles: { id: number; fileName: string }[] = [];
   await Promise.all(
     files.map(async (file) => {
       const uploadedFile = await uploadFile(file);
-      uploadedFiles.push({ id: uploadedFile.id.toString(), fileName: uploadedFile.filename });
+      uploadedFiles.push({
+        id: uploadedFile.id.toString(),
+        fileName: uploadedFile.filename,
+      });
     })
   );
   const result = await pool.query(
@@ -128,7 +132,6 @@ export const updateQuestionByIdQuery = async (
 export const deleteQuestionByIdQuery = async (
   id: number
 ): Promise<Question | null> => {
-  console.log("deleteQuestionById", id);
   const result = await pool.query(
     "DELETE FROM questions WHERE id = $1 RETURNING *",
     [id]
@@ -146,13 +149,12 @@ export const deleteQuestionByIdQuery = async (
 export const getQuestionBySubTopicIdQuery = async (
   subTopicId: number
 ): Promise<Question[]> => {
-  console.log("getQuestionBySubTopicId", subTopicId);
   const result = await pool.query(
     `SELECT * FROM questions WHERE subtopic_id = $1`,
     [subTopicId]
   );
   return result.rows;
-}
+};
 
 export const createNewQuestionsQuery = async (
   subTopicId: number,
@@ -173,7 +175,7 @@ export const createNewQuestionsQuery = async (
     INSERT INTO questions(
       subtopic_id, question, answer_type,
       evidence_required, hint, is_required,
-      priority_level, answer, order_id, input_type) VALUES `
+      priority_level, answer, order_id, input_type) VALUES `;
   const data = questions.map((d) => {
     return `(
       ${subTopicId},
@@ -187,8 +189,8 @@ export const createNewQuestionsQuery = async (
       ${d.order_no},
       '${d.input_type}'
     )`;
-  })
-  query += data.join(",") + " RETURNING *;"
-  const result = await pool.query(query)
-  return result.rows
-}
+  });
+  query += data.join(",") + " RETURNING *;";
+  const result = await pool.query(query);
+  return result.rows;
+};

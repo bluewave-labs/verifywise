@@ -7,6 +7,7 @@ import {
   createNewSubtopic,
   updateSubtopicById,
   deleteSubtopicById,
+  getSubtopicByTopicId,
 } from "../controllers/subtopic.ctrl";
 
 import authenticateJWT from "../middleware/auth.middleware";
@@ -14,6 +15,7 @@ import authenticateJWT from "../middleware/auth.middleware";
 // GET requests
 router.get("/", /*authenticateJWT,*/ getAllSubtopics);
 router.get("/:id", /*authenticateJWT,*/ getSubtopicById);
+router.get("/bytopic/:id", getSubtopicByTopicId);
 
 // POST, PUT, DELETE requests
 router.post("/", /*authenticateJWT,*/ createNewSubtopic);

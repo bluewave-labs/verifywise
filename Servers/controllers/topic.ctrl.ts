@@ -5,6 +5,7 @@ import {
   createNewTopicQuery,
   deleteTopicByIdQuery,
   getAllTopicsQuery,
+  getTopicByAssessmentIdQuery,
   getTopicByIdQuery,
   updateTopicByIdQuery,
 } from "../utils/topic.utils";
@@ -99,6 +100,29 @@ export async function deleteTopicById(
     }
 
     return res.status(204).json(STATUS_CODE[204](topic));
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getTopicByAssessmentId(
+  req: Request,
+  res: Response
+): Promise<any> {
+  try {
+    const assessmentId = parseInt(req.params.id);
+
+    if (isNaN(assessmentId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid assessment ID"));
+    }
+
+    const topics = await getTopicByAssessmentIdQuery(assessmentId);
+
+    if (topics && topics.length > 0) {
+      return res.status(200).json(STATUS_CODE[200](topics));
+    }
+
+    return res.status(204).json(STATUS_CODE[204](topics));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

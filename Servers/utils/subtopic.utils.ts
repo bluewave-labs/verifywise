@@ -4,7 +4,6 @@ import { createNewQuestionsQuery } from "./question.utils";
 import { Question } from "../models/question.model";
 
 export const getAllSubtopicsQuery = async (): Promise<Subtopic[]> => {
-  console.log("getAllSubtopics");
   const subtopics = await pool.query("SELECT * FROM subtopics");
   return subtopics.rows;
 };
@@ -12,15 +11,15 @@ export const getAllSubtopicsQuery = async (): Promise<Subtopic[]> => {
 export const getSubtopicByIdQuery = async (
   id: number
 ): Promise<Subtopic | null> => {
-  console.log("getSubtopicById", id);
   const result = await pool.query("SELECT * FROM subtopics WHERE id = $1", [
     id,
   ]);
   return result.rows.length ? result.rows[0] : null;
 };
 
-export const createNewSubtopicQuery = async (subtopic: Subtopic): Promise<Subtopic> => {
-  console.log("createNewSubtopic", subtopic);
+export const createNewSubtopicQuery = async (
+  subtopic: Subtopic
+): Promise<Subtopic> => {
   const result = await pool.query(
     `INSERT INTO subtopics (topic_id, title) VALUES ($1, $2) RETURNING *`,
     [subtopic.topic_id, subtopic.title]
@@ -32,7 +31,6 @@ export const updateSubtopicByIdQuery = async (
   id: number,
   subtopic: Partial<Subtopic>
 ): Promise<Subtopic | null> => {
-  console.log("updateSubtopicById", id, subtopic);
   const result = await pool.query(
     `UPDATE subtopics SET topic_id = $1, title = $2 WHERE id = $3 RETURNING *`,
     [subtopic.topic_id, subtopic.title, id]
@@ -43,7 +41,6 @@ export const updateSubtopicByIdQuery = async (
 export const deleteSubtopicByIdQuery = async (
   id: number
 ): Promise<Subtopic | null> => {
-  console.log("deleteSubtopicById", id);
   const result = await pool.query(
     "DELETE FROM subtopics WHERE id = $1 RETURNING *",
     [id]
@@ -54,13 +51,12 @@ export const deleteSubtopicByIdQuery = async (
 export const getSubTopicByTopicIdQuery = async (
   topicId: number
 ): Promise<Subtopic[]> => {
-  console.log("getSubTopicByTopicId", topicId);
   const result = await pool.query(
     `SELECT * FROM subtopics WHERE topic_id = $1`,
     [topicId]
   );
   return result.rows;
-}
+};
 
 export const createNewSubTopicsQuery = async (
   topicId: number,
@@ -81,14 +77,21 @@ export const createNewSubTopicsQuery = async (
     }[];
   }[]
 ) => {
-  const createdSubTopics = []
-  let query = "INSERT INTO subtopics(topic_id, title, order_no) VALUES ($1, $2, $3) RETURNING *;"
+  const createdSubTopics = [];
+  let query =
+    "INSERT INTO subtopics(topic_id, title, order_no) VALUES ($1, $2, $3) RETURNING *;";
   for (let subTopicStruct of subTopics) {
-    const result = await pool.query(query, [topicId, subTopicStruct.title, subTopicStruct.order_no])
-    const subtopic_id = result.rows[0].id
-    const questions = await createNewQuestionsQuery(subtopic_id, subTopicStruct.questions)
-    createdSubTopics.push({ ...result.rows[0], questions })
+    const result = await pool.query(query, [
+      topicId,
+      subTopicStruct.title,
+      subTopicStruct.order_no,
+    ]);
+    const subtopic_id = result.rows[0].id;
+    const questions = await createNewQuestionsQuery(
+      subtopic_id,
+      subTopicStruct.questions
+    );
+    createdSubTopics.push({ ...result.rows[0], questions });
   }
-  return createdSubTopics
-}
-
+  return createdSubTopics;
+};

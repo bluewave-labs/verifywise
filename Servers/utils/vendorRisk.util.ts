@@ -4,7 +4,6 @@ import pool from "../database/db";
 export const getAllVendorRisksQuery = async (
   projectId: number
 ): Promise<VendorRisk[]> => {
-  console.log("getAllVendorRisks for project", projectId);
   const vendorRisks = await pool.query(
     "SELECT * FROM vendorRisks WHERE project_id = $1",
     [projectId]
@@ -15,7 +14,6 @@ export const getAllVendorRisksQuery = async (
 export const getVendorRiskByIdQuery = async (
   id: number
 ): Promise<VendorRisk | null> => {
-  console.log("getVendorRiskById", id);
   const result = await pool.query("SELECT * FROM vendorRisks WHERE id = $1", [
     id,
   ]);
@@ -30,7 +28,6 @@ export const createNewVendorRiskQuery = async (vendorRisk: {
   risk_level: string;
   review_date: Date;
 }): Promise<VendorRisk> => {
-  console.log("createNewVendorRisk", vendorRisk);
   const result = await pool.query(
     `INSERT INTO vendorRisks (
       project_id, vendor_name, risk_name, owner, risk_level, review_date
@@ -58,7 +55,6 @@ export const updateVendorRiskByIdQuery = async (
     review_date: Date;
   }>
 ): Promise<VendorRisk | null> => {
-  console.log("updateVendorRiskById", id, vendorRisk);
   const fields = [];
   const values = [];
   let query = "UPDATE vendorRisks SET ";
@@ -102,7 +98,6 @@ export const updateVendorRiskByIdQuery = async (
 export const deleteVendorRiskByIdQuery = async (
   id: number
 ): Promise<boolean> => {
-  console.log("deleteVendorRiskById", id);
   const result = await pool.query(
     "DELETE FROM vendorRisks WHERE id = $1 RETURNING id",
     [id]

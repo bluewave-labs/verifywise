@@ -69,6 +69,8 @@ const NewComplianceTracker = () => {
       console.log("Selected project ID from localStorage:", selectedProjectId);
       const projectId = parseInt(selectedProjectId, 10); // Convert string to number
       fetchControlCategoriesByProjectId(projectId);
+      fetchComplianceTrackerCalculation(projectId);
+      fetchComplianceTracker(projectId);
     } else {
       setLoading(false);
     }
@@ -98,9 +100,11 @@ const NewComplianceTracker = () => {
     },
   ];
 
-  const fetchComplianceTracker = async () => {
+  const fetchComplianceTracker = async (projectId: number) => {
     try {
-      const response = await getAllEntities({ routeUrl: "/controls" });
+      const response = await getAllEntities({
+        routeUrl: `/controls?projectId=${projectId}`,
+      });
       console.log("Response:", response);
       setDashboardValues((prevValues: any) => ({
         ...prevValues,
@@ -112,19 +116,19 @@ const NewComplianceTracker = () => {
     }
   };
 
-  const fetchComplianceTrackerCalculation = async () => {
+  const fetchComplianceTrackerCalculation = async (projectId: number) => {
     try {
       const response = await getAllEntities({
-        routeUrl: "/users/1/calculate-progress",
+        routeUrl: `/projects/progress/${projectId}`,
       });
 
       setComplianceStatus({
-        allTotalSubControls: response.allTotalSubControls,
-        allDoneSubControls: response.allDoneSubControls,
+        allTotalSubControls: response.data.allsubControls,
+        allDoneSubControls: response.data.allDonesubControls,
         complianceStatus: Number(
           (
-            ((response.allDoneSubControls ?? 0) /
-              (response.allTotalSubControls ?? 1)) *
+            ((response.data.allDonesubControls ?? 0) /
+              (response.data.allsubControls ?? 1)) *
             100
           ).toFixed(2)
         ),
@@ -136,12 +140,6 @@ const NewComplianceTracker = () => {
       setError("Error fetching compliance tracker calculation.");
     }
   };
-
-  useEffect(() => {
-    fetchComplianceTrackerCalculation();
-    fetchComplianceTracker();
-    setRunComplianceTour(true);
-  }, []);
 
   const handleAccordionChange = (panel: number) => {
     return (_: React.SyntheticEvent, isExpanded: boolean) => {

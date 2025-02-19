@@ -2,7 +2,6 @@ import { Vendor } from "../models/vendor.model";
 import pool from "../database/db";
 
 export const getAllVendorsQuery = async (): Promise<Vendor[]> => {
-  console.log("getAllVendors");
   const vendors = await pool.query("SELECT * FROM vendors");
   return vendors.rows;
 };
@@ -10,7 +9,6 @@ export const getAllVendorsQuery = async (): Promise<Vendor[]> => {
 export const getVendorByIdQuery = async (
   id: number
 ): Promise<Vendor | null> => {
-  console.log("getVendorById", id);
   const result = await pool.query("SELECT * FROM vendors WHERE id = $1", [id]);
   return result.rows.length ? result.rows[0] : null;
 };
@@ -37,7 +35,6 @@ export const createNewVendorQuery = async (vendor: {
   riskLevel: string;
   likelihood: number;
 }): Promise<Vendor> => {
-  console.log("createNewVendor", vendor);
   const result = await pool.query(
     `INSERT INTO vendors (
       vendor_name, assignee, vendor_provides, website, vendor_contact_person, 
@@ -68,7 +65,10 @@ export const createNewVendorQuery = async (vendor: {
     ]
   );
   const vendorId = result.rows[0].id;
-  await pool.query(`INSERT INTO vendors_projects VALUES ($1, $2)`, [vendorId, vendor.projectId]);
+  await pool.query(`INSERT INTO vendors_projects VALUES ($1, $2)`, [
+    vendorId,
+    vendor.projectId,
+  ]);
   return result.rows[0];
 };
 
@@ -97,7 +97,6 @@ export const updateVendorByIdQuery = async (
     likelihood: number;
   }>
 ): Promise<Vendor | null> => {
-  console.log("updateVendorById", id, vendor);
   const fields = [];
   const values = [];
   let query = "UPDATE vendors SET ";
@@ -187,12 +186,14 @@ export const updateVendorByIdQuery = async (
   values.push(id);
 
   const result = await pool.query(query, values);
-  await pool.query(`UPDATE vendors_projects SET project_id = $1 WHERE vendor_id = $2`, [vendor.projectId, id]);
+  await pool.query(
+    `UPDATE vendors_projects SET project_id = $1 WHERE vendor_id = $2`,
+    [vendor.projectId, id]
+  );
   return result.rows.length ? result.rows[0] : null;
 };
 
 export const deleteVendorByIdQuery = async (id: number): Promise<boolean> => {
-  console.log("deleteVendorById", id);
   await pool.query(`DELETE FROM vendors_projects WHERE vendor_id = $1`, [id]);
   const result = await pool.query(
     "DELETE FROM vendors WHERE id = $1 RETURNING id",

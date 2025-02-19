@@ -1,8 +1,7 @@
 import { createNewUser } from "../repository/entity.repository";
 import { logEngine } from "../tools/log.engine";
 import { FormValues } from "../validations/formValidation";
-import { ALERT_TIMEOUT, API_RESPONSES, UNEXPECTED } from "../constants/apiResponses";
-import { AlertType } from "../../presentation/pages/Authentication/RegisterUser";
+import { API_RESPONSES, UNEXPECTED } from "../constants/apiResponses";
 
 interface User {
   id: string;
@@ -13,13 +12,9 @@ interface User {
 
 const useRegisterUser = () => {
 
-  const handleApiResponse = ({response, user, setAlert}: {response: Response, user: User, setAlert: (alert: AlertType | null) => void}) => {
+  const handleApiResponse = ({response, user, setIsSubmitting} : {response: Response, user: User, setIsSubmitting: (value: boolean) => void}) => {
     const config = API_RESPONSES[response.status] || UNEXPECTED;
 
-    setAlert({
-      variant: config.variant,
-      body: config.message
-    });
 
     logEngine({
       type: config.logType,
@@ -27,38 +22,34 @@ const useRegisterUser = () => {
       user
     });
 
-    setTimeout(() => setAlert(null), ALERT_TIMEOUT);
+    setIsSubmitting(false);
   };
 
   const registerUser = async ({
     values,
     user,
-    setAlert
+    setIsSubmitting,
   }: {
     values: FormValues;
     user: User;
-    setAlert: (alert: AlertType | null) => void;
+    setIsSubmitting: (value: boolean) => void;
   }) => {
     try {
       const response = await createNewUser({
         routeUrl: "/users/register",
         body: values
       });
-      handleApiResponse({response, user, setAlert});
+      handleApiResponse({response, user, setIsSubmitting});
       return {
         isSuccess: response.status === 201
       };
     } catch (error) {
-      setAlert({
-        variant: "error",
-        body: "An error occurred. Please try again.",
-      });
       logEngine({
         type: "error",
         message: `An error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`,
         user,
       });
-      setTimeout(() => setAlert(null), ALERT_TIMEOUT);
+      setIsSubmitting(false);
       return {
         isSuccess: false
       };

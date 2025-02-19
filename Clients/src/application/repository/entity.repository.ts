@@ -99,7 +99,7 @@ export async function updateEntityById({
   authToken = getAuthToken(),
 }: RequestParams): Promise<any> {
   try {
-    const response = await apiServices.put(routeUrl, body, {
+    const response = await apiServices.patch(routeUrl, body, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
     console.log(
@@ -153,7 +153,6 @@ export async function getAllEntities({
     const response = await apiServices.get(routeUrl, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
-    console.log("response ==> ", response);
     return response.data;
   } catch (error) {
     console.error("Error getting all users:", error);
@@ -176,9 +175,63 @@ export async function checkUserExists({
     const response = await apiServices.get(routeUrl, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
+    console.log("response :::> ", response);
     return response.data;
   } catch (error) {
     console.error("Error checking if user exists:", error);
+    throw error;
+  }
+}
+
+/**
+ * Creates demo data by sending a POST request to the autoDrivers endpoint.
+ *
+ * @returns {Promise<any>} A promise that resolves to the response data.
+ * @throws Will throw an error if the request fails.
+ */
+export async function postAutoDrivers(
+  authToken = getAuthToken()
+): Promise<any> {
+  try {
+    const response = await apiServices.post("/autoDrivers", {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+
+    return response;
+  } catch (error) {
+    console.error("Error creating demo data:", error);
+    throw error;
+  }
+}
+
+export async function resetPassword({
+  routeUrl,
+  body,
+  authToken = getAuthToken(),
+}: RequestParams): Promise<any> {
+  const response = await apiServices.post(routeUrl, body, {
+    headers: { Authorization: `Bearer ${authToken}` },
+  });
+  return response;
+}
+
+/**
+ * Fetches all users from the database.
+ *
+ * @param {RequestParams} params - The parameters for the request.
+ * @returns {Promise<any>} A promise that resolves to the list of users.
+ * @throws Will throw an error if the request fails.
+ */
+export async function getAllUsers({
+  authToken = getAuthToken(),
+}: RequestParams): Promise<any> {
+  try {
+    const response = await apiServices.get("/users", {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error getting all users:", error);
     throw error;
   }
 }

@@ -1,134 +1,162 @@
 import { Topic } from "../models/topic.model";
 
-export const topics: Topic[] = [
-  {
-    id: 1,
-    assessmentId: 1,
-    title: "Risk management system",
-  },
-  {
-    id: 2,
-    assessmentId: 1,
-    title: "Data governance",
-  },
-  {
-    id: 3,
-    assessmentId: 1,
-    title: "Technical documentation",
-  },
-  {
-    id: 4,
-    assessmentId: 1,
-    title: "Record keeping",
-  },
-  {
-    id: 5,
-    assessmentId: 1,
-    title: "Transparency & user information",
-  },
-  {
-    id: 6,
-    assessmentId: 1,
-    title: "Human oversight",
-  },
-  {
-    id: 7,
-    assessmentId: 1,
-    title: "Accuracy, robustness, cyber security",
-  },
-  {
-    id: 8,
-    assessmentId: 1,
-    title: "Conformity assessment",
-  },
-  {
-    id: 9,
-    assessmentId: 1,
-    title: "Post-market monitoring",
-  },
-  {
-    id: 10,
-    assessmentId: 1,
-    title: "Bias monitoring and mitigation",
-  },
-  {
-    id: 11,
-    assessmentId: 1,
-    title: "Accountability and governance",
-  },
-  {
-    id: 12,
-    assessmentId: 1,
-    title: "Explainability",
-  },
-  {
-    id: 13,
-    assessmentId: 1,
-    title: "Environmental impact",
-  },
-  {
-    id: 14,
-    assessmentId: 2,
-    title: "Risk management system",
-  },
-  {
-    id: 15,
-    assessmentId: 2,
-    title: "Data governance",
-  },
-  {
-    id: 16,
-    assessmentId: 2,
-    title: "Technical documentation",
-  },
-  {
-    id: 17,
-    assessmentId: 2,
-    title: "Record keeping",
-  },
-  {
-    id: 18,
-    assessmentId: 2,
-    title: "Transparency & user information",
-  },
-  {
-    id: 19,
-    assessmentId: 2,
-    title: "Human oversight",
-  },
-  {
-    id: 20,
-    assessmentId: 2,
-    title: "Accuracy, robustness, cyber security",
-  },
-  {
-    id: 21,
-    assessmentId: 2,
-    title: "Conformity assessment",
-  },
-  {
-    id: 22,
-    assessmentId: 2,
-    title: "Post-market monitoring",
-  },
-  {
-    id: 23,
-    assessmentId: 2,
-    title: "Bias monitoring and mitigation",
-  },
-  {
-    id: 24,
-    assessmentId: 2,
-    title: "Accountability and governance",
-  },
-  {
-    id: 25,
-    assessmentId: 2,
-    title: "Explainability",
-  },
-  {
-    id: 26,
-    assessmentId: 2,
-    title: "Environmental impact",
-  },
-];
+export const topics = (assessment1: number, assessment2: number): Topic[] => {
+  return [
+    {
+      id: 1,
+      assessment_id: assessment1,
+      title: "Risk management system",
+      order_no: 1
+    },
+    {
+      id: 2,
+      assessment_id: assessment1,
+      title: "Data governance",
+      order_no: 2
+    },
+    {
+      id: 3,
+      assessment_id: assessment1,
+      title: "Technical documentation",
+      order_no: 3
+    },
+    {
+      id: 4,
+      assessment_id: assessment1,
+      title: "Record keeping",
+      order_no: 4
+    },
+    {
+      id: 5,
+      assessment_id: assessment1,
+      title: "Transparency & user information",
+      order_no: 5
+    },
+    {
+      id: 6,
+      assessment_id: assessment1,
+      title: "Human oversight",
+      order_no: 6
+    },
+    {
+      id: 7,
+      assessment_id: assessment1,
+      title: "Accuracy, robustness, cyber security",
+      order_no: 7
+    },
+    {
+      id: 8,
+      assessment_id: assessment1,
+      title: "Conformity assessment",
+      order_no: 8
+    },
+    {
+      id: 9,
+      assessment_id: assessment1,
+      title: "Post-market monitoring",
+      order_no: 9
+    },
+    {
+      id: 10,
+      assessment_id: assessment1,
+      title: "Bias monitoring and mitigation",
+      order_no: 10
+    },
+    {
+      id: 11,
+      assessment_id: assessment1,
+      title: "Accountability and governance",
+      order_no: 11
+    },
+    {
+      id: 12,
+      assessment_id: assessment1,
+      title: "Explainability",
+      order_no: 12
+    },
+    {
+      id: 13,
+      assessment_id: assessment1,
+      title: "Environmental impact",
+      order_no: 13
+    },
+    {
+      id: 14,
+      assessment_id: assessment2,
+      title: "Risk management system",
+      order_no: 1
+    },
+    {
+      id: 15,
+      assessment_id: assessment2,
+      title: "Data governance",
+      order_no: 2
+    },
+    {
+      id: 16,
+      assessment_id: assessment2,
+      title: "Technical documentation",
+      order_no: 3
+    },
+    {
+      id: 17,
+      assessment_id: assessment2,
+      title: "Record keeping",
+      order_no: 4
+    },
+    {
+      id: 18,
+      assessment_id: assessment2,
+      title: "Transparency & user information",
+      order_no: 5
+    },
+    {
+      id: 19,
+      assessment_id: assessment2,
+      title: "Human oversight",
+      order_no: 6
+    },
+    {
+      id: 20,
+      assessment_id: assessment2,
+      title: "Accuracy, robustness, cyber security",
+      order_no: 7
+    },
+    {
+      id: 21,
+      assessment_id: assessment2,
+      title: "Conformity assessment",
+      order_no: 8
+    },
+    {
+      id: 22,
+      assessment_id: assessment2,
+      title: "Post-market monitoring",
+      order_no: 9
+    },
+    {
+      id: 23,
+      assessment_id: assessment2,
+      title: "Bias monitoring and mitigation",
+      order_no: 10
+    },
+    {
+      id: 24,
+      assessment_id: assessment2,
+      title: "Accountability and governance",
+      order_no: 11
+    },
+    {
+      id: 25,
+      assessment_id: assessment2,
+      title: "Explainability",
+      order_no: 12
+    },
+    {
+      id: 26,
+      assessment_id: assessment2,
+      title: "Environmental impact",
+      order_no: 13
+    },
+  ]
+};

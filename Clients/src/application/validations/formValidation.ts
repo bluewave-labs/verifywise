@@ -4,7 +4,7 @@ import { checkStringValidation } from "./stringValidation";
 const PASSWORD_REGEX = /[!@#$%^&*(),.?":{}|<>]/;
 // Validation constants
 const VALIDATION_RULES = {
-  NAME: { min: 3, max: 50 },
+  NAME: { min: 2, max: 50 },
   PASSWORD: { min: 8, max: 16 },
   EMAIL: { min: 0, max: 128 },
 } as const;
@@ -35,6 +35,8 @@ interface ValidationResult {
 interface PasswordValidationResult {
   length: boolean;
   specialChar: boolean;
+  uppercase: boolean;
+  number: boolean;
 }
 
 /**
@@ -43,7 +45,7 @@ interface PasswordValidationResult {
  * @returns Validation result containing isFormValid flag and any errors
  */
 // Function to validate the entire form
-export const validateForm = ( values: FormValues ): ValidationResult => {
+export const validateForm = (values: FormValues): ValidationResult => {
   const newErrors: FormErrors = {};
 
   // Validate name
@@ -68,7 +70,7 @@ export const validateForm = ( values: FormValues ): ValidationResult => {
       VALIDATION_RULES.NAME.max
     );
     if (!surname.accepted) {
-    newErrors.surname = surname.message;
+      newErrors.surname = surname.message;
     }
   }
 
@@ -111,13 +113,20 @@ export const validateForm = ( values: FormValues ): ValidationResult => {
     newErrors.confirmPassword = "Passwords do not match";
   }
 
-  return { isFormValid: Object.keys(newErrors).length === 0, errors: newErrors }; // Return true if no errors exist
+  return {
+    isFormValid: Object.keys(newErrors).length === 0,
+    errors: newErrors,
+  }; // Return true if no errors exist
 };
 
 // Function to check Password based on the password input
-export const validatePassword = (values: FormValues): PasswordValidationResult => {
+export const validatePassword = (
+  values: FormValues
+): PasswordValidationResult => {
   return {
     length: values.password.length >= VALIDATION_RULES.PASSWORD.min,
     specialChar: PASSWORD_REGEX.test(values.password),
+    uppercase: /[A-Z]/.test(values.password),
+    number: /[0-9]/.test(values.password),
   };
 };

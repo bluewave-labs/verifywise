@@ -6,3 +6,7 @@ GET http://localhost:3000/controls
 
 GET http://localhost:3000/controls/2
 
+### get compliance by id
+
+POST http://localhost:3000/controls/compliance/1
+

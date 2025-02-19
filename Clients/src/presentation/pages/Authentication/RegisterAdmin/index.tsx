@@ -1,15 +1,22 @@
 import { Button, Stack, Typography, useTheme } from "@mui/material";
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Check from "../../../components/Checks";
 import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate } from "react-router-dom";
 import { createNewUser } from "../../../../application/repository/entity.repository";
-import Alert from "../../../components/Alert";
 import { logEngine } from "../../../../application/tools/log.engine";
-import { validatePassword, validateForm } from "../../../../application/validations/formValidation";
-import type { FormValues, FormErrors } from "../../../../application/validations/formValidation";
+import {
+  validatePassword,
+  validateForm,
+} from "../../../../application/validations/formValidation";
+import type {
+  FormValues,
+  FormErrors,
+} from "../../../../application/validations/formValidation";
+import VWToast from "../../../vw-v2-components/Toast";
+import Alert from "../../../components/Alert";
 
 // Initial state for form values
 const initialState: FormValues = {
@@ -26,14 +33,17 @@ const RegisterAdmin: React.FC = () => {
   const [values, setValues] = useState<FormValues>(initialState);
   // State for form errors
   const [errors, setErrors] = useState<FormErrors>({});
-  // State for alert
+
+  //state for overlay modal
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const passwordChecks = validatePassword(values);
+
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
     body: string;
   } | null>(null);
-
-  const passwordChecks = validatePassword(values);
 
   // Handle input field changes
   const handleChange =
@@ -41,11 +51,13 @@ const RegisterAdmin: React.FC = () => {
     (event: React.ChangeEvent<HTMLInputElement>) => {
       setValues({ ...values, [prop]: event.target.value });
       setErrors({ ...errors, [prop]: "" }); // Clear error for the specific field
-  };
+    };
 
   // Handle form submission
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setIsSubmitting(true);
+
     const user = {
       id: "At register level as admin", // Replace with actual user ID
       email: values.email ?? "", // Replace with actual user email
@@ -55,6 +67,8 @@ const RegisterAdmin: React.FC = () => {
     const { isFormValid, errors } = validateForm(values);
     if (!isFormValid) {
       setErrors(errors);
+      setIsSubmitting(false);
+      return;
     } else {
       await createNewUser({
         routeUrl: "/users/register",
@@ -65,76 +79,78 @@ const RegisterAdmin: React.FC = () => {
           setValues(initialState);
           setErrors({});
           if (response.status === 201) {
-            setAlert({
-              variant: "success",
-              body: "Account created successfully. Redirecting to login...",
-            });
             logEngine({
               type: "info",
               message: "Account created successfully.",
               user,
             });
             setTimeout(() => {
-              setAlert(null);
+              setIsSubmitting(false);
+              window.location.reload();
               navigate("/login");
             }, 3000);
           } else if (response.status === 400) {
-            setAlert({
-              variant: "error",
-              body: "Bad request. Please check your input.",
-            });
             logEngine({
               type: "error",
               message: "Bad request. Please check your input.",
               user,
             });
-            setTimeout(() => setAlert(null), 3000);
-          } else if (response.status === 409) {
+            setIsSubmitting(false);
             setAlert({
-              variant: "warning",
-              body: "Account already exists.",
+              variant: "error",
+              body: "Bad request. Please check your input.",
             });
+            setTimeout(() => {
+              setAlert(null);
+            }, 3000);
+          } else if (response.status === 409) {
             logEngine({
               type: "event",
               message: "Account already exists.",
               user,
             });
-            setTimeout(() => setAlert(null), 3000);
+            setIsSubmitting(false);
+            setAlert({ variant: "error", body: "Account already exists." });
+            setTimeout(() => {
+              setAlert(null);
+            }, 3000);
           } else if (response.status === 500) {
-            setAlert({
-              variant: "error",
-              body: "Internal server error. Please try again later.",
-            });
             logEngine({
               type: "error",
               message: "Internal server error. Please try again later.",
               user,
             });
-            setTimeout(() => setAlert(null), 3000);
-          } else {
+            setIsSubmitting(false);
             setAlert({
               variant: "error",
-              body: "Unexpected response. Please try again.",
+              body: "Internal server error. Please try again later.",
             });
+            setTimeout(() => {
+              setAlert(null);
+            }, 3000);
+          } else {
             logEngine({
               type: "error",
               message: "Unexpected response. Please try again.",
               user,
             });
-            setTimeout(() => setAlert(null), 3000);
+            setIsSubmitting(false);
+            setAlert({
+              variant: "error",
+              body: "Unexpected response. Please try again.",
+            });
+            setTimeout(() => {
+              setAlert(null);
+            }, 3000);
           }
         })
         .catch((error) => {
-          setAlert({
-            variant: "error",
-            body: "An error occurred. Please try again.",
-          });
           logEngine({
             type: "error",
             message: `An error occurred: ${error.message}`,
             user,
           });
-          setTimeout(() => setAlert(null), 3000);
+          setIsSubmitting(false);
         });
     }
   };
@@ -155,6 +171,25 @@ const RegisterAdmin: React.FC = () => {
         marginBottom: theme.spacing(20),
       }}
     >
+      {alert && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Alert
+            variant={alert.variant}
+            title={alert.title}
+            body={alert.body}
+            isToast={true}
+            onClick={() => {
+              setAlert(null);
+              console.log("Before /login");
+              navigate("/login");
+              console.log("After /login");
+            }}
+          />
+        </Suspense>
+      )}
+      {isSubmitting && (
+        <VWToast title="Processing your request. Please wait..." />
+      )}
       <Background
         style={{
           position: "absolute",
@@ -165,15 +200,6 @@ const RegisterAdmin: React.FC = () => {
           transform: "translateX(-50%)",
         }}
       />
-      {alert && (
-        <Alert
-          variant={alert.variant}
-          title={alert.title}
-          body={alert.body}
-          isToast={true}
-          onClick={() => setAlert(null)}
-        />
-      )}
       <form onSubmit={handleSubmit}>
         <Stack
           className="reg-admin-form"
@@ -260,6 +286,14 @@ const RegisterAdmin: React.FC = () => {
               <Check
                 text="Must contain one special character"
                 variant={passwordChecks.specialChar ? "success" : "info"}
+              />
+              <Check
+                text="Must contain at least one uppercase letter"
+                variant={passwordChecks.uppercase ? "success" : "info"}
+              />
+              <Check
+                text="Must contain atleast one number"
+                variant={passwordChecks.number ? "success" : "info"}
               />
             </Stack>
             <Button

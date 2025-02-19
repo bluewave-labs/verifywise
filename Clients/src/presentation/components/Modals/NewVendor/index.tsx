@@ -38,6 +38,7 @@ import {
 import Alert from "../../Alert";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
+import useUsers from "../../../../application/hooks/useUsers";
 
 export interface VendorDetails {
     id?: number;
@@ -58,7 +59,6 @@ interface Risks {
     riskDescription: string;
     impactDescription: string;
     projectName: string;
-    probability: string;
     impact: string;
     actionOwner: string;
     riskSeverity: string;
@@ -99,8 +99,7 @@ const initialState = {
         riskDescription: "",
         impactDescription: "",
         impact: 0,
-        probability: 0,
-        actionOwner: 0,
+        actionOwner: "0",
         riskSeverity: 0,
         likelihood: 0,
         riskLevel: 0,
@@ -117,22 +116,11 @@ interface AddNewVendorProps {
     onVendorChange?: () => void;
 }
 
-const ASSIGNEE_OPTIONS = [
-    { _id: 1, name: "Assignee 1" },
-    { _id: 2, name: "Assignee 2" },
-    { _id: 3, name: "Assignee 3" },
-]
 
 const REVIEW_STATUS_OPTIONS = [
     { _id: "active", name: "Active" },
     { _id: "underReview", name: "Under review" },
     { _id: "notActive", name: "Not active" },
-]
-
-const REVIEWER_OPTIONS = [
-    { _id: "George Michael", name: "George Michael" },
-    { _id: "Sarah Lee", name: "Sarah Lee" },
-    { _id: "Michael Lee", name: "Michael Lee" },
 ]
 
 const RISK_LEVEL_OPTIONS = [
@@ -151,24 +139,12 @@ const LIKELIHOOD_OPTIONS = [
     { _id: 5, name: "Almost certain" },
 ]
 
-const ACTION_OWNER_OPTIONS = [
-    { _id: 1, name: "John McAllen" },
-    { _id: 2, name: "Jessica Parker" },
-    { _id: 3, name: "Michael Johnson" },
-]
-
 const IMPACT_OPTIONS = [
     { _id: 1, name: "Negligible" },
     { _id: 2, name: "Minor" },
     { _id: 3, name: "Moderate" },
     { _id: 4, name: "Major and Critical" },
 ]
-
-const PROBABILITY_OPTIONS = [
-    { _id: 1, name: "4" },
-    { _id: 2, name: "3" },
-    { _id: 3, name: "2" },
-];
 
 const RISK_SEVERITY_OPTIONS = [
     { _id: 1, name: "Low" },
@@ -203,8 +179,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             riskDescription: "",
             impactDescription: "",
             impact: 0,
-            probability: 0,
-            actionOwner: 0,
+            actionOwner: "",
             riskSeverity: 0,
             likelihood: 0,
             riskLevel: 0,
@@ -223,6 +198,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     >([]);
     const [projectsLoaded, setProjectsLoaded] = useState(false); // Track if projects are loaded
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const {users} = useUsers();
 
     const fetchProjects = async () => {
         try {
@@ -264,10 +240,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                     vendorProvides: existingVendor.vendor_provides,
                     vendorContactPerson: existingVendor.vendor_contact_person,
                     reviewStatus:  REVIEW_STATUS_OPTIONS.find(s => s.name === existingVendor.review_status)?._id || "",
-                    reviewer: existingVendor.reviewer,
+                    reviewer: String(users?.find(s => s.name === existingVendor.reviewer)?.id) || "0",
                     reviewResult: existingVendor.review_result,
                     riskStatus: String(RISK_LEVEL_OPTIONS.find(s => s.name === existingVendor.risk_status)?._id) || ""  ,
-                    assignee: String(ASSIGNEE_OPTIONS.find(s => s.name === existingVendor.assignee)?._id) || "0",
+                    assignee: String(users?.find(s => s.name === existingVendor.assignee)?.id) || "0",
                     reviewDate: existingVendor.review_date,
                 },
             }));
@@ -364,20 +340,19 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         const _vendorDetails = {
             projectId: values.vendorDetails.projectId,
             vendorName: values.vendorDetails.vendorName,
-            assignee: ASSIGNEE_OPTIONS.find(a => a._id === Number(values.vendorDetails.assignee))?.name || "",
+            assignee: users?.find(a => a.id === values.vendorDetails.assignee)?.name,
             vendorProvides: values.vendorDetails.vendorProvides,
             website: values.vendorDetails.website,
             vendorContact_person: values.vendorDetails.vendorContactPerson,
             reviewResult: values.vendorDetails.reviewResult,
             reviewStatus: REVIEW_STATUS_OPTIONS.find(s => s._id === values.vendorDetails.reviewStatus)?.name || "",
-            reviewer: REVIEWER_OPTIONS.find(r => r._id === values.vendorDetails.reviewer)?.name || "",
+            reviewer: users?.find(a => a.id === values.vendorDetails.reviewer)?.name,
             risk_status: RISK_LEVEL_OPTIONS.find(s => s._id === Number(values.vendorDetails.riskStatus))?.name || "",
             reviewDate: values.vendorDetails.reviewDate,
             riskDescription: values.risks.riskDescription,
             impactDescription: values.risks.impactDescription,
             impact: Number(values.risks.impact), 
-            probability: Number(values.risks.probability), 
-            actionOwner: ACTION_OWNER_OPTIONS.find(a => a._id === Number(values.risks.actionOwner))?.name || "",
+            actionOwner: users.find(a => a.id === values.risks.actionOwner)?.name || "",
             actionPlan: values.risks.actionPlan,
             riskSeverity: Number(values.risks.riskSeverity), 
             riskLevel: RISK_LEVEL_OPTIONS.find(r => r._id === values.risks.riskLevel)?.name || "",
@@ -551,7 +526,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                     isRequired
                 />
                 <Select // reviewer
-                    items={REVIEWER_OPTIONS}
+                    items={users?.map(user => ({
+                        _id: user.id,
+                        name: `${user.name} ${user.surname}`
+                    })) || []}
                     label="Reviewer"
                     placeholder="Select reviewer"
                     isHidden={false}
@@ -602,7 +580,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                     }}
                 />
                 <Select // assignee (not in the server model!)
-                    items={ASSIGNEE_OPTIONS}
+                    items={users?.map(user => ({
+                        _id: user.id,
+                        name: `${user.name} ${user.surname}`
+                    })) || []}
                     label="Assignee"
                     placeholder="Select person"
                     isHidden={false}
@@ -634,123 +615,137 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     );
 
     const risksPanel = (
-        <TabPanel value="2" sx={{ paddingTop: theme.spacing(15), paddingX: 0 }}>
-            <Stack
-                direction={"row"}
-                justifyContent={"space-between"}
-                marginBottom={theme.spacing(8)}
-            >
-                <Field // riskDescription
-                    label="Risk description"
-                    width={350}
-                    value={values.risks.riskDescription}
-                    onChange={(e) =>
-                        handleOnChange("risks", "riskDescription", e.target.value)
-                    }
-                />
-                <Field // impactDescription
-                    label="Impact description"
-                    width={350}
-                    value={values.risks.impactDescription}
-                    onChange={(e) =>
-                        handleOnChange("risks", "impactDescription", e.target.value)
-                    }
-                />
-            </Stack>
-            <Stack
-                direction={"row"}
-                justifyContent={"space-between"}
-                marginBottom={theme.spacing(8)}
-            >
-                <Select // impact
-                    items={IMPACT_OPTIONS}
-                    label="Impact"
-                    placeholder="Select impact"
-                    isHidden={false}
-                    id=""
-                    onChange={(e) => handleOnChange("risks", "impact", e.target.value)}
-                    value={values.risks.impact}
-                    sx={{
-                        width: 350,
-                    }}
-                />
+      <TabPanel value="2" sx={{ paddingTop: theme.spacing(15), paddingX: 0 }}>
+        <Stack
+          direction={"row"}
+          justifyContent={"space-between"}
+          marginBottom={theme.spacing(8)}
+        >
+          <Field // riskDescription
+            label="Risk description"
+            width={350}
+            value={values.risks.riskDescription}
+            onChange={(e) =>
+              handleOnChange("risks", "riskDescription", e.target.value)
+            }
+          />
+          <Field // impactDescription
+            label="Impact description"
+            width={350}
+            value={values.risks.impactDescription}
+            onChange={(e) =>
+              handleOnChange("risks", "impactDescription", e.target.value)
+            }
+          />
+        </Stack>
+        <Stack
+          direction={"row"}
+          justifyContent={"space-between"}
+          marginBottom={theme.spacing(8)}
+        >
+          <Select // impact
+            items={IMPACT_OPTIONS}
+            label="Impact"
+            placeholder="Select impact"
+            isHidden={false}
+            id=""
+            onChange={(e) => handleOnChange("risks", "impact", e.target.value)}
+            value={values.risks.impact}
+            sx={{
+              width: 350,
+            }}
+          />
+          <Select // likelihood
+            items={LIKELIHOOD_OPTIONS}
+            label="Likelihood"
+            placeholder="Select risk severity"
+            isHidden={false}
+            id=""
+            onChange={(e) =>
+              handleOnChange("risks", "likelihood", e.target.value)
+            }
+            value={values.risks.likelihood}
+            sx={{
+              width: 350,
+            }}
+          />
+        </Stack>
+        <Stack
+          display={"flex"}
+          justifyContent={"space-between"}
+          marginBottom={theme.spacing(8)}
+          flexDirection={"row"}
+        >
+          <Box
+            justifyContent={"space-between"}
+            display={"grid"}
+            gap={theme.spacing(8)}
+          >
+            <Select // riskSeverity
+              items={RISK_SEVERITY_OPTIONS}
+              label="Risk severity"
+              placeholder="Select risk severity"
+              isHidden={false}
+              id=""
+              onChange={(e) =>
+                handleOnChange("risks", "riskSeverity", e.target.value)
+              }
+              value={values.risks.riskSeverity}
+              sx={{
+                width: 350,
+              }}
+            />
 
-                <Select // probability
-                    items={PROBABILITY_OPTIONS}
-                    label="Probability"
-                    placeholder="Select probability"
-                    isHidden={false}
-                    id=""
-                    value={values.risks.probability}
-                    onChange={(e) => handleOnChange("risks", "probability", e.target.value)}
-                    sx={{
-                        width: 350,
-                    }}
-                />
-            </Stack>
-            <Stack
-                display={"flex"}
-                justifyContent={"space-between"}
-                marginBottom={theme.spacing(8)}
-                flexDirection={"row"}
-            >
-                <Box
-                    justifyContent={"space-between"}
-                    display={"grid"}
-                    gap={theme.spacing(8)}
-                >
-                    <Select // riskSeverity
-                        items={RISK_SEVERITY_OPTIONS}
-                        label="Risk severity"
-                        placeholder="Select risk severity"
-                        isHidden={false}
-                        id=""
-                        onChange={(e) => handleOnChange("risks", "riskSeverity", e.target.value)}
-                        value={values.risks.riskSeverity}
-                        sx={{
-                            width: 350,
-                        }}
-                    />
-
-                    <Select // actionOwner
-                        items={ACTION_OWNER_OPTIONS}
-                        label="Action owner"
-                        placeholder="Select owner"
-                        isHidden={false}
-                        id=""
-                        onChange={(e) => handleOnChange("risks", "actionOwner", e.target.value)}
-                        value={values.risks.actionOwner}
-                        sx={{
-                            width: 350,
-                        }}
-                    />
-                </Box>
-                <Field // actionPlan
-                    label="Action plan"
-                    width={350}
-                    type="description"
-                    value={values.risks.actionPlan}
-                    onChange={(e) => handleOnChange("risks", "actionPlan", e.target.value)}
-                />
-            </Stack>
-            <Stack
-                direction={"row"}
-                justifyContent={"space-between"}
-                marginBottom={theme.spacing(8)}
-            >
-                <Select // riskLevel
-                    items={RISK_LEVEL_OPTIONS}
-                    label="Risk level"
-                    placeholder="Select risk level"
-                    isHidden={false}
-                    id=""
-                    onChange={(e) => handleOnChange("risks", "riskLevel", e.target.value)}
-                    value={values.risks.riskLevel}
-                    sx={{
-                        width: 350,
-                    }}
-                />
-                <Select // likelihood
+            <Select // actionOwner
+              items={
+                users?.map((user) => ({
+                  _id: String(user.id),
+                  name: `${user.name} ${user.surname}`,
+                })) || []
+              }
+              label="Action owner"
+              placeholder="Select owner"
+              isHidden={false}
+              id=""
+              onChange={(e) =>
+                handleOnChange("risks", "actionOwner", e.target.value)
+              }
+              value={values.risks.actionOwner}
+              sx={{
+                width: 350,
+              }}
+            />
+          </Box>
+          <Field // actionPlan
+            label="Action plan"
+            width={350}
+            type="description"
+            value={values.risks.actionPlan}
+            onChange={(e) =>
+              handleOnChange("risks", "actionPlan", e.target.value)
+            }
+          />
+        </Stack>
+        <Stack
+          direction={"row"}
+          justifyContent={"space-between"}
+          marginBottom={theme.spacing(8)}
+        >
+          <Select // riskLevel
+            items={RISK_LEVEL_OPTIONS}
+            label="Risk level"
+            placeholder="Select risk level"
+            isHidden={false}
+            id=""
+            onChange={(e) =>
+              handleOnChange("risks", "riskLevel", e.target.value)
+            }
+            value={values.risks.riskLevel}
+            sx={{
+              width: 350,
+            }}
+          />
+          {/* <Select // likelihood
                     items={LIKELIHOOD_OPTIONS}
                     label="Likelihood"
                     placeholder="Select risk severity"
@@ -761,9 +756,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                     sx={{
                         width: 350,
                     }}
-                />
-            </Stack>
-        </TabPanel>
+                /> */}
+        </Stack>
+      </TabPanel>
     );
 
     return (

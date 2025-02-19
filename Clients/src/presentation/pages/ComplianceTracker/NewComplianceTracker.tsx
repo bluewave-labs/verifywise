@@ -5,38 +5,74 @@ import {
   AccordionSummary,
   Stack,
   Typography,
-  useTheme,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { ControlGroups } from "../../structures/ComplianceTracker/controls";
 import { useContext, useEffect, useState } from "react";
 import AccordionTable from "../../components/Table/AccordionTable";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import { getAllEntities } from "../../../application/repository/entity.repository";
+import {
+  getAllEntities,
+  getEntityById,
+} from "../../../application/repository/entity.repository";
 import PageTour from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
-import { Theme } from "@mui/material/styles";
-import { SxProps } from "@mui/system";
+import NoProject from "../../components/NoProject/NoProject";
+import StatsCard from "../../components/Cards/StatsCard";
+import VWSkeleton from "../../vw-v2-components/Skeletons";
 
 const Table_Columns = [
-  { id: 1, name: "Icon" },
-  { id: 2, name: "Control Name" },
-  { id: 3, name: "Owner" },
-  { id: 4, name: "# of Subcontrols" },
-  { id: 5, name: "Completion" },
+  { id: 1, name: "Control Name" },
+  { id: 2, name: "Owner" },
+  { id: 3, name: "# of Subcontrols" },
+  { id: 4, name: "Completion" },
 ];
 
 const NewComplianceTracker = () => {
-  const theme = useTheme();
   const [expanded, setExpanded] = useState<number | false>(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [runComplianceTour, setRunComplianceTour] = useState(false);
-  const { setDashboardValues } = useContext(VerifyWiseContext);
+  const { setDashboardValues, dashboardValues } = useContext(VerifyWiseContext);
+  const { projects } = dashboardValues;
   const [complianceStatus, setComplianceStatus] = useState({
     allTotalSubControls: 0,
     allDoneSubControls: 0,
     complianceStatus: 0,
   });
+
+  const [fetchedControlCategories, setFetchedControlCategories] = useState<
+    any[]
+  >([]);
+
+  const fetchControlCategoriesByProjectId = async (projectId: number) => {
+    try {
+      const response = await getEntityById({
+        routeUrl: `/projects/complainces/${projectId}`,
+      });
+      setFetchedControlCategories(response.data);
+      console.log(
+        "Filtered control categories by project ID:",
+        fetchedControlCategories
+      );
+    } catch (error) {
+      console.error("Error fetching control categories by project ID:", error);
+      setError("Error fetching control categories by project ID.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const selectedProjectId = localStorage.getItem("selectedProjectId");
+    if (selectedProjectId) {
+      console.log("Selected project ID from localStorage:", selectedProjectId);
+      const projectId = parseInt(selectedProjectId, 10); // Convert string to number
+      fetchControlCategoriesByProjectId(projectId);
+    } else {
+      setLoading(false);
+    }
+  }, []);
 
   const complianceSteps = [
     {
@@ -72,6 +108,7 @@ const NewComplianceTracker = () => {
       }));
     } catch (error) {
       console.error("Error fetching compliance tracker:", error);
+      setError("Error fetching compliance tracker.");
     }
   };
 
@@ -96,6 +133,7 @@ const NewComplianceTracker = () => {
       console.log("Response for fetchComplianceTrackerCalculation:", response);
     } catch (error) {
       console.error("Error fetching compliance tracker:", error);
+      setError("Error fetching compliance tracker calculation.");
     }
   };
 
@@ -112,6 +150,7 @@ const NewComplianceTracker = () => {
   };
 
   const renderAccordion = (
+    controlGroupId: number,
     controlGroupIndex: number,
     controlGroupTitle: string,
     controls: any
@@ -120,11 +159,11 @@ const NewComplianceTracker = () => {
       <Stack
         data-joyride-id="compliance-accordion"
         className="new-compliance-tracker-details"
-        key={controlGroupIndex}
+        key={controlGroupId}
       >
         <Accordion
           className="new-compliance-tracker-details-accordion"
-          onChange={handleAccordionChange(controlGroupIndex)}
+          onChange={handleAccordionChange(controlGroupId)}
         >
           <AccordionSummary
             className="new-compliance-tracker-details-accordion-summary"
@@ -132,7 +171,7 @@ const NewComplianceTracker = () => {
               <ExpandMoreIcon
                 sx={{
                   transform:
-                    expanded === controlGroupIndex
+                    expanded === controlGroupId
                       ? "rotate(180deg)"
                       : "rotate(270deg)",
                   transition: "transform 0.5s ease-in",
@@ -149,13 +188,33 @@ const NewComplianceTracker = () => {
               id={controlGroupIndex}
               cols={Table_Columns}
               rows={controls}
-              controlCategory={controlGroupTitle}
+              controlCategoryId={
+                controlGroupIndex != null ? controlGroupIndex.toString() : ""
+              }
             />
           </AccordionDetails>
         </Accordion>
       </Stack>
     );
   };
+
+  if (loading) {
+    return (
+      <Stack className="new-compliance-tracker">
+        <VWSkeleton variant="rectangular" width="100%" height={200} />
+      </Stack>
+    );
+  }
+
+  if (error) {
+    return (
+      <Stack className="new-compliance-tracker">
+        <Typography variant="h6" color="error">
+          {error}
+        </Typography>
+      </Stack>
+    );
+  }
 
   return (
     <Stack className="new-compliance-tracker">
@@ -166,53 +225,43 @@ const NewComplianceTracker = () => {
       />
       <Typography
         data-joyride-id="assessment-status"
-        variant="h1"
+        variant="h2"
         component="div"
-        fontWeight="600"
-        fontSize="16px"
-        color={theme.palette.text.primary}
-        sx={{ fontFamily: "Inter" }}
-        marginBottom={12}
+        sx={{
+          pb: 8.5,
+          color: "#1A1919",
+          fontSize: 16,
+          fontWeight: 600,
+        }}
       >
         Compliance tracker
       </Typography>
-      <Stack
-        className="new-compliance-tracker-metrics"
-        data-joyride-id="compliance-metrics"
-      >
-        <Stack className="metric-card">
-          <Typography className="metric-card-name">
-            Compliance Status
-          </Typography>
-          <Typography className="metric-card-amount">
-            {complianceStatus.complianceStatus}
-          </Typography>
-        </Stack>
 
-        <Stack className="metric-card">
-          <Typography className="metric-card-name">
-            Total number of subcontrols
-          </Typography>
-          <Typography className="metric-card-amount">
-            {complianceStatus.allTotalSubControls}
-          </Typography>
-        </Stack>
+      {projects?.length > 0 ? (
+        <>
+          <Stack
+            className="new-compliance-tracker-metrics"
+            data-joyride-id="compliance-metrics"
+          >
+            <StatsCard
+              title={"subControls"}
+              completed={complianceStatus.allDoneSubControls}
+              total={complianceStatus.allTotalSubControls}
+              progressbarColor={"#13715B"}
+            />
+          </Stack>
 
-        <Stack className="metric-card">
-          <Typography className="metric-card-name">
-            Implemented subcontrols
-          </Typography>
-          <Typography className="metric-card-amount">
-            {complianceStatus.allDoneSubControls} {" %"}
-          </Typography>
-        </Stack>
-      </Stack>
-      {ControlGroups.map((controlGroup) =>
-        renderAccordion(
-          controlGroup.id,
-          controlGroup.controlGroupTitle,
-          controlGroup.control.controls
-        )
+          {fetchedControlCategories.map((controlGroup) => {
+            return renderAccordion(
+              controlGroup.id,
+              controlGroup.order_no,
+              controlGroup.title,
+              controlGroup.controls
+            );
+          })}
+        </>
+      ) : (
+        <NoProject message="You have no projects. First create a project on the main dashboard to see the Compliance Tracker." />
       )}
     </Stack>
   );

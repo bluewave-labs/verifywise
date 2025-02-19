@@ -38,7 +38,6 @@ import pool from "../database/db";
  * @throws {Error} If there is an error executing the SQL query.
  */
 export const getAllUsersQuery = async (): Promise<User[]> => {
-  console.log("getAllUsers");
   const users = await pool.query("SELECT * FROM users");
   return users.rows;
 };
@@ -88,7 +87,7 @@ export const getUserByEmailQuery = async (email: string): Promise<User> => {
  *   });
  * ```
  */
-export const getUserByIdQuery = async (id: string): Promise<User> => {
+export const getUserByIdQuery = async (id: number): Promise<User> => {
   const user = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
   return user.rows[0];
 };
@@ -117,16 +116,15 @@ export const getUserByIdQuery = async (id: string): Promise<User> => {
 export const createNewUserQuery = async (
   user: Omit<User, "id">
 ): Promise<User> => {
-  const { name, surname, email, password_hash } = user;
-  const role = 1;
+  const { name, surname, email, password_hash, role } = user;
   const created_at = new Date();
   const last_login = new Date();
 
   try {
     const result = await pool.query(
-      `INSERT INTO users (name, email, password_hash, role, created_at, last_login)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [name, email, password_hash, role, created_at, last_login]
+      `INSERT INTO users (name, surname, email, password_hash, role, created_at, last_login)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [name, surname, email, password_hash, role, created_at, last_login]
     );
 
     return result.rows[0];
@@ -175,7 +173,7 @@ export const resetPasswordQuery = async (
  * console.log(updatedUser);
  */
 export const updateUserByIdQuery = async (
-  id: string,
+  id: number,
   user: Partial<User>
 ): Promise<User> => {
   const { name, email, password_hash, role, last_login } = user;
@@ -198,7 +196,7 @@ export const updateUserByIdQuery = async (
  *
  * @throws {Error} If the query fails or the user does not exist.
  */
-export const deleteUserByIdQuery = async (id: string): Promise<User> => {
+export const deleteUserByIdQuery = async (id: number): Promise<User> => {
   const result = await pool.query(
     "DELETE FROM users WHERE id = $1 RETURNING *",
     [id]
@@ -231,65 +229,64 @@ export const checkUserExistsQuery = async (): Promise<boolean> => {
 };
 
 export const getUserProjects = async (id: number) => {
-  const result = await pool.query(
-    "SELECT id FROM projects WHERE id = $1",
-    [id]
-  )
-  return result.rows
-}
+  const result = await pool.query("SELECT id FROM projects WHERE id = $1", [
+    id,
+  ]);
+  return result.rows;
+};
 
 export const getControlCategoriesForProject = async (id: number) => {
   const result = await pool.query(
     "SELECT id FROM controlcategories WHERE project_id = $1",
     [id]
-  )
-  return result.rows
-}
+  );
+  return result.rows;
+};
 
 export const getControlForControlCategory = async (id: number) => {
   const result = await pool.query(
-    "SELECT id FROM controls WHERE control_group = $1",
+    "SELECT id FROM controls WHERE control_category_id = $1",
     [id]
-  )
-  return result.rows
-}
+  );
+  return result.rows;
+};
 
 export const getSubControlForControl = async (id: number) => {
   const result = await pool.query(
     "SELECT * FROM subcontrols WHERE control_id = $1",
     [id]
-  )
-  return result.rows
-}
+  );
+  return result.rows;
+};
 
 export const getAssessmentsForProject = async (id: number) => {
   const result = await pool.query(
     "SELECT id FROM assessments WHERE project_id = $1",
     [id]
-  )
-  return result.rows
-}
+  );
+  return result.rows;
+};
 
 export const getTopicsForAssessment = async (id: number) => {
   const result = await pool.query(
     "SELECT id FROM topics WHERE assessment_id = $1",
     [id]
-  )
-  return result.rows
-}
+  );
+  return result.rows;
+};
 
 export const getSubTopicsForTopic = async (id: number) => {
   const result = await pool.query(
     "SELECT id FROM subtopics WHERE topic_id = $1",
     [id]
-  )
-  return result.rows
-}
+  );
+  return result.rows;
+};
 
 export const getQuestionsForSubTopic = async (id: number) => {
   const result = await pool.query(
     "SELECT * FROM questions WHERE subtopic_id = $1",
     [id]
-  )
-  return result.rows
-}
+  );
+  return result.rows;
+};

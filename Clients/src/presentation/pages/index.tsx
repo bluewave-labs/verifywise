@@ -1,23 +1,26 @@
 import { Stack } from "@mui/material";
-import VWToast from "../vw-v2-components/Toast";
+import VWSkeleton from "../vw-v2-components/Skeletons";
 
 const Playground = () => {
   return (
     <Stack
       sx={{
-        margin: "auto",
-        padding: 20,
-        width: "80%",
+        width: "100%",
         display: "flex",
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",
         minHeight: "100vh",
-        gap: 4,
-        backgroundColor: "#000",
+        padding: "50px",
       }}
     >
-      <VWToast />
+      <VWSkeleton
+        minHeight={"48px"}
+        minWidth={"300px"}
+        width={"100%"}
+        maxWidth={"100%"}
+        variant="rectangular"
+      />
     </Stack>
   );
 };

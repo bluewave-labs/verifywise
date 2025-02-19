@@ -19,7 +19,6 @@ import ResetPassword from "./presentation/pages/Authentication/ResetPassword";
 import SetNewPassword from "./presentation/pages/Authentication/SetNewPassword";
 import ResetPasswordContinue from "./presentation/pages/Authentication/ResetPasswordContinue";
 import ProjectView from "./presentation/pages/ProjectView";
-import Playground from "./presentation/pages";
 import FileManager from "./presentation/pages/FileManager";
 
 import { VerifyWiseContext } from "./application/contexts/VerifyWise.context";
@@ -31,10 +30,14 @@ import { store, persistor } from "./application/redux/store"; // Adjust the path
 import NewComplianceTracker from "./presentation/pages/ComplianceTracker/NewComplianceTracker";
 import useProjectStatus from "./application/hooks/useProjectStatus";
 import ProtectedRoute from "./presentation/components/ProtectedRoute";
-// import ProtectedRoute from "./presentation/components/ProtectedRoute";
+import { extractUserToken } from "./application/tools/extractToken"; // Import the token extraction function
+import Playground from "./presentation/pages";
 
 function App() {
   const mode = useSelector((state: any) => state.ui?.mode || "light");
+  const token = useSelector(
+    (state: { auth: { authToken: string } }) => state.auth.authToken
+  );
 
   const [uiValues, setUiValues] = useState<unknown | undefined>({}); // responsible for things like: Sidebar, light/dark mode, etc.
   const [authValues, setAuthValues] = useState<unknown | undefined>({}); // for user authentication
@@ -52,23 +55,17 @@ function App() {
     vendors: [],
   });
   const [inputValues, setInputValues] = useState<unknown | undefined>({}); // for the input fields
-  const [token, setToken] = useState<string | null>("");
   const [triggerSidebar, setTriggerSidebar] = useState(false);
 
-  const userId = "1"; // TODO: Replace with actual user ID
+  // Extract userId from token
+  const userId = token ? extractUserToken(token)?.id ?? "1" : "1";
   const {
     projectStatus,
     loading: loadingProjectStatus,
     error: errorFetchingProjectStatus,
   } = useProjectStatus({ userId });
 
-  const login = (token: string) => {
-    setToken(token);
-  };
-
-  const logout = () => {
-    setToken(null);
-  };
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>("");
 
   const contextValues = useMemo(
     () => ({
@@ -81,11 +78,12 @@ function App() {
       inputValues,
       setInputValues,
       token,
-      login,
-      logout,
       projectStatus,
       loadingProjectStatus,
       errorFetchingProjectStatus,
+      currentProjectId,
+      setCurrentProjectId,
+      userId,
     }),
     [
       uiValues,
@@ -97,11 +95,12 @@ function App() {
       inputValues,
       setInputValues,
       token,
-      login,
-      logout,
       projectStatus,
       loadingProjectStatus,
       errorFetchingProjectStatus,
+      currentProjectId,
+      setCurrentProjectId,
+      userId,
     ]
   );
 
@@ -124,7 +123,6 @@ function App() {
                     reloadTrigger={triggerSidebar}
                   />
                 }
-                // element={<Dashboard reloadTrigger={triggerSidebar}/>}
               >
                 <Route
                   path="/"
@@ -142,18 +140,34 @@ function App() {
                 <Route path="/project-view" element={<ProjectView />} />
                 <Route path="/file-manager" element={<FileManager />} />
               </Route>
-              <Route path="/admin-reg" element={<RegisterAdmin />} />
-              <Route path="/user-reg" element={<RegisterUser />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/set-new-password" element={<SetNewPassword />} />
+              <Route
+                path="/admin-reg"
+                element={<ProtectedRoute Component={RegisterAdmin} />}
+              />
+              <Route
+                path="/user-reg"
+                element={<ProtectedRoute Component={RegisterUser} />}
+              />
+              <Route
+                path="/login"
+                element={<ProtectedRoute Component={Login} />}
+              />
+              <Route
+                path="/forgot-password"
+                element={<ProtectedRoute Component={ForgotPassword} />}
+              />
+              <Route
+                path="/reset-password"
+                element={<ProtectedRoute Component={ResetPassword} />}
+              />
+              <Route
+                path="/set-new-password"
+                element={<ProtectedRoute Component={SetNewPassword} />}
+              />
               <Route
                 path="/reset-password-continue"
-                element={<ResetPasswordContinue />}
+                element={<ProtectedRoute Component={ResetPasswordContinue} />}
               />
-
-              {/** This route is simply for testing and playing with components and will be removed soon  */}
               <Route path="/playground" element={<Playground />} />
             </Routes>
           </ThemeProvider>

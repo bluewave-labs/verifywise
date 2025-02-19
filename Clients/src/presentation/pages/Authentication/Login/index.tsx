@@ -1,16 +1,17 @@
 import { Button, Stack, Typography, useTheme } from "@mui/material";
-import React, { useContext, useState } from "react";
+import React, { Suspense, useState } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Checkbox from "../../../components/Inputs/Checkbox";
 import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../../../../application/repository/entity.repository";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import Alert from "../../../components/Alert";
 import { logEngine } from "../../../../application/tools/log.engine";
 import { useDispatch } from "react-redux";
 import { setAuthToken } from "../../../../application/authentication/authSlice";
+import { setExpiration } from "../../../../application/authentication/authSlice";
+import VWToast from "../../../vw-v2-components/Toast";
+import Alert from "../../../components/Alert";
 
 // Define the shape of form values
 interface FormValues {
@@ -28,11 +29,12 @@ const initialState: FormValues = {
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useContext(VerifyWiseContext);
   const dispatch = useDispatch();
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
-  // State for alert
+
+  //disabled overlay state/modal
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
@@ -49,6 +51,8 @@ const Login: React.FC = () => {
   // Handle form submission
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setIsSubmitting(true);
+    console.log("Submitting form...", isSubmitting);
 
     const user = {
       id: "At login level", // Replace with actual user ID
@@ -65,68 +69,82 @@ const Login: React.FC = () => {
         setValues(initialState);
         if (response.status === 202) {
           const token = response.data.data.token;
-          login(token);
-          dispatch(setAuthToken(token)); // Dispatch the action to set the token in Redux state
-          setAlert({
-            variant: "success",
-            body: "Login successful. Redirecting...",
-          });
+
+          //handle remember me logic for 30 days
+          if (values.rememberMe) {
+            const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
+            dispatch(setAuthToken(token)); // Dispatch the action to set the token in Redux state
+            dispatch(setExpiration(expirationDate));
+          } else {
+            dispatch(setAuthToken(token));
+            dispatch(setExpiration(null));
+          }
+
           logEngine({
             type: "info",
             message: "Login successful.",
             user,
           });
           setTimeout(() => {
-            setAlert(null);
+            setIsSubmitting(false);
             navigate("/");
           }, 3000);
         } else if (response.status === 404) {
-          setAlert({
-            variant: "error",
-            body: "User not found. Please try again.",
-          });
           logEngine({
             type: "event",
             message: "User not found. Please try again.",
             user,
           });
-          setTimeout(() => setAlert(null), 3000);
-        } else if (response.status === 406) {
+          setIsSubmitting(false);
           setAlert({
-            variant: "warning",
-            body: "Invalid password. Please try again.",
+            variant: "error",
+            body: "User not found. Please try again.",
           });
+          setTimeout(() => {
+            setAlert(null);
+          }, 3000);
+        } else if (response.status === 406) {
           logEngine({
             type: "event",
             message: "Invalid password. Please try again.",
             user,
           });
-          setTimeout(() => setAlert(null), 3000);
-        } else {
+          setIsSubmitting(false);
           setAlert({
             variant: "error",
-            body: "Unexpected response. Please try again.",
+            body: "Invalid password. Please try again.",
           });
+          setTimeout(() => {
+            setAlert(null);
+          }, 3000);
+        } else {
           logEngine({
             type: "error",
             message: "Unexpected response. Please try again.",
             user,
           });
-          setTimeout(() => setAlert(null), 3000);
+          setIsSubmitting(false);
+          setAlert({
+            variant: "error",
+            body: "Unexpected response. Please try again.",
+          });
+          setTimeout(() => {
+            setAlert(null);
+          }, 3000);
         }
       })
       .catch((error) => {
         console.error("Error submitting form:", error);
-        setAlert({
-          variant: "error",
-          body: "An error occurred. Please try again.",
-        });
         logEngine({
           type: "error",
           message: `An error occurred: ${error.message}`,
           user,
         });
-        setTimeout(() => setAlert(null), 3000);
+        setIsSubmitting(false);
+        setAlert({ variant: "error", body: "Error submitting form" });
+        setTimeout(() => {
+          setAlert(null);
+        }, 3000);
       });
   };
 
@@ -145,6 +163,21 @@ const Login: React.FC = () => {
         minHeight: "100vh",
       }}
     >
+      {alert && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Alert
+            variant={alert.variant}
+            title={alert.title}
+            body={alert.body}
+            isToast={true}
+            onClick={() => setAlert(null)}
+          />
+        </Suspense>
+      )}
+
+      {isSubmitting && (
+        <VWToast title="Processing your request. Please wait..." />
+      )}
       <Background
         style={{
           position: "absolute",
@@ -155,15 +188,7 @@ const Login: React.FC = () => {
           transform: "translateX(-50%)",
         }}
       />
-      {alert && (
-        <Alert
-          variant={alert.variant}
-          title={alert.title}
-          body={alert.body}
-          isToast={true}
-          onClick={() => setAlert(null)}
-        />
-      )}
+
       <form onSubmit={handleSubmit}>
         <Stack
           className="reg-admin-form"
@@ -235,7 +260,7 @@ const Login: React.FC = () => {
                   cursor: "pointer",
                 }}
                 onClick={() => {
-                  navigate("/forgot-password");
+                  navigate("/forgot-password", { state: { email: values.email } });
                 }}
               >
                 Forgot password
@@ -249,35 +274,6 @@ const Login: React.FC = () => {
             >
               Sign in
             </Button>
-            <Stack
-              sx={{
-                mt: theme.spacing(20),
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <Typography
-                sx={{
-                  fontSize: 13,
-                  color: theme.palette.secondary.contrastText,
-                }}
-              >
-                Don't have an account?{" "}
-                <span
-                  style={{
-                    color: theme.palette.primary.main,
-                    fontWeight: "bold",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => {
-                    navigate("/user-reg");
-                  }}
-                >
-                  Sign up
-                </span>
-              </Typography>
-            </Stack>
           </Stack>
         </Stack>
       </form>

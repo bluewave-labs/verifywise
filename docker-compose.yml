@@ -31,6 +31,8 @@ services:
       - DB_NAME=$DB_NAME
       - MOCK_DATA_ON=$MOCK_DATA_ON
       - JWT_SECRET=$JWT_SECRET
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
   frontend:
     depends_on:
       - backend

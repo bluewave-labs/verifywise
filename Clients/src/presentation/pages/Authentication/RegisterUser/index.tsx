@@ -6,10 +6,10 @@ import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { validatePassword, validateForm } from "../../../../application/validations/formValidation";
 import type { FormValues, FormErrors } from "../../../../application/validations/formValidation";
-import Alert from "../../../components/Alert";
 import useRegisterUser from "../../../../application/hooks/useRegisterUser";
 import { useNavigate } from "react-router-dom";
-import { ALERT_TIMEOUT } from "../../../../application/constants/apiResponses";
+import { logEngine } from "../../../../application/tools/log.engine";
+import VWToast from "../../../vw-v2-components/Toast";
 
 export interface AlertType {
   variant: "success" | "info" | "warning" | "error";
@@ -32,10 +32,11 @@ const RegisterUser: React.FC = () => {
   const [values, setValues] = useState<FormValues>(initialState);
   // State for form errors
   const [errors, setErrors] = useState<FormErrors>({});
-  // State for alert
-  const [alert, setAlert] = useState<AlertType | null>(null);
   // Password checks based on the password input
   const passwordChecks = validatePassword(values);
+
+  //disabled overlay modal state
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Handle input field changes
   const handleChange =
@@ -48,6 +49,8 @@ const RegisterUser: React.FC = () => {
   // Handle form submission
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+setIsSubmitting(true);
+
     const user = {
       id: "At register level as user",
       firstname: values.name || "",
@@ -57,12 +60,23 @@ const RegisterUser: React.FC = () => {
     const { isFormValid, errors } = validateForm(values);
     if (!isFormValid) {
       setErrors(errors);
+      setIsSubmitting(false);
     } else {
-      const { isSuccess } = await registerUser({ values, user, setAlert });
+      const { isSuccess } = await registerUser({ values, user,setIsSubmitting });
       if (isSuccess) {
         setValues(initialState);
         setErrors({});
-        setTimeout(() => navigate("/login"), ALERT_TIMEOUT);
+        setTimeout(() => {
+          navigate("/login");
+          setIsSubmitting(false);
+        }, 3000);
+      } else{
+        logEngine({
+          type: "error",
+          message: "Registration failed.",
+          user,
+        })
+        setIsSubmitting(false);
       }
     }
   };
@@ -82,6 +96,8 @@ const RegisterUser: React.FC = () => {
         minHeight: "100vh",
       }}
     >
+      {/* Toast component */}
+      {isSubmitting && <VWToast title="Processing your request. Please wait..." />}
       <Background
         style={{
           position: "absolute",
@@ -92,15 +108,6 @@ const RegisterUser: React.FC = () => {
           transform: "translateX(-50%)",
         }}
       />
-      {alert && (
-        <Alert
-          variant={alert.variant}
-          title={alert.title}
-          body={alert.body}
-          isToast={true}
-          onClick={() => setAlert(null)}
-        />
-      )}
       <form onSubmit={handleSubmit}>
         <Stack
           className="reg-user-form"

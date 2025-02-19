@@ -7,9 +7,9 @@ import {
   createAssessment,
   deleteAssessmentById,
   getAllAssessments,
+  getAnswers,
   getAssessmentById,
-  saveAnswers,
-  updateAnswers,
+  // saveAnswers,
   updateAssessmentById,
 } from "../controllers/assessment.ctrl";
 
@@ -17,15 +17,16 @@ import authenticateJWT from "../middleware/auth.middleware";
 
 // GET requests
 router.get("/", /*authenticateJWT, */ getAllAssessments);
+router.get("/getAnswers/:id", getAnswers);
 router.get("/:id", /*authenticateJWT, */ getAssessmentById);
 
 // POSTs
 router.post("/", /*authenticateJWT, */ createAssessment);
-router.post("/saveAnswers", /*authenticateJWT, */ upload.any("files"), saveAnswers);
+// router.post("/saveAnswers", /*authenticateJWT, */ upload.any("files"), saveAnswers);
 
 // PUTs
 router.put("/:id", /*authenticateJWT, */ updateAssessmentById);
-router.put("/updateAnswers/:id", /*authenticateJWT, */ updateAnswers);
+// router.put("/updateAnswers/:id", /*authenticateJWT, */ updateAnswers);
 
 // DELETEs
 router.delete("/:id", /*authenticateJWT, */ deleteAssessmentById);

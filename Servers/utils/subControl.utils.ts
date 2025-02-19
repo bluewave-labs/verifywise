@@ -9,6 +9,17 @@ export const getAllSubcontrolsQuery = async (): Promise<Subcontrol[]> => {
   return subcontrols.rows;
 };
 
+export const getAllSubcontrolsByControlIdQuery = async (
+  controlId: number
+): Promise<Subcontrol[]> => {
+  console.log("getAllSubcontrolsByControlId", controlId);
+  const subcontrols = await pool.query(
+    "SELECT * FROM subcontrols WHERE control_id = $1",
+    [controlId]
+  );
+  return subcontrols.rows;
+};
+
 export const getSubcontrolByIdQuery = async (
   id: number
 ): Promise<Subcontrol | null> => {
@@ -21,56 +32,56 @@ export const getSubcontrolByIdQuery = async (
 
 export const createNewSubcontrolQuery = async (
   controlId: number,
-  subcontrol: {
-    status: string;
-    approver: string;
-    riskReview: string;
-    owner: string;
-    reviewer: string;
-    dueDate: Date;
-    implementationDetails: string;
-    evidence: string;
-    feedback: string;
-  },
+  subcontrol: Partial<Subcontrol>,
   evidenceFiles?: UploadedFile[],
   feedbackFiles?: UploadedFile[]
 ): Promise<Subcontrol> => {
-  console.log("createNewSubcontrol", subcontrol);
-
-  let uploadedEvidenceFiles: { id: number, fileName: string }[] = [];
+  let uploadedEvidenceFiles: { id: number; fileName: string }[] = [];
   await Promise.all(
     evidenceFiles!.map(async (file) => {
       const uploadedFile = await uploadFile(file);
-      uploadedEvidenceFiles.push({ id: uploadedFile.id.toString(), fileName: uploadedFile.filename });
+      uploadedEvidenceFiles.push({
+        id: uploadedFile.id.toString(),
+        fileName: uploadedFile.filename,
+      });
     })
   );
 
-  let uploadedFeedbackFiles: { id: number, fileName: string }[] = [];
+  let uploadedFeedbackFiles: { id: number; fileName: string }[] = [];
   await Promise.all(
     feedbackFiles!.map(async (file) => {
       const uploadedFile = await uploadFile(file);
-      uploadedFeedbackFiles.push({ id: uploadedFile.id.toString(), fileName: uploadedFile.filename });
+      uploadedFeedbackFiles.push({
+        id: uploadedFile.id.toString(),
+        fileName: uploadedFile.filename,
+      });
     })
   );
 
   const result = await pool.query(
     `INSERT INTO subcontrols (
-      control_id, status, approver, risk_review, owner, reviewer, due_date, 
-      implementation_details, evidence, feedback, evidenceFiles, feedbackFiles
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
+      control_id, title, description, 
+      order_no, status, approver, 
+      risk_review, owner, reviewer, 
+      due_date, implementation_details, evidence_description, 
+      feedback_description, evidence_files, feedback_files
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`,
     [
       controlId,
+      subcontrol.title,
+      subcontrol.description,
+      subcontrol.order_no,
       subcontrol.status,
       subcontrol.approver,
-      subcontrol.riskReview,
+      subcontrol.risk_review,
       subcontrol.owner,
       subcontrol.reviewer,
-      subcontrol.dueDate,
-      subcontrol.implementationDetails,
-      subcontrol.evidence,
-      subcontrol.feedback,
+      subcontrol.due_date,
+      subcontrol.implementation_details,
+      subcontrol.evidence_description,
+      subcontrol.feedback_description,
       uploadedEvidenceFiles,
-      uploadedFeedbackFiles
+      uploadedFeedbackFiles,
     ]
   );
   return result.rows[0];
@@ -78,38 +89,59 @@ export const createNewSubcontrolQuery = async (
 
 export const updateSubcontrolByIdQuery = async (
   id: number,
-  subcontrol: Partial<{
-    controlId: number;
-    status: string;
-    approver: string;
-    riskReview: string;
-    owner: string;
-    reviewer: string;
-    dueDate: Date;
-    implementationDetails: string;
-    evidence: string;
-    attachment: string;
-    feedback: string;
-  }>
+  subcontrol: Partial<Subcontrol>,
+  evidenceFiles?: UploadedFile[],
+  feedbackFiles?: UploadedFile[]
 ): Promise<Subcontrol | null> => {
   console.log("updateSubcontrolById", id, subcontrol);
+
+  let uploadedEvidenceFiles: { id: number; fileName: string }[] = [];
+  await Promise.all(
+    evidenceFiles!.map(async (file) => {
+      const uploadedFile = await uploadFile(file);
+      uploadedEvidenceFiles.push({
+        id: uploadedFile.id.toString(),
+        fileName: uploadedFile.filename,
+      });
+    })
+  );
+
+  let uploadedFeedbackFiles: { id: number; fileName: string }[] = [];
+  await Promise.all(
+    feedbackFiles!.map(async (file) => {
+      const uploadedFile = await uploadFile(file);
+      uploadedFeedbackFiles.push({
+        id: uploadedFile.id.toString(),
+        fileName: uploadedFile.filename,
+      });
+    })
+  );
+
+  // control_id, subControlTitle, subControlDescription, status, approver, risk_review, owner, reviewer, due_date,
+  //     implementation_details, evidence, feedback, evidenceFiles, feedbackFiles
   const result = await pool.query(
     `UPDATE subcontrols SET 
-      control_id = $1, status = $2, approver = $3, risk_review = $4, owner = $5, 
-      reviewer = $6, due_date = $7, implementation_details = $8, evidence = $9, 
-      attachment = $10, feedback = $11 WHERE id = $12 RETURNING *`,
+      control_id = $1, title = $2, description = $3, 
+      status = $4, approver = $5, risk_review = $6, 
+      owner = $7, reviewer = $8, due_date = $9, 
+      implementation_details = $10, evidence_description = $11, feedback_description = $12, 
+      evidence_files = $13, feedback_files = $14, order_no = $15 WHERE id = $16 RETURNING *`,
     [
-      subcontrol.controlId,
+      subcontrol.control_id,
+      subcontrol.title,
+      subcontrol.description,
       subcontrol.status,
       subcontrol.approver,
-      subcontrol.riskReview,
+      subcontrol.risk_review,
       subcontrol.owner,
       subcontrol.reviewer,
-      subcontrol.dueDate,
-      subcontrol.implementationDetails,
-      subcontrol.evidence,
-      subcontrol.attachment,
-      subcontrol.feedback,
+      subcontrol.due_date,
+      subcontrol.implementation_details,
+      subcontrol.evidence_description,
+      subcontrol.feedback_description,
+      uploadedEvidenceFiles,
+      uploadedFeedbackFiles,
+      subcontrol.order_no,
       id,
     ]
   );
@@ -125,4 +157,21 @@ export const deleteSubcontrolByIdQuery = async (
     [id]
   );
   return result.rows.length ? result.rows[0] : null;
+};
+
+export const createNewSubControlsQuery = async (
+  controlId: number,
+  subControls: {
+    order_no: number;
+    title: string;
+    description: string;
+  }[]
+) => {
+  let query = "INSERT INTO subcontrols(title, description, control_id, order_no) VALUES ";
+  const data = subControls.map((d) => {
+    return `('${d.title}', '${d.description}', ${controlId}, ${d.order_no})`;
+  });
+  query += data.join(",") + " RETURNING *;";
+  const result = await pool.query(query);
+  return result.rows;
 };

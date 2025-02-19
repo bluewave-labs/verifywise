@@ -41,6 +41,8 @@ import { SelectChangeEvent } from "@mui/material";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { Link as RouterLink } from "react-router-dom";
 import { Link as MuiLink } from "@mui/material";
+import { User } from "../../../application/hooks/useUsers";
+import { ROLES } from "../../../application/constants/roles";
 
 const menu = [
   {
@@ -78,6 +80,14 @@ const other = [
   },
 ];
 
+const DEFAULT_USER: User = {
+  id: "1",
+  name: "",
+  surname: "",
+  email: "",
+  role: 1,
+};
+
 const Sidebar = ({ projects }: { projects: any }) => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -85,11 +95,22 @@ const Sidebar = ({ projects }: { projects: any }) => {
   const dispatch = useDispatch();
   const [anchorEl, setAnchorEl] = useState(null);
   const [popup, setPopup] = useState();
-  const [selectedProjectId, setSelectedProjectId] = useState<string | number>(
-    projects.length > 0 ? projects[0]._id : ""
-  );
+  const [selectedProjectId, setSelectedProjectId] = useState("");
 
-  const { dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);
+  useEffect(() => {
+    localStorage.setItem(
+      "selectedProjectId",
+      projects.length > 0 ? selectedProjectId : ""
+    );
+  }, [selectedProjectId]);
+
+  const { dashboardValues, setDashboardValues, setCurrentProjectId, userId } =
+    useContext(VerifyWiseContext);
+  const { users } = dashboardValues;
+
+  const user: User = users
+    ? users.find((user: User) => user.id === userId)
+    : DEFAULT_USER;
 
   const collapsed = useSelector((state: any) => state.ui?.sidebar?.collapsed);
 
@@ -101,6 +122,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
       ...dashboardValues,
       selectedProjectId,
     });
+    setCurrentProjectId(selectedProjectId);
   };
 
   const [open, setOpen] = useState<{ [key: string]: boolean }>({
@@ -139,10 +161,16 @@ const Sidebar = ({ projects }: { projects: any }) => {
   };
 
   useEffect(() => {
-    if (projects.length > 0 && (selectedProjectId === "" || selectedProjectId != projects[0]._id)) {
-      setSelectedProjectId(projects[0]._id);
+    if(projects.length === 0){
+      setSelectedProjectId("")
     }
-  }, [projects]);
+    const isValidProject = projects.find((p:any) => p._id === selectedProjectId);
+     if (projects.length > 0 && !isValidProject) {
+      setSelectedProjectId(projects[0]._id);
+    } else {
+      setCurrentProjectId(selectedProjectId);
+    }
+  }, [projects, selectedProjectId]);
 
   return (
     <Stack
@@ -245,21 +273,31 @@ const Sidebar = ({ projects }: { projects: any }) => {
           }}
           data-joyride-id="select-project"
         >
-          {projects.length > 0 ? 
+          {projects.length > 0 ? (
             <Select
               id="projects"
               value={selectedProjectId}
-              items={projects}
+              items={projects.map((project: any) => ({
+                ...project,
+                name:
+                  project.name.length > 18
+                    ? project.name.slice(0, 18) + "..."
+                    : project.name,
+              }))}
               onChange={handleProjectChange}
               sx={{ width: "180px", marginLeft: theme.spacing(8) }}
-            /> : 
-            <Box 
-              className="empty-project" 
-              sx={{ 
-                marginLeft: theme.spacing(8), 
-                borderColor: theme.palette.border.dark 
-              }}>No Project</Box>
-            }
+            />
+          ) : (
+            <Box
+              className="empty-project"
+              sx={{
+                marginLeft: theme.spacing(8),
+                borderColor: theme.palette.border.dark,
+              }}
+            >
+              No Project
+            </Box>
+          )}
         </Stack>
       )}
       {/* menu */}
@@ -535,10 +573,10 @@ const Sidebar = ({ projects }: { projects: any }) => {
             {/* <Avatar small={true} /> */}
             <Box ml={theme.spacing(2)}>
               <Typography component="span" fontWeight={500}>
-                {"Mohammad"} {"Khalilzadeh"}
+                {user.name} {user.surname}
               </Typography>
               <Typography sx={{ textTransform: "capitalize" }}>
-                {"Admin"}
+                {ROLES[user.role as keyof typeof ROLES]}
               </Typography>
             </Box>
             <Tooltip title="Controls" disableInteractive>
@@ -602,10 +640,10 @@ const Sidebar = ({ projects }: { projects: any }) => {
             <MenuItem sx={{ cursor: "default", minWidth: "150px" }}>
               <Box mb={theme.spacing(2)}>
                 <Typography component="span" fontWeight={500} fontSize={13}>
-                  {"Mohammad"} {"Khalilzadeh"}
+                  {user.name} {user.surname}
                 </Typography>
                 <Typography sx={{ textTransform: "capitalize", fontSize: 12 }}>
-                  {"Admin"}
+                  {ROLES[user.role as keyof typeof ROLES]}
                 </Typography>
               </Box>
             </MenuItem>

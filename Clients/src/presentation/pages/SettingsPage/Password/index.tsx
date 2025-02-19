@@ -17,9 +17,14 @@ import { logEngine } from "../../../../application/tools/log.engine";
 import localStorage from "redux-persist/es/storage";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import Alert from "../../../components/Alert";
+import { store } from "../../../../application/redux/store";
+import { extractUserToken } from "../../../../application/tools/extractToken";
 
 const PasswordForm: React.FC = () => {
   const theme = useTheme();
+  const state = store.getState();
+  const userData = extractUserToken(state.auth.authToken); // Extract user data from token
+  const { id } = userData || {};
 
   // State management
   const [currentPassword, setCurrentPassword] = useState<string>("");
@@ -57,7 +62,7 @@ const PasswordForm: React.FC = () => {
     const fetchUserPassword = async () => {
       setLoading(true);
       try {
-        const response = await getEntityById({ routeUrl: `/users/1` });
+        const response = await getEntityById({ routeUrl: `/users/${id}` });
         console.log("response , PasswordForm : ", response);
         setCurrentPassword(
           response.data.password_hash ? "••••••••••••••••••••••••" : ""

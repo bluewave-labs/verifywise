@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
-import { Stack, Box, Typography, useTheme } from "@mui/material";
+import { Stack, Box, Typography} from "@mui/material"; //useTheme is not used
 import BasicTable from "../../components/Table";
-
+import axios from "axios";
 import EmptyTableImage from "../../assets/imgs/empty-state.svg";
 import AscendingIcon from "../../assets/icons/up-arrow.svg";
 import DescendingIcon from "../../assets/icons/down-arrow.svg";
@@ -128,9 +128,12 @@ const FileTable: React.FC<{
     [cols, handleSort, sortField, sortDirection]
   );
 
+  const [fileData, setFileData] = useState([]);
+
   return (
     <BasicTable
       data={{ cols: sortedCols, rows }}
+      bodyData={fileData}
       paginated={files.length > 0}
       table="fileManager"
       setSelectedRow={() => {}}
@@ -145,12 +148,15 @@ const FileTable: React.FC<{
  * @returns {JSX.Element} The FileManager component.
  */
 const FileManager: React.FC = (): JSX.Element => {
-  const theme = useTheme();
+  // const theme = useTheme();
   const [files, setFiles] = useState<File[]>([]);
   const [sortField, setSortField] = useState<keyof File | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection | null>(
     null
   );
+  //loading while fetching files
+  const [loading, setLoading] = useState(true);
+  //page tour
   const [runFileTour, setRunFileTour] = useState(false);
 
   const fileSteps = [
@@ -165,6 +171,43 @@ const FileManager: React.FC = (): JSX.Element => {
 
   useEffect(() => {
     setRunFileTour(true);
+
+//     const mockFile: {
+//       id: "1";
+//       name: "test-file.pdf";
+//       type: "pdf";
+//       uploadDate: string;
+//       uploader: "John Doe";
+//     } = {
+//       id: "1",
+//       name: "test-file.pdf",
+//       type: "pdf",
+//       uploadDate: new Date().toLocaleDateString(),
+//       uploader: "John Doe",
+//     };
+// setFiles([mockFile]);
+// setLoading(false);
+    const fetchFileById = async (fileId:string) => {
+      try {
+        const response = await axios.get(`https://localhost:3000/files/${fileId}`);
+        const file = response.data
+        
+       const fileData: File ={
+          id: file.id,
+          name: file.name,
+          type: file.type || "N/A",
+          uploadDate: new Date(file.uploadDate).toLocaleDateString(),
+          uploader: file.uploader || "N/A",
+        }
+        setFiles([fileData]);
+       }
+       catch (error) {
+        console.error("Error fetching files", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFileById("1");
   }, []);
 
   /**
@@ -219,6 +262,17 @@ const FileManager: React.FC = (): JSX.Element => {
     { id: 3, name: COLUMN_NAMES.UPLOADER, sx: { width: "50%" } },
   ];
 
+  //loading state before fetching files
+  if(loading){
+    return (
+     <Stack
+     sx={{ textAlign: "center", padding: 4 }}
+     >
+      <Typography variant="h6">Loading files...</Typography>
+     </Stack>
+    )
+  }
+
   return (
     <Stack spacing={4} sx={{ padding: 4, marginBottom: 10 }}>
       <PageTour
@@ -246,8 +300,8 @@ const FileManager: React.FC = (): JSX.Element => {
           position: "relative",
           borderRadius: "4px",
           overflow: "hidden",
-          minHeight: "400px",
-          borderBottom: files.length === 0 ? "1px solid #eeeeee" : "none",
+          maxHeight: "400px",
+          // borderBottom: files.length === 0 ? "1px solid #eeeeee" : "none",
         }}
       >
         <FileTable

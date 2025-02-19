@@ -16,14 +16,49 @@ import selectValidation from "../../../../application/validations/selectValidati
 import Alert from "../../../components/Alert";
 import VWMultiSelect from "../../../vw-v2-components/Selects/Multi";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
-import { deleteEntityById } from "../../../../application/repository/entity.repository";
+import {
+  deleteEntityById,
+  updateEntityById,
+} from "../../../../application/repository/entity.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
+import { stringToArray } from "../../../../application/tools/stringUtil";
+import useUsers from "../../../../application/hooks/useUsers";
 
 interface ProjectSettingsProps {
   setTabValue: (value: string) => void;
 }
+
+enum RiskClassificationEnum {
+  HighRisk = "High risk",
+  LimitedRisk = "Limited risk",
+  MinimalRisk = "Minimal risk",
+}
+
+const riskClassificationItems = [
+  { _id: 1, name: RiskClassificationEnum.HighRisk },
+  { _id: 2, name: RiskClassificationEnum.LimitedRisk },
+  { _id: 3, name: RiskClassificationEnum.MinimalRisk },
+];
+
+enum HighRiskRoleEnum {
+  Deployer = "Deployer",
+  Provider = "Provider",
+  Distributor = "Distributor",
+  Importer = "Importer",
+  ProductManufacturer = "Product manufacturer",
+  AuthorizedRepresentative = "Authorized representative",
+}
+
+const highRiskRoleItems = [
+  { _id: 1, name: HighRiskRoleEnum.Deployer },
+  { _id: 2, name: HighRiskRoleEnum.Provider },
+  { _id: 3, name: HighRiskRoleEnum.Distributor },
+  { _id: 4, name: HighRiskRoleEnum.Importer },
+  { _id: 5, name: HighRiskRoleEnum.ProductManufacturer },
+  { _id: 6, name: HighRiskRoleEnum.AuthorizedRepresentative },
+];
 
 interface FormValues {
   projectTitle: string;
@@ -80,6 +115,8 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
       }
     }, [project]);
 
+    const { users } = useUsers();
+
     useEffect(() => {
       if (project) {
         const returnedData: FormValues = {
@@ -90,11 +127,20 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
           startDate: project.start_date
             ? dayjs(project.start_date).toISOString()
             : "",
-          addUsers: [parseInt(project.users)],
-          riskClassification: parseInt(project.ai_risk_classification) ?? 0,
-          typeOfHighRiskRole: parseInt(project.type_of_high_risk_role) ?? 0,
+          addUsers: project.users ? stringToArray(project.users) : [],
+          riskClassification:
+            riskClassificationItems.find(
+              (item) =>
+                item.name.toLowerCase() ===
+                project.ai_risk_classification.toLowerCase()
+            )?._id || 0,
+          typeOfHighRiskRole:
+            highRiskRoleItems.find(
+              (item) =>
+                item.name.toLowerCase() ===
+                project.type_of_high_risk_role.toLowerCase()
+            )?._id || 0,
         };
-
         setValues(returnedData);
       }
     }, [project]);
@@ -211,9 +257,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
       async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (validateForm()) {
-          //request to the backend
-          // setTabValue("overview");
-          // console.log(values)
+          handleSaveConfirm();
         }
       },
       [validateForm, setTabValue]
@@ -236,6 +280,55 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
     const handleCloseDeleteDialog = useCallback((): void => {
       setIsDeleteModalOpen(false);
     }, []);
+
+    const handleSaveConfirm = useCallback(async () => {
+      const selectedRiskClass =
+        riskClassificationItems.find(
+          (item) => item._id === values.riskClassification
+        )?.name || "";
+      const selectedHighRiskRole =
+        highRiskRoleItems.find((item) => item._id === values.typeOfHighRiskRole)
+          ?.name || "";
+      const userIds =
+        Array.isArray(values.addUsers) && values.addUsers.length > 1
+          ? `[${values.addUsers.join(",")}]`
+          : values.addUsers[0]?.toString() || "";
+
+      await updateEntityById({
+        routeUrl: `/projects/${projectId}`,
+        body: {
+          id: projectId,
+          project_title: values.projectTitle,
+          owner: values.owner,
+          users: userIds,
+          start_date: values.startDate,
+          ai_risk_classification: selectedRiskClass,
+          type_of_high_risk_role: selectedHighRiskRole,
+          goal: values.goal,
+          last_updated: new Date().toISOString(),
+          last_updated_by: 1,
+        },
+      }).then((response) => {
+        if (response.status === 202) {
+          setAlert({
+            variant: "success",
+            body: "Project updated successfully",
+            isToast: true,
+            visible: true,
+          });
+          setTimeout(() => {
+            setAlert(null);
+          }, 1000);
+        } else if (response.status === 400) {
+          setAlert({
+            variant: "error",
+            body: response.data.data.message,
+            isToast: true,
+            visible: true,
+          });
+        }
+      });
+    }, [values, projectId]);
 
     const handleConfirmDelete = useCallback(async () => {
       try {
@@ -319,14 +412,15 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
           <Select
             id="owner"
             label="Owner"
-            placeholder="Add owner"
             value={values.owner}
             onChange={handleOnSelectChange("owner")}
-            items={[
-              { _id: 1, name: "Some value 1" },
-              { _id: 2, name: "Some value 2" },
-              { _id: 3, name: "Some value 3" },
-            ]}
+            items={
+              users?.map((user) => ({
+                _id: user.id,
+                name: `${user.name} ${user.surname}`,
+                email: user.email,
+              })) || []
+            }
             sx={{ width: 357, backgroundColor: theme.palette.background.main }}
             error={errors.owner}
             isRequired
@@ -358,11 +452,13 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             label="Team members"
             onChange={handleMultiSelectChange("addUsers")}
             value={values.addUsers}
-            items={[
-              { _id: 1, name: "Some value 1" },
-              { _id: 2, name: "Some value 2" },
-              { _id: 3, name: "Some value 3" },
-            ]}
+            items={
+              users?.map((user) => ({
+                _id: user.id,
+                name: `${user.name} ${user.surname}`,
+                email: user.email,
+              })) || []
+            }
             sx={{ width: 357, backgroundColor: theme.palette.background.main }}
             // error={errors.addUsers}
             // required
@@ -387,13 +483,9 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
           </Stack>
           <Select
             id="risk-classification-input"
-            value={values.riskClassification ? values.riskClassification : 1}
+            value={values?.riskClassification || 1}
             onChange={handleOnSelectChange("riskClassification")}
-            items={[
-              { _id: 1, name: "High risk" },
-              { _id: 2, name: "Limited risk" },
-              { _id: 3, name: "Minimal risk" },
-            ]}
+            items={riskClassificationItems}
             sx={{ width: 357, backgroundColor: theme.palette.background.main }}
             error={errors.riskClassification}
             isRequired
@@ -416,6 +508,15 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
               </Link>
             </Typography>
           </Stack>
+          <Select
+            id="risk-classification-input"
+            value={values?.typeOfHighRiskRole || 1}
+            onChange={handleOnSelectChange("typeOfHighRiskRole")}
+            items={highRiskRoleItems}
+            sx={{ width: 357, backgroundColor: theme.palette.background.main }}
+            error={errors.typeOfHighRiskRole}
+            isRequired
+          />
           <Stack gap="5px" sx={{ mt: "6px" }}>
             <Typography
               sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
@@ -429,6 +530,16 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
               project from our system. This is permanent and non-recoverable.
             </Typography>
           </Stack>
+          <Stack direction="row" justifyContent="space-between" 
+          alignItems="center"
+          spacing={2}
+          sx={{
+            paddingX: theme.spacing(2),
+            width:  "fit-content",
+            marginTop: theme.spacing(4),
+          }}
+          
+         > 
           <Button
             disableRipple
             variant="contained"
@@ -454,13 +565,15 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
               boxShadow: "none",
               borderRadius: 2,
               border: "1px solid #175CD3",
-              ml: "auto",
               mr: 0,
               "&:hover": { boxShadow: "none", backgroundColor: "#175CD3 " },
+             
+           
             }}
           >
             Save
           </Button>
+          </Stack>
         </Stack>
         {isDeleteModalOpen && (
           <DualButtonModal

@@ -1,5 +1,7 @@
 import { Topic } from "../models/topic.model";
 import pool from "../database/db";
+import { createNewSubTopicsQuery } from "./subtopic.utils";
+import { Topics } from "../structures/assessment-tracker/topics.struct"
 
 export const getAllTopicsQuery = async (): Promise<Topic[]> => {
   console.log("getAllTopics");
@@ -13,33 +15,27 @@ export const getTopicByIdQuery = async (id: number): Promise<Topic | null> => {
   return result.rows.length ? result.rows[0] : null;
 };
 
-export const createNewTopicQuery = async (topic: {
-  assessmentId: number;
-  title: string;
-}): Promise<Topic> => {
+export const createNewTopicQuery = async (topic: Topic): Promise<Topic> => {
   console.log("createNewTopic", topic);
   const result = await pool.query(
     `INSERT INTO topics (assessment_id, title) VALUES ($1, $2) RETURNING *`,
-    [topic.assessmentId, topic.title]
+    [topic.assessment_id, topic.title]
   );
   return result.rows[0];
 };
 
 export const updateTopicByIdQuery = async (
   id: number,
-  topic: Partial<{
-    assessmentId: number;
-    title: string;
-  }>
+  topic: Partial<Topic>
 ): Promise<Topic | null> => {
   console.log("updateTopicById", id, topic);
   const fields = [];
   const values = [];
   let query = "UPDATE topics SET ";
 
-  if (topic.assessmentId !== undefined) {
+  if (topic.assessment_id !== undefined) {
     fields.push(`assessment_id = $${fields.length + 1}`);
-    values.push(topic.assessmentId);
+    values.push(topic.assessment_id);
   }
   if (topic.title !== undefined) {
     fields.push(`title = $${fields.length + 1}`);
@@ -62,3 +58,28 @@ export const deleteTopicByIdQuery = async (
   );
   return result.rows.length ? result.rows[0] : null;
 };
+
+export const getTopicByAssessmentIdQuery = async (
+  assessmentId: number
+): Promise<Topic[]> => {
+  console.log("getTopicByAssessmentId", assessmentId);
+  const result = await pool.query(
+    `SELECT * FROM topics WHERE assessment_id = $1`,
+    [assessmentId]
+  );
+  return result.rows;
+}
+
+export const createNewTopicsQuery = async (
+  assessmentId: number
+) => {
+  const createdTopics = []
+  let query = "INSERT INTO topics(assessment_id, title, order_no) VALUES ($1, $2, $3) RETURNING *;"
+  for (let topicStruct of Topics) {
+    const result = await pool.query(query, [assessmentId, topicStruct.title, topicStruct.order_no])
+    const topic_id = result.rows[0].id
+    const subTopics = await createNewSubTopicsQuery(topic_id, topicStruct.subtopics)
+    createdTopics.push({ ...result.rows[0], subTopics })
+  }
+  return createdTopics
+}

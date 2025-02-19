@@ -1,3 +1,5 @@
+import { AssessmentValue } from "../../pages/Assessment/NewAssessment/AllAssessments";
+
 export interface FileUploadProps {
   open: boolean;
   onSuccess?: (file: any) => void;
@@ -8,5 +10,17 @@ export interface FileUploadProps {
   allowedFileTypes?: string[];
   uploadEndpoint?: string;
   onHeightChange?: (newHeight: number) => void;
-  assessmentId: number;
+  assessmentId?: number;
+  onFileChanged?: (file: File) => void;
+  topicId?: number;
+  isSubtopic?: boolean;
+  setAssessmentsValue?: (value: any) => void;
+  assessmentsValues?: Record<number, AssessmentValue>;
+}
+
+export interface FileProps {
+  lastModifiedDate?: number;
+  name: string;
+  size: number;
+  type: string;
 }

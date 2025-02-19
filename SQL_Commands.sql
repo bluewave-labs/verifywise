@@ -19,7 +19,7 @@ CREATE TABLE projects (
   id SERIAL PRIMARY KEY,
   project_title VARCHAR(255),
   owner INTEGER REFERENCES users(id),
-  users TEXT,
+  members TEXT[],
   start_date DATE,
   ai_risk_classification VARCHAR(255),
   type_of_high_risk_role VARCHAR(255),
@@ -30,7 +30,6 @@ CREATE TABLE projects (
 
 CREATE TABLE vendors (
   id SERIAL PRIMARY KEY,
-  project_id INT REFERENCES projects(id),
   vendor_name VARCHAR(255),
   assignee VARCHAR(255),
   vendor_provides TEXT,
@@ -60,11 +59,14 @@ CREATE TABLE assessments (
 CREATE TABLE controlcategories (
   id SERIAL PRIMARY KEY,
   project_id INT REFERENCES projects(id),
-  name VARCHAR(255)
+  title TEXT,
+  order_no INT
 );
 
 CREATE TABLE controls (
   id SERIAL PRIMARY KEY,
+  title TEXT,
+  description TEXT,
   status VARCHAR(255),
   approver VARCHAR(255),
   risk_review TEXT,
@@ -72,12 +74,16 @@ CREATE TABLE controls (
   reviewer VARCHAR(255),
   due_date DATE,
   implementation_details TEXT,
-  control_group INT REFERENCES controlcategories(id)
+  order_no INT,
+  control_category_id INT REFERENCES controlcategories(id)
 );
 
 CREATE TABLE subcontrols (
   id SERIAL PRIMARY KEY,
   control_id INT REFERENCES controls(id),
+  title TEXT,
+  description TEXT,
+  order_no INT,
   status VARCHAR(255),
   approver VARCHAR(255),
   risk_review TEXT,
@@ -85,10 +91,10 @@ CREATE TABLE subcontrols (
   reviewer VARCHAR(255),
   due_date DATE,
   implementation_details TEXT,
-  evidence VARCHAR(255),
-  feedback TEXT,
-  evidenceFiles TEXT[],
-  feedbackFiles TEXT[]
+  evidence_description TEXT,
+  feedback_description TEXT,
+  evidence_files TEXT[],
+  feedback_files TEXT[]
 );
 
 CREATE TABLE projectrisks (
@@ -130,6 +136,12 @@ CREATE TABLE vendorrisks (
   review_date DATE
 );
 
+CREATE TABLE vendors_projects (
+  vendor_id INT REFERENCES vendors(id),
+  project_id INT REFERENCES projects(id),
+  PRIMARY KEY (vendor_id, project_id)
+);
+
 CREATE TABLE projectscopes (
   id SERIAL PRIMARY KEY,
   assessment_id INT REFERENCES assessments(id),
@@ -146,26 +158,31 @@ CREATE TABLE projectscopes (
 CREATE TABLE topics (
   id SERIAL PRIMARY KEY,
   assessment_id INT REFERENCES assessments(id),
-  title VARCHAR(255)
+  title TEXT,
+  order_no INT
 );
 
 CREATE TABLE subtopics (
   id SERIAL PRIMARY KEY,
   topic_id INT REFERENCES topics(id),
-  name VARCHAR(255)
+  title TEXT,
+  order_no INT
 );
 
 CREATE TABLE questions (
   id SERIAL PRIMARY KEY,
   subtopic_id INT REFERENCES subtopics(id),
-  question_text TEXT,
+  question TEXT,
   answer_type VARCHAR(255),
-  evidence_file_required BOOLEAN,
+  evidence_required BOOLEAN,
   hint TEXT,
   is_required BOOLEAN,
   priority_level VARCHAR(255),
   evidence_files TEXT[],
-  answer TEXT
+  answer TEXT,
+  dropdown_options TEXT[],
+  order_id INT,
+  input_type VARCHAR(255)
 );
 
 CREATE TABLE files (
@@ -176,9 +193,12 @@ CREATE TABLE files (
 
 INSERT INTO
   roles(name, description)
-  VALUES ('Admin', 'Administrator with full access to the system.');
+  VALUES ('Admin', 'Administrator with full access to the system.'),
+  ('Reviewer', 'Reviewer with access to review compliance and reports.'),
+  ('Editor', 'Editor with permission to modify and update project details.'),
+  ('Auditor', 'Auditor with access to compliance and security audits.');
 
-INSERT INTO
-  users(name, surname, email, password_hash, role, created_at, last_login)
-  VALUES
-  ('admin', 'admin', 'admin@gmail.com', '$2b$10$JFP9Z4RIbC1NItNB5daWZ.GxoCD6Ka.d./w9VXsOXit7mzj176TbG', 1, CURRENT_DATE, CURRENT_DATE);
+-- INSERT INTO
+--   users(name, surname, email, password_hash, role, created_at, last_login)
+--   VALUES
+--   ('admin', 'admin', 'admin@gmail.com', '$2b$10$JFP9Z4RIbC1NItNB5daWZ.GxoCD6Ka.d./w9VXsOXit7mzj176TbG', 1, CURRENT_DATE, CURRENT_DATE);

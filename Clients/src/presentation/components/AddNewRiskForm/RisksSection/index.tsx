@@ -5,12 +5,22 @@ import {
   useTheme,
   SelectChangeEvent,
 } from "@mui/material";
-import { FC, useState, useCallback, Suspense, Dispatch, SetStateAction } from "react";
+import {
+  FC,
+  useState,
+  useCallback,
+  Suspense,
+  Dispatch,
+  SetStateAction,
+  useMemo,
+} from "react";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import Alert from "../../Alert";
 import React from "react";
 import { RiskFormValues, RiskFormErrors } from "../interface";
+import styles from "../styles.module.css";
+import useUsers from "../../../../application/hooks/useUsers";
 
 const RiskLevel = React.lazy(() => import("../../RiskLevel"));
 
@@ -49,15 +59,54 @@ interface RiskSectionProps {
  * @example
  * <RiskSection closePopup={closePopupFunction} status="new" />
  */
-const RiskSection: FC<RiskSectionProps> = ({ riskValues, setRiskValues, riskErrors }) => {
+const RiskSection: FC<RiskSectionProps> = ({
+  riskValues,
+  setRiskValues,
+  riskErrors,
+}) => {
   const theme = useTheme();
   // const [values, setValues] = useState<RiskFormValues>(initialState);
-  const [errors, setErrors] = useState<RiskFormErrors>({});
+  const [_, setErrors] = useState<RiskFormErrors>({});
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
     body: string;
-  } | null>(null);  
+  } | null>(null);
+  const { users } = useUsers();
+
+  const aiLifecyclePhase = useMemo(
+    () => [
+      { _id: 1, name: "Problem definition & planning" },
+      { _id: 2, name: "Data collection & processing" },
+      { _id: 3, name: "Model development & training" },
+      { _id: 4, name: "Model validation & testing" },
+      { _id: 5, name: "Deployment & integration" },
+      { _id: 6, name: "Monitoring & maintenance" },
+      { _id: 7, name: "Decommissioning & retirement" },
+    ],
+    []
+  );
+
+  const riskCategorylItems = useMemo(
+    () => [
+      { _id: 1, name: "Strategic risk" },
+      { _id: 2, name: "Operational risk" },
+      { _id: 3, name: "Compliance risk" },
+      { _id: 4, name: "Financial risk" },
+      { _id: 5, name: "Cybersecurity risk" },
+      { _id: 6, name: "Reputational risk" },
+      { _id: 7, name: "Legal risk" },
+      { _id: 8, name: "Technological risk" },
+      { _id: 9, name: "Third-party/vendor risk" },
+      { _id: 10, name: "Environmental risk" },
+      { _id: 11, name: "Human resources risk" },
+      { _id: 12, name: "Geopolitical risk" },
+      { _id: 13, name: "Fraud risk" },
+      { _id: 14, name: "Data privacy risk" },
+      { _id: 15, name: "Health and safety risk" },
+    ],
+    []
+  );
 
   const handleOnSelectChange = useCallback(
     (prop: keyof RiskFormValues) =>
@@ -84,7 +133,7 @@ const RiskSection: FC<RiskSectionProps> = ({ riskValues, setRiskValues, riskErro
   );
 
   return (
-    <Stack>
+    <Stack sx={{}}>
       {alert && (
         <Alert
           variant={alert.variant}
@@ -94,10 +143,7 @@ const RiskSection: FC<RiskSectionProps> = ({ riskValues, setRiskValues, riskErro
           onClick={() => setAlert(null)}
         />
       )}
-      <Stack
-        className="AddNewRiskForm"
-        component="form"
-      >
+      <Stack component="form" className={`AddNewRiskForm ${styles.popupBody}`}>
         <Stack sx={{ width: "100%", mb: 10 }}>
           <Stack sx={{ gap: 8.5 }}>
             {/* Row 1 */}
@@ -110,52 +156,46 @@ const RiskSection: FC<RiskSectionProps> = ({ riskValues, setRiskValues, riskErro
                 gap: theme.spacing(8.5),
               }}
             >
-              <Field
-                id="risk-name-input"
-                label="Project name"
-                placeholder="Write risk name"
-                value={riskValues.riskName}
-                onChange={handleOnTextFieldChange("riskName")}
-                sx={{
-                  gridRow: "1 / 2",
-                  gridColumn: "1 / 2",
-                  width: "325px",
-                }}
-                isRequired
-                error={riskErrors.riskName}
-              />
               <Select
                 id="action-owner-input"
                 label="Action owner"
                 placeholder="Select owner"
-                value={riskValues.actionOwner}
+                value={riskValues.actionOwner === 0 ? '' : riskValues.actionOwner}
                 onChange={handleOnSelectChange("actionOwner")}
-                items={[
-                  { _id: 1, name: "Owner 1" },
-                  { _id: 2, name: "Owner 2" },
-                  { _id: 3, name: "Owner 3" },
-                ]}
+                items={
+                  users?.map((user) => ({ _id: user.id, name: user.name })) ||
+                  []
+                }
                 isRequired
                 error={riskErrors.actionOwner}
                 sx={{
                   width: "325px",
                 }}
-              />
+              />              
               <Select
                 id="ai-lifecycle-phase-input"
                 label="AI lifecycle phase"
                 placeholder="Select phase"
-                value={riskValues.aiLifecyclePhase}
+                value={riskValues.aiLifecyclePhase === 0 ? '' : riskValues.aiLifecyclePhase}
                 onChange={handleOnSelectChange("aiLifecyclePhase")}
-                items={[
-                  { _id: 1, name: "Phase 1" },
-                  { _id: 2, name: "Phase 2" },
-                  { _id: 3, name: "Phase 3" },
-                ]}
+                items={aiLifecyclePhase}
                 isRequired
                 error={riskErrors.aiLifecyclePhase}
                 sx={{
                   width: "325px",
+                }}
+              />
+              <Field
+                id="risk-description-input"
+                label="Risk description"
+                placeholder="Write risk description"
+                value={riskValues.riskDescription}
+                onChange={handleOnTextFieldChange("riskDescription")}
+                isRequired
+                error={riskErrors.riskDescription}
+                sx={{
+                  width: "325px",
+                  mb: 8,
                 }}
               />
             </Stack>
@@ -171,29 +211,13 @@ const RiskSection: FC<RiskSectionProps> = ({ riskValues, setRiskValues, riskErro
               }}
             >
               <Stack>
-                <Field
-                  id="risk-description-input"
-                  label="Risk description"
-                  placeholder="Write risk description"
-                  value={riskValues.riskDescription}
-                  onChange={handleOnTextFieldChange("riskDescription")}
-                  isRequired
-                  error={riskErrors.riskDescription}
-                  sx={{
-                    width: "325px",
-                  }}
-                />
                 <Select
                   id="risk-category-input"
                   label="Risk category"
                   placeholder="Select category"
-                  value={riskValues.riskCategory}
+                  value={riskValues.riskCategory === 0 ? '' : riskValues.riskCategory}
                   onChange={handleOnSelectChange("riskCategory")}
-                  items={[
-                    { _id: 1, name: "Category 1" },
-                    { _id: 2, name: "Category 2" },
-                    { _id: 3, name: "Category 3" },
-                  ]}
+                  items={riskCategorylItems}
                   isRequired
                   error={riskErrors.riskCategory}
                   sx={{
@@ -212,7 +236,6 @@ const RiskSection: FC<RiskSectionProps> = ({ riskValues, setRiskValues, riskErro
                 error={riskErrors.potentialImpact}
                 sx={{
                   width: "670px",
-                  height: "120px",
                   "& #potential-impact-input": {
                     maxHeight: "120px",
                   },

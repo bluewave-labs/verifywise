@@ -1,4 +1,13 @@
-import { FC, useState, useCallback, useMemo, lazy, Suspense, Dispatch, SetStateAction } from "react";
+import {
+  FC,
+  useState,
+  useCallback,
+  useMemo,
+  lazy,
+  Suspense,
+  Dispatch,
+  SetStateAction,
+} from "react";
 import {
   Divider,
   SelectChangeEvent,
@@ -10,12 +19,13 @@ import dayjs, { Dayjs } from "dayjs";
 import { RISK_LABELS } from "../../RiskLevel/constants";
 import { MitigationFormValues, MitigationFormErrors } from "../interface";
 import styles from "../styles.module.css";
+import useUsers from "../../../../application/hooks/useUsers";
 
 // Lazy load components
 const Select = lazy(() => import("../../Inputs/Select"));
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
-const FileUpload = lazy(() => import("../../Modals/FileUpload"));
+const FileUploadModal = lazy(() => import("../../Modals/FileUpload"));
 const RiskLevel = lazy(() => import("../../RiskLevel"));
 const Alert = lazy(() => import("../../Alert"));
 
@@ -74,7 +84,7 @@ export enum MitigationStatus {
  * @requires Select
  * @requires Field
  * @requires DatePicker
- * @requires FileUpload
+ * @requires FileUploadModal
  * @requires Divider
  * @requires Typography
  * @requires RiskLevel
@@ -83,15 +93,22 @@ export enum MitigationStatus {
  * @requires selectValidation
  * @requires dayjs
  */
-const MitigationSection: FC<MitigationSectionProps> = ({ mitigationValues, setMitigationValues, migitateErrors }) => {
+const MitigationSection: FC<MitigationSectionProps> = ({
+  mitigationValues,
+  setMitigationValues,
+  migitateErrors,
+}) => {
   const theme = useTheme();
   // const [values, setValues] = useState<MitigationFormValues>(initialState);
-  const [errors, setErrors] = useState<MitigationFormErrors>({});
+  const [_, setErrors] = useState<MitigationFormErrors>({});
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
     body: string;
   } | null>(null);
+  const [fileUploadOpen, setFileUploadOpen] = useState(false);
+
+  const {users } = useUsers();
 
   const handleOnSelectChange = useCallback(
     (prop: keyof MitigationFormValues) =>
@@ -107,7 +124,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ mitigationValues, setMi
 
   const handleDateChange = useCallback(
     (field: string, newDate: Dayjs | null) => {
-      if(newDate?.isValid()){
+      if (newDate?.isValid()) {
         setMitigationValues((prevValues) => ({
           ...prevValues,
           [field]: newDate ? newDate.toISOString() : "",
@@ -127,7 +144,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ mitigationValues, setMi
         setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
       },
     []
-  );  
+  );
 
   const mitigationStatusItems = useMemo(
     () => [
@@ -164,12 +181,20 @@ const MitigationSection: FC<MitigationSectionProps> = ({ mitigationValues, setMi
 
   const approvalStatusItems = useMemo(
     () => [
-      { _id: 1, name: "Some value 1" },
-      { _id: 2, name: "Some value 2" },
-      { _id: 3, name: "Some value 3" },
+      { _id: 1, name: MitigationStatus.NotStarted },
+      { _id: 2, name: MitigationStatus.InProgress },
+      { _id: 3, name: MitigationStatus.Completed },
+      { _id: 4, name: MitigationStatus.OnHold },
+      { _id: 5, name: MitigationStatus.Deferred },
+      { _id: 6, name: MitigationStatus.Canceled },
+      { _id: 7, name: MitigationStatus.RequiresReview },
     ],
     []
   );
+
+  const handleFileUploadClose = useCallback(() => {
+    setFileUploadOpen(false);
+  }, []);
 
   return (
     <Stack>
@@ -192,7 +217,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ mitigationValues, setMi
                 id="mitigation-status-input"
                 label="Mitigation status"
                 placeholder="Select status"
-                value={mitigationValues.mitigationStatus}
+                value={mitigationValues.mitigationStatus === 0 ? '' : mitigationValues.mitigationStatus}
                 onChange={handleOnSelectChange("mitigationStatus")}
                 items={mitigationStatusItems}
                 sx={{
@@ -222,7 +247,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ mitigationValues, setMi
                 id="current-risk-level-input"
                 label="Current risk level"
                 placeholder="Select risk level"
-                value={mitigationValues.currentRiskLevel}
+                value={mitigationValues.currentRiskLevel === 0 ? '' : mitigationValues.currentRiskLevel}
                 onChange={handleOnSelectChange("currentRiskLevel")}
                 items={riskLevelItems}
                 sx={{
@@ -251,7 +276,11 @@ const MitigationSection: FC<MitigationSectionProps> = ({ mitigationValues, setMi
               <Stack style={{ minWidth: "303px" }}>
                 <DatePicker
                   label="Start date"
-                  date={mitigationValues.deadline ? dayjs(mitigationValues.deadline) : null}
+                  date={
+                    mitigationValues.deadline
+                      ? dayjs(mitigationValues.deadline)
+                      : null
+                  }
                   handleDateChange={(e) => handleDateChange("deadline", e)}
                   sx={{
                     width: 130,
@@ -263,7 +292,11 @@ const MitigationSection: FC<MitigationSectionProps> = ({ mitigationValues, setMi
               </Stack>
             </Suspense>
             <Suspense fallback={<div>Loading...</div>}>
-              <FileUpload onClose={() => {}} uploadProps={{}} open={false} />
+              {/* <FileUploadModal
+                open={fileUploadOpen}
+                onClose={handleFileUploadClose}
+                uploadProps={{ open: false }}
+              /> */}
             </Suspense>
           </Stack>
         </Stack>
@@ -293,9 +326,9 @@ const MitigationSection: FC<MitigationSectionProps> = ({ mitigationValues, setMi
               id="approver-input"
               label="Approver"
               placeholder="Select approver"
-              value={mitigationValues.approver}
+              value={mitigationValues.approver === 0 ? '' : mitigationValues.approver}
               onChange={handleOnSelectChange("approver")}
-              items={approverItems}
+              items={users?.map((user) => ({ _id: user.id, name: user.name })) || []}
               sx={{
                 width: 324,
                 backgroundColor: theme.palette.background.main,
@@ -309,7 +342,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({ mitigationValues, setMi
               id="approval-status-input"
               label="Approval status"
               placeholder="Select status"
-              value={mitigationValues.approvalStatus}
+              value={mitigationValues.approvalStatus === 0 ? '' : mitigationValues.approvalStatus}
               onChange={handleOnSelectChange("approvalStatus")}
               items={approvalStatusItems}
               sx={{
@@ -324,7 +357,9 @@ const MitigationSection: FC<MitigationSectionProps> = ({ mitigationValues, setMi
             <DatePicker
               label="Start date"
               date={
-                mitigationValues.dateOfAssessment ? dayjs(mitigationValues.dateOfAssessment) : null
+                mitigationValues.dateOfAssessment
+                  ? dayjs(mitigationValues.dateOfAssessment)
+                  : null
               }
               handleDateChange={(e) => handleDateChange("dateOfAssessment", e)}
               sx={{

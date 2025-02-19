@@ -21,6 +21,9 @@ import { logEngine } from "../../../../application/tools/log.engine";
 import localStorage from "redux-persist/es/storage";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import Alert from "../../../components/Alert"; // Import Alert component
+import { store } from "../../../../application/redux/store";
+import { extractUserToken } from "../../../../application/tools/extractToken";
+import { clearAuthState } from "../../../../application/authentication/authSlice";
 
 /**
  * Interface representing a user object.
@@ -44,6 +47,10 @@ interface User {
  * @returns {JSX.Element} The rendered component.
  */
 const ProfileForm: React.FC = () => {
+  const state = store.getState();
+  const userData = extractUserToken(state.auth.authToken); // Extract user data from token
+  const { id } = userData || {};
+
   // State management
   const [firstname, setFirstname] = useState<string>("");
   const [lastname, setLastname] = useState<string>("");
@@ -88,7 +95,7 @@ const ProfileForm: React.FC = () => {
       setLoading(true);
       try {
         // const userId = localStorage.getItem("userId") || 1;
-        const response = await getEntityById({ routeUrl: `/users/1` });
+        const response = await getEntityById({ routeUrl: `/users/${id}` });
         console.log("response : ", response);
         setFirstname(response.data.name || "");
         setLastname(response.data.surname || "");
@@ -145,18 +152,21 @@ const ProfileForm: React.FC = () => {
           isToast: true,
           visible: true,
         });
+        setTimeout(() => {
+          setAlert((prev) => ({ ...prev, visible: false }));
+        }, 3000); // Alert will disappear after 3 seconds
         return;
       }
       // const userId = localStorage.getItem("userId") || "1";
       const updatedUser = {
-        firstname,
-        lastname,
+        name: firstname,
+        surname: lastname,
         email,
         pathToImage: profilePhoto,
       };
 
       const response = await updateEntityById({
-        routeUrl: `/users/1`,
+        routeUrl: `/users/${id}`,
         body: updatedUser,
       });
       console.log(response);
@@ -167,6 +177,9 @@ const ProfileForm: React.FC = () => {
         isToast: true,
         visible: true,
       });
+      setTimeout(() => {
+        setAlert((prev) => ({ ...prev, visible: false }));
+      }, 3000); // Alert will disappear after 3 seconds
     } catch (error) {
       logEngine({
         type: "error",
@@ -185,6 +198,9 @@ const ProfileForm: React.FC = () => {
         isToast: true,
         visible: true,
       });
+      setTimeout(() => {
+        setAlert((prev) => ({ ...prev, visible: false }));
+      }, 3000); // Alert will disappear after 3 seconds
     }
   }, [
     firstname,
@@ -346,7 +362,13 @@ const ProfileForm: React.FC = () => {
   const handleConfirmDelete = useCallback(async () => {
     try {
       // const userId = localStorage.getItem("userId") || "1";
-      await deleteEntityById({ routeUrl: `/users/1` });
+      await deleteEntityById({ routeUrl: `/users/${id}` });
+      //clear all storage
+      await localStorage.removeItem("userId");
+      await localStorage.removeItem("authToken");
+      //clear redux state
+      store.dispatch(clearAuthState());
+      //success alert
       setAlert({
         variant: "success",
         title: "Success",
@@ -355,6 +377,9 @@ const ProfileForm: React.FC = () => {
         visible: true,
       });
       // Add any additional logic needed after account deletion, e.g., redirecting to a login page
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 3000); // Redirect to login page after 3 seconds
     } catch (error) {
       logEngine({
         type: "error",

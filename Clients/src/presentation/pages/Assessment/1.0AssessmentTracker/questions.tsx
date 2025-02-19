@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Box, Button, Chip, Stack, Tooltip, Typography } from "@mui/material";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
@@ -14,6 +14,7 @@ type QuestionsProps = {
 const Questions = ({ subtopic, index }: QuestionsProps) => {
   const [questionsData, setQuestionsData] = useState<any>(null);
   const [loadingQuestions, setLoadingQuestions] = useState<boolean>(true);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchQuestionsData = async () => {
@@ -36,8 +37,14 @@ const Questions = ({ subtopic, index }: QuestionsProps) => {
     fetchQuestionsData();
   }, [subtopic]);
 
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.scrollTop = 0;
+    }
+  }, [questionsData]);
+
   return (
-    <Stack key={index} mb={15}>
+    <Stack key={index} mb={15} ref={containerRef}>
       <Typography sx={{ fontSize: 16, color: "#344054" }}>
         {subtopic.title}
       </Typography>

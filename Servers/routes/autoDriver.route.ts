@@ -8,7 +8,9 @@ import {
 
 import authenticateJWT from "../middleware/auth.middleware";
 
-router.post("/", /*authenticateJWT,*/ postAutoDriver);
-router.delete("/", deleteAutoDriver)
+if (process.env.ENVIRONMENT === "development") {
+  router.post("/", /*authenticateJWT,*/ postAutoDriver);
+  router.delete("/", deleteAutoDriver)
+}
 
 export default router;

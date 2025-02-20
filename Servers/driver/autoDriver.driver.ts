@@ -34,16 +34,9 @@ import { VendorRisk } from "../models/vendorRisk.model";
 import { VendorsProjects } from "../models/vendorsProjects.model";
 
 import {
-  deleteExistingData,
-  checkTableExists,
-  createTable,
   insertData,
-  dropTable,
-  checkDataExists,
-  getDEMOProjects,
   deleteDEMOData,
 } from "../utils/autoDriver.util";
-import { deleteProjectByIdQuery } from "../utils/project.utils";
 
 const insertQuery = {
   roles: {

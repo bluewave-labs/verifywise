@@ -6,6 +6,7 @@ interface RequestParams {
   body?: any;
   signal?: AbortSignal;
   authToken?: string;
+  headers?: any;
 }
 
 /**
@@ -97,10 +98,11 @@ export async function updateEntityById({
   routeUrl,
   body,
   authToken = getAuthToken(),
+  headers,
 }: RequestParams): Promise<any> {
   try {
     const response = await apiServices.patch(routeUrl, body, {
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: { Authorization: `Bearer ${authToken}`, ...headers },
     });
     console.log(
       `The entity with the following details is updated: ${response.data}`

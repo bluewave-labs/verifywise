@@ -1,4 +1,12 @@
-import { Box, Button, Chip, Stack, Tooltip, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Chip,
+  Stack,
+  Tooltip,
+  Typography,
+  Dialog,
+} from "@mui/material";
 import { Question } from "../../../domain/Question";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import {
@@ -8,22 +16,40 @@ import {
 import RichTextEditor from "../RichTextEditor";
 import { useState } from "react";
 import { updateEntityById } from "../../../application/repository/entity.repository";
+import UppyUploadFile from "../../vw-v2-components/Inputs/FileUpload";
 
 const VWQuestion = ({ question }: { question: Question }) => {
   const [values, setValues] = useState<Question>(question);
+  const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
+  const [evidenceFiles, setEvidenceFiles] = useState<any[]>([]);
 
   const handleSave = async () => {
     try {
       console.log("/questions values : ", values);
+      const formData = new FormData();
+      formData.append("question", JSON.stringify(values));
+      evidenceFiles.forEach((file, index) => {
+        formData.append(`evidenceFiles[${index}]`, file);
+      });
+
       const updatedQuestion = await updateEntityById({
         routeUrl: `/questions/${question.id}`,
-        body: values,
+        body: formData,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
       setValues(updatedQuestion.data);
       console.log("Question updated successfully:", updatedQuestion.data);
     } catch (error) {
       console.error("Error updating question:", error);
     }
+  };
+
+  const handleFileUploadConfirm = (files: any[]) => {
+    setEvidenceFiles(files);
+    setIsFileUploadOpen(false);
+    // Add logic to send files to the backend if needed
   };
 
   return (
@@ -96,7 +122,7 @@ const VWQuestion = ({ question }: { question: Question }) => {
             display: "flex",
             flexDirection: "row",
             alignItems: "center",
-            gap: 2,
+            gap: 4,
           }}
         >
           <Button
@@ -104,7 +130,7 @@ const VWQuestion = ({ question }: { question: Question }) => {
             sx={{
               mt: 2,
               borderRadius: 2,
-              width: 155,
+              width: "fit-content",
               height: 25,
               fontSize: 11,
               border: "1px solid #13715B",
@@ -129,15 +155,39 @@ const VWQuestion = ({ question }: { question: Question }) => {
               color: "#344054",
             }}
             disableRipple
-            onClick={() => {}}
+            onClick={() => setIsFileUploadOpen(true)}
           >
             Add/Remove evidence
           </Button>
+          <Typography
+            sx={{
+              fontSize: 11,
+              color: "#344054",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              textAlign: "center",
+              margin: "auto",
+              textWrap: "wrap",
+            }}
+          >
+            {`${question.evidence_files?.length ?? 0} evidence files attached`}
+          </Typography>
         </Stack>
         <Typography sx={{ fontSize: 11, color: "#344054", fontWeight: "300" }}>
           {question.is_required === true ? "required" : ""}
         </Typography>
       </Stack>
+      <Dialog
+        open={isFileUploadOpen}
+        onClose={() => setIsFileUploadOpen(false)}
+      >
+        <UppyUploadFile
+          evidence_files={evidenceFiles}
+          onClose={() => setIsFileUploadOpen(false)}
+          onConfirm={handleFileUploadConfirm}
+        />
+      </Dialog>
     </Box>
   );
 };

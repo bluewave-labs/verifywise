@@ -823,7 +823,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                         <Close style={{ cursor: "pointer" }} onClick={setIsOpen} />
                     </Stack>
                     <TabContext value={value}>
-                        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+                        {/* <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
                             <TabList onChange={handleChange}>
                                 <Tab
                                     sx={{
@@ -852,9 +852,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                                     value="2"
                                 />
                             </TabList>
-                        </Box>
+                        </Box> */}
                         {vendorDetailsPanel}
-                        {risksPanel}
+                        {/* {risksPanel} */}
                         <Stack
                             sx={{
                                 alignItems: "flex-end",

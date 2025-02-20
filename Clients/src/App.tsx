@@ -7,7 +7,7 @@ import light from "./presentation/themes/light";
 import dark from "./presentation/themes/dark";
 import { CssBaseline } from "@mui/material";
 import Home from "./presentation/pages/Home";
-import Assessment from "./presentation/pages/Assessment";
+// import Assessment from "./presentation/pages/Assessment";
 import Vendors from "./presentation/pages/Vendors";
 import Setting from "./presentation/pages/SettingsPage";
 import Team from "./presentation/pages/Team";
@@ -32,6 +32,7 @@ import useProjectStatus from "./application/hooks/useProjectStatus";
 import ProtectedRoute from "./presentation/components/ProtectedRoute";
 import { extractUserToken } from "./application/tools/extractToken"; // Import the token extraction function
 import Playground from "./presentation/pages";
+import AssessmentTracker from "./presentation/pages/Assessment/1.0AssessmentTracker";
 
 function App() {
   const mode = useSelector((state: any) => state.ui?.mode || "light");
@@ -132,8 +133,12 @@ function App() {
                   path="/compliance-tracker"
                   element={<NewComplianceTracker />}
                 />
-                <Route path="/assessment" element={<Assessment />} />
-                <Route path="/all-assessments" element={<AllAssessment />} />
+                {/* <Route path="/assessment" element={<Assessment />} /> */}
+                <Route path="/assessment" element={<AssessmentTracker />} />
+                <Route
+                  path="/all-assessments"
+                  element={<AllAssessment initialAssessmentsValues={[]} />}
+                />
                 <Route path="/vendors" element={<Vendors />} />
                 <Route path="/setting" element={<Setting />} />
                 <Route path="/team" element={<Team />} />

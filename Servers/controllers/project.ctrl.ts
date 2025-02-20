@@ -10,7 +10,10 @@ import {
   getProjectByIdQuery,
   updateProjectByIdQuery,
 } from "../utils/project.utils";
-import { createNewAssessmentQuery } from "../utils/assessment.utils";
+import {
+  createNewAssessmentQuery,
+  getAssessmentByProjectIdQuery,
+} from "../utils/assessment.utils";
 import { getUserByIdQuery } from "../utils/user.utils";
 import {
   createNewControlCategories,
@@ -19,6 +22,9 @@ import {
 import { Project } from "../models/project.model";
 import { getAllControlsByControlGroupQuery } from "../utils/control.utils";
 import { getAllSubcontrolsByControlIdQuery } from "../utils/subControl.utils";
+import { getTopicByAssessmentIdQuery } from "../utils/topic.utils";
+import { getSubTopicByTopicIdQuery } from "../utils/subtopic.utils";
+import { getQuestionBySubTopicIdQuery } from "../utils/question.utils";
 
 export async function getAllProjects(
   req: Request,
@@ -231,6 +237,105 @@ export async function getCompliances(req: Request, res: Response) {
         }
       }
       return res.status(200).json(STATUS_CODE[200](controlCategories));
+    } else {
+      return res.status(404).json(STATUS_CODE[404](project));
+    }
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function projectComplianceProgress(req: Request, res: Response) {
+  const projectId = parseInt(req.params.id);
+  let totalNumberOfSubcontrols = 0;
+  let totalNumberOfDoneSubcontrols = 0;
+  try {
+    const project = await getProjectByIdQuery(projectId);
+    if (project) {
+      const controlCategories = await getControlCategoryByProjectIdQuery(
+        project.id
+      );
+      for (const category of controlCategories) {
+        if (category) {
+          const controls = await getAllControlsByControlGroupQuery(category.id);
+          for (const control of controls) {
+            if (control && control.id) {
+              const subControls = await getAllSubcontrolsByControlIdQuery(
+                control.id
+              );
+              control.numberOfSubcontrols = subControls.length;
+              control.numberOfDoneSubcontrols = subControls.filter(
+                (subControl) => subControl.status === "Done"
+              ).length;
+              totalNumberOfSubcontrols += subControls.length;
+              totalNumberOfDoneSubcontrols += control.numberOfDoneSubcontrols;
+            }
+          }
+        }
+      }
+      return res.status(200).json(
+        STATUS_CODE[200]({
+          allsubControls: totalNumberOfSubcontrols,
+          allDonesubControls: totalNumberOfDoneSubcontrols,
+        })
+      );
+    } else {
+      return res.status(404).json(STATUS_CODE[404](project));
+    }
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function projectAssessmentProgress(req: Request, res: Response) {
+  let totalNumberOfQuestions = 0;
+  const projectId = parseInt(req.params.id);
+  let totalNumberOfAnsweredQuestions = 0;
+  try {
+    const project = await getProjectByIdQuery(projectId);
+    if (project) {
+      const assessments = await getAssessmentByProjectIdQuery(project.id);
+      if (assessments.length !== 0) {
+        for (const assessment of assessments) {
+          if (assessment.id !== undefined) {
+            const topics = await getTopicByAssessmentIdQuery(assessment.id);
+            if (topics.length !== 0) {
+              for (const topic of topics) {
+                if (topic.id !== undefined) {
+                  const subtopics = await getSubTopicByTopicIdQuery(topic.id);
+                  if (subtopics.length !== 0) {
+                    for (const subtopic of subtopics) {
+                      if (subtopic.id !== undefined) {
+                        const questions = await getQuestionBySubTopicIdQuery(
+                          subtopic.id
+                        );
+                        if (questions.length !== 0) {
+                          totalNumberOfQuestions =
+                            totalNumberOfQuestions + questions.length;
+                          for (const question of questions) {
+                            if (
+                              question.answer &&
+                              question.answer.trim() !== ""
+                            ) {
+                              totalNumberOfAnsweredQuestions++;
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      return res.status(200).json(
+        STATUS_CODE[200]({
+          totalQuestions: totalNumberOfQuestions,
+          answeredQuestions: totalNumberOfAnsweredQuestions,
+        })
+      );
     } else {
       return res.status(404).json(STATUS_CODE[404](project));
     }

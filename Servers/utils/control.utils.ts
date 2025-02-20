@@ -36,7 +36,9 @@ export const getControlByIdAndControlTitleAndControlDescriptionQuery = async (
   return result.rows.length ? result.rows[0] : null;
 };
 
-export const createNewControlQuery = async (control: Partial<Control>): Promise<Control> => {
+export const createNewControlQuery = async (
+  control: Partial<Control>
+): Promise<Control> => {
   const result = await pool.query(
     `INSERT INTO controls (
       title, description, order_no, 
@@ -65,7 +67,6 @@ export const updateControlByIdQuery = async (
   id: number,
   control: Partial<Control>
 ): Promise<Control | null> => {
-  console.log("updateControlById", id, control);
   const fields = [];
   const values = [];
   let query = "UPDATE controls SET ";
@@ -124,7 +125,6 @@ export const updateControlByIdQuery = async (
 export const deleteControlByIdQuery = async (
   id: number
 ): Promise<Control | null> => {
-  console.log("deleteControlById", id);
   const result = await pool.query(
     "DELETE FROM controls WHERE id = $1 RETURNING *",
     [id]
@@ -145,15 +145,23 @@ export const createNewControlsQuery = async (
     }[];
   }[]
 ) => {
-  const createdControls = []
+  const createdControls = [];
   let query = `INSERT INTO controls(
     title, description, order_no, control_category_id
   ) VALUES ($1, $2, $3, $4) RETURNING *;`;
   for (let controlStruct of controls) {
-    const result = await pool.query(query, [controlStruct.title, controlStruct.description, controlStruct.order_no, controlCategoryId])
-    const control_id = result.rows[0].id
-    const subControls = await createNewSubControlsQuery(control_id, controlStruct.subControls)
-    createdControls.push({ ...result.rows[0], subControls })
+    const result = await pool.query(query, [
+      controlStruct.title,
+      controlStruct.description,
+      controlStruct.order_no,
+      controlCategoryId,
+    ]);
+    const control_id = result.rows[0].id;
+    const subControls = await createNewSubControlsQuery(
+      control_id,
+      controlStruct.subControls
+    );
+    createdControls.push({ ...result.rows[0], subControls });
   }
   return createdControls;
 };

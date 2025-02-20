@@ -7,6 +7,7 @@ import {
   deleteAssessmentByIdQuery,
   getAllAssessmentsQuery,
   getAssessmentByIdQuery,
+  getAssessmentByProjectIdQuery,
   updateAssessmentByIdQuery,
 } from "../utils/assessment.utils";
 import {
@@ -212,9 +213,9 @@ export async function getAnswers(req: Request, res: Response): Promise<any> {
   try {
     const assessmentId = parseInt(req.params.id);
     const assessment = await getAssessmentByIdQuery(assessmentId);
-    const topics = await getTopicByAssessmentIdQuery(assessment!.id!)
+    const topics = await getTopicByAssessmentIdQuery(assessment!.id!);
     for (let topic of topics) {
-      const subTopics = await getSubTopicByTopicIdQuery(topic.id!)
+      const subTopics = await getSubTopicByTopicIdQuery(topic.id!);
 
       for (let subTopic of subTopics) {
         const questions = await getQuestionBySubTopicIdQuery(subTopic.id!);
@@ -290,3 +291,19 @@ export async function getAnswers(req: Request, res: Response): Promise<any> {
 //     }
 //   }
 // }
+
+export async function getAssessmentByProjectId(req: Request, res: Response) {
+  const projectId = parseInt(req.params.id);
+  console.log("projectId : ", projectId);
+  try {
+    const assessments = await getAssessmentByProjectIdQuery(projectId);
+    console.log("assessment: ", assessments);
+    if (assessments && assessments.length !== 0) {
+      return res.status(200).json(STATUS_CODE[200](assessments));
+    } else {
+      return res.status(204).json(STATUS_CODE[204]({}));
+    }
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}

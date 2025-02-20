@@ -10,6 +10,8 @@ import {
   getProjectRisksCalculations,
   getProjectStatsById,
   getVendorRisksCalculations,
+  projectAssessmentProgress,
+  projectComplianceProgress,
   // saveControls,
   updateProjectById,
 } from "../controllers/project.ctrl";
@@ -30,6 +32,9 @@ router.get("/:id", /*authenticateJWT,*/ getProjectById);
 router.get("/stats/:id", getProjectStatsById);
 
 router.get("/complainces/:projid", getCompliances);
+
+router.get("/compliance/progress/:id", projectComplianceProgress);
+router.get("/assessment/progress/:id", projectAssessmentProgress);
 
 // POSTs
 router.post("/", /*authenticateJWT,*/ createProject);

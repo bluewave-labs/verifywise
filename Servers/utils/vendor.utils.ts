@@ -2,7 +2,6 @@ import { Vendor } from "../models/vendor.model";
 import pool from "../database/db";
 
 export const getAllVendorsQuery = async (): Promise<Vendor[]> => {
-  console.log("getAllVendors");
   const vendors = await pool.query("SELECT * FROM vendors");
   return vendors.rows;
 };
@@ -10,7 +9,6 @@ export const getAllVendorsQuery = async (): Promise<Vendor[]> => {
 export const getVendorByIdQuery = async (
   id: number
 ): Promise<Vendor | null> => {
-  console.log("getVendorById", id);
   const result = await pool.query("SELECT * FROM vendors WHERE id = $1", [id]);
   return result.rows.length ? result.rows[0] : null;
 };
@@ -45,7 +43,6 @@ export const updateVendorByIdQuery = async (
   id: number,
   vendor: Partial<Vendor>
 ): Promise<Vendor | null> => {
-  console.log("updateVendorById", id, vendor);
   const fields = [];
   const values = [];
   let query = "UPDATE vendors SET ";
@@ -108,7 +105,6 @@ export const updateVendorByIdQuery = async (
 };
 
 export const deleteVendorByIdQuery = async (id: number): Promise<boolean> => {
-  console.log("deleteVendorById", id);
   await pool.query(`DELETE FROM vendors_projects WHERE vendor_id = $1`, [id]);
   const result = await pool.query(
     "DELETE FROM vendors WHERE id = $1 RETURNING id",

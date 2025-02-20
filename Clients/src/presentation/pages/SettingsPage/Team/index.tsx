@@ -32,14 +32,9 @@ import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.c
 import InviteUserModal from "../../../components/Modals/InviteUser";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import { handleAlert } from "../../../../application/tools/alertUtils";
 
 const Alert = lazy(() => import("../../../components/Alert"));
-
-interface AlertProps {
-  variant: "success" | "info" | "warning" | "error";
-  title?: string;
-  body: string;
-}
 
 // Enum for roles
 enum Role {
@@ -73,17 +68,6 @@ const TeamManagement: React.FC = (): JSX.Element => {
     title?: string;
     body: string;
   } | null>(null);
-
-  const handleAlert = ({ variant, body, title }: AlertProps) => {
-    setAlert({
-      variant,
-      title,
-      body,
-    });
-    setTimeout(() => {
-      setAlert(null);
-    }, 2500);
-  };
 
   const roleItems = useMemo(
     () => [
@@ -201,6 +185,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
     handleAlert({
       variant: status === 200 ? "success" : "error",
       body: status === 200 ? "Inviatation is successful" : "Inviatation fails",
+      setAlert
     });
 
     setInviteUserModalOpen(false);
@@ -312,7 +297,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
               ))}
             </Box>
 
-            {/* <Box sx={{ display: "flex", mb: 12, mt: 10 }}>  
+            {/* <Box sx={{ display: "flex", mb: 12, mt: 10 }}>
               {["All", ...roles].map((role) => (
                 <Button
                   key={role}

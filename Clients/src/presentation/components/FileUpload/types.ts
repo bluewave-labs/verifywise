@@ -1,4 +1,4 @@
-import { AssessmentValue } from "../../pages/Assessment/NewAssessment/AllAssessments";
+import { Topic } from "../../../application/hooks/useAssessmentAnswers";
 
 export interface FileUploadProps {
   open: boolean;
@@ -15,7 +15,7 @@ export interface FileUploadProps {
   topicId?: number;
   isSubtopic?: boolean;
   setAssessmentsValue?: (value: any) => void;
-  assessmentsValues?: Record<number, AssessmentValue>;
+  assessmentsValues?: Topic[];
 }
 
 export interface FileProps {

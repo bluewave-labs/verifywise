@@ -1,26 +1,22 @@
 import { Stack } from "@mui/material";
-import VWSkeleton from "../vw-v2-components/Skeletons";
+import AssessmentTracker from "./Assessment/1.0AssessmentTracker";
 
 const Playground = () => {
   return (
     <Stack
-      sx={{
-        width: "100%",
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: "100vh",
-        padding: "50px",
-      }}
+      sx={
+        {
+          // width: "100%",
+          // display: "flex",
+          // flexDirection: "row",
+          // justifyContent: "center",
+          // alignItems: "center",
+          // minHeight: "100vh",
+          // padding: "50px",
+        }
+      }
     >
-      <VWSkeleton
-        minHeight={"48px"}
-        minWidth={"300px"}
-        width={"100%"}
-        maxWidth={"100%"}
-        variant="rectangular"
-      />
+      <AssessmentTracker />
     </Stack>
   );
 };

@@ -10,3 +10,11 @@ GET http://localhost:3000/projects/stats/1
 
 GET http://localhost:3000/projects/2
 
+### get project by id
+
+GET http://localhost:3000/projects/compliance/progress/3
+
+### get project by id
+
+GET http://localhost:3000/projects/assessment/progress/3
+

@@ -6,6 +6,10 @@ GET http://localhost:3000/assessments
 
 GET http://localhost:3000/assessments/2
 
+### get assessment by project id
+
+GET http://localhost:3000/assessments/project/byid/3
+
 ###
 POST http://localhost:3000/autoDrivers
 

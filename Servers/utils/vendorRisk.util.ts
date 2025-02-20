@@ -15,7 +15,6 @@ export const getAllVendorRisksQuery = async (
 export const getVendorRiskByIdQuery = async (
   id: number
 ): Promise<VendorRisk | null> => {
-  console.log("getVendorRiskById", id);
   const result = await pool.query("SELECT * FROM vendorRisks WHERE id = $1", [
     id,
   ]);
@@ -49,7 +48,6 @@ export const updateVendorRiskByIdQuery = async (
   id: number,
   vendorRisk: Partial<VendorRisk>
 ): Promise<VendorRisk | null> => {
-  console.log("updateVendorRiskById", id, vendorRisk);
   const fields = [];
   const values = [];
   let query = "UPDATE vendorRisks SET ";
@@ -109,7 +107,6 @@ export const updateVendorRiskByIdQuery = async (
 export const deleteVendorRiskByIdQuery = async (
   id: number
 ): Promise<boolean> => {
-  console.log("deleteVendorRiskById", id);
   const result = await pool.query(
     "DELETE FROM vendorRisks WHERE id = $1 RETURNING id",
     [id]

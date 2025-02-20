@@ -90,31 +90,30 @@ export async function updateQuestionById(
   res: Response
 ): Promise<any> {
   try {
+    console.log("req.body : ", req.body);
     const questionId = parseInt(req.params.id);
     const updatedQuestion: Question = req.body;
-    console.log(req);
+    console.log("updatedQuestion : ", updatedQuestion);
+    console.log("1");
 
-    if (
-      !updatedQuestion.subtopic_id ||
-      !updatedQuestion.question ||
-      !updatedQuestion.answer_type ||
-      updatedQuestion.is_required === undefined
-    ) {
+    if (!updatedQuestion) {
       return res.status(400).json(
         STATUS_CODE[400]({
-          message:
-            "subtopicId, questionText, answerType and isRequired are required",
+          message: "No values for updated Question",
         })
       );
     }
+    console.log("2");
 
-    const question = await updateQuestionByIdQuery(
+    const question = (await updateQuestionByIdQuery(
       questionId,
       updatedQuestion,
       req.files as UploadedFile[]
-    );
+    )) as Question;
+    console.log("3");
 
     if (question) {
+      console.log("4");
       return res.status(202).json(STATUS_CODE[202](question));
     }
 

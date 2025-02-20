@@ -1,11 +1,5 @@
 import { useState, useContext } from "react";
-import {
-  Typography,
-  Divider,
-  Box,
-  Stack,
-  Button,
-} from "@mui/material";
+import { Typography, Divider, Box, Stack, Button } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import Alert, { AlertProps } from "../../../components/Alert";
@@ -40,13 +34,19 @@ export interface AssessmentValue {
   file: FileProps[];
 }
 
-const AllAssessment = ({ initialAssessmentsValues }: { initialAssessmentsValues: Topic[] }) => {
+const AllAssessment = ({
+  initialAssessmentsValues,
+}: {
+  initialAssessmentsValues: Topic[];
+}) => {
   const { currentProjectId, dashboardValues } = useContext(VerifyWiseContext);
   const { projects } = dashboardValues;
 
   const [activeTab, setActiveTab] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [assessmentsValues, setAssessmentsValue] = useState<Topic[]>(initialAssessmentsValues)
+  const [assessmentsValues, setAssessmentsValue] = useState<Topic[]>(
+    initialAssessmentsValues
+  );
   const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -58,7 +58,6 @@ const AllAssessment = ({ initialAssessmentsValues }: { initialAssessmentsValues:
       )
     : null;
   const activeAssessmentId = currentProject?.assessment_id.toString();
-
 
   //modal
   const handleOpenFileUploadModal = () => setFileUploadModalOpen(true);
@@ -81,18 +80,18 @@ const AllAssessment = ({ initialAssessmentsValues }: { initialAssessmentsValues:
 
     formData.append("assessmentId", String(activeAssessmentId));
     formData.append("topic", JSON.stringify(assessmentToSave.title));
-    formData.append("subtopic",  JSON.stringify(assessmentToSave.subtopics));
+    formData.append("subtopic", JSON.stringify(assessmentToSave.subtopics));
     formData.append("topicId", topicIdToSave.toString());
 
     if (assessmentToSave.file && assessmentToSave.file.length > 0) {
-      assessmentToSave.file.forEach((file, index) => {
+      assessmentToSave.file.forEach((file: any, index: number) => {
         formData.append(`file[${index}]`, file as any);
       });
     } else {
-       formData.append("file", new Blob(), "empty-file.txt");
+      formData.append("file", new Blob(), "empty-file.txt");
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
       const response = await apiServices.post(
@@ -108,34 +107,35 @@ const AllAssessment = ({ initialAssessmentsValues }: { initialAssessmentsValues:
         handleAlert({
           variant: "success",
           body: "Assessments saved successfully.",
-          setAlert
+          setAlert,
         });
       } else {
         handleAlert({
           variant: "error",
           body: "Error: Could not save answers.",
-          setAlert
+          setAlert,
         });
       }
-
     } catch (error) {
       handleAlert({
         variant: "error",
         body: "Error: Could not save answers.",
-        setAlert
+        setAlert,
       });
       console.error("Error saving assessments:", error);
     } finally {
       setIsModalOpen(false);
       setTopicIdToSave(null);
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
   };
 
-  const handleListItemClick = ( event: React.MouseEvent<HTMLDivElement, MouseEvent>,
-    index: number) => {
+  const handleListItemClick = (
+    _: React.MouseEvent<HTMLDivElement, MouseEvent>,
+    index: number
+  ) => {
     setActiveTab(index);
-  }
+  };
 
   return (
     <Box sx={{ display: "flex", height: "100vh", px: "8px !important" }}>
@@ -237,7 +237,9 @@ const AllAssessment = ({ initialAssessmentsValues }: { initialAssessmentsValues:
           TitleFontSize={13}
         />
       )}
-      {isSubmitting && <VWToast title="Processing your request. Please wait..." />}
+      {isSubmitting && (
+        <VWToast title="Processing your request. Please wait..." />
+      )}
     </Box>
   );
 };

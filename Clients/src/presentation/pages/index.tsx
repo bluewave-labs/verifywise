@@ -1,22 +1,20 @@
 import { Stack } from "@mui/material";
-import AssessmentTracker from "./Assessment/1.0AssessmentTracker";
+import UppyUploadFile from "../vw-v2-components/Inputs/FileUpload";
 
 const Playground = () => {
   return (
     <Stack
-      sx={
-        {
-          // width: "100%",
-          // display: "flex",
-          // flexDirection: "row",
-          // justifyContent: "center",
-          // alignItems: "center",
-          // minHeight: "100vh",
-          // padding: "50px",
-        }
-      }
+      sx={{
+        width: "100%",
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+        padding: "50px",
+      }}
     >
-      <AssessmentTracker />
+      <UppyUploadFile />
     </Stack>
   );
 };

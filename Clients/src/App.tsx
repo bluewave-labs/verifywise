@@ -135,7 +135,10 @@ function App() {
                 />
                 {/* <Route path="/assessment" element={<Assessment />} /> */}
                 <Route path="/assessment" element={<AssessmentTracker />} />
-                <Route path="/all-assessments" element={<AllAssessment />} />
+                <Route
+                  path="/all-assessments"
+                  element={<AllAssessment initialAssessmentsValues={[]} />}
+                />
                 <Route path="/vendors" element={<Vendors />} />
                 <Route path="/setting" element={<Setting />} />
                 <Route path="/team" element={<Team />} />

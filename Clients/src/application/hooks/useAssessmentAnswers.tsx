@@ -30,6 +30,7 @@ export interface Topic {
   assessmentId: string;
   title: string;
   subtopics: Subtopic[];
+  file?: any;
 }
 
 interface ApiQuestion {
@@ -63,8 +64,8 @@ interface ApiResponse {
   data: {
     message: {
       topics: ApiTopic[];
-    }
-  }
+    };
+  };
 }
 
 const convertResponseAttributes = (response: ApiResponse): Topic[] => {
@@ -99,39 +100,44 @@ const convertResponseAttributes = (response: ApiResponse): Topic[] => {
     };
   });
 
-  return topics
+  return topics;
 };
 
-const useAssessmentAnswers = ({assessmentId}: AssessmentProps) => {
+const useAssessmentAnswers = ({ assessmentId }: AssessmentProps) => {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchAssessmentAnswers = useCallback(async ({controller}: { controller: AbortController }) => {
-    if (!controller) return;
+  const fetchAssessmentAnswers = useCallback(
+    async ({ controller }: { controller: AbortController }) => {
+      if (!controller) return;
 
-    setIsLoading(true);
-    setError(null);
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      const response = await getAllEntities({routeUrl: `/assessments/getAnswers/${assessmentId}`})
-      if (response?.data?.message?.topics?.length > 0) {
-        const topics = convertResponseAttributes(response);
-        setTopics(topics);
-      } else {
-        setError("No assessment answers found for this project.")
+      try {
+        const response = await getAllEntities({
+          routeUrl: `/assessments/getAnswers/${assessmentId}`,
+        });
+        if (response?.data?.message?.topics?.length > 0) {
+          const topics = convertResponseAttributes(response);
+          setTopics(topics);
+        } else {
+          setError("No assessment answers found for this project.");
+        }
+      } catch (error) {
+        console.error("An error occurred:", error);
+        if (error instanceof Error) {
+          setError(error.message);
+        } else {
+          setError(String(error));
+        }
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('An error occurred:', error);
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError(String(error));
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }, [assessmentId]);
+    },
+    [assessmentId]
+  );
 
   useEffect(() => {
     const controller = new AbortController();
@@ -142,8 +148,7 @@ const useAssessmentAnswers = ({assessmentId}: AssessmentProps) => {
     return () => controller.abort();
   }, [assessmentId, fetchAssessmentAnswers]);
 
+  return { topics, isLoading, error };
+};
 
-  return {topics, isLoading, error}
-}
-
-export default useAssessmentAnswers
+export default useAssessmentAnswers;

@@ -6,8 +6,26 @@ import {
   PriorityLevel,
 } from "../../pages/Assessment/NewAssessment/priorities";
 import RichTextEditor from "../RichTextEditor";
+import { useState } from "react";
+import { updateEntityById } from "../../../application/repository/entity.repository";
 
 const VWQuestion = ({ question }: { question: Question }) => {
+  const [values, setValues] = useState<Question>(question);
+
+  const handleSave = async () => {
+    try {
+      console.log("/questions values : ", values);
+      const updatedQuestion = await updateEntityById({
+        routeUrl: `/questions/${question.id}`,
+        body: values,
+      });
+      setValues(updatedQuestion.data);
+      console.log("Question updated successfully:", updatedQuestion.data);
+    } catch (error) {
+      console.error("Error updating question:", error);
+    }
+  };
+
   return (
     <Box key={question.id} mt={10}>
       <Box
@@ -47,7 +65,9 @@ const VWQuestion = ({ question }: { question: Question }) => {
       <RichTextEditor
         key={question.id}
         onContentChange={(answer: string) => {
-          console.log(answer);
+          // Remove <p> tags from the beginning and end of the answer
+          const cleanedAnswer = answer.replace(/^<p>|<\/p>$/g, "");
+          setValues({ ...values, answer: cleanedAnswer });
         }}
         headerSx={{
           borderRadius: 0,
@@ -92,7 +112,7 @@ const VWQuestion = ({ question }: { question: Question }) => {
               color: "white",
             }}
             disableRipple
-            onClick={() => {}}
+            onClick={handleSave}
           >
             Save
           </Button>

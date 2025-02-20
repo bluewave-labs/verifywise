@@ -58,9 +58,9 @@ const Questions = ({ subtopic, index }: QuestionsProps) => {
           variant="rectangular"
         />
       ) : questionsData ? (
-        questionsData!.map((question: any) => (
-          <VWQuestion question={question} />
-        ))
+        questionsData
+          .sort((a: any, b: any) => a.order_id - b.order_id)
+          .map((question: any) => <VWQuestion question={question} />)
       ) : (
         <Typography>Unable to get questions</Typography>
       )}

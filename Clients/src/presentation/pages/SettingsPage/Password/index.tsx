@@ -58,40 +58,39 @@ const PasswordForm: React.FC = () => {
   });
 
   // Fetch current user password on component mount
-  useEffect(() => {
-    const fetchUserPassword = async () => {
-      setLoading(true);
-      try {
-        const response = await getEntityById({ routeUrl: `/users/${id}` });
-        console.log("response , PasswordForm : ", response);
-        setCurrentPassword(
-          response.data.password_hash ? "••••••••••••••••••••••••" : ""
-        );
+  // useEffect(() => {
+  //   const fetchUserPassword = async () => {
+  //     setLoading(true);
+  //     try {
+  //       const response = await getEntityById({ routeUrl: `/users/${id}` });
+  //       console.log("response , PasswordForm : ", response);
 
-      } catch (error) {
-        logEngine({
-          type: "error",
-          message: "Failed to fetch user password.",
-          user: {
-            id: String(localStorage.getItem("userId")) || "N/A",
-            email: "N/A",
-            firstname: "N/A",
-            lastname: "N/A",
-          },
-        });
-        setAlert({
-          variant: "error",
-          title: "Error",
-          body: "Failed to fetch user password.",
-          isToast: true,
-          visible: true,
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUserPassword();
-  }, []);
+  //     } catch (error) {
+  //       logEngine({
+  //         type: "error",
+  //         message: "Failed to fetch user password.",
+  //         user: {
+  //           id: String(localStorage.getItem("userId")) || "N/A",
+  //           email: "N/A",
+  //           firstname: "N/A",
+  //           lastname: "N/A",
+  //         },
+  //       });
+
+
+  //       setAlert({
+  //         variant: "error",
+  //         title: "Error",
+  //         body: "Failed to fetch user password.",
+  //         isToast: true,
+  //         visible: true,
+  //       });
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   fetchUserPassword();
+  // }, []);
 
   // Handle current password validation
   const handleCurrentPasswordChange = useCallback(
@@ -236,7 +235,6 @@ const PasswordForm: React.FC = () => {
             onChange={handleCurrentPasswordChange}
             type="password"
             sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
-            disabled
           />
           {currentPasswordError && (
             <Typography color="error" variant="caption">

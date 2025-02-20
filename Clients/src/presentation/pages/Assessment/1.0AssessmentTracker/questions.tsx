@@ -57,10 +57,12 @@ const Questions = ({ subtopic, index }: QuestionsProps) => {
           maxWidth={"100%"}
           variant="rectangular"
         />
-      ) : questionsData ? (
+      ) : Array.isArray(questionsData) ? (
         questionsData
           .sort((a: any, b: any) => a.order_id - b.order_id)
-          .map((question: any) => <VWQuestion question={question} />)
+          .map((question: any) => (
+            <VWQuestion key={question.id} question={question} />
+          ))
       ) : (
         <Typography>Unable to get questions</Typography>
       )}

@@ -29,7 +29,7 @@ const VWQuestion = ({ question }: { question: Question }) => {
       const formData = new FormData();
       formData.append("question", JSON.stringify(values));
       evidenceFiles.forEach((file, index) => {
-        formData.append(`evidenceFiles[${index}]`, file);
+        formData.append(`evidence_files[${index}]`, file);
       });
 
       const updatedQuestion = await updateEntityById({

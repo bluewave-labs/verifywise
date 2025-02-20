@@ -1,5 +1,5 @@
 import "./index.css";
-import { Button, Stack, Typography, useTheme } from "@mui/material";
+import { Box, Button, Stack, Tab, Typography, useTheme } from "@mui/material";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
 import { Suspense, useCallback, useContext, useEffect, useState } from "react";
 
@@ -14,6 +14,9 @@ import { logEngine } from "../../../application/tools/log.engine";
 import Alert from "../../components/Alert";
 import PageTour from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
+import TabContext from "@mui/lab/TabContext";
+import TabList from "@mui/lab/TabList";
+import TabPanel from "@mui/lab/TabPanel";
 
 const Vendors = () => {
   const theme = useTheme();
@@ -42,17 +45,18 @@ const Vendors = () => {
   };
 
   const handleChange = (_: React.SyntheticEvent, newValue: string) => {
+    console.log("newValue :::: > ", newValue);
     setValue(newValue);
   };
 
   const fetchVendors = useCallback(async () => {
     try {
       const response = await getAllEntities({ routeUrl: "/vendors" });
-      console.log("response :::: > ", response);
       setDashboardValues((prevValues: any) => ({
         ...prevValues,
         vendors: response.data,
       }));
+      console.log("dashboardValues :::: > ", dashboardValues);
     } catch (error) {
       console.error("Error fetching vendors:", error);
     }
@@ -140,19 +144,19 @@ const Vendors = () => {
           </Suspense>
         )}
         <Stack>
-        <Typography
-       data-joyride-id="assessment-status"
-        variant="h2"
-        component="div"
-        sx={{
-          pb: 8.5,
-          color: "#1A1919",
-          fontSize: 16,
-          fontWeight: 600,
-        }}
-      >
-         Vendor list
-      </Typography>
+          <Typography
+            data-joyride-id="assessment-status"
+            variant="h2"
+            component="div"
+            sx={{
+              pb: 8.5,
+              color: "#1A1919",
+              fontSize: 16,
+              fontWeight: 600,
+            }}
+          >
+            Vendor list
+          </Typography>
           <Typography sx={singleTheme.textStyles.pageDescription}>
             This table includes a list of external entities that provides
             AI-related products, services, or components. You can create and
@@ -185,11 +189,57 @@ const Vendors = () => {
             Add new vendor
           </Button>
         </Stack>
-        <TableWithPlaceholder
+        {/* <TableWithPlaceholder
           dashboardValues={dashboardValues}
           onVendorChange={updateVendorChangeTrigger}
           onDeleteVendor={handleDeleteVendor}
-        />
+        /> */}
+        <TabContext value={value}>
+          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+            <TabList onChange={handleChange}>
+              <Tab
+                label="Vendors"
+                value="1"
+                sx={{
+                  width: 120,
+                  paddingX: 0,
+                  textTransform: "inherit",
+                  fontSize: 13,
+                  "& .MuiTouchRipple-root": {
+                    display: "none",
+                  },
+                }}
+              />
+              <Tab
+                label="Risks"
+                value="2"
+                sx={{
+                  width: 120,
+                  paddingX: 0,
+                  textTransform: "inherit",
+                  fontSize: 13,
+                  "& .MuiTouchRipple-root": {
+                    display: "none",
+                  },
+                }}
+              />
+            </TabList>
+          </Box>
+          <TabPanel value="1">
+            {/* <TableWithPlaceholder
+              dashboardValues={dashboardValues}
+              onVendorChange={updateVendorChangeTrigger}
+              onDeleteVendor={handleDeleteVendor}
+            /> */}
+          </TabPanel>
+          <TabPanel value="2">
+          <TableWithPlaceholder
+              dashboardValues={dashboardValues}
+              onVendorChange={updateVendorChangeTrigger}
+              onDeleteVendor={handleDeleteVendor}
+            />
+          </TabPanel>
+        </TabContext>
       </Stack>
       <AddNewVendor
         isOpen={isOpen}

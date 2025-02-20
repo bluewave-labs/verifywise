@@ -41,6 +41,7 @@ import {
   dropTable,
   checkDataExists,
   getDEMOProjects,
+  deleteDEMOData,
 } from "../utils/autoDriver.util";
 import { deleteProjectByIdQuery } from "../utils/project.utils";
 
@@ -51,7 +52,7 @@ const insertQuery = {
     insertString: "INSERT INTO roles(name, description) VALUES ",
     generateValuesString: function (role: Role) {
       return `(
-        'DEMO - ${role.name}',
+        '${role.name}',
         '${role.description}'
       )`;
     },
@@ -60,16 +61,17 @@ const insertQuery = {
     mockData: users,
     tableName: "users",
     insertString:
-      "INSERT INTO users(name, surname, email, password_hash, role, created_at, last_login) VALUES ",
+      "INSERT INTO users(name, surname, email, password_hash, role, created_at, last_login, is_demo) VALUES ",
     generateValuesString: function (user: User) {
       return `(
-        'DEMO - ${user.name}',
+        '${user.name}',
         '${user.surname}',
         '${user.email}',
         '${user.password_hash}',
         ${user.role},
         '${user.created_at.toISOString().split("T")[0]}',
-        '${user.last_login.toISOString().split("T")[0]}'
+        '${user.last_login.toISOString().split("T")[0]}',
+        '1'
       )`;
     },
   },
@@ -77,10 +79,10 @@ const insertQuery = {
     mockData: Projects,
     tableName: "projects",
     insertString:
-      "INSERT INTO projects(project_title, owner, members, start_date, ai_risk_classification, type_of_high_risk_role, goal, last_updated, last_updated_by) VALUES ",
+      "INSERT INTO projects(project_title, owner, members, start_date, ai_risk_classification, type_of_high_risk_role, goal, last_updated, last_updated_by, is_demo) VALUES ",
     generateValuesString: function (project: Project) {
       return `(
-        'DEMO - ${project.project_title}',
+        '${project.project_title}',
         '${project.owner}',
         '{${project.members}}',
         '${project.start_date.toISOString().split("T")[0]}',
@@ -88,7 +90,8 @@ const insertQuery = {
         '${project.type_of_high_risk_role}',
         '${project.goal}',
         '${project.last_updated.toISOString().split("T")[0]}',
-        '${project.last_updated_by}'
+        '${project.last_updated_by}',
+        '1'
       )`;
     },
   },
@@ -96,10 +99,10 @@ const insertQuery = {
     mockData: vendors,
     tableName: "vendors",
     insertString:
-      "INSERT INTO vendors(vendor_name, assignee, vendor_provides, website, vendor_contact_person, review_result, review_status, reviewer, risk_status, review_date, risk_description, impact_description, impact, probability, action_owner, action_plan, risk_severity, risk_level, likelihood) VALUES ",
+      "INSERT INTO vendors(vendor_name, assignee, vendor_provides, website, vendor_contact_person, review_result, review_status, reviewer, risk_status, review_date, risk_description, impact_description, impact, probability, action_owner, action_plan, risk_severity, risk_level, likelihood, is_demo) VALUES ",
     generateValuesString: function (vendor: Vendor) {
       return `(
-        'DEMO - ${vendor.vendorName}',
+        '${vendor.vendorName}',
         '${vendor.assignee}',
         '${vendor.vendorProvides}',
         '${vendor.website}',
@@ -117,28 +120,31 @@ const insertQuery = {
         '${vendor.actionPlan}',
         ${vendor.riskSeverity},
         '${vendor.riskLevel}',
-        '${vendor.likelihood}'
+        '${vendor.likelihood}',
+        '1'
       )`;
     },
   },
   assessments: {
     mockData: Assessments,
     tableName: "assessments",
-    insertString: "INSERT INTO assessments(project_id) VALUES ",
+    insertString: "INSERT INTO assessments(project_id, is_demo) VALUES ",
     generateValuesString: function (assessment: Assessment) {
       return `(
-        '${assessment.project_id}'
+        '${assessment.project_id}',
+        '1'
       )`;
     },
   },
   controlCategories: {
     mockData: ControlCategories,
     tableName: "controlcategories",
-    insertString: "INSERT INTO controlcategories(project_id, title) VALUES ",
+    insertString: "INSERT INTO controlcategories(project_id, title, is_demo) VALUES ",
     generateValuesString: function (controlCategory: ControlCategory) {
       return `(
         '${controlCategory.project_id}',
-        'DEMO - ${controlCategory.title}'
+        '${controlCategory.title}',
+        '1'
       )`;
     },
   },
@@ -150,7 +156,7 @@ const insertQuery = {
         title, description, order_no,
         status, approver, risk_review, 
         owner, reviewer, due_date, 
-        implementation_details, control_category_id) VALUES `,
+        implementation_details, control_category_id, is_demo) VALUES `,
     generateValuesString: function (control: Control) {
       return `(
         '${control.title}',
@@ -162,8 +168,9 @@ const insertQuery = {
         '${control.owner}',
         '${control.reviewer}',
         '${control.due_date!.toISOString().split("T")[0]}',
-        'DEMO - ${control.implementation_details}',
-        ${control.control_category_id}
+        '${control.implementation_details}',
+        ${control.control_category_id},
+        '1'
       )`;
     },
   },
@@ -176,7 +183,7 @@ const insertQuery = {
         status, approver, risk_review, 
         owner, reviewer, due_date, 
         implementation_details, evidence_description, feedback_description, 
-        evidence_files, feedback_files, control_id) VALUES `,
+        evidence_files, feedback_files, control_id, is_demo) VALUES `,
     generateValuesString: function (subControl: Subcontrol) {
       return `(
         '${subControl.title}',
@@ -188,12 +195,13 @@ const insertQuery = {
         '${subControl.owner}',
         '${subControl.reviewer}',
         '${subControl.due_date!.toISOString().split("T")[0]}',
-        'DEMO - ${subControl.implementation_details}',
+        '${subControl.implementation_details}',
         '${subControl.evidence_description}',
         '${subControl.feedback_description}',
         ARRAY[]::TEXT[],
         ARRAY[]::TEXT[],
-        '${subControl.control_id}'
+        '${subControl.control_id}',
+        '1'
       )`;
     },
   },
@@ -201,11 +209,11 @@ const insertQuery = {
     mockData: mockProjectRisks,
     tableName: "projectrisks",
     insertString:
-      "INSERT INTO projectrisks(project_id, risk_name, risk_owner, ai_lifecycle_phase, risk_description, risk_category, impact, assessment_mapping, controls_mapping, likelihood, severity, risk_level_autocalculated, review_notes, mitigation_status, current_risk_level, deadline, mitigation_plan, implementation_strategy, mitigation_evidence_document, likelihood_mitigation, risk_severity, final_risk_level, risk_approval, approval_status, date_of_assessment) VALUES ",
+      "INSERT INTO projectrisks(project_id, risk_name, risk_owner, ai_lifecycle_phase, risk_description, risk_category, impact, assessment_mapping, controls_mapping, likelihood, severity, risk_level_autocalculated, review_notes, mitigation_status, current_risk_level, deadline, mitigation_plan, implementation_strategy, mitigation_evidence_document, likelihood_mitigation, risk_severity, final_risk_level, risk_approval, approval_status, date_of_assessment, is_demo) VALUES ",
     generateValuesString: function (projectRisk: ProjectRisk) {
       return `(
         '${projectRisk.project_id}',
-        'DEMO - ${projectRisk.risk_name}',
+        '${projectRisk.risk_name}',
         '${projectRisk.risk_owner}',
         '${projectRisk.ai_lifecycle_phase}',
         '${projectRisk.risk_description}',
@@ -228,7 +236,8 @@ const insertQuery = {
         '${projectRisk.final_risk_level}',
         '${projectRisk.risk_approval}',
         '${projectRisk.approval_status}',
-        '${projectRisk.date_of_assessment.toISOString().split("T")[0]}'
+        '${projectRisk.date_of_assessment.toISOString().split("T")[0]}',
+        '1'
       )`;
     },
   },
@@ -236,15 +245,16 @@ const insertQuery = {
     mockData: mockVendorRisks,
     tableName: "vendorrisks",
     insertString:
-      "INSERT INTO vendorrisks(project_id, vendor_name, risk_name, owner, risk_level, review_date) VALUES ",
+      "INSERT INTO vendorrisks(project_id, vendor_name, risk_name, owner, risk_level, review_date, is_demo) VALUES ",
     generateValuesString: function (vendorRisk: VendorRisk) {
       return `(
         '${vendorRisk.project_id}',
-        'DEMO - ${vendorRisk.vendor_name}',
+        '${vendorRisk.vendor_name}',
         '${vendorRisk.risk_name}',
         '${vendorRisk.owner}',
         '${vendorRisk.risk_level}',
-        '${vendorRisk.review_date.toISOString().split("T")[0]}'
+        '${vendorRisk.review_date.toISOString().split("T")[0]}',
+        '1'
       )`;
     },
   },
@@ -252,38 +262,40 @@ const insertQuery = {
     mockData: projectScopes,
     tableName: "projectscopes",
     insertString:
-      "INSERT INTO projectscopes(assessment_id, describe_ai_environment, is_new_ai_technology, uses_personal_data, project_scope_documents, technology_type, has_ongoing_monitoring, unintended_outcomes, technology_documentation) VALUES ",
+      "INSERT INTO projectscopes(assessment_id, describe_ai_environment, is_new_ai_technology, uses_personal_data, project_scope_documents, technology_type, has_ongoing_monitoring, unintended_outcomes, technology_documentation, is_demo) VALUES ",
     generateValuesString: function (projectScope: ProjectScope) {
       return `(
         '${projectScope.assessmentId}',
-        'DEMO - ${projectScope.describeAiEnvironment}',
+        '${projectScope.describeAiEnvironment}',
         '${projectScope.isNewAiTechnology}',
         '${projectScope.usesPersonalData}',
         '${projectScope.projectScopeDocuments}',
         '${projectScope.technologyType}',
         '${projectScope.hasOngoingMonitoring}',
         '${projectScope.unintendedOutcomes}',
-        '${projectScope.technologyDocumentation}'
+        '${projectScope.technologyDocumentation}',
+        '1'
       )`;
     },
   },
   topics: {
     mockData: topics,
     tableName: "topics",
-    insertString: "INSERT INTO topics(assessment_id, title, order_no) VALUES ",
+    insertString: "INSERT INTO topics(assessment_id, title, order_no, is_demo) VALUES ",
     generateValuesString: function (topic: Topic) {
-      return `(${topic.assessment_id}, 'DEMO - ${topic.title}', ${topic.order_no})`;
+      return `(${topic.assessment_id}, '${topic.title}', ${topic.order_no}, '1')`;
     },
   },
   subtopics: {
     mockData: subtopics,
     tableName: "subtopics",
-    insertString: "INSERT INTO subtopics(topic_id, title, order_no) VALUES ",
+    insertString: "INSERT INTO subtopics(topic_id, title, order_no, is_demo) VALUES ",
     generateValuesString: function (subTopic: Subtopic) {
       return `(
         ${subTopic.topic_id},
-        'DEMO - ${subTopic.title}',
-        ${subTopic.order_no}
+        '${subTopic.title}',
+        ${subTopic.order_no},
+        '1'
       )`;
     },
   },
@@ -294,11 +306,11 @@ const insertQuery = {
       `INSERT INTO questions(subtopic_id, question, 
         answer_type, evidence_required, hint, 
         is_required, priority_level, evidence_files,
-        dropdown_options, answer, input_type, order_id) VALUES `,
+        dropdown_options, answer, input_type, order_id, is_demo) VALUES `,
     generateValuesString: function (question: Question) {
       return `(
         ${question.subtopic_id},
-        'DEMO - ${question.question}',
+        '${question.question}',
         '${question.answer_type}',
         ${question.evidence_required},
         '${question.hint}',
@@ -308,29 +320,32 @@ const insertQuery = {
         ARRAY[]::TEXT[],
         '${question.answer}',
         '${question.input_type}',
-        ${question.order_no}
+        ${question.order_no},
+        '1'
       )`;
     },
   },
   files: {
     mockData: [] as File[],
     tableName: "files",
-    insertString: "INSERT INTO files(filename, content) VALUES ",
+    insertString: "INSERT INTO files(filename, content, is_demo) VALUES ",
     generateValuesString: (file: File) => {
       return `(
         '${file.filename}',
-        '${file.content}'
+        '${file.content}',
+        '1'
       )`;
     },
   },
   vendorsProjects: {
     mockData: vendorsProjects,
     tableName: "vendors_projects",
-    insertString: "INSERT INTO vendors_projects(vendor_id, project_id) VALUES ",
+    insertString: "INSERT INTO vendors_projects(vendor_id, project_id, is_demo) VALUES ",
     generateValuesString: (vendors_projects: VendorsProjects) => {
       return `(
         '${vendors_projects.vendor_id}',
-        '${vendors_projects.project_id}'
+        '${vendors_projects.project_id}',
+        '1'
       )`;
     },
   },
@@ -553,11 +568,16 @@ export async function insertMockData() {
 }
 
 export async function deleteMockData() {
-  const projects = await getDEMOProjects()
-  for (let project of projects) {
-    await deleteProjectByIdQuery(project.id)
-  };
-  await deleteExistingData("vendors", "vendor_name");
-  await deleteExistingData("users", "name");
-  // await deleteExistingData("roles", "name");
+  // const projects = await getDEMOProjects()
+  // for (let project of projects) {
+  //   await deleteProjectByIdQuery(project.id)
+  // };
+  // await deleteExistingData("vendors", "vendor_name");
+  // await deleteExistingData("users", "name");
+  // // await deleteExistingData("roles", "name");
+
+  for (let table of ["questions", "subtopics", "topics", "projectscopes", "projectrisks", "vendorrisks",
+    "subcontrols", "controls", "controlcategories", "assessments", "vendors", "projects", "users"]) {
+    await deleteDEMOData(table)
+  }
 }

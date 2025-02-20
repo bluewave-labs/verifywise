@@ -1,25 +1,25 @@
 /**
- * ProgressStepper component renders a stepper with customizable steps.
- * Each step displays a label and content, and the active step is highlighted.
+ * VWStepper component renders a customizable stepper.
+ * It supports dynamic step configurations, theming, and clean architecture principles.
  *
  * @component
  * @example
  * const steps = [
- *   { label: 'Step 1', content: 'Content for step 1' },
- *   { label: 'Step 2', content: 'Content for step 2' },
- *   { label: 'Step 3', content: 'Content for step 3' }
+ *   { label: "Step 1", content: "Content for step 1" },
+ *   { label: "Step 2", content: "Content for step 2" },
+ *   { label: "Step 3", content: "Content for step 3" }
  * ];
- * return <ProgressStepper steps={steps} />;
- *
- * @param {ProgressStepperProps} props - The properties for the ProgressStepper component.
- * @param {StepProps[]} props.steps - An array of steps, each containing a label and content.
+ * return <VWStepper steps={steps} />;
  *
  * @typedef {Object} StepProps
  * @property {string} label - The label for the step.
  * @property {string} content - The content for the step.
  *
- * @typedef {Object} ProgressStepperProps
- * @property {StepProps[]} steps - An array of steps to be displayed in the stepper.
+ * @typedef {Object} VWStepperProps
+ * @property {StepProps[]} steps - An array of steps to be displayed.
+ * @property {number} [initialStep=0] - The initially active step.
+ * @property {boolean} [alternativeLabel=true] - Whether to use alternative labeling.
+ * @property {function} [onStepChange] - Callback function when a step is clicked.
  *
  * @returns {JSX.Element} The rendered stepper component.
  */
@@ -33,36 +33,45 @@ interface StepProps {
   content: string;
 }
 
-interface ProgressStepperProps {
+interface VWStepperProps {
   steps: StepProps[];
+  initialStep?: number;
+  alternativeLabel?: boolean;
+  onStepChange?: (stepIndex: number) => void;
 }
 
-const ProgressStepper: FC<ProgressStepperProps> = ({ steps }) => {
-  const [activeStep, setActiveStep] = useState(1);
+const VWStepper: FC<VWStepperProps> = ({
+  steps,
+  initialStep = 0,
+  alternativeLabel = true,
+  onStepChange,
+}) => {
+  const [activeStep, setActiveStep] = useState<number>(initialStep);
+
+  const handleStepClick = (index: number) => {
+    setActiveStep(index);
+    if (onStepChange) {
+      onStepChange(index);
+    }
+  };
 
   return (
-    <Stepper activeStep={activeStep} alternativeLabel>
-      {steps.map((step: StepProps, index: number) => {
-        const color = activeStep === index ? "primary" : "inherit";
-        return (
-          <Step key={step.label} onClick={() => setActiveStep(index)}>
-            <StepLabel StepIconComponent={CustomStepIcon}>
-              <Typography
-                variant="body1"
-                color={color}
-                sx={{ fontWeight: "bold" }}
-              >
-                {step.label}
-              </Typography>
-            </StepLabel>
-            <Typography variant="body1" color={color}>
-              {step.content}
+    <Stepper activeStep={activeStep} alternativeLabel={alternativeLabel} className="vw-stepper">
+      {steps.map((step, index) => (
+        <Step key={step.label} onClick={() => handleStepClick(index)} className="vw-step">
+          <StepLabel StepIconComponent={CustomStepIcon}>
+            <Typography
+              variant="body1"
+              color={activeStep === index ? "primary" : "inherit"}
+              sx={{ fontWeight: "bold" }}
+            >
+              {step.label}
             </Typography>
-          </Step>
-        );
-      })}
+          </StepLabel>
+        </Step>
+      ))}
     </Stepper>
   );
 };
 
-export default ProgressStepper;
+export default VWStepper;

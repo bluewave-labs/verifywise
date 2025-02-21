@@ -8,6 +8,7 @@ import {
   getVendorRiskByIdQuery,
   updateVendorRiskByIdQuery,
 } from "../utils/vendorRisk.util";
+import { VendorRisk } from "../models/vendorRisk.model";
 
 export async function getAllVendorRisks(
   req: Request,
@@ -51,30 +52,7 @@ export async function createVendorRisk(
   res: Response
 ): Promise<any> {
   try {
-    const newVendorRisk: {
-      project_id: number;
-      vendor_name: string;
-      risk_name: string;
-      owner: string;
-      risk_level: string;
-      review_date: Date;
-    } = req.body;
-
-    if (
-      !newVendorRisk.project_id ||
-      !newVendorRisk.vendor_name ||
-      !newVendorRisk.risk_name ||
-      !newVendorRisk.owner ||
-      !newVendorRisk.risk_level ||
-      !newVendorRisk.review_date
-    ) {
-      return res.status(400).json(
-        STATUS_CODE[400]({
-          message:
-            "project_id, vendor_name, risk_name, owner, risk_level, and review_date are required",
-        })
-      );
-    }
+    const newVendorRisk: VendorRisk = req.body;
 
     const createdVendorRisk = await createNewVendorRiskQuery(newVendorRisk);
 
@@ -94,30 +72,7 @@ export async function updateVendorRiskById(
 ): Promise<any> {
   try {
     const vendorRiskId = parseInt(req.params.id);
-    const updatedVendorRisk: {
-      project_id: number;
-      vendor_name: string;
-      risk_name: string;
-      owner: string;
-      risk_level: string;
-      review_date: Date;
-    } = req.body;
-
-    if (
-      !updatedVendorRisk.project_id ||
-      !updatedVendorRisk.vendor_name ||
-      !updatedVendorRisk.risk_name ||
-      !updatedVendorRisk.owner ||
-      !updatedVendorRisk.risk_level ||
-      !updatedVendorRisk.review_date
-    ) {
-      return res.status(400).json(
-        STATUS_CODE[400]({
-          message:
-            "project_id, vendor_name, risk_name, owner, risk_level, and review_date are required",
-        })
-      );
-    }
+    const updatedVendorRisk: VendorRisk = req.body;
 
     const vendorRisk = await updateVendorRiskByIdQuery(
       vendorRiskId,

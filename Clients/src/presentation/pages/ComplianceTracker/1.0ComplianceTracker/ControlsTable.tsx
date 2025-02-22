@@ -14,6 +14,7 @@ import { useCallback, useEffect, useState } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import { Control } from "../../../../domain/Control";
+import VWSkeleton from "../../../vw-v2-components/Skeletons";
 
 const cellStyle = {
   ...singleTheme.tableStyles.primary.body.row,
@@ -51,6 +52,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
           routeUrl: `/controls/all/bycategory/${controlCategoryId}`,
         });
         setControls(response.data);
+        console.log("first control: ", controls);
       } catch (err) {
         setError(err);
       } finally {
@@ -60,6 +62,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
 
     fetchControls();
   }, [controlCategoryId]);
+
   const getProgressColor = useCallback((value: number) => {
     if (value <= 10) return "#FF4500"; // 0-10%
     if (value <= 20) return "#FF4500"; // 11-20%
@@ -74,7 +77,13 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <Stack spacing={2}>
+        <VWSkeleton variant="rectangular" width="100%" height={36} />
+        <VWSkeleton variant="rectangular" width="100%" height={36} />
+        <VWSkeleton variant="rectangular" width="100%" height={36} />
+      </Stack>
+    );
   }
 
   if (error) {

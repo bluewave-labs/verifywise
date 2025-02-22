@@ -549,7 +549,26 @@ export async function getControlsByControlCategoryId(
 ): Promise<any> {
   try {
     const controlCategoryId = parseInt(req.params.id);
-    const controls = await getAllControlsByControlGroupQuery(controlCategoryId);
+    const controls: Control[] = await getAllControlsByControlGroupQuery(
+      controlCategoryId
+    );
+    for (const control of controls) {
+      if (control && control.id !== undefined) {
+        const subControls = await getAllSubcontrolsByControlIdQuery(control.id);
+        let numberOfSubcontrols = 0;
+        let numberOfDoneSubcontrols = 0;
+
+        for (const subControl of subControls) {
+          numberOfSubcontrols++;
+          if (subControl.status === "Done") {
+            numberOfDoneSubcontrols++;
+          }
+        }
+
+        control.numberOfSubcontrols = numberOfSubcontrols;
+        control.numberOfDoneSubcontrols = numberOfDoneSubcontrols;
+      }
+    }
     return res.status(200).json(STATUS_CODE[200](controls));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

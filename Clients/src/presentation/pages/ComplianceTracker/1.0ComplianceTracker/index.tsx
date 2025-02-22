@@ -7,6 +7,7 @@ import VWSkeleton from "../../../vw-v2-components/Skeletons";
 
 const ComplianceTracker = () => {
   const [complianceData, setComplianceData] = useState<any>(null);
+  const [controlCategories, setControlCategories] = useState<any>(null);
   const [error, setError] = useState<unknown>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [projectId, setProjectId] = useState<string | null>(null);
@@ -32,7 +33,21 @@ const ComplianceTracker = () => {
       }
     };
 
+    const fetchControlCategories = async () => {
+      if (!projectId) return;
+
+      try {
+        const response = await getEntityById({
+          routeUrl: `/controlCategory/byprojectid/${projectId}`,
+        });
+        setControlCategories(response);
+      } catch (err) {
+        setError(err);
+      }
+    };
+
     fetchComplianceData();
+    fetchControlCategories();
   }, [projectId]);
 
   if (loading) {
@@ -64,6 +79,11 @@ const ComplianceTracker = () => {
           title="Subcontrols"
           progressbarColor="#13715B"
         />
+      )}
+      {controlCategories && (
+        <Typography>
+          Control Categories: {JSON.stringify(controlCategories)}
+        </Typography>
       )}
     </Stack>
   );

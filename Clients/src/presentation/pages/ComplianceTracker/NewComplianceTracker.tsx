@@ -165,6 +165,12 @@ const NewComplianceTracker = () => {
         >
           <AccordionSummary
             className="new-compliance-tracker-details-accordion-summary"
+            sx={{
+              backgroundColor: "#fafafa",
+              padding: "10px",
+              flexDirection: "row-reverse",
+              height: 64,
+            }}
             expandIcon={
               <ExpandMoreIcon
                 sx={{

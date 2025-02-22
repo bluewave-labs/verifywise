@@ -567,6 +567,7 @@ export async function getControlsByControlCategoryId(
 
         control.numberOfSubcontrols = numberOfSubcontrols;
         control.numberOfDoneSubcontrols = numberOfDoneSubcontrols;
+        control.subControls = subControls;
       }
     }
     return res.status(200).json(STATUS_CODE[200](controls));

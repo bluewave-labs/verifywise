@@ -15,6 +15,7 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import { Control } from "../../../../domain/Control";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
+import NewControlPane from "../../../components/Modals/Controlpane/NewControlPane";
 
 const cellStyle = {
   ...singleTheme.tableStyles.primary.body.row,
@@ -44,6 +45,13 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   const [controls, setControls] = useState<Control[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<unknown>(null);
+  const [selectedRow, setSelectedRow] = useState<number | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const handleRowClick = (id: number) => {
+    setSelectedRow(id);
+    setModalOpen(true);
+  };
 
   useEffect(() => {
     const fetchControls = async () => {
@@ -112,7 +120,24 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
         </TableHead>
         <TableBody>
           {controls.map((control: Control) => (
-            <TableRow key={control.id} sx={cellStyle}>
+            <TableRow
+              key={control.id}
+              sx={cellStyle}
+              onClick={() =>
+                control.id !== undefined && handleRowClick(control.id)
+              }
+            >
+              {modalOpen && selectedRow === control.id && (
+                <NewControlPane
+                  data={control}
+                  isOpen={modalOpen}
+                  handleClose={() => setModalOpen(false)}
+                  OnSave={() => {
+                    console.log("Save clicked");
+                  }}
+                  controlCategoryId={control.order_no?.toString()}
+                />
+              )}
               <TableCell
                 sx={cellStyle}
                 key={`${controlCategoryId}-${control.id}`}
@@ -142,9 +167,8 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
                     variant="determinate"
                     value={
                       control.numberOfSubcontrols
-                        ? (control.numberOfDoneSubcontrols! /
-                            control.numberOfSubcontrols) *
-                          100
+                        ? (control.numberOfDoneSubcontrols ??
+                            0 / control.numberOfSubcontrols) * 100
                         : 0
                     }
                     sx={{
@@ -155,9 +179,8 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
                       "& .MuiLinearProgress-bar": {
                         backgroundColor: getProgressColor(
                           control.numberOfSubcontrols
-                            ? (control.numberOfDoneSubcontrols! /
-                                control.numberOfSubcontrols) *
-                                100
+                            ? (control.numberOfDoneSubcontrols ??
+                                0 / control.numberOfSubcontrols) * 100
                             : 0
                         ),
                       },

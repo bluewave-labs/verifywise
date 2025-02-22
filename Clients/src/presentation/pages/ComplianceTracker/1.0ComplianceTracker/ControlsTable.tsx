@@ -53,6 +53,11 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
     setModalOpen(true);
   };
 
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedRow(null);
+  };
+
   useEffect(() => {
     const fetchControls = async () => {
       try {
@@ -119,77 +124,81 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
           </TableRow>
         </TableHead>
         <TableBody>
-          {controls.map((control: Control) => (
-            <TableRow
-              key={control.id}
-              sx={cellStyle}
-              onClick={() =>
-                control.id !== undefined && handleRowClick(control.id)
-              }
-            >
-              {modalOpen && selectedRow === control.id && (
-                <NewControlPane
-                  data={control}
-                  isOpen={modalOpen}
-                  handleClose={() => setModalOpen(false)}
-                  OnSave={() => {
-                    console.log("Save clicked");
-                  }}
-                  controlCategoryId={control.order_no?.toString()}
-                />
-              )}
-              <TableCell
+          {controls
+            .sort((a, b) => (a.order_no ?? 0) - (b.order_no ?? 0))
+            .map((control: Control) => (
+              <TableRow
+                key={control.id}
                 sx={cellStyle}
-                key={`${controlCategoryId}-${control.id}`}
+                onClick={() =>
+                  control.id !== undefined && handleRowClick(control.id)
+                }
               >
-                {controlCategoryIndex}.{`${control.order_no}`} {control.title}{" "}
-                {`(${control.description}`.substring(0, 20) + `...)`}
-              </TableCell>
-              <TableCell sx={cellStyle} key={`owner-${control.id}`}>
-                {control.owner ? control.owner : "Not set"}
-              </TableCell>
-              <TableCell sx={cellStyle} key={`noOfSubControls-${control.id}`}>
-                {`${control.numberOfSubcontrols} Subcontrols`}
-              </TableCell>
-              <TableCell sx={cellStyle} key={`completion-${control.id}`}>
-                <Stack direction="row" alignItems="center" spacing={1}>
-                  <Typography variant="body2">
-                    {`${
-                      control.numberOfSubcontrols
-                        ? (
-                            control.numberOfDoneSubcontrols! /
-                            control.numberOfSubcontrols
-                          ).toFixed(2)
-                        : "0"
-                    }%`}
-                  </Typography>
-                  <LinearProgress
-                    variant="determinate"
-                    value={
-                      control.numberOfSubcontrols
-                        ? (control.numberOfDoneSubcontrols ??
-                            0 / control.numberOfSubcontrols) * 100
-                        : 0
-                    }
-                    sx={{
-                      width: "100px",
-                      height: "5px",
-                      borderRadius: "4px",
-                      backgroundColor: theme.palette.grey[200],
-                      "& .MuiLinearProgress-bar": {
-                        backgroundColor: getProgressColor(
-                          control.numberOfSubcontrols
-                            ? (control.numberOfDoneSubcontrols ??
-                                0 / control.numberOfSubcontrols) * 100
-                            : 0
-                        ),
-                      },
+                {modalOpen && selectedRow === control.id && (
+                  <NewControlPane
+                    data={control}
+                    isOpen={modalOpen}
+                    handleClose={handleCloseModal} // Ensure handleCloseModal is passed correctly
+                    OnSave={() => {
+                      console.log("Save clicked");
                     }}
+                    controlCategoryId={control.order_no?.toString()}
                   />
-                </Stack>
-              </TableCell>
-            </TableRow>
-          ))}
+                )}
+                <TableCell
+                  sx={cellStyle}
+                  key={`${controlCategoryId}-${control.id}`}
+                >
+                  {controlCategoryIndex}.{`${control.order_no}`} {control.title}{" "}
+                  {`(${control.description}`.substring(0, 20) + `...)`}
+                </TableCell>
+                <TableCell sx={cellStyle} key={`owner-${control.id}`}>
+                  {control.owner ? control.owner : "Not set"}
+                </TableCell>
+                <TableCell sx={cellStyle} key={`noOfSubControls-${control.id}`}>
+                  {`${control.numberOfSubcontrols} Subcontrols`}
+                </TableCell>
+                <TableCell sx={cellStyle} key={`completion-${control.id}`}>
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <Typography variant="body2">
+                      {`${
+                        control.numberOfSubcontrols
+                          ? (
+                              control.numberOfDoneSubcontrols! /
+                              control.numberOfSubcontrols
+                            ).toFixed(2)
+                          : "0"
+                      }%`}
+                    </Typography>
+                    <LinearProgress
+                      variant="determinate"
+                      value={
+                        control.numberOfSubcontrols
+                          ? ((control.numberOfDoneSubcontrols ?? 0) /
+                              control.numberOfSubcontrols) *
+                            100
+                          : 0
+                      }
+                      sx={{
+                        width: "100px",
+                        height: "5px",
+                        borderRadius: "4px",
+                        backgroundColor: theme.palette.grey[200],
+                        "& .MuiLinearProgress-bar": {
+                          backgroundColor: getProgressColor(
+                            control.numberOfSubcontrols
+                              ? ((control.numberOfDoneSubcontrols ?? 0) /
+                                  control.numberOfSubcontrols) *
+                                  100
+                              : 0
+                          ),
+                        },
+                      }}
+                    />
+                  </Stack>
+                </TableCell>
+              </TableRow>
+            ))}
         </TableBody>
       </Table>
     </TableContainer>

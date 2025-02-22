@@ -1,3 +1,4 @@
+import "./index.css";
 import {
   Accordion,
   AccordionDetails,
@@ -32,7 +33,7 @@ const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
     };
 
   return (
-    <Stack className="control-category" sx={{ marginTop: "14px" }}>
+    <Stack className="control-category">
       <Accordion
         className="control-category-accordion"
         expanded={expanded === controlCategory.id}

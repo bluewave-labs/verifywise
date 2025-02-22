@@ -4,10 +4,13 @@ import { pageHeadingStyle } from "../../Assessment/1.0AssessmentTracker/index.st
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import StatsCard from "../../../components/Cards/StatsCard";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
+import { ControlCategory as ControlCategoryModel } from "../../../../domain/ControlCategory";
+import ControlCategoryTile from "./ControlCategory";
 
 const ComplianceTracker = () => {
   const [complianceData, setComplianceData] = useState<any>(null);
-  const [controlCategories, setControlCategories] = useState<any>(null);
+  const [controlCategories, setControlCategories] =
+    useState<ControlCategoryModel[]>();
   const [error, setError] = useState<unknown>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [projectId, setProjectId] = useState<string | null>(null);
@@ -41,6 +44,7 @@ const ComplianceTracker = () => {
           routeUrl: `/controlCategory/byprojectid/${projectId}`,
         });
         setControlCategories(response);
+        console.log("controlCategories: ", controlCategories);
       } catch (err) {
         setError(err);
       }
@@ -80,11 +84,15 @@ const ComplianceTracker = () => {
           progressbarColor="#13715B"
         />
       )}
-      {controlCategories && (
-        <Typography>
-          Control Categories: {JSON.stringify(controlCategories)}
-        </Typography>
-      )}
+      <Stack>
+        {controlCategories &&
+          controlCategories.map((controlCategory: ControlCategoryModel) => (
+            <ControlCategoryTile
+              key={controlCategory.id}
+              controlCategory={controlCategory}
+            />
+          ))}
+      </Stack>
     </Stack>
   );
 };

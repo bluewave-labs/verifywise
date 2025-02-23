@@ -1,4 +1,4 @@
-**This file may be out of date as the installation method might be changing over time. Please open an issue on GitHub if you hit any problems **
+**This file may be out of date as the installation method might be changing over time. Please open an issue on GitHub if you hit any problems**
 
 # Installing VerifyWise
 

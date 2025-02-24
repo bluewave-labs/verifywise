@@ -280,7 +280,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
     const handleCloseDeleteDialog = useCallback((): void => {
       setIsDeleteModalOpen(false);
     }, []);
-
+    // saves the project
     const handleSaveConfirm = useCallback(async () => {
       const selectedRiskClass =
         riskClassificationItems.find(
@@ -517,34 +517,18 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             error={errors.typeOfHighRiskRole}
             isRequired
           />
-          {/* <Stack gap="5px" sx={{ mt: "6px" }}>
-            <Typography
-              sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
+          <Stack>
+            <Stack
+              direction="row"
+              justifyContent="flex-end"
+              sx={{
+                mt: 4,
+              }}
             >
-              Delete project
-            </Typography>
-            <Typography
-              sx={{ fontSize: theme.typography.fontSize, color: "#667085" }}
-            >
-              Note that deleting a project will remove all data related to that
-              project from our system. This is permanent and non-recoverable.
-            </Typography>
-          </Stack> */}
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            spacing={2}
-            sx={{
-              paddingX: theme.spacing(2),
-              width: "fit-content",
-              marginTop: theme.spacing(4),
-            }}
-          >
-            <Stack>
               <Button
                 variant="contained"
                 type="submit"
+                onAbort={handleSaveConfirm}
                 sx={{
                   width: 60,
                   height: 34,
@@ -563,15 +547,15 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             </Stack>
             {/* divider for seperation */}
             <Stack
-              sx={{ mt: 6, borderTop: "1px solid #E0E0E0", width: "100%" }}
+              sx={{ mt: 6, borderTop: "1px solid #E0E0E0", pt:8}}
             >
               <Typography
-                sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
+                sx={{ fontSize: theme.typography.fontSize, fontWeight: 600, mb:4}}
               >
                 Delete project
               </Typography>
               <Typography
-                sx={{ fontSize: theme.typography.fontSize, color: "#667085" }}
+                sx={{ fontSize: theme.typography.fontSize, color: "#667085", mb:8 }}
               >
                 Note that deleting a project will remove all data related to
                 that project from our system. This is permanent and

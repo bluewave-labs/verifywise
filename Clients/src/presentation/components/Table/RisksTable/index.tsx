@@ -45,7 +45,6 @@ const RiskTable: React.FC<RiskTableProps> = ({
     null
   );
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
-  console.log("dashboardValues**********", dashboardValues);
   const handleChangePage = useCallback((_: unknown, newPage: number) => {
     setPage(newPage);
   }, []);
@@ -117,11 +116,6 @@ const RiskTable: React.FC<RiskTableProps> = ({
                     : "No review date"}
                 </TableCell>
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                  {/* <IconButton
-                    vendorId={row.id}
-                    onVendorChange={onVendorChange}
-                    onDeleteVendor={onDeleteVendor}
-                  ></IconButton> */}
                 </TableCell>
               </TableRow>
             ))}

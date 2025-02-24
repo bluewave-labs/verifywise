@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import { Stack, useTheme, IconButton } from "@mui/material";
 import Uppy from "@uppy/core";
 import { useState, useEffect } from "react";

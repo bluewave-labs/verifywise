@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import React, { useEffect, useState } from "react";
 import { Box, Tooltip, IconButton, Stack } from "@mui/material";
 import { useEditor, EditorContent } from "@tiptap/react";
@@ -22,7 +26,9 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   headerSx,
   initialContent = "",
 }) => {
-  const [activeList, setActiveList] = useState<"bulleted" | "numbered" | null>(null);
+  const [activeList, setActiveList] = useState<"bulleted" | "numbered" | null>(
+    null
+  );
 
   const editor = useEditor({
     extensions: [StarterKit],
@@ -31,7 +37,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     immediatelyRender: true,
     onUpdate: ({ editor }) => {
       onContentChange?.(editor.getHTML());
-    }
+    },
   });
 
   useEffect(() => {
@@ -42,12 +48,14 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
   const applyFormatting = (type: string) => {
     if (!editor) return;
-    
+
     const toggleFormatting: { [key: string]: () => void } = {
       bold: () => editor.chain().focus().toggleBold().run(),
       italic: () => editor.chain().focus().toggleItalic().run(),
-      uppercase: () => editor.commands.setContent(editor.getText().toUpperCase()),
-      lowercase: () => editor.commands.setContent(editor.getText().toLowerCase()),
+      uppercase: () =>
+        editor.commands.setContent(editor.getText().toUpperCase()),
+      lowercase: () =>
+        editor.commands.setContent(editor.getText().toLowerCase()),
       bullets: () => {
         editor.chain().focus().toggleBulletList().run();
         setActiveList((prev) => (prev === "bulleted" ? null : "bulleted"));

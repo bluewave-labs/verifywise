@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import { Button, Stack, Typography, useTheme } from "@mui/material";
 import React, { useState } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
@@ -8,8 +12,14 @@ import { ReactComponent as LeftArrowLong } from "../../../assets/icons/left-arro
 import { ReactComponent as Lock } from "../../../assets/icons/lock.svg";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate } from "react-router-dom";
-import { validatePassword, validateForm } from "../../../../application/validations/formValidation";
-import type { FormValues, FormErrors } from "../../../../application/validations/formValidation";
+import {
+  validatePassword,
+  validateForm,
+} from "../../../../application/validations/formValidation";
+import type {
+  FormValues,
+  FormErrors,
+} from "../../../../application/validations/formValidation";
 import VWAlert from "../../../vw-v2-components/Alerts";
 
 // Initial state for form values
@@ -37,7 +47,6 @@ const SetNewPassword: React.FC = () => {
       setValues({ ...values, [prop]: event.target.value });
       setErrors({ ...errors, [prop]: "" });
     };
-
 
   // Handle form submission
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -70,7 +79,7 @@ const SetNewPassword: React.FC = () => {
       }}
     >
       {/* toast component */}
-      {isSubmitting && <VWAlert title="Updating password. Please wait..."  />}
+      {isSubmitting && <VWAlert title="Updating password. Please wait..." />}
       <Background
         style={{
           position: "absolute",

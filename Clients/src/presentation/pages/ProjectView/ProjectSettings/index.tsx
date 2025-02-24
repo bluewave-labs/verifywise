@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import {
   Button,
   SelectChangeEvent,
@@ -573,8 +577,8 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
               </Button>
             
           </Stack>
-
-
+        
+        
         </Stack>
 
         {isDeleteModalOpen && (

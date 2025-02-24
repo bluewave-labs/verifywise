@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import { Button, Stack, Typography, useTheme } from "@mui/material";
 import React, { Suspense, useState } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";

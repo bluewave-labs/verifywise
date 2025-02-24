@@ -1,5 +1,5 @@
 import { Stack } from "@mui/material";
-import AssessmentTracker from "./Assessment/1.0AssessmentTracker";
+import ComplianceTracker from "./ComplianceTracker/1.0ComplianceTracker";
 
 const Playground = () => {
   return (
@@ -16,7 +16,7 @@ const Playground = () => {
         }
       }
     >
-      <AssessmentTracker />
+      <ComplianceTracker />
     </Stack>
   );
 };

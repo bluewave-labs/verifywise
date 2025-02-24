@@ -95,22 +95,25 @@ export const updateQuestionByIdQuery = async (
   files: UploadedFile[]
 ): Promise<Question | null> => {
   let uploadedFiles: { id: number; fileName: string }[] = [];
-  await Promise.all(
-    files.map(async (file) => {
-      const uploadedFile = await uploadFile(file);
-      uploadedFiles.push({
-        id: uploadedFile.id.toString(),
-        fileName: uploadedFile.filename,
-      });
-    })
-  );
+  if (files && files.length > 0) {
+    await Promise.all(
+      files.map(async (file) => {
+        const uploadedFile = await uploadFile(file);
+        uploadedFiles.push({
+          id: uploadedFile.id.toString(),
+          fileName: uploadedFile.filename,
+        });
+      })
+    );
+  }
+
   const result = await pool.query(
     `UPDATE questions SET 
       subtopic_id = $1, question = $2, answer_type = $3, 
       evidence_required = $4, hint = $5, is_required = $6, 
       priority_level = $7, evidence_files = $8, answer = $9, 
-      dropdown_options = $10, input_type = $11
-      WHERE id = $12 RETURNING *`,
+      dropdown_options = $10, input_type = $11, order_id = $12
+      WHERE id = $13 RETURNING *`,
     [
       question.subtopic_id,
       question.question,
@@ -121,11 +124,13 @@ export const updateQuestionByIdQuery = async (
       question.priority_level,
       uploadedFiles,
       question.answer,
-      JSON.parse(question.dropdown_options!.toString()),
+      question.dropdown_options,
       question.input_type,
+      question.order_no,
       id,
     ]
   );
+
   return result.rows.length ? result.rows[0] : null;
 };
 

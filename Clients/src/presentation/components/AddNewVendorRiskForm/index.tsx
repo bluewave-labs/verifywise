@@ -10,13 +10,15 @@ import { apiServices } from "../../../infrastructure/api/networkServices";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { useSearchParams } from "react-router-dom";
 import useUsers from "../../../application/hooks/useUsers";
+import { handleAlert } from "../../../application/tools/alertUtils";
+import { AlertProps } from "../Alert";
 
 const Alert = lazy(() => import("../Alert"));
 
 interface RiskSectionProps {
   closePopup: () => void;
   onSuccess: () => void;
-  popupStatus: string;  
+  popupStatus: string;
 }
 
 interface FormValues {
@@ -42,12 +44,6 @@ const initialState: FormValues = {
   reviewDate: "",
   riskDescription: "",
 };
-
-interface AlertProps {
-  variant: "success" | "info" | "warning" | "error";
-  title?: string;
-  body: string;
-}
 
 /**
  * `AddNewVendorRiskForm` is a functional component that renders a form for adding a new vendor risk.
@@ -96,17 +92,13 @@ interface AlertProps {
 const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, popupStatus }) => {
   const theme = useTheme();
   const { inputValues, dashboardValues } = useContext(VerifyWiseContext);
-  
+
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId");
 
   const [values, setValues] = useState<FormValues>(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [alert, setAlert] = useState<{
-    variant: "success" | "info" | "warning" | "error";
-    title?: string;
-    body: string;
-  } | null>(null);
+  const [alert, setAlert] = useState<AlertProps | null>(null);
   const { users } = useUsers();
 
   const handleDateChange = (newDate: Dayjs | null) => {
@@ -166,17 +158,6 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, pop
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleAlert = ({ variant, body, title }: AlertProps) => {
-    setAlert({
-      variant,
-      title,
-      body,
-    });
-    setTimeout(() => {
-      setAlert(null);
-    }, 2500);
-  };
-
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (validateForm()) {
@@ -188,7 +169,7 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, pop
         "owner": values.actionOwner,
         "risk_level": "High Risk", // Need to remove the field
         "review_date": values.reviewDate,
-        // "description": values.riskDescription 
+        // "description": values.riskDescription
       }
 
       console.log(formData)
@@ -197,19 +178,21 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, pop
         try {
           const response = await apiServices.put("/vendorRisks/" + inputValues.id, formData);
           console.log(response)
-          if (response.status === 202) { 
+          if (response.status === 202) {
             onSuccess();
             closePopup();
           }else{
             handleAlert({
               variant: "error",
               body: "Error occurs while updating the risk.",
+              setAlert
             });
           }
         } catch (error) {
           handleAlert({
             variant: "error",
             body: error + " occurs while sending a request.",
+            setAlert
           });
         }
       }else{
@@ -217,19 +200,21 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, pop
         try {
           const response = await apiServices.post("/vendorRisks", formData);
           console.log(response)
-          if (response.status === 201) { 
+          if (response.status === 201) {
             onSuccess();
             closePopup();
           }else{
             handleAlert({
               variant: "error",
               body: "Error occurs while creating a risk.",
+              setAlert
             });
           }
         } catch (error) {
           handleAlert({
             variant: "error",
             body: error + " occurs while sending a request.",
+            setAlert
           });
         }
       }
@@ -248,15 +233,15 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, pop
       // riskData
       const currentRiskData: FormValues = {
         ...initialState,
-        riskName: inputValues.risk_name ?? "",  
-        reviewDate: inputValues.review_date ? dayjs(inputValues.review_date).toISOString() : "",         
+        riskName: inputValues.risk_name ?? "",
+        reviewDate: inputValues.review_date ? dayjs(inputValues.review_date).toISOString() : "",
         vendorName: parseInt(inputValues.vendor_name) ?? 0,
         actionOwner: parseInt(inputValues.owner) ?? 0,
-        riskDescription: inputValues.risk_description ?? "",  
+        riskDescription: inputValues.risk_description ?? "",
       };
       setValues(currentRiskData);
     }
-  }, [popupStatus])  
+  }, [popupStatus])
 
   return (
     <Stack>

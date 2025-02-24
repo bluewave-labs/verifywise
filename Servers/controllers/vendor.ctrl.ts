@@ -8,6 +8,7 @@ import {
   getVendorByIdQuery,
   updateVendorByIdQuery,
 } from "../utils/vendor.utils";
+import { Vendor } from "../models/vendor.model";
 
 export async function getAllVendors(req: Request, res: Response): Promise<any> {
   try {
@@ -41,30 +42,9 @@ export async function getVendorById(req: Request, res: Response): Promise<any> {
 
 export async function createVendor(req: Request, res: Response): Promise<any> {
   try {
-    const newVendor: {
-      projectId: number;
-      vendorName: string;
-      assignee: string;
-      vendorProvides: string;
-      website: string;
-      vendorContactPerson: string;
-      reviewResult: string;
-      reviewStatus: string;
-      reviewer: string;
-      riskStatus: string;
-      reviewDate: Date;
-      riskDescription: string;
-      impactDescription: string;
-      impact: number;
-      probability: number;
-      actionOwner: string;
-      actionPlan: string;
-      riskSeverity: number;
-      riskLevel: string;
-      likelihood: number;
-    } = req.body;
+    const newVendor: Vendor = req.body;
 
-    if (!newVendor.vendorName || !newVendor.vendorProvides) {
+    if (!newVendor.vendor_name || !newVendor.vendor_provides) {
       return res.status(400).json(
         STATUS_CODE[400]({
           message: "vendorName and vendorProvides are required",
@@ -90,30 +70,9 @@ export async function updateVendorById(
 ): Promise<any> {
   try {
     const vendorId = parseInt(req.params.id);
-    const updatedVendor: {
-      projectId: number;
-      vendorName: string;
-      assignee: string;
-      vendorProvides: string;
-      website: string;
-      vendorContactPerson: string;
-      reviewResult: string;
-      reviewStatus: string;
-      reviewer: string;
-      riskStatus: string;
-      reviewDate: Date;
-      riskDescription: string;
-      impactDescription: string;
-      impact: number;
-      probability: number;
-      actionOwner: string;
-      actionPlan: string;
-      riskSeverity: number;
-      riskLevel: string;
-      likelihood: number;
-    } = req.body;
+    const updatedVendor: Vendor = req.body;
 
-    if (!updatedVendor.vendorName || !updatedVendor.vendorProvides) {
+    if (!updatedVendor.vendor_name || !updatedVendor.vendor_provides) {
       return res.status(400).json(
         STATUS_CODE[400]({
           message: "vendorName and vendorProvides are required",

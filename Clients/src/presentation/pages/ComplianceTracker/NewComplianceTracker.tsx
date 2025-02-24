@@ -103,7 +103,7 @@ const NewComplianceTracker = () => {
   const fetchComplianceTracker = async (projectId: number) => {
     try {
       const response = await getAllEntities({
-        routeUrl: `/controls?projectId=${projectId}`,
+        routeUrl: `/complainces/${projectId}`,
       });
       console.log("Response:", response);
       setDashboardValues((prevValues: any) => ({
@@ -119,7 +119,7 @@ const NewComplianceTracker = () => {
   const fetchComplianceTrackerCalculation = async (projectId: number) => {
     try {
       const response = await getAllEntities({
-        routeUrl: `/projects/progress/${projectId}`,
+        routeUrl: `/projects/compliance/progress/${projectId}`,
       });
 
       setComplianceStatus({
@@ -165,6 +165,12 @@ const NewComplianceTracker = () => {
         >
           <AccordionSummary
             className="new-compliance-tracker-details-accordion-summary"
+            sx={{
+              backgroundColor: "#fafafa",
+              padding: "10px",
+              flexDirection: "row-reverse",
+              height: 64,
+            }}
             expandIcon={
               <ExpandMoreIcon
                 sx={{

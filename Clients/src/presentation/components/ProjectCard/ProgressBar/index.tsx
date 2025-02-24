@@ -1,28 +1,15 @@
-/**
- * Progress bar display component for calculating the status of completed actions in fields.
- *
- * @component
- * @param {ProgressBarProps} props - The properties for the ProgressBar component.
- * @param {string} props.progress - The progress is how full the indicator is in string format.
- * @returns {JSX.Element} The rendered ProgressBar component.
- */
-
 import { Slider, Stack, useTheme } from "@mui/material";
-import { FC } from "react";
+import { FC, useCallback } from "react";
 
 interface ProgressBarProps {
   progress: string | null;
-  bgColor?: string;
 }
 
-const ProgressBar: FC<ProgressBarProps> = ({
-  progress = "",
-  bgColor = "#4C7DE7",
-}) => {
+const ProgressBar: FC<ProgressBarProps> = ({ progress = "" }) => {
   const theme = useTheme();
+
   const progressCount = (progressString: string): number => {
-    // Function to calculate a number showing how full the indicator is
-    const [completed, total] = progressString.split("/").map(Number); // Getting values ​​from a slash separated string. The first value shows how full it is, the second is the total value.
+    const [completed, total] = progressString.split("/").map(Number);
     if (Number.isNaN(completed) || Number.isNaN(total)) {
       throw new Error(
         `Invalid progress format. Expected 'number/number', got: ${progressString}`
@@ -39,17 +26,31 @@ const ProgressBar: FC<ProgressBarProps> = ({
     }
     return completed / total;
   };
+
   const value =
     progress && progress.split("/")[1] !== "0"
       ? progressCount(progress) * 100
-      : 0; // Calculating the percentage of how full the indicator is
+      : 0;
+
+  const getProgressColor = useCallback((value: number) => {
+    if (value <= 10) return "#FF4500"; // 0-10%
+    if (value <= 20) return "#FF4500"; // 11-20%
+    if (value <= 30) return "#FFA500"; // 21-30%
+    if (value <= 40) return "#FFD700"; // 31-40%
+    if (value <= 50) return "#E9F14F"; // 41-50%
+    if (value <= 60) return "#CDDD24"; // 51-60%
+    if (value <= 70) return "#64E730"; // 61-70%
+    if (value <= 80) return "#32CD32"; // 71-80%
+    if (value <= 90) return "#228B22"; // 81-90%
+    return "#008000"; // 91-100%
+  }, []);
 
   return (
     <Stack
       direction="row"
       sx={{
         "& .MuiSlider-track": {
-          backgroundColor: bgColor,
+          backgroundColor: getProgressColor(value),
           display: !value ? "none" : "block",
         },
         "& .MuiSlider-thumb": {

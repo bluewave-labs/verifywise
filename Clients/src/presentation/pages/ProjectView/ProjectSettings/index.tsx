@@ -517,14 +517,8 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             error={errors.typeOfHighRiskRole}
             isRequired
           />
-          <Stack>
-            <Stack
-              direction="row"
-              justifyContent="flex-end"
-              sx={{
-                mt: 4,
-              }}
-            >
+          <Stack sx={{ width:"100%", maxWidth: 800}}>
+          
               <Button
                 variant="contained"
                 type="submit"
@@ -540,15 +534,16 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
                   border: "1px solid #175CD3",
                   mr: 0,
                   "&:hover": { boxShadow: "none", backgroundColor: "#175CD3 " },
+                  alignSelf: "flex-end",
                 }}
               >
                 Save
               </Button>
-            </Stack>
+           
             {/* divider for seperation */}
             <Stack
               sx={{ mt: 6, borderTop: "1px solid #E0E0E0", pt:8}}
-            >
+            />
               <Typography
                 sx={{ fontSize: theme.typography.fontSize, fontWeight: 600, mb:4}}
               >
@@ -571,12 +566,15 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
                   mb: theme.spacing(4),
                   backgroundColor: "#DB504A",
                   color: "#fff",
+                  alignSelf: "flex-end",
                 }}
               >
                 Delete project
               </Button>
-            </Stack>
+            
           </Stack>
+
+
         </Stack>
 
         {isDeleteModalOpen && (

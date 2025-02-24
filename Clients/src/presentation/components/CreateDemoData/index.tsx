@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import { Stack, Typography } from "@mui/material";
 import DualButtonModal from "../../vw-v2-components/Dialogs/DualButtonModal";
 
@@ -6,7 +10,10 @@ interface DemoDataProps {
   handleCreateDemoData: () => void;
 }
 
-const CreateDemoData = ({ handleCancelDemoData, handleCreateDemoData }: DemoDataProps) => {
+const CreateDemoData = ({
+  handleCancelDemoData,
+  handleCreateDemoData,
+}: DemoDataProps) => {
   return (
     <Stack
       sx={{

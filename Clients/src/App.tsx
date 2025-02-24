@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import { Route, Routes } from "react-router-dom";
 import "./App.css";
 import { ThemeProvider } from "@emotion/react";
@@ -7,7 +11,6 @@ import light from "./presentation/themes/light";
 import dark from "./presentation/themes/dark";
 import { CssBaseline } from "@mui/material";
 import Home from "./presentation/pages/Home";
-// import Assessment from "./presentation/pages/Assessment";
 import Vendors from "./presentation/pages/Vendors";
 import Setting from "./presentation/pages/SettingsPage";
 import Team from "./presentation/pages/Team";
@@ -23,11 +26,9 @@ import FileManager from "./presentation/pages/FileManager";
 
 import { VerifyWiseContext } from "./application/contexts/VerifyWise.context";
 import { useMemo, useState } from "react";
-import AllAssessment from "./presentation/pages/Assessment/NewAssessment/AllAssessments";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./application/redux/store"; // Adjust the path as necessary
-// import NewComplianceTracker from "./presentation/pages/ComplianceTracker/NewComplianceTracker";
 import useProjectStatus from "./application/hooks/useProjectStatus";
 import ProtectedRoute from "./presentation/components/ProtectedRoute";
 import { extractUserToken } from "./application/tools/extractToken"; // Import the token extraction function
@@ -140,10 +141,6 @@ function App() {
                 />
                 {/* <Route path="/assessment" element={<Assessment />} /> */}
                 <Route path="/assessment" element={<AssessmentTracker />} />
-                <Route
-                  path="/all-assessments"
-                  element={<AllAssessment initialAssessmentsValues={[]} />}
-                />
                 <Route path="/vendors" element={<Vendors />} />
                 <Route path="/setting" element={<Setting />} />
                 <Route path="/team" element={<Team />} />

@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import "./index.css";
 import {
   Accordion,

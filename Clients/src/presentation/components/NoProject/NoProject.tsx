@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import { Box, Typography, useTheme } from "@mui/material";
 import { NoProjectBox } from "../../pages/Home/styles";
 import emptyState from "../../assets/imgs/empty-state.svg";
@@ -16,7 +20,7 @@ interface NoProjectProps {
  * @returns {JSX.Element} The rendered NoProject component.
  */
 
-const NoProject = ({message}: NoProjectProps) => {
+const NoProject = ({ message }: NoProjectProps) => {
   const theme = useTheme();
 
   return (

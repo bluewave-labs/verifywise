@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import {
   Stack,
   Divider,
@@ -160,7 +164,9 @@ const RiskSection: FC<RiskSectionProps> = ({
                 id="action-owner-input"
                 label="Action owner"
                 placeholder="Select owner"
-                value={riskValues.actionOwner === 0 ? '' : riskValues.actionOwner}
+                value={
+                  riskValues.actionOwner === 0 ? "" : riskValues.actionOwner
+                }
                 onChange={handleOnSelectChange("actionOwner")}
                 items={
                   users?.map((user) => ({ _id: user.id, name: user.name })) ||
@@ -171,12 +177,16 @@ const RiskSection: FC<RiskSectionProps> = ({
                 sx={{
                   width: "325px",
                 }}
-              />              
+              />
               <Select
                 id="ai-lifecycle-phase-input"
                 label="AI lifecycle phase"
                 placeholder="Select phase"
-                value={riskValues.aiLifecyclePhase === 0 ? '' : riskValues.aiLifecyclePhase}
+                value={
+                  riskValues.aiLifecyclePhase === 0
+                    ? ""
+                    : riskValues.aiLifecyclePhase
+                }
                 onChange={handleOnSelectChange("aiLifecyclePhase")}
                 items={aiLifecyclePhase}
                 isRequired
@@ -215,7 +225,9 @@ const RiskSection: FC<RiskSectionProps> = ({
                   id="risk-category-input"
                   label="Risk category"
                   placeholder="Select category"
-                  value={riskValues.riskCategory === 0 ? '' : riskValues.riskCategory}
+                  value={
+                    riskValues.riskCategory === 0 ? "" : riskValues.riskCategory
+                  }
                   onChange={handleOnSelectChange("riskCategory")}
                   items={riskCategorylItems}
                   isRequired

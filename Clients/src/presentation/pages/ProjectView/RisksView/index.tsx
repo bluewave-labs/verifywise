@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import { Stack, Typography, Box } from "@mui/material";
 import { RiskData } from "./riskkViewValues";
 import {
@@ -9,7 +13,7 @@ import {
   lazy,
   Suspense,
   useEffect,
-  useContext
+  useContext,
 } from "react";
 import BasicTable from "../../../components/Table";
 import Risks from "../../../components/Risks";
@@ -139,7 +143,7 @@ const RisksView: FC<RisksViewProps> = memo(
     const [selectedRow, setSelectedRow] = useState<ProjectRisk>();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [riskData1, setRiskData] = useState<ProjectRisk[] | VendorRisk[]>([]);
-    const {currentProjectId} = useContext(VerifyWiseContext);
+    const { currentProjectId } = useContext(VerifyWiseContext);
 
     const [alert, setAlert] = useState<{
       variant: "success" | "info" | "warning" | "error";
@@ -161,7 +165,7 @@ const RisksView: FC<RisksViewProps> = memo(
       handleAlert({
         variant: "success",
         body: title + " risk created successfully",
-        setAlert
+        setAlert,
       });
 
       fetchRiskData();
@@ -172,14 +176,14 @@ const RisksView: FC<RisksViewProps> = memo(
       handleAlert({
         variant: "success",
         body: title + " risk updated successfully",
-        setAlert
+        setAlert,
       });
 
       fetchRiskData();
     };
 
     const fetchRiskData = useCallback(async () => {
-      console.log(`/projectRisks/by-projid/${currentProjectId}`)
+      console.log(`/projectRisks/by-projid/${currentProjectId}`);
       try {
         const url =
           title === "Project"

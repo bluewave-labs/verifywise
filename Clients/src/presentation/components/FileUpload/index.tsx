@@ -10,7 +10,7 @@ const FileUploadComponent = ({onClose, onHeightChange, topicId = 0, assessmentsV
 
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const [fileList, setFileList] = useState<FileProps[]>(assessmentsValues[topicId].file || []);
+  const [fileList, setFileList] = useState<FileProps[]>(assessmentsValues[topicId]?.file || []);
 
   const onDragEnter = () => wrapperRef?.current?.classList.add('dragover');
 

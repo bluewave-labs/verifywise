@@ -8,6 +8,9 @@ import { getAllEntities } from "../../../application/repository/entity.repositor
 import AllAssessment from "./NewAssessment/AllAssessments";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import NoProject from "../../components/NoProject/NoProject";
+import useAssessmentAnswers from "../../../application/hooks/useAssessmentAnswers";
+import { Project } from "../../../application/hooks/useProjectData";
+import VWToast from "../../vw-v2-components/Toast";
 
 // Define styles outside the component to avoid recreation on each render
 const usePaperStyle = (theme: Theme): SxProps<Theme> => ({
@@ -29,8 +32,17 @@ const usePaperStyle = (theme: Theme): SxProps<Theme> => ({
 const Assessment = memo(() => {
   const theme = useTheme();
   const paperStyle = usePaperStyle(theme);
-  const { dashboardValues } = useContext(VerifyWiseContext);
+  const { dashboardValues, currentProjectId } = useContext(VerifyWiseContext);
   const { projects } = dashboardValues;
+  const currentProject: Project | null = currentProjectId
+      ? projects.find(
+          (project: Project) => project.id === Number(currentProjectId)
+        )
+      : null;
+    const activeAssessmentId = currentProject?.assessment_id.toString();
+  const { topics, isLoading, error } = useAssessmentAnswers({
+    assessmentId: activeAssessmentId,
+  });
   const [runAssessmentTour, setRunAssessmentTour] = useState(false);
   const [assessmentsStatus, setAssessmentsStatus] = useState({
     allAssessments: 0,
@@ -62,16 +74,16 @@ const Assessment = memo(() => {
         routeUrl: "/users/1/calculate-progress",
       });
 
+      const doneAssessments = response.allDoneAssessments ?? 0;
+      const totalAssessments = response.allTotalAssessments ?? 0;
+      const progress = totalAssessments === 0
+        ? 0
+        : (doneAssessments / totalAssessments) * 100;
+
       setAssessmentsStatus({
         allAssessments: response.allTotalAssessments ?? 0,
         allDoneAssessments: response.allDoneAssessments,
-        AssessmentsCompletion: Number(
-          (
-            ((response.allDoneAssessments ?? 0) /
-              (response.allTotalAssessments ?? 1)) *
-            100
-          ).toFixed(2)
-        ),
+        AssessmentsCompletion: Number(progress.toFixed(2)),
       });
 
       console.log("Response for fetchComplianceTrackerCalculation:", response);
@@ -88,6 +100,21 @@ const Assessment = memo(() => {
       hasScrolledRef.current = true;
     }
   }, []);
+
+  if (isLoading) {
+    return (
+      <Stack
+        spacing={2}
+        alignItems="center"
+        justifyContent="center"
+        minHeight="200px"
+      >
+        <VWToast title="Loading assessment data..." />
+      </Stack>
+    );
+  }
+
+  const noProjectsMessage = error ? "An error occurred while retrieving your assessments." : "You have no projects. First create a project on the main dashboard to see the Assessment Tracker."
 
   return (
     <div className="assessment-page">
@@ -114,7 +141,7 @@ const Assessment = memo(() => {
           Assessment tracker
         </Typography>
 
-        { projects?.length > 0 ? (
+        {projects?.length > 0 && error === null ? (
           <>
             <Stack
               direction="row"
@@ -161,12 +188,10 @@ const Assessment = memo(() => {
               </Paper>
             </Stack>
             <Divider sx={{ marginY: 10 }} />
-            <AllAssessment />
+            <AllAssessment initialAssessmentsValues={topics} />
           </>
         ) : (
-          <NoProject
-            message="You have no projects. First create a project on the main dashboard to see the Assessment Tracker."
-          />
+          <NoProject message={noProjectsMessage} />
         )}
       </Stack>
     </div>

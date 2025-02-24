@@ -1,3 +1,5 @@
+**This file may be out of date as the installation method might be changing over time. Please open an issue on GitHub if you hit any problems**
+
 # Installing VerifyWise
 
 Currently, the recommended method of installing VerifyWise is via Docker. A development environment can also be set up via `npm`. Both options are described below.

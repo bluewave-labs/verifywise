@@ -24,5 +24,6 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
 *.dev
 *.prod

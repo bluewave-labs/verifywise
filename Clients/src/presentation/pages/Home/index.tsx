@@ -26,6 +26,8 @@ import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.cont
 import CreateDemoData from "../../components/CreateDemoData";
 import VWButton from "../../vw-v2-components/Buttons";
 import NoProject from "../../components/NoProject/NoProject";
+import { AlertProps } from "../../components/Alert";
+import { handleAlert } from "../../../application/tools/alertUtils";
 
 // Lazy load components
 const ProjectCard = lazy(() => import("../../components/ProjectCard"));
@@ -35,12 +37,6 @@ const CreateProjectForm = lazy(
 );
 const MetricSection = lazy(() => import("../../components/MetricSection"));
 const Alert = lazy(() => import("../../components/Alert"));
-
-interface AlertProps {
-  variant: "success" | "info" | "warning" | "error";
-  title?: string;
-  body: string;
-}
 
 // Custom hook for fetching projects
 const useProjects = (
@@ -119,18 +115,6 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
 
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [openDemoDataModal, setOpenDemoDataModal] = useState(false);
-
-  const handleAlert = ({ variant, body, title }: AlertProps) => {
-    setAlert({
-      variant,
-      title,
-      body,
-    });
-    setTimeout(() => {
-      setAlert(null);
-    }, 2500);
-  };
-
   const handleOpenOrCloseDemoDataModal = useCallback(() => {
     setOpenDemoDataModal((prev) => !prev);
   }, []);
@@ -145,6 +129,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
         handleAlert({
           variant: "success",
           body: "Demo Data created successfully",
+          setAlert
         });
         setOpenDemoDataModal(false);
       }
@@ -153,6 +138,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
       handleAlert({
         variant: "error",
         body: "Failed to create Demo Data",
+        setAlert
       });
     } finally {
       setIsCreatingDemoData(false);
@@ -180,6 +166,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
         handleAlert({
           variant: "success",
           body: "Project created successfully",
+          setAlert
         });
       }
     },

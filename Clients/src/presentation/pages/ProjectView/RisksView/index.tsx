@@ -20,6 +20,7 @@ import { ProjectRisk } from "../../../../application/hooks/useProjectRisks";
 import { VendorRisk } from "../../../../application/hooks/useVendorRisks";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import { handleAlert } from "../../../../application/tools/alertUtils";
 
 const Alert = lazy(() => import("../../../components/Alert"));
 
@@ -62,12 +63,6 @@ interface RisksViewProps {
   risksData: ProjectRisk[] | VendorRisk[];
   title: string;
   projectId: string;
-}
-
-interface AlertProps {
-  variant: "success" | "info" | "warning" | "error";
-  title?: string;
-  body: string;
 }
 
 const vendorRisksColNames = [
@@ -152,17 +147,6 @@ const RisksView: FC<RisksViewProps> = memo(
       body: string;
     } | null>(null);
 
-    const handleAlert = ({ variant, body, title }: AlertProps) => {
-      setAlert({
-        variant,
-        title,
-        body,
-      });
-      setTimeout(() => {
-        setAlert(null);
-      }, 2500);
-    };
-
     /**
      * Handles closing the risk edit popup
      */
@@ -177,6 +161,7 @@ const RisksView: FC<RisksViewProps> = memo(
       handleAlert({
         variant: "success",
         body: title + " risk created successfully",
+        setAlert
       });
 
       fetchRiskData();
@@ -187,6 +172,7 @@ const RisksView: FC<RisksViewProps> = memo(
       handleAlert({
         variant: "success",
         body: title + " risk updated successfully",
+        setAlert
       });
 
       fetchRiskData();
@@ -200,7 +186,7 @@ const RisksView: FC<RisksViewProps> = memo(
             ? `/projectRisks/by-projid/${projectId}`
             : `/vendorRisks/by-projid/${projectId}`;
         const response = await getAllEntities({ routeUrl: url });
-        console.log("response :::: > ", response);        
+        console.log("response :::: > ", response);
         setRiskData(response.data);
       } catch (error) {
         console.error("Error fetching vendor risks:", error);

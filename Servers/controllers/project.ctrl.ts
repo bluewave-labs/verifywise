@@ -288,8 +288,8 @@ export async function projectComplianceProgress(req: Request, res: Response) {
 }
 
 export async function projectAssessmentProgress(req: Request, res: Response) {
-  const projectId = parseInt(req.params.id);
   let totalNumberOfQuestions = 0;
+  const projectId = parseInt(req.params.id);
   let totalNumberOfAnsweredQuestions = 0;
   try {
     const project = await getProjectByIdQuery(projectId);
@@ -310,8 +310,9 @@ export async function projectAssessmentProgress(req: Request, res: Response) {
                           subtopic.id
                         );
                         if (questions.length !== 0) {
+                          totalNumberOfQuestions =
+                            totalNumberOfQuestions + questions.length;
                           for (const question of questions) {
-                            totalNumberOfQuestions++;
                             if (
                               question.answer &&
                               question.answer.trim() !== ""

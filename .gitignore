@@ -1,2 +1,2 @@
+.env
 *.override.yml
-*.override.yml.dist

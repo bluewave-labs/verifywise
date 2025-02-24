@@ -1,6 +1,7 @@
 import "./index.css";
-import { Button, Stack, Typography, useTheme } from "@mui/material";
+import { Box, Button, Stack, Tab, Typography, useTheme } from "@mui/material";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
+import RiskTable from "../../components/Table/RisksTable";
 import { Suspense, useCallback, useContext, useEffect, useState } from "react";
 
 import AddNewVendor from "../../components/Modals/NewVendor";
@@ -14,12 +15,16 @@ import { logEngine } from "../../../application/tools/log.engine";
 import Alert from "../../components/Alert";
 import PageTour from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
+import TabContext from "@mui/lab/TabContext";
+import TabList from "@mui/lab/TabList";
+import TabPanel from "@mui/lab/TabPanel";
 
 const Vendors = () => {
   const theme = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [value, setValue] = useState("1");
   const [vendorChangeTrigger, setVendorChangeTrigger] = useState(0);
+  const [vendorRiskChangeTrigger, setVendorRiskChangeTrigger] = useState(0);
   const { dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -27,7 +32,7 @@ const Vendors = () => {
     body: string;
   } | null>(null);
   const [runVendorTour, setRunVendorTour] = useState(false);
-
+  const { currentProjectId } = useContext(VerifyWiseContext);
   const vendorSteps = [
     {
       target: '[data-joyride-id="add-new-vendor"]',
@@ -48,7 +53,6 @@ const Vendors = () => {
   const fetchVendors = useCallback(async () => {
     try {
       const response = await getAllEntities({ routeUrl: "/vendors" });
-      console.log("response :::: > ", response);
       setDashboardValues((prevValues: any) => ({
         ...prevValues,
         vendors: response.data,
@@ -58,13 +62,35 @@ const Vendors = () => {
     }
   }, [setDashboardValues]);
 
+  const fetchRisks = useCallback(async () => {
+    try {
+      const response = await getAllEntities({
+        routeUrl: `/vendorRisks/by-projid/${currentProjectId}`,
+      });
+      setDashboardValues((prevValues: any) => ({
+        ...prevValues,
+        vendorRisks: response.data,
+      }));
+    } catch (error) {
+      console.error("Error fetching vendorRisks:", error);
+    }
+  }, [setDashboardValues, currentProjectId]);
+
   useEffect(() => {
     fetchVendors();
     setRunVendorTour(true);
   }, [fetchVendors, vendorChangeTrigger]);
 
+  useEffect(() => {
+    if (!currentProjectId) return;
+    fetchRisks();
+  }, [fetchRisks, vendorRiskChangeTrigger]);
+
   const updateVendorChangeTrigger = () => {
     setVendorChangeTrigger((prev) => prev + 1);
+  };
+  const updateVendorRiskChangeTrigger = () => {
+    setVendorRiskChangeTrigger((prev) => prev + 1);
   };
 
   const handleDeleteVendor = async (vendorId: number) => {
@@ -128,68 +154,175 @@ const Vendors = () => {
         onFinish={() => setRunVendorTour(false)}
       />
       <Stack gap={theme.spacing(10)} maxWidth={1400}>
-        {alert && (
-          <Suspense fallback={<div>Loading...</div>}>
-            <Alert
-              variant={alert.variant}
-              title={alert.title}
-              body={alert.body}
-              isToast={true}
-              onClick={() => setAlert(null)}
-            />
-          </Suspense>
+        {value === "1" ? (
+          <>
+            {alert && (
+              <Suspense fallback={<div>Loading...</div>}>
+                <Alert
+                  variant={alert.variant}
+                  title={alert.title}
+                  body={alert.body}
+                  isToast={true}
+                  onClick={() => setAlert(null)}
+                />
+              </Suspense>
+            )}
+            <Stack>
+              <Typography
+                data-joyride-id="assessment-status"
+                variant="h2"
+                component="div"
+                sx={{
+                  pb: 8.5,
+                  color: "#1A1919",
+                  fontSize: 16,
+                  fontWeight: 600,
+                }}
+              >
+                Vendor list
+              </Typography>
+              <Typography sx={singleTheme.textStyles.pageDescription}>
+                This table includes a list of external entities that provides
+                AI-related products, services, or components. You can create and
+                manage all vendors here.
+              </Typography>
+            </Stack>
+          </>
+        ) : (
+          <>
+            {alert && (
+              <Suspense fallback={<div>Loading...</div>}>
+                <Alert
+                  variant={alert.variant}
+                  title={alert.title}
+                  body={alert.body}
+                  isToast={true}
+                  onClick={() => setAlert(null)}
+                />
+              </Suspense>
+            )}
+            <Stack>
+              <Typography
+                data-joyride-id="assessment-status"
+                variant="h2"
+                component="div"
+                sx={{
+                  pb: 8.5,
+                  color: "#1A1919",
+                  fontSize: 16,
+                  fontWeight: 600,
+                }}
+              >
+                Risk list
+              </Typography>
+              <Typography sx={singleTheme.textStyles.pageDescription}>
+                This table includes a list of Risks related to a project. You
+                can create and manage all vendor risks here.
+              </Typography>
+            </Stack>
+          </>
         )}
-        <Stack>
-        <Typography
-       data-joyride-id="assessment-status"
-        variant="h2"
-        component="div"
-        sx={{
-          pb: 8.5,
-          color: "#1A1919",
-          fontSize: 16,
-          fontWeight: 600,
-        }}
-      >
-         Vendor list
-      </Typography>
-          <Typography sx={singleTheme.textStyles.pageDescription}>
-            This table includes a list of external entities that provides
-            AI-related products, services, or components. You can create and
-            manage all vendors here.
-          </Typography>
-        </Stack>
-        <Stack
-          sx={{
-            alignItems: "flex-end",
-          }}
-        >
-          <Button
-            data-joyride-id="add-new-vendor"
-            disableRipple={
-              theme.components?.MuiButton?.defaultProps?.disableRipple
-            }
-            variant="contained"
-            sx={{
-              ...singleTheme.buttons.primary,
-              width: 150,
-              height: 34,
-              "&:hover": {
-                backgroundColor: "#175CD3 ",
-              },
-            }}
-            onClick={() => {
-              openAddNewVendor();
-            }}
-          >
-            Add new vendor
-          </Button>
-        </Stack>
-        <TableWithPlaceholder
-          dashboardValues={dashboardValues}
-          onVendorChange={updateVendorChangeTrigger}
-          onDeleteVendor={handleDeleteVendor}
-        />
+        <TabContext value={value}>
+          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+            <TabList onChange={handleChange}>
+              <Tab
+                label="Vendors"
+                value="1"
+                sx={{
+                  width: 120,
+                  paddingX: 0,
+                  textTransform: "inherit",
+                  fontSize: 13,
+                  "& .MuiTouchRipple-root": {
+                    display: "none",
+                  },
+                }}
+              />
+              <Tab
+                label="Risks"
+                value="2"
+                sx={{
+                  width: 120,
+                  paddingX: 0,
+                  textTransform: "inherit",
+                  fontSize: 13,
+                  "& .MuiTouchRipple-root": {
+                    display: "none",
+                  },
+                }}
+              />
+            </TabList>
+          </Box>
+          {value === "1" ? (
+            <Stack
+              sx={{
+                alignItems: "flex-end",
+              }}
+            >
+              <Button
+                data-joyride-id="add-new-vendor"
+                disableRipple={
+                  theme.components?.MuiButton?.defaultProps?.disableRipple
+                }
+                variant="contained"
+                sx={{
+                  ...singleTheme.buttons.primary,
+                  width: 150,
+                  height: 34,
+                  "&:hover": {
+                    backgroundColor: "#175CD3 ",
+                  },
+                }}
+                onClick={() => {
+                  openAddNewVendor();
+                }}
+              >
+                Add new vendor
+              </Button>
+            </Stack>
+          ) : (
+            <Stack
+              sx={{
+                alignItems: "flex-end",
+              }}
+            >
+              <Button
+                data-joyride-id="add-new-vendor"
+                disableRipple={
+                  theme.components?.MuiButton?.defaultProps?.disableRipple
+                }
+                variant="contained"
+                sx={{
+                  ...singleTheme.buttons.primary,
+                  width: 150,
+                  height: 34,
+                  "&:hover": {
+                    backgroundColor: "#175CD3 ",
+                  },
+                }}
+                onClick={() => {
+                  openAddNewVendor();
+                }}
+              >
+                Add new Risk
+              </Button>
+            </Stack>
+          )}
+          <TabPanel value="1">
+            <TableWithPlaceholder
+              dashboardValues={dashboardValues}
+              onVendorChange={updateVendorChangeTrigger}
+              onDeleteVendor={handleDeleteVendor}
+            />
+          </TabPanel>
+          <TabPanel value="2">
+            <RiskTable
+              dashboardValues={dashboardValues}
+              onVendorChange={updateVendorRiskChangeTrigger}
+              onDeleteVendor={handleDeleteVendor}
+            />
+          </TabPanel>
+        </TabContext>
       </Stack>
       <AddNewVendor
         isOpen={isOpen}

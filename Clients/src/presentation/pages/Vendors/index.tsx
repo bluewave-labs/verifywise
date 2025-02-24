@@ -331,13 +331,6 @@ const Vendors = () => {
         value={value}
         onVendorChange={updateVendorChangeTrigger}
       />
-      <AddNewVendor
-        isOpen={isOpen}
-        handleChange={handleChange}
-        setIsOpen={() => setIsOpen(false)}
-        value={value}
-        onVendorChange={updateVendorChangeTrigger}
-      />
     </div>
   );
 };

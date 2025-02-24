@@ -17,8 +17,7 @@ export type RiskData = {
 };
 
 interface OverviewProps {
-  projectRisksSummary: RiskData;
-  vendorRisksSummary: RiskData;
+  projectRisksSummary: RiskData;  
 }
 
 interface ProgressBarCardProps {
@@ -27,7 +26,7 @@ interface ProgressBarCardProps {
   completed: number;
 }
 
-const Overview: FC<OverviewProps> = memo(({ projectRisksSummary, vendorRisksSummary }) => {
+const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") ?? "1"; // default project ID is 2
   const { project, projectOwner, error, isLoading } = useProjectData({ projectId });
@@ -143,14 +142,6 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary, vendorRisksSumm
           Project risks
         </Typography>
         <Risks {...projectRisksSummary} />
-      </Stack>
-      <Stack>
-        <Typography
-          sx={{ color: "#1A1919", fontWeight: 600, mb: "10px", fontSize: 16 }}
-        >
-          Vendor risks
-        </Typography>
-        <Risks {...vendorRisksSummary} />
       </Stack>
     </Stack>
   );

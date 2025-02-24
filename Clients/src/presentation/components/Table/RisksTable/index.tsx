@@ -117,11 +117,11 @@ const RiskTable: React.FC<RiskTableProps> = ({
                     : "No review date"}
                 </TableCell>
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                  <IconButton
+                  {/* <IconButton
                     vendorId={row.id}
                     onVendorChange={onVendorChange}
                     onDeleteVendor={onDeleteVendor}
-                  ></IconButton>
+                  ></IconButton> */}
                 </TableCell>
               </TableRow>
             ))}

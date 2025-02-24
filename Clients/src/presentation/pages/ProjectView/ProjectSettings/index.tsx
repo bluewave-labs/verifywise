@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import {
   Button,
   SelectChangeEvent,
@@ -530,49 +534,48 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
               project from our system. This is permanent and non-recoverable.
             </Typography>
           </Stack>
-          <Stack direction="row" justifyContent="space-between" 
-          alignItems="center"
-          spacing={2}
-          sx={{
-            paddingX: theme.spacing(2),
-            width:  "fit-content",
-            marginTop: theme.spacing(4),
-          }}
-          
-         > 
-          <Button
-            disableRipple
-            variant="contained"
-            onClick={handleOpenDeleteDialog}
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            spacing={2}
             sx={{
-              width: { xs: "100%", sm: theme.spacing(80) },
-              mb: theme.spacing(4),
-              backgroundColor: "#DB504A",
-              color: "#fff",
+              paddingX: theme.spacing(2),
+              width: "fit-content",
+              marginTop: theme.spacing(4),
             }}
           >
-            Delete project
-          </Button>
-          <Button
-            variant="contained"
-            type="submit"
-            sx={{
-              width: 60,
-              height: 34,
-              fontSize: theme.typography.fontSize,
-              textTransform: "inherit",
-              backgroundColor: "#4C7DE7",
-              boxShadow: "none",
-              borderRadius: 2,
-              border: "1px solid #175CD3",
-              mr: 0,
-              "&:hover": { boxShadow: "none", backgroundColor: "#175CD3 " },
-             
-           
-            }}
-          >
-            Save
-          </Button>
+            <Button
+              disableRipple
+              variant="contained"
+              onClick={handleOpenDeleteDialog}
+              sx={{
+                width: { xs: "100%", sm: theme.spacing(80) },
+                mb: theme.spacing(4),
+                backgroundColor: "#DB504A",
+                color: "#fff",
+              }}
+            >
+              Delete project
+            </Button>
+            <Button
+              variant="contained"
+              type="submit"
+              sx={{
+                width: 60,
+                height: 34,
+                fontSize: theme.typography.fontSize,
+                textTransform: "inherit",
+                backgroundColor: "#4C7DE7",
+                boxShadow: "none",
+                borderRadius: 2,
+                border: "1px solid #175CD3",
+                mr: 0,
+                "&:hover": { boxShadow: "none", backgroundColor: "#175CD3 " },
+              }}
+            >
+              Save
+            </Button>
           </Stack>
         </Stack>
         {isDeleteModalOpen && (

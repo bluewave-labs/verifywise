@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import { Stack, Typography } from "@mui/material";
 import { StatsCardFrame, StatsCardRate } from "./style";
 import ProgressBar from "../../ProjectCard/ProgressBar";

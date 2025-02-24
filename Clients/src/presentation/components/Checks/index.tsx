@@ -1,4 +1,8 @@
 /**
+ * This file is currently in use
+ */
+
+/**
  * A component that displays a check icon with a text label.
  *
  * @param {Object} props - The properties object.

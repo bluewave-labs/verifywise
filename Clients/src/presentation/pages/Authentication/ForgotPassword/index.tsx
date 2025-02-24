@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import { Button, Stack, Typography, useTheme } from "@mui/material";
 import React, { useState } from "react";
 import { ReactComponent as Key } from "../../../assets/icons/key.svg";
@@ -21,12 +25,12 @@ const initialState: FormValues = {
 const ForgotPassword: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // Update initial state to use the email from navigation state if available
   const initialState: FormValues = {
     email: location.state?.email || "",
   };
-  
+
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
 
@@ -47,7 +51,7 @@ const ForgotPassword: React.FC = () => {
       body: { email: values.email },
     });
     console.log("Response:", response);
-    if(response.status === 200) {
+    if (response.status === 200) {
       navigate("/reset-password", { state: { email: values.email } });
     }
     setValues(initialState);

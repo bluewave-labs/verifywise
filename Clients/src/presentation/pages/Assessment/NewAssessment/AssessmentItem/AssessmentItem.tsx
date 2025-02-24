@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import {
   List,
   ListItem,
@@ -11,11 +15,17 @@ import { Topic } from "../../../../../application/hooks/useAssessmentAnswers";
 interface AssessmentItemProps {
   assessmentsValues: Topic[];
   activeTab: number;
-  handleListItemClick: ( event: React.MouseEvent<HTMLDivElement, MouseEvent>,
-    index: number) => void;
+  handleListItemClick: (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>,
+    index: number
+  ) => void;
 }
 
-const AssessmentItem = ({ assessmentsValues, activeTab, handleListItemClick }: AssessmentItemProps) => {
+const AssessmentItem = ({
+  assessmentsValues,
+  activeTab,
+  handleListItemClick,
+}: AssessmentItemProps) => {
   const theme = useTheme();
 
   return (

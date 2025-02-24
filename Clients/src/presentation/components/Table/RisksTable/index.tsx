@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import {
   Table,
   TableBody,
@@ -12,7 +16,6 @@ import {
 } from "@mui/material";
 import { useCallback, useMemo, useState } from "react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
-import IconButton from "../../IconButton";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { formatDate } from "../../../tools/isoDateToString";
 import TablePaginationActions from "../../TablePagination";
@@ -115,8 +118,9 @@ const RiskTable: React.FC<RiskTableProps> = ({
                     ? formatDate(row.review_date.toString())
                     : "No review date"}
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                </TableCell>
+                <TableCell
+                  sx={singleTheme.tableStyles.primary.body.cell}
+                ></TableCell>
               </TableRow>
             ))}
       </TableBody>
@@ -171,7 +175,8 @@ const RiskTable: React.FC<RiskTableProps> = ({
         }}
       >
         <Typography px={theme.spacing(2)} fontSize={12} sx={{ opacity: 0.7 }}>
-          Showing {getRange} of {dashboardValues.vendorRisks?.length} vendor risk(s)
+          Showing {getRange} of {dashboardValues.vendorRisks?.length} vendor
+          risk(s)
         </Typography>
         <TablePagination
           count={dashboardValues.vendorRisks?.length}

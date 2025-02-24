@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import {
   Box,
   Collapse,
@@ -119,14 +123,14 @@ const Sidebar = ({ projects }: { projects: any }) => {
     ? users.find((user: User) => user.id === userId)
     : DEFAULT_USER;
 
-    console.log('***', user)
+  console.log("***", user);
 
   const userAvator: User_Avatar = {
     firstname: user.name,
     lastname: user.surname,
     email: user.email,
-    pathToImage: ""
-  }
+    pathToImage: "",
+  };
 
   const collapsed = useSelector((state: any) => state.ui?.sidebar?.collapsed);
 
@@ -582,7 +586,11 @@ const Sidebar = ({ projects }: { projects: any }) => {
                   marginLeft: theme.spacing(3),
                 }}
               >
-                <Avatar user={userAvator} size="small" sx={{ margin: "auto" }} />
+                <Avatar
+                  user={userAvator}
+                  size="small"
+                  sx={{ margin: "auto" }}
+                />
               </IconButton>
             </Tooltip>
           </>

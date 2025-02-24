@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import { Button, Typography, useTheme, Stack } from "@mui/material";
 import { ClearIcon } from "@mui/x-date-pickers/icons";
 import React from "react";

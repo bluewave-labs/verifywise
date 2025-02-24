@@ -1,4 +1,8 @@
 /**
+ * This file is currently in use
+ */
+
+/**
  * @fileoverview Alert component for displaying various types of messages.
  *
  * This component renders an alert box with different styles based on the variant prop.

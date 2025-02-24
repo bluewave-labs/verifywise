@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import "./index.css";
 import { Box, Button, Stack, Tab, Typography, useTheme } from "@mui/material";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";

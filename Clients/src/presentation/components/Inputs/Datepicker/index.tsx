@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import { Stack, Typography, useTheme } from "@mui/material";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -40,9 +44,9 @@ const DatePicker = ({
             borderColor: theme.palette.border.dark,
           },
         "&:has(.input-error) .MuiOutlinedInput-root fieldset": {
-          border: error 
-            ? `1px solid ${theme.palette.status.error.border}!important` 
-            : `1px solid ${theme.palette.border.dark}!important`
+          border: error
+            ? `1px solid ${theme.palette.status.error.border}!important`
+            : `1px solid ${theme.palette.border.dark}!important`,
         },
         ".Mui-focused .MuiOutlinedInput-notchedOutline": {
           border: `1px solid ${theme.palette.border.dark}!important`,
@@ -124,7 +128,7 @@ const DatePicker = ({
           mt={theme.spacing(2)}
           sx={{
             opacity: 0.8,
-            fontSize: 11
+            fontSize: 11,
           }}
         >
           {error}

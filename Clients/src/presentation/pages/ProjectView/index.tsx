@@ -195,12 +195,6 @@ const ProjectView = () => {
                     disableRipple={disableRipple}
                   />
                   <Tab
-                    label="Vendor risks"
-                    value="vendor-risks"
-                    sx={tabStyle}
-                    disableRipple={disableRipple}
-                  />
-                  <Tab
                     label="Settings"
                     value="settings"
                     sx={tabStyle}

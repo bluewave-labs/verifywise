@@ -38,10 +38,7 @@ const VWQuestion = ({ question }: { question: Question }) => {
 
       const updatedQuestion = await updateEntityById({
         routeUrl: `/questions/${question.id}`,
-        body: formData,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        body: values,
       });
       setValues(updatedQuestion.data);
       console.log("Question updated successfully:", updatedQuestion.data);

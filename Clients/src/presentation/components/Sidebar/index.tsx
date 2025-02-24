@@ -88,6 +88,13 @@ const DEFAULT_USER: User = {
   role: 1,
 };
 
+interface User_Avatar {
+  firstname: string;
+  lastname: string;
+  email: string;
+  pathToImage: string;
+}
+
 const Sidebar = ({ projects }: { projects: any }) => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -111,6 +118,15 @@ const Sidebar = ({ projects }: { projects: any }) => {
   const user: User = users
     ? users.find((user: User) => user.id === userId)
     : DEFAULT_USER;
+
+    console.log('***', user)
+
+  const userAvator: User_Avatar = {
+    firstname: user.name,
+    lastname: user.surname,
+    email: user.email,
+    pathToImage: ""
+  }
 
   const collapsed = useSelector((state: any) => state.ui?.sidebar?.collapsed);
 
@@ -566,7 +582,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
                   marginLeft: theme.spacing(3),
                 }}
               >
-                <Avatar size="small" sx={{ margin: "auto" }} />
+                <Avatar user={userAvator} size="small" sx={{ margin: "auto" }} />
               </IconButton>
             </Tooltip>
           </>

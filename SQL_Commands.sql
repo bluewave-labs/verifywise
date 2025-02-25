@@ -177,7 +177,7 @@ CREATE TABLE questions (
   evidence_files TEXT[],
   answer TEXT,
   dropdown_options TEXT[],
-  order_id INT,
+  order_no INT,
   input_type VARCHAR(255)
 );
 

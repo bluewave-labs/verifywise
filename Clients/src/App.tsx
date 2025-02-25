@@ -127,15 +127,10 @@ function App() {
                   path="/"
                   element={<Home onProjectUpdate={triggerSidebarReload} />}
                 />
-                {/* <Route
-                  path="/compliance-tracker"
-                  element={<NewComplianceTracker />}
-                /> */}
                 <Route
                   path="/compliance-tracker"
                   element={<ComplianceTracker />}
                 />
-                {/* <Route path="/assessment" element={<Assessment />} /> */}
                 <Route path="/assessment" element={<AssessmentTracker />} />
                 <Route path="/vendors" element={<Vendors />} />
                 <Route path="/setting" element={<Setting />} />

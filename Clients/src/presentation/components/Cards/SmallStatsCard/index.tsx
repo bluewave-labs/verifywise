@@ -2,19 +2,23 @@ import { Stack, Typography } from "@mui/material";
 import { smallStatsCardHeader, smallStatsCardStyle } from "./style";
 import ProgressBar from "../../ProjectCard/ProgressBar";
 
-const SmallStatsCard = () => {
+const SmallStatsCard = ({
+  attributeTitle = "Compliance tracker",
+  rate = 60,
+  progress = "90/100",
+}) => {
   return (
     <Stack className="small-stats-card" sx={smallStatsCardStyle}>
       <Stack className="small-stats-card-header" sx={smallStatsCardHeader}>
         <Typography sx={{ fontSize: 13, color: "#8594AC" }}>
-          Compliance tracker completion rate
+          {attributeTitle} completion rate
         </Typography>
         <Typography sx={{ fontSize: 13, color: "#2D3748", fontWeight: 700 }}>
-          60%
+          {rate}%
         </Typography>
       </Stack>
 
-      <ProgressBar progress={"90/100"} />
+      <ProgressBar progress={progress} />
     </Stack>
   );
 };

@@ -12,12 +12,16 @@ import {
   projectCardTitleStyle,
 } from "./style";
 
-const VWProjectCard = () => {
+const VWProjectCard = ({
+  projectTitle = "Marketing AI service",
+  projectOwner = "Mohammad Kh.",
+  last_update = "10 October 2024",
+}) => {
   return (
     <Stack className="project-card" sx={projectCardStyle}>
       <Stack className="project-card-header" sx={{ gap: 2 }}>
         <Typography className="project-card-title" sx={projectCardTitleStyle}>
-          Marketing AI service
+          {projectTitle}
         </Typography>
         <Stack className="project-card-frameworks">
           <img src={euimg} alt="EU-AI-ACT" style={framewrokLogo} />
@@ -40,13 +44,13 @@ const VWProjectCard = () => {
       <Stack className="project-card-spec" sx={projectCardSpecsStyle}>
         <Stack className="project-card-spec-tile">
           <Typography sx={projectCardSpecKeyStyle}>Project owner</Typography>
-          <Typography sx={projectCardSpecValueyStyle}>Mohammad Kh.</Typography>
+          <Typography sx={projectCardSpecValueyStyle}>
+            {projectOwner}
+          </Typography>
         </Stack>
         <Stack className="project-card-spec-tile">
           <Typography sx={projectCardSpecKeyStyle}>Last updated</Typography>
-          <Typography sx={projectCardSpecValueyStyle}>
-            10 October 2024
-          </Typography>
+          <Typography sx={projectCardSpecValueyStyle}>{last_update}</Typography>
         </Stack>
       </Stack>
       <VWButton

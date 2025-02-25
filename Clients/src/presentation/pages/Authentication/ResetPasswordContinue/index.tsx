@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import { Button, Stack, Typography, useTheme } from "@mui/material";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import { ReactComponent as Success } from "../../../assets/icons/check-outlined.svg";

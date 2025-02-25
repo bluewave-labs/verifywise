@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import { Skeleton, Stack } from "@mui/material";
 
 // variants are text | rectangular | circular | rounded

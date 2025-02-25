@@ -112,7 +112,7 @@ export const updateQuestionByIdQuery = async (
       subtopic_id = $1, question = $2, answer_type = $3, 
       evidence_required = $4, hint = $5, is_required = $6, 
       priority_level = $7, evidence_files = $8, answer = $9, 
-      dropdown_options = $10, input_type = $11, order_id = $12
+      dropdown_options = $10, input_type = $11, order_no = $12
       WHERE id = $13 RETURNING *`,
     [
       question.subtopic_id,
@@ -180,7 +180,7 @@ export const createNewQuestionsQuery = async (
     INSERT INTO questions(
       subtopic_id, question, answer_type,
       evidence_required, hint, is_required,
-      priority_level, answer, order_id, input_type) VALUES `;
+      priority_level, answer, order_no, input_type) VALUES `;
   const data = questions.map((d) => {
     return `(
       ${subTopicId},

@@ -12,17 +12,15 @@ interface FileUploadModalProps {
   uploadProps: FileUploadProps;
 }
 
-const FileUploadModal: React.FC<FileUploadModalProps> = ({
-  uploadProps,
-}) => {
-  const { open, onClose } = uploadProps
+const FileUploadModal: React.FC<FileUploadModalProps> = ({ uploadProps }) => {
+  const { open, onClose } = uploadProps;
   const [modalHeight, setModalHeight] = useState(338);
   const handleHeightChange = (newHeight: number) => {
     setModalHeight(newHeight);
   };
 
   return (
-    <StyledDialog open={open} onClose={onClose} modalHeight={modalHeight} >
+    <StyledDialog open={open} onClose={onClose} modalHeight={modalHeight}>
       <StyledDialogContent>
         <IconButton
           onClick={onClose}

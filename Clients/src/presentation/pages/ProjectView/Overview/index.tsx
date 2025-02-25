@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import { Stack, Typography, useTheme } from "@mui/material";
 import ProgressBar from "../../../components/ProjectCard/ProgressBar";
 import { FC, memo, useCallback, useContext, useMemo } from "react";
@@ -29,7 +33,9 @@ interface ProgressBarCardProps {
 const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") ?? "1"; // default project ID is 2
-  const { project, projectOwner, error, isLoading } = useProjectData({ projectId });
+  const { project, projectOwner, error, isLoading } = useProjectData({
+    projectId,
+  });
   const theme = useTheme();
   const { projectStatus } = useContext(VerifyWiseContext);
 
@@ -81,7 +87,8 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
         </Typography>
         <ProgressBar progress={progress} />
         <Typography sx={{ fontSize: 11, color: "#8594AC" }}>
-          {progress} {label}{completed > 1 && 's'} completed
+          {progress} {label}
+          {completed > 1 && "s"} completed
         </Typography>
       </Stack>
     ),

@@ -3,7 +3,6 @@
  */
 
 import { Stack } from "@mui/material";
-import ComplianceTracker from "./ComplianceTracker/1.0ComplianceTracker";
 
 const Playground = () => {
   return (
@@ -19,9 +18,7 @@ const Playground = () => {
           // padding: "50px",
         }
       }
-    >
-      <ComplianceTracker />
-    </Stack>
+    ></Stack>
   );
 };
 

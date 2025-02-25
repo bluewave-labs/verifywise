@@ -83,7 +83,8 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
           flexDirection: "row-reverse",
           border: "1px dotted",
           borderColor: "#D0D5DD",
-          width: 472,
+          width: "100%",
+          justifyContent: "center",
           alignItems: "center",
           cursor: "pointer",
         }}

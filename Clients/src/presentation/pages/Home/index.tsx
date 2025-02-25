@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import React, {
   lazy,
   Suspense,
@@ -129,7 +133,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
         handleAlert({
           variant: "success",
           body: "Demo Data created successfully",
-          setAlert
+          setAlert,
         });
         setOpenDemoDataModal(false);
       }
@@ -138,14 +142,13 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
       handleAlert({
         variant: "error",
         body: "Failed to create Demo Data",
-        setAlert
+        setAlert,
       });
     } finally {
       setIsCreatingDemoData(false);
       setTimeout(() => {
-        refetchProjects()
+        refetchProjects();
       }, 500);
-
     }
   }, []);
 
@@ -166,7 +169,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
         handleAlert({
           variant: "success",
           body: "Project created successfully",
-          setAlert
+          setAlert,
         });
       }
     },
@@ -390,7 +393,10 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
               {projects.length <= 3 ? (
                 <>
                   {projects.map((item: ProjectCardProps) => (
-                    <Box key={item.id} sx={{ width: projects.length === 1 ? '50%' : '100%' }}>
+                    <Box
+                      key={item.id}
+                      sx={{ width: projects.length === 1 ? "50%" : "100%" }}
+                    >
                       <ProjectCard
                         key={item.id}
                         {...item}

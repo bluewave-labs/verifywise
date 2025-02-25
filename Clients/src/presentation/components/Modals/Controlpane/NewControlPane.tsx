@@ -29,7 +29,7 @@ const NewControlPane = ({
   data: Control;
   isOpen: boolean;
   handleClose: () => void;
-  controlCategoryId: string;
+  controlCategoryId?: string;
   OnSave?: (state: Control) => void;
 }) => {
   const theme = useTheme();
@@ -64,6 +64,7 @@ const NewControlPane = ({
     }));
 
   const [state, setState] = useState<Control>(() => ({
+    order_no: data.order_no,
     id: data.id,
     title: data.title,
     description: data.description,

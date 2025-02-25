@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import { Topic } from "../../../application/hooks/useAssessmentAnswers";
 
 export interface FileUploadProps {

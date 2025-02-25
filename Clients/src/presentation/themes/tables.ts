@@ -26,13 +26,16 @@ export const tableStyles = {
       },
     },
     body: {
+      backgroundColor: "white",
       row: {
         textTransform: "capitalize",
         borderBottom: "1px solid #EEEEEE",
+        backgroundColor: "white",
       },
       cell: {
         fontSize: fontSizes.medium,
         paddingY: "12px",
+        backgroundColor: "white",
       },
     },
   },

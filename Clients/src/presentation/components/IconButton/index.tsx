@@ -27,14 +27,20 @@ interface IconButtonProps {
   onDeleteVendor: (vendorId: number) => void;
 }
 
-const IconButton: React.FC<IconButtonProps> = ({ vendorId, onVendorChange, onDeleteVendor }) => {
+const IconButton: React.FC<IconButtonProps> = ({
+  vendorId,
+  onVendorChange,
+  onDeleteVendor,
+}) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
   const [actions, setActions] = useState({});
   const [isOpenRemoveVendorModal, setIsOpenRemoveVendorModal] = useState(false);
   const [isOpenAddNewVendorModal, setIsOpenAddNewVendorModal] = useState(false);
   const [value, setValue] = useState("1");
-  const [selectedVendor, setSelectedVendor] = useState<VendorDetails | undefined>(undefined);
+  const [selectedVendor, setSelectedVendor] = useState<
+    VendorDetails | undefined
+  >(undefined);
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
@@ -109,7 +115,7 @@ const IconButton: React.FC<IconButtonProps> = ({ vendorId, onVendorChange, onDel
       const response = await getEntityById({
         routeUrl: `/vendors/${vendorId}`,
       });
-      setSelectedVendor(response.data)
+      setSelectedVendor(response.data);
       openAddNewVendor();
     } catch (e) {
       logEngine({
@@ -119,11 +125,11 @@ const IconButton: React.FC<IconButtonProps> = ({ vendorId, onVendorChange, onDel
           id: String(localStorage.getItem("userId")) || "N/A",
           email: "N/A",
           firstname: "N/A",
-          lastname: "N/A"
+          lastname: "N/A",
         },
       });
     }
-  }
+  };
 
   /**
    * A dropdown list of options rendered as a Material-UI Menu component.
@@ -156,7 +162,7 @@ const IconButton: React.FC<IconButtonProps> = ({ vendorId, onVendorChange, onDel
       <MenuItem
         onClick={(e) => {
           e.stopPropagation();
-          handleEditVendor(e)
+          handleEditVendor(e);
         }}
       >
         Edit

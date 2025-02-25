@@ -32,15 +32,14 @@ const VWQuestion = ({ question }: { question: Question }) => {
         formData.append(`evidence_files[${index}]`, file);
       });
 
-      const updatedQuestion = await updateEntityById({
+      const response = await updateEntityById({
         routeUrl: `/questions/${question.id}`,
-        body: formData,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        body: values,
       });
-      setValues(updatedQuestion.data);
-      console.log("Question updated successfully:", updatedQuestion.data);
+      if (response.status === 202) {
+        setValues(response.data);
+        console.log("Question updated successfully:", response.data);
+      }
     } catch (error) {
       console.error("Error updating question:", error);
     }

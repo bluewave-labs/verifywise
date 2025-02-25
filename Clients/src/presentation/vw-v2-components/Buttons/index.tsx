@@ -1,4 +1,8 @@
 /**
+ * This file is currently in use
+ */
+
+/**
  * VWButton component
  *
  * This component renders a button with various styles and properties.
@@ -40,6 +44,7 @@ interface VWButtonProps {
   onClick?: () => void;
   sx?: any;
   text?: string;
+  icon?: any;
 }
 
 const VWButton: React.FC<VWButtonProps> = ({
@@ -51,6 +56,7 @@ const VWButton: React.FC<VWButtonProps> = ({
   onClick,
   sx,
   text = "VWButton",
+  icon,
 }) => {
   const appearance = singleTheme.buttons[color][variant];
 
@@ -65,6 +71,7 @@ const VWButton: React.FC<VWButtonProps> = ({
       sx={{ ...appearance, ...sx }}
       disableElevation={variant === "contained" && !isLink}
     >
+      {icon}
       {text}
     </Button>
   );

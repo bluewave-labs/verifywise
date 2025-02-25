@@ -3,7 +3,7 @@
  */
 
 import { Stack } from "@mui/material";
-import VWProjectCard from "../components/Cards/ProjectCard";
+import SmallStatsCard from "../components/Cards/SmallStatsCard";
 
 const Playground = () => {
   return (
@@ -18,7 +18,7 @@ const Playground = () => {
         padding: "50px",
       }}
     >
-      <VWProjectCard />
+      <SmallStatsCard />
     </Stack>
   );
 };

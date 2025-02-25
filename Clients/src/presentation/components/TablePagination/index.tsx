@@ -1,8 +1,4 @@
 /**
- * This file is currently in use
- */
-
-/**
  * Component for pagination actions (first, previous, next, last).
  *
  * @component

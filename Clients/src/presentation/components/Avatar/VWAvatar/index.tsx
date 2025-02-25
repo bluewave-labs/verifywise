@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import { Avatar as VWAvatar } from "@mui/material";
 
 interface User {

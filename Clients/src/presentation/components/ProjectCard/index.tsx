@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import { Typography, Box, useTheme } from "@mui/material";
 import { FC, memo, useContext } from "react";
 import euimg from "../../assets/imgs/eu-ai-act.jpg";

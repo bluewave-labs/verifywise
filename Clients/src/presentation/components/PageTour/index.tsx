@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import Joyride, { Step } from "react-joyride";
 import React, { useEffect, useState } from "react";
 

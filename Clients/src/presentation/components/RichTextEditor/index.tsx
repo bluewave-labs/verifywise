@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import React, { useEffect, useState } from "react";
 import { Box, Tooltip, IconButton, Stack } from "@mui/material";
 import { useEditor, EditorContent } from "@tiptap/react";

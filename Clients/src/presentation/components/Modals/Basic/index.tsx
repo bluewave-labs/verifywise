@@ -1,8 +1,4 @@
 /**
- * This file is currently in use
- */
-
-/**
  * A modal component that displays a confirmation dialog for deleting a vendor.
  *
  * @component

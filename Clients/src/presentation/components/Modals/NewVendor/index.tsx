@@ -1,8 +1,4 @@
 /**
- * This file is currently in use
- */
-
-/**
  * Component for adding a new vendor through a modal interface.
  *
  * @component

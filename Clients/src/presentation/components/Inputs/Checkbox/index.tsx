@@ -1,8 +1,4 @@
 /**
- * This file is currently in use
- */
-
-/**
  * Checkbox component using Material-UI's Checkbox and FormControlLabel.
  *
  * @component

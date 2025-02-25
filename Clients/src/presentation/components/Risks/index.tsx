@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import { Theme } from "@emotion/react";
 import { SxProps, Stack, Typography, useTheme } from "@mui/material";
 import { FC } from "react";

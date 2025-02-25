@@ -570,7 +570,6 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
                   mb: theme.spacing(4),
                   backgroundColor: "#DB504A",
                   color: "#fff",
-                  alignSelf: "flex-end",
                 }}
               >
                 Delete project

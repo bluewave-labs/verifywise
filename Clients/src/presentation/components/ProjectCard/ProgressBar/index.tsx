@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import { Slider, Stack, useTheme } from "@mui/material";
 import { FC, useCallback } from "react";
 

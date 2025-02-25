@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import { Stack, Typography } from "@mui/material";
 import { StatsCardFrame, StatsCardRate } from "./style";
 import ProgressBar from "../../ProjectCard/ProgressBar";
@@ -50,7 +46,7 @@ const StatsCard = ({
           mt: "10px",
         }}
       >
-        <ProgressBar progress={progress} bgColor={progressbarColor} />
+        <ProgressBar progress={progress} />
         <Typography
           sx={{
             color: "#8594AC",

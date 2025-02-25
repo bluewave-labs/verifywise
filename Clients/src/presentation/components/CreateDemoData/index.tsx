@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import { Stack, Typography } from "@mui/material";
 import DualButtonModal from "../../vw-v2-components/Dialogs/DualButtonModal";
 

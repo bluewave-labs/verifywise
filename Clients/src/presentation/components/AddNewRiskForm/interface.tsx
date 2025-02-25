@@ -3,13 +3,13 @@ import { Likelihood, Severity } from "../RiskLevel/constants";
 export type ProjectRisk = {
   riskName: string;
   actionOwner: number;
-  aiLifecyclePhase: number;
+  aiLifecyclePhase: number | string;
   riskDescription: string;
-  riskCategory: number;
+  riskCategory: number | string;
   potentialImpact: string;
   assessmentMapping: number;
   controlsMapping: number;
-  likelihood: Likelihood;
+  likelihood: Likelihood | string;
   riskSeverity: Severity;
   riskLevel: number;
   reviewNotes: string;
@@ -27,7 +27,7 @@ export type ProjectRisk = {
 
 export interface RiskFormValues {
   riskName: string;
-  actionOwner: number;
+  actionOwner: number | string;
   aiLifecyclePhase: number;
   riskDescription: string;
   riskCategory: number;

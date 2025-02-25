@@ -20,6 +20,7 @@ import { RISK_LABELS } from "../../RiskLevel/constants";
 import { MitigationFormValues, MitigationFormErrors } from "../interface";
 import styles from "../styles.module.css";
 import useUsers from "../../../../application/hooks/useUsers";
+import { mitigationStatusItems, riskLevelItems, approvalStatusItems } from "../projectRiskValue";
 
 // Lazy load components
 const Select = lazy(() => import("../../Inputs/Select"));
@@ -144,53 +145,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
         setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
       },
     []
-  );
-
-  const mitigationStatusItems = useMemo(
-    () => [
-      { _id: 1, name: MitigationStatus.NotStarted },
-      { _id: 2, name: MitigationStatus.InProgress },
-      { _id: 3, name: MitigationStatus.Completed },
-      { _id: 4, name: MitigationStatus.OnHold },
-      { _id: 5, name: MitigationStatus.Deferred },
-      { _id: 6, name: MitigationStatus.Canceled },
-      { _id: 7, name: MitigationStatus.RequiresReview },
-    ],
-    []
-  );
-
-  const riskLevelItems = useMemo(
-    () => [
-      { _id: 1, name: RISK_LABELS.critical.text },
-      { _id: 2, name: RISK_LABELS.high.text },
-      { _id: 3, name: RISK_LABELS.medium.text },
-      { _id: 4, name: RISK_LABELS.low.text },
-      { _id: 5, name: RISK_LABELS.noRisk.text },
-    ],
-    []
-  );
-
-  const approverItems = useMemo(
-    () => [
-      { _id: 1, name: "Some value 1" },
-      { _id: 2, name: "Some value 2" },
-      { _id: 3, name: "Some value 3" },
-    ],
-    []
-  );
-
-  const approvalStatusItems = useMemo(
-    () => [
-      { _id: 1, name: MitigationStatus.NotStarted },
-      { _id: 2, name: MitigationStatus.InProgress },
-      { _id: 3, name: MitigationStatus.Completed },
-      { _id: 4, name: MitigationStatus.OnHold },
-      { _id: 5, name: MitigationStatus.Deferred },
-      { _id: 6, name: MitigationStatus.Canceled },
-      { _id: 7, name: MitigationStatus.RequiresReview },
-    ],
-    []
-  );
+  );  
 
   const handleFileUploadClose = useCallback(() => {
     setFileUploadOpen(false);
@@ -339,7 +294,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
               }
               onChange={handleOnSelectChange("approver")}
               items={
-                users?.map((user) => ({ _id: user.id, name: user.name })) || []
+                users?.map((user) => ({ _id: user.id, name: `${user.name} ${user.surname}` })) || []
               }
               sx={{
                 width: 324,

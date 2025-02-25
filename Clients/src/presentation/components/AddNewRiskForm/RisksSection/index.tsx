@@ -21,6 +21,7 @@ import React from "react";
 import { RiskFormValues, RiskFormErrors } from "../interface";
 import styles from "../styles.module.css";
 import useUsers from "../../../../application/hooks/useUsers";
+import { aiLifecyclePhase, riskCategorylItems } from "../projectRiskValue";
 
 const RiskLevel = React.lazy(() => import("../../RiskLevel"));
 
@@ -74,40 +75,6 @@ const RiskSection: FC<RiskSectionProps> = ({
   } | null>(null);
   const { users } = useUsers();
 
-  const aiLifecyclePhase = useMemo(
-    () => [
-      { _id: 1, name: "Problem definition & planning" },
-      { _id: 2, name: "Data collection & processing" },
-      { _id: 3, name: "Model development & training" },
-      { _id: 4, name: "Model validation & testing" },
-      { _id: 5, name: "Deployment & integration" },
-      { _id: 6, name: "Monitoring & maintenance" },
-      { _id: 7, name: "Decommissioning & retirement" },
-    ],
-    []
-  );
-
-  const riskCategorylItems = useMemo(
-    () => [
-      { _id: 1, name: "Strategic risk" },
-      { _id: 2, name: "Operational risk" },
-      { _id: 3, name: "Compliance risk" },
-      { _id: 4, name: "Financial risk" },
-      { _id: 5, name: "Cybersecurity risk" },
-      { _id: 6, name: "Reputational risk" },
-      { _id: 7, name: "Legal risk" },
-      { _id: 8, name: "Technological risk" },
-      { _id: 9, name: "Third-party/vendor risk" },
-      { _id: 10, name: "Environmental risk" },
-      { _id: 11, name: "Human resources risk" },
-      { _id: 12, name: "Geopolitical risk" },
-      { _id: 13, name: "Fraud risk" },
-      { _id: 14, name: "Data privacy risk" },
-      { _id: 15, name: "Health and safety risk" },
-    ],
-    []
-  );
-
   const handleOnSelectChange = useCallback(
     (prop: keyof RiskFormValues) =>
       (event: SelectChangeEvent<string | number>) => {
@@ -156,6 +123,18 @@ const RiskSection: FC<RiskSectionProps> = ({
                 gap: theme.spacing(8.5),
               }}
             >
+              <Field
+                id="risk-name-input"
+                label="Risk name"
+                placeholder="Write risk name"
+                value={riskValues.riskName}
+                onChange={handleOnTextFieldChange("riskName")}
+                isRequired
+                error={riskErrors.riskName}
+                sx={{
+                  width: "325px"
+                }}
+              />
               <Select
                 id="action-owner-input"
                 label="Action owner"
@@ -165,7 +144,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                 }
                 onChange={handleOnSelectChange("actionOwner")}
                 items={
-                  users?.map((user) => ({ _id: user.id, name: user.name })) ||
+                  users?.map((user) => ({ _id: user.id, name: `${user.name} ${user.surname}` })) ||
                   []
                 }
                 isRequired
@@ -191,19 +170,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                   width: "325px",
                 }}
               />
-              <Field
-                id="risk-description-input"
-                label="Risk description"
-                placeholder="Write risk description"
-                value={riskValues.riskDescription}
-                onChange={handleOnTextFieldChange("riskDescription")}
-                isRequired
-                error={riskErrors.riskDescription}
-                sx={{
-                  width: "325px",
-                  mb: 8,
-                }}
-              />
+              
             </Stack>
 
             {/* Row 2 */}
@@ -217,6 +184,21 @@ const RiskSection: FC<RiskSectionProps> = ({
               }}
             >
               <Stack>
+                <Stack>
+                  <Field
+                    id="risk-description-input"
+                    label="Risk description"
+                    placeholder="Write risk description"
+                    value={riskValues.riskDescription}
+                    onChange={handleOnTextFieldChange("riskDescription")}
+                    isRequired
+                    error={riskErrors.riskDescription}
+                    sx={{
+                      width: "325px",
+                      mb: 4,
+                    }}
+                  />
+                </Stack>
                 <Select
                   id="risk-category-input"
                   label="Risk category"

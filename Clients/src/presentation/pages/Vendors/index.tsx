@@ -22,6 +22,7 @@ import CustomStep from "../../components/PageTour/CustomStep";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
+import {User} from "../../../domain/User"
 
 const Vendors = () => {
   const theme = useTheme();
@@ -98,11 +99,11 @@ const Vendors = () => {
   };
 
   const handleDeleteVendor = async (vendorId: number) => {
-    const user = {
-      id: String(localStorage.getItem("userId")) || "N/A",
+    const user : User = {
+      id: Number(localStorage.getItem("userId")) || 0,
       email: "N/A",
-      firstname: "N/A",
-      lastname: "N/A",
+      name: "N/A",
+      surname: "N/A",
     };
     try {
       const response = await deleteEntityById({
@@ -137,7 +138,12 @@ const Vendors = () => {
         logEngine({
           type: "error",
           message: "Unexpected response. Please try again.",
-          user,
+          user : {
+          id: String(user.id),
+          email: user.email ?? "N/A",
+          firstname: user.name,
+          lastname: user.surname,
+        },
         });
       }
     } catch (error) {
@@ -145,7 +151,12 @@ const Vendors = () => {
       logEngine({
         type: "error",
         message: `An error occurred: ${error}`,
-        user,
+        user : {
+          id: String(user.id),
+          email: user.email ?? "N/A",
+          firstname: user.name,
+          lastname: user.surname,
+        },
       });
     }
   };

@@ -148,7 +148,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         riskName: inputValues.risk_name ?? "",
         actionOwner: actionOwner ?? "",
         riskDescription: inputValues.risk_description ?? "",
-        aiLifecyclePhase: riskCategorylItems.find(item => item.name === inputValues.ai_lifecycle_phase)?._id ?? 1,
+        aiLifecyclePhase: aiLifecyclePhase.find(item => item.name === inputValues.ai_lifecycle_phase)?._id ?? 1,
         riskCategory: riskCategorylItems.find(item => item.name === inputValues.risk_category)?._id ?? 1,
         potentialImpact: inputValues.impact ?? "",
         assessmentMapping: inputValues.assessment_mapping,

@@ -22,7 +22,7 @@ import CustomStep from "../../components/PageTour/CustomStep";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
-import {User} from "../../../domain/User"
+import { User } from "../../../domain/User";
 
 const Vendors = () => {
   const theme = useTheme();
@@ -46,6 +46,14 @@ const Vendors = () => {
       ),
     },
   ];
+
+  //helper function for error logging
+  const getUserForLogging = (user: User) => ({
+    id: String(user.id),
+    email: user.email ?? "N/A",
+    firstname: user.name,
+    lastname: user.surname,
+  });
 
   const openAddNewVendor = () => {
     setIsOpen(true);
@@ -99,8 +107,8 @@ const Vendors = () => {
   };
 
   const handleDeleteVendor = async (vendorId: number) => {
-    const user : User = {
-      id: Number(localStorage.getItem("userId")) || 0,
+    const user: User = {
+      id: Number(localStorage.getItem("userId")) || -1,
       email: "N/A",
       name: "N/A",
       surname: "N/A",
@@ -138,12 +146,7 @@ const Vendors = () => {
         logEngine({
           type: "error",
           message: "Unexpected response. Please try again.",
-          user : {
-          id: String(user.id),
-          email: user.email ?? "N/A",
-          firstname: user.name,
-          lastname: user.surname,
-        },
+          user: getUserForLogging(user),
         });
       }
     } catch (error) {
@@ -151,12 +154,7 @@ const Vendors = () => {
       logEngine({
         type: "error",
         message: `An error occurred: ${error}`,
-        user : {
-          id: String(user.id),
-          email: user.email ?? "N/A",
-          firstname: user.name,
-          lastname: user.surname,
-        },
+        user: getUserForLogging(user),
       });
     }
   };

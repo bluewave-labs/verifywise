@@ -30,7 +30,7 @@ import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.cont
 import dayjs from "dayjs";
 import useUsers from "../../../application/hooks/useUsers";
 import { RISK_LABELS } from "../RiskLevel/constants";
-import { aiLifecyclePhase, riskCategorylItems, mitigationStatusItems, approvalStatusItems, riskLevelItems, likelihoodItems, riskSeverityItems } from "./projectRiskValue";
+import { aiLifecyclePhase, riskCategoryItems, mitigationStatusItems, approvalStatusItems, riskLevelItems, likelihoodItems, riskSeverityItems } from "./projectRiskValue";
 
 const RiskSection = lazy(() => import("./RisksSection"));
 const MitigationSection = lazy(() => import("./MitigationSection"));
@@ -149,7 +149,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         actionOwner: actionOwner ?? "",
         riskDescription: inputValues.risk_description ?? "",
         aiLifecyclePhase: aiLifecyclePhase.find(item => item.name === inputValues.ai_lifecycle_phase)?._id ?? 1,
-        riskCategory: riskCategorylItems.find(item => item.name === inputValues.risk_category)?._id ?? 1,
+        riskCategory: riskCategoryItems.find(item => item.name === inputValues.risk_category)?._id ?? 1,
         potentialImpact: inputValues.impact ?? "",
         assessmentMapping: inputValues.assessment_mapping,
         controlsMapping: inputValues.controlsMapping,
@@ -354,7 +354,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         risk_owner: owner ? [owner.name, owner.surname].filter(Boolean).join(' ') : '',
         ai_lifecycle_phase: aiLifecyclePhase.find(item => item._id === riskValues.aiLifecyclePhase)?.name || '',
         risk_description: riskValues.riskDescription,
-        risk_category: riskCategorylItems.find(item => item._id === riskValues.riskCategory)?.name || '',
+        risk_category: riskCategoryItems.find(item => item._id === riskValues.riskCategory)?.name || '',
         impact: riskValues.potentialImpact,
         assessment_mapping: riskValues.assessmentMapping,
         controls_mapping: riskValues.controlsMapping,

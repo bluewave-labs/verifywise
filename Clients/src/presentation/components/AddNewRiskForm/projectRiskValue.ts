@@ -18,7 +18,7 @@ export const aiLifecyclePhase: riskType[] = [
     { _id: 7, name: "Decommissioning & retirement" },
 ];
 
-export const riskCategorylItems: riskType[] = [
+export const riskCategoryItems: riskType[] = [
     { _id: 1, name: "Strategic risk" },
     { _id: 2, name: "Operational risk" },
     { _id: 3, name: "Compliance risk" },

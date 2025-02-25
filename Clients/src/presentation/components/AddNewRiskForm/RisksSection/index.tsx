@@ -21,7 +21,7 @@ import React from "react";
 import { RiskFormValues, RiskFormErrors } from "../interface";
 import styles from "../styles.module.css";
 import useUsers from "../../../../application/hooks/useUsers";
-import { aiLifecyclePhase, riskCategorylItems } from "../projectRiskValue";
+import { aiLifecyclePhase, riskCategoryItems } from "../projectRiskValue";
 
 const RiskLevel = React.lazy(() => import("../../RiskLevel"));
 
@@ -207,7 +207,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                     riskValues.riskCategory === 0 ? "" : riskValues.riskCategory
                   }
                   onChange={handleOnSelectChange("riskCategory")}
-                  items={riskCategorylItems}
+                  items={riskCategoryItems}
                   isRequired
                   error={riskErrors.riskCategory}
                   sx={{

@@ -4,6 +4,7 @@ import { getEntityById } from "../../../../application/repository/entity.reposit
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import { Subtopic } from "../../../../domain/Subtopic";
 import VWQuestion from "../../../components/Question";
+import { Question } from "../../../../domain/Question";
 
 type QuestionsProps = {
   subtopic: Subtopic;
@@ -11,7 +12,7 @@ type QuestionsProps = {
 };
 
 const Questions = ({ subtopic, index }: QuestionsProps) => {
-  const [questionsData, setQuestionsData] = useState<any>(null);
+  const [questionsData, setQuestionsData] = useState<Question[]>();
   const [loadingQuestions, setLoadingQuestions] = useState<boolean>(true);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -28,7 +29,7 @@ const Questions = ({ subtopic, index }: QuestionsProps) => {
         setQuestionsData(response.data);
       } catch (error) {
         console.error("Failed to fetch questions data:", error);
-        setQuestionsData(null);
+        setQuestionsData([]);
       } finally {
         setLoadingQuestions(false);
       }
@@ -59,7 +60,9 @@ const Questions = ({ subtopic, index }: QuestionsProps) => {
         />
       ) : Array.isArray(questionsData) ? (
         questionsData
-          .sort((a: any, b: any) => a.order_id - b.order_id)
+          .sort(
+            (a: Question, b: Question) => (a.order_no ?? 0) - (b.order_no ?? 0)
+          )
           .map((question: any) => (
             <VWQuestion key={question.id} question={question} />
           ))

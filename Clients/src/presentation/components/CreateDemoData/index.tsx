@@ -6,7 +6,10 @@ interface DemoDataProps {
   handleCreateDemoData: () => void;
 }
 
-const CreateDemoData = ({ handleCancelDemoData, handleCreateDemoData }: DemoDataProps) => {
+const CreateDemoData = ({
+  handleCancelDemoData,
+  handleCreateDemoData,
+}: DemoDataProps) => {
   return (
     <Stack
       sx={{

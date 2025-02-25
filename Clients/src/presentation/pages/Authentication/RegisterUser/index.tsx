@@ -1,11 +1,21 @@
+/**
+ * This file is currently in use
+ */
+
 import { Button, Stack, Typography, useTheme, Box } from "@mui/material";
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Check from "../../../components/Checks";
 import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { validatePassword, validateForm } from "../../../../application/validations/formValidation";
-import type { FormValues, FormErrors } from "../../../../application/validations/formValidation";
+import {
+  validatePassword,
+  validateForm,
+} from "../../../../application/validations/formValidation";
+import type {
+  FormValues,
+  FormErrors,
+} from "../../../../application/validations/formValidation";
 import useRegisterUser from "../../../../application/hooks/useRegisterUser";
 import { useNavigate } from "react-router-dom";
 import { logEngine } from "../../../../application/tools/log.engine";
@@ -38,7 +48,7 @@ const RegisterUser: React.FC = () => {
   const userToken = searchParams.get("token"); 
   const [isInvitationValid, setIsInvitationValid] = useState<boolean>(true);
   const [alert, setAlert] = useState<AlertType | null>(null);
-
+    
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
   // State for form errors
@@ -55,7 +65,7 @@ const RegisterUser: React.FC = () => {
     (event: React.ChangeEvent<HTMLInputElement>) => {
       setValues({ ...values, [prop]: event.target.value });
       setErrors({ ...errors, [prop]: "" });
-  };
+    };
 
   // Handle form submission
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -66,14 +76,17 @@ const RegisterUser: React.FC = () => {
       id: "At register level as user",
       firstname: values.name || "",
       lastname: values.surname || "",
-
     };
     const { isFormValid, errors } = validateForm(values);
     if (!isFormValid) {
       setErrors(errors);
       setIsSubmitting(false);
     } else {
-      const { isSuccess } = await registerUser({ values, user,setIsSubmitting });
+      const { isSuccess } = await registerUser({
+        values,
+        user,
+        setIsSubmitting,
+      });
       if (isSuccess === 201) {
         setValues(initialState);
         setErrors({});
@@ -81,15 +94,13 @@ const RegisterUser: React.FC = () => {
           navigate("/login");
           setIsSubmitting(false);
         }, 3000);
-      } else{
-        const msg = logEngine({
+      } else {
+        logEngine({
           type: "error",
           message: "Registration failed.",
           user,
-        })
+        });
         setIsSubmitting(false);
-
-        console.log(msg)
         
         handleAlert({
           variant: "error",
@@ -163,7 +174,9 @@ const RegisterUser: React.FC = () => {
       )}
 
       {/* Toast component */}
-      {isSubmitting && <VWToast title="Processing your request. Please wait..." />}
+      {isSubmitting && (
+        <VWToast title="Processing your request. Please wait..." />
+      )}
       <Background
         style={{
           position: "absolute",

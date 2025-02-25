@@ -1,9 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useContext,
-} from "react";
+import React, { useState, useEffect, useCallback, useContext } from "react";
 import {
   Stack,
   Table,
@@ -19,9 +14,7 @@ import {
 import TablePaginationActions from "../TablePagination";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import singleTheme from "../../themes/v1SingleTheme";
-import {
-  RISK_LABELS,
-} from "../../components/RiskLevel/constants";
+import { RISK_LABELS } from "../../components/RiskLevel/constants";
 import { getAllEntities } from "../../../application/repository/entity.repository";
 
 const DEFAULT_ROWS_PER_PAGE = 5;
@@ -79,7 +72,10 @@ const VWBasicTable = ({
   const fetchVendors = useCallback(async () => {
     try {
       const response = await getAllEntities({ routeUrl: "/vendors" });
-      setDashboardValues((prev: DashboardValues) => ({ ...prev, vendors: response.data }));
+      setDashboardValues((prev: DashboardValues) => ({
+        ...prev,
+        vendors: response.data,
+      }));
     } catch (error) {
       console.error("Error fetching vendors:", error);
     }
@@ -184,7 +180,9 @@ const VWBasicTable = ({
             rowsPerPage={rowsPerPage}
             rowsPerPageOptions={[5, 10, 15, 25]}
             onRowsPerPageChange={handleChangeRowsPerPage}
-            ActionsComponent={TablePaginationActions as React.ComponentType<any>}
+            ActionsComponent={
+              TablePaginationActions as React.ComponentType<any>
+            }
             labelRowsPerPage="Rows per page"
             sx={{ mt: theme.spacing(6) }}
           />

@@ -46,7 +46,7 @@ const StatsCard = ({
           mt: "10px",
         }}
       >
-        <ProgressBar progress={progress} bgColor={progressbarColor} />
+        <ProgressBar progress={progress} />
         <Typography
           sx={{
             color: "#8594AC",

@@ -1,5 +1,9 @@
+/**
+ * This file is currently in use
+ */
+
 import React, { useState, useMemo, useCallback, useEffect } from "react";
-import { Stack, Box, Typography} from "@mui/material"; //useTheme is not used
+import { Stack, Box, Typography } from "@mui/material"; //useTheme is not used
 import BasicTable from "../../components/Table";
 import axios from "axios";
 import EmptyTableImage from "../../assets/imgs/empty-state.svg";
@@ -172,36 +176,37 @@ const FileManager: React.FC = (): JSX.Element => {
   useEffect(() => {
     setRunFileTour(true);
 
-//     const mockFile: {
-//       id: "1";
-//       name: "test-file.pdf";
-//       type: "pdf";
-//       uploadDate: string;
-//       uploader: "John Doe";
-//     } = {
-//       id: "1",
-//       name: "test-file.pdf",
-//       type: "pdf",
-//       uploadDate: new Date().toLocaleDateString(),
-//       uploader: "John Doe",
-//     };
-// setFiles([mockFile]);
-// setLoading(false);
-    const fetchFileById = async (fileId:string) => {
+    //     const mockFile: {
+    //       id: "1";
+    //       name: "test-file.pdf";
+    //       type: "pdf";
+    //       uploadDate: string;
+    //       uploader: "John Doe";
+    //     } = {
+    //       id: "1",
+    //       name: "test-file.pdf",
+    //       type: "pdf",
+    //       uploadDate: new Date().toLocaleDateString(),
+    //       uploader: "John Doe",
+    //     };
+    // setFiles([mockFile]);
+    // setLoading(false);
+    const fetchFileById = async (fileId: string) => {
       try {
-        const response = await axios.get(`https://localhost:3000/files/${fileId}`);
-        const file = response.data
-        
-       const fileData: File ={
+        const response = await axios.get(
+          `https://localhost:3000/files/${fileId}`
+        );
+        const file = response.data;
+
+        const fileData: File = {
           id: file.id,
           name: file.name,
           type: file.type || "N/A",
           uploadDate: new Date(file.uploadDate).toLocaleDateString(),
           uploader: file.uploader || "N/A",
-        }
+        };
         setFiles([fileData]);
-       }
-       catch (error) {
+      } catch (error) {
         console.error("Error fetching files", error);
       } finally {
         setLoading(false);
@@ -263,14 +268,12 @@ const FileManager: React.FC = (): JSX.Element => {
   ];
 
   //loading state before fetching files
-  if(loading){
+  if (loading) {
     return (
-     <Stack
-     sx={{ textAlign: "center", padding: 4 }}
-     >
-      <Typography variant="h6">Loading files...</Typography>
-     </Stack>
-    )
+      <Stack sx={{ textAlign: "center", padding: 4 }}>
+        <Typography variant="h6">Loading files...</Typography>
+      </Stack>
+    );
   }
 
   return (

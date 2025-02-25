@@ -1,4 +1,10 @@
-import { Button, SelectChangeEvent, Stack, useTheme, Typography } from "@mui/material";
+import {
+  Button,
+  SelectChangeEvent,
+  Stack,
+  useTheme,
+  Typography,
+} from "@mui/material";
 import dayjs, { Dayjs } from "dayjs";
 import { FC, useState, useContext, useEffect, lazy, Suspense } from "react";
 import Field from "../Inputs/Field";
@@ -89,7 +95,11 @@ const initialState: FormValues = {
  * @function validateForm - Validates the form values and sets errors if any.
  * @function handleSubmit - Handles form submission, validates the form, and sends a request to the backend.
  */
-const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, popupStatus }) => {
+const AddNewVendorRiskForm: FC<RiskSectionProps> = ({
+  closePopup,
+  onSuccess,
+  popupStatus,
+}) => {
   const theme = useTheme();
   const { inputValues, dashboardValues } = useContext(VerifyWiseContext);
 
@@ -102,7 +112,7 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, pop
   const { users } = useUsers();
 
   const handleDateChange = (newDate: Dayjs | null) => {
-    if(newDate?.isValid()){
+    if (newDate?.isValid()) {
       setValues((prevValues) => ({
         ...prevValues,
         reviewDate: newDate ? newDate.toISOString() : "",
@@ -163,58 +173,61 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, pop
     if (validateForm()) {
       //request to the backend
       const formData = {
-        "project_id": projectId,
-        "vendor_name": values.vendorName,
-        "risk_name": values.riskName,
-        "owner": values.actionOwner,
-        "risk_level": "High Risk", // Need to remove the field
-        "review_date": values.reviewDate,
+        project_id: projectId,
+        vendor_name: values.vendorName,
+        risk_name: values.riskName,
+        owner: values.actionOwner,
+        risk_level: "High Risk", // Need to remove the field
+        review_date: values.reviewDate,
         // "description": values.riskDescription
-      }
+      };
 
-      console.log(formData)
+      console.log(formData);
 
-      if(popupStatus !== 'new'){
+      if (popupStatus !== "new") {
         try {
-          const response = await apiServices.put("/vendorRisks/" + inputValues.id, formData);
-          console.log(response)
+          const response = await apiServices.put(
+            "/vendorRisks/" + inputValues.id,
+            formData
+          );
+          console.log(response);
           if (response.status === 202) {
             onSuccess();
             closePopup();
-          }else{
+          } else {
             handleAlert({
               variant: "error",
               body: "Error occurs while updating the risk.",
-              setAlert
+              setAlert,
             });
           }
         } catch (error) {
           handleAlert({
             variant: "error",
             body: error + " occurs while sending a request.",
-            setAlert
+            setAlert,
           });
         }
-      }else{
-        console.log(formData)
+      } else {
+        console.log(formData);
         try {
           const response = await apiServices.post("/vendorRisks", formData);
-          console.log(response)
+          console.log(response);
           if (response.status === 201) {
             onSuccess();
             closePopup();
-          }else{
+          } else {
             handleAlert({
               variant: "error",
               body: "Error occurs while creating a risk.",
-              setAlert
+              setAlert,
             });
           }
         } catch (error) {
           handleAlert({
             variant: "error",
             body: error + " occurs while sending a request.",
-            setAlert
+            setAlert,
           });
         }
       }
@@ -229,19 +242,21 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, pop
   };
 
   useEffect(() => {
-    if(popupStatus === 'edit'){
+    if (popupStatus === "edit") {
       // riskData
       const currentRiskData: FormValues = {
         ...initialState,
         riskName: inputValues.risk_name ?? "",
-        reviewDate: inputValues.review_date ? dayjs(inputValues.review_date).toISOString() : "",
+        reviewDate: inputValues.review_date
+          ? dayjs(inputValues.review_date).toISOString()
+          : "",
         vendorName: parseInt(inputValues.vendor_name) ?? 0,
         actionOwner: parseInt(inputValues.owner) ?? 0,
         riskDescription: inputValues.risk_description ?? "",
       };
       setValues(currentRiskData);
     }
-  }, [popupStatus])
+  }, [popupStatus]);
 
   return (
     <Stack>
@@ -269,10 +284,19 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, pop
           <Select
             id="vendor-name-input"
             label="Vendor name"
-            placeholder={dashboardValues.vendors.length === 0 ? "Vendor list is empty. Create a vendor first." : "Select vendor"}
-            value={values.vendorName === 0 ? '' : values.vendorName}
+            placeholder={
+              dashboardValues.vendors.length === 0
+                ? "Vendor list is empty. Create a vendor first."
+                : "Select vendor"
+            }
+            value={values.vendorName === 0 ? "" : values.vendorName}
             onChange={handleOnSelectChange("vendorName")}
-            items={dashboardValues.vendors.map((vendor: { id: any; vendor_name: any; }) => ({ _id: vendor.id, name: vendor.vendor_name }))}
+            items={dashboardValues.vendors.map(
+              (vendor: { id: any; vendor_name: any }) => ({
+                _id: vendor.id,
+                name: vendor.vendor_name,
+              })
+            )}
             sx={{
               width: "350px",
               backgroundColor: theme.palette.background.main,
@@ -284,7 +308,7 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({ closePopup, onSuccess, pop
             id="action-owner-input"
             label="Action owner"
             placeholder="Select owner"
-            value={values.actionOwner === 0 ? '' : values.actionOwner}
+            value={values.actionOwner === 0 ? "" : values.actionOwner}
             onChange={handleOnSelectChange("actionOwner")}
             items={users.map((user) => ({ _id: user.id, name: user.name }))}
             sx={{

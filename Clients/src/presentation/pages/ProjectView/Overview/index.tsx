@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import { Stack, Typography, useTheme } from "@mui/material";
 import ProgressBar from "../../../components/ProjectCard/ProgressBar";
 import { FC, memo, useCallback, useContext, useMemo } from "react";
@@ -27,10 +31,12 @@ interface ProgressBarCardProps {
   completed: number;
 }
 
-const Overview: FC<OverviewProps> = memo(({ projectRisksSummary, vendorRisksSummary }) => {
+const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") ?? "1"; // default project ID is 2
-  const { project, projectOwner, error, isLoading } = useProjectData({ projectId });
+  const { project, projectOwner, error, isLoading } = useProjectData({
+    projectId,
+  });
   const theme = useTheme();
   const { projectStatus } = useContext(VerifyWiseContext);
 
@@ -82,7 +88,8 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary, vendorRisksSumm
         </Typography>
         <ProgressBar progress={progress} />
         <Typography sx={{ fontSize: 11, color: "#8594AC" }}>
-          {progress} {label}{completed > 1 && 's'} completed
+          {progress} {label}
+          {completed > 1 && "s"} completed
         </Typography>
       </Stack>
     ),
@@ -144,14 +151,14 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary, vendorRisksSumm
         </Typography>
         <Risks {...projectRisksSummary} />
       </Stack>
-      <Stack>
-        <Typography
-          sx={{ color: "#1A1919", fontWeight: 600, mb: "10px", fontSize: 16 }}
-        >
-          Vendor risks
-        </Typography>
-        <Risks {...vendorRisksSummary} />
-      </Stack>
+      {/* <Stack>
+          <Typography
+            sx={{ color: "#1A1919", fontWeight: 600, mb: "10px", fontSize: 16 }}
+          >
+            Vendor risks
+          </Typography>
+          <Risks {...vendorRisksSummary} />
+        </Stack> */}
     </Stack>
   );
 });

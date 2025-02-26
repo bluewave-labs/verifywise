@@ -23,6 +23,7 @@ import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import { User } from "../../../domain/User";
+import { getUserForLogging } from "../../../application/tools/userHelpers";
 
 const Vendors = () => {
   const theme = useTheme();
@@ -46,14 +47,6 @@ const Vendors = () => {
       ),
     },
   ];
-
-  //helper function for error logging
-  const getUserForLogging = (user: User) => ({
-    id: String(user.id),
-    email: user.email ?? "N/A",
-    firstname: user.name,
-    lastname: user.surname,
-  });
 
   const openAddNewVendor = () => {
     setIsOpen(true);

@@ -20,8 +20,6 @@ import useRegisterUser from "../../../../application/hooks/useRegisterUser";
 import { useNavigate } from "react-router-dom";
 import { logEngine } from "../../../../application/tools/log.engine";
 import VWToast from "../../../vw-v2-components/Toast";
-import { User } from "../../../../domain/User";
-import { getUserForLogging } from "../../../../application/tools/userHelpers";
 
 export interface AlertType {
   variant: "success" | "info" | "warning" | "error";

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Stack, Typography } from "@mui/material";
 import { headerCardPlaceholder, vwhomeHeading } from "./style";
 import SmallStatsCard from "../../../components/Cards/SmallStatsCard";
@@ -8,16 +8,25 @@ import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import VWProjectCard from "../../../components/Cards/ProjectCard";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 const VWHome = () => {
+  const { setDashboardValues } = useContext(VerifyWiseContext);
   const [complianceProgress, setComplianceProgress] = useState<any>({});
   const [assessmentProgress, setAssessmentProgress] = useState<any>({});
   const [projects, setProjects] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProgressData = async () => {
       try {
+        const usersData = await getAllEntities({
+          routeUrl: "/users",
+        });
+        setUsers(usersData.data);
+        setDashboardValues({ users: usersData.data });
+
         const complianceData = await getAllEntities({
           routeUrl: "/projects/all/compliance/progress",
         });
@@ -42,6 +51,7 @@ const VWHome = () => {
     fetchProgressData();
   }, []);
 
+  console.log("users : ", users);
   console.log("complianceProgress : ", complianceProgress);
   console.log("assessmentProgress : ", assessmentProgress);
   console.log("projects : ", projects);

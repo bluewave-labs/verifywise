@@ -13,8 +13,17 @@ import {
 } from "./style";
 import { Project } from "../../../../domain/Project";
 import { formatDate } from "../../../tools/isoDateToString";
+import { useContext } from "react";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import { User } from "../../Inputs/Dropdowns";
 
 const VWProjectCard = ({ project }: { project: Project }) => {
+  const { dashboardValues } = useContext(VerifyWiseContext);
+  const { users } = dashboardValues;
+
+  const ownerUser: User =
+    users.find((user: User) => user.id === project.owner) ?? "";
+
   return (
     <Stack className="project-card" sx={projectCardStyle}>
       <Stack className="project-card-header" sx={{ gap: 2 }}>
@@ -47,7 +56,9 @@ const VWProjectCard = ({ project }: { project: Project }) => {
         <Stack className="project-card-spec-tile">
           <Typography sx={projectCardSpecKeyStyle}>Project owner</Typography>
           <Typography sx={projectCardSpecValueyStyle}>
-            {project.owner}
+            {ownerUser
+              ? `${ownerUser.name} ${ownerUser.surname}`
+              : "Unknown User"}
           </Typography>
         </Stack>
         <Stack className="project-card-spec-tile">

@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { Box, Stack, Typography } from "@mui/material";
+import { Stack, Typography } from "@mui/material";
 import { headerCardPlaceholder, vwhomeHeading } from "./style";
 import SmallStatsCard from "../../../components/Cards/SmallStatsCard";
 import VWButton from "../../../vw-v2-components/Buttons";
@@ -22,7 +22,7 @@ const VWHome = () => {
   const [complianceProgress, setComplianceProgress] = useState<any>({});
   const [assessmentProgress, setAssessmentProgress] = useState<any>({});
   const [projects, setProjects] = useState<any[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
+  const [_, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isGeneratingDemoData, setIsGeneratingDemoData] = useState(false);
   const [alert, setAlert] = useState<{
@@ -31,38 +31,35 @@ const VWHome = () => {
     body: string;
   } | null>(null);
 
+  const fetchData = async (routeUrl: string, setData: (data: any) => void) => {
+    try {
+      const response = await getAllEntities({ routeUrl });
+      setData(response.data);
+    } catch (error) {
+      console.error(`Error fetching data from ${routeUrl}:`, error);
+    }
+  };
+
   useEffect(() => {
     const fetchProgressData = async () => {
-      try {
-        const usersData = await getAllEntities({
-          routeUrl: "/users",
-        });
-        setUsers(usersData.data);
-        setDashboardValues({ users: usersData.data });
-
-        const complianceData = await getAllEntities({
-          routeUrl: "/projects/all/compliance/progress",
-        });
-        setComplianceProgress(complianceData.data);
-
-        const assessmentData = await getAllEntities({
-          routeUrl: "/projects/all/assessment/progress",
-        });
-        setAssessmentProgress(assessmentData.data);
-
-        const projectsData = await getAllEntities({
-          routeUrl: "/projects",
-        });
-        setProjects(projectsData.data);
-      } catch (error) {
-        console.error("Error fetching progress data:", error);
-      } finally {
-        setLoading(false);
-      }
+      await fetchData("/users", (data) => {
+        setUsers(data);
+        setDashboardValues({ users: data });
+      });
+      await fetchData(
+        "/projects/all/compliance/progress",
+        setComplianceProgress
+      );
+      await fetchData(
+        "/projects/all/assessment/progress",
+        setAssessmentProgress
+      );
+      await fetchData("/projects", setProjects);
+      setLoading(false);
     };
 
     fetchProgressData();
-  }, []);
+  }, [setDashboardValues]);
 
   async function generateDemoData() {
     setIsGeneratingDemoData(true);
@@ -87,6 +84,17 @@ const VWHome = () => {
         setTimeout(() => {
           setAlert(null);
         }, 3000);
+
+        // Fetch the updated data
+        await fetchData("/projects", setProjects);
+        await fetchData(
+          "/projects/all/compliance/progress",
+          setComplianceProgress
+        );
+        await fetchData(
+          "/projects/all/assessment/progress",
+          setAssessmentProgress
+        );
       } else {
         logEngine({
           type: "error",
@@ -120,10 +128,8 @@ const VWHome = () => {
     }
   }
 
-  console.log("users : ", users);
-  console.log("complianceProgress : ", complianceProgress);
-  console.log("assessmentProgress : ", assessmentProgress);
-  console.log("projects : ", projects);
+  console.log("complianceProgress: ", complianceProgress);
+  console.log("assessmentProgress: ", assessmentProgress);
 
   return (
     <Stack className="vwhome">
@@ -171,12 +177,12 @@ const VWHome = () => {
           ) : (
             <SmallStatsCard
               attributeTitle="Assessment tracker"
-              progress={`${assessmentProgress.allDonesubControls ?? 0}/${
-                assessmentProgress.allsubControls ?? 0
+              progress={`${assessmentProgress.answeredQuestions ?? 0}/${
+                assessmentProgress.totalQuestions ?? 0
               }`}
               rate={
-                (assessmentProgress.allDonesubControls ?? 0) /
-                (assessmentProgress.allsubControls ?? 1)
+                (assessmentProgress.answeredQuestions ?? 0) /
+                (assessmentProgress.totalQuestions ?? 1)
               }
             />
           )}
@@ -205,7 +211,7 @@ const VWHome = () => {
             {!projects && (
               <VWButton
                 variant="contained"
-                text="Get demo data"
+                text="Insert demo data"
                 sx={{
                   backgroundColor: "#13715B",
                   border: "1px solid #13715B",
@@ -228,35 +234,28 @@ const VWHome = () => {
             />
           </Stack>
         </Stack>
-        {projects ? (
-          <Box
-            className="vwhome-body-projects"
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              flexWrap: projects.length < 3 ? "nowrap" : "wrap",
-              justifyContent: "flex-start",
-              alignItems: "center",
-              gap: "30px",
-            }}
-          >
-            {projects.length > 0 ? (
-              projects.map((project) => (
-                <VWProjectCard key={project.id} project={project} />
-              ))
-            ) : (
-              <NoProject
-                message='You have no projects, yet. Click on the "New Project" button to
+        <Stack
+          className="vwhome-body-projects"
+          sx={{
+            display: "flex",
+            flexDirection: projects.length < 4 ? "row" : "row",
+            flexWrap: projects.length < 4 ? "nowrap" : "wrap",
+            justifyContent: "flex-start",
+            alignItems: "center",
+            gap: "10px",
+          }}
+        >
+          {projects.length > 0 ? (
+            projects.map((project) => (
+              <VWProjectCard key={project.id} project={project} />
+            ))
+          ) : (
+            <NoProject
+              message='You have no projects, yet. Click on the "New Project" button to
           start one.'
-              />
-            )}
-          </Box>
-        ) : (
-          <NoProject
-            message='You have no projects, yet. Click on the "New Project" button to
-      start one.'
-          />
-        )}
+            />
+          )}
+        </Stack>
       </Stack>
     </Stack>
   );

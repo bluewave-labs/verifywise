@@ -86,21 +86,26 @@ export const deleteProjectByIdQuery = async (
 
   const deleteHelper = async (childObject: Record<string, any>, parent_id: number) => {
     const childTableName = Object.keys(childObject).filter(k => k !== "foreignKey")[0]
-    // if (childTableName !== "vendors") {
-    const childIds = await pool.query(`SELECT id FROM ${childTableName} WHERE ${childObject[childTableName].foreignKey} = $1`, [parent_id])
+    let childIds: any = {}
+    if (childTableName === "vendors") {
+      childIds = await pool.query(`SELECT vendor_id FROM vendors_projects WHERE project_id = $1`, [parent_id])
+    } else {
+      childIds = await pool.query(`SELECT id FROM ${childTableName} WHERE ${childObject[childTableName].foreignKey} = $1`, [parent_id])
+    }
     await Promise.all(Object.keys(childObject[childTableName])
       .filter(k => k !== "foreignKey")
       .map(async k => {
         for (let ch of childIds.rows) {
-          await deleteHelper({ [k]: childObject[childTableName][k] }, ch.id)
+          let childId = ch.id
+          if (childTableName === "vendors") childId = ch.vendor_id
+          await deleteHelper({ [k]: childObject[childTableName][k] }, childId)
         }
       }))
-    // }
     await deleteTable(childTableName, childObject[childTableName].foreignKey, parent_id)
   }
 
   const dependantEntities = [
-    { "vendors": { foreignKey: "projects", "vendorrisks": { foreignKey: "vendor_id" } } },
+    { "vendors": { foreignKey: "project_id", "vendorrisks": { foreignKey: "vendor_id" } } },
     { "projectrisks": { foreignKey: "project_id" } },
     {
       assessments: {

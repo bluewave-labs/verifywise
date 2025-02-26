@@ -129,11 +129,12 @@ const insertQuery = {
   controlCategories: {
     mockData: ControlCategories,
     tableName: "controlcategories",
-    insertString: "INSERT INTO controlcategories(project_id, title) VALUES ",
+    insertString: "INSERT INTO controlcategories(project_id, title, order_no) VALUES ",
     generateValuesString: function (controlCategory: ControlCategory) {
       return `(
         '${controlCategory.project_id}',
-        'DEMO - ${controlCategory.title}'
+        'DEMO - ${controlCategory.title}',
+        ${controlCategory.order_no}
       )`;
     },
   },
@@ -445,7 +446,7 @@ export async function insertMockData() {
   } = insertQuery["mockControls"];
   let controls;
   if (controlMockData.length !== 0) {
-    const values = controlMockData(controlCategories![0].id, controlCategories![1].id).map((d) => controlGenerateValuesString(d as any));
+    const values = controlMockData(controlCategories!.map(c => c.id)).map((d) => controlGenerateValuesString(d as any));
     insertString += values.join(",") + "RETURNING id;";
     controls = await insertData(insertString as string);
   }
@@ -458,14 +459,7 @@ export async function insertMockData() {
   } = insertQuery["subcontrols"];
   let subControls;
   if (controlMockData.length !== 0) {
-    const values = subControlMockData(
-      controls![0].id,
-      controls![1].id,
-      controls![2].id,
-      controls![3].id,
-      controls![4].id,
-      controls![5].id,
-    ).map((d) => subControlGenerateValuesString(d as any));
+    const values = subControlMockData(controls!.map(c => c.id)).map((d) => subControlGenerateValuesString(d as any));
     insertString += values.join(",") + "RETURNING id;";
     subControls = await insertData(insertString as string);
   }
@@ -494,8 +488,10 @@ export async function insertMockData() {
   let vendorRisks;
   if (controlMockData.length !== 0) {
     const values = vendorRisksMockData(
-      projects![0].id,
-      projects![0].id,
+      vendors![0].id,
+      vendors![1].id,
+      vendors![2].id,
+      vendors![3].id,
     ).map((d) => vendorRisksGenerateValuesString(d as any));
     insertString += values.join(",") + "RETURNING id;";
     vendorRisks = await insertData(insertString as string);

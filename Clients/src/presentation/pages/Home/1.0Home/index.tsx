@@ -228,28 +228,35 @@ const VWHome = () => {
             />
           </Stack>
         </Stack>
-        <Box
-          className="vwhome-body-projects"
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            flexWrap: projects.length < 3 ? "nowrap" : "wrap",
-            justifyContent: "flex-start",
-            alignItems: "center",
-            gap: "30px",
-          }}
-        >
-          {projects.length > 0 ? (
-            projects.map((project) => (
-              <VWProjectCard key={project.id} project={project} />
-            ))
-          ) : (
-            <NoProject
-              message='You have no projects, yet. Click on the "New Project" button to
+        {projects ? (
+          <Box
+            className="vwhome-body-projects"
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              flexWrap: projects.length < 3 ? "nowrap" : "wrap",
+              justifyContent: "flex-start",
+              alignItems: "center",
+              gap: "30px",
+            }}
+          >
+            {projects.length > 0 ? (
+              projects.map((project) => (
+                <VWProjectCard key={project.id} project={project} />
+              ))
+            ) : (
+              <NoProject
+                message='You have no projects, yet. Click on the "New Project" button to
           start one.'
-            />
-          )}
-        </Box>
+              />
+            )}
+          </Box>
+        ) : (
+          <NoProject
+            message='You have no projects, yet. Click on the "New Project" button to
+      start one.'
+          />
+        )}
       </Stack>
     </Stack>
   );

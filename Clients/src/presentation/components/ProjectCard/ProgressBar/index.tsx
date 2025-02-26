@@ -5,30 +5,28 @@ interface ProgressBarProps {
   progress: string | null;
 }
 
-const ProgressBar: FC<ProgressBarProps> = ({ progress = "" }) => {
+const ProgressBar: FC<ProgressBarProps> = ({ progress }) => {
   const theme = useTheme();
 
   const progressCount = (progressString: string): number => {
     const [completed, total] = progressString.split("/").map(Number);
     if (Number.isNaN(completed) || Number.isNaN(total)) {
-      throw new Error(
-        `Invalid progress format. Expected 'number/number', got: ${progressString}`
-      );
+      return 0;
     }
     if (total === 0) {
-      throw new Error("Total cannot be zero");
+      return 0;
     }
     if (completed < 0 || total < 0) {
-      throw new Error("Progress values cannot be negative");
+      return 0;
     }
     if (completed > total) {
-      throw new Error("Completed value cannot exceed total");
+      return 0;
     }
     return completed / total;
   };
 
   const value =
-    progress && progress.split("/")[1] !== "0"
+    progress && progress !== "" && progress.split("/")[1] !== "0"
       ? progressCount(progress) * 100
       : 0;
 

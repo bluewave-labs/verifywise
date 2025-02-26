@@ -41,9 +41,10 @@ const useRegisterUser = () => {
       });
       handleApiResponse({response, user, setIsSubmitting});
       return {
-        isSuccess: response.status === 201
+        isSuccess: response.status
       };
     } catch (error) {
+      console.log(error)
       logEngine({
         type: "error",
         message: `An error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`,

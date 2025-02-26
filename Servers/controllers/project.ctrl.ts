@@ -33,7 +33,79 @@ export async function getAllProjects(
   try {
     const projects = await getAllProjectsQuery();
 
-    if (projects) {
+    if (projects && projects.length > 0) {
+      for (const project of projects) {
+        // calculating compliances
+        console.log("before project: ", project);
+        const controlCategories = await getControlCategoryByProjectIdQuery(
+          project.id
+        );
+        for (const category of controlCategories) {
+          if (category) {
+            const controls = await getAllControlsByControlGroupQuery(
+              category.id
+            );
+            for (const control of controls) {
+              if (control && control.id) {
+                const subControls = await getAllSubcontrolsByControlIdQuery(
+                  control.id
+                );
+                control.numberOfSubcontrols = subControls.length;
+                control.numberOfDoneSubcontrols = subControls.filter(
+                  (subControl) => subControl.status === "Done"
+                ).length;
+                project.totalSubcontrols =
+                  (project.totalSubcontrols || 0) + subControls.length;
+                project.doneSubcontrols =
+                  (project.doneSubcontrols || 0) +
+                  control.numberOfDoneSubcontrols;
+              }
+            }
+          }
+        }
+
+        // calculating assessments
+
+        const assessments = await getAssessmentByProjectIdQuery(project.id);
+        if (assessments.length !== 0) {
+          for (const assessment of assessments) {
+            console.log("Assessment id : ", assessment.id);
+            if (assessment.id !== undefined) {
+              const topics = await getTopicByAssessmentIdQuery(assessment.id);
+              if (topics.length !== 0) {
+                for (const topic of topics) {
+                  if (topic.id !== undefined) {
+                    console.log("topic id : ", topic.id);
+                    const subtopics = await getSubTopicByTopicIdQuery(topic.id);
+                    if (subtopics.length !== 0) {
+                      for (const subtopic of subtopics) {
+                        console.log("subtopic id : ", subtopic.id);
+                        if (subtopic.id !== undefined) {
+                          const questions = await getQuestionBySubTopicIdQuery(
+                            subtopic.id
+                          );
+                          if (questions && questions.length > 0) {
+                            project.totalAssessments =
+                              (project.totalAssessments || 0) +
+                              questions.length;
+
+                            project.asnweredAssessments =
+                              (project.asnweredAssessments || 0) +
+                              questions.filter(
+                                (q) => q.answer?.trim().length !== 0
+                              ).length;
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        console.log("after project: ", project);
+      }
       return res.status(200).json(STATUS_CODE[200](projects));
     }
 
@@ -338,6 +410,115 @@ export async function projectAssessmentProgress(req: Request, res: Response) {
       );
     } else {
       return res.status(404).json(STATUS_CODE[404](project));
+    }
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function allProjectsComplianceProgress(
+  req: Request,
+  res: Response
+) {
+  let totalNumberOfSubcontrols = 0;
+  let totalNumberOfDoneSubcontrols = 0;
+  try {
+    const projects = await getAllProjectsQuery();
+    if (projects && projects.length > 0) {
+      for (const project of projects) {
+        const controlCategories = await getControlCategoryByProjectIdQuery(
+          project.id
+        );
+        for (const category of controlCategories) {
+          if (category) {
+            const controls = await getAllControlsByControlGroupQuery(
+              category.id
+            );
+            for (const control of controls) {
+              if (control && control.id) {
+                const subControls = await getAllSubcontrolsByControlIdQuery(
+                  control.id
+                );
+                control.numberOfSubcontrols = subControls.length;
+                control.numberOfDoneSubcontrols = subControls.filter(
+                  (subControl) => subControl.status === "Done"
+                ).length;
+                totalNumberOfSubcontrols += subControls.length;
+                totalNumberOfDoneSubcontrols += control.numberOfDoneSubcontrols;
+              }
+            }
+          }
+        }
+        return res.status(200).json(
+          STATUS_CODE[200]({
+            allsubControls: totalNumberOfSubcontrols,
+            allDonesubControls: totalNumberOfDoneSubcontrols,
+          })
+        );
+      }
+    } else {
+      return res.status(404).json(STATUS_CODE[404](projects));
+    }
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function allProjectsAssessmentProgress(
+  req: Request,
+  res: Response
+) {
+  let totalNumberOfQuestions = 0;
+  let totalNumberOfAnsweredQuestions = 0;
+  try {
+    const projects = await getAllProjectsQuery();
+    if (projects && projects.length > 0) {
+      for (const project of projects) {
+        const assessments = await getAssessmentByProjectIdQuery(project.id);
+        if (assessments.length !== 0) {
+          for (const assessment of assessments) {
+            if (assessment.id !== undefined) {
+              const topics = await getTopicByAssessmentIdQuery(assessment.id);
+              if (topics.length !== 0) {
+                for (const topic of topics) {
+                  if (topic.id !== undefined) {
+                    const subtopics = await getSubTopicByTopicIdQuery(topic.id);
+                    if (subtopics.length !== 0) {
+                      for (const subtopic of subtopics) {
+                        if (subtopic.id !== undefined) {
+                          const questions = await getQuestionBySubTopicIdQuery(
+                            subtopic.id
+                          );
+                          if (questions.length !== 0) {
+                            totalNumberOfQuestions =
+                              totalNumberOfQuestions + questions.length;
+                            for (const question of questions) {
+                              if (
+                                question.answer &&
+                                question.answer.trim() !== ""
+                              ) {
+                                totalNumberOfAnsweredQuestions++;
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        return res.status(200).json(
+          STATUS_CODE[200]({
+            totalQuestions: totalNumberOfQuestions,
+            answeredQuestions: totalNumberOfAnsweredQuestions,
+          })
+        );
+      }
+    } else {
+      return res.status(404).json(STATUS_CODE[404](projects));
     }
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

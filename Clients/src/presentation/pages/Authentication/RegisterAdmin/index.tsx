@@ -77,12 +77,12 @@ const RegisterAdmin: React.FC = () => {
     })
       .then((response) => {
         setValues(initialState);
-        setErrors({}); // ✅ Minimal Change: Extract user data safely
+        setErrors({}); 
 
         const userData = response?.data?.data?.user;
 
         const user: User = {
-          id: Number(userData?.id) || 0, // Ensure ID is a number
+          id: Number(userData?.id) || 0,
           email: userData?.email ?? values.email,
           name: userData?.name ?? values.name ?? "N/A",
           surname: userData?.surname ?? values.surname ?? "N/A",
@@ -92,7 +92,7 @@ const RegisterAdmin: React.FC = () => {
           logEngine({
             type: "info",
             message: "Account created successfully.",
-            user: getUserForLogging(user), // ✅ Minimal change: Use helper function
+            user: getUserForLogging(user), 
           });
           setTimeout(() => {
             setIsSubmitting(false);

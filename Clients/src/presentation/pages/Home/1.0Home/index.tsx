@@ -178,11 +178,11 @@ const VWHome = () => {
             <SmallStatsCard
               attributeTitle="Assessment tracker"
               progress={`${assessmentProgress.answeredQuestions ?? 0}/${
-                assessmentProgress.allsubControls ?? 0
+                assessmentProgress.totalQuestions ?? 0
               }`}
               rate={
                 (assessmentProgress.answeredQuestions ?? 0) /
-                (assessmentProgress.allsubControls ?? 1)
+                (assessmentProgress.totalQuestions ?? 1)
               }
             />
           )}

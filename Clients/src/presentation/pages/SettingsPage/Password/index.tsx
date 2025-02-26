@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import React, { useState, useEffect, useCallback } from "react";
 import {
   useTheme,
@@ -77,7 +81,6 @@ const PasswordForm: React.FC = () => {
   //         },
   //       });
 
-
   //       setAlert({
   //         variant: "error",
   //         title: "Error",
@@ -154,31 +157,54 @@ const PasswordForm: React.FC = () => {
     setCurrentPasswordError(null);
     setNewPasswordError(null);
     setConfirmPasswordError(null);
-  
-    const validation = checkStringValidation("New password", newPassword, 8, 128, true, true, true, true);
+
+    const validation = checkStringValidation(
+      "New password",
+      newPassword,
+      8,
+      128,
+      true,
+      true,
+      true,
+      true
+    );
     if (!validation.accepted) {
       setNewPasswordError(validation.message);
       return;
     }
-  
+
     if (newPassword !== confirmPassword) {
       setConfirmPasswordError("Passwords do not match");
       return;
     }
-  
+
     try {
-      await updateEntityById({ routeUrl: `/users/${id}`, body: { currentPassword, newPassword } });
+      await updateEntityById({
+        routeUrl: `/users/${id}`,
+        body: { currentPassword, newPassword },
+      });
 
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
 
-      setAlert({ variant: "success", title: "Success", body: "Password updated successfully.", isToast: true, visible: true });
+      setAlert({
+        variant: "success",
+        title: "Success",
+        body: "Password updated successfully.",
+        isToast: true,
+        visible: true,
+      });
     } catch (error) {
-      setAlert({ variant: "error", title: "Error", body: "Failed to update password. Please try again.", isToast: true, visible: true });
+      setAlert({
+        variant: "error",
+        title: "Error",
+        body: "Failed to update password. Please try again.",
+        isToast: true,
+        visible: true,
+      });
     }
   }, [currentPassword, newPassword, confirmPassword]);
-  
 
   const handleCloseConfirmationModal = useCallback(() => {
     setIsConfirmationModalOpen(false);

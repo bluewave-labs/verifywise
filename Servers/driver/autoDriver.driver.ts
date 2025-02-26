@@ -95,8 +95,7 @@ const insertQuery = {
   vendors: {
     mockData: vendors,
     tableName: "vendors",
-    insertString:
-      `INSERT INTO vendors (
+    insertString: `INSERT INTO vendors (
       order_no, vendor_name, vendor_provides, assignee, website, vendor_contact_person, 
       review_result, review_status, reviewer, risk_status, review_date
     ) VALUES `,
@@ -141,8 +140,7 @@ const insertQuery = {
   mockControls: {
     mockData: mockControls,
     tableName: "controls",
-    insertString:
-      `INSERT INTO controls(
+    insertString: `INSERT INTO controls(
         title, description, order_no,
         status, approver, risk_review, 
         owner, reviewer, due_date, 
@@ -166,8 +164,7 @@ const insertQuery = {
   subcontrols: {
     mockData: subcontrols,
     tableName: "subcontrols",
-    insertString:
-      `INSERT INTO subcontrols(
+    insertString: `INSERT INTO subcontrols(
         title, description, order_no, 
         status, approver, risk_review, 
         owner, reviewer, due_date, 
@@ -231,8 +228,7 @@ const insertQuery = {
   mockVendorRisks: {
     mockData: mockVendorRisks,
     tableName: "vendorrisks",
-    insertString:
-      `INSERT INTO vendorRisks (
+    insertString: `INSERT INTO vendorRisks (
         vendor_id, order_no, risk_description, impact_description, impact, 
         likelihood, risk_severity, action_plan, action_owner, risk_level
       ) VALUES `,
@@ -293,11 +289,10 @@ const insertQuery = {
   questions: {
     mockData: questions,
     tableName: "questions",
-    insertString:
-      `INSERT INTO questions(subtopic_id, question, 
+    insertString: `INSERT INTO questions(subtopic_id, question, 
         answer_type, evidence_required, hint, 
         is_required, priority_level, evidence_files,
-        dropdown_options, answer, input_type, order_id) VALUES `,
+        dropdown_options, answer, input_type, order_no) VALUES `,
     generateValuesString: function (question: Question) {
       return `(
         ${question.subtopic_id},
@@ -361,7 +356,9 @@ export async function insertMockData() {
   } = insertQuery["users"];
   let users;
   if (userMockData.length !== 0) {
-    const values = userMockData(1, 2, 3, 4).map((d) => userGenerateValuesString(d as any));
+    const values = userMockData(1, 2, 3, 4).map((d) =>
+      userGenerateValuesString(d as any)
+    );
     insertString += values.join(",") + "RETURNING id;";
     users = await insertData(insertString as string);
   }
@@ -374,7 +371,9 @@ export async function insertMockData() {
   } = insertQuery["projects"];
   let projects;
   if (projectMockData.length !== 0) {
-    const values = projectMockData(users![0].id, users![1].id).map((d) => projectGenerateValuesString(d as any));
+    const values = projectMockData(users![0].id, users![1].id).map((d) =>
+      projectGenerateValuesString(d as any)
+    );
     insertString += values.join(",") + "RETURNING id;";
     projects = await insertData(insertString as string);
   }
@@ -387,7 +386,9 @@ export async function insertMockData() {
   } = insertQuery["vendors"];
   let vendors;
   if (vendorMockData.length !== 0) {
-    const values = vendorMockData.map((d) => vendorGenerateValuesString(d as any));
+    const values = vendorMockData.map((d) =>
+      vendorGenerateValuesString(d as any)
+    );
     insertString += values.join(",") + "RETURNING id;";
     vendors = await insertData(insertString as string);
   }
@@ -420,7 +421,9 @@ export async function insertMockData() {
   } = insertQuery["assessments"];
   let assessments;
   if (assessmentMockData.length !== 0) {
-    const values = assessmentMockData(projects![0].id, projects![1].id).map((d) => assessmentGenerateValuesString(d as any));
+    const values = assessmentMockData(projects![0].id, projects![1].id).map(
+      (d) => assessmentGenerateValuesString(d as any)
+    );
     insertString += values.join(",") + "RETURNING id;";
     assessments = await insertData(insertString as string);
   }
@@ -433,7 +436,10 @@ export async function insertMockData() {
   } = insertQuery["controlCategories"];
   let controlCategories;
   if (controlCategoriesMockData.length !== 0) {
-    const values = controlCategoriesMockData(projects![0].id, projects![1].id).map((d) => controlCategoriesGenerateValuesString(d as any));
+    const values = controlCategoriesMockData(
+      projects![0].id,
+      projects![1].id
+    ).map((d) => controlCategoriesGenerateValuesString(d as any));
     insertString += values.join(",") + "RETURNING id;";
     controlCategories = await insertData(insertString as string);
   }
@@ -472,9 +478,9 @@ export async function insertMockData() {
   } = insertQuery["mockProjectRisks"];
   let projectRisks;
   if (controlMockData.length !== 0) {
-    const values = projectRisksMockData(
-      projects![0].id,
-    ).map((d) => projectRisksGenerateValuesString(d as any));
+    const values = projectRisksMockData(projects![0].id).map((d) =>
+      projectRisksGenerateValuesString(d as any)
+    );
     insertString += values.join(",") + "RETURNING id;";
     projectRisks = await insertData(insertString as string);
   }
@@ -505,7 +511,9 @@ export async function insertMockData() {
   } = insertQuery["projectScopes"];
   let projectScopes;
   if (projectScopeMockData.length !== 0) {
-    const values = projectScopeMockData(assessments![0].id).map((d) => projectScopeGenerateValuesString(d as any));
+    const values = projectScopeMockData(assessments![0].id).map((d) =>
+      projectScopeGenerateValuesString(d as any)
+    );
     insertString += values.join(",") + "RETURNING id;";
     projectScopes = await insertData(insertString as string);
   }
@@ -518,7 +526,9 @@ export async function insertMockData() {
   } = insertQuery["topics"];
   let topics;
   if (topicMockData.length !== 0) {
-    const values = topicMockData(assessments![0].id, assessments![1].id).map((d) => topicGenerateValuesString(d as any));
+    const values = topicMockData(assessments![0].id, assessments![1].id).map(
+      (d) => topicGenerateValuesString(d as any)
+    );
     insertString += values.join(",") + "RETURNING id;";
     topics = await insertData(insertString as string);
   }
@@ -531,7 +541,9 @@ export async function insertMockData() {
   } = insertQuery["subtopics"];
   let subTopics;
   if (subTopicMockData.length !== 0) {
-    const values = subTopicMockData(topics!.map(t => t.id)).map((d) => subTopicGenerateValuesString(d as any));
+    const values = subTopicMockData(topics!.map((t) => t.id)).map((d) =>
+      subTopicGenerateValuesString(d as any)
+    );
     insertString += values.join(",") + "RETURNING id;";
     subTopics = await insertData(insertString as string);
   }
@@ -544,17 +556,19 @@ export async function insertMockData() {
   } = insertQuery["questions"];
   let questions;
   if (questionMockData.length !== 0) {
-    const values = questionMockData(subTopics!.map(s => s.id)).map((d) => questionGenerateValuesString(d as any));
+    const values = questionMockData(subTopics!.map((s) => s.id)).map((d) =>
+      questionGenerateValuesString(d as any)
+    );
     insertString += values.join(",") + "RETURNING id;";
     questions = await insertData(insertString as string);
   }
 }
 
 export async function deleteMockData() {
-  const projects = await getDEMOProjects()
+  const projects = await getDEMOProjects();
   for (let project of projects) {
-    await deleteProjectByIdQuery(project.id)
-  };
+    await deleteProjectByIdQuery(project.id);
+  }
   await deleteExistingData("vendors", "vendor_name");
   await deleteExistingData("users", "name");
   // await deleteExistingData("roles", "name");

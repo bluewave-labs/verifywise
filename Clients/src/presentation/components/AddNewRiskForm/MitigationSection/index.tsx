@@ -108,7 +108,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
   } | null>(null);
   const [fileUploadOpen, setFileUploadOpen] = useState(false);
 
-  const {users } = useUsers();
+  const { users } = useUsers();
 
   const handleOnSelectChange = useCallback(
     (prop: keyof MitigationFormValues) =>
@@ -217,7 +217,11 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                 id="mitigation-status-input"
                 label="Mitigation status"
                 placeholder="Select status"
-                value={mitigationValues.mitigationStatus === 0 ? '' : mitigationValues.mitigationStatus}
+                value={
+                  mitigationValues.mitigationStatus === 0
+                    ? ""
+                    : mitigationValues.mitigationStatus
+                }
                 onChange={handleOnSelectChange("mitigationStatus")}
                 items={mitigationStatusItems}
                 sx={{
@@ -247,7 +251,11 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                 id="current-risk-level-input"
                 label="Current risk level"
                 placeholder="Select risk level"
-                value={mitigationValues.currentRiskLevel === 0 ? '' : mitigationValues.currentRiskLevel}
+                value={
+                  mitigationValues.currentRiskLevel === 0
+                    ? ""
+                    : mitigationValues.currentRiskLevel
+                }
                 onChange={handleOnSelectChange("currentRiskLevel")}
                 items={riskLevelItems}
                 sx={{
@@ -326,9 +334,13 @@ const MitigationSection: FC<MitigationSectionProps> = ({
               id="approver-input"
               label="Approver"
               placeholder="Select approver"
-              value={mitigationValues.approver === 0 ? '' : mitigationValues.approver}
+              value={
+                mitigationValues.approver === 0 ? "" : mitigationValues.approver
+              }
               onChange={handleOnSelectChange("approver")}
-              items={users?.map((user) => ({ _id: user.id, name: user.name })) || []}
+              items={
+                users?.map((user) => ({ _id: user.id, name: user.name })) || []
+              }
               sx={{
                 width: 324,
                 backgroundColor: theme.palette.background.main,
@@ -342,7 +354,11 @@ const MitigationSection: FC<MitigationSectionProps> = ({
               id="approval-status-input"
               label="Approval status"
               placeholder="Select status"
-              value={mitigationValues.approvalStatus === 0 ? '' : mitigationValues.approvalStatus}
+              value={
+                mitigationValues.approvalStatus === 0
+                  ? ""
+                  : mitigationValues.approvalStatus
+              }
               onChange={handleOnSelectChange("approvalStatus")}
               items={approvalStatusItems}
               sx={{

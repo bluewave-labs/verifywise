@@ -16,7 +16,7 @@ interface NoProjectProps {
  * @returns {JSX.Element} The rendered NoProject component.
  */
 
-const NoProject = ({message}: NoProjectProps) => {
+const NoProject = ({ message }: NoProjectProps) => {
   const theme = useTheme();
 
   return (

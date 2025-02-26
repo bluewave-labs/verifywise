@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import React, {
   useState,
   useCallback,
@@ -185,7 +189,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
     handleAlert({
       variant: status === 200 ? "success" : "error",
       body: status === 200 ? "Inviatation is successful" : "Inviatation fails",
-      setAlert
+      setAlert,
     });
 
     setInviteUserModalOpen(false);

@@ -2,8 +2,8 @@ import React from "react";
 import { Box, Typography } from "@mui/material";
 
 interface CustomStepProps {
-    header?: string;
-    body:string;
+  header?: string;
+  body: string;
 }
 
 const CustomStep: React.FC<CustomStepProps> = ({ header, body }) => (

@@ -26,7 +26,7 @@ const ProjectView = () => {
   } = useProjectRisks({ projectId });
   const {
     error: errorFetchingVendorRisks,
-    vendorRisks,
+    // vendorRisks,
     vendorRisksSummary,
   } = useVendorRisks({ projectId });
 
@@ -194,12 +194,12 @@ const ProjectView = () => {
                     sx={tabStyle}
                     disableRipple={disableRipple}
                   />
-                  <Tab
+                  {/* <Tab
                     label="Vendor risks"
                     value="vendor-risks"
                     sx={tabStyle}
                     disableRipple={disableRipple}
-                  />
+                  /> */}
                   <Tab
                     label="Settings"
                     value="settings"
@@ -223,14 +223,14 @@ const ProjectView = () => {
                   projectId={projectId}
                 />
               </TabPanel>
-              <TabPanel value="vendor-risks" sx={{ p: "32px 0 0" }}>
+              {/* <TabPanel value="vendor-risks" sx={{ p: "32px 0 0" }}>
                 <RisksView
                   risksSummary={vendorRisksSummary}
                   risksData={vendorRisks}
                   title="Vendor"
                   projectId={projectId}
                 />
-              </TabPanel>
+              </TabPanel> */}
               <TabPanel value="settings" sx={{ p: "32px 0 0" }}>
                 <ProjectSettings setTabValue={setValue} />
               </TabPanel>

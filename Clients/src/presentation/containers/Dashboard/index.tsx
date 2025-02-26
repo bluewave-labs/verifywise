@@ -1,3 +1,7 @@
+/**
+ * This file is currently in use
+ */
+
 import { Stack } from "@mui/material";
 import "./index.css";
 import Sidebar from "../../components/Sidebar";

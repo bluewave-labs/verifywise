@@ -13,7 +13,14 @@
  * <InviteUserModal isOpen={isOpen} setIsOpen={setIsOpen} onSendInvite={handleSendInvite} />
  */
 
-import { Button, Modal, Stack, Typography, useTheme, SelectChangeEvent } from "@mui/material";
+import {
+  Button,
+  Modal,
+  Stack,
+  Typography,
+  useTheme,
+  SelectChangeEvent,
+} from "@mui/material";
 import React, { useState } from "react";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
@@ -41,7 +48,7 @@ interface FormErrors {
 const initialState: FormValues = {
   name: "",
   email: "",
-  role: ""
+  role: "",
 };
 
 const InviteUserModal: React.FC<InviteUserModalProps> = ({
@@ -51,21 +58,21 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
 }) => {
   const theme = useTheme();
 
-  const [values, setValues] = useState<FormValues>(initialState)
-  const [errors, setErrors] = useState<FormErrors>({}); 
+  const [values, setValues] = useState<FormValues>(initialState);
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const handleFormFieldChange =
     (prop: keyof FormValues) =>
     (event: React.ChangeEvent<HTMLInputElement>) => {
       setValues({ ...values, [prop]: event.target.value });
       setErrors({ ...errors, [prop]: "" });
-  };
+    };
 
   const handleOnSelectChange =
-  (prop: keyof FormValues) => (event: SelectChangeEvent<string | number>) => {
-    setValues({ ...values, [prop]: event.target.value });
-    setErrors({ ...errors, [prop]: "" });
-  };
+    (prop: keyof FormValues) => (event: SelectChangeEvent<string | number>) => {
+      setValues({ ...values, [prop]: event.target.value });
+      setErrors({ ...errors, [prop]: "" });
+    };
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -87,23 +94,23 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }
+  };
 
-  const handleSendInvitation = async() => {
-    if(validateForm()){
+  const handleSendInvitation = async () => {
+    if (validateForm()) {
       const formData = {
-        "to": values.email,
-        "email": values.email,
-        "name": values.name,
-        "role": values.role
-      }
+        to: values.email,
+        email: values.email,
+        name: values.name,
+        role: values.role,
+      };
 
       try {
-        const response = await apiServices.post("/mail/invite", formData);        
+        const response = await apiServices.post("/mail/invite", formData);
         onSendInvite(values.email, response.status);
       } catch (error) {
         onSendInvite(values.email, "error");
-      }finally{
+      } finally {
         setIsOpen(false);
       }
     }
@@ -150,9 +157,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
         >
           When you add a new team member, they will get access to all monitors.
         </Typography>
-        <Stack 
-          gap={theme.spacing(12)}
-        >
+        <Stack gap={theme.spacing(12)}>
           <Field
             placeholder="Name"
             type="name"

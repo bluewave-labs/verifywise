@@ -40,7 +40,11 @@ const VWProjectCard = ({ project }: { project: Project }) => {
             progress={`${project.doneSubcontrols}/${project.totalSubcontrols}`}
           />
           <Typography sx={progressStyle}>
-            {`Compliances completed: ${project.doneSubcontrols} out of ${project.totalSubcontrols}`}
+            {`Compliances completed: ${
+              isNaN(project.doneSubcontrols!) ? 0 : project.doneSubcontrols
+            } out of ${
+              isNaN(project.totalSubcontrols!) ? 0 : project.totalSubcontrols
+            }`}
           </Typography>
         </Stack>
         <Stack className="project-progress" sx={{ gap: 1 }}>
@@ -48,7 +52,13 @@ const VWProjectCard = ({ project }: { project: Project }) => {
             progress={`${project.asnweredAssessments}/${project.totalAssessments}`}
           />
           <Typography sx={progressStyle}>
-            {`Questions completed: ${project.asnweredAssessments} out of ${project.totalAssessments}`}
+            {`Questions completed: ${
+              isNaN(project.asnweredAssessments!)
+                ? 0
+                : project.asnweredAssessments
+            } out of ${
+              isNaN(project.totalAssessments!) ? 0 : project.totalAssessments
+            }`}
           </Typography>
         </Stack>
       </Stack>

@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { Stack, Typography } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
 import { headerCardPlaceholder, vwhomeHeading } from "./style";
 import SmallStatsCard from "../../../components/Cards/SmallStatsCard";
 import VWButton from "../../../vw-v2-components/Buttons";
@@ -7,8 +7,15 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import VWProjectCard from "../../../components/Cards/ProjectCard";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
-import { getAllEntities } from "../../../../application/repository/entity.repository";
+import {
+  getAllEntities,
+  postAutoDrivers,
+} from "../../../../application/repository/entity.repository";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import NoProject from "../../../components/NoProject/NoProject";
+import VWToast from "../../../vw-v2-components/Toast";
+import Alert from "../../../components/Alert";
+import { logEngine } from "../../../../application/tools/log.engine";
 
 const VWHome = () => {
   const { setDashboardValues } = useContext(VerifyWiseContext);
@@ -17,6 +24,12 @@ const VWHome = () => {
   const [projects, setProjects] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isGeneratingDemoData, setIsGeneratingDemoData] = useState(false);
+  const [alert, setAlert] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    title?: string;
+    body: string;
+  } | null>(null);
 
   useEffect(() => {
     const fetchProgressData = async () => {
@@ -51,6 +64,62 @@ const VWHome = () => {
     fetchProgressData();
   }, []);
 
+  async function generateDemoData() {
+    setIsGeneratingDemoData(true);
+    const user = {
+      id: "demo-user-id", // Replace with actual user ID
+      email: "demo-user@example.com", // Replace with actual user email
+      firstname: "Demo",
+      lastname: "User",
+    };
+    try {
+      const response = await postAutoDrivers();
+      if (response.status === 201) {
+        logEngine({
+          type: "info",
+          message: "Demo data generated successfully.",
+          user,
+        });
+        setAlert({
+          variant: "success",
+          body: "Demo data generated successfully.",
+        });
+        setTimeout(() => {
+          setAlert(null);
+        }, 3000);
+      } else {
+        logEngine({
+          type: "error",
+          message: "Failed to generate demo data.",
+          user,
+        });
+        setAlert({
+          variant: "error",
+          body: "Failed to generate demo data.",
+        });
+        setTimeout(() => {
+          setAlert(null);
+        }, 3000);
+      }
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      logEngine({
+        type: "error",
+        message: `An error occurred: ${errorMessage}`,
+        user,
+      });
+      setAlert({
+        variant: "error",
+        body: `An error occurred: ${errorMessage}`,
+      });
+      setTimeout(() => {
+        setAlert(null);
+      }, 3000);
+    } finally {
+      setIsGeneratingDemoData(false);
+    }
+  }
+
   console.log("users : ", users);
   console.log("complianceProgress : ", complianceProgress);
   console.log("assessmentProgress : ", assessmentProgress);
@@ -58,6 +127,18 @@ const VWHome = () => {
 
   return (
     <Stack className="vwhome">
+      {alert && (
+        <Alert
+          variant={alert.variant}
+          title={alert.title}
+          body={alert.body}
+          isToast={true}
+          onClick={() => setAlert(null)}
+        />
+      )}
+      {isGeneratingDemoData && (
+        <VWToast title="Generating demo data. Please wait..." />
+      )}
       <Stack className="vwhome-header" sx={{ mb: 15 }}>
         <Typography sx={vwhomeHeading}>
           All projects compliance status
@@ -121,7 +202,7 @@ const VWHome = () => {
               gap: 2,
             }}
           >
-            {projects.length === 0 && (
+            {!projects && (
               <VWButton
                 variant="contained"
                 text="Get demo data"
@@ -131,6 +212,7 @@ const VWHome = () => {
                   gap: 2,
                 }}
                 icon={<CloudDownloadIcon />}
+                onClick={() => generateDemoData()}
               />
             )}
 
@@ -146,22 +228,28 @@ const VWHome = () => {
             />
           </Stack>
         </Stack>
-        <Stack
+        <Box
           className="vwhome-body-projects"
           sx={{
             display: "flex",
             flexDirection: "row",
-            flexWrap: "wrap",
+            flexWrap: projects.length < 3 ? "nowrap" : "wrap",
             justifyContent: "flex-start",
             alignItems: "center",
-            gap: "10px",
+            gap: "30px",
           }}
         >
-          {Array.isArray(projects) &&
+          {projects.length > 0 ? (
             projects.map((project) => (
               <VWProjectCard key={project.id} project={project} />
-            ))}
-        </Stack>
+            ))
+          ) : (
+            <NoProject
+              message='You have no projects, yet. Click on the "New Project" button to
+          start one.'
+            />
+          )}
+        </Box>
       </Stack>
     </Stack>
   );

@@ -77,6 +77,31 @@ const VWProjectForm = () => {
     []
   );
 
+  const renderSelect = (
+    id: string,
+    label: string,
+    value: any,
+    onChange: any,
+    items: any[],
+    error: any,
+    isRequired: boolean = true
+  ) => (
+    <Select
+      id={id}
+      label={label}
+      placeholder={`Select ${label.toLowerCase()}`}
+      value={value || ""}
+      onChange={onChange}
+      items={items}
+      sx={{
+        width: "350px",
+        backgroundColor: theme.palette.background.main,
+      }}
+      error={error}
+      isRequired={isRequired}
+    />
+  );
+
   return (
     <Stack
       sx={{
@@ -122,84 +147,48 @@ const VWProjectForm = () => {
             sx={textfieldStyle}
             isRequired
           />
-          <Select
-            id="users-input"
-            label="Users"
-            placeholder="Select users"
-            value={values.users === 0 ? "" : values.users}
-            onChange={handleOnSelectChange("users")}
-            items={
-              users?.map((user: any) => ({
-                _id: user.id,
-                name: `${user.name} ${user.surname}`,
-                email: user.email,
-              })) || []
-            }
-            sx={{
-              width: "350px",
-              backgroundColor: theme.palette.background.main,
-            }}
-            error={errors.users}
-            isRequired
-          />
-          <Select
-            id="risk-classification-input"
-            label="AI risk classification"
-            placeholder="Select an option"
-            value={
-              values.ai_risk_classification === 0
-                ? ""
-                : values.ai_risk_classification
-            }
-            onChange={handleOnSelectChange("ai_risk_classification")}
-            items={riskClassificationItems}
-            sx={{
-              width: "350px",
-              backgroundColor: theme.palette.background.main,
-            }}
-            error={errors.riskClassification}
-            isRequired
-          />
-          <Select
-            id="type-of-high-risk-role-input"
-            label="Type of high risk role"
-            placeholder="Select an option"
-            value={
-              values.type_of_high_risk_role === 0
-                ? ""
-                : values.type_of_high_risk_role
-            }
-            onChange={handleOnSelectChange("type_of_high_risk_role")}
-            items={highRiskRoleItems}
-            sx={{
-              width: "350px",
-              backgroundColor: theme.palette.background.main,
-            }}
-            isRequired
-            error={errors.typeOfHighRiskRole}
-          />
+          {renderSelect(
+            "owner-input",
+            "Owner",
+            values.owner,
+            handleOnSelectChange("owner"),
+            users?.map((user) => ({
+              _id: user.id,
+              name: `${user.name} ${user.surname}`,
+              email: user.email,
+            })) || [],
+            errors.owner
+          )}
+          {renderSelect(
+            "risk-classification-input",
+            "AI risk classification",
+            values.ai_risk_classification,
+            handleOnSelectChange("ai_risk_classification"),
+            riskClassificationItems,
+            errors.riskClassification
+          )}
+          {renderSelect(
+            "type-of-high-risk-role-input",
+            "Type of high risk role",
+            values.type_of_high_risk_role,
+            handleOnSelectChange("type_of_high_risk_role"),
+            highRiskRoleItems,
+            errors.typeOfHighRiskRole
+          )}
         </Stack>
         <Stack className="vwproject-form-body-end" sx={{ gap: 8 }}>
-          <Select
-            id="users-input"
-            label="Users"
-            placeholder="Select users"
-            value={values.users === 0 ? "" : values.users}
-            onChange={handleOnSelectChange("users")}
-            items={
-              users?.map((user) => ({
-                _id: user.id,
-                name: `${user.name} ${user.surname}`,
-                email: user.email,
-              })) || []
-            }
-            sx={{
-              width: "350px",
-              backgroundColor: theme.palette.background.main,
-            }}
-            error={errors.users}
-            isRequired
-          />
+          {renderSelect(
+            "users-input",
+            "Users",
+            values.users,
+            handleOnSelectChange("users"),
+            users?.map((user) => ({
+              _id: user.id,
+              name: `${user.name} ${user.surname}`,
+              email: user.email,
+            })) || [],
+            errors.users
+          )}
           <DatePicker
             label="Start date"
             date={

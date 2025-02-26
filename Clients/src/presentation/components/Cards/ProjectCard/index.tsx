@@ -11,17 +11,15 @@ import {
   projectCardStyle,
   projectCardTitleStyle,
 } from "./style";
+import { Project } from "../../../../domain/Project";
+import { formatDate } from "../../../tools/isoDateToString";
 
-const VWProjectCard = ({
-  projectTitle = "Marketing AI service",
-  projectOwner = "Mohammad Kh.",
-  last_update = "10 October 2024",
-}) => {
+const VWProjectCard = ({ project }: { project: Project }) => {
   return (
     <Stack className="project-card" sx={projectCardStyle}>
       <Stack className="project-card-header" sx={{ gap: 2 }}>
         <Typography className="project-card-title" sx={projectCardTitleStyle}>
-          {projectTitle}
+          {project.project_title}
         </Typography>
         <Stack className="project-card-frameworks">
           <img src={euimg} alt="EU-AI-ACT" style={framewrokLogo} />
@@ -29,15 +27,19 @@ const VWProjectCard = ({
       </Stack>
       <Stack className="project-card-stats" sx={{ gap: 5 }}>
         <Stack className="project-progress" sx={{ gap: 1 }}>
-          <ProgressBar progress={"90/100"} />
+          <ProgressBar
+            progress={`${project.doneSubcontrols}/${project.totalSubcontrols}`}
+          />
           <Typography sx={progressStyle}>
-            Controls completed: 8 out of 100
+            {`Compliances completed: ${project.doneSubcontrols} out of ${project.totalSubcontrols}`}
           </Typography>
         </Stack>
         <Stack className="project-progress" sx={{ gap: 1 }}>
-          <ProgressBar progress={"90/100"} />
+          <ProgressBar
+            progress={`${project.asnweredAssessments}/${project.totalAssessments}`}
+          />
           <Typography sx={progressStyle}>
-            Questions completed: 30 out of 100
+            {`Questions completed: ${project.asnweredAssessments} out of ${project.totalAssessments}`}
           </Typography>
         </Stack>
       </Stack>
@@ -45,12 +47,14 @@ const VWProjectCard = ({
         <Stack className="project-card-spec-tile">
           <Typography sx={projectCardSpecKeyStyle}>Project owner</Typography>
           <Typography sx={projectCardSpecValueyStyle}>
-            {projectOwner}
+            {project.owner}
           </Typography>
         </Stack>
         <Stack className="project-card-spec-tile">
           <Typography sx={projectCardSpecKeyStyle}>Last updated</Typography>
-          <Typography sx={projectCardSpecValueyStyle}>{last_update}</Typography>
+          <Typography sx={projectCardSpecValueyStyle}>
+            {formatDate(project.last_updated.toString())}
+          </Typography>
         </Stack>
       </Stack>
       <VWButton
@@ -59,8 +63,8 @@ const VWProjectCard = ({
         size="medium"
         text="View project"
         sx={{
-          border: "1px solid #13715B",
-          color: "#13715B",
+          border: "1px solid #D0D5DD",
+          color: "#344054",
           "&:hover": {
             backgroundColor: "transparent",
           },

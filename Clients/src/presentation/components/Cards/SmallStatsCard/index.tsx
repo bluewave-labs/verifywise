@@ -13,7 +13,7 @@ const SmallStatsCard = ({
         <Typography sx={{ fontSize: 13, color: "#8594AC" }}>
           {attributeTitle} completion rate
         </Typography>
-        <Typography sx={{ fontSize: 13, color: "#2D3748", fontWeight: 700 }}>
+        <Typography sx={{ fontSize: 16, color: "#2D3748", fontWeight: 700 }}>
           {rate}%
         </Typography>
       </Stack>

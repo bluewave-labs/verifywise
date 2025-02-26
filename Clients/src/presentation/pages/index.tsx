@@ -3,22 +3,22 @@
  */
 
 import { Stack } from "@mui/material";
-import SmallStatsCard from "../components/Cards/SmallStatsCard";
+import VWHome from "./Home/1.0Home";
 
 const Playground = () => {
   return (
     <Stack
       sx={{
-        width: "100%",
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: "100vh",
-        padding: "50px",
+        // width: "100%",
+        // display: "flex",
+        // flexDirection: "row",
+        // justifyContent: "center",
+        // alignItems: "center",
+        // minHeight: "100vh",
+        padding: "20px",
       }}
     >
-      <SmallStatsCard />
+      <VWHome />
     </Stack>
   );
 };

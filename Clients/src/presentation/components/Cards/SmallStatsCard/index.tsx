@@ -7,6 +7,7 @@ const SmallStatsCard = ({
   rate = 60,
   progress = "90/100",
 }) => {
+  console.log("attributeTitle: ", attributeTitle, " rate: ", rate);
   return (
     <Stack className="small-stats-card" sx={smallStatsCardStyle}>
       <Stack className="small-stats-card-header" sx={smallStatsCardHeader}>
@@ -14,7 +15,7 @@ const SmallStatsCard = ({
           {attributeTitle} completion rate
         </Typography>
         <Typography sx={{ fontSize: 16, color: "#2D3748", fontWeight: 700 }}>
-          {Math.floor(rate)}%
+          {Math.floor(rate * 100)}%
         </Typography>
       </Stack>
 

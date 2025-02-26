@@ -119,8 +119,6 @@ const Sidebar = ({ projects }: { projects: any }) => {
     ? users.find((user: User) => user.id === userId)
     : DEFAULT_USER;
 
-  console.log("***", user);
-
   const userAvator: User_Avatar = {
     firstname: user.name,
     lastname: user.surname,

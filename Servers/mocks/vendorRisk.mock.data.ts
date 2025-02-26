@@ -1,11 +1,11 @@
 import { VendorRisk } from "../models/vendorRisk.model";
 
 // Sample mock data for VendorRisk
-const mockVendorRisks = (project1: number, project2: number): VendorRisk[] => {
+const mockVendorRisks = (vendor1: number, vendor2: number, vendor3: number, vendor4: number): VendorRisk[] => {
   return [
     {
       id: 1,
-      vendor_id: 1,
+      vendor_id: vendor1,
       order_no: 1,
       risk_description: "Data Security",
       impact_description: "Alice",
@@ -18,7 +18,7 @@ const mockVendorRisks = (project1: number, project2: number): VendorRisk[] => {
     },
     {
       id: 2,
-      vendor_id: 2,
+      vendor_id: vendor2,
       order_no: 1,
       risk_description: "Service Reliability",
       impact_description: "Bob",
@@ -31,7 +31,7 @@ const mockVendorRisks = (project1: number, project2: number): VendorRisk[] => {
     },
     {
       id: 3,
-      vendor_id: 3,
+      vendor_id: vendor3,
       order_no: 1,
       risk_description: "Compliance Risk",
       impact_description: "Charlie",
@@ -44,7 +44,7 @@ const mockVendorRisks = (project1: number, project2: number): VendorRisk[] => {
     },
     {
       id: 4,
-      vendor_id: 4,
+      vendor_id: vendor4,
       order_no: 1,
       risk_description: "Network Vulnerability",
       impact_description: "David",

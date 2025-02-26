@@ -194,12 +194,6 @@ const ProjectView = () => {
                     sx={tabStyle}
                     disableRipple={disableRipple}
                   />
-                  {/* <Tab
-                    label="Vendor risks"
-                    value="vendor-risks"
-                    sx={tabStyle}
-                    disableRipple={disableRipple}
-                  /> */}
                   <Tab
                     label="Settings"
                     value="settings"
@@ -211,7 +205,6 @@ const ProjectView = () => {
               {/* overview panel */}
               <TabPanel value="overview" sx={{ p: "32px 0 0" }}>
                 <Overview
-                  vendorRisksSummary={vendorRisksSummary}
                   projectRisksSummary={projectRisksSummary}
                 />
               </TabPanel>

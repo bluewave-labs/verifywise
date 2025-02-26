@@ -179,16 +179,6 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   } => {
     const newErrors: RiskFormErrors = {};
     const newMitigationErrors: MitigationFormErrors = {};
-
-    // const riskName = checkStringValidation(
-    //   "Risk name",
-    //   riskValues.riskName,
-    //   3,
-    //   50
-    // );
-    // if (!riskName.accepted) {
-    //   newErrors.riskName = riskName.message;
-    // }
     const riskDescription = checkStringValidation(
       "Risk description",
       riskValues.riskDescription,

@@ -2,6 +2,8 @@ import express from "express";
 const router = express.Router();
 
 import {
+  allProjectsAssessmentProgress,
+  allProjectsComplianceProgress,
   createProject,
   deleteProjectById,
   getAllProjects,
@@ -35,6 +37,9 @@ router.get("/complainces/:projid", getCompliances);
 
 router.get("/compliance/progress/:id", projectComplianceProgress);
 router.get("/assessment/progress/:id", projectAssessmentProgress);
+
+router.get("/all/compliance/progress", allProjectsComplianceProgress);
+router.get("/all/assessment/progress", allProjectsAssessmentProgress);
 
 // POSTs
 router.post("/", /*authenticateJWT,*/ createProject);

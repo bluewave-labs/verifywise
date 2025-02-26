@@ -1,6 +1,6 @@
 export const extractUserToken = (
   token: string
-): { id: any; email: any } | null => {
+): { id: any; email: any, name: string, role: string, expire: string, iat: string } | null => {
   if (!token) {
     console.error("Token is missing!");
     return null;
@@ -15,10 +15,7 @@ export const extractUserToken = (
     const payloadBase64 = parts[1];
     const payloadJson = atob(payloadBase64);
     const payload = JSON.parse(payloadJson);
-
-    const { id, email } = payload;
-
-    return { id, email };
+    return payload;
   } catch (error) {
     console.error("Failed to decode token", error);
     return null;

@@ -21,8 +21,7 @@ export type RiskData = {
 };
 
 interface OverviewProps {
-  projectRisksSummary: RiskData;
-  vendorRisksSummary: RiskData;
+  projectRisksSummary: RiskData;  
 }
 
 interface ProgressBarCardProps {
@@ -151,14 +150,6 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
         </Typography>
         <Risks {...projectRisksSummary} />
       </Stack>
-      {/* <Stack>
-          <Typography
-            sx={{ color: "#1A1919", fontWeight: 600, mb: "10px", fontSize: 16 }}
-          >
-            Vendor risks
-          </Typography>
-          <Risks {...vendorRisksSummary} />
-        </Stack> */}
     </Stack>
   );
 });

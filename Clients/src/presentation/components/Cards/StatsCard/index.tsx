@@ -10,12 +10,7 @@ interface StatsCardProps {
   progressbarColor: string;
 }
 
-const StatsCard = ({
-  title,
-  completed,
-  total,
-  progressbarColor,
-}: StatsCardProps) => {
+const StatsCard = ({ title, completed, total }: StatsCardProps) => {
   const progress = useMemo(() => `${completed}/${total}`, [completed, total]);
   const percentage = useMemo(() => {
     if (total === 0 || isNaN(completed) || isNaN(total)) return 0;

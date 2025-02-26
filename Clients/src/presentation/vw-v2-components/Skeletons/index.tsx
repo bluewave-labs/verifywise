@@ -2,7 +2,7 @@
  * This file is currently in use
  */
 
-import { Skeleton, Stack } from "@mui/material";
+import { Skeleton, Stack, SxProps, Theme } from "@mui/material";
 
 // variants are text | rectangular | circular | rounded
 
@@ -14,6 +14,7 @@ const VWSkeleton = ({
   height,
   maxHeight,
   minHeight,
+  sx,
 }: {
   variant?: "text" | "rectangular" | "circular" | "rounded";
   width?: number | string;
@@ -22,12 +23,13 @@ const VWSkeleton = ({
   height?: number | string;
   maxHeight?: number | string;
   minHeight?: number | string;
+  sx?: SxProps<Theme> | undefined;
 }) => {
   return (
     <Stack sx={{ padding: 4, paddingX: 0 }}>
       <Skeleton
         variant={variant}
-        sx={{ width, height, maxWidth, minWidth, maxHeight, minHeight }}
+        sx={{ width, height, maxWidth, minWidth, maxHeight, minHeight, ...sx }}
       ></Skeleton>
     </Stack>
   );

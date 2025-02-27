@@ -9,6 +9,8 @@ import Select from "../../../components/Inputs/Select";
 import useUsers from "../../../../application/hooks/useUsers";
 import DatePicker from "../../../components/Inputs/Datepicker";
 import dayjs, { Dayjs } from "dayjs";
+import { checkStringValidation } from "../../../../application/validations/stringValidation";
+import selectValidation from "../../../../application/validations/selectValidation";
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -25,10 +27,40 @@ enum HighRiskRoleEnum {
   AuthorizedRepresentative = "Authorized representative",
 }
 
+interface FormValues {
+  project_title: string;
+  owner: number;
+  users: number;
+  start_date: string;
+  ai_risk_classification: number;
+  type_of_high_risk_role: number;
+  goal: string;
+}
+
+interface FormErrors {
+  projectTitle?: string;
+  users?: string;
+  owner?: string;
+  startDate?: string;
+  riskClassification?: string;
+  typeOfHighRiskRole?: string;
+  goal?: string;
+}
+
+const initialState: FormValues = {
+  project_title: "",
+  users: 0,
+  owner: 0,
+  start_date: new Date().toISOString(),
+  ai_risk_classification: 0,
+  type_of_high_risk_role: 0,
+  goal: "",
+};
+
 const VWProjectForm = () => {
   const theme = useTheme();
-  const [values, setValues] = useState<any>({});
-  const [errors, setErrors] = useState<any>({});
+  const [values, setValues] = useState<FormValues>(initialState);
+  const [errors, setErrors] = useState<FormErrors>({});
   const { users } = useUsers();
 
   const riskClassificationItems = useMemo(
@@ -53,15 +85,16 @@ const VWProjectForm = () => {
   );
 
   const handleOnTextFieldChange = useCallback(
-    (prop: keyof any) => (event: React.ChangeEvent<HTMLInputElement>) => {
-      setValues({ ...values, [prop]: event.target.value });
-      setErrors({ ...errors, [prop]: "" });
-    },
+    (prop: keyof FormValues) =>
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        setValues({ ...values, [prop]: event.target.value });
+        setErrors({ ...errors, [prop]: "" });
+      },
     [values, errors]
   );
 
   const handleOnSelectChange = useCallback(
-    (prop: keyof any) => (event: SelectChangeEvent<string | number>) => {
+    (prop: keyof FormValues) => (event: SelectChangeEvent<string | number>) => {
       setValues({ ...values, [prop]: event.target.value });
       setErrors({ ...errors, [prop]: "" });
     },
@@ -77,8 +110,63 @@ const VWProjectForm = () => {
     }
   }, []);
 
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    const projectTitle = checkStringValidation(
+      "Project title",
+      values.project_title,
+      1,
+      64
+    );
+    if (!projectTitle.accepted) {
+      newErrors.projectTitle = projectTitle.message;
+    }
+    const goal = checkStringValidation("Goal", values.goal, 1, 256);
+    if (!goal.accepted) {
+      newErrors.goal = goal.message;
+    }
+    const startDate = checkStringValidation("Start date", values.start_date, 1);
+    if (!startDate.accepted) {
+      newErrors.startDate = startDate.message;
+    }
+    const users = selectValidation("Users", values.users);
+    if (!users.accepted) {
+      newErrors.users = users.message;
+    }
+    const owner = selectValidation("Owner", values.owner);
+    if (!owner.accepted) {
+      newErrors.owner = owner.message;
+    }
+    const riskClassification = selectValidation(
+      "AI risk classification",
+      values.ai_risk_classification
+    );
+    if (!riskClassification.accepted) {
+      newErrors.riskClassification = riskClassification.message;
+    }
+    const typeOfHighRiskRole = selectValidation(
+      "Type of high risk role",
+      values.type_of_high_risk_role
+    );
+    if (!typeOfHighRiskRole.accepted) {
+      newErrors.typeOfHighRiskRole = typeOfHighRiskRole.message;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  function handleSubmit() {
+    if (validateForm()) {
+      // Handle form submission
+    }
+  }
+
   return (
     <Stack
+      component="form"
+      onSubmit={handleSubmit}
       sx={{
         width: "fit-content",
         backgroundColor: "#FCFCFD",
@@ -126,7 +214,7 @@ const VWProjectForm = () => {
             id="owner-input"
             label="Owner"
             placeholder="Select owner"
-            value={values.owner === 0 ? "" : values.owner}
+            value={values.owner || ""}
             onChange={handleOnSelectChange("owner")}
             items={
               users?.map((user: any) => ({
@@ -146,11 +234,7 @@ const VWProjectForm = () => {
             id="risk-classification-input"
             label="AI risk classification"
             placeholder="Select an option"
-            value={
-              values.ai_risk_classification === 0
-                ? ""
-                : values.ai_risk_classification
-            }
+            value={values.ai_risk_classification || ""}
             onChange={handleOnSelectChange("ai_risk_classification")}
             items={riskClassificationItems}
             sx={{
@@ -164,11 +248,7 @@ const VWProjectForm = () => {
             id="type-of-high-risk-role-input"
             label="Type of high risk role"
             placeholder="Select an option"
-            value={
-              values.type_of_high_risk_role === 0
-                ? ""
-                : values.type_of_high_risk_role
-            }
+            value={values.type_of_high_risk_role || ""}
             onChange={handleOnSelectChange("type_of_high_risk_role")}
             items={highRiskRoleItems}
             sx={{
@@ -184,7 +264,7 @@ const VWProjectForm = () => {
             id="users-input"
             label="Users"
             placeholder="Select users"
-            value={values.users === 0 ? "" : values.users}
+            value={values.users || ""}
             onChange={handleOnSelectChange("users")}
             items={
               users?.map((user) => ({
@@ -242,7 +322,7 @@ const VWProjectForm = () => {
             gap: 2,
           }}
           icon={<AddCircleOutlineIcon />}
-          onClick={() => {}}
+          onClick={() => handleSubmit()}
         />
       </Stack>
     </Stack>

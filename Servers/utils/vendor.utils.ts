@@ -3,14 +3,20 @@ import pool from "../database/db";
 
 export const getAllVendorsQuery = async (): Promise<Vendor[]> => {
   const vendors = await pool.query("SELECT * FROM vendors");
-  return vendors.rows;
+  for (let vendor of vendors.rows) {
+    const projects = await pool.query("SELECT project_id FROM vendors_projects WHERE vendor_id = $1", [vendor.id])
+    vendor["projects"] = projects.rows.map(p => p.project_id)
+  }
+  return vendors.rows
 };
 
 export const getVendorByIdQuery = async (
   id: number
 ): Promise<Vendor | null> => {
   const result = await pool.query("SELECT * FROM vendors WHERE id = $1", [id]);
-  return result.rows.length ? result.rows[0] : null;
+  if (!result.rows.length) return null;
+  const projects = await pool.query("SELECT project_id FROM vendors_projects WHERE vendor_id = $1", [id])
+  return { ...result.rows[0], projects: projects.rows.map(p => p.project_id) }
 };
 
 export const createNewVendorQuery = async (vendor: Vendor): Promise<Vendor> => {

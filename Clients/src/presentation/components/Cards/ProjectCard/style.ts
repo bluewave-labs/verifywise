@@ -5,7 +5,7 @@ export const projectCardStyle = {
   pt: "15px",
   minWidth: 300,
   width: "100%",
-  maxWidth: "100%",
+  maxWidth: "100&",
   gap: 10,
 };
 

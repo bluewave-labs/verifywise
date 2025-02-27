@@ -9,7 +9,14 @@
 
 import "./index.css";
 import React from "react";
-import { Box, IconButton, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  IconButton,
+  Stack,
+  SxProps,
+  Theme,
+  Typography,
+} from "@mui/material";
 import { useTheme } from "@mui/material";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import SuccessOutlinedIcon from "@mui/icons-material/CheckCircleOutline";
@@ -36,6 +43,7 @@ export interface AlertProps {
   isToast?: boolean;
   hasIcon?: boolean;
   onClick?: () => void;
+  sx?: SxProps<Theme> | undefined;
 }
 
 /**
@@ -114,6 +122,7 @@ const Alert: React.FC<AlertProps> = ({
   isToast,
   hasIcon = true,
   onClick,
+  sx,
 }: AlertProps): JSX.Element => {
   const theme = useTheme();
   const { text, bg } = singleTheme.alertStyles[variant];
@@ -137,6 +146,7 @@ const Alert: React.FC<AlertProps> = ({
         backgroundColor: bg,
         border: `1px solid ${text}`,
         borderRadius: theme.shape.borderRadius,
+        ...sx,
       }}
     >
       {hasIcon && (

@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { Stack, Typography, Modal, Box, Grid } from "@mui/material";
+import { Stack, Typography, Modal, Box } from "@mui/material";
 import { headerCardPlaceholder, vwhomeHeading } from "./style";
 import SmallStatsCard from "../../../components/Cards/SmallStatsCard";
 import VWButton from "../../../vw-v2-components/Buttons";
@@ -30,7 +30,7 @@ const VWHome = () => {
     variant: "success" | "info" | "warning" | "error";
     title?: string;
     body: string;
-  } | null>(null);
+  } | null>();
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
   const [shouldFetchProjects, setShouldFetchProjects] = useState(false);
 
@@ -258,14 +258,21 @@ const VWHome = () => {
             <NoProject message="There no projects available." />
           ) : projects?.length <= 3 ? (
             <>
-              {projects.map((project) => (
-                <Box
-                  key={project.id}
-                  sx={{ width: projects.length === 1 ? "50%" : "100%" }}
-                >
+              <Box
+                sx={{
+                  width: projects.length === 1 ? "50%" : "100%",
+                  display: "flex",
+                  flexDirection: "row",
+                  flexWrap: projects.length < 4 ? "" : "wrap",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: "10px",
+                }}
+              >
+                {projects.map((project) => (
                   <VWProjectCard key={project.id} project={project} />
-                </Box>
-              ))}
+                ))}
+              </Box>
             </>
           ) : (
             <>

@@ -7,6 +7,7 @@ export interface Project {
   project_title: string;
   owner: string;
   users: string;
+  members: number[];
   start_date: Date;
   ai_risk_classification: string;
   type_of_high_risk_role: string;

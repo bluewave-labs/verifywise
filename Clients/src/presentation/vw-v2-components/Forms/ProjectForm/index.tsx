@@ -1,14 +1,14 @@
 import { SelectChangeEvent, Stack, Typography, useTheme } from "@mui/material";
 import { ClearIcon } from "@mui/x-date-pickers/icons";
+import { useCallback, useMemo, useState } from "react";
+import VWButton from "../../Buttons";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import Field from "../../../components/Inputs/Field";
 import { textfieldStyle } from "./style";
-import { useCallback, useMemo, useState } from "react";
 import Select from "../../../components/Inputs/Select";
 import useUsers from "../../../../application/hooks/useUsers";
 import DatePicker from "../../../components/Inputs/Datepicker";
 import dayjs, { Dayjs } from "dayjs";
-import VWButton from "../../Buttons";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -30,6 +30,27 @@ const VWProjectForm = () => {
   const [values, setValues] = useState<any>({});
   const [errors, setErrors] = useState<any>({});
   const { users } = useUsers();
+
+  const riskClassificationItems = useMemo(
+    () => [
+      { _id: 1, name: RiskClassificationEnum.HighRisk },
+      { _id: 2, name: RiskClassificationEnum.LimitedRisk },
+      { _id: 3, name: RiskClassificationEnum.MinimalRisk },
+    ],
+    []
+  );
+
+  const highRiskRoleItems = useMemo(
+    () => [
+      { _id: 1, name: HighRiskRoleEnum.Deployer },
+      { _id: 2, name: HighRiskRoleEnum.Provider },
+      { _id: 3, name: HighRiskRoleEnum.Distributor },
+      { _id: 4, name: HighRiskRoleEnum.Importer },
+      { _id: 5, name: HighRiskRoleEnum.ProductManufacturer },
+      { _id: 6, name: HighRiskRoleEnum.AuthorizedRepresentative },
+    ],
+    []
+  );
 
   const handleOnTextFieldChange = useCallback(
     (prop: keyof any) => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,52 +76,6 @@ const VWProjectForm = () => {
       }));
     }
   }, []);
-
-  const riskClassificationItems = useMemo(
-    () => [
-      { _id: 1, name: RiskClassificationEnum.HighRisk },
-      { _id: 2, name: RiskClassificationEnum.LimitedRisk },
-      { _id: 3, name: RiskClassificationEnum.MinimalRisk },
-    ],
-    []
-  );
-
-  const highRiskRoleItems = useMemo(
-    () => [
-      { _id: 1, name: HighRiskRoleEnum.Deployer },
-      { _id: 2, name: HighRiskRoleEnum.Provider },
-      { _id: 3, name: HighRiskRoleEnum.Distributor },
-      { _id: 4, name: HighRiskRoleEnum.Importer },
-      { _id: 5, name: HighRiskRoleEnum.ProductManufacturer },
-      { _id: 6, name: HighRiskRoleEnum.AuthorizedRepresentative },
-    ],
-    []
-  );
-
-  const renderSelect = (
-    id: string,
-    label: string,
-    value: any,
-    onChange: any,
-    items: any[],
-    error: any,
-    isRequired: boolean = true
-  ) => (
-    <Select
-      id={id}
-      label={label}
-      placeholder={`Select ${label.toLowerCase()}`}
-      value={value || ""}
-      onChange={onChange}
-      items={items}
-      sx={{
-        width: "350px",
-        backgroundColor: theme.palette.background.main,
-      }}
-      error={error}
-      isRequired={isRequired}
-    />
-  );
 
   return (
     <Stack
@@ -140,55 +115,91 @@ const VWProjectForm = () => {
           <Field
             id="project-title-input"
             label="Project title"
+            width="350px"
             value={values.project_title}
             onChange={handleOnTextFieldChange("project_title")}
             error={errors.projectTitle}
-            width="350px"
             sx={textfieldStyle}
             isRequired
           />
-          {renderSelect(
-            "owner-input",
-            "Owner",
-            values.owner,
-            handleOnSelectChange("owner"),
-            users?.map((user) => ({
-              _id: user.id,
-              name: `${user.name} ${user.surname}`,
-              email: user.email,
-            })) || [],
-            errors.owner
-          )}
-          {renderSelect(
-            "risk-classification-input",
-            "AI risk classification",
-            values.ai_risk_classification,
-            handleOnSelectChange("ai_risk_classification"),
-            riskClassificationItems,
-            errors.riskClassification
-          )}
-          {renderSelect(
-            "type-of-high-risk-role-input",
-            "Type of high risk role",
-            values.type_of_high_risk_role,
-            handleOnSelectChange("type_of_high_risk_role"),
-            highRiskRoleItems,
-            errors.typeOfHighRiskRole
-          )}
+          <Select
+            id="owner-input"
+            label="Owner"
+            placeholder="Select owner"
+            value={values.owner === 0 ? "" : values.owner}
+            onChange={handleOnSelectChange("owner")}
+            items={
+              users?.map((user: any) => ({
+                _id: user.id,
+                name: `${user.name} ${user.surname}`,
+                email: user.email,
+              })) || []
+            }
+            sx={{
+              width: "350px",
+              backgroundColor: theme.palette.background.main,
+            }}
+            error={errors.owner}
+            isRequired
+          />
+          <Select
+            id="risk-classification-input"
+            label="AI risk classification"
+            placeholder="Select an option"
+            value={
+              values.ai_risk_classification === 0
+                ? ""
+                : values.ai_risk_classification
+            }
+            onChange={handleOnSelectChange("ai_risk_classification")}
+            items={riskClassificationItems}
+            sx={{
+              width: "350px",
+              backgroundColor: theme.palette.background.main,
+            }}
+            error={errors.riskClassification}
+            isRequired
+          />
+          <Select
+            id="type-of-high-risk-role-input"
+            label="Type of high risk role"
+            placeholder="Select an option"
+            value={
+              values.type_of_high_risk_role === 0
+                ? ""
+                : values.type_of_high_risk_role
+            }
+            onChange={handleOnSelectChange("type_of_high_risk_role")}
+            items={highRiskRoleItems}
+            sx={{
+              width: "350px",
+              backgroundColor: theme.palette.background.main,
+            }}
+            isRequired
+            error={errors.typeOfHighRiskRole}
+          />
         </Stack>
         <Stack className="vwproject-form-body-end" sx={{ gap: 8 }}>
-          {renderSelect(
-            "users-input",
-            "Users",
-            values.users,
-            handleOnSelectChange("users"),
-            users?.map((user) => ({
-              _id: user.id,
-              name: `${user.name} ${user.surname}`,
-              email: user.email,
-            })) || [],
-            errors.users
-          )}
+          <Select
+            id="users-input"
+            label="Users"
+            placeholder="Select users"
+            value={values.users === 0 ? "" : values.users}
+            onChange={handleOnSelectChange("users")}
+            items={
+              users?.map((user) => ({
+                _id: user.id,
+                name: `${user.name} ${user.surname}`,
+                email: user.email,
+              })) || []
+            }
+            sx={{
+              width: "350px",
+              backgroundColor: theme.palette.background.main,
+            }}
+            error={errors.users}
+            isRequired
+          />
           <DatePicker
             label="Start date"
             date={
@@ -209,7 +220,7 @@ const VWProjectForm = () => {
             value={values.goal}
             onChange={handleOnTextFieldChange("goal")}
             sx={{
-              backgroundColor: "white",
+              backgroundColor: theme.palette.background.main,
             }}
             isRequired
             error={errors.goal}
@@ -231,6 +242,7 @@ const VWProjectForm = () => {
             gap: 2,
           }}
           icon={<AddCircleOutlineIcon />}
+          onClick={() => {}}
         />
       </Stack>
     </Stack>

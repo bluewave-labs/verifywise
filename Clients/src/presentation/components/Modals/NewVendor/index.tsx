@@ -381,33 +381,33 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
    */
   const handleOnSave = async () => {
     const _vendorDetails = {
-      projectId: values.vendorDetails.projectId,
-      vendorName: values.vendorDetails.vendorName,
+      project_id: values.vendorDetails.projectId,
+      vendor_name: values.vendorDetails.vendorName,
       assignee: users?.find((a) => a.id === values.vendorDetails.assignee)
         ?.name,
-      vendorProvides: values.vendorDetails.vendorProvides,
+      vendor_provides: values.vendorDetails.vendorProvides,
       website: values.vendorDetails.website,
-      vendorContactPerson: values.vendorDetails.vendorContactPerson,
-      reviewResult: values.vendorDetails.reviewResult,
-      reviewStatus:
+      vendor_contact_person: values.vendorDetails.vendorContactPerson,
+      review_result: values.vendorDetails.reviewResult,
+      review_status:
         REVIEW_STATUS_OPTIONS.find(
           (s) => s._id === values.vendorDetails.reviewStatus
         )?.name || "",
       reviewer: users?.find((a) => a.id === values.vendorDetails.reviewer)
         ?.name,
-      riskStatus:
+      risk_status:
         RISK_LEVEL_OPTIONS.find(
           (s) => s._id === Number(values.vendorDetails.riskStatus)
         )?.name || "",
-      reviewDate: values.vendorDetails.reviewDate,
-      riskDescription: values.risks.riskDescription,
-      impactDescription: values.risks.impactDescription,
+      review_date: values.vendorDetails.reviewDate,
+      risk_description: values.risks.riskDescription,
+      impact_description: values.risks.impactDescription,
       impact: Number(values.risks.impact),
-      actionOwner:
+      action_owner:
         users.find((a) => a.id === values.risks.actionOwner)?.name || "",
-      actionPlan: values.risks.actionPlan,
-      riskSeverity: Number(values.risks.riskSeverity),
-      riskLevel:
+      action_plan: values.risks.actionPlan,
+      risk_severity: Number(values.risks.riskSeverity),
+      risk_level:
         RISK_LEVEL_OPTIONS.find((r) => r._id === values.risks.riskLevel)
           ?.name || "",
       likelihood: Number(values.risks.likelihood),

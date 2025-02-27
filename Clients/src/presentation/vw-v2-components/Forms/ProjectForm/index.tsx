@@ -1,19 +1,278 @@
-import { Stack, Typography, useTheme } from "@mui/material";
+import {
+  SelectChangeEvent,
+  Stack,
+  SxProps,
+  Theme,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import { ClearIcon } from "@mui/x-date-pickers/icons";
+import { useCallback, useMemo, useState } from "react";
+import VWButton from "../../Buttons";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import Field from "../../../components/Inputs/Field";
+import { textfieldStyle } from "./style";
+import Select from "../../../components/Inputs/Select";
+import useUsers from "../../../../application/hooks/useUsers";
+import DatePicker from "../../../components/Inputs/Datepicker";
+import dayjs, { Dayjs } from "dayjs";
+import { checkStringValidation } from "../../../../application/validations/stringValidation";
+import selectValidation from "../../../../application/validations/selectValidation";
+import { createNewUser } from "../../../../application/repository/entity.repository";
+import VWToast from "../../Toast"; // will be used when we wait for the response
+import Alert from "../../../components/Alert"; // will be used to show the status and message of the response
 
-const VWProjectForm = () => {
+enum RiskClassificationEnum {
+  HighRisk = "High risk",
+  LimitedRisk = "Limited risk",
+  MinimalRisk = "Minimal risk",
+}
+
+enum HighRiskRoleEnum {
+  Deployer = "Deployer",
+  Provider = "Provider",
+  Distributor = "Distributor",
+  Importer = "Importer",
+  ProductManufacturer = "Product manufacturer",
+  AuthorizedRepresentative = "Authorized representative",
+}
+
+interface FormValues {
+  project_title: string;
+  owner: number;
+  users: number;
+  start_date: string;
+  ai_risk_classification: number;
+  type_of_high_risk_role: number;
+  goal: string;
+}
+
+interface FormErrors {
+  projectTitle?: string;
+  users?: string;
+  owner?: string;
+  startDate?: string;
+  riskClassification?: string;
+  typeOfHighRiskRole?: string;
+  goal?: string;
+}
+
+const initialState: FormValues = {
+  project_title: "",
+  users: 0,
+  owner: 0,
+  start_date: new Date().toISOString(),
+  ai_risk_classification: 0,
+  type_of_high_risk_role: 0,
+  goal: "",
+};
+
+interface VWProjectFormProps {
+  onClose: () => void;
+  sx?: SxProps<Theme> | undefined;
+}
+
+const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
   const theme = useTheme();
+  const [values, setValues] = useState<FormValues>(initialState);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const { users } = useUsers();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [alert, setAlert] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    title?: string;
+    body: string;
+  } | null>(null);
+
+  const riskClassificationItems = useMemo(
+    () => [
+      { _id: 1, name: RiskClassificationEnum.HighRisk },
+      { _id: 2, name: RiskClassificationEnum.LimitedRisk },
+      { _id: 3, name: RiskClassificationEnum.MinimalRisk },
+    ],
+    []
+  );
+
+  const highRiskRoleItems = useMemo(
+    () => [
+      { _id: 1, name: HighRiskRoleEnum.Deployer },
+      { _id: 2, name: HighRiskRoleEnum.Provider },
+      { _id: 3, name: HighRiskRoleEnum.Distributor },
+      { _id: 4, name: HighRiskRoleEnum.Importer },
+      { _id: 5, name: HighRiskRoleEnum.ProductManufacturer },
+      { _id: 6, name: HighRiskRoleEnum.AuthorizedRepresentative },
+    ],
+    []
+  );
+
+  const handleOnTextFieldChange = useCallback(
+    (prop: keyof FormValues) =>
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        setValues({ ...values, [prop]: event.target.value });
+        setErrors({ ...errors, [prop]: "" });
+      },
+    [values, errors]
+  );
+
+  const handleOnSelectChange = useCallback(
+    (prop: keyof FormValues) => (event: SelectChangeEvent<string | number>) => {
+      setValues({ ...values, [prop]: event.target.value });
+      setErrors({ ...errors, [prop]: "" });
+    },
+    [values, errors]
+  );
+
+  const handleDateChange = useCallback((newDate: Dayjs | null) => {
+    if (newDate?.isValid()) {
+      setValues((prevValues: any) => ({
+        ...prevValues,
+        start_date: newDate ? newDate.toISOString() : "",
+      }));
+    }
+  }, []);
+
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    const projectTitle = checkStringValidation(
+      "Project title",
+      values.project_title,
+      1,
+      64
+    );
+    if (!projectTitle.accepted) {
+      newErrors.projectTitle = projectTitle.message;
+    }
+    const goal = checkStringValidation("Goal", values.goal, 1, 256);
+    if (!goal.accepted) {
+      newErrors.goal = goal.message;
+    }
+    const startDate = checkStringValidation("Start date", values.start_date, 1);
+    if (!startDate.accepted) {
+      newErrors.startDate = startDate.message;
+    }
+    const users = selectValidation("Users", values.users);
+    if (!users.accepted) {
+      newErrors.users = users.message;
+    }
+    const owner = selectValidation("Owner", values.owner);
+    if (!owner.accepted) {
+      newErrors.owner = owner.message;
+    }
+    const riskClassification = selectValidation(
+      "AI risk classification",
+      values.ai_risk_classification
+    );
+    if (!riskClassification.accepted) {
+      newErrors.riskClassification = riskClassification.message;
+    }
+    const typeOfHighRiskRole = selectValidation(
+      "Type of high risk role",
+      values.type_of_high_risk_role
+    );
+    if (!typeOfHighRiskRole.accepted) {
+      newErrors.typeOfHighRiskRole = typeOfHighRiskRole.message;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  async function handleSubmit() {
+    if (validateForm()) {
+      setIsSubmitting(true);
+      try {
+        const res = await createNewUser({
+          routeUrl: "/projects",
+          body: {
+            ...values,
+            type_of_high_risk_role:
+              highRiskRoleItems.find(
+                (item) => item._id === values.type_of_high_risk_role
+              )?.name || "",
+            ai_risk_classification:
+              riskClassificationItems.find(
+                (item) => item._id === values.ai_risk_classification
+              )?.name || "",
+            last_updated: values.start_date,
+            last_updated_by: values.users,
+          },
+        });
+
+        if (res.status === 201) {
+          setAlert({
+            variant: "success",
+            body: "Project created successfully.",
+          });
+          setTimeout(() => {
+            setAlert(null);
+            onClose();
+          }, 3000);
+        } else {
+          setAlert({
+            variant: "error",
+            body: "Failed to create project.",
+          });
+        }
+      } catch (err) {
+        setAlert({
+          variant: "error",
+          body: `An error occurred: ${(err as Error).message}`,
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+  }
+
   return (
     <Stack
+      component="form"
+      onSubmit={handleSubmit}
       sx={{
-        width: 800,
+        width: "fit-content",
         backgroundColor: "#FCFCFD",
         padding: 10,
         borderRadius: "4px",
         gap: 10,
+        ...sx,
       }}
     >
+      {alert && (
+        <Stack
+          sx={{
+            width: "100%",
+            position: "absolute",
+            top: 0,
+            right: 0,
+            zIndex: 10001,
+          }}
+        >
+          <Alert
+            variant={alert.variant}
+            title={alert.title}
+            body={alert.body}
+            isToast={true}
+            onClick={() => setAlert(null)}
+          />
+        </Stack>
+      )}
+      {isSubmitting && (
+        <Stack
+          sx={{
+            width: "100vw",
+            height: "110vh",
+            position: "fixed",
+            top: "-50%",
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 9999,
+          }}
+        >
+          <VWToast title="Creating project. Please wait..." />
+        </Stack>
+      )}
+
       <Stack
         className="vwproject-form-header"
         sx={{
@@ -32,24 +291,140 @@ const VWProjectForm = () => {
             Create a new project from scratch by filling in the following.
           </Typography>
         </Stack>
-        <ClearIcon sx={{ color: "#98A2B3" }} />
+        <ClearIcon
+          sx={{ color: "#98A2B3", cursor: "pointer" }}
+          onClick={onClose}
+        />
       </Stack>
-      <Stack className="vwproject-form-body">
-        <Stack className="vwproject-form-body-start">
+      <Stack
+        className="vwproject-form-body"
+        sx={{ display: "flex", flexDirection: "row", gap: 8 }}
+      >
+        <Stack className="vwproject-form-body-start" sx={{ gap: 8 }}>
           <Field
             id="project-title-input"
             label="Project title"
             width="350px"
-            sx={{
-              backgroundColor: theme.palette.background.main,
-              "& input": {
-                padding: "0 14px",
-              },
-            }}
+            value={values.project_title}
+            onChange={handleOnTextFieldChange("project_title")}
+            error={errors.projectTitle}
+            sx={textfieldStyle}
             isRequired
           />
+          <Select
+            id="owner-input"
+            label="Owner"
+            placeholder="Select owner"
+            value={values.owner || ""}
+            onChange={handleOnSelectChange("owner")}
+            items={
+              users?.map((user: any) => ({
+                _id: user.id,
+                name: `${user.name} ${user.surname}`,
+                email: user.email,
+              })) || []
+            }
+            sx={{
+              width: "350px",
+              backgroundColor: theme.palette.background.main,
+            }}
+            error={errors.owner}
+            isRequired
+          />
+          <Select
+            id="risk-classification-input"
+            label="AI risk classification"
+            placeholder="Select an option"
+            value={values.ai_risk_classification || ""}
+            onChange={handleOnSelectChange("ai_risk_classification")}
+            items={riskClassificationItems}
+            sx={{
+              width: "350px",
+              backgroundColor: theme.palette.background.main,
+            }}
+            error={errors.riskClassification}
+            isRequired
+          />
+          <Select
+            id="type-of-high-risk-role-input"
+            label="Type of high risk role"
+            placeholder="Select an option"
+            value={values.type_of_high_risk_role || ""}
+            onChange={handleOnSelectChange("type_of_high_risk_role")}
+            items={highRiskRoleItems}
+            sx={{
+              width: "350px",
+              backgroundColor: theme.palette.background.main,
+            }}
+            isRequired
+            error={errors.typeOfHighRiskRole}
+          />
         </Stack>
-        <Stack className="vwproject-form-body-end"></Stack>
+        <Stack className="vwproject-form-body-end" sx={{ gap: 8 }}>
+          <Select
+            id="users-input"
+            label="Users"
+            placeholder="Select users"
+            value={values.users || ""}
+            onChange={handleOnSelectChange("users")}
+            items={
+              users?.map((user) => ({
+                _id: user.id,
+                name: `${user.name} ${user.surname}`,
+                email: user.email,
+              })) || []
+            }
+            sx={{
+              width: "350px",
+              backgroundColor: theme.palette.background.main,
+            }}
+            error={errors.users}
+            isRequired
+          />
+          <DatePicker
+            label="Start date"
+            date={
+              values.start_date ? dayjs(values.start_date) : dayjs(new Date())
+            }
+            handleDateChange={handleDateChange}
+            sx={{
+              width: "130px",
+              "& input": { width: "85px" },
+            }}
+            isRequired
+            error={errors.startDate}
+          />
+          <Field
+            id="goal-input"
+            label="Goal"
+            type="description"
+            value={values.goal}
+            onChange={handleOnTextFieldChange("goal")}
+            sx={{
+              backgroundColor: theme.palette.background.main,
+            }}
+            isRequired
+            error={errors.goal}
+          />
+        </Stack>
+      </Stack>
+      <Stack
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "flex-end",
+        }}
+      >
+        <VWButton
+          text="Create project"
+          sx={{
+            backgroundColor: "#13715B",
+            border: "1px solid #13715B",
+            gap: 2,
+          }}
+          icon={<AddCircleOutlineIcon />}
+          onClick={() => handleSubmit()}
+        />
       </Stack>
     </Stack>
   );

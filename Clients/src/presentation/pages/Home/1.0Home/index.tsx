@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { Stack, Typography } from "@mui/material";
+import { Stack, Typography, Modal, Box } from "@mui/material";
 import { headerCardPlaceholder, vwhomeHeading } from "./style";
 import SmallStatsCard from "../../../components/Cards/SmallStatsCard";
 import VWButton from "../../../vw-v2-components/Buttons";
@@ -16,6 +16,7 @@ import NoProject from "../../../components/NoProject/NoProject";
 import VWToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 import { logEngine } from "../../../../application/tools/log.engine";
+import VWProjectForm from "../../../vw-v2-components/Forms/ProjectForm";
 
 const VWHome = () => {
   const { setDashboardValues } = useContext(VerifyWiseContext);
@@ -29,7 +30,9 @@ const VWHome = () => {
     variant: "success" | "info" | "warning" | "error";
     title?: string;
     body: string;
-  } | null>(null);
+  } | null>();
+  const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
+  const [shouldFetchProjects, setShouldFetchProjects] = useState(false);
 
   const fetchData = async (routeUrl: string, setData: (data: any) => void) => {
     try {
@@ -59,7 +62,12 @@ const VWHome = () => {
     };
 
     fetchProgressData();
-  }, [setDashboardValues]);
+  }, [setDashboardValues, shouldFetchProjects]);
+
+  const handleProjectFormClose = () => {
+    setIsProjectFormOpen(false);
+    setShouldFetchProjects((prev) => !prev);
+  };
 
   async function generateDemoData() {
     setIsGeneratingDemoData(true);
@@ -231,6 +239,7 @@ const VWHome = () => {
                 gap: 2,
               }}
               icon={<AddCircleOutlineIcon />}
+              onClick={() => setIsProjectFormOpen(true)}
             />
           </Stack>
         </Stack>
@@ -238,25 +247,80 @@ const VWHome = () => {
           className="vwhome-body-projects"
           sx={{
             display: "flex",
-            flexDirection: projects.length < 4 ? "row" : "row",
-            flexWrap: projects.length < 4 ? "nowrap" : "wrap",
+            flexDirection: "row",
+            flexWrap: "wrap",
             justifyContent: "flex-start",
             alignItems: "center",
             gap: "10px",
           }}
         >
-          {projects.length > 0 ? (
-            projects.map((project) => (
-              <VWProjectCard key={project.id} project={project} />
-            ))
+          {projects?.length === 0 || !projects ? (
+            <NoProject message="There no projects available." />
+          ) : projects?.length <= 3 ? (
+            <>
+              <Box
+                sx={{
+                  width: projects.length === 1 ? "50%" : "100%",
+                  display: "flex",
+                  flexDirection: "row",
+                  flexWrap: projects.length < 4 ? "" : "wrap",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: "10px",
+                }}
+              >
+                {projects.map((project) => (
+                  <VWProjectCard key={project.id} project={project} />
+                ))}
+              </Box>
+            </>
           ) : (
-            <NoProject
-              message='You have no projects, yet. Click on the "New Project" button to
-          start one.'
-            />
+            <>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "repeat(1, 1fr)",
+                    sm: "repeat(2, 1fr)",
+                    md: "repeat(3, 1fr)",
+                  },
+                  gap: { xs: 2, md: 3 },
+                  width: "100%",
+                }}
+              >
+                {projects &&
+                  projects.map((project) => (
+                    <Box key={project.id} sx={{ gridColumn: "span 1" }}>
+                      <VWProjectCard key={project.id} project={project} />
+                    </Box>
+                  ))}
+              </Box>
+            </>
           )}
         </Stack>
       </Stack>
+      <Modal
+        open={isProjectFormOpen}
+        // open={true}
+        onClose={handleProjectFormClose}
+        aria-labelledby="modal-title"
+        aria-describedby="modal-description"
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 1,
+          }}
+        >
+          <VWProjectForm onClose={handleProjectFormClose} />
+        </Box>
+      </Modal>
     </Stack>
   );
 };

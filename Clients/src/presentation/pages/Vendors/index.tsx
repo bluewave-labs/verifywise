@@ -22,10 +22,12 @@ import CustomStep from "../../components/PageTour/CustomStep";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
+import AddNewRisk from "../../components/Modals/NewRisk";
 
 const Vendors = () => {
   const theme = useTheme();
   const [isOpen, setIsOpen] = useState(false);
+  const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
   const [value, setValue] = useState("1");
   const [vendorChangeTrigger, setVendorChangeTrigger] = useState(0);
   const [vendorRiskChangeTrigger, setVendorRiskChangeTrigger] = useState(0);
@@ -334,6 +336,13 @@ const Vendors = () => {
         setIsOpen={() => setIsOpen(false)}
         value={value}
         onVendorChange={updateVendorChangeTrigger}
+      />
+      <AddNewRisk
+        isOpen={isRiskModalOpen}
+        handleChange={handleChange}
+        setIsOpen={() => setIsRiskModalOpen(false)}
+        value={value}
+        onRiskChange={updateVendorRiskChangeTrigger}
       />
     </div>
   );

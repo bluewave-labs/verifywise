@@ -471,7 +471,16 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             renderInput={(params) => (
               <TextField
                 {...params}
-                placeholder="Select Members"
+                placeholder="Select Users"
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    paddingTop: "3.8px !important", 
+                    paddingBottom: "3.8px !important"
+                  },
+                  "& ::placeholder": {
+                    fontSize: "13px",
+                  },
+                }}
               />
             )}
             sx={{

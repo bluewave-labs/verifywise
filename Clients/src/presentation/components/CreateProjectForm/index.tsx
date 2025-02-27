@@ -402,6 +402,15 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                     {...params}
                     placeholder="Select Users"
                     error={memberRequired}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        paddingTop: "3.8px !important", 
+                        paddingBottom: "3.8px !important"
+                      },
+                      "& ::placeholder": {
+                        fontSize: "13px",
+                      },
+                    }}
                   />
                 )}
                 sx={{

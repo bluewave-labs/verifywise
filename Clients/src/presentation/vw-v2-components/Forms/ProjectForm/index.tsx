@@ -18,6 +18,9 @@ import DatePicker from "../../../components/Inputs/Datepicker";
 import dayjs, { Dayjs } from "dayjs";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import selectValidation from "../../../../application/validations/selectValidation";
+import { createNewUser } from "../../../../application/repository/entity.repository";
+import VWToast from "../../Toast"; // will be used when we wait for the response
+import Alert from "../../../components/Alert"; // will be used to show the status and message of the response
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -74,6 +77,12 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
   const [values, setValues] = useState<FormValues>(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
   const { users } = useUsers();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [alert, setAlert] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    title?: string;
+    body: string;
+  } | null>(null);
 
   const riskClassificationItems = useMemo(
     () => [
@@ -169,9 +178,50 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (validateForm()) {
-      // Handle form submission
+      setIsSubmitting(true);
+      try {
+        const res = await createNewUser({
+          routeUrl: "/projects",
+          body: {
+            ...values,
+            type_of_high_risk_role:
+              highRiskRoleItems.find(
+                (item) => item._id === values.type_of_high_risk_role
+              )?.name || "",
+            ai_risk_classification:
+              riskClassificationItems.find(
+                (item) => item._id === values.ai_risk_classification
+              )?.name || "",
+            last_updated: values.start_date,
+            last_updated_by: values.users,
+          },
+        });
+
+        if (res.status === 201) {
+          setAlert({
+            variant: "success",
+            body: "Project created successfully.",
+          });
+          setTimeout(() => {
+            setAlert(null);
+            onClose();
+          }, 3000);
+        } else {
+          setAlert({
+            variant: "error",
+            body: "Failed to create project.",
+          });
+        }
+      } catch (err) {
+        setAlert({
+          variant: "error",
+          body: `An error occurred: ${(err as Error).message}`,
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   }
 
@@ -188,6 +238,41 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
         ...sx,
       }}
     >
+      {alert && (
+        <Stack
+          sx={{
+            width: "100%",
+            position: "absolute",
+            top: 0,
+            right: 0,
+            zIndex: 10001,
+          }}
+        >
+          <Alert
+            variant={alert.variant}
+            title={alert.title}
+            body={alert.body}
+            isToast={true}
+            onClick={() => setAlert(null)}
+          />
+        </Stack>
+      )}
+      {isSubmitting && (
+        <Stack
+          sx={{
+            width: "100vw",
+            height: "110vh",
+            position: "fixed",
+            top: "-50%",
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 9999,
+          }}
+        >
+          <VWToast title="Creating project. Please wait..." />
+        </Stack>
+      )}
+
       <Stack
         className="vwproject-form-header"
         sx={{

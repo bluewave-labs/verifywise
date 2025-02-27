@@ -1,8 +1,4 @@
 /**
- * This file is currently in use
- */
-
-/**
  * IconButton component that renders a custom-styled Material-UI IconButton with a settings icon.
  * It includes a dropdown menu with options to edit or remove a vendor, and modals for adding or removing vendors.
  *

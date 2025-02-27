@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import { Box, Typography, useTheme } from "@mui/material";
 import { NoProjectBox } from "../../pages/Home/styles";
 import emptyState from "../../assets/imgs/empty-state.svg";

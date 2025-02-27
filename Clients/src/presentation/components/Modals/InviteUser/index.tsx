@@ -1,8 +1,4 @@
 /**
- * This file is currently in use
- */
-
-/**
  * A modal component that displays a form for inviting a user.
  *
  * @component

@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import { useSelector } from "react-redux";
 import { Navigate, useLocation } from "react-router-dom";
 import { ComponentType, useEffect, useState } from "react";

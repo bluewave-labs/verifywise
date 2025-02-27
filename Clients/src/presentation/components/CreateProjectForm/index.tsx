@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import { FC, useState, useMemo, useCallback, useEffect } from "react";
 import { Button, SelectChangeEvent, Stack, useTheme } from "@mui/material";
 import { useSelector } from "react-redux";

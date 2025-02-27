@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import { Stack, Typography } from "@mui/material";
 import { StatsCardFrame, StatsCardRate } from "./style";
 import ProgressBar from "../../ProjectCard/ProgressBar";
@@ -14,12 +10,7 @@ interface StatsCardProps {
   progressbarColor: string;
 }
 
-const StatsCard = ({
-  title,
-  completed,
-  total,
-  progressbarColor,
-}: StatsCardProps) => {
+const StatsCard = ({ title, completed, total }: StatsCardProps) => {
   const progress = useMemo(() => `${completed}/${total}`, [completed, total]);
   const percentage = useMemo(() => {
     if (total === 0 || isNaN(completed) || isNaN(total)) return 0;
@@ -50,7 +41,7 @@ const StatsCard = ({
           mt: "10px",
         }}
       >
-        <ProgressBar progress={progress} bgColor={progressbarColor} />
+        <ProgressBar progress={progress} />
         <Typography
           sx={{
             color: "#8594AC",

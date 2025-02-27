@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import React, { useState, useEffect, useCallback, useContext } from "react";
 import {
   Stack,

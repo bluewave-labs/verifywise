@@ -59,6 +59,3 @@ Issues will be created by project manager and leads. When you create an issue, i
 **Will we use GitHub Projects or a separate tool for project management?**
 GitHub Projects is an amazing tool to use for our tasks.
 
-### Pull request standards
-
-**_Note: Do not remove the branch after it is merged!_**

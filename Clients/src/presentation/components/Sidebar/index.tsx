@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import {
   Box,
   Collapse,
@@ -122,8 +118,6 @@ const Sidebar = ({ projects }: { projects: any }) => {
   const user: User = users
     ? users.find((user: User) => user.id === userId)
     : DEFAULT_USER;
-
-  console.log("***", user);
 
   const userAvator: User_Avatar = {
     firstname: user.name,

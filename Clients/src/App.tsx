@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import { Route, Routes } from "react-router-dom";
 import "./App.css";
 import { ThemeProvider } from "@emotion/react";
@@ -35,6 +31,7 @@ import { extractUserToken } from "./application/tools/extractToken"; // Import t
 import Playground from "./presentation/pages";
 import AssessmentTracker from "./presentation/pages/Assessment/1.0AssessmentTracker";
 import ComplianceTracker from "./presentation/pages/ComplianceTracker/1.0ComplianceTracker";
+import VWHome from "./presentation/pages/Home/1.0Home";
 
 function App() {
   const mode = useSelector((state: any) => state.ui?.mode || "light");
@@ -131,21 +128,17 @@ function App() {
                   path="/"
                   element={<Home onProjectUpdate={triggerSidebarReload} />}
                 />
-                {/* <Route
-                  path="/compliance-tracker"
-                  element={<NewComplianceTracker />}
-                /> */}
                 <Route
                   path="/compliance-tracker"
                   element={<ComplianceTracker />}
                 />
-                {/* <Route path="/assessment" element={<Assessment />} /> */}
                 <Route path="/assessment" element={<AssessmentTracker />} />
                 <Route path="/vendors" element={<Vendors />} />
                 <Route path="/setting" element={<Setting />} />
                 <Route path="/team" element={<Team />} />
                 <Route path="/project-view" element={<ProjectView />} />
                 <Route path="/file-manager" element={<FileManager />} />
+                <Route path="/test" element={<VWHome />} />
               </Route>
               <Route
                 path="/admin-reg"

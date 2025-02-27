@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import { Stack, Typography, useTheme } from "@mui/material";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";

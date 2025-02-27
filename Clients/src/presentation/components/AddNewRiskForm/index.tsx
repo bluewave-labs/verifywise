@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
@@ -183,16 +179,6 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   } => {
     const newErrors: RiskFormErrors = {};
     const newMitigationErrors: MitigationFormErrors = {};
-
-    // const riskName = checkStringValidation(
-    //   "Risk name",
-    //   riskValues.riskName,
-    //   3,
-    //   50
-    // );
-    // if (!riskName.accepted) {
-    //   newErrors.riskName = riskName.message;
-    // }
     const riskDescription = checkStringValidation(
       "Risk description",
       riskValues.riskDescription,

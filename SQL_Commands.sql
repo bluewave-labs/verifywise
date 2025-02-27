@@ -1,7 +1,8 @@
 CREATE TABLE roles (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255),
-  description TEXT
+  description TEXT,
+  is_demo BOOLEAN
 );
 
 CREATE TABLE users (
@@ -12,7 +13,8 @@ CREATE TABLE users (
   password_hash VARCHAR(255),
   role INT REFERENCES roles(id),
   created_at DATE,
-  last_login DATE
+  last_login DATE,
+  is_demo BOOLEAN
 );
 
 CREATE TABLE projects (
@@ -25,7 +27,8 @@ CREATE TABLE projects (
   type_of_high_risk_role VARCHAR(255),
   goal VARCHAR(255),
   last_updated DATE,
-  last_updated_by INTEGER REFERENCES users(id)
+  last_updated_by INTEGER REFERENCES users(id),
+  is_demo BOOLEAN
 );
 
 CREATE TABLE vendors (
@@ -40,19 +43,22 @@ CREATE TABLE vendors (
   review_status VARCHAR(255),
   reviewer VARCHAR(255),
   risk_status VARCHAR(255),
-  review_date DATE
+  review_date DATE,
+  is_demo BOOLEAN
 );
 
 CREATE TABLE assessments (
   id SERIAL PRIMARY KEY,
-  project_id INT REFERENCES projects(id)
+  project_id INT REFERENCES projects(id),
+  is_demo BOOLEAN
 );
 
 CREATE TABLE controlcategories (
   id SERIAL PRIMARY KEY,
   project_id INT REFERENCES projects(id),
   title TEXT,
-  order_no INT
+  order_no INT,
+  is_demo BOOLEAN
 );
 
 CREATE TABLE controls (
@@ -67,7 +73,8 @@ CREATE TABLE controls (
   due_date DATE,
   implementation_details TEXT,
   order_no INT,
-  control_category_id INT REFERENCES controlcategories(id)
+  control_category_id INT REFERENCES controlcategories(id),
+  is_demo BOOLEAN
 );
 
 CREATE TABLE subcontrols (
@@ -86,7 +93,8 @@ CREATE TABLE subcontrols (
   evidence_description TEXT,
   feedback_description TEXT,
   evidence_files TEXT[],
-  feedback_files TEXT[]
+  feedback_files TEXT[],
+  is_demo BOOLEAN
 );
 
 CREATE TABLE projectrisks (
@@ -115,7 +123,8 @@ CREATE TABLE projectrisks (
   final_risk_level VARCHAR(255),
   risk_approval VARCHAR(255),
   approval_status VARCHAR(255),
-  date_of_assessment DATE
+  date_of_assessment DATE,
+  is_demo BOOLEAN
 );
 
 CREATE TABLE vendorrisks (
@@ -129,13 +138,15 @@ CREATE TABLE vendorrisks (
   risk_severity VARCHAR(255),
   action_plan TEXT,
   action_owner VARCHAR(255),
-  risk_level VARCHAR(255)
+  risk_level VARCHAR(255),
+  is_demo BOOLEAN
 );
 
 CREATE TABLE vendors_projects (
   vendor_id INT REFERENCES vendors(id),
   project_id INT REFERENCES projects(id),
-  PRIMARY KEY (vendor_id, project_id)
+  PRIMARY KEY (vendor_id, project_id),
+  is_demo BOOLEAN
 );
 
 CREATE TABLE projectscopes (
@@ -148,21 +159,24 @@ CREATE TABLE projectscopes (
   technology_type VARCHAR(255),
   has_ongoing_monitoring BOOLEAN,
   unintended_outcomes TEXT,
-  technology_documentation VARCHAR(255)
+  technology_documentation VARCHAR(255),
+  is_demo BOOLEAN
 );
 
 CREATE TABLE topics (
   id SERIAL PRIMARY KEY,
   assessment_id INT REFERENCES assessments(id),
   title TEXT,
-  order_no INT
+  order_no INT,
+  is_demo BOOLEAN
 );
 
 CREATE TABLE subtopics (
   id SERIAL PRIMARY KEY,
   topic_id INT REFERENCES topics(id),
   title TEXT,
-  order_no INT
+  order_no INT,
+  is_demo BOOLEAN
 );
 
 CREATE TABLE questions (
@@ -177,14 +191,16 @@ CREATE TABLE questions (
   evidence_files TEXT[],
   answer TEXT,
   dropdown_options TEXT[],
-  order_id INT,
-  input_type VARCHAR(255)
+  order_no INT,
+  input_type VARCHAR(255),
+  is_demo BOOLEAN
 );
 
 CREATE TABLE files (
   id SERIAL PRIMARY KEY,
   filename TEXT NOT NULL,
-  content BYTEA NOT NULL
+  content BYTEA NOT NULL,
+  is_demo BOOLEAN
 );
 
 INSERT INTO

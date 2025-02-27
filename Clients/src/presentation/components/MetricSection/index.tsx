@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import { FC, memo } from "react";
 import { Typography, Stack } from "@mui/material";
 import { StyledStack, styles } from "./styles";

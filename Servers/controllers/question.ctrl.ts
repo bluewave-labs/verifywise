@@ -110,14 +110,14 @@ export async function updateQuestionById(
       updatedQuestion,
       req.files as UploadedFile[]
     )) as Question;
-    console.log("3");
 
-    if (question) {
+    if (!question) {
       console.log("4");
-      return res.status(202).json(STATUS_CODE[202](question));
+      return res.status(404).json(STATUS_CODE[404]({}));
     }
 
-    return res.status(404).json(STATUS_CODE[404]({}));
+    console.log("5");
+    return res.status(202).json(STATUS_CODE[202](question));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

@@ -1,4 +1,11 @@
-import { SelectChangeEvent, Stack, Typography, useTheme } from "@mui/material";
+import {
+  SelectChangeEvent,
+  Stack,
+  SxProps,
+  Theme,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import { ClearIcon } from "@mui/x-date-pickers/icons";
 import { useCallback, useMemo, useState } from "react";
 import VWButton from "../../Buttons";
@@ -57,7 +64,12 @@ const initialState: FormValues = {
   goal: "",
 };
 
-const VWProjectForm = () => {
+interface VWProjectFormProps {
+  onClose: () => void;
+  sx?: SxProps<Theme> | undefined;
+}
+
+const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
   const theme = useTheme();
   const [values, setValues] = useState<FormValues>(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -173,6 +185,7 @@ const VWProjectForm = () => {
         padding: 10,
         borderRadius: "4px",
         gap: 10,
+        ...sx,
       }}
     >
       <Stack
@@ -193,7 +206,10 @@ const VWProjectForm = () => {
             Create a new project from scratch by filling in the following.
           </Typography>
         </Stack>
-        <ClearIcon sx={{ color: "#98A2B3" }} />
+        <ClearIcon
+          sx={{ color: "#98A2B3", cursor: "pointer" }}
+          onClick={onClose}
+        />
       </Stack>
       <Stack
         className="vwproject-form-body"

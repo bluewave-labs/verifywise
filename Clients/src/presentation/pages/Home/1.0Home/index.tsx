@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { Stack, Typography } from "@mui/material";
+import { Stack, Typography, Modal, Box } from "@mui/material";
 import { headerCardPlaceholder, vwhomeHeading } from "./style";
 import SmallStatsCard from "../../../components/Cards/SmallStatsCard";
 import VWButton from "../../../vw-v2-components/Buttons";
@@ -16,6 +16,7 @@ import NoProject from "../../../components/NoProject/NoProject";
 import VWToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 import { logEngine } from "../../../../application/tools/log.engine";
+import VWProjectForm from "../../../vw-v2-components/Forms/ProjectForm";
 
 const VWHome = () => {
   const { setDashboardValues } = useContext(VerifyWiseContext);
@@ -30,6 +31,7 @@ const VWHome = () => {
     title?: string;
     body: string;
   } | null>(null);
+  const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
 
   const fetchData = async (routeUrl: string, setData: (data: any) => void) => {
     try {
@@ -231,6 +233,7 @@ const VWHome = () => {
                 gap: 2,
               }}
               icon={<AddCircleOutlineIcon />}
+              onClick={() => setIsProjectFormOpen(true)}
             />
           </Stack>
         </Stack>
@@ -257,6 +260,27 @@ const VWHome = () => {
           )}
         </Stack>
       </Stack>
+      <Modal
+        open={isProjectFormOpen}
+        onClose={() => setIsProjectFormOpen(false)}
+        aria-labelledby="modal-title"
+        aria-describedby="modal-description"
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 1,
+          }}
+        >
+          <VWProjectForm onClose={() => setIsProjectFormOpen(false)} />
+        </Box>
+      </Modal>
     </Stack>
   );
 };

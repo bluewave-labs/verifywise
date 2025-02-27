@@ -1,5 +1,6 @@
 import { FC, useState, useMemo, useCallback, useEffect } from "react";
-import { Button, SelectChangeEvent, Stack, useTheme } from "@mui/material";
+import { Button, SelectChangeEvent, Stack, useTheme, Autocomplete, TextField, Typography } from "@mui/material";
+import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
 import { useSelector } from "react-redux";
 import dayjs, { Dayjs } from "dayjs";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
@@ -31,10 +32,17 @@ enum HighRiskRoleEnum {
   AuthorizedRepresentative = "Authorized representative",
 }
 
+interface User {
+  _id: string;
+  name: string;
+  surname: string;
+  email: string;
+}
+
 interface FormValues {
   project_title: string;
   owner: number;
-  users: number;
+  members: User[];
   start_date: string;
   ai_risk_classification: number;
   type_of_high_risk_role: number;
@@ -43,7 +51,7 @@ interface FormValues {
 
 interface FormErrors {
   projectTitle?: string;
-  users?: string;
+  members?: string;
   owner?: string;
   startDate?: string;
   riskClassification?: string;
@@ -53,7 +61,7 @@ interface FormErrors {
 
 const initialState: FormValues = {
   project_title: "",
-  users: 0,
+  members: [],
   owner: 0,
   start_date: new Date().toISOString(),
   ai_risk_classification: 0,
@@ -87,6 +95,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
   const authState = useSelector(
     (state: { auth: { authToken: string; userExists: boolean } }) => state.auth
   );
+  const [memberRequired, setMemberRequired] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchUsers = async () => {};
@@ -139,9 +148,10 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
     if (!startDate.accepted) {
       newErrors.startDate = startDate.message;
     }
-    const users = selectValidation("Users", values.users);
-    if (!users.accepted) {
-      newErrors.users = users.message;
+    const addTeamMember = selectValidation("Team members", values.members.length);
+    if (!addTeamMember.accepted) {
+      newErrors.members = addTeamMember.message;
+      setMemberRequired(true);
     }
     const owner = selectValidation("Owner", values.owner);
     if (!owner.accepted) {
@@ -175,6 +185,8 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
 
   const confirmSubmit = async () => {
     const userInfo = extractUserToken(authState.authToken);
+    
+    const teamMember = values.members.map(user => String(user._id))    
     await createNewUser({
       routeUrl: "/projects",
       body: {
@@ -186,7 +198,8 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
           (item) => item._id === values.ai_risk_classification
         )?.name,
         last_updated: values.start_date,
-        last_updated_by: values.users, // TO Do: get user id from token
+        last_updated_by: userInfo?.id, 
+        members: teamMember
       },
     }).then((response) => {
       // Reset form after successful submission
@@ -233,10 +246,23 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
     [theme.palette.background.main]
   );
 
+  const handleOnMultiSelect = useCallback(
+    (prop: keyof FormValues) => 
+      (_event: React.SyntheticEvent, newValue: any[]) => {        
+        setValues((prevValues) => ({
+          ...prevValues,
+          [prop]: newValue,
+        }));
+        setMemberRequired(false)
+      }, 
+    []
+  );
+
   return (
     <Stack>
       <Stack component="form" onSubmit={handleSubmit}>
         <Stack
+          direction="row"
           sx={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
@@ -245,86 +271,45 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
             mt: 13.5,
           }}
         >
-          <Suspense fallback={<div>Loading...</div>}>
-            <Field
-              id="project-title-input"
-              label="Project title"
-              width="350px"
-              value={values.project_title}
-              onChange={handleOnTextFieldChange("project_title")}
-              error={errors.projectTitle}
-              sx={fieldStyle}
-              isRequired
-            />
-          </Suspense>
-          <Suspense fallback={<div>Loading...</div>}>
-            <Select
-              id="users-input"
-              label="Users"
-              placeholder="Select users"
-              value={values.users === 0 ? "" : values.users}
-              onChange={handleOnSelectChange("users")}
-              items={
-                users?.map((user) => ({
-                  _id: user.id,
-                  name: `${user.name} ${user.surname}`,
-                  email: user.email,
-                })) || []
-              }
-              sx={{
-                width: "350px",
-                backgroundColor: theme.palette.background.main,
-              }}
-              error={errors.users}
-              isRequired
-            />
-          </Suspense>
-          <Suspense fallback={<div>Loading...</div>}>
-            <Select
-              id="owner-input"
-              label="Owner"
-              placeholder="Select owner"
-              value={values.owner === 0 ? "" : values.owner}
-              onChange={handleOnSelectChange("owner")}
-              items={
-                users?.map((user) => ({
-                  _id: user.id,
-                  name: `${user.name} ${user.surname}`,
-                  email: user.email,
-                })) || []
-              }
-              sx={{
-                width: "350px",
-                backgroundColor: theme.palette.background.main,
-              }}
-              error={errors.owner}
-              isRequired
-            />
-          </Suspense>
-          <Suspense fallback={<div>Loading...</div>}>
-            <DatePicker
-              label="Start date"
-              date={
-                values.start_date ? dayjs(values.start_date) : dayjs(new Date())
-              }
-              handleDateChange={handleDateChange}
-              sx={{
-                width: "130px",
-                "& input": { width: "85px" },
-              }}
-              isRequired
-              error={errors.startDate}
-            />
-          </Suspense>
           <Stack
             sx={{
-              display: "grid",
-              gridTemplateColumns: "1fr",
-              columnGap: 20,
-              rowGap: 9.5,
-              marginTop: "16px",
+              rowGap: 8,
             }}
           >
+            <Suspense fallback={<div>Loading...</div>}>
+              <Field
+                id="project-title-input"
+                label="Project title"
+                width="350px"
+                value={values.project_title}
+                onChange={handleOnTextFieldChange("project_title")}
+                error={errors.projectTitle}
+                sx={fieldStyle}
+                isRequired
+              />
+            </Suspense>
+            <Suspense fallback={<div>Loading...</div>}>
+              <Select
+                id="owner-input"
+                label="Owner"
+                placeholder="Select owner"
+                value={values.owner === 0 ? "" : values.owner}
+                onChange={handleOnSelectChange("owner")}
+                items={
+                  users?.map((user) => ({
+                    _id: user.id,
+                    name: `${user.name} ${user.surname}`,
+                    email: user.email,
+                  })) || []
+                }
+                sx={{
+                  width: "350px",
+                  backgroundColor: theme.palette.background.main,
+                }}
+                error={errors.owner}
+                isRequired
+              />
+            </Suspense>
             <Suspense fallback={<div>Loading...</div>}>
               <Select
                 id="risk-classification-input"
@@ -366,21 +351,112 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
               />
             </Suspense>
           </Stack>
-          <Stack sx={{ marginTop: "16px" }}>
+          <Stack>
             <Suspense fallback={<div>Loading...</div>}>
-              <Field
-                id="goal-input"
-                label="Goal"
-                type="description"
-                value={values.goal}
-                onChange={handleOnTextFieldChange("goal")}
+              {/* <Select
+                id="users-input"
+                label="Users"
+                placeholder="Select users"
+                value={values.members === 0 ? "" : values.users}
+                onChange={handleOnSelectChange("members")}
+                items={
+                  users?.map((user) => ({
+                    _id: user.id,
+                    name: `${user.name} ${user.surname}`,
+                    email: user.email,
+                  })) || []
+                }
                 sx={{
+                  width: "350px",
                   backgroundColor: theme.palette.background.main,
                 }}
+                error={errors.users}
                 isRequired
-                error={errors.goal}
+              /> */}
+              <Typography
+                sx={{ fontSize: theme.typography.fontSize, fontWeight: 500, mb: 2}}
+              >
+                Team members *
+              </Typography>
+              <Autocomplete
+                multiple
+                id="users-input"
+                size="small"
+                value={values.members}
+                options={
+                  users
+                  ?.filter((user) => !values.members.some((selectedUser) => selectedUser._id === user.id))
+                  .map((user) => ({
+                    _id: user.id,
+                    name: user.name,
+                    surname: user.surname,
+                    email: user.email,
+                  })) || []
+                }
+                onChange={handleOnMultiSelect("members")}
+                getOptionLabel={(user) => `${user.name} ${user.surname}`}
+                filterSelectedOptions
+                popupIcon={<KeyboardArrowDown />}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Select Users"
+                    error={memberRequired}
+                  />
+                )}
+                sx={{
+                  width: "350px",
+                  backgroundColor: theme.palette.background.main,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "3px", 
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "none",
+                    },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#888", 
+                      borderWidth: "1px", 
+                    },
+                  },
+                }}
               />
+              {memberRequired && <Typography variant="caption" sx={{mt: 4, color: '#f04438', fontWeight: 300}}>{errors.members}</Typography>}
             </Suspense>
+            <Stack
+              sx={{
+                rowGap: 8,
+                mt: 8
+              }}
+            >
+              <Suspense fallback={<div>Loading...</div>}>
+                <DatePicker
+                  label="Start date"
+                  date={
+                    values.start_date ? dayjs(values.start_date) : dayjs(new Date())
+                  }
+                  handleDateChange={handleDateChange}
+                  sx={{
+                    width: "130px",
+                    "& input": { width: "85px" },
+                  }}
+                  isRequired
+                  error={errors.startDate}
+                />
+              </Suspense>
+              <Suspense fallback={<div>Loading...</div>}>
+                <Field
+                  id="goal-input"
+                  label="Goal"
+                  type="description"
+                  value={values.goal}
+                  onChange={handleOnTextFieldChange("goal")}
+                  sx={{
+                    backgroundColor: theme.palette.background.main,
+                  }}
+                  isRequired
+                  error={errors.goal}
+                />
+              </Suspense>
+            </Stack>
           </Stack>
         </Stack>
         <Button

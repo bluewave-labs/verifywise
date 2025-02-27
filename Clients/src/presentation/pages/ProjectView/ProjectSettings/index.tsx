@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import {
   Button,
   SelectChangeEvent,
@@ -9,7 +5,10 @@ import {
   Stack,
   Typography,
   useTheme,
+  Autocomplete,
+  TextField
 } from "@mui/material";
+import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
 import React, { FC, useState, useCallback, useMemo, useEffect } from "react";
 import Field from "../../../components/Inputs/Field";
 import DatePicker from "../../../components/Inputs/Datepicker";
@@ -18,7 +17,6 @@ import Select from "../../../components/Inputs/Select";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import selectValidation from "../../../../application/validations/selectValidation";
 import Alert from "../../../components/Alert";
-import VWMultiSelect from "../../../vw-v2-components/Selects/Multi";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import {
   deleteEntityById,
@@ -68,6 +66,7 @@ interface FormValues {
   projectTitle: string;
   goal: string;
   owner: number;
+  members: number[];
   startDate: string;
   addUsers: number[];
   riskClassification: number;
@@ -79,7 +78,7 @@ interface FormErrors {
   goal?: string;
   owner?: string;
   startDate?: string;
-  addUsers?: string;
+  members?: string;
   riskClassification?: string;
   typeOfHighRiskRole?: string;
 }
@@ -88,6 +87,7 @@ const initialState: FormValues = {
   projectTitle: "",
   goal: "",
   owner: 0,
+  members: [],
   startDate: "",
   addUsers: [],
   riskClassification: 0,
@@ -111,6 +111,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
       isToast: boolean;
       visible: boolean;
     } | null>(null);
+    const [memberRequired, setMemberRequired] = useState<boolean>(false);
 
     useEffect(() => {
       if (project) {
@@ -132,6 +133,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             ? dayjs(project.start_date).toISOString()
             : "",
           addUsers: project.users ? stringToArray(project.users) : [],
+          members: project.members ? project.members.map(Number) : [],
           riskClassification:
             riskClassificationItems.find(
               (item) =>
@@ -170,18 +172,6 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
       []
     );
 
-    const handleMultiSelectChange = useCallback(
-      (prop: keyof FormValues) =>
-        (event: SelectChangeEvent<string | number | (string | number)[]>) => {
-          setValues((prevValues) => ({
-            ...prevValues,
-            [prop]: event.target.value as number[],
-          }));
-          setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
-        },
-      []
-    );
-
     const handleOnTextFieldChange = useCallback(
       (prop: keyof FormValues) =>
         (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -191,6 +181,18 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
           }));
           setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
         },
+      []
+    );
+
+    const handleOnMultiSelect = useCallback(
+      (prop: keyof FormValues) => 
+        (_event: React.SyntheticEvent, newValue: any[]) => {
+          setValues((prevValues) => ({
+            ...prevValues,
+            [prop]: newValue.map((user) => user.id),
+          }));
+          setMemberRequired(false)
+        }, 
       []
     );
 
@@ -219,9 +221,10 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
         newErrors.startDate = startDate.message;
       }
 
-      const addUsers = selectValidation("Team members", values.addUsers.length);
-      if (!addUsers.accepted) {
-        newErrors.addUsers = addUsers.message;
+      const addTeamMember = selectValidation("Team members", values.members.length);
+      if (!addTeamMember.accepted) {
+        newErrors.members = addTeamMember.message;
+        setMemberRequired(true);
       }
 
       const owner = selectValidation("Owner", values.owner);
@@ -247,15 +250,22 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
       return Object.keys(newErrors).length === 0;
     }, [values]);
 
-    const handleSubmit = useCallback(
-      async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        if (validateForm()) {
-          handleSaveConfirm();
-        }
-      },
-      [validateForm, setTabValue]
-    );
+    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      if (validateForm()) {
+        handleSaveConfirm();
+      }else{
+        setAlert({
+          variant: "error",
+          body: "Form validation fails.",
+          isToast: true,
+          visible: true,
+        });
+        setTimeout(() => {
+          setAlert(null);
+        }, 1500);
+      }
+    };
 
     const fieldStyle = useMemo(
       () => ({
@@ -275,7 +285,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
       setIsDeleteModalOpen(false);
     }, []);
     // saves the project
-    const handleSaveConfirm = useCallback(async () => {
+    const handleSaveConfirm = useCallback(async () => {      
       const selectedRiskClass =
         riskClassificationItems.find(
           (item) => item._id === values.riskClassification
@@ -283,10 +293,6 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
       const selectedHighRiskRole =
         highRiskRoleItems.find((item) => item._id === values.typeOfHighRiskRole)
           ?.name || "";
-      const userIds =
-        Array.isArray(values.addUsers) && values.addUsers.length > 1
-          ? `[${values.addUsers.join(",")}]`
-          : values.addUsers[0]?.toString() || "";
 
       await updateEntityById({
         routeUrl: `/projects/${projectId}`,
@@ -294,7 +300,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
           id: projectId,
           project_title: values.projectTitle,
           owner: values.owner,
-          users: userIds,
+          members: values.members.map(String),
           start_date: values.startDate,
           ai_risk_classification: selectedRiskClass,
           type_of_high_risk_role: selectedHighRiskRole,
@@ -435,28 +441,56 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             <Typography
               sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
             >
-              Team members
+              Team members *
             </Typography>
             <Typography sx={{ fontSize: theme.typography.fontSize }}>
               Add all team members of the project. Only those who are added will
               be able to see the project.
             </Typography>
           </Stack>
-          <VWMultiSelect
-            label="Team members"
-            onChange={handleMultiSelectChange("addUsers")}
-            value={values.addUsers}
-            items={
-              users?.map((user) => ({
-                _id: user.id,
-                name: `${user.name} ${user.surname}`,
+
+          <Autocomplete
+            multiple
+            id="users-input"
+            size="small"
+            value={users.filter(user => values.members.includes(Number(user.id)))}
+            options={
+              users
+              ?.filter(user => !values.members.includes(Number(user.id)))
+              .map((user) => ({
+                id: user.id,
+                name: user.name,
+                surname: user.surname,
                 email: user.email,
               })) || []
-            }
-            sx={{ width: 357, backgroundColor: theme.palette.background.main }}
-            // error={errors.addUsers}
-            // required
+            }         
+            getOptionLabel={(member) => `${member.name} ${member.surname}`}                      
+            noOptionsText={values.members.length === users.length ? "All members selected" : "No options"}
+            onChange={handleOnMultiSelect("members")}
+            popupIcon={<KeyboardArrowDown />}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                placeholder="Select Members"
+              />
+            )}
+            sx={{
+              width: "458px",
+              backgroundColor: theme.palette.background.main,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "5px", 
+                "&:hover .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#777",
+                },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#888", 
+                  borderWidth: "1px", 
+                },
+              },
+            }}
           />
+          {memberRequired && <Typography variant="caption" sx={{color: '#f04438', fontWeight: 300}}>{errors.members}</Typography>}
+
           <Stack gap="5px" sx={{ mt: "6px" }}>
             <Typography
               sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
@@ -515,7 +549,7 @@ const ProjectSettings: FC<ProjectSettingsProps> = React.memo(
             <Button
               variant="contained"
               type="submit"
-              onAbort={handleSaveConfirm}
+              // onAbort={handleSaveConfirm}
               sx={{
                 width: 60,
                 height: 34,

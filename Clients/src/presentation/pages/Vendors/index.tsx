@@ -51,6 +51,9 @@ const Vendors = () => {
   const openAddNewVendor = () => {
     setIsOpen(true);
   };
+  const openAddNewRisk = () => {
+    setIsRiskModalOpen(true);
+  };
 
   const handleChange = (_: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
@@ -307,7 +310,7 @@ const Vendors = () => {
                   },
                 }}
                 onClick={() => {
-                  openAddNewVendor();
+                  openAddNewRisk();
                 }}
               >
                 Add new Risk
@@ -321,11 +324,11 @@ const Vendors = () => {
               onDeleteVendor={handleDeleteVendor}
             />
           </TabPanel>
-          <TabPanel value="2">
+          <TabPanel value="2" sx={{padding:0}}>
             <RiskTable
               dashboardValues={dashboardValues}
-              onVendorChange={updateVendorRiskChangeTrigger}
-              onDeleteVendor={handleDeleteVendor}
+              onRiskChange={updateVendorRiskChangeTrigger}
+              onDeleteRisk={handleDeleteVendor}
             />
           </TabPanel>
         </TabContext>
@@ -335,7 +338,7 @@ const Vendors = () => {
         handleChange={handleChange}
         setIsOpen={() => setIsOpen(false)}
         value={value}
-        onVendorChange={updateVendorChangeTrigger}
+        onChange={updateVendorChangeTrigger}
       />
       <AddNewRisk
         isOpen={isRiskModalOpen}

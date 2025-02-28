@@ -1,13 +1,15 @@
 import {
+  Autocomplete,
   SelectChangeEvent,
   Stack,
   SxProps,
+  TextField,
   Theme,
   Typography,
   useTheme,
 } from "@mui/material";
 import { ClearIcon } from "@mui/x-date-pickers/icons";
-import { useCallback, useMemo, useState } from "react";
+import { Suspense, useCallback, useMemo, useState } from "react";
 import VWButton from "../../Buttons";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import Field from "../../../components/Inputs/Field";
@@ -20,7 +22,9 @@ import { checkStringValidation } from "../../../../application/validations/strin
 import selectValidation from "../../../../application/validations/selectValidation";
 import { createNewUser } from "../../../../application/repository/entity.repository";
 import VWToast from "../../Toast"; // will be used when we wait for the response
-import Alert from "../../../components/Alert"; // will be used to show the status and message of the response
+import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
+import { extractUserToken } from "../../../../application/tools/extractToken";
+import { useSelector } from "react-redux";
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -37,10 +41,17 @@ enum HighRiskRoleEnum {
   AuthorizedRepresentative = "Authorized representative",
 }
 
+interface User {
+  _id: string;
+  name: string;
+  surname: string;
+  email: string;
+}
+
 interface FormValues {
   project_title: string;
   owner: number;
-  users: number;
+  members: User[];
   start_date: string;
   ai_risk_classification: number;
   type_of_high_risk_role: number;
@@ -49,7 +60,7 @@ interface FormValues {
 
 interface FormErrors {
   projectTitle?: string;
-  users?: string;
+  members?: string;
   owner?: string;
   startDate?: string;
   riskClassification?: string;
@@ -59,7 +70,7 @@ interface FormErrors {
 
 const initialState: FormValues = {
   project_title: "",
-  users: 0,
+  members: [],
   owner: 0,
   start_date: new Date().toISOString(),
   ai_risk_classification: 0,
@@ -78,11 +89,15 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
   const [errors, setErrors] = useState<FormErrors>({});
   const { users } = useUsers();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [memberRequired, setMemberRequired] = useState<boolean>(false);
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
     body: string;
   } | null>(null);
+  const authState = useSelector(
+    (state: { auth: { authToken: string; userExists: boolean } }) => state.auth
+  );
 
   const riskClassificationItems = useMemo(
     () => [
@@ -122,6 +137,18 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
     [values, errors]
   );
 
+  const handleOnMultiSelect = useCallback(
+    (prop: keyof FormValues) =>
+      (_event: React.SyntheticEvent, newValue: any[]) => {
+        setValues((prevValues) => ({
+          ...prevValues,
+          [prop]: newValue,
+        }));
+        setMemberRequired(false);
+      },
+    []
+  );
+
   const handleDateChange = useCallback((newDate: Dayjs | null) => {
     if (newDate?.isValid()) {
       setValues((prevValues: any) => ({
@@ -151,10 +178,6 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
     if (!startDate.accepted) {
       newErrors.startDate = startDate.message;
     }
-    const users = selectValidation("Users", values.users);
-    if (!users.accepted) {
-      newErrors.users = users.message;
-    }
     const owner = selectValidation("Owner", values.owner);
     if (!owner.accepted) {
       newErrors.owner = owner.message;
@@ -173,12 +196,19 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
     if (!typeOfHighRiskRole.accepted) {
       newErrors.typeOfHighRiskRole = typeOfHighRiskRole.message;
     }
+    if (values.members.length === 0) {
+      newErrors.members = "At least one team member is required.";
+      setMemberRequired(true);
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   async function handleSubmit() {
+    const userInfo = extractUserToken(authState.authToken);
+    const teamMember = values.members.map((user) => String(user._id));
+
     if (validateForm()) {
       setIsSubmitting(true);
       try {
@@ -186,41 +216,32 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
           routeUrl: "/projects",
           body: {
             ...values,
-            type_of_high_risk_role:
-              highRiskRoleItems.find(
-                (item) => item._id === values.type_of_high_risk_role
-              )?.name || "",
-            ai_risk_classification:
-              riskClassificationItems.find(
-                (item) => item._id === values.ai_risk_classification
-              )?.name || "",
+            type_of_high_risk_role: highRiskRoleItems.find(
+              (item) => item._id === values.type_of_high_risk_role
+            )?.name,
+            ai_risk_classification: riskClassificationItems.find(
+              (item) => item._id === values.ai_risk_classification
+            )?.name,
             last_updated: values.start_date,
-            last_updated_by: values.users,
+            last_updated_by: userInfo?.id,
+            members: teamMember,
           },
         });
 
         if (res.status === 201) {
-          setAlert({
-            variant: "success",
-            body: "Project created successfully.",
-          });
           setTimeout(() => {
-            setAlert(null);
+            setIsSubmitting(false);
             onClose();
-          }, 3000);
+          }, 1000);
         } else {
-          setAlert({
-            variant: "error",
-            body: "Failed to create project.",
-          });
+          setTimeout(() => {
+            setIsSubmitting(false);
+          }, 1000);
         }
       } catch (err) {
-        setAlert({
-          variant: "error",
-          body: `An error occurred: ${(err as Error).message}`,
-        });
-      } finally {
-        setIsSubmitting(false);
+        setTimeout(() => {
+          setIsSubmitting(false);
+        }, 1000);
       }
     }
   }
@@ -238,25 +259,6 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
         ...sx,
       }}
     >
-      {alert && (
-        <Stack
-          sx={{
-            width: "100%",
-            position: "absolute",
-            top: 0,
-            right: 0,
-            zIndex: 10001,
-          }}
-        >
-          <Alert
-            variant={alert.variant}
-            title={alert.title}
-            body={alert.body}
-            isToast={true}
-            onClick={() => setAlert(null)}
-          />
-        </Stack>
-      )}
       {isSubmitting && (
         <Stack
           sx={{
@@ -361,26 +363,82 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
           />
         </Stack>
         <Stack className="vwproject-form-body-end" sx={{ gap: 8 }}>
-          <Select
-            id="users-input"
-            label="Users"
-            placeholder="Select users"
-            value={values.users || ""}
-            onChange={handleOnSelectChange("users")}
-            items={
-              users?.map((user) => ({
-                _id: user.id,
-                name: `${user.name} ${user.surname}`,
-                email: user.email,
-              })) || []
-            }
-            sx={{
-              width: "350px",
-              backgroundColor: theme.palette.background.main,
-            }}
-            error={errors.users}
-            isRequired
-          />
+          <Suspense fallback={<div>Loading...</div>}>
+            <Stack>
+              <Typography
+                sx={{
+                  fontSize: theme.typography.fontSize,
+                  fontWeight: 500,
+                  mb: 2,
+                }}
+              >
+                Team members *
+              </Typography>
+              <Autocomplete
+                multiple
+                id="users-input"
+                size="small"
+                value={values.members}
+                options={
+                  users
+                    ?.filter(
+                      (user) =>
+                        !values.members.some(
+                          (selectedUser) => selectedUser._id === user.id
+                        )
+                    )
+                    .map((user) => ({
+                      _id: user.id,
+                      name: user.name,
+                      surname: user.surname,
+                      email: user.email,
+                    })) || []
+                }
+                onChange={handleOnMultiSelect("members")}
+                getOptionLabel={(user) => `${user.name} ${user.surname}`}
+                filterSelectedOptions
+                popupIcon={<KeyboardArrowDown />}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Select Users"
+                    error={memberRequired}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        paddingTop: "3.8px !important",
+                        paddingBottom: "3.8px !important",
+                      },
+                      "& ::placeholder": {
+                        fontSize: "13px",
+                      },
+                    }}
+                  />
+                )}
+                sx={{
+                  width: "350px",
+                  backgroundColor: theme.palette.background.main,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "3px",
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "none",
+                    },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#888",
+                      borderWidth: "1px",
+                    },
+                  },
+                }}
+              />
+              {memberRequired && (
+                <Typography
+                  variant="caption"
+                  sx={{ mt: 4, color: "#f04438", fontWeight: 300 }}
+                >
+                  {errors.members}
+                </Typography>
+              )}
+            </Stack>
+          </Suspense>
           <DatePicker
             label="Start date"
             date={

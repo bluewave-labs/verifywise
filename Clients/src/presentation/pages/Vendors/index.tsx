@@ -317,7 +317,7 @@ const Vendors = () => {
               </Button>
             </Stack>
           )}
-          <TabPanel value="1">
+          <TabPanel value="1" sx={{padding:0}}>
             <TableWithPlaceholder
               dashboardValues={dashboardValues}
               onVendorChange={updateVendorChangeTrigger}

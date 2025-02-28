@@ -251,7 +251,7 @@ const VWHome = () => {
             flexWrap: "wrap",
             justifyContent: "flex-start",
             alignItems: "center",
-            gap: "10px",
+            gap: "20px",
           }}
         >
           {projects?.length === 0 || !projects ? (
@@ -266,7 +266,7 @@ const VWHome = () => {
                   flexWrap: projects.length < 4 ? "" : "wrap",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  gap: "10px",
+                  gap: "20px",
                 }}
               >
                 {projects.map((project) => (
@@ -284,7 +284,7 @@ const VWHome = () => {
                     sm: "repeat(2, 1fr)",
                     md: "repeat(3, 1fr)",
                   },
-                  gap: { xs: 2, md: 3 },
+                  gap: { xs: 10, md: 10 },
                   width: "100%",
                 }}
               >

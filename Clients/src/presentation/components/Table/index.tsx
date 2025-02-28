@@ -156,6 +156,10 @@ const VWBasicTable = ({
                 <TableCell>
                   {riskLevelChecker(row.risk_level_autocalculated)}
                 </TableCell>
+                <TableCell>{row.likelihood}</TableCell>
+                <TableCell>{row.risk_level_autocalculated}</TableCell>
+                <TableCell>{row.mitigation_status}</TableCell>
+                <TableCell>{row.final_risk_level}</TableCell>
               </TableRow>
             ))}
           </TableBody>

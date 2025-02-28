@@ -3,40 +3,66 @@ import pool from "../database/db";
 
 export const getAllVendorsQuery = async (): Promise<Vendor[]> => {
   const vendors = await pool.query("SELECT * FROM vendors");
-  return vendors.rows;
+  for (let vendor of vendors.rows) {
+    const projects = await pool.query("SELECT project_id FROM vendors_projects WHERE vendor_id = $1", [vendor.id])
+    vendor["projects"] = projects.rows.map(p => p.project_id)
+  }
+  return vendors.rows
 };
 
 export const getVendorByIdQuery = async (
   id: number
 ): Promise<Vendor | null> => {
   const result = await pool.query("SELECT * FROM vendors WHERE id = $1", [id]);
-  return result.rows.length ? result.rows[0] : null;
+  if (!result.rows.length) return null;
+  const projects = await pool.query("SELECT project_id FROM vendors_projects WHERE vendor_id = $1", [id])
+  return { ...result.rows[0], projects: projects.rows.map(p => p.project_id) }
 };
 
-export const createNewVendorQuery = async (vendor: Vendor): Promise<Vendor> => {
-  console.log("createNewVendor", vendor);
-  const result = await pool.query(
-    `INSERT INTO vendors (
-      order_no, vendor_name, vendor_provides, assignee, website, vendor_contact_person, 
-      review_result, review_status, reviewer, risk_status, review_date
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
-    [
-      vendor.order_no,
-      vendor.vendor_name,
-      vendor.vendor_provides,
-      vendor.assignee,
-      vendor.website,
-      vendor.vendor_contact_person,
-      vendor.review_result,
-      vendor.review_status,
-      vendor.reviewer,
-      vendor.risk_status,
-      vendor.review_date
-    ]
-  );
-  const vendorId = result.rows[0].id;
-  await pool.query(`INSERT INTO vendors_projects VALUES ($1, $2)`, [vendorId, vendor.projects[0]]);
-  return result.rows[0];
+export const createNewVendorQuery = async (vendor: Vendor): Promise<Vendor | null> => {
+  try {
+    const result = await pool.query(
+      `INSERT INTO vendors (
+        order_no, vendor_name, vendor_provides, assignee, website, vendor_contact_person, 
+        review_result, review_status, reviewer, risk_status, review_date
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
+      [
+        vendor.order_no,
+        vendor.vendor_name,
+        vendor.vendor_provides,
+        vendor.assignee,
+        vendor.website,
+        vendor.vendor_contact_person,
+        vendor.review_result,
+        vendor.review_status,
+        vendor.reviewer,
+        vendor.risk_status,
+        vendor.review_date
+      ]
+    );
+
+    if (!result || !result.rows || result.rows.length === 0) {
+      console.error(" Error: Vendor insert query did not return any data.");
+      return null;
+    }
+
+    const vendorId = result.rows[0].id;
+
+    if (!vendor.projects || vendor.projects.length === 0) {
+      console.error(" Error: vendor.projects is empty or undefined.");
+      return result.rows[0];
+    }
+
+    await pool.query(
+      `INSERT INTO vendors_projects (vendor_id, project_id) VALUES ($1, $2)`,
+      [vendorId, vendor.projects[0]]
+    );
+
+    return result.rows[0];
+  } catch (error) {
+    console.error(" Error in createNewVendorQuery:", error);
+    return null;
+  }
 };
 
 export const updateVendorByIdQuery = async (

@@ -82,7 +82,18 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
         <TableRow sx={singleTheme.tableStyles.primary.header.row}>
           {titleOfTableColumns.map((cell, index) => (
             <TableCell
-              style={singleTheme.tableStyles.primary.header.cell}
+              style={{
+                ...singleTheme.tableStyles.primary.header.cell,
+                ...(index === titleOfTableColumns.length - 1
+                  ? {
+                      position: "sticky",
+                      right: 0,
+                      zIndex: 10,
+                      backgroundColor:
+                        singleTheme.tableStyles.primary.header.backgroundColors,
+                    }
+                  : {}),
+              }}
               key={index}
             >
               {cell}
@@ -116,11 +127,18 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
                     ? formatDate(row.review_date.toString())
                     : "No review date"}
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    position: "sticky",
+                    right: 0,
+                    zIndex: 10,
+                  }}
+                >
                   <IconButton
-                    vendorId={row.id}
-                    onVendorChange={onVendorChange}
-                    onDeleteVendor={onDeleteVendor}
+                    id={row.id}
+                    onChange={onVendorChange}
+                    onDelete={onDeleteVendor}
                   ></IconButton>
                 </TableCell>
               </TableRow>

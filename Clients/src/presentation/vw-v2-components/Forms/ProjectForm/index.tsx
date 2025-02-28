@@ -90,11 +90,6 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
   const { users } = useUsers();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [memberRequired, setMemberRequired] = useState<boolean>(false);
-  const [alert, setAlert] = useState<{
-    variant: "success" | "info" | "warning" | "error";
-    title?: string;
-    body: string;
-  } | null>(null);
   const authState = useSelector(
     (state: { auth: { authToken: string; userExists: boolean } }) => state.auth
   );
@@ -263,7 +258,7 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
         <Stack
           sx={{
             width: "100vw",
-            height: "110vh",
+            height: "120vh",
             position: "fixed",
             top: "-50%",
             left: "50%",

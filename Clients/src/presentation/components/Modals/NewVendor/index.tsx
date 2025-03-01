@@ -113,7 +113,7 @@ interface AddNewVendorProps {
   value: string;
   handleChange: (event: React.SyntheticEvent, newValue: string) => void;
   existingVendor?: VendorDetails;
-  onVendorChange?: () => void;
+  onChange?: () => void;
 }
 
 const REVIEW_STATUS_OPTIONS = [
@@ -157,7 +157,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   value,
   handleChange,
   existingVendor,
-  onVendorChange = () => {},
+  onChange = () => {},
 }) => {
   const theme = useTheme();
   const [values, setValues] = useState({
@@ -438,7 +438,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         });
         setTimeout(() => {
           setAlert(null);
-          onVendorChange();
+          onChange();
           setIsOpen();
         }, 1000);
       } else if (response.status === 400 || response.status === 500) {
@@ -448,7 +448,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         });
         setTimeout(() => {
           setAlert(null);
-          onVendorChange();
+          onChange();
           setIsOpen();
         }, 1000);
       }
@@ -478,7 +478,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         });
         setTimeout(() => {
           setAlert(null);
-          onVendorChange();
+          onChange();
           setIsOpen();
         }, 1000);
       } else if (response.status == 400) {
@@ -883,38 +883,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             <Close style={{ cursor: "pointer" }} onClick={setIsOpen} />
           </Stack>
           <TabContext value={value}>
-            {/* <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-                            <TabList onChange={handleChange}>
-                                <Tab
-                                    sx={{
-                                        width: 120,
-                                        paddingX: 0,
-                                        textTransform: "inherit",
-                                        fontSize: 13,
-                                        "& .MuiTouchRipple-root": {
-                                            display: "none",
-                                        },
-                                    }}
-                                    label="Vendor details"
-                                    value="1"
-                                />
-                                <Tab
-                                    sx={{
-                                        width: 60,
-                                        paddingX: 0,
-                                        textTransform: "capitalize",
-                                        fontSize: 13,
-                                        "& .MuiTouchRipple-root": {
-                                            display: "none",
-                                        },
-                                    }}
-                                    label="Risks"
-                                    value="2"
-                                />
-                            </TabList>
-                        </Box> */}
             {vendorDetailsPanel}
-            {/* {risksPanel} */}
             <Stack
               sx={{
                 alignItems: "flex-end",

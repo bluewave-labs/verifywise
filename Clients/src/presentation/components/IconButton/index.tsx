@@ -22,15 +22,15 @@ import Alert from "../Alert";
 import { logEngine } from "../../../application/tools/log.engine";
 
 interface IconButtonProps {
-  vendorId: number;
-  onVendorChange: () => void;
-  onDeleteVendor: (vendorId: number) => void;
+  id: number;
+  onChange: () => void;
+  onDelete: (id: number) => void;
 }
 
 const IconButton: React.FC<IconButtonProps> = ({
-  vendorId,
-  onVendorChange,
-  onDeleteVendor,
+  id,
+  onChange,
+  onDelete,
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
@@ -105,7 +105,7 @@ const IconButton: React.FC<IconButtonProps> = ({
   }
 
   const handleDeleteVendor = () => {
-    onDeleteVendor(vendorId);
+    onDelete(id);
     setIsOpenRemoveVendorModal(false);
   };
 
@@ -113,7 +113,7 @@ const IconButton: React.FC<IconButtonProps> = ({
     closeDropDownMenu(e);
     try {
       const response = await getEntityById({
-        routeUrl: `/vendors/${vendorId}`,
+        routeUrl: `/vendors/${id}`,
       });
       setSelectedVendor(response.data);
       openAddNewVendor();
@@ -202,7 +202,7 @@ const IconButton: React.FC<IconButtonProps> = ({
       sx={singleTheme.iconButtons}
       onClick={(event) => {
         event.stopPropagation();
-        openMenu(event, vendorId, "someUrl");
+        openMenu(event, id, "someUrl");
       }}
     >
       <Setting />
@@ -224,7 +224,7 @@ const IconButton: React.FC<IconButtonProps> = ({
         setIsOpen={() => setIsOpenAddNewVendorModal(false)}
         value={value}
         existingVendor={selectedVendor}
-        onVendorChange={onVendorChange}
+        onChange={onChange}
       />
       {alert && (
         <Alert

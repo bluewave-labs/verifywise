@@ -2,12 +2,14 @@ import { Box, Stack, Tab, Typography } from "@mui/material";
 import {
   projectViewHeaderDesc,
   projectViewHeaderTitle,
+  tabPanelStyle,
   tabStyle,
 } from "./style";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import { SyntheticEvent, useState } from "react";
 import TabContext from "@mui/lab/TabContext";
+import VWProjectOverview from "./Overview";
 
 const VWProjectView = () => {
   const [value, setValue] = useState("overview");
@@ -57,9 +59,11 @@ const VWProjectView = () => {
               />
             </TabList>
           </Box>
-          <TabPanel value="overview"></TabPanel>
-          <TabPanel value="project-risks"></TabPanel>
-          <TabPanel value="settings"></TabPanel>
+          <TabPanel value="overview" sx={tabPanelStyle}>
+            <VWProjectOverview />
+          </TabPanel>
+          <TabPanel value="project-risks" sx={tabPanelStyle}></TabPanel>
+          <TabPanel value="settings" sx={tabPanelStyle}></TabPanel>
         </TabContext>
       </Stack>
     </Stack>

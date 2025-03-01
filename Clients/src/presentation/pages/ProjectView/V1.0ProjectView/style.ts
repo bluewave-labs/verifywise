@@ -21,3 +21,8 @@ export const tabStyle = {
     color: "#13715B",
   },
 };
+
+export const tabPanelStyle = {
+  padding: 0,
+  pt: 10,
+};

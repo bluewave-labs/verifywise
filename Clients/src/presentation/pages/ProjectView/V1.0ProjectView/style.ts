@@ -26,3 +26,10 @@ export const tabPanelStyle = {
   padding: 0,
   pt: 10,
 };
+
+export const projectRiskSection = {
+  color: "#1A1919",
+  fontWeight: 600,
+  mt: 10,
+  fontSize: 16,
+};

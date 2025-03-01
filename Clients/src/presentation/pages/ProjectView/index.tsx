@@ -204,9 +204,7 @@ const ProjectView = () => {
               </Box>
               {/* overview panel */}
               <TabPanel value="overview" sx={{ p: "32px 0 0" }}>
-                <Overview
-                  projectRisksSummary={projectRisksSummary}
-                />
+                <Overview projectRisksSummary={projectRisksSummary} />
               </TabPanel>
               <TabPanel value="project-risks" sx={{ p: "32px 0 0" }}>
                 <RisksView

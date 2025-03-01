@@ -32,6 +32,7 @@ import Playground from "./presentation/pages";
 import AssessmentTracker from "./presentation/pages/Assessment/1.0AssessmentTracker";
 import ComplianceTracker from "./presentation/pages/ComplianceTracker/1.0ComplianceTracker";
 import VWHome from "./presentation/pages/Home/1.0Home";
+import VWProjectView from "./presentation/pages/ProjectView/V1.0ProjectView";
 
 function App() {
   const mode = useSelector((state: any) => state.ui?.mode || "light");
@@ -139,6 +140,7 @@ function App() {
                 <Route path="/project-view" element={<ProjectView />} />
                 <Route path="/file-manager" element={<FileManager />} />
                 <Route path="/test" element={<VWHome />} />
+                <Route path="/test/project-view" element={<VWProjectView />} />
               </Route>
               <Route
                 path="/admin-reg"

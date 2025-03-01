@@ -21,7 +21,7 @@ router.get("/bysubtopic/:id", getQuestionsBySubtopicId);
 
 // POST, PUT, DELETE requests
 router.post("/", /*authenticateJWT,*/ upload.any("files"), createQuestion);
-router.patch(
+router.put(
   "/:id",
   /*authenticateJWT,*/ upload.any("files"),
   updateQuestionById

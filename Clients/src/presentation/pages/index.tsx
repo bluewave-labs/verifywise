@@ -3,7 +3,6 @@
  */
 
 import { Stack } from "@mui/material";
-import VWProjectForm from "../vw-v2-components/Forms/ProjectForm";
 
 const Playground = () => {
   return (
@@ -17,9 +16,7 @@ const Playground = () => {
         minHeight: "100vh",
         padding: "20px",
       }}
-    >
-      <VWProjectForm />
-    </Stack>
+    ></Stack>
   );
 };
 

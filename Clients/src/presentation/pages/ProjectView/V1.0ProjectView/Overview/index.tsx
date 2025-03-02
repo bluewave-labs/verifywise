@@ -11,15 +11,48 @@ import useProjectData from "../../../../../application/hooks/useProjectData";
 import { useSearchParams } from "react-router-dom";
 import VWSkeleton from "../../../../vw-v2-components/Skeletons";
 import { formatDate } from "../../../../tools/isoDateToString";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
 import { User } from "../../../../../domain/User";
+import { getEntityById } from "../../../../../application/repository/entity.repository";
 
 const VWProjectOverview = ({ project }: { project?: Project }) => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") ?? "0";
   const { dashboardValues } = useContext(VerifyWiseContext);
   const { users } = dashboardValues;
+
+  const [complianceProgress, setComplianceProgress] = useState<{
+    allDonesubControls: number;
+    allsubControls: number;
+  }>();
+  const [assessmentProgress, setAssessmentProgress] = useState<{
+    answeredQuestions: number;
+    totalQuestions: number;
+  }>();
+
+  useEffect(() => {
+    const fetchProgressData = async () => {
+      try {
+        const complianceData = await getEntityById({
+          routeUrl: `/projects/compliance/progress/${projectId}`,
+        });
+        setComplianceProgress(complianceData.data);
+
+        const assessmentData = await getEntityById({
+          routeUrl: `/projects/assessment/progress/${projectId}`,
+        });
+        setAssessmentProgress(assessmentData.data);
+      } catch (error) {
+        console.error("Error fetching progress data:", error);
+      }
+    };
+
+    fetchProgressData();
+  }, [projectId]);
+
+  console.log("complianceProgress: ", complianceProgress);
+  console.log("assessmentProgress: ", assessmentProgress);
 
   const user: User = project
     ? users.find((user: User) => user.id === project.last_updated_by) ??
@@ -76,15 +109,15 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
         {project ? (
           <>
             <StatsCard
-              completed={30}
-              total={100}
+              completed={complianceProgress?.allDonesubControls ?? 0}
+              total={complianceProgress?.allsubControls ?? 0}
               title="Subcontrols"
               progressbarColor="#13715B"
             />
             <StatsCard
-              completed={70}
-              total={100}
-              title="assessments"
+              completed={assessmentProgress?.answeredQuestions ?? 0}
+              total={assessmentProgress?.totalQuestions ?? 0}
+              title="Assessments"
               progressbarColor="#13715B"
             />
           </>

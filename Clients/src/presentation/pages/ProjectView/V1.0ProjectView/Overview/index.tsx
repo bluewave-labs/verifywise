@@ -1,92 +1,11 @@
 import { Divider, Stack, Typography } from "@mui/material";
-import {
-  descCardbodyStyle,
-  infoCardbodyStyle,
-  infoCardStyle,
-  infoCardTitleStyle,
-  projectRisksCard,
-  projectRisksTileCard,
-  projectRisksTileCardKey,
-  projectRisksTileCardvalue,
-  rowStyle,
-} from "./style";
+import { rowStyle } from "./style";
 import StatsCard from "../../../../components/Cards/StatsCard";
 import { projectRiskSection } from "../style";
-
-const InfoCard = ({ title, body }: { title: string; body: string }) => {
-  return (
-    <Stack sx={infoCardStyle}>
-      <Typography sx={infoCardTitleStyle}>{title}</Typography>
-      <Typography sx={infoCardbodyStyle}>{body}</Typography>
-    </Stack>
-  );
-};
-
-const DescriptionCard = ({ title, body }: { title: string; body: string }) => {
-  return (
-    <Stack sx={infoCardStyle}>
-      <Typography sx={infoCardTitleStyle}>{title}</Typography>
-      <Typography sx={descCardbodyStyle}>{body}</Typography>
-    </Stack>
-  );
-};
-
-const TeamCard = ({
-  title,
-  members = ["Mohammad Khalilzadeh", "Gorkem Cetin", "Eiei mon"],
-}: {
-  title: string;
-  members?: any[];
-}) => {
-  return (
-    <Stack sx={infoCardStyle}>
-      <Typography sx={infoCardTitleStyle}>{title}</Typography>
-      <Typography sx={descCardbodyStyle}>{members.join(", ")}</Typography>
-    </Stack>
-  );
-};
-
-const ProjectRisks = () => {
-  return (
-    <Stack className="vw-project-risks" sx={projectRisksCard}>
-      <Stack
-        className="vw-project-risks-tile"
-        sx={{ ...projectRisksTileCard, color: "#C63622" }}
-      >
-        <Typography sx={projectRisksTileCardKey}>Very High</Typography>
-        <Typography sx={projectRisksTileCardvalue}>0</Typography>
-      </Stack>
-      <Stack
-        className="vw-project-risks-tile"
-        sx={{ ...projectRisksTileCard, color: "#D68B61" }}
-      >
-        <Typography sx={projectRisksTileCardKey}>High</Typography>
-        <Typography sx={projectRisksTileCardvalue}>0</Typography>
-      </Stack>
-      <Stack
-        className="vw-project-risks-tile"
-        sx={{ ...projectRisksTileCard, color: "#D6B971" }}
-      >
-        <Typography sx={projectRisksTileCardKey}>Medium</Typography>
-        <Typography sx={projectRisksTileCardvalue}>0</Typography>
-      </Stack>
-      <Stack
-        className="vw-project-risks-tile"
-        sx={{ ...projectRisksTileCard, color: "#B8D39C" }}
-      >
-        <Typography sx={projectRisksTileCardKey}>Low</Typography>
-        <Typography sx={projectRisksTileCardvalue}>0</Typography>
-      </Stack>
-      <Stack
-        className="vw-project-risks-tile"
-        sx={{ ...projectRisksTileCard, color: "#52AB43" }}
-      >
-        <Typography sx={projectRisksTileCardKey}>Very Low</Typography>
-        <Typography sx={projectRisksTileCardvalue}>0</Typography>
-      </Stack>
-    </Stack>
-  );
-};
+import RisksCard from "../../../../components/Cards/RisksCard";
+import InfoCard from "../../../../components/Cards/InfoCard";
+import DescriptionCard from "../../../../components/Cards/DescriptionCard";
+import TeamCard from "../../../../components/Cards/TeamCard";
 
 const VWProjectOverview = () => {
   return (
@@ -120,7 +39,7 @@ const VWProjectOverview = () => {
       <Divider />
       <Stack sx={{ gap: 10 }}>
         <Typography sx={projectRiskSection}>Project risks</Typography>
-        <ProjectRisks />
+        <RisksCard />
       </Stack>
     </Stack>
   );

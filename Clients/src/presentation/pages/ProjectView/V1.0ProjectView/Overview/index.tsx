@@ -7,40 +7,107 @@ import InfoCard from "../../../../components/Cards/InfoCard";
 import DescriptionCard from "../../../../components/Cards/DescriptionCard";
 import TeamCard from "../../../../components/Cards/TeamCard";
 import { Project } from "../../../../../domain/Project";
+import useProjectData from "../../../../../application/hooks/useProjectData";
+import { useSearchParams } from "react-router-dom";
+import VWSkeleton from "../../../../vw-v2-components/Skeletons";
+import { formatDate } from "../../../../tools/isoDateToString";
+import { useContext } from "react";
+import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
+import { User } from "../../../../../domain/User";
 
 const VWProjectOverview = ({ project }: { project?: Project }) => {
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get("projectId") ?? "0";
+  const { dashboardValues } = useContext(VerifyWiseContext);
+  const { users } = dashboardValues;
+
+  const user: User = project
+    ? users.find((user: User) => user.id === project.last_updated_by) ??
+      ({} as User)
+    : ({} as User);
+
+  const { projectOwner } = useProjectData({
+    projectId: project?.id.toString() || projectId,
+  });
+
+  const projectMembers: string[] = project
+    ? users
+        .filter((user: User) => project.members.includes(user.id.toString()))
+        .map((user: User) => `${user.name} ${user.surname}`)
+    : [];
+
   return (
     <Stack className="vw-project-overview">
       <Stack className="vw-project-overview-row" sx={rowStyle}>
-        <InfoCard title="Owner" body={"Mohammad Khalilzadeh"} />
-        <InfoCard title="Last updated" body="23 February 2025" />
-        <InfoCard title="Last updated by" body="Mohammad Khalilzadeh" />
+        {project ? (
+          <>
+            <InfoCard title="Owner" body={projectOwner || "N/A"} />
+            <InfoCard
+              title="Last updated"
+              body={formatDate(project.last_updated.toString())}
+            />
+            <InfoCard
+              title="Last updated by"
+              body={`${user.name} ${user.surname}`}
+            />
+          </>
+        ) : (
+          <>
+            <VWSkeleton variant="text" width="30%" height={32} />
+            <VWSkeleton variant="text" width="30%" height={32} />
+            <VWSkeleton variant="text" width="30%" height={32} />
+          </>
+        )}
       </Stack>
       <Stack className="vw-project-overview-row" sx={rowStyle}>
-        <DescriptionCard
-          title="Goal"
-          body="Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in"
-        />
-        <TeamCard title="Team members" />
+        {project ? (
+          <>
+            <DescriptionCard title="Goal" body={project.goal} />
+            <TeamCard title="Team members" members={projectMembers} />
+          </>
+        ) : (
+          <>
+            <VWSkeleton variant="rectangular" width="60%" height={100} />
+            <VWSkeleton variant="rectangular" width="60%" height={100} />
+          </>
+        )}
       </Stack>
       <Stack className="vw-project-overview-row" sx={rowStyle}>
-        <StatsCard
-          completed={30}
-          total={100}
-          title="Subcontrols"
-          progressbarColor="#13715B"
-        />
-        <StatsCard
-          completed={70}
-          total={100}
-          title="assessments"
-          progressbarColor="#13715B"
-        />
+        {project ? (
+          <>
+            <StatsCard
+              completed={30}
+              total={100}
+              title="Subcontrols"
+              progressbarColor="#13715B"
+            />
+            <StatsCard
+              completed={70}
+              total={100}
+              title="assessments"
+              progressbarColor="#13715B"
+            />
+          </>
+        ) : (
+          <>
+            <VWSkeleton variant="rectangular" width="45%" height={100} />
+            <VWSkeleton variant="rectangular" width="45%" height={100} />
+          </>
+        )}
       </Stack>
       <Divider />
       <Stack sx={{ gap: 10 }}>
-        <Typography sx={projectRiskSection}>Project risks</Typography>
-        <RisksCard />
+        {project ? (
+          <>
+            <Typography sx={projectRiskSection}>Project risks</Typography>
+            <RisksCard />
+          </>
+        ) : (
+          <>
+            <VWSkeleton variant="text" width="20%" height={32} />
+            <VWSkeleton variant="rectangular" width="100%" height={200} />
+          </>
+        )}
       </Stack>
     </Stack>
   );

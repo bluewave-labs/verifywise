@@ -7,26 +7,61 @@ import {
 } from "./style";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
-import { SyntheticEvent, useState } from "react";
+import { SyntheticEvent, useEffect, useState } from "react";
 import TabContext from "@mui/lab/TabContext";
 import VWProjectOverview from "./Overview";
+import { useSearchParams } from "react-router-dom";
+import { getEntityById } from "../../../../application/repository/entity.repository";
+import { Project } from "../../../../domain/Project";
+import VWSkeleton from "../../../vw-v2-components/Skeletons";
 
 const VWProjectView = () => {
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get("projectId");
+  const [project, setProject] = useState<Project>();
+
   const [value, setValue] = useState("overview");
   const handleChange = (_: SyntheticEvent, newValue: string) => {
     setValue(newValue);
   };
 
+  useEffect(() => {
+    const fetchProject = async () => {
+      try {
+        const projectData = await getEntityById({
+          routeUrl: `/projects/${projectId}`,
+        });
+        console.log("Project data:", projectData.data);
+        setProject(projectData.data);
+      } catch (error) {
+        console.error("Failed to fetch project data:", error);
+      }
+    };
+
+    if (projectId) {
+      fetchProject();
+    }
+  }, [projectId]);
+
   return (
     <Stack className="vw-project-view">
       <Stack className="vw-project-view-header" sx={{ mb: 10 }}>
-        <Typography sx={projectViewHeaderTitle}>
-          {`VerifyWise AI Engine`} project view
-        </Typography>
-        <Typography sx={projectViewHeaderDesc}>
-          This project includes all the governance process status of the{" "}
-          {`VerifyWise AI Engine`} project
-        </Typography>
+        {project ? (
+          <>
+            <Typography sx={projectViewHeaderTitle}>
+              {project.project_title} project view
+            </Typography>
+            <Typography sx={projectViewHeaderDesc}>
+              This project includes all the governance process status of the{" "}
+              {project.project_title} project
+            </Typography>
+          </>
+        ) : (
+          <>
+            <VWSkeleton variant="text" width="60%" height={32} />
+            <VWSkeleton variant="text" width="80%" height={24} />
+          </>
+        )}
       </Stack>
       <Stack className="vw-project-view-body">
         <TabContext value={value}>
@@ -60,10 +95,28 @@ const VWProjectView = () => {
             </TabList>
           </Box>
           <TabPanel value="overview" sx={tabPanelStyle}>
-            <VWProjectOverview />
+            {project ? (
+              <VWProjectOverview project={project} />
+            ) : (
+              <VWSkeleton variant="rectangular" width="100%" height={400} />
+            )}
           </TabPanel>
-          <TabPanel value="project-risks" sx={tabPanelStyle}></TabPanel>
-          <TabPanel value="settings" sx={tabPanelStyle}></TabPanel>
+          <TabPanel value="project-risks" sx={tabPanelStyle}>
+            {project ? (
+              // Render project risks content here
+              <div>Project risks content</div>
+            ) : (
+              <VWSkeleton variant="rectangular" width="100%" height={400} />
+            )}
+          </TabPanel>
+          <TabPanel value="settings" sx={tabPanelStyle}>
+            {project ? (
+              // Render settings content here
+              <div>Settings content</div>
+            ) : (
+              <VWSkeleton variant="rectangular" width="100%" height={400} />
+            )}
+          </TabPanel>
         </TabContext>
       </Stack>
     </Stack>

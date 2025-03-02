@@ -6,12 +6,13 @@ import RisksCard from "../../../../components/Cards/RisksCard";
 import InfoCard from "../../../../components/Cards/InfoCard";
 import DescriptionCard from "../../../../components/Cards/DescriptionCard";
 import TeamCard from "../../../../components/Cards/TeamCard";
+import { Project } from "../../../../../domain/Project";
 
-const VWProjectOverview = () => {
+const VWProjectOverview = ({ project }: { project?: Project }) => {
   return (
     <Stack className="vw-project-overview">
       <Stack className="vw-project-overview-row" sx={rowStyle}>
-        <InfoCard title="Owner" body="Mohammad Khalilzadeh" />
+        <InfoCard title="Owner" body={"Mohammad Khalilzadeh"} />
         <InfoCard title="Last updated" body="23 February 2025" />
         <InfoCard title="Last updated by" body="Mohammad Khalilzadeh" />
       </Stack>

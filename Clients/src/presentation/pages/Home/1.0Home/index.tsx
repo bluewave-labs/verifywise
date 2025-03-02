@@ -25,7 +25,7 @@ const VWHome = () => {
   const [projects, setProjects] = useState<any[]>([]);
   const [_, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isGeneratingDemoData, setIsGeneratingDemoData] = useState(false);
+  const [__, setIsGeneratingDemoData] = useState(false);
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;

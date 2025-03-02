@@ -14,6 +14,7 @@ import { useSearchParams } from "react-router-dom";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import { Project } from "../../../../domain/Project";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
+import VWProjectRisks from "./ProjectRisks";
 
 const VWProjectView = () => {
   const [searchParams] = useSearchParams();
@@ -104,7 +105,7 @@ const VWProjectView = () => {
           <TabPanel value="project-risks" sx={tabPanelStyle}>
             {project ? (
               // Render project risks content here
-              <div>Project risks content</div>
+              <VWProjectRisks />
             ) : (
               <VWSkeleton variant="rectangular" width="100%" height={400} />
             )}

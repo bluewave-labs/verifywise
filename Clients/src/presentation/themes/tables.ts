@@ -22,7 +22,10 @@ export const tableStyles = {
       cell: {
         color: "#a1afc6",
         fontWeight: 400,
-        paddingLeft: "16px",
+        paddingLeft: "10px",
+        "&:not(:last-child)": {
+          minWidth: "150px", 
+        },
       },
     },
     body: {
@@ -36,6 +39,9 @@ export const tableStyles = {
         fontSize: fontSizes.medium,
         paddingY: "12px",
         backgroundColor: "white",
+        "&:not(:last-child)": {
+          minWidth: "150px", 
+        },
       },
     },
   },

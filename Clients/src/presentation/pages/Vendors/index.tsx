@@ -22,10 +22,12 @@ import CustomStep from "../../components/PageTour/CustomStep";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
+import AddNewRisk from "../../components/Modals/NewRisk";
 
 const Vendors = () => {
   const theme = useTheme();
   const [isOpen, setIsOpen] = useState(false);
+  const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
   const [value, setValue] = useState("1");
   const [vendorChangeTrigger, setVendorChangeTrigger] = useState(0);
   const [vendorRiskChangeTrigger, setVendorRiskChangeTrigger] = useState(0);
@@ -48,6 +50,9 @@ const Vendors = () => {
 
   const openAddNewVendor = () => {
     setIsOpen(true);
+  };
+  const openAddNewRisk = () => {
+    setIsRiskModalOpen(true);
   };
 
   const handleChange = (_: React.SyntheticEvent, newValue: string) => {
@@ -305,25 +310,25 @@ const Vendors = () => {
                   },
                 }}
                 onClick={() => {
-                  openAddNewVendor();
+                  openAddNewRisk();
                 }}
               >
                 Add new Risk
               </Button>
             </Stack>
           )}
-          <TabPanel value="1">
+          <TabPanel value="1" sx={{padding:0}}>
             <TableWithPlaceholder
               dashboardValues={dashboardValues}
               onVendorChange={updateVendorChangeTrigger}
               onDeleteVendor={handleDeleteVendor}
             />
           </TabPanel>
-          <TabPanel value="2">
+          <TabPanel value="2" sx={{padding:0}}>
             <RiskTable
               dashboardValues={dashboardValues}
-              onVendorChange={updateVendorRiskChangeTrigger}
-              onDeleteVendor={handleDeleteVendor}
+              onRiskChange={updateVendorRiskChangeTrigger}
+              onDeleteRisk={handleDeleteVendor}
             />
           </TabPanel>
         </TabContext>
@@ -333,7 +338,14 @@ const Vendors = () => {
         handleChange={handleChange}
         setIsOpen={() => setIsOpen(false)}
         value={value}
-        onVendorChange={updateVendorChangeTrigger}
+        onChange={updateVendorChangeTrigger}
+      />
+      <AddNewRisk
+        isOpen={isRiskModalOpen}
+        handleChange={handleChange}
+        setIsOpen={() => setIsRiskModalOpen(false)}
+        value={value}
+        onRiskChange={updateVendorRiskChangeTrigger}
       />
     </div>
   );

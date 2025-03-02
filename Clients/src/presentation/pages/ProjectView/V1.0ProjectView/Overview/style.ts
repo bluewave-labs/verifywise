@@ -53,10 +53,10 @@ export const projectRisksTileCard = {
 };
 
 export const projectRisksTileCardKey = {
-  fontSize: 18,
+  fontSize: 13,
 };
 
 export const projectRisksTileCardvalue = {
-  fontSize: 42,
+  fontSize: 28,
   fontWeight: 800,
 };

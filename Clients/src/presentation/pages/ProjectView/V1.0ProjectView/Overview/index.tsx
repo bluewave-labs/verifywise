@@ -41,19 +41,7 @@ const TeamCard = ({
   return (
     <Stack sx={infoCardStyle}>
       <Typography sx={infoCardTitleStyle}>{title}</Typography>
-      <ul>
-        {members.map((member, index) => (
-          <li
-            key={index}
-            style={{
-              fontSize: 11,
-              color: "#2D3748",
-            }}
-          >
-            {member}
-          </li>
-        ))}
-      </ul>
+      <Typography sx={descCardbodyStyle}>{members.join(", ")}</Typography>
     </Stack>
   );
 };

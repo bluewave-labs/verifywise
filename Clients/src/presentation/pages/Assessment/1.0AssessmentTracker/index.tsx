@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import {
   Box,
   Divider,
@@ -20,9 +20,12 @@ import { getEntityById } from "../../../../application/repository/entity.reposit
 import StatsCard from "../../../components/Cards/StatsCard";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import Questions from "./questions";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 const AssessmentTracker = () => {
   const theme = useTheme();
+  const { dashboardValues } = useContext(VerifyWiseContext);
+  const { selectedProjectId } = dashboardValues;
   const [activeTab, setActiveTab] = useState<number>(0);
   const [progressData, setProgressData] = useState<any>(null);
   const [assessmentData, setAssessmentData] = useState<any>(null);
@@ -31,20 +34,14 @@ const AssessmentTracker = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [loadingTopics, setLoadingTopics] = useState<boolean>(true);
   const [loadingSubtopics, setLoadingSubtopics] = useState<boolean>(true);
-  const [projectId, setProjectId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const storedProjectId = localStorage.getItem("selectedProjectId");
-    setProjectId(storedProjectId);
-  }, []);
 
   useEffect(() => {
     const fetchProgressData = async () => {
-      if (!projectId) return;
+      if (!selectedProjectId) return;
 
       try {
         const response = await getEntityById({
-          routeUrl: `/projects/assessment/progress/${projectId}`,
+          routeUrl: `/projects/assessment/progress/${selectedProjectId}`,
         });
         setProgressData(response.data);
       } catch (error) {
@@ -55,15 +52,15 @@ const AssessmentTracker = () => {
     };
 
     fetchProgressData();
-  }, [projectId]);
+  }, [selectedProjectId]);
 
   useEffect(() => {
     const fetchAssessmentData = async () => {
-      if (!projectId) return;
+      if (!selectedProjectId) return;
 
       try {
         const response = await getEntityById({
-          routeUrl: `/assessments/project/byid/${projectId}`,
+          routeUrl: `/assessments/project/byid/${selectedProjectId}`,
         });
         setAssessmentData(response.data[0]);
       } catch (error) {
@@ -72,7 +69,7 @@ const AssessmentTracker = () => {
     };
 
     fetchAssessmentData();
-  }, [projectId]);
+  }, [selectedProjectId]);
 
   useEffect(() => {
     const fetchTopicsData = async () => {

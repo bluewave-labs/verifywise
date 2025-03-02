@@ -15,12 +15,15 @@ import { useContext, useEffect, useState } from "react";
 import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
 import { User } from "../../../../../domain/User";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
+import useProjectRisks from "../../../../../application/hooks/useProjectRisks";
 
 const VWProjectOverview = ({ project }: { project?: Project }) => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") ?? "0";
   const { dashboardValues } = useContext(VerifyWiseContext);
   const { users } = dashboardValues;
+
+  const { projectRisksSummary } = useProjectRisks({ projectId });
 
   const [complianceProgress, setComplianceProgress] = useState<{
     allDonesubControls: number;
@@ -133,7 +136,7 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
         {project ? (
           <>
             <Typography sx={projectRiskSection}>Project risks</Typography>
-            <RisksCard />
+            <RisksCard projectRisksSummary={projectRisksSummary} />
           </>
         ) : (
           <>

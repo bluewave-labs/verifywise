@@ -25,7 +25,7 @@ const VWHome = () => {
   const [projects, setProjects] = useState<any[]>([]);
   const [_, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isGeneratingDemoData, setIsGeneratingDemoData] = useState(false);
+  const [__, setIsGeneratingDemoData] = useState(false);
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
@@ -33,6 +33,7 @@ const VWHome = () => {
   } | null>();
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
   const [shouldFetchProjects, setShouldFetchProjects] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
   const fetchData = async (routeUrl: string, setData: (data: any) => void) => {
     try {
@@ -71,6 +72,7 @@ const VWHome = () => {
 
   async function generateDemoData() {
     setIsGeneratingDemoData(true);
+    setShowToast(true);
     const user = {
       id: "demo-user-id", // Replace with actual user ID
       email: "demo-user@example.com", // Replace with actual user email
@@ -133,6 +135,8 @@ const VWHome = () => {
       }, 3000);
     } finally {
       setIsGeneratingDemoData(false);
+      setShowToast(false);
+      setShouldFetchProjects((prev) => !prev);
     }
   }
 
@@ -150,9 +154,7 @@ const VWHome = () => {
           onClick={() => setAlert(null)}
         />
       )}
-      {isGeneratingDemoData && (
-        <VWToast title="Generating demo data. Please wait..." />
-      )}
+      {showToast && <VWToast title="Generating demo data. Please wait..." />}
       <Stack className="vwhome-header" sx={{ mb: 15 }}>
         <Typography sx={vwhomeHeading}>
           All projects compliance status
@@ -171,8 +173,8 @@ const VWHome = () => {
           ) : (
             <SmallStatsCard
               attributeTitle="Compliance tracker"
-              progress={`${complianceProgress.allDonesubControls ?? 0}/${
-                complianceProgress.allsubControls ?? 0
+              progress={`${complianceProgress?.allDonesubControls ?? 0}/${
+                complianceProgress?.allsubControls ?? 0
               }`}
               rate={
                 (complianceProgress.allDonesubControls ?? 0) /

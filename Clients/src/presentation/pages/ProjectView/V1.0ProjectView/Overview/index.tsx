@@ -1,138 +1,149 @@
 import { Divider, Stack, Typography } from "@mui/material";
-import {
-  descCardbodyStyle,
-  infoCardbodyStyle,
-  infoCardStyle,
-  infoCardTitleStyle,
-  projectRisksCard,
-  projectRisksTileCard,
-  projectRisksTileCardKey,
-  projectRisksTileCardvalue,
-  rowStyle,
-} from "./style";
+import { rowStyle } from "./style";
 import StatsCard from "../../../../components/Cards/StatsCard";
 import { projectRiskSection } from "../style";
+import RisksCard from "../../../../components/Cards/RisksCard";
+import InfoCard from "../../../../components/Cards/InfoCard";
+import DescriptionCard from "../../../../components/Cards/DescriptionCard";
+import TeamCard from "../../../../components/Cards/TeamCard";
+import { Project } from "../../../../../domain/Project";
+import useProjectData from "../../../../../application/hooks/useProjectData";
+import { useSearchParams } from "react-router-dom";
+import VWSkeleton from "../../../../vw-v2-components/Skeletons";
+import { formatDate } from "../../../../tools/isoDateToString";
+import { useContext, useEffect, useState } from "react";
+import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
+import { User } from "../../../../../domain/User";
+import { getEntityById } from "../../../../../application/repository/entity.repository";
+import useProjectRisks from "../../../../../application/hooks/useProjectRisks";
 
-const InfoCard = ({ title, body }: { title: string; body: string }) => {
-  return (
-    <Stack sx={infoCardStyle}>
-      <Typography sx={infoCardTitleStyle}>{title}</Typography>
-      <Typography sx={infoCardbodyStyle}>{body}</Typography>
-    </Stack>
-  );
-};
+const VWProjectOverview = ({ project }: { project?: Project }) => {
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get("projectId") ?? "0";
+  const { dashboardValues } = useContext(VerifyWiseContext);
+  const { users } = dashboardValues;
 
-const DescriptionCard = ({ title, body }: { title: string; body: string }) => {
-  return (
-    <Stack sx={infoCardStyle}>
-      <Typography sx={infoCardTitleStyle}>{title}</Typography>
-      <Typography sx={descCardbodyStyle}>{body}</Typography>
-    </Stack>
-  );
-};
+  const { projectRisksSummary } = useProjectRisks({ projectId });
 
-const TeamCard = ({
-  title,
-  members = ["Mohammad Khalilzadeh", "Gorkem Cetin", "Eiei mon"],
-}: {
-  title: string;
-  members?: any[];
-}) => {
-  return (
-    <Stack sx={infoCardStyle}>
-      <Typography sx={infoCardTitleStyle}>{title}</Typography>
-      <ul>
-        {members.map((member, index) => (
-          <li
-            key={index}
-            style={{
-              fontSize: 11,
-              color: "#2D3748",
-            }}
-          >
-            {member}
-          </li>
-        ))}
-      </ul>
-    </Stack>
-  );
-};
+  const [complianceProgress, setComplianceProgress] = useState<{
+    allDonesubControls: number;
+    allsubControls: number;
+  }>();
+  const [assessmentProgress, setAssessmentProgress] = useState<{
+    answeredQuestions: number;
+    totalQuestions: number;
+  }>();
 
-const ProjectRisks = () => {
-  return (
-    <Stack className="vw-project-risks" sx={projectRisksCard}>
-      <Stack
-        className="vw-project-risks-tile"
-        sx={{ ...projectRisksTileCard, color: "#C63622" }}
-      >
-        <Typography sx={projectRisksTileCardKey}>Very High</Typography>
-        <Typography sx={projectRisksTileCardvalue}>0</Typography>
-      </Stack>
-      <Stack
-        className="vw-project-risks-tile"
-        sx={{ ...projectRisksTileCard, color: "#D68B61" }}
-      >
-        <Typography sx={projectRisksTileCardKey}>High</Typography>
-        <Typography sx={projectRisksTileCardvalue}>0</Typography>
-      </Stack>
-      <Stack
-        className="vw-project-risks-tile"
-        sx={{ ...projectRisksTileCard, color: "#D6B971" }}
-      >
-        <Typography sx={projectRisksTileCardKey}>Medium</Typography>
-        <Typography sx={projectRisksTileCardvalue}>0</Typography>
-      </Stack>
-      <Stack
-        className="vw-project-risks-tile"
-        sx={{ ...projectRisksTileCard, color: "#B8D39C" }}
-      >
-        <Typography sx={projectRisksTileCardKey}>Low</Typography>
-        <Typography sx={projectRisksTileCardvalue}>0</Typography>
-      </Stack>
-      <Stack
-        className="vw-project-risks-tile"
-        sx={{ ...projectRisksTileCard, color: "#52AB43" }}
-      >
-        <Typography sx={projectRisksTileCardKey}>Very Low</Typography>
-        <Typography sx={projectRisksTileCardvalue}>0</Typography>
-      </Stack>
-    </Stack>
-  );
-};
+  useEffect(() => {
+    const fetchProgressData = async () => {
+      try {
+        const complianceData = await getEntityById({
+          routeUrl: `/projects/compliance/progress/${projectId}`,
+        });
+        setComplianceProgress(complianceData.data);
 
-const VWProjectOverview = () => {
+        const assessmentData = await getEntityById({
+          routeUrl: `/projects/assessment/progress/${projectId}`,
+        });
+        setAssessmentProgress(assessmentData.data);
+      } catch (error) {
+        console.error("Error fetching progress data:", error);
+      }
+    };
+
+    fetchProgressData();
+  }, [projectId]);
+
+  console.log("complianceProgress: ", complianceProgress);
+  console.log("assessmentProgress: ", assessmentProgress);
+
+  const user: User = project
+    ? users.find((user: User) => user.id === project.last_updated_by) ??
+      ({} as User)
+    : ({} as User);
+
+  const { projectOwner } = useProjectData({
+    projectId: project?.id.toString() || projectId,
+  });
+
+  const projectMembers: string[] = project
+    ? users
+        .filter((user: User) => project.members.includes(user.id.toString()))
+        .map((user: User) => `${user.name} ${user.surname}`)
+    : [];
+
   return (
     <Stack className="vw-project-overview">
       <Stack className="vw-project-overview-row" sx={rowStyle}>
-        <InfoCard title="Owner" body="Mohammad Khalilzadeh" />
-        <InfoCard title="Last updated" body="23 February 2025" />
-        <InfoCard title="Last updated by" body="Mohammad Khalilzadeh" />
+        {project ? (
+          <>
+            <InfoCard title="Owner" body={projectOwner || "N/A"} />
+            <InfoCard
+              title="Last updated"
+              body={formatDate(project.last_updated.toString())}
+            />
+            <InfoCard
+              title="Last updated by"
+              body={`${user.name} ${user.surname}`}
+            />
+          </>
+        ) : (
+          <>
+            <VWSkeleton variant="text" width="30%" height={32} />
+            <VWSkeleton variant="text" width="30%" height={32} />
+            <VWSkeleton variant="text" width="30%" height={32} />
+          </>
+        )}
       </Stack>
       <Stack className="vw-project-overview-row" sx={rowStyle}>
-        <DescriptionCard
-          title="Goal"
-          body="Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in"
-        />
-        <TeamCard title="Team members" />
+        {project ? (
+          <>
+            <DescriptionCard title="Goal" body={project.goal} />
+            <TeamCard title="Team members" members={projectMembers} />
+          </>
+        ) : (
+          <>
+            <VWSkeleton variant="rectangular" width="60%" height={100} />
+            <VWSkeleton variant="rectangular" width="60%" height={100} />
+          </>
+        )}
       </Stack>
       <Stack className="vw-project-overview-row" sx={rowStyle}>
-        <StatsCard
-          completed={30}
-          total={100}
-          title="Subcontrols"
-          progressbarColor="#13715B"
-        />
-        <StatsCard
-          completed={70}
-          total={100}
-          title="assessments"
-          progressbarColor="#13715B"
-        />
+        {project ? (
+          <>
+            <StatsCard
+              completed={complianceProgress?.allDonesubControls ?? 0}
+              total={complianceProgress?.allsubControls ?? 0}
+              title="Subcontrols"
+              progressbarColor="#13715B"
+            />
+            <StatsCard
+              completed={assessmentProgress?.answeredQuestions ?? 0}
+              total={assessmentProgress?.totalQuestions ?? 0}
+              title="Assessments"
+              progressbarColor="#13715B"
+            />
+          </>
+        ) : (
+          <>
+            <VWSkeleton variant="rectangular" width="45%" height={100} />
+            <VWSkeleton variant="rectangular" width="45%" height={100} />
+          </>
+        )}
       </Stack>
       <Divider />
       <Stack sx={{ gap: 10 }}>
-        <Typography sx={projectRiskSection}>Project risks</Typography>
-        <ProjectRisks />
+        {project ? (
+          <>
+            <Typography sx={projectRiskSection}>Project risks</Typography>
+            <RisksCard projectRisksSummary={projectRisksSummary} />
+          </>
+        ) : (
+          <>
+            <VWSkeleton variant="text" width="20%" height={32} />
+            <VWSkeleton variant="rectangular" width="100%" height={200} />
+          </>
+        )}
       </Stack>
     </Stack>
   );

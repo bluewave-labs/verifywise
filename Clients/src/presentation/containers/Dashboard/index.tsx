@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import { Stack } from "@mui/material";
 import "./index.css";
 import Sidebar from "../../components/Sidebar";
@@ -65,6 +61,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
         setDashboardValues((prevValues: any) => ({
           ...prevValues,
           projects: response.data,
+          selectedProjectId: response.data[0]?.id || "", // Set the first project ID as the default selected one
         }));
       } catch (error) {
         console.error("Error fetching projects:", error);

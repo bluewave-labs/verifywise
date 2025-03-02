@@ -13,29 +13,34 @@ import {
 import { useCallback, useMemo, useState } from "react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { formatDate } from "../../../tools/isoDateToString";
+import IconButton from "../../IconButton";
 import TablePaginationActions from "../../TablePagination";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
 
 const titleOfTableColumns = [
-  "vendor name",
-  "risk name",
+  "vendor",
+  "impact",
+  "likelihood",
   "risk level",
-  "owner",
-  "review date",
-  "",
+  "risk severity",
+  "action owner",
+  "risk level",
+  "risk description",
+  "impact description",
+  "action plan",
+  " ",
 ];
 
 interface RiskTableProps {
   dashboardValues: any;
-  onVendorChange: () => void;
-  onDeleteVendor: (vendorId: number) => void;
+  onRiskChange: () => void;
+  onDeleteRisk: (vendorId: number) => void;
 }
 
 const RiskTable: React.FC<RiskTableProps> = ({
   dashboardValues,
-  onVendorChange,
-  onDeleteVendor,
+  onRiskChange,
+  onDeleteRisk,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -80,8 +85,19 @@ const RiskTable: React.FC<RiskTableProps> = ({
         <TableRow sx={singleTheme.tableStyles.primary.header.row}>
           {titleOfTableColumns.map((cell, index) => (
             <TableCell
-              style={singleTheme.tableStyles.primary.header.cell}
               key={index}
+              style={{
+                ...singleTheme.tableStyles.primary.header.cell,
+                ...(index === titleOfTableColumns.length - 1
+                  ? {
+                      position: "sticky",
+                      right: 0,
+                      zIndex: 10,
+                      backgroundColor:singleTheme.tableStyles.primary.header.backgroundColors,
+
+                    }
+                  : {}),
+              }}
             >
               {cell}
             </TableCell>
@@ -104,19 +120,34 @@ const RiskTable: React.FC<RiskTableProps> = ({
                 sx={singleTheme.tableStyles.primary.body.row}
               >
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                  {row.vendor_name}
+                  {dashboardValues.vendors.find(
+                    (vendor: any) => vendor.id === row.vendor_id
+                  )?.vendor_name }
                 </TableCell>
-                <TableCell sx={cellStyle}>{row.risk_name}</TableCell>
+                <TableCell sx={cellStyle}>{row.impact}</TableCell>
+                <TableCell sx={cellStyle}>{row.likelihood}</TableCell>
                 <TableCell sx={cellStyle}>{row.risk_level}</TableCell>
-                <TableCell sx={cellStyle}>{row.owner}</TableCell>
-                <TableCell sx={cellStyle}>
-                  {row.review_date
-                    ? formatDate(row.review_date.toString())
-                    : "No review date"}
-                </TableCell>
+                <TableCell sx={cellStyle}>{row.risk_severity}</TableCell>
+                <TableCell sx={cellStyle}>{row.action_owner}</TableCell>
+                <TableCell sx={cellStyle}>{row.risk_level}</TableCell>
+                <TableCell sx={cellStyle}>{row.risk_description}</TableCell>
+                <TableCell sx={cellStyle}>{row.impact_description}</TableCell>
+                <TableCell sx={cellStyle}>{row.action_plan}</TableCell>
                 <TableCell
-                  sx={singleTheme.tableStyles.primary.body.cell}
-                ></TableCell>
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    position: "sticky",
+                    right: 0,
+                    zIndex: 10,
+                    minWidth:"50px"
+                  }}
+                >
+                  <IconButton
+                    id={row.id}
+                    onChange={onRiskChange}
+                    onDelete={onDeleteRisk}
+                  ></IconButton>
+                </TableCell>
               </TableRow>
             ))}
       </TableBody>
@@ -134,7 +165,7 @@ const RiskTable: React.FC<RiskTableProps> = ({
   return (
     <>
       <TableContainer>
-        <Table sx={singleTheme.tableStyles.primary.frame}>
+        <Table sx={{ ...singleTheme.tableStyles.primary.frame}}>
           {tableHeader}
           {tableBody}
         </Table>

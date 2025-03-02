@@ -16,8 +16,10 @@ import { formatDate } from "../../../tools/isoDateToString";
 import { useContext } from "react";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import { User } from "../../Inputs/Dropdowns";
+import useNavigateSearch from "../../../../application/hooks/useNavigateSearch";
 
 const VWProjectCard = ({ project }: { project: Project }) => {
+  const navigate = useNavigateSearch();
   const { dashboardValues } = useContext(VerifyWiseContext);
   const { users } = dashboardValues;
 
@@ -80,7 +82,9 @@ const VWProjectCard = ({ project }: { project: Project }) => {
       </Stack>
       <VWButton
         variant="outlined"
-        onClick={() => {}}
+        onClick={() =>
+          navigate("/test/project-view", { projectId: project.id.toString() })
+        }
         size="medium"
         text="View project"
         sx={{

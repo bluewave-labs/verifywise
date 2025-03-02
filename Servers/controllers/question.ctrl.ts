@@ -90,11 +90,8 @@ export async function updateQuestionById(
   res: Response
 ): Promise<any> {
   try {
-    console.log("req.body : ", req.body);
     const questionId = parseInt(req.params.id);
     const updatedQuestion: Question = req.body;
-    console.log("updatedQuestion : ", updatedQuestion);
-    console.log("1");
 
     if (!updatedQuestion) {
       return res.status(400).json(
@@ -103,7 +100,6 @@ export async function updateQuestionById(
         })
       );
     }
-    console.log("2");
 
     const question = (await updateQuestionByIdQuery(
       questionId,
@@ -112,11 +108,9 @@ export async function updateQuestionById(
     )) as Question;
 
     if (!question) {
-      console.log("4");
       return res.status(404).json(STATUS_CODE[404]({}));
     }
 
-    console.log("5");
     return res.status(202).json(STATUS_CODE[202](question));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

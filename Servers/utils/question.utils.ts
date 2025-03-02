@@ -124,7 +124,7 @@ export const updateQuestionByIdQuery = async (
       question.priority_level,
       uploadedFiles,
       question.answer,
-      question.dropdown_options,
+      JSON.parse(question.dropdown_options!.toString()),
       question.input_type,
       question.order_no,
       id,

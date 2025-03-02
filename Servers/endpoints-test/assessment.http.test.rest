@@ -15,3 +15,7 @@ POST http://localhost:3000/autoDrivers
 
 ###
 DELETE  http://localhost:3000/autoDrivers
+
+### get control category by project id
+
+GET http://localhost:3000/controlCategory/byprojectid/10

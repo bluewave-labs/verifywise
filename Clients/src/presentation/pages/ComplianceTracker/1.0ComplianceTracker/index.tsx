@@ -1,8 +1,4 @@
-/**
- * This file is currently in use
- */
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { Stack, Typography } from "@mui/material";
 import { pageHeadingStyle } from "../../Assessment/1.0AssessmentTracker/index.style";
 import { getEntityById } from "../../../../application/repository/entity.repository";
@@ -10,27 +6,25 @@ import StatsCard from "../../../components/Cards/StatsCard";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import { ControlCategory as ControlCategoryModel } from "../../../../domain/ControlCategory";
 import ControlCategoryTile from "./ControlCategory";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 const ComplianceTracker = () => {
+  const { dashboardValues } = useContext(VerifyWiseContext);
+  const { selectedProjectId } = dashboardValues;
   const [complianceData, setComplianceData] = useState<any>(null);
   const [controlCategories, setControlCategories] =
     useState<ControlCategoryModel[]>();
   const [error, setError] = useState<unknown>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [projectId, setProjectId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const storedProjectId = localStorage.getItem("selectedProjectId");
-    setProjectId(storedProjectId);
-  }, []);
 
   useEffect(() => {
     const fetchComplianceData = async () => {
-      if (!projectId) return;
+      console.log("fetchComplianceData selectedProjectId: ", selectedProjectId);
+      if (!selectedProjectId) return;
 
       try {
         const response = await getEntityById({
-          routeUrl: `projects/compliance/progress/${projectId}`,
+          routeUrl: `projects/compliance/progress/${selectedProjectId}`,
         });
         setComplianceData(response.data);
       } catch (err) {
@@ -41,14 +35,17 @@ const ComplianceTracker = () => {
     };
 
     const fetchControlCategories = async () => {
-      if (!projectId) return;
+      console.log(
+        "fetchControlCategories selectedProjectId: ",
+        selectedProjectId
+      );
+      if (!selectedProjectId) return;
 
       try {
         const response = await getEntityById({
-          routeUrl: `/controlCategory/byprojectid/${projectId}`,
+          routeUrl: `/controlCategory/byprojectid/${selectedProjectId}`,
         });
         setControlCategories(response);
-        console.log("controlCategories: ", controlCategories);
       } catch (err) {
         setError(err);
       }
@@ -56,7 +53,7 @@ const ComplianceTracker = () => {
 
     fetchComplianceData();
     fetchControlCategories();
-  }, [projectId]);
+  }, [selectedProjectId]);
 
   if (loading) {
     return (

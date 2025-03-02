@@ -104,13 +104,6 @@ const Sidebar = ({ projects }: { projects: any }) => {
   const [popup, setPopup] = useState();
   const [selectedProjectId, setSelectedProjectId] = useState("");
 
-  useEffect(() => {
-    localStorage.setItem(
-      "selectedProjectId",
-      projects.length > 0 ? selectedProjectId : ""
-    );
-  }, [selectedProjectId]);
-
   const { dashboardValues, setDashboardValues, setCurrentProjectId, userId } =
     useContext(VerifyWiseContext);
   const { users } = dashboardValues;
@@ -324,9 +317,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
         sx={{ px: theme.spacing(8) }}
         data-joyride-id="dashboard-navigation"
       >
-        {/*
-        Items of the menu
-        */}
+        {/* Items of the menu */}
         {menu.map((item) =>
           item.path ? (
             <Tooltip

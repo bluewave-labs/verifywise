@@ -173,12 +173,12 @@ const VWHome = () => {
           ) : (
             <SmallStatsCard
               attributeTitle="Compliance tracker"
-              progress={`${complianceProgress?.allDonesubControls ?? 0}/${
-                complianceProgress?.allsubControls ?? 0
-              }`}
+              progress={`${
+                complianceProgress ? complianceProgress.allDonesubControls : 0
+              }/${complianceProgress ? complianceProgress.allsubControls : 1}`}
               rate={
-                (complianceProgress.allDonesubControls ?? 0) /
-                (complianceProgress.allsubControls ?? 1)
+                (complianceProgress?.allDonesubControls ?? 0) /
+                (complianceProgress?.allsubControls ?? 1)
               }
             />
           )}
@@ -187,12 +187,14 @@ const VWHome = () => {
           ) : (
             <SmallStatsCard
               attributeTitle="Assessment tracker"
-              progress={`${assessmentProgress.answeredQuestions ?? 0}/${
-                assessmentProgress.totalQuestions ?? 0
+              progress={`${assessmentProgress?.answeredQuestions ?? 0}/${
+                assessmentProgress?.totalQuestions ?? 1
               }`}
               rate={
-                (assessmentProgress.answeredQuestions ?? 0) /
-                (assessmentProgress.totalQuestions ?? 1)
+                assessmentProgress
+                  ? (assessmentProgress.answeredQuestions ?? 0) /
+                    (assessmentProgress.totalQuestions ?? 1)
+                  : 0
               }
             />
           )}

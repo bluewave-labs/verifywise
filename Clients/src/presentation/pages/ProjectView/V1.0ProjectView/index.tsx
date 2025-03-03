@@ -45,7 +45,7 @@ const VWProjectView = () => {
   }, [projectId]);
 
   return (
-    <Stack className="vw-project-view">
+    <Stack className="vw-project-view" overflow={"hidden"}>
       <Stack className="vw-project-view-header" sx={{ mb: 10 }}>
         {project ? (
           <>

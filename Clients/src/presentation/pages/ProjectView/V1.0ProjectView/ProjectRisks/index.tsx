@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Stack, Typography } from "@mui/material";
 import { Project } from "../../../../../domain/Project";
 import { useSearchParams } from "react-router-dom";
@@ -6,6 +7,20 @@ import RisksCard from "../../../../components/Cards/RisksCard";
 import { rowStyle } from "./style";
 import VWButton from "../../../../vw-v2-components/Buttons";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import { getEntityById } from "../../../../../application/repository/entity.repository";
+import VWProjectRisksTable from "../../../../vw-v2-components/Table";
+
+const TITLE_OF_COLUMNS = [
+  "RISK NAME",
+  "IMPACT",
+  "OWNER",
+  "SEVERITY",
+  "LIKELIHOOD",
+  "RISK LEVEL",
+  "MITIGATION",
+  "FINAL RISK LEVEL",
+  "",
+];
 
 const VWProjectRisks = ({ project }: { project?: Project }) => {
   const [searchParams] = useSearchParams();
@@ -13,6 +28,24 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
   const { projectRisksSummary } = useProjectRisks({
     projectId: projectId?.toString(),
   });
+  const [projectRisks, setProjectRisks] = useState([]);
+
+  useEffect(() => {
+    const fetchProjectRisks = async () => {
+      try {
+        const response = await getEntityById({
+          routeUrl: `/projectRisks/by-projid/${projectId}`,
+        });
+        setProjectRisks(response.data);
+      } catch (error) {
+        console.error("Error fetching project risks:", error);
+      }
+    };
+
+    if (projectId) {
+      fetchProjectRisks();
+    }
+  }, [projectId]);
 
   return (
     <Stack className="vw-project-risks">
@@ -20,7 +53,13 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
         <RisksCard projectRisksSummary={projectRisksSummary} />
       </Stack>
       <br />
-      <Stack className="vw-project-risks-row" sx={rowStyle}>
+      <Stack
+        className="vw-project-risks-row"
+        sx={{
+          gap: 10,
+          mb: 10,
+        }}
+      >
         <Stack
           sx={{
             width: "100%",
@@ -45,6 +84,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
             icon={<AddCircleOutlineIcon />}
           />
         </Stack>
+        <VWProjectRisksTable columns={TITLE_OF_COLUMNS} rows={projectRisks} />
       </Stack>
     </Stack>
   );

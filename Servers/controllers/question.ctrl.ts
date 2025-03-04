@@ -50,7 +50,7 @@ export async function getQuestionById(
 }
 
 export async function createQuestion(
-  req: RequestWithFile,
+  req: Request,
   res: Response
 ): Promise<any> {
   try {
@@ -71,8 +71,7 @@ export async function createQuestion(
     }
 
     const createdQuestion = await createNewQuestionQuery(
-      newQuestion,
-      req.files as UploadedFile[]
+      newQuestion
     );
 
     if (createdQuestion) {
@@ -86,7 +85,7 @@ export async function createQuestion(
 }
 
 export async function updateQuestionById(
-  req: RequestWithFile,
+  req: Request,
   res: Response
 ): Promise<any> {
   try {
@@ -104,7 +103,6 @@ export async function updateQuestionById(
     const question = (await updateQuestionByIdQuery(
       questionId,
       updatedQuestion,
-      req.files as UploadedFile[]
     )) as Question;
 
     if (!question) {

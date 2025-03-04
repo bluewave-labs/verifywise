@@ -7,3 +7,4 @@ export type User = {
     role?: number; //will be filled by user
     created_at?: Date; //automatically filled by database
     last_login?: Date; //automatically filled by database
+}

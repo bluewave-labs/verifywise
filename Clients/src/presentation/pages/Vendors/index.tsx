@@ -24,6 +24,7 @@ import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import { User } from "../../../domain/User";
 import { getUserForLogging } from "../../../application/tools/userHelpers";
+import AddNewRisk from "../../components/Modals/NewRisk";
 
 const Vendors = () => {
   const theme = useTheme();

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Stack, Typography } from "@mui/material";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import { Box, Stack, Typography } from "@mui/material";
 import { Project } from "../../../../../domain/Project";
 import { useSearchParams } from "react-router-dom";
 import useProjectRisks from "../../../../../application/hooks/useProjectRisks";
@@ -9,6 +9,11 @@ import VWButton from "../../../../vw-v2-components/Buttons";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
 import VWProjectRisksTable from "../../../../vw-v2-components/Table";
+import { ProjectRisk } from "../../../../../domain/ProjectRisk";
+import AddNewRiskForm from "../../../../components/AddNewRiskForm";
+import Popup from "../../../../components/Popup";
+import { handleAlert } from "../../../../../application/tools/alertUtils";
+import Alert from "../../../../components/Alert";
 
 const TITLE_OF_COLUMNS = [
   "RISK NAME",
@@ -28,27 +33,63 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
   const { projectRisksSummary } = useProjectRisks({
     projectId: projectId?.toString(),
   });
-  const [projectRisks, setProjectRisks] = useState([]);
+  const [projectRisks, setProjectRisks] = useState<ProjectRisk[]>([]);
+  const [selectedRow, setSelectedRow] = useState<ProjectRisk>();
+  const [anchorEl, setAnchorEl] = useState<any>(null);
+  const [alert, setAlert] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    title?: string;
+    body: string;
+  } | null>(null);
 
-  useEffect(() => {
-    const fetchProjectRisks = async () => {
-      try {
-        const response = await getEntityById({
-          routeUrl: `/projectRisks/by-projid/${projectId}`,
-        });
-        setProjectRisks(response.data);
-      } catch (error) {
-        console.error("Error fetching project risks:", error);
-      }
-    };
-
-    if (projectId) {
-      fetchProjectRisks();
+  const fetchProjectRisks = useCallback(async () => {
+    try {
+      const response = await getEntityById({
+        routeUrl: `/projectRisks/by-projid/${projectId}`,
+      });
+      setProjectRisks(response.data);
+    } catch (error) {
+      console.error("Error fetching project risks:", error);
     }
   }, [projectId]);
 
+  useEffect(() => {
+    if (projectId) {
+      fetchProjectRisks();
+    }
+  }, [projectId, fetchProjectRisks]);
+
+  const handleClosePopup = () => {
+    setAnchorEl(null); // Close the popup
+    setSelectedRow(undefined);
+  };
+
+  const handleUpdate = () => {
+    console.log("update is success!");
+    handleAlert({
+      variant: "success",
+      body: "Risk updated successfully",
+      setAlert,
+    });
+
+    fetchProjectRisks();
+  };
+
   return (
     <Stack className="vw-project-risks">
+      {alert && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Box>
+            <Alert
+              variant={alert.variant}
+              title={alert.title}
+              body={alert.body}
+              isToast={true}
+              onClick={() => setAlert(null)}
+            />
+          </Box>
+        </Suspense>
+      )}
       <Stack className="vw-project-risks-row" sx={rowStyle}>
         <RisksCard projectRisksSummary={projectRisksSummary} />
       </Stack>
@@ -84,7 +125,28 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
             icon={<AddCircleOutlineIcon />}
           />
         </Stack>
-        <VWProjectRisksTable columns={TITLE_OF_COLUMNS} rows={projectRisks} />
+        {Object.keys(selectedRow || {}).length > 0 && anchorEl && (
+          <Popup
+            popupId="edit-new-risk-popup"
+            popupContent={
+              <AddNewRiskForm
+                closePopup={() => setAnchorEl(null)}
+                popupStatus="edit"
+                onSuccess={handleUpdate}
+              />
+            }
+            openPopupButtonName="Edit risk"
+            popupTitle="Edit project risk"
+            handleOpenOrClose={handleClosePopup}
+            anchor={anchorEl}
+          />
+        )}
+        <VWProjectRisksTable
+          columns={TITLE_OF_COLUMNS}
+          rows={projectRisks}
+          setSelectedRow={(row: ProjectRisk) => setSelectedRow(row)}
+          setAnchorEl={setAnchorEl}
+        />
       </Stack>
     </Stack>
   );

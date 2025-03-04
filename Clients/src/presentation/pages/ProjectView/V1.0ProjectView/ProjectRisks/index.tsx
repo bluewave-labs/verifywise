@@ -41,6 +41,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     title?: string;
     body: string;
   } | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0); // Add refreshKey state
 
   const fetchProjectRisks = useCallback(async () => {
     try {
@@ -57,7 +58,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     if (projectId) {
       fetchProjectRisks();
     }
-  }, [projectId, fetchProjectRisks]);
+  }, [projectId, fetchProjectRisks, refreshKey]); // Add refreshKey to dependencies
 
   const handleClosePopup = () => {
     setAnchorEl(null); // Close the popup
@@ -73,10 +74,11 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     });
 
     fetchProjectRisks();
+    setRefreshKey((prevKey) => prevKey + 1); // Update refreshKey to trigger re-render
   };
 
   return (
-    <Stack className="vw-project-risks">
+    <Stack className="vw-project-risks" key={refreshKey}>
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
           <Box>

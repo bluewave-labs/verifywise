@@ -245,8 +245,8 @@ const ProjectSettings = React.memo(({}) => {
     return Object.keys(newErrors).length === 0;
   }, [values]);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleSubmit = (event?: React.FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
     if (validateForm()) {
       handleSaveConfirm();
     } else {
@@ -573,7 +573,7 @@ const ProjectSettings = React.memo(({}) => {
             }}
             icon={<SaveIcon />}
             variant="contained"
-            onClick={() => handleSubmit}
+            onClick={handleSubmit}
             text="Save"
           />
 

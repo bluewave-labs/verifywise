@@ -18,17 +18,18 @@ A PostGreSQL database is required.
 
 To run a development instance of VerifyWise via `npm`, follow these steps:
 
-1. Fork and clone the repository. Go to the Clients directory.
-2. Run `npm i; npm run dev`
-3. Go to ../Servers directory.
-4. Run `npm i; npm run watch`
-5. Now the application is up and running on `https://localhost:5173` 
+1. Crate "verifywise" database in your local PostgreSQL server.
+2. Fork and clone the repository. Go to the Clients directory.
+3. Run `npm i; npm run dev`
+4. Go to ../Servers directory.
+5. Run `npm i; npm run watch`
+6. Now the application is up and running on `https://localhost:5173` 
 
 Currently the application is in rapid development, so check back here often.
 
 ## Quick links
 
-- This application is currently in the design stage. The designs and workflows are [available for everyone](https://www.figma.com/design/o4xu4PeC5bo1Ii4dyom6vQ/VerifyWise?node-id=0-1&t=Ty2Jh4S8QgHGrqon-1). This link includes 2 pages: dashboard designs and the style guide.
+- This application is currently in the development stage. The designs and workflows are [available for everyone](https://www.figma.com/design/o4xu4PeC5bo1Ii4dyom6vQ/VerifyWise?node-id=0-1&t=Ty2Jh4S8QgHGrqon-1). This link includes 2 pages: dashboard designs and the style guide.
 - The [VerifyWise presentation](https://pitch.com/v/verifywise-democratizing-ai-governance-zhxvh6), including terminology, why we started this project, technology, and roadmap
 
 ## Who is it for?
@@ -57,6 +58,7 @@ VerifyWise is designed for:
 - Option to host the application on-premises or in a private cloud
 - Open source with a permissive license (AGPLv3)
 - End-to-end encryption for data in transit and at rest to ensure data security
+- Faster audits using AI-generated answers for compliance and assessment questions.
 - Full access to the source code for transparency, security audits, and customization
 - Docker deployment
 - User registration, authentication and role-based access control (RBAC) support.
@@ -70,6 +72,3 @@ VerifyWise is designed for:
   - AI Trust Center
   - File manager
 
-## Roadmap
-
-![VerifyWise roadmap](https://github.com/user-attachments/assets/b4e0d024-4a8d-4ef8-a5c6-b47b19fc3d37)

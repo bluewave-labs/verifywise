@@ -34,13 +34,13 @@ const Vendors = () => {
   const [vendorChangeTrigger, setVendorChangeTrigger] = useState(0);
   const [vendorRiskChangeTrigger, setVendorRiskChangeTrigger] = useState(0);
   const { dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);
+  const { selectedProjectId } = dashboardValues;
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
     body: string;
   } | null>(null);
   const [runVendorTour, setRunVendorTour] = useState(false);
-  const { currentProjectId } = useContext(VerifyWiseContext);
   const vendorSteps = [
     {
       target: '[data-joyride-id="add-new-vendor"]',
@@ -76,7 +76,7 @@ const Vendors = () => {
   const fetchRisks = useCallback(async () => {
     try {
       const response = await getAllEntities({
-        routeUrl: `/vendorRisks/by-projid/${currentProjectId}`,
+        routeUrl: `/vendorRisks/by-projid/${selectedProjectId}`,
       });
       setDashboardValues((prevValues: any) => ({
         ...prevValues,
@@ -85,7 +85,7 @@ const Vendors = () => {
     } catch (error) {
       console.error("Error fetching vendorRisks:", error);
     }
-  }, [setDashboardValues, currentProjectId]);
+  }, [setDashboardValues, selectedProjectId]);
 
   useEffect(() => {
     fetchVendors();
@@ -93,7 +93,7 @@ const Vendors = () => {
   }, [fetchVendors, vendorChangeTrigger]);
 
   useEffect(() => {
-    if (!currentProjectId) return;
+    if (!selectedProjectId) return;
     fetchRisks();
   }, [fetchRisks, vendorRiskChangeTrigger]);
 
@@ -319,14 +319,14 @@ const Vendors = () => {
               </Button>
             </Stack>
           )}
-          <TabPanel value="1" sx={{padding:0}}>
+          <TabPanel value="1" sx={{ padding: 0 }}>
             <TableWithPlaceholder
               dashboardValues={dashboardValues}
               onVendorChange={updateVendorChangeTrigger}
               onDeleteVendor={handleDeleteVendor}
             />
           </TabPanel>
-          <TabPanel value="2" sx={{padding:0}}>
+          <TabPanel value="2" sx={{ padding: 0 }}>
             <RiskTable
               dashboardValues={dashboardValues}
               onRiskChange={updateVendorRiskChangeTrigger}

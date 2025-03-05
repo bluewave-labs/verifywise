@@ -113,3 +113,15 @@ export const deleteVendorRiskByIdQuery = async (
   );
   return result.rowCount !== null && result.rowCount > 0;
 };
+
+export const deleteVendorRisksForVendorQuery = async (
+  vendorId: number
+): Promise<Boolean> => {
+  console.log(`Deleting vendorrisks for vendor: ${vendorId}`);
+  const result = await pool.query(
+    `DELETE FROM vendorrisks WHERE vendor_id = $1 RETURNING id`,
+    [vendorId]
+  )
+  console.log(`Deleted ${result.rowCount} rows of vendorrisks for vendor: ${vendorId}`);
+  return result.rowCount !== null && result.rowCount > 0;
+}

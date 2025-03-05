@@ -15,6 +15,7 @@ import { getEntityById } from "../../../../application/repository/entity.reposit
 import { Project } from "../../../../domain/Project";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import VWProjectRisks from "./ProjectRisks";
+import ProjectSettings from "../ProjectSettings";
 
 const VWProjectView = () => {
   const [searchParams] = useSearchParams();
@@ -45,7 +46,7 @@ const VWProjectView = () => {
   }, [projectId]);
 
   return (
-    <Stack className="vw-project-view">
+    <Stack className="vw-project-view" overflow={"hidden"}>
       <Stack className="vw-project-view-header" sx={{ mb: 10 }}>
         {project ? (
           <>
@@ -113,7 +114,7 @@ const VWProjectView = () => {
           <TabPanel value="settings" sx={tabPanelStyle}>
             {project ? (
               // Render settings content here
-              <div>Settings content</div>
+              <ProjectSettings />
             ) : (
               <VWSkeleton variant="rectangular" width="100%" height={400} />
             )}

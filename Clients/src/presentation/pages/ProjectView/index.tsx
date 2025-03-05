@@ -27,7 +27,7 @@ const ProjectView = () => {
   const {
     error: errorFetchingVendorRisks,
     // vendorRisks,
-    vendorRisksSummary,
+    // vendorRisksSummary,
   } = useVendorRisks({ projectId });
 
   const theme = useTheme();
@@ -223,7 +223,7 @@ const ProjectView = () => {
                 />
               </TabPanel> */}
               <TabPanel value="settings" sx={{ p: "32px 0 0" }}>
-                <ProjectSettings setTabValue={setValue} />
+                <ProjectSettings />
               </TabPanel>
             </TabContext>
           </Stack>

@@ -11,7 +11,7 @@ import {
   useTheme,
 } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";
-import { useCallback, useContext, useMemo, useState } from "react";
+import { MouseEvent, useCallback, useContext, useMemo, useState } from "react";
 import TablePaginationActions from "../../components/TablePagination";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
 import { ProjectRisk } from "../../../domain/ProjectRisk";
@@ -67,20 +67,36 @@ const VWProjectRisksTableBody = ({
   rows,
   page,
   rowsPerPage,
+  setSelectedRow,
+  setAnchorEl,
 }: {
   rows: any[];
   page: number;
   rowsPerPage: number;
+  setSelectedRow: any;
+
+  setAnchorEl: any;
 }) => {
-  const { dashboardValues } = useContext(VerifyWiseContext);
+  const { setInputValues, dashboardValues } = useContext(VerifyWiseContext);
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
+
+  function onRowClickHandler(event: MouseEvent<HTMLTableRowElement>, row: any) {
+    setSelectedRow(row);
+    setInputValues(row);
+    setAnchorEl(event.currentTarget);
+  }
+
   return (
     <TableBody>
       {rows &&
         rows
           .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
           .map((row: ProjectRisk, index: number) => (
-            <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row}>
+            <TableRow
+              key={index}
+              sx={singleTheme.tableStyles.primary.body.row}
+              onClick={(event) => onRowClickHandler(event, row)}
+            >
               <TableCell sx={cellStyle}>
                 {row.risk_name?.length > 30
                   ? `${row.risk_name.slice(0, 30)}...`
@@ -129,9 +145,13 @@ const VWProjectRisksTableBody = ({
 const VWProjectRisksTable = ({
   columns,
   rows,
+  setSelectedRow,
+  setAnchorEl,
 }: {
   columns: any[];
   rows: any[];
+  setSelectedRow: any;
+  setAnchorEl: any;
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -168,6 +188,8 @@ const VWProjectRisksTable = ({
             rows={rows}
             page={page}
             rowsPerPage={rowsPerPage}
+            setSelectedRow={setSelectedRow}
+            setAnchorEl={setAnchorEl}
           />
         </Table>
       </TableContainer>

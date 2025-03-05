@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import { getFileById, uploadFile } from "../utils/fileUpload.utils";
+import { deleteFileById, getFileById, uploadFile } from "../utils/fileUpload.utils";
 import { addFileToQuestion, RequestWithFile, UploadedFile } from "../utils/question.utils";
 
 export async function getFileContentById(
@@ -26,8 +26,18 @@ export async function postFileContent(
   res: Response
 ): Promise<any> {
   try {
-    const questionId = parseInt(req.body.question_id)
-    let uploadedFiles: { id: number; fileName: string }[] = [];
+    const body = req.body as {
+      question_id: string,
+      delete: string
+    }
+
+    const filesToDelete = JSON.parse(body.delete) as number[]
+    for (let fileToDelete of filesToDelete) {
+      await deleteFileById(fileToDelete)
+    }
+
+    const questionId = parseInt(body.question_id)
+    let uploadedFiles: { id: string; fileName: string }[] = [];
     for (let file of req.files! as UploadedFile[]) {
       const uploadedFile = await uploadFile(file);
       uploadedFiles.push({
@@ -35,8 +45,9 @@ export async function postFileContent(
         fileName: uploadedFile.filename,
       });
     }
-    const _ = addFileToQuestion(questionId, uploadedFiles)
-    return res.status(201).json(STATUS_CODE[201](uploadedFiles))
+
+    const question = await addFileToQuestion(questionId, uploadedFiles, filesToDelete)
+    return res.status(201).json(STATUS_CODE[201](question.evidence_files))
   } catch (error) {
     console.error("Error downloading file:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

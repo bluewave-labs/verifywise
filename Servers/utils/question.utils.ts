@@ -79,11 +79,29 @@ export const createNewQuestionQuery = async (
 
 export const addFileToQuestion = async (
   id: number,
-  uploadedFiles: { id: number; fileName: string }[]
+  uploadedFiles: { id: string; fileName: string }[],
+  deletedFiles: number[]
 ): Promise<Question> => {
+  // get the existing evidence files
+  const evidenceFilesResult = await pool.query(
+    `SELECT evidence_files FROM questions WHERE id = $1`,
+    [id]
+  )
+
+  // convert to list of objects
+  let _ = evidenceFilesResult.rows[0].evidence_files as string[]
+  let evidenceFiles = _.map(f => JSON.parse(f) as { id: string; fileName: string })
+
+  // remove the deleted file ids
+  evidenceFiles = evidenceFiles.filter(f => !deletedFiles.includes(parseInt(f.id)))
+
+  // combine the files lists
+  evidenceFiles = evidenceFiles.concat(uploadedFiles)
+
+  // update
   const result = await pool.query(
     `UPDATE questions SET evidence_files = $1 WHERE id = $2 RETURNING *;`,
-    [uploadedFiles, id]
+    [evidenceFiles, id]
   )
   return result.rows[0];
 }

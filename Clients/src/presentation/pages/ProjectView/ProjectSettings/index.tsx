@@ -290,7 +290,7 @@ const ProjectSettings = React.memo(({}) => {
         ?.name || "";
 
     await updateEntityById({
-      routeUrl: `/projects/${projectId}`,
+      routeUrl: `/${projectId}`,
       body: {
         id: projectId,
         project_title: values.projectTitle,

@@ -1,5 +1,4 @@
 import {
-  Button,
   SelectChangeEvent,
   Link,
   Stack,
@@ -29,6 +28,7 @@ import { stringToArray } from "../../../../application/tools/stringUtil";
 import useUsers from "../../../../application/hooks/useUsers";
 import VWButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -598,20 +598,20 @@ const ProjectSettings = React.memo(({}) => {
             Note that deleting a project will remove all data related to that
             project from our system. This is permanent and non-recoverable.
           </Typography>
-
-          <Button
-            disableRipple
-            variant="contained"
-            onClick={handleOpenDeleteDialog}
+          <VWButton
             sx={{
               width: { xs: "100%", sm: theme.spacing(80) },
               mb: theme.spacing(4),
               backgroundColor: "#DB504A",
               color: "#fff",
+              border: "1px solid #DB504A",
+              gap: 2,
             }}
-          >
-            Delete project
-          </Button>
+            icon={<DeleteIcon />}
+            variant="contained"
+            onClick={handleOpenDeleteDialog}
+            text="Delete project"
+          />
         </Stack>
       </Stack>
 

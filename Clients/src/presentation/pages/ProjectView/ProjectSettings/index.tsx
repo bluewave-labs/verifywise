@@ -1,5 +1,4 @@
 import {
-  Button,
   SelectChangeEvent,
   Link,
   Stack,
@@ -29,6 +28,8 @@ import { stringToArray } from "../../../../application/tools/stringUtil";
 import useUsers from "../../../../application/hooks/useUsers";
 import VWButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
+import DeleteIcon from "@mui/icons-material/Delete";
+import VWToast from "../../../vw-v2-components/Toast";
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -109,6 +110,7 @@ const ProjectSettings = React.memo(({}) => {
     visible: boolean;
   } | null>(null);
   const [memberRequired, setMemberRequired] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (project) {
@@ -326,6 +328,7 @@ const ProjectSettings = React.memo(({}) => {
   }, [values, projectId]);
 
   const handleConfirmDelete = useCallback(async () => {
+    setIsLoading(true);
     try {
       const response = await deleteEntityById({
         routeUrl: `/projects/${projectId}`,
@@ -341,12 +344,16 @@ const ProjectSettings = React.memo(({}) => {
         isToast: true,
         visible: true,
       });
-      setTimeout(() => {
-        setAlert(null);
-        if (!isError) {
-          navigate("/");
-        }
-      }, 3000);
+      if (!isError) {
+        navigate("/");
+        setTimeout(() => {
+          setAlert(null);
+        }, 3000);
+      } else {
+        setTimeout(() => {
+          setAlert(null);
+        }, 3000);
+      }
     } catch (error) {
       logEngine({
         type: "error",
@@ -366,11 +373,13 @@ const ProjectSettings = React.memo(({}) => {
       });
     } finally {
       setIsDeleteModalOpen(false);
+      setIsLoading(false);
     }
-  }, [navigate]);
+  }, [navigate, projectId]);
 
   return (
     <Stack>
+      {isLoading && <VWToast />}
       {alert && (
         <Alert
           variant={alert.variant}
@@ -598,20 +607,20 @@ const ProjectSettings = React.memo(({}) => {
             Note that deleting a project will remove all data related to that
             project from our system. This is permanent and non-recoverable.
           </Typography>
-
-          <Button
-            disableRipple
-            variant="contained"
-            onClick={handleOpenDeleteDialog}
+          <VWButton
             sx={{
               width: { xs: "100%", sm: theme.spacing(80) },
               mb: theme.spacing(4),
               backgroundColor: "#DB504A",
               color: "#fff",
+              border: "1px solid #DB504A",
+              gap: 2,
             }}
-          >
-            Delete project
-          </Button>
+            icon={<DeleteIcon />}
+            variant="contained"
+            onClick={handleOpenDeleteDialog}
+            text="Delete project"
+          />
         </Stack>
       </Stack>
 

@@ -19,7 +19,7 @@ router.get("/bysubtopic/:id", getQuestionsBySubtopicId);
 
 // POST, PUT, DELETE requests
 router.post("/", /*authenticateJWT,*/ createQuestion);
-router.put("/:id", /*authenticateJWT,*/ updateQuestionById);
+router.patch("/:id", /*authenticateJWT,*/ updateQuestionById);
 router.delete("/:id", /*authenticateJWT,*/ deleteQuestionById);
 
 export default router;

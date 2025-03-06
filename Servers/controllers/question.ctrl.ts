@@ -90,19 +90,20 @@ export async function updateQuestionById(
 ): Promise<any> {
   try {
     const questionId = parseInt(req.params.id);
-    const updatedQuestion: Question = req.body;
+    const body: { answer: string } = req.body;
 
-    if (!updatedQuestion) {
+    if (!body.answer
+    ) {
       return res.status(400).json(
         STATUS_CODE[400]({
-          message: "No values for updated Question",
+          message: "No values provided for answer for the Question",
         })
       );
     }
 
     const question = (await updateQuestionByIdQuery(
       questionId,
-      updatedQuestion,
+      body.answer,
     )) as Question;
 
     if (!question) {

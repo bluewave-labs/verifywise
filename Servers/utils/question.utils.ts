@@ -108,26 +108,12 @@ export const addFileToQuestion = async (
 
 export const updateQuestionByIdQuery = async (
   id: number,
-  question: Question,
+  answer: string,
 ): Promise<Question | null> => {
   const result = await pool.query(
-    `UPDATE questions SET 
-      subtopic_id = $1, question = $2, answer_type = $3, 
-      evidence_required = $4, hint = $5, is_required = $6, 
-      priority_level = $7, answer = $8, dropdown_options = $9, 
-      input_type = $10, order_no = $11 WHERE id = $12 RETURNING *`,
+    `UPDATE questions SET answer = $1 WHERE id = $2 RETURNING *`,
     [
-      question.subtopic_id,
-      question.question,
-      question.answer_type,
-      question.evidence_required,
-      question.hint,
-      question.is_required,
-      question.priority_level,
-      question.answer,
-      question.dropdown_options,
-      question.input_type,
-      question.order_no,
+      answer,
       id,
     ]
   );

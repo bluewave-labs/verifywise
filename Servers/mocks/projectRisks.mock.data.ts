@@ -47,7 +47,7 @@ const mockProjectRisks = (projectId1: number): ProjectRisk[] => {
       severity: "Negligible",
       risk_level_autocalculated: "High risk",
       review_notes: "Regular monitoring required.",
-      mitigation_status: "Not started",
+      mitigation_status: "Not Started",
       current_risk_level: "Low risk",
       deadline: new Date("2025-03-15"),
       mitigation_plan: "Introduce fair algorithms.",

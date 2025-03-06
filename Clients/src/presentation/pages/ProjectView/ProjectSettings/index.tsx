@@ -6,6 +6,7 @@ import {
   useTheme,
   Autocomplete,
   TextField,
+  Box
 } from "@mui/material";
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
 import React, { useState, useCallback, useMemo, useEffect } from "react";
@@ -474,6 +475,24 @@ const ProjectSettings = React.memo(({}) => {
               })) || []
           }
           getOptionLabel={(member) => `${member.name} ${member.surname}`}
+          renderOption={(props, option) => {
+            const { key, ...optionProps } = props;
+            const userEmail = option.email.length > 30 ? `${option.email.slice(0, 30)}...` : option.email;
+            return (
+              <Box
+                key={key}
+                component="li"
+                {...optionProps}
+              >
+                <Typography sx={{ fontSize: '13px' }}>
+                  {option.name} {option.surname}
+                </Typography>
+                <Typography sx={{ fontSize: '11px', color: 'rgb(157, 157, 157)', position: 'absolute', right: '9px' }}>
+                  {userEmail}
+                </Typography>
+              </Box>
+            );
+          }}
           noOptionsText={
             values.members.length === users.length
               ? "All members selected"
@@ -507,6 +526,28 @@ const ProjectSettings = React.memo(({}) => {
               "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                 borderColor: "#888",
                 borderWidth: "1px",
+              },
+            },
+          }}
+          slotProps={{
+            paper: {
+              sx: {
+                "& .MuiAutocomplete-listbox": {
+                  "& .MuiAutocomplete-option": {
+                    fontSize: "13px",
+                    color: "#1c2130",
+                    paddingLeft: "9px",
+                    paddingRight: "9px"
+                  },
+                  "& .MuiAutocomplete-option.Mui-focused": {
+                    background: "#f9fafb",
+                  }
+                },
+                "& .MuiAutocomplete-noOptions": {
+                  fontSize: "13px",
+                  paddingLeft: "9px",
+                  paddingRight: "9px"
+                }
               },
             },
           }}

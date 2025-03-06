@@ -136,7 +136,7 @@ export async function getProjectById(
 
 export async function createProject(req: Request, res: Response): Promise<any> {
   try {
-    const newProject: Partial<Project> & { enable_ai_data_insertion: boolean } = req.body;
+    const newProject: Partial<Project> = req.body;
 
     if (!newProject.project_title || !newProject.owner) {
       return res

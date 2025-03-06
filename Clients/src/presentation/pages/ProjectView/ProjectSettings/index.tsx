@@ -29,6 +29,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import VWButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
+import VWToast from "../../../vw-v2-components/Toast";
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -109,6 +110,7 @@ const ProjectSettings = React.memo(({}) => {
     visible: boolean;
   } | null>(null);
   const [memberRequired, setMemberRequired] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (project) {
@@ -326,6 +328,7 @@ const ProjectSettings = React.memo(({}) => {
   }, [values, projectId]);
 
   const handleConfirmDelete = useCallback(async () => {
+    setIsLoading(true);
     try {
       const response = await deleteEntityById({
         routeUrl: `/projects/${projectId}`,
@@ -341,12 +344,16 @@ const ProjectSettings = React.memo(({}) => {
         isToast: true,
         visible: true,
       });
-      setTimeout(() => {
-        setAlert(null);
-        if (!isError) {
-          navigate("/");
-        }
-      }, 3000);
+      if (!isError) {
+        navigate("/");
+        setTimeout(() => {
+          setAlert(null);
+        }, 3000);
+      } else {
+        setTimeout(() => {
+          setAlert(null);
+        }, 3000);
+      }
     } catch (error) {
       logEngine({
         type: "error",
@@ -366,11 +373,13 @@ const ProjectSettings = React.memo(({}) => {
       });
     } finally {
       setIsDeleteModalOpen(false);
+      setIsLoading(false);
     }
-  }, [navigate]);
+  }, [navigate, projectId]);
 
   return (
     <Stack>
+      {isLoading && <VWToast />}
       {alert && (
         <Alert
           variant={alert.variant}

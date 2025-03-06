@@ -289,6 +289,8 @@ const ProjectSettings = React.memo(({}) => {
       highRiskRoleItems.find((item) => item._id === values.typeOfHighRiskRole)
         ?.name || "";
 
+        console.log("handle save confirm recieved");
+
     await updateEntityById({
       routeUrl: `/${projectId}`,
       body: {

@@ -1,5 +1,6 @@
 import { Vendor } from "../models/vendor.model";
 import pool from "../database/db";
+import { deleteVendorRisksForVendorQuery } from "./vendorRisk.util";
 
 export const getAllVendorsQuery = async (): Promise<Vendor[]> => {
   const vendors = await pool.query("SELECT * FROM vendors");
@@ -131,6 +132,7 @@ export const updateVendorByIdQuery = async (
 };
 
 export const deleteVendorByIdQuery = async (id: number): Promise<boolean> => {
+  await deleteVendorRisksForVendorQuery(id);
   await pool.query(`DELETE FROM vendors_projects WHERE vendor_id = $1`, [id]);
   const result = await pool.query(
     "DELETE FROM vendors WHERE id = $1 RETURNING id",

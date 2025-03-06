@@ -1,5 +1,4 @@
 import {
-  Button,
   SelectChangeEvent,
   Link,
   Stack,
@@ -7,6 +6,7 @@ import {
   useTheme,
   Autocomplete,
   TextField,
+  Box
 } from "@mui/material";
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
 import React, { useState, useCallback, useMemo, useEffect } from "react";
@@ -29,6 +29,8 @@ import { stringToArray } from "../../../../application/tools/stringUtil";
 import useUsers from "../../../../application/hooks/useUsers";
 import VWButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
+import DeleteIcon from "@mui/icons-material/Delete";
+import VWToast from "../../../vw-v2-components/Toast";
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -109,6 +111,7 @@ const ProjectSettings = React.memo(({}) => {
     visible: boolean;
   } | null>(null);
   const [memberRequired, setMemberRequired] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (project) {
@@ -245,7 +248,7 @@ const ProjectSettings = React.memo(({}) => {
     return Object.keys(newErrors).length === 0;
   }, [values]);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (validateForm()) {
       handleSaveConfirm();
@@ -260,7 +263,7 @@ const ProjectSettings = React.memo(({}) => {
         setAlert(null);
       }, 1500);
     }
-  };
+  }
 
   const fieldStyle = useMemo(
     () => ({
@@ -281,6 +284,7 @@ const ProjectSettings = React.memo(({}) => {
   }, []);
   // saves the project
   const handleSaveConfirm = useCallback(async () => {
+    setIsLoading(true);
     const selectedRiskClass =
       riskClassificationItems.find(
         (item) => item._id === values.riskClassification
@@ -312,9 +316,11 @@ const ProjectSettings = React.memo(({}) => {
           visible: true,
         });
         setTimeout(() => {
+          setIsLoading(false);
           setAlert(null);
-        }, 1000);
+        }, 2000);
       } else if (response.status === 400) {
+        setIsLoading(false);
         setAlert({
           variant: "error",
           body: response.data.data.message,
@@ -326,6 +332,7 @@ const ProjectSettings = React.memo(({}) => {
   }, [values, projectId]);
 
   const handleConfirmDelete = useCallback(async () => {
+    setIsLoading(true);
     try {
       const response = await deleteEntityById({
         routeUrl: `/projects/${projectId}`,
@@ -341,12 +348,16 @@ const ProjectSettings = React.memo(({}) => {
         isToast: true,
         visible: true,
       });
-      setTimeout(() => {
-        setAlert(null);
-        if (!isError) {
-          navigate("/");
-        }
-      }, 3000);
+      if (!isError) {
+        navigate("/");
+        setTimeout(() => {
+          setAlert(null);
+        }, 3000);
+      } else {
+        setTimeout(() => {
+          setAlert(null);
+        }, 3000);
+      }
     } catch (error) {
       logEngine({
         type: "error",
@@ -366,11 +377,13 @@ const ProjectSettings = React.memo(({}) => {
       });
     } finally {
       setIsDeleteModalOpen(false);
+      setIsLoading(false);
     }
-  }, [navigate]);
+  }, [navigate, projectId]);
 
   return (
     <Stack>
+      {isLoading && <VWToast />}
       {alert && (
         <Alert
           variant={alert.variant}
@@ -462,6 +475,24 @@ const ProjectSettings = React.memo(({}) => {
               })) || []
           }
           getOptionLabel={(member) => `${member.name} ${member.surname}`}
+          renderOption={(props, option) => {
+            const { key, ...optionProps } = props;
+            const userEmail = option.email.length > 30 ? `${option.email.slice(0, 30)}...` : option.email;
+            return (
+              <Box
+                key={key}
+                component="li"
+                {...optionProps}
+              >
+                <Typography sx={{ fontSize: '13px' }}>
+                  {option.name} {option.surname}
+                </Typography>
+                <Typography sx={{ fontSize: '11px', color: 'rgb(157, 157, 157)', position: 'absolute', right: '9px' }}>
+                  {userEmail}
+                </Typography>
+              </Box>
+            );
+          }}
           noOptionsText={
             values.members.length === users.length
               ? "All members selected"
@@ -495,6 +526,28 @@ const ProjectSettings = React.memo(({}) => {
               "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                 borderColor: "#888",
                 borderWidth: "1px",
+              },
+            },
+          }}
+          slotProps={{
+            paper: {
+              sx: {
+                "& .MuiAutocomplete-listbox": {
+                  "& .MuiAutocomplete-option": {
+                    fontSize: "13px",
+                    color: "#1c2130",
+                    paddingLeft: "9px",
+                    paddingRight: "9px"
+                  },
+                  "& .MuiAutocomplete-option.Mui-focused": {
+                    background: "#f9fafb",
+                  }
+                },
+                "& .MuiAutocomplete-noOptions": {
+                  fontSize: "13px",
+                  paddingLeft: "9px",
+                  paddingRight: "9px"
+                }
               },
             },
           }}
@@ -573,7 +626,9 @@ const ProjectSettings = React.memo(({}) => {
             }}
             icon={<SaveIcon />}
             variant="contained"
-            onClick={() => handleSubmit}
+            onClick={(event: any) => {
+              handleSubmit(event);
+            }}
             text="Save"
           />
 
@@ -598,20 +653,20 @@ const ProjectSettings = React.memo(({}) => {
             Note that deleting a project will remove all data related to that
             project from our system. This is permanent and non-recoverable.
           </Typography>
-
-          <Button
-            disableRipple
-            variant="contained"
-            onClick={handleOpenDeleteDialog}
+          <VWButton
             sx={{
               width: { xs: "100%", sm: theme.spacing(80) },
               mb: theme.spacing(4),
               backgroundColor: "#DB504A",
               color: "#fff",
+              border: "1px solid #DB504A",
+              gap: 2,
             }}
-          >
-            Delete project
-          </Button>
+            icon={<DeleteIcon />}
+            variant="contained"
+            onClick={handleOpenDeleteDialog}
+            text="Delete project"
+          />
         </Stack>
       </Stack>
 

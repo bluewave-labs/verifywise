@@ -247,7 +247,7 @@ const ProjectSettings = React.memo(({}) => {
     return Object.keys(newErrors).length === 0;
   }, [values]);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (validateForm()) {
       handleSaveConfirm();
@@ -262,7 +262,7 @@ const ProjectSettings = React.memo(({}) => {
         setAlert(null);
       }, 1500);
     }
-  };
+  }
 
   const fieldStyle = useMemo(
     () => ({
@@ -283,6 +283,7 @@ const ProjectSettings = React.memo(({}) => {
   }, []);
   // saves the project
   const handleSaveConfirm = useCallback(async () => {
+    setIsLoading(true);
     const selectedRiskClass =
       riskClassificationItems.find(
         (item) => item._id === values.riskClassification
@@ -314,9 +315,11 @@ const ProjectSettings = React.memo(({}) => {
           visible: true,
         });
         setTimeout(() => {
+          setIsLoading(false);
           setAlert(null);
-        }, 1000);
+        }, 2000);
       } else if (response.status === 400) {
+        setIsLoading(false);
         setAlert({
           variant: "error",
           body: response.data.data.message,
@@ -582,7 +585,9 @@ const ProjectSettings = React.memo(({}) => {
             }}
             icon={<SaveIcon />}
             variant="contained"
-            onClick={() => handleSubmit}
+            onClick={(event: any) => {
+              handleSubmit(event);
+            }}
             text="Save"
           />
 

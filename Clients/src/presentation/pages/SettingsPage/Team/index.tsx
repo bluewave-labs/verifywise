@@ -29,7 +29,7 @@ import {
   SelectChangeEvent,
   TablePagination,
 } from "@mui/material";
-import Trashbin from "../../../../presentation/assets/icons/trash-01.svg";
+import GroupsIcon from "@mui/icons-material/Groups";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
 import TablePaginationActions from "../../../components/TablePagination";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
@@ -37,6 +37,7 @@ import InviteUserModal from "../../../components/Modals/InviteUser";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import { handleAlert } from "../../../../application/tools/alertUtils";
+import VWButton from "../../../vw-v2-components/Buttons";
 
 const Alert = lazy(() => import("../../../components/Alert"));
 
@@ -327,13 +328,17 @@ const TeamManagement: React.FC = (): JSX.Element => {
             </Box> */}
 
             <Box sx={{ mt: 10 }}>
-              <Button
+              <VWButton
                 variant="contained"
-                disableRipple
+                text="Invite team member"
+                sx={{
+                  backgroundColor: "#13715B",
+                  border: "1px solid #13715B",
+                  gap: 2,
+                }}
+                icon={<GroupsIcon />}
                 onClick={() => inviteTeamMember()}
-              >
-                Invite team member
-              </Button>
+              />
             </Box>
           </Stack>
 

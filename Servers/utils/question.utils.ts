@@ -56,24 +56,13 @@ export interface UploadedFile {
 
 export const createNewQuestionQuery = async (
   question: Question,
-  files?: UploadedFile[]
 ): Promise<Question> => {
-  let uploadedFiles: { id: number; fileName: string }[] = [];
-  await Promise.all(
-    files!.map(async (file) => {
-      const uploadedFile = await uploadFile(file);
-      uploadedFiles.push({
-        id: uploadedFile.id.toString(),
-        fileName: uploadedFile.filename,
-      });
-    })
-  );
   const result = await pool.query(
     `INSERT INTO questions (
       subtopic_id, question, answer_type, 
       evidence_required, hint, is_required, 
-      priority_level, evidence_files, answer
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+      priority_level, answer
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
     [
       question.subtopic_id,
       question.question,
@@ -82,51 +71,49 @@ export const createNewQuestionQuery = async (
       question.hint,
       question.is_required,
       question.priority_level,
-      uploadedFiles,
       question.answer,
     ]
   );
   return result.rows[0];
 };
 
+export const addFileToQuestion = async (
+  id: number,
+  uploadedFiles: { id: string; fileName: string }[],
+  deletedFiles: number[]
+): Promise<Question> => {
+  // get the existing evidence files
+  const evidenceFilesResult = await pool.query(
+    `SELECT evidence_files FROM questions WHERE id = $1`,
+    [id]
+  )
+
+  // convert to list of objects
+  let _ = evidenceFilesResult.rows[0].evidence_files as string[]
+  let evidenceFiles = _.map(f => JSON.parse(f) as { id: string; fileName: string })
+
+  // remove the deleted file ids
+  evidenceFiles = evidenceFiles.filter(f => !deletedFiles.includes(parseInt(f.id)))
+
+  // combine the files lists
+  evidenceFiles = evidenceFiles.concat(uploadedFiles)
+
+  // update
+  const result = await pool.query(
+    `UPDATE questions SET evidence_files = $1 WHERE id = $2 RETURNING *;`,
+    [evidenceFiles, id]
+  )
+  return result.rows[0];
+}
+
 export const updateQuestionByIdQuery = async (
   id: number,
-  question: Question,
-  files: UploadedFile[]
+  answer: string,
 ): Promise<Question | null> => {
-  let uploadedFiles: { id: number; fileName: string }[] = [];
-  if (files && files.length > 0) {
-    await Promise.all(
-      files.map(async (file) => {
-        const uploadedFile = await uploadFile(file);
-        uploadedFiles.push({
-          id: uploadedFile.id.toString(),
-          fileName: uploadedFile.filename,
-        });
-      })
-    );
-  }
-
   const result = await pool.query(
-    `UPDATE questions SET 
-      subtopic_id = $1, question = $2, answer_type = $3, 
-      evidence_required = $4, hint = $5, is_required = $6, 
-      priority_level = $7, evidence_files = $8, answer = $9, 
-      dropdown_options = $10, input_type = $11, order_no = $12
-      WHERE id = $13 RETURNING *`,
+    `UPDATE questions SET answer = $1 WHERE id = $2 RETURNING *`,
     [
-      question.subtopic_id,
-      question.question,
-      question.answer_type,
-      question.evidence_required,
-      question.hint,
-      question.is_required,
-      question.priority_level,
-      uploadedFiles,
-      question.answer,
-      JSON.parse(question.dropdown_options!.toString()),
-      question.input_type,
-      question.order_no,
+      answer,
       id,
     ]
   );

@@ -2,27 +2,23 @@
  * This file is currently in use
  */
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   useTheme,
   Alert as MuiAlert,
   Box,
-  Button,
   Stack,
   Typography,
 } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
-import {
-  getEntityById,
-  updateEntityById,
-} from "../../../../application/repository/entity.repository";
-import { logEngine } from "../../../../application/tools/log.engine";
-import localStorage from "redux-persist/es/storage";
+import { updateEntityById } from "../../../../application/repository/entity.repository";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
+import VWButton from "../../../vw-v2-components/Buttons";
+import SaveIcon from "@mui/icons-material/Save";
 
 const PasswordForm: React.FC = () => {
   const theme = useTheme();
@@ -45,7 +41,7 @@ const PasswordForm: React.FC = () => {
 
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] =
     useState<boolean>(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, _] = useState(false);
 
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -310,23 +306,20 @@ const PasswordForm: React.FC = () => {
               paddingTop: theme.spacing(5),
             }}
           >
-            <Button
-              disableRipple
+            <VWButton
               variant="contained"
+              text="Save"
               sx={{
-                width: { xs: "100%", sm: theme.spacing(80) },
-                mb: theme.spacing(4),
-                backgroundColor: "#4c7de7",
-                color: "#fff",
-                "&:hover": {
-                  backgroundColor: "#175CD3",
-                },
+                backgroundColor: "#13715B",
+                border: isSaveDisabled
+                  ? "1px solid rgba(0, 0, 0, 0.26)"
+                  : "1px solid #13715B",
+                gap: 2,
               }}
+              icon={<SaveIcon />}
               onClick={() => setIsConfirmationModalOpen(true)}
-              disabled={isSaveDisabled}
-            >
-              Save
-            </Button>
+              isDisabled={isSaveDisabled}
+            />
           </Stack>
         </Stack>
       </Box>

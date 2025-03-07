@@ -10,7 +10,7 @@ import React, {
   ChangeEvent,
   useMemo,
 } from "react";
-import { Box, Button, Divider, Stack, Typography } from "@mui/material";
+import { Box, Divider, Stack, Typography } from "@mui/material";
 import { useTheme } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import Avatar from "../../../components/Avatar/VWAvatar/index";
@@ -28,6 +28,9 @@ import Alert from "../../../components/Alert"; // Import Alert component
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { clearAuthState } from "../../../../application/authentication/authSlice";
+import VWButton from "../../../vw-v2-components/Buttons";
+import SaveIcon from "@mui/icons-material/Save";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 /**
  * Interface representing a user object.
@@ -540,7 +543,7 @@ const ProfileForm: React.FC = () => {
               </Typography>
               <Typography
                 sx={{
-                  color: "#4C7DE7",
+                  color: "#13715B",
                   cursor: "pointer",
                   textDecoration: "none",
                   "&:hover": { textDecoration: "underline" },
@@ -563,26 +566,18 @@ const ProfileForm: React.FC = () => {
           alignItems: "center",
         }}
       >
-        <Button
-          disableRipple
+        <VWButton
           variant="contained"
+          text="Save"
           sx={{
-            width: { xs: "100%", sm: theme.spacing(80) },
-            mb: theme.spacing(4),
-            backgroundColor: "#4c7de7",
-            color: "#fff",
-            position: { md: "relative" },
-            left: { md: theme.spacing(0) },
-            mt: theme.spacing(5),
-            "&:hover": {
-              backgroundColor: "#175CD3 ",
-            },
+            backgroundColor: "#13715B",
+            border: "1px solid #13715B",
+            gap: 2,
           }}
+          icon={<SaveIcon />}
           onClick={() => setIsSaveModalOpen(true)}
-          disabled={!!firstnameError || !!lastnameError || !!emailError}
-        >
-          Save
-        </Button>
+          isDisabled={!!firstnameError || !!lastnameError || !!emailError}
+        />
       </Stack>
 
       <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
@@ -607,19 +602,20 @@ const ProfileForm: React.FC = () => {
               alignItems: "center",
             }}
           >
-            <Button
-              disableRipple
-              variant="contained"
-              onClick={handleOpenDeleteDialog}
+            <VWButton
               sx={{
                 width: { xs: "100%", sm: theme.spacing(80) },
                 mb: theme.spacing(4),
                 backgroundColor: "#DB504A",
                 color: "#fff",
+                border: "1px solid #DB504A",
+                gap: 2,
               }}
-            >
-              Delete account
-            </Button>
+              icon={<DeleteIcon />}
+              variant="contained"
+              onClick={handleOpenDeleteDialog}
+              text="Delete account"
+            />
           </Stack>
         </Stack>
       </Box>

@@ -4,7 +4,7 @@
 
 import VWButton from "../../Buttons";
 import "./index.css";
-import { Stack, Typography } from "@mui/material";
+import { Stack, SxProps, Theme, Typography } from "@mui/material";
 
 interface DualButtonModalProps {
   title: string;
@@ -22,6 +22,7 @@ interface DualButtonModalProps {
     | "info";
   proceedButtonVariant: "contained" | "outlined" | "text";
   TitleFontSize?: number;
+  confirmBtnSx?: SxProps<Theme> | undefined;
 }
 
 const DualButtonModal: React.FC<DualButtonModalProps> = ({
@@ -34,6 +35,7 @@ const DualButtonModal: React.FC<DualButtonModalProps> = ({
   proceedButtonColor,
   proceedButtonVariant,
   TitleFontSize,
+  confirmBtnSx,
 }) => {
   return (
     <>
@@ -86,6 +88,7 @@ const DualButtonModal: React.FC<DualButtonModalProps> = ({
             color={proceedButtonColor} // these are options : "primary" | "secondary" | "success" | "warning" | "error" | "info";
             variant={proceedButtonVariant} // these are the options : "contained" | "outlined" | "text"
             onClick={onProceed}
+            sx={confirmBtnSx}
           />
         </Stack>
       </Stack>

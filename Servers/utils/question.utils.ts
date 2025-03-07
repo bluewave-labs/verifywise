@@ -43,10 +43,10 @@ export const getQuestionByIdQuery = async (
 
 export interface RequestWithFile extends Request {
   files?:
-    | UploadedFile[]
-    | {
-        [key: string]: UploadedFile[];
-      };
+  | UploadedFile[]
+  | {
+    [key: string]: UploadedFile[];
+  };
 }
 export interface UploadedFile {
   originalname: string;
@@ -174,28 +174,32 @@ export const createNewQuestionsQuery = async (
     isrequired: boolean;
     evidence_files: never[];
     dropdown_options: never[];
-  }[]
+    answer: string;
+  }[],
+  enable_ai_data_insertion: boolean
 ) => {
   let query = `
     INSERT INTO questions(
       subtopic_id, question, answer_type,
       evidence_required, hint, is_required,
-      priority_level, answer, order_no, input_type) VALUES `;
-  const data = questions.map((d) => {
-    return `(
-      ${subTopicId},
-      '${d.question}',
-      '${d.answer_type}',
-      ${d.evidence_required},
-      '${d.hint}',
-      ${d.isrequired},
-      '${d.priority_level}',
-      '',
-      ${d.order_no},
-      '${d.input_type}'
-    )`;
-  });
-  query += data.join(",") + " RETURNING *;";
-  const result = await pool.query(query);
-  return result.rows;
+      priority_level, answer, order_no, input_type
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`;
+  let createdQuestions: Question[] = []
+  for (let question of questions) {
+    const result = await pool.query(
+      query, [
+      subTopicId,
+      question.question,
+      question.answer_type,
+      question.evidence_required,
+      question.hint,
+      question.isrequired,
+      question.priority_level,
+      enable_ai_data_insertion ? question.answer : null,
+      question.order_no,
+      question.input_type,
+    ])
+    createdQuestions = createdQuestions.concat(result.rows)
+  }
+  return createdQuestions;
 };

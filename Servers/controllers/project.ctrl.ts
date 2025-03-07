@@ -136,7 +136,7 @@ export async function getProjectById(
 
 export async function createProject(req: Request, res: Response): Promise<any> {
   try {
-    const newProject: Partial<Project> = req.body;
+    const newProject: Partial<Project> & { enable_ai_data_insertion: boolean } = req.body;
 
     if (!newProject.project_title || !newProject.owner) {
       return res
@@ -145,12 +145,16 @@ export async function createProject(req: Request, res: Response): Promise<any> {
           STATUS_CODE[400]({ message: "project_title and owner are required" })
         );
     }
+    console.log(newProject);
 
     const createdProject = await createNewProjectQuery(newProject);
-    const assessments = await createNewAssessmentQuery({
+    const assessments: Object = await createNewAssessmentQuery({
       project_id: createdProject.id,
-    });
-    const controls = await createNewControlCategories(createdProject.id);
+    }, newProject.enable_ai_data_insertion);
+    const controls = await createNewControlCategories(
+      createdProject.id,
+      newProject.enable_ai_data_insertion
+    );
 
     if (createdProject) {
       return res.status(201).json(

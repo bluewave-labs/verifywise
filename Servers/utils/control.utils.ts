@@ -138,28 +138,37 @@ export const createNewControlsQuery = async (
     order_no: number;
     title: string;
     description: string;
+    implementation_details: string;
     subControls: {
       order_no: number;
       title: string;
       description: string;
+      implementation_details: string;
+      evidence_description?: string;
+      feedback_description?: string;
     }[];
-  }[]
+  }[],
+  enable_ai_data_insertion: boolean
 ) => {
   const createdControls = [];
   let query = `INSERT INTO controls(
-    title, description, order_no, control_category_id
-  ) VALUES ($1, $2, $3, $4) RETURNING *;`;
+    title, description, order_no, control_category_id,
+    implementation_details, status
+  ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *;`;
   for (let controlStruct of controls) {
     const result = await pool.query(query, [
       controlStruct.title,
       controlStruct.description,
       controlStruct.order_no,
       controlCategoryId,
+      enable_ai_data_insertion ? controlStruct.implementation_details : null,
+      enable_ai_data_insertion ? 'Waiting' : null
     ]);
     const control_id = result.rows[0].id;
     const subControls = await createNewSubControlsQuery(
       control_id,
-      controlStruct.subControls
+      controlStruct.subControls,
+      enable_ai_data_insertion
     );
     createdControls.push({ ...result.rows[0], subControls });
   }

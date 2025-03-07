@@ -7,7 +7,6 @@ import {
   useTheme,
   Alert as MuiAlert,
   Box,
-  Button,
   Stack,
   Typography,
 } from "@mui/material";
@@ -42,7 +41,7 @@ const PasswordForm: React.FC = () => {
 
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] =
     useState<boolean>(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, _] = useState(false);
 
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";

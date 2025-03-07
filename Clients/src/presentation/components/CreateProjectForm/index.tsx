@@ -13,6 +13,7 @@ import {
 const Select = lazy(() => import("../Inputs/Select"));
 const DatePicker = lazy(() => import("../Inputs/Datepicker"));
 const Field = lazy(() => import("../Inputs/Field"));
+const Checkbox = lazy(() => import("../Inputs/Checkbox"));
 import { extractUserToken } from "../../../application/tools/extractToken";
 import React from "react";
 import useUsers from "../../../application/hooks/useUsers";
@@ -47,6 +48,7 @@ interface FormValues {
   ai_risk_classification: number;
   type_of_high_risk_role: number;
   goal: string;
+  enable_ai_data_insertion: boolean
 }
 
 interface FormErrors {
@@ -67,6 +69,7 @@ const initialState: FormValues = {
   ai_risk_classification: 0,
   type_of_high_risk_role: 0,
   goal: "",
+  enable_ai_data_insertion: false
 };
 
 interface CreateProjectFormProps {
@@ -110,6 +113,16 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
       }));
     }
   }, []);
+
+  const handleCheckBoxToggle = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setValues(( v ) => ({
+        ...v,
+        enable_ai_data_insertion: event.target.checked
+      }))
+    },
+    []
+  );
 
   const handleOnSelectChange = useCallback(
     (prop: keyof FormValues) => (event: SelectChangeEvent<string | number>) => {
@@ -513,27 +526,44 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
             </Stack>
           </Stack>
         </Stack>
-        <Button
-          type="submit"
-          variant="contained"
-          disableRipple={
-            theme.components?.MuiButton?.defaultProps?.disableRipple
-          }
+        <Box
           sx={{
-            borderRadius: 2,
-            maxHeight: 34,
-            textTransform: "inherit",
-            backgroundColor: "#4C7DE7",
-            boxShadow: "none",
-            border: "1px solid #175CD3",
-            ml: "auto",
-            mr: 0,
-            mt: "30px",
-            "&:hover": { boxShadow: "none", backgroundColor: "#175CD3 " },
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: "100%",
           }}
         >
-          Create project
-        </Button>
+          <Checkbox
+            id="enable-ai-data-insert"
+            isChecked={values.enable_ai_data_insertion}
+            label="Enable AI-Generated data insertion"
+            onChange={handleCheckBoxToggle}
+            value="checked"
+          ></Checkbox>
+
+          <Button
+            type="submit"
+            variant="contained"
+            disableRipple={
+              theme.components?.MuiButton?.defaultProps?.disableRipple
+            }
+            sx={{
+              borderRadius: 2,
+              maxHeight: 34,
+              textTransform: "inherit",
+              backgroundColor: "#4C7DE7",
+              boxShadow: "none",
+              border: "1px solid #175CD3",
+              ml: "auto",
+              mr: 0,
+              mt: "30px",
+              "&:hover": { boxShadow: "none", backgroundColor: "#175CD3 " },
+            }}
+          >
+            Create project
+          </Button>
+        </Box>
       </Stack>
     </Stack>
   );

@@ -23,7 +23,8 @@ const mockProjectRisks = (projectId1: number): ProjectRisk[] => {
       current_risk_level: "Medium risk",
       deadline: new Date("2024-12-31"),
       mitigation_plan: "In Progress",
-      implementation_strategy: "Anonymize user data in production environments.",
+      implementation_strategy:
+        "Anonymize user data in production environments.",
       mitigation_evidence_document: "Data_Anonymization_Plan.pdf",
       likelihood_mitigation: "Almost Certain",
       risk_severity: "Moderate",
@@ -61,7 +62,7 @@ const mockProjectRisks = (projectId1: number): ProjectRisk[] => {
       date_of_assessment: new Date("2024-10-15"),
     },
     // Project risk for the second project
-  ]
+  ];
 };
 
 // Export the mock data for use in other files

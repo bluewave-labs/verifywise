@@ -41,7 +41,7 @@ interface VWButtonProps {
   isDisabled?: boolean;
   isLink?: boolean;
   color?: "primary" | "secondary" | "success" | "warning" | "error" | "info";
-  onClick?: () => void;
+  onClick?: any;
   sx?: any;
   text?: string;
   icon?: any;

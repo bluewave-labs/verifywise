@@ -79,7 +79,7 @@ main() {
 
     # Start Docker Compose
     echo "Starting Docker Compose..."
-    docker-compose up --build -d
+    docker-compose up -d
 
     # Check if database needs initialization
     if ! check_db_initialized; then

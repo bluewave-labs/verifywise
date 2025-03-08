@@ -183,7 +183,7 @@ const NewControlPane = ({
         <DualButtonModal
           title="Confirm Save"
           body={
-            <Typography>Are you sure you want to save the changes?</Typography>
+            <Typography textTransform={"none"}>Are you sure you want to save the changes?</Typography>
           }
           cancelText="Cancel"
           proceedText="Save"

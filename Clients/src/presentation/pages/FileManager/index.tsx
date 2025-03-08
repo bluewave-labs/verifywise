@@ -4,7 +4,7 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Stack, Box, Typography } from "@mui/material"; //useTheme is not used
-import BasicTable from "../../components/Table";
+import VWBasicTable from "../../components/Table";
 import axios from "axios";
 import EmptyTableImage from "../../assets/imgs/empty-state.svg";
 import AscendingIcon from "../../assets/icons/up-arrow.svg";
@@ -132,10 +132,10 @@ const FileTable: React.FC<{
     [cols, handleSort, sortField, sortDirection]
   );
 
-  const [fileData, setFileData] = useState([]);
+  const [fileData, _] = useState([]);
 
   return (
-    <BasicTable
+    <VWBasicTable
       data={{ cols: sortedCols, rows }}
       bodyData={fileData}
       paginated={files.length > 0}

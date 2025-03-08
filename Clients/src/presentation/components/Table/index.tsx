@@ -29,7 +29,7 @@ interface TableProps {
   reversed?: boolean;
   table: string;
   onRowClick?: (id: string) => void;
-  label: string;
+  label?: string;
   setSelectedRow: (row: any) => void;
   setAnchorEl: (element: HTMLElement | null) => void;
 }

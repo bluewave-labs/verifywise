@@ -1,28 +1,21 @@
-/**
- * This file is currently in use
- */
-
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   useTheme,
   Alert as MuiAlert,
   Box,
-  Button,
   Stack,
   Typography,
 } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
-import {
-  getEntityById,
-  updateEntityById,
-} from "../../../../application/repository/entity.repository";
-import { logEngine } from "../../../../application/tools/log.engine";
-import localStorage from "redux-persist/es/storage";
+import { updateEntityById } from "../../../../application/repository/entity.repository";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
+import VWButton from "../../../vw-v2-components/Buttons";
+import SaveIcon from "@mui/icons-material/Save";
+import VWSkeleton from "../../../vw-v2-components/Skeletons";
 
 const PasswordForm: React.FC = () => {
   const theme = useTheme();
@@ -45,7 +38,7 @@ const PasswordForm: React.FC = () => {
 
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] =
     useState<boolean>(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, _] = useState(false);
 
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -60,40 +53,6 @@ const PasswordForm: React.FC = () => {
     isToast: true,
     visible: false,
   });
-
-  // Fetch current user password on component mount
-  // useEffect(() => {
-  //   const fetchUserPassword = async () => {
-  //     setLoading(true);
-  //     try {
-  //       const response = await getEntityById({ routeUrl: `/users/${id}` });
-  //       console.log("response , PasswordForm : ", response);
-
-  //     } catch (error) {
-  //       logEngine({
-  //         type: "error",
-  //         message: "Failed to fetch user password.",
-  //         user: {
-  //           id: String(localStorage.getItem("userId")) || "N/A",
-  //           email: "N/A",
-  //           firstname: "N/A",
-  //           lastname: "N/A",
-  //         },
-  //       });
-
-  //       setAlert({
-  //         variant: "error",
-  //         title: "Error",
-  //         body: "Failed to fetch user password.",
-  //         isToast: true,
-  //         visible: true,
-  //       });
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-  //   fetchUserPassword();
-  // }, []);
 
   // Handle current password validation
   const handleCurrentPasswordChange = useCallback(
@@ -226,22 +185,14 @@ const PasswordForm: React.FC = () => {
   return (
     <Box sx={{ mt: 3, width: { xs: "90%", md: "70%" }, position: "relative" }}>
       {loading && (
-        <Box
-          sx={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: "rgba(255,255,255,0.8)",
-            zIndex: 10,
-          }}
-        >
-          <Typography>Loading...</Typography>
-        </Box>
+        <VWSkeleton
+          variant="rectangular"
+          width="100%"
+          height="300px"
+          minWidth={"100%"}
+          minHeight={300}
+          sx={{ backgroundColor: "gray", borderRadius: 2 }}
+        />
       )}
       {alert.visible && (
         <Alert
@@ -252,84 +203,84 @@ const PasswordForm: React.FC = () => {
           onClick={() => setAlert((prev) => ({ ...prev, visible: false }))}
         />
       )}
-      <Box sx={{ width: "100%", maxWidth: 600 }}>
-        <Stack sx={{ marginTop: theme.spacing(15) }}>
-          <Field
-            id="Current password"
-            label="Current password"
-            value={currentPassword}
-            onChange={handleCurrentPasswordChange}
-            type="password"
-            sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
-          />
-          {currentPasswordError && (
-            <Typography color="error" variant="caption">
-              {currentPasswordError}
-            </Typography>
-          )}
 
-          <Field
-            id="New password"
-            label="New password"
-            value={newPassword}
-            onChange={handleNewPasswordChange}
-            type="password"
-            sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
-          />
-          {newPasswordError && (
-            <Typography color="error" variant="caption">
-              {newPasswordError}
-            </Typography>
-          )}
+      {!loading && (
+        <Box sx={{ width: "100%", maxWidth: 600 }}>
+          <Stack sx={{ marginTop: theme.spacing(15) }}>
+            <Field
+              id="Current password"
+              label="Current password"
+              value={currentPassword}
+              onChange={handleCurrentPasswordChange}
+              type="password"
+              sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
+            />
+            {currentPasswordError && (
+              <Typography color="error" variant="caption">
+                {currentPasswordError}
+              </Typography>
+            )}
 
-          <Field
-            id="Confirm new password"
-            label="Confirm new password"
-            value={confirmPassword}
-            onChange={handleConfirmPasswordChange}
-            type="password"
-            sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
-          />
-          {confirmPasswordError && (
-            <Typography color="error" variant="caption">
-              {confirmPasswordError}
-            </Typography>
-          )}
+            <Field
+              id="New password"
+              label="New password"
+              value={newPassword}
+              onChange={handleNewPasswordChange}
+              type="password"
+              sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
+            />
+            {newPasswordError && (
+              <Typography color="error" variant="caption">
+                {newPasswordError}
+              </Typography>
+            )}
 
-          <MuiAlert severity="warning" sx={{ my: theme.spacing(5) }}>
-            Password must contain at least eight characters and must include an
-            uppercase letter, a lowercase letter, a number, and a symbol.
-          </MuiAlert>
+            <Field
+              id="Confirm new password"
+              label="Confirm new password"
+              value={confirmPassword}
+              onChange={handleConfirmPasswordChange}
+              type="password"
+              sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
+            />
+            {confirmPasswordError && (
+              <Typography color="error" variant="caption">
+                {confirmPasswordError}
+              </Typography>
+            )}
 
-          <Stack
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "flex-end",
-              alignItems: "center",
-              paddingTop: theme.spacing(5),
-            }}
-          >
-            <Button
-              disableRipple
-              variant="contained"
+            <MuiAlert severity="warning" sx={{ my: theme.spacing(5) }}>
+              Password must contain at least eight characters and must include
+              an uppercase letter, a lowercase letter, a number, and a symbol.
+            </MuiAlert>
+
+            <Stack
               sx={{
-                width: { xs: "100%", sm: theme.spacing(80) },
-                mb: theme.spacing(4),
-                backgroundColor: "#4c7de7",
-                color: "#fff",
-                "&:hover": {
-                  backgroundColor: "#175CD3",
-                },
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "flex-end",
+                alignItems: "center",
+                paddingTop: theme.spacing(5),
               }}
-              onClick={() => setIsConfirmationModalOpen(true)}
-              disabled={isSaveDisabled}
             >
-              Save
-            </Button>
+              <VWButton
+                variant="contained"
+                text="Save"
+                sx={{
+                  backgroundColor: "#13715B",
+                  border: isSaveDisabled
+                    ? "1px solid rgba(0, 0, 0, 0.26)"
+                    : "1px solid #13715B",
+                  gap: 2,
+                }}
+                icon={<SaveIcon />}
+                onClick={() => setIsConfirmationModalOpen(true)}
+                isDisabled={isSaveDisabled}
+              />
+            </Stack>
           </Stack>
-        </Stack>
-      </Box>
+        </Box>
+      )}
 
       {isConfirmationModalOpen && (
         <DualButtonModal

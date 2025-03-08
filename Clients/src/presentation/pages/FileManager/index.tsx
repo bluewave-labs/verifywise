@@ -11,6 +11,7 @@ import AscendingIcon from "../../assets/icons/up-arrow.svg";
 import DescendingIcon from "../../assets/icons/down-arrow.svg";
 import PageTour from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
+import VWSkeleton from "../../vw-v2-components/Skeletons";
 
 /**
  * Represents a file with its metadata.
@@ -278,45 +279,58 @@ const FileManager: React.FC = (): JSX.Element => {
 
   return (
     <Stack spacing={4} sx={{ padding: 4, marginBottom: 10 }}>
-      <PageTour
-        steps={fileSteps}
-        run={runFileTour}
-        onFinish={() => setRunFileTour(false)}
-      />
-      <Stack spacing={1} data-joyride-id="file-manager-title">
-        <Typography variant="h6" fontWeight="bold" gutterBottom>
-          Evidences & documents
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          This table lists all the files uploaded to the system.
-        </Typography>
-      </Stack>
-
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          flex: 1,
-          width: "100%",
-          justifyContent: files.length === 0 ? "center" : "flex-start",
-          alignItems: files.length === 0 ? "center" : "stretch",
-          position: "relative",
-          borderRadius: "4px",
-          overflow: "hidden",
-          maxHeight: "400px",
-          // borderBottom: files.length === 0 ? "1px solid #eeeeee" : "none",
-        }}
-      >
-        <FileTable
-          cols={cols}
-          rows={rows}
-          files={files}
-          handleSort={handleSort}
-          sortField={sortField}
-          sortDirection={sortDirection}
+      {loading && (
+        <VWSkeleton
+          variant="rectangular"
+          width="100%"
+          height="300px"
+          minWidth={"100%"}
+          minHeight={300}
+          sx={{ backgroundColor: "gray", borderRadius: 2 }}
         />
-        {files.length === 0 && <EmptyState />}
-      </Box>
+      )}
+      {!loading && (
+        <>
+          <PageTour
+            steps={fileSteps}
+            run={runFileTour}
+            onFinish={() => setRunFileTour(false)}
+          />
+          <Stack spacing={1} data-joyride-id="file-manager-title">
+            <Typography variant="h6" fontWeight="bold" gutterBottom>
+              Evidences & documents
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              This table lists all the files uploaded to the system.
+            </Typography>
+          </Stack>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              flex: 1,
+              width: "100%",
+              justifyContent: files.length === 0 ? "center" : "flex-start",
+              alignItems: files.length === 0 ? "center" : "stretch",
+              position: "relative",
+              borderRadius: "4px",
+              overflow: "hidden",
+              maxHeight: "400px",
+              // borderBottom: files.length === 0 ? "1px solid #eeeeee" : "none",
+            }}
+          >
+            <FileTable
+              cols={cols}
+              rows={rows}
+              files={files}
+              handleSort={handleSort}
+              sortField={sortField}
+              sortDirection={sortDirection}
+            />
+            {files.length === 0 && <EmptyState />}
+          </Box>
+        </>
+      )}
     </Stack>
   );
 };

@@ -150,6 +150,10 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
     name: "N/A",
     surname: "N/A",
   };
+  const formattedUsers = users?.map((user) => ({
+    _id: user.id,
+    name: `${user.name} ${user.surname}`,
+  }));
 
   useEffect(() => {
     if (isOpen && !existingRisk) {
@@ -161,7 +165,10 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
         impact_description: existingRisk.impact_description,
         impact:
           IMPACT_OPTIONS.find((r) => r.name === existingRisk.impact)?._id || 0,
-        action_owner: existingRisk.action_owner,
+        action_owner:
+          formattedUsers?.find(
+            (user) => user.name === existingRisk.action_owner
+          )?._id || "",
         risk_severity:
           RISK_SEVERITY_OPTIONS.find(
             (r) => r.name === existingRisk.risk_severity
@@ -216,7 +223,6 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
    * @returns boolean indicating if form is valid
    */
   const validateForm = (): boolean => {
-    console.log("validation func");
     const newErrors = {} as FormErrors;
     const risk_description = checkStringValidation(
       "Risk description",
@@ -286,7 +292,9 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
       impact_description: values.impact_description,
       impact:
         IMPACT_OPTIONS.find((r) => r._id === Number(values.impact))?.name || "",
-      action_owner: values.action_owner,
+      action_owner: formattedUsers?.find(
+        (user) => user._id === values.action_owner
+      )?.name,
       action_plan: values.action_plan,
       risk_severity:
         RISK_SEVERITY_OPTIONS.find((r) => r._id === values.risk_severity)
@@ -321,7 +329,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           variant: "success",
           body: "Vendor-Risk created successfully",
         });
-        setTimeout(() => setAlert(null),  3000);
+        setTimeout(() => setAlert(null), 3000);
         onSuccess();
         setIsOpen();
       } else {
@@ -329,7 +337,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           variant: "error",
           body: response.data?.data?.message || "An error occurred.",
         });
-        setTimeout(() => setAlert(null),  3000);
+        setTimeout(() => setAlert(null), 3000);
       }
     } catch (error) {
       console.error("API Error:", error);
@@ -372,7 +380,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           variant: "success",
           body: "Vendor-Risk updated successfully",
         });
-        setTimeout(() => setAlert(null),  3000);
+        setTimeout(() => setAlert(null), 3000);
         onSuccess();
         setIsOpen();
       } else {
@@ -380,7 +388,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           variant: "error",
           body: response.data?.data?.message || "An error occurred.",
         });
-        setTimeout(() => setAlert(null),  3000);
+        setTimeout(() => setAlert(null), 3000);
       }
     } catch (error) {
       console.error("API Error:", error);
@@ -505,27 +513,12 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           />
 
           <Select
-            items={
-              users?.map((user) => ({
-                _id: String(user.id),
-                name: `${user.name} ${user.surname}`,
-              })) || []
-            }
+            items={formattedUsers}
             label="Action owner"
             placeholder="Select owner"
             isHidden={false}
             id=""
-            onChange={(e) => {
-              const selectedUser = users.find(
-                (user) => String(user.id) === e.target.value
-              );
-              handleOnChange(
-                "action_owner",
-                selectedUser
-                  ? `${selectedUser.name} ${selectedUser.surname}`
-                  : ""
-              );
-            }}
+            onChange={(e) => handleOnChange("action_owner", e.target.value)}
             value={values.action_owner}
             error={errors.action_owner}
             sx={{

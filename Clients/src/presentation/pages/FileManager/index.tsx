@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Stack, Box, Typography } from "@mui/material"; //useTheme is not used
 import VWBasicTable from "../../components/Table";
-import axios from "axios";
+import { getEntityById } from "../../../application/repository/entity.repository";
 import EmptyTableImage from "../../assets/imgs/empty-state.svg";
 import AscendingIcon from "../../assets/icons/up-arrow.svg";
 import DescendingIcon from "../../assets/icons/down-arrow.svg";
@@ -170,21 +170,20 @@ const FileManager: React.FC = (): JSX.Element => {
   useEffect(() => {
     setRunFileTour(true);
     const fetchFileById = async (fileId: string) => {
-      setLoading(true);
       try {
-        const response = await axios.get(
-          `https://localhost:3000/files/${fileId}`
-        );
-        const file = response.data;
+        setLoading(true); 
+        const file = await getEntityById({ routeUrl: `/files/${fileId}` });
 
-        const fileData: File = {
-          id: file.id,
-          name: file.name,
-          type: file.type || "N/A",
-          uploadDate: new Date(file.uploadDate).toLocaleDateString(),
-          uploader: file.uploader || "N/A",
-        };
-        setFiles([fileData]);
+        if (file) {
+          const fileData: File = {
+            id: file.id,
+            name: file.name,
+            type: file.type || "N/A",
+            uploadDate: new Date(file.uploadDate).toLocaleDateString(),
+            uploader: file.uploader || "N/A",
+          };
+          setFiles([fileData]);
+        }
       } catch (error) {
         console.error("Error fetching files", error);
       } finally {

@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Stack, Box, Typography } from "@mui/material"; //useTheme is not used
 import VWBasicTable from "../../components/Table";
@@ -153,15 +149,12 @@ const FileTable: React.FC<{
  * @returns {JSX.Element} The FileManager component.
  */
 const FileManager: React.FC = (): JSX.Element => {
-  // const theme = useTheme();
   const [files, setFiles] = useState<File[]>([]);
   const [sortField, setSortField] = useState<keyof File | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection | null>(
     null
   );
-  //loading while fetching files
   const [loading, setLoading] = useState(true);
-  //page tour
   const [runFileTour, setRunFileTour] = useState(false);
 
   const fileSteps = [
@@ -176,23 +169,8 @@ const FileManager: React.FC = (): JSX.Element => {
 
   useEffect(() => {
     setRunFileTour(true);
-
-    //     const mockFile: {
-    //       id: "1";
-    //       name: "test-file.pdf";
-    //       type: "pdf";
-    //       uploadDate: string;
-    //       uploader: "John Doe";
-    //     } = {
-    //       id: "1",
-    //       name: "test-file.pdf",
-    //       type: "pdf",
-    //       uploadDate: new Date().toLocaleDateString(),
-    //       uploader: "John Doe",
-    //     };
-    // setFiles([mockFile]);
-    // setLoading(false);
     const fetchFileById = async (fileId: string) => {
+      setLoading(true);
       try {
         const response = await axios.get(
           `https://localhost:3000/files/${fileId}`
@@ -316,7 +294,6 @@ const FileManager: React.FC = (): JSX.Element => {
               borderRadius: "4px",
               overflow: "hidden",
               maxHeight: "400px",
-              // borderBottom: files.length === 0 ? "1px solid #eeeeee" : "none",
             }}
           >
             <FileTable

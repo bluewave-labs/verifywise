@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import { Stack } from "@mui/material";
 import { useTheme } from "@mui/material";
 const VWToast = ({ title = "Request is in the process. Please wait..." }) => {

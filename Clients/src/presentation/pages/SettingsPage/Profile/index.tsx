@@ -28,6 +28,7 @@ import VWButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
+import VWToast from "../../../vw-v2-components/Toast"; // Import VWToast component
 
 /**
  * Interface representing a user object.
@@ -62,13 +63,12 @@ const ProfileForm: React.FC = () => {
   const [profilePhoto, setProfilePhoto] = useState<string>(
     "/placeholder.svg?height=80&width=80"
   );
+  const [showToast, setShowToast] = useState(false);
 
   const [firstnameError, setFirstnameError] = useState<string | null>(null);
   const [lastnameError, setLastnameError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const [alert, setAlert] = useState<{
@@ -137,6 +137,7 @@ const ProfileForm: React.FC = () => {
    * on the server if there are no validation errors.
    */
   const handleSave = useCallback(async () => {
+    setShowToast(true); // Show toast when request is sent
     try {
       if (firstnameError || lastnameError || emailError) {
         logEngine({
@@ -205,6 +206,11 @@ const ProfileForm: React.FC = () => {
       setTimeout(() => {
         setAlert((prev) => ({ ...prev, visible: false }));
       }, 3000); // Alert will disappear after 3 seconds
+    } finally {
+      setShowToast(false); // Hide toast after response
+      setTimeout(() => {
+        setShowToast(false);
+      }, 1000);
     }
   }, [
     firstname,
@@ -339,31 +345,13 @@ const ProfileForm: React.FC = () => {
   }, []);
 
   /**
-   * Close confirmation modal.
-   *
-   * Closes the save changes confirmation modal.
-   */
-  const handleCloseConfirmationModal = useCallback(() => {
-    setIsSaveModalOpen(false);
-  }, []);
-
-  /**
-   * Handle save confirmation.
-   *
-   * Proceeds with saving the profile.
-   */
-  const handleConfirmSave = useCallback(() => {
-    handleSave();
-    setIsSaveModalOpen(false);
-  }, [handleSave]);
-
-  /**
    * Handle delete confirmation.
    *
    * Proceeds with deleting the account.
    */
 
   const handleConfirmDelete = useCallback(async () => {
+    setShowToast(true); // Show toast when request is sent
     try {
       // const userId = localStorage.getItem("userId") || "1";
       await deleteEntityById({ routeUrl: `/users/${id}` });
@@ -404,6 +392,10 @@ const ProfileForm: React.FC = () => {
       });
     } finally {
       setIsDeleteModalOpen(false);
+      setShowToast(false); // Hide toast after response
+      setTimeout(() => {
+        setShowToast(false);
+      }, 1000);
     }
   }, [email, firstname, lastname]);
 
@@ -420,6 +412,7 @@ const ProfileForm: React.FC = () => {
 
   return (
     <Box sx={{ position: "relative", mt: 3, width: { xs: "90%", md: "70%" } }}>
+      {showToast && <VWToast />} {/* Show VWToast when showToast is true */}
       {loading && (
         <VWSkeleton
           variant="rectangular"
@@ -553,7 +546,6 @@ const ProfileForm: React.FC = () => {
           </Box>
         </Box>
       )}
-
       {!loading && (
         <Stack
           sx={{
@@ -572,14 +564,12 @@ const ProfileForm: React.FC = () => {
               gap: 2,
             }}
             icon={<SaveIcon />}
-            onClick={() => setIsSaveModalOpen(true)}
+            onClick={handleSave}
             isDisabled={!!firstnameError || !!lastnameError || !!emailError}
           />
         </Stack>
       )}
-
       <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
-
       {loading && (
         <VWSkeleton
           variant="rectangular"
@@ -590,7 +580,6 @@ const ProfileForm: React.FC = () => {
           sx={{ backgroundColor: "gray", borderRadius: 2 }}
         />
       )}
-
       {!loading && (
         <Box>
           <Stack>
@@ -631,24 +620,6 @@ const ProfileForm: React.FC = () => {
           </Stack>
         </Box>
       )}
-
-      {isSaveModalOpen && (
-        <DualButtonModal
-          title="Confirm Save"
-          body={
-            <Typography fontSize={13}>
-              Are you sure you want to save the changes?
-            </Typography>
-          }
-          cancelText="Cancel"
-          proceedText="Save"
-          onCancel={handleCloseConfirmationModal}
-          onProceed={handleConfirmSave}
-          proceedButtonColor="primary"
-          proceedButtonVariant="contained"
-        />
-      )}
-
       {isDeleteModalOpen && (
         <DualButtonModal
           title="Confirm Delete"

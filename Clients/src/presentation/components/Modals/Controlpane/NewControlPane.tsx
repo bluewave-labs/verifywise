@@ -159,6 +159,12 @@ const NewControlPane = ({
     setIsModalOpen(false);
   };
 
+
+  const handleCloseWrapper = () => {
+    console.log('Close icon clicked');
+    handleClose();
+  };
+
   return (
     <>
       {alert && (
@@ -196,7 +202,7 @@ const NewControlPane = ({
       <Modal
         id={`${data.id}-modal`}
         open={isOpen}
-        onClose={handleClose}
+        onClose={handleCloseWrapper}
         className="new-control-pane-modal"
         sx={{ zIndex: 1100 }}
       >
@@ -236,7 +242,26 @@ const NewControlPane = ({
             >
               {`${controlCategoryId + "." + data.order_no}`} {data.title}
             </Typography>
-            <CloseIcon onClick={handleClose} style={{ cursor: "pointer" }} />
+            <Box
+              component="div"
+              role="button"
+              tabIndex={0}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCloseWrapper();
+              }}
+              sx={{
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                padding: '8px',
+                '&:hover': {
+                  opacity: 0.8,
+                },
+              }}
+            >
+              <CloseIcon />
+            </Box>
           </Stack>
           <Typography fontSize={13}>{data.description}</Typography>
           <DropDowns

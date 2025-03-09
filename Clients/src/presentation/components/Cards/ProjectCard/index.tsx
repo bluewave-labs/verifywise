@@ -83,7 +83,7 @@ const VWProjectCard = ({ project }: { project: Project }) => {
       <VWButton
         variant="outlined"
         onClick={() =>
-          navigate("/test/project-view", { projectId: project.id.toString() })
+          navigate("/project-view", { projectId: project.id.toString() })
         }
         size="medium"
         text="View project"

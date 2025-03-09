@@ -12,6 +12,8 @@ import { setAuthToken } from "../../../../application/authentication/authSlice";
 import { setExpiration } from "../../../../application/authentication/authSlice";
 import VWToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
+import { User } from "../../../../domain/User";
+import { getUserForLogging } from "../../../../application/tools/userHelpers";
 
 // Define the shape of form values
 interface FormValues {
@@ -54,26 +56,28 @@ const Login: React.FC = () => {
     setIsSubmitting(true);
     console.log("Submitting form...", isSubmitting);
 
-    const user = {
-      id: "At login level", // Replace with actual user ID
-      email: values.email, // Replace with actual user email
-      firstname: "N/A", // Replace with actual user first name
-      lastname: "N/A", // Replace with actual user last name
-    };
-
     await loginUser({
       routeUrl: "/users/login",
       body: values,
     })
       .then((response) => {
-        setValues(initialState);
+        setValues(initialState); // Extract `userData` from API response
+
+        const userData = response?.data?.data?.user || {}; // Prevent errors if undefined
+
+        const user: User = {
+          id: Number(userData.id) || 0,
+          email: userData.email ?? values.email, //fallback to form input
+          name: userData.name ?? "N/A",
+          surname: userData.surname ?? "N/A",
+        };
+
         if (response.status === 202) {
           const token = response.data.data.token;
 
-          //handle remember me logic for 30 days
           if (values.rememberMe) {
             const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
-            dispatch(setAuthToken(token)); // Dispatch the action to set the token in Redux state
+            dispatch(setAuthToken(token));
             dispatch(setExpiration(expirationDate));
           } else {
             dispatch(setAuthToken(token));
@@ -83,8 +87,9 @@ const Login: React.FC = () => {
           logEngine({
             type: "info",
             message: "Login successful.",
-            user,
+            user: getUserForLogging(user),
           });
+
           setTimeout(() => {
             setIsSubmitting(false);
             navigate("/");
@@ -93,58 +98,60 @@ const Login: React.FC = () => {
           logEngine({
             type: "event",
             message: "User not found. Please try again.",
-            user,
+            user: getUserForLogging(user),
           });
+
           setIsSubmitting(false);
           setAlert({
             variant: "error",
             body: "User not found. Please try again.",
           });
-          setTimeout(() => {
-            setAlert(null);
-          }, 3000);
+          setTimeout(() => setAlert(null), 3000);
         } else if (response.status === 406) {
           logEngine({
             type: "event",
             message: "Invalid password. Please try again.",
-            user,
+            user: getUserForLogging(user),
           });
+
           setIsSubmitting(false);
           setAlert({
             variant: "error",
             body: "Invalid password. Please try again.",
           });
-          setTimeout(() => {
-            setAlert(null);
-          }, 3000);
+          setTimeout(() => setAlert(null), 3000);
         } else {
           logEngine({
             type: "error",
             message: "Unexpected response. Please try again.",
-            user,
+            user: getUserForLogging(user),
           });
+
           setIsSubmitting(false);
           setAlert({
             variant: "error",
             body: "Unexpected response. Please try again.",
           });
-          setTimeout(() => {
-            setAlert(null);
-          }, 3000);
+          setTimeout(() => setAlert(null), 3000);
         }
       })
       .catch((error) => {
         console.error("Error submitting form:", error);
+
         logEngine({
           type: "error",
           message: `An error occurred: ${error.message}`,
-          user,
+          user: getUserForLogging({
+            id: 0,
+            email: values.email,
+            name: "N/A",
+            surname: "N/A",
+          }),
         });
+
         setIsSubmitting(false);
         setAlert({ variant: "error", body: "Error submitting form" });
-        setTimeout(() => {
-          setAlert(null);
-        }, 3000);
+        setTimeout(() => setAlert(null), 3000);
       });
   };
 

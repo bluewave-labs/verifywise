@@ -12,37 +12,31 @@
  */
 
 import TabContext from "@mui/lab/TabContext";
-import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 
-import {
-  Box,
-  Button,
-  Modal,
-  Stack,
-  Tab,
-  Typography,
-  useTheme,
-} from "@mui/material";
+import { Button, Modal, Stack, Typography, useTheme } from "@mui/material";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
 import { ReactComponent as Close } from "../../../assets/icons/close.svg";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useContext, useEffect, useMemo, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import {
   createNewUser,
-  getAllEntities,
   updateEntityById,
 } from "../../../../application/repository/entity.repository";
 import Alert from "../../Alert";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
-import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import useUsers from "../../../../application/hooks/useUsers";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import VWToast from "../../../vw-v2-components/Toast";
+import { User } from "../../../../domain/User";
+import { logEngine } from "../../../../application/tools/log.engine";
+import { getUserForLogging } from "../../../../application/tools/userHelpers";
 
 export interface VendorDetails {
   id?: number;
-  project_id: number;
+  projectId?: number;
   vendor_name: string;
   vendor_provides: string;
   website: string;
@@ -53,22 +47,7 @@ export interface VendorDetails {
   risk_status: string;
   review_date: string;
   assignee: string;
-}
-
-interface Risks {
-  riskDescription: string;
-  impactDescription: string;
-  projectName: string;
-  impact: string;
-  actionOwner: string;
-  riskSeverity: string;
-  likelihood: string;
-  riskLevel: string;
-}
-
-interface Values {
-  vendorDetails: VendorDetails;
-  risks: Risks;
+  projects: number[];
 }
 
 interface FormErrors {
@@ -79,6 +58,9 @@ interface FormErrors {
   vendorContactPerson?: string;
   reviewStatus?: string;
   assignee?: string;
+  reviewer?: string;
+  reviewResult?: string;
+  riskStatus?: string;
 }
 
 const initialState = {
@@ -88,22 +70,12 @@ const initialState = {
     projectId: 0,
     vendorProvides: "",
     vendorContactPerson: "",
-    reviewStatus: "0",
-    reviewer: "0",
+    reviewStatus: "",
+    reviewer: "",
     reviewResult: "",
-    riskStatus: "0",
-    assignee: "0",
+    riskStatus: 0,
+    assignee: "",
     reviewDate: new Date().toISOString(),
-  },
-  risks: {
-    riskDescription: "",
-    impactDescription: "",
-    impact: 0,
-    actionOwner: "0",
-    riskSeverity: 0,
-    likelihood: 0,
-    riskLevel: 0,
-    actionPlan: "",
   },
 };
 
@@ -111,8 +83,8 @@ interface AddNewVendorProps {
   isOpen: boolean;
   setIsOpen: () => void;
   value: string;
-  handleChange: (event: React.SyntheticEvent, newValue: string) => void;
-  existingVendor?: VendorDetails;
+  onSuccess: () => void;
+  existingVendor?: VendorDetails | null;
   onChange?: () => void;
 }
 
@@ -130,104 +102,63 @@ const RISK_LEVEL_OPTIONS = [
   { _id: 5, name: "Very low risk" },
 ];
 
-const LIKELIHOOD_OPTIONS = [
-  { _id: 1, name: "Rare" },
-  { _id: 2, name: "Unlikely" },
-  { _id: 3, name: "Possible" },
-  { _id: 4, name: "Likely" },
-  { _id: 5, name: "Almost certain" },
-];
-
-const IMPACT_OPTIONS = [
-  { _id: 1, name: "Negligible" },
-  { _id: 2, name: "Minor" },
-  { _id: 3, name: "Moderate" },
-  { _id: 4, name: "Major and Critical" },
-];
-
-const RISK_SEVERITY_OPTIONS = [
-  { _id: 1, name: "Low" },
-  { _id: 2, name: "Medium" },
-  { _id: 3, name: "High and Critical" },
-];
-
 const AddNewVendor: React.FC<AddNewVendorProps> = ({
   isOpen,
   setIsOpen,
   value,
-  handleChange,
+  onSuccess,
   existingVendor,
   onChange = () => {},
 }) => {
   const theme = useTheme();
-  const [values, setValues] = useState({
-    vendorDetails: {
-      vendorName: existingVendor?.vendor_name || "",
-      website: "",
-      projectId: existingVendor?.project_id || "",
-      vendorProvides: "",
-      vendorContactPerson: "",
-      reviewStatus: "0",
-      reviewer: "0",
-      reviewResult: "",
-      riskStatus: "0",
-      assignee: existingVendor?.assignee || "",
-      reviewDate: existingVendor?.review_date || new Date().toISOString(),
-    },
-    risks: {
-      riskDescription: "",
-      impactDescription: "",
-      impact: 0,
-      actionOwner: "",
-      riskSeverity: 0,
-      likelihood: 0,
-      riskLevel: 0,
-      actionPlan: "",
-    },
-  });
+  const [values, setValues] = useState(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [projectsLoaded, setProjectsLoaded] = useState(false); // Track if projects are loaded
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
     body: string;
   } | null>(null);
-
   const [projectOptions, setProjectOptions] = useState<
     { _id: number; name: string }[]
   >([]);
-  const [projectsLoaded, setProjectsLoaded] = useState(false); // Track if projects are loaded
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { dashboardValues } = useContext(VerifyWiseContext);
+  const { projects } = dashboardValues;
   const { users } = useUsers();
 
-  const fetchProjects = async () => {
-    try {
-      const response = await getAllEntities({ routeUrl: "/projects" });
-      console.log("API response ===> ", response);
-
-      if (response.data) {
-        const formattedProjects = response.data.map((project: any) => ({
-          _id: project.id,
-          name: project.project_title,
-        }));
-        setProjectOptions(formattedProjects);
-        setProjectsLoaded(true); // Mark projects as loaded
-      } else {
-        console.error("Unexpected response structure:", response);
-        setProjectOptions([]);
-      }
-    } catch (error: any) {
-      console.error("Error fetching projects:", error);
-      setProjectOptions([]);
-    }
+  const formattedUsers = users?.map((user) => ({
+    _id: user.id,
+    name: `${user.name} ${user.surname}`,
+  }));
+  console.log("formattedUsers", formattedUsers);
+  const user: User = {
+    id: Number(localStorage.getItem("userId")) || -1,
+    email: "N/A",
+    name: "N/A",
+    surname: "N/A",
   };
+
+  const formattedProjects = useMemo(() => {
+    return (
+      projects?.map((project: any) => ({
+        _id: project.id,
+        name: project.project_title,
+      })) || []
+    );
+  }, [projects]);
 
   useEffect(() => {
     if (isOpen && !projectsLoaded) {
-      fetchProjects();
+      setProjectOptions(formattedProjects);
+      setProjectsLoaded(true);
     }
-  }, [isOpen, projectsLoaded]);
+  }, [isOpen, projectsLoaded, formattedProjects]);
 
   useEffect(() => {
+    if (isOpen && !existingVendor) {
+      setValues(initialState);
+    }
     if (existingVendor) {
       setValues((prevValues) => ({
         ...prevValues,
@@ -235,7 +166,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           ...prevValues.vendorDetails,
           vendorName: existingVendor.vendor_name,
           website: existingVendor.website,
-          projectId: existingVendor.project_id,
+          projectId: existingVendor.projects?.length
+            ? existingVendor.projects[0]
+            : 0,
           vendorProvides: existingVendor.vendor_provides,
           vendorContactPerson: existingVendor.vendor_contact_person,
           reviewStatus:
@@ -243,20 +176,18 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               (s) => s.name === existingVendor.review_status
             )?._id || "",
           reviewer:
-            String(
-              users?.find((s) => s.name === existingVendor.reviewer)?.id
-            ) || "0",
+            formattedUsers?.find(
+              (user) => user.name === existingVendor.reviewer
+            )?._id || "",
           reviewResult: existingVendor.review_result,
           riskStatus:
-            String(
-              RISK_LEVEL_OPTIONS.find(
-                (s) => s.name === existingVendor.risk_status
-              )?._id
-            ) || "",
+            RISK_LEVEL_OPTIONS.find(
+              (s) => s.name === existingVendor.risk_status
+            )?._id || 0,
           assignee:
-            String(
-              users?.find((s) => s.name === existingVendor.assignee)?.id
-            ) || "0",
+            formattedUsers?.find(
+              (user) => user.name === existingVendor.assignee
+            )?._id ||" ",
           reviewDate: existingVendor.review_date,
         },
       }));
@@ -268,7 +199,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
    */
   const handleSave = () => {
     if (validateForm()) {
-      existingVendor ? setIsModalOpen(true) : handleOnSave();
+      handleOnSave();
     }
   };
 
@@ -294,16 +225,13 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
    * @param field - The field name to update
    * @param value - The new value
    */
-  const handleOnChange = (
-    section: keyof Values,
-    field: string,
-    value: string | number
-  ) => {
-    console.log("handleOnChange", section, field, value);
+  const handleOnChange = (field: string, value: string | number) => {
+    console.log("handleOnChange", field, value);
     setValues((prevValues) => ({
       ...prevValues,
-      [section]: {
-        ...prevValues[section],
+
+      vendorDetails: {
+        ...prevValues.vendorDetails,
         [field]: value,
       },
     }));
@@ -333,6 +261,15 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     );
     if (!vendorWebsite.accepted) {
       newErrors.website = vendorWebsite.message;
+    }
+    const vendorReviewResult = checkStringValidation(
+      "Vendor review result",
+      values.vendorDetails.reviewResult,
+      1,
+      64
+    );
+    if (!vendorReviewResult.accepted) {
+      newErrors.reviewResult = vendorReviewResult.message;
     }
     if (
       !values.vendorDetails.projectId ||
@@ -366,6 +303,18 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         "Please select a review status from the dropdown";
     }
     if (
+      !values.vendorDetails.reviewer ||
+      Number(values.vendorDetails.reviewer) === 0
+    ) {
+      newErrors.reviewer = "Please select a reviewer from the dropdown";
+    }
+    if (
+      !values.vendorDetails.riskStatus ||
+      Number(values.vendorDetails.riskStatus) === 0
+    ) {
+      newErrors.riskStatus = "Please select a risk status from the dropdown";
+    }
+    if (
       !values.vendorDetails.assignee ||
       Number(values.vendorDetails.assignee) === 0
     ) {
@@ -381,10 +330,11 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
    */
   const handleOnSave = async () => {
     const _vendorDetails = {
-      project_id: values.vendorDetails.projectId,
+      projects: [values.vendorDetails.projectId],
       vendor_name: values.vendorDetails.vendorName,
-      assignee: users?.find((a) => a.id === values.vendorDetails.assignee)
-        ?.name,
+      assignee: formattedUsers?.find(
+        (user) => user._id === values.vendorDetails.assignee
+      )?.name,
       vendor_provides: values.vendorDetails.vendorProvides,
       website: values.vendorDetails.website,
       vendor_contact_person: values.vendorDetails.vendorContactPerson,
@@ -393,31 +343,21 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         REVIEW_STATUS_OPTIONS.find(
           (s) => s._id === values.vendorDetails.reviewStatus
         )?.name || "",
-      reviewer: users?.find((a) => a.id === values.vendorDetails.reviewer)
-        ?.name,
+      reviewer: formattedUsers?.find(
+        (user) => user._id === values.vendorDetails.reviewer
+      )?.name,
       risk_status:
         RISK_LEVEL_OPTIONS.find(
-          (s) => s._id === Number(values.vendorDetails.riskStatus)
-        )?.name || "",
+          (s) => s._id === values.vendorDetails.riskStatus
+        )?.name || 0,
       review_date: values.vendorDetails.reviewDate,
-      risk_description: values.risks.riskDescription,
-      impact_description: values.risks.impactDescription,
-      impact: Number(values.risks.impact),
-      action_owner:
-        users.find((a) => a.id === values.risks.actionOwner)?.name || "",
-      action_plan: values.risks.actionPlan,
-      risk_severity: Number(values.risks.riskSeverity),
-      risk_level:
-        RISK_LEVEL_OPTIONS.find((r) => r._id === values.risks.riskLevel)
-          ?.name || "",
-      likelihood: Number(values.risks.likelihood),
     };
+    console.log("Payload being sent:", _vendorDetails);
     if (existingVendor) {
       await updateVendor(existingVendor.id!, _vendorDetails);
     } else {
       await createVendor(_vendorDetails);
     }
-    setIsModalOpen(false);
   };
 
   /**
@@ -425,34 +365,53 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
    * @param vendorDetails - The vendor details to create
    */
   const createVendor = async (vendorDetails: object) => {
-    console.log(vendorDetails);
-    await createNewUser({
-      routeUrl: "/vendors",
-      body: vendorDetails,
-    }).then((response) => {
-      setValues(initialState);
+    setIsSubmitting(true);
+
+    try {
+      console.log("Creating vendor with details:", vendorDetails);
+
+      const response = await createNewUser({
+        routeUrl: "/vendors",
+        body: vendorDetails,
+      });
+
       if (response.status === 201) {
         setAlert({
           variant: "success",
           body: "Vendor created successfully",
         });
-        setTimeout(() => {
-          setAlert(null);
-          onChange();
-          setIsOpen();
-        }, 1000);
-      } else if (response.status === 400 || response.status === 500) {
+        setTimeout(() => setAlert(null), 3000);
+        onSuccess();
+        setIsOpen();
+      } else {
         setAlert({
           variant: "error",
-          body: response.data.data.message,
+          body: response.data?.data?.message || "An error occurred.",
         });
         setTimeout(() => {
           setAlert(null);
           onChange();
-          setIsOpen();
-        }, 1000);
+        }, 3000);
       }
-    });
+    } catch (error) {
+      console.error("API Error:", error);
+      logEngine({
+        type: "error",
+        message: "Unexpected response. Please try again.",
+        user: getUserForLogging(user),
+      });
+
+      setAlert({
+        variant: "error",
+        body: `An error occurred: ${
+          (error as Error).message || "Please try again."
+        }`,
+      });
+
+      setTimeout(() => setAlert(null), 3000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   /**
@@ -464,30 +423,49 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     vendorId: number,
     updatedVendorDetails: object
   ) => {
-    // Make a call to backend and update the vendor'
-    console.log("Edit Vendor", vendorId, updatedVendorDetails);
-    await updateEntityById({
-      routeUrl: `/vendors/${vendorId}`,
-      body: updatedVendorDetails,
-    }).then((response) => {
-      setValues(initialState);
+    setIsSubmitting(true);
+
+    try {
+      console.log("Editing Vendor:", vendorId, updatedVendorDetails);
+
+      const response = await updateEntityById({
+        routeUrl: `/vendors/${vendorId}`,
+        body: updatedVendorDetails,
+      });
+
       if (response.status === 202) {
         setAlert({
           variant: "success",
           body: "Vendor updated successfully",
         });
-        setTimeout(() => {
-          setAlert(null);
-          onChange();
-          setIsOpen();
-        }, 1000);
-      } else if (response.status == 400) {
+        setTimeout(() => setAlert(null), 3000);
+        onSuccess();
+        setIsOpen();
+      } else {
         setAlert({
           variant: "error",
-          body: response.data.data.message,
+          body: response.data?.data?.message || "An error occurred.",
         });
+        setTimeout(() => setAlert(null), 3000);
       }
-    });
+    } catch (error) {
+      console.error("API Error:", error);
+      logEngine({
+        type: "error",
+        message: "Unexpected response. Please try again.",
+        user: getUserForLogging(user),
+      });
+      setAlert({
+        variant: "error",
+        body: `An error occurred: ${
+          (error as Error).message || "Please try again."
+        }`,
+      });
+
+      setTimeout(() => setAlert(null), 3000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const vendorDetailsPanel = (
@@ -501,22 +479,15 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           label="Vendor name"
           width={220}
           value={values.vendorDetails.vendorName}
-          // onChange={handleOnChange1("vendorDetails")}
-          onChange={(e) =>
-            handleOnChange("vendorDetails", "vendorName", e.target.value)
-          }
+          onChange={(e) => handleOnChange("vendorName", e.target.value)}
           error={errors.vendorName}
-          isRequired
         />
         <Field // website
           label="Website"
           width={220}
           value={values.vendorDetails.website}
-          onChange={(e) =>
-            handleOnChange("vendorDetails", "website", e.target.value)
-          }
+          onChange={(e) => handleOnChange("website", e.target.value)}
           error={errors.website}
-          isRequired
         />
         <Select // projectId
           items={projectOptions}
@@ -525,14 +496,11 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           isHidden={false}
           id=""
           value={values.vendorDetails.projectId}
-          onChange={(e) =>
-            handleOnChange("vendorDetails", "projectId", e.target.value)
-          }
+          onChange={(e) => handleOnChange("projectId", e.target.value)}
           sx={{
             width: 220,
           }}
           error={errors.projectId}
-          isRequired
         />
       </Stack>
       <Stack marginBottom={theme.spacing(8)}>
@@ -541,10 +509,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           width={"100%"}
           type="description"
           value={values.vendorDetails.vendorProvides}
-          onChange={(e) =>
-            handleOnChange("vendorDetails", "vendorProvides", e.target.value)
-          }
-          isRequired
+          onChange={(e) => handleOnChange("vendorProvides", e.target.value)}
           error={errors.vendorProvides}
         />
       </Stack>
@@ -558,13 +523,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           width={220}
           value={values.vendorDetails.vendorContactPerson}
           onChange={(e) =>
-            handleOnChange(
-              "vendorDetails",
-              "vendorContactPerson",
-              e.target.value
-            )
+            handleOnChange("vendorContactPerson", e.target.value)
           }
-          isRequired
           error={errors.vendorContactPerson}
         />
         <Select // reviewStatus
@@ -573,31 +533,22 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           placeholder="Select review status"
           isHidden={false}
           id=""
-          onChange={(e) =>
-            handleOnChange("vendorDetails", "reviewStatus", e.target.value)
-          }
+          onChange={(e) => handleOnChange("reviewStatus", e.target.value)}
           value={values.vendorDetails.reviewStatus}
           sx={{
             width: 220,
           }}
           error={errors.reviewStatus}
-          isRequired
         />
         <Select // reviewer
-          items={
-            users?.map((user) => ({
-              _id: user.id,
-              name: `${user.name} ${user.surname}`,
-            })) || []
-          }
+          items={formattedUsers}
           label="Reviewer"
           placeholder="Select reviewer"
           isHidden={false}
           id=""
-          onChange={(e) =>
-            handleOnChange("vendorDetails", "reviewer", e.target.value)
-          }
+          onChange={(e) => handleOnChange("reviewer", e.target.value)}
           value={values.vendorDetails.reviewer}
+          error={errors.reviewer}
           sx={{
             width: 220,
           }}
@@ -614,9 +565,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           width={"100%"}
           type="description"
           value={values.vendorDetails.reviewResult}
-          onChange={(e) =>
-            handleOnChange("vendorDetails", "reviewResult", e.target.value)
-          }
+          error={errors.reviewResult}
+          onChange={(e) => handleOnChange("reviewResult", e.target.value)}
         />
       </Stack>
       <Stack
@@ -631,33 +581,24 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           placeholder="Select risk status"
           isHidden={false}
           id=""
-          onChange={(e) =>
-            handleOnChange("vendorDetails", "riskStatus", e.target.value)
-          }
+          onChange={(e) => handleOnChange("riskStatus", e.target.value)}
           value={values.vendorDetails.riskStatus}
+          error={errors.riskStatus}
           sx={{
             width: 220,
           }}
         />
         <Select // assignee (not in the server model!)
-          items={
-            users?.map((user) => ({
-              _id: user.id,
-              name: `${user.name} ${user.surname}`,
-            })) || []
-          }
+          items={formattedUsers}
           label="Assignee"
           placeholder="Select person"
           isHidden={false}
           id=""
-          onChange={(e) =>
-            handleOnChange("vendorDetails", "assignee", e.target.value)
-          }
+          onChange={(e) => handleOnChange("assignee", e.target.value)}
           value={values.vendorDetails.assignee}
           sx={{
             width: 220,
           }}
-          isRequired
           error={errors.assignee}
         />
         <DatePicker // reviewDate
@@ -676,151 +617,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     </TabPanel>
   );
 
-  const risksPanel = (
-    <TabPanel value="2" sx={{ paddingTop: theme.spacing(15), paddingX: 0 }}>
-      <Stack
-        direction={"row"}
-        justifyContent={"space-between"}
-        marginBottom={theme.spacing(8)}
-      >
-        <Field // riskDescription
-          label="Risk description"
-          width={350}
-          value={values.risks.riskDescription}
-          onChange={(e) =>
-            handleOnChange("risks", "riskDescription", e.target.value)
-          }
-        />
-        <Field // impactDescription
-          label="Impact description"
-          width={350}
-          value={values.risks.impactDescription}
-          onChange={(e) =>
-            handleOnChange("risks", "impactDescription", e.target.value)
-          }
-        />
-      </Stack>
-      <Stack
-        direction={"row"}
-        justifyContent={"space-between"}
-        marginBottom={theme.spacing(8)}
-      >
-        <Select // impact
-          items={IMPACT_OPTIONS}
-          label="Impact"
-          placeholder="Select impact"
-          isHidden={false}
-          id=""
-          onChange={(e) => handleOnChange("risks", "impact", e.target.value)}
-          value={values.risks.impact}
-          sx={{
-            width: 350,
-          }}
-        />
-        <Select // likelihood
-          items={LIKELIHOOD_OPTIONS}
-          label="Likelihood"
-          placeholder="Select risk severity"
-          isHidden={false}
-          id=""
-          onChange={(e) =>
-            handleOnChange("risks", "likelihood", e.target.value)
-          }
-          value={values.risks.likelihood}
-          sx={{
-            width: 350,
-          }}
-        />
-      </Stack>
-      <Stack
-        display={"flex"}
-        justifyContent={"space-between"}
-        marginBottom={theme.spacing(8)}
-        flexDirection={"row"}
-      >
-        <Box
-          justifyContent={"space-between"}
-          display={"grid"}
-          gap={theme.spacing(8)}
-        >
-          <Select // riskSeverity
-            items={RISK_SEVERITY_OPTIONS}
-            label="Risk severity"
-            placeholder="Select risk severity"
-            isHidden={false}
-            id=""
-            onChange={(e) =>
-              handleOnChange("risks", "riskSeverity", e.target.value)
-            }
-            value={values.risks.riskSeverity}
-            sx={{
-              width: 350,
-            }}
-          />
-
-          <Select // actionOwner
-            items={
-              users?.map((user) => ({
-                _id: String(user.id),
-                name: `${user.name} ${user.surname}`,
-              })) || []
-            }
-            label="Action owner"
-            placeholder="Select owner"
-            isHidden={false}
-            id=""
-            onChange={(e) =>
-              handleOnChange("risks", "actionOwner", e.target.value)
-            }
-            value={values.risks.actionOwner}
-            sx={{
-              width: 350,
-            }}
-          />
-        </Box>
-        <Field // actionPlan
-          label="Action plan"
-          width={350}
-          type="description"
-          value={values.risks.actionPlan}
-          onChange={(e) =>
-            handleOnChange("risks", "actionPlan", e.target.value)
-          }
-        />
-      </Stack>
-      <Stack
-        direction={"row"}
-        justifyContent={"space-between"}
-        marginBottom={theme.spacing(8)}
-      >
-        <Select // riskLevel
-          items={RISK_LEVEL_OPTIONS}
-          label="Risk level"
-          placeholder="Select risk level"
-          isHidden={false}
-          id=""
-          onChange={(e) => handleOnChange("risks", "riskLevel", e.target.value)}
-          value={values.risks.riskLevel}
-          sx={{
-            width: 350,
-          }}
-        />
-        {/* <Select // likelihood
-                    items={LIKELIHOOD_OPTIONS}
-                    label="Likelihood"
-                    placeholder="Select risk severity"
-                    isHidden={false}
-                    id=""
-                    onChange={(e) => handleOnChange("risks", "likelihood", e.target.value)}
-                    value={values.risks.likelihood}
-                    sx={{
-                        width: 350,
-                    }}
-                /> */}
-      </Stack>
-    </TabPanel>
-  );
-
   return (
     <Stack>
       {alert && (
@@ -834,10 +630,14 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           />
         </Suspense>
       )}
+      {isSubmitting && (
+        <VWToast title="Processing your request. Please wait..." />
+      )}
       <Modal
         open={isOpen}
         onClose={(_event, reason) => {
           if (reason !== "backdropClick") {
+            setValues(initialState);
             setIsOpen();
           }
         }}
@@ -911,22 +711,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 Save
               </Button>
             </Stack>
-            {isModalOpen && (
-              <DualButtonModal
-                title="Confirm Save"
-                body={
-                  <Typography>
-                    Are you sure you want to save the changes?
-                  </Typography>
-                }
-                cancelText="Cancel"
-                proceedText="Confirm"
-                onCancel={() => setIsModalOpen(false)}
-                onProceed={handleOnSave}
-                proceedButtonColor="primary"
-                proceedButtonVariant="contained"
-              />
-            )}
           </TabContext>
         </Stack>
       </Modal>

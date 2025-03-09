@@ -17,25 +17,29 @@ import { useState } from "react";
 import BasicModal from "../Modals/Basic";
 import AddNewVendor, { VendorDetails } from "../Modals/NewVendor";
 import singleTheme from "../../themes/v1SingleTheme";
-import { getEntityById } from "../../../application/repository/entity.repository";
 import Alert from "../Alert";
-import { logEngine } from "../../../application/tools/log.engine";
 
 interface IconButtonProps {
   id: number;
-  onChange: () => void;
-  onDelete: (id: number) => void;
+  onDelete: () => void;
+  onEdit: () => void;
+  warningTitle: string;
+  warningMessage: string;
+  text:string;
 }
 
 const IconButton: React.FC<IconButtonProps> = ({
   id,
-  onChange,
   onDelete,
+  onEdit,
+  warningTitle,
+  warningMessage,
+  text
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
   const [actions, setActions] = useState({});
-  const [isOpenRemoveVendorModal, setIsOpenRemoveVendorModal] = useState(false);
+  const [isOpenRemoveModal, setisOpenRemoveModal] = useState(false);
   const [isOpenAddNewVendorModal, setIsOpenAddNewVendorModal] = useState(false);
   const [value, setValue] = useState("1");
   const [selectedVendor, setSelectedVendor] = useState<
@@ -71,9 +75,9 @@ const IconButton: React.FC<IconButtonProps> = ({
    *
    * @param {React.MouseEvent} e - The click event that triggers the function.
    */
-  function openRemoveVendor(e: React.MouseEvent) {
-    closeDropDownMenu(e);
-    setIsOpenRemoveVendorModal(true);
+  function openRemoveModal() {
+    // closeDropDownMenu(e);
+    setisOpenRemoveModal(true);
   }
 
   /**
@@ -85,6 +89,7 @@ const IconButton: React.FC<IconButtonProps> = ({
   function handleChange(_: React.SyntheticEvent, newValue: string) {
     setValue(newValue);
   }
+
 
   /**
    * Handles the action of opening the "Add New Vendor" dialog by setting the state to open the add new vendor modal.
@@ -104,32 +109,27 @@ const IconButton: React.FC<IconButtonProps> = ({
     setAnchorEl(null);
   }
 
-  const handleDeleteVendor = () => {
-    onDelete(id);
-    setIsOpenRemoveVendorModal(false);
-  };
+  const handleDelete = (e?: React.SyntheticEvent) => {
+    onDelete();
+    setisOpenRemoveModal(false);
 
-  const handleEditVendor = async (e: React.MouseEvent) => {
-    closeDropDownMenu(e);
-    try {
-      const response = await getEntityById({
-        routeUrl: `/vendors/${id}`,
-      });
-      setSelectedVendor(response.data);
-      openAddNewVendor();
-    } catch (e) {
-      logEngine({
-        type: "error",
-        message: "Failed to fetch vendor data.",
-        user: {
-          id: String(localStorage.getItem("userId")) || "N/A",
-          email: "N/A",
-          firstname: "N/A",
-          lastname: "N/A",
-        },
-      });
+    if (e) {
+      closeDropDownMenu(e);
     }
   };
+  const handleEdit = (e?: React.SyntheticEvent) => {
+    onEdit();
+    if (e) {
+      closeDropDownMenu(e);
+    }
+  };
+  function handleCancle(e?: React.SyntheticEvent){
+    setisOpenRemoveModal(false);
+    if (e) {
+      closeDropDownMenu(e);
+    }
+  }
+
 
   /**
    * A dropdown list of options rendered as a Material-UI Menu component.
@@ -159,22 +159,8 @@ const IconButton: React.FC<IconButtonProps> = ({
         },
       }}
     >
-      <MenuItem
-        onClick={(e) => {
-          e.stopPropagation();
-          handleEditVendor(e);
-        }}
-      >
-        Edit
-      </MenuItem>
-      <MenuItem
-        onClick={(e) => {
-          e.stopPropagation();
-          openRemoveVendor(e);
-        }}
-      >
-        Remove
-      </MenuItem>
+      <MenuItem onClick={(e)=>handleEdit(e)}>Edit</MenuItem>
+      <MenuItem onClick={() => setisOpenRemoveModal(true)}>Remove</MenuItem>
     </Menu>
   );
 
@@ -214,18 +200,22 @@ const IconButton: React.FC<IconButtonProps> = ({
       {customIconButtonAsSettings}
       {dropDownListOfOptions}
       <BasicModal
-        isOpen={isOpenRemoveVendorModal}
-        setIsOpen={() => setIsOpenRemoveVendorModal(false)}
-        onDelete={handleDeleteVendor}
+        isOpen={isOpenRemoveModal}
+        setIsOpen={() => setisOpenRemoveModal(false)}
+        onDelete={(e) => handleDelete(e)}
+        warningTitle={warningTitle}
+        warningMessage={warningMessage}
+        onCancel = {(e) =>handleCancle(e)}
+        text={text}
       />
-      <AddNewVendor // the usage here is as the edit window
+      {/* <AddNewVendor
         isOpen={isOpenAddNewVendorModal}
         handleChange={handleChange}
         setIsOpen={() => setIsOpenAddNewVendorModal(false)}
         value={value}
         existingVendor={selectedVendor}
         onChange={onChange}
-      />
+      /> */}
       {alert && (
         <Alert
           variant={alert.variant}

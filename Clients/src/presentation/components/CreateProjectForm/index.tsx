@@ -1,15 +1,21 @@
 import { FC, useState, useMemo, useCallback, useEffect } from "react";
-import { Button, SelectChangeEvent, Stack, useTheme, Autocomplete, TextField, Typography, Box } from "@mui/material";
+import {
+  Button,
+  SelectChangeEvent,
+  Stack,
+  useTheme,
+  Autocomplete,
+  TextField,
+  Typography,
+  Box,
+} from "@mui/material";
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
 import { useSelector } from "react-redux";
 import dayjs, { Dayjs } from "dayjs";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
 import selectValidation from "../../../application/validations/selectValidation";
 import { Suspense, lazy } from "react";
-import {
-  createNewUser,
-  getAllEntities,
-} from "../../../application/repository/entity.repository";
+import { createNewUser } from "../../../application/repository/entity.repository";
 const Select = lazy(() => import("../Inputs/Select"));
 const DatePicker = lazy(() => import("../Inputs/Datepicker"));
 const Field = lazy(() => import("../Inputs/Field"));
@@ -91,7 +97,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
   const theme = useTheme();
   const [values, setValues] = useState<FormValues>(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
-  const { users, loading, error } = useUsers();
+  const { users } = useUsers();
   const authState = useSelector(
     (state: { auth: { authToken: string; userExists: boolean } }) => state.auth
   );
@@ -148,7 +154,10 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
     if (!startDate.accepted) {
       newErrors.startDate = startDate.message;
     }
-    const addTeamMember = selectValidation("Team members", values.members.length);
+    const addTeamMember = selectValidation(
+      "Team members",
+      values.members.length
+    );
     if (!addTeamMember.accepted) {
       newErrors.members = addTeamMember.message;
       setMemberRequired(true);
@@ -185,8 +194,8 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
 
   const confirmSubmit = async () => {
     const userInfo = extractUserToken(authState.authToken);
-    
-    const teamMember = values.members.map(user => String(user._id))    
+
+    const teamMember = values.members.map((user) => String(user._id));
     await createNewUser({
       routeUrl: "/projects",
       body: {
@@ -198,8 +207,8 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
           (item) => item._id === values.ai_risk_classification
         )?.name,
         last_updated: values.start_date,
-        last_updated_by: userInfo?.id, 
-        members: teamMember
+        last_updated_by: userInfo?.id,
+        members: teamMember,
       },
     }).then((response) => {
       // Reset form after successful submission
@@ -247,14 +256,14 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
   );
 
   const handleOnMultiSelect = useCallback(
-    (prop: keyof FormValues) => 
-      (_event: React.SyntheticEvent, newValue: any[]) => {        
+    (prop: keyof FormValues) =>
+      (_event: React.SyntheticEvent, newValue: any[]) => {
         setValues((prevValues) => ({
           ...prevValues,
           [prop]: newValue,
         }));
-        setMemberRequired(false)
-      }, 
+        setMemberRequired(false);
+      },
     []
   );
 
@@ -353,28 +362,12 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
           </Stack>
           <Stack>
             <Suspense fallback={<div>Loading...</div>}>
-              {/* <Select
-                id="users-input"
-                label="Users"
-                placeholder="Select users"
-                value={values.members === 0 ? "" : values.users}
-                onChange={handleOnSelectChange("members")}
-                items={
-                  users?.map((user) => ({
-                    _id: user.id,
-                    name: `${user.name} ${user.surname}`,
-                    email: user.email,
-                  })) || []
-                }
-                sx={{
-                  width: "350px",
-                  backgroundColor: theme.palette.background.main,
-                }}
-                error={errors.users}
-                isRequired
-              /> */}
               <Typography
-                sx={{ fontSize: theme.typography.fontSize, fontWeight: 500, mb: 2}}
+                sx={{
+                  fontSize: theme.typography.fontSize,
+                  fontWeight: 500,
+                  mb: 2,
+                }}
               >
                 Team members *
               </Typography>
@@ -385,13 +378,18 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                 value={values.members}
                 options={
                   users
-                  ?.filter((user) => !values.members.some((selectedUser) => selectedUser._id === user.id))
-                  .map((user) => ({
-                    _id: user.id,
-                    name: user.name,
-                    surname: user.surname,
-                    email: user.email,
-                  })) || []
+                    ?.filter(
+                      (user) =>
+                        !values.members.some(
+                          (selectedUser) => selectedUser._id === user.id
+                        )
+                    )
+                    .map((user) => ({
+                      _id: user.id,
+                      name: user.name,
+                      surname: user.surname,
+                      email: user.email,
+                    })) || []
                 }
                 noOptionsText={
                   values.members.length === users.length
@@ -402,17 +400,23 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                 getOptionLabel={(user) => `${user.name} ${user.surname}`}
                 renderOption={(props, option) => {
                   const { key, ...optionProps } = props;
-                  const userEmail = option.email.length > 30 ? `${option.email.slice(0, 30)}...` : option.email;
+                  const userEmail =
+                    option.email.length > 30
+                      ? `${option.email.slice(0, 30)}...`
+                      : option.email;
                   return (
-                    <Box
-                      key={key}
-                      component="li"
-                      {...optionProps}
-                    >
-                      <Typography sx={{ fontSize: '13px' }}>
+                    <Box key={key} component="li" {...optionProps}>
+                      <Typography sx={{ fontSize: "13px" }}>
                         {option.name} {option.surname}
                       </Typography>
-                      <Typography sx={{ fontSize: '11px', color: 'rgb(157, 157, 157)', position: 'absolute', right: '9px' }}>
+                      <Typography
+                        sx={{
+                          fontSize: "11px",
+                          color: "rgb(157, 157, 157)",
+                          position: "absolute",
+                          right: "9px",
+                        }}
+                      >
                         {userEmail}
                       </Typography>
                     </Box>
@@ -427,8 +431,8 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                     error={memberRequired}
                     sx={{
                       "& .MuiOutlinedInput-root": {
-                        paddingTop: "3.8px !important", 
-                        paddingBottom: "3.8px !important"
+                        paddingTop: "3.8px !important",
+                        paddingBottom: "3.8px !important",
                       },
                       "& ::placeholder": {
                         fontSize: "13px",
@@ -440,15 +444,15 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                   width: "350px",
                   backgroundColor: theme.palette.background.main,
                   "& .MuiOutlinedInput-root": {
-                    borderRadius: "3px", 
+                    borderRadius: "3px",
                     "&:hover .MuiOutlinedInput-notchedOutline": {
                       borderColor: "none",
                     },
                     "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#888", 
-                      borderWidth: "1px", 
+                      borderColor: "#888",
+                      borderWidth: "1px",
                     },
-                  }
+                  },
                 }}
                 slotProps={{
                   paper: {
@@ -458,34 +462,43 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                           fontSize: "13px",
                           color: "#1c2130",
                           paddingLeft: "9px",
-                          paddingRight: "9px"
+                          paddingRight: "9px",
                         },
                         "& .MuiAutocomplete-option.Mui-focused": {
                           background: "#f9fafb",
-                        }
+                        },
                       },
                       "& .MuiAutocomplete-noOptions": {
                         fontSize: "13px",
                         paddingLeft: "9px",
-                        paddingRight: "9px"
-                      }
+                        paddingRight: "9px",
+                      },
                     },
                   },
                 }}
               />
-              {memberRequired && <Typography variant="caption" sx={{mt: 4, color: '#f04438', fontWeight: 300}}>{errors.members}</Typography>}
+              {memberRequired && (
+                <Typography
+                  variant="caption"
+                  sx={{ mt: 4, color: "#f04438", fontWeight: 300 }}
+                >
+                  {errors.members}
+                </Typography>
+              )}
             </Suspense>
             <Stack
               sx={{
                 rowGap: 8,
-                mt: 8
+                mt: 8,
               }}
             >
               <Suspense fallback={<div>Loading...</div>}>
                 <DatePicker
                   label="Start date"
                   date={
-                    values.start_date ? dayjs(values.start_date) : dayjs(new Date())
+                    values.start_date
+                      ? dayjs(values.start_date)
+                      : dayjs(new Date())
                   }
                   handleDateChange={handleDateChange}
                   sx={{

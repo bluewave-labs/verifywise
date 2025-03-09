@@ -26,6 +26,7 @@ import VWToast from "../../Toast"; // will be used when we wait for the response
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { useSelector } from "react-redux";
+import Checkbox from "../../../components/Inputs/Checkbox";
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -57,6 +58,7 @@ interface FormValues {
   ai_risk_classification: number;
   type_of_high_risk_role: number;
   goal: string;
+  autoFill: boolean;
 }
 
 interface FormErrors {
@@ -77,6 +79,7 @@ const initialState: FormValues = {
   ai_risk_classification: 0,
   type_of_high_risk_role: 0,
   goal: "",
+  autoFill: false,
 };
 
 interface VWProjectFormProps {
@@ -153,6 +156,13 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
       }));
     }
   }, []);
+
+  const handleCheckboxChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setValues({ ...values, autoFill: event.target.checked });
+    },
+    [values]
+  );
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -512,6 +522,16 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
             error={errors.goal}
           />
         </Stack>
+      </Stack>
+      <Stack>
+        <Checkbox
+          size="small"
+          id="auto-fill"
+          onChange={handleCheckboxChange}
+          isChecked={values.autoFill}
+          value={values.autoFill.toString()}
+          label="Enable this option to automatically fill in the Compliance Tracker and Assessment Tracker questions with AI-generated answers, helping you save time. You can review and edit these answers anytime."
+        />
       </Stack>
       <Stack
         sx={{

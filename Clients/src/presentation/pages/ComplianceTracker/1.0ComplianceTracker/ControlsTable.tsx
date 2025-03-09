@@ -30,6 +30,14 @@ const cellStyle = {
   },
 };
 
+const descriptionCellStyle = {
+  ...cellStyle,
+  maxWidth: "450px",
+  whiteSpace: "nowrap",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+};
+
 interface Column {
   name: string;
 }
@@ -155,11 +163,11 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
                   />
                 )}
                 <TableCell
-                  sx={cellStyle}
+                  sx={descriptionCellStyle}
                   key={`${controlCategoryId}-${control.id}`}
                 >
                   {controlCategoryIndex}.{`${control.order_no}`} {control.title}{" "}
-                  {`(${control.description}`.substring(0, 20) + `...)`}
+                  {`(${control.description})`}
                 </TableCell>
                 <TableCell sx={cellStyle} key={`owner-${control.id}`}>
                   {control.owner ? control.owner : "Not set"}

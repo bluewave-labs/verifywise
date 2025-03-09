@@ -1,10 +1,10 @@
 export type User = {
-  id: number;
-  name: string;
-  surname: string;
-  email: string;
-  password_hash: string;
-  role: number;
-  created_at: Date;
-  last_login: Date;
-};
+    id?: number; //automatically created by database
+    name: string; //will be filled by user
+    surname: string; //will be filled by user
+    email: string; //will be filled by user
+    password_hash?: string; //created by the database
+    role?: number; //will be filled by user
+    created_at?: Date; //automatically filled by database
+    last_login?: Date; //automatically filled by database
+}

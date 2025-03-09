@@ -30,6 +30,14 @@ const cellStyle = {
   },
 };
 
+const descriptionCellStyle = {
+  ...cellStyle,
+  maxWidth: "450px",
+  whiteSpace: "nowrap",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+};
+
 interface Column {
   name: string;
 }
@@ -51,6 +59,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   const [error, setError] = useState<unknown>(null);
   const [selectedRow, setSelectedRow] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleRowClick = (id: number) => {
     setSelectedRow(id);
@@ -60,6 +69,10 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   const handleCloseModal = () => {
     setModalOpen(false);
     setSelectedRow(null);
+  };
+
+  const handleControlUpdate = () => {
+    setRefreshTrigger(prev => prev + 1);
   };
 
   useEffect(() => {
@@ -78,7 +91,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
     };
 
     fetchControls();
-  }, [controlCategoryId]);
+  }, [controlCategoryId, refreshTrigger]);
 
   const getProgressColor = useCallback((value: number) => {
     if (value <= 10) return "#FF4500"; // 0-10%
@@ -142,19 +155,19 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
                   <NewControlPane
                     data={control}
                     isOpen={modalOpen}
-                    handleClose={handleCloseModal} // Ensure handleCloseModal is passed correctly
-                    OnSave={() => {
-                      console.log("Save clicked");
+                    handleClose={handleCloseModal}
+                    OnSave={(updatedControl) => {
+                      handleControlUpdate();
                     }}
                     controlCategoryId={control.order_no?.toString()}
                   />
                 )}
                 <TableCell
-                  sx={cellStyle}
+                  sx={descriptionCellStyle}
                   key={`${controlCategoryId}-${control.id}`}
                 >
                   {controlCategoryIndex}.{`${control.order_no}`} {control.title}{" "}
-                  {`(${control.description}`.substring(0, 20) + `...)`}
+                  {`(${control.description})`}
                 </TableCell>
                 <TableCell sx={cellStyle} key={`owner-${control.id}`}>
                   {control.owner ? control.owner : "Not set"}

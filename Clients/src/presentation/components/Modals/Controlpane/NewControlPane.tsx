@@ -41,6 +41,13 @@ const NewControlPane = ({
     message: string;
   } | null>(null);
 
+  const sanitizeField = (value: string | undefined | null): string => {
+    if (!value || value === "undefined") {
+      return "";
+    }
+    return value;
+  };
+
   const initialSubControlState = data
     .subControls!.slice()
     .sort((a, b) => a.order_no! - b.order_no!)
@@ -57,8 +64,8 @@ const NewControlPane = ({
       reviewer: subControl.reviewer,
       implementation_details: subControl.implementation_details,
       due_date: subControl.due_date,
-      evidence_description: subControl.evidence_description,
-      feedback_description: subControl.feedback_description,
+      evidence_description: sanitizeField(subControl.evidence_description),
+      feedback_description: sanitizeField(subControl.feedback_description),
       evidence_files: subControl.evidence_files,
       feedback_files: subControl.feedback_files,
     }));
@@ -159,6 +166,12 @@ const NewControlPane = ({
     setIsModalOpen(false);
   };
 
+
+  const handleCloseWrapper = () => {
+    console.log('Close icon clicked');
+    handleClose();
+  };
+
   return (
     <>
       {alert && (
@@ -183,7 +196,7 @@ const NewControlPane = ({
         <DualButtonModal
           title="Confirm Save"
           body={
-            <Typography>Are you sure you want to save the changes?</Typography>
+            <Typography textTransform={"none"}>Are you sure you want to save the changes?</Typography>
           }
           cancelText="Cancel"
           proceedText="Save"
@@ -196,7 +209,7 @@ const NewControlPane = ({
       <Modal
         id={`${data.id}-modal`}
         open={isOpen}
-        onClose={handleClose}
+        onClose={handleCloseWrapper}
         className="new-control-pane-modal"
         sx={{ zIndex: 1100 }}
       >
@@ -236,7 +249,26 @@ const NewControlPane = ({
             >
               {`${controlCategoryId + "." + data.order_no}`} {data.title}
             </Typography>
-            <CloseIcon onClick={handleClose} style={{ cursor: "pointer" }} />
+            <Box
+              component="div"
+              role="button"
+              tabIndex={0}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCloseWrapper();
+              }}
+              sx={{
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                padding: '8px',
+                '&:hover': {
+                  opacity: 0.8,
+                },
+              }}
+            >
+              <CloseIcon />
+            </Box>
           </Stack>
           <Typography fontSize={13}>{data.description}</Typography>
           <DropDowns

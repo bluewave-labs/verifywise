@@ -159,14 +159,32 @@ export const createNewSubControlsQuery = async (
     order_no: number;
     title: string;
     description: string;
-  }[]
+    implementation_details: string;
+    evidence_description?: string;
+    feedback_description?: string;
+  }[],
+  enable_ai_data_insertion: boolean
 ) => {
   let query =
-    "INSERT INTO subcontrols(title, description, control_id, order_no) VALUES ";
-  const data = subControls.map((d) => {
-    return `('${d.title}', '${d.description}', ${controlId}, ${d.order_no})`;
-  });
-  query += data.join(",") + " RETURNING *;";
-  const result = await pool.query(query);
-  return result.rows;
+    `INSERT INTO subcontrols(
+      title, description, control_id, order_no,
+      implementation_details, evidence_description,
+      feedback_description, status
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`;
+  let createdSubControls: Subcontrol[] = []
+  for (let subControl of subControls) {
+    const result = await pool.query(
+      query, [
+      subControl.title,
+      subControl.description,
+      controlId,
+      subControl.order_no,
+      enable_ai_data_insertion ? subControl.implementation_details : null,
+      enable_ai_data_insertion && subControl.evidence_description ? subControl.evidence_description : null,
+      enable_ai_data_insertion && subControl.feedback_description ? subControl.feedback_description : null,
+      enable_ai_data_insertion ? 'Waiting' : null
+    ])
+    createdSubControls = createdSubControls.concat(result.rows)
+  }
+  return createdSubControls
 };

@@ -74,8 +74,10 @@ export const createNewSubTopicsQuery = async (
       isrequired: boolean;
       evidence_files: never[];
       dropdown_options: never[];
+      answer: string;
     }[];
-  }[]
+  }[],
+  enable_ai_data_insertion: boolean
 ) => {
   const createdSubTopics = [];
   let query =
@@ -89,7 +91,8 @@ export const createNewSubTopicsQuery = async (
     const subtopic_id = result.rows[0].id;
     const questions = await createNewQuestionsQuery(
       subtopic_id,
-      subTopicStruct.questions
+      subTopicStruct.questions,
+      enable_ai_data_insertion
     );
     createdSubTopics.push({ ...result.rows[0], questions });
   }

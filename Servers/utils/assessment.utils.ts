@@ -27,13 +27,14 @@ export const getAssessmentByProjectIdQuery = async (
 };
 
 export const createNewAssessmentQuery = async (
-  assessment: Assessment
+  assessment: Assessment,
+  enable_ai_data_insertion: boolean
 ): Promise<Object> => {
   const result = await pool.query(
     `INSERT INTO assessments (project_id) VALUES ($1) RETURNING *`,
     [assessment.project_id]
   );
-  const topics = await createNewTopicsQuery(result.rows[0].id);
+  const topics = await createNewTopicsQuery(result.rows[0].id, enable_ai_data_insertion);
   return { assessment: result.rows[0], topics };
 };
 

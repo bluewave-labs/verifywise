@@ -113,7 +113,6 @@ const Vendors = () => {
         const projectData = await getEntityById({
           routeUrl: `/projects/${selectedProjectId}`,
         });
-        console.log("Project data:", projectData.data);
         setProject(projectData.data);
       } catch (error) {
         console.error("Failed to fetch project data:", error);

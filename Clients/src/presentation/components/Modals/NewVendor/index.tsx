@@ -131,7 +131,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
   }));
-  console.log("formattedUsers", formattedUsers);
   const user: User = {
     id: Number(localStorage.getItem("userId")) || -1,
     email: "N/A",
@@ -187,7 +186,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           assignee:
             formattedUsers?.find(
               (user) => user.name === existingVendor.assignee
-            )?._id ||" ",
+            )?._id || " ",
           reviewDate: existingVendor.review_date,
         },
       }));
@@ -226,7 +225,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
    * @param value - The new value
    */
   const handleOnChange = (field: string, value: string | number) => {
-    console.log("handleOnChange", field, value);
     setValues((prevValues) => ({
       ...prevValues,
 
@@ -352,7 +350,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         )?.name || 0,
       review_date: values.vendorDetails.reviewDate,
     };
-    console.log("Payload being sent:", _vendorDetails);
     if (existingVendor) {
       await updateVendor(existingVendor.id!, _vendorDetails);
     } else {
@@ -366,10 +363,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
    */
   const createVendor = async (vendorDetails: object) => {
     setIsSubmitting(true);
-
     try {
-      console.log("Creating vendor with details:", vendorDetails);
-
       const response = await createNewUser({
         routeUrl: "/vendors",
         body: vendorDetails,
@@ -424,10 +418,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     updatedVendorDetails: object
   ) => {
     setIsSubmitting(true);
-
     try {
-      console.log("Editing Vendor:", vendorId, updatedVendorDetails);
-
       const response = await updateEntityById({
         routeUrl: `/vendors/${vendorId}`,
         body: updatedVendorDetails,

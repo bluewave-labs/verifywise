@@ -126,7 +126,7 @@ function App() {
                 }
               >
                 <Route
-                  path="/"
+                  path="/test"
                   element={<Home onProjectUpdate={triggerSidebarReload} />}
                 />
                 <Route
@@ -137,10 +137,10 @@ function App() {
                 <Route path="/vendors" element={<Vendors />} />
                 <Route path="/setting" element={<Setting />} />
                 <Route path="/team" element={<Team />} />
-                <Route path="/project-view" element={<ProjectView />} />
+                <Route path="/test/project-view" element={<ProjectView />} />
                 <Route path="/file-manager" element={<FileManager />} />
-                <Route path="/test" element={<VWHome />} />
-                <Route path="/test/project-view" element={<VWProjectView />} />
+                <Route path="/" element={<VWHome />} />
+                <Route path="/project-view" element={<VWProjectView />} />
               </Route>
               <Route
                 path="/admin-reg"

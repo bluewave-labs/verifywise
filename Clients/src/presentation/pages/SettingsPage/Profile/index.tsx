@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import React, {
   useRef,
   useState,
@@ -31,6 +27,8 @@ import { clearAuthState } from "../../../../application/authentication/authSlice
 import VWButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
+import VWSkeleton from "../../../vw-v2-components/Skeletons";
+import VWToast from "../../../vw-v2-components/Toast"; // Import VWToast component
 
 /**
  * Interface representing a user object.
@@ -65,13 +63,12 @@ const ProfileForm: React.FC = () => {
   const [profilePhoto, setProfilePhoto] = useState<string>(
     "/placeholder.svg?height=80&width=80"
   );
+  const [showToast, setShowToast] = useState(false);
 
   const [firstnameError, setFirstnameError] = useState<string | null>(null);
   const [lastnameError, setLastnameError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const [alert, setAlert] = useState<{
@@ -140,6 +137,7 @@ const ProfileForm: React.FC = () => {
    * on the server if there are no validation errors.
    */
   const handleSave = useCallback(async () => {
+    setShowToast(true); // Show toast when request is sent
     try {
       if (firstnameError || lastnameError || emailError) {
         logEngine({
@@ -208,6 +206,11 @@ const ProfileForm: React.FC = () => {
       setTimeout(() => {
         setAlert((prev) => ({ ...prev, visible: false }));
       }, 3000); // Alert will disappear after 3 seconds
+    } finally {
+      setShowToast(false); // Hide toast after response
+      setTimeout(() => {
+        setShowToast(false);
+      }, 1000);
     }
   }, [
     firstname,
@@ -342,31 +345,13 @@ const ProfileForm: React.FC = () => {
   }, []);
 
   /**
-   * Close confirmation modal.
-   *
-   * Closes the save changes confirmation modal.
-   */
-  const handleCloseConfirmationModal = useCallback(() => {
-    setIsSaveModalOpen(false);
-  }, []);
-
-  /**
-   * Handle save confirmation.
-   *
-   * Proceeds with saving the profile.
-   */
-  const handleConfirmSave = useCallback(() => {
-    handleSave();
-    setIsSaveModalOpen(false);
-  }, [handleSave]);
-
-  /**
    * Handle delete confirmation.
    *
    * Proceeds with deleting the account.
    */
 
   const handleConfirmDelete = useCallback(async () => {
+    setShowToast(true); // Show toast when request is sent
     try {
       // const userId = localStorage.getItem("userId") || "1";
       await deleteEntityById({ routeUrl: `/users/${id}` });
@@ -407,6 +392,10 @@ const ProfileForm: React.FC = () => {
       });
     } finally {
       setIsDeleteModalOpen(false);
+      setShowToast(false); // Hide toast after response
+      setTimeout(() => {
+        setShowToast(false);
+      }, 1000);
     }
   }, [email, firstname, lastname]);
 
@@ -423,23 +412,16 @@ const ProfileForm: React.FC = () => {
 
   return (
     <Box sx={{ position: "relative", mt: 3, width: { xs: "90%", md: "70%" } }}>
+      {showToast && <VWToast />} {/* Show VWToast when showToast is true */}
       {loading && (
-        <Box
-          sx={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: "rgba(255,255,255,0.8)",
-            zIndex: 10,
-          }}
-        >
-          <Typography>Loading...</Typography>
-        </Box>
+        <VWSkeleton
+          variant="rectangular"
+          width="100%"
+          height="300px"
+          minWidth={"100%"}
+          minHeight={300}
+          sx={{ backgroundColor: "gray", borderRadius: 2 }}
+        />
       )}
       {alert.visible && (
         <Alert
@@ -450,192 +432,194 @@ const ProfileForm: React.FC = () => {
           onClick={() => setAlert((prev) => ({ ...prev, visible: false }))}
         />
       )}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          flexDirection: { xs: "column", md: "row" },
-          mb: 3,
-          width: "100%",
-          mt: 20,
-        }}
-      >
-        <Box sx={{ width: { xs: "100%", md: "40%" } }}>
-          <Field
-            id="First name"
-            label="Name"
-            value={firstname}
-            onChange={handleFirstnameChange}
-            sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
-          />
-          {firstnameError && (
-            <Typography color="error" variant="caption">
-              {firstnameError}
-            </Typography>
-          )}
-          <Field
-            id="Last name"
-            label="Surname"
-            value={lastname}
-            onChange={handleLastnameChange}
-            sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
-          />
-          {lastnameError && (
-            <Typography color="error" variant="caption">
-              {lastnameError}
-            </Typography>
-          )}
-          <Field
-            id="Email"
-            label="Email"
-            value={email}
-            onChange={handleEmailChange}
-            sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
-            disabled
-          />
-          {emailError && (
-            <Typography color="error" variant="caption">
-              {emailError}
-            </Typography>
-          )}
-          <Typography
-            variant="caption"
-            sx={{ mt: 1, display: "block", color: "#667085" }}
-          >
-            This is your current email address — it cannot be changed.
-          </Typography>
-        </Box>
-        <Box sx={{ width: { xs: "100%", md: "40%" }, textAlign: "center" }}>
-          <Stack direction="column" alignItems="center" spacing={2}>
-            <Typography
-              fontWeight="600"
-              variant="subtitle1"
-              color="#344054"
-              pb={theme.spacing(5)}
-            >
-              Your photo
-            </Typography>
-            <Avatar user={user} size="medium" sx={{ width: 80, height: 80 }} />
-            <input
-              type="file"
-              ref={fileInputRef}
-              style={{ display: "none" }}
-              accept="image/*"
-              onChange={handleFileChange}
+      {!loading && (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            flexDirection: { xs: "column", md: "row" },
+            mb: 3,
+            width: "100%",
+            mt: 20,
+          }}
+        >
+          <Box sx={{ width: { xs: "100%", md: "40%" } }}>
+            <Field
+              id="First name"
+              label="Name"
+              value={firstname}
+              onChange={handleFirstnameChange}
+              sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
             />
-            <Stack
-              direction="row"
-              spacing={2}
-              alignItems={"center"}
-              sx={{ paddingTop: theme.spacing(10) }}
+            {firstnameError && (
+              <Typography color="error" variant="caption">
+                {firstnameError}
+              </Typography>
+            )}
+            <Field
+              id="Last name"
+              label="Surname"
+              value={lastname}
+              onChange={handleLastnameChange}
+              sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
+            />
+            {lastnameError && (
+              <Typography color="error" variant="caption">
+                {lastnameError}
+              </Typography>
+            )}
+            <Field
+              id="Email"
+              label="Email"
+              value={email}
+              onChange={handleEmailChange}
+              sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
+              disabled
+            />
+            {emailError && (
+              <Typography color="error" variant="caption">
+                {emailError}
+              </Typography>
+            )}
+            <Typography
+              variant="caption"
+              sx={{ mt: 1, display: "block", color: "#667085" }}
             >
+              This is your current email address — it cannot be changed.
+            </Typography>
+          </Box>
+          <Box sx={{ width: { xs: "100%", md: "40%" }, textAlign: "center" }}>
+            <Stack direction="column" alignItems="center" spacing={2}>
               <Typography
-                sx={{
-                  color: "#667085",
-                  cursor: "pointer",
-                  textDecoration: "none",
-                  "&:hover": { textDecoration: "underline" },
-                  fontSize: 13,
-                }}
-                onClick={handleDeletePhoto}
+                fontWeight="600"
+                variant="subtitle1"
+                color="#344054"
+                pb={theme.spacing(5)}
               >
-                Delete
+                Your photo
               </Typography>
-              <Typography
-                sx={{
-                  color: "#13715B",
-                  cursor: "pointer",
-                  textDecoration: "none",
-                  "&:hover": { textDecoration: "underline" },
-                  paddingLeft: theme.spacing(5),
-                  fontSize: 13,
-                }}
-                onClick={handleUpdatePhoto}
+              <Avatar
+                user={user}
+                size="medium"
+                sx={{ width: 80, height: 80 }}
+              />
+              <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: "none" }}
+                accept="image/*"
+                onChange={handleFileChange}
+              />
+              <Stack
+                direction="row"
+                spacing={2}
+                alignItems={"center"}
+                sx={{ paddingTop: theme.spacing(10) }}
               >
-                Update
-              </Typography>
+                <Typography
+                  sx={{
+                    color: "#667085",
+                    cursor: "pointer",
+                    textDecoration: "none",
+                    "&:hover": { textDecoration: "underline" },
+                    fontSize: 13,
+                  }}
+                  onClick={handleDeletePhoto}
+                >
+                  Delete
+                </Typography>
+                <Typography
+                  sx={{
+                    color: "#13715B",
+                    cursor: "pointer",
+                    textDecoration: "none",
+                    "&:hover": { textDecoration: "underline" },
+                    paddingLeft: theme.spacing(5),
+                    fontSize: 13,
+                  }}
+                  onClick={handleUpdatePhoto}
+                >
+                  Update
+                </Typography>
+              </Stack>
+            </Stack>
+          </Box>
+        </Box>
+      )}
+      {!loading && (
+        <Stack
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "flex-end",
+            alignItems: "center",
+          }}
+        >
+          <VWButton
+            variant="contained"
+            text="Save"
+            sx={{
+              backgroundColor: "#13715B",
+              border: "1px solid #13715B",
+              gap: 2,
+            }}
+            icon={<SaveIcon />}
+            onClick={handleSave}
+            isDisabled={!!firstnameError || !!lastnameError || !!emailError}
+          />
+        </Stack>
+      )}
+      <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
+      {loading && (
+        <VWSkeleton
+          variant="rectangular"
+          width="100%"
+          height="200px"
+          minWidth={"100%"}
+          minHeight={200}
+          sx={{ backgroundColor: "gray", borderRadius: 2 }}
+        />
+      )}
+      {!loading && (
+        <Box>
+          <Stack>
+            <Typography fontWeight={"600"} gutterBottom sx={{ mb: 2, mt: 10 }}>
+              Delete account
+            </Typography>
+            <Typography
+              fontWeight={"400"}
+              variant="body2"
+              sx={{ mb: 8, mt: 4, color: "#667085" }}
+            >
+              Note that deleting your account will remove all data from our
+              system. This is permanent and non-recoverable.
+            </Typography>
+            <Stack
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "flex-end",
+                alignItems: "center",
+              }}
+            >
+              <VWButton
+                sx={{
+                  width: { xs: "100%", sm: theme.spacing(80) },
+                  mb: theme.spacing(4),
+                  backgroundColor: "#DB504A",
+                  color: "#fff",
+                  border: "1px solid #DB504A",
+                  gap: 2,
+                }}
+                icon={<DeleteIcon />}
+                variant="contained"
+                onClick={handleOpenDeleteDialog}
+                text="Delete account"
+              />
             </Stack>
           </Stack>
         </Box>
-      </Box>
-      <Stack
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "flex-end",
-          alignItems: "center",
-        }}
-      >
-        <VWButton
-          variant="contained"
-          text="Save"
-          sx={{
-            backgroundColor: "#13715B",
-            border: "1px solid #13715B",
-            gap: 2,
-          }}
-          icon={<SaveIcon />}
-          onClick={() => setIsSaveModalOpen(true)}
-          isDisabled={!!firstnameError || !!lastnameError || !!emailError}
-        />
-      </Stack>
-
-      <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
-      <Box>
-        <Stack>
-          <Typography fontWeight={"600"} gutterBottom sx={{ mb: 2, mt: 10 }}>
-            Delete account
-          </Typography>
-          <Typography
-            fontWeight={"400"}
-            variant="body2"
-            sx={{ mb: 8, mt: 4, color: "#667085" }}
-          >
-            Note that deleting your account will remove all data from our
-            system. This is permanent and non-recoverable.
-          </Typography>
-          <Stack
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "flex-end",
-              alignItems: "center",
-            }}
-          >
-            <VWButton
-              sx={{
-                width: { xs: "100%", sm: theme.spacing(80) },
-                mb: theme.spacing(4),
-                backgroundColor: "#DB504A",
-                color: "#fff",
-                border: "1px solid #DB504A",
-                gap: 2,
-              }}
-              icon={<DeleteIcon />}
-              variant="contained"
-              onClick={handleOpenDeleteDialog}
-              text="Delete account"
-            />
-          </Stack>
-        </Stack>
-      </Box>
-      {isSaveModalOpen && (
-        <DualButtonModal
-          title="Confirm Save"
-          body={
-            <Typography fontSize={13}>
-              Are you sure you want to save the changes?
-            </Typography>
-          }
-          cancelText="Cancel"
-          proceedText="Save"
-          onCancel={handleCloseConfirmationModal}
-          onProceed={handleConfirmSave}
-          proceedButtonColor="primary"
-          proceedButtonVariant="contained"
-        />
       )}
-
       {isDeleteModalOpen && (
         <DualButtonModal
           title="Confirm Delete"

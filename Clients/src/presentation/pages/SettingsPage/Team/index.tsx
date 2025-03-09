@@ -120,21 +120,9 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const handleRoleChange = useCallback(
     (event: SelectChangeEvent<Role>, memberId: string) => {
       const newRole = event.target.value as Role;
-      // setTeamMembers((members) =>
-      //   members.map((member) =>
-      //     member.id === memberId ? { ...member, role: newRole } : member
-      //   )
-      // );
     },
     []
   );
-
-  // Handle deleting a team member
-  // const handleDeleteMember = useCallback((memberId: string) => {
-  //   setTeamMembers((members) =>
-  //     members.filter((member) => member.id !== memberId)
-  //   );
-  // }, []);
 
   // Filtered team members based on selected role
   const filteredMembers = useMemo(() => {
@@ -143,21 +131,6 @@ const TeamManagement: React.FC = (): JSX.Element => {
       ? teamUsers
       : teamUsers.filter((member) => parseInt(member.id) === filter);
   }, [filter, teamUsers]);
-
-  // Handle saving all data
-  // const handleSaveAllData = useCallback(() => {
-  //   const formData = {
-  //     organizationName: orgName,
-  //     filterRole: filter,
-  //     teamMembers: teamMembers.map(({ id, name, email, role }) => ({
-  //       id,
-  //       name,
-  //       email,
-  //       role,
-  //     })),
-  //   };
-  //   console.log("Form Data:", formData);
-  // }, [orgName, filter, teamMembers]);
 
   const handleDeleteClick = (memberId: string) => {
     setMemberToDelete(memberId);
@@ -211,48 +184,6 @@ const TeamManagement: React.FC = (): JSX.Element => {
           </Box>
         </Suspense>
       )}
-      {/* <Box sx={{ mb: 4 }}>
-        <Typography
-          variant="h4"
-          gutterBottom
-          sx={{
-            flexGrow: 1,
-            top: theme.spacing(2.5),
-            fontSize: "13px",
-            fontWeight: 600,
-            color: "#1A1919",
-          }}
-        >
-          Organization name
-        </Typography>
-        <Box
-          sx={{
-            display: "flex",
-            gap: 2,
-            alignItems: "flex-start",
-            mt: theme.spacing(5),
-          }}
-        >
-          <Field
-            id="orgName"
-            value={orgName}
-            onChange={(e) => setOrgName(e.target.value)}
-            sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
-          />
-          <Button
-            variant="contained"
-            onClick={handleSaveOrgName}
-            sx={{
-              ml: theme.spacing(10),
-              width: theme.spacing(35),
-              height: theme.spacing(17),
-            }}
-            disableRipple
-          >
-            Save
-          </Button>
-        </Box>
-      </Box> */}
 
       <Box sx={{ mb: 4, maxWidth: theme.spacing(480) }}>
         <Typography
@@ -301,31 +232,6 @@ const TeamManagement: React.FC = (): JSX.Element => {
                 </Button>
               ))}
             </Box>
-
-            {/* <Box sx={{ display: "flex", mb: 12, mt: 10 }}>
-              {["All", ...roles].map((role) => (
-                <Button
-                  key={role}
-                  disableRipple
-                  variant={filter === role ? "contained" : "outlined"}
-                  onClick={() => setFilter(role as Role | "All")}
-                  sx={{
-                    borderRadius: 0,
-                    color: "#344054",
-                    borderColor: "#EAECF0",
-                    backgroundColor:
-                      filter === role ? "#EAECF0" : "transparent",
-                    "&:hover": {
-                      backgroundColor:
-                        filter === role ? "#D0D4DA" : "transparent",
-                    },
-                    fontWeight: filter === role ? "bold" : "normal",
-                  }}
-                >
-                  {role}
-                </Button>
-              ))}
-            </Box> */}
 
             <Box sx={{ mt: 10 }}>
               <VWButton
@@ -497,15 +403,9 @@ const TeamManagement: React.FC = (): JSX.Element => {
             }}
           />
 
-          <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 20 }}>
-            {/* <Button
-              variant="contained"
-              disableRipple
-              onClick={handleSaveAllData}
-            >
-              Save
-            </Button> */}
-          </Box>
+          <Box
+            sx={{ display: "flex", justifyContent: "flex-end", mt: 20 }}
+          ></Box>
         </Stack>
       </Box>
       {inviteUserModalOpen && (

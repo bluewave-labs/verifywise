@@ -17,7 +17,7 @@ router.get("/:id", /*authenticateJWT,*/ getVendorById);
 
 // POST, PUT, DELETE requests
 router.post("/", /*authenticateJWT,*/ createVendor);
-router.put("/:id", /*authenticateJWT,*/ updateVendorById);
+router.patch("/:id", /*authenticateJWT,*/ updateVendorById);
 router.delete("/:id", /*authenticateJWT,*/ deleteVendorById);
 
 export default router;

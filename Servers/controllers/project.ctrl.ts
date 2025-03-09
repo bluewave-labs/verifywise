@@ -36,6 +36,7 @@ export async function getAllProjects(
     if (projects && projects.length > 0) {
       for (const project of projects) {
         // calculating compliances
+        console.log("before project: ", project);
         const controlCategories = await getControlCategoryByProjectIdQuery(
           project.id
         );
@@ -68,14 +69,17 @@ export async function getAllProjects(
         const assessments = await getAssessmentByProjectIdQuery(project.id);
         if (assessments.length !== 0) {
           for (const assessment of assessments) {
+            console.log("Assessment id : ", assessment.id);
             if (assessment.id !== undefined) {
               const topics = await getTopicByAssessmentIdQuery(assessment.id);
               if (topics.length !== 0) {
                 for (const topic of topics) {
                   if (topic.id !== undefined) {
+                    console.log("topic id : ", topic.id);
                     const subtopics = await getSubTopicByTopicIdQuery(topic.id);
                     if (subtopics.length !== 0) {
                       for (const subtopic of subtopics) {
+                        console.log("subtopic id : ", subtopic.id);
                         if (subtopic.id !== undefined) {
                           const questions = await getQuestionBySubTopicIdQuery(
                             subtopic.id
@@ -100,6 +104,7 @@ export async function getAllProjects(
             }
           }
         }
+        console.log("after project: ", project);
       }
       return res.status(200).json(STATUS_CODE[200](projects));
     }

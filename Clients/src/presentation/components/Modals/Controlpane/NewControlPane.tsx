@@ -41,6 +41,13 @@ const NewControlPane = ({
     message: string;
   } | null>(null);
 
+  const sanitizeField = (value: string | undefined | null): string => {
+    if (!value || value === "undefined") {
+      return "";
+    }
+    return value;
+  };
+
   const initialSubControlState = data
     .subControls!.slice()
     .sort((a, b) => a.order_no! - b.order_no!)
@@ -57,8 +64,8 @@ const NewControlPane = ({
       reviewer: subControl.reviewer,
       implementation_details: subControl.implementation_details,
       due_date: subControl.due_date,
-      evidence_description: subControl.evidence_description,
-      feedback_description: subControl.feedback_description,
+      evidence_description: sanitizeField(subControl.evidence_description),
+      feedback_description: sanitizeField(subControl.feedback_description),
       evidence_files: subControl.evidence_files,
       feedback_files: subControl.feedback_files,
     }));

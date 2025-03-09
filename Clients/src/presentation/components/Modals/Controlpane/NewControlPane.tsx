@@ -168,7 +168,6 @@ const NewControlPane = ({
 
 
   const handleCloseWrapper = () => {
-    console.log('Close icon clicked');
     handleClose();
   };
 

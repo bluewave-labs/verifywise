@@ -18,12 +18,14 @@ interface BasicModalProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   onDelete: () => void;
+  modalName: string
 }
 
 const BasicModal: React.FC<BasicModalProps> = ({
   isOpen,
   setIsOpen,
   onDelete,
+  modalName
 }) => {
   const theme = useTheme();
   return (
@@ -48,17 +50,35 @@ const BasicModal: React.FC<BasicModalProps> = ({
           },
         }}
       >
-        <Typography id="modal-delete-vendor" fontSize={16} fontWeight={600}>
-          Delete this vendor?
-        </Typography>
-        <Typography
-          id="delete-monitor-confirmation"
-          fontSize={13}
-          textAlign={"justify"}
-        >
-          When you delete this vendor, all data related to this vendor will be
-          removed. This action is non-recoverable.
-        </Typography>
+        {modalName === 'project' ? 
+          <>
+            <Typography id="modal-delete-vendor" fontSize={16} fontWeight={600}>
+              Delete this {modalName} risk?
+            </Typography>
+            <Typography
+              id="delete-monitor-confirmation"
+              fontSize={13}
+              textAlign={"justify"}
+            >
+              Are you sure you want to delete your {modalName} risk? This action is permanent and cannot be undone.
+            </Typography>
+          </>
+        : 
+          <>
+            <Typography id="modal-delete-vendor" fontSize={16} fontWeight={600}>
+              Delete this vendor?
+            </Typography>
+            <Typography
+              id="delete-monitor-confirmation"
+              fontSize={13}
+              textAlign={"justify"}
+            >
+              When you delete this vendor, all data related to this vendor will be
+              removed. This action is non-recoverable.
+            </Typography>
+          </>
+        }
+        
         <Stack
           direction="row"
           gap={theme.spacing(4)}
@@ -106,7 +126,7 @@ const BasicModal: React.FC<BasicModalProps> = ({
             }}
             onClick={onDelete}
           >
-            Delete vendor
+            Delete
           </Button>
         </Stack>
       </Stack>

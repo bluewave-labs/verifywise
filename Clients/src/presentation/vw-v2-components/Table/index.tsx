@@ -11,7 +11,7 @@ import {
   useTheme,
 } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";
-import { MouseEvent, useCallback, useContext, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import TablePaginationActions from "../../components/TablePagination";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
 import { ProjectRisk } from "../../../domain/ProjectRisk";
@@ -48,7 +48,6 @@ const VWProjectRisksTableHead = ({ columns }: { columns: any[] }) => {
                 ? {
                     position: "sticky",
                     right: 0,
-                    zIndex: 10,
                     backgroundColor:
                       singleTheme.tableStyles.primary.header.backgroundColors,
                   }
@@ -69,21 +68,26 @@ const VWProjectRisksTableBody = ({
   rowsPerPage,
   setSelectedRow,
   setAnchorEl,
+  onDeleteRisk,
 }: {
   rows: any[];
   page: number;
   rowsPerPage: number;
   setSelectedRow: any;
-
   setAnchorEl: any;
+  onDeleteRisk: (id: number) => void
 }) => {
   const { setInputValues, dashboardValues } = useContext(VerifyWiseContext);
-  const cellStyle = singleTheme.tableStyles.primary.body.cell;
+  const cellStyle = singleTheme.tableStyles.primary.body.cell;  
 
-  function onRowClickHandler(event: MouseEvent<HTMLTableRowElement>, row: any) {
+  const handelEditRisk = (event: React.MouseEvent, row: any) => {    
     setSelectedRow(row);
     setInputValues(row);
     setAnchorEl(event.currentTarget);
+  }
+
+  const handleDeleteRisk = async(riskId: number) => {
+    onDeleteRisk(riskId);
   }
 
   return (
@@ -95,7 +99,6 @@ const VWProjectRisksTableBody = ({
             <TableRow
               key={index}
               sx={singleTheme.tableStyles.primary.body.row}
-              onClick={(event) => onRowClickHandler(event, row)}
             >
               <TableCell sx={cellStyle}>
                 {row.risk_name?.length > 30
@@ -126,14 +129,14 @@ const VWProjectRisksTableBody = ({
                   ...singleTheme.tableStyles.primary.body.cell,
                   position: "sticky",
                   right: 0,
-                  zIndex: 10,
                   minWidth: "50px",
                 }}
               >
                 <IconButton
                   id={row.id}
-                  onChange={() => {}}
-                  onDelete={() => {}}
+                  type="project"
+                  onMouseEvent={(e) => handelEditRisk(e, row)}                  
+                  onDelete={() => handleDeleteRisk(row.id)}
                 ></IconButton>
               </TableCell>
             </TableRow>
@@ -147,14 +150,20 @@ const VWProjectRisksTable = ({
   rows,
   setSelectedRow,
   setAnchorEl,
+  deleteRisk,
+  setPage,
+  page,
 }: {
   columns: any[];
   rows: any[];
   setSelectedRow: any;
   setAnchorEl: any;
+  deleteRisk: (id: number) => void;
+  setPage: (pageNo: number) => void;
+  page: number;
 }) => {
   const theme = useTheme();
-  const [page, setPage] = useState(0);
+  // const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const getRange = useMemo(() => {
@@ -190,6 +199,7 @@ const VWProjectRisksTable = ({
             rowsPerPage={rowsPerPage}
             setSelectedRow={setSelectedRow}
             setAnchorEl={setAnchorEl}
+            onDeleteRisk={deleteRisk}
           />
         </Table>
       </TableContainer>

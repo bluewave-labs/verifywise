@@ -18,6 +18,7 @@ import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import { Subcontrol } from "../../../../domain/Subcontrol";
 import { Control } from "../../../../domain/Control";
 import Alert from "../../Alert";
+import VWToast from "../../../vw-v2-components/Toast";
 
 const NewControlPane = ({
   data,
@@ -40,6 +41,7 @@ const NewControlPane = ({
     type: "success" | "error";
     message: string;
   } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const sanitizeField = (value: string | undefined | null): string => {
     if (!value || value === "undefined") {
@@ -145,6 +147,7 @@ const NewControlPane = ({
 
   const confirmSave = async () => {
     console.log("state controlToSave : ", state);
+    setIsSubmitting(true);
     try {
       const response = await updateEntityById({
         routeUrl: `/controls/saveControls/${state.id}`,
@@ -152,23 +155,23 @@ const NewControlPane = ({
       });
       console.log("Controls updated successfully:", response);
       setAlert({ type: "success", message: "Controls updated successfully" });
+      if (OnSave) {
+        OnSave(state);
+      }
       setTimeout(() => {
         setAlert(null);
         handleClose();
+        setIsSubmitting(false);
       }, 3000);
     } catch (error) {
       console.error("Error updating controls:", error);
       setAlert({ type: "error", message: "Error updating controls" });
-    }
-    if (OnSave) {
-      OnSave(state);
+      setIsSubmitting(false);
     }
     setIsModalOpen(false);
   };
 
-
   const handleCloseWrapper = () => {
-    console.log('Close icon clicked');
     handleClose();
   };
 
@@ -180,7 +183,7 @@ const NewControlPane = ({
             position: "fixed",
             top: theme.spacing(2),
             right: theme.spacing(2),
-            zIndex: 1400, // Ensure it's on top of other components including DualButtonModal
+            zIndex: 1400,
           }}
         >
           <Alert
@@ -190,6 +193,27 @@ const NewControlPane = ({
             onClick={() => setAlert(null)}
           />
         </Box>
+      )}
+
+      {isSubmitting && (
+        <Stack
+          sx={{
+            width: "100%",
+            height: "100%",
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "rgba(255, 255, 255, 0.8)",
+            zIndex: 9999,
+          }}
+        >
+          <VWToast title="Saving control. Please wait..." />
+        </Stack>
       )}
 
       {isModalOpen && (

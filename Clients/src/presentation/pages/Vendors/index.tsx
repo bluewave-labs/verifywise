@@ -393,16 +393,16 @@ const Vendors = () => {
                 "& .MuiTabs-flexContainer": { columnGap: "34px" },
               }}
             >
-              <Tab label="Vendors" value="1" sx={tabStyle} disableRipple/>
-              <Tab label="Risks" value="2" sx={tabStyle} disableRipple/>
+              <Tab label="Vendors" value="1" sx={tabStyle} disableRipple />
+              <Tab label="Risks" value="2" sx={tabStyle} disableRipple />
             </TabList>
           </Box>
-          {project ? (
-            // Render project risks content here
-            <RisksCard projectRisksSummary={projectRisksSummary} />
-          ) : (
-  
+          {!project ? (
             <VWSkeleton variant="rectangular" width="100%" height={400} />
+          ) : (
+            value !== "1" && (
+              <RisksCard projectRisksSummary={projectRisksSummary} />
+            )
           )}
           {value === "1" ? (
             <Stack

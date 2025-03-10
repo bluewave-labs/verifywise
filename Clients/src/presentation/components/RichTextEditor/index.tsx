@@ -29,7 +29,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const editor = useEditor({
     extensions: [StarterKit],
     content: initialContent,
-    autofocus: true,
+    autofocus: false,
     immediatelyRender: true,
     onUpdate: ({ editor }) => {
       onContentChange?.(editor.getHTML());
@@ -130,7 +130,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         white-space: pre-wrap;
           }
           .custom-tip-tap-editor .ProseMirror p {
-            margin: 0; 
+            margin: 0;
           }
         `}
       </style>

@@ -232,8 +232,8 @@ const AssessmentTracker = () => {
               />
             ) : subtopicsData ? (
               subtopicsData.map((subtopic: any, index: number) => (
-                <div key={index}>
-                  <Questions index={index} subtopic={subtopic} />
+                <div key={`subtopic-${subtopic.id || index}`}>
+                  <Questions subtopic={subtopic} />
                 </div>
               ))
             ) : (

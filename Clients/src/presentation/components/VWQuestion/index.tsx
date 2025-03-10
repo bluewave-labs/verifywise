@@ -35,7 +35,7 @@ const VWQuestion = ({ question}: { question: Question}) => {
         body: values,
       });
       if (response.status === 202) {
-        setValues(response.data);
+        setValues(response.data.data);
         console.log("Question updated successfully:", response.data);
         handleAlert({
           variant: "success",

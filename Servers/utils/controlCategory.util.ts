@@ -72,13 +72,17 @@ export const deleteControlCategoryByIdQuery = async (
   return result.rows.length ? result.rows[0] : null;
 };
 
-export const createNewControlCategories = async (projectId: number) => {
+export const createNewControlCategories = async (projectId: number, enable_ai_data_insertion: boolean) => {
   const createdControlCategories = []
   let query = "INSERT INTO controlcategories(project_id, title, order_no) VALUES ($1, $2, $3) RETURNING *;";
   for (let controlCategoryStruct of ControlCategories) {
     const result = await pool.query(query, [projectId, controlCategoryStruct.title, controlCategoryStruct.order_no])
     const control_category_id = result.rows[0].id
-    const controls = await createNewControlsQuery(control_category_id, controlCategoryStruct.controls)
+    const controls = await createNewControlsQuery(
+      control_category_id,
+      controlCategoryStruct.controls,
+      enable_ai_data_insertion
+    )
     createdControlCategories.push({ ...result.rows[0], controls })
   }
   return createdControlCategories;

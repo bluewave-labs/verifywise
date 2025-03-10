@@ -17,21 +17,19 @@ import RichTextEditor from "../RichTextEditor";
 import { useState } from "react";
 import { updateEntityById } from "../../../application/repository/entity.repository";
 import UppyUploadFile from "../../vw-v2-components/Inputs/FileUpload";
+import Alert, { AlertProps } from "../Alert";
+import { handleAlert } from "../../../application/tools/alertUtils";
+import Uppy from "@uppy/core";
 
-const VWQuestion = ({ question }: { question: Question }) => {
+const VWQuestion = ({ question}: { question: Question}) => {
   const [values, setValues] = useState<Question>(question);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
   const [evidenceFiles, setEvidenceFiles] = useState<any[]>([]);
+  const [alert, setAlert] = useState<AlertProps | null>(null);
+  const [uppy] = useState(() => new Uppy());
 
   const handleSave = async () => {
     try {
-      console.log("/questions values : ", values);
-      const formData = new FormData();
-      formData.append("question", JSON.stringify(values));
-      evidenceFiles.forEach((file, index) => {
-        formData.append(`evidence_files[${index}]`, file);
-      });
-
       const response = await updateEntityById({
         routeUrl: `/questions/${question.id}`,
         body: values,
@@ -39,9 +37,25 @@ const VWQuestion = ({ question }: { question: Question }) => {
       if (response.status === 202) {
         setValues(response.data);
         console.log("Question updated successfully:", response.data);
+        handleAlert({
+          variant: "success",
+          body: "Question updated successfully",
+          setAlert,
+        });
+      } else {
+        handleAlert({
+          variant: "error",
+          body: "Something went wrong, please try again",
+          setAlert,
+        });
       }
     } catch (error) {
       console.error("Error updating question:", error);
+      handleAlert({
+        variant: "error",
+        body: "Something went wrong, please try again",
+        setAlert,
+      });
     }
   };
 
@@ -49,6 +63,12 @@ const VWQuestion = ({ question }: { question: Question }) => {
     setEvidenceFiles(files);
     setIsFileUploadOpen(false);
     // Add logic to send files to the backend if needed
+  };
+
+  const handleContentChange = (answer: string) => {
+    // Remove <p> tags from the beginning and end of the answer
+    const cleanedAnswer = answer.replace(/^<p>|<\/p>$/g, "");
+    setValues({ ...values, answer: cleanedAnswer });
   };
 
   return (
@@ -89,11 +109,7 @@ const VWQuestion = ({ question }: { question: Question }) => {
       </Box>
       <RichTextEditor
         key={question.id}
-        onContentChange={(answer: string) => {
-          // Remove <p> tags from the beginning and end of the answer
-          const cleanedAnswer = answer.replace(/^<p>|<\/p>$/g, "");
-          setValues({ ...values, answer: cleanedAnswer });
-        }}
+        onContentChange={handleContentChange}
         headerSx={{
           borderRadius: 0,
           BorderTop: "none",
@@ -182,11 +198,15 @@ const VWQuestion = ({ question }: { question: Question }) => {
         onClose={() => setIsFileUploadOpen(false)}
       >
         <UppyUploadFile
+          uppy={uppy}
           evidence_files={evidenceFiles}
           onClose={() => setIsFileUploadOpen(false)}
           onConfirm={handleFileUploadConfirm}
         />
       </Dialog>
+      {alert && (
+        <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
+      )}
     </Box>
   );
 };

@@ -14,6 +14,7 @@ import AddNewRiskForm from "../../../../components/AddNewRiskForm";
 import Popup from "../../../../components/Popup";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import Alert from "../../../../components/Alert";
+import { deleteEntityById } from "../../../../../application/repository/entity.repository";
 
 const TITLE_OF_COLUMNS = [
   "RISK NAME",
@@ -30,8 +31,9 @@ const TITLE_OF_COLUMNS = [
 const VWProjectRisks = ({ project }: { project?: Project }) => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") || project?.id;
+  const [refreshKey, setRefreshKey] = useState(0); // Add refreshKey state
   const { projectRisksSummary } = useProjectRisks({
-    projectId: projectId?.toString(),
+    projectId: projectId?.toString(), refreshKey
   });
   const [projectRisks, setProjectRisks] = useState<ProjectRisk[]>([]);
   const [selectedRow, setSelectedRow] = useState<ProjectRisk>();
@@ -41,8 +43,8 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     title?: string;
     body: string;
   } | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0); // Add refreshKey state
-
+  const [currentPage, setCurrentPage] = useState(0);
+  
   const fetchProjectRisks = useCallback(async () => {
     try {
       const response = await getEntityById({
@@ -51,6 +53,11 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
       setProjectRisks(response.data);
     } catch (error) {
       console.error("Error fetching project risks:", error);
+      handleAlert({
+        variant: "error",
+        body: "Error fetching project risks",
+        setAlert,
+      });
     }
   }, [projectId]);
 
@@ -60,22 +67,81 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     }
   }, [projectId, fetchProjectRisks, refreshKey]); // Add refreshKey to dependencies
 
+  /**
+   * Handle actions for project risk modal 
+   * Set an anchor to open/close the add-new-risk-popup
+   * Display tostify for create and update project risk
+   * 
+  */  
+
+  const [anchor, setAnchor] = useState<null | HTMLElement>(null);
+  const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchor(anchor ? null : event.currentTarget);
+  };
+
   const handleClosePopup = () => {
     setAnchorEl(null); // Close the popup
     setSelectedRow(undefined);
   };
 
+  const handleSuccess = () => {
+    handleAlert({
+      variant: "success",
+      body: "Project risk created successfully",
+      setAlert,
+    });
+
+    // set pagination for FIFO risk listing after adding a new risk
+    let rowsPerPage = 5;
+    let pageCount = Math.floor(projectRisks.length/rowsPerPage);
+    setCurrentPage(pageCount)
+    
+    fetchProjectRisks();
+    setRefreshKey((prevKey) => prevKey + 1);    
+  };
+
   const handleUpdate = () => {
-    console.log("update is success!");
     handleAlert({
       variant: "success",
       body: "Risk updated successfully",
       setAlert,
     });
-
     fetchProjectRisks();
     setRefreshKey((prevKey) => prevKey + 1); // Update refreshKey to trigger re-render
   };
+
+  const handleDelete = async(riskId: number) => {
+    try {
+      const response = await deleteEntityById({
+        routeUrl: `/projectRisks/${riskId}`,
+      });          
+      if (response.status === 200) { 
+        // Set current pagination number after deleting the risk
+        let rowsPerPage = 5;
+        let rowCount = projectRisks.slice(currentPage * rowsPerPage, currentPage * rowsPerPage + rowsPerPage);
+    
+        if(currentPage !== 0 && rowCount.length === 1){
+          setCurrentPage(currentPage - 1)
+        }else{
+          setCurrentPage(currentPage)
+        }   
+
+        fetchProjectRisks(); 
+        setRefreshKey((prevKey) => prevKey + 1);
+      }
+    } catch (error) {
+      console.error("Error sending request", error);
+      handleAlert({
+        variant: "error",
+        body: "Risk delete fails",
+        setAlert,
+      });
+    }
+  }
+
+  const setCurrentPagingation = (page: number) => {
+    setCurrentPage(page)
+  }
 
   return (
     <Stack className="vw-project-risks" key={refreshKey}>
@@ -124,9 +190,29 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
               border: "1px solid #13715B",
               gap: 2,
             }}
+            onClick={handleOpenOrClose}
             icon={<AddCircleOutlineIcon />}
           />
         </Stack>
+        
+        {anchor && 
+          <Popup
+            popupId="add-new-risk-popup"
+            popupContent={
+              <AddNewRiskForm
+                closePopup={() => setAnchor(null)}
+                popupStatus="new"
+                onSuccess={handleSuccess}
+              />
+            }
+            openPopupButtonName="Add new risk"
+            popupTitle="Add a new risk"
+            popupSubtitle="Create a detailed breakdown of risks and their mitigation strategies to assist in documenting your risk management activities effectively."
+            handleOpenOrClose={handleOpenOrClose}
+            anchor={anchor}
+          />
+        }
+        
         {Object.keys(selectedRow || {}).length > 0 && anchorEl && (
           <Popup
             popupId="edit-new-risk-popup"
@@ -146,8 +232,11 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
         <VWProjectRisksTable
           columns={TITLE_OF_COLUMNS}
           rows={projectRisks}
+          setPage={setCurrentPagingation}
+          page={currentPage}
           setSelectedRow={(row: ProjectRisk) => setSelectedRow(row)}
           setAnchorEl={setAnchorEl}
+          deleteRisk={handleDelete}
         />
       </Stack>
     </Stack>

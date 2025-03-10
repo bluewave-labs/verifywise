@@ -23,13 +23,17 @@ import { logEngine } from "../../../application/tools/log.engine";
 
 interface IconButtonProps {
   id: number;
-  onChange: () => void;
+  type: string;
+  onChange?: () => void;
+  onMouseEvent: (event: React.MouseEvent) => void;
   onDelete: (id: number) => void;
 }
 
 const IconButton: React.FC<IconButtonProps> = ({
   id,
+  type,
   onChange,
+  onMouseEvent,
   onDelete,
 }) => {
   const theme = useTheme();
@@ -66,12 +70,17 @@ const IconButton: React.FC<IconButtonProps> = ({
   };
 
   /**
-   * Handles the action of opening the "Remove Vendor" dialog by closing the dropdown menu
-   * and setting the state to open the remove vendor modal.
+   * Handles the action of opening the "Remove {modalName}" dialog by closing the dropdown menu
+   * and setting the state to open the remove {modalName} modal.
    *
    * @param {React.MouseEvent} e - The click event that triggers the function.
    */
-  function openRemoveVendor(e: React.MouseEvent) {
+  // function openRemoveVendor(e: React.MouseEvent) {
+  //   closeDropDownMenu(e);
+  //   setIsOpenRemoveVendorModal(true);
+  // }
+
+  function openRemoveRisk(e: React.MouseEvent) {
     closeDropDownMenu(e);
     setIsOpenRemoveVendorModal(true);
   }
@@ -132,6 +141,15 @@ const IconButton: React.FC<IconButtonProps> = ({
   };
 
   /**
+   * Handles project risk edit modal.  
+   */
+
+  const handleEditModal = (e: React.MouseEvent) => {   
+    closeDropDownMenu(e);
+    onMouseEvent(e);
+  }
+
+  /**
    * A dropdown list of options rendered as a Material-UI Menu component.
    *
    * @constant
@@ -162,7 +180,7 @@ const IconButton: React.FC<IconButtonProps> = ({
       <MenuItem
         onClick={(e) => {
           e.stopPropagation();
-          handleEditVendor(e);
+          type === 'project' ? handleEditModal(e) : handleEditVendor(e);
         }}
       >
         Edit
@@ -170,7 +188,7 @@ const IconButton: React.FC<IconButtonProps> = ({
       <MenuItem
         onClick={(e) => {
           e.stopPropagation();
-          openRemoveVendor(e);
+          openRemoveRisk(e);
         }}
       >
         Remove
@@ -217,6 +235,7 @@ const IconButton: React.FC<IconButtonProps> = ({
         isOpen={isOpenRemoveVendorModal}
         setIsOpen={() => setIsOpenRemoveVendorModal(false)}
         onDelete={handleDeleteVendor}
+        modalName={type}
       />
       <AddNewVendor // the usage here is as the edit window
         isOpen={isOpenAddNewVendorModal}

@@ -146,6 +146,7 @@ const RiskTable: React.FC<RiskTableProps> = ({
                     id={row.id}
                     onChange={onRiskChange}
                     onDelete={onDeleteRisk}
+                    type="vendor"
                   ></IconButton>
                 </TableCell>
               </TableRow>

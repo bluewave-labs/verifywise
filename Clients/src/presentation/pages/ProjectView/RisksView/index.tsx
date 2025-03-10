@@ -172,7 +172,6 @@ const RisksView: FC<RisksViewProps> = memo(
     };
 
     const handleUpdate = () => {
-      console.log("update vendor is success!");
       handleAlert({
         variant: "success",
         body: title + " risk updated successfully",
@@ -183,7 +182,6 @@ const RisksView: FC<RisksViewProps> = memo(
     };
 
     const fetchRiskData = useCallback(async () => {
-      console.log(`/projectRisks/by-projid/${currentProjectId}`);
       try {
         const url =
           title === "Project"
@@ -198,7 +196,6 @@ const RisksView: FC<RisksViewProps> = memo(
     }, []);
 
     useEffect(() => {
-      console.log("***", title);
       fetchRiskData();
     }, [title]);
 

@@ -38,6 +38,7 @@ const Popup: FC<PopupProps> = ({
       borderRadius: 2,
       border: "1px solid #175CD3",
       "&:hover": { boxShadow: "none", backgroundColor: "#175CD3 " },
+      display: "none"
     },
     closePopupButton: {
       position: "absolute",
@@ -75,7 +76,7 @@ const Popup: FC<PopupProps> = ({
   };
 
   return (
-    <div>
+    <>
       <Button
         aria-describedby={id}
         type="button"
@@ -127,7 +128,7 @@ const Popup: FC<PopupProps> = ({
           {popupContent}
         </Stack>
       </BasePopup>
-    </div>
+    </>
   );
 };
 

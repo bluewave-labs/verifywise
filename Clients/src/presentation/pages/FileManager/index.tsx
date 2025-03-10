@@ -169,28 +169,34 @@ const FileManager: React.FC = (): JSX.Element => {
 
   useEffect(() => {
     setRunFileTour(true);
-    const fetchFileById = async (fileId: string) => {
-      try {
-        setLoading(true); 
-        const file = await getEntityById({ routeUrl: `/files/${fileId}` });
 
-        if (file) {
-          const fileData: File = {
-            id: file.id,
-            name: file.name,
-            type: file.type || "N/A",
-            uploadDate: new Date(file.uploadDate).toLocaleDateString(),
-            uploader: file.uploader || "N/A",
-          };
-          setFiles([fileData]);
+    const fetchAllFiles = async () => {
+      try {
+        setLoading(true);
+        const files = await getEntityById({ routeUrl: "/files" });
+
+        if (files && Array.isArray(files)) {
+          setFiles(
+            files.map((file) => ({
+              id: file.id,
+              name: file.name,
+              type: file.type || "N/A",
+              uploadDate: new Date(file.uploadDate).toLocaleDateString(),
+              uploader: file.uploader || "N/A",
+            }))
+          );
+        } else {
+          setFiles([]); 
         }
       } catch (error) {
         console.error("Error fetching files", error);
+        setFiles([]); 
       } finally {
         setLoading(false);
       }
     };
-    fetchFileById("1");
+
+    fetchAllFiles(); 
   }, []);
 
   /**
@@ -245,17 +251,22 @@ const FileManager: React.FC = (): JSX.Element => {
     { id: 3, name: COLUMN_NAMES.UPLOADER, sx: { width: "50%" } },
   ];
 
-  //loading state before fetching files
-  if (loading) {
-    return (
-      <Stack sx={{ textAlign: "center", padding: 4 }}>
-        <Typography variant="h6">Loading files...</Typography>
-      </Stack>
-    );
-  }
-
   return (
     <Stack spacing={4} sx={{ padding: 4, marginBottom: 10 }}>
+      <PageTour
+        steps={fileSteps}
+        run={runFileTour}
+        onFinish={() => setRunFileTour(false)}
+      />
+      <Stack spacing={1} data-joyride-id="file-manager-title">
+        <Typography variant="h6" fontWeight="bold" gutterBottom>
+          Evidences & documents
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          This table lists all the files uploaded to the system.
+        </Typography>
+      </Stack>
+
       {loading && (
         <VWSkeleton
           variant="rectangular"
@@ -266,46 +277,33 @@ const FileManager: React.FC = (): JSX.Element => {
           sx={{ backgroundColor: "gray", borderRadius: 2 }}
         />
       )}
+
       {!loading && (
-        <>
-          <PageTour
-            steps={fileSteps}
-            run={runFileTour}
-            onFinish={() => setRunFileTour(false)}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            flex: 1,
+            width: "100%",
+            justifyContent: files.length === 0 ? "center" : "flex-start",
+            alignItems: files.length === 0 ? "center" : "stretch",
+            position: "relative",
+            borderRadius: "4px",
+            overflow: "hidden",
+            maxHeight: "400px",
+            // borderBottom: files.length === 0 ? "1px solid #eeeeee" : "none",
+          }}
+        >
+          <FileTable
+            cols={cols}
+            rows={rows}
+            files={files}
+            handleSort={handleSort}
+            sortField={sortField}
+            sortDirection={sortDirection}
           />
-          <Stack spacing={1} data-joyride-id="file-manager-title">
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Evidences & documents
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              This table lists all the files uploaded to the system.
-            </Typography>
-          </Stack>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              flex: 1,
-              width: "100%",
-              justifyContent: files.length === 0 ? "center" : "flex-start",
-              alignItems: files.length === 0 ? "center" : "stretch",
-              position: "relative",
-              borderRadius: "4px",
-              overflow: "hidden",
-              maxHeight: "400px",
-            }}
-          >
-            <FileTable
-              cols={cols}
-              rows={rows}
-              files={files}
-              handleSort={handleSort}
-              sortField={sortField}
-              sortDirection={sortDirection}
-            />
-            {files.length === 0 && <EmptyState />}
-          </Box>
-        </>
+          {files.length === 0 && <EmptyState />}
+        </Box>
       )}
     </Stack>
   );

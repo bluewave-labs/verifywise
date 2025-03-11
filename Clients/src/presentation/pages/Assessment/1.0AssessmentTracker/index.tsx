@@ -21,39 +21,24 @@ import StatsCard from "../../../components/Cards/StatsCard";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import Questions from "./questions";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import useAssessmentProgress from "../../../../application/hooks/useAssessmentProgress";
 
 const AssessmentTracker = () => {
   const theme = useTheme();
   const { dashboardValues } = useContext(VerifyWiseContext);
   const { selectedProjectId } = dashboardValues;
+  const { assessmentProgress, loading: loadingAssessmentProgress } = useAssessmentProgress({
+    selectedProjectId,
+  })
+
   const [activeTab, setActiveTab] = useState<number>(0);
-  const [progressData, setProgressData] = useState<any>(null);
   const [assessmentData, setAssessmentData] = useState<any>(null);
   const [topicsData, setTopicsData] = useState<any>(null);
   const [subtopicsData, setSubtopicsData] = useState<any>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+
   const [loadingTopics, setLoadingTopics] = useState<boolean>(true);
   const [loadingSubtopics, setLoadingSubtopics] = useState<boolean>(true);
 
-  useEffect(() => {
-    const fetchProgressData = async () => {
-      if (!selectedProjectId) return;
-
-      setLoading(true);
-      try {
-        const response = await getEntityById({
-          routeUrl: `/projects/assessment/progress/${selectedProjectId}`,
-        });
-        setProgressData(response.data);
-      } catch (error) {
-        console.error("Failed to fetch progress data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProgressData();
-  }, [selectedProjectId]);
 
   useEffect(() => {
     const fetchAssessmentData = async () => {
@@ -165,7 +150,7 @@ const AssessmentTracker = () => {
         <Stack
           sx={{ maxWidth: 1400, marginTop: "10px", gap: theme.spacing(10) }}
         >
-          {loading ? (
+          {loadingAssessmentProgress ? (
             <VWSkeleton
               height={82}
               minHeight={82}
@@ -174,10 +159,10 @@ const AssessmentTracker = () => {
               key={1400}
               variant="rectangular"
             />
-          ) : progressData ? (
+          ) : assessmentProgress ? (
             <StatsCard
-              total={progressData.totalQuestions}
-              completed={progressData.answeredQuestions}
+              total={assessmentProgress.totalQuestions}
+              completed={assessmentProgress.answeredQuestions}
               title="Questions"
               progressbarColor="#13715B"
             />

@@ -21,7 +21,7 @@ interface BasicModalProps {
   onCancel: (e:React.SyntheticEvent) => void;
   warningTitle: string;
   warningMessage: string;
-  text: string;
+  type: string;
 }
 
 const BasicModal: React.FC<BasicModalProps> = ({
@@ -31,7 +31,7 @@ const BasicModal: React.FC<BasicModalProps> = ({
   onCancel,
   warningTitle,
   warningMessage,
-  text
+  type
 }) => {
   const theme = useTheme();
   return (
@@ -110,7 +110,7 @@ const BasicModal: React.FC<BasicModalProps> = ({
             }}
             onClick={(e) => onDelete(e)}
           >
-            {text}
+           {`Delete ${type}`}
           </Button>
         </Stack>
       </Stack>

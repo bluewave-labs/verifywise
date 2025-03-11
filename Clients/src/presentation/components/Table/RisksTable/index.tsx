@@ -206,9 +206,10 @@ const RiskTable: React.FC<RiskTableProps> = ({
                     id={row.id}
                     onDelete={() => onDelete(row.id)}
                     onEdit={() => onEdit(row.id)}
+                    onMouseEvent={()=>{}}
                     warningTitle="Delete this risk?"
                     warningMessage="This action is non-recoverable."
-                    text="Delete Risk"
+                    type="Risk"
                   ></IconButton>
                 </TableCell>
               </TableRow>

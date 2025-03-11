@@ -142,9 +142,10 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
                     id={row.id}
                     onDelete={() => onDelete(row.id)}
                     onEdit={() => onEdit(row.id)}
+                    onMouseEvent={()=>{}}
                     warningTitle="Delete this vendor?"
                     warningMessage="When you delete this vendor, all data related to this vendor will be removed. This action is non-recoverable."
-                    text="Delete Vendor"
+                    type="Vendor"
                   ></IconButton>
                 </TableCell>
               </TableRow>

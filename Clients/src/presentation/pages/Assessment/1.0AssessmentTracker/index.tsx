@@ -23,6 +23,7 @@ import Questions from "./questions";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import useAssessmentProgress from "../../../../application/hooks/useAssessmentProgress";
 import useAssessmentData from "../../../../application/hooks/useAssessmentData";
+import useAssessmentTopics from "../../../../application/hooks/useAssessmentTopcis";
 
 const AssessmentTracker = () => {
   const theme = useTheme();
@@ -34,44 +35,22 @@ const AssessmentTracker = () => {
   const { assessmentData } = useAssessmentData({
     selectedProjectId,
   })
+  const { assessmentTopics, loading: loadingAssessmentTopics } = useAssessmentTopics({
+    assessmentId: assessmentData?.id,
+  })
 
   const [activeTab, setActiveTab] = useState<number>(0);
-  const [topicsData, setTopicsData] = useState<any>(null);
   const [subtopicsData, setSubtopicsData] = useState<any>(null);
-
-  const [loadingTopics, setLoadingTopics] = useState<boolean>(true);
   const [loadingSubtopics, setLoadingSubtopics] = useState<boolean>(true);
-
-
-  useEffect(() => {
-    const fetchTopicsData = async () => {
-      if (!assessmentData?.id) return;
-
-      setLoadingTopics(true);
-      try {
-        const response = await getEntityById({
-          routeUrl: `/topics/byassessmentid/${assessmentData.id}`,
-        });
-        setTopicsData(response.data);
-      } catch (error) {
-        console.error("Failed to fetch topics data:", error);
-        setTopicsData(null);
-      } finally {
-        setLoadingTopics(false);
-      }
-    };
-
-    fetchTopicsData();
-  }, [assessmentData]);
 
   useEffect(() => {
     const fetchSubtopicsData = async () => {
-      if (!topicsData || topicsData.length === 0) return;
+      if (!assessmentTopics || assessmentTopics.length === 0) return;
 
       setLoadingSubtopics(true);
       try {
         const response = await getEntityById({
-          routeUrl: `/subtopics/bytopic/${topicsData[activeTab]?.id}`,
+          routeUrl: `/subtopics/bytopic/${assessmentTopics[activeTab]?.id}`,
         });
         setSubtopicsData(response.data);
       } catch (error) {
@@ -83,7 +62,7 @@ const AssessmentTracker = () => {
     };
 
     fetchSubtopicsData();
-  }, [topicsData, activeTab]);
+  }, [assessmentTopics, activeTab]);
 
   const handleListItemClick = useCallback((index: number) => {
     setActiveTab(index);
@@ -165,7 +144,7 @@ const AssessmentTracker = () => {
               High risk conformity assessment
             </Typography>
             <List>
-              {loadingTopics ? (
+              {loadingAssessmentTopics ? (
                 <VWSkeleton
                   height={30}
                   minHeight={30}
@@ -174,8 +153,8 @@ const AssessmentTracker = () => {
                   maxWidth={300}
                   variant="rectangular"
                 />
-              ) : topicsData ? (
-                topicsData.map((topic: any, index: number) =>
+              ) : assessmentTopics ? (
+                assessmentTopics.map((topic: any, index: number) =>
                   topicsList(topic, index)
                 )
               ) : (

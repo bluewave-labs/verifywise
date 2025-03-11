@@ -16,6 +16,7 @@ import { extractUserToken } from "../../../../application/tools/extractToken";
 import VWButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
+import VWToast from "../../../vw-v2-components/Toast"; // Import VWToast
 
 const PasswordForm: React.FC = () => {
   const theme = useTheme();
@@ -39,6 +40,7 @@ const PasswordForm: React.FC = () => {
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] =
     useState<boolean>(false);
   const [loading, _] = useState(false);
+  const [showToast, setShowToast] = useState(false); // State for VWToast visibility
 
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -137,23 +139,51 @@ const PasswordForm: React.FC = () => {
       return;
     }
 
+    setShowToast(true); // Show VWToast
+
     try {
-      await updateEntityById({
-        routeUrl: `/users/${id}`,
-        body: { currentPassword, newPassword },
+      const response = await updateEntityById({
+        routeUrl: `/users/chng-pass/${id}`,
+        body: { id, currentPassword, newPassword },
       });
 
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
+      if (response.status === 202) {
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
 
-      setAlert({
-        variant: "success",
-        title: "Success",
-        body: "Password updated successfully.",
-        isToast: true,
-        visible: true,
-      });
+        setAlert({
+          variant: "success",
+          title: "Success",
+          body: "Password updated successfully.",
+          isToast: true,
+          visible: true,
+        });
+      } else if (response.status === 404) {
+        setAlert({
+          variant: "error",
+          title: "Error",
+          body: "User not found.",
+          isToast: true,
+          visible: true,
+        });
+      } else if (response.status === 401) {
+        setAlert({
+          variant: "error",
+          title: "Error",
+          body: "Current password is incorrect.",
+          isToast: true,
+          visible: true,
+        });
+      } else if (response.status === 400) {
+        setAlert({
+          variant: "error",
+          title: "Error",
+          body: "New password cannot be the same as the current password.",
+          isToast: true,
+          visible: true,
+        });
+      }
     } catch (error) {
       setAlert({
         variant: "error",
@@ -162,6 +192,14 @@ const PasswordForm: React.FC = () => {
         isToast: true,
         visible: true,
       });
+    } finally {
+      setShowToast(false); // Hide VWToast after response
+      setTimeout(() => {
+        setShowToast(false);
+      }, 1000);
+      setTimeout(() => {
+        setAlert((prev) => ({ ...prev, visible: false }));
+      }, 3000); // Alert will disappear after 3 seconds
     }
   }, [currentPassword, newPassword, confirmPassword]);
 
@@ -203,7 +241,7 @@ const PasswordForm: React.FC = () => {
           onClick={() => setAlert((prev) => ({ ...prev, visible: false }))}
         />
       )}
-
+      {showToast && <VWToast />} {/* Show VWToast when showToast is true */}
       {!loading && (
         <Box sx={{ width: "100%", maxWidth: 600 }}>
           <Stack sx={{ marginTop: theme.spacing(15) }}>
@@ -281,7 +319,6 @@ const PasswordForm: React.FC = () => {
           </Stack>
         </Box>
       )}
-
       {isConfirmationModalOpen && (
         <DualButtonModal
           title="Confirm Save"

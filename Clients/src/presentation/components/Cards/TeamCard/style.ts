@@ -15,7 +15,7 @@ export const infoCardTitleStyle = {
 };
 
 export const descCardbodyStyle = {
-  fontSize: 11,
+  fontSize: 13,
   color: "#2D3748",
   textAlign: "justify",
 };

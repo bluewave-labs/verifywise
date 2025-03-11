@@ -21,7 +21,9 @@ import Alert from "../Alert";
 
 interface IconButtonProps {
   id: number;
-  onDelete: () => void;
+  type: string;
+  onDelete?: () => void;
+  onMouseEvent: (event: React.MouseEvent) => void;
   onEdit: () => void;
   warningTitle: string;
   warningMessage: string;
@@ -30,6 +32,9 @@ interface IconButtonProps {
 
 const IconButton: React.FC<IconButtonProps> = ({
   id,
+  type,
+  onChange,
+  onMouseEvent,
   onDelete,
   onEdit,
   warningTitle,
@@ -70,12 +75,17 @@ const IconButton: React.FC<IconButtonProps> = ({
   };
 
   /**
-   * Handles the action of opening the "Remove Vendor" dialog by closing the dropdown menu
-   * and setting the state to open the remove vendor modal.
+   * Handles the action of opening the "Remove {modalName}" dialog by closing the dropdown menu
+   * and setting the state to open the remove {modalName} modal.
    *
    * @param {React.MouseEvent} e - The click event that triggers the function.
    */
-  function openRemoveModal() {
+  // function openRemoveModal() {
+  //   closeDropDownMenu(e);
+  //   setIsOpenRemoveVendorModal(true);
+  // }
+
+  function openRemoveRisk(e: React.MouseEvent) {
     // closeDropDownMenu(e);
     setisOpenRemoveModal(true);
   }
@@ -117,19 +127,38 @@ const IconButton: React.FC<IconButtonProps> = ({
       closeDropDownMenu(e);
     }
   };
-  const handleEdit = (e?: React.SyntheticEvent) => {
-    onEdit();
-    if (e) {
-      closeDropDownMenu(e);
-    }
-  };
-  function handleCancle(e?: React.SyntheticEvent){
-    setisOpenRemoveModal(false);
-    if (e) {
-      closeDropDownMenu(e);
+
+  const handleEditVendor = async (e: React.MouseEvent) => {
+    closeDropDownMenu(e);
+    try {
+      const response = await getEntityById({
+        routeUrl: `/vendors/${id}`,
+      });
+      setSelectedVendor(response.data);
+      openAddNewVendor();
+    } catch (e) {
+      logEngine({
+        type: "error",
+        message: "Failed to fetch vendor data.",
+        user: {
+          id: String(localStorage.getItem("userId")) || "N/A",
+          email: "N/A",
+          firstname: "N/A",
+          lastname: "N/A",
+        },
+      });
     }
   }
 
+
+  /**
+   * Handles project risk edit modal.  
+   */
+
+  const handleEditModal = (e: React.MouseEvent) => {   
+    closeDropDownMenu(e);
+    onMouseEvent(e);
+  }
 
   /**
    * A dropdown list of options rendered as a Material-UI Menu component.
@@ -161,6 +190,22 @@ const IconButton: React.FC<IconButtonProps> = ({
     >
       <MenuItem onClick={(e)=>handleEdit(e)}>Edit</MenuItem>
       <MenuItem onClick={() => setisOpenRemoveModal(true)}>Remove</MenuItem>
+      <MenuItem
+        onClick={(e) => {
+          e.stopPropagation();
+          type === 'project' ? handleEditModal(e) : handleEditVendor(e);
+        }}
+      >
+        Edit
+      </MenuItem>
+      <MenuItem
+        onClick={(e) => {
+          e.stopPropagation();
+          openRemoveRisk(e);
+        }}
+      >
+        Remove
+      </MenuItem>
     </Menu>
   );
 
@@ -209,6 +254,12 @@ const IconButton: React.FC<IconButtonProps> = ({
         text={text}
       />
       {/* <AddNewVendor
+        isOpen={isOpenRemoveVendorModal}
+        setIsOpen={() => setIsOpenRemoveVendorModal(false)}
+        onDelete={handleDeleteVendor}
+        modalName={type}
+      />
+      <AddNewVendor // the usage here is as the edit window
         isOpen={isOpenAddNewVendorModal}
         handleChange={handleChange}
         setIsOpen={() => setIsOpenAddNewVendorModal(false)}

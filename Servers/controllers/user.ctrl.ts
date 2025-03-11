@@ -295,6 +295,54 @@ async function calculateProgress(
   }
 }
 
+async function ChangePassword(req: Request, res: Response) {
+  try {
+    const { id, currentPassword, newPassword } = req.body;
+
+    // Fetch the user by ID
+    const user = await getUserByIdQuery(id);
+
+    if (!user) {
+      return res
+        .status(404)
+        .json(STATUS_CODE[404]({ message: "User not found" }));
+    }
+
+    // Check if the current password is correct
+    const passwordIsMatched = await bcrypt.compare(
+      currentPassword,
+      user.password_hash
+    );
+    if (!passwordIsMatched) {
+      return res
+        .status(401)
+        .json(STATUS_CODE[401]({ message: "Current password is incorrect" }));
+    }
+
+    // Check if the new password is not the same as the current password
+    const newPasswordIsMatched = await bcrypt.compare(
+      newPassword,
+      user.password_hash
+    );
+    if (newPasswordIsMatched) {
+      return res.status(400).json(
+        STATUS_CODE[400]({
+          message: "New password cannot be the same as the current password",
+        })
+      );
+    }
+
+    // Hash the new password and update the user's password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password_hash = hashedPassword;
+    const updatedUser = await resetPasswordQuery(user.email, hashedPassword);
+
+    return res.status(202).json(STATUS_CODE[202](updatedUser));
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
 export {
   getAllUsers,
   getUserByEmail,
@@ -306,4 +354,5 @@ export {
   deleteUserById,
   checkUserExists,
   calculateProgress,
+  ChangePassword,
 };

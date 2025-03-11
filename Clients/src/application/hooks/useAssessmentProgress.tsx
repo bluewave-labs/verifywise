@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useCallback } from "react";
 import { getEntityById } from "../repository/entity.repository";
 import { AssessmentProgress } from "../../domain/Assessment";
@@ -15,13 +14,18 @@ import { AssessmentProgress } from "../../domain/Assessment";
  * @example
  * const { assessmentProgress, loading } = useAssessmentProgress({ selectedProjectId: 'project-id' });
  */
+
+const defaultAssessmentProgress = {
+  totalQuestions: 0,
+  answeredQuestions: 0,
+};
 const useAssessmentProgress = ({
   selectedProjectId,
 }: {
   selectedProjectId: string;
 }) => {
   const [assessmentProgress, setAssessmentProgress] =
-    useState<AssessmentProgress | null>(null);
+    useState<AssessmentProgress>(defaultAssessmentProgress);
   const [loading, setLoading] = useState<boolean>(true);
 
   const fetchAssessmentProgress = useCallback(
@@ -35,9 +39,18 @@ const useAssessmentProgress = ({
           routeUrl: `/projects/assessment/progress/${selectedProjectId}`,
           signal,
         });
-        setAssessmentProgress(response.data);
+        if (!response.ok) {
+          setAssessmentProgress(defaultAssessmentProgress);
+          console.error(`Failed to fetch progress data: ${response.message}`);
+        }
+        if (response?.data) {
+          setAssessmentProgress(response.data);
+        } else {
+          setAssessmentProgress(defaultAssessmentProgress);
+        }
       } catch (error) {
         console.error("Failed to fetch progress data:", error);
+        setAssessmentProgress(defaultAssessmentProgress);
       } finally {
         setLoading(false);
       }

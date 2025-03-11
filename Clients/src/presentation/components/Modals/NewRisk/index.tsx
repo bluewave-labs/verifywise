@@ -118,7 +118,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
 }) => {
   const theme = useTheme();
   const { dashboardValues } = useContext(VerifyWiseContext);
-  const VENDOR_OPTIONS = dashboardValues.vendors.map((vendor: any) => ({
+  const VENDOR_OPTIONS = dashboardValues?.vendors?.map((vendor: any) => ({
     _id: vendor.id,
     name: vendor.vendor_name,
   }));

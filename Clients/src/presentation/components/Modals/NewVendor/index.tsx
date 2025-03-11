@@ -139,12 +139,12 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   };
 
   const formattedProjects = useMemo(() => {
-    return (
-      projects?.map((project: any) => ({
-        _id: project.id,
-        name: project.project_title,
-      })) || []
-    );
+    return Array.isArray(projects)
+      ? projects.map((project: any) => ({
+          _id: project.id,
+          name: project.project_title,
+        }))
+      : [];
   }, [projects]);
 
   useEffect(() => {

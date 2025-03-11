@@ -22,6 +22,7 @@ import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import Questions from "./questions";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import useAssessmentProgress from "../../../../application/hooks/useAssessmentProgress";
+import useAssessmentData from "../../../../application/hooks/useAssessmentData";
 
 const AssessmentTracker = () => {
   const theme = useTheme();
@@ -30,32 +31,17 @@ const AssessmentTracker = () => {
   const { assessmentProgress, loading: loadingAssessmentProgress } = useAssessmentProgress({
     selectedProjectId,
   })
+  const { assessmentData } = useAssessmentData({
+    selectedProjectId,
+  })
 
   const [activeTab, setActiveTab] = useState<number>(0);
-  const [assessmentData, setAssessmentData] = useState<any>(null);
   const [topicsData, setTopicsData] = useState<any>(null);
   const [subtopicsData, setSubtopicsData] = useState<any>(null);
 
   const [loadingTopics, setLoadingTopics] = useState<boolean>(true);
   const [loadingSubtopics, setLoadingSubtopics] = useState<boolean>(true);
 
-
-  useEffect(() => {
-    const fetchAssessmentData = async () => {
-      if (!selectedProjectId) return;
-
-      try {
-        const response = await getEntityById({
-          routeUrl: `/assessments/project/byid/${selectedProjectId}`,
-        });
-        setAssessmentData(response.data[0]);
-      } catch (error) {
-        console.error("Failed to fetch assessment data:", error);
-      }
-    };
-
-    fetchAssessmentData();
-  }, [selectedProjectId]);
 
   useEffect(() => {
     const fetchTopicsData = async () => {

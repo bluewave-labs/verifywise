@@ -6,3 +6,8 @@ export interface AssessmentProgress {
   totalQuestions: number;
   answeredQuestions: number;
 }
+export interface AssessmentData {
+  id: string;
+  is_demo: boolean;
+  project_id: string;
+}

@@ -243,7 +243,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
             </Box>
           </Stack>
 
-          <TableContainer className="team-table" sx={{ overflowX: "inherit" }}>
+          <TableContainer className="team-table" sx={{ overflowX: "auto" }}>
             <Table
               sx={{
                 ...singleTheme.tableStyles.primary.frame,
@@ -358,7 +358,14 @@ const TeamManagement: React.FC = (): JSX.Element => {
                       <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                         -
                       </TableCell>
-                      <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                      <TableCell
+                        sx={{
+                          ...singleTheme.tableStyles.primary.body.cell,
+                          position: "sticky",
+                          right: 0,
+                          minWidth: "50px",
+                        }}
+                      >
                         -
                       </TableCell>
                     </TableRow>

@@ -17,15 +17,21 @@ import { Button, Modal, Stack, Typography, useTheme } from "@mui/material";
 interface BasicModalProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  onDelete: () => void;
-  modalName: string
+  onDelete: (e:React.SyntheticEvent) => void;
+  onCancel: (e:React.SyntheticEvent) => void;
+  warningTitle: string;
+  warningMessage: string;
+  type: string;
 }
 
 const BasicModal: React.FC<BasicModalProps> = ({
   isOpen,
   setIsOpen,
   onDelete,
-  modalName
+  onCancel,
+  warningTitle,
+  warningMessage,
+  type
 }) => {
   const theme = useTheme();
   return (
@@ -50,35 +56,16 @@ const BasicModal: React.FC<BasicModalProps> = ({
           },
         }}
       >
-        {modalName === 'project' ? 
-          <>
-            <Typography id="modal-delete-vendor" fontSize={16} fontWeight={600}>
-              Delete this {modalName} risk?
-            </Typography>
-            <Typography
-              id="delete-monitor-confirmation"
-              fontSize={13}
-              textAlign={"justify"}
-            >
-              Are you sure you want to delete your {modalName} risk? This action is permanent and cannot be undone.
-            </Typography>
-          </>
-        : 
-          <>
-            <Typography id="modal-delete-vendor" fontSize={16} fontWeight={600}>
-              Delete this vendor?
-            </Typography>
-            <Typography
-              id="delete-monitor-confirmation"
-              fontSize={13}
-              textAlign={"justify"}
-            >
-              When you delete this vendor, all data related to this vendor will be
-              removed. This action is non-recoverable.
-            </Typography>
-          </>
-        }
-        
+        <Typography id="modal-delete-vendor" fontSize={16} fontWeight={600}>
+          {warningTitle}
+        </Typography>
+        <Typography
+          id="delete-monitor-confirmation"
+          fontSize={13}
+          textAlign={"justify"}
+        >
+          {warningMessage}
+        </Typography>
         <Stack
           direction="row"
           gap={theme.spacing(4)}
@@ -91,10 +78,7 @@ const BasicModal: React.FC<BasicModalProps> = ({
             disableTouchRipple
             variant="text"
             color="inherit"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsOpen(false);
-            }}
+            onClick={(e) => onCancel(e)}
             sx={{
               width: 100,
               textTransform: "capitalize",
@@ -124,9 +108,9 @@ const BasicModal: React.FC<BasicModalProps> = ({
                 boxShadow: "none",
               },
             }}
-            onClick={onDelete}
+            onClick={(e) => onDelete(e)}
           >
-            Delete
+           {`Delete ${type}`}
           </Button>
         </Stack>
       </Stack>

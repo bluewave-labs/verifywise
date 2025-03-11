@@ -9,6 +9,7 @@ import {
   useTheme,
   Stack,
   Typography,
+  Box,
 } from "@mui/material";
 import { useCallback, useMemo, useState } from "react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
@@ -16,12 +17,12 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import IconButton from "../../IconButton";
 import TablePaginationActions from "../../TablePagination";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { Likelihood, RISK_LABELS, Severity } from "../../RiskLevel/constants";
 
 const titleOfTableColumns = [
   "vendor",
   "impact",
   "likelihood",
-  "risk level",
   "risk severity",
   "action owner",
   "risk level",
@@ -33,14 +34,28 @@ const titleOfTableColumns = [
 
 interface RiskTableProps {
   dashboardValues: any;
-  onRiskChange: () => void;
-  onDeleteRisk: (vendorId: number) => void;
-}
+  onDelete: (riskId: number) => void;
+  onEdit: (riskId: number) => void;
 
+}
+const LIKELIHOOD_OPTIONS = [
+  { _id: 1, name: "Rare" },
+  { _id: 2, name: "Unlikely" },
+  { _id: 3, name: "Possible" },
+  { _id: 4, name: "Likely" },
+  { _id: 5, name: "Almost certain" },
+];
+const RISK_SEVERITY_OPTIONS = [
+  { _id: 1, name: "No risk" },
+  { _id: 2, name: "Low risk" },
+  { _id: 3, name: "Medium risk" },
+  { _id: 4, name: "High risk" },
+  { _id: 5, name: "Very high risk" },
+];
 const RiskTable: React.FC<RiskTableProps> = ({
   dashboardValues,
-  onRiskChange,
-  onDeleteRisk,
+  onDelete,
+  onEdit,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -49,6 +64,31 @@ const RiskTable: React.FC<RiskTableProps> = ({
     null
   );
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
+
+  const getRiskLevel = (
+    likelihoodName: string,
+    severityName: string
+  ): { text: string; color: string } => {
+    const likelihood =
+      LIKELIHOOD_OPTIONS.find((option) => option.name === likelihoodName)
+        ?._id || 0;
+    const severity =
+      RISK_SEVERITY_OPTIONS.find((option) => option.name === severityName)
+        ?._id || 0;
+
+    const score = likelihood * severity;
+
+    if (score <= 3) {
+      return RISK_LABELS.low;
+    } else if (score <= 6) {
+      return RISK_LABELS.medium;
+    } else if (score <= 9) {
+      return RISK_LABELS.high;
+    } else {
+      return RISK_LABELS.critical;
+    }
+  };
+
   const handleChangePage = useCallback((_: unknown, newPage: number) => {
     setPage(newPage);
   }, []);
@@ -88,13 +128,14 @@ const RiskTable: React.FC<RiskTableProps> = ({
               key={index}
               style={{
                 ...singleTheme.tableStyles.primary.header.cell,
+                ...(cell === "risk level" ? {} : {}),
                 ...(index === titleOfTableColumns.length - 1
                   ? {
                       position: "sticky",
                       right: 0,
                       zIndex: 10,
-                      backgroundColor:singleTheme.tableStyles.primary.header.backgroundColors,
-
+                      backgroundColor:
+                        singleTheme.tableStyles.primary.header.backgroundColors,
                     }
                   : {}),
               }}
@@ -120,16 +161,35 @@ const RiskTable: React.FC<RiskTableProps> = ({
                 sx={singleTheme.tableStyles.primary.body.row}
               >
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                  {dashboardValues.vendors.find(
-                    (vendor: any) => vendor.id === row.vendor_id
-                  )?.vendor_name }
+                  {
+                    dashboardValues.vendors.find(
+                      (vendor: any) => vendor.id === row.vendor_id
+                    )?.vendor_name
+                  }
                 </TableCell>
                 <TableCell sx={cellStyle}>{row.impact}</TableCell>
                 <TableCell sx={cellStyle}>{row.likelihood}</TableCell>
-                <TableCell sx={cellStyle}>{row.risk_level}</TableCell>
+                {/* <TableCell sx={cellStyle}>{row.risk_level}</TableCell> */}
                 <TableCell sx={cellStyle}>{row.risk_severity}</TableCell>
                 <TableCell sx={cellStyle}>{row.action_owner}</TableCell>
-                <TableCell sx={cellStyle}>{row.risk_level}</TableCell>
+                <TableCell sx={cellStyle}>
+                  <Box
+                    sx={{
+                      backgroundColor: getRiskLevel(
+                        row.likelihood,
+                        row.risk_severity
+                      ).color,
+                      borderRadius: theme.shape.borderRadius,
+                      padding: "8px",
+                      textAlign: "center",
+                      justifyContent: "center",
+                      color: "white",
+                    }}
+                  >
+                    {row.risk_level}
+                  </Box>
+                </TableCell>
+
                 <TableCell sx={cellStyle}>{row.risk_description}</TableCell>
                 <TableCell sx={cellStyle}>{row.impact_description}</TableCell>
                 <TableCell sx={cellStyle}>{row.action_plan}</TableCell>
@@ -139,14 +199,17 @@ const RiskTable: React.FC<RiskTableProps> = ({
                     position: "sticky",
                     right: 0,
                     zIndex: 10,
-                    minWidth:"50px"
+                    minWidth: "50px",
                   }}
                 >
                   <IconButton
                     id={row.id}
-                    onChange={onRiskChange}
-                    onDelete={onDeleteRisk}
-                    type="vendor"
+                    onDelete={() => onDelete(row.id)}
+                    onEdit={() => onEdit(row.id)}
+                    onMouseEvent={()=>{}}
+                    warningTitle="Delete this risk?"
+                    warningMessage="This action is non-recoverable."
+                    type="Risk"
                   ></IconButton>
                 </TableCell>
               </TableRow>
@@ -166,7 +229,7 @@ const RiskTable: React.FC<RiskTableProps> = ({
   return (
     <>
       <TableContainer>
-        <Table sx={{ ...singleTheme.tableStyles.primary.frame}}>
+        <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>
           {tableHeader}
           {tableBody}
         </Table>

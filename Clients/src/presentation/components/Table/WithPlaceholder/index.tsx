@@ -29,14 +29,15 @@ const titleOfTableColumns = [
 
 interface TableWithPlaceholderProps {
   dashboardValues: any;
-  onVendorChange: () => void;
-  onDeleteVendor: (vendorId: number) => void;
+  onDelete: (vendorId: number) => void;
+  onEdit: (vendorId: number) => void;
+
 }
 
 const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
   dashboardValues,
-  onVendorChange,
-  onDeleteVendor,
+  onDelete,
+  onEdit,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -44,6 +45,8 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
   const [dropdownAnchor, setDropdownAnchor] = useState<HTMLElement | null>(
     null
   );
+
+
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
   const handleChangePage = useCallback((_: unknown, newPage: number) => {
@@ -137,8 +140,12 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
                 >
                   <IconButton
                     id={row.id}
-                    onChange={onVendorChange}
-                    onDelete={onDeleteVendor}
+                    onDelete={() => onDelete(row.id)}
+                    onEdit={() => onEdit(row.id)}
+                    onMouseEvent={()=>{}}
+                    warningTitle="Delete this vendor?"
+                    warningMessage="When you delete this vendor, all data related to this vendor will be removed. This action is non-recoverable."
+                    type="Vendor"
                   ></IconButton>
                 </TableCell>
               </TableRow>

@@ -23,8 +23,9 @@ export const tableStyles = {
         color: "#a1afc6",
         fontWeight: 400,
         paddingLeft: "10px",
+        whiteSpace:"nowrap",
         "&:not(:last-child)": {
-          minWidth: "fit-content",
+          minWidth: "fit-content"
         },
       },
     },
@@ -34,11 +35,19 @@ export const tableStyles = {
         textTransform: "capitalize",
         borderBottom: "1px solid #EEEEEE",
         backgroundColor: "white",
+        transition: "background-color 0.3s ease-in-out", 
+        "&:hover td": {
+          backgroundColor: " #fafafa", 
+        },
+        "&:hover": {
+          cursor:"pointer"
+        },
       },
       cell: {
         fontSize: fontSizes.medium,
         paddingY: "12px",
         backgroundColor: "white",
+        whiteSpace:"nowrap",
         "&:not(:last-child)": {
           minWidth: "fit-content",
         },

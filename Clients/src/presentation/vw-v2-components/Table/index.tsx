@@ -75,20 +75,20 @@ const VWProjectRisksTableBody = ({
   rowsPerPage: number;
   setSelectedRow: any;
   setAnchorEl: any;
-  onDeleteRisk: (id: number) => void
+  onDeleteRisk: (id: number) => void;
 }) => {
   const { setInputValues, dashboardValues } = useContext(VerifyWiseContext);
-  const cellStyle = singleTheme.tableStyles.primary.body.cell;  
+  const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
-  const handelEditRisk = (event: React.MouseEvent, row: any) => {    
+  const handelEditRisk = ( row: any,event?: React.MouseEvent) => {
     setSelectedRow(row);
     setInputValues(row);
-    setAnchorEl(event.currentTarget);
-  }
+    setAnchorEl(event?.currentTarget);
+  };
 
-  const handleDeleteRisk = async(riskId: number) => {
+  const handleDeleteRisk = async (riskId: number) => {
     onDeleteRisk(riskId);
-  }
+  };
 
   return (
     <TableBody>
@@ -96,10 +96,7 @@ const VWProjectRisksTableBody = ({
         rows
           .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
           .map((row: ProjectRisk, index: number) => (
-            <TableRow
-              key={index}
-              sx={singleTheme.tableStyles.primary.body.row}
-            >
+            <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row}>
               <TableCell sx={cellStyle}>
                 {row.risk_name?.length > 30
                   ? `${row.risk_name.slice(0, 30)}...`
@@ -135,8 +132,11 @@ const VWProjectRisksTableBody = ({
                 <IconButton
                   id={row.id}
                   type="project"
-                  onMouseEvent={(e) => handelEditRisk(e, row)}                  
+                  onMouseEvent={(e) => handelEditRisk(row,e)}
                   onDelete={() => handleDeleteRisk(row.id)}
+                  onEdit={() => handelEditRisk(row)}
+                  warningTitle="Delete this project?"
+                  warningMessage="This action is non-recoverable."
                 ></IconButton>
               </TableCell>
             </TableRow>

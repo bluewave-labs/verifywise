@@ -6,6 +6,7 @@ import {
   deleteVendorByIdQuery,
   getAllVendorsQuery,
   getVendorByIdQuery,
+  getVendorByProjectIdQuery,
   updateVendorByIdQuery,
 } from "../utils/vendor.utils";
 import { Vendor } from "../models/vendor.model";
@@ -29,6 +30,22 @@ export async function getVendorById(req: Request, res: Response): Promise<any> {
     const vendorId = parseInt(req.params.id);
 
     const vendor = await getVendorByIdQuery(vendorId);
+
+    if (vendor) {
+      return res.status(200).json(STATUS_CODE[200](vendor));
+    }
+
+    return res.status(404).json(STATUS_CODE[404](vendor));
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getVendorByProjectId(req: Request, res: Response): Promise<any> {
+  try {
+    const vendorId = parseInt(req.params.id);
+
+    const vendor = await getVendorByProjectIdQuery(vendorId);
 
     if (vendor) {
       return res.status(200).json(STATUS_CODE[200](vendor));

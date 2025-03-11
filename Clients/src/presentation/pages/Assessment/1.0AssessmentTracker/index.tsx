@@ -39,6 +39,7 @@ const AssessmentTracker = () => {
     const fetchProgressData = async () => {
       if (!selectedProjectId) return;
 
+      setLoading(true);
       try {
         const response = await getEntityById({
           routeUrl: `/projects/assessment/progress/${selectedProjectId}`,
@@ -231,7 +232,9 @@ const AssessmentTracker = () => {
               />
             ) : subtopicsData ? (
               subtopicsData.map((subtopic: any, index: number) => (
-                <Questions index={index} subtopic={subtopic} />
+                <div key={`subtopic-${subtopic.id || index}`}>
+                  <Questions subtopic={subtopic} />
+                </div>
               ))
             ) : (
               <Typography>Unable to get subtopics</Typography>

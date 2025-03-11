@@ -64,7 +64,7 @@ export const getTopicByAssessmentIdQuery = async (
   return result.rows;
 };
 
-export const createNewTopicsQuery = async (assessmentId: number) => {
+export const createNewTopicsQuery = async (assessmentId: number, enable_ai_data_insertion: boolean) => {
   const createdTopics = [];
   let query =
     "INSERT INTO topics(assessment_id, title, order_no) VALUES ($1, $2, $3) RETURNING *;";
@@ -77,7 +77,8 @@ export const createNewTopicsQuery = async (assessmentId: number) => {
     const topic_id = result.rows[0].id;
     const subTopics = await createNewSubTopicsQuery(
       topic_id,
-      topicStruct.subtopics
+      topicStruct.subtopics,
+      enable_ai_data_insertion
     );
     createdTopics.push({ ...result.rows[0], subTopics });
   }

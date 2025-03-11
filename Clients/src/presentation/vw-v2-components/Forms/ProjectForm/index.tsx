@@ -58,7 +58,7 @@ interface FormValues {
   ai_risk_classification: number;
   type_of_high_risk_role: number;
   goal: string;
-  autoFill: boolean;
+  enable_ai_data_insertion: boolean;
 }
 
 interface FormErrors {
@@ -79,7 +79,7 @@ const initialState: FormValues = {
   ai_risk_classification: 0,
   type_of_high_risk_role: 0,
   goal: "",
-  autoFill: false,
+  enable_ai_data_insertion: false,
 };
 
 interface VWProjectFormProps {
@@ -159,7 +159,7 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
 
   const handleCheckboxChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      setValues({ ...values, autoFill: event.target.checked });
+      setValues({ ...values, enable_ai_data_insertion: event.target.checked });
     },
     [values]
   );
@@ -528,8 +528,8 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
           size="small"
           id="auto-fill"
           onChange={handleCheckboxChange}
-          isChecked={values.autoFill}
-          value={values.autoFill.toString()}
+          isChecked={values.enable_ai_data_insertion}
+          value={values.enable_ai_data_insertion.toString()}
           label="Enable this option to automatically fill in the Compliance Tracker and Assessment Tracker questions with AI-generated answers, helping you save time. You can review and edit these answers anytime."
         />
       </Stack>

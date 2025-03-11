@@ -15,7 +15,9 @@ export default function ProfilePage() {
   };
 
   return (
-    <Box sx={{ width: "100%", marginLeft: theme.spacing(10) }}>
+    <Box
+      sx={{ width: "100%", marginLeft: theme.spacing(10), overflow: "hidden" }}
+    >
       <Tabs
         value={activeTab}
         onChange={handleTabChange}

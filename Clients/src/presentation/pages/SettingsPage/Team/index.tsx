@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import React, {
   useState,
   useCallback,
@@ -20,7 +16,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   Select,
   MenuItem,
   IconButton,
@@ -38,7 +33,7 @@ import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import VWButton from "../../../vw-v2-components/Buttons";
-
+import singleTheme from "../../../themes/v1SingleTheme";
 const Alert = lazy(() => import("../../../components/Alert"));
 
 // Enum for roles
@@ -248,17 +243,39 @@ const TeamManagement: React.FC = (): JSX.Element => {
             </Box>
           </Stack>
 
-          <TableContainer
-            component={Paper}
-            sx={{ maxWidth: theme.spacing(480) }}
-          >
-            <Table sx={{ tableLayout: "fixed", width: "100%" }}>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ width: "25%" }}>NAME</TableCell>
-                  <TableCell sx={{ width: "25%" }}>EMAIL</TableCell>
-                  <TableCell sx={{ width: "25%" }}>ROLE</TableCell>
-                  <TableCell sx={{ width: "25%" }}>ACTION</TableCell>
+          <TableContainer className="team-table" sx={{ overflowX: "inherit" }}>
+            <Table
+              sx={{
+                ...singleTheme.tableStyles.primary.frame,
+              }}
+            >
+              <TableHead
+                sx={{
+                  backgroundColor:
+                    singleTheme.tableStyles.primary.header.backgroundColors,
+                }}
+              >
+                <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+                  <TableCell sx={singleTheme.tableStyles.primary.header.cell}>
+                    NAME
+                  </TableCell>
+                  <TableCell sx={singleTheme.tableStyles.primary.header.cell}>
+                    EMAIL
+                  </TableCell>
+                  <TableCell sx={singleTheme.tableStyles.primary.header.cell}>
+                    ROLE
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      ...singleTheme.tableStyles.primary.header.cell,
+                      position: "sticky",
+                      right: 0,
+                      backgroundColor:
+                        singleTheme.tableStyles.primary.header.backgroundColors,
+                    }}
+                  >
+                    ACTION
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -270,16 +287,25 @@ const TeamManagement: React.FC = (): JSX.Element => {
                         page * rowsPerPage + rowsPerPage
                       )
                       .map((member) => (
-                        <TableRow key={member.id}>
-                          <TableCell sx={{ width: "25%" }}>
+                        <TableRow
+                          key={member.id}
+                          sx={singleTheme.tableStyles.primary.body.row}
+                        >
+                          <TableCell
+                            sx={singleTheme.tableStyles.primary.body.cell}
+                          >
                             {member.name}
                           </TableCell>
-                          <TableCell sx={{ width: "25%" }}>
+                          <TableCell
+                            sx={singleTheme.tableStyles.primary.body.cell}
+                          >
                             {member.email.length > 15
                               ? `${member.email.substring(0, 15)}...`
                               : member.email}
                           </TableCell>
-                          <TableCell sx={{ width: "25%" }}>
+                          <TableCell
+                            sx={singleTheme.tableStyles.primary.body.cell}
+                          >
                             {roleItems.find(
                               (item: { _id: any }) =>
                                 item._id === parseInt(member.role)
@@ -302,7 +328,14 @@ const TeamManagement: React.FC = (): JSX.Element => {
                               ))}
                             </Select>
                           </TableCell>
-                          <TableCell sx={{ width: "25%" }}>
+                          <TableCell
+                            sx={{
+                              ...singleTheme.tableStyles.primary.body.cell,
+                              position: "sticky",
+                              right: 0,
+                              minWidth: "50px",
+                            }}
+                          >
                             <IconButton
                               onClick={() => handleDeleteClick(member.id)}
                               disableRipple
@@ -315,11 +348,19 @@ const TeamManagement: React.FC = (): JSX.Element => {
                   </>
                 ) : (
                   <>
-                    <TableRow>
-                      <TableCell sx={{ width: "25%" }}>-</TableCell>
-                      <TableCell sx={{ width: "25%" }}>-</TableCell>
-                      <TableCell sx={{ width: "25%" }}>-</TableCell>
-                      <TableCell sx={{ width: "25%" }}>-</TableCell>
+                    <TableRow sx={singleTheme.tableStyles.primary.body.row}>
+                      <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                        -
+                      </TableCell>
+                      <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                        -
+                      </TableCell>
+                      <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                        -
+                      </TableCell>
+                      <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                        -
+                      </TableCell>
                     </TableRow>
                   </>
                 )}

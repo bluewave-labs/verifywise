@@ -93,6 +93,7 @@ const FileTable: React.FC<{
   handleSort: (field: keyof File) => void;
   sortField: keyof File | null;
   sortDirection: SortDirection | null;
+  onRowClick:(fileId:string)=>void;
 }> = ({ cols, rows, files, handleSort, sortField, sortDirection }) => {
   const sortedCols = useMemo(
     () =>
@@ -170,6 +171,12 @@ const FileManager: React.FC = (): JSX.Element => {
   useEffect(() => {
     setRunFileTour(true);
 
+    /**
+     * Fetches all files from the '/files' endpoint.
+     * This function retrieves a list of files and updates the state.
+     * If an error occurs, it logs an error and sets the files to an empty array.
+     * The loading state is managed to indicate the progress of the fetch.
+     */
     const fetchAllFiles = async () => {
       try {
         setLoading(true);
@@ -186,18 +193,39 @@ const FileManager: React.FC = (): JSX.Element => {
             }))
           );
         } else {
-          setFiles([]); 
+          setFiles([]);
         }
       } catch (error) {
         console.error("Error fetching files", error);
-        setFiles([]); 
+        setFiles([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAllFiles(); 
+    fetchAllFiles();
   }, []);
+
+  /**
+   * Handles row selection in the file table.
+   * Fetches and logs the file details when a row is clicked.
+   * @param {string} fileId - The unique identifier of the selected file.
+   */
+  const handleRowClick = async (fileId: string) => {
+    try {
+      setLoading(true);
+
+      const file = await getEntityById({ routeUrl: `/files/${fileId}` });
+
+      if (file) {
+        console.log("Selected File:", file);
+      }
+    } catch (error) {
+      console.error("Error fetching file details", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   /**
    * Handles sorting of files by a specified field.
@@ -301,6 +329,7 @@ const FileManager: React.FC = (): JSX.Element => {
             handleSort={handleSort}
             sortField={sortField}
             sortDirection={sortDirection}
+            onRowClick={handleRowClick}
           />
           {files.length === 0 && <EmptyState />}
         </Box>

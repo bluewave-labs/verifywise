@@ -127,7 +127,7 @@ const Vendors = () => {
   const fetchVendors = useCallback(async () => {
     setIsVendorsLoading(true);
     try {
-      const response = await getAllEntities({ routeUrl: "/vendors" });
+      const response = await getAllEntities({ routeUrl: `/vendors/project-id/${selectedProjectId}` });
       setDashboardValues((prevValues: any) => ({
         ...prevValues,
         vendors: response.data,

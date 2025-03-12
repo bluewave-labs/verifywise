@@ -80,6 +80,7 @@ const EmptyState: React.FC = (): JSX.Element => (
  * @param {Function} props.handleSort - Callback to handle sorting.
  * @param {keyof File|null} props.sortField - The field currently sorted by.
  * @param {SortDirection|null} props.sortDirection - The current sort direction.
+ * @param {Function} props.onRowClick - Callback to handle row selection.
  * @returns {JSX.Element} The file table component.
  */
 const FileTable: React.FC<{
@@ -90,7 +91,7 @@ const FileTable: React.FC<{
   sortField: keyof File | null;
   sortDirection: SortDirection | null;
   onRowClick: (fileId: string) => void;
-}> = ({ cols, rows, files, handleSort, sortField, sortDirection }) => {
+}> = ({ cols, rows, files, handleSort, sortField, sortDirection, onRowClick }) => {
   const sortedCols = useMemo(
     () =>
       cols.map((col) =>
@@ -136,6 +137,7 @@ const FileTable: React.FC<{
       table="fileManager"
       setSelectedRow={() => {}}
       setAnchorEl={() => {}}
+      onRowClick={onRowClick}
     />
   );
 };
@@ -210,7 +212,6 @@ const FileManager: React.FC = (): JSX.Element => {
   const handleRowClick = async (fileId: string) => {
     try {
       setLoading(true);
-
       const file = await getEntityById({ routeUrl: `/files/${fileId}` });
 
       if (file) {

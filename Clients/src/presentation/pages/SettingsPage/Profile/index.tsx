@@ -64,13 +64,11 @@ const ProfileForm: React.FC = () => {
     "/placeholder.svg?height=80&width=80"
   );
   const [showToast, setShowToast] = useState(false);
-
   const [firstnameError, setFirstnameError] = useState<string | null>(null);
   const [lastnameError, setLastnameError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title: string;
@@ -87,6 +85,11 @@ const ProfileForm: React.FC = () => {
 
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const initialStateRef = useRef({ firstname: "", lastname: "", email: "" });
+  const isModified =
+  firstname !== initialStateRef.current.firstname ||
+  lastname !== initialStateRef.current.lastname ||
+  email !== initialStateRef.current.email;
 
   /**
    * Fetch user data on component mount.
@@ -104,6 +107,12 @@ const ProfileForm: React.FC = () => {
         setFirstname(response.data.name || "");
         setLastname(response.data.surname || "");
         setEmail(response.data.email || "");
+
+        initialStateRef.current = {
+          firstname: response.data.name,
+          lastname: response.data.surname,
+          email: response.data.email,
+        };
 
         setProfilePhoto(
           response.data.pathToImage || "/placeholder.svg?height=80&width=80"
@@ -565,7 +574,7 @@ const ProfileForm: React.FC = () => {
             }}
             icon={<SaveIcon />}
             onClick={handleSave}
-            isDisabled={!!firstnameError || !!lastnameError || !!emailError}
+            isDisabled={!!firstnameError || !!lastnameError || !!emailError|| !isModified }
           />
         </Stack>
       )}

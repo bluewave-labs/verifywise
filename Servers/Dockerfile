@@ -1,10 +1,12 @@
 FROM node:20-alpine
 
 WORKDIR /app
-COPY ../package.json ./
+COPY ./package.json ./
 RUN npm install
 
 COPY ./ ./
+COPY ./SQL_Commands.sql ./SQL_Commands.sql
+
 RUN npm run build
 
 COPY ./templates ./dist/templates

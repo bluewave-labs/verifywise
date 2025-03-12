@@ -450,7 +450,7 @@ export async function saveControls(
 ): Promise<any> {
   try {
     const controlId = parseInt(req.params.id);
-    const Control = req.body as Control & { user_id: number };
+    const Control = req.body as Control & { user_id: number, project_id: number };
 
     // now we need to create the control for the control category, and use the control category id as the foreign key
     const control: any = await updateControlByIdQuery(controlId, {
@@ -505,6 +505,7 @@ export async function saveControls(
             feedback_files: subcontrol.feedback_files,
             control_id: subcontrol.control_id,
           },
+          Control.project_id,
           Control.user_id,
           evidenceFiles,
           feedbackFiles

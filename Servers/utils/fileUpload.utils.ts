@@ -3,14 +3,16 @@ import pool from "../database/db";
 
 export const uploadFile = async (
   file: UploadedFile,
-  user_id: number
+  user_id: number,
+  project_id: number
 ) => {
   const query = `INSERT INTO files
-    (filename, content, uploaded_by, uploaded_time)
-    VALUES ($1, $2, $3, $4) RETURNING *`;
+    (filename, content, project_id, uploaded_by, uploaded_time)
+    VALUES ($1, $2, $3, $4, $5) RETURNING *`;
   const result = await pool.query(query, [
     file.originalname,
     file.buffer,
+    project_id,
     user_id,
     new Date().toISOString()
   ]);

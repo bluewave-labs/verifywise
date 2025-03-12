@@ -200,6 +200,7 @@ CREATE TABLE files (
   id SERIAL PRIMARY KEY,
   filename TEXT NOT NULL,
   content BYTEA NOT NULL,
+  project_id INT REFERENCES projects(id),
   uploaded_by INTEGER REFERENCES users(id),
   uploaded_time TIMESTAMP,
   is_demo BOOLEAN

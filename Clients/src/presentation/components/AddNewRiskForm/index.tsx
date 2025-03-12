@@ -141,6 +141,9 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
       justifyContent: "flex-end",
       padding: "16px 0 7px",
       minHeight: "20px",
+      "&.Mui-selected": {
+        color: "#13715B",
+      },
     }),
     []
   );

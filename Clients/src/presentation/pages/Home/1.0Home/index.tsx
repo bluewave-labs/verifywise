@@ -18,19 +18,43 @@ import Alert from "../../../components/Alert";
 import { logEngine } from "../../../../application/tools/log.engine";
 import VWProjectForm from "../../../vw-v2-components/Forms/ProjectForm";
 
+const ALERT_TIMEOUT = 3000;
+
+interface Progress {
+  allDonesubControls: number;
+  allsubControls: number;
+}
+
+interface AssessmentProgress {
+  answeredQuestions: number;
+  totalQuestions: number;
+}
+
+interface AlertType {
+  variant: "success" | "info" | "warning" | "error";
+  title?: string;
+  body: string;
+}
+
+interface User {
+  id: string;
+  email: string;
+  firstname: string;
+  lastname: string;
+}
+
 const VWHome = () => {
   const { setDashboardValues } = useContext(VerifyWiseContext);
-  const [complianceProgress, setComplianceProgress] = useState<any>({});
-  const [assessmentProgress, setAssessmentProgress] = useState<any>({});
+  const [complianceProgress, setComplianceProgress] = useState<Progress | null>(
+    null
+  );
+  const [assessmentProgress, setAssessmentProgress] =
+    useState<AssessmentProgress | null>(null);
   const [projects, setProjects] = useState<any[]>([]);
   const [_, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [__, setIsGeneratingDemoData] = useState(false);
-  const [alert, setAlert] = useState<{
-    variant: "success" | "info" | "warning" | "error";
-    title?: string;
-    body: string;
-  } | null>();
+  const [alert, setAlert] = useState<AlertType | null>(null);
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
   const [shouldFetchProjects, setShouldFetchProjects] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -46,20 +70,25 @@ const VWHome = () => {
 
   useEffect(() => {
     const fetchProgressData = async () => {
-      await fetchData("/users", (data) => {
-        setUsers(data);
-        setDashboardValues({ users: data });
-      });
-      await fetchData(
-        "/projects/all/compliance/progress",
-        setComplianceProgress
-      );
-      await fetchData(
-        "/projects/all/assessment/progress",
-        setAssessmentProgress
-      );
-      await fetchData("/projects", setProjects);
-      setLoading(false);
+      try {
+        const [usersData, complianceData, assessmentData, projectsData] =
+          await Promise.all([
+            getAllEntities({ routeUrl: "/users" }),
+            getAllEntities({ routeUrl: "/projects/all/compliance/progress" }),
+            getAllEntities({ routeUrl: "/projects/all/assessment/progress" }),
+            getAllEntities({ routeUrl: "/projects" }),
+          ]);
+
+        setUsers(usersData.data);
+        setDashboardValues({ users: usersData.data });
+        setComplianceProgress(complianceData.data);
+        setAssessmentProgress(assessmentData.data);
+        setProjects(projectsData.data);
+      } catch (error) {
+        console.error("Error fetching progress data:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchProgressData();
@@ -73,7 +102,7 @@ const VWHome = () => {
   async function generateDemoData() {
     setIsGeneratingDemoData(true);
     setShowToast(true);
-    const user = {
+    const user: User = {
       id: "demo-user-id", // Replace with actual user ID
       email: "demo-user@example.com", // Replace with actual user email
       firstname: "Demo",
@@ -93,7 +122,7 @@ const VWHome = () => {
         });
         setTimeout(() => {
           setAlert(null);
-        }, 3000);
+        }, ALERT_TIMEOUT);
 
         // Fetch the updated data
         await fetchData("/projects", setProjects);
@@ -117,7 +146,7 @@ const VWHome = () => {
         });
         setTimeout(() => {
           setAlert(null);
-        }, 3000);
+        }, ALERT_TIMEOUT);
       }
     } catch (error) {
       const errorMessage = (error as Error).message;
@@ -132,13 +161,21 @@ const VWHome = () => {
       });
       setTimeout(() => {
         setAlert(null);
-      }, 3000);
+      }, ALERT_TIMEOUT);
     } finally {
       setIsGeneratingDemoData(false);
       setShowToast(false);
       setShouldFetchProjects((prev) => !prev);
     }
   }
+
+  const renderSmallStatsCard = (
+    title: string,
+    progress: string,
+    rate: number
+  ) => (
+    <SmallStatsCard attributeTitle={title} progress={progress} rate={rate} />
+  );
 
   console.log("complianceProgress: ", complianceProgress);
   console.log("assessmentProgress: ", assessmentProgress);
@@ -171,32 +208,26 @@ const VWHome = () => {
           {loading ? (
             <VWSkeleton variant="rectangular" sx={headerCardPlaceholder} />
           ) : (
-            <SmallStatsCard
-              attributeTitle="Compliance tracker"
-              progress={`${
-                complianceProgress ? complianceProgress.allDonesubControls : 0
-              }/${complianceProgress ? complianceProgress.allsubControls : 1}`}
-              rate={
-                (complianceProgress?.allDonesubControls ?? 0) /
+            renderSmallStatsCard(
+              "Compliance tracker",
+              `${complianceProgress?.allDonesubControls ?? 0}/${
+                complianceProgress?.allsubControls ?? 1
+              }`,
+              (complianceProgress?.allDonesubControls ?? 0) /
                 (complianceProgress?.allsubControls ?? 1)
-              }
-            />
+            )
           )}
           {loading ? (
             <VWSkeleton variant="rectangular" sx={headerCardPlaceholder} />
           ) : (
-            <SmallStatsCard
-              attributeTitle="Assessment tracker"
-              progress={`${assessmentProgress?.answeredQuestions ?? 0}/${
+            renderSmallStatsCard(
+              "Assessment tracker",
+              `${assessmentProgress?.answeredQuestions ?? 0}/${
                 assessmentProgress?.totalQuestions ?? 1
-              }`}
-              rate={
-                assessmentProgress
-                  ? (assessmentProgress.answeredQuestions ?? 0) /
-                    (assessmentProgress.totalQuestions ?? 1)
-                  : 0
-              }
-            />
+              }`,
+              (assessmentProgress?.answeredQuestions ?? 0) /
+                (assessmentProgress?.totalQuestions ?? 1)
+            )
           )}
         </Stack>
       </Stack>
@@ -305,7 +336,6 @@ const VWHome = () => {
       </Stack>
       <Modal
         open={isProjectFormOpen}
-        // open={true}
         onClose={handleProjectFormClose}
         aria-labelledby="modal-title"
         aria-describedby="modal-description"

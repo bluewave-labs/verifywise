@@ -298,7 +298,7 @@ const FileManager: React.FC = (): JSX.Element => {
           height="300px"
           minWidth={"100%"}
           minHeight={300}
-          sx={{ backgroundColor: "gray", borderRadius: 2 }}
+          sx={{ borderRadius: 2 }}
         />
       )}
 

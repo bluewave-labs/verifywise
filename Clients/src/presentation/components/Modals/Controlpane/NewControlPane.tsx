@@ -19,6 +19,20 @@ import { Subcontrol } from "../../../../domain/Subcontrol";
 import { Control } from "../../../../domain/Control";
 import Alert from "../../Alert";
 import VWToast from "../../../vw-v2-components/Toast";
+import SaveIcon from "@mui/icons-material/Save";
+import VWButton from "../../../vw-v2-components/Buttons";
+
+const tabStyle = {
+  textTransform: "none",
+  fontWeight: 400,
+  alignItems: "flex-start",
+  justifyContent: "flex-end",
+  padding: "16px 0 7px",
+  minHeight: "20px",
+  "&.Mui-selected": {
+    color: "#13715B",
+  },
+};
 
 const NewControlPane = ({
   data,
@@ -128,19 +142,6 @@ const NewControlPane = ({
     },
   };
 
-  const buttonStyle = {
-    fontSize: 13,
-    textTransform: "capitalize",
-    backgroundColor: "#4C7DE7",
-    boxShadow: "none",
-    borderRadius: "4px",
-    border: "1px solid #175CD3",
-    "&:hover": {
-      boxShadow: "none",
-      backgroundColor: "#175CD3 ",
-    },
-  };
-
   const handleSave = () => {
     setIsModalOpen(true);
   };
@@ -220,7 +221,9 @@ const NewControlPane = ({
         <DualButtonModal
           title="Confirm Save"
           body={
-            <Typography textTransform={"none"}>Are you sure you want to save the changes?</Typography>
+            <Typography textTransform={"none"}>
+              Are you sure you want to save the changes?
+            </Typography>
           }
           cancelText="Cancel"
           proceedText="Save"
@@ -282,11 +285,11 @@ const NewControlPane = ({
                 handleCloseWrapper();
               }}
               sx={{
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                padding: '8px',
-                '&:hover': {
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                padding: "8px",
+                "&:hover": {
                   opacity: 0.8,
                 },
               }}
@@ -314,9 +317,11 @@ const NewControlPane = ({
             <Tabs
               value={selectedTab}
               onChange={handleSelectedTab}
-              indicatorColor="primary"
-              textColor="primary"
-              sx={{ justifyContent: "flex-start" }}
+              TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
+              sx={{
+                minHeight: "20px",
+                "& .MuiTabs-flexContainer": { columnGap: "34px" },
+              }}
             >
               {state.subControls!.map((subControl, index) => (
                 <Tab
@@ -324,7 +329,7 @@ const NewControlPane = ({
                   key={subControl.id}
                   label={`Subcontrol ${index + 1}`}
                   disableRipple
-                  sx={{ textTransform: "none" }}
+                  sx={tabStyle}
                 />
               ))}
             </Tabs>
@@ -430,20 +435,17 @@ const NewControlPane = ({
               mt: 2,
             }}
           >
-            <Button
+            <VWButton
               variant="contained"
-              onClick={handleSave}
+              text="Save"
               sx={{
-                ...buttonStyle,
-                width: 68,
-                "&:hover": {
-                  backgroundColor: "#175CD3 ",
-                },
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
+                gap: 2,
               }}
-              disableRipple
-            >
-              Save
-            </Button>
+              onClick={handleSave}
+              icon={<SaveIcon />}
+            />
           </Stack>
         </Stack>
       </Modal>

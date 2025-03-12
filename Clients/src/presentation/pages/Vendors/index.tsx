@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import "./index.css";
 import { Box, Stack, Tab, Typography, useTheme } from "@mui/material";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
@@ -31,7 +27,6 @@ import AddNewRisk from "../../components/Modals/NewRisk";
 import VWButton from "../../vw-v2-components/Buttons";
 import VWSkeleton from "../../vw-v2-components/Skeletons";
 import VWToast from "../../vw-v2-components/Toast";
-import Risks from "../../components/Risks";
 import useProjectRisks from "../../../application/hooks/useProjectRisks";
 import { Project } from "../../../domain/Project";
 import RisksCard from "../../components/Cards/RisksCard";
@@ -127,7 +122,9 @@ const Vendors = () => {
   const fetchVendors = useCallback(async () => {
     setIsVendorsLoading(true);
     try {
-      const response = await getAllEntities({ routeUrl: `/vendors/project-id/${selectedProjectId}` });
+      const response = await getAllEntities({
+        routeUrl: `/vendors/project-id/${selectedProjectId}`,
+      });
       setDashboardValues((prevValues: any) => ({
         ...prevValues,
         vendors: response.data,

@@ -200,6 +200,8 @@ CREATE TABLE files (
   id SERIAL PRIMARY KEY,
   filename TEXT NOT NULL,
   content BYTEA NOT NULL,
+  uploaded_by INTEGER REFERENCES users(id),
+  uploaded_time TIMESTAMP,
   is_demo BOOLEAN
 );
 

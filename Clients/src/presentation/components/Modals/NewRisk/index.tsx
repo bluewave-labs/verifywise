@@ -13,7 +13,7 @@
 
 import TabContext from "@mui/lab/TabContext";
 import TabPanel from "@mui/lab/TabPanel";
-import { Box, Button, Modal, Stack, Typography, useTheme } from "@mui/material";
+import { Box, Modal, Stack, Typography, useTheme } from "@mui/material";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import { ReactComponent as Close } from "../../../assets/icons/close.svg";
@@ -32,6 +32,8 @@ import VWToast from "../../../vw-v2-components/Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import { User } from "../../../../domain/User";
 import { getUserForLogging } from "../../../../application/tools/userHelpers";
+import VWButton from "../../../vw-v2-components/Buttons";
+import SaveIcon from "@mui/icons-material/Save";
 
 interface ExistingRisk {
   id?: number;
@@ -625,27 +627,17 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
                 alignItems: "flex-end",
               }}
             >
-              <Button
-                disableRipple
+              <VWButton
                 variant="contained"
+                text="Save"
                 sx={{
-                  width: 70,
-                  height: 34,
-                  fontSize: 13,
-                  textTransform: "capitalize",
-                  backgroundColor: "#4C7DE7",
-                  boxShadow: "none",
-                  borderRadius: "4px",
-                  border: "1px solid #175CD3",
-                  "&:hover": {
-                    boxShadow: "none",
-                    backgroundColor: "#175CD3 ",
-                  },
+                  backgroundColor: "#13715B",
+                  border: "1px solid #13715B",
+                  gap: 2,
                 }}
                 onClick={handleSave}
-              >
-                Save
-              </Button>
+                icon={<SaveIcon />}
+              />
             </Stack>
           </TabContext>
         </Stack>

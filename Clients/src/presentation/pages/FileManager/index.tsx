@@ -26,11 +26,7 @@ interface File {
   uploader: string;
 }
 
-const COLUMN_NAMES = {
-  FILE: "File",
-  UPLOAD_DATE: "Upload Date",
-  UPLOADER: "Uploader",
-};
+const COLUMN_NAMES = ["File", "Upload Date", "Uploader"];
 
 const SORT_DIRECTIONS = {
   ASC: "asc",
@@ -93,12 +89,12 @@ const FileTable: React.FC<{
   handleSort: (field: keyof File) => void;
   sortField: keyof File | null;
   sortDirection: SortDirection | null;
-  onRowClick:(fileId:string)=>void;
+  onRowClick: (fileId: string) => void;
 }> = ({ cols, rows, files, handleSort, sortField, sortDirection }) => {
   const sortedCols = useMemo(
     () =>
       cols.map((col) =>
-        [COLUMN_NAMES.UPLOAD_DATE, COLUMN_NAMES.UPLOADER].includes(col.name)
+        ["Upload Date", "Uploader"].includes(col.name)
           ? {
               ...col,
               name: (
@@ -273,11 +269,11 @@ const FileManager: React.FC = (): JSX.Element => {
     [files]
   );
 
-  const cols = [
-    { id: 1, name: COLUMN_NAMES.FILE, sx: { width: "50%" } },
-    { id: 2, name: COLUMN_NAMES.UPLOAD_DATE, sx: { width: "50%" } },
-    { id: 3, name: COLUMN_NAMES.UPLOADER, sx: { width: "50%" } },
-  ];
+  const cols = COLUMN_NAMES.map((name,index)=>({
+    id:index +1,
+    name,
+    sx: { width: "50%" },
+  }))
 
   return (
     <Stack spacing={4} sx={{ padding: 4, marginBottom: 10 }}>

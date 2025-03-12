@@ -91,7 +91,15 @@ const FileTable: React.FC<{
   sortField: keyof File | null;
   sortDirection: SortDirection | null;
   onRowClick: (fileId: string) => void;
-}> = ({ cols, rows, files, handleSort, sortField, sortDirection, onRowClick }) => {
+}> = ({
+  cols,
+  rows,
+  files,
+  handleSort,
+  sortField,
+  sortDirection,
+  onRowClick,
+}) => {
   const sortedCols = useMemo(
     () =>
       cols.map((col) =>
@@ -135,9 +143,8 @@ const FileTable: React.FC<{
       bodyData={fileData}
       paginated={files.length > 0}
       table="fileManager"
-      setSelectedRow={() => {}}
+      setSelectedRow={(row) => {onRowClick(row.id)}}
       setAnchorEl={() => {}}
-      onRowClick={onRowClick}
     />
   );
 };
@@ -206,17 +213,13 @@ const FileManager: React.FC = (): JSX.Element => {
 
   /**
    * Handles row selection in the file table.
-   * Fetches and logs the file details when a row is clicked.
+   * Fetches the file details when a row is clicked.
    * @param {string} fileId - The unique identifier of the selected file.
    */
   const handleRowClick = async (fileId: string) => {
     try {
       setLoading(true);
-      const file = await getEntityById({ routeUrl: `/files/${fileId}` });
-
-      if (file) {
-        console.log("Selected File:", file);
-      }
+      await getEntityById({ routeUrl: `/files/${fileId}` });
     } catch (error) {
       console.error("Error fetching file details", error);
     } finally {
@@ -270,11 +273,11 @@ const FileManager: React.FC = (): JSX.Element => {
     [files]
   );
 
-  const cols = COLUMN_NAMES.map((name,index)=>({
-    id:index +1,
+  const cols = COLUMN_NAMES.map((name, index) => ({
+    id: index + 1,
     name,
     sx: { width: "50%" },
-  }))
+  }));
 
   return (
     <Stack spacing={4} sx={{ padding: 4, marginBottom: 10 }}>

@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useContext, useEffect, useState } from "react";
 import { Box, Stack, Typography } from "@mui/material";
 import { Project } from "../../../../../domain/Project";
 import { useSearchParams } from "react-router-dom";
@@ -15,6 +15,7 @@ import Popup from "../../../../components/Popup";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import Alert from "../../../../components/Alert";
 import { deleteEntityById } from "../../../../../application/repository/entity.repository";
+import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
 
 const TITLE_OF_COLUMNS = [
   "RISK NAME",
@@ -30,10 +31,10 @@ const TITLE_OF_COLUMNS = [
 
 const VWProjectRisks = ({ project }: { project?: Project }) => {
   const [searchParams] = useSearchParams();
-  const projectId = searchParams.get("projectId") || project?.id;
-  const [refreshKey, setRefreshKey] = useState(0); // Add refreshKey state
+  const { dashboardValues } = useContext(VerifyWiseContext);
+  const { selectedProjectId } = dashboardValues;
   const { projectRisksSummary } = useProjectRisks({
-    projectId: projectId?.toString(), refreshKey
+    projectId: selectedProjectId?.toString(),
   });
   const [projectRisks, setProjectRisks] = useState<ProjectRisk[]>([]);
   const [selectedRow, setSelectedRow] = useState<ProjectRisk>();
@@ -44,11 +45,11 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     body: string;
   } | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
-  
+
   const fetchProjectRisks = useCallback(async () => {
     try {
       const response = await getEntityById({
-        routeUrl: `/projectRisks/by-projid/${projectId}`,
+        routeUrl: `/projectRisks/by-projid/${selectedProjectId}`,
       });
       setProjectRisks(response.data);
     } catch (error) {
@@ -59,20 +60,20 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
         setAlert,
       });
     }
-  }, [projectId]);
+  }, [selectedProjectId]);
 
   useEffect(() => {
-    if (projectId) {
+    if (selectedProjectId) {
       fetchProjectRisks();
     }
-  }, [projectId, fetchProjectRisks, refreshKey]); // Add refreshKey to dependencies
+  }, [selectedProjectId, fetchProjectRisks]); 
 
   /**
-   * Handle actions for project risk modal 
+   * Handle actions for project risk modal
    * Set an anchor to open/close the add-new-risk-popup
    * Display tostify for create and update project risk
-   * 
-  */  
+   *
+   */
 
   const [anchor, setAnchor] = useState<null | HTMLElement>(null);
   const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
@@ -93,11 +94,10 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
 
     // set pagination for FIFO risk listing after adding a new risk
     let rowsPerPage = 5;
-    let pageCount = Math.floor(projectRisks.length/rowsPerPage);
-    setCurrentPage(pageCount)
-    
+    let pageCount = Math.floor(projectRisks.length / rowsPerPage);
+    setCurrentPage(pageCount);
+
     fetchProjectRisks();
-    setRefreshKey((prevKey) => prevKey + 1);    
   };
 
   const handleUpdate = () => {
@@ -107,27 +107,28 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
       setAlert,
     });
     fetchProjectRisks();
-    setRefreshKey((prevKey) => prevKey + 1); // Update refreshKey to trigger re-render
   };
 
-  const handleDelete = async(riskId: number) => {
+  const handleDelete = async (riskId: number) => {
     try {
       const response = await deleteEntityById({
         routeUrl: `/projectRisks/${riskId}`,
-      });          
-      if (response.status === 200) { 
+      });
+      if (response.status === 200) {
         // Set current pagination number after deleting the risk
         let rowsPerPage = 5;
-        let rowCount = projectRisks.slice(currentPage * rowsPerPage, currentPage * rowsPerPage + rowsPerPage);
-    
-        if(currentPage !== 0 && rowCount.length === 1){
-          setCurrentPage(currentPage - 1)
-        }else{
-          setCurrentPage(currentPage)
-        }   
+        let rowCount = projectRisks.slice(
+          currentPage * rowsPerPage,
+          currentPage * rowsPerPage + rowsPerPage
+        );
 
-        fetchProjectRisks(); 
-        setRefreshKey((prevKey) => prevKey + 1);
+        if (currentPage !== 0 && rowCount.length === 1) {
+          setCurrentPage(currentPage - 1);
+        } else {
+          setCurrentPage(currentPage);
+        }
+
+        fetchProjectRisks();
       }
     } catch (error) {
       console.error("Error sending request", error);
@@ -137,14 +138,14 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
         setAlert,
       });
     }
-  }
+  };
 
   const setCurrentPagingation = (page: number) => {
-    setCurrentPage(page)
-  }
+    setCurrentPage(page);
+  };
 
   return (
-    <Stack className="vw-project-risks" key={refreshKey}>
+    <Stack className="vw-project-risks" >
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
           <Box>
@@ -159,7 +160,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
         </Suspense>
       )}
       <Stack className="vw-project-risks-row" sx={rowStyle}>
-        <RisksCard projectRisksSummary={projectRisksSummary} />
+        <RisksCard risksSummary={projectRisksSummary} />
       </Stack>
       <br />
       <Stack
@@ -194,8 +195,8 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
             icon={<AddCircleOutlineIcon />}
           />
         </Stack>
-        
-        {anchor && 
+
+        {anchor && (
           <Popup
             popupId="add-new-risk-popup"
             popupContent={
@@ -211,8 +212,8 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
             handleOpenOrClose={handleOpenOrClose}
             anchor={anchor}
           />
-        }
-        
+        )}
+
         {Object.keys(selectedRow || {}).length > 0 && anchorEl && (
           <Popup
             popupId="edit-new-risk-popup"

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Tabs, Tab, Box, useTheme } from "@mui/material";
+import { Tabs, Tab, Box, useTheme, Stack } from "@mui/material";
 import Profile from "./Profile/index";
 import Password from "./Password/index";
 import TeamManagement from "./Team/index";
@@ -15,9 +15,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <Box
-      sx={{ width: "100%", marginLeft: theme.spacing(10), overflow: "hidden" }}
-    >
+    <Stack className="vwhome">
       <Tabs
         value={activeTab}
         onChange={handleTabChange}
@@ -34,6 +32,6 @@ export default function ProfilePage() {
       {activeTab === 1 && <Password />}
 
       {activeTab === 2 && <TeamManagement />}
-    </Box>
+    </Stack>
   );
 }

@@ -12,7 +12,6 @@ import {
   Suspense,
   Dispatch,
   SetStateAction,
-  useMemo,
 } from "react";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
@@ -132,7 +131,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                 isRequired
                 error={riskErrors.riskName}
                 sx={{
-                  width: "325px"
+                  width: "325px",
                 }}
               />
               <Select
@@ -144,8 +143,10 @@ const RiskSection: FC<RiskSectionProps> = ({
                 }
                 onChange={handleOnSelectChange("actionOwner")}
                 items={
-                  users?.map((user) => ({ _id: user.id, name: `${user.name} ${user.surname}` })) ||
-                  []
+                  users?.map((user) => ({
+                    _id: user.id,
+                    name: `${user.name} ${user.surname}`,
+                  })) || []
                 }
                 isRequired
                 error={riskErrors.actionOwner}
@@ -170,7 +171,6 @@ const RiskSection: FC<RiskSectionProps> = ({
                   width: "325px",
                 }}
               />
-              
             </Stack>
 
             {/* Row 2 */}

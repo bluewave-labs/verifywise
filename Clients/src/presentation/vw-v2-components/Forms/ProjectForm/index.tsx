@@ -10,7 +10,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { ClearIcon } from "@mui/x-date-pickers/icons";
-import { Suspense, useCallback, useMemo, useState } from "react";
+import { Suspense, useCallback, useContext, useMemo, useState } from "react";
 import VWButton from "../../Buttons";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import Field from "../../../components/Inputs/Field";
@@ -27,6 +27,8 @@ import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { useSelector } from "react-redux";
 import Checkbox from "../../../components/Inputs/Checkbox";
+import { Project } from "../../../../domain/Project";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -89,6 +91,7 @@ interface VWProjectFormProps {
 
 const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
   const theme = useTheme();
+  const { setProjects } = useContext(VerifyWiseContext);
   const [values, setValues] = useState<FormValues>(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
   const { users } = useUsers();
@@ -235,6 +238,10 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
         });
 
         if (res.status === 201) {
+          setProjects((prevProjects: Project[]) => [
+            ...prevProjects,
+            res.data.data.project as Project,
+          ]);
           setTimeout(() => {
             setIsSubmitting(false);
             onClose();

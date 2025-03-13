@@ -16,8 +16,8 @@ interface DashboardProps {
 }
 
 const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
-  const { token, setDashboardValues } = useContext(VerifyWiseContext);
-  const [projects, setProjects] = useState([]);
+  const { token, setDashboardValues, projects, setProjects } =
+    useContext(VerifyWiseContext);
   const location = useLocation();
   const [runHomeTour, setRunHomeTour] = useState(false);
   //joyride steps

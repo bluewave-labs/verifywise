@@ -4,7 +4,7 @@ export type ProjectRisk = {
   id: number;
   project_id: number; // Foreign key to refer to the project
   risk_name: string;
-  risk_owner: string;
+  risk_owner: number;
   ai_lifecycle_phase:
     | "Problem definition & planning"
     | "Data collection & processing"
@@ -83,7 +83,7 @@ export type ProjectRisk = {
     | "Major"
     | "Critical";
   final_risk_level: string;
-  risk_approval: string;
+  risk_approval: number;
   approval_status: string;
   date_of_assessment: Date;
 };

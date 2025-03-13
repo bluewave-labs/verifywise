@@ -101,7 +101,7 @@ CREATE TABLE projectrisks (
   id SERIAL PRIMARY KEY,
   project_id INT REFERENCES projects(id),
   risk_name VARCHAR(255),
-  risk_owner VARCHAR(255),
+  risk_owner INTEGER REFERENCES users(id),
   ai_lifecycle_phase VARCHAR(255),
   risk_description TEXT,
   risk_category VARCHAR(255),
@@ -121,7 +121,7 @@ CREATE TABLE projectrisks (
   likelihood_mitigation VARCHAR(255),
   risk_severity VARCHAR(255),
   final_risk_level VARCHAR(255),
-  risk_approval VARCHAR(255),
+  risk_approval INTEGER REFERENCES users(id),
   approval_status VARCHAR(255),
   date_of_assessment DATE,
   is_demo BOOLEAN

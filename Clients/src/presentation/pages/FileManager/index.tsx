@@ -290,7 +290,7 @@ const FileManager: React.FC = (): JSX.Element => {
         run={runFileTour}
         onFinish={() => setRunFileTour(false)}
       />
-      <Stack spacing={1} data-joyride-id="file-manager-title">
+      <Stack spacing={1} data-joyride-id="file-manager-title" sx={{ pb: 8.5 }}>
         <Typography sx={vwfileHeading} gutterBottom>
           Evidences & documents
         </Typography>

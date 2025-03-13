@@ -21,9 +21,11 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") ?? "0";
   const { dashboardValues } = useContext(VerifyWiseContext);
-  const { users } = dashboardValues;
+  const { users, selectedProjectId } = dashboardValues;
 
-  const { projectRisksSummary } = useProjectRisks({ projectId });
+  const { projectRisksSummary } = useProjectRisks({
+    projectId: selectedProjectId?.toString(),
+  });
 
   const [complianceProgress, setComplianceProgress] = useState<{
     allDonesubControls: number;
@@ -68,7 +70,9 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
 
   const projectMembers: string[] = project
     ? users
-        .filter((user: User) => project.members.includes(user.id?.toString() || ''))
+        .filter((user: User) =>
+          project.members.includes(user.id?.toString() || "")
+        )
         .map((user: User) => `${user.name} ${user.surname}`)
     : [];
 
@@ -136,7 +140,7 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
         {project ? (
           <>
             <Typography sx={projectRiskSection}>Project risks</Typography>
-            <RisksCard projectRisksSummary={projectRisksSummary} />
+            <RisksCard risksSummary={projectRisksSummary} />
           </>
         ) : (
           <>

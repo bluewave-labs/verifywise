@@ -27,9 +27,9 @@ import AddNewRisk from "../../components/Modals/NewRisk";
 import VWButton from "../../vw-v2-components/Buttons";
 import VWSkeleton from "../../vw-v2-components/Skeletons";
 import VWToast from "../../vw-v2-components/Toast";
-import useProjectRisks from "../../../application/hooks/useProjectRisks";
 import { Project } from "../../../domain/Project";
 import RisksCard from "../../components/Cards/RisksCard";
+import useVendorRisks from "../../../application/hooks/useVendorRisks";
 
 interface ExistingRisk {
   id?: number;
@@ -74,7 +74,7 @@ const Vendors = () => {
   );
   const [selectedRisk, setSelectedRisk] = useState<ExistingRisk | null>(null);
   const { selectedProjectId } = dashboardValues;
-  const { projectRisksSummary } = useProjectRisks({
+  const { vendorRisksSummary } = useVendorRisks({
     projectId: selectedProjectId?.toString(),
   });
   const [alert, setAlert] = useState<{
@@ -398,7 +398,7 @@ const Vendors = () => {
             <VWSkeleton variant="rectangular" width="100%" height={400} />
           ) : (
             value !== "1" && (
-              <RisksCard projectRisksSummary={projectRisksSummary} />
+              <RisksCard projectRisksSummary={vendorRisksSummary} />
             )
           )}
           {value === "1" ? (

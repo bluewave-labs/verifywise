@@ -39,14 +39,8 @@ const useVendorRisks = ({ projectId }: { projectId?: string | null }) => {
           routeUrl: `/vendorRisks/by-projid/${projectId}`,
           signal,
         });
-        if (response.data) {
-          const filteredVendorRisks = projectId
-            ? response.data.filter(
-                (risk: VendorRisk) => risk.project_id === Number(projectId)
-              )
-            : response.data;
-          setVendorRisks(filteredVendorRisks);
-        }
+          setVendorRisks(response.data);
+    
       } catch (err) {
         if (err instanceof Error) {
           setError(`Request failed: ${err.message}`);

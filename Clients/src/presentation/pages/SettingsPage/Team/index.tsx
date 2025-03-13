@@ -36,6 +36,11 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import VWButton from "../../../vw-v2-components/Buttons";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useRoles } from "../../../../application/hooks/useRoles";
+import {
+  getAllEntities,
+  updateEntityById,
+} from "../../../../application/repository/entity.repository";
+
 const Alert = lazy(() => import("../../../components/Alert"));
 
 // Type definition for team member
@@ -43,16 +48,16 @@ type TeamMember = {
   id: string;
   name: string;
   email: string;
-  role: string;  // Keep as string since it comes from API
+  role: string; // Keep as string since it comes from API
 };
 
 // Constants for roles
 
 const TABLE_COLUMNS = [
-  { id: 'name', label: 'NAME' },
-  { id: 'email', label: 'EMAIL' },
-  { id: 'role', label: 'ROLE' },
-  { id: 'action', label: 'ACTION' },
+  { id: "name", label: "NAME" },
+  { id: "email", label: "EMAIL" },
+  { id: "role", label: "ROLE" },
+  { id: "action", label: "ACTION" },
 ];
 
 /**
@@ -72,7 +77,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
   } | null>(null);
 
   const roleItems = useMemo(
-    () => roles.map(role => ({ _id: role.id, name: role.name })),
+    () => roles.map((role) => ({ _id: role.id, name: role.name })),
     [roles]
   );
 
@@ -83,18 +88,12 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const [filter, setFilter] = useState(0);
 
   const [page, setPage] = useState(0); // Current page
-  const { dashboardValues } = useContext(VerifyWiseContext);
+  const { dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);
   const [teamUsers, setTeamUsers] = useState<TeamMember[]>(
     dashboardValues.users
   );
   const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
   const [inviteUserModalOpen, setInviteUserModalOpen] = useState(false);
-
-  // Add debug log for team users
-  // useEffect(() => {
-  //   console.log('Team Users:', teamUsers);
-  //   console.log('Dashboard Values:', dashboardValues);
-  // }, [teamUsers, dashboardValues]);
 
   // Handle saving organization name
   // const handleSaveOrgName = useCallback(() => {
@@ -114,21 +113,58 @@ const TeamManagement: React.FC = (): JSX.Element => {
     }
     handleClose();
   };
+  const fetchUsers = async () => {
+    try {
+      const response = await getAllEntities({ routeUrl: "/users" });
+      if (!response?.data) return;
+      setDashboardValues((prevValues: any) => ({
+        ...prevValues,
+        users: response.data,
+      }));
+      setTeamUsers(response?.data)
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
 
+  const handleUpdateRole = async (memberId: string, newRole: string) => {
+    try {
+      const response = await updateEntityById({
+        routeUrl: `/users/${memberId}`,
+        body: { role: newRole },
+      });
+
+      if (response.status === 202) {
+        setAlert({
+          variant: "success",
+          body: "User's role updated successfully",
+        });
+        setTimeout(() => setAlert(null), 3000);
+        await fetchUsers();
+      } else {
+        setAlert({
+          variant: "error",
+          body: response.data?.data?.message || "An error occurred.",
+        });
+        setTimeout(() => setAlert(null), 3000);
+      }
+    } catch (error) {
+      console.error("API Error:", error);
+      setAlert({
+        variant: "error",
+        body: `An error occurred: ${
+          (error as Error).message || "Please try again."
+        }`,
+      });
+
+      setTimeout(() => setAlert(null), 3000);
+    }
+  };
   // Handle role change
   const handleRoleChange = useCallback(
     (event: SelectChangeEvent<string>, memberId: string) => {
       const newRole = event.target.value;
-      console.log('Changing role to:', newRole);
-      console.log('For member:', memberId);
-      
-      setTeamUsers((prevUsers) =>
-        prevUsers.map((user) =>
-          user.id === memberId
-            ? { ...user, role: newRole }
-            : user
-        )
-      );
+      handleUpdateRole(memberId, newRole);
     },
     []
   );
@@ -138,9 +174,9 @@ const TeamManagement: React.FC = (): JSX.Element => {
     return ({ children }: { children: React.ReactNode }) => (
       <Typography
         sx={{
-          fontSize: '13px',
-          fontFamily: 'Inter, sans-serif',
-          color: '#344054'
+          fontSize: "13px",
+          fontFamily: "Inter, sans-serif",
+          color: "#344054",
         }}
       >
         {children}
@@ -149,11 +185,14 @@ const TeamManagement: React.FC = (): JSX.Element => {
   }, []);
 
   // Role value renderer
-  const renderRoleValue = useCallback((value: string) => {
-    const roleId = value?.toString() || '1';
-    const selectedRole = roles.find(r => r.id.toString() === roleId);
-    return <RoleTypography>{selectedRole?.name || 'Admin'}</RoleTypography>;
-  }, [roles, RoleTypography]);
+  const renderRoleValue = useCallback(
+    (value: string) => {
+      const roleId = value?.toString() || "1";
+      const selectedRole = roles.find((r) => r.id.toString() === roleId);
+      return <RoleTypography>{selectedRole?.name || "Admin"}</RoleTypography>;
+    },
+    [roles, RoleTypography]
+  );
 
   // Filtered team members based on selected role
   const filteredMembers = useMemo(() => {
@@ -285,17 +324,24 @@ const TeamManagement: React.FC = (): JSX.Element => {
 
           <TableContainer sx={{ overflowX: "auto" }}>
             <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>
-              <TableHead sx={{ backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors }}>
+              <TableHead
+                sx={{
+                  backgroundColor:
+                    singleTheme.tableStyles.primary.header.backgroundColors,
+                }}
+              >
                 <TableRow>
                   {TABLE_COLUMNS.map((column) => (
                     <TableCell
                       key={column.id}
                       sx={{
                         ...singleTheme.tableStyles.primary.header.cell,
-                        ...(column.id === 'action' && {
-                          position: 'sticky',
+                        ...(column.id === "action" && {
+                          position: "sticky",
                           right: 0,
-                          backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors,
+                          backgroundColor:
+                            singleTheme.tableStyles.primary.header
+                              .backgroundColors,
                         }),
                       }}
                     >
@@ -309,42 +355,54 @@ const TeamManagement: React.FC = (): JSX.Element => {
                   filteredMembers
                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                     .map((member) => (
-                      <TableRow key={member.id} sx={singleTheme.tableStyles.primary.body.row}>
-                        <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                      <TableRow
+                        key={member.id}
+                        sx={singleTheme.tableStyles.primary.body.row}
+                      >
+                        <TableCell
+                          sx={singleTheme.tableStyles.primary.body.cell}
+                        >
                           {member.name}
                         </TableCell>
-                        <TableCell sx={{...singleTheme.tableStyles.primary.body.cell, textTransform: 'none'}}>
+                        <TableCell
+                          sx={{
+                            ...singleTheme.tableStyles.primary.body.cell,
+                            textTransform: "none",
+                          }}
+                        >
                           {member.email}
                         </TableCell>
-                        <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                        <TableCell
+                          sx={singleTheme.tableStyles.primary.body.cell}
+                        >
                           <Select
-                            value={member.role || '1'}
+                            value={member.role || "1"}
                             onChange={(e) => handleRoleChange(e, member.id)}
                             size="small"
                             displayEmpty
                             renderValue={renderRoleValue}
                             sx={{
                               minWidth: "120px",
-                              fontSize: '13px',
-                              fontFamily: 'Inter, sans-serif',
-                              color: '#344054',
+                              fontSize: "13px",
+                              fontFamily: "Inter, sans-serif",
+                              color: "#344054",
                               "& .MuiOutlinedInput-notchedOutline": {
                                 border: "none",
                               },
                               "& .MuiSelect-select": {
-                                fontSize: '13px',
-                                fontFamily: 'Inter, sans-serif',
-                                padding: '4px 8px',
-                              }
+                                fontSize: "13px",
+                                fontFamily: "Inter, sans-serif",
+                                padding: "4px 8px",
+                              },
                             }}
                           >
                             {roles.map((role) => (
-                              <MenuItem 
-                                key={role.id} 
+                              <MenuItem
+                                key={role.id}
                                 value={role.id.toString()}
                                 sx={{
-                                  fontSize: '13px',
-                                  fontFamily: 'Inter, sans-serif',
+                                  fontSize: "13px",
+                                  fontFamily: "Inter, sans-serif",
                                 }}
                               >
                                 {role.name}
@@ -372,7 +430,10 @@ const TeamManagement: React.FC = (): JSX.Element => {
                 ) : (
                   <TableRow sx={singleTheme.tableStyles.primary.body.row}>
                     {TABLE_COLUMNS.map((column) => (
-                      <TableCell key={column.id} sx={singleTheme.tableStyles.primary.body.cell}>
+                      <TableCell
+                        key={column.id}
+                        sx={singleTheme.tableStyles.primary.body.cell}
+                      >
                         -
                       </TableCell>
                     ))}

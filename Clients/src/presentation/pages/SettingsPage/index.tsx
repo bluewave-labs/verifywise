@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Tabs, Tab, Box, useTheme, Stack } from "@mui/material";
+import { Tabs, Tab, Stack } from "@mui/material";
 import Profile from "./Profile/index";
 import Password from "./Password/index";
 import TeamManagement from "./Team/index";
@@ -7,8 +7,6 @@ import { settingTabStyle, tabContainerStyle, tabIndicatorStyle } from "./style";
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState(0);
-
-  const theme = useTheme();
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);

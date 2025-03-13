@@ -15,7 +15,7 @@ import { convertToCamelCaseRiskKey } from "../tools/stringUtil";
 
 export interface VendorRisk {
   id: number;
-  project_id: number;
+  vendor_id: number;
   vendor_name: string;
   risk_name: string;
   owner: string;
@@ -39,14 +39,7 @@ const useVendorRisks = ({ projectId }: { projectId?: string | null }) => {
           routeUrl: `/vendorRisks/by-projid/${projectId}`,
           signal,
         });
-        if (response.data) {
-          const filteredVendorRisks = projectId
-            ? response.data.filter(
-                (risk: VendorRisk) => risk.project_id === Number(projectId)
-              )
-            : response.data;
-          setVendorRisks(filteredVendorRisks);
-        }
+          setVendorRisks(response.data);
       } catch (err) {
         if (err instanceof Error) {
           setError(`Request failed: ${err.message}`);
@@ -70,7 +63,6 @@ const useVendorRisks = ({ projectId }: { projectId?: string | null }) => {
       const _risk = convertToCamelCaseRiskKey(risk.risk_level);
       const key = `${_risk.replace(/risks?$/i, "")}Risks` as keyof typeof acc;
       acc[key] = acc[key] + 1;
-
       return acc;
     },
     {
@@ -81,6 +73,7 @@ const useVendorRisks = ({ projectId }: { projectId?: string | null }) => {
       veryLowRisks: 0,
     }
   );
+  console.log("vendorRisksSummary in the useVendorRisk",vendorRisksSummary)
 
   return {
     loadingVendorRisks,

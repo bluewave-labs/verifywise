@@ -31,6 +31,7 @@ const initialState: FormValues = {
   email: "",
   password: "",
   confirmPassword: "",
+  role: 1,
 };
 
 const RegisterAdmin: React.FC = () => {

@@ -11,11 +11,12 @@ const VALIDATION_RULES = {
 
 // Define the shape of form values
 export interface FormValues {
-  name?: string;
-  surname?: string;
-  email?: string;
+  name: string;
+  surname: string;
+  email: string;
   password: string;
   confirmPassword: string;
+  role?: number;  // Optional role property
 }
 
 // Define the shape of form errors

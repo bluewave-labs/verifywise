@@ -238,7 +238,6 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
         });
 
         if (res.status === 201) {
-          console.log("res.data : ", res.data.data.project);
           setProjects((prevProjects: Project[]) => [
             ...prevProjects,
             res.data.data.project as Project,

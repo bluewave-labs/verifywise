@@ -468,14 +468,14 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         marginBottom={theme.spacing(8)}
       >
         <Field // vendorName
-          label="Vendor name"
+          label="Vendor name*"
           width={220}
           value={values.vendorDetails.vendorName}
           onChange={(e) => handleOnChange("vendorName", e.target.value)}
           error={errors.vendorName}
         />
         <Field // website
-          label="Website"
+          label="Website*"
           width={220}
           value={values.vendorDetails.website}
           onChange={(e) => handleOnChange("website", e.target.value)}
@@ -483,7 +483,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         />
         <Select // projectId
           items={projectOptions}
-          label="Project name"
+          label="Project name*"
           placeholder="Select project"
           isHidden={false}
           id=""
@@ -497,7 +497,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       </Stack>
       <Stack marginBottom={theme.spacing(8)}>
         <Field // vendorProvides
-          label="What does the vendor provide?"
+          label="What does the vendor provide?*"
           width={"100%"}
           type="description"
           value={values.vendorDetails.vendorProvides}
@@ -511,7 +511,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         marginBottom={theme.spacing(8)}
       >
         <Field // vendorContactPerson
-          label="Vendor contact person"
+          label="Vendor contact person*"
           width={220}
           value={values.vendorDetails.vendorContactPerson}
           onChange={(e) =>
@@ -521,7 +521,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         />
         <Select // reviewStatus
           items={REVIEW_STATUS_OPTIONS}
-          label="Review status"
+          label="Review status*"
           placeholder="Select review status"
           isHidden={false}
           id=""
@@ -534,7 +534,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         />
         <Select // reviewer
           items={formattedUsers}
-          label="Reviewer"
+          label="Reviewer*"
           placeholder="Select reviewer"
           isHidden={false}
           id=""
@@ -553,7 +553,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         flexDirection={"row"}
       >
         <Field // reviewResult
-          label="Review result"
+          label="Review result*"
           width={"100%"}
           type="description"
           value={values.vendorDetails.reviewResult}
@@ -569,7 +569,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       >
         <Select // riskStatus
           items={RISK_LEVEL_OPTIONS}
-          label="Risk status"
+          label="Risk status*"
           placeholder="Select risk status"
           isHidden={false}
           id=""
@@ -582,7 +582,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         />
         <Select // assignee (not in the server model!)
           items={formattedUsers}
-          label="Assignee"
+          label="Assignee*"
           placeholder="Select person"
           isHidden={false}
           id=""
@@ -594,7 +594,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           error={errors.assignee}
         />
         <DatePicker // reviewDate
-          label="Review date"
+          label="Review date*"
           sx={{
             width: 220,
           }}

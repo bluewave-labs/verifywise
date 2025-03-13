@@ -30,6 +30,7 @@ import VWToast from "../../vw-v2-components/Toast";
 import useProjectRisks from "../../../application/hooks/useProjectRisks";
 import { Project } from "../../../domain/Project";
 import RisksCard from "../../components/Cards/RisksCard";
+import { vwhomeHeading } from "../Home/1.0Home/style";
 
 interface ExistingRisk {
   id?: number;
@@ -327,14 +328,7 @@ const Vendors = () => {
             <Stack>
               <Typography
                 data-joyride-id="assessment-status"
-                variant="h2"
-                component="div"
-                sx={{
-                  pb: 8.5,
-                  color: "#1A1919",
-                  fontSize: 16,
-                  fontWeight: 600,
-                }}
+                sx={vwhomeHeading}
               >
                 Vendor list
               </Typography>

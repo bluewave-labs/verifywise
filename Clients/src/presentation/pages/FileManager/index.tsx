@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
-import { Stack, Box, Typography } from "@mui/material"; //useTheme is not used
+import { Stack, Box, Typography,useTheme } from "@mui/material"; 
 import singleTheme from "../../themes/v1SingleTheme";
 import { vwfileHeading } from "./styles";
 import VWBasicTable from "../../components/Table";
@@ -159,6 +159,7 @@ const FileTable: React.FC<{
  * @returns {JSX.Element} The FileManager component.
  */
 const FileManager: React.FC = (): JSX.Element => {
+  const theme = useTheme();
   const [files, setFiles] = useState<File[]>([]);
   const [sortField, setSortField] = useState<keyof File | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection | null>(
@@ -284,13 +285,16 @@ const FileManager: React.FC = (): JSX.Element => {
   }));
 
   return (
-    <Stack spacing={4} sx={{ padding: 4, marginBottom: 10 }}>
+    <Stack
+      spacing={theme.spacing(4)}
+      sx={{ padding: theme.spacing(4), marginBottom: theme.spacing(10)}}
+    >
       <PageTour
         steps={fileSteps}
         run={runFileTour}
         onFinish={() => setRunFileTour(false)}
       />
-      <Stack spacing={1} data-joyride-id="file-manager-title" sx={{ pb: 8.5 }}>
+      <Stack spacing={theme.spacing(1)} data-joyride-id="file-manager-title" sx={{ pb: 8.5 }}>
         <Typography sx={vwfileHeading} gutterBottom>
           Evidences & documents
         </Typography>

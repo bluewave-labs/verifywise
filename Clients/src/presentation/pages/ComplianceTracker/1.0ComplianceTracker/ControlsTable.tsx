@@ -46,12 +46,14 @@ interface ControlsTableProps {
   controlCategoryId: number;
   controlCategoryIndex: number;
   columns: Column[];
+  onComplianceUpdate?: () => void;
 }
 
 const ControlsTable: React.FC<ControlsTableProps> = ({
   controlCategoryId,
   controlCategoryIndex,
   columns,
+  onComplianceUpdate,
 }) => {
   const theme = useTheme();
   const [controls, setControls] = useState<Control[]>([]);
@@ -160,6 +162,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
                       handleControlUpdate();
                     }}
                     controlCategoryId={control.order_no?.toString()}
+                    onComplianceUpdate={onComplianceUpdate}
                   />
                 )}
                 <TableCell

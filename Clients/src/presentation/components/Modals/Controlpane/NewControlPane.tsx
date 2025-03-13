@@ -40,12 +40,14 @@ const NewControlPane = ({
   handleClose,
   controlCategoryId,
   OnSave,
+  onComplianceUpdate,
 }: {
   data: Control;
   isOpen: boolean;
   handleClose: () => void;
   controlCategoryId?: string;
   OnSave?: (state: Control) => void;
+  onComplianceUpdate?: () => void;
 }) => {
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
@@ -156,9 +158,10 @@ const NewControlPane = ({
       });
       console.log("Controls updated successfully:", response);
       setAlert({ type: "success", message: "Controls updated successfully" });
-      if (OnSave) {
-        OnSave(state);
-      }
+      // Call both update functions after successful save
+      OnSave?.(state);
+      onComplianceUpdate?.();
+      
       setTimeout(() => {
         setAlert(null);
         handleClose();

@@ -143,7 +143,9 @@ const FileTable: React.FC<{
       bodyData={fileData}
       paginated={files.length > 0}
       table="fileManager"
-      setSelectedRow={(row) => {onRowClick(row.id)}}
+      setSelectedRow={(row) => {
+        onRowClick(row.id);
+      }}
       setAnchorEl={() => {}}
     />
   );
@@ -319,6 +321,9 @@ const FileManager: React.FC = (): JSX.Element => {
             borderRadius: "4px",
             overflow: "hidden",
             maxHeight: "400px",
+            pointerEvents: loading ? "none" : "auto",
+            opacity: loading ? 0.5 : 1,
+            transition: "opacity 0.3s ease-in-out",
             // borderBottom: files.length === 0 ? "1px solid #eeeeee" : "none",
           }}
         >

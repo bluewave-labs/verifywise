@@ -8,6 +8,7 @@ import DescendingIcon from "../../assets/icons/down-arrow.svg";
 import PageTour from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
 import VWSkeleton from "../../vw-v2-components/Skeletons";
+import { vwhomeHeading } from "../Home/1.0Home/style";
 
 /**
  * Represents a file with its metadata.
@@ -280,14 +281,14 @@ const FileManager: React.FC = (): JSX.Element => {
   }));
 
   return (
-    <Stack spacing={4} sx={{ padding: 4, marginBottom: 10 }}>
+    <Stack className="vwhome">
       <PageTour
         steps={fileSteps}
         run={runFileTour}
         onFinish={() => setRunFileTour(false)}
       />
-      <Stack spacing={1} data-joyride-id="file-manager-title">
-        <Typography variant="h6" fontWeight="bold" gutterBottom>
+      <Stack className="vwhome-header" sx={{ mb: 15 }} data-joyride-id="file-manager-title">
+        <Typography sx={vwhomeHeading}>
           Evidences & documents
         </Typography>
         <Typography variant="body2" color="text.secondary">

@@ -244,7 +244,7 @@ const PasswordForm: React.FC = () => {
       {showToast && <VWToast />} {/* Show VWToast when showToast is true */}
       {!loading && (
         <Box sx={{ width: "100%", maxWidth: 600 }}>
-          <Stack sx={{ marginTop: theme.spacing(15) }}>
+          <Stack sx={{ marginTop: theme.spacing(20) }}>
             <Field
               id="Current password"
               label="Current password"

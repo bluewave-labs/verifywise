@@ -154,10 +154,10 @@ const TeamManagement: React.FC = (): JSX.Element => {
   };
 
   const handleInvitation = (email: string, status: number | string) => {
-    console.log("Inviatation to ", email, "is ", status);
+    console.log("Invitation to ", email, "is ", status);
     handleAlert({
       variant: status === 200 ? "success" : "error",
-      body: status === 200 ? "Inviatation is successful" : "Inviatation fails",
+      body: status === 200 ? "Invitation is sent" : "Invitation failed",
       setAlert,
     });
 

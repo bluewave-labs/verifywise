@@ -458,8 +458,8 @@ const Vendors = () => {
 
           {isVendorsLoading && value === "1" ? (
             <VWSkeleton
-              height={"60vh"}
-              minHeight={"100%"}
+              height={"20vh"}
+              minHeight={"20vh"}
               minWidth={260}
               width={"100%"}
               maxWidth={"100%"}
@@ -476,8 +476,8 @@ const Vendors = () => {
           )}
           {isRisksLoading && value !== "1" ? (
             <VWSkeleton
-              height={"40vh"}
-              minHeight={"40vh"}
+              height={"20vh"}
+              minHeight={"20vh"}
               minWidth={260}
               width={"100%"}
               maxWidth={"100%"}

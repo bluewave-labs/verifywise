@@ -36,6 +36,7 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import VWButton from "../../../vw-v2-components/Buttons";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useRoles } from "../../../../application/hooks/useRoles";
+import { deleteEntityById } from "../../../../application/repository/entity.repository";
 const Alert = lazy(() => import("../../../components/Alert"));
 
 // Type definition for team member
@@ -106,11 +107,27 @@ const TeamManagement: React.FC = (): JSX.Element => {
     setMemberToDelete(null);
   };
 
-  const confirmDelete = () => {
-    if (memberToDelete) {
-      setTeamUsers((members) =>
-        members.filter((member) => member.id !== memberToDelete)
-      );
+  const confirmDelete = async () => {
+    const response = await deleteEntityById({
+      routeUrl: `/users/${memberToDelete}`,
+    });
+    if(response.status === 200) {
+      handleAlert({
+        variant: "success",
+        body: "User deleted successfully",
+        setAlert,
+      });
+      if (memberToDelete) {
+        setTeamUsers((members) =>
+          members.filter((member) => member.id !== memberToDelete)
+        );
+      }
+    } else {
+      handleAlert({
+        variant: "error",
+        body: "User deletion failed",
+        setAlert,
+      });
     }
     handleClose();
   };

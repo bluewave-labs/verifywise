@@ -28,6 +28,7 @@ export async function postFileContent(
   try {
     const body = req.body as {
       question_id: string,
+      project_id: number,
       user_id: number,
       delete: string
     }
@@ -38,12 +39,13 @@ export async function postFileContent(
     }
 
     const questionId = parseInt(body.question_id)
-    let uploadedFiles: { id: string; fileName: string, uploaded_by: number, uploaded_time: Date }[] = [];
+    let uploadedFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[] = [];
     for (let file of req.files! as UploadedFile[]) {
-      const uploadedFile = await uploadFile(file, body.user_id);
+      const uploadedFile = await uploadFile(file, body.user_id, body.project_id);
       uploadedFiles.push({
         id: uploadedFile.id.toString(),
         fileName: uploadedFile.filename,
+        project_id: uploadedFile.project_id,
         uploaded_by: uploadedFile.uploaded_by,
         uploaded_time: uploadedFile.uploaded_time
       });

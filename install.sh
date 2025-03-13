@@ -47,14 +47,14 @@ initialize_db() {
     PG_CONTAINER=$(docker-compose ps | grep postgresdb | grep Up | awk '{print $1}')
     
     # Check if SQL files exist
-    if [ ! -f "SQL_Commands.sql" ]; then
+    if [ ! -f "Servers/SQL_Commands.sql" ]; then
         echo "Error: Required SQL files (SQL_Commands.sql) not found"
         exit 1
     fi
 
     # Copy SQL files to container
     echo "Copying SQL files to container..."
-    docker cp ./SQL_Commands.sql $PG_CONTAINER:/SQL_Commands.sql
+    docker cp ./Servers/SQL_Commands.sql $PG_CONTAINER:/SQL_Commands.sql
 
     # Execute SQL files inside container
     echo "Executing SQL_Commands.sql..."

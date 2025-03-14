@@ -148,6 +148,16 @@ export const getQuestionBySubTopicIdQuery = async (
   return result.rows;
 };
 
+export const getQuestionByTopicIdQuery = async (
+  topicId: number
+): Promise<Question[]> => {
+  const result = await pool.query(
+    `SELECT * FROM questions WHERE subtopic_id IN (SELECT id FROM subtopics WHERE topic_id = $1);`,
+    [topicId]
+  );
+  return result.rows;
+};
+
 export const createNewQuestionsQuery = async (
   subTopicId: number,
   questions: {

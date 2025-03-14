@@ -7,6 +7,7 @@ import {
   getAllQuestions,
   getQuestionById,
   getQuestionsBySubtopicId,
+  getQuestionsByTopicId,
   updateQuestionById,
 } from "../controllers/question.ctrl";
 
@@ -16,6 +17,8 @@ import authenticateJWT from "../middleware/auth.middleware";
 router.get("/", /*authenticateJWT,*/ getAllQuestions);
 router.get("/:id", /*authenticateJWT,*/ getQuestionById);
 router.get("/bysubtopic/:id", getQuestionsBySubtopicId);
+router.get("/bytopic/:id", getQuestionsByTopicId);
+
 
 // POST, PUT, DELETE requests
 router.post("/", /*authenticateJWT,*/ createQuestion);

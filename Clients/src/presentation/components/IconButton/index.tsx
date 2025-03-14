@@ -15,7 +15,6 @@ import {
 import { ReactComponent as Setting } from "../../assets/icons/setting.svg";
 import { useState } from "react";
 import BasicModal from "../Modals/Basic";
-import AddNewVendor, { VendorDetails } from "../Modals/NewVendor";
 import singleTheme from "../../themes/v1SingleTheme";
 import Alert from "../Alert";
 
@@ -42,11 +41,6 @@ const IconButton: React.FC<IconButtonProps> = ({
   const [anchorEl, setAnchorEl] = useState(null);
   const [actions, setActions] = useState({});
   const [isOpenRemoveModal, setisOpenRemoveModal] = useState(false);
-  const [isOpenAddNewVendorModal, setIsOpenAddNewVendorModal] = useState(false);
-  const [value, setValue] = useState("1");
-  const [selectedVendor, setSelectedVendor] = useState<
-    VendorDetails | undefined
-  >(undefined);
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;

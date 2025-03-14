@@ -11,7 +11,7 @@ import {
   useTheme,
 } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import TablePaginationActions from "../../components/TablePagination";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
 import { ProjectRisk } from "../../../domain/ProjectRisk";

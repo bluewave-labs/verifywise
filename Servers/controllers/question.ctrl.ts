@@ -10,6 +10,7 @@ import {
   RequestWithFile,
   UploadedFile,
   getQuestionBySubTopicIdQuery,
+  getQuestionByTopicIdQuery,
 } from "../utils/question.utils";
 import { Question } from "../models/question.model";
 
@@ -152,6 +153,30 @@ export async function getQuestionsBySubtopicId(req: Request, res: Response) {
     return res.status(404).json(
       STATUS_CODE[404]({
         message: "No questions found for the given subtopic ID",
+      })
+    );
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getQuestionsByTopicId(req: Request, res: Response) {
+  try {
+    const topicId = parseInt(req.params.id);
+    if (isNaN(topicId)) {
+      return res
+        .status(400)
+        .json(STATUS_CODE[400]({ message: "Invalid subtopic ID" }));
+    }
+
+    const questions = await getQuestionByTopicIdQuery(topicId);
+    if (questions && questions.length !== 0) {
+      return res.status(200).json(STATUS_CODE[200](questions));
+    }
+
+    return res.status(404).json(
+      STATUS_CODE[404]({
+        message: "No questions found for the given topic id",
       })
     );
   } catch (error) {

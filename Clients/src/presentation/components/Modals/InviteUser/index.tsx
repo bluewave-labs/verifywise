@@ -48,7 +48,7 @@ interface FormErrors {
 const initialState: FormValues = {
   name: "",
   email: "",
-  role: "",
+  role: "administrator",
 };
 
 const InviteUserModal: React.FC<InviteUserModalProps> = ({
@@ -176,14 +176,13 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
           />
           <Select
             id="role-select"
-            value={values.role}
+            value={values.role ?? "administrator"}
             onChange={handleOnSelectChange("role")}
             items={[
               { _id: "administrator", name: "Administrator" },
               { _id: "reviewer", name: "Reviewer" },
               { _id: "editor", name: "Editor" },
             ]}
-            placeholder="Please select a role"
             error={errors.role}
             isRequired
           />

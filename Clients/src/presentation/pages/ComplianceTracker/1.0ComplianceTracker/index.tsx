@@ -17,40 +17,40 @@ const ComplianceTracker = () => {
   const [error, setError] = useState<unknown>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
+  const fetchComplianceData = async () => {
+    console.log("fetchComplianceData selectedProjectId: ", selectedProjectId);
+    if (!selectedProjectId) return;
+
+    try {
+      const response = await getEntityById({
+        routeUrl: `projects/compliance/progress/${selectedProjectId}`,
+      });
+      setComplianceData(response.data);
+    } catch (err) {
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchControlCategories = async () => {
+    console.log(
+      "fetchControlCategories selectedProjectId: ",
+      selectedProjectId
+    );
+    if (!selectedProjectId) return;
+
+    try {
+      const response = await getEntityById({
+        routeUrl: `/controlCategory/byprojectid/${selectedProjectId}`,
+      });
+      setControlCategories(response);
+    } catch (err) {
+      setError(err);
+    }
+  };
+
   useEffect(() => {
-    const fetchComplianceData = async () => {
-      console.log("fetchComplianceData selectedProjectId: ", selectedProjectId);
-      if (!selectedProjectId) return;
-
-      try {
-        const response = await getEntityById({
-          routeUrl: `projects/compliance/progress/${selectedProjectId}`,
-        });
-        setComplianceData(response.data);
-      } catch (err) {
-        setError(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const fetchControlCategories = async () => {
-      console.log(
-        "fetchControlCategories selectedProjectId: ",
-        selectedProjectId
-      );
-      if (!selectedProjectId) return;
-
-      try {
-        const response = await getEntityById({
-          routeUrl: `/controlCategory/byprojectid/${selectedProjectId}`,
-        });
-        setControlCategories(response);
-      } catch (err) {
-        setError(err);
-      }
-    };
-
     fetchComplianceData();
     fetchControlCategories();
   }, [selectedProjectId]);
@@ -91,6 +91,7 @@ const ComplianceTracker = () => {
             <ControlCategoryTile
               key={controlCategory.id}
               controlCategory={controlCategory}
+              onComplianceUpdate={fetchComplianceData}
             />
           ))}
       </Stack>

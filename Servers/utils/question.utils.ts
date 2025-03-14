@@ -79,7 +79,7 @@ export const createNewQuestionQuery = async (
 
 export const addFileToQuestion = async (
   id: number,
-  uploadedFiles: { id: string; fileName: string }[],
+  uploadedFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[],
   deletedFiles: number[]
 ): Promise<Question> => {
   // get the existing evidence files
@@ -90,7 +90,7 @@ export const addFileToQuestion = async (
 
   // convert to list of objects
   let _ = evidenceFilesResult.rows[0].evidence_files as string[]
-  let evidenceFiles = _.map(f => JSON.parse(f) as { id: string; fileName: string })
+  let evidenceFiles = _.map(f => JSON.parse(f) as { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date })
 
   // remove the deleted file ids
   evidenceFiles = evidenceFiles.filter(f => !deletedFiles.includes(parseInt(f.id)))
@@ -144,6 +144,16 @@ export const getQuestionBySubTopicIdQuery = async (
   const result = await pool.query(
     `SELECT * FROM questions WHERE subtopic_id = $1`,
     [subTopicId]
+  );
+  return result.rows;
+};
+
+export const getQuestionByTopicIdQuery = async (
+  topicId: number
+): Promise<Question[]> => {
+  const result = await pool.query(
+    `SELECT * FROM questions WHERE subtopic_id IN (SELECT id FROM subtopics WHERE topic_id = $1);`,
+    [topicId]
   );
   return result.rows;
 };

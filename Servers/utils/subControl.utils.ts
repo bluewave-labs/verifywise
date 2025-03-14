@@ -30,30 +30,33 @@ export const getSubcontrolByIdQuery = async (
 export const createNewSubcontrolQuery = async (
   controlId: number,
   subcontrol: Partial<Subcontrol>,
+  project_id: number,
   user_id: number,
   evidenceFiles?: UploadedFile[],
   feedbackFiles?: UploadedFile[]
 ): Promise<Subcontrol> => {
-  let uploadedEvidenceFiles: { id: string; fileName: string, uploaded_by: number, uploaded_time: Date }[] = [];
+  let uploadedEvidenceFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[] = [];
   await Promise.all(
     evidenceFiles!.map(async (file) => {
-      const uploadedFile = await uploadFile(file, user_id);
+      const uploadedFile = await uploadFile(file, user_id, project_id);
       uploadedEvidenceFiles.push({
         id: uploadedFile.id.toString(),
         fileName: uploadedFile.filename,
+        project_id: uploadedFile.project_id,
         uploaded_by: uploadedFile.uploaded_by,
         uploaded_time: uploadedFile.uploaded_time
       });
     })
   );
 
-  let uploadedFeedbackFiles: { id: string; fileName: string, uploaded_by: number, uploaded_time: Date }[] = [];
+  let uploadedFeedbackFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[] = [];
   await Promise.all(
     feedbackFiles!.map(async (file) => {
-      const uploadedFile = await uploadFile(file, user_id);
+      const uploadedFile = await uploadFile(file, user_id, project_id);
       uploadedFeedbackFiles.push({
         id: uploadedFile.id.toString(),
         fileName: uploadedFile.filename,
+        project_id: uploadedFile.project_id,
         uploaded_by: uploadedFile.uploaded_by,
         uploaded_time: uploadedFile.uploaded_time
       });
@@ -92,6 +95,7 @@ export const createNewSubcontrolQuery = async (
 export const updateSubcontrolByIdQuery = async (
   id: number,
   subcontrol: Partial<Subcontrol>,
+  project_id: number,
   user_id: number,
   evidenceFiles?: UploadedFile[],
   feedbackFiles?: UploadedFile[]
@@ -99,7 +103,7 @@ export const updateSubcontrolByIdQuery = async (
   let uploadedEvidenceFiles: { id: number; fileName: string }[] = [];
   await Promise.all(
     evidenceFiles!.map(async (file) => {
-      const uploadedFile = await uploadFile(file, user_id);
+      const uploadedFile = await uploadFile(file, user_id, project_id);
       uploadedEvidenceFiles.push({
         id: uploadedFile.id.toString(),
         fileName: uploadedFile.filename,
@@ -110,7 +114,7 @@ export const updateSubcontrolByIdQuery = async (
   let uploadedFeedbackFiles: { id: number; fileName: string }[] = [];
   await Promise.all(
     feedbackFiles!.map(async (file) => {
-      const uploadedFile = await uploadFile(file, user_id);
+      const uploadedFile = await uploadFile(file, user_id, project_id);
       uploadedFeedbackFiles.push({
         id: uploadedFile.id.toString(),
         fileName: uploadedFile.filename,

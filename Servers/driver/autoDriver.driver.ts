@@ -15,6 +15,7 @@ import { users } from "../mocks/users.data";
 import { vendors } from "../mocks/vendor.mock.data";
 import mockVendorRisks from "../mocks/vendorRisk.mock.data";
 import { vendorsProjects } from "../mocks/vendorsProjects.mock.data";
+import { projectsMembers } from "../mocks/projectsMembers.mock.data";
 
 import { Assessment } from "../models/assessment.model";
 import { Control } from "../models/control.model";
@@ -23,6 +24,7 @@ import { File } from "../models/file.model";
 import { Project } from "../models/project.model";
 import { ProjectRisk } from "../models/projectRisk.model";
 import { ProjectScope } from "../models/projectScope.model";
+import { ProjectsMembers } from "../models/projectsMembers.model";
 import { Question } from "../models/question.model";
 import { Role } from "../models/role.model";
 import { Subcontrol } from "../models/subcontrol.model";
@@ -72,18 +74,30 @@ const insertQuery = {
     mockData: Projects,
     tableName: "projects",
     insertString:
-      "INSERT INTO projects(project_title, owner, members, start_date, ai_risk_classification, type_of_high_risk_role, goal, last_updated, last_updated_by, is_demo) VALUES ",
+      "INSERT INTO projects(project_title, owner, start_date, ai_risk_classification, type_of_high_risk_role, goal, last_updated, last_updated_by, is_demo) VALUES ",
     generateValuesString: function (project: Project) {
       return `(
         '${project.project_title}',
-        '${project.owner}',
-        '{${project.members}}',
+        ${project.owner},
         '${project.start_date.toISOString().split("T")[0]}',
         '${project.ai_risk_classification}',
         '${project.type_of_high_risk_role}',
         '${project.goal}',
         '${project.last_updated.toISOString().split("T")[0]}',
         '${project.last_updated_by}',
+        '1'
+      )`;
+    },
+  },
+  projectMembers: {
+    mockData: projectsMembers,
+    tableName: "projects_members",
+    insertString:
+      "INSERT INTO projects_members(project_id, user_id, is_demo) VALUES ",
+    generateValuesString: function (projectMember: ProjectsMembers) {
+      return `(
+        ${projectMember.project_id},
+        ${projectMember.user_id},
         '1'
       )`;
     },
@@ -100,12 +114,12 @@ const insertQuery = {
         ${vendor.order_no},
         '${vendor.vendor_name}',
         '${vendor.vendor_provides}',
-        '${vendor.assignee}',
+        ${vendor.assignee},
         '${vendor.website}',
         '${vendor.vendor_contact_person}',
         '${vendor.review_result}',
         '${vendor.review_status}',
-        '${vendor.reviewer}',
+        ${vendor.reviewer},
         '${vendor.risk_status}',
         '${vendor.review_date.toISOString().split("T")[0]}',
         '1'
@@ -150,10 +164,10 @@ const insertQuery = {
         '${control.description}',
         ${control.order_no},
         '${control.status}',
-        '${control.approver}',
+        ${control.approver},
         '${control.risk_review}',
-        '${control.owner}',
-        '${control.reviewer}',
+        ${control.owner},
+        ${control.reviewer},
         '${control.due_date!.toISOString().split("T")[0]}',
         '${control.implementation_details}',
         ${control.control_category_id},
@@ -176,10 +190,10 @@ const insertQuery = {
         '${subControl.description}',
         ${subControl.order_no},
         '${subControl.status}',
-        '${subControl.approver}',
+        ${subControl.approver},
         '${subControl.risk_review}',
-        '${subControl.owner}',
-        '${subControl.reviewer}',
+        ${subControl.owner},
+        ${subControl.reviewer},
         '${subControl.due_date!.toISOString().split("T")[0]}',
         '${subControl.implementation_details}',
         '${subControl.evidence_description}',
@@ -200,7 +214,7 @@ const insertQuery = {
       return `(
         '${projectRisk.project_id}',
         '${projectRisk.risk_name}',
-        '${projectRisk.risk_owner}',
+        ${projectRisk.risk_owner},
         '${projectRisk.ai_lifecycle_phase}',
         '${projectRisk.risk_description}',
         '${projectRisk.risk_category}',
@@ -220,7 +234,7 @@ const insertQuery = {
         '${projectRisk.likelihood_mitigation}',
         '${projectRisk.risk_severity}',
         '${projectRisk.final_risk_level}',
-        '${projectRisk.risk_approval}',
+        ${projectRisk.risk_approval},
         '${projectRisk.approval_status}',
         '${projectRisk.date_of_assessment.toISOString().split("T")[0]}',
         '1'
@@ -244,7 +258,7 @@ const insertQuery = {
         '${vendorRisk.likelihood}',
         '${vendorRisk.risk_severity}',
         '${vendorRisk.action_plan}',
-        '${vendorRisk.action_owner}',
+        ${vendorRisk.action_owner},
         '${vendorRisk.risk_level}',
         '1'
       )`;
@@ -387,6 +401,21 @@ export async function insertMockData() {
   }
 
   var {
+    mockData: projectMembersMockData,
+    tableName,
+    insertString,
+    generateValuesString: projectMembersGenerateValuesString,
+  } = insertQuery["projectMembers"];
+  let projectMembers;
+  if (projectMembersMockData.length !== 0) {
+    const values = projectMembersMockData(users![0].id, users![1].id, projects![0].id, projects![1].id).map((d) =>
+      projectMembersGenerateValuesString(d as any)
+    );
+    insertString += values.join(",") + ";";
+    projectMembers = await insertData(insertString as string);
+  }
+
+  var {
     mockData: vendorMockData,
     tableName,
     insertString,
@@ -394,7 +423,7 @@ export async function insertMockData() {
   } = insertQuery["vendors"];
   let vendors;
   if (vendorMockData.length !== 0) {
-    const values = vendorMockData.map((d) =>
+    const values = vendorMockData(users![0].id, users![1].id).map((d) =>
       vendorGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
@@ -460,7 +489,7 @@ export async function insertMockData() {
   } = insertQuery["mockControls"];
   let controls;
   if (controlMockData.length !== 0) {
-    const values = controlMockData(controlCategories!.map(c => c.id)).map((d) => controlGenerateValuesString(d as any));
+    const values = controlMockData(controlCategories!.map(c => c.id), users![0].id, users![1].id).map((d) => controlGenerateValuesString(d as any));
     insertString += values.join(",") + "RETURNING id;";
     controls = await insertData(insertString as string);
   }
@@ -473,7 +502,7 @@ export async function insertMockData() {
   } = insertQuery["subcontrols"];
   let subControls;
   if (controlMockData.length !== 0) {
-    const values = subControlMockData(controls!.map(c => c.id)).map((d) => subControlGenerateValuesString(d as any));
+    const values = subControlMockData(controls!.map(c => c.id), users![0].id, users![1].id).map((d) => subControlGenerateValuesString(d as any));
     insertString += values.join(",") + "RETURNING id;";
     subControls = await insertData(insertString as string);
   }
@@ -486,7 +515,7 @@ export async function insertMockData() {
   } = insertQuery["mockProjectRisks"];
   let projectRisks;
   if (controlMockData.length !== 0) {
-    const values = projectRisksMockData(projects![0].id).map((d) =>
+    const values = projectRisksMockData(projects![0].id, users![0].id, users![1].id).map((d) =>
       projectRisksGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
@@ -506,6 +535,7 @@ export async function insertMockData() {
       vendors![1].id,
       vendors![2].id,
       vendors![3].id,
+      users![0].id, users![1].id
     ).map((d) => vendorRisksGenerateValuesString(d as any));
     insertString += values.join(",") + "RETURNING id;";
     vendorRisks = await insertData(insertString as string);

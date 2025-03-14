@@ -87,9 +87,12 @@ const ProfileForm: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const initialStateRef = useRef({ firstname: "", lastname: "", email: "" });
   const isModified =
-  firstname !== initialStateRef.current.firstname ||
-  lastname !== initialStateRef.current.lastname ||
-  email !== initialStateRef.current.email;
+    firstname !== initialStateRef.current.firstname ||
+    lastname !== initialStateRef.current.lastname ||
+    email !== initialStateRef.current.email;
+
+  const isSaveDisabled =
+    !!firstnameError || !!lastnameError || !!emailError || !isModified;
 
   /**
    * Fetch user data on component mount.
@@ -569,12 +572,14 @@ const ProfileForm: React.FC = () => {
             text="Save"
             sx={{
               backgroundColor: "#13715B",
-              border: "1px solid #13715B",
+              border: isSaveDisabled
+                ? "1px solid rgba(0, 0, 0, 0.26)"
+                : "1px solid #13715B",
               gap: 2,
             }}
             icon={<SaveIcon />}
             onClick={handleSave}
-            isDisabled={!!firstnameError || !!lastnameError || !!emailError|| !isModified }
+            isDisabled={isSaveDisabled}
           />
         </Stack>
       )}

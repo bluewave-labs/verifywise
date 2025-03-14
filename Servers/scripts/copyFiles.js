@@ -4,7 +4,7 @@ const path = require("path");
 async function copyFile() {
   try {
     // source and destination paths
-    const sourceFile = path.join(__dirname, "..", "..", "SQL_Commands.sql");
+    const sourceFile = path.join(__dirname, "..", "SQL_Commands.sql");
     const destFile = path.join(__dirname, "..", "dist", "database", "SQL_Commands.sql");
 
     // copy the file

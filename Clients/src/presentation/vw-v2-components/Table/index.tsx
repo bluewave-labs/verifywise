@@ -18,6 +18,7 @@ import { ProjectRisk } from "../../../domain/ProjectRisk";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { RISK_LABELS } from "../../components/RiskLevel/constants";
 import IconButton from "../../components/IconButton";
+import placeholderImage from "../../assets/imgs/empty-state.svg"
 
 const riskLevelChecker = (score: string) => {
   const parsedScore = parseInt(score, 10);
@@ -193,6 +194,7 @@ const VWProjectRisksTable = ({
           }}
         >
           <VWProjectRisksTableHead columns={columns} />
+          {rows.length !== 0 ? 
           <VWProjectRisksTableBody
             rows={rows}
             page={page}
@@ -200,7 +202,24 @@ const VWProjectRisksTable = ({
             setSelectedRow={setSelectedRow}
             setAnchorEl={setAnchorEl}
             onDeleteRisk={deleteRisk}
-          />
+          /> : <>
+            <TableBody>
+              <TableRow>
+                <TableCell 
+                  colSpan={8} 
+                  align="center"
+                  style={{
+                    padding: theme.spacing(15, 5),
+                    paddingBottom: theme.spacing(20)
+                  }}>
+                  <img src={placeholderImage} alt="Placeholder" />
+                  <Typography sx={{ fontSize: "13px", color: "#475467" }}>
+                    There is currently no data in this table.
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </>} 
         </Table>
       </TableContainer>
       <Stack

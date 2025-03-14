@@ -4,7 +4,6 @@ export type Project = {
   id: number;
   project_title: string;
   owner: number;
-  members: string[];
   start_date: Date;
   ai_risk_classification: "high risk" | "limited risk" | "minimal risk";
   type_of_high_risk_role:

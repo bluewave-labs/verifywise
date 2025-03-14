@@ -105,6 +105,14 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     setRefreshKey((prevKey) => prevKey + 1); // Update refreshKey to trigger re-render
   };
 
+  const handleError = (error: any) => {    
+    handleAlert({
+      variant: "error",
+      body: (error.message !== undefined) ? error.message : error,
+      setAlert,
+    });
+  }
+
   const handleDelete = async(riskId: number) => {
     try {
       const response = await deleteEntityById({
@@ -198,6 +206,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
                 closePopup={() => setAnchor(null)}
                 popupStatus="edit"
                 onSuccess={handleUpdate}
+                onError={handleError}
               />
             }
             openPopupButtonName="Edit risk"
@@ -214,6 +223,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
                 closePopup={() => setAnchor(null)}
                 popupStatus="new"
                 onSuccess={handleSuccess}
+                onError={handleError}
               />
             }
             openPopupButtonName="Add new risk"

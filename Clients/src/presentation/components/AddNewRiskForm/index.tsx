@@ -52,6 +52,7 @@ interface AddNewRiskFormProps {
   initialRiskValues?: RiskFormValues; // New prop for initial values
   initialMitigationValues?: MitigationFormValues; // New prop for initial values
   onSuccess: () => void;
+  onError?: (message: any) => void;
 }
 
 const riskInitialState: RiskFormValues = {
@@ -103,6 +104,7 @@ const mitigationInitialState: MitigationFormValues = {
 const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   closePopup,
   onSuccess,
+  onError = () => {},
   popupStatus,
   initialRiskValues = riskInitialState, // Default to initial state if not provided
   initialMitigationValues = mitigationInitialState,
@@ -461,9 +463,14 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
           if (response.status === 200) {
             closePopup();
             onSuccess();
+          }else{
+            onError(response.data);
           }
         } catch (error) {
           console.error("Error sending request", error);
+          if(error){
+            onError(error);
+          }
         }
       } else {
         try {
@@ -471,9 +478,15 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
           if (response.status === 201) {
             closePopup();
             onSuccess();
+          }else{
+            onError(response.data);
           }
+
         } catch (error) {
           console.error("Error sending request", error);
+          if(error){
+            onError(error);
+          }
         }
       }
     } else {

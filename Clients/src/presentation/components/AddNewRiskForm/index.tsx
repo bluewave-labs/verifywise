@@ -56,7 +56,7 @@ interface AddNewRiskFormProps {
 
 const riskInitialState: RiskFormValues = {
   riskName: "",
-  actionOwner: "",
+  actionOwner: 0,
   aiLifecyclePhase: 0,
   riskDescription: "",
   riskCategory: 1,
@@ -162,7 +162,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
       const currentRiskData: RiskFormValues = {
         ...riskInitialState,
         riskName: inputValues.risk_name ?? "",
-        actionOwner: actionOwner ?? "",
+        actionOwner: inputValues.risk_owner,
         riskDescription: inputValues.risk_description ?? "",
         aiLifecyclePhase:
           aiLifecyclePhase.find(
@@ -209,12 +209,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
           riskSeverityItems.find(
             (item) => item.name === inputValues.risk_severity
           )?._id ?? 1,
-        approver: parseInt(
-          users.find(
-            (user) =>
-              `${user.name} ${user.surname}` === inputValues.risk_approval
-          )?.id ?? "1"
-        ),
+        approver: inputValues.risk_approval,
         approvalStatus:
           approvalStatusItems.find(
             (item) => item.name === inputValues.approval_status
@@ -405,9 +400,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
       const formData = {
         project_id: projectId,
         risk_name: riskValues.riskName,
-        risk_owner: owner
-          ? [owner.name, owner.surname].filter(Boolean).join(" ")
-          : "",
+        risk_owner: riskValues.actionOwner,
         ai_lifecycle_phase:
           aiLifecyclePhase.find(
             (item) => item._id === riskValues.aiLifecyclePhase
@@ -448,15 +441,15 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
             (item) => item._id === mitigationValues.riskSeverity
           )?.name || "",
         final_risk_level: mitigation_risklevel.text,
-        risk_approval: approver
-          ? [approver.name, approver.surname].filter(Boolean).join(" ")
-          : "",
+        risk_approval: mitigationValues.approver,
         approval_status:
           approvalStatusItems.find(
             (item) => item._id === mitigationValues.approvalStatus
           )?.name || "",
         date_of_assessment: mitigationValues.dateOfAssessment,
       };
+
+      console.log('formData is = ', formData)
 
       if (popupStatus !== "new") {
         // call update API

@@ -91,6 +91,12 @@ const VWProjectRisksTableBody = ({
     onDeleteRisk(riskId);
   };
 
+  const displayUserFullName = (userId: string) => {
+    const currentUser = dashboardValues.users.find((user: any) => user.id === parseInt(userId));
+    const fullName = `${currentUser.name} ${currentUser.surname}`
+    return fullName.length > 30 ? `${fullName.slice(0,30)}...` : fullName;
+  }
+
   return (
     <TableBody>
       {rows &&
@@ -109,9 +115,7 @@ const VWProjectRisksTableBody = ({
                   : row.impact}
               </TableCell>
               <TableCell sx={cellStyle}>
-                {dashboardValues.users.find(
-                  (user: any) => user.id === parseInt(row.risk_owner)
-                )?.name || row.risk_owner}
+                {displayUserFullName(row.risk_owner)}
               </TableCell>
               <TableCell sx={cellStyle}>
                 {riskLevelChecker(row.risk_level_autocalculated)}

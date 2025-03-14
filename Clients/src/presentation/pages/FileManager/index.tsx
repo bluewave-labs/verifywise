@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
-import { Stack, Box, Typography,useTheme } from "@mui/material"; 
-import { vwfileHeading } from "./styles";
+import { Stack, Box, Typography,useTheme } from "@mui/material";
 import VWBasicTable from "../../components/Table";
 import { getEntityById } from "../../../application/repository/entity.repository";
 import EmptyTableImage from "../../assets/imgs/empty-state.svg";

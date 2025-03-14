@@ -79,12 +79,19 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     setSelectedRow([]);
   };
 
-  const handleSuccess = () => {
+  const handleToast = (type: any, message: string) => {
     handleAlert({
-      variant: "success",
-      body: "Project risk created successfully",
+      variant: type,
+      body: message,
       setAlert,
     });
+    setTimeout(() => {
+      setAlert(null);
+    }, 3000);
+  }
+
+  const handleSuccess = () => {    
+    handleToast("success", "Risk created successfully");
 
     // set pagination for FIFO risk listing after adding a new risk
     let rowsPerPage = 5;
@@ -95,22 +102,15 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     setRefreshKey((prevKey) => prevKey + 1);    
   };
 
-  const handleUpdate = () => {
-    handleAlert({
-      variant: "success",
-      body: "Risk updated successfully",
-      setAlert,
-    });
+  const handleUpdate = () => {    
+    handleToast("success", "Risk updated successfully")
     fetchProjectRisks();
     setRefreshKey((prevKey) => prevKey + 1); // Update refreshKey to trigger re-render
   };
 
-  const handleError = (error: any) => {    
-    handleAlert({
-      variant: "error",
-      body: (error.message !== undefined) ? error.message : error,
-      setAlert,
-    });
+  const handleError = (error: any) => {        
+    let message = (error.message !== undefined) ? error.message : error;
+    handleToast("error", message)
   }
 
   const handleDelete = async(riskId: number) => {
@@ -129,16 +129,18 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
           setCurrentPage(currentPage)
         }   
 
+        handleToast("success", "Risk deleted successfully.");       
+
         fetchProjectRisks(); 
         setRefreshKey((prevKey) => prevKey + 1);
+      } else if (response.status === 404) {
+        handleToast("error", "Risk not found.");          
+      } else {
+        handleToast("error", "Unexpected error occurs. Risk delete fails.");        
       }
     } catch (error) {
       console.error("Error sending request", error);
-      handleAlert({
-        variant: "error",
-        body: "Risk delete fails",
-        setAlert,
-      });
+      handleToast("error", "Risk delete fails.");      
     }
   }
 

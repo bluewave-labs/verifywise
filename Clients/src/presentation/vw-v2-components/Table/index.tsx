@@ -68,23 +68,23 @@ const VWProjectRisksTableBody = ({
   page,
   rowsPerPage,
   setSelectedRow,
-  setAnchorEl,
+  setAnchor,
   onDeleteRisk,
 }: {
   rows: any[];
   page: number;
   rowsPerPage: number;
   setSelectedRow: any;
-  setAnchorEl: any;
+  setAnchor: any;
   onDeleteRisk: (id: number) => void;
 }) => {
   const { setInputValues, dashboardValues } = useContext(VerifyWiseContext);
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
-  const handelEditRisk = ( row: any,event?: React.MouseEvent) => {
+  const handelEditRisk = ( row: any, event?: React.SyntheticEvent) => {
     setSelectedRow(row);
     setInputValues(row);
-    setAnchorEl(event?.currentTarget);
+    setAnchor(event?.currentTarget);
   };
 
   const handleDeleteRisk = async (riskId: number) => {
@@ -137,7 +137,7 @@ const VWProjectRisksTableBody = ({
                   onDelete={() => handleDeleteRisk(row.id)}
                   onEdit={() => handelEditRisk(row)}
                   warningTitle="Delete this project risk?"
-                  warningMessage="This action is non-recoverable."
+                  warningMessage="Are you sure you want to delete this project risk. This action is non-recoverable."
                 ></IconButton>
               </TableCell>
             </TableRow>
@@ -150,7 +150,7 @@ const VWProjectRisksTable = ({
   columns,
   rows,
   setSelectedRow,
-  setAnchorEl,
+  setAnchor,
   deleteRisk,
   setPage,
   page,
@@ -158,13 +158,12 @@ const VWProjectRisksTable = ({
   columns: any[];
   rows: any[];
   setSelectedRow: any;
-  setAnchorEl: any;
+  setAnchor: any;
   deleteRisk: (id: number) => void;
   setPage: (pageNo: number) => void;
   page: number;
 }) => {
-  const theme = useTheme();
-  // const [page, setPage] = useState(0);
+  const theme = useTheme();  
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const getRange = useMemo(() => {
@@ -200,7 +199,7 @@ const VWProjectRisksTable = ({
             page={page}
             rowsPerPage={rowsPerPage}
             setSelectedRow={setSelectedRow}
-            setAnchorEl={setAnchorEl}
+            setAnchor={setAnchor}
             onDeleteRisk={deleteRisk}
           /> : <>
             <TableBody>

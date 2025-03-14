@@ -36,8 +36,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     projectId: projectId?.toString(), refreshKey
   });
   const [projectRisks, setProjectRisks] = useState<ProjectRisk[]>([]);
-  const [selectedRow, setSelectedRow] = useState<ProjectRisk>();
-  const [anchorEl, setAnchorEl] = useState<any>(null);
+  const [selectedRow, setSelectedRow] = useState<ProjectRisk[]>([]);
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
@@ -77,11 +76,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
   const [anchor, setAnchor] = useState<null | HTMLElement>(null);
   const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
     setAnchor(anchor ? null : event.currentTarget);
-  };
-
-  const handleClosePopup = () => {
-    setAnchorEl(null); // Close the popup
-    setSelectedRow(undefined);
+    setSelectedRow([]);
   };
 
   const handleSuccess = () => {
@@ -195,8 +190,24 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
           />
         </Stack>
         
-        {anchor && 
+        {selectedRow.length > 0 && anchor ? (
           <Popup
+            popupId="edit-new-risk-popup"
+            popupContent={
+              <AddNewRiskForm
+                closePopup={() => setAnchor(null)}
+                popupStatus="edit"
+                onSuccess={handleUpdate}
+              />
+            }
+            openPopupButtonName="Edit risk"
+            popupTitle="Edit project risk"
+            handleOpenOrClose={handleOpenOrClose}
+            anchor={anchor}
+          />
+          )
+          : (
+            <Popup
             popupId="add-new-risk-popup"
             popupContent={
               <AddNewRiskForm
@@ -211,31 +222,15 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
             handleOpenOrClose={handleOpenOrClose}
             anchor={anchor}
           />
+          )
         }
-        
-        {Object.keys(selectedRow || {}).length > 0 && anchorEl && (
-          <Popup
-            popupId="edit-new-risk-popup"
-            popupContent={
-              <AddNewRiskForm
-                closePopup={() => setAnchorEl(null)}
-                popupStatus="edit"
-                onSuccess={handleUpdate}
-              />
-            }
-            openPopupButtonName="Edit risk"
-            popupTitle="Edit project risk"
-            handleOpenOrClose={handleClosePopup}
-            anchor={anchorEl}
-          />
-        )}
         <VWProjectRisksTable
           columns={TITLE_OF_COLUMNS}
           rows={projectRisks}
           setPage={setCurrentPagingation}
           page={currentPage}
-          setSelectedRow={(row: ProjectRisk) => setSelectedRow(row)}
-          setAnchorEl={setAnchorEl}
+          setSelectedRow={(row: ProjectRisk) => setSelectedRow([row])}
+          setAnchor={setAnchor}
           deleteRisk={handleDelete}
         />
       </Stack>

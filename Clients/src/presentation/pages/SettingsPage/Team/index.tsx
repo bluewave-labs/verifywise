@@ -200,7 +200,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
   };
 
   return (
-    <Stack sx={{ pt: theme.spacing(10) }}>
+    <Stack sx={{ mt: 3, }}>
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
           <Box>

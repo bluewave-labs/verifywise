@@ -1,9 +1,5 @@
-/**
- * This file is currently in use
- */
-
 import { Button, Stack, Typography, useTheme } from "@mui/material";
-import React, { Suspense, useState } from "react";
+import React, { Suspense, useState, useEffect } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Check from "../../../components/Checks";
 import Field from "../../../components/Inputs/Field";
@@ -23,6 +19,8 @@ import VWToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 import { User } from "../../../../domain/User";
 import { getUserForLogging } from "../../../../application/tools/userHelpers";
+import { useDispatch } from "react-redux";
+import { setUserExists, setAuthToken } from "../../../../application/authentication/authSlice";
 
 // Initial state for form values
 const initialState: FormValues = {
@@ -36,6 +34,7 @@ const initialState: FormValues = {
 
 const RegisterAdmin: React.FC = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
   // State for form errors
@@ -51,6 +50,11 @@ const RegisterAdmin: React.FC = () => {
     title?: string;
     body: string;
   } | null>(null);
+
+  useEffect(() => {
+    localStorage.clear();
+    dispatch(setAuthToken(''));
+  }, [])
 
   // Handle input field changes
   const handleChange =
@@ -97,7 +101,7 @@ const RegisterAdmin: React.FC = () => {
           });
           setTimeout(() => {
             setIsSubmitting(false);
-            window.location.reload();
+            dispatch(setUserExists(true));
             navigate("/login");
           }, 3000);
         } else if (response.status === 400) {

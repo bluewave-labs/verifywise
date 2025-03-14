@@ -27,6 +27,8 @@
     "passport-jwt": "^4.0.1",
     "pg": "^8.13.0",
     "pg-pool": "^3.7.0",
+    "sequelize": "^6.37.6",
+    "sequelize-typescript": "^2.1.6",
     "typescript": "^5.6.2",
     "yamljs": "^0.3.0"
   },

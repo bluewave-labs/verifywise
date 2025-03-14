@@ -1,3 +1,6 @@
+import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
+import { UserModel } from "./user.model";
+
 /*
 
 This is the new Vendor model(Schema) and will be replaced with the new one.
@@ -25,32 +28,80 @@ export type Vendor = {
   review_date: Date; // won't get any values, will be filled by user
 };
 
-// export type Vendor = {
-//   id: number;
-//   // Vendor details tab
-//   vendorName: string;
-//   website: string;
-//   vendorProvides: string;
-//   vendorContactPerson: string;
-//   reviewStatus: string;
-//   reviewer: string;
-//   reviewResult: string;
-//   riskStatus: "Active" | "Under review" | "Not active";
-//   assignee: string;
-//   reviewDate: Date;
-//   // Risks tab
-//   riskDescription: string;
-//   impactDescription: string;
-//   impact: number;
-//   probability: number;
-//   riskSeverity: number;
-//   actionOwner: string;
-//   actionPlan: string;
-//   riskLevel:
-//     | "Very high risk"
-//     | "High risk"
-//     | "Medium risk"
-//     | "Low risk"
-//     | "Very low risk";
-//   likelihood: number;
-// };
+@Table({
+  tableName: "vendors"
+})
+export class VendorModel extends Model<Vendor> {
+  @Column({
+    type: DataType.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  })
+  id?: number;
+
+  @Column({
+    type: DataType.INTEGER
+  })
+  order_no?: number;
+
+  @Column({
+    type: DataType.STRING
+  })
+  vendor_name!: string;
+
+  @Column({
+    type: DataType.STRING
+  })
+  vendor_provides!: string;
+
+  @ForeignKey(() => UserModel)
+  @Column({
+    type: DataType.INTEGER
+  })
+  assignee!: number;
+
+  @Column({
+    type: DataType.STRING
+  })
+  website!: string;
+
+  @Column({
+    type: DataType.STRING
+  })
+  vendor_contact_person!: string;
+
+  @Column({
+    type: DataType.STRING
+  })
+  review_result!: string;
+
+  @Column({
+    type: DataType.ENUM("Active", "Under review", "Not active")
+  })
+  review_status!: "Active" | "Under review" | "Not active";
+
+  @ForeignKey(() => UserModel)
+  @Column({
+    type: DataType.INTEGER
+  })
+  reviewer!: number;
+
+  @Column({
+    type: DataType.ENUM("Very high risk", "High risk", "Medium risk", "Low risk", "Very low risk")
+  })
+  risk_status!: | "Very high risk"
+    | "High risk"
+    | "Medium risk"
+    | "Low risk"
+    | "Very low risk";
+
+  @Column({
+    type: DataType.DATE
+  })
+  review_date!: Date;
+
+  @Column({
+    type: DataType.BOOLEAN,
+  })
+  is_demo?: boolean;
+}

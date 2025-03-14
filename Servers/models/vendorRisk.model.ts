@@ -1,3 +1,7 @@
+import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
+import { VendorModel } from "./vendor.model";
+import { UserModel } from "./user.model";
+
 /*
 
 This is the new VendorRisk model(Schema) and will be replaced with the new one.
@@ -23,17 +27,75 @@ export type VendorRisk = {
   risk_level: string;
 };
 
-// export type VendorRisk = {
-//   id: number;
-//   project_id: number; // Foreign key to refer to the project
-//   vendor_name: string;
-//   risk_name: string;
-//   owner: string;
-//   risk_level:
-//     | "No risk"
-//     | "Low risk"
-//     | "Medium risk"
-//     | "High risk"
-//     | "Very high risk"; // Restrict to specified values
-//   review_date: Date;
-// };
+@Table({
+  tableName: "vendor_risks"
+})
+export class VendorRiskModel extends Model<VendorRisk> {
+  @Column({
+    type: DataType.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  })
+  id?: number;
+
+  @ForeignKey(() => VendorModel)
+  @Column({
+    type: DataType.INTEGER
+  })
+  vendor_id!: number;
+
+  @Column({
+    type: DataType.INTEGER
+  })
+  order_no?: number;
+
+  @Column({
+    type: DataType.STRING
+  })
+  risk_description!: string;
+
+  @Column({
+    type: DataType.STRING
+  })
+  impact_description!: string;
+
+  @Column({
+    type: DataType.ENUM("Negligible", "Minor", "Moderate", "Major", "Critical")
+  })
+  impact!: "Negligible" | "Minor" | "Moderate" | "Major" | "Critical";
+
+  @Column({
+    type: DataType.ENUM("Rare", "Unlikely", "Possible", "Likely", "Almost certain")
+  })
+  likelihood!: "Rare" | "Unlikely" | "Possible" | "Likely" | "Almost certain";
+
+  @Column({
+    type: DataType.ENUM("No risk", "Low risk", "Medium risk", "High risk", "Very high risk")
+  })
+  risk_severity!: | "No risk"
+    | "Low risk"
+    | "Medium risk"
+    | "High risk"
+    | "Very high risk";
+
+  @Column({
+    type: DataType.STRING
+  })
+  action_plan!: string;
+
+  @ForeignKey(() => UserModel)
+  @Column({
+    type: DataType.INTEGER
+  })
+  action_owner!: number;
+
+  @Column({
+    type: DataType.STRING
+  })
+  risk_level!: string;
+
+  @Column({
+    type: DataType.BOOLEAN,
+  })
+  is_demo?: boolean;
+}

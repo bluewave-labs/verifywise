@@ -1,17 +1,27 @@
-import { Project } from "../models/project.model";
-import pool from "../database/db";
+import { AssessmentModel } from "../models/assessment.model";
+import { Project, ProjectModel } from "../models/project.model";
+import { ProjectsMembersModel } from "../models/projectsMembers.model";
 
 export const getAllProjectsQuery = async (): Promise<Project[]> => {
-  const projects = await pool.query("SELECT * FROM projects");
-  if (projects.rows.length) {
-    for (let project of projects.rows) {
-      const assessment = await pool.query(`SELECT id FROM assessments WHERE project_id = $1`, [project.id])
-      project["assessment_id"] = assessment.rows[0].id
-      const members = await pool.query("SELECT user_id FROM projects_members WHERE project_id = $1", [project.id])
-      project["members"] = members.rows.map(m => m.user_id)
+  const projects = await ProjectModel.findAll() as (ProjectModel & {
+    assessment_id?: number,
+    members?: number[]
+  })[];
+  if (projects.length) {
+    for (let project of projects) {
+      const assessment = await AssessmentModel.findOne({
+        where: { project_id: project.id }
+      })
+      project["assessment_id"] = assessment!.id
+
+      const members = await ProjectsMembersModel.findAll({
+        attributes: ["user_id"],
+        where: { project_id: project.id }
+      })
+      project["members"] = members.map(m => m.user_id)
     }
   }
-  return projects.rows;
+  return projects;
 };
 
 export const getProjectByIdQuery = async (

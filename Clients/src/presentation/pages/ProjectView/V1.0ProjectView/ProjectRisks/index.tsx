@@ -108,9 +108,8 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     setRefreshKey((prevKey) => prevKey + 1); // Update refreshKey to trigger re-render
   };
 
-  const handleError = (error: any) => {        
-    let message = (error.message !== undefined) ? error.message : error;
-    handleToast("error", message)
+  const handleError = (errorMessage: any) => {        
+    handleToast("error", errorMessage);
   }
 
   const handleDelete = async(riskId: number) => {

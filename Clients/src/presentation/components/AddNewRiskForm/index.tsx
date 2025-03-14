@@ -55,6 +55,11 @@ interface AddNewRiskFormProps {
   onError?: (message: any) => void;
 }
 
+interface ApiResponse {
+  message: string;
+  error: string;
+}
+
 const riskInitialState: RiskFormValues = {
   riskName: "",
   actionOwner: 0,
@@ -281,13 +286,13 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     if (!reviewNotes.accepted) {
       newErrors.reviewNotes = reviewNotes.message;
     }
-    // const actionOwner = selectValidation(
-    //   "Action owner",
-    //   riskValues.actionOwner
-    // );
-    // if (!actionOwner.accepted) {
-    //   newErrors.actionOwner = actionOwner.message;
-    // }
+    const actionOwner = selectValidation(
+      "Action owner",
+      riskValues.actionOwner
+    );
+    if (!actionOwner.accepted) {
+      newErrors.actionOwner = actionOwner.message;
+    }
     const aiLifecyclePhase = selectValidation(
       "AI lifecycle phase",
       riskValues.aiLifecyclePhase
@@ -383,13 +388,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
 
   const riskFormSubmitHandler = async () => {
     const { isValid, errors } = validateForm();
-
-    const owner = users.find(
-      (user) => parseInt(user.id) === riskValues.actionOwner
-    );
-    const approver = users.find(
-      (user) => parseInt(user.id) === mitigationValues.approver
-    );
+    
     const risk_risklevel = getRiskLevel(
       riskValues.likelihood * riskValues.riskSeverity
     );
@@ -449,44 +448,31 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
             (item) => item._id === mitigationValues.approvalStatus
           )?.name || "",
         date_of_assessment: mitigationValues.dateOfAssessment,
-      };
+      };           
 
-      console.log('formData is = ', formData)
+      try {
+        const response = (popupStatus !== "new") ? 
+        await apiServices.put(
+          "/projectRisks/" + inputValues.id,
+          formData) : 
+        await apiServices.post("/projectRisks", formData);
 
-      if (popupStatus !== "new") {
-        // call update API
-        try {
-          const response = await apiServices.put(
-            "/projectRisks/" + inputValues.id,
-            formData
-          );
-          if (response.status === 200) {
-            closePopup();
-            onSuccess();
-          }else{
-            onError(response.data);
-          }
-        } catch (error) {
-          console.error("Error sending request", error);
-          if(error){
-            onError(error);
-          }
+        if (response.status === 201) {
+          // risk create success
+          closePopup();
+          onSuccess();
+        }else if (response.status === 200) {
+          // risk update success
+          closePopup();
+          onSuccess();
+        }else{
+          console.error((response.data as ApiResponse)?.error);
+          onError((response.data as ApiResponse)?.message);
         }
-      } else {
-        try {
-          const response = await apiServices.post("/projectRisks", formData);
-          if (response.status === 201) {
-            closePopup();
-            onSuccess();
-          }else{
-            onError(response.data);
-          }
-
-        } catch (error) {
-          console.error("Error sending request", error);
-          if(error){
-            onError(error);
-          }
+      } catch (error) {
+        console.error("Error sending request", error);
+        if(error){
+          onError(error);
         }
       }
     } else {

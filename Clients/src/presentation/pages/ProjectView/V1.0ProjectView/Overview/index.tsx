@@ -136,7 +136,7 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
         {project ? (
           <>
             <Typography sx={projectRiskSection}>Project risks</Typography>
-            <RisksCard projectRisksSummary={projectRisksSummary} />
+            <RisksCard risksSummary={projectRisksSummary} />
           </>
         ) : (
           <>

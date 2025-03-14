@@ -184,9 +184,9 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
                       {`${
                         control.numberOfSubcontrols
                           ? (
-                              control.numberOfDoneSubcontrols! /
-                              control.numberOfSubcontrols
-                            ).toFixed(2)
+                              (control.numberOfDoneSubcontrols! /
+                              control.numberOfSubcontrols) * 100
+                            ).toFixed(0)
                           : "0"
                       }%`}
                     </Typography>

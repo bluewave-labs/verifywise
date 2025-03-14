@@ -197,6 +197,31 @@ export const updateUserByIdQuery = async (
  * @throws {Error} If the query fails or the user does not exist.
  */
 export const deleteUserByIdQuery = async (id: number): Promise<User> => {
+  const usersFK = [
+    { table: "projects", fields: ["owner", "last_updated_by"] },
+    { table: "vendors", fields: ["assignee", "reviewer"] },
+    { table: "controls", fields: ["approver", "owner", "reviewer"] },
+    { table: "subcontrols", fields: ["approver", "owner", "reviewer"] },
+    { table: "projectrisks", fields: ["risk_owner", "risk_approval"] },
+    { table: "vendorrisks", fields: ["action_owner"] },
+    { table: "files", fields: ["uploaded_by"] }
+  ]
+
+  for (let entry of usersFK) {
+    await Promise.all(
+      entry.fields.map(async f => {
+        await pool.query(
+          `UPDATE ${entry.table} SET ${f} = NULL WHERE ${f} = $1`,
+          [id]
+        )
+      })
+    )
+  }
+
+  await pool.query(
+    `DELETE FROM projects_members WHERE user_id = $1`,
+    [id]
+  );
   const result = await pool.query(
     "DELETE FROM users WHERE id = $1 RETURNING *",
     [id]

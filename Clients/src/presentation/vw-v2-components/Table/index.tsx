@@ -132,11 +132,11 @@ const VWProjectRisksTableBody = ({
               >
                 <IconButton
                   id={row.id}
-                  type="project"
+                  type="risk"
                   onMouseEvent={(e) => handelEditRisk(row,e)}
                   onDelete={() => handleDeleteRisk(row.id)}
                   onEdit={() => handelEditRisk(row)}
-                  warningTitle="Delete this project?"
+                  warningTitle="Delete this project risk?"
                   warningMessage="This action is non-recoverable."
                 ></IconButton>
               </TableCell>

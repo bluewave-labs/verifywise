@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Stack, Box, Typography,useTheme } from "@mui/material"; 
-import singleTheme from "../../themes/v1SingleTheme";
 import { vwfileHeading } from "./styles";
 import VWBasicTable from "../../components/Table";
 import { getEntityById } from "../../../application/repository/entity.repository";
@@ -295,10 +294,12 @@ const FileManager: React.FC = (): JSX.Element => {
         onFinish={() => setRunFileTour(false)}
       />
       <Stack spacing={theme.spacing(1)} data-joyride-id="file-manager-title" sx={{ pb: 8.5 }}>
-        <Typography sx={vwfileHeading} gutterBottom>
+        <Typography sx={vwfileHeading} variant="h2" gutterBottom>
           Evidences & documents
         </Typography>
-        <Typography sx={singleTheme.textStyles.pageDescription}>
+        <Typography sx={{color:theme.palette.text.secondary,
+          fontSize:theme.typography.fontSize
+        }}>
           This table lists all the files uploaded to the system.
         </Typography>
       </Stack>

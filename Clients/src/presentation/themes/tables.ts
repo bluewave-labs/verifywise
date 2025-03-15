@@ -24,7 +24,7 @@ export const tableStyles = {
         fontWeight: 400,
         paddingLeft: "10px",
         whiteSpace:"nowrap",
-        "&:not(:last-child)": {
+        "&:not(:lastChild)": {
           minWidth: "fit-content"
         },
       },
@@ -48,7 +48,7 @@ export const tableStyles = {
         paddingY: "12px",
         backgroundColor: "white",
         whiteSpace:"nowrap",
-        "&:not(:last-child)": {
+        "&:not(:lastChild)": {
           minWidth: "fit-content",
         },
       },

@@ -42,6 +42,7 @@ import {
 import VWButton from "../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import UpdateIcon from "@mui/icons-material/Update";
+import VWToast from "../../vw-v2-components/Toast";
 
 const RiskSection = lazy(() => import("./RisksSection"));
 const MitigationSection = lazy(() => import("./MitigationSection"));
@@ -53,6 +54,7 @@ interface AddNewRiskFormProps {
   initialMitigationValues?: MitigationFormValues; // New prop for initial values
   onSuccess: () => void;
   onError?: (message: any) => void;
+  onLoading?: (message: any) => void;
 }
 
 interface ApiResponse {
@@ -110,6 +112,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   closePopup,
   onSuccess,
   onError = () => {},
+  onLoading = () => {},
   popupStatus,
   initialRiskValues = riskInitialState, // Default to initial state if not provided
   initialMitigationValues = mitigationInitialState,
@@ -398,6 +401,10 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
 
     // check forms validate
     if (isValid) {
+      onLoading(popupStatus !== "new" ? 
+      "Updating the risk. Please wait..." : 
+      "Creating the risk. Please wait...");
+
       const formData = {
         project_id: projectId,
         risk_name: riskValues.riskName,

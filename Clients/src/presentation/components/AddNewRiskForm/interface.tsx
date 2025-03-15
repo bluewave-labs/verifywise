@@ -27,7 +27,7 @@ export type ProjectRisk = {
 
 export interface RiskFormValues {
   riskName: string;
-  actionOwner: number | string;
+  actionOwner: number;
   aiLifecyclePhase: number;
   riskDescription: string;
   riskCategory: number;

@@ -10,12 +10,12 @@ export type Vendor = {
   projects: any[]; // won't get any values, will be filled by user
   vendor_name: string; // won't get any values, will be filled by user
   vendor_provides: string; // won't get any values, will be filled by user
-  assignee: string; // won't get any values, will be filled by user
+  assignee: number; // won't get any values, will be filled by user
   website: string; // won't get any values, will be filled by user
   vendor_contact_person: string; // won't get any values, will be filled by user
   review_result: string; // won't get any values, will be filled by user
   review_status: "Active" | "Under review" | "Not active"; // won't get any values, will be filled by user
-  reviewer: string; // won't get any values, will be filled by user
+  reviewer: number; // won't get any values, will be filled by user
   risk_status:
   | "Very high risk"
   | "High risk"

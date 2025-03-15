@@ -1,10 +1,11 @@
 import { Stack, Typography, useTheme } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Select from "../Select";
 import DatePicker from "../Datepicker";
 import Field from "../Field";
-import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { formatDate } from "../../../tools/isoDateToString";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import useProjectData from "../../../../application/hooks/useProjectData";
 
 // Add interface for user type
 export interface User {
@@ -36,6 +37,9 @@ const DropDowns: React.FC<DropDownsProps> = ({
     state?.implementation_details || ""
   );
   const theme = useTheme();
+  const { dashboardValues, currentProjectId } = useContext(VerifyWiseContext);
+  const { users } = dashboardValues;
+  const { project } = useProjectData({ projectId: currentProjectId || "0" });
 
   const inputStyles = {
     minWidth: 200,
@@ -44,21 +48,24 @@ const DropDowns: React.FC<DropDownsProps> = ({
     height: 34,
   };
 
-  const [users, setUsers] = useState<User[]>([]);
+  const [projectMembers, setProjectMembers] = useState<User[]>([]);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      const response = await getAllEntities({ routeUrl: "/users" });
-      setUsers(response.data);
-    };
-    fetchUsers();
-  }, []);
+  // Filter users to only show project members
+  useEffect(() => {    
+    if (project && users?.length > 0) {
+      const members = users.filter((user: User) => 
+        project.members.includes(Number(user.id))
+      );
+      console.log('Filtered Project Members:', members);
+      setProjectMembers(members);
+    }
+  }, [project, users]);
 
   // Update local state when the state prop changes
   useEffect(() => {
     if (state) {
       setStatus(state?.status);
-      setApprover(state?.approver); // Ensure this line is present
+      setApprover(state?.approver);
       setRiskReview(state?.risk_review);
       setOwner(state?.owner);
       setReviewer(state?.reviewer);
@@ -112,7 +119,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
               setState({ ...state, approver: e.target.value });
             }
           }}
-          items={users.map((user) => ({
+          items={projectMembers.map((user) => ({
             _id: `${user.name} ${user.surname}`,
             name: `${user.name} ${user.surname}`,
           }))}
@@ -160,7 +167,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
               setState({ ...state, owner: e.target.value });
             }
           }}
-          items={users.map((user) => ({
+          items={projectMembers.map((user) => ({
             _id: `${user.name} ${user.surname}`,
             name: `${user.name} ${user.surname}`,
           }))}
@@ -179,7 +186,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
               setState({ ...state, reviewer: e.target.value });
             }
           }}
-          items={users.map((user) => ({
+          items={projectMembers.map((user) => ({
             _id: `${user.name} ${user.surname}`,
             name: `${user.name} ${user.surname}`,
           }))}

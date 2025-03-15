@@ -1,14 +1,14 @@
 import { ProjectRisk } from "../models/projectRisk.model";
 
 // Sample mock data for ProjectRisk
-const mockProjectRisks = (projectId1: number): ProjectRisk[] => {
+const mockProjectRisks = (projectId1: number, userId1: number, userId2: number): ProjectRisk[] => {
   return [
     // Project risk for the first project
     {
       id: 1,
       project_id: projectId1, // Refers to the project with id 1
       risk_name: "Data Privacy Compliance",
-      risk_owner: "Alice Smith",
+      risk_owner: userId1,
       ai_lifecycle_phase: "Monitoring & maintenance",
       risk_description: "Risk of non-compliance with data privacy regulations.",
       risk_category: "Cybersecurity risk",
@@ -29,7 +29,7 @@ const mockProjectRisks = (projectId1: number): ProjectRisk[] => {
       likelihood_mitigation: "Almost Certain",
       risk_severity: "Moderate",
       final_risk_level: "Low",
-      risk_approval: "Bob Johnson",
+      risk_approval: userId2,
       approval_status: "In Progress",
       date_of_assessment: new Date("2024-11-01"),
     },
@@ -37,7 +37,7 @@ const mockProjectRisks = (projectId1: number): ProjectRisk[] => {
       id: 2,
       project_id: projectId1, // Refers to the project with id 2
       risk_name: "Algorithm Bias",
-      risk_owner: "Bob Johnson",
+      risk_owner: userId2,
       ai_lifecycle_phase: "Data collection & processing",
       risk_description: "Potential for biased outcomes in AI predictions.",
       risk_category: "Technological risk",
@@ -57,7 +57,7 @@ const mockProjectRisks = (projectId1: number): ProjectRisk[] => {
       likelihood_mitigation: "Rare",
       risk_severity: "Minor",
       final_risk_level: "Low",
-      risk_approval: "Alice Smith",
+      risk_approval: userId1,
       approval_status: "Completed",
       date_of_assessment: new Date("2024-10-15"),
     },

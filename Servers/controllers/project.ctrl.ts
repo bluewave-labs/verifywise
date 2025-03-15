@@ -131,7 +131,7 @@ export async function getProjectById(
 
 export async function createProject(req: Request, res: Response): Promise<any> {
   try {
-    const newProject: Partial<Project> & { enable_ai_data_insertion: boolean } = req.body;
+    const newProject: Partial<Project> & { members: number[], enable_ai_data_insertion: boolean } = req.body;
 
     if (!newProject.project_title || !newProject.owner) {
       return res
@@ -142,7 +142,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
     }
     console.log(newProject);
 
-    const createdProject = await createNewProjectQuery(newProject);
+    const createdProject = await createNewProjectQuery(newProject, newProject.members);
     const assessments: Object = await createNewAssessmentQuery({
       project_id: createdProject.id,
     }, newProject.enable_ai_data_insertion);
@@ -173,7 +173,11 @@ export async function updateProjectById(
 ): Promise<any> {
   try {
     const projectId = parseInt(req.params.id);
-    const updatedProject: Partial<Project> = req.body;
+    const updatedProject: Partial<Project> & { members?: number[] } = req.body;
+    const members = updatedProject.members || []
+
+    delete updatedProject.members
+    delete updatedProject.id
 
     if (!updatedProject.project_title || !updatedProject.owner) {
       return res
@@ -183,7 +187,7 @@ export async function updateProjectById(
         );
     }
 
-    const project = await updateProjectByIdQuery(projectId, updatedProject);
+    const project = await updateProjectByIdQuery(projectId, updatedProject, members);
 
     if (project) {
       return res.status(202).json(STATUS_CODE[202](project));

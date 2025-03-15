@@ -26,6 +26,8 @@ import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
+import ForwardToInboxIcon from '@mui/icons-material/ForwardToInbox';
+import VWButton from "../../../vw-v2-components/Buttons";
 
 interface InviteUserModalProps {
   isOpen: boolean;
@@ -215,28 +217,18 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
           >
             Cancel
           </Button>
-          <Button
-            disableRipple
-            disableFocusRipple
-            disableTouchRipple
-            type="submit"
+         
+          <VWButton
             variant="contained"
-            color="primary"
-            // disabled={!email || !role}
+            text="Send Invite"
             sx={{
-              width: 140,
-              textTransform: "capitalize",
-              fontSize: 13,
-              boxShadow: "none",
-              borderRadius: "4px",
-              "&:hover": {
-                boxShadow: "none",
-              },
+              backgroundColor: "#13715B",
+              border: "1px solid #13715B",
+              gap: 2,
             }}
-            onClick={handleSendInvitation}
-          >
-            Send Invite
-          </Button>
+            icon={<ForwardToInboxIcon />}
+            onClick={() => handleSendInvitation()}
+          />
         </Stack>
       </Stack>
     </Modal>

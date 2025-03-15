@@ -16,6 +16,7 @@ import { handleAlert } from "../../../../../application/tools/alertUtils";
 import Alert from "../../../../components/Alert";
 import { deleteEntityById } from "../../../../../application/repository/entity.repository";
 import VWToast from "../../../../vw-v2-components/Toast";
+import VWSkeleton from "../../../../vw-v2-components/Skeletons";
 
 const TITLE_OF_COLUMNS = [
   "RISK NAME",
@@ -29,6 +30,9 @@ const TITLE_OF_COLUMNS = [
   "",
 ];
 
+/**
+ * Set initial loading status for all CRUD process
+*/  
 interface LoadingStatus {
   loading: boolean;
   message: string;
@@ -55,25 +59,24 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
   } | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [isLoading, setIsLoading] = useState<LoadingStatus>(initialLoadingState);
+  const [showVWSkeleton, setShowVWSkeleton] = useState<boolean>(false);
   
   const fetchProjectRisks = useCallback(async () => {
     try {
       const response = await getEntityById({
         routeUrl: `/projectRisks/by-projid/${projectId}`,
       });
+      setShowVWSkeleton(false);
       setProjectRisks(response.data);
     } catch (error) {
-      console.error("Error fetching project risks:", error);
-      handleAlert({
-        variant: "error",
-        body: "Error fetching project risks",
-        setAlert,
-      });
+      console.error("Error fetching project risks:", error);      
+      handleToast("error", "Unexpected error occurs while fetching project risks.");      
     }
   }, [projectId]);
 
   useEffect(() => {
     if (projectId) {
+      setShowVWSkeleton(true);
       fetchProjectRisks();
     }
   }, [projectId, fetchProjectRisks, refreshKey]); // Add refreshKey to dependencies
@@ -265,15 +268,19 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
           />
           )
         }
-        <VWProjectRisksTable
-          columns={TITLE_OF_COLUMNS}
-          rows={projectRisks}
-          setPage={setCurrentPagingation}
-          page={currentPage}
-          setSelectedRow={(row: ProjectRisk) => setSelectedRow([row])}
-          setAnchor={setAnchor}
-          deleteRisk={handleDelete}
-        />
+        {showVWSkeleton ? (
+          <VWSkeleton variant="rectangular" width="100%" height={200} />
+        ) : (
+          <VWProjectRisksTable
+            columns={TITLE_OF_COLUMNS}
+            rows={projectRisks}
+            setPage={setCurrentPagingation}
+            page={currentPage}
+            setSelectedRow={(row: ProjectRisk) => setSelectedRow([row])}
+            setAnchor={setAnchor}
+            deleteRisk={handleDelete}
+          />
+        )}
       </Stack>
     </Stack>
   );

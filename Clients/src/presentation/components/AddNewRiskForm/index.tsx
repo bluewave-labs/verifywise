@@ -376,13 +376,13 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     }
     if(mitigationValues.recommendations.length > 0) {
       const recommendations = checkStringValidation(
-        "Mitigation plan",
+        "Recommendation",
         mitigationValues.recommendations,
         1,
         1024
       );
       if (!recommendations.accepted) {
-        newMitigationErrors.recommendations = mitigationPlan.message;
+        newMitigationErrors.recommendations = recommendations.message;
       }
     }    
 

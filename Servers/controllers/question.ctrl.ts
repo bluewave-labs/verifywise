@@ -71,9 +71,7 @@ export async function createQuestion(
       );
     }
 
-    const createdQuestion = await createNewQuestionQuery(
-      newQuestion
-    );
+    const createdQuestion = await createNewQuestionQuery(newQuestion);
 
     if (createdQuestion) {
       return res.status(201).json(STATUS_CODE[201](createdQuestion));
@@ -92,9 +90,9 @@ export async function updateQuestionById(
   try {
     const questionId = parseInt(req.params.id);
     const body: { answer: string } = req.body;
+    console.log("req.body", req.body);
 
-    if (!body.answer
-    ) {
+    if (!body.answer) {
       return res.status(400).json(
         STATUS_CODE[400]({
           message: "No values provided for answer for the Question",
@@ -104,7 +102,7 @@ export async function updateQuestionById(
 
     const question = (await updateQuestionByIdQuery(
       questionId,
-      body.answer,
+      body.answer
     )) as Question;
 
     if (!question) {

@@ -18,7 +18,7 @@ import { ProjectRisk } from "../../../domain/ProjectRisk";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { RISK_LABELS } from "../../components/RiskLevel/constants";
 import IconButton from "../../components/IconButton";
-import placeholderImage from "../../assets/imgs/empty-state.svg"
+import placeholderImage from "../../assets/imgs/empty-state.svg";
 
 const riskLevelChecker = (score: string) => {
   const parsedScore = parseInt(score, 10);
@@ -81,7 +81,7 @@ const VWProjectRisksTableBody = ({
   const { setInputValues, dashboardValues } = useContext(VerifyWiseContext);
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
-  const handelEditRisk = ( row: any, event?: React.SyntheticEvent) => {
+  const handelEditRisk = (row: any, event?: React.SyntheticEvent) => {
     setSelectedRow(row);
     setInputValues(row);
     setAnchor(event?.currentTarget);
@@ -92,10 +92,14 @@ const VWProjectRisksTableBody = ({
   };
 
   const displayUserFullName = (userId: string) => {
-    const currentUser = dashboardValues.users.find((user: any) => user.id === parseInt(userId));
-    const fullName = `${currentUser.name} ${currentUser.surname}`
-    return fullName.length > 30 ? `${fullName.slice(0,30)}...` : fullName;
-  }
+    const currentUser = dashboardValues.users.find(
+      (user: any) => user.id === parseInt(userId)
+    );
+    const fullName = currentUser
+      ? `${currentUser.name} ${currentUser.surname}`
+      : "";
+    return fullName.length > 30 ? `${fullName.slice(0, 30)}...` : fullName;
+  };
 
   return (
     <TableBody>
@@ -137,7 +141,7 @@ const VWProjectRisksTableBody = ({
                 <IconButton
                   id={row.id}
                   type="risk"
-                  onMouseEvent={(e) => handelEditRisk(row,e)}
+                  onMouseEvent={(e) => handelEditRisk(row, e)}
                   onDelete={() => handleDeleteRisk(row.id)}
                   onEdit={() => handelEditRisk(row)}
                   warningTitle="Delete this project risk?"
@@ -167,7 +171,7 @@ const VWProjectRisksTable = ({
   setPage: (pageNo: number) => void;
   page: number;
 }) => {
-  const theme = useTheme();  
+  const theme = useTheme();
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const getRange = useMemo(() => {
@@ -197,32 +201,36 @@ const VWProjectRisksTable = ({
           }}
         >
           <VWProjectRisksTableHead columns={columns} />
-          {rows.length !== 0 ? 
-          <VWProjectRisksTableBody
-            rows={rows}
-            page={page}
-            rowsPerPage={rowsPerPage}
-            setSelectedRow={setSelectedRow}
-            setAnchor={setAnchor}
-            onDeleteRisk={deleteRisk}
-          /> : <>
-            <TableBody>
-              <TableRow>
-                <TableCell 
-                  colSpan={8} 
-                  align="center"
-                  style={{
-                    padding: theme.spacing(15, 5),
-                    paddingBottom: theme.spacing(20)
-                  }}>
-                  <img src={placeholderImage} alt="Placeholder" />
-                  <Typography sx={{ fontSize: "13px", color: "#475467" }}>
-                    There is currently no data in this table.
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </>} 
+          {rows.length !== 0 ? (
+            <VWProjectRisksTableBody
+              rows={rows}
+              page={page}
+              rowsPerPage={rowsPerPage}
+              setSelectedRow={setSelectedRow}
+              setAnchor={setAnchor}
+              onDeleteRisk={deleteRisk}
+            />
+          ) : (
+            <>
+              <TableBody>
+                <TableRow>
+                  <TableCell
+                    colSpan={8}
+                    align="center"
+                    style={{
+                      padding: theme.spacing(15, 5),
+                      paddingBottom: theme.spacing(20),
+                    }}
+                  >
+                    <img src={placeholderImage} alt="Placeholder" />
+                    <Typography sx={{ fontSize: "13px", color: "#475467" }}>
+                      There is currently no data in this table.
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </>
+          )}
         </Table>
       </TableContainer>
       <Stack

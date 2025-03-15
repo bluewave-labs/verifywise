@@ -23,7 +23,7 @@ export interface VendorRisk {
   review_date: string;
 }
 
-const useVendorRisks = ({ projectId }: { projectId?: string | null }) => {
+const useVendorRisks = ({ projectId, refreshKey }: { projectId?: string | null, refreshKey?: number }) => {
   const [vendorRisks, setVendorRisks] = useState<VendorRisk[]>([]);
   const [loadingVendorRisks, setLoadingVendorRisks] = useState<boolean>(true);
   const [error, setError] = useState<string | boolean>(false);
@@ -34,12 +34,15 @@ const useVendorRisks = ({ projectId }: { projectId?: string | null }) => {
 
     const updateVendorRisks = async () => {
       setLoadingVendorRisks(true);
+      if (!projectId) return;
       try {
         const response = await getEntityById({
           routeUrl: `/vendorRisks/by-projid/${projectId}`,
           signal,
         });
-        setVendorRisks(response?.data);
+        if (response?.data) {
+          setVendorRisks(response?.data);
+        }
       } catch (err) {
         if (err instanceof Error) {
           setError(`Request failed: ${err.message}`);
@@ -56,7 +59,7 @@ const useVendorRisks = ({ projectId }: { projectId?: string | null }) => {
     return () => {
       controller.abort();
     };
-  }, [projectId]);
+  }, [projectId, refreshKey]);
 
   const vendorRisksSummary = vendorRisks.reduce(
     (acc, risk) => {

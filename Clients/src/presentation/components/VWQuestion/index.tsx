@@ -14,14 +14,24 @@ import {
   PriorityLevel,
 } from "../../pages/Assessment/NewAssessment/priorities";
 import RichTextEditor from "../RichTextEditor";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { updateEntityById } from "../../../application/repository/entity.repository";
 import UppyUploadFile from "../../vw-v2-components/Inputs/FileUpload";
 import Alert, { AlertProps } from "../Alert";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import Uppy from "@uppy/core";
+import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import { extractUserToken } from "../../../application/tools/extractToken";
+import { store } from "../../../application/redux/store";
 
 const VWQuestion = ({ question }: { question: Question }) => {
+  const state = store.getState();
+  const userData = extractUserToken(state.auth.authToken); // Extract user data from token
+  const { id } = userData || {};
+
+  const { dashboardValues } = useContext(VerifyWiseContext);
+  const { selectedProjectId } = dashboardValues;
+
   const [values, setValues] = useState<Question>(question);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
   const [evidenceFiles, setEvidenceFiles] = useState<any[]>([]);
@@ -33,6 +43,8 @@ const VWQuestion = ({ question }: { question: Question }) => {
     const updatedQuestion = {
       answer: values.answer ? values.answer.replace(/^<p>|<\/p>$/g, "") : "",
       evidence_files: evidenceFiles,
+      project_id: selectedProjectId,
+      uploaded_by: id,
     };
 
     console.log(updatedQuestion);

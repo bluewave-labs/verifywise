@@ -81,13 +81,13 @@ const mitigationInitialState: MitigationFormValues = {
   mitigationPlan: "",
   currentRiskLevel: 0,
   implementationStrategy: "",
-  deadline: "",
+  deadline: new Date().toISOString(),
   doc: "",
   likelihood: 1 as Likelihood,
   riskSeverity: 1 as Severity,
   approver: 0,
   approvalStatus: 0,
-  dateOfAssessment: "",
+  dateOfAssessment: new Date().toISOString(),
   recommendations: "",
 };
 

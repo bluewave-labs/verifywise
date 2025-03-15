@@ -42,7 +42,6 @@ import {
 import VWButton from "../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import UpdateIcon from "@mui/icons-material/Update";
-import VWToast from "../../vw-v2-components/Toast";
 
 const RiskSection = lazy(() => import("./RisksSection"));
 const MitigationSection = lazy(() => import("./MitigationSection"));
@@ -280,15 +279,19 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     if (!potentialImpact.accepted) {
       newErrors.potentialImpact = potentialImpact.message;
     }
-    const reviewNotes = checkStringValidation(
-      "Review notes",
-      riskValues.reviewNotes,
-      0,
-      1024
-    );
-    if (!reviewNotes.accepted) {
-      newErrors.reviewNotes = reviewNotes.message;
+
+    if(riskValues.reviewNotes.length > 0){
+      const reviewNotes = checkStringValidation(
+        "Review notes",
+        riskValues.reviewNotes,
+        0,
+        1024
+      );
+      if (!reviewNotes.accepted) {
+        newErrors.reviewNotes = reviewNotes.message;
+      }
     }
+    
     const actionOwner = selectValidation(
       "Action owner",
       riskValues.actionOwner
@@ -371,6 +374,17 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     if (!approvalStatus.accepted) {
       newMitigationErrors.approvalStatus = approvalStatus.message;
     }
+    if(mitigationValues.recommendations.length > 0) {
+      const recommendations = checkStringValidation(
+        "Mitigation plan",
+        mitigationValues.recommendations,
+        1,
+        1024
+      );
+      if (!recommendations.accepted) {
+        newMitigationErrors.recommendations = mitigationPlan.message;
+      }
+    }    
 
     setMigitateErrors(newMitigationErrors);
     setRiskErrors(newErrors);

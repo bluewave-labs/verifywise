@@ -10,6 +10,8 @@ import {
   getQuestionsByTopicId,
   updateQuestionById,
 } from "../controllers/question.ctrl";
+const multer = require("multer");
+const upload = multer({ storage: multer.memoryStorage() });
 
 import authenticateJWT from "../middleware/auth.middleware";
 
@@ -19,10 +21,9 @@ router.get("/:id", /*authenticateJWT,*/ getQuestionById);
 router.get("/bysubtopic/:id", getQuestionsBySubtopicId);
 router.get("/bytopic/:id", getQuestionsByTopicId);
 
-
 // POST, PUT, DELETE requests
 router.post("/", /*authenticateJWT,*/ createQuestion);
-router.patch("/:id", /*authenticateJWT,*/ updateQuestionById);
+router.patch("/:id", /*authenticateJWT,*/ upload.any(), updateQuestionById);
 router.delete("/:id", /*authenticateJWT,*/ deleteQuestionById);
 
 export default router;

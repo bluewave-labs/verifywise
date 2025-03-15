@@ -43,10 +43,10 @@ export const getQuestionByIdQuery = async (
 
 export interface RequestWithFile extends Request {
   files?:
-  | UploadedFile[]
-  | {
-    [key: string]: UploadedFile[];
-  };
+    | UploadedFile[]
+    | {
+        [key: string]: UploadedFile[];
+      };
 }
 export interface UploadedFile {
   originalname: string;
@@ -55,7 +55,7 @@ export interface UploadedFile {
 }
 
 export const createNewQuestionQuery = async (
-  question: Question,
+  question: Question
 ): Promise<Question> => {
   const result = await pool.query(
     `INSERT INTO questions (
@@ -79,43 +79,57 @@ export const createNewQuestionQuery = async (
 
 export const addFileToQuestion = async (
   id: number,
-  uploadedFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[],
+  uploadedFiles: {
+    id: string;
+    fileName: string;
+    project_id: number;
+    uploaded_by: number;
+    uploaded_time: Date;
+  }[],
   deletedFiles: number[]
 ): Promise<Question> => {
   // get the existing evidence files
   const evidenceFilesResult = await pool.query(
     `SELECT evidence_files FROM questions WHERE id = $1`,
     [id]
-  )
+  );
 
   // convert to list of objects
-  let _ = evidenceFilesResult.rows[0].evidence_files as string[]
-  let evidenceFiles = _.map(f => JSON.parse(f) as { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date })
+  let _ = evidenceFilesResult.rows[0].evidence_files as string[];
+  let evidenceFiles = _.map(
+    (f) =>
+      JSON.parse(f) as {
+        id: string;
+        fileName: string;
+        project_id: number;
+        uploaded_by: number;
+        uploaded_time: Date;
+      }
+  );
 
   // remove the deleted file ids
-  evidenceFiles = evidenceFiles.filter(f => !deletedFiles.includes(parseInt(f.id)))
+  evidenceFiles = evidenceFiles.filter(
+    (f) => !deletedFiles.includes(parseInt(f.id))
+  );
 
   // combine the files lists
-  evidenceFiles = evidenceFiles.concat(uploadedFiles)
+  evidenceFiles = evidenceFiles.concat(uploadedFiles);
 
   // update
   const result = await pool.query(
     `UPDATE questions SET evidence_files = $1 WHERE id = $2 RETURNING *;`,
     [evidenceFiles, id]
-  )
+  );
   return result.rows[0];
-}
+};
 
 export const updateQuestionByIdQuery = async (
   id: number,
-  answer: string,
+  answer: string
 ): Promise<Question | null> => {
   const result = await pool.query(
     `UPDATE questions SET answer = $1 WHERE id = $2 RETURNING *`,
-    [
-      answer,
-      id,
-    ]
+    [answer, id]
   );
 
   return result.rows.length ? result.rows[0] : null;
@@ -181,10 +195,9 @@ export const createNewQuestionsQuery = async (
       evidence_required, hint, is_required,
       priority_level, answer, order_no, input_type
     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`;
-  let createdQuestions: Question[] = []
+  let createdQuestions: Question[] = [];
   for (let question of questions) {
-    const result = await pool.query(
-      query, [
+    const result = await pool.query(query, [
       subTopicId,
       question.question,
       question.answer_type,
@@ -195,8 +208,71 @@ export const createNewQuestionsQuery = async (
       enable_ai_data_insertion ? question.answer : null,
       question.order_no,
       question.input_type,
-    ])
-    createdQuestions = createdQuestions.concat(result.rows)
+    ]);
+    createdQuestions = createdQuestions.concat(result.rows);
   }
   return createdQuestions;
+};
+
+export const addFileToQuestionTest = async (
+  id: number,
+  uploadedFiles: {
+    id: string;
+    fileName: string;
+    project_id: number;
+    uploaded_by: number;
+    uploaded_time: Date;
+  }[],
+  deletedFiles: number[]
+): Promise<Question> => {
+  // get the existing evidence files
+  const evidenceFilesResult = await pool.query(
+    `SELECT evidence_files FROM questions WHERE id = $1`,
+    [id]
+  );
+
+  // Initialize evidenceFiles as empty array if null/undefined
+  let evidenceFiles: {
+    id: string;
+    fileName: string;
+    project_id: number;
+    uploaded_by: number;
+    uploaded_time: Date;
+  }[] = [];
+
+  // Only process existing files if they exist
+  if (evidenceFilesResult.rows[0]?.evidence_files) {
+    try {
+      const existingFiles = evidenceFilesResult.rows[0]
+        .evidence_files as string[];
+      evidenceFiles = existingFiles
+        .filter((f) => f) // Filter out null/undefined entries
+        .map((f) => {
+          try {
+            return JSON.parse(f);
+          } catch (e) {
+            console.error("Failed to parse evidence file:", f);
+            return null;
+          }
+        })
+        .filter((f) => f !== null); // Filter out failed parses
+    } catch (e) {
+      console.error("Error processing existing evidence files:", e);
+    }
+  }
+
+  // remove the deleted file ids
+  evidenceFiles = evidenceFiles.filter(
+    (f) => !deletedFiles.includes(parseInt(f.id))
+  );
+
+  // combine the files lists
+  evidenceFiles = evidenceFiles.concat(uploadedFiles || []);
+
+  // update
+  const result = await pool.query(
+    `UPDATE questions SET evidence_files = $1 WHERE id = $2 RETURNING *;`,
+    [evidenceFiles, id]
+  );
+  return result.rows[0];
 };

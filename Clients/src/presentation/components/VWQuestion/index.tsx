@@ -39,24 +39,20 @@ const VWQuestion = ({ question }: { question: Question }) => {
   const [uppy] = useState(() => new Uppy());
 
   const handleSave = async () => {
-    console.log("Clicked");
     const updatedQuestion = {
       answer: values.answer ? values.answer.replace(/^<p>|<\/p>$/g, "") : "",
-      evidence_files: evidenceFiles,
+      evidence_files: Array.isArray(evidenceFiles) ? evidenceFiles : [], // Ensure it's an array
       project_id: selectedProjectId,
       uploaded_by: id,
     };
-
-    console.log(updatedQuestion);
 
     try {
       const response = await updateEntityById({
         routeUrl: `/questions/${question.id}`,
         body: updatedQuestion,
       });
-      if (response.status === 202) {
-        setValues(response.data.data);
-        console.log("Question updated successfully:", response.data);
+      if (response?.status === 202) {
+        setValues(response.data?.data || values); // Fallback to current values if response data is null
         handleAlert({
           variant: "success",
           body: "Question updated successfully",
@@ -80,11 +76,9 @@ const VWQuestion = ({ question }: { question: Question }) => {
   };
 
   const handleFileUploadConfirm = (files: any[]) => {
-    setEvidenceFiles(files);
+    setEvidenceFiles(Array.isArray(files) ? files : []); // Ensure it's an array
     setIsFileUploadOpen(false);
-    // Add logic to send files to the backend if needed
   };
-
   const handleContentChange = (answer: string) => {
     // Remove <p> tags from the beginning and end of the answer
     const cleanedAnswer = answer.replace(/^<p>|<\/p>$/g, "");

@@ -7,6 +7,8 @@ export const getAllProjectsQuery = async (): Promise<Project[]> => {
     for (let project of projects.rows) {
       const assessment = await pool.query(`SELECT id FROM assessments WHERE project_id = $1`, [project.id])
       project["assessment_id"] = assessment.rows[0].id
+      const members = await pool.query("SELECT user_id FROM projects_members WHERE project_id = $1", [project.id])
+      project["members"] = members.rows.map(m => m.user_id)
     }
   }
   return projects.rows;
@@ -23,18 +25,22 @@ export const getProjectByIdQuery = async (
     [project.id]
   );
   project["assessment_id"] = assessment.rows[0].id;
+
+  const members = await pool.query("SELECT user_id FROM projects_members WHERE project_id = $1", [id])
+  project["members"] = members.rows.map(m => m.user_id)
+
   return project;
 };
 
 export const createNewProjectQuery = async (
-  project: Partial<Project>
+  project: Partial<Project>,
+  members: number[]
 ): Promise<Project> => {
   const result = await pool.query(
-    "INSERT INTO projects (project_title, owner, members, start_date, ai_risk_classification, type_of_high_risk_role, goal, last_updated, last_updated_by) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
+    "INSERT INTO projects (project_title, owner, start_date, ai_risk_classification, type_of_high_risk_role, goal, last_updated, last_updated_by) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",
     [
       project.project_title,
       project.owner,
-      project.members,
       project.start_date,
       project.ai_risk_classification,
       project.type_of_high_risk_role,
@@ -43,34 +49,63 @@ export const createNewProjectQuery = async (
       project.last_updated_by,
     ]
   );
-  return result.rows[0];
+  const createdProject = result.rows[0];
+  createdProject["members"] = []
+  for (let member of members) {
+    await pool.query(
+      `INSERT INTO projects_members (project_id, user_id) VALUES ($1, $2) RETURNING *`,
+      [createdProject.id, member]
+    )
+    createdProject["members"].push(member)
+  }
+  return createdProject
 };
 
 export const updateProjectByIdQuery = async (
   id: number,
-  project: Partial<Project>
+  project: Partial<Project>,
+  members: number[]
 ): Promise<Project | null> => {
+  const _ = await pool.query(
+    `SELECT user_id FROM projects_members WHERE project_id = $1`, [id]
+  )
+  const currentMembers = _.rows.map(m => m.user_id)
+  const deletedMembers = currentMembers.filter(m => !members.includes(m))
+  const newMembers = members.filter(m => !currentMembers.includes(m))
+
+  console.log(deletedMembers, newMembers);
+
+  for (let member of deletedMembers) {
+    await pool.query(
+      `DELETE FROM projects_members WHERE user_id = $1 AND project_id = $2`,
+      [member, id]
+    )
+  }
+
+  for (let member of newMembers) {
+    await pool.query(
+      `INSERT INTO projects_members (project_id, user_id) VALUES ($1, $2);`,
+      [id, member]
+    )
+  }
   const result = await pool.query(
-    `UPDATE projects SET ${Object.keys(project)
+    `UPDATE projects SET ${Object.keys(project).filter(k => k !== "members")
       .map((key, index) => `${key} = $${index + 1}`)
       .join(", ")} WHERE id = ${id} RETURNING *`,
     Object.values(project)
   );
-  return result.rows.length ? result.rows[0] : null;
+  const updatedMembers = await pool.query(
+    `SELECT user_id FROM projects_members WHERE project_id = $1`, [id]
+  )
+  return result.rows.length ? {
+    ...result.rows[0],
+    members: updatedMembers.rows.map(m => m.user_id)
+  } : null;
 };
 
 export const deleteProjectByIdQuery = async (
   id: number
 ): Promise<Project | null> => {
-  // projects:
-  //    vendors
-  //    assessments: topics, projectscopes
-  //    topics: subtopics
-  //    subtopics: questions
-  //    controlcategories: controls
-  //    controls: subcontrols
-  //    projectrisks
-  //    vendorrisks
 
   const deleteTable = async (
     entity: string,
@@ -107,6 +142,7 @@ export const deleteProjectByIdQuery = async (
   const dependantEntities = [
     { "vendors": { foreignKey: "project_id", "vendorrisks": { foreignKey: "vendor_id" } } },
     { "projectrisks": { foreignKey: "project_id" } },
+    { "projects_members": { foreignKey: "project_id" } },
     {
       assessments: {
         foreignKey: "project_id",

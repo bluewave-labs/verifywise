@@ -30,6 +30,7 @@ import VWToast from "../../vw-v2-components/Toast";
 import useProjectRisks from "../../../application/hooks/useProjectRisks";
 import { Project } from "../../../domain/Project";
 import RisksCard from "../../components/Cards/RisksCard";
+import { vwhomeHeading } from "../Home/1.0Home/style";
 
 interface ExistingRisk {
   id?: number;
@@ -327,14 +328,7 @@ const Vendors = () => {
             <Stack>
               <Typography
                 data-joyride-id="assessment-status"
-                variant="h2"
-                component="div"
-                sx={{
-                  pb: 8.5,
-                  color: "#1A1919",
-                  fontSize: 16,
-                  fontWeight: 600,
-                }}
+                sx={vwhomeHeading}
               >
                 Vendor list
               </Typography>
@@ -394,60 +388,72 @@ const Vendors = () => {
               <Tab label="Risks" value="2" sx={tabStyle} disableRipple />
             </TabList>
           </Box>
-          {!project ? (
-            <VWSkeleton variant="rectangular" width="100%" height={400} />
+          {value !== "1" &&
+            (isRisksLoading ? (
+              <VWSkeleton variant="rectangular" width="50%" height={100} />
+            ) : (
+              project && <RisksCard projectRisksSummary={projectRisksSummary} />
+            ))}
+          {isVendorsLoading && value === "1" ? (
+            <VWSkeleton
+              variant="rectangular"
+              width={"15%"}
+              height={35}
+              sx={{ alignSelf: "flex-end" }}
+            />
           ) : (
-            value !== "1" && (
-              <RisksCard projectRisksSummary={projectRisksSummary} />
+            value === "1" && (
+              <Stack sx={{ alignItems: "flex-end" }}>
+                <VWButton
+                  variant="contained"
+                  text="Add new vendor"
+                  sx={{
+                    backgroundColor: "#13715B",
+                    border: "1px solid #13715B",
+                    gap: 2,
+                  }}
+                  icon={<AddCircleOutlineIcon />}
+                  onClick={() => {
+                    openAddNewVendor();
+                    setSelectedVendor(null);
+                  }}
+                />
+              </Stack>
             )
           )}
-          {value === "1" ? (
-            <Stack
-              sx={{
-                alignItems: "flex-end",
-              }}
-            >
-              <VWButton
-                variant="contained"
-                text="Add new vendor"
-                sx={{
-                  backgroundColor: "#13715B",
-                  border: "1px solid #13715B",
-                  gap: 2,
-                }}
-                icon={<AddCircleOutlineIcon />}
-                onClick={() => {
-                  openAddNewVendor();
-                  setSelectedVendor(null);
-                }}
-              />
-            </Stack>
-          ) : (
-            <Stack
-              sx={{
-                alignItems: "flex-end",
-              }}
-            >
-              <VWButton
-                variant="contained"
-                text="Add new Risk"
-                sx={{
-                  backgroundColor: "#13715B",
-                  border: "1px solid #13715B",
-                  gap: 2,
-                }}
-                icon={<AddCircleOutlineIcon />}
-                onClick={() => {
-                  setSelectedRisk(null);
-                  handleRiskModal();
-                }}
-              />
-            </Stack>
-          )}
-          {isVendorsLoading ? (
+
+          {isRisksLoading && value !== "1" ? (
             <VWSkeleton
-              height={"60vh"}
-              minHeight={"100%"}
+              variant="rectangular"
+              width={"15%"}
+              height={35}
+              sx={{ alignSelf: "flex-end" }}
+            />
+          ) : (
+            value !== "1" && (
+              <Stack sx={{ alignItems: "flex-end" }}>
+                <VWButton
+                  variant="contained"
+                  text="Add new Risk"
+                  sx={{
+                    backgroundColor: "#13715B",
+                    border: "1px solid #13715B",
+                    gap: 2,
+                  }}
+                  icon={<AddCircleOutlineIcon />}
+                  onClick={() => {
+                    setSelectedRisk(null);
+                    handleRiskModal();
+                  }}
+                />
+              </Stack>
+            )
+          )}
+
+          {isVendorsLoading && value === "1" ? (
+            <VWSkeleton
+              height={"20vh"}
+              minHeight={"20vh"}
               minWidth={260}
               width={"100%"}
               maxWidth={"100%"}
@@ -462,10 +468,10 @@ const Vendors = () => {
               />
             </TabPanel>
           )}
-          {isRisksLoading ? (
+          {isRisksLoading && value !== "1" ? (
             <VWSkeleton
-              height={"60vh"}
-              minHeight={"60vh"}
+              height={"20vh"}
+              minHeight={"20vh"}
               minWidth={260}
               width={"100%"}
               maxWidth={"100%"}

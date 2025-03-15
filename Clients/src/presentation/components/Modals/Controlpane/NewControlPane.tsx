@@ -144,10 +144,6 @@ const NewControlPane = ({
     },
   };
 
-  const handleSave = () => {
-    setIsModalOpen(true);
-  };
-
   const confirmSave = async () => {
     console.log("state controlToSave : ", state);
     setIsSubmitting(true);
@@ -218,23 +214,6 @@ const NewControlPane = ({
         >
           <VWToast title="Saving control. Please wait..." />
         </Stack>
-      )}
-
-      {isModalOpen && (
-        <DualButtonModal
-          title="Confirm Save"
-          body={
-            <Typography textTransform={"none"}>
-              Are you sure you want to save the changes?
-            </Typography>
-          }
-          cancelText="Cancel"
-          proceedText="Save"
-          onCancel={() => setIsModalOpen(false)}
-          onProceed={confirmSave}
-          proceedButtonColor="primary"
-          proceedButtonVariant="contained"
-        />
       )}
       <Modal
         id={`${data.id}-modal`}
@@ -446,7 +425,7 @@ const NewControlPane = ({
                 border: "1px solid #13715B",
                 gap: 2,
               }}
-              onClick={handleSave}
+              onClick={confirmSave}
               icon={<SaveIcon />}
             />
           </Stack>

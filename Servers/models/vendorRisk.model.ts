@@ -19,7 +19,7 @@ export type VendorRisk = {
   | "High risk"
   | "Very high risk";
   action_plan: string;
-  action_owner: string;
+  action_owner: number;
   risk_level: string;
 };
 

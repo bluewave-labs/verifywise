@@ -1,7 +1,11 @@
 import { VendorRisk } from "../models/vendorRisk.model";
 
 // Sample mock data for VendorRisk
-const mockVendorRisks = (vendor1: number, vendor2: number, vendor3: number, vendor4: number): VendorRisk[] => {
+const mockVendorRisks = (
+  vendor1: number, vendor2: number, vendor3: number, vendor4: number,
+  userId1: number,
+  userId2: number
+): VendorRisk[] => {
   return [
     {
       id: 1,
@@ -13,7 +17,7 @@ const mockVendorRisks = (vendor1: number, vendor2: number, vendor3: number, vend
       likelihood: "Almost certain",
       risk_severity: "High risk",
       action_plan: "Vendor Risk 1 action plan",
-      action_owner: "Matt",
+      action_owner: userId1,
       risk_level: "High risk",
     },
     {
@@ -26,7 +30,7 @@ const mockVendorRisks = (vendor1: number, vendor2: number, vendor3: number, vend
       likelihood: "Likely",
       risk_severity: "High risk",
       action_plan: "Vendor Risk 2 action plan",
-      action_owner: "Martin",
+      action_owner: userId1,
       risk_level: "Medium risk",
     },
     {
@@ -39,7 +43,7 @@ const mockVendorRisks = (vendor1: number, vendor2: number, vendor3: number, vend
       likelihood: "Possible",
       risk_severity: "Very high risk",
       action_plan: "Vendor Risk 3 action plan",
-      action_owner: "John",
+      action_owner: userId2,
       risk_level: "Low risk",
     },
     {
@@ -52,7 +56,7 @@ const mockVendorRisks = (vendor1: number, vendor2: number, vendor3: number, vend
       likelihood: "Rare",
       risk_severity: "No risk",
       action_plan: "Vendor Risk 4 action plan",
-      action_owner: "Zack",
+      action_owner: userId2,
       risk_level: "Very high risk",
     }
   ]

@@ -36,8 +36,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     projectId: projectId?.toString(), refreshKey
   });
   const [projectRisks, setProjectRisks] = useState<ProjectRisk[]>([]);
-  const [selectedRow, setSelectedRow] = useState<ProjectRisk>();
-  const [anchorEl, setAnchorEl] = useState<any>(null);
+  const [selectedRow, setSelectedRow] = useState<ProjectRisk[]>([]);
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
@@ -77,19 +76,22 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
   const [anchor, setAnchor] = useState<null | HTMLElement>(null);
   const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
     setAnchor(anchor ? null : event.currentTarget);
+    setSelectedRow([]);
   };
 
-  const handleClosePopup = () => {
-    setAnchorEl(null); // Close the popup
-    setSelectedRow(undefined);
-  };
-
-  const handleSuccess = () => {
+  const handleToast = (type: any, message: string) => {
     handleAlert({
-      variant: "success",
-      body: "Project risk created successfully",
+      variant: type,
+      body: message,
       setAlert,
     });
+    setTimeout(() => {
+      setAlert(null);
+    }, 3000);
+  }
+
+  const handleSuccess = () => {    
+    handleToast("success", "Risk created successfully");
 
     // set pagination for FIFO risk listing after adding a new risk
     let rowsPerPage = 5;
@@ -100,15 +102,15 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     setRefreshKey((prevKey) => prevKey + 1);    
   };
 
-  const handleUpdate = () => {
-    handleAlert({
-      variant: "success",
-      body: "Risk updated successfully",
-      setAlert,
-    });
+  const handleUpdate = () => {    
+    handleToast("success", "Risk updated successfully")
     fetchProjectRisks();
     setRefreshKey((prevKey) => prevKey + 1); // Update refreshKey to trigger re-render
   };
+
+  const handleError = (errorMessage: any) => {        
+    handleToast("error", errorMessage);
+  }
 
   const handleDelete = async(riskId: number) => {
     try {
@@ -126,16 +128,18 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
           setCurrentPage(currentPage)
         }   
 
+        handleToast("success", "Risk deleted successfully.");       
+
         fetchProjectRisks(); 
         setRefreshKey((prevKey) => prevKey + 1);
+      } else if (response.status === 404) {
+        handleToast("error", "Risk not found.");          
+      } else {
+        handleToast("error", "Unexpected error occurs. Risk delete fails.");        
       }
     } catch (error) {
       console.error("Error sending request", error);
-      handleAlert({
-        variant: "error",
-        body: "Risk delete fails",
-        setAlert,
-      });
+      handleToast("error", "Risk delete fails.");      
     }
   }
 
@@ -195,14 +199,32 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
           />
         </Stack>
         
-        {anchor && 
+        {selectedRow.length > 0 && anchor ? (
           <Popup
+            popupId="edit-new-risk-popup"
+            popupContent={
+              <AddNewRiskForm
+                closePopup={() => setAnchor(null)}
+                popupStatus="edit"
+                onSuccess={handleUpdate}
+                onError={handleError}
+              />
+            }
+            openPopupButtonName="Edit risk"
+            popupTitle="Edit project risk"
+            handleOpenOrClose={handleOpenOrClose}
+            anchor={anchor}
+          />
+          )
+          : (
+            <Popup
             popupId="add-new-risk-popup"
             popupContent={
               <AddNewRiskForm
                 closePopup={() => setAnchor(null)}
                 popupStatus="new"
                 onSuccess={handleSuccess}
+                onError={handleError}
               />
             }
             openPopupButtonName="Add new risk"
@@ -211,31 +233,15 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
             handleOpenOrClose={handleOpenOrClose}
             anchor={anchor}
           />
+          )
         }
-        
-        {Object.keys(selectedRow || {}).length > 0 && anchorEl && (
-          <Popup
-            popupId="edit-new-risk-popup"
-            popupContent={
-              <AddNewRiskForm
-                closePopup={() => setAnchorEl(null)}
-                popupStatus="edit"
-                onSuccess={handleUpdate}
-              />
-            }
-            openPopupButtonName="Edit risk"
-            popupTitle="Edit project risk"
-            handleOpenOrClose={handleClosePopup}
-            anchor={anchorEl}
-          />
-        )}
         <VWProjectRisksTable
           columns={TITLE_OF_COLUMNS}
           rows={projectRisks}
           setPage={setCurrentPagingation}
           page={currentPage}
-          setSelectedRow={(row: ProjectRisk) => setSelectedRow(row)}
-          setAnchorEl={setAnchorEl}
+          setSelectedRow={(row: ProjectRisk) => setSelectedRow([row])}
+          setAnchor={setAnchor}
           deleteRisk={handleDelete}
         />
       </Stack>

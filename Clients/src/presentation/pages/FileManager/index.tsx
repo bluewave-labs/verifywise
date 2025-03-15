@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
-import { Stack, Box, Typography } from "@mui/material"; //useTheme is not used
+import { Stack, Box, Typography,useTheme } from "@mui/material";
 import VWBasicTable from "../../components/Table";
 import { getEntityById } from "../../../application/repository/entity.repository";
 import EmptyTableImage from "../../assets/imgs/empty-state.svg";
@@ -8,6 +8,7 @@ import DescendingIcon from "../../assets/icons/down-arrow.svg";
 import PageTour from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
 import VWSkeleton from "../../vw-v2-components/Skeletons";
+import { vwhomeHeading } from "../Home/1.0Home/style";
 
 /**
  * Represents a file with its metadata.
@@ -143,7 +144,9 @@ const FileTable: React.FC<{
       bodyData={fileData}
       paginated={files.length > 0}
       table="fileManager"
-      setSelectedRow={(row) => {onRowClick(row.id)}}
+      setSelectedRow={(row) => {
+        onRowClick(row.id);
+      }}
       setAnchorEl={() => {}}
     />
   );
@@ -155,6 +158,7 @@ const FileTable: React.FC<{
  * @returns {JSX.Element} The FileManager component.
  */
 const FileManager: React.FC = (): JSX.Element => {
+  const theme = useTheme();
   const [files, setFiles] = useState<File[]>([]);
   const [sortField, setSortField] = useState<keyof File | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection | null>(
@@ -280,17 +284,19 @@ const FileManager: React.FC = (): JSX.Element => {
   }));
 
   return (
-    <Stack spacing={4} sx={{ padding: 4, marginBottom: 10 }}>
+    <Stack className="vwhome">
       <PageTour
         steps={fileSteps}
         run={runFileTour}
         onFinish={() => setRunFileTour(false)}
       />
-      <Stack spacing={1} data-joyride-id="file-manager-title">
-        <Typography variant="h6" fontWeight="bold" gutterBottom>
+      <Stack className="vwhome-header" sx={{ mb: 15 }} data-joyride-id="file-manager-title">
+        <Typography sx={vwhomeHeading}>
           Evidences & documents
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography sx={{color:theme.palette.text.secondary,
+          fontSize:theme.typography.fontSize
+        }}>
           This table lists all the files uploaded to the system.
         </Typography>
       </Stack>
@@ -319,6 +325,9 @@ const FileManager: React.FC = (): JSX.Element => {
             borderRadius: "4px",
             overflow: "hidden",
             maxHeight: "400px",
+            pointerEvents: loading ? "none" : "auto",
+            opacity: loading ? 0.5 : 1,
+            transition: "opacity 0.3s ease-in-out",
             // borderBottom: files.length === 0 ? "1px solid #eeeeee" : "none",
           }}
         >

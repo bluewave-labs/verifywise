@@ -21,7 +21,7 @@ import Alert, { AlertProps } from "../Alert";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import Uppy from "@uppy/core";
 
-const VWQuestion = ({ question}: { question: Question}) => {
+const VWQuestion = ({ question }: { question: Question }) => {
   const [values, setValues] = useState<Question>(question);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
   const [evidenceFiles, setEvidenceFiles] = useState<any[]>([]);
@@ -29,10 +29,18 @@ const VWQuestion = ({ question}: { question: Question}) => {
   const [uppy] = useState(() => new Uppy());
 
   const handleSave = async () => {
+    console.log("Clicked");
+    const updatedQuestion = {
+      answer: values.answer ? values.answer.replace(/^<p>|<\/p>$/g, "") : "",
+      evidence_files: evidenceFiles,
+    };
+
+    console.log(updatedQuestion);
+
     try {
       const response = await updateEntityById({
         routeUrl: `/questions/${question.id}`,
-        body: values,
+        body: updatedQuestion,
       });
       if (response.status === 202) {
         setValues(response.data.data);
@@ -72,7 +80,7 @@ const VWQuestion = ({ question}: { question: Question}) => {
   };
 
   return (
-    <Box key={question.id} mt={10}>
+    <Box key={question.id} mt={10} id={`question-box-${question.id}`}>
       <Box
         sx={{
           display: "flex",
@@ -85,13 +93,24 @@ const VWQuestion = ({ question}: { question: Question}) => {
           borderRadius: "4px 4px 0 0",
           gap: 4,
         }}
+        id={`question-header-${question.id}`}
       >
-        <Typography sx={{ fontSize: 13, color: "#344054" }}>
+        <Typography
+          sx={{ fontSize: 13, color: "#344054" }}
+          id={`question-text-${question.id}`}
+        >
           {question.question}
           {question.hint && (
-            <Box component="span" ml={2}>
-              <Tooltip title={question.hint} sx={{ fontSize: 12 }}>
-                <InfoOutlinedIcon fontSize="inherit" />
+            <Box component="span" ml={2} id={`hint-icon-${question.id}`}>
+              <Tooltip
+                title={question.hint}
+                sx={{ fontSize: 12 }}
+                id={`hint-tooltip-${question.id}`}
+              >
+                <InfoOutlinedIcon
+                  fontSize="inherit"
+                  id={`info-icon-${question.id}`}
+                />
               </Tooltip>
             </Box>
           )}
@@ -105,6 +124,7 @@ const VWQuestion = ({ question}: { question: Question}) => {
             borderRadius: "4px",
           }}
           size="small"
+          id={`priority-chip-${question.id}`}
         />
       </Box>
       <RichTextEditor
@@ -131,6 +151,7 @@ const VWQuestion = ({ question}: { question: Question}) => {
           justifyContent: "space-between",
           alignItems: "center",
         }}
+        id={`action-stack-${question.id}`}
       >
         <Stack
           sx={{
@@ -139,6 +160,7 @@ const VWQuestion = ({ question}: { question: Question}) => {
             alignItems: "center",
             gap: 4,
           }}
+          id={`button-stack-${question.id}`}
         >
           <Button
             variant="contained"
@@ -154,6 +176,7 @@ const VWQuestion = ({ question}: { question: Question}) => {
             }}
             disableRipple
             onClick={handleSave}
+            id={`save-button-${question.id}`}
           >
             Save
           </Button>
@@ -171,6 +194,7 @@ const VWQuestion = ({ question}: { question: Question}) => {
             }}
             disableRipple
             onClick={() => setIsFileUploadOpen(true)}
+            id={`file-upload-button-${question.id}`}
           >
             Add/Remove evidence
           </Button>
@@ -185,17 +209,22 @@ const VWQuestion = ({ question}: { question: Question}) => {
               margin: "auto",
               textWrap: "wrap",
             }}
+            id={`evidence-count-${question.id}`}
           >
             {`${question.evidence_files?.length ?? 0} evidence files attached`}
           </Typography>
         </Stack>
-        <Typography sx={{ fontSize: 11, color: "#344054", fontWeight: "300" }}>
+        <Typography
+          sx={{ fontSize: 11, color: "#344054", fontWeight: "300" }}
+          id={`required-label-${question.id}`}
+        >
           {question.is_required === true ? "required" : ""}
         </Typography>
       </Stack>
       <Dialog
         open={isFileUploadOpen}
         onClose={() => setIsFileUploadOpen(false)}
+        id={`file-upload-dialog-${question.id}`}
       >
         <UppyUploadFile
           uppy={uppy}

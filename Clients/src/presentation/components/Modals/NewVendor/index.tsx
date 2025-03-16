@@ -126,12 +126,14 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   >([]);
   const { dashboardValues } = useContext(VerifyWiseContext);
   const { projects } = dashboardValues;
-  const { users } = useUsers();
 
-  const formattedUsers = users?.map((user) => ({
+
+  const formattedUsers = dashboardValues?.users?.map((user:any) => ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
   }));
+
+  console.log("formattedUsers newvendooooooooor",formattedUsers)
   const user: User = {
     id: Number(localStorage.getItem("userId")) || -1,
     email: "N/A",
@@ -141,7 +143,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
 
   const formattedProjects = useMemo(() => {
     return Array.isArray(projects)
-      ? projects.map((project: any) => ({
+      ? projects?.map((project: any) => ({
           _id: project.id,
           name: project.project_title,
         }))
@@ -172,21 +174,21 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           vendorProvides: existingVendor.vendor_provides,
           vendorContactPerson: existingVendor.vendor_contact_person,
           reviewStatus:
-            REVIEW_STATUS_OPTIONS.find(
+            REVIEW_STATUS_OPTIONS?.find(
               (s) => s.name === existingVendor.review_status
             )?._id || "",
           reviewer:
             formattedUsers?.find(
-              (user) => user.name === existingVendor.reviewer
+              (user:any) => user._id === existingVendor.reviewer
             )?._id || "",
           reviewResult: existingVendor.review_result,
           riskStatus:
-            RISK_LEVEL_OPTIONS.find(
+            RISK_LEVEL_OPTIONS?.find(
               (s) => s.name === existingVendor.risk_status
             )?._id || 0,
           assignee:
             formattedUsers?.find(
-              (user) => user.name === existingVendor.assignee
+              (user:any) => user._id === existingVendor.assignee
             )?._id || " ",
           reviewDate: existingVendor.review_date,
         },
@@ -332,21 +334,21 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       projects: [values.vendorDetails.projectId],
       vendor_name: values.vendorDetails.vendorName,
       assignee: formattedUsers?.find(
-        (user) => user._id === values.vendorDetails.assignee
-      )?.name,
+        (user:any) => user._id === values.vendorDetails.assignee
+      )?._id,
       vendor_provides: values.vendorDetails.vendorProvides,
       website: values.vendorDetails.website,
       vendor_contact_person: values.vendorDetails.vendorContactPerson,
       review_result: values.vendorDetails.reviewResult,
       review_status:
-        REVIEW_STATUS_OPTIONS.find(
+        REVIEW_STATUS_OPTIONS?.find(
           (s) => s._id === values.vendorDetails.reviewStatus
         )?.name || "",
       reviewer: formattedUsers?.find(
-        (user) => user._id === values.vendorDetails.reviewer
-      )?.name,
+        (user:any) => user._id === values.vendorDetails.reviewer
+      )?._id,
       risk_status:
-        RISK_LEVEL_OPTIONS.find(
+        RISK_LEVEL_OPTIONS?.find(
           (s) => s._id === values.vendorDetails.riskStatus
         )?.name || 0,
       review_date: values.vendorDetails.reviewDate,
@@ -406,6 +408,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       setTimeout(() => setAlert(null), 3000);
     } finally {
       setIsSubmitting(false);
+      setValues(initialState);
     }
   };
 
@@ -457,6 +460,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       setTimeout(() => setAlert(null), 3000);
     } finally {
       setIsSubmitting(false);
+      setValues(initialState);
     }
   };
 
@@ -470,7 +474,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         <Field // vendorName
           label="Vendor name"
           width={220}
-          value={values.vendorDetails.vendorName}
+          value={values?.vendorDetails?.vendorName }
           onChange={(e) => handleOnChange("vendorName", e.target.value)}
           error={errors.vendorName}
         />

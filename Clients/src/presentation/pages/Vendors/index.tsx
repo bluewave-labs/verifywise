@@ -249,8 +249,7 @@ const Vendors = () => {
     }
   };
   const handleDeleteRisk = async (vendorId: number) => {
-    const controller = new AbortController();
-    const signal = controller.signal;
+    const signal = createAbortController();
     setIsSubmitting(true);
     const user: User = {
       id: Number(localStorage.getItem("userId")) || -1,

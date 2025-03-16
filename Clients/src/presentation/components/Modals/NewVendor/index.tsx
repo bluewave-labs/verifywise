@@ -133,7 +133,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     name: `${user.name} ${user.surname}`,
   }));
 
-  console.log("formattedUsers newvendooooooooor",formattedUsers)
   const user: User = {
     id: Number(localStorage.getItem("userId")) || -1,
     email: "N/A",

@@ -53,6 +53,7 @@ interface AddNewRiskFormProps {
   initialMitigationValues?: MitigationFormValues; // New prop for initial values
   onSuccess: () => void;
   onError?: (message: any) => void;
+  onLoading?: (message: any) => void;
 }
 
 interface ApiResponse {
@@ -80,13 +81,13 @@ const mitigationInitialState: MitigationFormValues = {
   mitigationPlan: "",
   currentRiskLevel: 0,
   implementationStrategy: "",
-  deadline: "",
+  deadline: new Date().toISOString(),
   doc: "",
   likelihood: 1 as Likelihood,
   riskSeverity: 1 as Severity,
   approver: 0,
   approvalStatus: 0,
-  dateOfAssessment: "",
+  dateOfAssessment: new Date().toISOString(),
   recommendations: "",
 };
 
@@ -110,6 +111,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   closePopup,
   onSuccess,
   onError = () => {},
+  onLoading = () => {},
   popupStatus,
   initialRiskValues = riskInitialState, // Default to initial state if not provided
   initialMitigationValues = mitigationInitialState,
@@ -277,15 +279,19 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     if (!potentialImpact.accepted) {
       newErrors.potentialImpact = potentialImpact.message;
     }
-    const reviewNotes = checkStringValidation(
-      "Review notes",
-      riskValues.reviewNotes,
-      0,
-      1024
-    );
-    if (!reviewNotes.accepted) {
-      newErrors.reviewNotes = reviewNotes.message;
+
+    if(riskValues.reviewNotes.length > 0){
+      const reviewNotes = checkStringValidation(
+        "Review notes",
+        riskValues.reviewNotes,
+        0,
+        1024
+      );
+      if (!reviewNotes.accepted) {
+        newErrors.reviewNotes = reviewNotes.message;
+      }
     }
+    
     const actionOwner = selectValidation(
       "Action owner",
       riskValues.actionOwner
@@ -368,6 +374,17 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     if (!approvalStatus.accepted) {
       newMitigationErrors.approvalStatus = approvalStatus.message;
     }
+    if(mitigationValues.recommendations.length > 0) {
+      const recommendations = checkStringValidation(
+        "Recommendation",
+        mitigationValues.recommendations,
+        1,
+        1024
+      );
+      if (!recommendations.accepted) {
+        newMitigationErrors.recommendations = recommendations.message;
+      }
+    }    
 
     setMigitateErrors(newMitigationErrors);
     setRiskErrors(newErrors);
@@ -398,6 +415,10 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
 
     // check forms validate
     if (isValid) {
+      onLoading(popupStatus !== "new" ? 
+      "Updating the risk. Please wait..." : 
+      "Creating the risk. Please wait...");
+
       const formData = {
         project_id: projectId,
         risk_name: riskValues.riskName,

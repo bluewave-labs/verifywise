@@ -1,16 +1,14 @@
-/**
- * This file is currently in use
- */
-
 import React, { useState, useMemo, useCallback, useEffect } from "react";
-import { Stack, Box, Typography } from "@mui/material"; //useTheme is not used
-import BasicTable from "../../components/Table";
-import axios from "axios";
+import { Stack, Box, Typography,useTheme } from "@mui/material";
+import VWBasicTable from "../../components/Table";
+import { getEntityById } from "../../../application/repository/entity.repository";
 import EmptyTableImage from "../../assets/imgs/empty-state.svg";
 import AscendingIcon from "../../assets/icons/up-arrow.svg";
 import DescendingIcon from "../../assets/icons/down-arrow.svg";
 import PageTour from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
+import VWSkeleton from "../../vw-v2-components/Skeletons";
+import { vwhomeHeading } from "../Home/1.0Home/style";
 
 /**
  * Represents a file with its metadata.
@@ -29,11 +27,7 @@ interface File {
   uploader: string;
 }
 
-const COLUMN_NAMES = {
-  FILE: "File",
-  UPLOAD_DATE: "Upload Date",
-  UPLOADER: "Uploader",
-};
+const COLUMN_NAMES = ["File", "Upload Date", "Uploader"];
 
 const SORT_DIRECTIONS = {
   ASC: "asc",
@@ -87,6 +81,7 @@ const EmptyState: React.FC = (): JSX.Element => (
  * @param {Function} props.handleSort - Callback to handle sorting.
  * @param {keyof File|null} props.sortField - The field currently sorted by.
  * @param {SortDirection|null} props.sortDirection - The current sort direction.
+ * @param {Function} props.onRowClick - Callback to handle row selection.
  * @returns {JSX.Element} The file table component.
  */
 const FileTable: React.FC<{
@@ -96,11 +91,20 @@ const FileTable: React.FC<{
   handleSort: (field: keyof File) => void;
   sortField: keyof File | null;
   sortDirection: SortDirection | null;
-}> = ({ cols, rows, files, handleSort, sortField, sortDirection }) => {
+  onRowClick: (fileId: string) => void;
+}> = ({
+  cols,
+  rows,
+  files,
+  handleSort,
+  sortField,
+  sortDirection,
+  onRowClick,
+}) => {
   const sortedCols = useMemo(
     () =>
       cols.map((col) =>
-        [COLUMN_NAMES.UPLOAD_DATE, COLUMN_NAMES.UPLOADER].includes(col.name)
+        ["Upload Date", "Uploader"].includes(col.name)
           ? {
               ...col,
               name: (
@@ -132,15 +136,17 @@ const FileTable: React.FC<{
     [cols, handleSort, sortField, sortDirection]
   );
 
-  const [fileData, setFileData] = useState([]);
+  const [fileData, _] = useState([]);
 
   return (
-    <BasicTable
+    <VWBasicTable
       data={{ cols: sortedCols, rows }}
       bodyData={fileData}
       paginated={files.length > 0}
       table="fileManager"
-      setSelectedRow={() => {}}
+      setSelectedRow={(row) => {
+        onRowClick(row.id);
+      }}
       setAnchorEl={() => {}}
     />
   );
@@ -152,15 +158,13 @@ const FileTable: React.FC<{
  * @returns {JSX.Element} The FileManager component.
  */
 const FileManager: React.FC = (): JSX.Element => {
-  // const theme = useTheme();
+  const theme = useTheme();
   const [files, setFiles] = useState<File[]>([]);
   const [sortField, setSortField] = useState<keyof File | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection | null>(
     null
   );
-  //loading while fetching files
   const [loading, setLoading] = useState(true);
-  //page tour
   const [runFileTour, setRunFileTour] = useState(false);
 
   const fileSteps = [
@@ -176,44 +180,56 @@ const FileManager: React.FC = (): JSX.Element => {
   useEffect(() => {
     setRunFileTour(true);
 
-    //     const mockFile: {
-    //       id: "1";
-    //       name: "test-file.pdf";
-    //       type: "pdf";
-    //       uploadDate: string;
-    //       uploader: "John Doe";
-    //     } = {
-    //       id: "1",
-    //       name: "test-file.pdf",
-    //       type: "pdf",
-    //       uploadDate: new Date().toLocaleDateString(),
-    //       uploader: "John Doe",
-    //     };
-    // setFiles([mockFile]);
-    // setLoading(false);
-    const fetchFileById = async (fileId: string) => {
+    /**
+     * Fetches all files from the '/files' endpoint.
+     * This function retrieves a list of files and updates the state.
+     * If an error occurs, it logs an error and sets the files to an empty array.
+     * The loading state is managed to indicate the progress of the fetch.
+     */
+    const fetchAllFiles = async () => {
       try {
-        const response = await axios.get(
-          `https://localhost:3000/files/${fileId}`
-        );
-        const file = response.data;
+        setLoading(true);
+        const files = await getEntityById({ routeUrl: "/files" });
 
-        const fileData: File = {
-          id: file.id,
-          name: file.name,
-          type: file.type || "N/A",
-          uploadDate: new Date(file.uploadDate).toLocaleDateString(),
-          uploader: file.uploader || "N/A",
-        };
-        setFiles([fileData]);
+        if (files && Array.isArray(files)) {
+          setFiles(
+            files.map((file) => ({
+              id: file.id,
+              name: file.name,
+              type: file.type || "N/A",
+              uploadDate: new Date(file.uploadDate).toLocaleDateString(),
+              uploader: file.uploader || "N/A",
+            }))
+          );
+        } else {
+          setFiles([]);
+        }
       } catch (error) {
         console.error("Error fetching files", error);
+        setFiles([]);
       } finally {
         setLoading(false);
       }
     };
-    fetchFileById("1");
+
+    fetchAllFiles();
   }, []);
+
+  /**
+   * Handles row selection in the file table.
+   * Fetches the file details when a row is clicked.
+   * @param {string} fileId - The unique identifier of the selected file.
+   */
+  const handleRowClick = async (fileId: string) => {
+    try {
+      setLoading(true);
+      await getEntityById({ routeUrl: `/files/${fileId}` });
+    } catch (error) {
+      console.error("Error fetching file details", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   /**
    * Handles sorting of files by a specified field.
@@ -261,62 +277,72 @@ const FileManager: React.FC = (): JSX.Element => {
     [files]
   );
 
-  const cols = [
-    { id: 1, name: COLUMN_NAMES.FILE, sx: { width: "50%" } },
-    { id: 2, name: COLUMN_NAMES.UPLOAD_DATE, sx: { width: "50%" } },
-    { id: 3, name: COLUMN_NAMES.UPLOADER, sx: { width: "50%" } },
-  ];
-
-  //loading state before fetching files
-  if (loading) {
-    return (
-      <Stack sx={{ textAlign: "center", padding: 4 }}>
-        <Typography variant="h6">Loading files...</Typography>
-      </Stack>
-    );
-  }
+  const cols = COLUMN_NAMES.map((name, index) => ({
+    id: index + 1,
+    name,
+    sx: { width: "50%" },
+  }));
 
   return (
-    <Stack spacing={4} sx={{ padding: 4, marginBottom: 10 }}>
+    <Stack className="vwhome">
       <PageTour
         steps={fileSteps}
         run={runFileTour}
         onFinish={() => setRunFileTour(false)}
       />
-      <Stack spacing={1} data-joyride-id="file-manager-title">
-        <Typography variant="h6" fontWeight="bold" gutterBottom>
+      <Stack className="vwhome-header" sx={{ mb: 15 }} data-joyride-id="file-manager-title">
+        <Typography sx={vwhomeHeading}>
           Evidences & documents
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography sx={{color:theme.palette.text.secondary,
+          fontSize:theme.typography.fontSize
+        }}>
           This table lists all the files uploaded to the system.
         </Typography>
       </Stack>
 
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          flex: 1,
-          width: "100%",
-          justifyContent: files.length === 0 ? "center" : "flex-start",
-          alignItems: files.length === 0 ? "center" : "stretch",
-          position: "relative",
-          borderRadius: "4px",
-          overflow: "hidden",
-          maxHeight: "400px",
-          // borderBottom: files.length === 0 ? "1px solid #eeeeee" : "none",
-        }}
-      >
-        <FileTable
-          cols={cols}
-          rows={rows}
-          files={files}
-          handleSort={handleSort}
-          sortField={sortField}
-          sortDirection={sortDirection}
+      {loading && (
+        <VWSkeleton
+          variant="rectangular"
+          width="100%"
+          height="300px"
+          minWidth={"100%"}
+          minHeight={300}
+          sx={{ borderRadius: 2 }}
         />
-        {files.length === 0 && <EmptyState />}
-      </Box>
+      )}
+
+      {!loading && (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            flex: 1,
+            width: "100%",
+            justifyContent: files.length === 0 ? "center" : "flex-start",
+            alignItems: files.length === 0 ? "center" : "stretch",
+            position: "relative",
+            borderRadius: "4px",
+            overflow: "hidden",
+            maxHeight: "400px",
+            pointerEvents: loading ? "none" : "auto",
+            opacity: loading ? 0.5 : 1,
+            transition: "opacity 0.3s ease-in-out",
+            // borderBottom: files.length === 0 ? "1px solid #eeeeee" : "none",
+          }}
+        >
+          <FileTable
+            cols={cols}
+            rows={rows}
+            files={files}
+            handleSort={handleSort}
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onRowClick={handleRowClick}
+          />
+          {files.length === 0 && <EmptyState />}
+        </Box>
+      )}
     </Stack>
   );
 };

@@ -1,20 +1,18 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Stack, Typography } from "@mui/material";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import { Subtopic } from "../../../../domain/Subtopic";
-import VWQuestion from "../../../components/Question";
+import VWQuestion from "../../../components/VWQuestion";
 import { Question } from "../../../../domain/Question";
 
 type QuestionsProps = {
   subtopic: Subtopic;
-  index: number;
 };
 
-const Questions = ({ subtopic, index }: QuestionsProps) => {
+const Questions = ({ subtopic }: QuestionsProps) => {
   const [questionsData, setQuestionsData] = useState<Question[]>();
   const [loadingQuestions, setLoadingQuestions] = useState<boolean>(true);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchQuestionsData = async () => {
@@ -38,14 +36,8 @@ const Questions = ({ subtopic, index }: QuestionsProps) => {
     fetchQuestionsData();
   }, [subtopic]);
 
-  useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.scrollTop = 0;
-    }
-  }, [questionsData]);
-
   return (
-    <Stack key={index} mb={15} ref={containerRef}>
+    <Stack mb={15} >
       <Typography sx={{ fontSize: 16, color: "#344054" }}>
         {subtopic.title}
       </Typography>
@@ -64,7 +56,9 @@ const Questions = ({ subtopic, index }: QuestionsProps) => {
             (a: Question, b: Question) => (a.order_no ?? 0) - (b.order_no ?? 0)
           )
           .map((question: any) => (
-            <VWQuestion key={question.id} question={question} />
+            <div key={question.id}>
+              <VWQuestion question={question} />
+            </div>
           ))
       ) : (
         <Typography>Unable to get questions</Typography>

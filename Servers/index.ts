@@ -65,7 +65,7 @@ try {
   app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 
   app.use("/", (req, res) => {
-    res.json("Hello buddy!");
+    res.json("Welcome to  VerifyWise root directory.");
   });
 
   app.listen(port, () => {

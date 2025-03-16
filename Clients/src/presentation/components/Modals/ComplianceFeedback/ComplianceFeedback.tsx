@@ -1,10 +1,10 @@
-import { Box, Typography, Tooltip, IconButton } from "@mui/material";
+import { Box, Typography, Button, useTheme, Dialog } from "@mui/material";
 import React, { useState } from "react";
-import CloudUpload from "../../../assets/icons/cloudUpload.svg";
 import RichTextEditor from "../../../components/RichTextEditor/index";
-import { uploadFile } from "../../../../application/tools/fileUtil";
 import ErrorModal from "../Error";
-import { ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from "../constants";
+import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
+import Uppy from "@uppy/core";
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 
 interface AuditorFeedbackProps {
   activeSection?: string;
@@ -17,32 +17,24 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
   feedback,
   onChange,
 }) => {
-  const [file, setFile] = useState<File | null>(null);
+  const theme = useTheme();
   const [error, setError] = useState<string | null>(null);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState<boolean>(false);
+  const [isFileUploadOpen, setIsFileUploadOpen] = useState<boolean>(false);
+  const [evidenceFiles, setEvidenceFiles] = useState<any[]>([]);
+  const [uppy] = useState(() => new Uppy());
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setError(null);
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-
-      const { error: uploadError, file: uploadedFile } = uploadFile(
-        file,
-        ALLOWED_FILE_TYPES,
-        MAX_FILE_SIZE
-      );
-
-      if (uploadError) {
-        setError(uploadError);
-        setIsErrorModalOpen(true);
-      } else if (uploadedFile) {
-        setFile(uploadedFile);
-      }
-    }
+  const handleOpenFileUploadModal = () => {
+    setIsFileUploadOpen(true);
   };
 
-  const UploadFile = () => {
-    document.getElementById("file-upload")?.click();
+  const handleCloseFileUploadModal = () => {
+    setIsFileUploadOpen(false);
+  };
+
+  const handleFileUploadConfirm = (files: any[]) => {
+    setEvidenceFiles(files);
+    setIsFileUploadOpen(false);
   };
 
   const handleContentChange = (content: string) => {
@@ -77,46 +69,37 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
         </>
       )}
 
-      <Box
+      <Button
+        variant="contained"
         sx={{
-          display: "flex",
-          flexDirection: "row-reverse",
-          border: "1px dotted",
-          borderColor: "#D0D5DD",
-          width: "100%",
-          justifyContent: "center",
-          alignItems: "center",
-          cursor: "pointer",
+          mt: 2,
+          borderRadius: 2,
+          width: 155,
+          height: 25,
+          fontSize: 11,
+          border: "1px solid #D0D5DD",
+          backgroundColor: "white",
+          color: "#344054",
         }}
-        onClick={UploadFile}
+        disableRipple={
+          theme.components?.MuiButton?.defaultProps?.disableRipple
+        }
+        onClick={handleOpenFileUploadModal}
       >
-        <Typography
-          sx={{ color: "black", padding: 5, marginLeft: 1, paddingLeft: 0 }}
-        >
-          You can also drag and drop, or click to upload an evidence file.
-        </Typography>
-        <Tooltip title="Attach a file">
-          <IconButton component="label">
-            <img
-              src={CloudUpload}
-              alt="Upload"
-              style={{ height: 19, width: 20 }}
-            />
-            <input
-              type="file"
-              hidden
-              id="file-upload"
-              onChange={handleFileUpload}
-            />
-          </IconButton>
-        </Tooltip>
-      </Box>
+        Add/Remove evidence
+      </Button>
 
-      {file && (
-        <Typography variant="body2" sx={{ mt: 2 }}>
-          Attached file: {file.name}
-        </Typography>
-      )}
+      <Dialog
+        open={isFileUploadOpen}
+        onClose={handleCloseFileUploadModal}
+      >
+        <UppyUploadFile
+          uppy={uppy}
+          evidence_files={evidenceFiles}
+          onClose={handleCloseFileUploadModal}
+          onConfirm={handleFileUploadConfirm}
+        />
+      </Dialog>
 
       <ErrorModal
         open={isErrorModalOpen}

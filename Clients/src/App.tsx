@@ -33,6 +33,7 @@ import AssessmentTracker from "./presentation/pages/Assessment/1.0AssessmentTrac
 import ComplianceTracker from "./presentation/pages/ComplianceTracker/1.0ComplianceTracker";
 import VWHome from "./presentation/pages/Home/1.0Home";
 import VWProjectView from "./presentation/pages/ProjectView/V1.0ProjectView";
+import { Project } from "./domain/Project";
 
 function App() {
   const mode = useSelector((state: any) => state.ui?.mode || "light");
@@ -56,6 +57,7 @@ function App() {
     vendors: [],
   });
   const [inputValues, setInputValues] = useState<unknown | undefined>({}); // for the input fields
+  const [projects, setProjects] = useState<Project[]>([]);
   const [triggerSidebar, setTriggerSidebar] = useState(false);
 
   // Extract userId from token
@@ -85,6 +87,8 @@ function App() {
       currentProjectId,
       setCurrentProjectId,
       userId,
+      projects,
+      setProjects,
     }),
     [
       uiValues,
@@ -102,6 +106,8 @@ function App() {
       currentProjectId,
       setCurrentProjectId,
       userId,
+      projects,
+      setProjects,
     ]
   );
 
@@ -126,7 +132,7 @@ function App() {
                 }
               >
                 <Route
-                  path="/"
+                  path="/test"
                   element={<Home onProjectUpdate={triggerSidebarReload} />}
                 />
                 <Route
@@ -137,10 +143,10 @@ function App() {
                 <Route path="/vendors" element={<Vendors />} />
                 <Route path="/setting" element={<Setting />} />
                 <Route path="/team" element={<Team />} />
-                <Route path="/project-view" element={<ProjectView />} />
+                <Route path="/test/project-view" element={<ProjectView />} />
                 <Route path="/file-manager" element={<FileManager />} />
-                <Route path="/test" element={<VWHome />} />
-                <Route path="/test/project-view" element={<VWProjectView />} />
+                <Route path="/" element={<VWHome />} />
+                <Route path="/project-view" element={<VWProjectView />} />
               </Route>
               <Route
                 path="/admin-reg"

@@ -6,6 +6,7 @@ import {
   deleteVendorById,
   getAllVendors,
   getVendorById,
+  getVendorByProjectId,
   updateVendorById,
 } from "../controllers/vendor.ctrl";
 
@@ -13,11 +14,12 @@ import authenticateJWT from "../middleware/auth.middleware";
 
 // GET requests
 router.get("/", /*authenticateJWT,*/ getAllVendors);
+router.get("/project-id/:id", getVendorByProjectId)
 router.get("/:id", /*authenticateJWT,*/ getVendorById);
 
 // POST, PUT, DELETE requests
 router.post("/", /*authenticateJWT,*/ createVendor);
-router.put("/:id", /*authenticateJWT,*/ updateVendorById);
+router.patch("/:id", /*authenticateJWT,*/ updateVendorById);
 router.delete("/:id", /*authenticateJWT,*/ deleteVendorById);
 
 export default router;

@@ -36,7 +36,6 @@ export async function getAllProjects(
     if (projects && projects.length > 0) {
       for (const project of projects) {
         // calculating compliances
-        console.log("before project: ", project);
         const controlCategories = await getControlCategoryByProjectIdQuery(
           project.id
         );
@@ -69,17 +68,14 @@ export async function getAllProjects(
         const assessments = await getAssessmentByProjectIdQuery(project.id);
         if (assessments.length !== 0) {
           for (const assessment of assessments) {
-            console.log("Assessment id : ", assessment.id);
             if (assessment.id !== undefined) {
               const topics = await getTopicByAssessmentIdQuery(assessment.id);
               if (topics.length !== 0) {
                 for (const topic of topics) {
                   if (topic.id !== undefined) {
-                    console.log("topic id : ", topic.id);
                     const subtopics = await getSubTopicByTopicIdQuery(topic.id);
                     if (subtopics.length !== 0) {
                       for (const subtopic of subtopics) {
-                        console.log("subtopic id : ", subtopic.id);
                         if (subtopic.id !== undefined) {
                           const questions = await getQuestionBySubTopicIdQuery(
                             subtopic.id
@@ -104,7 +100,6 @@ export async function getAllProjects(
             }
           }
         }
-        console.log("after project: ", project);
       }
       return res.status(200).json(STATUS_CODE[200](projects));
     }
@@ -136,7 +131,7 @@ export async function getProjectById(
 
 export async function createProject(req: Request, res: Response): Promise<any> {
   try {
-    const newProject: Partial<Project> = req.body;
+    const newProject: Partial<Project> & { members: number[], enable_ai_data_insertion: boolean } = req.body;
 
     if (!newProject.project_title || !newProject.owner) {
       return res
@@ -145,12 +140,16 @@ export async function createProject(req: Request, res: Response): Promise<any> {
           STATUS_CODE[400]({ message: "project_title and owner are required" })
         );
     }
+    console.log(newProject);
 
-    const createdProject = await createNewProjectQuery(newProject);
-    const assessments = await createNewAssessmentQuery({
+    const createdProject = await createNewProjectQuery(newProject, newProject.members);
+    const assessments: Object = await createNewAssessmentQuery({
       project_id: createdProject.id,
-    });
-    const controls = await createNewControlCategories(createdProject.id);
+    }, newProject.enable_ai_data_insertion);
+    const controls = await createNewControlCategories(
+      createdProject.id,
+      newProject.enable_ai_data_insertion
+    );
 
     if (createdProject) {
       return res.status(201).json(
@@ -174,7 +173,11 @@ export async function updateProjectById(
 ): Promise<any> {
   try {
     const projectId = parseInt(req.params.id);
-    const updatedProject: Partial<Project> = req.body;
+    const updatedProject: Partial<Project> & { members?: number[] } = req.body;
+    const members = updatedProject.members || []
+
+    delete updatedProject.members
+    delete updatedProject.id
 
     if (!updatedProject.project_title || !updatedProject.owner) {
       return res
@@ -184,7 +187,7 @@ export async function updateProjectById(
         );
     }
 
-    const project = await updateProjectByIdQuery(projectId, updatedProject);
+    const project = await updateProjectByIdQuery(projectId, updatedProject, members);
 
     if (project) {
       return res.status(202).json(STATUS_CODE[202](project));

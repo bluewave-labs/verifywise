@@ -1,9 +1,5 @@
-/**
- * This file is currently in use
- */
-
 import { Button, Stack, Typography, useTheme } from "@mui/material";
-import React, { Suspense, useState } from "react";
+import React, { Suspense, useState, useEffect } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Check from "../../../components/Checks";
 import Field from "../../../components/Inputs/Field";
@@ -21,6 +17,10 @@ import type {
 } from "../../../../application/validations/formValidation";
 import VWToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
+import { User } from "../../../../domain/User";
+import { getUserForLogging } from "../../../../application/tools/userHelpers";
+import { useDispatch } from "react-redux";
+import { setUserExists, setAuthToken } from "../../../../application/authentication/authSlice";
 
 // Initial state for form values
 const initialState: FormValues = {
@@ -29,10 +29,12 @@ const initialState: FormValues = {
   email: "",
   password: "",
   confirmPassword: "",
+  role: 1,
 };
 
 const RegisterAdmin: React.FC = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
   // State for form errors
@@ -49,6 +51,11 @@ const RegisterAdmin: React.FC = () => {
     body: string;
   } | null>(null);
 
+  useEffect(() => {
+    localStorage.clear();
+    dispatch(setAuthToken(''));
+  }, [])
+
   // Handle input field changes
   const handleChange =
     (prop: keyof FormValues) =>
@@ -62,101 +69,101 @@ const RegisterAdmin: React.FC = () => {
     event.preventDefault();
     setIsSubmitting(true);
 
-    const user = {
-      id: "At register level as admin", // Replace with actual user ID
-      email: values.email ?? "", // Replace with actual user email
-      firstname: values.name ?? "", // Replace with actual user first name
-      lastname: values.surname ?? "", // Replace with actual user last name
-    };
     const { isFormValid, errors } = validateForm(values);
     if (!isFormValid) {
       setErrors(errors);
       setIsSubmitting(false);
       return;
-    } else {
-      await createNewUser({
-        routeUrl: "/users/register",
-        body: values,
-      })
-        .then((response) => {
-          // Reset form after successful submission
-          setValues(initialState);
-          setErrors({});
-          if (response.status === 201) {
-            logEngine({
-              type: "info",
-              message: "Account created successfully.",
-              user,
-            });
-            setTimeout(() => {
-              setIsSubmitting(false);
-              window.location.reload();
-              navigate("/login");
-            }, 3000);
-          } else if (response.status === 400) {
-            logEngine({
-              type: "error",
-              message: "Bad request. Please check your input.",
-              user,
-            });
+    }
+
+    await createNewUser({
+      routeUrl: "/users/register",
+      body: values,
+    })
+      .then((response) => {
+        setValues(initialState);
+        setErrors({}); 
+
+        const userData = response?.data?.data?.user;
+
+        const user: User = {
+          id: Number(userData?.id) || 0,
+          email: userData?.email ?? values.email,
+          name: userData?.name ?? values.name ?? "N/A",
+          surname: userData?.surname ?? values.surname ?? "N/A",
+        };
+
+        if (response.status === 201) {
+          logEngine({
+            type: "info",
+            message: "Account created successfully.",
+            user: getUserForLogging(user), 
+          });
+          setTimeout(() => {
             setIsSubmitting(false);
-            setAlert({
-              variant: "error",
-              body: "Bad request. Please check your input.",
-            });
-            setTimeout(() => {
-              setAlert(null);
-            }, 3000);
-          } else if (response.status === 409) {
-            logEngine({
-              type: "event",
-              message: "Account already exists.",
-              user,
-            });
-            setIsSubmitting(false);
-            setAlert({ variant: "error", body: "Account already exists." });
-            setTimeout(() => {
-              setAlert(null);
-            }, 3000);
-          } else if (response.status === 500) {
-            logEngine({
-              type: "error",
-              message: "Internal server error. Please try again later.",
-              user,
-            });
-            setIsSubmitting(false);
-            setAlert({
-              variant: "error",
-              body: "Internal server error. Please try again later.",
-            });
-            setTimeout(() => {
-              setAlert(null);
-            }, 3000);
-          } else {
-            logEngine({
-              type: "error",
-              message: "Unexpected response. Please try again.",
-              user,
-            });
-            setIsSubmitting(false);
-            setAlert({
-              variant: "error",
-              body: "Unexpected response. Please try again.",
-            });
-            setTimeout(() => {
-              setAlert(null);
-            }, 3000);
-          }
-        })
-        .catch((error) => {
+            dispatch(setUserExists(true));
+            navigate("/login");
+          }, 3000);
+        } else if (response.status === 400) {
           logEngine({
             type: "error",
-            message: `An error occurred: ${error.message}`,
-            user,
+            message: "Bad request. Please check your input.",
+            user: getUserForLogging(user),
           });
           setIsSubmitting(false);
+          setAlert({
+            variant: "error",
+            body: "Bad request. Please check your input.",
+          });
+          setTimeout(() => setAlert(null), 3000);
+        } else if (response.status === 409) {
+          logEngine({
+            type: "event",
+            message: "Account already exists.",
+            user: getUserForLogging(user),
+          });
+          setIsSubmitting(false);
+          setAlert({ variant: "error", body: "Account already exists." });
+          setTimeout(() => setAlert(null), 3000);
+        } else if (response.status === 500) {
+          logEngine({
+            type: "error",
+            message: "Internal server error. Please try again later.",
+            user: getUserForLogging(user),
+          });
+          setIsSubmitting(false);
+          setAlert({
+            variant: "error",
+            body: "Internal server error. Please try again later.",
+          });
+          setTimeout(() => setAlert(null), 3000);
+        } else {
+          logEngine({
+            type: "error",
+            message: "Unexpected response. Please try again.",
+            user: getUserForLogging(user),
+          });
+          setIsSubmitting(false);
+          setAlert({
+            variant: "error",
+            body: "Unexpected response. Please try again.",
+          });
+          setTimeout(() => setAlert(null), 3000);
+        }
+      })
+      .catch((error) => {
+        logEngine({
+          type: "error",
+          message: `An error occurred: ${error.message}`,
+          user: getUserForLogging({
+            id: 0,
+            email: values.email ?? "N/A",
+            name: values.name ?? "N/A",
+            surname: values.surname ?? "N/A",
+          }),
         });
-    }
+        setIsSubmitting(false);
+      });
   };
 
   const theme = useTheme();

@@ -13,72 +13,72 @@
 
 import TabContext from "@mui/lab/TabContext";
 import TabPanel from "@mui/lab/TabPanel";
-
-import { Box, Button, Modal, Stack, Typography, useTheme } from "@mui/material";
+import { Box, Modal, Stack, Typography, useTheme } from "@mui/material";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import { ReactComponent as Close } from "../../../assets/icons/close.svg";
 import { Suspense, useContext, useEffect, useState } from "react";
-import { Dayjs } from "dayjs";
 import {
-    createNewUser,
-  getAllEntities,
+  createNewUser,
   updateEntityById,
 } from "../../../../application/repository/entity.repository";
 import Alert from "../../Alert";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-
-import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import useUsers from "../../../../application/hooks/useUsers";
+import { Likelihood, RISK_LABELS, Severity } from "../../RiskLevel/constants";
+import { RiskLikelihood, RiskSeverity } from "../../RiskLevel/riskValues";
+import VWToast from "../../../vw-v2-components/Toast";
+import { logEngine } from "../../../../application/tools/log.engine";
+import { User } from "../../../../domain/User";
+import { getUserForLogging } from "../../../../application/tools/userHelpers";
+import VWButton from "../../../vw-v2-components/Buttons";
+import SaveIcon from "@mui/icons-material/Save";
 
-interface Risks {
-  riskDescription: string;
-  impactDescription: string;
-  projectName: string;
+interface ExistingRisk {
+  id?: number;
+  risk_description: string;
+  impact_description: string;
+  project_name?: string;
   impact: string;
-  actionOwner: string;
-  riskSeverity: string;
+  action_owner: string;
+  risk_severity: string;
   likelihood: string;
-  riskLevel: string;
-  actionPlan: string;
-  vendorId:number;
+  risk_level: string;
+  action_plan: string;
+  vendor_id: string;
 }
 interface FormErrors {
-  vendorName?: string;
-  vendorProvides?: string;
-  website?: string;
-  projectId?: string;
-  vendorContactPerson?: string;
-  reviewStatus?: string;
-  assignee?: string;
+  risk_description: string;
+  impact_description: string;
+  impact: string;
+  action_owner: string;
+  risk_severity: string;
+  likelihood: string;
+  risk_level?: string;
+  action_plan: string;
+  vendor_id: string;
 }
 interface AddNewRiskProps {
   isOpen: boolean;
   setIsOpen: () => void;
   value: string;
   handleChange: (event: React.SyntheticEvent, newValue: string) => void;
-  existingRisk?: Risks;
-  onRiskChange?: () => void;
+  existingRisk?: ExistingRisk | null;
+  onSuccess?: () => void;
 }
 
 const initialState = {
-  riskDescription: "",
-  impactDescription: "",
+  risk_description: "",
+  impact_description: "",
   impact: 0,
-  actionOwner: "0",
-  riskSeverity: 0,
+  action_owner: "0",
+  risk_severity: 0,
   likelihood: 0,
-  riskLevel: 0,
-  actionPlan: "",
-  vendorId:0
+  risk_level: 0,
+  action_plan: "",
+  vendor_id: "",
 };
-
-const REVIEW_STATUS_OPTIONS = [
-  { _id: "active", name: "Active" },
-  { _id: "underReview", name: "Under review" },
-  { _id: "notActive", name: "Not active" },
-];
 
 const RISK_LEVEL_OPTIONS = [
   { _id: 1, name: "Very high risk" },
@@ -100,126 +100,96 @@ const IMPACT_OPTIONS = [
   { _id: 1, name: "Negligible" },
   { _id: 2, name: "Minor" },
   { _id: 3, name: "Moderate" },
-  { _id: 4, name: "Major and Critical" },
+  { _id: 4, name: "Critical" },
 ];
 
 const RISK_SEVERITY_OPTIONS = [
-  { _id: 1, name: "Low" },
-  { _id: 2, name: "Medium" },
-  { _id: 3, name: "High and Critical" },
+  { _id: 1, name: "No risk" },
+  { _id: 2, name: "Low risk" },
+  { _id: 3, name: "Medium risk" },
+  { _id: 4, name: "High risk" },
+  { _id: 5, name: "Very high risk" },
 ];
 
 const AddNewRisk: React.FC<AddNewRiskProps> = ({
   isOpen,
   setIsOpen,
   value,
-  handleChange,
   existingRisk,
-  onRiskChange = () => {},
+  onSuccess = () => {},
 }) => {
   const theme = useTheme();
-    const { dashboardValues } = useContext(VerifyWiseContext);
-  
+  const { dashboardValues } = useContext(VerifyWiseContext);
+  const VENDOR_OPTIONS = dashboardValues?.vendors?.map((vendor: any) => ({
+    _id: vendor.id,
+    name: vendor.vendor_name,
+  }));
+
   const [values, setValues] = useState({
-    riskDescription: "",
-    impactDescription: "",
+    risk_description: "",
+    impact_description: "",
     impact: 0,
-    actionOwner: "",
-    riskSeverity: 0,
+    action_owner: "",
+    risk_severity: 0,
     likelihood: 0,
-    riskLevel: 0,
-    actionPlan: "",
-    vendorId:1
+    risk_level: 0,
+    action_plan: "",
+    vendor_id: "",
   });
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [errors, setErrors] = useState({} as FormErrors);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
     body: string;
   } | null>(null);
 
-  const [projectOptions, setProjectOptions] = useState<
-    { _id: number; name: string }[]
-  >([]);
-  const [projectsLoaded, setProjectsLoaded] = useState(false); // Track if projects are loaded
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const { users } = useUsers();
 
-  const fetchProjects = async () => {
-    try {
-      const response = await getAllEntities({ routeUrl: "/projects" });
-      console.log("API response ===> ", response);
-
-      if (response.data) {
-        const formattedProjects = response.data.map((project: any) => ({
-          _id: project.id,
-          name: project.project_title,
-        }));
-        setProjectOptions(formattedProjects);
-        setProjectsLoaded(true); // Mark projects as loaded
-      } else {
-        console.error("Unexpected response structure:", response);
-        setProjectOptions([]);
-      }
-    } catch (error: any) {
-      console.error("Error fetching projects:", error);
-      setProjectOptions([]);
-    }
+  const user: User = {
+    id: Number(localStorage.getItem("userId")) || -1,
+    email: "N/A",
+    name: "N/A",
+    surname: "N/A",
   };
+  const formattedUsers = users?.map((user) => ({
+    _id: user.id,
+    name: `${user.name} ${user.surname}`,
+  }));
 
   useEffect(() => {
-    if (isOpen && !projectsLoaded) {
-      fetchProjects();
-    }
-  }, [isOpen, projectsLoaded]);
-
-  useEffect(() => {
-    if (existingRisk) {
+    if (isOpen && !existingRisk) {
+      setValues(initialState);
+    } else if (existingRisk) {
       setValues((prevValues) => ({
         ...prevValues,
-
-        riskDescription: existingRisk.riskDescription,
-        impactDescription: existingRisk.impactDescription,
-        impact: Number(existingRisk.impact),
-        actionOwner: existingRisk.actionOwner,
-        riskSeverity: Number(existingRisk.riskSeverity),
-        likelihood: Number(existingRisk.likelihood),
-        riskLevel: Number(existingRisk.riskLevel),
-        actionPlan: existingRisk.actionPlan,
-
-
-        // reviewStatus:  REVIEW_STATUS_OPTIONS.find(s => s.name === existingRisk.review_status)?._id || "",
-        // reviewer: String(users?.find(s => s.name === existingRisk.reviewer)?.id) || "0",
-        // reviewResult: existingRisk.review_result,
-        // riskStatus: String(RISK_LEVEL_OPTIONS.find(s => s.name === existingRisk.risk_status)?._id) || ""  ,
-        // assignee: String(users?.find(s => s.name === existingRisk.assignee)?.id) || "0",
-        // reviewDate: existingRisk.review_date,
+        risk_description: existingRisk.risk_description,
+        impact_description: existingRisk.impact_description,
+        impact:
+          IMPACT_OPTIONS.find((r) => r.name === existingRisk.impact)?._id || 0,
+        action_owner:
+          formattedUsers?.find(
+            (user) => user.name === existingRisk.action_owner
+          )?._id || "",
+        risk_severity:
+          RISK_SEVERITY_OPTIONS.find(
+            (r) => r.name === existingRisk.risk_severity
+          )?._id || 0,
+        likelihood:
+          LIKELIHOOD_OPTIONS.find((r) => r.name === existingRisk.likelihood)
+            ?._id || 0,
+        risk_level:
+          RISK_LEVEL_OPTIONS.find((r) => r.name === existingRisk.risk_level)
+            ?._id || 0,
+        action_plan: existingRisk.action_plan,
+        vendor_id: existingRisk.vendor_id,
       }));
     }
-  }, [existingRisk]);
+  }, [existingRisk, isOpen]);
 
-  /**
-   * Opens the confirmation modal if form validation passes
-   */
   const handleSave = () => {
     if (validateForm()) {
-      existingRisk ? setIsModalOpen(true) : handleOnSave();
-    }
-  };
-
-  /**
-   * Updates the review date in the vendor details
-   * @param newDate - The new date value or null
-   */
-  const handleDateChange = (newDate: Dayjs | null) => {
-    if (newDate?.isValid()) {
-      setValues((prevValues) => ({
-        ...prevValues,
-        riskDetails: {
-          ...prevValues,
-          reviewDate: newDate ? newDate.toISOString() : "",
-        },
-      }));
+      handleOnSave();
     }
   };
 
@@ -229,8 +199,19 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
    * @param field - The field name to update
    * @param value - The new value
    */
+  const getRiskLevel = (score: number): { text: string; color: string } => {
+    if (score <= 3) {
+      return RISK_LABELS.low;
+    } else if (score <= 6) {
+      return RISK_LABELS.medium;
+    } else if (score <= 9) {
+      return RISK_LABELS.high;
+    } else {
+      return RISK_LABELS.critical;
+    }
+  };
+
   const handleOnChange = (field: string, value: string | number) => {
-    console.log("handleOnChange", field, value);
     setValues((prevValues) => ({
       ...prevValues,
 
@@ -244,62 +225,57 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
    * @returns boolean indicating if form is valid
    */
   const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-    // const vendorName = checkStringValidation(
-    //   "Vendor Name",
-    //   values.riskDetails.vendorName,
-    //   1,
-    //   64
-    // );
-    // if (!vendorName.accepted) {
-    //   newErrors.vendorName = vendorName.message;
-    // }
-    // const vendorWebsite = checkStringValidation(
-    //   "Vendor Website",
-    //   values.riskDetails.website,
-    //   1,
-    //   64
-    // );
-    // if (!vendorWebsite.accepted) {
-    //   newErrors.website = vendorWebsite.message;
-    // }
-    // if (
-    //   !values.riskDetails.projectId ||
-    //   Number(values.riskDetails.projectId) === 0
-    // ) {
-    //   newErrors.projectId = "Please select a project from the dropdown";
-    // }
-    // const vendorProvides = checkStringValidation(
-    //   "Vendor Provides",
-    //   values.riskDetails.vendorProvides,
-    //   1,
-    //   64
-    // );
-    // if (!vendorProvides.accepted) {
-    //   newErrors.vendorProvides = vendorProvides.message;
-    // }
-    // const vendorContactPerson = checkStringValidation(
-    //   "Vendor Contact Person",
-    //   values.riskDetails.vendorContactPerson,
-    //   1,
-    //   64
-    // );
-    // if (!vendorContactPerson.accepted) {
-    //   newErrors.vendorContactPerson = vendorContactPerson.message;
-    // }
-    // if (
-    //   !values.riskDetails.reviewStatus ||
-    //   Number(values.riskDetails.reviewStatus) === 0
-    // ) {
-    //   newErrors.reviewStatus =
-    //     "Please select a review status from the dropdown";
-    // }
-    // if (
-    //   !values.riskDetails.assignee ||
-    //   Number(values.riskDetails.assignee) === 0
-    // ) {
-    //   newErrors.assignee = "Please select an assignee from the dropdown";
-    // }
+    const newErrors = {} as FormErrors;
+    const risk_description = checkStringValidation(
+      "Risk description",
+      values.risk_description,
+      1,
+      64
+    );
+    if (!risk_description.accepted) {
+      newErrors.risk_description = risk_description.message;
+    }
+    const impact_description = checkStringValidation(
+      "Impact description",
+      values.impact_description,
+      1,
+      64
+    );
+    if (!impact_description.accepted) {
+      newErrors.impact_description = impact_description.message;
+    }
+    const action_plan = checkStringValidation(
+      "Action plan",
+      values.action_plan,
+      1,
+      64
+    );
+    if (!action_plan.accepted) {
+      newErrors.action_plan = action_plan.message;
+    }
+    if (!values.vendor_id || Number(values.vendor_id) === 0) {
+      newErrors.vendor_id = "Please select a vendor from the dropdown";
+    }
+    const action_owner = checkStringValidation(
+      "Risk Action Owner",
+      values.action_owner,
+      1,
+      64
+    );
+    if (!action_owner.accepted) {
+      newErrors.action_owner = action_owner.message;
+    }
+    if (!values.impact || Number(values.impact) === 0) {
+      newErrors.impact = "Please select an impact status from the dropdown";
+    }
+    if (!values.risk_severity || Number(values.risk_severity) === 0) {
+      newErrors.risk_severity =
+        "Please select a risk severity from the dropdown";
+    }
+    if (!values.likelihood || Number(values.likelihood) === 0) {
+      newErrors.likelihood =
+        "Please select a risk likelihood from the dropdown";
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -308,62 +284,83 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
    * Handles the final save operation after confirmation
    * Creates new vendor or updates existing one
    */
+
   const handleOnSave = async () => {
+    const risk_risklevel = getRiskLevel(
+      values.likelihood * values.risk_severity
+    );
     const _riskDetails = {
-      risk_description: values.riskDescription,
-      impact_description: values.impactDescription,
-      impact: Number(values.impact),
-      action_owner:
-        users.find((a) => a.id === values.actionOwner)?.name || "",
-      action_plan: values.actionPlan,
-      risk_severity: Number(values.riskSeverity),
-      risk_level:
-        RISK_LEVEL_OPTIONS.find((r) => r._id === values.riskLevel)
+      risk_description: values.risk_description,
+      impact_description: values.impact_description,
+      impact:
+        IMPACT_OPTIONS.find((r) => r._id === Number(values.impact))?.name || "",
+      action_owner: formattedUsers?.find(
+        (user) => user._id === values.action_owner
+      )?.name,
+      action_plan: values.action_plan,
+      risk_severity:
+        RISK_SEVERITY_OPTIONS.find((r) => r._id === values.risk_severity)
           ?.name || "",
-      likelihood: Number(values.likelihood),
-      vendor_id: 1
+      risk_level: risk_risklevel.text,
+      likelihood:
+        LIKELIHOOD_OPTIONS.find((r) => r._id === values.likelihood)?.name || "",
+      vendor_id: values.vendor_id,
     };
     if (existingRisk) {
-    //   await updateRisk(existingRisk.id!, _riskDetails);
+      await updateRisk(existingRisk.id!, _riskDetails);
     } else {
       await createRisk(_riskDetails);
     }
-    setIsModalOpen(false);
   };
 
   /**
    * Creates a new vendor in the system
    * @param riskDetails - The vendor details to create
    */
-  const createRisk = async (riskDetails:object) => {
-      console.log(riskDetails);
-      await createNewUser({
-          routeUrl: "/vendorRisks",
-          body: riskDetails,
-      }).then((response) => {
-          setValues(initialState);
-          if (response.status === 201) {
-              setAlert({
-                  variant: "success",
-                  body: "Vendor-Risk created successfully",
-              });
-              setTimeout(() => {
-                  setAlert(null);
-                  onRiskChange();
-                  setIsOpen();
-              }, 1000);
-          } else if (response.status === 400 || response.status === 500) {
-              setAlert({
-                  variant: "error",
-                  body: response.data.data.message,
-              });
-              setTimeout(() => {
-                  setAlert(null);
-                  onRiskChange();
-                  setIsOpen();
-              }, 1000);
-          }
+
+  const createRisk = async (riskDetails: object) => {
+    setIsSubmitting(true);
+    try {
+      const response = await createNewUser({
+        routeUrl: "/vendorRisks",
+        body: riskDetails,
       });
+
+      if (response.status === 201) {
+        setAlert({
+          variant: "success",
+          body: "Vendor-Risk created successfully",
+        });
+        setTimeout(() => setAlert(null), 3000);
+        onSuccess();
+        setIsOpen();
+      } else {
+        setAlert({
+          variant: "error",
+          body: response.data?.data?.message || "An error occurred.",
+        });
+        setTimeout(() => setAlert(null), 3000);
+      }
+    } catch (error) {
+      console.error("API Error:", error);
+
+      logEngine({
+        type: "error",
+        message: "Unexpected response. Please try again.",
+        user: getUserForLogging(user),
+      });
+
+      setAlert({
+        variant: "error",
+        body: `An error occurred: ${
+          (error as Error).message || "Please try again."
+        }`,
+      });
+
+      setTimeout(() => setAlert(null), 3000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   /**
@@ -371,34 +368,50 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
    * @param riskId - The ID of the vendor to update
    * @param updatedriskDetails - The new vendor details
    */
-  const updateRisk = async (
-    riskId: number,
-    updatedriskDetails: object
-  ) => {
-    // Make a call to backend and update the vendor'
-    console.log("Edit Vendor", riskId, updatedriskDetails);
-    await updateEntityById({
-      routeUrl: `/vendorRisks/${riskId}`,
-      body: updatedriskDetails,
-    }).then((response) => {
-      setValues(initialState);
+
+  const updateRisk = async (riskId: number, updatedRiskDetails: object) => {
+    setIsSubmitting(true);
+    try {
+      const response = await updateEntityById({
+        routeUrl: `/vendorRisks/${riskId}`,
+        body: updatedRiskDetails,
+      });
+
       if (response.status === 202) {
         setAlert({
           variant: "success",
           body: "Vendor-Risk updated successfully",
         });
-        setTimeout(() => {
-          setAlert(null);
-          onRiskChange();
-          setIsOpen();
-        }, 1000);
-      } else if (response.status == 400) {
+        setTimeout(() => setAlert(null), 3000);
+        onSuccess();
+        setIsOpen();
+      } else {
         setAlert({
           variant: "error",
-          body: response.data.data.message,
+          body: response.data?.data?.message || "An error occurred.",
         });
+        setTimeout(() => setAlert(null), 3000);
       }
-    });
+    } catch (error) {
+      console.error("API Error:", error);
+
+      logEngine({
+        type: "error",
+        message: "Unexpected response. Please try again.",
+        user: getUserForLogging(user),
+      });
+
+      setAlert({
+        variant: "error",
+        body: `An error occurred: ${
+          (error as Error).message || "Please try again."
+        }`,
+      });
+
+      setTimeout(() => setAlert(null), 3000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const risksPanel = (
@@ -408,21 +421,25 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
         justifyContent={"space-between"}
         marginBottom={theme.spacing(8)}
       >
-        <Field // riskDescription
+        <Select
+          items={VENDOR_OPTIONS}
+          label="vendor"
+          placeholder="Select vendor"
+          isHidden={false}
+          id=""
+          onChange={(e) => handleOnChange("vendor_id", e.target.value)}
+          value={values.vendor_id}
+          error={errors.vendor_id}
+          sx={{
+            width: 350,
+          }}
+        />
+        <Field
           label="Risk description"
           width={350}
-          value={values.riskDescription}
-          onChange={(e) =>
-            handleOnChange("riskDescription", e.target.value)
-          }
-        />
-        <Field // impactDescription
-          label="Impact description"
-          width={350}
-          value={values.impactDescription}
-          onChange={(e) =>
-            handleOnChange( "impactDescription", e.target.value)
-          }
+          value={values.risk_description}
+          onChange={(e) => handleOnChange("risk_description", e.target.value)}
+          error={errors.risk_description}
         />
       </Stack>
       <Stack
@@ -430,40 +447,37 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
         justifyContent={"space-between"}
         marginBottom={theme.spacing(8)}
       >
-        {/* <Select // vendor
-          items={IMPACT_OPTIONS}
-          label="vendor"
-          placeholder="Select vendor"
-          isHidden={false}
-          id=""
-          onChange={(e) => handleOnChange( "vendor", e.target.value)}
-          value={values.impact}
-          sx={{
-            width: 350,
-          }}
-        /> */}
-        <Select // impact
+        <Select
           items={IMPACT_OPTIONS}
           label="Impact"
           placeholder="Select impact"
           isHidden={false}
           id=""
-          onChange={(e) => handleOnChange( "impact", e.target.value)}
+          onChange={(e) => handleOnChange("impact", e.target.value)}
           value={values.impact}
+          error={errors.impact}
           sx={{
             width: 350,
           }}
         />
-        <Select // likelihood
-          items={LIKELIHOOD_OPTIONS}
+        <Select
+          items={[
+            { _id: Likelihood.Rare, name: RiskLikelihood.Rare },
+            { _id: Likelihood.Unlikely, name: RiskLikelihood.Unlikely },
+            { _id: Likelihood.Possible, name: RiskLikelihood.Possible },
+            { _id: Likelihood.Likely, name: RiskLikelihood.Likely },
+            {
+              _id: Likelihood.AlmostCertain,
+              name: RiskLikelihood.AlmostCertain,
+            },
+          ]}
           label="Likelihood"
           placeholder="Select risk severity"
           isHidden={false}
           id=""
-          onChange={(e) =>
-            handleOnChange("likelihood", e.target.value)
-          }
+          onChange={(e) => handleOnChange("likelihood", e.target.value)}
           value={values.likelihood}
+          error={errors.likelihood}
           sx={{
             width: 350,
           }}
@@ -480,69 +494,64 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           display={"grid"}
           gap={theme.spacing(8)}
         >
-          <Select // riskSeverity
-            items={RISK_SEVERITY_OPTIONS}
+          <Select
+            items={[
+              { _id: Severity.Negligible, name: RiskSeverity.Negligible },
+              { _id: Severity.Minor, name: RiskSeverity.Minor },
+              { _id: Severity.Moderate, name: RiskSeverity.Moderate },
+              { _id: Severity.Major, name: RiskSeverity.Major },
+              { _id: Severity.Critical, name: RiskSeverity.Critical },
+            ]}
             label="Risk severity"
             placeholder="Select risk severity"
             isHidden={false}
             id=""
-            onChange={(e) =>
-              handleOnChange( "riskSeverity", e.target.value)
-            }
-            value={values.riskSeverity}
+            onChange={(e) => handleOnChange("risk_severity", e.target.value)}
+            value={values.risk_severity}
+            error={errors.risk_severity}
             sx={{
               width: 350,
             }}
           />
 
-          <Select // actionOwner
-            items={
-              users?.map((user) => ({
-                _id: String(user.id),
-                name: `${user.name} ${user.surname}`,
-              })) || []
-            }
+          <Select
+            items={formattedUsers}
             label="Action owner"
             placeholder="Select owner"
             isHidden={false}
             id=""
-            onChange={(e) =>
-              handleOnChange("actionOwner", e.target.value)
-            }
-            value={values.actionOwner}
+            onChange={(e) => handleOnChange("action_owner", e.target.value)}
+            value={values.action_owner}
+            error={errors.action_owner}
             sx={{
               width: 350,
             }}
           />
+          <Field
+            label="Impact description"
+            width={350}
+            value={values.impact_description}
+            onChange={(e) =>
+              handleOnChange("impact_description", e.target.value)
+            }
+            error={errors.impact_description}
+          />
         </Box>
-        <Field // actionPlan
+
+        <Field
           label="Action plan"
           width={350}
           type="description"
-          value={values.actionPlan}
-          onChange={(e) =>
-            handleOnChange( "actionPlan", e.target.value)
-          }
+          value={values.action_plan}
+          error={errors.action_plan}
+          onChange={(e) => handleOnChange("action_plan", e.target.value)}
         />
       </Stack>
       <Stack
         direction={"row"}
         justifyContent={"space-between"}
         marginBottom={theme.spacing(8)}
-      >
-        <Select // riskLevel
-          items={RISK_LEVEL_OPTIONS}
-          label="Risk level"
-          placeholder="Select risk level"
-          isHidden={false}
-          id=""
-          onChange={(e) => handleOnChange("riskLevel", e.target.value)}
-          value={values.riskLevel}
-          sx={{
-            width: 350,
-          }}
-        />
-      </Stack>
+      ></Stack>
     </TabPanel>
   );
 
@@ -559,10 +568,14 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           />
         </Suspense>
       )}
+      {isSubmitting && (
+        <VWToast title="Processing your request. Please wait..." />
+      )}
       <Modal
         open={isOpen}
         onClose={(_event, reason) => {
           if (reason !== "backdropClick") {
+            setValues(initialState);
             setIsOpen();
           }
         }}
@@ -603,7 +616,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
               fontWeight={600}
               marginBottom={theme.spacing(5)}
             >
-              {existingRisk ? "Edit vendor" : "Add new vendor"}
+              {existingRisk ? "Edit Risk" : "Add new Risk"}
             </Typography>
             <Close style={{ cursor: "pointer" }} onClick={setIsOpen} />
           </Stack>
@@ -614,44 +627,18 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
                 alignItems: "flex-end",
               }}
             >
-              <Button
-                disableRipple
+              <VWButton
                 variant="contained"
+                text="Save"
                 sx={{
-                  width: 70,
-                  height: 34,
-                  fontSize: 13,
-                  textTransform: "capitalize",
-                  backgroundColor: "#4C7DE7",
-                  boxShadow: "none",
-                  borderRadius: "4px",
-                  border: "1px solid #175CD3",
-                  "&:hover": {
-                    boxShadow: "none",
-                    backgroundColor: "#175CD3 ",
-                  },
+                  backgroundColor: "#13715B",
+                  border: "1px solid #13715B",
+                  gap: 2,
                 }}
                 onClick={handleSave}
-              >
-                Save
-              </Button>
-            </Stack>
-            {isModalOpen && (
-              <DualButtonModal
-                title="Confirm Save"
-                body={
-                  <Typography>
-                    Are you sure you want to save the changes?
-                  </Typography>
-                }
-                cancelText="Cancel"
-                proceedText="Confirm"
-                onCancel={() => setIsModalOpen(false)}
-                onProceed={handleOnSave}
-                proceedButtonColor="primary"
-                proceedButtonVariant="contained"
+                icon={<SaveIcon />}
               />
-            )}
+            </Stack>
           </TabContext>
         </Stack>
       </Modal>

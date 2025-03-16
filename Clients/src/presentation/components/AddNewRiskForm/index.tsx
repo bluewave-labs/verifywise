@@ -1,7 +1,7 @@
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
-import { Box, Stack, Tab, useTheme, Typography, Button } from "@mui/material";
+import { Box, Stack, Tab, useTheme } from "@mui/material";
 import {
   FC,
   useState,
@@ -30,7 +30,18 @@ import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.cont
 import dayjs from "dayjs";
 import useUsers from "../../../application/hooks/useUsers";
 import { RISK_LABELS } from "../RiskLevel/constants";
-import { aiLifecyclePhase, riskCategoryItems, mitigationStatusItems, approvalStatusItems, riskLevelItems, likelihoodItems, riskSeverityItems } from "./projectRiskValue";
+import {
+  aiLifecyclePhase,
+  riskCategoryItems,
+  mitigationStatusItems,
+  approvalStatusItems,
+  riskLevelItems,
+  likelihoodItems,
+  riskSeverityItems,
+} from "./projectRiskValue";
+import VWButton from "../../vw-v2-components/Buttons";
+import SaveIcon from "@mui/icons-material/Save";
+import UpdateIcon from "@mui/icons-material/Update";
 
 const RiskSection = lazy(() => import("./RisksSection"));
 const MitigationSection = lazy(() => import("./MitigationSection"));
@@ -41,11 +52,18 @@ interface AddNewRiskFormProps {
   initialRiskValues?: RiskFormValues; // New prop for initial values
   initialMitigationValues?: MitigationFormValues; // New prop for initial values
   onSuccess: () => void;
+  onError?: (message: any) => void;
+  onLoading?: (message: any) => void;
+}
+
+interface ApiResponse {
+  message: string;
+  error: string;
 }
 
 const riskInitialState: RiskFormValues = {
   riskName: "",
-  actionOwner: "",
+  actionOwner: 0,
   aiLifecyclePhase: 0,
   riskDescription: "",
   riskCategory: 1,
@@ -63,13 +81,13 @@ const mitigationInitialState: MitigationFormValues = {
   mitigationPlan: "",
   currentRiskLevel: 0,
   implementationStrategy: "",
-  deadline: "",
+  deadline: new Date().toISOString(),
   doc: "",
   likelihood: 1 as Likelihood,
   riskSeverity: 1 as Severity,
   approver: 0,
   approvalStatus: 0,
-  dateOfAssessment: "",
+  dateOfAssessment: new Date().toISOString(),
   recommendations: "",
 };
 
@@ -92,6 +110,8 @@ const mitigationInitialState: MitigationFormValues = {
 const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   closePopup,
   onSuccess,
+  onError = () => {},
+  onLoading = () => {},
   popupStatus,
   initialRiskValues = riskInitialState, // Default to initial state if not provided
   initialMitigationValues = mitigationInitialState,
@@ -130,6 +150,9 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
       justifyContent: "flex-end",
       padding: "16px 0 7px",
       minHeight: "20px",
+      "&.Mui-selected": {
+        color: "#13715B",
+      },
     }),
     []
   );
@@ -137,42 +160,69 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   useEffect(() => {
     if (popupStatus === "edit") {
       // Find user_id from fromInputValue saved as "name surname"
-      const userId = users.find(user => 
-        `${user.name}${user.surname ? ' ' + user.surname : ''}` === inputValues.risk_owner
-      )?.id;    
+      const userId = users.find(
+        (user) =>
+          `${user.name}${user.surname ? " " + user.surname : ""}` ===
+          inputValues.risk_owner
+      )?.id;
       const actionOwner = userId ? parseInt(userId) : 1;
 
       // riskData
       const currentRiskData: RiskFormValues = {
         ...riskInitialState,
         riskName: inputValues.risk_name ?? "",
-        actionOwner: actionOwner ?? "",
+        actionOwner: inputValues.risk_owner,
         riskDescription: inputValues.risk_description ?? "",
-        aiLifecyclePhase: aiLifecyclePhase.find(item => item.name === inputValues.ai_lifecycle_phase)?._id ?? 1,
-        riskCategory: riskCategoryItems.find(item => item.name === inputValues.risk_category)?._id ?? 1,
+        aiLifecyclePhase:
+          aiLifecyclePhase.find(
+            (item) => item.name === inputValues.ai_lifecycle_phase
+          )?._id ?? 1,
+        riskCategory:
+          riskCategoryItems.find(
+            (item) => item.name === inputValues.risk_category
+          )?._id ?? 1,
         potentialImpact: inputValues.impact ?? "",
         assessmentMapping: inputValues.assessment_mapping,
         controlsMapping: inputValues.controlsMapping,
-        likelihood: likelihoodItems.find(item => item.name === inputValues.likelihood)?._id ?? 1,
-        riskSeverity: riskSeverityItems.find(item => item.name === inputValues.severity)?._id  ?? 1,
+        likelihood:
+          likelihoodItems.find((item) => item.name === inputValues.likelihood)
+            ?._id ?? 1,
+        riskSeverity:
+          riskSeverityItems.find((item) => item.name === inputValues.severity)
+            ?._id ?? 1,
         riskLevel: inputValues.riskLevel,
         reviewNotes: inputValues.review_notes ?? "",
       };
 
       const currentMitigationData: MitigationFormValues = {
         ...mitigationInitialState,
-        mitigationStatus: mitigationStatusItems.find(item => item.name === inputValues.mitigation_status)?._id ?? 1,
+        mitigationStatus:
+          mitigationStatusItems.find(
+            (item) => item.name === inputValues.mitigation_status
+          )?._id ?? 1,
         mitigationPlan: inputValues.mitigation_plan,
-        currentRiskLevel: riskLevelItems.find(item => item.name === inputValues.current_risk_level)?._id ?? 1,
+        currentRiskLevel:
+          riskLevelItems.find(
+            (item) => item.name === inputValues.current_risk_level
+          )?._id ?? 1,
         implementationStrategy: inputValues.implementation_strategy,
         deadline: inputValues.deadline
           ? dayjs(inputValues.deadline).toISOString()
           : "",
         doc: inputValues.mitigation_evidence_document,
-        likelihood: likelihoodItems.find(item => item.name === inputValues.likelihood_mitigation)?._id ?? 1,
-        riskSeverity: riskSeverityItems.find(item => item.name === inputValues.risk_severity)?._id  ?? 1,
-        approver: parseInt(users.find(user => `${user.name} ${user.surname}` === inputValues.risk_approval)?.id ?? "1"),
-        approvalStatus: approvalStatusItems.find(item => item.name === inputValues.approval_status)?._id ?? 1,
+        likelihood:
+          likelihoodItems.find(
+            (item) => item.name === inputValues.likelihood_mitigation
+          )?._id ?? 1,
+        riskSeverity:
+          riskSeverityItems.find(
+            (item) => item.name === inputValues.risk_severity
+          )?._id ?? 1,
+        approver: inputValues.risk_approval,
+        approvalStatus:
+          approvalStatusItems.find(
+            (item) => item.name === inputValues.approval_status
+          )?._id ?? 1,
         dateOfAssessment: inputValues.date_of_assessment
           ? dayjs(inputValues.date_of_assessment).toISOString()
           : "",
@@ -229,22 +279,26 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     if (!potentialImpact.accepted) {
       newErrors.potentialImpact = potentialImpact.message;
     }
-    const reviewNotes = checkStringValidation(
-      "Review notes",
-      riskValues.reviewNotes,
-      0,
-      1024
-    );
-    if (!reviewNotes.accepted) {
-      newErrors.reviewNotes = reviewNotes.message;
+
+    if(riskValues.reviewNotes.length > 0){
+      const reviewNotes = checkStringValidation(
+        "Review notes",
+        riskValues.reviewNotes,
+        0,
+        1024
+      );
+      if (!reviewNotes.accepted) {
+        newErrors.reviewNotes = reviewNotes.message;
+      }
     }
-    // const actionOwner = selectValidation(
-    //   "Action owner",
-    //   riskValues.actionOwner
-    // );
-    // if (!actionOwner.accepted) {
-    //   newErrors.actionOwner = actionOwner.message;
-    // }
+    
+    const actionOwner = selectValidation(
+      "Action owner",
+      riskValues.actionOwner
+    );
+    if (!actionOwner.accepted) {
+      newErrors.actionOwner = actionOwner.message;
+    }
     const aiLifecyclePhase = selectValidation(
       "AI lifecycle phase",
       riskValues.aiLifecyclePhase
@@ -320,6 +374,17 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     if (!approvalStatus.accepted) {
       newMitigationErrors.approvalStatus = approvalStatus.message;
     }
+    if(mitigationValues.recommendations.length > 0) {
+      const recommendations = checkStringValidation(
+        "Recommendation",
+        mitigationValues.recommendations,
+        1,
+        1024
+      );
+      if (!recommendations.accepted) {
+        newMitigationErrors.recommendations = recommendations.message;
+      }
+    }    
 
     setMigitateErrors(newMitigationErrors);
     setRiskErrors(newErrors);
@@ -341,64 +406,94 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   const riskFormSubmitHandler = async () => {
     const { isValid, errors } = validateForm();
     
-    const owner = users.find(user => parseInt(user.id) === riskValues.actionOwner);
-    const approver = users.find(user => parseInt(user.id) === mitigationValues.approver);
-    const risk_risklevel = getRiskLevel(riskValues.likelihood * riskValues.riskSeverity);
-    const mitigation_risklevel = getRiskLevel(mitigationValues.likelihood * mitigationValues.riskSeverity);
-    
+    const risk_risklevel = getRiskLevel(
+      riskValues.likelihood * riskValues.riskSeverity
+    );
+    const mitigation_risklevel = getRiskLevel(
+      mitigationValues.likelihood * mitigationValues.riskSeverity
+    );
+
     // check forms validate
     if (isValid) {
+      onLoading(popupStatus !== "new" ? 
+      "Updating the risk. Please wait..." : 
+      "Creating the risk. Please wait...");
+
       const formData = {
         project_id: projectId,
         risk_name: riskValues.riskName,
-        risk_owner: owner ? [owner.name, owner.surname].filter(Boolean).join(' ') : '',
-        ai_lifecycle_phase: aiLifecyclePhase.find(item => item._id === riskValues.aiLifecyclePhase)?.name || '',
+        risk_owner: riskValues.actionOwner,
+        ai_lifecycle_phase:
+          aiLifecyclePhase.find(
+            (item) => item._id === riskValues.aiLifecyclePhase
+          )?.name || "",
         risk_description: riskValues.riskDescription,
-        risk_category: riskCategoryItems.find(item => item._id === riskValues.riskCategory)?.name || '',
+        risk_category:
+          riskCategoryItems.find((item) => item._id === riskValues.riskCategory)
+            ?.name || "",
         impact: riskValues.potentialImpact,
         assessment_mapping: riskValues.assessmentMapping,
         controls_mapping: riskValues.controlsMapping,
-        likelihood: likelihoodItems.find(item => item._id === riskValues.likelihood)?.name || '',
-        severity: riskSeverityItems.find(item => item._id === riskValues.riskSeverity)?.name || '',
+        likelihood:
+          likelihoodItems.find((item) => item._id === riskValues.likelihood)
+            ?.name || "",
+        severity:
+          riskSeverityItems.find((item) => item._id === riskValues.riskSeverity)
+            ?.name || "",
         risk_level_autocalculated: risk_risklevel.text,
         review_notes: riskValues.reviewNotes,
-        mitigation_status: mitigationStatusItems.find(item => item._id === mitigationValues.mitigationStatus)?.name || '',        
-        current_risk_level: riskLevelItems.find(item => item._id === mitigationValues.currentRiskLevel)?.name || '',
+        mitigation_status:
+          mitigationStatusItems.find(
+            (item) => item._id === mitigationValues.mitigationStatus
+          )?.name || "",
+        current_risk_level:
+          riskLevelItems.find(
+            (item) => item._id === mitigationValues.currentRiskLevel
+          )?.name || "",
         deadline: mitigationValues.deadline,
         mitigation_plan: mitigationValues.mitigationPlan,
         implementation_strategy: mitigationValues.implementationStrategy,
         mitigation_evidence_document: mitigationValues.doc,
-        likelihood_mitigation: likelihoodItems.find(item => item._id === mitigationValues.likelihood)?.name || '',
-        risk_severity: riskSeverityItems.find(item => item._id === mitigationValues.riskSeverity)?.name || '',
+        likelihood_mitigation:
+          likelihoodItems.find(
+            (item) => item._id === mitigationValues.likelihood
+          )?.name || "",
+        risk_severity:
+          riskSeverityItems.find(
+            (item) => item._id === mitigationValues.riskSeverity
+          )?.name || "",
         final_risk_level: mitigation_risklevel.text,
-        risk_approval: approver ? [approver.name, approver.surname].filter(Boolean).join(' ') : '',
-        approval_status: approvalStatusItems.find(item => item._id === mitigationValues.approvalStatus)?.name || '',
+        risk_approval: mitigationValues.approver,
+        approval_status:
+          approvalStatusItems.find(
+            (item) => item._id === mitigationValues.approvalStatus
+          )?.name || "",
         date_of_assessment: mitigationValues.dateOfAssessment,
-      };      
+      };           
 
-      if (popupStatus !== "new") {
-        // call update API
-        try {
-          const response = await apiServices.put(
-            "/projectRisks/" + inputValues.id,
-            formData
-          );          
-          if (response.status === 200) {
-            closePopup();
-            onSuccess();
-          }
-        } catch (error) {
-          console.error("Error sending request", error);
+      try {
+        const response = (popupStatus !== "new") ? 
+        await apiServices.put(
+          "/projectRisks/" + inputValues.id,
+          formData) : 
+        await apiServices.post("/projectRisks", formData);
+
+        if (response.status === 201) {
+          // risk create success
+          closePopup();
+          onSuccess();
+        }else if (response.status === 200) {
+          // risk update success
+          closePopup();
+          onSuccess();
+        }else{
+          console.error((response.data as ApiResponse)?.error);
+          onError((response.data as ApiResponse)?.message);
         }
-      } else {
-        try {
-          const response = await apiServices.post("/projectRisks", formData);          
-          if (response.status === 201) {
-            closePopup();
-            onSuccess();
-          }
-        } catch (error) {
-          console.error("Error sending request", error);
+      } catch (error) {
+        console.error("Error sending request", error);
+        if(error){
+          onError(error);
         }
       }
     } else {
@@ -417,6 +512,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
           <TabList
             onChange={handleChange}
             aria-label="Add new risk tabs"
+            TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
             sx={{
               minHeight: "20px",
               "& .MuiTabs-flexContainer": { columnGap: "34px" },
@@ -453,32 +549,27 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
           </TabPanel>
         </Suspense>
         <Box sx={{ display: "flex" }}>
-          <Button
-            type="submit"
-            onClick={riskFormSubmitHandler}
-            variant="contained"
-            disableRipple={
-              theme.components?.MuiButton?.defaultProps?.disableRipple
-            }
+          <VWButton
             sx={{
+              alignSelf: "flex-end",
+              width: "fit-content",
+              backgroundColor: "#13715B",
+              border: "1px solid #13715B",
+              gap: 2,
               borderRadius: 2,
               maxHeight: 34,
               textTransform: "inherit",
-              backgroundColor: "#4C7DE7",
               boxShadow: "none",
-              border: "1px solid #175CD3",
               ml: "auto",
               mr: 0,
               mt: "30px",
               "&:hover": { boxShadow: "none" },
             }}
-          >
-            {popupStatus === "new" ? (
-              <Typography>Save</Typography>
-            ) : (
-              <Typography>Update</Typography>
-            )}
-          </Button>
+            icon={popupStatus === "new" ? <SaveIcon /> : <UpdateIcon />}
+            variant="contained"
+            onClick={riskFormSubmitHandler}
+            text={popupStatus === "new" ? "Save" : "Update"}
+          />
         </Box>
       </TabContext>
     </Stack>

@@ -43,7 +43,7 @@ export interface ProjectRisk {
   recommendations?: any;
 }
 
-const useProjectRisks = ({ projectId }: { projectId?: string | null }) => {
+const useProjectRisks = ({ projectId, refreshKey }: { projectId?: string | null, refreshKey?: any }) => {
   const [projectRisks, setProjectRisks] = useState<ProjectRisk[]>([]);
   const [loadingProjectRisks, setLoadingProjectRisks] = useState<boolean>(true);
   const [error, setError] = useState<string | boolean>(false);
@@ -83,7 +83,7 @@ const useProjectRisks = ({ projectId }: { projectId?: string | null }) => {
     return () => {
       controller.abort();
     };
-  }, [projectId]);
+  }, [projectId, refreshKey]);
 
   const projectRisksSummary = projectRisks.reduce(
     (acc, risk) => {

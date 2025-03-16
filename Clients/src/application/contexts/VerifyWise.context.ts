@@ -1,5 +1,6 @@
-import { createContext } from "react";
+import React, { createContext } from "react";
 import { defaultProjectStatus, ProjectStatus } from "../hooks/useProjectStatus";
+import { Project } from "../../domain/Project";
 
 interface VerifyWiseContextProps {
   uiValues: any;
@@ -17,9 +18,11 @@ interface VerifyWiseContextProps {
   currentProjectId: string | null;
   setCurrentProjectId: (id: string) => void;
   userId: string;
+  projects: Project[];
+  setProjects: React.Dispatch<React.SetStateAction<Project[]>>;
 }
 
-export const VerifyWiseContext = createContext<VerifyWiseContextProps>({
+const VerifyWiseContext = createContext<VerifyWiseContextProps>({
   uiValues: {},
   setUiValues: () => {},
   authValues: {},
@@ -34,5 +37,9 @@ export const VerifyWiseContext = createContext<VerifyWiseContextProps>({
   errorFetchingProjectStatus: false,
   currentProjectId: "",
   setCurrentProjectId: () => {},
-  userId: ""
+  userId: "",
+  projects: [],
+  setProjects: () => {},
 });
+
+export { VerifyWiseContext };

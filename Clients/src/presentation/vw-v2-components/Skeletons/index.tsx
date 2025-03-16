@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import { Skeleton, Stack, SxProps, Theme } from "@mui/material";
 
 // variants are text | rectangular | circular | rounded

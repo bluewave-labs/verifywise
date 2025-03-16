@@ -6,7 +6,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "start": "node dist/index.js",
-    "watch": "tsc-watch --onSuccess \"node dist/index.js\""
+    "postbuild": "node scripts/copyFiles.js",
+    "watch": "tsc-watch --onSuccess \"npm-run-all postbuild start\""
   },
   "author": "",
   "license": "ISC",
@@ -42,6 +43,7 @@
     "@types/swagger-ui-express": "^4.1.6",
     "@types/yamljs": "^0.2.34",
     "nodemon": "^3.1.7",
+    "npm-run-all": "^4.1.5",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "ts-node": "^10.9.2",

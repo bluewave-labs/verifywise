@@ -4,7 +4,7 @@ export type ProjectRisk = {
   id: number;
   project_id: number; // Foreign key to refer to the project
   risk_name: string;
-  risk_owner: string;
+  risk_owner: number;
   ai_lifecycle_phase:
     | "Problem definition & planning"
     | "Data collection & processing"
@@ -14,7 +14,7 @@ export type ProjectRisk = {
     | "Monitoring & maintenance"
     | "Decommissioning & retirement";
   risk_description: string;
-  risk_category: 
+  risk_category:
     | "Strategic risk"
     | "Operational risk"
     | "Compliance risk"
@@ -33,18 +33,8 @@ export type ProjectRisk = {
   impact: string;
   assessment_mapping: string;
   controls_mapping: string;
-  likelihood: 
-    | "Rare"
-    | "Unlikely"
-    | "Possible"
-    | "Likely"
-    | "Almost Certain";
-  severity: 
-    | "Negligible"
-    | "Minor"
-    | "Moderate"
-    | "Major"
-    | "Critical";
+  likelihood: "Rare" | "Unlikely" | "Possible" | "Likely" | "Almost Certain";
+  severity: "Negligible" | "Minor" | "Moderate" | "Major" | "Critical";
   risk_level_autocalculated:
     | "No risk"
     | "Low risk"
@@ -60,30 +50,26 @@ export type ProjectRisk = {
     | "Deferred"
     | "Canceled"
     | "Requires review";
-  current_risk_level: 
+  current_risk_level:
+    | "Very Low risk"
     | "Low risk"
     | "Medium risk"
     | "High risk"
-    | "Critical risk"
-    | "No risk";
+    | "Very high risk";
   deadline: Date;
   mitigation_plan: string;
   implementation_strategy: string;
   mitigation_evidence_document: string;
-  likelihood_mitigation: 
+  likelihood_mitigation:
     | "Rare"
     | "Unlikely"
     | "Possible"
     | "Likely"
     | "Almost Certain";
-  risk_severity: 
-    | "Negligible"
-    | "Minor"
-    | "Moderate"
-    | "Major"
-    | "Critical";
+  risk_severity: "Negligible" | "Minor" | "Moderate" | "Major" | "Critical";
   final_risk_level: string;
-  risk_approval: string;
+  risk_approval: number;
   approval_status: string;
   date_of_assessment: Date;
+  recommendations?: string;
 };

@@ -17,13 +17,21 @@ import { Button, Modal, Stack, Typography, useTheme } from "@mui/material";
 interface BasicModalProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  onDelete: () => void;
+  onDelete: (e:React.SyntheticEvent) => void;
+  onCancel: (e:React.SyntheticEvent) => void;
+  warningTitle: string;
+  warningMessage: string;
+  type: string;
 }
 
 const BasicModal: React.FC<BasicModalProps> = ({
   isOpen,
   setIsOpen,
   onDelete,
+  onCancel,
+  warningTitle,
+  warningMessage,
+  type
 }) => {
   const theme = useTheme();
   return (
@@ -49,15 +57,14 @@ const BasicModal: React.FC<BasicModalProps> = ({
         }}
       >
         <Typography id="modal-delete-vendor" fontSize={16} fontWeight={600}>
-          Delete this vendor?
+          {warningTitle}
         </Typography>
         <Typography
           id="delete-monitor-confirmation"
           fontSize={13}
           textAlign={"justify"}
         >
-          When you delete this vendor, all data related to this vendor will be
-          removed. This action is non-recoverable.
+          {warningMessage}
         </Typography>
         <Stack
           direction="row"
@@ -71,10 +78,7 @@ const BasicModal: React.FC<BasicModalProps> = ({
             disableTouchRipple
             variant="text"
             color="inherit"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsOpen(false);
-            }}
+            onClick={(e) => onCancel(e)}
             sx={{
               width: 100,
               textTransform: "capitalize",
@@ -104,9 +108,9 @@ const BasicModal: React.FC<BasicModalProps> = ({
                 boxShadow: "none",
               },
             }}
-            onClick={onDelete}
+            onClick={(e) => onDelete(e)}
           >
-            Delete vendor
+           {`Delete ${type}`}
           </Button>
         </Stack>
       </Stack>

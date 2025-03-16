@@ -78,7 +78,7 @@ export async function createAssessment(
         })
       );
     }
-    const createdAssessment = await createNewAssessmentQuery(newAssessment);
+    const createdAssessment = await createNewAssessmentQuery(newAssessment, false);
 
     if (createdAssessment) {
       return res.status(201).json(STATUS_CODE[201](createdAssessment));

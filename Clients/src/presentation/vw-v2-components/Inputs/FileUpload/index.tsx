@@ -11,23 +11,33 @@ import "@uppy/dashboard/dist/style.min.css";
 import VWButton from "../../Buttons";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 
 interface UppyUploadFileProps {
+  uppy: Uppy;
   evidence_files: any[];
   onClose: () => void;
   onConfirm: (files: any[]) => void;
 }
 
 const UppyUploadFile: React.FC<UppyUploadFileProps> = ({
+  uppy,
   evidence_files,
   onClose,
   onConfirm,
 }) => {
-  const theme = useTheme();
-  const [uppy] = useState(() => new Uppy());
+  const theme = useTheme()
   const [files, setFiles] = useState(evidence_files || []);
 
   useEffect(() => {
+    uppy.setOptions({
+      autoProceed: false,
+      restrictions: {
+        maxFileSize: 10000000,
+        maxNumberOfFiles: 5,
+        allowedFileTypes: ["application/pdf"],
+      },
+    });
     uppy.on("file-added", (file) => {
       setFiles((prevFiles) => [...prevFiles, file]);
     });
@@ -76,7 +86,7 @@ const UppyUploadFile: React.FC<UppyUploadFileProps> = ({
           <CloseIcon sx={{ width: 24, height: 24 }} />
         </IconButton>
       </Stack>
-      <Dashboard uppy={uppy} width={400} height={250} />
+      <Dashboard uppy={uppy} width={400} height={250} hideUploadButton={true} />
       <Stack
         sx={{
           width: "100%",
@@ -117,13 +127,16 @@ const UppyUploadFile: React.FC<UppyUploadFileProps> = ({
         }}
       >
         <VWButton
-          variant="contained"
-          color="primary"
-          size="small"
-          text="Confirm"
-          sx={{ width: 200 }}
-          onClick={handleConfirm}
-        />
+            variant="contained"
+            text="Upload"
+            sx={{
+              backgroundColor: "#13715B",
+              border: "1px solid #13715B",
+              gap: 2,
+            }}
+            icon={<UploadFileIcon />}
+            onClick={() => handleConfirm}
+          />
       </Stack>
     </Stack>
   );

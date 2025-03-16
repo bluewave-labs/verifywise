@@ -1,5 +1,6 @@
 import {
   Autocomplete,
+  Box,
   SelectChangeEvent,
   Stack,
   SxProps,
@@ -9,7 +10,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { ClearIcon } from "@mui/x-date-pickers/icons";
-import { Suspense, useCallback, useMemo, useState } from "react";
+import { Suspense, useCallback, useContext, useMemo, useState } from "react";
 import VWButton from "../../Buttons";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import Field from "../../../components/Inputs/Field";
@@ -25,6 +26,9 @@ import VWToast from "../../Toast"; // will be used when we wait for the response
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { useSelector } from "react-redux";
+import Checkbox from "../../../components/Inputs/Checkbox";
+import { Project } from "../../../../domain/Project";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -56,6 +60,7 @@ interface FormValues {
   ai_risk_classification: number;
   type_of_high_risk_role: number;
   goal: string;
+  enable_ai_data_insertion: boolean;
 }
 
 interface FormErrors {
@@ -76,6 +81,7 @@ const initialState: FormValues = {
   ai_risk_classification: 0,
   type_of_high_risk_role: 0,
   goal: "",
+  enable_ai_data_insertion: false,
 };
 
 interface VWProjectFormProps {
@@ -85,6 +91,7 @@ interface VWProjectFormProps {
 
 const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
   const theme = useTheme();
+  const { setProjects } = useContext(VerifyWiseContext);
   const [values, setValues] = useState<FormValues>(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
   const { users } = useUsers();
@@ -152,6 +159,13 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
       }));
     }
   }, []);
+
+  const handleCheckboxChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setValues({ ...values, enable_ai_data_insertion: event.target.checked });
+    },
+    [values]
+  );
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -224,6 +238,10 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
         });
 
         if (res.status === 201) {
+          setProjects((prevProjects: Project[]) => [
+            ...prevProjects,
+            res.data.data.project as Project,
+          ]);
           setTimeout(() => {
             setIsSubmitting(false);
             onClose();
@@ -389,8 +407,37 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
                       email: user.email,
                     })) || []
                 }
+                noOptionsText={
+                  values.members.length === users.length
+                    ? "All members selected"
+                    : "No options"
+                }
                 onChange={handleOnMultiSelect("members")}
                 getOptionLabel={(user) => `${user.name} ${user.surname}`}
+                renderOption={(props, option) => {
+                  const { key, ...optionProps } = props;
+                  const userEmail =
+                    option.email.length > 30
+                      ? `${option.email.slice(0, 30)}...`
+                      : option.email;
+                  return (
+                    <Box key={key} component="li" {...optionProps}>
+                      <Typography sx={{ fontSize: "13px" }}>
+                        {option.name} {option.surname}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: "11px",
+                          color: "rgb(157, 157, 157)",
+                          position: "absolute",
+                          right: "9px",
+                        }}
+                      >
+                        {userEmail}
+                      </Typography>
+                    </Box>
+                  );
+                }}
                 filterSelectedOptions
                 popupIcon={<KeyboardArrowDown />}
                 renderInput={(params) => (
@@ -420,6 +467,28 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
                     "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                       borderColor: "#888",
                       borderWidth: "1px",
+                    },
+                  },
+                }}
+                slotProps={{
+                  paper: {
+                    sx: {
+                      "& .MuiAutocomplete-listbox": {
+                        "& .MuiAutocomplete-option": {
+                          fontSize: "13px",
+                          color: "#1c2130",
+                          paddingLeft: "9px",
+                          paddingRight: "9px",
+                        },
+                        "& .MuiAutocomplete-option.Mui-focused": {
+                          background: "#f9fafb",
+                        },
+                      },
+                      "& .MuiAutocomplete-noOptions": {
+                        fontSize: "13px",
+                        paddingLeft: "9px",
+                        paddingRight: "9px",
+                      },
                     },
                   },
                 }}
@@ -460,6 +529,16 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
             error={errors.goal}
           />
         </Stack>
+      </Stack>
+      <Stack>
+        <Checkbox
+          size="small"
+          id="auto-fill"
+          onChange={handleCheckboxChange}
+          isChecked={values.enable_ai_data_insertion}
+          value={values.enable_ai_data_insertion.toString()}
+          label="Enable this option to automatically fill in the Compliance Tracker and Assessment Tracker questions with AI-generated answers, helping you save time. You can review and edit these answers anytime."
+        />
       </Stack>
       <Stack
         sx={{

@@ -10,6 +10,7 @@ import {
   RequestWithFile,
   UploadedFile,
   getQuestionBySubTopicIdQuery,
+  getQuestionByTopicIdQuery,
 } from "../utils/question.utils";
 import { Question } from "../models/question.model";
 
@@ -50,7 +51,7 @@ export async function getQuestionById(
 }
 
 export async function createQuestion(
-  req: RequestWithFile,
+  req: Request,
   res: Response
 ): Promise<any> {
   try {
@@ -71,8 +72,7 @@ export async function createQuestion(
     }
 
     const createdQuestion = await createNewQuestionQuery(
-      newQuestion,
-      req.files as UploadedFile[]
+      newQuestion
     );
 
     if (createdQuestion) {
@@ -86,25 +86,25 @@ export async function createQuestion(
 }
 
 export async function updateQuestionById(
-  req: RequestWithFile,
+  req: Request,
   res: Response
 ): Promise<any> {
   try {
     const questionId = parseInt(req.params.id);
-    const updatedQuestion: Question = req.body;
+    const body: { answer: string } = req.body;
 
-    if (!updatedQuestion) {
+    if (!body.answer
+    ) {
       return res.status(400).json(
         STATUS_CODE[400]({
-          message: "No values for updated Question",
+          message: "No values provided for answer for the Question",
         })
       );
     }
 
     const question = (await updateQuestionByIdQuery(
       questionId,
-      updatedQuestion,
-      req.files as UploadedFile[]
+      body.answer,
     )) as Question;
 
     if (!question) {
@@ -153,6 +153,30 @@ export async function getQuestionsBySubtopicId(req: Request, res: Response) {
     return res.status(404).json(
       STATUS_CODE[404]({
         message: "No questions found for the given subtopic ID",
+      })
+    );
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getQuestionsByTopicId(req: Request, res: Response) {
+  try {
+    const topicId = parseInt(req.params.id);
+    if (isNaN(topicId)) {
+      return res
+        .status(400)
+        .json(STATUS_CODE[400]({ message: "Invalid subtopic ID" }));
+    }
+
+    const questions = await getQuestionByTopicIdQuery(topicId);
+    if (questions && questions.length !== 0) {
+      return res.status(200).json(STATUS_CODE[200](questions));
+    }
+
+    return res.status(404).json(
+      STATUS_CODE[404]({
+        message: "No questions found for the given topic id",
       })
     );
   } catch (error) {

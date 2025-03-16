@@ -20,6 +20,22 @@ export const getVendorByIdQuery = async (
   return { ...result.rows[0], projects: projects.rows.map(p => p.project_id) }
 };
 
+export const getVendorByProjectIdQuery = async (
+  project_id: number
+): Promise<Vendor[] | null> => {
+  const result = await pool.query("SELECT vendor_id FROM vendors_projects WHERE project_id = $1", [project_id]);
+  if (!result.rows.length) return null;
+  const vendors: Vendor[] = []
+  for (let vendors_project of result.rows) {
+    const vendor = await pool.query("SELECT * FROM vendors WHERE id = $1", [vendors_project.vendor_id]);
+    // commenting as, for the current functionality, project and vendor have 1:1 mapping
+    // const projects = await pool.query("SELECT project_id FROM vendors_projects WHERE vendor_id = $1", [vendors_project.vendor_id])
+    // vendors.push({ ...vendor.rows[0], projects: projects.rows.map(p => p.project_id) })
+    vendors.push({ ...vendor.rows[0], projects: [project_id] })
+  }
+  return vendors
+};
+
 export const createNewVendorQuery = async (vendor: Vendor): Promise<Vendor | null> => {
   try {
     const result = await pool.query(
@@ -47,19 +63,21 @@ export const createNewVendorQuery = async (vendor: Vendor): Promise<Vendor | nul
       return null;
     }
 
-    const vendorId = result.rows[0].id;
+    const createdVendor = result.rows[0]
+    const vendorId = createdVendor.id;
 
     if (!vendor.projects || vendor.projects.length === 0) {
       console.error(" Error: vendor.projects is empty or undefined.");
-      return result.rows[0];
+      return createdVendor;
     }
 
-    await pool.query(
-      `INSERT INTO vendors_projects (vendor_id, project_id) VALUES ($1, $2)`,
+    const vendors_projects = await pool.query(
+      `INSERT INTO vendors_projects (vendor_id, project_id) VALUES ($1, $2) RETURNING *`,
       [vendorId, vendor.projects[0]]
     );
+    createdVendor["projects"] = vendors_projects.rows.map(p => p.project_id)
 
-    return result.rows[0];
+    return createdVendor;
   } catch (error) {
     console.error(" Error in createNewVendorQuery:", error);
     return null;

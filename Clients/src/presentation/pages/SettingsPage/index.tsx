@@ -1,40 +1,28 @@
-/**
- * This file is currently in use
- */
-
 import React, { useState } from "react";
-import { Tabs, Tab, Box, useTheme } from "@mui/material";
+import { Tabs, Tab, Stack } from "@mui/material";
 import Profile from "./Profile/index";
 import Password from "./Password/index";
 import TeamManagement from "./Team/index";
+import { settingTabStyle, tabContainerStyle, tabIndicatorStyle } from "./style";
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState(0);
-
-  const theme = useTheme();
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
 
   return (
-    <Box sx={{ width: "100%", marginLeft: theme.spacing(10) }}>
+    <Stack className="vwhome">
       <Tabs
         value={activeTab}
         onChange={handleTabChange}
-        sx={{
-          borderBottom: 1,
-          borderColor: "divider",
-          "& .MuiTab-root": { textTransform: "none" },
-          "& .Mui-selected": { color: theme.palette.primary.main },
-          "& .MuiTabs-indicator": {
-            backgroundColor: theme.palette.primary.main,
-          },
-        }}
+        TabIndicatorProps={tabIndicatorStyle}
+        sx={tabContainerStyle}
       >
-        <Tab label="Profile" disableRipple />
-        <Tab label="Password" disableRipple />
-        <Tab label="Team" disableRipple />
+        <Tab label="Profile" disableRipple sx={settingTabStyle} />
+        <Tab label="Password" disableRipple sx={settingTabStyle} />
+        <Tab label="Team" disableRipple sx={settingTabStyle} />
       </Tabs>
 
       {activeTab === 0 && <Profile />}
@@ -42,6 +30,6 @@ export default function ProfilePage() {
       {activeTab === 1 && <Password />}
 
       {activeTab === 2 && <TeamManagement />}
-    </Box>
+    </Stack>
   );
 }

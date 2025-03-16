@@ -20,6 +20,7 @@ import {
   resetPassword,
   updateUserById,
   calculateProgress,
+  ChangePassword,
 } from "../controllers/user.ctrl";
 import authenticateJWT from "../middleware/auth.middleware";
 
@@ -120,6 +121,8 @@ router.post("/reset-password", resetPassword);
  * @param {express.Response} res - Express response object
  */
 router.patch("/:id", /* authenticateJWT,*/ updateUserById);
+
+router.patch("/chng-pass/:id", /* authenticateJWT,*/ ChangePassword);
 
 /**
  * DELETE /users/:id

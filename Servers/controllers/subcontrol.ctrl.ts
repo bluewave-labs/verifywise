@@ -52,12 +52,16 @@ export async function createNewSubcontrol(
   res: Response
 ): Promise<any> {
   try {
-    const subcontrol: Subcontrol = req.body;
+    const subcontrol: Subcontrol & { user_id: number, project_id: number } = req.body;
 
-    const controlIdFK = req.body.controlId;
+    const controlIdFK = subcontrol.control_id;
+    const project_id = subcontrol.project_id
+    const user_id = subcontrol.user_id
     const newSubcontrol = await createNewSubcontrolQuery(
       controlIdFK,
       subcontrol,
+      project_id,
+      user_id,
       (
         req.files as {
           [key: string]: UploadedFile[];
@@ -86,11 +90,13 @@ export async function updateSubcontrolById(
 ): Promise<any> {
   try {
     const subcontrolId = parseInt(req.params.id);
-    const subcontrol: Partial<Subcontrol> = req.body;
+    const subcontrol: Partial<Subcontrol> & { user_id: number, project_id: number } = req.body;
 
     const updatedSubcontrol = await updateSubcontrolByIdQuery(
       subcontrolId,
-      subcontrol
+      subcontrol,
+      subcontrol.project_id,
+      subcontrol.user_id
     );
 
     if (updatedSubcontrol) {

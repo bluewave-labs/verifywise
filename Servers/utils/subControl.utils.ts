@@ -30,27 +30,35 @@ export const getSubcontrolByIdQuery = async (
 export const createNewSubcontrolQuery = async (
   controlId: number,
   subcontrol: Partial<Subcontrol>,
+  project_id: number,
+  user_id: number,
   evidenceFiles?: UploadedFile[],
   feedbackFiles?: UploadedFile[]
 ): Promise<Subcontrol> => {
-  let uploadedEvidenceFiles: { id: number; fileName: string }[] = [];
+  let uploadedEvidenceFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[] = [];
   await Promise.all(
     evidenceFiles!.map(async (file) => {
-      const uploadedFile = await uploadFile(file);
+      const uploadedFile = await uploadFile(file, user_id, project_id);
       uploadedEvidenceFiles.push({
         id: uploadedFile.id.toString(),
         fileName: uploadedFile.filename,
+        project_id: uploadedFile.project_id,
+        uploaded_by: uploadedFile.uploaded_by,
+        uploaded_time: uploadedFile.uploaded_time
       });
     })
   );
 
-  let uploadedFeedbackFiles: { id: number; fileName: string }[] = [];
+  let uploadedFeedbackFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[] = [];
   await Promise.all(
     feedbackFiles!.map(async (file) => {
-      const uploadedFile = await uploadFile(file);
+      const uploadedFile = await uploadFile(file, user_id, project_id);
       uploadedFeedbackFiles.push({
         id: uploadedFile.id.toString(),
         fileName: uploadedFile.filename,
+        project_id: uploadedFile.project_id,
+        uploaded_by: uploadedFile.uploaded_by,
+        uploaded_time: uploadedFile.uploaded_time
       });
     })
   );
@@ -87,13 +95,15 @@ export const createNewSubcontrolQuery = async (
 export const updateSubcontrolByIdQuery = async (
   id: number,
   subcontrol: Partial<Subcontrol>,
+  project_id: number,
+  user_id: number,
   evidenceFiles?: UploadedFile[],
   feedbackFiles?: UploadedFile[]
 ): Promise<Subcontrol | null> => {
   let uploadedEvidenceFiles: { id: number; fileName: string }[] = [];
   await Promise.all(
     evidenceFiles!.map(async (file) => {
-      const uploadedFile = await uploadFile(file);
+      const uploadedFile = await uploadFile(file, user_id, project_id);
       uploadedEvidenceFiles.push({
         id: uploadedFile.id.toString(),
         fileName: uploadedFile.filename,
@@ -104,7 +114,7 @@ export const updateSubcontrolByIdQuery = async (
   let uploadedFeedbackFiles: { id: number; fileName: string }[] = [];
   await Promise.all(
     feedbackFiles!.map(async (file) => {
-      const uploadedFile = await uploadFile(file);
+      const uploadedFile = await uploadFile(file, user_id, project_id);
       uploadedFeedbackFiles.push({
         id: uploadedFile.id.toString(),
         fileName: uploadedFile.filename,
@@ -159,14 +169,32 @@ export const createNewSubControlsQuery = async (
     order_no: number;
     title: string;
     description: string;
-  }[]
+    implementation_details: string;
+    evidence_description?: string;
+    feedback_description?: string;
+  }[],
+  enable_ai_data_insertion: boolean
 ) => {
   let query =
-    "INSERT INTO subcontrols(title, description, control_id, order_no) VALUES ";
-  const data = subControls.map((d) => {
-    return `('${d.title}', '${d.description}', ${controlId}, ${d.order_no})`;
-  });
-  query += data.join(",") + " RETURNING *;";
-  const result = await pool.query(query);
-  return result.rows;
+    `INSERT INTO subcontrols(
+      title, description, control_id, order_no,
+      implementation_details, evidence_description,
+      feedback_description, status
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`;
+  let createdSubControls: Subcontrol[] = []
+  for (let subControl of subControls) {
+    const result = await pool.query(
+      query, [
+      subControl.title,
+      subControl.description,
+      controlId,
+      subControl.order_no,
+      enable_ai_data_insertion ? subControl.implementation_details : null,
+      enable_ai_data_insertion && subControl.evidence_description ? subControl.evidence_description : null,
+      enable_ai_data_insertion && subControl.feedback_description ? subControl.feedback_description : null,
+      enable_ai_data_insertion ? 'Waiting' : null
+    ])
+    createdSubControls = createdSubControls.concat(result.rows)
+  }
+  return createdSubControls
 };

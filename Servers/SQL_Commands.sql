@@ -21,7 +21,6 @@ CREATE TABLE projects (
   id SERIAL PRIMARY KEY,
   project_title VARCHAR(255),
   owner INTEGER REFERENCES users(id),
-  members TEXT[],
   start_date DATE,
   ai_risk_classification VARCHAR(255),
   type_of_high_risk_role VARCHAR(255),
@@ -36,12 +35,12 @@ CREATE TABLE vendors (
   order_no INT,
   vendor_name VARCHAR(255),
   vendor_provides TEXT,
-  assignee VARCHAR(255),
+  assignee INTEGER REFERENCES users(id),
   website VARCHAR(255),
   vendor_contact_person VARCHAR(255),
   review_result VARCHAR(255),
   review_status VARCHAR(255),
-  reviewer VARCHAR(255),
+  reviewer INTEGER REFERENCES users(id),
   risk_status VARCHAR(255),
   review_date DATE,
   is_demo BOOLEAN
@@ -66,10 +65,10 @@ CREATE TABLE controls (
   title TEXT,
   description TEXT,
   status VARCHAR(255),
-  approver VARCHAR(255),
+  approver INTEGER REFERENCES users(id),
   risk_review TEXT,
-  owner VARCHAR(255),
-  reviewer VARCHAR(255),
+  owner INTEGER REFERENCES users(id),
+  reviewer INTEGER REFERENCES users(id),
   due_date DATE,
   implementation_details TEXT,
   order_no INT,
@@ -84,10 +83,10 @@ CREATE TABLE subcontrols (
   description TEXT,
   order_no INT,
   status VARCHAR(255),
-  approver VARCHAR(255),
+  approver INTEGER REFERENCES users(id),
   risk_review TEXT,
-  owner VARCHAR(255),
-  reviewer VARCHAR(255),
+  owner INTEGER REFERENCES users(id),
+  reviewer INTEGER REFERENCES users(id),
   due_date DATE,
   implementation_details TEXT,
   evidence_description TEXT,
@@ -101,7 +100,7 @@ CREATE TABLE projectrisks (
   id SERIAL PRIMARY KEY,
   project_id INT REFERENCES projects(id),
   risk_name VARCHAR(255),
-  risk_owner VARCHAR(255),
+  risk_owner INTEGER REFERENCES users(id),
   ai_lifecycle_phase VARCHAR(255),
   risk_description TEXT,
   risk_category VARCHAR(255),
@@ -121,7 +120,7 @@ CREATE TABLE projectrisks (
   likelihood_mitigation VARCHAR(255),
   risk_severity VARCHAR(255),
   final_risk_level VARCHAR(255),
-  risk_approval VARCHAR(255),
+  risk_approval INTEGER REFERENCES users(id),
   approval_status VARCHAR(255),
   date_of_assessment DATE,
   is_demo BOOLEAN
@@ -137,7 +136,7 @@ CREATE TABLE vendorrisks (
   likelihood VARCHAR(255),
   risk_severity VARCHAR(255),
   action_plan TEXT,
-  action_owner VARCHAR(255),
+  action_owner INTEGER REFERENCES users(id),
   risk_level VARCHAR(255),
   is_demo BOOLEAN
 );
@@ -146,6 +145,13 @@ CREATE TABLE vendors_projects (
   vendor_id INT REFERENCES vendors(id),
   project_id INT REFERENCES projects(id),
   PRIMARY KEY (vendor_id, project_id),
+  is_demo BOOLEAN
+);
+
+CREATE TABLE projects_members (
+  user_id INT REFERENCES users(id),
+  project_id INT REFERENCES projects(id),
+  PRIMARY KEY (user_id, project_id),
   is_demo BOOLEAN
 );
 
@@ -200,6 +206,9 @@ CREATE TABLE files (
   id SERIAL PRIMARY KEY,
   filename TEXT NOT NULL,
   content BYTEA NOT NULL,
+  project_id INT REFERENCES projects(id),
+  uploaded_by INTEGER REFERENCES users(id),
+  uploaded_time TIMESTAMP,
   is_demo BOOLEAN
 );
 

@@ -18,6 +18,21 @@ import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import { Subcontrol } from "../../../../domain/Subcontrol";
 import { Control } from "../../../../domain/Control";
 import Alert from "../../Alert";
+import VWToast from "../../../vw-v2-components/Toast";
+import SaveIcon from "@mui/icons-material/Save";
+import VWButton from "../../../vw-v2-components/Buttons";
+
+const tabStyle = {
+  textTransform: "none",
+  fontWeight: 400,
+  alignItems: "flex-start",
+  justifyContent: "flex-end",
+  padding: "16px 0 7px",
+  minHeight: "20px",
+  "&.Mui-selected": {
+    color: "#13715B",
+  },
+};
 
 const NewControlPane = ({
   data,
@@ -25,12 +40,14 @@ const NewControlPane = ({
   handleClose,
   controlCategoryId,
   OnSave,
+  onComplianceUpdate,
 }: {
   data: Control;
   isOpen: boolean;
   handleClose: () => void;
   controlCategoryId?: string;
   OnSave?: (state: Control) => void;
+  onComplianceUpdate?: () => void;
 }) => {
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
@@ -40,6 +57,14 @@ const NewControlPane = ({
     type: "success" | "error";
     message: string;
   } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const sanitizeField = (value: string | undefined | null): string => {
+    if (!value || value === "undefined") {
+      return "";
+    }
+    return value;
+  };
 
   const initialSubControlState = data
     .subControls!.slice()
@@ -57,8 +82,8 @@ const NewControlPane = ({
       reviewer: subControl.reviewer,
       implementation_details: subControl.implementation_details,
       due_date: subControl.due_date,
-      evidence_description: subControl.evidence_description,
-      feedback_description: subControl.feedback_description,
+      evidence_description: sanitizeField(subControl.evidence_description),
+      feedback_description: sanitizeField(subControl.feedback_description),
       evidence_files: subControl.evidence_files,
       feedback_files: subControl.feedback_files,
     }));
@@ -119,25 +144,9 @@ const NewControlPane = ({
     },
   };
 
-  const buttonStyle = {
-    fontSize: 13,
-    textTransform: "capitalize",
-    backgroundColor: "#4C7DE7",
-    boxShadow: "none",
-    borderRadius: "4px",
-    border: "1px solid #175CD3",
-    "&:hover": {
-      boxShadow: "none",
-      backgroundColor: "#175CD3 ",
-    },
-  };
-
-  const handleSave = () => {
-    setIsModalOpen(true);
-  };
-
   const confirmSave = async () => {
     console.log("state controlToSave : ", state);
+    setIsSubmitting(true);
     try {
       const response = await updateEntityById({
         routeUrl: `/controls/saveControls/${state.id}`,
@@ -145,18 +154,25 @@ const NewControlPane = ({
       });
       console.log("Controls updated successfully:", response);
       setAlert({ type: "success", message: "Controls updated successfully" });
+      // Call both update functions after successful save
+      OnSave?.(state);
+      onComplianceUpdate?.();
+      
       setTimeout(() => {
         setAlert(null);
         handleClose();
+        setIsSubmitting(false);
       }, 3000);
     } catch (error) {
       console.error("Error updating controls:", error);
       setAlert({ type: "error", message: "Error updating controls" });
-    }
-    if (OnSave) {
-      OnSave(state);
+      setIsSubmitting(false);
     }
     setIsModalOpen(false);
+  };
+
+  const handleCloseWrapper = () => {
+    handleClose();
   };
 
   return (
@@ -167,7 +183,7 @@ const NewControlPane = ({
             position: "fixed",
             top: theme.spacing(2),
             right: theme.spacing(2),
-            zIndex: 1400, // Ensure it's on top of other components including DualButtonModal
+            zIndex: 1400,
           }}
         >
           <Alert
@@ -179,24 +195,30 @@ const NewControlPane = ({
         </Box>
       )}
 
-      {isModalOpen && (
-        <DualButtonModal
-          title="Confirm Save"
-          body={
-            <Typography>Are you sure you want to save the changes?</Typography>
-          }
-          cancelText="Cancel"
-          proceedText="Save"
-          onCancel={() => setIsModalOpen(false)}
-          onProceed={confirmSave}
-          proceedButtonColor="primary"
-          proceedButtonVariant="contained"
-        />
+      {isSubmitting && (
+        <Stack
+          sx={{
+            width: "100%",
+            height: "100%",
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "rgba(255, 255, 255, 0.8)",
+            zIndex: 9999,
+          }}
+        >
+          <VWToast title="Saving control. Please wait..." />
+        </Stack>
       )}
       <Modal
         id={`${data.id}-modal`}
         open={isOpen}
-        onClose={handleClose}
+        onClose={handleCloseWrapper}
         className="new-control-pane-modal"
         sx={{ zIndex: 1100 }}
       >
@@ -236,7 +258,26 @@ const NewControlPane = ({
             >
               {`${controlCategoryId + "." + data.order_no}`} {data.title}
             </Typography>
-            <CloseIcon onClick={handleClose} style={{ cursor: "pointer" }} />
+            <Box
+              component="div"
+              role="button"
+              tabIndex={0}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCloseWrapper();
+              }}
+              sx={{
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                padding: "8px",
+                "&:hover": {
+                  opacity: 0.8,
+                },
+              }}
+            >
+              <CloseIcon />
+            </Box>
           </Stack>
           <Typography fontSize={13}>{data.description}</Typography>
           <DropDowns
@@ -258,9 +299,11 @@ const NewControlPane = ({
             <Tabs
               value={selectedTab}
               onChange={handleSelectedTab}
-              indicatorColor="primary"
-              textColor="primary"
-              sx={{ justifyContent: "flex-start" }}
+              TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
+              sx={{
+                minHeight: "20px",
+                "& .MuiTabs-flexContainer": { columnGap: "34px" },
+              }}
             >
               {state.subControls!.map((subControl, index) => (
                 <Tab
@@ -268,7 +311,7 @@ const NewControlPane = ({
                   key={subControl.id}
                   label={`Subcontrol ${index + 1}`}
                   disableRipple
-                  sx={{ textTransform: "none" }}
+                  sx={tabStyle}
                 />
               ))}
             </Tabs>
@@ -374,20 +417,17 @@ const NewControlPane = ({
               mt: 2,
             }}
           >
-            <Button
+            <VWButton
               variant="contained"
-              onClick={handleSave}
+              text="Save"
               sx={{
-                ...buttonStyle,
-                width: 68,
-                "&:hover": {
-                  backgroundColor: "#175CD3 ",
-                },
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
+                gap: 2,
               }}
-              disableRipple
-            >
-              Save
-            </Button>
+              onClick={confirmSave}
+              icon={<SaveIcon />}
+            />
           </Stack>
         </Stack>
       </Modal>

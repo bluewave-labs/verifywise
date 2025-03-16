@@ -27,7 +27,7 @@ export type ProjectRisk = {
 
 export interface RiskFormValues {
   riskName: string;
-  actionOwner: number | string;
+  actionOwner: number;
   aiLifecyclePhase: number;
   riskDescription: string;
   riskCategory: number;
@@ -64,7 +64,7 @@ export interface MitigationFormValues {
   approver: number;
   approvalStatus: number;
   dateOfAssessment: string;
-  recommendations?: string;
+  recommendations: string;
 }
 
 export interface MitigationFormErrors {

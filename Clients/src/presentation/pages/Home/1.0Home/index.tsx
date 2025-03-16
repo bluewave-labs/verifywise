@@ -105,6 +105,7 @@ const VWHome = () => {
           "/projects/all/assessment/progress",
           setAssessmentProgress
         );
+        window.location.reload();
       } else {
         logEngine({
           type: "error",

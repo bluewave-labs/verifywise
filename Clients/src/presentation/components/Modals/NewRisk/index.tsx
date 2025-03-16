@@ -423,7 +423,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
       >
         <Select
           items={VENDOR_OPTIONS}
-          label="vendor*"
+          label="vendor"
           placeholder="Select vendor"
           isHidden={false}
           id=""
@@ -436,7 +436,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           isRequired
         />
         <Field
-          label="Risk description*"
+          label="Risk description"
           width={350}
           value={values.risk_description}
           onChange={(e) => handleOnChange("risk_description", e.target.value)}
@@ -451,7 +451,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
       >
         <Select
           items={IMPACT_OPTIONS}
-          label="Impact*"
+          label="Impact"
           placeholder="Select impact"
           isHidden={false}
           id=""
@@ -474,7 +474,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
               name: RiskLikelihood.AlmostCertain,
             },
           ]}
-          label="Likelihood*"
+          label="Likelihood"
           placeholder="Select risk severity"
           isHidden={false}
           id=""
@@ -506,7 +506,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
               { _id: Severity.Major, name: RiskSeverity.Major },
               { _id: Severity.Critical, name: RiskSeverity.Critical },
             ]}
-            label="Risk severity*"
+            label="Risk severity"
             placeholder="Select risk severity"
             isHidden={false}
             id=""
@@ -521,7 +521,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
 
           <Select
             items={formattedUsers}
-            label="Action owner*"
+            label="Action owner"
             placeholder="Select owner"
             isHidden={false}
             id=""
@@ -534,7 +534,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             isRequired
           />
           <Field
-            label="Impact description*"
+            label="Impact description"
             width={350}
             value={values.impact_description}
             onChange={(e) =>
@@ -546,7 +546,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
         </Box>
 
         <Field
-          label="Action plan*"
+          label="Action plan"
           width={350}
           type="description"
           value={values.action_plan}

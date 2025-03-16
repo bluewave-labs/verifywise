@@ -20,14 +20,16 @@ import {
   Typography,
   useTheme,
   SelectChangeEvent,
+  Box,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import ForwardToInboxIcon from '@mui/icons-material/ForwardToInbox';
 import VWButton from "../../../vw-v2-components/Buttons";
+import { useRoles } from "../../../../application/hooks/useRoles";
 
 interface InviteUserModalProps {
   isOpen: boolean;
@@ -50,7 +52,7 @@ interface FormErrors {
 const initialState: FormValues = {
   name: "",
   email: "",
-  role: "administrator",
+  role: "1",
 };
 
 const InviteUserModal: React.FC<InviteUserModalProps> = ({
@@ -59,9 +61,29 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
   onSendInvite,
 }) => {
   const theme = useTheme();
+  const { roles } = useRoles();
+
+  const roleItems = useMemo(
+    () => roles.map(role => ({ 
+      _id: role.id.toString(),
+      name: role.name 
+    })),
+    [roles]
+  );
 
   const [values, setValues] = useState<FormValues>(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
+
+  // Reset form and set initial role when modal opens
+  useEffect(() => {
+    if (isOpen && roles.length > 0) {
+      setValues({
+        ...initialState,
+        role: roles[0].id.toString()
+      });
+      setErrors({});
+    }
+  }, [isOpen, roles]);
 
   const handleFormFieldChange =
     (prop: keyof FormValues) =>
@@ -176,18 +198,18 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
             isRequired
             error={errors.email}
           />
-          <Select
-            id="role-select"
-            value={values.role ?? "administrator"}
-            onChange={handleOnSelectChange("role")}
-            items={[
-              { _id: "administrator", name: "Administrator" },
-              { _id: "reviewer", name: "Reviewer" },
-              { _id: "editor", name: "Editor" },
-            ]}
-            error={errors.role}
-            isRequired
-          />
+          <Stack direction="row" alignItems="center" spacing={2} width="100%">
+            <Box flexGrow={1}>
+              <Select
+                id="role-select"
+                value={values.role}
+                onChange={handleOnSelectChange("role")}
+                items={roleItems}
+                error={errors.role}
+                isRequired
+              />
+            </Box>
+          </Stack>
         </Stack>
         <Stack
           direction="row"

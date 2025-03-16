@@ -27,10 +27,10 @@ import AddNewRisk from "../../components/Modals/NewRisk";
 import VWButton from "../../vw-v2-components/Buttons";
 import VWSkeleton from "../../vw-v2-components/Skeletons";
 import VWToast from "../../vw-v2-components/Toast";
-import useProjectRisks from "../../../application/hooks/useProjectRisks";
 import { Project } from "../../../domain/Project";
 import RisksCard from "../../components/Cards/RisksCard";
 import { vwhomeHeading } from "../Home/1.0Home/style";
+import useVendorRisks from "../../../application/hooks/useVendorRisks";
 
 interface ExistingRisk {
   id?: number;
@@ -74,9 +74,11 @@ const Vendors = () => {
     null
   );
   const [selectedRisk, setSelectedRisk] = useState<ExistingRisk | null>(null);
+  const [controller, setController] = useState<AbortController | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
   const { selectedProjectId } = dashboardValues;
-  const { projectRisksSummary } = useProjectRisks({
-    projectId: selectedProjectId?.toString(),
+  const { vendorRisksSummary } = useVendorRisks({
+    projectId: selectedProjectId?.toString(),refreshKey
   });
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -92,7 +94,14 @@ const Vendors = () => {
       ),
     },
   ];
-
+  const createAbortController = () => {
+    if (controller) {
+      controller.abort(); 
+    }
+    const newController = new AbortController();
+    setController(newController);
+    return newController.signal;
+  };
   const openAddNewVendor = () => {
     setIsOpen(true);
   };
@@ -121,45 +130,67 @@ const Vendors = () => {
   }, [selectedProjectId]);
 
   const fetchVendors = useCallback(async () => {
+    const signal = createAbortController();
+    if (signal.aborted) return;
     setIsVendorsLoading(true);
+    if (!selectedProjectId) return;
     try {
       const response = await getAllEntities({
         routeUrl: `/vendors/project-id/${selectedProjectId}`,
+        signal,
       });
-      setDashboardValues((prevValues: any) => ({
-        ...prevValues,
-        vendors: response.data,
-      }));
-      setIsVendorsLoading(false);
+      if (response?.data) {
+        setDashboardValues((prevValues: any) => ({
+          ...prevValues,
+          vendors: response.data,
+        }));
+        setRefreshKey((prevKey) => prevKey + 1);    
+      }
     } catch (error) {
       console.error("Error fetching vendors:", error);
+    } finally {
+      setIsVendorsLoading(false);
     }
   }, [selectedProjectId]);
 
   const fetchRisks = useCallback(async () => {
+    const signal = createAbortController();
+    if (signal.aborted) return;
     setIsRisksLoading(true);
+    if (!selectedProjectId) return;
     try {
       const response = await getAllEntities({
         routeUrl: `/vendorRisks/by-projid/${selectedProjectId}`,
+        signal,
       });
-      setDashboardValues((prevValues: any) => ({
-        ...prevValues,
-        vendorRisks: response.data,
-      }));
-      setIsRisksLoading(false);
+      if (response?.data) {
+        setDashboardValues((prevValues: any) => ({
+          ...prevValues,
+          vendorRisks: response.data,
+          selectedProjectId: selectedProjectId,
+        }));
+        setRefreshKey((prevKey) => prevKey + 1);    
+      }
     } catch (error) {
       console.error("Error fetching vendorRisks:", error);
+    } finally {
+      setIsRisksLoading(false);
     }
   }, [selectedProjectId]);
 
   useEffect(() => {
     fetchVendors();
     setRunVendorTour(true);
+    return () => {
+      controller?.abort();
+    };
   }, [selectedProjectId]);
 
   useEffect(() => {
-    if (!selectedProjectId) return;
     fetchRisks();
+    return () => {
+      controller?.abort();
+    };
   }, [selectedProjectId]);
 
   const handleDeleteVendor = async (vendorId: number) => {
@@ -189,7 +220,7 @@ const Vendors = () => {
         setTimeout(() => {
           setAlert(null);
         }, 3000);
-        fetchVendors();
+        await fetchVendors();
       } else if (response.status === 404) {
         setAlert({
           variant: "error",
@@ -218,6 +249,8 @@ const Vendors = () => {
     }
   };
   const handleDeleteRisk = async (vendorId: number) => {
+    const controller = new AbortController();
+    const signal = controller.signal;
     setIsSubmitting(true);
     const user: User = {
       id: Number(localStorage.getItem("userId")) || -1,
@@ -227,7 +260,7 @@ const Vendors = () => {
     };
     try {
       const response = await deleteEntityById({
-        routeUrl: `/vendorRisks/${vendorId}`,
+        routeUrl: `/vendorRisks/${vendorId}`,signal
       });
 
       if (response.status === 202) {
@@ -238,7 +271,8 @@ const Vendors = () => {
         setTimeout(() => {
           setAlert(null);
         }, 3000);
-        fetchRisks();
+
+        await fetchRisks();
       } else if (response.status === 404) {
         setAlert({
           variant: "error",
@@ -392,7 +426,7 @@ const Vendors = () => {
             (isRisksLoading ? (
               <VWSkeleton variant="rectangular" width="50%" height={100} />
             ) : (
-              project && <RisksCard projectRisksSummary={projectRisksSummary} />
+              project && <RisksCard risksSummary={vendorRisksSummary} />
             ))}
           {isVendorsLoading && value === "1" ? (
             <VWSkeleton

@@ -194,7 +194,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
       )}
       {isLoading.loading && <VWToast title={isLoading.message} />}
       <Stack className="vw-project-risks-row" sx={rowStyle}>
-        <RisksCard projectRisksSummary={projectRisksSummary} />
+        <RisksCard risksSummary={projectRisksSummary} />
       </Stack>
       <br />
       <Stack

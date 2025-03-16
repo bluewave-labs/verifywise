@@ -148,6 +148,13 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       : [];
   }, [projects]);
 
+    useEffect(() => {
+      if (!isOpen) {
+        setValues(initialState); 
+        setErrors({} as FormErrors); 
+      }
+    }, [isOpen]);
+
   useEffect(() => {
     if (isOpen && !projectsLoaded) {
       setProjectOptions(formattedProjects);

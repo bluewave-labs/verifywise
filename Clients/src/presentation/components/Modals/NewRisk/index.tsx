@@ -171,7 +171,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           IMPACT_OPTIONS.find((r) => r.name === existingRisk.impact)?._id || 0,
         action_owner:
           formattedUsers?.find(
-            (user) => user.name === existingRisk.action_owner
+            (user) => user._id === existingRisk.action_owner
           )?._id || "",
         risk_severity:
           RISK_SEVERITY_OPTIONS.find(
@@ -258,15 +258,6 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
     if (!values.vendor_id || Number(values.vendor_id) === 0) {
       newErrors.vendor_id = "Please select a vendor from the dropdown";
     }
-    // const action_owner = checkStringValidation(
-    //   "Risk Action Owner",
-    //   values.action_owner,
-    //   1,
-    //   64
-    // );
-    // if (!action_owner.accepted) {
-    //   newErrors.action_owner = action_owner.message;
-    // }
     if (
       !values.action_owner||
       Number(values.action_owner) === 0

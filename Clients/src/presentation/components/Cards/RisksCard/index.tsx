@@ -6,7 +6,7 @@ import {
   projectRisksTileCardvalue,
 } from "./style";
 
-type projectRisksSummary = {
+type risksSummary = {
   veryHighRisks: number;
   highRisks: number;
   mediumRisks: number;
@@ -15,9 +15,9 @@ type projectRisksSummary = {
 };
 
 const RisksCard = ({
-  projectRisksSummary,
+  risksSummary,
 }: {
-  projectRisksSummary: projectRisksSummary;
+  risksSummary: risksSummary;
 }) => {
   const getValidRiskValue = (value: number) => (isNaN(value) ? 0 : value);
 
@@ -29,7 +29,7 @@ const RisksCard = ({
       >
         <Typography sx={projectRisksTileCardKey}>Very High</Typography>
         <Typography sx={projectRisksTileCardvalue}>
-          {getValidRiskValue(projectRisksSummary.veryHighRisks)}
+          {getValidRiskValue(risksSummary.veryHighRisks)}
         </Typography>
       </Stack>
       <Stack
@@ -38,7 +38,7 @@ const RisksCard = ({
       >
         <Typography sx={projectRisksTileCardKey}>High</Typography>
         <Typography sx={projectRisksTileCardvalue}>
-          {getValidRiskValue(projectRisksSummary.highRisks)}
+          {getValidRiskValue(risksSummary.highRisks)}
         </Typography>
       </Stack>
       <Stack
@@ -47,7 +47,7 @@ const RisksCard = ({
       >
         <Typography sx={projectRisksTileCardKey}>Medium</Typography>
         <Typography sx={projectRisksTileCardvalue}>
-          {getValidRiskValue(projectRisksSummary.mediumRisks)}
+          {getValidRiskValue(risksSummary.mediumRisks)}
         </Typography>
       </Stack>
       <Stack
@@ -56,7 +56,7 @@ const RisksCard = ({
       >
         <Typography sx={projectRisksTileCardKey}>Low</Typography>
         <Typography sx={projectRisksTileCardvalue}>
-          {getValidRiskValue(projectRisksSummary.lowRisks)}
+          {getValidRiskValue(risksSummary.lowRisks)}
         </Typography>
       </Stack>
       <Stack
@@ -65,7 +65,7 @@ const RisksCard = ({
       >
         <Typography sx={projectRisksTileCardKey}>Very Low</Typography>
         <Typography sx={projectRisksTileCardvalue}>
-          {getValidRiskValue(projectRisksSummary.veryLowRisks)}
+          {getValidRiskValue(risksSummary.veryLowRisks)}
         </Typography>
       </Stack>
     </Stack>

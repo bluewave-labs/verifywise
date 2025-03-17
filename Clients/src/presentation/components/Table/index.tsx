@@ -24,7 +24,7 @@ interface TableProps {
     rows: any[];
     cols: { id: string; name: string }[];
   };
-  bodyData?: any[];
+  bodyData: any[];
   paginated?: boolean;
   reversed?: boolean;
   table: string;

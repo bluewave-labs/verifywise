@@ -104,7 +104,7 @@ const IMPACT_OPTIONS = [
 ];
 
 const RISK_SEVERITY_OPTIONS = [
-  { _id: 1, name: "No risk" },
+  { _id: 1, name: "Very low risk" },
   { _id: 2, name: "Low risk" },
   { _id: 3, name: "Medium risk" },
   { _id: 4, name: "High risk" },

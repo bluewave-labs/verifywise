@@ -158,6 +158,12 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
   }));
+  useEffect(() => {
+    if (!isOpen) {
+      setValues(initialState); 
+      setErrors({} as FormErrors); 
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen && !existingRisk) {

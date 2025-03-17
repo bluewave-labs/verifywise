@@ -1,13 +1,12 @@
 import { VendorRisk } from "../models/vendorRisk.model";
 import pool from "../database/db";
 
-export const getAllVendorRisksQuery = async (
-  vendorId: number
+export const getVendorRisksByProjectIdQuery = async (
+  projectId: number
 ): Promise<VendorRisk[]> => {
-  console.log("getAllVendorRisks for vendor", vendorId);
   const vendorRisks = await pool.query(
-    "SELECT * FROM vendorRisks WHERE vendor_id = $1",
-    [vendorId]
+    "SELECT * FROM vendorRisks WHERE vendor_id IN (SELECT vendor_id FROM vendors_projects WHERE project_id = $1);",
+    [projectId]
   );
   return vendorRisks.rows;
 };

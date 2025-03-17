@@ -95,44 +95,36 @@ export const createNewSubcontrolQuery = async (
 export const updateSubcontrolByIdQuery = async (
   id: number,
   subcontrol: Partial<Subcontrol>,
-  project_id: number,
-  user_id: number,
-  evidenceFiles?: UploadedFile[],
-  feedbackFiles?: UploadedFile[]
+  evidenceUploadedFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[],
+  feedbackUploadedFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[],
+  deletedFiles: number[]
 ): Promise<Subcontrol | null> => {
-  let uploadedEvidenceFiles: { id: number; fileName: string }[] = [];
-  await Promise.all(
-    evidenceFiles!.map(async (file) => {
-      const uploadedFile = await uploadFile(file, user_id, project_id);
-      uploadedEvidenceFiles.push({
-        id: uploadedFile.id.toString(),
-        fileName: uploadedFile.filename,
-      });
-    })
+  const files = await pool.query(
+    `SELECT evidence_files, feedback_files FROM subcontrols WHERE id = $1`,
+    [id]
   );
 
-  let uploadedFeedbackFiles: { id: number; fileName: string }[] = [];
-  await Promise.all(
-    feedbackFiles!.map(async (file) => {
-      const uploadedFile = await uploadFile(file, user_id, project_id);
-      uploadedFeedbackFiles.push({
-        id: uploadedFile.id.toString(),
-        fileName: uploadedFile.filename,
-      });
-    })
-  );
+  let currentEvidenceFiles = (files.rows[0].evidence_files as string[]).map(f => JSON.parse(f) as {
+    id: string; fileName: string; project_id: number; uploaded_by: number; uploaded_time: Date;
+  })
+  let currentFeedbackFiles = (files.rows[0].feedback_files as string[]).map(f => JSON.parse(f) as {
+    id: string; fileName: string; project_id: number; uploaded_by: number; uploaded_time: Date;
+  })
 
-  // control_id, subControlTitle, subControlDescription, status, approver, risk_review, owner, reviewer, due_date,
-  //     implementation_details, evidence, feedback, evidenceFiles, feedbackFiles
+  currentEvidenceFiles = currentEvidenceFiles.filter(f => !deletedFiles.includes(parseInt(f.id)));
+  currentEvidenceFiles = currentEvidenceFiles.concat(evidenceUploadedFiles);
+
+  currentFeedbackFiles = currentFeedbackFiles.filter(f => !deletedFiles.includes(parseInt(f.id)));
+  currentFeedbackFiles = currentFeedbackFiles.concat(feedbackUploadedFiles);
+
   const result = await pool.query(
     `UPDATE subcontrols SET 
-      control_id = $1, title = $2, description = $3, 
-      status = $4, approver = $5, risk_review = $6, 
-      owner = $7, reviewer = $8, due_date = $9, 
-      implementation_details = $10, evidence_description = $11, feedback_description = $12, 
-      evidence_files = $13, feedback_files = $14, order_no = $15 WHERE id = $16 RETURNING *`,
+      title = $1, description = $2, 
+      status = $3, approver = $4, risk_review = $5,
+      owner = $6, reviewer = $7, due_date = $8,
+      implementation_details = $9, evidence_description = $10, feedback_description = $11,
+      evidence_files = $12, feedback_files = $13, order_no = $14 WHERE id = $15 RETURNING *`,
     [
-      subcontrol.control_id,
       subcontrol.title,
       subcontrol.description,
       subcontrol.status,
@@ -144,8 +136,8 @@ export const updateSubcontrolByIdQuery = async (
       subcontrol.implementation_details,
       subcontrol.evidence_description,
       subcontrol.feedback_description,
-      uploadedEvidenceFiles,
-      uploadedFeedbackFiles,
+      currentEvidenceFiles,
+      currentFeedbackFiles,
       subcontrol.order_no,
       id,
     ]

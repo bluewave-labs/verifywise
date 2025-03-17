@@ -1,23 +1,25 @@
 import { useContext, useEffect, useState } from "react";
 import { getEntityById } from "../repository/entity.repository";
 import { VerifyWiseContext } from "../contexts/VerifyWise.context";
+import { Project } from "../../domain/Project";
 
-export interface Project {
-  id: number;
-  project_title: string;
-  owner: string;
-  users: string;
-  members: number[];
-  start_date: Date;
-  ai_risk_classification: string;
-  type_of_high_risk_role: string;
-  goal: string;
-  last_updated: string;
-  last_updated_by: string;
-  assessment_id: number;
-}
+// export interface Project {
+//   id: number;
+//   project_title: string;
+//   owner: string;
+//   users: string;
+//   members: number[];
+//   start_date: Date;
+//   ai_risk_classification: string;
+//   type_of_high_risk_role: string;
+//   goal: string;
+//   last_updated: string;
+//   last_updated_by: string;
+//   assessment_id: number;
+// }
 interface UseProjectDataParams {
   projectId: string;
+  refreshKey?: any
 }
 interface UseProjectDataResult {
   project: Project | null;
@@ -35,6 +37,7 @@ export interface User {
 
 const useProjectData = ({
   projectId,
+  refreshKey
 }: UseProjectDataParams): UseProjectDataResult => {
   const [project, setProject] = useState<Project | null>(null);
   const [projectOwner, setProjectOwner] = useState<string | null>(null);
@@ -45,6 +48,7 @@ const useProjectData = ({
   const { selectedProjectId, users } = dashboardValues;
 
   useEffect(() => {
+    console.log('is key refresh', refreshKey)
     if (!projectId) {
       setError("No project ID provided");
       setIsLoading(false);
@@ -71,6 +75,7 @@ const useProjectData = ({
           const temp = ownerUser.name + ` ` + ownerUser.surname;
           setProjectOwner(temp);
         }
+        console.log('~~~', data)
         setProjectRisks(data.risks); // Set projectRisks from the fetched data
         setProject(data); // Ensure project is set correctly
         setError(null);
@@ -87,7 +92,7 @@ const useProjectData = ({
         }
       });
     return () => controller.abort();
-  }, [projectId, selectedProjectId, users]);
+  }, [projectId, selectedProjectId, users, refreshKey]);
 
   return { project, projectOwner, error, isLoading, projectRisks, setProject }; // Return setProject
 };

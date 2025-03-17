@@ -17,7 +17,7 @@ import { User } from "../../../../../domain/User";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
 import useProjectRisks from "../../../../../application/hooks/useProjectRisks";
 
-const VWProjectOverview = ({ project }: { project?: Project }) => {
+const VWProjectOverview = ({ project }: { project?: Project}) => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") ?? "0";
   const { dashboardValues } = useContext(VerifyWiseContext);
@@ -53,6 +53,10 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
 
     fetchProgressData();
   }, [projectId]);
+
+  useEffect(() => {
+    console.log('hi', project)
+  }, [])
 
   console.log("complianceProgress: ", complianceProgress);
   console.log("assessmentProgress: ", assessmentProgress);

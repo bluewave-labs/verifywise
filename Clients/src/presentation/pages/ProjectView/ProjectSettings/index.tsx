@@ -93,11 +93,13 @@ const initialState: FormValues = {
   riskClassification: 0,
   typeOfHighRiskRole: 0,
 };
-
-const ProjectSettings = React.memo(({}) => {
+// const VWProjectRisks = ({ project }: { project?: Project }) => {
+// const ProjectSettings = React.memo(({}) => {
+const ProjectSettings = ({ triggerRefresh = () => {} }: { triggerRefresh?: (isUpdate: boolean) => void }) => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") ?? "1"; // default project ID is 2
   const theme = useTheme();
+  
   const { project } = useProjectData({ projectId });
   const navigate = useNavigate();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -124,15 +126,15 @@ const ProjectSettings = React.memo(({}) => {
 
   useEffect(() => {
     if (project) {
+      console.log('in the if')
       const returnedData: FormValues = {
         ...initialState,
         projectTitle: project.project_title ?? "",
         goal: project.goal ?? "",
-        owner: parseInt(project.owner) ?? 0,
+        owner: project.owner ?? 0,
         startDate: project.start_date
           ? dayjs(project.start_date).toISOString()
           : "",
-        addUsers: project.users ? stringToArray(project.users) : [],
         members: project.members ? project.members.map(Number) : [],
         riskClassification:
           riskClassificationItems.find(
@@ -319,6 +321,8 @@ const ProjectSettings = React.memo(({}) => {
           setIsLoading(false);
           setAlert(null);
         }, 2000);
+        // setRefreshKey((prevKey) => prevKey + 1);
+        triggerRefresh(true)
       } else if (response.status === 400) {
         setIsLoading(false);
         setAlert({
@@ -689,6 +693,6 @@ const ProjectSettings = React.memo(({}) => {
       )}
     </Stack>
   );
-});
+};
 
 export default ProjectSettings;

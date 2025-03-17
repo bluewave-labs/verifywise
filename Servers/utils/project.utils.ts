@@ -122,10 +122,12 @@ export const deleteProjectByIdQuery = async (
   const deleteHelper = async (childObject: Record<string, any>, parent_id: number) => {
     const childTableName = Object.keys(childObject).filter(k => k !== "foreignKey")[0]
     let childIds: any = {}
-    if (childTableName === "vendors") {
-      childIds = await pool.query(`SELECT vendor_id FROM vendors_projects WHERE project_id = $1`, [parent_id])
-    } else {
-      childIds = await pool.query(`SELECT id FROM ${childTableName} WHERE ${childObject[childTableName].foreignKey} = $1`, [parent_id])
+    if (childTableName !== "projects_members") {
+      if (childTableName === "vendors") {
+        childIds = await pool.query(`SELECT vendor_id FROM vendors_projects WHERE project_id = $1`, [parent_id])
+      } else {
+        childIds = await pool.query(`SELECT id FROM ${childTableName} WHERE ${childObject[childTableName].foreignKey} = $1`, [parent_id])
+      }
     }
     await Promise.all(Object.keys(childObject[childTableName])
       .filter(k => k !== "foreignKey")

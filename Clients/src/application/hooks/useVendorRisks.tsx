@@ -12,18 +12,15 @@
 import { useEffect, useState } from "react";
 import { getEntityById } from "../repository/entity.repository";
 import { convertToCamelCaseRiskKey } from "../tools/stringUtil";
+import { VendorRisk } from "../../domain/VendorRisk";
 
-export interface VendorRisk {
-  id: number;
-  vendor_id: number;
-  vendor_name: string;
-  risk_name: string;
-  owner: string;
-  risk_level: string;
-  review_date: string;
-}
-
-const useVendorRisks = ({ projectId, refreshKey }: { projectId?: string | null, refreshKey?: number }) => {
+const useVendorRisks = ({
+  projectId,
+  refreshKey,
+}: {
+  projectId?: string | null;
+  refreshKey?: number;
+}) => {
   const [vendorRisks, setVendorRisks] = useState<VendorRisk[]>([]);
   const [loadingVendorRisks, setLoadingVendorRisks] = useState<boolean>(true);
   const [error, setError] = useState<string | boolean>(false);
@@ -63,7 +60,7 @@ const useVendorRisks = ({ projectId, refreshKey }: { projectId?: string | null, 
 
   const vendorRisksSummary = vendorRisks.reduce(
     (acc, risk) => {
-      const _risk = convertToCamelCaseRiskKey(risk.risk_level);
+      const _risk = convertToCamelCaseRiskKey(risk.risk_severity);
       const key = `${_risk.replace(/risks?$/i, "")}Risks` as keyof typeof acc;
       acc[key] = acc[key] + 1;
 

@@ -12,10 +12,9 @@ import {
   getQuestionBySubTopicIdQuery,
   getQuestionByTopicIdQuery,
   addFileToQuestion,
-  addFileToQuestionTest,
 } from "../utils/question.utils";
 import { Question } from "../models/question.model";
-import { uploadFile } from "../utils/fileUpload.utils";
+import { addFileToTableTest, uploadFile } from "../utils/fileUpload.utils";
 import { deleteFileById } from "../utils/fileUpload.utils";
 
 export async function getAllQuestions(
@@ -92,15 +91,13 @@ export async function updateQuestionById(
   res: Response
 ): Promise<any> {
   try {
-    console.log("1");
     const questionId = parseInt(req.params.id);
     const body = req.body as {
       answer: string;
-      evidence_files: any[];
-      project_id: number;
-      uploaded_by: number;
+      project_id: number,
+      user_id: number,
+      delete: string
     };
-    console.log("2");
 
     // Validate required fields
     if (!body.answer) {
@@ -110,20 +107,12 @@ export async function updateQuestionById(
         })
       );
     }
-    console.log("3");
-    // Handle file deletions if any
-    const filesToDelete = Array.isArray(body.evidence_files)
-      ? body.evidence_files
-          .filter((file) => file && file.id)
-          .map((file) => parseInt(file.id))
-      : [];
-    console.log("3.5");
+    const filesToDelete = JSON.parse(body.delete) as number[];
     for (let fileToDelete of filesToDelete) {
       if (!isNaN(fileToDelete)) {
         await deleteFileById(fileToDelete);
       }
     }
-    console.log("4");
     // Handle new file uploads if any
     let uploadedFiles: {
       id: string;
@@ -136,7 +125,7 @@ export async function updateQuestionById(
       for (let file of req.files as UploadedFile[]) {
         const uploadedFile = await uploadFile(
           file,
-          body.uploaded_by,
+          body.user_id,
           body.project_id
         );
         if (uploadedFile) {
@@ -151,20 +140,19 @@ export async function updateQuestionById(
         }
       }
     }
-    console.log("5");
     // Update question with new answer and handle files
     const question = await updateQuestionByIdQuery(questionId, body.answer);
     if (!question) {
       return res.status(404).json(STATUS_CODE[404]({}));
     }
-    console.log("6");
     // Add files to question - ensure arrays are valid
-    const updatedQuestion = await addFileToQuestionTest(
+    const updatedQuestion = await addFileToTableTest(
       questionId,
       uploadedFiles || [],
-      filesToDelete || []
+      filesToDelete || [],
+      "evidence_files",
+      "questions"
     );
-    console.log("7");
     return res.status(202).json(STATUS_CODE[202](updatedQuestion || question)); // Fallback to question if updatedQuestion is null
   } catch (error) {
     console.error("Error updating question:", error);

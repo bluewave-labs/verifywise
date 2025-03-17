@@ -110,10 +110,6 @@ export const updateControlByIdQuery = async (
     fields.push(`implementation_details = $${fields.length + 1}`);
     values.push(control.implementation_details);
   }
-  if (control.control_category_id !== undefined) {
-    fields.push(`control_category_id = $${fields.length + 1}`);
-    values.push(control.control_category_id);
-  }
 
   query += fields.join(", ");
   query += ` WHERE id = ${id} RETURNING *`;

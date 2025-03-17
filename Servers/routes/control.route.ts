@@ -28,8 +28,8 @@ router.post("/compliance/:id", /*authenticateJWT,*/ getComplianceById);
 router.patch(
   "/saveControls/:id",
   /*authenticateJWT,*/ upload.fields([
-    { name: "evidenceFiles" },
-    { name: "feedbackFiles" },
+    { name: "evidence_files" },
+    { name: "feedback_files" },
   ]),
   saveControls
 );

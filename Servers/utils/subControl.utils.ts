@@ -97,30 +97,30 @@ export const updateSubcontrolByIdQuery = async (
   subcontrol: Partial<Subcontrol>,
   project_id: number,
   user_id: number,
-  evidenceFiles?: UploadedFile[],
-  feedbackFiles?: UploadedFile[]
+  // evidenceFiles?: UploadedFile[],
+  // feedbackFiles?: UploadedFile[]
 ): Promise<Subcontrol | null> => {
-  let uploadedEvidenceFiles: { id: number; fileName: string }[] = [];
-  await Promise.all(
-    evidenceFiles!.map(async (file) => {
-      const uploadedFile = await uploadFile(file, user_id, project_id);
-      uploadedEvidenceFiles.push({
-        id: uploadedFile.id.toString(),
-        fileName: uploadedFile.filename,
-      });
-    })
-  );
+  // let uploadedEvidenceFiles: { id: number; fileName: string }[] = [];
+  // await Promise.all(
+  //   evidenceFiles!.map(async (file) => {
+  //     const uploadedFile = await uploadFile(file, user_id, project_id);
+  //     uploadedEvidenceFiles.push({
+  //       id: uploadedFile.id.toString(),
+  //       fileName: uploadedFile.filename,
+  //     });
+  //   })
+  // );
 
-  let uploadedFeedbackFiles: { id: number; fileName: string }[] = [];
-  await Promise.all(
-    feedbackFiles!.map(async (file) => {
-      const uploadedFile = await uploadFile(file, user_id, project_id);
-      uploadedFeedbackFiles.push({
-        id: uploadedFile.id.toString(),
-        fileName: uploadedFile.filename,
-      });
-    })
-  );
+  // let uploadedFeedbackFiles: { id: number; fileName: string }[] = [];
+  // await Promise.all(
+  //   feedbackFiles!.map(async (file) => {
+  //     const uploadedFile = await uploadFile(file, user_id, project_id);
+  //     uploadedFeedbackFiles.push({
+  //       id: uploadedFile.id.toString(),
+  //       fileName: uploadedFile.filename,
+  //     });
+  //   })
+  // );
 
   // control_id, subControlTitle, subControlDescription, status, approver, risk_review, owner, reviewer, due_date,
   //     implementation_details, evidence, feedback, evidenceFiles, feedbackFiles
@@ -130,7 +130,7 @@ export const updateSubcontrolByIdQuery = async (
       status = $4, approver = $5, risk_review = $6, 
       owner = $7, reviewer = $8, due_date = $9, 
       implementation_details = $10, evidence_description = $11, feedback_description = $12, 
-      evidence_files = $13, feedback_files = $14, order_no = $15 WHERE id = $16 RETURNING *`,
+      order_no = $13 WHERE id = $14 RETURNING *`,
     [
       subcontrol.control_id,
       subcontrol.title,
@@ -144,8 +144,8 @@ export const updateSubcontrolByIdQuery = async (
       subcontrol.implementation_details,
       subcontrol.evidence_description,
       subcontrol.feedback_description,
-      uploadedEvidenceFiles,
-      uploadedFeedbackFiles,
+      // uploadedEvidenceFiles,
+      // uploadedFeedbackFiles,
       subcontrol.order_no,
       id,
     ]

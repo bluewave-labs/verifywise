@@ -473,6 +473,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           value={values.vendorDetails.vendorName}
           onChange={(e) => handleOnChange("vendorName", e.target.value)}
           error={errors.vendorName}
+          isRequired
         />
         <Field // website
           label="Website"
@@ -480,6 +481,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           value={values.vendorDetails.website}
           onChange={(e) => handleOnChange("website", e.target.value)}
           error={errors.website}
+          isRequired
         />
         <Select // projectId
           items={projectOptions}
@@ -493,6 +495,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             width: 220,
           }}
           error={errors.projectId}
+          isRequired
         />
       </Stack>
       <Stack marginBottom={theme.spacing(8)}>
@@ -503,6 +506,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           value={values.vendorDetails.vendorProvides}
           onChange={(e) => handleOnChange("vendorProvides", e.target.value)}
           error={errors.vendorProvides}
+          isRequired
         />
       </Stack>
       <Stack
@@ -518,6 +522,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             handleOnChange("vendorContactPerson", e.target.value)
           }
           error={errors.vendorContactPerson}
+          isRequired
         />
         <Select // reviewStatus
           items={REVIEW_STATUS_OPTIONS}
@@ -531,6 +536,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             width: 220,
           }}
           error={errors.reviewStatus}
+          isRequired
         />
         <Select // reviewer
           items={formattedUsers}
@@ -544,6 +550,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           sx={{
             width: 220,
           }}
+          isRequired
         />
       </Stack>
       <Stack
@@ -559,6 +566,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           value={values.vendorDetails.reviewResult}
           error={errors.reviewResult}
           onChange={(e) => handleOnChange("reviewResult", e.target.value)}
+          isRequired
         />
       </Stack>
       <Stack
@@ -579,6 +587,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           sx={{
             width: 220,
           }}
+          isRequired
         />
         <Select // assignee (not in the server model!)
           items={formattedUsers}
@@ -592,6 +601,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             width: 220,
           }}
           error={errors.assignee}
+          isRequired
         />
         <DatePicker // reviewDate
           label="Review date"
@@ -604,6 +614,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               : dayjs(new Date())
           }
           handleDateChange={handleDateChange}
+          isRequired
         />
       </Stack>
     </TabPanel>

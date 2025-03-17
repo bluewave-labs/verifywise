@@ -433,6 +433,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           sx={{
             width: 350,
           }}
+          isRequired
         />
         <Field
           label="Risk description"
@@ -440,6 +441,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           value={values.risk_description}
           onChange={(e) => handleOnChange("risk_description", e.target.value)}
           error={errors.risk_description}
+          isRequired
         />
       </Stack>
       <Stack
@@ -459,6 +461,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           sx={{
             width: 350,
           }}
+          isRequired
         />
         <Select
           items={[
@@ -481,6 +484,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           sx={{
             width: 350,
           }}
+          isRequired
         />
       </Stack>
       <Stack
@@ -512,6 +516,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             sx={{
               width: 350,
             }}
+            isRequired
           />
 
           <Select
@@ -526,6 +531,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             sx={{
               width: 350,
             }}
+            isRequired
           />
           <Field
             label="Impact description"
@@ -535,6 +541,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
               handleOnChange("impact_description", e.target.value)
             }
             error={errors.impact_description}
+            isRequired
           />
         </Box>
 
@@ -545,6 +552,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           value={values.action_plan}
           error={errors.action_plan}
           onChange={(e) => handleOnChange("action_plan", e.target.value)}
+          isRequired
         />
       </Stack>
       <Stack

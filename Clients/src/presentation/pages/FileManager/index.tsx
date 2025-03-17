@@ -100,7 +100,7 @@ const FileTable: React.FC<{
   sortField,
   sortDirection,
   onRowClick,
-}) => {
+}: { cols: Array<any>; rows: Array<any>; files: Array<File>; handleSort: Function; sortField: keyof File | null; sortDirection: SortDirection | null; onRowClick: Function; }): JSX.Element => {
   const sortedCols = useMemo(
     () =>
       cols.map((col) =>
@@ -152,6 +152,30 @@ const FileTable: React.FC<{
   );
 };
 
+//mock files
+const mockFiles: File[] = [
+  {
+    id: "1",
+    name: "Document1.pdf",
+    type: "PDF",
+    uploadDate: "2025-01-01",
+    uploader: "User1",
+  },
+  {
+    id: "2",
+    name: "Image1.png",
+    type: "Image",
+    uploadDate: "2025-01-02",
+    uploader: "User2",
+  },
+  {
+    id: "3",
+    name: "Presentation1.pptx",
+    type: "Presentation",
+    uploadDate: "2025-01-03",
+    uploader: "User3",
+  },
+];
 /**
  * Main component for managing files, displaying a table,
  * sorting, and handling actions (Download/Remove).
@@ -159,7 +183,7 @@ const FileTable: React.FC<{
  */
 const FileManager: React.FC = (): JSX.Element => {
   const theme = useTheme();
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<File[]>(mockFiles);
   const [sortField, setSortField] = useState<keyof File | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection | null>(
     null
@@ -186,33 +210,33 @@ const FileManager: React.FC = (): JSX.Element => {
      * If an error occurs, it logs an error and sets the files to an empty array.
      * The loading state is managed to indicate the progress of the fetch.
      */
-    const fetchAllFiles = async () => {
-      try {
-        setLoading(true);
-        const files = await getEntityById({ routeUrl: "/files" });
+    // const fetchAllFiles = async () => {
+    //   try {
+    //     setLoading(true);
+    //     const files = await getEntityById({ routeUrl: "/files" });
 
-        if (files && Array.isArray(files)) {
-          setFiles(
-            files.map((file) => ({
-              id: file.id,
-              name: file.name,
-              type: file.type || "N/A",
-              uploadDate: new Date(file.uploadDate).toLocaleDateString(),
-              uploader: file.uploader || "N/A",
-            }))
-          );
-        } else {
-          setFiles([]);
-        }
-      } catch (error) {
-        console.error("Error fetching files", error);
-        setFiles([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+    //     if (files && Array.isArray(files)) {
+    //       setFiles(
+    //         files.map((file) => ({
+    //           id: file.id,
+    //           name: file.name,
+    //           type: file.type || "N/A",
+    //           uploadDate: new Date(file.uploadDate).toLocaleDateString(),
+    //           uploader: file.uploader || "N/A",
+    //         }))
+    //       );
+    //     } else {
+    //       setFiles([]);
+    //     }
+    //   } catch (error) {
+    //     console.error("Error fetching files", error);
+    //     setFiles([]);
+    //   } finally {
+    //     setLoading(false);
+    //   }
+    // };
 
-    fetchAllFiles();
+    // fetchAllFiles();
   }, []);
 
   /**

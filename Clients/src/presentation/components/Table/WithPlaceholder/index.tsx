@@ -31,7 +31,6 @@ interface TableWithPlaceholderProps {
   dashboardValues: any;
   onDelete: (vendorId: number) => void;
   onEdit: (vendorId: number) => void;
-
 }
 
 const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
@@ -45,7 +44,10 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
   const [dropdownAnchor, setDropdownAnchor] = useState<HTMLElement | null>(
     null
   );
-
+  const formattedUsers = dashboardValues?.users?.map((user:any) => ({
+    _id: user.id,
+    name: `${user.name} ${user.surname}`,
+  }));
 
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
@@ -122,7 +124,13 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   {row.vendor_name}
                 </TableCell>
-                <TableCell sx={cellStyle}>{row.assignee}</TableCell>
+                <TableCell sx={cellStyle}>
+                  {
+                    formattedUsers?.find(
+                      (user:any) => user._id === row.assignee
+                    )?.name
+                  }
+                </TableCell>
                 <TableCell sx={cellStyle}>{row.review_status}</TableCell>
                 <TableCell sx={cellStyle}>{row.risk_status}</TableCell>
                 <TableCell sx={cellStyle}>
@@ -142,7 +150,7 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
                     id={row.id}
                     onDelete={() => onDelete(row.id)}
                     onEdit={() => onEdit(row.id)}
-                    onMouseEvent={()=>{}}
+                    onMouseEvent={() => {}}
                     warningTitle="Delete this vendor?"
                     warningMessage="When you delete this vendor, all data related to this vendor will be removed. This action is non-recoverable."
                     type="Vendor"

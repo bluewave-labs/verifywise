@@ -64,6 +64,10 @@ const RiskTable: React.FC<RiskTableProps> = ({
     null
   );
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
+  const formattedUsers = dashboardValues?.users?.map((user:any) => ({
+    _id: user.id,
+    name: `${user.name} ${user.surname}`,
+  }));
 
   const getRiskLevel = (
     likelihoodName: string,
@@ -171,7 +175,10 @@ const RiskTable: React.FC<RiskTableProps> = ({
                 <TableCell sx={cellStyle}>{row.likelihood}</TableCell>
                 {/* <TableCell sx={cellStyle}>{row.risk_level}</TableCell> */}
                 <TableCell sx={cellStyle}>{row.risk_severity}</TableCell>
-                <TableCell sx={cellStyle}>{row.action_owner}</TableCell>
+                <TableCell sx={cellStyle}>{
+                                      formattedUsers?.find(
+                                        (user:any) => user._id === row.action_owner
+                                      )?.name}</TableCell>
                 <TableCell sx={cellStyle}>
                   <Box
                     sx={{

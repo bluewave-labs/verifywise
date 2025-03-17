@@ -68,7 +68,7 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
 
   const projectMembers: string[] = project
     ? users
-        .filter((user: User) => project.members.includes(user.id?.toString() || ''))
+        .filter((user: { id: any; }) => project.members.includes(user.id || ''))
         .map((user: User) => `${user.name} ${user.surname}`)
     : [];
 

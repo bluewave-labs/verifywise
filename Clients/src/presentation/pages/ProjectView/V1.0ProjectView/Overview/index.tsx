@@ -54,10 +54,6 @@ const VWProjectOverview = ({ project }: { project?: Project}) => {
     fetchProgressData();
   }, [projectId]);
 
-  useEffect(() => {
-    console.log('hi', project)
-  }, [])
-
   console.log("complianceProgress: ", complianceProgress);
   console.log("assessmentProgress: ", assessmentProgress);
 

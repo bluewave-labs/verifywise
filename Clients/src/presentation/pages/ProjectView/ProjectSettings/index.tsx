@@ -25,12 +25,12 @@ import {
 import { logEngine } from "../../../../application/tools/log.engine";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
-import { stringToArray } from "../../../../application/tools/stringUtil";
 import useUsers from "../../../../application/hooks/useUsers";
 import VWButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VWToast from "../../../vw-v2-components/Toast";
+import VWSkeleton from "../../../vw-v2-components/Skeletons";
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -68,7 +68,6 @@ interface FormValues {
   owner: number;
   members: number[];
   startDate: string;
-  addUsers: number[];
   riskClassification: number;
   typeOfHighRiskRole: number;
 }
@@ -89,13 +88,11 @@ const initialState: FormValues = {
   owner: 0,
   members: [],
   startDate: "",
-  addUsers: [],
   riskClassification: 0,
   typeOfHighRiskRole: 0,
 };
-// const VWProjectRisks = ({ project }: { project?: Project }) => {
-// const ProjectSettings = React.memo(({}) => {
-const ProjectSettings = ({ triggerRefresh = () => {} }: { triggerRefresh?: (isUpdate: boolean) => void }) => {
+
+const ProjectSettings = React.memo(({ triggerRefresh = () => {} }: { triggerRefresh?: (isUpdate: boolean) => void }) => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") ?? "1"; // default project ID is 2
   const theme = useTheme();
@@ -114,6 +111,7 @@ const ProjectSettings = ({ triggerRefresh = () => {} }: { triggerRefresh?: (isUp
   } | null>(null);
   const [memberRequired, setMemberRequired] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showVWSkeleton, setShowVWSkeleton] = useState<boolean>(false);
 
   useEffect(() => {
     if (project) {
@@ -125,8 +123,8 @@ const ProjectSettings = ({ triggerRefresh = () => {} }: { triggerRefresh?: (isUp
   const { users } = useUsers();
 
   useEffect(() => {
+    setShowVWSkeleton(true)
     if (project) {
-      console.log('in the if')
       const returnedData: FormValues = {
         ...initialState,
         projectTitle: project.project_title ?? "",
@@ -149,6 +147,7 @@ const ProjectSettings = ({ triggerRefresh = () => {} }: { triggerRefresh?: (isUp
               project.type_of_high_risk_role.toLowerCase()
           )?._id || 0,
       };
+      setShowVWSkeleton(false)
       setValues(returnedData);
     }
   }, [project]);
@@ -397,282 +396,286 @@ const ProjectSettings = ({ triggerRefresh = () => {} }: { triggerRefresh?: (isUp
           onClick={() => setAlert(null)}
         />
       )}
-      <Stack component="form" onSubmit={handleSubmit} rowGap="15px">
-        <Field
-          id="project-title-input"
-          label="Project title"
-          width={458}
-          value={values.projectTitle}
-          onChange={handleOnTextFieldChange("projectTitle")}
-          sx={fieldStyle}
-          error={errors.projectTitle}
-          isRequired
-        />
-        <Field
-          id="goal-input"
-          label="Goal"
-          width={458}
-          type="description"
-          value={values.goal}
-          onChange={handleOnTextFieldChange("goal")}
-          sx={{
-            backgroundColor: theme.palette.background.main,
-          }}
-          error={errors.goal}
-          isRequired
-        />
-        <Select
-          id="owner"
-          label="Owner"
-          value={values.owner}
-          onChange={handleOnSelectChange("owner")}
-          items={
-            users?.map((user) => ({
-              _id: user.id,
-              name: `${user.name} ${user.surname}`,
-              email: user.email,
-            })) || []
-          }
-          sx={{ width: 357, backgroundColor: theme.palette.background.main }}
-          error={errors.owner}
-          isRequired
-        />
-
-        <DatePicker
-          label="Start date"
-          date={values.startDate ? dayjs(values.startDate) : null}
-          handleDateChange={handleDateChange}
-          sx={{
-            width: "130px",
-            "& input": { width: "85px" },
-          }}
-          isRequired
-          error={errors.startDate}
-        />
-        <Stack gap="5px" sx={{ mt: "6px" }}>
-          <Typography
-            sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
-          >
-            Team members *
-          </Typography>
-          <Typography sx={{ fontSize: theme.typography.fontSize }}>
-            Add all team members of the project. Only those who are added will
-            be able to see the project.
-          </Typography>
-        </Stack>
-
-        <Autocomplete
-          multiple
-          id="users-input"
-          size="small"
-          value={users.filter((user) =>
-            values.members.includes(Number(user.id))
-          )}
-          options={
-            users
-              ?.filter((user) => !values.members.includes(Number(user.id)))
-              .map((user) => ({
-                id: user.id,
-                name: user.name,
-                surname: user.surname,
+      {showVWSkeleton ? (
+          <VWSkeleton variant="rectangular" width="50%" height={200} />
+        ) : (
+        <Stack component="form" onSubmit={handleSubmit} rowGap="15px">
+          <Field
+            id="project-title-input"
+            label="Project title"
+            width={458}
+            value={values.projectTitle}
+            onChange={handleOnTextFieldChange("projectTitle")}
+            sx={fieldStyle}
+            error={errors.projectTitle}
+            isRequired
+          />
+          <Field
+            id="goal-input"
+            label="Goal"
+            width={458}
+            type="description"
+            value={values.goal}
+            onChange={handleOnTextFieldChange("goal")}
+            sx={{
+              backgroundColor: theme.palette.background.main,
+            }}
+            error={errors.goal}
+            isRequired
+          />
+          <Select
+            id="owner"
+            label="Owner"
+            value={values.owner}
+            onChange={handleOnSelectChange("owner")}
+            items={
+              users?.map((user) => ({
+                _id: user.id,
+                name: `${user.name} ${user.surname}`,
                 email: user.email,
               })) || []
-          }
-          getOptionLabel={(member) => `${member.name} ${member.surname}`}
-          renderOption={(props, option) => {
-            const { key, ...optionProps } = props;
-            const userEmail = option.email.length > 30 ? `${option.email.slice(0, 30)}...` : option.email;
-            return (
-              <Box
-                key={key}
-                component="li"
-                {...optionProps}
-              >
-                <Typography sx={{ fontSize: '13px' }}>
-                  {option.name} {option.surname}
-                </Typography>
-                <Typography sx={{ fontSize: '11px', color: 'rgb(157, 157, 157)', position: 'absolute', right: '9px' }}>
-                  {userEmail}
-                </Typography>
-              </Box>
-            );
-          }}
-          noOptionsText={
-            values.members.length === users.length
-              ? "All members selected"
-              : "No options"
-          }
-          onChange={handleOnMultiSelect("members")}
-          popupIcon={<KeyboardArrowDown />}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Select Users"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  paddingTop: "3.8px !important",
-                  paddingBottom: "3.8px !important",
-                },
-                "& ::placeholder": {
-                  fontSize: "13px",
-                },
-              }}
-            />
-          )}
-          sx={{
-            width: "458px",
-            backgroundColor: theme.palette.background.main,
-            "& .MuiOutlinedInput-root": {
-              borderRadius: "5px",
-              "&:hover .MuiOutlinedInput-notchedOutline": {
-                borderColor: "#777",
-              },
-              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                borderColor: "#888",
-                borderWidth: "1px",
-              },
-            },
-          }}
-          slotProps={{
-            paper: {
-              sx: {
-                "& .MuiAutocomplete-listbox": {
-                  "& .MuiAutocomplete-option": {
+            }
+            sx={{ width: 357, backgroundColor: theme.palette.background.main }}
+            error={errors.owner}
+            isRequired
+          />
+
+          <DatePicker
+            label="Start date"
+            date={values.startDate ? dayjs(values.startDate) : null}
+            handleDateChange={handleDateChange}
+            sx={{
+              width: "130px",
+              "& input": { width: "85px" },
+            }}
+            isRequired
+            error={errors.startDate}
+          />
+          <Stack gap="5px" sx={{ mt: "6px" }}>
+            <Typography
+              sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
+            >
+              Team members *
+            </Typography>
+            <Typography sx={{ fontSize: theme.typography.fontSize }}>
+              Add all team members of the project. Only those who are added will
+              be able to see the project.
+            </Typography>
+          </Stack>
+
+          <Autocomplete
+            multiple
+            id="users-input"
+            size="small"
+            value={users.filter((user) =>
+              values.members.includes(Number(user.id))
+            )}
+            options={
+              users
+                ?.filter((user) => !values.members.includes(Number(user.id)))
+                .map((user) => ({
+                  id: user.id,
+                  name: user.name,
+                  surname: user.surname,
+                  email: user.email,
+                })) || []
+            }
+            getOptionLabel={(member) => `${member.name} ${member.surname}`}
+            renderOption={(props, option) => {
+              const { key, ...optionProps } = props;
+              const userEmail = option.email.length > 30 ? `${option.email.slice(0, 30)}...` : option.email;
+              return (
+                <Box
+                  key={key}
+                  component="li"
+                  {...optionProps}
+                >
+                  <Typography sx={{ fontSize: '13px' }}>
+                    {option.name} {option.surname}
+                  </Typography>
+                  <Typography sx={{ fontSize: '11px', color: 'rgb(157, 157, 157)', position: 'absolute', right: '9px' }}>
+                    {userEmail}
+                  </Typography>
+                </Box>
+              );
+            }}
+            noOptionsText={
+              values.members.length === users.length
+                ? "All members selected"
+                : "No options"
+            }
+            onChange={handleOnMultiSelect("members")}
+            popupIcon={<KeyboardArrowDown />}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                placeholder="Select Users"
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    paddingTop: "3.8px !important",
+                    paddingBottom: "3.8px !important",
+                  },
+                  "& ::placeholder": {
                     fontSize: "13px",
-                    color: "#1c2130",
+                  },
+                }}
+              />
+            )}
+            sx={{
+              width: "458px",
+              backgroundColor: theme.palette.background.main,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "5px",
+                "&:hover .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#777",
+                },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#888",
+                  borderWidth: "1px",
+                },
+              },
+            }}
+            slotProps={{
+              paper: {
+                sx: {
+                  "& .MuiAutocomplete-listbox": {
+                    "& .MuiAutocomplete-option": {
+                      fontSize: "13px",
+                      color: "#1c2130",
+                      paddingLeft: "9px",
+                      paddingRight: "9px"
+                    },
+                    "& .MuiAutocomplete-option.Mui-focused": {
+                      background: "#f9fafb",
+                    }
+                  },
+                  "& .MuiAutocomplete-noOptions": {
+                    fontSize: "13px",
                     paddingLeft: "9px",
                     paddingRight: "9px"
-                  },
-                  "& .MuiAutocomplete-option.Mui-focused": {
-                    background: "#f9fafb",
                   }
                 },
-                "& .MuiAutocomplete-noOptions": {
-                  fontSize: "13px",
-                  paddingLeft: "9px",
-                  paddingRight: "9px"
-                }
               },
-            },
-          }}
-        />
-        {memberRequired && (
-          <Typography
-            variant="caption"
-            sx={{ color: "#f04438", fontWeight: 300 }}
-          >
-            {errors.members}
-          </Typography>
-        )}
-
-        <Stack gap="5px" sx={{ mt: "6px" }}>
-          <Typography
-            sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
-          >
-            AI risk classification
-          </Typography>
-          <Typography sx={{ fontSize: theme.typography.fontSize }}>
-            To define the AI risk classification,&nbsp;
-            <Link
-              href="https://artificialintelligenceact.eu/high-level-summary/"
-              target="_blank"
-              rel="noopener"
-              color={theme.palette.text.secondary}
-            >
-              please see this link
-            </Link>
-          </Typography>
-        </Stack>
-        <Select
-          id="risk-classification-input"
-          value={values?.riskClassification || 1}
-          onChange={handleOnSelectChange("riskClassification")}
-          items={riskClassificationItems}
-          sx={{ width: 357, backgroundColor: theme.palette.background.main }}
-          error={errors.riskClassification}
-          isRequired
-        />
-        <Stack gap="5px" sx={{ mt: "6px" }}>
-          <Typography
-            sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
-          >
-            Type of high risk role
-          </Typography>
-          <Typography sx={{ fontSize: theme.typography.fontSize }}>
-            If you are not sure about the high risk role,&nbsp;
-            <Link
-              href="https://artificialintelligenceact.eu/high-level-summary/"
-              target="_blank"
-              rel="noopener"
-              color={theme.palette.text.secondary}
-            >
-              please see this link
-            </Link>
-          </Typography>
-        </Stack>
-        <Select
-          id="risk-classification-input"
-          value={values?.typeOfHighRiskRole || 1}
-          onChange={handleOnSelectChange("typeOfHighRiskRole")}
-          items={highRiskRoleItems}
-          sx={{ width: 357, backgroundColor: theme.palette.background.main }}
-          error={errors.typeOfHighRiskRole}
-          isRequired
-        />
-        <Stack sx={{ width: "100%", maxWidth: 800 }}>
-          <VWButton
-            sx={{
-              alignSelf: "flex-end",
-              width: "fit-content",
-              backgroundColor: "#13715B",
-              border: "1px solid #13715B",
-              gap: 2,
             }}
-            icon={<SaveIcon />}
-            variant="contained"
-            onClick={(event: any) => {
-              handleSubmit(event);
-            }}
-            text="Save"
           />
+          {memberRequired && (
+            <Typography
+              variant="caption"
+              sx={{ color: "#f04438", fontWeight: 300 }}
+            >
+              {errors.members}
+            </Typography>
+          )}
 
-          {/* divider for seperation */}
-          <Stack sx={{ mt: 6, borderTop: "1px solid #E0E0E0", pt: 8 }} />
-          <Typography
-            sx={{
-              fontSize: theme.typography.fontSize,
-              fontWeight: 600,
-              mb: 4,
-            }}
-          >
-            Delete project
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: theme.typography.fontSize,
-              color: "#667085",
-              mb: 8,
-            }}
-          >
-            Note that deleting a project will remove all data related to that
-            project from our system. This is permanent and non-recoverable.
-          </Typography>
-          <VWButton
-            sx={{
-              width: { xs: "100%", sm: theme.spacing(80) },
-              mb: theme.spacing(4),
-              backgroundColor: "#DB504A",
-              color: "#fff",
-              border: "1px solid #DB504A",
-              gap: 2,
-            }}
-            icon={<DeleteIcon />}
-            variant="contained"
-            onClick={handleOpenDeleteDialog}
-            text="Delete project"
+          <Stack gap="5px" sx={{ mt: "6px" }}>
+            <Typography
+              sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
+            >
+              AI risk classification
+            </Typography>
+            <Typography sx={{ fontSize: theme.typography.fontSize }}>
+              To define the AI risk classification,&nbsp;
+              <Link
+                href="https://artificialintelligenceact.eu/high-level-summary/"
+                target="_blank"
+                rel="noopener"
+                color={theme.palette.text.secondary}
+              >
+                please see this link
+              </Link>
+            </Typography>
+          </Stack>
+          <Select
+            id="risk-classification-input"
+            value={values?.riskClassification || 1}
+            onChange={handleOnSelectChange("riskClassification")}
+            items={riskClassificationItems}
+            sx={{ width: 357, backgroundColor: theme.palette.background.main }}
+            error={errors.riskClassification}
+            isRequired
           />
+          <Stack gap="5px" sx={{ mt: "6px" }}>
+            <Typography
+              sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
+            >
+              Type of high risk role
+            </Typography>
+            <Typography sx={{ fontSize: theme.typography.fontSize }}>
+              If you are not sure about the high risk role,&nbsp;
+              <Link
+                href="https://artificialintelligenceact.eu/high-level-summary/"
+                target="_blank"
+                rel="noopener"
+                color={theme.palette.text.secondary}
+              >
+                please see this link
+              </Link>
+            </Typography>
+          </Stack>
+          <Select
+            id="risk-classification-input"
+            value={values?.typeOfHighRiskRole || 1}
+            onChange={handleOnSelectChange("typeOfHighRiskRole")}
+            items={highRiskRoleItems}
+            sx={{ width: 357, backgroundColor: theme.palette.background.main }}
+            error={errors.typeOfHighRiskRole}
+            isRequired
+          />
+          <Stack sx={{ width: "100%", maxWidth: 800 }}>
+            <VWButton
+              sx={{
+                alignSelf: "flex-end",
+                width: "fit-content",
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
+                gap: 2,
+              }}
+              icon={<SaveIcon />}
+              variant="contained"
+              onClick={(event: any) => {
+                handleSubmit(event);
+              }}
+              text="Save"
+            />
+
+            {/* divider for seperation */}
+            <Stack sx={{ mt: 6, borderTop: "1px solid #E0E0E0", pt: 8 }} />
+            <Typography
+              sx={{
+                fontSize: theme.typography.fontSize,
+                fontWeight: 600,
+                mb: 4,
+              }}
+            >
+              Delete project
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: theme.typography.fontSize,
+                color: "#667085",
+                mb: 8,
+              }}
+            >
+              Note that deleting a project will remove all data related to that
+              project from our system. This is permanent and non-recoverable.
+            </Typography>
+            <VWButton
+              sx={{
+                width: { xs: "100%", sm: theme.spacing(80) },
+                mb: theme.spacing(4),
+                backgroundColor: "#DB504A",
+                color: "#fff",
+                border: "1px solid #DB504A",
+                gap: 2,
+              }}
+              icon={<DeleteIcon />}
+              variant="contained"
+              onClick={handleOpenDeleteDialog}
+              text="Delete project"
+            />
+          </Stack>
         </Stack>
-      </Stack>
+      )}
 
       {isDeleteModalOpen && (
         <DualButtonModal
@@ -693,6 +696,6 @@ const ProjectSettings = ({ triggerRefresh = () => {} }: { triggerRefresh?: (isUp
       )}
     </Stack>
   );
-};
+});
 
 export default ProjectSettings;

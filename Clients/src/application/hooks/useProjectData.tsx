@@ -3,20 +3,6 @@ import { getEntityById } from "../repository/entity.repository";
 import { VerifyWiseContext } from "../contexts/VerifyWise.context";
 import { Project } from "../../domain/Project";
 
-// export interface Project {
-//   id: number;
-//   project_title: string;
-//   owner: string;
-//   users: string;
-//   members: number[];
-//   start_date: Date;
-//   ai_risk_classification: string;
-//   type_of_high_risk_role: string;
-//   goal: string;
-//   last_updated: string;
-//   last_updated_by: string;
-//   assessment_id: number;
-// }
 interface UseProjectDataParams {
   projectId: string;
   refreshKey?: any
@@ -64,18 +50,23 @@ const useProjectData = ({
     })
       .then(({ data }) => {
         const ownerUser = users.find((user: User) => user.id === data.owner);
-        const lastUpdatedByUser = users.find(
-          (user: User) => user.id === data.last_updated_by
-        );
-        if (lastUpdatedByUser) {
-          data.last_updated_by =
-            lastUpdatedByUser.name + ` ` + lastUpdatedByUser.surname;
-        }
+
+        /* 
+          ** It should be data.last_updated_by: number instead of string
+          // const lastUpdatedByUser = users.find(
+          //   (user: User) => user.id === data.last_updated_by
+          // );
+          // if (lastUpdatedByUser) {
+          //   data.last_updated_by =
+          //     lastUpdatedByUser.name + ` ` + lastUpdatedByUser.surname;
+          // }        
+        */
+
         if (ownerUser) {
           const temp = ownerUser.name + ` ` + ownerUser.surname;
           setProjectOwner(temp);
         }
-        console.log('~~~', data)
+        
         setProjectRisks(data.risks); // Set projectRisks from the fetched data
         setProject(data); // Ensure project is set correctly
         setError(null);

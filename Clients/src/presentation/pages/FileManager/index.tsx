@@ -164,7 +164,7 @@ const FileManager: React.FC = (): JSX.Element => {
   const [sortDirection, setSortDirection] = useState<SortDirection | null>(
     null
   );
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [runFileTour, setRunFileTour] = useState(false);
 
   const fileSteps = [

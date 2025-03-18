@@ -176,11 +176,11 @@ export const updateUserByIdQuery = async (
   id: number,
   user: Partial<User>
 ): Promise<User> => {
-  const { name, email, password_hash, role, last_login } = user;
+  const { name, surname, email, password_hash, role, last_login } = user;
   const result = await pool.query(
-    `UPDATE users SET name = $1, email = $2, password_hash = $3, role = $4, last_login = $5
-     WHERE id = $6 RETURNING *`,
-    [name, email, password_hash, role, last_login, id]
+    `UPDATE users SET name = $1, surname = $2, email = $3, password_hash = $4, role = $5, last_login = $6
+     WHERE id = $7 RETURNING *`,
+    [name, surname, email, password_hash, role, last_login, id]
   );
   return result.rows[0];
 };
@@ -204,24 +204,21 @@ export const deleteUserByIdQuery = async (id: number): Promise<User> => {
     { table: "subcontrols", fields: ["approver", "owner", "reviewer"] },
     { table: "projectrisks", fields: ["risk_owner", "risk_approval"] },
     { table: "vendorrisks", fields: ["action_owner"] },
-    { table: "files", fields: ["uploaded_by"] }
-  ]
+    { table: "files", fields: ["uploaded_by"] },
+  ];
 
   for (let entry of usersFK) {
     await Promise.all(
-      entry.fields.map(async f => {
+      entry.fields.map(async (f) => {
         await pool.query(
           `UPDATE ${entry.table} SET ${f} = NULL WHERE ${f} = $1`,
           [id]
-        )
+        );
       })
-    )
+    );
   }
 
-  await pool.query(
-    `DELETE FROM projects_members WHERE user_id = $1`,
-    [id]
-  );
+  await pool.query(`DELETE FROM projects_members WHERE user_id = $1`, [id]);
   const result = await pool.query(
     "DELETE FROM users WHERE id = $1 RETURNING *",
     [id]

@@ -46,7 +46,6 @@ export const tableStyles = {
       cell: {
         fontSize: fontSizes.medium,
         paddingY: "12px",
-        backgroundColor: "white",
         whiteSpace:"nowrap",
         "&:not(:last-child)": {
           minWidth: "fit-content",

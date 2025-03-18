@@ -70,6 +70,7 @@ const VWProjectRisksTableBody = ({
   setSelectedRow,
   setAnchor,
   onDeleteRisk,
+  flashRow
 }: {
   rows: any[];
   page: number;
@@ -77,6 +78,7 @@ const VWProjectRisksTableBody = ({
   setSelectedRow: any;
   setAnchor: any;
   onDeleteRisk: (id: number) => void;
+  flashRow: number | null
 }) => {
   const { setInputValues, dashboardValues } = useContext(VerifyWiseContext);
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
@@ -107,8 +109,8 @@ const VWProjectRisksTableBody = ({
         rows
           .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
           .map((row: ProjectRisk, index: number) => (
-            <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row}>
-              <TableCell sx={cellStyle}>
+            <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': '#ffffff'}}>
+              <TableCell sx={cellStyle} >
                 {row.risk_name?.length > 30
                   ? `${row.risk_name.slice(0, 30)}...`
                   : row.risk_name}
@@ -162,6 +164,7 @@ const VWProjectRisksTable = ({
   deleteRisk,
   setPage,
   page,
+  flashRow
 }: {
   columns: any[];
   rows: any[];
@@ -170,6 +173,7 @@ const VWProjectRisksTable = ({
   deleteRisk: (id: number) => void;
   setPage: (pageNo: number) => void;
   page: number;
+  flashRow: number | null;
 }) => {
   const theme = useTheme();
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -209,6 +213,7 @@ const VWProjectRisksTable = ({
               setSelectedRow={setSelectedRow}
               setAnchor={setAnchor}
               onDeleteRisk={deleteRisk}
+              flashRow={flashRow}
             />
           ) : (
             <>

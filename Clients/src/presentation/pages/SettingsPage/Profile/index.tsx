@@ -181,7 +181,6 @@ const ProfileForm: React.FC = () => {
         email,
         pathToImage: profilePhoto,
       };
-
       const response = await updateEntityById({
         routeUrl: `/users/${id}`,
         body: updatedUser,

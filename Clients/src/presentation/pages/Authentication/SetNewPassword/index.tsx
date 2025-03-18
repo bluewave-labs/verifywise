@@ -3,140 +3,177 @@
  */
 
 import { Button, Stack, Typography, useTheme } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Check from "../../../components/Checks";
 import Field from "../../../components/Inputs/Field";
-
 import { ReactComponent as LeftArrowLong } from "../../../assets/icons/left-arrow-long.svg";
 import { ReactComponent as Lock } from "../../../assets/icons/lock.svg";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import {
-  validatePassword,
-  validateForm,
-} from "../../../../application/validations/formValidation";
-import type {
-  FormValues,
-  FormErrors,
-} from "../../../../application/validations/formValidation";
+import { validatePassword } from "../../../../application/validations/formValidation";
+import type { FormErrors } from "../../../../application/validations/formValidation";
 import VWAlert from "../../../vw-v2-components/Alerts";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
+import VWSkeleton from "../../../vw-v2-components/Skeletons";
+
+interface ResetPasswordFormValues {
+  password: string;
+  confirmPassword: string;
+}
+
+interface UserInfo {
+  name: string;
+  email: string;
+  expire: string | number;  // Allow both string and number since token might provide string
+  role?: string;
+  id?: any;
+  iat?: string;
+}
 
 // Initial state for form values
-const initialState: FormValues = {
+const initialState: ResetPasswordFormValues = {
   password: "",
   confirmPassword: "",
 };
 
 const SetNewPassword: React.FC = () => {
   const navigate = useNavigate();
-  // State for form values
-  const [values, setValues] = useState<FormValues>(initialState);
-  // State for form errors
-  const [errors, setErrors] = useState<FormErrors>({});
-  // Password checks based on the password input
-  const passwordChecks = validatePassword(values);
-  
-  // Extract user token
+  const theme = useTheme();
   const [searchParams] = useSearchParams();
   const userToken = searchParams.get("token");
-  const [isResetInvitationValid, setIsResetInvitationValid] = useState<boolean>(true);
-  const [userInfo, setUserInfo] = useState<any>(null);
 
-  //state for overlay modal
+  // State management
+  const [values, setValues] = useState<ResetPasswordFormValues>(initialState);
+  const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResetInvitationValid, setIsResetInvitationValid] = useState<boolean>(true);
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+
+  // Password validation
+  const passwordChecks = validatePassword({ ...values, name: "", surname: "", email: "" });
+
+  // Validate password requirements
+  const validatePasswordRequirements = (): string | null => {
+    if (!isResetInvitationValid) {
+      return "The link has expired already.";
+    }
+
+    if (!passwordChecks.length) {
+      return "Password must be at least 8 characters long";
+    }
+    if (!passwordChecks.specialChar) {
+      return "Password must contain at least one special character";
+    }
+    if (!passwordChecks.uppercase) {
+      return "Password must contain at least one uppercase letter";
+    }
+    if (!passwordChecks.number) {
+      return "Password must contain at least one number";
+    }
+
+    if (values.password !== values.confirmPassword) {
+      return "Passwords do not match";
+    }
+
+    return null;
+  };
 
   // Handle input field changes
-  const handleChange =
-    (prop: keyof FormValues) =>
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        setValues({ ...values, [prop]: event.target.value });
-        setErrors({ ...errors, [prop]: "" });
-      };
+  const handleChange = useCallback((prop: keyof ResetPasswordFormValues) =>
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setValues(prev => ({ ...prev, [prop]: event.target.value }));
+      setErrors(prev => ({ ...prev, [prop]: "" }));
+    }, []);
+
+  // Validate reset invitation
+  const checkResetInvitation = useCallback((expDate: string | number): boolean => {
+    const currentTime = new Date().getTime();
+    const expirationTime = typeof expDate === 'string' ? parseInt(expDate, 10) : expDate;
+    const isValid = currentTime < expirationTime;
+    setIsResetInvitationValid(isValid);
+    return isValid;
+  }, []);
 
   // Handle form submission
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const { isFormValid, errors } = validateForm(values);
-    if (!isFormValid) {
-      setErrors(errors);
-      setIsSubmitting(false);
-    } else {
-      if(isResetInvitationValid){
-        const response = await apiServices.post("/users/reset-password", {
-          email: userInfo?.email,
-          newPassword: values.password
-        });
-        debugger;
-        if(response.status === 202){
-          console.log("Form submitted:", values);
-          setValues(initialState);
-          setErrors({});
-          setIsSubmitting(false);
-          navigate("/login");
-        }else{
-          console.log(response.data)
-          setIsSubmitting(false);
-        }
-      }else{
-        console.log("The link has expired already.")
-        setIsSubmitting(false);
+    setIsSubmitting(true);
+
+    try {
+      const validationError = validatePasswordRequirements();
+      if (validationError) {
+        setErrors({ password: validationError });
+        return;
       }
+
+      const response = await apiServices.post("/users/reset-password", {
+        email: userInfo?.email,
+        newPassword: values.password
+      });
+
+      if (response.status === 202) {
+        setValues(initialState);
+        setErrors({});
+        navigate("/login");
+      } else {
+        throw new Error("Failed to reset password");
+      }
+    } catch (error) {
+      console.error("Password reset error:", error);
+      setErrors({ password: error instanceof Error ? error.message : "An error occurred" });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const theme = useTheme();
-
-  const checkResetInvitation = (expDate: any) => {    
-    let todayDate = new Date();
-    let currentTime = todayDate.getTime();
-    console.log(currentTime)
-
-    if(currentTime < expDate){
-      setIsResetInvitationValid(true);
-    }else{
-      console.log("The link has expired already.")
-      setIsResetInvitationValid(false);
-    }
-    return isResetInvitationValid;
-  }
-
+  // Initialize user info from token
   useEffect(() => {
-    if(userToken !== null){
-      const extractedUserInfo = extractUserToken(userToken);
-      console.log(extractedUserInfo)      
-      if(extractedUserInfo !== null){        
-        setUserInfo(extractedUserInfo);
-        const isValidLink = checkResetInvitation(extractedUserInfo?.expire);
+    if (!userToken) return;
 
-        if(isValidLink){
-          const userData: FormValues = {
-            ...initialState,
-            name: extractedUserInfo.name ?? "",
-            email: extractedUserInfo.email ?? ""
-          }
-          setValues(userData)
-        }
-      }
-    }
-  }, [userToken])
-  
+    const extractedUserInfo = extractUserToken(userToken);
+    if (!extractedUserInfo) return;
+
+    setUserInfo(extractedUserInfo);
+    checkResetInvitation(extractedUserInfo.expire);
+  }, [userToken, checkResetInvitation]);
+
   const buttonStyle = {
     width: 360,
     backgroundColor: "#fff",
   };
 
   return (
-    <Stack
-      className="reg-admin-page"
-      sx={{
-        minHeight: "100vh",
-      }}
-    >
-      {/* toast component */}
-      {isSubmitting && <VWAlert title="Updating password. Please wait..." />}
+    <Stack className="reg-admin-page" sx={{ minHeight: "100vh" }}>
+      {isSubmitting && (
+        <Stack
+          sx={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(255, 255, 255, 0.9)",
+            zIndex: 9999,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center"
+          }}
+        >
+          {/* <VWAlert title="Updating password. Please wait..." /> */}
+          <VWSkeleton 
+            sx={{
+              width: "100%",
+              height: "100%",
+              position: "absolute",
+              top: 0,
+              left: 0
+            }}
+          />
+        </Stack>
+      )}
       <Background
         style={{
           position: "absolute",
@@ -159,6 +196,9 @@ const SetNewPassword: React.FC = () => {
             margin: "auto",
             mt: 40,
             gap: theme.spacing(20),
+            position: "relative",
+            zIndex: isSubmitting ? 0 : 1,
+            pointerEvents: isSubmitting ? "none" : "auto",
           }}
         >
           <Stack
@@ -204,11 +244,7 @@ const SetNewPassword: React.FC = () => {
               onChange={handleChange("confirmPassword")}
               error={errors.confirmPassword}
             />
-            <Stack
-              sx={{
-                gap: theme.spacing(6),
-              }}
-            >
+            <Stack sx={{ gap: theme.spacing(6) }}>
               <Check
                 text="Must be at least 8 characters"
                 variant={passwordChecks.length ? "success" : "info"}
@@ -217,11 +253,20 @@ const SetNewPassword: React.FC = () => {
                 text="Must contain one special character"
                 variant={passwordChecks.specialChar ? "success" : "info"}
               />
+              <Check
+                text="Must contain at least one uppercase letter"
+                variant={passwordChecks.uppercase ? "success" : "info"}
+              />
+              <Check
+                text="Must contain atleast one number"
+                variant={passwordChecks.number ? "success" : "info"}
+              />
             </Stack>
             <Button
               type="submit"
               disableRipple
               variant="contained"
+              disabled={isSubmitting}
               sx={singleTheme.buttons.primary}
             >
               Reset password
@@ -242,9 +287,7 @@ const SetNewPassword: React.FC = () => {
                 alignItems: "center",
                 cursor: "pointer",
               }}
-              onClick={() => {
-                navigate("/login");
-              }}
+              onClick={() => navigate("/login")}
             >
               <LeftArrowLong />
               <Typography sx={{ height: 22, fontSize: 13, fontWeight: 500 }}>

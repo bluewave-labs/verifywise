@@ -14,19 +14,47 @@ import {
   PriorityLevel,
 } from "../../pages/Assessment/NewAssessment/priorities";
 import RichTextEditor from "../RichTextEditor";
-import { useState } from "react";
-import { updateEntityById } from "../../../application/repository/entity.repository";
+import { useCallback, useContext, useMemo, useState } from "react";
 import UppyUploadFile from "../../vw-v2-components/Inputs/FileUpload";
+import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import createUppy from "../../../application/tools/createUppy";
+import { updateEntityById } from "../../../application/repository/entity.repository";
 import Alert, { AlertProps } from "../Alert";
 import { handleAlert } from "../../../application/tools/alertUtils";
-import Uppy from "@uppy/core";
+import { store } from "../../../application/redux/store";
+import { apiServices } from "../../../infrastructure/api/networkServices";
+import { ENV_VARs } from "../../../../env.vars";
 
-const VWQuestion = ({ question}: { question: Question}) => {
+interface QuestionProps {
+  question: Question;
+}
+
+const VWQuestion = ({ question}: QuestionProps) => {
+  const {userId, currentProjectId } = useContext(VerifyWiseContext);
   const [values, setValues] = useState<Question>(question);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
-  const [evidenceFiles, setEvidenceFiles] = useState<any[]>([]);
+
+  const initialEvidenceFiles = question.evidence_files?.map(file => JSON.parse(file))|| [];
+  const [evidenceFiles, setEvidenceFiles] = useState<any[]>(initialEvidenceFiles);
   const [alert, setAlert] = useState<AlertProps | null>(null);
-  const [uppy] = useState(() => new Uppy());
+
+  const handleChangeEvidenceFiles = useCallback((files: { id: string; name: string }[]) => {
+    setEvidenceFiles(files);
+  }, []);
+
+  const createUppyProps = useMemo(() => ({
+    onChangeFiles: handleChangeEvidenceFiles,
+    allowedMetaFields: ["question_id", "user_id", "project_id", "delete"],
+    meta: {
+      question_id: question.id,
+      user_id: userId,
+      project_id: currentProjectId,
+      delete: "[]",
+    },
+    routeUrl: "files",
+  }), [question.id, userId, currentProjectId, handleChangeEvidenceFiles]);
+
+  const [uppy] = useState(createUppy(createUppyProps));
 
   const handleSave = async () => {
     try {
@@ -59,16 +87,42 @@ const VWQuestion = ({ question}: { question: Question}) => {
     }
   };
 
-  const handleFileUploadConfirm = (files: any[]) => {
-    setEvidenceFiles(files);
-    setIsFileUploadOpen(false);
-    // Add logic to send files to the backend if needed
-  };
-
   const handleContentChange = (answer: string) => {
     // Remove <p> tags from the beginning and end of the answer
     const cleanedAnswer = answer.replace(/^<p>|<\/p>$/g, "");
     setValues({ ...values, answer: cleanedAnswer });
+  };
+
+  const handleRemoveFile = async (fileId: string) => {
+    const state = store.getState();
+    const authToken = state.auth.authToken;
+
+    const formData = new FormData();
+    formData.append("delete", JSON.stringify([parseInt(fileId)]));
+    formData.append("question_id", question.id?.toString() || "");
+    formData.append("user_id", userId);
+    if (currentProjectId) {
+      formData.append("project_id", currentProjectId);
+    }
+    const response = await apiServices.post(`${ENV_VARs.URL}/files`, formData,  {
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+        "Content-Type": "multipart/form-data",
+      }
+    });
+
+    if (response.status === 201 && response.data) {
+      const newEvidenceFiles = evidenceFiles.filter(
+        (file) => file.id !== fileId
+      );
+      setEvidenceFiles(newEvidenceFiles);
+
+      handleAlert({
+        variant: "success",
+        body: "File deleted successfully",
+        setAlert,
+      });
+    }
   };
 
   return (
@@ -186,7 +240,7 @@ const VWQuestion = ({ question}: { question: Question}) => {
               textWrap: "wrap",
             }}
           >
-            {`${question.evidence_files?.length ?? 0} evidence files attached`}
+            {`${evidenceFiles?.length ?? 0} evidence files attached`}
           </Typography>
         </Stack>
         <Typography sx={{ fontSize: 11, color: "#344054", fontWeight: "300" }}>
@@ -199,9 +253,9 @@ const VWQuestion = ({ question}: { question: Question}) => {
       >
         <UppyUploadFile
           uppy={uppy}
-          evidence_files={evidenceFiles}
+          files={evidenceFiles}
           onClose={() => setIsFileUploadOpen(false)}
-          onConfirm={handleFileUploadConfirm}
+          onRemoveFile={handleRemoveFile}
         />
       </Dialog>
       {alert && (

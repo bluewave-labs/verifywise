@@ -48,7 +48,7 @@ const VWProjectRisksTableHead = ({ columns }: { columns: any[] }) => {
               ...(index === columns.length - 1
                 ? {
                     position: "sticky",
-                    right: 0,
+                    right: -1, // set -1px because table has border 1px, right: 0 occurs 1px space while vertical scroll
                     backgroundColor:
                       singleTheme.tableStyles.primary.header.backgroundColors,
                   }
@@ -136,7 +136,7 @@ const VWProjectRisksTableBody = ({
                 sx={{
                   ...singleTheme.tableStyles.primary.body.cell,
                   position: "sticky",
-                  right: 0,
+                  right: -1, // set -1px because table has border 1px, right: 0 occurs 1px space while vertical scroll
                   minWidth: "50px",
                 }}
               >

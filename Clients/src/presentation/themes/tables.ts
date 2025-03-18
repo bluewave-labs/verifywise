@@ -50,7 +50,10 @@ export const tableStyles = {
         "&:not(:last-child)": {
           minWidth: "fit-content",
         },
-      },
+        "&:last-child" : {
+          backgroundColor: "white"
+        }
+      },      
     },
   },
 };

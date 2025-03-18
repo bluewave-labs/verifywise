@@ -47,12 +47,10 @@ export const tableStyles = {
         fontSize: fontSizes.medium,
         paddingY: "12px",
         whiteSpace:"nowrap",
+        backgroundColor: "white",
         "&:not(:last-child)": {
           minWidth: "fit-content",
         },
-        "&:last-child" : {
-          backgroundColor: "white"
-        }
       },      
     },
   },

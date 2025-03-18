@@ -48,7 +48,7 @@ const VWProjectRisksTableHead = ({ columns }: { columns: any[] }) => {
               ...(index === columns.length - 1
                 ? {
                     position: "sticky",
-                    right: -1, // set -1px because table has border 1px, right: 0 occurs 1px space while vertical scroll
+                    right: 0,
                     backgroundColor:
                       singleTheme.tableStyles.primary.header.backgroundColors,
                   }
@@ -109,36 +109,37 @@ const VWProjectRisksTableBody = ({
         rows
           .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
           .map((row: ProjectRisk, index: number) => (
-            <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': '#ffffff'}}>
-              <TableCell sx={cellStyle} >
+            <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row}>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
                 {row.risk_name?.length > 30
                   ? `${row.risk_name.slice(0, 30)}...`
                   : row.risk_name}
               </TableCell>
-              <TableCell sx={cellStyle}>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
                 {row.impact?.length > 30
                   ? `${row.impact.slice(0, 30)}...`
                   : row.impact}
               </TableCell>
-              <TableCell sx={cellStyle}>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
                 {displayUserFullName(row.risk_owner)}
               </TableCell>
-              <TableCell sx={cellStyle}>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
                 {riskLevelChecker(row.risk_level_autocalculated)}
               </TableCell>
-              <TableCell sx={cellStyle}>{row.likelihood}</TableCell>
-              <TableCell sx={cellStyle}>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>{row.likelihood}</TableCell>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
                 {row.risk_level_autocalculated}
               </TableCell>
-              <TableCell sx={cellStyle}>{row.mitigation_status}</TableCell>
-              <TableCell sx={cellStyle}>{row.final_risk_level}</TableCell>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>{row.mitigation_status}</TableCell>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>{row.final_risk_level}</TableCell>
               <TableCell
                 sx={{
                   ...singleTheme.tableStyles.primary.body.cell,
                   position: "sticky",
-                  right: -1, // set -1px because table has border 1px, right: 0 occurs 1px space while vertical scroll
+                  right: 0,
                   minWidth: "50px",
                 }}
+                style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}
               >
                 <IconButton
                   id={row.id}

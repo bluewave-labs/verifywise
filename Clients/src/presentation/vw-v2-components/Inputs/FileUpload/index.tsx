@@ -130,7 +130,7 @@ const UppyUploadFile: React.FC<UppyUploadFileProps> = ({
             text="Confirm"
             sx={{
               backgroundColor: "#13715B",
-              border: `1px solid #13715B"`,
+              border: `1px solid #13715B`,
               gap: 2,
             }}
             onClick={handleConfirm}

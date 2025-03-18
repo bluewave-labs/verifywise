@@ -95,9 +95,9 @@ export const createNewSubcontrolQuery = async (
 export const updateSubcontrolByIdQuery = async (
   id: number,
   subcontrol: Partial<Subcontrol>,
-  evidenceUploadedFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[],
-  feedbackUploadedFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[],
-  deletedFiles: number[]
+  evidenceUploadedFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[] = [],
+  feedbackUploadedFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[] = [],
+  deletedFiles: number[] = []
 ): Promise<Subcontrol | null> => {
   const files = await pool.query(
     `SELECT evidence_files, feedback_files FROM subcontrols WHERE id = $1`,

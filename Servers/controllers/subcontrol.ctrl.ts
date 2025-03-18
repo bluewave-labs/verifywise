@@ -94,8 +94,7 @@ export async function updateSubcontrolById(
 
     const updatedSubcontrol = await updateSubcontrolByIdQuery(
       subcontrolId,
-      subcontrol,
-      [], [], []
+      subcontrol
     );
 
     if (updatedSubcontrol) {

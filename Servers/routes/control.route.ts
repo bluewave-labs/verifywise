@@ -27,11 +27,6 @@ router.post("/compliance/:id", /*authenticateJWT,*/ getComplianceById);
 
 router.patch(
   "/saveControls/:id",
-  /*authenticateJWT,*/
-  // upload.fields([
-  //   { name: "evidenceFiles" },
-  //   { name: "feedbackFiles" },
-  // ]),
   upload.any(),
   saveControls
 );

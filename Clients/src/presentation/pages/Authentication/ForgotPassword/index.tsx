@@ -3,14 +3,18 @@
  */
 
 import { Button, Stack, Typography, useTheme } from "@mui/material";
-import React, { useState } from "react";
+import React, { useState, lazy, Suspense } from "react";
 import { ReactComponent as Key } from "../../../assets/icons/key.svg";
 import { ReactComponent as LeftArrowLong } from "../../../assets/icons/left-arrow-long.svg";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate, useLocation } from "react-router-dom";
-import { resetPassword } from "../../../../application/repository/entity.repository";
+import { apiServices } from "../../../../infrastructure/api/networkServices";
+import { handleAlert } from "../../../../application/tools/alertUtils";
+import { AlertProps } from "../../../components/Alert";
+
+const Alert = lazy(() => import("../../../components/Alert"));
 
 // Define the shape of form values
 interface FormValues {
@@ -25,6 +29,7 @@ const initialState: FormValues = {
 const ForgotPassword: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [alert, setAlert] = useState<AlertProps | null>(null);
 
   // Update initial state to use the email from navigation state if available
   const initialState: FormValues = {
@@ -45,15 +50,27 @@ const ForgotPassword: React.FC = () => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     console.log("Form submitted:", values);
-    // Reset form after successful submission
-    const response = await resetPassword({
-      routeUrl: "/invite",
-      body: { email: values.email },
-    });
-    console.log("Response:", response);
-    if (response.status === 200) {
+    const formData = {
+      to: values.email,
+      email: values.email,
+      name: "CR",
+      link: "set-new-password",
+    };
+    const response = await apiServices.post("/mail/reset-password", formData);
+    
+    const isSuccess = response.status === 200;
+    const alertMessage = isSuccess ? "Email sent successfully" : "Email failed";
+    
+    if (isSuccess) {
       navigate("/reset-password", { state: { email: values.email } });
     }
+    
+    handleAlert({
+      variant: isSuccess ? "success" : "error",
+      body: alertMessage,
+      setAlert,
+    });
+    
     setValues(initialState);
   };
 
@@ -82,6 +99,17 @@ const ForgotPassword: React.FC = () => {
           transform: "translateX(-50%)",
         }}
       />
+      {alert && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Alert
+            variant={alert.variant}
+            title={alert.title}
+            body={alert.body}
+            isToast={true}
+            onClick={() => setAlert(null)}
+          />
+        </Suspense>
+      )}
       <form onSubmit={handleSubmit}>
         <Stack
           className="reg-admin-form"

@@ -3,7 +3,7 @@
  */
 
 import { Button, Stack, Typography, useTheme } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Check from "../../../components/Checks";
 import Field from "../../../components/Inputs/Field";
@@ -11,7 +11,7 @@ import Field from "../../../components/Inputs/Field";
 import { ReactComponent as LeftArrowLong } from "../../../assets/icons/left-arrow-long.svg";
 import { ReactComponent as Lock } from "../../../assets/icons/lock.svg";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   validatePassword,
   validateForm,
@@ -21,6 +21,8 @@ import type {
   FormErrors,
 } from "../../../../application/validations/formValidation";
 import VWAlert from "../../../vw-v2-components/Alerts";
+import { extractUserToken } from "../../../../application/tools/extractToken";
+import { apiServices } from "../../../../infrastructure/api/networkServices";
 
 // Initial state for form values
 const initialState: FormValues = {
@@ -36,6 +38,12 @@ const SetNewPassword: React.FC = () => {
   const [errors, setErrors] = useState<FormErrors>({});
   // Password checks based on the password input
   const passwordChecks = validatePassword(values);
+  
+  // Extract user token
+  const [searchParams] = useSearchParams();
+  const userToken = searchParams.get("token");
+  const [isResetInvitationValid, setIsResetInvitationValid] = useState<boolean>(true);
+  const [userInfo, setUserInfo] = useState<any>(null);
 
   //state for overlay modal
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,29 +51,78 @@ const SetNewPassword: React.FC = () => {
   // Handle input field changes
   const handleChange =
     (prop: keyof FormValues) =>
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setValues({ ...values, [prop]: event.target.value });
-      setErrors({ ...errors, [prop]: "" });
-    };
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        setValues({ ...values, [prop]: event.target.value });
+        setErrors({ ...errors, [prop]: "" });
+      };
 
   // Handle form submission
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const { isFormValid, errors } = validateForm(values);
     if (!isFormValid) {
       setErrors(errors);
       setIsSubmitting(false);
     } else {
-      console.log("Form submitted:", values);
-      // Reset form after successful submission
-      setValues(initialState);
-      setErrors({});
-      setIsSubmitting(false);
+      if(isResetInvitationValid){
+        const response = await apiServices.post("/users/reset-password", {
+          email: userInfo?.email,
+          newPassword: values.password
+        });
+        debugger;
+        if(response.status === 202){
+          console.log("Form submitted:", values);
+          setValues(initialState);
+          setErrors({});
+          setIsSubmitting(false);
+          navigate("/login");
+        }else{
+          console.log(response.data)
+          setIsSubmitting(false);
+        }
+      }else{
+        console.log("The link has expired already.")
+        setIsSubmitting(false);
+      }
     }
   };
 
   const theme = useTheme();
 
+  const checkResetInvitation = (expDate: any) => {    
+    let todayDate = new Date();
+    let currentTime = todayDate.getTime();
+    console.log(currentTime)
+
+    if(currentTime < expDate){
+      setIsResetInvitationValid(true);
+    }else{
+      console.log("The link has expired already.")
+      setIsResetInvitationValid(false);
+    }
+    return isResetInvitationValid;
+  }
+
+  useEffect(() => {
+    if(userToken !== null){
+      const extractedUserInfo = extractUserToken(userToken);
+      console.log(extractedUserInfo)      
+      if(extractedUserInfo !== null){        
+        setUserInfo(extractedUserInfo);
+        const isValidLink = checkResetInvitation(extractedUserInfo?.expire);
+
+        if(isValidLink){
+          const userData: FormValues = {
+            ...initialState,
+            name: extractedUserInfo.name ?? "",
+            email: extractedUserInfo.email ?? ""
+          }
+          setValues(userData)
+        }
+      }
+    }
+  }, [userToken])
+  
   const buttonStyle = {
     width: 360,
     backgroundColor: "#fff",

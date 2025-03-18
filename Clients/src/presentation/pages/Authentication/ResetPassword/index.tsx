@@ -7,8 +7,14 @@ import { ReactComponent as Background } from "../../../assets/imgs/background-gr
 import { ReactComponent as Email } from "../../../assets/icons/email.svg";
 import { ReactComponent as LeftArrowLong } from "../../../assets/icons/left-arrow-long.svg";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { resetPassword } from "../../../../application/repository/entity.repository";
+import { apiServices } from "../../../../infrastructure/api/networkServices";
+import { handleAlert } from "../../../../application/tools/alertUtils";
+import { AlertProps } from "../../../components/Alert";
+
+const Alert = lazy(() => import("../../../components/Alert"));
+
 interface FormValues {
   email: string;
 }
@@ -17,6 +23,8 @@ const ResetPassword = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const location = useLocation();
+  const [alert, setAlert] = useState<AlertProps | null>(null);
+  
   // Update initial state to use the email from navigation state if available
   const initialState: FormValues = {
     email: location.state?.email || "",
@@ -25,11 +33,20 @@ const ResetPassword = () => {
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
 
-  const resendEmail = () => {
-    resetPassword({
-      routeUrl: "/invite",
-      body: { email: values.email },
+  const resendEmail = async () => {
+    const formData = {
+      to: values.email,
+      email: values.email,
+      name: "CR",
+      link: "set-new-password",
+    };
+    const response = await apiServices.post("/mail/reset-password", formData);
+    handleAlert({
+      variant: response.status === 200 ? "success" : "error",
+      body: response.status === 200 ? "Email sent successfully" : "Email failed",
+      setAlert,
     });
+    setValues(initialState);
   };
 
   return (
@@ -49,6 +66,17 @@ const ResetPassword = () => {
           transform: "translateX(-50%)",
         }}
       />
+      {alert && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Alert
+            variant={alert.variant}
+            title={alert.title}
+            body={alert.body}
+            isToast={true}
+            onClick={() => setAlert(null)}
+          />
+        </Suspense>
+      )}
       <Stack
         className="reg-admin-form"
         sx={{
@@ -87,7 +115,7 @@ const ResetPassword = () => {
         </Stack>
         <Stack sx={{ gap: theme.spacing(12) }} onClick={resendEmail}>
           <Typography sx={{ fontSize: 13, color: "#475467" }}>
-            Didn’t receive the email?{" "}
+            Didn't receive the email?{" "}
             <span
               style={{
                 fontWeight: "bold",

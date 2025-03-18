@@ -134,6 +134,7 @@ export async function getProjectById(
 
 export async function createProject(req: Request, res: Response): Promise<any> {
   try {
+    console.log("req.body : ", req.body);
     const newProject: Partial<Project> & {
       members: number[];
       enable_ai_data_insertion: boolean;

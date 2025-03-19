@@ -17,23 +17,23 @@ import mockVendorRisks from "../mocks/vendorRisk.mock.data";
 import { vendorsProjects } from "../mocks/vendorsProjects.mock.data";
 import { projectsMembers } from "../mocks/projectsMembers.mock.data";
 
-import { Assessment } from "../models/assessment.model";
-import { Control } from "../models/control.model";
-import { ControlCategory } from "../models/controlCategory.model";
-import { File } from "../models/file.model";
-import { Project } from "../models/project.model";
-import { ProjectRisk } from "../models/projectRisk.model";
-import { ProjectScope } from "../models/projectScope.model";
-import { ProjectsMembers } from "../models/projectsMembers.model";
-import { Question } from "../models/question.model";
-import { Role } from "../models/role.model";
-import { Subcontrol } from "../models/subcontrol.model";
-import { Subtopic } from "../models/subtopic.model";
-import { Topic } from "../models/topic.model";
-import { User } from "../models/user.model";
-import { Vendor } from "../models/vendor.model";
-import { VendorRisk } from "../models/vendorRisk.model";
-import { VendorsProjects } from "../models/vendorsProjects.model";
+import { Assessment, AssessmentModel } from "../models/assessment.model";
+import { Control, ControlModel } from "../models/control.model";
+import { ControlCategory, ControlCategoryModel } from "../models/controlCategory.model";
+import { File, FileModel } from "../models/file.model";
+import { Project, ProjectModel } from "../models/project.model";
+import { ProjectRisk, ProjectRiskModel } from "../models/projectRisk.model";
+import { ProjectScope, ProjectScopeModel } from "../models/projectScope.model";
+import { ProjectsMembers, ProjectsMembersModel } from "../models/projectsMembers.model";
+import { Question, QuestionModel } from "../models/question.model";
+import { Role, RoleModel } from "../models/role.model";
+import { Subcontrol, SubcontrolModel } from "../models/subcontrol.model";
+import { Subtopic, SubtopicModel } from "../models/subtopic.model";
+import { Topic, TopicModel } from "../models/topic.model";
+import { User, UserModel } from "../models/user.model";
+import { Vendor, VendorModel } from "../models/vendor.model";
+import { VendorRisk, VendorRiskModel } from "../models/vendorRisk.model";
+import { VendorsProjects, VendorsProjectsModel } from "../models/vendorsProjects.model";
 
 import {
   insertData,
@@ -382,7 +382,7 @@ export async function insertMockData() {
       userGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    users = await insertData(insertString as string);
+    users = await insertData(insertString as string) as UserModel[];
   }
 
   var {
@@ -393,11 +393,11 @@ export async function insertMockData() {
   } = insertQuery["projects"];
   let projects;
   if (projectMockData.length !== 0) {
-    const values = projectMockData(users![0].id, users![1].id).map((d) =>
+    const values = projectMockData(users![0].id!, users![1].id!).map((d) =>
       projectGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    projects = await insertData(insertString as string);
+    projects = await insertData(insertString as string) as ProjectModel[];
   }
 
   var {
@@ -408,11 +408,11 @@ export async function insertMockData() {
   } = insertQuery["projectMembers"];
   let projectMembers;
   if (projectMembersMockData.length !== 0) {
-    const values = projectMembersMockData(users![0].id, users![1].id, projects![0].id, projects![1].id).map((d) =>
+    const values = projectMembersMockData(users![0].id!, users![1].id!, projects![0].id!, projects![1].id!).map((d) =>
       projectMembersGenerateValuesString(d as any)
     );
     insertString += values.join(",") + ";";
-    projectMembers = await insertData(insertString as string);
+    projectMembers = await insertData(insertString as string) as ProjectsMembersModel[];
   }
 
   var {
@@ -423,11 +423,11 @@ export async function insertMockData() {
   } = insertQuery["vendors"];
   let vendors;
   if (vendorMockData.length !== 0) {
-    const values = vendorMockData(users![0].id, users![1].id).map((d) =>
+    const values = vendorMockData(users![0].id!, users![1].id!).map((d) =>
       vendorGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    vendors = await insertData(insertString as string);
+    vendors = await insertData(insertString as string) as VendorModel[];
   }
 
   var {
@@ -439,15 +439,15 @@ export async function insertMockData() {
   let vendorsProjects;
   if (vendorsProjectsMockData.length !== 0) {
     const values = vendorsProjectsMockData(
-      vendors![0].id,
-      vendors![1].id,
-      vendors![2].id,
-      vendors![3].id,
-      projects![0].id,
-      projects![1].id
+      vendors![0].id!,
+      vendors![1].id!,
+      vendors![2].id!,
+      vendors![3].id!,
+      projects![0].id!,
+      projects![1].id!
     ).map((d) => vendorsProjectsGenerateValuesString(d as any));
     insertString += values.join(",") + ";";
-    vendorsProjects = await insertData(insertString as string);
+    vendorsProjects = await insertData(insertString as string) as VendorsProjectsModel[];
   }
 
   var {
@@ -458,11 +458,11 @@ export async function insertMockData() {
   } = insertQuery["assessments"];
   let assessments;
   if (assessmentMockData.length !== 0) {
-    const values = assessmentMockData(projects![0].id, projects![1].id).map(
+    const values = assessmentMockData(projects![0].id!, projects![1].id!).map(
       (d) => assessmentGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    assessments = await insertData(insertString as string);
+    assessments = await insertData(insertString as string) as AssessmentModel[];
   }
 
   var {
@@ -474,11 +474,11 @@ export async function insertMockData() {
   let controlCategories;
   if (controlCategoriesMockData.length !== 0) {
     const values = controlCategoriesMockData(
-      projects![0].id,
-      projects![1].id
+      projects![0].id!,
+      projects![1].id!
     ).map((d) => controlCategoriesGenerateValuesString(d as any));
     insertString += values.join(",") + "RETURNING id;";
-    controlCategories = await insertData(insertString as string);
+    controlCategories = await insertData(insertString as string) as ControlCategoryModel[];
   }
 
   var {
@@ -489,9 +489,9 @@ export async function insertMockData() {
   } = insertQuery["mockControls"];
   let controls;
   if (controlMockData.length !== 0) {
-    const values = controlMockData(controlCategories!.map(c => c.id), users![0].id, users![1].id).map((d) => controlGenerateValuesString(d as any));
+    const values = controlMockData(controlCategories!.map(c => c.id!), users![0].id!, users![1].id!).map((d) => controlGenerateValuesString(d as any));
     insertString += values.join(",") + "RETURNING id;";
-    controls = await insertData(insertString as string);
+    controls = await insertData(insertString as string) as ControlModel[];
   }
 
   var {
@@ -502,9 +502,9 @@ export async function insertMockData() {
   } = insertQuery["subcontrols"];
   let subControls;
   if (controlMockData.length !== 0) {
-    const values = subControlMockData(controls!.map(c => c.id), users![0].id, users![1].id).map((d) => subControlGenerateValuesString(d as any));
+    const values = subControlMockData(controls!.map(c => c.id!), users![0].id!, users![1].id!).map((d) => subControlGenerateValuesString(d as any));
     insertString += values.join(",") + "RETURNING id;";
-    subControls = await insertData(insertString as string);
+    subControls = await insertData(insertString as string) as SubcontrolModel[];
   }
 
   var {
@@ -515,11 +515,11 @@ export async function insertMockData() {
   } = insertQuery["mockProjectRisks"];
   let projectRisks;
   if (controlMockData.length !== 0) {
-    const values = projectRisksMockData(projects![0].id, users![0].id, users![1].id).map((d) =>
+    const values = projectRisksMockData(projects![0].id!, users![0].id!, users![1].id!).map((d) =>
       projectRisksGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    projectRisks = await insertData(insertString as string);
+    projectRisks = await insertData(insertString as string) as ProjectRiskModel[];
   }
 
   var {
@@ -531,14 +531,14 @@ export async function insertMockData() {
   let vendorRisks;
   if (controlMockData.length !== 0) {
     const values = vendorRisksMockData(
-      vendors![0].id,
-      vendors![1].id,
-      vendors![2].id,
-      vendors![3].id,
-      users![0].id, users![1].id
+      vendors![0].id!,
+      vendors![1].id!,
+      vendors![2].id!,
+      vendors![3].id!,
+      users![0].id!, users![1].id!
     ).map((d) => vendorRisksGenerateValuesString(d as any));
     insertString += values.join(",") + "RETURNING id;";
-    vendorRisks = await insertData(insertString as string);
+    vendorRisks = await insertData(insertString as string) as VendorRiskModel[];
   }
 
   var {
@@ -549,11 +549,11 @@ export async function insertMockData() {
   } = insertQuery["projectScopes"];
   let projectScopes;
   if (projectScopeMockData.length !== 0) {
-    const values = projectScopeMockData(assessments![0].id).map((d) =>
+    const values = projectScopeMockData(assessments![0].id!).map((d) =>
       projectScopeGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    projectScopes = await insertData(insertString as string);
+    projectScopes = await insertData(insertString as string) as ProjectScopeModel[];
   }
 
   var {
@@ -564,11 +564,11 @@ export async function insertMockData() {
   } = insertQuery["topics"];
   let topics;
   if (topicMockData.length !== 0) {
-    const values = topicMockData(assessments![0].id, assessments![1].id).map(
+    const values = topicMockData(assessments![0].id!, assessments![1].id!).map(
       (d) => topicGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    topics = await insertData(insertString as string);
+    topics = await insertData(insertString as string) as TopicModel[];
   }
 
   var {
@@ -579,11 +579,11 @@ export async function insertMockData() {
   } = insertQuery["subtopics"];
   let subTopics;
   if (subTopicMockData.length !== 0) {
-    const values = subTopicMockData(topics!.map((t) => t.id)).map((d) =>
+    const values = subTopicMockData(topics!.map((t) => t.id!)).map((d) =>
       subTopicGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    subTopics = await insertData(insertString as string);
+    subTopics = await insertData(insertString as string) as SubtopicModel[];
   }
 
   var {
@@ -594,18 +594,18 @@ export async function insertMockData() {
   } = insertQuery["questions"];
   let questions;
   if (questionMockData.length !== 0) {
-    const values = questionMockData(subTopics!.map((s) => s.id)).map((d) =>
+    const values = questionMockData(subTopics!.map((s) => s.id!)).map((d) =>
       questionGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    questions = await insertData(insertString as string);
+    questions = await insertData(insertString as string) as QuestionModel[];
   }
 }
 
 export async function deleteMockData() {
   // const projects = await getDEMOProjects()
   // for (let project of projects) {
-  //   await deleteProjectByIdQuery(project.id)
+  //   await deleteProjectByIdQuery(project.id!)
   // };
   // await deleteExistingData("vendors", "vendor_name");
   // await deleteExistingData("users", "name");

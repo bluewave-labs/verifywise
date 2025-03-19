@@ -37,7 +37,7 @@ export async function getAllProjects(
       for (const project of projects) {
         // calculating compliances
         const controlCategories = await getControlCategoryByProjectIdQuery(
-          project.id
+          project.id!
         );
         for (const category of controlCategories) {
           if (category) {
@@ -65,7 +65,7 @@ export async function getAllProjects(
 
         // calculating assessments
 
-        const assessments = await getAssessmentByProjectIdQuery(project.id);
+        const assessments = await getAssessmentByProjectIdQuery(project.id!);
         if (assessments.length !== 0) {
           for (const assessment of assessments) {
             if (assessment.id !== undefined) {
@@ -144,10 +144,10 @@ export async function createProject(req: Request, res: Response): Promise<any> {
 
     const createdProject = await createNewProjectQuery(newProject, newProject.members);
     const assessments: Object = await createNewAssessmentQuery({
-      project_id: createdProject.id,
+      project_id: createdProject.id!,
     }, newProject.enable_ai_data_insertion);
     const controls = await createNewControlCategories(
-      createdProject.id,
+      createdProject.id!,
       newProject.enable_ai_data_insertion
     );
 
@@ -291,7 +291,7 @@ export async function getCompliances(req: Request, res: Response) {
     const project = await getProjectByIdQuery(projectId);
     if (project) {
       const controlCategories = await getControlCategoryByProjectIdQuery(
-        project.id
+        project.id!
       );
       for (const category of controlCategories) {
         if (category) {
@@ -328,7 +328,7 @@ export async function projectComplianceProgress(req: Request, res: Response) {
     const project = await getProjectByIdQuery(projectId);
     if (project) {
       const controlCategories = await getControlCategoryByProjectIdQuery(
-        project.id
+        project.id!
       );
       for (const category of controlCategories) {
         if (category) {
@@ -369,7 +369,7 @@ export async function projectAssessmentProgress(req: Request, res: Response) {
   try {
     const project = await getProjectByIdQuery(projectId);
     if (project) {
-      const assessments = await getAssessmentByProjectIdQuery(project.id);
+      const assessments = await getAssessmentByProjectIdQuery(project.id!);
       if (assessments.length !== 0) {
         for (const assessment of assessments) {
           if (assessment.id !== undefined) {
@@ -430,7 +430,7 @@ export async function allProjectsComplianceProgress(
     if (projects && projects.length > 0) {
       for (const project of projects) {
         const controlCategories = await getControlCategoryByProjectIdQuery(
-          project.id
+          project.id!
         );
         for (const category of controlCategories) {
           if (category) {
@@ -477,7 +477,7 @@ export async function allProjectsAssessmentProgress(
     const projects = await getAllProjectsQuery();
     if (projects && projects.length > 0) {
       for (const project of projects) {
-        const assessments = await getAssessmentByProjectIdQuery(project.id);
+        const assessments = await getAssessmentByProjectIdQuery(project.id!);
         if (assessments.length !== 0) {
           for (const assessment of assessments) {
             if (assessment.id !== undefined) {

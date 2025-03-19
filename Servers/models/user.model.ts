@@ -16,7 +16,7 @@ import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript
 import { RoleModel } from "./role.model";
 
 export type User = {
-  id: number;
+  id?: number;
   name: string;
   surname: string;
   email: string;

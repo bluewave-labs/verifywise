@@ -1,7 +1,7 @@
 import { Column, DataType, Model, Table } from "sequelize-typescript";
 
 export type ProjectScope = {
-  id: number;
+  id?: number;
   assessmentId: number;
   describeAiEnvironment: string;
   isNewAiTechnology: boolean;

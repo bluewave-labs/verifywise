@@ -1,26 +1,44 @@
 import { Assessment, AssessmentModel } from "../models/assessment.model";
+import { sequelize } from "../database/db";
 import { createNewTopicsQuery } from "./topic.utils";
+import { QueryTypes } from "sequelize";
 
 export const getAllAssessmentsQuery = async (): Promise<Assessment[]> => {
-  const assessments = await AssessmentModel.findAll();
+  const assessments = await sequelize.query(
+    "SELECT * FROM assessments",
+    {
+      mapToModel: true,
+      model: AssessmentModel
+    }
+  );
   return assessments;
 };
 
 export const getAssessmentByIdQuery = async (
   id: number
 ): Promise<Assessment | null> => {
-  const result = await AssessmentModel.findOne({
-    where: { id: id }
-  })
-  return result
+  const result = await sequelize.query(
+    "SELECT * FROM assessments WHERE id = :id",
+    {
+      replacements: { id: id },
+      mapToModel: true,
+      model: AssessmentModel
+    }
+  );
+  return result[0];
 };
 
 export const getAssessmentByProjectIdQuery = async (
   projectId: number
 ): Promise<Assessment[]> => {
-  const result = await AssessmentModel.findAll({
-    where: { project_id: projectId }
-  })
+  const result = await sequelize.query(
+    "SELECT * FROM assessments WHERE project_id = :project_id",
+    {
+      replacements: { project_id: projectId },
+      mapToModel: true,
+      model: AssessmentModel
+    }
+  );
   return result;
 };
 
@@ -28,31 +46,46 @@ export const createNewAssessmentQuery = async (
   assessment: Assessment,
   enable_ai_data_insertion: boolean
 ): Promise<Object> => {
-  const result = await AssessmentModel.create({
-    project_id: assessment.project_id
-  });
-  const topics = await createNewTopicsQuery(result.id!, enable_ai_data_insertion);
-  return { assessment: result, topics };
+  const result = await sequelize.query(
+    `INSERT INTO assessments (project_id) VALUES (:project_id) RETURNING *`,
+    {
+      replacements: { project_id: assessment.project_id },
+      mapToModel: true,
+      model: AssessmentModel
+    }
+  );
+  const topics = await createNewTopicsQuery(result[0].id!, enable_ai_data_insertion);
+  return { assessment: result[0], topics };
 };
 
 export const updateAssessmentByIdQuery = async (
   id: number,
   assessment: Partial<Assessment>
-): Promise<Assessment | null> => {
-  const result = await AssessmentModel.update({
-    project_id: assessment.project_id
-  }, {
-    where: { id: id },
-    returning: true
-  });
-  return result[1][0];
+): Promise<Boolean> => {
+  const result = await sequelize.query(
+    `UPDATE assessments SET project_id = :project_id WHERE id = :id RETURNING *`,
+    {
+      replacements: {
+        project_id: assessment.project_id, id: id
+      },
+      mapToModel: true,
+      model: AssessmentModel,
+      type: QueryTypes.UPDATE
+    }
+  );
+  return result.length > 0;
 };
 
 export const deleteAssessmentByIdQuery = async (
   id: number
-): Promise<boolean> => {
-  const result = await AssessmentModel.destroy(
-    { where: { id: id } }
-  )
-  return result > 0;
+): Promise<Boolean> => {
+  const result = await sequelize.query(
+    `DELETE FROM assessments WHERE id = :id RETURNING *`,
+    {
+      replacements: { id: id },
+      mapToModel: true,
+      model: AssessmentModel
+    }
+  );
+  return result.length > 0;
 };

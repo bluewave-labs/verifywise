@@ -4,7 +4,7 @@ import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript
 import { ProjectModel } from "./project.model";
 
 export type ProjectRisk = {
-  id: number;
+  id?: number;
   project_id: number; // Foreign key to refer to the project
   risk_name: string;
   risk_owner: number;

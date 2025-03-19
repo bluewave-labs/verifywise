@@ -1,30 +1,46 @@
-import { Subcontrol } from "../models/subcontrol.model";
-import pool from "../database/db";
+import { Subcontrol, SubcontrolModel } from "../models/subcontrol.model";
+import { sequelize } from "../database/db";
 import { UploadedFile } from "./question.utils";
 import { uploadFile } from "./fileUpload.utils";
+import { QueryTypes } from "sequelize";
 
 export const getAllSubcontrolsQuery = async (): Promise<Subcontrol[]> => {
-  const subcontrols = await pool.query("SELECT * FROM subcontrols");
-  return subcontrols.rows;
+  const subcontrols = await sequelize.query(
+    "SELECT * FROM subcontrols",
+    {
+      mapToModel: true,
+      model: SubcontrolModel
+    }
+  );
+  return subcontrols;
 };
 
 export const getAllSubcontrolsByControlIdQuery = async (
   controlId: number
 ): Promise<Subcontrol[]> => {
-  const subcontrols = await pool.query(
-    "SELECT * FROM subcontrols WHERE control_id = $1",
-    [controlId]
+  const subcontrols = await sequelize.query(
+    "SELECT * FROM subcontrols WHERE control_id = :id",
+    {
+      replacements: { id: controlId },
+      mapToModel: true,
+      model: SubcontrolModel
+    }
   );
-  return subcontrols.rows;
+  return subcontrols;
 };
 
 export const getSubcontrolByIdQuery = async (
   id: number
 ): Promise<Subcontrol | null> => {
-  const result = await pool.query("SELECT * FROM subcontrols WHERE id = $1", [
-    id,
-  ]);
-  return result.rows.length ? result.rows[0] : null;
+  const result = await sequelize.query(
+    "SELECT * FROM subcontrols WHERE id = :id",
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: SubcontrolModel
+    }
+  );
+  return result[0];
 };
 
 export const createNewSubcontrolQuery = async (
@@ -40,7 +56,7 @@ export const createNewSubcontrolQuery = async (
     evidenceFiles!.map(async (file) => {
       const uploadedFile = await uploadFile(file, user_id, project_id);
       uploadedEvidenceFiles.push({
-        id: uploadedFile.id.toString(),
+        id: uploadedFile.id!.toString(),
         fileName: uploadedFile.filename,
         project_id: uploadedFile.project_id,
         uploaded_by: uploadedFile.uploaded_by,
@@ -54,7 +70,7 @@ export const createNewSubcontrolQuery = async (
     feedbackFiles!.map(async (file) => {
       const uploadedFile = await uploadFile(file, user_id, project_id);
       uploadedFeedbackFiles.push({
-        id: uploadedFile.id.toString(),
+        id: uploadedFile.id!.toString(),
         fileName: uploadedFile.filename,
         project_id: uploadedFile.project_id,
         uploaded_by: uploadedFile.uploaded_by,
@@ -63,33 +79,42 @@ export const createNewSubcontrolQuery = async (
     })
   );
 
-  const result = await pool.query(
+  const result = await sequelize.query(
     `INSERT INTO subcontrols (
-      control_id, title, description, 
-      order_no, status, approver, 
-      risk_review, owner, reviewer, 
-      due_date, implementation_details, evidence_description, 
+      control_id, title, description, order_no, status,
+      approver, risk_review, owner, reviewer, due_date,
+      implementation_details, evidence_description, 
       feedback_description, evidence_files, feedback_files
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`,
-    [
-      controlId,
-      subcontrol.title,
-      subcontrol.description,
-      subcontrol.order_no,
-      subcontrol.status,
-      subcontrol.approver,
-      subcontrol.risk_review,
-      subcontrol.owner,
-      subcontrol.reviewer,
-      subcontrol.due_date,
-      subcontrol.implementation_details,
-      subcontrol.evidence_description,
-      subcontrol.feedback_description,
-      uploadedEvidenceFiles,
-      uploadedFeedbackFiles,
-    ]
+    ) VALUES (
+      :control_id, :title, :description, :order_no, :status,
+      :approver, :risk_review, :owner, :reviewer, :due_date,
+      :implementation_details, :evidence_description,
+      :feedback_description, :evidence_files, :feedback_files
+    ) RETURNING *`,
+    {
+      replacements: {
+        control_id: controlId,
+        title: subcontrol.title,
+        description: subcontrol.description,
+        order_no: subcontrol.order_no,
+        status: subcontrol.status,
+        approver: subcontrol.approver,
+        risk_review: subcontrol.risk_review,
+        owner: subcontrol.owner,
+        reviewer: subcontrol.reviewer,
+        due_date: subcontrol.due_date,
+        implementation_details: subcontrol.implementation_details,
+        evidence_description: subcontrol.evidence_description,
+        feedback_description: subcontrol.feedback_description,
+        evidence_files: uploadedEvidenceFiles,
+        feedback_files: uploadedFeedbackFiles,
+      },
+      mapToModel: true,
+      model: SubcontrolModel,
+      type: QueryTypes.INSERT
+    }
   );
-  return result.rows[0];
+  return result[0];
 };
 
 export const updateSubcontrolByIdQuery = async (
@@ -100,67 +125,83 @@ export const updateSubcontrolByIdQuery = async (
   evidenceFiles?: UploadedFile[],
   feedbackFiles?: UploadedFile[]
 ): Promise<Subcontrol | null> => {
-  let uploadedEvidenceFiles: { id: number; fileName: string }[] = [];
+  let uploadedEvidenceFiles: { id: string; fileName: string }[] = [];
   await Promise.all(
     evidenceFiles!.map(async (file) => {
       const uploadedFile = await uploadFile(file, user_id, project_id);
       uploadedEvidenceFiles.push({
-        id: uploadedFile.id.toString(),
+        id: uploadedFile.id!.toString(),
         fileName: uploadedFile.filename,
       });
     })
   );
 
-  let uploadedFeedbackFiles: { id: number; fileName: string }[] = [];
+  let uploadedFeedbackFiles: { id: string; fileName: string }[] = [];
   await Promise.all(
     feedbackFiles!.map(async (file) => {
       const uploadedFile = await uploadFile(file, user_id, project_id);
       uploadedFeedbackFiles.push({
-        id: uploadedFile.id.toString(),
+        id: uploadedFile.id!.toString(),
         fileName: uploadedFile.filename,
       });
     })
   );
 
-  // control_id, subControlTitle, subControlDescription, status, approver, risk_review, owner, reviewer, due_date,
-  //     implementation_details, evidence, feedback, evidenceFiles, feedbackFiles
-  const result = await pool.query(
-    `UPDATE subcontrols SET 
-      control_id = $1, title = $2, description = $3, 
-      status = $4, approver = $5, risk_review = $6, 
-      owner = $7, reviewer = $8, due_date = $9, 
-      implementation_details = $10, evidence_description = $11, feedback_description = $12, 
-      evidence_files = $13, feedback_files = $14, order_no = $15 WHERE id = $16 RETURNING *`,
-    [
-      subcontrol.control_id,
-      subcontrol.title,
-      subcontrol.description,
-      subcontrol.status,
-      subcontrol.approver,
-      subcontrol.risk_review,
-      subcontrol.owner,
-      subcontrol.reviewer,
-      subcontrol.due_date,
-      subcontrol.implementation_details,
-      subcontrol.evidence_description,
-      subcontrol.feedback_description,
-      uploadedEvidenceFiles,
-      uploadedFeedbackFiles,
-      subcontrol.order_no,
-      id,
-    ]
-  );
-  return result.rows.length ? result.rows[0] : null;
+  const updateSubControl: Partial<Record<keyof Subcontrol, any>> = {};
+  const setClause = [
+    "title",
+    "description",
+    "status",
+    "approver",
+    "risk_review",
+    "owner",
+    "reviewer",
+    "due_date",
+    "implementation_details",
+    "evidence_description",
+    "feedback_description",
+    "evidence_files",
+    "feedback_files",
+  ].filter(f => {
+    if (subcontrol[f as keyof Subcontrol] !== undefined) {
+      updateSubControl[f as keyof Subcontrol] = subcontrol[f as keyof Subcontrol]
+      return true
+    }
+  }).map(f => `${f} = :${f}`).join(", ");
+
+  const query = `UPDATE subcontrols SET ${setClause} WHERE id = :id`;
+
+  updateSubControl.id = id;
+  if (evidenceFiles) {
+    updateSubControl.evidence_files = uploadedEvidenceFiles
+  }
+  if (feedbackFiles) {
+    updateSubControl.feedback_files = uploadedFeedbackFiles
+  }
+
+  const result = await sequelize.query(query, {
+    replacements: updateSubControl,
+    mapToModel: true,
+    model: SubcontrolModel,
+    type: QueryTypes.UPDATE,
+  });
+
+  return result[0];
 };
 
 export const deleteSubcontrolByIdQuery = async (
   id: number
-): Promise<Subcontrol | null> => {
-  const result = await pool.query(
-    "DELETE FROM subcontrols WHERE id = $1 RETURNING *",
-    [id]
+): Promise<Boolean> => {
+  const result = await sequelize.query(
+    "DELETE FROM subcontrols WHERE id = :id RETURNING *",
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: SubcontrolModel,
+      type: QueryTypes.DELETE,
+    }
   );
-  return result.rows.length ? result.rows[0] : null;
+  return result.length > 0;
 };
 
 export const createNewSubControlsQuery = async (
@@ -177,24 +218,32 @@ export const createNewSubControlsQuery = async (
 ) => {
   let query =
     `INSERT INTO subcontrols(
-      title, description, control_id, order_no,
-      implementation_details, evidence_description,
-      feedback_description, status
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`;
+      title, description, control_id, order_no, implementation_details,
+      evidence_description, feedback_description, status
+    ) VALUES (
+      :title, :description, :control_id, :order_no, :implementation_details,
+      :evidence_description, :feedback_description, :status
+    ) RETURNING *`;
   let createdSubControls: Subcontrol[] = []
   for (let subControl of subControls) {
-    const result = await pool.query(
-      query, [
-      subControl.title,
-      subControl.description,
-      controlId,
-      subControl.order_no,
-      enable_ai_data_insertion ? subControl.implementation_details : null,
-      enable_ai_data_insertion && subControl.evidence_description ? subControl.evidence_description : null,
-      enable_ai_data_insertion && subControl.feedback_description ? subControl.feedback_description : null,
-      enable_ai_data_insertion ? 'Waiting' : null
-    ])
-    createdSubControls = createdSubControls.concat(result.rows)
+    const result = await sequelize.query(query,
+      {
+        replacements: {
+          title: subControl.title,
+          description: subControl.description,
+          control_id: controlId,
+          order_no: subControl.order_no,
+          implementation_details: enable_ai_data_insertion ? subControl.implementation_details : null,
+          evidence_description: enable_ai_data_insertion && subControl.evidence_description ? subControl.evidence_description : null,
+          feedback_description: enable_ai_data_insertion && subControl.feedback_description ? subControl.feedback_description : null,
+          status: enable_ai_data_insertion ? 'Waiting' : null
+        },
+        mapToModel: true,
+        model: SubcontrolModel,
+        type: QueryTypes.INSERT
+      }
+    )
+    createdSubControls = createdSubControls.concat(result)
   }
   return createdSubControls
 };

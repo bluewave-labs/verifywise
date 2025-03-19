@@ -1,7 +1,7 @@
 import { Column, DataType, Model, Table } from "sequelize-typescript";
 
-export interface Role {
-  id: number;
+export type Role = {
+  id?: number;
   name: string;
   description: string;
 }

@@ -27,6 +27,7 @@ router.post("/compliance/:id", /*authenticateJWT,*/ getComplianceById);
 
 router.patch(
   "/saveControls/:id",
+  /*authenticateJWT,*/
   upload.any(),
   saveControls
 );

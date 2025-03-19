@@ -25,27 +25,51 @@ import { store } from "../../../application/redux/store";
 import { apiServices } from "../../../infrastructure/api/networkServices";
 import { ENV_VARs } from "../../../../env.vars";
 import { FileData } from "../../../domain/File";
+import { useSelector } from "react-redux";
 
 interface QuestionProps {
   question: Question;
 }
 
+/**
+ * VWQuestion Component
+ *
+ * This component renders a question with its associated details, including the ability to edit the answer,
+ * manage evidence files, and display priority levels. It also provides functionality to save updates
+ * and handle file uploads or deletions.
+ *
+ * Props:
+ * @param {QuestionProps} props - The props for the component.
+ * @param {Question} props.question - The question object containing details such as the question text,
+ * hint, priority level, and evidence files.
+ *
+ * Usage:
+ * <VWQuestion question={questionObject} />
+ */
 const VWQuestion = ({ question }: QuestionProps) => {
   const { userId, currentProjectId } = useContext(VerifyWiseContext);
   const [values, setValues] = useState<Question>(question);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
 
-  const initialEvidenceFiles =
-    question.evidence_files?.map((file) => JSON.parse(file)) || [];
-  const [evidenceFiles, setEvidenceFiles] =
-    useState<any[]>(initialEvidenceFiles);
+  const initialEvidenceFiles = question.evidence_files
+    ? question.evidence_files.reduce((acc: FileData[], file) => {
+        try {
+          acc.push(JSON.parse(file));
+        } catch (error) {
+          console.error("Failed to parse evidence file:", error);
+        }
+        return acc;
+      }, [])
+    : [];
+
+
+  const authToken = useSelector((state: any) => state.auth.authToken);
+    const [evidenceFiles, setEvidenceFiles] = useState<FileData[]>(initialEvidenceFiles);
   const [alert, setAlert] = useState<AlertProps | null>(null);
 
   const handleChangeEvidenceFiles = useCallback((files: FileData[]) => {
     setEvidenceFiles(files);
   }, []);
-
-  const { auth: { authToken } } = store.getState();
 
   const createUppyProps = useMemo(
     () => ({
@@ -145,6 +169,12 @@ const VWQuestion = ({ question }: QuestionProps) => {
           body: "File deleted successfully",
           setAlert,
         });
+      } else {
+        handleAlert({
+          variant: "error",
+          body: `Unexpected response status: ${response.status}. Please try again.`,
+          setAlert,
+        });
       }
     } catch (error) {
       console.error("Error deleting file:", error);
@@ -197,7 +227,7 @@ const VWQuestion = ({ question }: QuestionProps) => {
         onContentChange={handleContentChange}
         headerSx={{
           borderRadius: 0,
-          BorderTop: "none",
+          borderTop: "none",
           borderColor: "#D0D5DD",
         }}
         bodySx={{
@@ -271,7 +301,7 @@ const VWQuestion = ({ question }: QuestionProps) => {
               textWrap: "wrap",
             }}
           >
-            {`${evidenceFiles?.length ?? 0} evidence files attached`}
+            {`${evidenceFiles.length || 0} evidence files attached`}
           </Typography>
         </Stack>
         <Typography sx={{ fontSize: 11, color: "#344054", fontWeight: "300" }}>

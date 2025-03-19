@@ -469,7 +469,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
             (item) => item._id === mitigationValues.approvalStatus
           )?.name || "",
         date_of_assessment: mitigationValues.dateOfAssessment,
-      };           
+      };
 
       try {
         const response = (popupStatus !== "new") ? 

@@ -292,11 +292,9 @@ const FileManager: React.FC = (): JSX.Element => {
     () =>
       files.map((file) => ({
         id: file.id,
-        data: [
-          { id: 1, data: file.name },
-          { id: 2, data: file.uploadDate },
-          { id: 3, data: file.uploader },
-        ],
+        file: file.name,
+        uploadDate: file.uploadDate,
+        uploader: file.uploader,
       })),
     [files]
   );

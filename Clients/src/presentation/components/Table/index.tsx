@@ -128,7 +128,7 @@ const VWBasicTable = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {bodyData?.map((row) => (
+            {data.rows?.map((row) => (
               <TableRow
                 key={row.id}
                 sx={{

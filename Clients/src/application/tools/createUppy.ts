@@ -58,28 +58,40 @@ const createUppy = ({
     },
   });
 
+  const headers: Record<string, string> = authToken
+    ? { Authorization: `Bearer ${authToken}` }
+    : {};
   uppy.use(XHRUpload, {
-    endpoint: `${ENV_VARs.URL}/${routeUrl}`,
-    headers: {
-      Authorization: `Bearer ${authToken}`,
-    },
+    endpoint: (() => {
+      if (
+        !ENV_VARs.URL ||
+        typeof ENV_VARs.URL !== "string" ||
+        !/^https?:\/\/.+/.test(ENV_VARs.URL)
+      ) {
+        throw new Error("Invalid or undefined ENV_VARs.URL");
+      }
+      return `${ENV_VARs.URL}/${routeUrl}`;
+    })(),
+    headers,
     allowedMetaFields,
   });
 
   uppy.on("upload-success", (_, response) => {
-    if (onChangeFiles && response?.body?.data) {
-      const files: FileData[] = [];
-      const data = response.body.data as string[];
+    if (!onChangeFiles || !response?.body?.data) return;
 
-      data.map((file) => {
-        try {
-          files.push(JSON.parse(file));
-        } catch (error) {
-          console.error("Error parsing file data:", error);
-        }
-      });
-      onChangeFiles(files);
-    }
+    const data = response.body.data as string[];
+
+    const files: FileData[] = data.reduce((acc: FileData[], file) => {
+      try {
+        const parsedFile = JSON.parse(file);
+        acc.push(parsedFile);
+      } catch (error) {
+        console.error("Error parsing file data:", file, error);
+      }
+      return acc;
+    }, []);
+
+    onChangeFiles(files);
   });
 
   uppy.on("upload", () => {

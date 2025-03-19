@@ -1,42 +1,53 @@
 import Uppy from "@uppy/core";
-import { store } from "../redux/store";
 import XHRUpload from "@uppy/xhr-upload";
 import { ENV_VARs } from "../../../env.vars";
+import { FileData } from "../../domain/File";
 
 interface UppyProps {
-  meta?: any;
+  meta?: Record<string, unknown>;
   allowedMetaFields?: string[];
-  onChangeFiles?: (files: any) => void;
+  onChangeFiles?: (files: FileData[]) => void;
   routeUrl: string;
+  authToken?: string;
 }
 
 /**
  * Creates and configures an instance of Uppy for file uploads.
  *
  * @param {UppyProps} params - The configuration parameters for the Uppy instance.
- * @param {object} params.meta - Metadata to be set for the uploaded files.
- * @param {function} params.onChangeFiles - Callback function triggered when files are successfully uploaded.
+ * @param {Record<string, any>} params.meta - Metadata to be attached to each file upload.
+ * @param {(files: FileData[]) => void} params.onChangeFiles - Callback function triggered when files are successfully uploaded.
  * @param {string[]} params.allowedMetaFields - List of allowed metadata fields for the upload.
- * @param {string} params.routeUrl - The endpoint route URL for the file upload.
+ * @param {string} params.routeUrl - The endpoint route URL for file uploads.
+ * @param {string} params.authToken - The authentication token for the upload request.
  *
- * @returns {Uppy} - A configured Uppy instance.
+ * @returns {Uppy} - A configured Uppy instance ready for file uploads.
  *
  * @remarks
- * - The Uppy instance is configured with restrictions such as maximum file size, number of files, and allowed file types.
- * - The `XHRUpload` plugin is used to handle file uploads, with an authorization token included in the headers.
- * - The `upload-success` event is used to process the server response and trigger the `onChangeFiles` callback with the uploaded file data.
- * - The `upload` event is used to set metadata for the files before uploading.
+ * - The Uppy instance is configured to restrict uploads to a maximum of 5 files,
+ *   each with a maximum size of 10 MB, and only allows files of type `application/pdf`.
+ * - The `upload-success` event processes the server response and invokes the `onChangeFiles` callback
+ *   with the parsed file data.
+ * - The `upload` event sets the metadata for the upload using the provided `meta` parameter.
  *
+ * @throws {Error} - Logs an error if the file data from the server response cannot be parsed as JSON.
  * @example
  * const uppy = createUppy({
  *   meta: { userId: "12345" },
  *   onChangeFiles: (files) => console.log(files),
  *   allowedMetaFields: ["userId"],
  *   routeUrl: "upload/files",
+ *   authToken
  * });
  */
-const createUppy = ({ meta, onChangeFiles, allowedMetaFields, routeUrl }: UppyProps) => {
-  const uppy =  new Uppy()
+const createUppy = ({
+  meta,
+  onChangeFiles,
+  allowedMetaFields,
+  routeUrl,
+  authToken,
+}: UppyProps): Uppy => {
+  const uppy = new Uppy();
 
   uppy.setOptions({
     autoProceed: false,
@@ -47,29 +58,32 @@ const createUppy = ({ meta, onChangeFiles, allowedMetaFields, routeUrl }: UppyPr
     },
   });
 
-  const state = store.getState();
-  const authToken = state.auth.authToken;
-
   uppy.use(XHRUpload, {
     endpoint: `${ENV_VARs.URL}/${routeUrl}`,
     headers: {
       Authorization: `Bearer ${authToken}`,
     },
-    allowedMetaFields
+    allowedMetaFields,
   });
 
-  uppy.on('upload-success', (file, response) => {
+  uppy.on("upload-success", (_, response) => {
     if (onChangeFiles && response?.body?.data) {
-      const files: string[] = []
-      const data = response.body.data as string[]
+      const files: FileData[] = [];
+      const data = response.body.data as string[];
 
-      data.map(file => files.push(JSON.parse(file)))
+      data.map((file) => {
+        try {
+          files.push(JSON.parse(file));
+        } catch (error) {
+          console.error("Error parsing file data:", error);
+        }
+      });
       onChangeFiles(files);
     }
   });
 
   uppy.on("upload", () => {
-    uppy.setMeta(meta);
+    uppy.setMeta(meta || {});
   });
 
   return uppy;

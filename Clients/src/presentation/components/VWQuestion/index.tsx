@@ -24,35 +24,44 @@ import { handleAlert } from "../../../application/tools/alertUtils";
 import { store } from "../../../application/redux/store";
 import { apiServices } from "../../../infrastructure/api/networkServices";
 import { ENV_VARs } from "../../../../env.vars";
+import { FileData } from "../../../domain/File";
 
 interface QuestionProps {
   question: Question;
 }
 
-const VWQuestion = ({ question}: QuestionProps) => {
-  const {userId, currentProjectId } = useContext(VerifyWiseContext);
+const VWQuestion = ({ question }: QuestionProps) => {
+  const { userId, currentProjectId } = useContext(VerifyWiseContext);
   const [values, setValues] = useState<Question>(question);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
 
-  const initialEvidenceFiles = question.evidence_files?.map(file => JSON.parse(file))|| [];
-  const [evidenceFiles, setEvidenceFiles] = useState<any[]>(initialEvidenceFiles);
+  const initialEvidenceFiles =
+    question.evidence_files?.map((file) => JSON.parse(file)) || [];
+  const [evidenceFiles, setEvidenceFiles] =
+    useState<any[]>(initialEvidenceFiles);
   const [alert, setAlert] = useState<AlertProps | null>(null);
 
-  const handleChangeEvidenceFiles = useCallback((files: { id: string; name: string }[]) => {
+  const handleChangeEvidenceFiles = useCallback((files: FileData[]) => {
     setEvidenceFiles(files);
   }, []);
 
-  const createUppyProps = useMemo(() => ({
-    onChangeFiles: handleChangeEvidenceFiles,
-    allowedMetaFields: ["question_id", "user_id", "project_id", "delete"],
-    meta: {
-      question_id: question.id,
-      user_id: userId,
-      project_id: currentProjectId,
-      delete: "[]",
-    },
-    routeUrl: "files",
-  }), [question.id, userId, currentProjectId, handleChangeEvidenceFiles]);
+  const { auth: { authToken } } = store.getState();
+
+  const createUppyProps = useMemo(
+    () => ({
+      onChangeFiles: handleChangeEvidenceFiles,
+      allowedMetaFields: ["question_id", "user_id", "project_id", "delete"],
+      meta: {
+        question_id: question.id,
+        user_id: userId,
+        project_id: currentProjectId,
+        delete: "[]",
+      },
+      routeUrl: "files",
+      authToken,
+    }),
+    [question.id, userId, currentProjectId, handleChangeEvidenceFiles, authToken]
+  );
 
   const [uppy] = useState(createUppy(createUppyProps));
 
@@ -98,28 +107,50 @@ const VWQuestion = ({ question}: QuestionProps) => {
     const authToken = state.auth.authToken;
 
     const formData = new FormData();
-    formData.append("delete", JSON.stringify([parseInt(fileId)]));
+    const fileIdNumber = parseInt(fileId);
+    if (isNaN(fileIdNumber)) {
+      handleAlert({
+        variant: "error",
+        body: "Invalid file ID",
+        setAlert,
+      });
+      return;
+    }
+    formData.append("delete", JSON.stringify([fileIdNumber]));
     formData.append("question_id", question.id?.toString() || "");
     formData.append("user_id", userId);
     if (currentProjectId) {
       formData.append("project_id", currentProjectId);
     }
-    const response = await apiServices.post(`${ENV_VARs.URL}/files`, formData,  {
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-        "Content-Type": "multipart/form-data",
-      }
-    });
-
-    if (response.status === 201 && response.data) {
-      const newEvidenceFiles = evidenceFiles.filter(
-        (file) => file.id !== fileId
+    try {
+      const response = await apiServices.post(
+        `${ENV_VARs.URL}/files`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
-      setEvidenceFiles(newEvidenceFiles);
 
+      if (response.status === 201 && response.data) {
+        const newEvidenceFiles = evidenceFiles.filter(
+          (file) => file.id !== fileId
+        );
+        setEvidenceFiles(newEvidenceFiles);
+
+        handleAlert({
+          variant: "success",
+          body: "File deleted successfully",
+          setAlert,
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting file:", error);
       handleAlert({
-        variant: "success",
-        body: "File deleted successfully",
+        variant: "error",
+        body: "Failed to delete file. Please try again.",
         setAlert,
       });
     }

@@ -15,11 +15,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { ENV_VARs } from "../../../../../env.vars";
 import DeleteFileModal from "./DeleteFileModal";
 import getStyles from "./getStyles";
+import { FileData } from "../../../../domain/File";
 
-interface FileData {
-  id: string;
-  fileName: string;
-}
 
 interface UppyUploadFileProps {
   uppy: Uppy;

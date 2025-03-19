@@ -38,7 +38,6 @@ const ResetPassword = () => {
       to: values.email,
       email: values.email,
       name: values.email,
-      link: "set-new-password",
     };
     const response = await apiServices.post("/mail/reset-password", formData);
     handleAlert({

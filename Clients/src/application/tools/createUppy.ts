@@ -9,6 +9,11 @@ interface UppyProps {
   onChangeFiles?: (files: FileData[]) => void;
   routeUrl: string;
   authToken?: string;
+  restrictions?: {
+    maxFileSize?: number;
+    maxNumberOfFiles?: number;
+    allowedFileTypes?: string[];
+  };
 }
 
 /**
@@ -46,15 +51,16 @@ const createUppy = ({
   allowedMetaFields,
   routeUrl,
   authToken,
+  restrictions,
 }: UppyProps): Uppy => {
   const uppy = new Uppy();
 
   uppy.setOptions({
     autoProceed: false,
     restrictions: {
-      maxFileSize: 10000000,
-      maxNumberOfFiles: 5,
-      allowedFileTypes: ["application/pdf"],
+      maxFileSize: restrictions?.maxFileSize ?? 10000000,
+      maxNumberOfFiles: restrictions?.maxNumberOfFiles ?? 5,
+      allowedFileTypes: restrictions?.allowedFileTypes ?? ["application/pdf"],
     },
   });
 
@@ -66,7 +72,7 @@ const createUppy = ({
       if (
         !ENV_VARs.URL ||
         typeof ENV_VARs.URL !== "string" ||
-        !/^https?:\/\/.+/.test(ENV_VARs.URL)
+        !isValidUrl(ENV_VARs.URL)
       ) {
         throw new Error("Invalid or undefined ENV_VARs.URL");
       }
@@ -100,5 +106,19 @@ const createUppy = ({
 
   return uppy;
 };
+
+/**
+ * Validates if the provided string is a valid URL
+ * @param urlString - The URL string to validate
+ * @returns boolean indicating if the URL is valid
+ */
+function isValidUrl(urlString: string): boolean {
+  try {
+    const url = new URL(urlString);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
 
 export default createUppy;

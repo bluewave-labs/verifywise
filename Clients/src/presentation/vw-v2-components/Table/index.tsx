@@ -70,6 +70,7 @@ const VWProjectRisksTableBody = ({
   setSelectedRow,
   setAnchor,
   onDeleteRisk,
+  flashRow
 }: {
   rows: any[];
   page: number;
@@ -77,6 +78,7 @@ const VWProjectRisksTableBody = ({
   setSelectedRow: any;
   setAnchor: any;
   onDeleteRisk: (id: number) => void;
+  flashRow: number | null
 }) => {
   const { setInputValues, dashboardValues } = useContext(VerifyWiseContext);
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
@@ -108,28 +110,28 @@ const VWProjectRisksTableBody = ({
           .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
           .map((row: ProjectRisk, index: number) => (
             <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row}>
-              <TableCell sx={cellStyle}>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
                 {row.risk_name?.length > 30
                   ? `${row.risk_name.slice(0, 30)}...`
                   : row.risk_name}
               </TableCell>
-              <TableCell sx={cellStyle}>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
                 {row.impact?.length > 30
                   ? `${row.impact.slice(0, 30)}...`
                   : row.impact}
               </TableCell>
-              <TableCell sx={cellStyle}>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
                 {displayUserFullName(row.risk_owner)}
               </TableCell>
-              <TableCell sx={cellStyle}>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
                 {riskLevelChecker(row.risk_level_autocalculated)}
               </TableCell>
-              <TableCell sx={cellStyle}>{row.likelihood}</TableCell>
-              <TableCell sx={cellStyle}>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>{row.likelihood}</TableCell>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
                 {row.risk_level_autocalculated}
               </TableCell>
-              <TableCell sx={cellStyle}>{row.mitigation_status}</TableCell>
-              <TableCell sx={cellStyle}>{row.final_risk_level}</TableCell>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>{row.mitigation_status}</TableCell>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>{row.final_risk_level}</TableCell>
               <TableCell
                 sx={{
                   ...singleTheme.tableStyles.primary.body.cell,
@@ -137,6 +139,7 @@ const VWProjectRisksTableBody = ({
                   right: 0,
                   minWidth: "50px",
                 }}
+                style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}
               >
                 <IconButton
                   id={row.id}
@@ -162,6 +165,7 @@ const VWProjectRisksTable = ({
   deleteRisk,
   setPage,
   page,
+  flashRow
 }: {
   columns: any[];
   rows: any[];
@@ -170,6 +174,7 @@ const VWProjectRisksTable = ({
   deleteRisk: (id: number) => void;
   setPage: (pageNo: number) => void;
   page: number;
+  flashRow: number | null;
 }) => {
   const theme = useTheme();
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -209,6 +214,7 @@ const VWProjectRisksTable = ({
               setSelectedRow={setSelectedRow}
               setAnchor={setAnchor}
               onDeleteRisk={deleteRisk}
+              flashRow={flashRow}
             />
           ) : (
             <>

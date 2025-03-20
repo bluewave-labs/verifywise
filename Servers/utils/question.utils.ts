@@ -49,6 +49,7 @@ export interface RequestWithFile extends Request {
   };
 }
 export interface UploadedFile {
+  fieldname: string;
   originalname: string;
   mimetype: string;
   buffer: Buffer;

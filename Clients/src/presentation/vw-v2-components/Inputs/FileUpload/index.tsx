@@ -7,15 +7,13 @@ import {
 } from "@mui/material";
 import Uppy from "@uppy/core";
 import { useState } from "react";
-import { Dashboard } from "@uppy/react";
-import "@uppy/core/dist/style.min.css";
-import "@uppy/dashboard/dist/style.min.css";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { ENV_VARs } from "../../../../../env.vars";
 import DeleteFileModal from "./DeleteFileModal";
 import getStyles from "./getStyles";
 import { FileData } from "../../../../domain/File";
+import UppyDashboard from "../../../components/UppyDashboard";
 
 
 interface UppyUploadFileProps {
@@ -88,9 +86,9 @@ const UppyUploadFile: React.FC<UppyUploadFileProps> = ({
         </IconButton>
       </Stack>
 
-      <Dashboard uppy={uppy} width={400} height={250} />
+      <UppyDashboard uppy={uppy} width={400} height={250}/>
 
-      <Stack sx={styles.fileList}>
+      { files?.length > 0 && <Stack sx={styles.fileList}>
         {files.map((file) => (
           <FileListItem
             key={file.id}
@@ -99,7 +97,7 @@ const UppyUploadFile: React.FC<UppyUploadFileProps> = ({
             styles={styles}
           />
         ))}
-      </Stack>
+      </Stack>}
 
       <DeleteFileModal
         isOpen={deleteFileModal.isOpen}

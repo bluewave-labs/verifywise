@@ -1,6 +1,5 @@
 import {
   Box,
-  Button,
   Chip,
   Stack,
   Tooltip,
@@ -26,6 +25,7 @@ import { apiServices } from "../../../infrastructure/api/networkServices";
 import { ENV_VARs } from "../../../../env.vars";
 import { FileData } from "../../../domain/File";
 import { useSelector } from "react-redux";
+import Button from "../Button";
 
 interface QuestionProps {
   question: Question;
@@ -256,17 +256,7 @@ const VWQuestion = ({ question }: QuestionProps) => {
           }}
         >
           <Button
-            variant="contained"
-            sx={{
-              mt: 2,
-              borderRadius: 2,
-              width: "fit-content",
-              height: 25,
-              fontSize: 11,
-              border: "1px solid #13715B",
-              backgroundColor: "#13715B",
-              color: "white",
-            }}
+            variant="contained"          
             disableRipple
             onClick={handleSave}
           >
@@ -275,11 +265,7 @@ const VWQuestion = ({ question }: QuestionProps) => {
           <Button
             variant="contained"
             sx={{
-              mt: 2,
-              borderRadius: 2,
-              width: 155,
-              height: 25,
-              fontSize: 11,
+              width: 155,  
               border: "1px solid #D0D5DD",
               backgroundColor: "white",
               color: "#344054",

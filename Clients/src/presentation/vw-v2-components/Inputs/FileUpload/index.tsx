@@ -3,7 +3,7 @@ import {
   useTheme,
   IconButton,
   Typography,
-  Link
+  Link,
 } from "@mui/material";
 import Uppy from "@uppy/core";
 import { useState } from "react";
@@ -14,6 +14,7 @@ import DeleteFileModal from "./DeleteFileModal";
 import getStyles from "./getStyles";
 import { FileData } from "../../../../domain/File";
 import UppyDashboard from "../../../components/UppyDashboard";
+import Button from "../../../components/Button";
 
 
 interface UppyUploadFileProps {
@@ -105,6 +106,13 @@ const UppyUploadFile: React.FC<UppyUploadFileProps> = ({
         onClose={handleCloseDeleteFileModal}
         onDelete={handleDeleteFile}
       />
+      <Button
+        variant="contained"      
+        disableRipple
+        onClick={onClose}
+      >
+        I am done
+      </Button>
     </Stack>
   );
 };

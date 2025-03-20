@@ -106,8 +106,7 @@
     "./routes/**/*.ts",
     "./controllers/**/*.ts",
     "./models/**/*.ts",
-    "./utils/**/*.ts",
-    "database/config/**/*.ts", "database/config/config.js",
+    "./utils/**/*.ts"
   ],
   "exclude": [
     "node_modules",

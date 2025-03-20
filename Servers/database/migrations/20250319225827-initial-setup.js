@@ -1,5 +1,7 @@
 'use strict';
 
+const { DataTypes } = require('sequelize');
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -21,7 +23,12 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         allowNull: true,
       }
-    });
+    }).then(() => queryInterface.bulkInsert('roles', [
+      { name: 'Admin', description: 'Administrator with full access to the system.' },
+      { name: 'Reviewer', description: 'Reviewer with access to review compliance and reports.' },
+      { name: 'Editor', description: 'Editor with permission to modify and update project details.' },
+      { name: 'Auditor', description: 'Auditor with access to compliance and security audits.' }
+    ]));
 
     await queryInterface.createTable('users', {
       id: {
@@ -49,7 +56,7 @@ module.exports = {
       role: {
         type: Sequelize.INTEGER,
         references: {
-          model: 'role',
+          model: 'roles',
           key: 'id',
         },
         allowNull: false,
@@ -121,7 +128,7 @@ module.exports = {
       }
     });
 
-    await queryInterface.createTable('project_members', {
+    await queryInterface.createTable('projects_members', {
       user_id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -141,6 +148,10 @@ module.exports = {
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
+      },
+      is_demo: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
       }
     });
 
@@ -159,7 +170,7 @@ module.exports = {
         allowNull: false,
       },
       vendor_provides: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         allowNull: false,
       },
       assignee: {
@@ -208,7 +219,7 @@ module.exports = {
       },
     });
 
-    await queryInterface.createTable('vendor_projects', {
+    await queryInterface.createTable('vendors_projects', {
       vendor_id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -228,6 +239,10 @@ module.exports = {
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
+      },
+      is_demo: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
       }
     });
 
@@ -251,7 +266,7 @@ module.exports = {
       }
     });
 
-    await queryInterface.createTable('control_categories', {
+    await queryInterface.createTable('controlcategories', {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
@@ -266,7 +281,7 @@ module.exports = {
         },
       },
       title: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: false,
       },
       order_no: {
@@ -286,11 +301,11 @@ module.exports = {
         primaryKey: true,
       },
       title: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: false,
       },
       description: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: false,
       },
       order_no: {
@@ -301,27 +316,42 @@ module.exports = {
       },
       approver: {
         type: Sequelize.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'users', // Assuming the users table exists
+          key: 'id',
+        }
       },
       risk_review: {
         type: Sequelize.ENUM('Acceptable risk', 'Residual risk', 'Unacceptable risk'),
       },
       owner: {
         type: Sequelize.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'users', // Assuming the users table exists
+          key: 'id',
+        },
       },
       reviewer: {
         type: Sequelize.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'users', // Assuming the users table exists
+          key: 'id',
+        },
       },
       due_date: {
         type: Sequelize.DATE,
       },
       implementation_details: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
       },
       control_category_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'control_categories', // Assuming the referenced table is named 'control_categories'
+          model: 'controlcategories', // Assuming the referenced table is named 'control_categories'
           key: 'id',
         },
       },
@@ -337,11 +367,11 @@ module.exports = {
         primaryKey: true,
       },
       title: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: false,
       },
       description: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: false,
       },
       order_no: {
@@ -385,23 +415,23 @@ module.exports = {
         allowNull: true,
       },
       implementation_details: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: true,
       },
       evidence_description: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: true,
       },
       feedback_description: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: true,
       },
       evidence_files: {
-        type: Sequelize.ARRAY(Sequelize.STRING),
+        type: Sequelize.ARRAY(Sequelize.TEXT),
         allowNull: true,
       },
       feedback_files: {
-        type: Sequelize.ARRAY(Sequelize.STRING),
+        type: Sequelize.ARRAY(Sequelize.TEXT),
         allowNull: true,
       },
       control_id: {
@@ -418,7 +448,7 @@ module.exports = {
       }
     });
 
-    await queryInterface.createTable('project_risks', {
+    await queryInterface.createTable('projectrisks', {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
@@ -439,6 +469,10 @@ module.exports = {
       risk_owner: {
         type: Sequelize.INTEGER,
         allowNull: false,
+        references: {
+          model: 'controls', // Assuming the controls table exists
+          key: 'id',
+        },
       },
       ai_lifecycle_phase: {
         type: Sequelize.ENUM(
@@ -453,7 +487,7 @@ module.exports = {
         allowNull: false,
       },
       risk_description: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: false,
       },
       risk_category: {
@@ -481,11 +515,11 @@ module.exports = {
         allowNull: false,
       },
       assessment_mapping: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: false,
       },
       controls_mapping: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: false,
       },
       likelihood: {
@@ -501,7 +535,7 @@ module.exports = {
         allowNull: false,
       },
       review_notes: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: true,
       },
       mitigation_status: {
@@ -517,11 +551,11 @@ module.exports = {
         allowNull: false,
       },
       mitigation_plan: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: false,
       },
       implementation_strategy: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: false,
       },
       mitigation_evidence_document: {
@@ -543,6 +577,10 @@ module.exports = {
       risk_approval: {
         type: Sequelize.INTEGER,
         allowNull: false,
+        references: {
+          model: 'controls', // Assuming the controls table exists
+          key: 'id',
+        },
       },
       approval_status: {
         type: Sequelize.STRING,
@@ -558,7 +596,7 @@ module.exports = {
       }
     });
 
-    await queryInterface.createTable('vendor_risks', {
+    await queryInterface.createTable('vendorrisks', {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
@@ -577,11 +615,11 @@ module.exports = {
         allowNull: true,
       },
       risk_description: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: false,
       },
       impact_description: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: false,
       },
       impact: {
@@ -597,7 +635,7 @@ module.exports = {
         allowNull: false,
       },
       action_plan: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: false,
       },
       action_owner: {
@@ -618,7 +656,7 @@ module.exports = {
       }
     });
 
-    await queryInterface.createTable('project_scopes', {
+    await queryInterface.createTable('projectscopes', {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
@@ -627,9 +665,13 @@ module.exports = {
       assessment_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
+        references: {
+          model: 'assessments',
+          key: 'id',
+        },
       },
       describe_ai_environment: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: false,
       },
       is_new_ai_technology: {
@@ -653,7 +695,7 @@ module.exports = {
         allowNull: false,
       },
       unintended_outcomes: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: false,
       },
       technology_documentation: {
@@ -673,7 +715,7 @@ module.exports = {
         primaryKey: true,
       },
       title: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: false,
       },
       order_no: {
@@ -701,7 +743,7 @@ module.exports = {
         primaryKey: true,
       },
       title: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: false,
       },
       order_no: {
@@ -732,11 +774,11 @@ module.exports = {
         type: Sequelize.INTEGER,
       },
       question: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: false,
       },
       hint: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: false,
       },
       priority_level: {
@@ -760,13 +802,15 @@ module.exports = {
         allowNull: false,
       },
       dropdown_options: {
-        type: Sequelize.ARRAY(Sequelize.STRING),
+        type: Sequelize.ARRAY(Sequelize.TEXT),
+        allowNull: true,
       },
       evidence_files: {
-        type: Sequelize.ARRAY(Sequelize.STRING),
+        type: Sequelize.ARRAY(Sequelize.TEXT),
+        allowNull: true,
       },
       answer: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
       },
       subtopic_id: {
         type: Sequelize.INTEGER,
@@ -827,16 +871,16 @@ module.exports = {
     await queryInterface.dropTable('questions');
     await queryInterface.dropTable('subtopics');
     await queryInterface.dropTable('topics');
-    await queryInterface.dropTable('project_scopes');
-    await queryInterface.dropTable('vendor_risks');
-    await queryInterface.dropTable('project_risks');
+    await queryInterface.dropTable('projectscopes');
+    await queryInterface.dropTable('vendorrisks');
+    await queryInterface.dropTable('projectrisks');
     await queryInterface.dropTable('subcontrols');
     await queryInterface.dropTable('controls');
-    await queryInterface.dropTable('control_categories');
+    await queryInterface.dropTable('controlcategories');
     await queryInterface.dropTable('assessments');
-    await queryInterface.dropTable('vendor_projects');
+    await queryInterface.dropTable('vendors_projects');
     await queryInterface.dropTable('vendors');
-    await queryInterface.dropTable('project_members');
+    await queryInterface.dropTable('projects_members');
     await queryInterface.dropTable('projects');
     await queryInterface.dropTable('users');
     await queryInterface.dropTable('roles');

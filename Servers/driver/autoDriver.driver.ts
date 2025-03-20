@@ -84,7 +84,7 @@ const insertQuery = {
         '${project.type_of_high_risk_role}',
         '${project.goal}',
         '${project.last_updated.toISOString().split("T")[0]}',
-        '${project.last_updated_by}',
+        ${project.last_updated_by},
         '1'
       )`;
     },
@@ -382,7 +382,7 @@ export async function insertMockData() {
       userGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    users = await insertData(insertString as string) as UserModel[];
+    users = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 
   var {
@@ -397,7 +397,7 @@ export async function insertMockData() {
       projectGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    projects = await insertData(insertString as string) as ProjectModel[];
+    projects = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 
   var {
@@ -412,7 +412,7 @@ export async function insertMockData() {
       projectMembersGenerateValuesString(d as any)
     );
     insertString += values.join(",") + ";";
-    projectMembers = await insertData(insertString as string) as ProjectsMembersModel[];
+    projectMembers = (await insertData(insertString as string) as [{}[], number])[0];
   }
 
   var {
@@ -427,7 +427,7 @@ export async function insertMockData() {
       vendorGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    vendors = await insertData(insertString as string) as VendorModel[];
+    vendors = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 
   var {
@@ -447,7 +447,7 @@ export async function insertMockData() {
       projects![1].id!
     ).map((d) => vendorsProjectsGenerateValuesString(d as any));
     insertString += values.join(",") + ";";
-    vendorsProjects = await insertData(insertString as string) as VendorsProjectsModel[];
+    vendorsProjects = (await insertData(insertString as string) as [{}[], number])[0];
   }
 
   var {
@@ -462,7 +462,7 @@ export async function insertMockData() {
       (d) => assessmentGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    assessments = await insertData(insertString as string) as AssessmentModel[];
+    assessments = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 
   var {
@@ -478,7 +478,7 @@ export async function insertMockData() {
       projects![1].id!
     ).map((d) => controlCategoriesGenerateValuesString(d as any));
     insertString += values.join(",") + "RETURNING id;";
-    controlCategories = await insertData(insertString as string) as ControlCategoryModel[];
+    controlCategories = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 
   var {
@@ -491,7 +491,7 @@ export async function insertMockData() {
   if (controlMockData.length !== 0) {
     const values = controlMockData(controlCategories!.map(c => c.id!), users![0].id!, users![1].id!).map((d) => controlGenerateValuesString(d as any));
     insertString += values.join(",") + "RETURNING id;";
-    controls = await insertData(insertString as string) as ControlModel[];
+    controls = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 
   var {
@@ -504,7 +504,7 @@ export async function insertMockData() {
   if (controlMockData.length !== 0) {
     const values = subControlMockData(controls!.map(c => c.id!), users![0].id!, users![1].id!).map((d) => subControlGenerateValuesString(d as any));
     insertString += values.join(",") + "RETURNING id;";
-    subControls = await insertData(insertString as string) as SubcontrolModel[];
+    subControls = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 
   var {
@@ -519,7 +519,7 @@ export async function insertMockData() {
       projectRisksGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    projectRisks = await insertData(insertString as string) as ProjectRiskModel[];
+    projectRisks = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 
   var {
@@ -538,7 +538,7 @@ export async function insertMockData() {
       users![0].id!, users![1].id!
     ).map((d) => vendorRisksGenerateValuesString(d as any));
     insertString += values.join(",") + "RETURNING id;";
-    vendorRisks = await insertData(insertString as string) as VendorRiskModel[];
+    vendorRisks = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 
   var {
@@ -553,7 +553,7 @@ export async function insertMockData() {
       projectScopeGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    projectScopes = await insertData(insertString as string) as ProjectScopeModel[];
+    projectScopes = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 
   var {
@@ -568,7 +568,7 @@ export async function insertMockData() {
       (d) => topicGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    topics = await insertData(insertString as string) as TopicModel[];
+    topics = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 
   var {
@@ -583,7 +583,7 @@ export async function insertMockData() {
       subTopicGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    subTopics = await insertData(insertString as string) as SubtopicModel[];
+    subTopics = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 
   var {
@@ -598,7 +598,7 @@ export async function insertMockData() {
       questionGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    questions = await insertData(insertString as string) as QuestionModel[];
+    questions = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 }
 

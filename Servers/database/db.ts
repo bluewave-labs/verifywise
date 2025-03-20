@@ -17,22 +17,42 @@ import { UserModel } from "../models/user.model";
 import { VendorModel } from "../models/vendor.model";
 import { VendorRiskModel } from "../models/vendorRisk.model";
 import { VendorsProjectsModel } from "../models/vendorsProjects.model";
+import dbConfig from "./config/config";
+import { Dialect } from "sequelize";
 
 dotenv.config();
 
-const sequelize = new Sequelize({
-  dialect: "postgres",
-  host: process.env.DB_HOST || "localhost",
-  port: Number(process.env.DB_PORT) || 5432,
-  username: process.env.DB_USER || "postgres",
-  password: process.env.DB_PASSWORD || "1377",
-  database: process.env.DB_NAME || "verifywise",
-  models: [
-    AssessmentModel, ControlModel, ControlCategoryModel, FileModel, ProjectModel,
-    ProjectRiskModel, ProjectScopeModel, ProjectsMembersModel, QuestionModel, RoleModel,
-    SubcontrolModel, SubtopicModel, TopicModel, UserModel, VendorModel, VendorRiskModel,
-    VendorsProjectsModel
-  ],
-});
+const conf = dbConfig.development;
+
+const sequelize = new Sequelize(
+  conf.database!,
+  conf.username!,
+  conf.password,
+  {
+    host: conf.host!,
+    port: Number(conf.port!),
+    dialect: conf.dialect! as Dialect,
+    logging: true,
+    models: [
+      RoleModel,
+      AssessmentModel,
+      ControlModel,
+      ControlCategoryModel,
+      FileModel,
+      ProjectModel,
+      ProjectRiskModel,
+      ProjectScopeModel,
+      ProjectsMembersModel,
+      QuestionModel,
+      SubcontrolModel,
+      SubtopicModel,
+      TopicModel,
+      UserModel,
+      VendorModel,
+      VendorRiskModel,
+      VendorsProjectsModel
+    ]
+  }
+) as Sequelize;
 
 export { sequelize };

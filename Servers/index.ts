@@ -35,6 +35,12 @@ try {
   //   await checkAndCreateTables();
   // })();
   // Middlewares
+
+  // Development
+  // (async () => {
+  //   await sequelize.sync();
+  // })();
+
   app.use(
     cors({
       origin: "*",

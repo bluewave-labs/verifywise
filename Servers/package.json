@@ -7,7 +7,8 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "postbuild": "node scripts/copyFiles.js",
-    "watch": "tsc-watch --onSuccess \"npm-run-all postbuild start\""
+    "migrate-db": "DEBUG=sequelize:* npx sequelize db:migrate",
+    "watch": "tsc-watch --onSuccess \"npm-run-all start\""
   },
   "author": "",
   "license": "ISC",

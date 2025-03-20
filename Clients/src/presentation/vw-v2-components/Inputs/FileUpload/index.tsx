@@ -11,7 +11,6 @@ import "@uppy/dashboard/dist/style.min.css";
 import VWButton from "../../Buttons";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
-import UploadFileIcon from '@mui/icons-material/UploadFile';
 
 interface UppyUploadFileProps {
   uppy: Uppy;
@@ -128,14 +127,13 @@ const UppyUploadFile: React.FC<UppyUploadFileProps> = ({
       >
         <VWButton
             variant="contained"
-            text="Upload"
+            text="Confirm"
             sx={{
               backgroundColor: "#13715B",
-              border: "1px solid #13715B",
+              border: `1px solid #13715B`,
               gap: 2,
             }}
-            icon={<UploadFileIcon />}
-            onClick={() => handleConfirm}
+            onClick={handleConfirm}
           />
       </Stack>
     </Stack>

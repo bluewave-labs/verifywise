@@ -5,9 +5,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "start": "npx sequelize db:migrate && node dist/index.js",
+    "start": "npm run migrate-db && node dist/index.js",
     "postbuild": "node scripts/copyFiles.js",
-    "migrate-db": "DEBUG=sequelize:* npx sequelize db:migrate",
+    "migrate-db": "npx sequelize db:migrate",
     "watch": "tsc-watch --onSuccess \"npm-run-all start\""
   },
   "author": "",

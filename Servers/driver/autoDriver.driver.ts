@@ -17,23 +17,23 @@ import mockVendorRisks from "../mocks/vendorRisk.mock.data";
 import { vendorsProjects } from "../mocks/vendorsProjects.mock.data";
 import { projectsMembers } from "../mocks/projectsMembers.mock.data";
 
-import { Assessment, AssessmentModel } from "../models/assessment.model";
-import { Control, ControlModel } from "../models/control.model";
-import { ControlCategory, ControlCategoryModel } from "../models/controlCategory.model";
-import { File, FileModel } from "../models/file.model";
-import { Project, ProjectModel } from "../models/project.model";
-import { ProjectRisk, ProjectRiskModel } from "../models/projectRisk.model";
-import { ProjectScope, ProjectScopeModel } from "../models/projectScope.model";
-import { ProjectsMembers, ProjectsMembersModel } from "../models/projectsMembers.model";
-import { Question, QuestionModel } from "../models/question.model";
-import { Role, RoleModel } from "../models/role.model";
-import { Subcontrol, SubcontrolModel } from "../models/subcontrol.model";
-import { Subtopic, SubtopicModel } from "../models/subtopic.model";
-import { Topic, TopicModel } from "../models/topic.model";
-import { User, UserModel } from "../models/user.model";
-import { Vendor, VendorModel } from "../models/vendor.model";
-import { VendorRisk, VendorRiskModel } from "../models/vendorRisk.model";
-import { VendorsProjects, VendorsProjectsModel } from "../models/vendorsProjects.model";
+import { Assessment } from "../models/assessment.model";
+import { Control } from "../models/control.model";
+import { ControlCategory } from "../models/controlCategory.model";
+import { File } from "../models/file.model";
+import { Project } from "../models/project.model";
+import { ProjectRisk } from "../models/projectRisk.model";
+import { ProjectScope } from "../models/projectScope.model";
+import { ProjectsMembers } from "../models/projectsMembers.model";
+import { Question } from "../models/question.model";
+import { Role } from "../models/role.model";
+import { Subcontrol } from "../models/subcontrol.model";
+import { Subtopic } from "../models/subtopic.model";
+import { Topic } from "../models/topic.model";
+import { User } from "../models/user.model";
+import { Vendor } from "../models/vendor.model";
+import { VendorRisk } from "../models/vendorRisk.model";
+import { VendorsProjects } from "../models/vendorsProjects.model";
 
 import {
   insertData,

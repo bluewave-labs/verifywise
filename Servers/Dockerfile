@@ -13,6 +13,4 @@ COPY ./templates ./dist/templates
 
 EXPOSE 3000
 
-# RUN npm run migrate-db
-
 CMD ["npm", "start"]

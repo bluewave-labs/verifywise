@@ -104,15 +104,7 @@ const EmptyState: React.FC = (): JSX.Element => (
  * @param {Function} props.onRowClick - Callback to handle row selection.
  * @returns {JSX.Element} The file table component.
  */
-const FileTable: React.FC<{
-  cols: any[];
-  rows: any[];
-  files: File[];
-  handleSort: (field: keyof File) => void;
-  sortField: keyof File | null;
-  sortDirection: SortDirection | null;
-  onRowClick: (fileId: string) => void;
-}> = ({
+const FileTable: React.FC<FileTableProps> =({
   cols,
   rows,
   files,
@@ -120,7 +112,7 @@ const FileTable: React.FC<{
   sortField,
   sortDirection,
   onRowClick,
-}: { cols: Array<any>; rows: Array<any>; files: Array<File>; handleSort: Function; sortField: keyof File | null; sortDirection: SortDirection | null; onRowClick: Function; }): JSX.Element => {
+}) => {
   const sortedCols = useMemo(
     () =>
       cols.map((col) =>

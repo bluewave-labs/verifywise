@@ -192,7 +192,7 @@ export const updateProjectByIdQuery = async (
     }
   }).map(f => `${f} = :${f}`).join(", ");
 
-  const query = `UPDATE projects SET ${setClause} WHERE id = :id`;
+  const query = `UPDATE projects SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateProject.id = id;
 
@@ -242,30 +242,32 @@ export const deleteProjectByIdQuery = async (
   };
 
   const deleteHelper = async (childObject: Record<string, any>, parent_id: number) => {
-    const childTableName = Object.keys(childObject).filter(k => k !== "foreignKey")[0]
+    const childTableName = Object.keys(childObject).filter(k => !["foreignKey", "model"].includes(k))[0]
     let childIds: any = {}
-    if (childTableName === "vendors") {
-      childIds = await sequelize.query(
-        `SELECT vendor_id FROM vendors_projects WHERE project_id = :project_id`,
-        {
-          replacements: { project_id: parent_id },
-          mapToModel: true,
-          model: VendorsProjectsModel
-        }
-      )
-    } else {
-      childIds = await sequelize.query(`SELECT id FROM ${childTableName} WHERE ${childObject[childTableName].foreignKey} = :x`,
-        {
-          replacements: { x: parent_id },
-          mapToModel: true,
-          model: childObject[childTableName].model
-        }
-      )
+    if (childTableName !== "projects_members") {
+      if (childTableName === "vendors") {
+        childIds = await sequelize.query(
+          `SELECT vendor_id FROM vendors_projects WHERE project_id = :project_id`,
+          {
+            replacements: { project_id: parent_id },
+            mapToModel: true,
+            model: VendorsProjectsModel
+          }
+        )
+      } else {
+        childIds = await sequelize.query(`SELECT id FROM ${childTableName} WHERE ${childObject[childTableName].foreignKey} = :x`,
+          {
+            replacements: { x: parent_id },
+            mapToModel: true,
+            model: childObject[childTableName].model
+          }
+        )
+      }
     }
     await Promise.all(Object.keys(childObject[childTableName])
-      .filter(k => k !== "foreignKey")
+      .filter(k => !["foreignKey", "model"].includes(k))
       .map(async k => {
-        for (let ch of childIds.rows) {
+        for (let ch of childIds) {
           let childId = ch.id
           if (childTableName === "vendors") childId = ch.vendor_id
           await deleteHelper({ [k]: childObject[childTableName][k] }, childId)

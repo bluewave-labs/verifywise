@@ -56,7 +56,7 @@ export const updateTopicByIdQuery = async (
     }
   }).map(f => `${f} = :${f}`).join(", ");
 
-  const query = `UPDATE topics SET ${setClause} WHERE id = :id`;
+  const query = `UPDATE topics SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateTopic.id = id;
 

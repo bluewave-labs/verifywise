@@ -120,7 +120,7 @@ export const updateProjectRiskByIdQuery = async (
     }
   }).map(f => `${f} = :${f}`).join(", ");
 
-  const query = `UPDATE projectrisks SET ${setClause} WHERE id = :id`;
+  const query = `UPDATE projectrisks SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateProjectRisk.id = id;
 

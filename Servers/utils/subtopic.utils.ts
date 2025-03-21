@@ -58,7 +58,7 @@ export const updateSubtopicByIdQuery = async (
     }
   }).map(f => `${f} = :${f}`).join(", ");
 
-  const query = `UPDATE subtopics SET ${setClause} WHERE id = :id`;
+  const query = `UPDATE subtopics SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateSubTopic.id = id;
 

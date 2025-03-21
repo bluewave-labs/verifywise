@@ -80,7 +80,7 @@ export const updateProjectScopeByIdQuery = async (
     }
   }).map(f => `${f} = :${f}`).join(", ");
 
-  const query = `UPDATE projectscopes SET ${setClause} WHERE id = :id`;
+  const query = `UPDATE projectscopes SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateProjectScope.id = id;
 

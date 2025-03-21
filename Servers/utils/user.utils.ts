@@ -237,7 +237,7 @@ export const updateUserByIdQuery = async (
     }
   }).map(f => `${f} = :${f}`).join(", ");
 
-  const query = `UPDATE users SET ${setClause} WHERE id = :id`;
+  const query = `UPDATE users SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateUser.id = id;
 
@@ -284,7 +284,7 @@ export const deleteUserByIdQuery = async (id: number): Promise<Boolean> => {
           }
         )
       })
-    )
+    );
   }
 
   await sequelize.query(

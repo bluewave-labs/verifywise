@@ -167,7 +167,7 @@ export const updateVendorByIdQuery = async (
     }
   }).map(f => `${f} = :${f}`).join(", ");
 
-  const query = `UPDATE vendors SET ${setClause} WHERE id = :id`;
+  const query = `UPDATE vendors SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateVendor.id = id;
 

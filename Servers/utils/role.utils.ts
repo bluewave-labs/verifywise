@@ -59,7 +59,7 @@ export const updateRoleByIdQuery = async (
     }
   }).map(f => `${f} = :${f}`).join(", ");
 
-  const query = `UPDATE roles SET ${setClause} WHERE id = :id`;
+  const query = `UPDATE roles SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateRole.id = id;
 

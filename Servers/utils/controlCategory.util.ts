@@ -93,7 +93,7 @@ export const updateControlCategoryByIdQuery = async (
     }
   }).map(f => `${f} = :${f}`).join(", ");
 
-  const query = `UPDATE controlcategories SET ${setClause} WHERE id = :id`;
+  const query = `UPDATE controlcategories SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateControlCategory.id = id;
 

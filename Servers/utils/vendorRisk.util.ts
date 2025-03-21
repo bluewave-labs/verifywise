@@ -2,14 +2,13 @@ import { VendorRisk, VendorRiskModel } from "../models/vendorRisk.model";
 import { sequelize } from "../database/db";
 import { QueryTypes } from "sequelize";
 
-export const getAllVendorRisksQuery = async (
-  vendorId: number
+export const getVendorRisksByProjectIdQuery = async (
+  projectId: number
 ): Promise<VendorRisk[]> => {
-  console.log("getAllVendorRisks for vendor", vendorId);
   const vendorRisks = await sequelize.query(
-    "SELECT * FROM vendorRisks WHERE vendor_id = :vendor_id",
+    "SELECT * FROM vendorRisks WHERE vendor_id IN (SELECT vendor_id FROM vendors_projects WHERE project_id = :project_id);",
     {
-      replacements: { vendor_id: vendorId },
+      replacements: { project_id: projectId },
       mapToModel: true,
       model: VendorRiskModel
     }
@@ -84,7 +83,7 @@ export const updateVendorRiskByIdQuery = async (
     }
   }).map(f => `${f} = :${f}`).join(", ");
 
-  const query = `UPDATE vendorrisks SET ${setClause} WHERE id = :id`;
+  const query = `UPDATE vendorrisks SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateVendorRisk.id = id;
 

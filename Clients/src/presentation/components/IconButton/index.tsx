@@ -15,7 +15,6 @@ import {
 import { ReactComponent as Setting } from "../../assets/icons/setting.svg";
 import { useState } from "react";
 import BasicModal from "../Modals/Basic";
-import AddNewVendor, { VendorDetails } from "../Modals/NewVendor";
 import singleTheme from "../../themes/v1SingleTheme";
 import Alert from "../Alert";
 
@@ -26,7 +25,7 @@ interface IconButtonProps {
   warningTitle: string;
   warningMessage: string;
   type:string;
-  onMouseEvent: (event: React.MouseEvent) => void;
+  onMouseEvent: (event: React.SyntheticEvent) => void;
 }
 
 const IconButton: React.FC<IconButtonProps> = ({
@@ -41,12 +40,7 @@ const IconButton: React.FC<IconButtonProps> = ({
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
   const [actions, setActions] = useState({});
-  const [isOpenRemoveModal, setisOpenRemoveModal] = useState(false);
-  const [isOpenAddNewVendorModal, setIsOpenAddNewVendorModal] = useState(false);
-  const [value, setValue] = useState("1");
-  const [selectedVendor, setSelectedVendor] = useState<
-    VendorDetails | undefined
-  >(undefined);
+  const [isOpenRemoveModal, setIsOpenRemoveModal] = useState(false);
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
@@ -97,7 +91,7 @@ const IconButton: React.FC<IconButtonProps> = ({
 
   const handleDelete = (e?: React.SyntheticEvent) => {
     onDelete();
-    setisOpenRemoveModal(false);
+    setIsOpenRemoveModal(false);
 
     if (e) {
       closeDropDownMenu(e);
@@ -107,17 +101,14 @@ const IconButton: React.FC<IconButtonProps> = ({
     onEdit();
     if (e) {
       closeDropDownMenu(e);
+      onMouseEvent(e);
     }
   };
   function handleCancle(e?: React.SyntheticEvent){
-    setisOpenRemoveModal(false);
+    setIsOpenRemoveModal(false);
     if (e) {
       closeDropDownMenu(e);
     }
-  }
-  const handleEditModal = (e: React.MouseEvent) => {
-    closeDropDownMenu(e);
-    onMouseEvent(e);
   }
 
   /**
@@ -148,8 +139,13 @@ const IconButton: React.FC<IconButtonProps> = ({
         },
       }}
     >
-      <MenuItem onClick={(e)=>type === 'project' ? handleEditModal(e) :handleEdit(e)}>Edit</MenuItem>
-      <MenuItem onClick={() => setisOpenRemoveModal(true)}>Remove</MenuItem>
+      <MenuItem onClick={(e) => handleEdit(e)}>Edit</MenuItem>
+      <MenuItem onClick={(e) => {
+        setIsOpenRemoveModal(true);
+        if (e) {
+          closeDropDownMenu(e);
+        }
+        }}>Remove</MenuItem>
     </Menu>
   );
 
@@ -190,7 +186,7 @@ const IconButton: React.FC<IconButtonProps> = ({
       {dropDownListOfOptions}
       <BasicModal
         isOpen={isOpenRemoveModal}
-        setIsOpen={() => setisOpenRemoveModal(false)}
+        setIsOpen={() => setIsOpenRemoveModal(false)}
         onDelete={(e) => handleDelete(e)}
         warningTitle={warningTitle}
         warningMessage={warningMessage}

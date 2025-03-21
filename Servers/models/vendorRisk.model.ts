@@ -17,7 +17,7 @@ export type VendorRisk = {
   impact: "Negligible" | "Minor" | "Moderate" | "Major" | "Critical";
   likelihood: "Rare" | "Unlikely" | "Possible" | "Likely" | "Almost certain";
   risk_severity:
-  | "No risk"
+  | "Very low risk"
   | "Low risk"
   | "Medium risk"
   | "High risk"
@@ -70,9 +70,9 @@ export class VendorRiskModel extends Model<VendorRisk> {
   likelihood!: "Rare" | "Unlikely" | "Possible" | "Likely" | "Almost certain";
 
   @Column({
-    type: DataType.ENUM("No risk", "Low risk", "Medium risk", "High risk", "Very high risk")
+    type: DataType.ENUM("Very low risk", "Low risk", "Medium risk", "High risk", "Very high risk")
   })
-  risk_severity!: | "No risk"
+  risk_severity!: | "Very low risk"
     | "Low risk"
     | "Medium risk"
     | "High risk"

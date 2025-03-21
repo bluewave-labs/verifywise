@@ -104,7 +104,7 @@ const IMPACT_OPTIONS = [
 ];
 
 const RISK_SEVERITY_OPTIONS = [
-  { _id: 1, name: "No risk" },
+  { _id: 1, name: "Very low risk" },
   { _id: 2, name: "Low risk" },
   { _id: 3, name: "Medium risk" },
   { _id: 4, name: "High risk" },
@@ -120,10 +120,13 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
 }) => {
   const theme = useTheme();
   const { dashboardValues } = useContext(VerifyWiseContext);
-  const VENDOR_OPTIONS = dashboardValues?.vendors?.map((vendor: any) => ({
-    _id: vendor.id,
-    name: vendor.vendor_name,
-  }));
+  const VENDOR_OPTIONS =
+    dashboardValues?.vendors?.length > 0
+      ? dashboardValues.vendors.map((vendor: any) => ({
+          _id: vendor.id,
+          name: vendor.vendor_name,
+        }))
+      : [{ _id: "no-vendor", name: "No Vendor Exists" }];
 
   const [values, setValues] = useState({
     risk_description: "",
@@ -156,6 +159,12 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
   }));
+  useEffect(() => {
+    if (!isOpen) {
+      setValues(initialState);
+      setErrors({} as FormErrors);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen && !existingRisk) {
@@ -168,9 +177,8 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
         impact:
           IMPACT_OPTIONS.find((r) => r.name === existingRisk.impact)?._id || 0,
         action_owner:
-          formattedUsers?.find(
-            (user) => user.name === existingRisk.action_owner
-          )?._id || "",
+          formattedUsers?.find((user) => user._id === existingRisk.action_owner)
+            ?._id || "",
         risk_severity:
           RISK_SEVERITY_OPTIONS.find(
             (r) => r.name === existingRisk.risk_severity
@@ -256,14 +264,9 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
     if (!values.vendor_id || Number(values.vendor_id) === 0) {
       newErrors.vendor_id = "Please select a vendor from the dropdown";
     }
-    const action_owner = checkStringValidation(
-      "Risk Action Owner",
-      values.action_owner,
-      1,
-      64
-    );
-    if (!action_owner.accepted) {
-      newErrors.action_owner = action_owner.message;
+    if (!values.action_owner || Number(values.action_owner) === 0) {
+      newErrors.action_owner =
+        "Please select an action owner from the dropdown";
     }
     if (!values.impact || Number(values.impact) === 0) {
       newErrors.impact = "Please select an impact status from the dropdown";
@@ -296,7 +299,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
         IMPACT_OPTIONS.find((r) => r._id === Number(values.impact))?.name || "",
       action_owner: formattedUsers?.find(
         (user) => user._id === values.action_owner
-      )?.name,
+      )?._id,
       action_plan: values.action_plan,
       risk_severity:
         RISK_SEVERITY_OPTIONS.find((r) => r._id === values.risk_severity)
@@ -360,6 +363,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
       setTimeout(() => setAlert(null), 3000);
     } finally {
       setIsSubmitting(false);
+      setValues(initialState);
     }
   };
 
@@ -411,6 +415,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
       setTimeout(() => setAlert(null), 3000);
     } finally {
       setIsSubmitting(false);
+      setValues(initialState);
     }
   };
 
@@ -433,6 +438,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           sx={{
             width: 350,
           }}
+          isRequired
         />
         <Field
           label="Risk description"
@@ -440,6 +446,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           value={values.risk_description}
           onChange={(e) => handleOnChange("risk_description", e.target.value)}
           error={errors.risk_description}
+          isRequired
         />
       </Stack>
       <Stack
@@ -459,6 +466,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           sx={{
             width: 350,
           }}
+          isRequired
         />
         <Select
           items={[
@@ -481,6 +489,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           sx={{
             width: 350,
           }}
+          isRequired
         />
       </Stack>
       <Stack
@@ -496,11 +505,11 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
         >
           <Select
             items={[
-              { _id: Severity.Negligible, name: RiskSeverity.Negligible },
-              { _id: Severity.Minor, name: RiskSeverity.Minor },
+              { _id: Severity.VeryLow, name: RiskSeverity.VeryLow },
+              { _id: Severity.Low, name: RiskSeverity.Low },
               { _id: Severity.Moderate, name: RiskSeverity.Moderate },
-              { _id: Severity.Major, name: RiskSeverity.Major },
-              { _id: Severity.Critical, name: RiskSeverity.Critical },
+              { _id: Severity.High, name: RiskSeverity.High },
+              { _id: Severity.VeryHigh, name: RiskSeverity.VeryHigh },
             ]}
             label="Risk severity"
             placeholder="Select risk severity"
@@ -512,6 +521,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             sx={{
               width: 350,
             }}
+            isRequired
           />
 
           <Select
@@ -526,6 +536,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             sx={{
               width: 350,
             }}
+            isRequired
           />
           <Field
             label="Impact description"
@@ -535,6 +546,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
               handleOnChange("impact_description", e.target.value)
             }
             error={errors.impact_description}
+            isRequired
           />
         </Box>
 
@@ -545,6 +557,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           value={values.action_plan}
           error={errors.action_plan}
           onChange={(e) => handleOnChange("action_plan", e.target.value)}
+          isRequired
         />
       </Stack>
       <Stack

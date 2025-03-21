@@ -23,7 +23,6 @@ const Questions = ({ subtopic }: QuestionsProps) => {
         const response = await getEntityById({
           routeUrl: `/questions/bysubtopic/${subtopic.id}`,
         });
-        console.log("response.data : ", response.data);
         setQuestionsData(response.data);
       } catch (error) {
         console.error("Failed to fetch questions data:", error);

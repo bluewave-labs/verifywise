@@ -51,6 +51,10 @@ export function checkStringValidation(
     return feedbackToString(false, `${title} is required.`);
   }
 
+  if(value.trim() === ""){
+    return feedbackToString(false, `${title} cannot be an empty string.`);
+  }
+
   if (value.length < minLength) {
     return feedbackToString(
       false,

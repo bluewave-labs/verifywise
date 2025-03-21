@@ -122,7 +122,7 @@ export const updateControlByIdQuery = async (
     }
   }).map(f => `${f} = :${f}`).join(", ");
 
-  const query = `UPDATE controls SET ${setClause} WHERE id = :id`;
+  const query = `UPDATE controls SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateControl.id = id;
 

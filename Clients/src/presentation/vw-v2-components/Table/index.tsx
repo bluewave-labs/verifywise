@@ -11,14 +11,14 @@ import {
   useTheme,
 } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import TablePaginationActions from "../../components/TablePagination";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
 import { ProjectRisk } from "../../../domain/ProjectRisk";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { RISK_LABELS } from "../../components/RiskLevel/constants";
 import IconButton from "../../components/IconButton";
-import placeholderImage from "../../assets/imgs/empty-state.svg"
+import placeholderImage from "../../assets/imgs/empty-state.svg";
 
 const riskLevelChecker = (score: string) => {
   const parsedScore = parseInt(score, 10);
@@ -68,27 +68,39 @@ const VWProjectRisksTableBody = ({
   page,
   rowsPerPage,
   setSelectedRow,
-  setAnchorEl,
+  setAnchor,
   onDeleteRisk,
+  flashRow
 }: {
   rows: any[];
   page: number;
   rowsPerPage: number;
   setSelectedRow: any;
-  setAnchorEl: any;
+  setAnchor: any;
   onDeleteRisk: (id: number) => void;
+  flashRow: number | null
 }) => {
   const { setInputValues, dashboardValues } = useContext(VerifyWiseContext);
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
-  const handelEditRisk = ( row: any,event?: React.MouseEvent) => {
+  const handelEditRisk = (row: any, event?: React.SyntheticEvent) => {
     setSelectedRow(row);
     setInputValues(row);
-    setAnchorEl(event?.currentTarget);
+    setAnchor(event?.currentTarget);
   };
 
   const handleDeleteRisk = async (riskId: number) => {
     onDeleteRisk(riskId);
+  };
+
+  const displayUserFullName = (userId: string) => {
+    const currentUser = dashboardValues.users.find(
+      (user: any) => user.id === parseInt(userId)
+    );
+    const fullName = currentUser
+      ? `${currentUser.name} ${currentUser.surname}`
+      : "";
+    return fullName.length > 30 ? `${fullName.slice(0, 30)}...` : fullName;
   };
 
   return (
@@ -98,30 +110,28 @@ const VWProjectRisksTableBody = ({
           .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
           .map((row: ProjectRisk, index: number) => (
             <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row}>
-              <TableCell sx={cellStyle}>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
                 {row.risk_name?.length > 30
                   ? `${row.risk_name.slice(0, 30)}...`
                   : row.risk_name}
               </TableCell>
-              <TableCell sx={cellStyle}>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
                 {row.impact?.length > 30
                   ? `${row.impact.slice(0, 30)}...`
                   : row.impact}
               </TableCell>
-              <TableCell sx={cellStyle}>
-                {dashboardValues.users.find(
-                  (user: any) => user.id === parseInt(row.risk_owner)
-                )?.name || row.risk_owner}
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
+                {displayUserFullName(row.risk_owner)}
               </TableCell>
-              <TableCell sx={cellStyle}>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
                 {riskLevelChecker(row.risk_level_autocalculated)}
               </TableCell>
-              <TableCell sx={cellStyle}>{row.likelihood}</TableCell>
-              <TableCell sx={cellStyle}>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>{row.likelihood}</TableCell>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
                 {row.risk_level_autocalculated}
               </TableCell>
-              <TableCell sx={cellStyle}>{row.mitigation_status}</TableCell>
-              <TableCell sx={cellStyle}>{row.final_risk_level}</TableCell>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>{row.mitigation_status}</TableCell>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>{row.final_risk_level}</TableCell>
               <TableCell
                 sx={{
                   ...singleTheme.tableStyles.primary.body.cell,
@@ -129,15 +139,16 @@ const VWProjectRisksTableBody = ({
                   right: 0,
                   minWidth: "50px",
                 }}
+                style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}
               >
                 <IconButton
                   id={row.id}
-                  type="project"
-                  onMouseEvent={(e) => handelEditRisk(row,e)}
+                  type="risk"
+                  onMouseEvent={(e) => handelEditRisk(row, e)}
                   onDelete={() => handleDeleteRisk(row.id)}
                   onEdit={() => handelEditRisk(row)}
-                  warningTitle="Delete this project?"
-                  warningMessage="This action is non-recoverable."
+                  warningTitle="Delete this project risk?"
+                  warningMessage="Are you sure you want to delete this project risk. This action is non-recoverable."
                 ></IconButton>
               </TableCell>
             </TableRow>
@@ -150,21 +161,22 @@ const VWProjectRisksTable = ({
   columns,
   rows,
   setSelectedRow,
-  setAnchorEl,
+  setAnchor,
   deleteRisk,
   setPage,
   page,
+  flashRow
 }: {
   columns: any[];
   rows: any[];
   setSelectedRow: any;
-  setAnchorEl: any;
+  setAnchor: any;
   deleteRisk: (id: number) => void;
   setPage: (pageNo: number) => void;
   page: number;
+  flashRow: number | null;
 }) => {
   const theme = useTheme();
-  // const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const getRange = useMemo(() => {
@@ -194,32 +206,37 @@ const VWProjectRisksTable = ({
           }}
         >
           <VWProjectRisksTableHead columns={columns} />
-          {rows.length !== 0 ? 
-          <VWProjectRisksTableBody
-            rows={rows}
-            page={page}
-            rowsPerPage={rowsPerPage}
-            setSelectedRow={setSelectedRow}
-            setAnchorEl={setAnchorEl}
-            onDeleteRisk={deleteRisk}
-          /> : <>
-            <TableBody>
-              <TableRow>
-                <TableCell 
-                  colSpan={8} 
-                  align="center"
-                  style={{
-                    padding: theme.spacing(15, 5),
-                    paddingBottom: theme.spacing(20)
-                  }}>
-                  <img src={placeholderImage} alt="Placeholder" />
-                  <Typography sx={{ fontSize: "13px", color: "#475467" }}>
-                    There is currently no data in this table.
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </>} 
+          {rows.length !== 0 ? (
+            <VWProjectRisksTableBody
+              rows={rows}
+              page={page}
+              rowsPerPage={rowsPerPage}
+              setSelectedRow={setSelectedRow}
+              setAnchor={setAnchor}
+              onDeleteRisk={deleteRisk}
+              flashRow={flashRow}
+            />
+          ) : (
+            <>
+              <TableBody>
+                <TableRow>
+                  <TableCell
+                    colSpan={8}
+                    align="center"
+                    style={{
+                      padding: theme.spacing(15, 5),
+                      paddingBottom: theme.spacing(20),
+                    }}
+                  >
+                    <img src={placeholderImage} alt="Placeholder" />
+                    <Typography sx={{ fontSize: "13px", color: "#475467" }}>
+                      There is currently no data in this table.
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </>
+          )}
         </Table>
       </TableContainer>
       <Stack

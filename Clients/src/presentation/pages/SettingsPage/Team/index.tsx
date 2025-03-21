@@ -37,6 +37,10 @@ import VWButton from "../../../vw-v2-components/Buttons";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useRoles } from "../../../../application/hooks/useRoles";
 import { deleteEntityById } from "../../../../application/repository/entity.repository";
+import {
+  getAllEntities,
+  updateEntityById,
+} from "../../../../application/repository/entity.repository";
 const Alert = lazy(() => import("../../../components/Alert"));
 
 // Type definition for team member
@@ -78,20 +82,19 @@ const TeamManagement: React.FC = (): JSX.Element => {
   );
 
   // State management
-  // const [orgName, _] = useState("BlueWave Labs");
   const [open, setOpen] = useState(false);
   const [memberToDelete, setMemberToDelete] = useState<string | null>(null);
   const [filter, setFilter] = useState(0);
 
   const [page, setPage] = useState(0); // Current page
-  const { dashboardValues } = useContext(VerifyWiseContext);
+  const { dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);
   const [teamUsers, setTeamUsers] = useState<TeamMember[]>(
     dashboardValues.users
   );
   const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
   const [inviteUserModalOpen, setInviteUserModalOpen] = useState(false);
 
-  // Add debug log for team users
+    // Add debug log for team users
   // useEffect(() => {
   //   console.log('Team Users:', teamUsers);
   //   console.log('Dashboard Values:', dashboardValues);
@@ -102,6 +105,54 @@ const TeamManagement: React.FC = (): JSX.Element => {
   //   console.log("Saving organization name:", orgName);
   // }, [orgName]);
 
+  const fetchUsers = async () => {
+    try {
+      const response = await getAllEntities({ routeUrl: "/users" });
+      if (!response?.data) return;
+      setDashboardValues((prevValues: any) => ({
+        ...prevValues,
+        users: response.data,
+      }));
+      setTeamUsers(response?.data)
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+
+  const handleUpdateRole = async (memberId: string, newRole: string) => {
+    try {
+      const response = await updateEntityById({
+        routeUrl: `/users/${memberId}`,
+        body: { role: newRole },
+      });
+
+      if (response.status === 202) {
+        setAlert({
+          variant: "success",
+          body: "User's role updated successfully",
+        });
+        setTimeout(() => setAlert(null), 3000);
+        await fetchUsers();
+      } else {
+        setAlert({
+          variant: "error",
+          body: response.data?.data?.message || "An error occurred.",
+        });
+        setTimeout(() => setAlert(null), 3000);
+      }
+    } catch (error) {
+      console.error("API Error:", error);
+      setAlert({
+        variant: "error",
+        body: `An error occurred: ${
+          (error as Error).message || "Please try again."
+        }`,
+      });
+
+      setTimeout(() => setAlert(null), 3000);
+    }
+  };
+
   const handleClose = () => {
     setOpen(false);
     setMemberToDelete(null);
@@ -111,7 +162,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
     const response = await deleteEntityById({
       routeUrl: `/users/${memberToDelete}`,
     });
-    if(response.status === 200) {
+    if(response.status === 202) {
       handleAlert({
         variant: "success",
         body: "User deleted successfully",
@@ -136,16 +187,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const handleRoleChange = useCallback(
     (event: SelectChangeEvent<string>, memberId: string) => {
       const newRole = event.target.value;
-      console.log('Changing role to:', newRole);
-      console.log('For member:', memberId);
-      
-      setTeamUsers((prevUsers) =>
-        prevUsers.map((user) =>
-          user.id === memberId
-            ? { ...user, role: newRole }
-            : user
-        )
-      );
+      handleUpdateRole(memberId, newRole);
     },
     []
   );

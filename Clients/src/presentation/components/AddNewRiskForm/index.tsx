@@ -52,11 +52,18 @@ interface AddNewRiskFormProps {
   initialRiskValues?: RiskFormValues; // New prop for initial values
   initialMitigationValues?: MitigationFormValues; // New prop for initial values
   onSuccess: () => void;
+  onError?: (message: any) => void;
+  onLoading?: (message: any) => void;
+}
+
+interface ApiResponse {
+  message: string;
+  error: string;
 }
 
 const riskInitialState: RiskFormValues = {
   riskName: "",
-  actionOwner: "",
+  actionOwner: 0,
   aiLifecyclePhase: 0,
   riskDescription: "",
   riskCategory: 1,
@@ -74,13 +81,13 @@ const mitigationInitialState: MitigationFormValues = {
   mitigationPlan: "",
   currentRiskLevel: 0,
   implementationStrategy: "",
-  deadline: "",
+  deadline: new Date().toISOString(),
   doc: "",
   likelihood: 1 as Likelihood,
   riskSeverity: 1 as Severity,
   approver: 0,
   approvalStatus: 0,
-  dateOfAssessment: "",
+  dateOfAssessment: new Date().toISOString(),
   recommendations: "",
 };
 
@@ -103,6 +110,8 @@ const mitigationInitialState: MitigationFormValues = {
 const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   closePopup,
   onSuccess,
+  onError = () => {},
+  onLoading = () => {},
   popupStatus,
   initialRiskValues = riskInitialState, // Default to initial state if not provided
   initialMitigationValues = mitigationInitialState,
@@ -162,7 +171,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
       const currentRiskData: RiskFormValues = {
         ...riskInitialState,
         riskName: inputValues.risk_name ?? "",
-        actionOwner: actionOwner ?? "",
+        actionOwner: inputValues.risk_owner,
         riskDescription: inputValues.risk_description ?? "",
         aiLifecyclePhase:
           aiLifecyclePhase.find(
@@ -209,12 +218,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
           riskSeverityItems.find(
             (item) => item.name === inputValues.risk_severity
           )?._id ?? 1,
-        approver: parseInt(
-          users.find(
-            (user) =>
-              `${user.name} ${user.surname}` === inputValues.risk_approval
-          )?.id ?? "1"
-        ),
+        approver: inputValues.risk_approval,
         approvalStatus:
           approvalStatusItems.find(
             (item) => item.name === inputValues.approval_status
@@ -275,22 +279,26 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     if (!potentialImpact.accepted) {
       newErrors.potentialImpact = potentialImpact.message;
     }
-    const reviewNotes = checkStringValidation(
-      "Review notes",
-      riskValues.reviewNotes,
-      0,
-      1024
-    );
-    if (!reviewNotes.accepted) {
-      newErrors.reviewNotes = reviewNotes.message;
+
+    if(riskValues.reviewNotes.length > 0){
+      const reviewNotes = checkStringValidation(
+        "Review notes",
+        riskValues.reviewNotes,
+        0,
+        1024
+      );
+      if (!reviewNotes.accepted) {
+        newErrors.reviewNotes = reviewNotes.message;
+      }
     }
-    // const actionOwner = selectValidation(
-    //   "Action owner",
-    //   riskValues.actionOwner
-    // );
-    // if (!actionOwner.accepted) {
-    //   newErrors.actionOwner = actionOwner.message;
-    // }
+    
+    const actionOwner = selectValidation(
+      "Action owner",
+      riskValues.actionOwner
+    );
+    if (!actionOwner.accepted) {
+      newErrors.actionOwner = actionOwner.message;
+    }
     const aiLifecyclePhase = selectValidation(
       "AI lifecycle phase",
       riskValues.aiLifecyclePhase
@@ -366,6 +374,17 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     if (!approvalStatus.accepted) {
       newMitigationErrors.approvalStatus = approvalStatus.message;
     }
+    if(mitigationValues.recommendations.length > 0) {
+      const recommendations = checkStringValidation(
+        "Recommendation",
+        mitigationValues.recommendations,
+        1,
+        1024
+      );
+      if (!recommendations.accepted) {
+        newMitigationErrors.recommendations = recommendations.message;
+      }
+    }    
 
     setMigitateErrors(newMitigationErrors);
     setRiskErrors(newErrors);
@@ -386,13 +405,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
 
   const riskFormSubmitHandler = async () => {
     const { isValid, errors } = validateForm();
-
-    const owner = users.find(
-      (user) => parseInt(user.id) === riskValues.actionOwner
-    );
-    const approver = users.find(
-      (user) => parseInt(user.id) === mitigationValues.approver
-    );
+    
     const risk_risklevel = getRiskLevel(
       riskValues.likelihood * riskValues.riskSeverity
     );
@@ -402,12 +415,14 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
 
     // check forms validate
     if (isValid) {
+      onLoading(popupStatus !== "new" ? 
+      "Updating the risk. Please wait..." : 
+      "Creating the risk. Please wait...");
+
       const formData = {
         project_id: projectId,
         risk_name: riskValues.riskName,
-        risk_owner: owner
-          ? [owner.name, owner.surname].filter(Boolean).join(" ")
-          : "",
+        risk_owner: riskValues.actionOwner,
         ai_lifecycle_phase:
           aiLifecyclePhase.find(
             (item) => item._id === riskValues.aiLifecyclePhase
@@ -448,9 +463,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
             (item) => item._id === mitigationValues.riskSeverity
           )?.name || "",
         final_risk_level: mitigation_risklevel.text,
-        risk_approval: approver
-          ? [approver.name, approver.surname].filter(Boolean).join(" ")
-          : "",
+        risk_approval: mitigationValues.approver,
         approval_status:
           approvalStatusItems.find(
             (item) => item._id === mitigationValues.approvalStatus
@@ -458,29 +471,29 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         date_of_assessment: mitigationValues.dateOfAssessment,
       };
 
-      if (popupStatus !== "new") {
-        // call update API
-        try {
-          const response = await apiServices.put(
-            "/projectRisks/" + inputValues.id,
-            formData
-          );
-          if (response.status === 200) {
-            closePopup();
-            onSuccess();
-          }
-        } catch (error) {
-          console.error("Error sending request", error);
+      try {
+        const response = (popupStatus !== "new") ? 
+        await apiServices.put(
+          "/projectRisks/" + inputValues.id,
+          formData) : 
+        await apiServices.post("/projectRisks", formData);
+
+        if (response.status === 201) {
+          // risk create success
+          closePopup();
+          onSuccess();
+        }else if (response.status === 200) {
+          // risk update success
+          closePopup();
+          onSuccess();
+        }else{
+          console.error((response.data as ApiResponse)?.error);
+          onError((response.data as ApiResponse)?.message);
         }
-      } else {
-        try {
-          const response = await apiServices.post("/projectRisks", formData);
-          if (response.status === 201) {
-            closePopup();
-            onSuccess();
-          }
-        } catch (error) {
-          console.error("Error sending request", error);
+      } catch (error) {
+        console.error("Error sending request", error);
+        if(error){
+          onError(error);
         }
       }
     } else {

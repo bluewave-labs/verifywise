@@ -57,6 +57,7 @@ export interface RequestWithFile extends Request {
 }
 
 export interface UploadedFile {
+  fieldname: string;
   originalname: string;
   mimetype: string;
   buffer: Buffer;
@@ -99,7 +100,7 @@ export const addFileToQuestion = async (
 ): Promise<Question> => {
   // get the existing evidence files
   const evidenceFilesResult = await sequelize.query(
-    `SELECT evidence_files FROM questions WHERE id = $1`,
+    `SELECT evidence_files FROM questions WHERE id = :id`,
     {
       replacements: { id },
       mapToModel: true,
@@ -144,7 +145,7 @@ export const updateQuestionByIdQuery = async (
     return true
   }).map(f => `${f} = :${f}`).join(", ");
 
-  const query = `UPDATE questions SET ${setClause} WHERE id = :id`;
+  const query = `UPDATE questions SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateQuestion.id = id;
 

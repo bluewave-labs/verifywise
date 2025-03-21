@@ -120,32 +120,33 @@ export const createNewSubcontrolQuery = async (
 export const updateSubcontrolByIdQuery = async (
   id: number,
   subcontrol: Partial<Subcontrol>,
-  project_id: number,
-  user_id: number,
-  evidenceFiles?: UploadedFile[],
-  feedbackFiles?: UploadedFile[]
+  evidenceUploadedFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[] = [],
+  feedbackUploadedFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[] = [],
+  deletedFiles: number[] = []
 ): Promise<Subcontrol | null> => {
-  let uploadedEvidenceFiles: { id: string; fileName: string }[] = [];
-  await Promise.all(
-    evidenceFiles!.map(async (file) => {
-      const uploadedFile = await uploadFile(file, user_id, project_id);
-      uploadedEvidenceFiles.push({
-        id: uploadedFile.id!.toString(),
-        fileName: uploadedFile.filename,
-      });
-    })
+  const files = await sequelize.query(
+    `SELECT evidence_files, feedback_files FROM subcontrols WHERE id = :id`,
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: SubcontrolModel
+    }
   );
 
-  let uploadedFeedbackFiles: { id: string; fileName: string }[] = [];
-  await Promise.all(
-    feedbackFiles!.map(async (file) => {
-      const uploadedFile = await uploadFile(file, user_id, project_id);
-      uploadedFeedbackFiles.push({
-        id: uploadedFile.id!.toString(),
-        fileName: uploadedFile.filename,
-      });
-    })
-  );
+  let currentEvidenceFiles = ((files[0].evidence_files || []) as string[]).map(f => JSON.parse(f) as {
+    id: string; fileName: string; project_id: number; uploaded_by: number; uploaded_time: Date;
+  })
+  let currentFeedbackFiles = ((files[0].feedback_files || []) as string[]).map(f => JSON.parse(f) as {
+    id: string; fileName: string; project_id: number; uploaded_by: number; uploaded_time: Date;
+  })
+
+  currentEvidenceFiles = currentEvidenceFiles.filter(f => !deletedFiles.includes(parseInt(f.id)));
+  currentEvidenceFiles = currentEvidenceFiles.concat(evidenceUploadedFiles);
+  console.log(currentEvidenceFiles, evidenceUploadedFiles);
+
+  currentFeedbackFiles = currentFeedbackFiles.filter(f => !deletedFiles.includes(parseInt(f.id)));
+  currentFeedbackFiles = currentFeedbackFiles.concat(feedbackUploadedFiles);
+
 
   const updateSubControl: Partial<Record<keyof Subcontrol, any>> = {};
   const setClause = [
@@ -163,21 +164,25 @@ export const updateSubcontrolByIdQuery = async (
     "evidence_files",
     "feedback_files",
   ].filter(f => {
+    if (f == 'evidence_files' && currentEvidenceFiles.length > 0) {
+      updateSubControl['evidence_files'] = currentEvidenceFiles;
+      return true;
+    }
+    if (f == 'feedback_files' && currentFeedbackFiles.length > 0) {
+      updateSubControl['feedback_files'] = currentFeedbackFiles;
+      return true;
+    }
     if (subcontrol[f as keyof Subcontrol] !== undefined) {
       updateSubControl[f as keyof Subcontrol] = subcontrol[f as keyof Subcontrol]
       return true
     }
-  }).map(f => `${f} = :${f}`).join(", ");
+  }).map(f => {
+    return `${f} = :${f}`
+  }).join(", ");
 
-  const query = `UPDATE subcontrols SET ${setClause} WHERE id = :id`;
+  const query = `UPDATE subcontrols SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateSubControl.id = id;
-  if (evidenceFiles) {
-    updateSubControl.evidence_files = uploadedEvidenceFiles
-  }
-  if (feedbackFiles) {
-    updateSubControl.feedback_files = uploadedFeedbackFiles
-  }
 
   const result = await sequelize.query(query, {
     replacements: updateSubControl,

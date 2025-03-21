@@ -31,7 +31,7 @@ export const uploadFile = async (
 }
 
 export const deleteFileById = async (id: number) => {
-  const query = `DELETE FROM files WHERE id = $1`;
+  const query = `DELETE FROM files WHERE id = :id`;
   const result = await sequelize.query(query, {
     replacements: { id },
     mapToModel: true,
@@ -42,7 +42,7 @@ export const deleteFileById = async (id: number) => {
 }
 
 export const getFileById = async (id: number) => {
-  const query = `SELECT * FROM files WHERE id = $1`;
+  const query = `SELECT * FROM files WHERE id = :id`;
   const result = await sequelize.query(query, {
     replacements: { id },
     mapToModel: true,

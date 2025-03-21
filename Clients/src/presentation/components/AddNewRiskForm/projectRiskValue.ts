@@ -74,9 +74,9 @@ export const likelihoodItems: riskType[] = [
 ]
 
 export const riskSeverityItems: riskType[] = [
-    { _id: Severity.VeryLow, name: RISK_LABELS.noRisk.text },
-    { _id: Severity.Low, name: RISK_LABELS.low.text },
-    { _id: Severity.Moderate, name: RISK_LABELS.medium.text },
-    { _id: Severity.High, name: RISK_LABELS.high.text },
-    { _id: Severity.VeryHigh, name: RISK_LABELS.critical.text },
+    { _id: Severity.VeryLow, name: RISK_LABELS.negligible.text },
+    { _id: Severity.Low, name: RISK_LABELS.minor.text },
+    { _id: Severity.Moderate, name: RISK_LABELS.moderate.text },
+    { _id: Severity.High, name: RISK_LABELS.major.text },
+    { _id: Severity.VeryHigh, name: RISK_LABELS.catastrophic.text },
 ]

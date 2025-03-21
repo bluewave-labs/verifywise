@@ -1,24 +1,44 @@
 export const RISK_LABELS = {
   low: {
-    text: "Minor",
+    text: "Low risk",
     color: "#B8D39C",
   },
   medium: {
-    text: "Moderate",
+    text: "Medium risk",
     color: "#D6B971",
   },
   high: {
-    text: "Major",
+    text: "High risk",
     color: "#D68B61",
   },
   critical: {
-    text: "Catastrophic",
+    text: "Very high risk",
     color: "#C63622",
   },
   noRisk: {
+    text: "Very low risk",
+    color: "#52AB43",
+  },
+  negligible: {
     text: "Negligible",
     color: "#52AB43",
   },
+  minor: {
+    text: "Minor",
+    color: "#B8D39C",
+  },
+  moderate: {
+    text: "Moderate",
+    color: "#D6B971",
+  },
+  major: {
+    text: "Major",
+    color: "#D68B61",
+  },
+  catastrophic: {
+    text: "Catastrophic",
+    color: "#C63622",
+  }
 };
 
 export enum Likelihood {

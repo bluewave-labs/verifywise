@@ -1,4 +1,4 @@
-import { RiskLikelihood, RiskSeverity, MitigationStatus } from "../RiskLevel/riskValues";
+import { RiskLikelihood, MitigationStatus } from "../RiskLevel/riskValues";
 import { RISK_LABELS, Likelihood, Severity } from "../RiskLevel/constants";
 
 // Setting up risk-type

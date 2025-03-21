@@ -1,22 +1,22 @@
 export const RISK_LABELS = {
   low: {
-    text: "Low risk",
+    text: "Minor",
     color: "#B8D39C",
   },
   medium: {
-    text: "Medium risk",
+    text: "Moderate",
     color: "#D6B971",
   },
   high: {
-    text: "High risk",
+    text: "Major",
     color: "#D68B61",
   },
   critical: {
-    text: "Very high risk",
+    text: "Catastrophic",
     color: "#C63622",
   },
   noRisk: {
-    text: "Very low risk",
+    text: "Negligible",
     color: "#52AB43",
   },
 };

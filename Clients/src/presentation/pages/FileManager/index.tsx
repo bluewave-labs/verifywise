@@ -12,23 +12,6 @@ import { vwhomeHeading } from "../Home/1.0Home/style";
 import {useFetchFiles} from "../../../application/hooks/useFetchFiles";
 
 /**
- * Represents the shape of a file object.
- * @typedef {Object} File
- * @property {string} id - The unique identifier of the file.
- * @property {string} name - The name of the file.
- * @property {string} type - The type of the file.
- * @property {string} uploadDate - The date the file was uploaded.
- * @property {string} uploader - The user who uploaded the file.    
- */
-interface FileData {
-  id: string;
-  name: string;
-  type: string;
-  uploadDate: string;
-  uploader: string;
-}
-
-/**
  * Represents the props of the FileTable component.
  * @typedef {Object} FileTableProps
  * @property {Array} cols - The columns of the table.

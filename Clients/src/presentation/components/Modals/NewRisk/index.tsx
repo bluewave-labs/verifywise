@@ -615,7 +615,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
               fontWeight={600}
               marginBottom={theme.spacing(5)}
             >
-              {existingRisk ? "Edit Risk" : "Add new Risk"}
+              {existingRisk ? "Edit risk" : "Add new risk"}
             </Typography>
             <Close style={{ cursor: "pointer" }} onClick={setIsOpen} />
           </Stack>

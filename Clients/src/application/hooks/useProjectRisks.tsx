@@ -87,7 +87,7 @@ const useProjectRisks = ({ projectId, refreshKey }: { projectId?: string | null,
 
   const projectRisksSummary = projectRisks.reduce(
     (acc, risk) => {
-      const _risk = convertToCamelCaseRiskKey(risk.current_risk_level);
+      const _risk = convertToCamelCaseRiskKey(risk.risk_level_autocalculated);
       const key = `${_risk.replace(/risks?$/i, "")}Risks` as keyof typeof acc;
       acc[key] = acc[key] + 1;
       return acc;

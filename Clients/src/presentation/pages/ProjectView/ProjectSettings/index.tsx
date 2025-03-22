@@ -284,8 +284,7 @@ const ProjectSettings = React.memo(({ triggerRefresh = () => {} }: { triggerRefr
     setIsDeleteModalOpen(false);
   }, []);
   // saves the project
-  const handleSaveConfirm = useCallback(async () => {
-    setIsLoading(true);
+  const handleSaveConfirm = useCallback(async () => {    
     const selectedRiskClass =
       riskClassificationItems.find(
         (item) => item._id === values.riskClassification

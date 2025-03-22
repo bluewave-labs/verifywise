@@ -237,7 +237,7 @@ const RiskSection: FC<RiskSectionProps> = ({
 
         <Divider />
         <Typography sx={{ fontSize: 16, fontWeight: 600, mt: 6.5 }}>
-          Calculate risk level
+          Calculate inherent risk level
         </Typography>
         <Typography sx={{ fontSize: theme.typography.fontSize, mb: 8 }}>
           The Risk Level is calculated by multiplying the Likelihood and

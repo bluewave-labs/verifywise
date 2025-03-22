@@ -34,6 +34,7 @@ import { User } from "../../../../domain/User";
 import { getUserForLogging } from "../../../../application/tools/userHelpers";
 import VWButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
+import { riskSeverityItems, likelihoodItems } from "../../AddNewRiskForm/projectRiskValue";
 
 interface ExistingRisk {
   id?: number;
@@ -89,11 +90,11 @@ const RISK_LEVEL_OPTIONS = [
 ];
 
 const LIKELIHOOD_OPTIONS = [
-  { _id: 1, name: "Rare" },
-  { _id: 2, name: "Unlikely" },
-  { _id: 3, name: "Possible" },
-  { _id: 4, name: "Likely" },
-  { _id: 5, name: "Almost certain" },
+  { _id: Likelihood.Rare, name: RiskLikelihood.Rare },
+  { _id: Likelihood.Unlikely, name: RiskLikelihood.Unlikely },
+  { _id: Likelihood.Possible, name: RiskLikelihood.Possible },
+  { _id: Likelihood.Likely, name: RiskLikelihood.Likely },
+  { _id: Likelihood.AlmostCertain, name: RiskLikelihood.AlmostCertain },
 ];
 
 const IMPACT_OPTIONS = [
@@ -104,11 +105,11 @@ const IMPACT_OPTIONS = [
 ];
 
 const RISK_SEVERITY_OPTIONS = [
-  { _id: 1, name: "Very low risk" },
-  { _id: 2, name: "Low risk" },
-  { _id: 3, name: "Medium risk" },
-  { _id: 4, name: "High risk" },
-  { _id: 5, name: "Very high risk" },
+  { _id: Severity.VeryLow, name: RISK_LABELS.noRisk.text },
+  { _id: Severity.Low, name: RISK_LABELS.low.text },
+  { _id: Severity.Moderate, name: RISK_LABELS.medium.text },
+  { _id: Severity.High, name: RISK_LABELS.high.text },
+  { _id: Severity.VeryHigh, name: RISK_LABELS.critical.text },
 ];
 
 const AddNewRisk: React.FC<AddNewRiskProps> = ({
@@ -469,18 +470,9 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           isRequired
         />
         <Select
-          items={[
-            { _id: Likelihood.Rare, name: RiskLikelihood.Rare },
-            { _id: Likelihood.Unlikely, name: RiskLikelihood.Unlikely },
-            { _id: Likelihood.Possible, name: RiskLikelihood.Possible },
-            { _id: Likelihood.Likely, name: RiskLikelihood.Likely },
-            {
-              _id: Likelihood.AlmostCertain,
-              name: RiskLikelihood.AlmostCertain,
-            },
-          ]}
+          items={likelihoodItems}
           label="Likelihood"
-          placeholder="Select risk severity"
+          placeholder="Select likelihood"
           isHidden={false}
           id=""
           onChange={(e) => handleOnChange("likelihood", e.target.value)}
@@ -504,13 +496,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           gap={theme.spacing(8)}
         >
           <Select
-            items={[
-              { _id: Severity.VeryLow, name: RiskSeverity.VeryLow },
-              { _id: Severity.Low, name: RiskSeverity.Low },
-              { _id: Severity.Moderate, name: RiskSeverity.Moderate },
-              { _id: Severity.High, name: RiskSeverity.High },
-              { _id: Severity.VeryHigh, name: RiskSeverity.VeryHigh },
-            ]}
+            items={riskSeverityItems}
             label="Risk severity"
             placeholder="Select risk severity"
             isHidden={false}

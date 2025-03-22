@@ -13,7 +13,6 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { validatePassword } from "../../../../application/validations/formValidation";
 import type { FormErrors } from "../../../../application/validations/formValidation";
-import VWAlert from "../../../vw-v2-components/Alerts";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
@@ -162,7 +161,6 @@ const SetNewPassword: React.FC = () => {
             justifyContent: "center"
           }}
         >
-          {/* <VWAlert title="Updating password. Please wait..." /> */}
           <VWSkeleton 
             sx={{
               width: "100%",
@@ -218,9 +216,6 @@ const SetNewPassword: React.FC = () => {
           <Stack sx={{ gap: theme.spacing(6), textAlign: "center" }}>
             <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>
               Set new password
-            </Typography>
-            <Typography fontSize={13}>
-              Your new password must be different to previously used passwords.
             </Typography>
           </Stack>
           <Stack sx={{ gap: theme.spacing(12) }}>

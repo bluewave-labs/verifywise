@@ -263,7 +263,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
         </Stack>
         <Divider />
         <Typography sx={{ fontSize: 16, fontWeight: 600, mt: 8, mb: 3 }}>
-          Residual risk level
+          Calculate residual risk level
         </Typography>
         <Typography sx={{ fontSize: theme.typography.fontSize, mb: 4.5 }}>
           The Risk Level is calculated by multiplying the Likelihood and

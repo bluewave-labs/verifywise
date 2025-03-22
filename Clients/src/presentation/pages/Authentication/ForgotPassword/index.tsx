@@ -3,7 +3,7 @@
  */
 
 import { Button, Stack, Typography, useTheme } from "@mui/material";
-import React, { useState, lazy, Suspense } from "react";
+import React, { useState } from "react";
 import { ReactComponent as Key } from "../../../assets/icons/key.svg";
 import { ReactComponent as LeftArrowLong } from "../../../assets/icons/left-arrow-long.svg";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
@@ -14,8 +14,6 @@ import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { AlertProps } from "../../../components/Alert";
 import Alert from "../../../components/Alert";
-import VWSkeleton from "../../../vw-v2-components/Skeletons";
-import VWAlert from "../../../vw-v2-components/Alerts";
 
 // Define the shape of form values
 interface FormValues {
@@ -44,32 +42,17 @@ const ForgotPassword: React.FC = () => {
       };
 
   // Handle form submission
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
-
     try {
       const formData = {
         to: values.email,
         email: values.email,
         name: values.email,
       };
-      const response = await apiServices.post("/mail/reset-password", formData);
-
-      const isSuccess = response.status === 200;
-      const alertMessage = isSuccess ? "Email sent successfully" : "Email failed";
-
-      handleAlert({
-        variant: isSuccess ? "success" : "error",
-        body: alertMessage,
-        setAlert,
-      });
-
-      setTimeout(() => {
-        if (isSuccess) {
-          navigate("/reset-password", { state: { email: values.email } });
-        }
-      }, 1000);
+      apiServices.post("/mail/reset-password", formData);
+      navigate("/reset-password", { state: { email: values.email } });
     } catch (error) {
       handleAlert({
         variant: "error",
@@ -97,32 +80,6 @@ const ForgotPassword: React.FC = () => {
         minHeight: "100vh",
       }}
     >
-      {isSubmitting && (
-        <Stack
-          sx={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(255, 255, 255, 0.9)",
-            zIndex: 9999,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center"
-          }}
-        >
-          <VWSkeleton
-          variant="rectangular"
-          width="100%"
-          height="300px"
-          minWidth={"100%"}
-          minHeight={300}
-          sx={{ borderRadius: 2 }}
-        />
-        </Stack>
-      )}
       <Background
         style={{
           position: "absolute",

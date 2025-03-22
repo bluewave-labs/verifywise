@@ -106,6 +106,14 @@ const NewControlPane = ({
   }));
 
   const handleSelectedTab = (_: React.SyntheticEvent, newValue: number) => {
+    setState(prevState => ({
+      ...prevState,
+      subControls: prevState.subControls!.map((sc, idx) => ({
+        ...sc,
+        evidence_files: sc.evidence_files || [],
+        feedback_files: sc.feedback_files || []
+      }))
+    }));
     setSelectedTab(newValue);
   };
 
@@ -114,6 +122,14 @@ const NewControlPane = ({
   };
 
   const handleSectionChange = (section: string) => {
+    setState(prevState => ({
+      ...prevState,
+      subControls: prevState.subControls!.map(sc => ({
+        ...sc,
+        evidence_files: sc.evidence_files || [],
+        feedback_files: sc.feedback_files || []
+      }))
+    }));
     setActiveSection(section);
   };
 
@@ -145,19 +161,24 @@ const NewControlPane = ({
   };
 
   const confirmSave = async () => {
+    debugger;
     console.log("state controlToSave : ", state);
     setIsSubmitting(true);
+    debugger;
     try {
       const response = await updateEntityById({
         routeUrl: `/controls/saveControls/${state.id}`,
         body: state,
       });
-      console.log("Controls updated successfully:", response);
-      setAlert({ type: "success", message: "Controls updated successfully" });
-      // Call both update functions after successful save
-      OnSave?.(state);
-      onComplianceUpdate?.();
-      
+      if (response.status === 200) {
+        console.log("Controls updated successfully:", response);
+        setAlert({ type: "success", message: "Controls updated successfully" });
+        // Call both update functions after successful save
+        OnSave?.(state);
+        onComplianceUpdate?.();
+      } else {
+        setAlert({ type: "error", message: "Error updating controls" });
+      } 
       setTimeout(() => {
         setAlert(null);
         handleClose();
@@ -380,9 +401,7 @@ const NewControlPane = ({
             )}
             {activeSection === "Evidence" && (
               <AuditorFeedback
-                key={`sub-control-${data.order_no}.${
-                  state.subControls![selectedTab].id
-                }.evidence`}
+                key={`sub-control-${data.order_no}.${state.subControls![selectedTab].id}.evidence`}
                 activeSection={activeSection}
                 feedback={state.subControls![selectedTab].evidence_description}
                 onChange={(e) => {
@@ -391,19 +410,33 @@ const NewControlPane = ({
                     e.target.value;
                   setState({ ...state, subControls: updatedSubControls });
                 }}
+                control={data}
+                files={Array.isArray(state.subControls![selectedTab].evidence_files) ? state.subControls![selectedTab].evidence_files : []}
+                subControlId={state.subControls![selectedTab].id || 0}
+                onFilesChange={(files) => {
+                  const updatedSubControls = [...state.subControls!];
+                  updatedSubControls[selectedTab].evidence_files = files.map(file => JSON.stringify(file));
+                  setState({ ...state, subControls: updatedSubControls });
+                }}
               />
             )}
             {activeSection === "Auditor Feedback" && (
               <AuditorFeedback
-                key={`sub-control-${data.order_no}.${
-                  state.subControls![selectedTab].id
-                }.auditor-feedback`}
+                key={`sub-control-${data.order_no}.${state.subControls![selectedTab].id}.auditor-feedback`}
                 activeSection={activeSection}
                 feedback={state.subControls![selectedTab].feedback_description}
                 onChange={(e) => {
                   const updatedSubControls = [...state.subControls!];
                   updatedSubControls[selectedTab].feedback_description =
                     e.target.value;
+                  setState({ ...state, subControls: updatedSubControls });
+                }}
+                control={data}
+                files={Array.isArray(state.subControls![selectedTab].feedback_files) ? state.subControls![selectedTab].feedback_files : []}
+                subControlId={state.subControls![selectedTab].id || 0}
+                onFilesChange={(files) => {
+                  const updatedSubControls = [...state.subControls!];
+                  updatedSubControls[selectedTab].feedback_files = files.map(file => JSON.stringify(file));
                   setState({ ...state, subControls: updatedSubControls });
                 }}
               />

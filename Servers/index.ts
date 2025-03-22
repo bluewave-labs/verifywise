@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import { checkAndCreateTables } from "./database/db";
+// import { checkAndCreateTables } from "./database/db";
 
 import assessmentRoutes from "./routes/assessment.route";
 import controlRoutes from "./routes/control.route";
@@ -31,10 +31,16 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 try {
-  (async () => {
-    await checkAndCreateTables();
-  })();
+  // (async () => {
+  //   await checkAndCreateTables();
+  // })();
   // Middlewares
+
+  // Development
+  // (async () => {
+  //   await sequelize.sync();
+  // })();
+
   app.use(
     cors({
       origin: "*",

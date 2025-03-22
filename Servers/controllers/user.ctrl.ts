@@ -232,12 +232,12 @@ async function calculateProgress(
       let totalSubControls = 0;
       let doneSubControls = 0;
       const controlcategories = await getControlCategoriesForProject(
-        userProject.id
+        userProject.id!
       );
       for (const controlcategory of controlcategories) {
-        const controls = await getControlForControlCategory(controlcategory.id);
+        const controls = await getControlForControlCategory(controlcategory.id!);
         for (const control of controls) {
-          const subControls = await getSubControlForControl(control.id);
+          const subControls = await getSubControlForControl(control.id!);
           for (const subControl of subControls) {
             totalSubControls++;
             if (subControl.status === "Done") {
@@ -256,13 +256,13 @@ async function calculateProgress(
 
       let totalAssessments = 0;
       let doneAssessments = 0;
-      const assessments = await getAssessmentsForProject(userProject.id);
+      const assessments = await getAssessmentsForProject(userProject.id!);
       for (const assessment of assessments) {
-        const topics = await getTopicsForAssessment(assessment.id);
+        const topics = await getTopicsForAssessment(assessment.id!);
         for (const topic of topics) {
-          const subTopics = await getSubTopicsForTopic(topic.id);
+          const subTopics = await getSubTopicsForTopic(topic.id!);
           for (const subTopic of subTopics) {
-            const questions = await getQuestionsForSubTopic(subTopic.id);
+            const questions = await getQuestionsForSubTopic(subTopic.id!);
             for (const question of questions) {
               totalAssessments++;
               if (question.answer) {

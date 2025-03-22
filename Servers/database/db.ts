@@ -1,72 +1,58 @@
-import { Pool } from "pg";
-import fs from "fs";
-import path from "path";
 import dotenv from "dotenv";
+import { Sequelize } from "sequelize-typescript";
+import { RoleModel } from "../models/role.model";
+import { AssessmentModel } from "../models/assessment.model";
+import { ControlModel } from "../models/control.model";
+import { ControlCategoryModel } from "../models/controlCategory.model";
+import { FileModel } from "../models/file.model";
+import { ProjectModel } from "../models/project.model";
+import { ProjectRiskModel } from "../models/projectRisk.model";
+import { ProjectScopeModel } from "../models/projectScope.model";
+import { ProjectsMembersModel } from "../models/projectsMembers.model";
+import { QuestionModel } from "../models/question.model";
+import { SubcontrolModel } from "../models/subcontrol.model";
+import { SubtopicModel } from "../models/subtopic.model";
+import { TopicModel } from "../models/topic.model";
+import { UserModel } from "../models/user.model";
+import { VendorModel } from "../models/vendor.model";
+import { VendorRiskModel } from "../models/vendorRisk.model";
+import { VendorsProjectsModel } from "../models/vendorsProjects.model";
+import dbConfig from "./config/config";
+import { Dialect } from "sequelize";
 
 dotenv.config();
 
-const pool = new Pool({
-  host: process.env.DB_HOST || "localhost",
-  user: process.env.DB_USER || "postgres",
-  port: Number(process.env.DB_PORT) || 5432,
-  password: process.env.DB_PASSWORD || "1377",
-  database: process.env.DB_NAME || "verifywise",
-});
+const conf = dbConfig.development;
 
-/**
- * Function to check if tables exist and create them if necessary.
- */
-export const checkAndCreateTables = async () => {
-  try {
-    const client = await pool.connect();
-    console.log("Checking if tables exist...");
-
-    // Modify this list with your actual table names
-    const tableNames = [
-      "roles",
-      "users",
-      "projects",
-      "vendors",
-      "assessments",
-      "controlcategories",
-      "controls",
-      "subcontrols",
-      "projectrisks",
-      "vendorrisks",
-      "vendors_projects",
-      "projectscopes",
-      "topics",
-      "subtopics",
-      "questions",
-      "files",
-    ];
-
-    const query = `
-      SELECT tablename FROM pg_catalog.pg_tables 
-      WHERE schemaname = 'public' AND tablename = ANY($1);
-    `;
-
-    const result = await client.query(query, [tableNames]);
-
-    if (result.rows.length < tableNames.length) {
-      console.log("Some tables are missing. Creating tables...");
-      const sqlFilePath = path.join(__dirname, "./SQL_Commands.sql");
-
-      if (fs.existsSync(sqlFilePath)) {
-        const sql = fs.readFileSync(sqlFilePath, "utf8");
-        await client.query(sql);
-        console.log("Tables created successfully.");
-      } else {
-        console.error(`SQL file not found at path: ${sqlFilePath}`);
-      }
-    } else {
-      console.log("All tables exist. Skipping creation.");
-    }
-
-    client.release();
-  } catch (error) {
-    console.error("Error checking or creating tables:", error);
+const sequelize = new Sequelize(
+  conf.database!,
+  conf.username!,
+  conf.password,
+  {
+    host: conf.host!,
+    port: Number(conf.port!),
+    dialect: conf.dialect! as Dialect,
+    logging: true,
+    models: [
+      RoleModel,
+      AssessmentModel,
+      ControlModel,
+      ControlCategoryModel,
+      FileModel,
+      ProjectModel,
+      ProjectRiskModel,
+      ProjectScopeModel,
+      ProjectsMembersModel,
+      QuestionModel,
+      SubcontrolModel,
+      SubtopicModel,
+      TopicModel,
+      UserModel,
+      VendorModel,
+      VendorRiskModel,
+      VendorsProjectsModel
+    ]
   }
-};
+) as Sequelize;
 
-export default pool;
+export { sequelize };

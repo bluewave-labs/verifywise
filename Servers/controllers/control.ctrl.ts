@@ -173,7 +173,7 @@ export async function saveControls(
             Control.project_id
           );
           evidenceUploadedFiles.push({
-            id: evidenceUploadedFile.id.toString(),
+            id: evidenceUploadedFile.id!.toString(),
             fileName: evidenceUploadedFile.filename,
             project_id: evidenceUploadedFile.project_id,
             uploaded_by: evidenceUploadedFile.uploaded_by,
@@ -195,7 +195,7 @@ export async function saveControls(
             Control.project_id
           );
           feedbackUploadedFiles.push({
-            id: feedbackUploadedFile.id.toString(),
+            id: feedbackUploadedFile.id!.toString(),
             fileName: feedbackUploadedFile.filename,
             project_id: feedbackUploadedFile.project_id,
             uploaded_by: feedbackUploadedFile.uploaded_by,
@@ -226,8 +226,6 @@ export async function saveControls(
             implementation_details: subcontrol.implementation_details,
             evidence_description: subcontrol.evidence_description,
             feedback_description: subcontrol.feedback_description,
-            evidence_files: subcontrol.evidence_files,
-            feedback_files: subcontrol.feedback_files,
             control_id: subcontrol.control_id,
           },
           evidenceUploadedFiles,

@@ -1,3 +1,6 @@
+import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
+import { ProjectModel } from "./project.model";
+
 /*
 
 This is the new Assessment model(Schema) and will be replaced with the new one.
@@ -12,7 +15,25 @@ export type Assessment = {
   project_id: number;
 };
 
-// export type Assessment = {
-//   id: number;
-//   projectId: number;
-// };
+@Table({
+  tableName: "assessments"
+})
+export class AssessmentModel extends Model<Assessment> {
+  @Column({
+    type: DataType.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  })
+  id?: number;
+
+  @ForeignKey(() => ProjectModel)
+  @Column({
+    type: DataType.INTEGER,
+  })
+  project_id!: number;
+
+  @Column({
+    type: DataType.BOOLEAN,
+  })
+  is_demo?: boolean;
+}

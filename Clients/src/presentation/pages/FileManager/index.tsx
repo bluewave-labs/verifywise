@@ -6,7 +6,6 @@ import PageTour from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
 import VWSkeleton from "../../vw-v2-components/Skeletons";
 import { vwhomeHeading } from "../Home/1.0Home/style";
-import { File } from "../../../domain/File";
 import { useFetchFiles } from "../../../application/hooks/useFetchFiles";
 import FileTable from "./components/FileTable";
 
@@ -49,30 +48,6 @@ const EmptyState: React.FC = (): JSX.Element => (
   </Stack>
 );
 
-//mock files
-const mockFiles: File[] = [
-  {
-    id: "1",
-    name: "Document1.pdf",
-    type: "PDF",
-    uploadDate: "2025-01-01",
-    uploader: "User1",
-  },
-  {
-    id: "2",
-    name: "Image1.png",
-    type: "Image",
-    uploadDate: "2025-01-02",
-    uploader: "User2",
-  },
-  {
-    id: "3",
-    name: "Presentation1.pptx",
-    type: "Presentation",
-    uploadDate: "2025-01-03",
-    uploader: "User3",
-  },
-];
 /**
  * Main component for managing files, displaying a table,
  * sorting, and handling actions (Download/Remove).

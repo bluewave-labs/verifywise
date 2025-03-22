@@ -20,6 +20,31 @@ interface FileTableProps {
   onRowClick: (fileId: string) => void;
 }
 
+//fallback mock data for dev purposes
+const mockFiles: File[] = [
+  {
+    id: "1",
+    name: "Document1.pdf",
+    type: "PDF",
+    uploadDate: "2025-01-01",
+    uploader: "User1",
+  },
+  {
+    id: "2",
+    name: "Image1.png",
+    type: "Image",
+    uploadDate: "2025-01-02",
+    uploader: "User2",
+  },
+  {
+    id: "3",
+    name: "Presentation1.pptx",
+    type: "Presentation",
+    uploadDate: "2025-01-03",
+    uploader: "User3",
+  },
+];
+
 const FileTable: React.FC<FileTableProps> = ({ cols, files, onRowClick }) => {
   const [sortField, setSortField] = useState<keyof File | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
@@ -30,9 +55,11 @@ const FileTable: React.FC<FileTableProps> = ({ cols, files, onRowClick }) => {
     setSortField(field);
   };
 
+  const displayFiles = files && files.length > 0 ? files : mockFiles;
+
   const sortedFiles = useMemo(() => {
-    if (!sortField) return files;
-    return [...files].sort((a, b) => {
+    if (!sortField) return displayFiles;
+    return [...displayFiles].sort((a, b) => {
       const aValue = a[sortField] ?? "";
       const bValue = b[sortField] ?? "";
 
@@ -44,7 +71,7 @@ const FileTable: React.FC<FileTableProps> = ({ cols, files, onRowClick }) => {
 
       return 0;
     });
-  }, [files, sortField, sortDirection]);
+  }, [displayFiles, sortField, sortDirection]);
 
   const sortedCols = useMemo(
     () =>
@@ -95,8 +122,8 @@ const FileTable: React.FC<FileTableProps> = ({ cols, files, onRowClick }) => {
   return (
     <VWBasicTable
       data={{ cols: sortedCols, rows }}
-      bodyData={files}
-      paginated={files.length > 0}
+      bodyData={displayFiles}
+      paginated={displayFiles.length > 0}
       table="fileManager"
       setSelectedRow={(row) => onRowClick(row.id)}
       setAnchorEl={() => {}}

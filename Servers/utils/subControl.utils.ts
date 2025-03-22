@@ -104,10 +104,10 @@ export const updateSubcontrolByIdQuery = async (
     [id]
   );
 
-  let currentEvidenceFiles = (files.rows[0].evidence_files as string[]).map(f => JSON.parse(f) as {
+  let currentEvidenceFiles = ((files.rows[0].evidence_files || []) as string[]).map(f => JSON.parse(f) as {
     id: string; fileName: string; project_id: number; uploaded_by: number; uploaded_time: Date;
   })
-  let currentFeedbackFiles = (files.rows[0].feedback_files as string[]).map(f => JSON.parse(f) as {
+  let currentFeedbackFiles = ((files.rows[0].feedback_files || []) as string[]).map(f => JSON.parse(f) as {
     id: string; fileName: string; project_id: number; uploaded_by: number; uploaded_time: Date;
   })
 

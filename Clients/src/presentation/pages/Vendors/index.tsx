@@ -398,10 +398,10 @@ const Vendors = () => {
                   fontWeight: 600,
                 }}
               >
-                Risk list
+                Vendor risks list
               </Typography>
               <Typography sx={singleTheme.textStyles.pageDescription}>
-                This table includes a list of Risks related to a project. You
+                This table includes a list of risks related to a vendor. You
                 can create and manage all vendor risks here.
               </Typography>
             </Stack>

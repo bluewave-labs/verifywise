@@ -429,7 +429,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
       >
         <Select
           items={VENDOR_OPTIONS}
-          label="vendor"
+          label="Vendor"
           placeholder="Select vendor"
           isHidden={false}
           id=""

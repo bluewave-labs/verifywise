@@ -2,13 +2,11 @@
 
 # Function to read environment variables from .env file
 load_env() {
-    if [ -f .env ]; then
-        export $(cat .env | grep -v '#' | awk '/=/ {print $1}')
-
-        # Store the backend api url in the env file of frontend
-        echo "VITE_APP_API_BASE_URL=$VITE_APP_API_HOST:$BACKEND_PORT" > ./Clients/.env
+    ENV_FILE=$1
+    if [ -f $ENV_FILE ]; then
+        export $(cat $ENV_FILE | grep -v '#' | awk '/=/ {print $1}')
     else
-        echo "Error: .env file not found"
+        echo "Error: $ENV_FILE file not found"
         exit 1
     fi
 }
@@ -74,12 +72,18 @@ initialize_db() {
 
 # Main script
 main() {
-    # Load environment variables
-    load_env
+    ENVIRONMENT=${1:-prod}
+    echo "Running in $ENVIRONMENT mode"
 
     # Start Docker Compose
     echo "Starting Docker Compose..."
-    docker-compose up -d
+    if [ $ENVIRONMENT == "dev" ]; then
+        load_env .env.dev
+        docker-compose --env-file .env.dev up --build -d
+    else
+        load_env .env.prod
+        docker-compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod up -d
+    fi
 
     # Check if database needs initialization
     if ! check_db_initialized; then
@@ -93,4 +97,4 @@ main() {
 }
 
 # Run main function
-main
+main $1

@@ -11,16 +11,16 @@ import {
 } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import DropDowns from "../../Inputs/Dropdowns";
-import { useState } from "react";
+import { useState, useContext } from "react";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
 import { updateEntityById } from "../../../../application/repository/entity.repository";
-import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import { Subcontrol } from "../../../../domain/Subcontrol";
 import { Control } from "../../../../domain/Control";
 import Alert from "../../Alert";
 import VWToast from "../../../vw-v2-components/Toast";
 import SaveIcon from "@mui/icons-material/Save";
 import VWButton from "../../../vw-v2-components/Buttons";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 const tabStyle = {
   textTransform: "none",
@@ -58,6 +58,8 @@ const NewControlPane = ({
     message: string;
   } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletedFilesIds, setDeletedFilesIds] = useState<number[]>([]);
+  const context = useContext(VerifyWiseContext);
 
   const sanitizeField = (value: string | undefined | null): string => {
     if (!value || value === "undefined") {
@@ -161,24 +163,93 @@ const NewControlPane = ({
   };
 
   const confirmSave = async () => {
-    debugger;
     console.log("state controlToSave : ", state);
     setIsSubmitting(true);
-    debugger;
+
     try {
+      const formData = new FormData();
+
+      // Add control level fields
+      formData.append('title', state.title || '');
+      formData.append('description', state.description || '');
+      formData.append('status', state.status || '');
+      formData.append('approver', state.approver?.toString() || '');
+      formData.append('risk_review', state.risk_review || '');
+      formData.append('owner', state.owner?.toString() || '');
+      formData.append('reviewer', state.reviewer?.toString() || '');
+      formData.append('due_date', state.due_date ? new Date(state.due_date).toISOString().split('T')[0] : '');
+      formData.append('implementation_details', state.implementation_details || '');
+      formData.append('order_no', state.order_no?.toString() || '');
+
+      // Add subcontrols as a JSON string
+      const subControlsForJson = state.subControls?.map(sc => ({
+        id: sc.id,
+        title: sc.title,
+        description: sc.description,
+        order_no: sc.order_no,
+        status: sc.status,
+        approver: sc.approver,
+        risk_review: sc.risk_review,
+        owner: sc.owner,
+        reviewer: sc.reviewer,
+        due_date: sc.due_date,
+        implementation_details: sc.implementation_details,
+        evidence_description: sc.evidence_description,
+        feedback_description: sc.feedback_description
+      }));
+      formData.append('subControls', JSON.stringify(subControlsForJson));
+
+      // Add files for each subcontrol
+      state.subControls?.forEach(sc => {
+        if (sc.evidence_files && Array.isArray(sc.evidence_files)) {
+          sc.evidence_files.forEach(fileData => {
+            if (fileData.data instanceof Blob) {
+              // Create a new File object if needed
+              const fileToUpload = fileData.data instanceof File
+                ? fileData.data
+                : new File([fileData.data], fileData.fileName, { type: fileData.type });
+              formData.append(`evidence_files_${sc.id}`, fileToUpload);
+            }
+          });
+        }
+
+        if (sc.feedback_files && Array.isArray(sc.feedback_files)) {
+          sc.feedback_files.forEach(fileData => {
+            if (fileData.data instanceof Blob) {
+              // Create a new File object if needed
+              const fileToUpload = fileData.data instanceof File
+                ? fileData.data
+                : new File([fileData.data], fileData.fileName, { type: fileData.type });
+              formData.append(`feedback_files_${sc.id}`, fileToUpload);
+            }
+          });
+        }
+      });
+
+      // Add user and project info
+      formData.append('user_id', context?.userId?.toString() || '');
+      formData.append('project_id', context?.currentProjectId?.toString() || '');
+
+      // Add delete array if needed (you might want to track deleted files)
+      formData.append('delete', JSON.stringify(deletedFilesIds));
+
       const response = await updateEntityById({
         routeUrl: `/controls/saveControls/${state.id}`,
-        body: state,
+        body: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
+
       if (response.status === 200) {
         console.log("Controls updated successfully:", response);
         setAlert({ type: "success", message: "Controls updated successfully" });
-        // Call both update functions after successful save
         OnSave?.(state);
         onComplianceUpdate?.();
       } else {
         setAlert({ type: "error", message: "Error updating controls" });
-      } 
+      }
+
       setTimeout(() => {
         setAlert(null);
         handleClose();
@@ -350,9 +421,8 @@ const NewControlPane = ({
             {["Overview", "Evidence", "Auditor Feedback"].map(
               (section, index) => (
                 <Button
-                  key={`sub-control-${data.order_no}.${
-                    state.subControls![selectedTab].id
-                  }.${index}`}
+                  key={`sub-control-${data.order_no}.${state.subControls![selectedTab].id
+                    }.${index}`}
                   variant={getVariant(activeSection, section)}
                   onClick={() => handleSectionChange(section)}
                   disableRipple
@@ -374,9 +444,8 @@ const NewControlPane = ({
               fontWeight={600}
               sx={{ textAlign: "left", mb: 3 }}
             >
-              {`${controlCategoryId}.${data.order_no}.${
-                state.subControls![selectedTab].order_no
-              }`}{" "}
+              {`${controlCategoryId}.${data.order_no}.${state.subControls![selectedTab].order_no
+                }`}{" "}
               {state.subControls![selectedTab].title}
             </Typography>
             <Typography sx={{ mb: 5, fontSize: 13 }}>
@@ -385,13 +454,11 @@ const NewControlPane = ({
             {activeSection === "Overview" && (
               <Typography fontSize={13}>
                 <DropDowns
-                  key={`sub-control-${data.order_no}.${
-                    state.subControls![selectedTab].id
-                  }`}
+                  key={`sub-control-${data.order_no}.${state.subControls![selectedTab].id
+                    }`}
                   isControl={false}
-                  elementId={`sub-control-${data.order_no}.${
-                    state.subControls![selectedTab].id
-                  }`}
+                  elementId={`sub-control-${data.order_no}.${state.subControls![selectedTab].id
+                    }`}
                   state={state.subControls![selectedTab]}
                   setState={(newState) =>
                     handleSubControlStateChange(selectedTab, newState)
@@ -406,18 +473,17 @@ const NewControlPane = ({
                 feedback={state.subControls![selectedTab].evidence_description}
                 onChange={(e) => {
                   const updatedSubControls = [...state.subControls!];
-                  updatedSubControls[selectedTab].evidence_description =
-                    e.target.value;
+                  updatedSubControls[selectedTab].evidence_description = e.target.value;
                   setState({ ...state, subControls: updatedSubControls });
                 }}
-                control={data}
                 files={Array.isArray(state.subControls![selectedTab].evidence_files) ? state.subControls![selectedTab].evidence_files : []}
-                subControlId={state.subControls![selectedTab].id || 0}
                 onFilesChange={(files) => {
                   const updatedSubControls = [...state.subControls!];
-                  updatedSubControls[selectedTab].evidence_files = files.map(file => JSON.stringify(file));
+                  updatedSubControls[selectedTab].evidence_files = files;
                   setState({ ...state, subControls: updatedSubControls });
                 }}
+                deletedFilesIds={deletedFilesIds}
+                onDeletedFilesChange={setDeletedFilesIds}
               />
             )}
             {activeSection === "Auditor Feedback" && (
@@ -427,18 +493,17 @@ const NewControlPane = ({
                 feedback={state.subControls![selectedTab].feedback_description}
                 onChange={(e) => {
                   const updatedSubControls = [...state.subControls!];
-                  updatedSubControls[selectedTab].feedback_description =
-                    e.target.value;
+                  updatedSubControls[selectedTab].feedback_description = e.target.value;
                   setState({ ...state, subControls: updatedSubControls });
                 }}
-                control={data}
                 files={Array.isArray(state.subControls![selectedTab].feedback_files) ? state.subControls![selectedTab].feedback_files : []}
-                subControlId={state.subControls![selectedTab].id || 0}
                 onFilesChange={(files) => {
                   const updatedSubControls = [...state.subControls!];
-                  updatedSubControls[selectedTab].feedback_files = files.map(file => JSON.stringify(file));
+                  updatedSubControls[selectedTab].feedback_files = files;
                   setState({ ...state, subControls: updatedSubControls });
                 }}
+                deletedFilesIds={deletedFilesIds}
+                onDeletedFilesChange={setDeletedFilesIds}
               />
             )}
           </Box>

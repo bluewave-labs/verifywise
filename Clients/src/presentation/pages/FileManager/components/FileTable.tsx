@@ -10,17 +10,12 @@ type SortDirection = "asc" | "desc" | null;
 /**
  * Represents the props of the FileTable component.
  * @typedef {Object} FileTableProps
- * @property {Array} cols - The columns of the table.
- * @property {Array} rows - The rows of the table.   
+ * @property {Array} cols - The columns of the table. 
  * @property {Array<File>} files - The list of files.
- * @property {Function} handleSort - Callback to handle sorting.
- * @property {keyof File|null} sortField - The field currently sorted by.
- * @property {SortDirection|null} sortDirection - The current sort direction.
  * @property {Function} onRowClick - Callback to handle row selection.    
  */ 
 interface FileTableProps {
   cols: any[];
-  rows: any[];
   files: File[];
   onRowClick: (fileId: string) => void;
 }
@@ -100,6 +95,7 @@ const FileTable: React.FC<FileTableProps> = ({ cols, files, onRowClick }) => {
   return (
     <VWBasicTable
       data={{ cols: sortedCols, rows }}
+      bodyData={files}
       paginated={files.length > 0}
       table="fileManager"
       setSelectedRow={(row) => onRowClick(row.id)}

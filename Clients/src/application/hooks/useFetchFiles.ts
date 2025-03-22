@@ -7,7 +7,7 @@ export const useFetchFiles = (projectID:string) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchAllFiles = async () => {
+    const fetchFilesData = async () => {
       try {
         setLoading(true);
        const routeUrl = projectID ? `/files?projectID=${projectID}` : "/files";
@@ -33,7 +33,7 @@ export const useFetchFiles = (projectID:string) => {
         setLoading(false);
     }
     };
-    fetchAllFiles();
+    fetchFilesData();
   }, [projectID]);
 
   return { filesData, loading };

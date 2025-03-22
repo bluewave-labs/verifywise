@@ -9,7 +9,8 @@ import PageTour from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
 import VWSkeleton from "../../vw-v2-components/Skeletons";
 import { vwhomeHeading } from "../Home/1.0Home/style";
-import {useFetchFiles} from "../../../application/hooks/useFetchFiles";
+import { File } from "../../../domain/File";
+import { useFetchFiles } from "../../../application/hooks/useFetchFiles";
 
 /**
  * Represents the props of the FileTable component.
@@ -25,9 +26,9 @@ import {useFetchFiles} from "../../../application/hooks/useFetchFiles";
 interface FileTableProps {
   cols: any[];
   rows: any[];
-  files: FileData[];
-  handleSort: (field: keyof FileData) => void;
-  sortField: keyof FileData | null;
+  files: File[];
+  handleSort: (field: keyof File) => void;
+  sortField: keyof File | null;
   sortDirection: SortDirection | null;
   onRowClick: (fileId: string) => void;
 }
@@ -109,7 +110,7 @@ const FileTable: React.FC<FileTableProps> =({
                   direction="row"
                   alignItems="center"
                   onClick={() =>
-                    handleSort(col.name.toLowerCase() as keyof FileData)
+                    handleSort(col.name.toLowerCase() as keyof File)
                   }
                   sx={{ cursor: "pointer" }}
                 >
@@ -150,7 +151,7 @@ const FileTable: React.FC<FileTableProps> =({
 };
 
 //mock files
-const mockFiles: FileData[] = [
+const mockFiles: File[] = [
   {
     id: "1",
     name: "Document1.pdf",
@@ -180,8 +181,9 @@ const mockFiles: FileData[] = [
  */
 const FileManager: React.FC = (): JSX.Element => {
   const theme = useTheme();
-  const { files, loading } = useFetchFiles();
-  const [sortField, setSortField] = useState<keyof FileData | null>(null);
+  const projectID = "1"; //need to replace with actual project ID
+  const { filesData, loading } = useFetchFiles(projectID);
+  const [sortField, setSortField] = useState<keyof File | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection | null>(
     null
   );
@@ -199,40 +201,6 @@ const FileManager: React.FC = (): JSX.Element => {
 
   useEffect(() => {
     setRunFileTour(true);
-
-    /**
-     * Fetches all files from the '/files' endpoint.
-     * This function retrieves a list of files and updates the state.
-     * If an error occurs, it logs an error and sets the files to an empty array.
-     * The loading state is managed to indicate the progress of the fetch.
-     */
-    // const fetchAllFiles = async () => {
-    //   try {
-    //     setLoading(true);
-    //     const files = await getEntityById({ routeUrl: "/files" });
-
-    //     if (files && Array.isArray(files)) {
-    //       setFiles(
-    //         files.map((file) => ({
-    //           id: file.id,
-    //           name: file.name,
-    //           type: file.type || "N/A",
-    //           uploadDate: new Date(file.uploadDate).toLocaleDateString(),
-    //           uploader: file.uploader || "N/A",
-    //         }))
-    //       );
-    //     } else {
-    //       setFiles([]);
-    //     }
-    //   } catch (error) {
-    //     console.error("Error fetching files", error);
-    //     setFiles([]);
-    //   } finally {
-    //     setLoading(false);
-    //   }
-    // };
-
-    // fetchAllFiles();
   }, []);
 
   /**
@@ -253,7 +221,7 @@ const FileManager: React.FC = (): JSX.Element => {
    * @param {keyof File} field - The field to sort by.
    */
   const handleSort = useCallback(
-    (field: keyof FileData) => {
+    (field: keyof File) => {
       const isAsc =
         sortField === field && sortDirection === SORT_DIRECTIONS.ASC;
       const newDirection = isAsc ? SORT_DIRECTIONS.DESC : SORT_DIRECTIONS.ASC;
@@ -262,7 +230,7 @@ const FileManager: React.FC = (): JSX.Element => {
       setSortField(field);
 
       
-        files.sort((a, b) => {
+        filesData.sort((a, b) => {
           if (typeof a[field] === "string" && typeof b[field] === "string") {
             return newDirection === SORT_DIRECTIONS.ASC
               ? a[field].localeCompare(b[field])
@@ -278,18 +246,18 @@ const FileManager: React.FC = (): JSX.Element => {
         })
       ;
     },
-    [files, sortField, sortDirection]
+    [filesData, sortField, sortDirection]
   );
 
   const rows = useMemo(
     () =>
-      files.map((file) => ({
+      filesData.map((file) => ({
         id: file.id,
         file: file.name,
         uploadDate: file.uploadDate,
         uploader: file.uploader,
       })),
-    [files]
+    [filesData]
   );
 
   const cols = COLUMN_NAMES.map((name, index) => ({
@@ -334,8 +302,8 @@ const FileManager: React.FC = (): JSX.Element => {
             flexDirection: "column",
             flex: 1,
             width: "100%",
-            justifyContent: files.length === 0 ? "center" : "flex-start",
-            alignItems: files.length === 0 ? "center" : "stretch",
+            justifyContent: filesData.length === 0 ? "center" : "flex-start",
+            alignItems: filesData.length === 0 ? "center" : "stretch",
             position: "relative",
             borderRadius: "4px",
             overflow: "hidden",
@@ -349,13 +317,13 @@ const FileManager: React.FC = (): JSX.Element => {
           <FileTable
             cols={cols}
             rows={rows}
-            files={files}
+            files={filesData}
             handleSort={handleSort}
             sortField={sortField}
             sortDirection={sortDirection}
             onRowClick={handleRowClick}
           />
-          {files.length === 0 && <EmptyState />}
+          {filesData.length === 0 && <EmptyState />}
         </Box>
       )}
     </Stack>

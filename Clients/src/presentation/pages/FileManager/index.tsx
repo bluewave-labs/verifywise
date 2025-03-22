@@ -12,26 +12,6 @@ import { vwhomeHeading } from "../Home/1.0Home/style";
 import { File } from "../../../domain/File";
 import { useFetchFiles } from "../../../application/hooks/useFetchFiles";
 
-/**
- * Represents the props of the FileTable component.
- * @typedef {Object} FileTableProps
- * @property {Array} cols - The columns of the table.
- * @property {Array} rows - The rows of the table.   
- * @property {Array<File>} files - The list of files.
- * @property {Function} handleSort - Callback to handle sorting.
- * @property {keyof File|null} sortField - The field currently sorted by.
- * @property {SortDirection|null} sortDirection - The current sort direction.
- * @property {Function} onRowClick - Callback to handle row selection.    
- */ 
-interface FileTableProps {
-  cols: any[];
-  rows: any[];
-  files: File[];
-  handleSort: (field: keyof File) => void;
-  sortField: keyof File | null;
-  sortDirection: SortDirection | null;
-  onRowClick: (fileId: string) => void;
-}
 
 const COLUMN_NAMES = ["File", "Upload Date", "Uploader"];
 

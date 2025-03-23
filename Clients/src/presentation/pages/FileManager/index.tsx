@@ -13,42 +13,6 @@ import FileTable from "./components/FileTable";
 const COLUMN_NAMES = ["File", "Upload Date", "Uploader"];
 
 /**
- * Displays an empty state when no files are available.
- * @returns {JSX.Element} The empty state component.
- */
-const EmptyState: React.FC = (): JSX.Element => (
-  <Stack
-    direction="column"
-    alignItems="center"
-    justifyContent="center"
-    sx={{
-      flex: 1,
-      height: "100%",
-      width: "100%",
-      textAlign: "center",
-      border: "1px solid #eeeeee",
-      padding: 4,
-      boxSizing: "border-box",
-    }}
-  >
-    <Box
-      component="img"
-      src={EmptyTableImage}
-      alt="No files available"
-      sx={{
-        width: 250,
-        height: 176,
-        opacity: 0.7,
-        mb: 4,
-      }}
-    />
-    <Typography variant="body2" color="text.secondary" sx={{ margin: 0 }}>
-      There are currently no pieces of evidence or other documents uploaded.
-    </Typography>
-  </Stack>
-);
-
-/**
  * Main component for managing files, displaying a table,
  * sorting, and handling actions (Download/Remove).
  * @returns {JSX.Element} The FileManager component.
@@ -99,7 +63,7 @@ const FileManager: React.FC = (): JSX.Element => {
         run={runFileTour}
         onFinish={() => setRunFileTour(false)}
       />
-      <Stack className="vwhome-header" sx={{ mb: 15 }} data-joyride-id="file-manager-title">
+      <Stack className="vwhome-header"  data-joyride-id="file-manager-title">
         <Typography sx={vwhomeHeading}>
           Evidences & documents
         </Typography>
@@ -143,7 +107,6 @@ const FileManager: React.FC = (): JSX.Element => {
             files={filesData}
             onRowClick={handleRowClick}
           />
-          {filesData.length === 0 && <EmptyState />}
         </Box>
 )}
     </Stack>

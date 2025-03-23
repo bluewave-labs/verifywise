@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from "react";
 import VWBasicTable from "../../../components/Table";
-import { Stack, Box } from "@mui/material";
+import { Stack, Box,Typography } from "@mui/material";
 import AscendingIcon from "../../../assets/icons/up-arrow.svg";
 import DescendingIcon from "../../../assets/icons/down-arrow.svg";
+import EmptyTableImage from "../../../assets/imgs/empty-state.svg";
 import { File } from "../../../../domain/File";
 
 type SortDirection = "asc" | "desc" | null;
@@ -44,6 +45,42 @@ const mockFiles: File[] = [
     uploader: "User3",
   },
 ];
+
+/**
+ * Displays an empty state when no files are available.
+ * @returns {JSX.Element} The empty state component.
+ */
+const EmptyState: React.FC = (): JSX.Element => (
+  <Stack
+    direction="column"
+    alignItems="center"
+    justifyContent="center"
+    sx={{
+      flex: 1,
+      height: "100%",
+      width: "100%",
+      textAlign: "center",
+      border: "1px solid #eeeeee",
+      padding: 4,
+      boxSizing: "border-box",
+    }}
+  >
+    <Box
+      component="img"
+      src={EmptyTableImage}
+      alt="No files available"
+      sx={{
+        width: 250,
+        height: 176,
+        opacity: 0.7,
+        mb: 4,
+      }}
+    />
+    <Typography variant="body2" color="text.secondary" sx={{ margin: 0 }}>
+      There are currently no pieces of evidence or other documents uploaded.
+    </Typography>
+  </Stack>
+);
 
 const FileTable: React.FC<FileTableProps> = ({ cols, files, onRowClick }) => {
   const [sortField, setSortField] = useState<keyof File | null>(null);
@@ -119,7 +156,9 @@ const FileTable: React.FC<FileTableProps> = ({ cols, files, onRowClick }) => {
     [sortedFiles]
   );
 
-  return (
+  return mockFiles.length === 0 ? (
+    <EmptyState />
+  ):(
     <VWBasicTable
       data={{ cols: sortedCols, rows }}
       bodyData={displayFiles}

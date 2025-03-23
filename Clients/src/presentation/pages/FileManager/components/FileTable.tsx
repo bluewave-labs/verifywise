@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from "react";
 import VWBasicTable from "../../../components/Table";
 import { Stack, Box } from "@mui/material";
-import AscendingIcon from "../../../../assets/icons/ascending.svg";
-import DescendingIcon from "../../../../assets/icons/descending.svg";
+import AscendingIcon from "../../../assets/icons/up-arrow.svg";
+import DescendingIcon from "../../../assets/icons/down-arrow.svg";
 import { File } from "../../../../domain/File";
 
 type SortDirection = "asc" | "desc" | null;

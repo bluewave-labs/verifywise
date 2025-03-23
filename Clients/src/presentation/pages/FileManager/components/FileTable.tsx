@@ -47,8 +47,10 @@ const mockFiles: File[] = [
 ];
 
 /**
+ *
  * Displays an empty state when no files are available.
  * @returns {JSX.Element} The empty state component.
+ * 
  */
 const EmptyState: React.FC = (): JSX.Element => (
   <Stack

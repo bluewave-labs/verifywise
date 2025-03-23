@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Stack, Box, Typography,useTheme } from "@mui/material";
 import { getEntityById } from "../../../application/repository/entity.repository";
-import EmptyTableImage from "../../assets/imgs/empty-state.svg";
 import PageTour from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
 import VWSkeleton from "../../vw-v2-components/Skeletons";
@@ -90,6 +89,7 @@ const FileManager: React.FC = (): JSX.Element => {
             flexDirection: "column",
             flex: 1,
             width: "100%",
+            maxWidth: "100%",
             justifyContent: filesData.length === 0 ? "center" : "flex-start",
             alignItems: filesData.length === 0 ? "center" : "stretch",
             position: "relative",

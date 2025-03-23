@@ -1,6 +1,5 @@
 import {
   Box,
-  Button,
   Chip,
   Stack,
   Tooltip,
@@ -14,19 +13,81 @@ import {
   PriorityLevel,
 } from "../../pages/Assessment/NewAssessment/priorities";
 import RichTextEditor from "../RichTextEditor";
-import { useState } from "react";
-import { updateEntityById } from "../../../application/repository/entity.repository";
+import { useCallback, useContext, useMemo, useState } from "react";
 import UppyUploadFile from "../../vw-v2-components/Inputs/FileUpload";
+import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import createUppy from "../../../application/tools/createUppy";
+import { updateEntityById } from "../../../application/repository/entity.repository";
 import Alert, { AlertProps } from "../Alert";
 import { handleAlert } from "../../../application/tools/alertUtils";
-import Uppy from "@uppy/core";
+import { store } from "../../../application/redux/store";
+import { apiServices } from "../../../infrastructure/api/networkServices";
+import { ENV_VARs } from "../../../../env.vars";
+import { FileData } from "../../../domain/File";
+import { useSelector } from "react-redux";
+import Button from "../Button";
 
-const VWQuestion = ({ question}: { question: Question}) => {
+interface QuestionProps {
+  question: Question;
+}
+
+/**
+ * VWQuestion Component
+ *
+ * This component renders a question with its associated details, including the ability to edit the answer,
+ * manage evidence files, and display priority levels. It also provides functionality to save updates
+ * and handle file uploads or deletions.
+ *
+ * Props:
+ * @param {QuestionProps} props - The props for the component.
+ * @param {Question} props.question - The question object containing details such as the question text,
+ * hint, priority level, and evidence files.
+ *
+ * Usage:
+ * <VWQuestion question={questionObject} />
+ */
+const VWQuestion = ({ question }: QuestionProps) => {
+  const { userId, currentProjectId } = useContext(VerifyWiseContext);
   const [values, setValues] = useState<Question>(question);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
-  const [evidenceFiles, setEvidenceFiles] = useState<any[]>([]);
+
+  const initialEvidenceFiles = question.evidence_files
+    ? question.evidence_files.reduce((acc: FileData[], file) => {
+        try {
+          acc.push(JSON.parse(file));
+        } catch (error) {
+          console.error("Failed to parse evidence file:", error);
+        }
+        return acc;
+      }, [])
+    : [];
+
+
+  const authToken = useSelector((state: any) => state.auth.authToken);
+    const [evidenceFiles, setEvidenceFiles] = useState<FileData[]>(initialEvidenceFiles);
   const [alert, setAlert] = useState<AlertProps | null>(null);
-  const [uppy] = useState(() => new Uppy());
+
+  const handleChangeEvidenceFiles = useCallback((files: FileData[]) => {
+    setEvidenceFiles(files);
+  }, []);
+
+  const createUppyProps = useMemo(
+    () => ({
+      onChangeFiles: handleChangeEvidenceFiles,
+      allowedMetaFields: ["question_id", "user_id", "project_id", "delete"],
+      meta: {
+        question_id: question.id,
+        user_id: userId,
+        project_id: currentProjectId,
+        delete: "[]",
+      },
+      routeUrl: "files",
+      authToken,
+    }),
+    [question.id, userId, currentProjectId, handleChangeEvidenceFiles, authToken]
+  );
+
+  const [uppy] = useState(createUppy(createUppyProps));
 
   const handleSave = async () => {
     try {
@@ -59,16 +120,70 @@ const VWQuestion = ({ question}: { question: Question}) => {
     }
   };
 
-  const handleFileUploadConfirm = (files: any[]) => {
-    setEvidenceFiles(files);
-    setIsFileUploadOpen(false);
-    // Add logic to send files to the backend if needed
-  };
-
   const handleContentChange = (answer: string) => {
     // Remove <p> tags from the beginning and end of the answer
     const cleanedAnswer = answer.replace(/^<p>|<\/p>$/g, "");
     setValues({ ...values, answer: cleanedAnswer });
+  };
+
+  const handleRemoveFile = async (fileId: string) => {
+    const state = store.getState();
+    const authToken = state.auth.authToken;
+
+    const formData = new FormData();
+    const fileIdNumber = parseInt(fileId);
+    if (isNaN(fileIdNumber)) {
+      handleAlert({
+        variant: "error",
+        body: "Invalid file ID",
+        setAlert,
+      });
+      return;
+    }
+    formData.append("delete", JSON.stringify([fileIdNumber]));
+    formData.append("question_id", question.id?.toString() || "");
+    formData.append("user_id", userId);
+    if (currentProjectId) {
+      formData.append("project_id", currentProjectId);
+    }
+    try {
+      const response = await apiServices.post(
+        `${ENV_VARs.URL}/files`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (response.status === 201 && response.data) {
+        const newEvidenceFiles = evidenceFiles.filter(
+          (file) => file.id !== fileId
+        );
+        setEvidenceFiles(newEvidenceFiles);
+
+        handleAlert({
+          variant: "success",
+          body: "File deleted successfully",
+          setAlert,
+        });
+      } else {
+        handleAlert({
+          variant: "error",
+          body: `Unexpected response status: ${response.status}. Please try again.`,
+          setAlert,
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      handleAlert({
+        variant: "error",
+        body: "Failed to delete file. Please try again.",
+        setAlert,
+      });
+    }
   };
 
   return (
@@ -112,7 +227,7 @@ const VWQuestion = ({ question}: { question: Question}) => {
         onContentChange={handleContentChange}
         headerSx={{
           borderRadius: 0,
-          BorderTop: "none",
+          borderTop: "none",
           borderColor: "#D0D5DD",
         }}
         bodySx={{
@@ -141,17 +256,7 @@ const VWQuestion = ({ question}: { question: Question}) => {
           }}
         >
           <Button
-            variant="contained"
-            sx={{
-              mt: 2,
-              borderRadius: 2,
-              width: "fit-content",
-              height: 25,
-              fontSize: 11,
-              border: "1px solid #13715B",
-              backgroundColor: "#13715B",
-              color: "white",
-            }}
+            variant="contained"          
             disableRipple
             onClick={handleSave}
           >
@@ -160,11 +265,7 @@ const VWQuestion = ({ question}: { question: Question}) => {
           <Button
             variant="contained"
             sx={{
-              mt: 2,
-              borderRadius: 2,
-              width: 155,
-              height: 25,
-              fontSize: 11,
+              width: 155,  
               border: "1px solid #D0D5DD",
               backgroundColor: "white",
               color: "#344054",
@@ -186,7 +287,7 @@ const VWQuestion = ({ question}: { question: Question}) => {
               textWrap: "wrap",
             }}
           >
-            {`${question.evidence_files?.length ?? 0} evidence files attached`}
+            {`${evidenceFiles.length || 0} evidence files attached`}
           </Typography>
         </Stack>
         <Typography sx={{ fontSize: 11, color: "#344054", fontWeight: "300" }}>
@@ -199,9 +300,9 @@ const VWQuestion = ({ question}: { question: Question}) => {
       >
         <UppyUploadFile
           uppy={uppy}
-          evidence_files={evidenceFiles}
+          files={evidenceFiles}
           onClose={() => setIsFileUploadOpen(false)}
-          onConfirm={handleFileUploadConfirm}
+          onRemoveFile={handleRemoveFile}
         />
       </Dialog>
       {alert && (

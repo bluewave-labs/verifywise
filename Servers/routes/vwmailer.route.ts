@@ -51,9 +51,9 @@ router.post("/invite", async (req, res) => {
 });
 
 router.post("/reset-password", async (req, res) => {
-  const { to, name, email, url } = req.body;
+  const { to, name, email } = req.body;
 
-  if (!to || !name || !email || !url) {
+  if (!to || !name || !email) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
@@ -65,7 +65,16 @@ router.post("/reset-password", async (req, res) => {
     );
     const template = fs.readFileSync(templatePath, "utf8");
 
+    const token = generateToken({
+      name,
+      email: to
+    }) as string
+
     // Data to be replaced in the template
+    const url = `${req.protocol}://${req.hostname}:${process.env.FRONTEND_PORT}/set-new-password?${new URLSearchParams(
+      { token }
+    ).toString()}`
+
     const data = { name, email, url };
 
     // Send the email

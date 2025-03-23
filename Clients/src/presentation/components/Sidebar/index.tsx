@@ -66,7 +66,7 @@ const menu = [
     path: "/vendors",
   },
   {
-    name: "File Manager",
+    name: "Evidences",
     icon: <FileManager />,
     path: "/file-manager",
   },

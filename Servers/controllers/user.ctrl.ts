@@ -158,12 +158,12 @@ async function updateUserById(req: Request, res: Response) {
 
     if (user) {
       const updatedUser = await updateUserByIdQuery(id, {
-        name: name || user.name,
-        surname: surname || user.surname,
-        email: email || user.email,
-        password_hash: password_hash || user.password_hash,
-        role: role || user.role,
-        last_login: last_login || user.last_login,
+        name: name ?? user.name,
+        surname: surname ?? user.surname,
+        email: email ?? user.email,
+        password_hash: password_hash ?? user.password_hash,
+        role: role ?? user.role,
+        last_login: last_login ?? user.last_login,
       });
 
       return res.status(202).json(STATUS_CODE[202](updatedUser));

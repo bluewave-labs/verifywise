@@ -27,3 +27,7 @@
 .MuiPickersDay-root:hover {
   background-color: transparent!important;
 } 
+
+.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-edgeEnd.MuiPickersArrowSwitcher-previousIconButton{
+  margin-right: 0;
+}

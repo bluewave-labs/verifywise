@@ -19,14 +19,14 @@ import VWToast from "../../../../vw-v2-components/Toast";
 import VWSkeleton from "../../../../vw-v2-components/Skeletons";
 
 const TITLE_OF_COLUMNS = [
-  "RISK NAME",
-  "IMPACT",
-  "OWNER",
-  "SEVERITY",
-  "LIKELIHOOD",
-  "RISK LEVEL",
-  "MITIGATION",
-  "FINAL RISK LEVEL",
+  "RISK NAME", // value from risk tab
+  "OWNER", // value from risk tab
+  "SEVERITY", // value from risk tab
+  "LIKELIHOOD", // value from risk tab
+  "MITIGATION", // mitigation plan
+  "STATUS", // mitigation status
+  "RISK LEVEL", // risk auto calculated value from risk tab
+  "TARGET DATE", // start date (deadline) value from mitigation tab
   "",
 ];
 

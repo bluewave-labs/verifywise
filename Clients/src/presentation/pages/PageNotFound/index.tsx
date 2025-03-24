@@ -32,34 +32,26 @@ function PageNotFound() {
           gap: theme.spacing(20),
         }}
       >
-        <Typography
-            sx={{
-              fontSize: 40,
-            }}
-          >
-            Verify
-            <span style={{ color: singleTheme.textColors.theme }}>Wise</span>
+        <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>
+          404 | Page not found
+        </Typography>
+        <Stack
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            gap: theme.spacing(5),
+            alignItems: "center",
+            cursor: "pointer",
+          }}
+          onClick={() => {
+            navigate("/");
+          }}
+        >
+          <LeftArrowLong />
+          <Typography sx={{ height: 22, fontSize: 13, fontWeight: 500 }}>
+            Back to home
           </Typography>
-          <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>
-            404 | Page not found
-          </Typography>
-          <Stack
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                gap: theme.spacing(5),
-                alignItems: "center",
-                cursor: "pointer",
-              }}
-              onClick={() => {
-                navigate("/");
-              }}
-            >
-              <LeftArrowLong />
-              <Typography sx={{ height: 22, fontSize: 13, fontWeight: 500 }}>
-                Back to home
-              </Typography>
-            </Stack>
+        </Stack>
       </Stack>
     </div>
   )

@@ -1,3 +1,15 @@
+-- DO $$
+-- BEGIN
+
+-- IF NOT EXISTS (SELECT * FROM pg_database WHERE datname = 'verifywise') THEN
+-- 	CREATE DATABASE verifywise;
+-- ELSE
+-- 	RAISE NOTICE 'Database exists';
+-- END IF;
+
+-- END
+-- $$;
+
 -- Drop all existing tables
 DROP TABLE IF EXISTS files CASCADE;
 DROP TABLE IF EXISTS questions CASCADE;

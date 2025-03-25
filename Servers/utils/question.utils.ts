@@ -16,8 +16,8 @@ export const getAllQuestionsQuery = async (): Promise<(Question & { evidence_fil
     questions.map(async (question) => {
       let evidenceFiles: Object[] = [];
       await Promise.all(
-        (question.evidence_files || []).map(async (fileId: string) => {
-          const file = await getFileById(parseInt(fileId));
+        (question.evidence_files || []).map(async (f) => {
+          const file = await getFileById(parseInt(f.id));
           evidenceFiles.push({ id: file.id, filename: file.filename });
         })
       );
@@ -40,8 +40,8 @@ export const getQuestionByIdQuery = async (
   );
   let evidenceFiles: Object[] = [];
   await Promise.all(
-    (result[0].evidence_files || []).map(async (fileId: string) => {
-      const file = await getFileById(parseInt(fileId));
+    (result[0].evidence_files || []).map(async (f) => {
+      const file = await getFileById(parseInt(f.id));
       evidenceFiles.push({ id: file.id, filename: file.filename });
     })
   );
@@ -109,8 +109,10 @@ export const addFileToQuestion = async (
   )
 
   // convert to list of objects
-  let _ = (evidenceFilesResult[0].evidence_files || []) as string[]
-  let evidenceFiles = _.map(f => JSON.parse(f) as { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date })
+  let evidenceFiles = (
+    evidenceFilesResult[0].evidence_files ?
+      evidenceFilesResult[0].evidence_files : []
+  ) as { id: string, fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[]
 
   // remove the deleted file ids
   evidenceFiles = evidenceFiles.filter(f => !deletedFiles.includes(parseInt(f.id)))
@@ -123,11 +125,11 @@ export const addFileToQuestion = async (
     `UPDATE questions SET evidence_files = :evidence_files WHERE id = :id RETURNING *;`,
     {
       replacements: {
-        evidence_files: evidenceFiles, id
+        evidence_files: JSON.stringify(evidenceFiles), id
       },
       mapToModel: true,
       model: QuestionModel,
-      type: QueryTypes.UPDATE
+      // type: QueryTypes.UPDATE
     }
   )
   return result[0];
@@ -173,8 +175,8 @@ export const deleteQuestionByIdQuery = async (
   );
   if (result.length) {
     Promise.all(
-      (result[0].evidence_files || []).map(async (fileId: string) => {
-        await deleteFileById(parseInt(fileId));
+      (result[0].evidence_files || []).map(async (f) => {
+        await deleteFileById(parseInt(f.id));
       })
     );
   }

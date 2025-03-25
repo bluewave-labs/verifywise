@@ -25,7 +25,7 @@ export const uploadFile = async (
     },
     mapToModel: true,
     model: FileModel,
-    type: QueryTypes.INSERT
+    // type: QueryTypes.INSERT
   });
   return result[0];
 }
@@ -49,4 +49,14 @@ export const getFileById = async (id: number) => {
     model: FileModel
   });
   return result[0];
+}
+
+export const getFileMetadataByProjectId = async (project_id: number) => {
+  const query = `SELECT id, filename, project_id, uploaded_by, uploaded_time FROM files WHERE project_id = :project_id`;
+  const result = await sequelize.query(query, {
+    replacements: { project_id },
+    mapToModel: true,
+    model: FileModel
+  });
+  return result;
 }

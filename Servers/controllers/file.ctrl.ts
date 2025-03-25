@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import { deleteFileById, getFileById, uploadFile } from "../utils/fileUpload.utils";
+import { deleteFileById, getFileById, getFileMetadataByProjectId, uploadFile } from "../utils/fileUpload.utils";
 import { addFileToQuestion, RequestWithFile, UploadedFile } from "../utils/question.utils";
 
 export async function getFileContentById(
@@ -13,6 +13,22 @@ export async function getFileContentById(
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader("Content-Disposition", `attachment; filename="${file.filename}"`);
       return res.status(200).send(file.content);
+    }
+    return res.status(404).json(STATUS_CODE[404]({}));
+  } catch (error) {
+    console.error("Error downloading file:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getFileMetaByProjectId(
+  req: Request,
+  res: Response
+): Promise<any> {
+  try {
+    const files = await getFileMetadataByProjectId(parseInt(req.params.id));
+    if (files && files.length > 0) {
+      return res.status(200).send(files);
     }
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {

@@ -133,12 +133,12 @@ export const updateSubcontrolByIdQuery = async (
     }
   );
 
-  let currentEvidenceFiles = ((files[0].evidence_files || []) as string[]).map(f => JSON.parse(f) as {
+  let currentEvidenceFiles = (files[0].evidence_files ? files[0].evidence_files : []) as {
     id: string; fileName: string; project_id: number; uploaded_by: number; uploaded_time: Date;
-  })
-  let currentFeedbackFiles = ((files[0].feedback_files || []) as string[]).map(f => JSON.parse(f) as {
+  }[]
+  let currentFeedbackFiles = (files[0].feedback_files ? files[0].feedback_files : []) as {
     id: string; fileName: string; project_id: number; uploaded_by: number; uploaded_time: Date;
-  })
+  }[]
 
   currentEvidenceFiles = currentEvidenceFiles.filter(f => !deletedFiles.includes(parseInt(f.id)));
   currentEvidenceFiles = currentEvidenceFiles.concat(evidenceUploadedFiles);
@@ -165,11 +165,11 @@ export const updateSubcontrolByIdQuery = async (
     "feedback_files",
   ].filter(f => {
     if (f == 'evidence_files' && currentEvidenceFiles.length > 0) {
-      updateSubControl['evidence_files'] = currentEvidenceFiles;
+      updateSubControl['evidence_files'] = JSON.stringify(currentEvidenceFiles);
       return true;
     }
     if (f == 'feedback_files' && currentFeedbackFiles.length > 0) {
-      updateSubControl['feedback_files'] = currentFeedbackFiles;
+      updateSubControl['feedback_files'] = JSON.stringify(currentFeedbackFiles);
       return true;
     }
     if (subcontrol[f as keyof Subcontrol] !== undefined) {

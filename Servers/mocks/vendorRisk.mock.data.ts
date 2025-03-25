@@ -57,7 +57,7 @@ const mockVendorRisks = (
       impact_description: "David",
       impact: "Moderate",
       likelihood: "Rare",
-      risk_severity: "Very low risk",
+      risk_severity: "Low risk",
       action_plan: "Vendor Risk 4 action plan",
       action_owner: userId2,
       risk_level: "Very high risk",

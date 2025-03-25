@@ -165,6 +165,7 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
           files={evidenceFiles}
           onClose={closeFileUploadModal}
           onRemoveFile={handleRemoveFile}
+          hideProgressIndicators={true}
         />
       </Dialog>
       {alert && (

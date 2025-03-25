@@ -22,6 +22,7 @@ interface UppyUploadFileProps {
   files: FileData[];
   onClose: () => void;
   onRemoveFile: (fileId: string) => void;
+  hideProgressIndicators?: boolean;
 }
 
 const FileListItem: React.FC<{
@@ -57,6 +58,7 @@ const UppyUploadFile: React.FC<UppyUploadFileProps> = ({
   files,
   onClose,
   onRemoveFile,
+  hideProgressIndicators,
 }) => {
   const theme = useTheme();
   const styles = getStyles(theme);
@@ -87,7 +89,7 @@ const UppyUploadFile: React.FC<UppyUploadFileProps> = ({
         </IconButton>
       </Stack>
 
-      <UppyDashboard uppy={uppy} width={400} height={250}/>
+      <UppyDashboard uppy={uppy} width={400} height={250} hideProgressIndicators={hideProgressIndicators ?? false}/>
 
       { files?.length > 0 && <Stack sx={styles.fileList}>
         {files.map((file) => (

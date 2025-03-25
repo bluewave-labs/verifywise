@@ -6,21 +6,26 @@ import styled from "styled-components";
 
 const StyledDashboard = styled.div`
   .uppy-Dashboard-AddFiles-title {
-  margin-bottom: 50%;
-  margin-top: 50%;   
+    margin-bottom: 50%;
+    margin-top: 50%;   
   }
 `;
 
 interface UppyDashboardProps {
   uppy: Uppy;
   width?: number;
-  height?: number; 
+  height?: number;
+  hideProgressIndicators?: boolean;
 }
 
-const UppyDashboard = ({ uppy, ...restProps }: UppyDashboardProps) => {
+const UppyDashboard = ({ uppy, hideProgressIndicators, ...restProps }: UppyDashboardProps) => {
   return (
     <StyledDashboard>
-      <Dashboard uppy={uppy} {...restProps} />
+      <Dashboard 
+        uppy={uppy} 
+        {...restProps}
+        disableStatusBar={hideProgressIndicators}
+      />
     </StyledDashboard>
   );
 };

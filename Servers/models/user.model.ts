@@ -75,6 +75,8 @@ export class UserModel extends Model<User> {
 
   @Column({
     type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
   })
   is_demo?: boolean;
 }

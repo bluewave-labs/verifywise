@@ -254,6 +254,8 @@ export class ProjectRiskModel extends Model<ProjectRisk> {
 
   @Column({
     type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
   })
   is_demo?: boolean;
 }

@@ -50,6 +50,8 @@ export class FileModel extends Model<File> {
 
   @Column({
     type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
   })
   is_demo?: boolean;
 }

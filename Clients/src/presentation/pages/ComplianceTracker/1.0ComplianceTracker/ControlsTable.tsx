@@ -47,13 +47,29 @@ interface ControlsTableProps {
   controlCategoryIndex: number;
   columns: Column[];
   onComplianceUpdate?: () => void;
+  flashRow?: number | null;
 }
+
+const flashAnimation = {
+  "@keyframes flashBackground": {
+    "0%": { backgroundColor: "#FFFFFF" },
+    "50%": { backgroundColor: "#E8F5E9" },
+    "100%": { backgroundColor: "#FFFFFF" },
+  },
+};
+
+const getRowStyle = (rowId: number | undefined | null, flashRowId: number | null) => ({
+  ...cellStyle,
+  backgroundColor: rowId === flashRowId ? "#E8F5E9" : "inherit",
+  transition: "background-color 0.3s ease-in-out"
+});
 
 const ControlsTable: React.FC<ControlsTableProps> = ({
   controlCategoryId,
   controlCategoryIndex,
   columns,
   onComplianceUpdate,
+  flashRow
 }) => {
   const theme = useTheme();
   const [controls, setControls] = useState<Control[]>([]);
@@ -62,6 +78,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   const [selectedRow, setSelectedRow] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [currentFlashRow, setCurrentFlashRow] = useState<number | null>(null);
 
   const handleRowClick = (id: number) => {
     setSelectedRow(id);
@@ -75,16 +92,30 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
 
   const handleControlUpdate = () => {
     setRefreshTrigger(prev => prev + 1);
+    if (onComplianceUpdate) {
+      onComplianceUpdate();
+    }
+  };
+
+  const handleSaveSuccess = (control: Control) => {
+    handleControlUpdate();
+    handleCloseModal();
+    if (control.id) {
+      setCurrentFlashRow(control.id);
+      setTimeout(() => {
+        setCurrentFlashRow(null);
+      }, 2000);
+    }
   };
 
   useEffect(() => {
     const fetchControls = async () => {
+      setLoading(true);
       try {
         const response = await getEntityById({
           routeUrl: `/controls/all/bycategory/${controlCategoryId}`,
         });
         setControls(response.data);
-        console.log("first control: ", controls);
       } catch (err) {
         setError(err);
       } finally {
@@ -148,7 +179,6 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
             .map((control: Control) => (
               <TableRow
                 key={control.id}
-                sx={cellStyle}
                 onClick={() =>
                   control.id !== undefined && handleRowClick(control.id)
                 }
@@ -158,9 +188,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
                     data={control}
                     isOpen={modalOpen}
                     handleClose={handleCloseModal}
-                    OnSave={(updatedControl) => {
-                      handleControlUpdate();
-                    }}
+                    OnSave={handleSaveSuccess}
                     controlCategoryId={control.order_no?.toString()}
                     onComplianceUpdate={onComplianceUpdate}
                   />
@@ -168,17 +196,30 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
                 <TableCell
                   sx={descriptionCellStyle}
                   key={`${controlCategoryId}-${control.id}`}
+                  style={{ backgroundColor: currentFlashRow === control.id ? '#e3f5e6': ''}}
                 >
                   {controlCategoryIndex}.{`${control.order_no}`} {control.title}{" "}
-                  {`(${control.description})`}
+                  <span style={{color: 'grey' }}>{`(${control.description})`}</span>
                 </TableCell>
-                <TableCell sx={cellStyle} key={`owner-${control.id}`}>
+                <TableCell 
+                  sx={cellStyle} 
+                  key={`owner-${control.id}`}
+                  style={{ backgroundColor: currentFlashRow === control.id ? '#e3f5e6': ''}}
+                >
                   {control.owner ? control.owner : "Not set"}
                 </TableCell>
-                <TableCell sx={cellStyle} key={`noOfSubControls-${control.id}`}>
+                <TableCell 
+                  sx={cellStyle} 
+                  key={`noOfSubControls-${control.id}`}
+                  style={{ backgroundColor: currentFlashRow === control.id ? '#e3f5e6': ''}}
+                >
                   {`${control.numberOfSubcontrols} Subcontrols`}
                 </TableCell>
-                <TableCell sx={cellStyle} key={`completion-${control.id}`}>
+                <TableCell 
+                  sx={cellStyle} 
+                  key={`completion-${control.id}`}
+                  style={{ backgroundColor: currentFlashRow === control.id ? '#e3f5e6': ''}}
+                >
                   <Stack direction="row" alignItems="center" spacing={1}>
                     <Typography variant="body2">
                       {`${control.numberOfSubcontrols

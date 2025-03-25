@@ -243,18 +243,19 @@ const NewControlPane = ({
 
       if (response.status === 200) {
         console.log("Controls updated successfully:", response);
+        setIsSubmitting(false);
         setAlert({ type: "success", message: "Controls updated successfully" });
         OnSave?.(state);
         onComplianceUpdate?.();
+        
+        setTimeout(() => {
+          setAlert(null);
+          handleClose();
+        }, 2000);
       } else {
         setAlert({ type: "error", message: "Error updating controls" });
-      }
-
-      setTimeout(() => {
-        setAlert(null);
-        handleClose();
         setIsSubmitting(false);
-      }, 3000);
+      }
     } catch (error) {
       console.error("Error updating controls:", error);
       setAlert({ type: "error", message: "Error updating controls" });
@@ -287,26 +288,8 @@ const NewControlPane = ({
         </Box>
       )}
 
-      {isSubmitting && (
-        <Stack
-          sx={{
-            width: "100%",
-            height: "100%",
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "rgba(255, 255, 255, 0.8)",
-            zIndex: 9999,
-          }}
-        >
-          <VWToast title="Saving control. Please wait..." />
-        </Stack>
-      )}
+      {isSubmitting && <VWToast title="Saving control. Please wait..." />}
+
       <Modal
         id={`${data.id}-modal`}
         open={isOpen}

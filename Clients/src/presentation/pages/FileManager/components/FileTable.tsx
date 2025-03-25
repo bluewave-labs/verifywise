@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import VWBasicTable from "../../../components/Table";
+import FileBasicTable from "../table/FileBasicTable";
 import { Stack, Box,Typography } from "@mui/material";
 import AscendingIcon from "../../../assets/icons/up-arrow.svg";
 import DescendingIcon from "../../../assets/icons/down-arrow.svg";
@@ -161,11 +161,12 @@ const FileTable: React.FC<FileTableProps> = ({ cols, files, onRowClick }) => {
   return mockFiles.length === 0 ? (
     <EmptyState />
   ):(
-    <VWBasicTable
+    <FileBasicTable
       data={{ cols: sortedCols, rows }}
       bodyData={displayFiles}
       paginated={displayFiles.length > 0}
       table="fileManager"
+      onRowClick={onRowClick}
       setSelectedRow={(row) => onRowClick(row.id)}
       setAnchorEl={() => {}}
     />

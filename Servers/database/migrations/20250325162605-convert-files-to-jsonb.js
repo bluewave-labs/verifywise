@@ -15,7 +15,8 @@ module.exports = {
         `UPDATE questions SET evidence_files_temp = 
           CASE
             WHEN evidence_files IS NULL THEN '[]'::jsonb
-            ELSE evidence_files::jsonb
+            ELSE (SELECT jsonb_agg(to_jsonb(evidence_files[i])) 
+              FROM generate_subscripts(evidence_files, 1) AS i)
           END;`,
         { transaction }
       );
@@ -31,7 +32,8 @@ module.exports = {
       await queryInterface.sequelize.query(
         `UPDATE subcontrols SET evidence_files_temp = CASE
             WHEN evidence_files IS NULL THEN '[]'::jsonb
-            ELSE evidence_files::jsonb
+            ELSE (SELECT jsonb_agg(to_jsonb(evidence_files[i])) 
+              FROM generate_subscripts(evidence_files, 1) AS i)
           END;`,
         { transaction }
       );
@@ -47,7 +49,8 @@ module.exports = {
       await queryInterface.sequelize.query(
         `UPDATE subcontrols SET feedback_files_temp = CASE
             WHEN feedback_files IS NULL THEN '[]'::jsonb
-            ELSE feedback_files::jsonb
+            ELSE (SELECT jsonb_agg(to_jsonb(feedback_files[i])) 
+              FROM generate_subscripts(feedback_files, 1) AS i)
           END;`,
         { transaction }
       );

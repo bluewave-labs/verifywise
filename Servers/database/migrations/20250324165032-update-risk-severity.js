@@ -11,7 +11,7 @@ module.exports = {
       "ALTER TABLE projectrisks ALTER COLUMN severity TYPE enum_projectrisks_severity_temp USING severity::text::enum_projectrisks_severity_temp"
     );
     await queryInterface.sequelize.query(
-      "ALTER TABLE projectrisks SET severity = 'Catastrophic' WHERE severity = 'Critical';"
+      "UPDATE projectrisks SET severity = 'Catastrophic' WHERE severity = 'Critical';"
     );
     await queryInterface.sequelize.query(
       "DROP TYPE IF EXISTS enum_projectrisks_severity;"
@@ -37,19 +37,19 @@ module.exports = {
       "ALTER TABLE vendorrisks ALTER COLUMN risk_severity TYPE enum_vendorrisks_risk_severity_temp USING risk_severity::text::enum_vendorrisks_risk_severity_temp"
     );
     await queryInterface.sequelize.query(
-      "ALTER TABLE vendorrisks SET risk_severity = 'Negligible' WHERE risk_severity = 'No risk';"
+      "UPDATE vendorrisks SET risk_severity = 'Negligible' WHERE risk_severity = 'No risk';"
     );
     await queryInterface.sequelize.query(
-      "ALTER TABLE vendorrisks SET risk_severity = 'Minor' WHERE risk_severity = 'Low risk';"
+      "UPDATE vendorrisks SET risk_severity = 'Minor' WHERE risk_severity = 'Low risk';"
     );
     await queryInterface.sequelize.query(
-      "ALTER TABLE vendorrisks SET risk_severity = 'Moderate' WHERE risk_severity = 'Medium risk';"
+      "UPDATE vendorrisks SET risk_severity = 'Moderate' WHERE risk_severity = 'Medium risk';"
     );
     await queryInterface.sequelize.query(
-      "ALTER TABLE vendorrisks SET risk_severity = 'Major' WHERE risk_severity = 'High risk';"
+      "UPDATE vendorrisks SET risk_severity = 'Major' WHERE risk_severity = 'High risk';"
     );
     await queryInterface.sequelize.query(
-      "ALTER TABLE vendorrisks SET risk_severity = 'Catastrophic' WHERE risk_severity = 'Very high risk';"
+      "UPDATE vendorrisks SET risk_severity = 'Catastrophic' WHERE risk_severity = 'Very high risk';"
     );
     await queryInterface.sequelize.query(
       "DROP TYPE IF EXISTS enum_vendorrisks_risk_severity;"
@@ -74,7 +74,7 @@ module.exports = {
       "ALTER TABLE projectrisks ALTER COLUMN severity TYPE enum_projectrisks_severity_temp USING severity::text::enum_projectrisks_severity_temp"
     );
     await queryInterface.sequelize.query(
-      "ALTER TABLE projectrisks SET severity = 'Critical' WHERE severity = 'Catastrophic';"
+      "UPDATE projectrisks SET severity = 'Critical' WHERE severity = 'Catastrophic';"
     );
     await queryInterface.sequelize.query(
       "DROP TYPE IF EXISTS enum_projectrisks_severity;"
@@ -100,19 +100,19 @@ module.exports = {
       "ALTER TABLE vendorrisks ALTER COLUMN risk_severity TYPE enum_vendorrisks_risk_severity_temp USING risk_severity::text::enum_vendorrisks_risk_severity_temp"
     );
     await queryInterface.sequelize.query(
-      "ALTER TABLE vendorrisks SET risk_severity = 'No risk' WHERE risk_severity = 'Negligible';"
+      "UPDATE vendorrisks SET risk_severity = 'No risk' WHERE risk_severity = 'Negligible';"
     );
     await queryInterface.sequelize.query(
-      "ALTER TABLE vendorrisks SET risk_severity = 'Low risk' WHERE risk_severity = 'Minor';"
+      "UPDATE vendorrisks SET risk_severity = 'Low risk' WHERE risk_severity = 'Minor';"
     );
     await queryInterface.sequelize.query(
-      "ALTER TABLE vendorrisks SET risk_severity = 'Medium risk' WHERE risk_severity = 'Moderate';"
+      "UPDATE vendorrisks SET risk_severity = 'Medium risk' WHERE risk_severity = 'Moderate';"
     );
     await queryInterface.sequelize.query(
-      "ALTER TABLE vendorrisks SET risk_severity = 'High risk' WHERE risk_severity = 'Major';"
+      "UPDATE vendorrisks SET risk_severity = 'High risk' WHERE risk_severity = 'Major';"
     );
     await queryInterface.sequelize.query(
-      "ALTER TABLE vendorrisks SET risk_severity = 'Very high risk' WHERE risk_severity = 'Catastrophic';"
+      "UPDATE vendorrisks SET risk_severity = 'Very high risk' WHERE risk_severity = 'Catastrophic';"
     );
     await queryInterface.sequelize.query(
       "DROP TYPE IF EXISTS enum_vendorrisks_risk_severity;"

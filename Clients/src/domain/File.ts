@@ -5,3 +5,8 @@ export interface File {
   uploadDate: string;
   uploader: string;
 }
+export interface FileData {
+  id: string;
+  fileName: string;
+}
+

@@ -3,6 +3,7 @@ import { FC } from "react";
 import Select from "../Inputs/Select";
 import { RiskLikelihood, RiskSeverity } from "./riskValues";
 import { Likelihood, RISK_LABELS, Severity } from "./constants";
+import { riskSeverityItems, likelihoodItems } from "../AddNewRiskForm/projectRiskValue";
 
 interface RiskLevelFormValues {
   likelihood: Likelihood;
@@ -58,13 +59,7 @@ const RiskLevel: FC<RiskLevelProps> = ({
         placeholder="Select likelihood of risk to happen"
         value={likelihood}
         onChange={handleOnSelectChange("likelihood")}
-        items={[
-          { _id: Likelihood.Rare, name: RiskLikelihood.Rare },
-          { _id: Likelihood.Unlikely, name: RiskLikelihood.Unlikely },
-          { _id: Likelihood.Possible, name: RiskLikelihood.Possible },
-          { _id: Likelihood.Likely, name: RiskLikelihood.Likely },
-          { _id: Likelihood.AlmostCertain, name: RiskLikelihood.AlmostCertain },
-        ]}
+        items={likelihoodItems}
         sx={{ width: 324, backgroundColor: theme.palette.background.main }}
       />
       <Select
@@ -73,13 +68,7 @@ const RiskLevel: FC<RiskLevelProps> = ({
         placeholder="Select risk severity"
         value={riskSeverity}
         onChange={handleOnSelectChange("riskSeverity")}
-        items={[
-          { _id: Severity.Negligible, name: RiskSeverity.Negligible },
-          { _id: Severity.Minor, name: RiskSeverity.Minor },
-          { _id: Severity.Moderate, name: RiskSeverity.Moderate },
-          { _id: Severity.Major, name: RiskSeverity.Major },
-          { _id: Severity.Critical, name: RiskSeverity.Critical },
-        ]}
+        items={riskSeverityItems}
         sx={{ width: 324, backgroundColor: theme.palette.background.main }}
       />
       <Stack rowGap={2}>

@@ -2,7 +2,10 @@ import { VendorRisk } from "../models/vendorRisk.model";
 
 // Sample mock data for VendorRisk
 const mockVendorRisks = (
-  vendor1: number, vendor2: number, vendor3: number, vendor4: number,
+  vendor1: number,
+  vendor2: number,
+  vendor3: number,
+  vendor4: number,
   userId1: number,
   userId2: number
 ): VendorRisk[] => {
@@ -54,12 +57,12 @@ const mockVendorRisks = (
       impact_description: "David",
       impact: "Moderate",
       likelihood: "Rare",
-      risk_severity: "No risk",
+      risk_severity: "Very low risk",
       action_plan: "Vendor Risk 4 action plan",
       action_owner: userId2,
       risk_level: "Very high risk",
-    }
-  ]
+    },
+  ];
 };
 
 // Export the mock data for use in other files

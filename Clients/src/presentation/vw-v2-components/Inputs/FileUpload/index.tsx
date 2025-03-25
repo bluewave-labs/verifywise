@@ -1,139 +1,118 @@
-/**
- * This file is currently in use
- */
-
-import { Stack, useTheme, IconButton } from "@mui/material";
+import {
+  Stack,
+  useTheme,
+  IconButton,
+  Typography,
+  Link,
+} from "@mui/material";
 import Uppy from "@uppy/core";
-import { useState, useEffect } from "react";
-import { Dashboard } from "@uppy/react";
-import "@uppy/core/dist/style.min.css";
-import "@uppy/dashboard/dist/style.min.css";
-import VWButton from "../../Buttons";
+import { useState } from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { ENV_VARs } from "../../../../../env.vars";
+import DeleteFileModal from "./DeleteFileModal";
+import getStyles from "./getStyles";
+import { FileData } from "../../../../domain/File";
+import UppyDashboard from "../../../components/UppyDashboard";
+import Button from "../../../components/Button";
+
 
 interface UppyUploadFileProps {
   uppy: Uppy;
-  evidence_files: any[];
+  files: FileData[];
   onClose: () => void;
-  onConfirm: (files: any[]) => void;
+  onRemoveFile: (fileId: string) => void;
 }
+
+const FileListItem: React.FC<{
+  file: FileData;
+  onDeleteClick: (fileId: string, fileName: string) => void;
+  styles: ReturnType<typeof getStyles>;
+}> = ({ file, onDeleteClick, styles }) => (
+  <Stack
+    key={file.id}
+    direction="row"
+    justifyContent="space-between"
+    alignItems="center"
+    sx={styles.fileItem}
+  >
+    <Link
+      href={`${ENV_VARs.URL}/files/${file.id}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      sx={styles.fileLink}
+    >
+      <Typography component="span" variant="body2" sx={styles.fileName}>
+        {file.fileName}
+      </Typography>
+    </Link>
+    <IconButton onClick={() => onDeleteClick(file.id, file.fileName)}>
+      <DeleteIcon />
+    </IconButton>
+  </Stack>
+);
 
 const UppyUploadFile: React.FC<UppyUploadFileProps> = ({
   uppy,
-  evidence_files,
+  files,
   onClose,
-  onConfirm,
+  onRemoveFile,
 }) => {
-  const theme = useTheme()
-  const [files, setFiles] = useState(evidence_files || []);
+  const theme = useTheme();
+  const styles = getStyles(theme);
+  const [deleteFileModal, setDeleteFileModal] = useState({
+    isOpen: false,
+    fileId: "",
+    fileName: "",
+  });
 
-  useEffect(() => {
-    uppy.setOptions({
-      autoProceed: false,
-      restrictions: {
-        maxFileSize: 10000000,
-        maxNumberOfFiles: 5,
-        allowedFileTypes: ["application/pdf"],
-      },
-    });
-    uppy.on("file-added", (file) => {
-      setFiles((prevFiles) => [...prevFiles, file]);
-    });
-
-    uppy.on("file-removed", (file) => {
-      setFiles((prevFiles) => prevFiles.filter((f) => f.id !== file.id));
-    });
-
-    return () => {
-      uppy.cancelAll();
-    };
-  }, [uppy]);
-
-  const handleRemoveFile = (fileId: string) => {
-    uppy.removeFile(fileId);
-    setFiles((prevFiles) => prevFiles.filter((f) => f.id !== fileId));
+  const handleOpenDeleteFileModal = (fileId: string, fileName: string) => {
+    setDeleteFileModal({ isOpen: true, fileId, fileName });
   };
 
-  const handleConfirm = () => {
-    onConfirm(files);
+  const handleCloseDeleteFileModal = () => {
+    setDeleteFileModal({ isOpen: false, fileId: "", fileName: "" });
+  };
+
+  const handleDeleteFile = () => {
+    onRemoveFile(deleteFileModal.fileId);
+    handleCloseDeleteFileModal();
   };
 
   return (
-    <Stack
-      className="uppy-holder"
-      sx={{
-        gap: 10,
-        alignItems: "center",
-        padding: 10,
-        border: 1,
-        borderColor: theme.palette.border.light,
-        borderRadius: theme.shape.borderRadius,
-        backgroundColor: theme.palette.background.main,
-      }}
-    >
-      <Stack
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "flex-end",
-          alignItems: "center",
-          width: "100%",
-        }}
-      >
+    <Stack className="uppy-holder" sx={styles.container}>
+      <Stack sx={styles.header}>
         <IconButton onClick={onClose}>
           <CloseIcon sx={{ width: 24, height: 24 }} />
         </IconButton>
       </Stack>
-      <Dashboard uppy={uppy} width={400} height={250} hideUploadButton={true} />
-      <Stack
-        sx={{
-          width: "100%",
-          height: 100,
-          padding: 2,
-          border: 1,
-          borderColor: theme.palette.border.light,
-          borderRadius: theme.shape.borderRadius,
-          backgroundColor: theme.palette.background.main,
-          overflowY: "auto",
-        }}
-      >
+
+      <UppyDashboard uppy={uppy} width={400} height={250}/>
+
+      { files?.length > 0 && <Stack sx={styles.fileList}>
         {files.map((file) => (
-          <Stack
+          <FileListItem
             key={file.id}
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            sx={{
-              padding: 1,
-              borderBottom: "1px solid",
-              borderColor: theme.palette.border.light,
-            }}
-          >
-            <span>{file.name}</span>
-            <IconButton onClick={() => handleRemoveFile(file.id)}>
-              <DeleteIcon />
-            </IconButton>
-          </Stack>
+            file={file}
+            onDeleteClick={handleOpenDeleteFileModal}
+            styles={styles}
+          />
         ))}
-      </Stack>
-      <Stack
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          gap: 4,
-          alignItems: "center",
-        }}
+      </Stack>}
+
+      <DeleteFileModal
+        isOpen={deleteFileModal.isOpen}
+        fileName={deleteFileModal.fileName}
+        onClose={handleCloseDeleteFileModal}
+        onDelete={handleDeleteFile}
+      />
+      <Button
+        variant="contained"      
+        disableRipple
+        onClick={onClose}
       >
-        <VWButton
-          variant="contained"
-          color="primary"
-          size="small"
-          text="Confirm"
-          sx={{ width: 200 }}
-          onClick={handleConfirm}
-        />
-      </Stack>
+        I am done
+      </Button>
     </Stack>
   );
 };

@@ -162,7 +162,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
     const response = await deleteEntityById({
       routeUrl: `/users/${memberToDelete}`,
     });
-    if(response.status === 200 || response.status === 202) {
+    if(response.status === 202) {
       handleAlert({
         variant: "success",
         body: "User deleted successfully",

@@ -2,7 +2,6 @@ import {
   FC,
   useState,
   useCallback,
-  useMemo,
   lazy,
   Suspense,
   Dispatch,
@@ -16,7 +15,6 @@ import {
   useTheme,
 } from "@mui/material";
 import dayjs, { Dayjs } from "dayjs";
-import { RISK_LABELS } from "../../RiskLevel/constants";
 import { MitigationFormValues, MitigationFormErrors } from "../interface";
 import styles from "../styles.module.css";
 import useUsers from "../../../../application/hooks/useUsers";
@@ -242,7 +240,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                   date={
                     mitigationValues.deadline
                       ? dayjs(mitigationValues.deadline)
-                      : null
+                      : dayjs(new Date())
                   }
                   handleDateChange={(e) => handleDateChange("deadline", e)}
                   sx={{
@@ -265,7 +263,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
         </Stack>
         <Divider />
         <Typography sx={{ fontSize: 16, fontWeight: 600, mt: 8, mb: 3 }}>
-          Residual risk level
+          Calculate residual risk level
         </Typography>
         <Typography sx={{ fontSize: theme.typography.fontSize, mb: 4.5 }}>
           The Risk Level is calculated by multiplying the Likelihood and
@@ -330,7 +328,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
               date={
                 mitigationValues.dateOfAssessment
                   ? dayjs(mitigationValues.dateOfAssessment)
-                  : null
+                  : dayjs(new Date())
               }
               handleDateChange={(e) => handleDateChange("dateOfAssessment", e)}
               sx={{

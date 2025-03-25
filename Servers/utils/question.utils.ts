@@ -49,6 +49,7 @@ export interface RequestWithFile extends Request {
   };
 }
 export interface UploadedFile {
+  fieldname: string;
   originalname: string;
   mimetype: string;
   buffer: Buffer;
@@ -89,7 +90,7 @@ export const addFileToQuestion = async (
   )
 
   // convert to list of objects
-  let _ = evidenceFilesResult.rows[0].evidence_files as string[]
+  let _ = (evidenceFilesResult.rows[0].evidence_files || []) as string[]
   let evidenceFiles = _.map(f => JSON.parse(f) as { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date })
 
   // remove the deleted file ids

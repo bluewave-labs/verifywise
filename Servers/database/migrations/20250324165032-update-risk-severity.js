@@ -29,7 +29,7 @@ module.exports = {
     // migrate vendorrisks:risk_severity type
     await queryInterface.sequelize.query(
       `CREATE TYPE enum_vendorrisks_risk_severity_temp AS ENUM (
-        'No risk', 'Low risk', 'Medium risk', 'High risk', 'Very high risk',
+        'Very low risk', 'Low risk', 'Medium risk', 'High risk', 'Very high risk',
         'Negligible', 'Minor', 'Moderate', 'Major', 'Catastrophic'
       );`
     );
@@ -37,7 +37,7 @@ module.exports = {
       "ALTER TABLE vendorrisks ALTER COLUMN risk_severity TYPE enum_vendorrisks_risk_severity_temp USING risk_severity::text::enum_vendorrisks_risk_severity_temp"
     );
     await queryInterface.sequelize.query(
-      "UPDATE vendorrisks SET risk_severity = 'Negligible' WHERE risk_severity = 'No risk';"
+      "UPDATE vendorrisks SET risk_severity = 'Negligible' WHERE risk_severity = 'Very low risk';"
     );
     await queryInterface.sequelize.query(
       "UPDATE vendorrisks SET risk_severity = 'Minor' WHERE risk_severity = 'Low risk';"
@@ -92,7 +92,7 @@ module.exports = {
     // emigrate vendorrisks:risk_severity type
     await queryInterface.sequelize.query(
       `CREATE TYPE enum_vendorrisks_risk_severity_temp AS ENUM (
-        'No risk', 'Low risk', 'Medium risk', 'High risk', 'Very high risk',
+        'Very low risk', 'Low risk', 'Medium risk', 'High risk', 'Very high risk',
         'Negligible', 'Minor', 'Moderate', 'Major', 'Catastrophic'
       );`
     );
@@ -100,7 +100,7 @@ module.exports = {
       "ALTER TABLE vendorrisks ALTER COLUMN risk_severity TYPE enum_vendorrisks_risk_severity_temp USING risk_severity::text::enum_vendorrisks_risk_severity_temp"
     );
     await queryInterface.sequelize.query(
-      "UPDATE vendorrisks SET risk_severity = 'No risk' WHERE risk_severity = 'Negligible';"
+      "UPDATE vendorrisks SET risk_severity = 'Very low risk' WHERE risk_severity = 'Negligible';"
     );
     await queryInterface.sequelize.query(
       "UPDATE vendorrisks SET risk_severity = 'Low risk' WHERE risk_severity = 'Minor';"
@@ -118,7 +118,7 @@ module.exports = {
       "DROP TYPE IF EXISTS enum_vendorrisks_risk_severity;"
     );
     await queryInterface.sequelize.query(
-      "CREATE TYPE enum_vendorrisks_risk_severity AS ENUM ('No risk', 'Low risk', 'Medium risk', 'High risk', 'Very high risk');"
+      "CREATE TYPE enum_vendorrisks_risk_severity AS ENUM ('Very low risk', 'Low risk', 'Medium risk', 'High risk', 'Very high risk');"
     );
     await queryInterface.sequelize.query(
       "ALTER TABLE vendorrisks ALTER COLUMN risk_severity TYPE enum_vendorrisks_risk_severity USING risk_severity::text::enum_vendorrisks_risk_severity"

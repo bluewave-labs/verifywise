@@ -631,7 +631,7 @@ module.exports = {
         allowNull: false,
       },
       risk_severity: {
-        type: Sequelize.ENUM('No risk', 'Low risk', 'Medium risk', 'High risk', 'Very high risk'),
+        type: Sequelize.ENUM('Very low risk', 'Low risk', 'Medium risk', 'High risk', 'Very high risk'),
         allowNull: false,
       },
       action_plan: {

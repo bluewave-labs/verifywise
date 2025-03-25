@@ -15,6 +15,8 @@ interface AuditorFeedbackProps {
   onFilesChange?: (files: FileData[]) => void;
   deletedFilesIds: number[];
   onDeletedFilesChange: (ids: number[]) => void;
+  uploadFiles: FileData[];
+  onUploadFilesChange: (files: FileData[]) => void;
 }
 
 const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
@@ -24,7 +26,9 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
   files,
   onFilesChange,
   deletedFilesIds,
-  onDeletedFilesChange
+  onDeletedFilesChange,
+  uploadFiles = [],
+  onUploadFilesChange = () => {}
 }) => {
   const theme = useTheme();
   const [isFileUploadOpen, setIsFileUploadOpen] = useState<boolean>(false);
@@ -70,12 +74,24 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
       });
       return;
     }
-    const newEvidenceFiles = evidenceFiles.filter(
-      (file) => file.id !== fileId
-    );
-    setEvidenceFiles(newEvidenceFiles);
-    onFilesChange?.(newEvidenceFiles);
-    onDeletedFilesChange([...deletedFilesIds, fileIdNumber]);
+
+    // Check if file is in evidenceFiles or uploadFiles
+    const isEvidenceFile = evidenceFiles.some(file => file.id === fileId);
+    
+    if (isEvidenceFile) {
+      const newEvidenceFiles = evidenceFiles.filter(
+        (file) => file.id !== fileId
+      );
+      setEvidenceFiles(newEvidenceFiles);
+      onFilesChange?.(newEvidenceFiles);
+      onDeletedFilesChange([...deletedFilesIds, fileIdNumber]);
+    } else {
+      const newUploadFiles = uploadFiles.filter(
+        (file) => file.id !== fileId
+      );
+      onUploadFilesChange(newUploadFiles);
+    }
+
     handleAlert({
       variant: "success",
       body: "File deleted successfully",
@@ -85,7 +101,7 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
 
   const closeFileUploadModal = () => {
     const uppyFiles = uppy.getFiles();
-    const newEvidenceFiles = uppyFiles
+    const newUploadFiles = uppyFiles
       .map(file => {
         if (!(file.data instanceof Blob)) {
           return null;
@@ -100,9 +116,8 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
       })
       .filter((file): file is FileData => file !== null);
 
-    const combinedFiles = [...evidenceFiles, ...newEvidenceFiles];
-    setEvidenceFiles(combinedFiles);
-    onFilesChange?.(combinedFiles);
+    // Only update uploadFiles state, don't combine with evidenceFiles yet
+    onUploadFilesChange(newUploadFiles);
     setIsFileUploadOpen(false);
   };
 
@@ -141,6 +156,7 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
         >
           Add/Remove evidence
         </Button>
+        <Stack direction="row" spacing={10}>
         <Typography
           sx={{
             fontSize: 11,
@@ -155,6 +171,23 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
         >
           {`${evidenceFiles.length || 0} evidence files attached`}
         </Typography>
+        {uploadFiles.length > 0 && (
+          <Typography
+            sx={{
+              fontSize: 11,
+              color: "#344054",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              textAlign: "center",
+              margin: "auto",
+              textWrap: "wrap",
+            }}
+          >
+            {`${uploadFiles.length} files pending upload`}
+          </Typography>
+        )}
+        </Stack>
       </Stack>
       <Dialog
         open={isFileUploadOpen}
@@ -162,7 +195,7 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
       >
         <UppyUploadFile
           uppy={uppy}
-          files={evidenceFiles}
+          files={[...evidenceFiles, ...uploadFiles]}
           onClose={closeFileUploadModal}
           onRemoveFile={handleRemoveFile}
           hideProgressIndicators={true}

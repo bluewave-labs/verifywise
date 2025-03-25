@@ -61,7 +61,7 @@ const insertQuery = {
       return `(
         '${user.name}',
         '${user.surname}',
-        '${user.email}',
+        '${Date.now()}${user.email}',
         '${user.password_hash}',
         ${user.role},
         '${user.created_at.toISOString().split("T")[0]}',

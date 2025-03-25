@@ -76,7 +76,7 @@ export const createProjectRiskQuery = async (projectRisk: Partial<ProjectRisk>):
       },
       mapToModel: true,
       model: ProjectRiskModel,
-      type: QueryTypes.INSERT
+      // type: QueryTypes.INSERT
     }
   );
   return result[0];
@@ -128,7 +128,7 @@ export const updateProjectRiskByIdQuery = async (
     replacements: updateProjectRisk,
     mapToModel: true,
     model: ProjectRiskModel,
-    type: QueryTypes.UPDATE,
+    // type: QueryTypes.UPDATE,
   });
 
   return result[0];

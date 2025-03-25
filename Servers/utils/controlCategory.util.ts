@@ -75,7 +75,7 @@ export const createControlCategoryQuery = async (
       },
       mapToModel: true,
       model: ControlCategoryModel,
-      type: QueryTypes.INSERT
+      // type: QueryTypes.INSERT
     }
   );
   return result[0];
@@ -101,7 +101,7 @@ export const updateControlCategoryByIdQuery = async (
     replacements: updateControlCategory,
     mapToModel: true,
     model: ControlCategoryModel,
-    type: QueryTypes.UPDATE,
+    // type: QueryTypes.UPDATE,
   });
 
   return result[0];
@@ -138,7 +138,7 @@ export const createNewControlCategories = async (projectId: number, enable_ai_da
         },
         mapToModel: true,
         model: ControlCategoryModel,
-        type: QueryTypes.INSERT
+        // type: QueryTypes.INSERT
       }
     )
     const control_category_id = result[0].id!

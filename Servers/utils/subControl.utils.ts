@@ -111,7 +111,7 @@ export const createNewSubcontrolQuery = async (
       },
       mapToModel: true,
       model: SubcontrolModel,
-      type: QueryTypes.INSERT
+      // type: QueryTypes.INSERT
     }
   );
   return result[0];
@@ -188,7 +188,7 @@ export const updateSubcontrolByIdQuery = async (
     replacements: updateSubControl,
     mapToModel: true,
     model: SubcontrolModel,
-    type: QueryTypes.UPDATE,
+    // type: QueryTypes.UPDATE,
   });
 
   return result[0];
@@ -245,7 +245,7 @@ export const createNewSubControlsQuery = async (
         },
         mapToModel: true,
         model: SubcontrolModel,
-        type: QueryTypes.INSERT
+        // type: QueryTypes.INSERT
       }
     )
     createdSubControls = createdSubControls.concat(result)

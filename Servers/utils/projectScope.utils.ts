@@ -52,7 +52,7 @@ export const createProjectScopeQuery = async (projectScope: Partial<ProjectScope
       },
       mapToModel: true,
       model: ProjectScopeModel,
-      type: QueryTypes.INSERT
+      // type: QueryTypes.INSERT
     }
   );
   return result[0];
@@ -88,7 +88,7 @@ export const updateProjectScopeByIdQuery = async (
     replacements: updateProjectScope,
     mapToModel: true,
     model: ProjectScopeModel,
-    type: QueryTypes.UPDATE,
+    // type: QueryTypes.UPDATE,
   });
 
   return result[0];

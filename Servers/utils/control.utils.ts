@@ -130,7 +130,7 @@ export const updateControlByIdQuery = async (
     replacements: updateControl,
     mapToModel: true,
     model: ControlModel,
-    type: QueryTypes.UPDATE,
+    // type: QueryTypes.UPDATE,
   });
   return result[0];
 };
@@ -188,7 +188,7 @@ export const createNewControlsQuery = async (
       },
       mapToModel: true,
       model: ControlModel,
-      type: QueryTypes.INSERT
+      // type: QueryTypes.INSERT
     });
     const control_id = result[0].id!;
     const subControls = await createNewSubControlsQuery(

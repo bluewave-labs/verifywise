@@ -12,7 +12,11 @@ module.exports = {
         { transaction }
       );
       await queryInterface.sequelize.query(
-        `UPDATE questions SET evidence_files_temp = array_to_json(evidence_files)::jsonb;`,
+        `UPDATE questions SET evidence_files_temp = 
+          CASE
+            WHEN evidence_files IS NULL THEN '[]'::jsonb
+            ELSE evidence_files::jsonb
+          END;`,
         { transaction }
       );
       await queryInterface.removeColumn("questions", "evidence_files", { transaction });
@@ -25,7 +29,10 @@ module.exports = {
         { transaction }
       );
       await queryInterface.sequelize.query(
-        `UPDATE subcontrols SET evidence_files_temp = array_to_json(evidence_files)::jsonb;`,
+        `UPDATE subcontrols SET evidence_files_temp = CASE
+            WHEN evidence_files IS NULL THEN '[]'::jsonb
+            ELSE evidence_files::jsonb
+          END;`,
         { transaction }
       );
       await queryInterface.removeColumn("subcontrols", "evidence_files", { transaction });
@@ -38,7 +45,10 @@ module.exports = {
         { transaction }
       );
       await queryInterface.sequelize.query(
-        `UPDATE subcontrols SET feedback_files_temp = array_to_json(feedback_files)::jsonb;`,
+        `UPDATE subcontrols SET feedback_files_temp = CASE
+            WHEN feedback_files IS NULL THEN '[]'::jsonb
+            ELSE feedback_files::jsonb
+          END;`,
         { transaction }
       );
       await queryInterface.removeColumn("subcontrols", "feedback_files", { transaction });

@@ -87,7 +87,7 @@ export const createNewQuestionQuery = async (
       },
       mapToModel: true,
       model: QuestionModel,
-      type: QueryTypes.INSERT
+      // type: QueryTypes.INSERT
     }
   );
   return result[0];
@@ -143,7 +143,7 @@ export const updateQuestionByIdQuery = async (
   const setClause = [
     "answer",
   ].filter(f => {
-    updateQuestion[f as keyof Question] = f
+    updateQuestion[f as keyof Question] = answer
     return true
   }).map(f => `${f} = :${f}`).join(", ");
 
@@ -155,7 +155,7 @@ export const updateQuestionByIdQuery = async (
     replacements: updateQuestion,
     mapToModel: true,
     model: QuestionModel,
-    type: QueryTypes.UPDATE,
+    // type: QueryTypes.UPDATE,
   });
 
   return result[0];
@@ -253,7 +253,7 @@ export const createNewQuestionsQuery = async (
       },
       mapToModel: true,
       model: QuestionModel,
-      type: QueryTypes.INSERT
+      // type: QueryTypes.INSERT
     })
     createdQuestions = createdQuestions.concat(result)
   }

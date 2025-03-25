@@ -38,7 +38,7 @@ export const createNewRoleQuery = async (role: {
       },
       mapToModel: true,
       model: RoleModel,
-      type: QueryTypes.INSERT
+      // type: QueryTypes.INSERT
     }
   );
   return result[0];
@@ -67,7 +67,7 @@ export const updateRoleByIdQuery = async (
     replacements: updateRole,
     mapToModel: true,
     model: RoleModel,
-    type: QueryTypes.UPDATE,
+    // type: QueryTypes.UPDATE,
   });
 
   return result[0];

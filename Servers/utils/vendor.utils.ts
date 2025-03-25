@@ -107,7 +107,7 @@ export const createNewVendorQuery = async (vendor: Vendor): Promise<Vendor | nul
         },
         mapToModel: true,
         model: VendorModel,
-        type: QueryTypes.INSERT
+        // type: QueryTypes.INSERT
       }
     );
 
@@ -131,7 +131,7 @@ export const createNewVendorQuery = async (vendor: Vendor): Promise<Vendor | nul
           },
           mapToModel: true,
           model: VendorsProjectsModel,
-          type: QueryTypes.INSERT
+          // type: QueryTypes.INSERT
         }
       );
       createdVendor["projects"] = vendors_projects.map(p => p.project_id)
@@ -175,7 +175,7 @@ export const updateVendorByIdQuery = async (
     replacements: updateVendor,
     mapToModel: true,
     model: VendorModel,
-    type: QueryTypes.UPDATE,
+    // type: QueryTypes.UPDATE,
   });
 
   return result[0];

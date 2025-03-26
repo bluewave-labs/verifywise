@@ -30,6 +30,8 @@ export const sendEmail = async (
     from: process.env.EMAIL_ID,
     to, subject, text, html
   };
+  console.log(process.env.EMAIL_ID);
+  console.log(process.env.EMAIL_PASSWORD);
 
   // Send mail with defined transport object
   try {

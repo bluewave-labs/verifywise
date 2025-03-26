@@ -50,48 +50,43 @@ export const validateForm = (values: FormValues): ValidationResult => {
   const newErrors: FormErrors = {};
 
   // Validate name
-  if (values.name) {
-    const name = checkStringValidation(
-      "Name",
-      values.name,
-      VALIDATION_RULES.NAME.min,
-      VALIDATION_RULES.NAME.max
-    );
-    if (!name.accepted) {
-      newErrors.name = name.message;
-    }
+  const name = checkStringValidation(
+    "Name",
+    values.name,
+    VALIDATION_RULES.NAME.min,
+    VALIDATION_RULES.NAME.max
+  );
+  if (!name.accepted) {
+    newErrors.name = name.message;
   }
 
   // Validate surname
-  if (values.surname) {
-    const surname = checkStringValidation(
-      "Surname",
-      values.surname,
-      VALIDATION_RULES.NAME.min,
-      VALIDATION_RULES.NAME.max
-    );
-    if (!surname.accepted) {
-      newErrors.surname = surname.message;
-    }
+  const surname = checkStringValidation(
+    "Surname",
+    values.surname,
+    VALIDATION_RULES.NAME.min,
+    VALIDATION_RULES.NAME.max
+  );
+  if (!surname.accepted) {
+    newErrors.surname = surname.message;
   }
 
   // Validate email
-  if (values.email) {
-    const email = checkStringValidation(
-      "Email",
-      values.email,
-      VALIDATION_RULES.EMAIL.min,
-      VALIDATION_RULES.EMAIL.max,
-      false,
-      false,
-      false,
-      false,
-      "email"
-    );
-    if (!email.accepted) {
-      newErrors.email = email.message;
-    }
+  const email = checkStringValidation(
+    "Email",
+    values.email,
+    VALIDATION_RULES.EMAIL.min,
+    VALIDATION_RULES.EMAIL.max,
+    false,
+    false,
+    false,
+    false,
+    "email"
+  );
+  if (!email.accepted) {
+    newErrors.email = email.message;
   }
+  
 
   // Validate password
   const password = checkStringValidation(

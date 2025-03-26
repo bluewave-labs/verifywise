@@ -16,12 +16,7 @@ export type VendorRisk = {
   impact_description: string;
   impact: "Negligible" | "Minor" | "Moderate" | "Major" | "Critical";
   likelihood: "Rare" | "Unlikely" | "Possible" | "Likely" | "Almost certain";
-  risk_severity:
-  | "Very low risk"
-  | "Low risk"
-  | "Medium risk"
-  | "High risk"
-  | "Very high risk";
+  risk_severity: "Negligible" | "Minor" | "Moderate" | "Major" | "Catastrophic";
   action_plan: string;
   action_owner: number;
   risk_level: string;
@@ -70,13 +65,9 @@ export class VendorRiskModel extends Model<VendorRisk> {
   likelihood!: "Rare" | "Unlikely" | "Possible" | "Likely" | "Almost certain";
 
   @Column({
-    type: DataType.ENUM("Very low risk", "Low risk", "Medium risk", "High risk", "Very high risk")
+    type: DataType.ENUM("Negligible", "Minor", "Moderate", "Major", "Catastrophic")
   })
-  risk_severity!: | "Very low risk"
-    | "Low risk"
-    | "Medium risk"
-    | "High risk"
-    | "Very high risk";
+  risk_severity!: "Negligible" | "Minor" | "Moderate" | "Major" | "Catastrophic"
 
   @Column({
     type: DataType.STRING
@@ -96,6 +87,8 @@ export class VendorRiskModel extends Model<VendorRisk> {
 
   @Column({
     type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
   })
   is_demo?: boolean;
 }

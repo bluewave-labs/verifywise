@@ -43,6 +43,8 @@ export class TopicModel extends Model<Topic> {
 
   @Column({
     type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
   })
   is_demo?: boolean;
 }

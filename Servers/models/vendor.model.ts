@@ -102,6 +102,8 @@ export class VendorModel extends Model<Vendor> {
 
   @Column({
     type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
   })
   is_demo?: boolean;
 }

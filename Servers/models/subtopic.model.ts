@@ -43,6 +43,8 @@ export class SubtopicModel extends Model<Subtopic> {
 
   @Column({
     type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
   })
   is_demo?: boolean;
 }

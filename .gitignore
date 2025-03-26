@@ -1,4 +1,4 @@
 .env
-*.override.yml
+# *.override.yml
 .db_initialized
 .history

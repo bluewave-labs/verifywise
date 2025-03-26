@@ -37,7 +37,7 @@ export type ProjectRisk = {
   assessment_mapping: string;
   controls_mapping: string;
   likelihood: "Rare" | "Unlikely" | "Possible" | "Likely" | "Almost Certain";
-  severity: "Negligible" | "Minor" | "Moderate" | "Major" | "Critical";
+  severity: "Negligible" | "Minor" | "Moderate" | "Major" | "Catastrophic";
   risk_level_autocalculated:
   | "No risk"
   | "Low risk"
@@ -160,9 +160,9 @@ export class ProjectRiskModel extends Model<ProjectRisk> {
   likelihood!: "Rare" | "Unlikely" | "Possible" | "Likely" | "Almost Certain";
 
   @Column({
-    type: DataType.ENUM("Negligible", "Minor", "Moderate", "Major", "Critical")
+    type: DataType.ENUM("Negligible", "Minor", "Moderate", "Major", "Catastrophic")
   })
-  severity!: "Negligible" | "Minor" | "Moderate" | "Major" | "Critical";
+  severity!: "Negligible" | "Minor" | "Moderate" | "Major" | "Catastrophic";
 
   @Column({
     type: DataType.ENUM("No risk", "Low risk", "Medium risk", "High risk", "Very high risk")
@@ -254,6 +254,8 @@ export class ProjectRiskModel extends Model<ProjectRisk> {
 
   @Column({
     type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
   })
   is_demo?: boolean;
 }

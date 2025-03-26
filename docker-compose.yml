@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   postgresdb:
-    image: postgres
+    image: postgres:17.4
     env_file:
       - ./.env
     ports:

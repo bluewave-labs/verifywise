@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
-import FileBasicTable from "../table/FileBasicTable";
-import { Stack, Box,Typography } from "@mui/material";
+import FileBasicTable from "../FilesBasicTable/FileBasicTable";
+import { Stack, Box, Typography } from "@mui/material";
 import AscendingIcon from "../../../assets/icons/up-arrow.svg";
 import DescendingIcon from "../../../assets/icons/down-arrow.svg";
 import EmptyTableImage from "../../../assets/imgs/empty-state.svg";
@@ -11,10 +11,10 @@ type SortDirection = "asc" | "desc" | null;
 /**
  * Represents the props of the FileTable component.
  * @typedef {Object} FileTableProps
- * @property {Array} cols - The columns of the table. 
+ * @property {Array} cols - The columns of the table.
  * @property {Array<File>} files - The list of files.
- * @property {Function} onRowClick - Callback to handle row selection.    
- */ 
+ * @property {Function} onRowClick - Callback to handle row selection.
+ */
 interface FileTableProps {
   cols: any[];
   files: File[];
@@ -50,7 +50,7 @@ const mockFiles: File[] = [
  *
  * Displays an empty state when no files are available.
  * @returns {JSX.Element} The empty state component.
- * 
+ *
  */
 const EmptyState: React.FC = (): JSX.Element => (
   <Stack
@@ -160,7 +160,7 @@ const FileTable: React.FC<FileTableProps> = ({ cols, files, onRowClick }) => {
 
   return mockFiles.length === 0 ? (
     <EmptyState />
-  ):(
+  ) : (
     <FileBasicTable
       data={{ cols: sortedCols, rows }}
       bodyData={displayFiles}

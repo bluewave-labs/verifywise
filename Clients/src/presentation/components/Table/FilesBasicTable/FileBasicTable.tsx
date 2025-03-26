@@ -1,4 +1,3 @@
-import React, { useState, useEffect, useCallback } from "react";
 import {
   Stack,
   Table,
@@ -11,8 +10,11 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import TablePaginationActions from "../../../components/TablePagination";
+import TablePaginationActions from "../../TablePagination";
 import singleTheme from "../../../themes/v1SingleTheme";
+import { useEffect } from "react";
+import { useCallback } from "react";
+import { useState } from "react";
 
 const DEFAULT_ROWS_PER_PAGE = 5;
 
@@ -138,11 +140,9 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
           }}
         >
           <Typography px={theme.spacing(2)} fontSize={12} sx={{ opacity: 0.7 }}>
-            Showing {page * rowsPerPage + 1} - 
-            {Math.min(
-              page * rowsPerPage + rowsPerPage,
-              bodyData.length
-            )} of {bodyData.length} items 
+            Showing {page * rowsPerPage + 1} -
+            {Math.min(page * rowsPerPage + rowsPerPage, bodyData.length)} of{" "}
+            {bodyData.length} items
           </Typography>
           <TablePagination
             count={bodyData.length}

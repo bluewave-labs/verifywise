@@ -125,6 +125,7 @@ const RiskTable: React.FC<RiskTableProps> = ({
               <TableRow
                 key={index}
                 sx={singleTheme.tableStyles.primary.body.row}
+                onClick={() => onEdit(row.id)}
               >
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   {

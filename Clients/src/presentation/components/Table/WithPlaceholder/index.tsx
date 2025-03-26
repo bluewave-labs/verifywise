@@ -120,6 +120,7 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
               <TableRow
                 key={index}
                 sx={singleTheme.tableStyles.primary.body.row}
+                onClick={() => onEdit(row.id)}
               >
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   {row.vendor_name}

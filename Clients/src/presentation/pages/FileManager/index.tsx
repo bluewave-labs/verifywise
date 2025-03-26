@@ -72,7 +72,6 @@ const FileManager: React.FC = (): JSX.Element => {
   const boxStyles = useMemo(
     () => ({
       ...filesTableFrame,
-      justifyContent: filesData.length === 0 ? "center" : "flex-start",
       alignItems: filesData.length === 0 ? "center" : "stretch",
       pointerEvents: loading ? "none" : "auto",
       opacity: loading ? 0.5 : 1,
@@ -89,7 +88,7 @@ const FileManager: React.FC = (): JSX.Element => {
   }
 
   return (
-    <Stack className="vwhome">
+    <Stack className="vwhome" gap={"20px"}>
       <PageTour
         steps={FILE_STEPS}
         run={runFileTour}

@@ -21,6 +21,5 @@ export const filesTableFrame = {
   position: "relative",
   borderRadius: "4px",
   overflow: "hidden",
-  maxHeight: "400px",
   transition: "opacity 0.3s ease-in-out",
 };

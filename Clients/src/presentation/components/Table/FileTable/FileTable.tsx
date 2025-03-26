@@ -5,6 +5,7 @@ import AscendingIcon from "../../../assets/icons/up-arrow.svg";
 import DescendingIcon from "../../../assets/icons/down-arrow.svg";
 import EmptyTableImage from "../../../assets/imgs/empty-state.svg";
 import { File } from "../../../../domain/File";
+import { mockFiles } from "./data";
 
 type SortDirection = "asc" | "desc" | null;
 
@@ -22,29 +23,6 @@ interface FileTableProps {
 }
 
 //fallback mock data for dev purposes
-const mockFiles: File[] = [
-  {
-    id: "1",
-    name: "Document1.pdf",
-    type: "PDF",
-    uploadDate: "2025-01-01",
-    uploader: "User1",
-  },
-  {
-    id: "2",
-    name: "Image1.png",
-    type: "Image",
-    uploadDate: "2025-01-02",
-    uploader: "User2",
-  },
-  {
-    id: "3",
-    name: "Presentation1.pptx",
-    type: "Presentation",
-    uploadDate: "2025-01-03",
-    uploader: "User3",
-  },
-];
 
 /**
  *

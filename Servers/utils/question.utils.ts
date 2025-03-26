@@ -21,7 +21,7 @@ export const getAllQuestionsQuery = async (): Promise<(Question & { evidence_fil
           evidenceFiles.push({ id: file.id, filename: file.filename });
         })
       );
-      return { ...question, evidence_files: evidenceFiles };
+      return { ...question.dataValues, evidence_files: evidenceFiles };
     })
   ) as (QuestionModel & { evidence_files: string[] })[];
   return questionsUpdated;
@@ -45,7 +45,7 @@ export const getQuestionByIdQuery = async (
       evidenceFiles.push({ id: file.id, filename: file.filename });
     })
   );
-  return { ...result[0], evidence_files: evidenceFiles } as (QuestionModel & { evidence_files: string[] });
+  return { ...result[0].dataValues, evidence_files: evidenceFiles } as (QuestionModel & { evidence_files: string[] });
 };
 
 export interface RequestWithFile extends Request {

@@ -143,7 +143,7 @@ export const createNewSubTopicsQuery = async (
       subTopicStruct.questions,
       enable_ai_data_insertion
     );
-    createdSubTopics.push({ ...result[0], questions });
+    createdSubTopics.push({ ...result[0].dataValues, questions });
   }
   return createdSubTopics;
 };

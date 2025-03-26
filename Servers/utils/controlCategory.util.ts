@@ -147,7 +147,7 @@ export const createNewControlCategories = async (projectId: number, enable_ai_da
       controlCategoryStruct.controls,
       enable_ai_data_insertion
     )
-    createdControlCategories.push({ ...result[0], controls })
+    createdControlCategories.push({ ...result[0].dataValues, controls })
   }
   return createdControlCategories;
 };

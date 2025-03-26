@@ -196,7 +196,7 @@ export const createNewControlsQuery = async (
       controlStruct.subControls,
       enable_ai_data_insertion
     );
-    createdControls.push({ ...result[0], subControls });
+    createdControls.push({ ...result[0].dataValues, subControls });
   }
   return createdControls;
 };

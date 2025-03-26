@@ -122,7 +122,7 @@ export const createNewTopicsQuery = async (assessmentId: number, enable_ai_data_
       topicStruct.subtopics,
       enable_ai_data_insertion
     );
-    createdTopics.push({ ...result[0], subTopics });
+    createdTopics.push({ ...result[0].dataValues, subTopics });
   }
   return createdTopics;
 };

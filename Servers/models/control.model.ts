@@ -96,6 +96,8 @@ export class ControlModel extends Model<Control> {
 
   @Column({
     type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
   })
   is_demo?: boolean;
 }

@@ -87,6 +87,8 @@ export class VendorRiskModel extends Model<VendorRisk> {
 
   @Column({
     type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
   })
   is_demo?: boolean;
 }

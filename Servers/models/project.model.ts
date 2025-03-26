@@ -88,6 +88,8 @@ export class ProjectModel extends Model<Project> {
 
   @Column({
     type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
   })
   is_demo?: boolean;
 }

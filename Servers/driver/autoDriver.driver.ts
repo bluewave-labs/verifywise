@@ -198,8 +198,8 @@ const insertQuery = {
         '${subControl.implementation_details}',
         '${subControl.evidence_description}',
         '${subControl.feedback_description}',
-        ARRAY[]::TEXT[],
-        ARRAY[]::TEXT[],
+        '[]'::jsonb,
+        '[]'::jsonb,
         '${subControl.control_id}',
         '1'
       )`;
@@ -321,7 +321,7 @@ const insertQuery = {
         '${question.hint}',
         ${question.is_required},
         '${question.priority_level}',
-        ARRAY[]::TEXT[],
+        '[]'::jsonb,
         ARRAY[]::TEXT[],
         '${question.answer}',
         '${question.input_type}',

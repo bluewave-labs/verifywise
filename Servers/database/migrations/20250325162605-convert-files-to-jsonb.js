@@ -15,8 +15,10 @@ module.exports = {
         `UPDATE questions SET evidence_files_temp = 
           CASE
             WHEN evidence_files IS NULL THEN '[]'::jsonb
-            ELSE (SELECT jsonb_agg(to_jsonb(evidence_files[i])) 
-              FROM generate_subscripts(evidence_files, 1) AS i)
+            ELSE (
+              SELECT jsonb_agg(evidence_files::jsonb)
+              FROM unnest(evidence_files) AS evidence_files
+            )
           END;`,
         { transaction }
       );
@@ -32,8 +34,10 @@ module.exports = {
       await queryInterface.sequelize.query(
         `UPDATE subcontrols SET evidence_files_temp = CASE
             WHEN evidence_files IS NULL THEN '[]'::jsonb
-            ELSE (SELECT jsonb_agg(to_jsonb(evidence_files[i])) 
-              FROM generate_subscripts(evidence_files, 1) AS i)
+            ELSE (
+              SELECT jsonb_agg(evidence_files::jsonb)
+              FROM unnest(evidence_files) AS evidence_files
+            )
           END;`,
         { transaction }
       );
@@ -49,8 +53,10 @@ module.exports = {
       await queryInterface.sequelize.query(
         `UPDATE subcontrols SET feedback_files_temp = CASE
             WHEN feedback_files IS NULL THEN '[]'::jsonb
-            ELSE (SELECT jsonb_agg(to_jsonb(feedback_files[i])) 
-              FROM generate_subscripts(feedback_files, 1) AS i)
+            ELSE (
+              SELECT jsonb_agg(feedback_files::jsonb)
+              FROM unnest(feedback_files) AS feedback_files
+            )
           END;`,
         { transaction }
       );
@@ -70,11 +76,18 @@ module.exports = {
       await queryInterface.addColumn(
         "questions",
         "evidence_files_temp",
-        { type: Sequelize.TEXT, allowNull: true },
+        { type: Sequelize.ARRAY(Sequelize.TEXT), allowNull: true },
         { transaction }
       );
       await queryInterface.sequelize.query(
-        `UPDATE questions SET evidence_files_temp = evidence_files::TEXT;`,
+        `UPDATE questions as q SET evidence_files_temp = COALESCE(
+          ARRAY(
+            SELECT jsonb_array_elements_text(evidence_files)
+            FROM questions
+            WHERE questions.id = q.id
+          ),
+          '{}'::TEXT[]
+        );`,
         { transaction }
       );
       await queryInterface.removeColumn("questions", "evidence_files", { transaction });
@@ -83,11 +96,18 @@ module.exports = {
       await queryInterface.addColumn(
         "subcontrols",
         "evidence_files_temp",
-        { type: Sequelize.TEXT, allowNull: true },
+        { type: Sequelize.ARRAY(Sequelize.TEXT), allowNull: true },
         { transaction }
       );
       await queryInterface.sequelize.query(
-        `UPDATE subcontrols SET evidence_files_temp = evidence_files::TEXT;`,
+        `UPDATE subcontrols as sc SET evidence_files_temp = COALESCE(
+          ARRAY(
+            SELECT jsonb_array_elements_text(evidence_files)
+            FROM subcontrols
+            WHERE subcontrols.id = sc.id
+          ),
+          '{}'::TEXT[]
+        );`,
         { transaction }
       );
       await queryInterface.removeColumn("subcontrols", "evidence_files", { transaction });
@@ -96,11 +116,18 @@ module.exports = {
       await queryInterface.addColumn(
         "subcontrols",
         "feedback_files_temp",
-        { type: Sequelize.TEXT, allowNull: true },
+        { type: Sequelize.ARRAY(Sequelize.TEXT), allowNull: true },
         { transaction }
       );
       await queryInterface.sequelize.query(
-        `UPDATE subcontrols SET feedback_files_temp = feedback_files::TEXT;`,
+        `UPDATE subcontrols as sc SET feedback_files_temp = COALESCE(
+          ARRAY(
+            SELECT jsonb_array_elements_text(feedback_files)
+            FROM subcontrols
+            WHERE subcontrols.id = sc.id
+          ),
+          '{}'::TEXT[]
+        );`,
         { transaction }
       );
       await queryInterface.removeColumn("subcontrols", "feedback_files", { transaction });

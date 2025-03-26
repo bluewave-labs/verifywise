@@ -70,6 +70,7 @@ const RegisterAdmin: React.FC = () => {
     setIsSubmitting(true);
 
     const { isFormValid, errors } = validateForm(values);
+    console.log(isFormValid)
     if (!isFormValid) {
       setErrors(errors);
       setIsSubmitting(false);

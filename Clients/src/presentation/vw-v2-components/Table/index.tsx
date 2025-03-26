@@ -100,7 +100,7 @@ const VWProjectRisksTableBody = ({
         rows
           .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
           .map((row: ProjectRisk, index: number) => (
-            <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row}>
+            <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row} onClick={(e) => handelEditRisk(row, e)}>
               <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
                 {row.risk_name ? (row.risk_name?.length > 30
                   ? `${row.risk_name.slice(0, 30)}...`

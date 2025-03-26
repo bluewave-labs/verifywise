@@ -43,7 +43,7 @@ export async function postFileContent(
     for (let file of req.files! as UploadedFile[]) {
       const uploadedFile = await uploadFile(file, body.user_id, body.project_id);
       uploadedFiles.push({
-        id: uploadedFile.id.toString(),
+        id: uploadedFile.id!.toString(),
         fileName: uploadedFile.filename,
         project_id: uploadedFile.project_id,
         uploaded_by: uploadedFile.uploaded_by,

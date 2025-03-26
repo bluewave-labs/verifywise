@@ -1,181 +1,150 @@
-import { ProjectRisk } from "../models/projectRisk.model";
-import pool from "../database/db";
+import { ProjectRisk, ProjectRiskModel } from "../models/projectRisk.model";
+import { sequelize } from "../database/db";
+import { QueryTypes } from "sequelize";
 
 export const getAllProjectRisksQuery = async (
   projectId: number
 ): Promise<ProjectRisk[]> => {
-  const projectRisks = await pool.query(
-    "SELECT * FROM projectrisks WHERE project_id = $1",
-    [projectId]
+  const projectRisks = await sequelize.query(
+    "SELECT * FROM projectrisks WHERE project_id = :project_id",
+    {
+      replacements: { project_id: projectId },
+      mapToModel: true,
+      model: ProjectRiskModel
+    }
   );
-  return projectRisks.rows;
+  return projectRisks;
 };
 
 export const getProjectRiskByIdQuery = async (
   id: number
 ): Promise<ProjectRisk | null> => {
-  const result = await pool.query("SELECT * FROM projectrisks WHERE id = $1", [
-    id,
-  ]);
-  return result.rows.length ? result.rows[0] : null;
+  const result = await sequelize.query("SELECT * FROM projectrisks WHERE id = :id",
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: ProjectRiskModel
+    }
+  );
+  return result[0];
 };
 
-export const createProjectRiskQuery = async (projectRisk: {
-  project_id: number; // Foreign key to refer to the project
-  risk_name: string;
-  risk_owner: string;
-  ai_lifecycle_phase: string;
-  risk_description: string;
-  risk_category: string;
-  impact: string;
-  assessment_mapping: string;
-  controls_mapping: string;
-  likelihood: string;
-  severity: string;
-  risk_level_autocalculated: string;
-  review_notes: string;
-  mitigation_status: string;
-  current_risk_level: string;
-  deadline: Date;
-  mitigation_plan: string;
-  implementation_strategy: string;
-  mitigation_evidence_document: string;
-  likelihood_mitigation: string;
-  risk_severity: string;
-  final_risk_level: string;
-  risk_approval: string;
-  approval_status: string;
-  date_of_assessment: Date;
-}): Promise<ProjectRisk> => {
-  const result = await pool.query(
-    "INSERT INTO projectrisks (project_id, risk_name, risk_owner, ai_lifecycle_phase, risk_description, risk_category, impact, assessment_mapping, controls_mapping, likelihood, severity, risk_level_autocalculated, review_notes, mitigation_status, current_risk_level, deadline, mitigation_plan, implementation_strategy, mitigation_evidence_document, likelihood_mitigation, risk_severity, final_risk_level, risk_approval, approval_status, date_of_assessment) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25) RETURNING *",
-    [
-      projectRisk.project_id,
-      projectRisk.risk_name,
-      projectRisk.risk_owner,
-      projectRisk.ai_lifecycle_phase,
-      projectRisk.risk_description,
-      projectRisk.risk_category,
-      projectRisk.impact,
-      projectRisk.assessment_mapping,
-      projectRisk.controls_mapping,
-      projectRisk.likelihood,
-      projectRisk.severity,
-      projectRisk.risk_level_autocalculated,
-      projectRisk.review_notes,
-      projectRisk.mitigation_status,
-      projectRisk.current_risk_level,
-      projectRisk.deadline,
-      projectRisk.mitigation_plan,
-      projectRisk.implementation_strategy,
-      projectRisk.mitigation_evidence_document,
-      projectRisk.likelihood_mitigation,
-      projectRisk.risk_severity,
-      projectRisk.final_risk_level,
-      projectRisk.risk_approval,
-      projectRisk.approval_status,
-      projectRisk.date_of_assessment,
-    ]
+export const createProjectRiskQuery = async (projectRisk: Partial<ProjectRisk>): Promise<ProjectRisk> => {
+  const result = await sequelize.query(
+    `INSERT INTO projectrisks (
+      project_id, risk_name, risk_owner, ai_lifecycle_phase, risk_description,
+      risk_category, impact, assessment_mapping, controls_mapping, likelihood,
+      severity, risk_level_autocalculated, review_notes, mitigation_status,
+      current_risk_level, deadline, mitigation_plan, implementation_strategy,
+      mitigation_evidence_document, likelihood_mitigation, risk_severity,
+      final_risk_level, risk_approval, approval_status, date_of_assessment
+    ) VALUES (
+      :project_id, :risk_name, :risk_owner, :ai_lifecycle_phase, :risk_description,
+      :risk_category, :impact, :assessment_mapping, :controls_mapping, :likelihood,
+      :severity, :risk_level_autocalculated, :review_notes, :mitigation_status,
+      :current_risk_level, :deadline, :mitigation_plan, :implementation_strategy,
+      :mitigation_evidence_document, :likelihood_mitigation, :risk_severity,
+      :final_risk_level, :risk_approval, :approval_status, :date_of_assessment
+    ) RETURNING *`,
+    {
+      replacements: {
+        project_id: projectRisk.project_id,
+        risk_name: projectRisk.risk_name,
+        risk_owner: projectRisk.risk_owner,
+        ai_lifecycle_phase: projectRisk.ai_lifecycle_phase,
+        risk_description: projectRisk.risk_description,
+        risk_category: projectRisk.risk_category,
+        impact: projectRisk.impact,
+        assessment_mapping: projectRisk.assessment_mapping,
+        controls_mapping: projectRisk.controls_mapping,
+        likelihood: projectRisk.likelihood,
+        severity: projectRisk.severity,
+        risk_level_autocalculated: projectRisk.risk_level_autocalculated,
+        review_notes: projectRisk.review_notes,
+        mitigation_status: projectRisk.mitigation_status,
+        current_risk_level: projectRisk.current_risk_level,
+        deadline: projectRisk.deadline,
+        mitigation_plan: projectRisk.mitigation_plan,
+        implementation_strategy: projectRisk.implementation_strategy,
+        mitigation_evidence_document: projectRisk.mitigation_evidence_document,
+        likelihood_mitigation: projectRisk.likelihood_mitigation,
+        risk_severity: projectRisk.risk_severity,
+        final_risk_level: projectRisk.final_risk_level,
+        risk_approval: projectRisk.risk_approval,
+        approval_status: projectRisk.approval_status,
+        date_of_assessment: projectRisk.date_of_assessment,
+      },
+      mapToModel: true,
+      model: ProjectRiskModel,
+      type: QueryTypes.INSERT
+    }
   );
-  return result.rows[0];
+  return result[0];
 };
 
 export const updateProjectRiskByIdQuery = async (
   id: number,
-  projectRisk: Partial<{
-    project_id: number; // Foreign key to refer to the project
-    risk_name: string;
-    risk_owner: string;
-    ai_lifecycle_phase: string;
-    risk_description: string;
-    risk_category: string;
-    impact: string;
-    assessment_mapping: string;
-    controls_mapping: string;
-    likelihood: string;
-    severity: string;
-    risk_level_autocalculated: string;
-    review_notes: string;
-    mitigation_status: string;
-    current_risk_level: string;
-    deadline: Date;
-    mitigation_plan: string;
-    implementation_strategy: string;
-    mitigation_evidence_document: string;
-    likelihood_mitigation: string;
-    risk_severity: string;
-    final_risk_level: string;
-    risk_approval: string;
-    approval_status: string;
-    date_of_assessment: Date;
-  }>
+  projectRisk: Partial<ProjectRisk>
 ): Promise<ProjectRisk | null> => {
-  const result = await pool.query(
-    `UPDATE projectrisks SET 
-      project_id = $1, 
-      risk_name = $2, 
-      risk_owner = $3, 
-      ai_lifecycle_phase = $4, 
-      risk_description = $5, 
-      risk_category = $6, 
-      impact = $7, 
-      assessment_mapping = $8, 
-      controls_mapping = $9, 
-      likelihood = $10, 
-      severity = $11, 
-      risk_level_autocalculated = $12, 
-      review_notes = $13, 
-      mitigation_status = $14, 
-      current_risk_level = $15, 
-      deadline = $16, 
-      mitigation_plan = $17, 
-      implementation_strategy = $18, 
-      mitigation_evidence_document = $19, 
-      likelihood_mitigation = $20, 
-      risk_severity = $21, 
-      final_risk_level = $22, 
-      risk_approval = $23, 
-      approval_status = $24, 
-      date_of_assessment = $25
-    WHERE id = $26 RETURNING *`,
-    [
-      projectRisk.project_id,
-      projectRisk.risk_name,
-      projectRisk.risk_owner,
-      projectRisk.ai_lifecycle_phase,
-      projectRisk.risk_description,
-      projectRisk.risk_category,
-      projectRisk.impact,
-      projectRisk.assessment_mapping,
-      projectRisk.controls_mapping,
-      projectRisk.likelihood,
-      projectRisk.severity,
-      projectRisk.risk_level_autocalculated,
-      projectRisk.review_notes,
-      projectRisk.mitigation_status,
-      projectRisk.current_risk_level,
-      projectRisk.deadline,
-      projectRisk.mitigation_plan,
-      projectRisk.implementation_strategy,
-      projectRisk.mitigation_evidence_document,
-      projectRisk.likelihood_mitigation,
-      projectRisk.risk_severity,
-      projectRisk.final_risk_level,
-      projectRisk.risk_approval,
-      projectRisk.approval_status,
-      projectRisk.date_of_assessment,
-      id,
-    ]
-  );
-  return result.rows[0];
+  const updateProjectRisk: Partial<Record<keyof ProjectRisk, any>> = {};
+  const setClause = [
+    "project_id",
+    "risk_name",
+    "risk_owner",
+    "ai_lifecycle_phase",
+    "risk_description",
+    "risk_category",
+    "impact",
+    "assessment_mapping",
+    "controls_mapping",
+    "likelihood",
+    "severity",
+    "risk_level_autocalculated",
+    "review_notes",
+    "mitigation_status",
+    "current_risk_level",
+    "deadline",
+    "mitigation_plan",
+    "implementation_strategy",
+    "mitigation_evidence_document",
+    "likelihood_mitigation",
+    "risk_severity",
+    "final_risk_level",
+    "risk_approval",
+    "approval_status",
+    "date_of_assessment",
+  ].filter(f => {
+    if (projectRisk[f as keyof ProjectRisk] !== undefined) {
+      updateProjectRisk[f as keyof ProjectRisk] = projectRisk[f as keyof ProjectRisk]
+      return true
+    }
+  }).map(f => `${f} = :${f}`).join(", ");
+
+  const query = `UPDATE projectrisks SET ${setClause} WHERE id = :id RETURNING *;`;
+
+  updateProjectRisk.id = id;
+
+  const result = await sequelize.query(query, {
+    replacements: updateProjectRisk,
+    mapToModel: true,
+    model: ProjectRiskModel,
+    type: QueryTypes.UPDATE,
+  });
+
+  return result[0];
 };
 
 export const deleteProjectRiskByIdQuery = async (
   id: number
-): Promise<ProjectRisk | null> => {
-  const result = await pool.query(
-    "DELETE FROM projectrisks WHERE id = $1 RETURNING *",
-    [id]
+): Promise<Boolean> => {
+  const result = await sequelize.query(
+    "DELETE FROM projectrisks WHERE id = :id RETURNING *",
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: ProjectRiskModel,
+      type: QueryTypes.DELETE,
+    }
   );
-  return result.rows.length ? result.rows[0] : null;
+  return result.length > 0;
 };

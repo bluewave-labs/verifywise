@@ -1,3 +1,6 @@
+import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
+import { TopicModel } from "./topic.model";
+
 /*
 
 This is the new Subtopic model(Schema) and will be replaced with the new one.
@@ -11,9 +14,36 @@ export type Subtopic = {
   topic_id: number; // when topic is created, its id will be stored and assign here as FK
 };
 
-// export type Subtopic = {
-//   id: number;
-//   topicId: number;
-//   name: string;
-//   orderNo: number;
-// };
+@Table({
+  tableName: "subtopics"
+})
+export class SubtopicModel extends Model<Subtopic> {
+  @Column({
+    type: DataType.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  })
+  id?: number;
+
+  @Column({
+    type: DataType.STRING
+  })
+  title!: string;
+
+  @Column({
+    type: DataType.INTEGER
+  })
+  order_no?: number;
+
+  @ForeignKey(() => TopicModel)
+  @Column({
+    type: DataType.INTEGER
+  })
+  topic_id!: number;
+
+  @Column({
+    type: DataType.BOOLEAN,
+  })
+  is_demo?: boolean;
+}
+

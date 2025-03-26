@@ -50,6 +50,13 @@ const VWQuestion = ({ question }: QuestionProps) => {
   const { userId, currentProjectId } = useContext(VerifyWiseContext);
   const [values, setValues] = useState<Question>(question);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
+  const [currentEl, setCurrentEl] = useState<number | undefined>(undefined);
+
+  const highlight = {
+    boxShadow: "1px 0px 6px 2px rgba(202, 202, 202, 0.75)",
+    WebkitBoxShadow: "1px 0px 6px 2px rgba(202, 202, 202, 0.75)",
+    MozBoxShadow: "1px 0px 6px 2px rgba(202, 202, 202, 0.75)",
+  };
 
   const initialEvidenceFiles = question.evidence_files
     ? question.evidence_files.reduce((acc: FileData[], file) => {
@@ -186,6 +193,13 @@ const VWQuestion = ({ question }: QuestionProps) => {
     }
   };
 
+  const handleModalClose = () => {
+    setIsFileUploadOpen(false)
+    setTimeout(() => {
+      setCurrentEl(undefined)
+    }, 1000);
+  }
+
   return (
     <Box key={question.id} mt={10}>
       <Box
@@ -269,9 +283,18 @@ const VWQuestion = ({ question }: QuestionProps) => {
               border: "1px solid #D0D5DD",
               backgroundColor: "white",
               color: "#344054",
+              "&:hover": {
+                boxShadow: "1px 0px 6px 2px rgba(202, 202, 202, 0.75)",
+                WebkitBoxShadow: "1px 0px 6px 2px rgba(202, 202, 202, 0.75)",
+                MozBoxShadow: "1px 0px 6px 2px rgba(202, 202, 202, 0.75)",
+              },
             }}
+            style={currentEl === values.id ? highlight : {}}
             disableRipple
-            onClick={() => setIsFileUploadOpen(true)}
+            onClick={() => {
+              setIsFileUploadOpen(true)
+              setCurrentEl(values.id)
+            }}
           >
             Add/Remove evidence
           </Button>
@@ -296,12 +319,12 @@ const VWQuestion = ({ question }: QuestionProps) => {
       </Stack>
       <Dialog
         open={isFileUploadOpen}
-        onClose={() => setIsFileUploadOpen(false)}
+        onClose={() => handleModalClose()}
       >
         <UppyUploadFile
           uppy={uppy}
           files={evidenceFiles}
-          onClose={() => setIsFileUploadOpen(false)}
+          onClose={() => handleModalClose()}
           onRemoveFile={handleRemoveFile}
         />
       </Dialog>

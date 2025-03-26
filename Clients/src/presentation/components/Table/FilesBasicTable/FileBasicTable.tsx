@@ -149,7 +149,7 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
             page={page}
             onPageChange={handleChangePage}
             rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[5, 10, 15, 25]}
+            rowsPerPageOptions={[5, 10, 15, 20, 25]}
             onRowsPerPageChange={handleChangeRowsPerPage}
             ActionsComponent={
               TablePaginationActions as React.ComponentType<any>

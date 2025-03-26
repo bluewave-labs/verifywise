@@ -43,7 +43,11 @@ const FILE_STEPS: FileStep[] = [
 const COLUMNS: Column[] = COLUMN_NAMES.map((name, index) => ({
   id: index + 1,
   name,
-  sx: { width: "50%" },
+  sx: {
+    minWidth: "fit-content",
+    width: "fit-content",
+    maxWidth: "50%",
+  },
 }));
 
 /**

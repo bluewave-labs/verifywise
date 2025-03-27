@@ -29,7 +29,7 @@ const swaggerDoc = YAML.load("./swagger.yaml");
 const app = express();
 
 const defaultPort = 3000;
-const defaultHost = '0.0.0.0';
+const defaultHost = 'localhost';
 
 const port = parseInt(process.env.PORT ?? `${defaultPort}`, 10);
 const host = process.env.HOST || defaultHost;

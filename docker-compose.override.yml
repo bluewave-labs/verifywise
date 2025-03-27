@@ -5,6 +5,8 @@ services:
     build:
       context: ./Servers
       dockerfile: Dockerfile.dev
+    env_file:
+      - ./.env.dev
 
   frontend:
     build:
@@ -12,5 +14,7 @@ services:
       dockerfile: Dockerfile.dev
     ports:
       - $FRONTEND_PORT:$FRONTEND_PORT
+    env_file:
+      - ./.env.dev
     environment:
       - VITE_APP_PORT=$FRONTEND_PORT

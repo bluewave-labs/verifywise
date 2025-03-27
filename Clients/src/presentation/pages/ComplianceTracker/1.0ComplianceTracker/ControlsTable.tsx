@@ -13,6 +13,7 @@ import {
   TableRow,
   Typography,
   useTheme,
+  Box,
 } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
@@ -20,6 +21,7 @@ import { getEntityById } from "../../../../application/repository/entity.reposit
 import { Control } from "../../../../domain/Control";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import NewControlPane from "../../../components/Modals/Controlpane/NewControlPane";
+import Alert from "../../../components/Alert";
 
 const cellStyle = {
   ...singleTheme.tableStyles.primary.body.row,
@@ -79,6 +81,10 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   const [modalOpen, setModalOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [currentFlashRow, setCurrentFlashRow] = useState<number | null>(null);
+  const [alert, setAlert] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const handleRowClick = (id: number) => {
     setSelectedRow(id);
@@ -106,6 +112,14 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
         setCurrentFlashRow(null);
       }, 2000);
     }
+    // Show success notification
+    setAlert({
+      type: "success",
+      message: "Control updated successfully"
+    });
+    setTimeout(() => {
+      setAlert(null);
+    }, 2000);
   };
 
   useEffect(() => {
@@ -154,114 +168,139 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   }
 
   return (
-    <TableContainer className="controls-table-container">
-      <Table className="controls-table">
-        <TableHead
+    <>
+      {alert && (
+        <Box
           sx={{
-            backgroundColors:
-              singleTheme.tableStyles.primary.header.backgroundColors,
+            position: "fixed",
+            top: theme.spacing(2),
+            right: theme.spacing(2),
+            zIndex: 9999,
+            width: "auto",
+            maxWidth: "400px",
+            textAlign: "left"
           }}
         >
-          <TableRow>
-            {columns.map((col: Column, index: number) => (
-              <TableCell
-                key={index}
-                sx={singleTheme.tableStyles.primary.header.cell}
-              >
-                {col.name}
-              </TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {controls
-            .sort((a, b) => (a.order_no ?? 0) - (b.order_no ?? 0))
-            .map((control: Control) => (
-              <TableRow
-                key={control.id}
-                onClick={() =>
-                  control.id !== undefined && handleRowClick(control.id)
-                }
-              >
-                {modalOpen && selectedRow === control.id && (
-                  <NewControlPane
-                    data={control}
-                    isOpen={modalOpen}
-                    handleClose={handleCloseModal}
-                    OnSave={handleSaveSuccess}
-                    controlCategoryId={control.order_no?.toString()}
-                    onComplianceUpdate={onComplianceUpdate}
-                  />
-                )}
+          <Alert
+            variant={alert.type}
+            body={alert.message}
+            isToast={true}
+            onClick={() => setAlert(null)}
+            sx={{
+              boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.15)",
+            }}
+          />
+        </Box>
+      )}
+      <TableContainer className="controls-table-container">
+        <Table className="controls-table">
+          <TableHead
+            sx={{
+              backgroundColors:
+                singleTheme.tableStyles.primary.header.backgroundColors,
+            }}
+          >
+            <TableRow>
+              {columns.map((col: Column, index: number) => (
                 <TableCell
-                  sx={descriptionCellStyle}
-                  key={`${controlCategoryId}-${control.id}`}
-                  style={{ backgroundColor: currentFlashRow === control.id ? '#e3f5e6': ''}}
+                  key={index}
+                  sx={singleTheme.tableStyles.primary.header.cell}
                 >
-                  {controlCategoryIndex}.{`${control.order_no}`} {control.title}{" "}
-                  <span style={{color: 'grey' }}>{`(${control.description})`}</span>
+                  {col.name}
                 </TableCell>
-                <TableCell 
-                  sx={cellStyle} 
-                  key={`owner-${control.id}`}
-                  style={{ backgroundColor: currentFlashRow === control.id ? '#e3f5e6': ''}}
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {controls
+              .sort((a, b) => (a.order_no ?? 0) - (b.order_no ?? 0))
+              .map((control: Control) => (
+                <TableRow
+                  key={control.id}
+                  onClick={() =>
+                    control.id !== undefined && handleRowClick(control.id)
+                  }
                 >
-                  {control.owner ? control.owner : "Not set"}
-                </TableCell>
-                <TableCell 
-                  sx={cellStyle} 
-                  key={`noOfSubControls-${control.id}`}
-                  style={{ backgroundColor: currentFlashRow === control.id ? '#e3f5e6': ''}}
-                >
-                  {`${control.numberOfSubcontrols} Subcontrols`}
-                </TableCell>
-                <TableCell 
-                  sx={cellStyle} 
-                  key={`completion-${control.id}`}
-                  style={{ backgroundColor: currentFlashRow === control.id ? '#e3f5e6': ''}}
-                >
-                  <Stack direction="row" alignItems="center" spacing={1}>
-                    <Typography variant="body2">
-                      {`${control.numberOfSubcontrols
-                        ? (
-                          (control.numberOfDoneSubcontrols! /
-                            control.numberOfSubcontrols) * 100
-                        ).toFixed(0)
-                        : "0"
-                        }%`}
-                    </Typography>
-                    <LinearProgress
-                      variant="determinate"
-                      value={
-                        control.numberOfSubcontrols
-                          ? ((control.numberOfDoneSubcontrols ?? 0) /
-                            control.numberOfSubcontrols) *
-                          100
-                          : 0
-                      }
-                      sx={{
-                        width: "100px",
-                        height: "5px",
-                        borderRadius: "4px",
-                        backgroundColor: theme.palette.grey[200],
-                        "& .MuiLinearProgress-bar": {
-                          backgroundColor: getProgressColor(
-                            control.numberOfSubcontrols
-                              ? ((control.numberOfDoneSubcontrols ?? 0) /
-                                control.numberOfSubcontrols) *
-                              100
-                              : 0
-                          ),
-                        },
-                      }}
+                  {modalOpen && selectedRow === control.id && (
+                    <NewControlPane
+                      data={control}
+                      isOpen={modalOpen}
+                      handleClose={handleCloseModal}
+                      OnSave={handleSaveSuccess}
+                      controlCategoryId={control.order_no?.toString()}
+                      onComplianceUpdate={onComplianceUpdate}
                     />
-                  </Stack>
-                </TableCell>
-              </TableRow>
-            ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+                  )}
+                  <TableCell
+                    sx={descriptionCellStyle}
+                    key={`${controlCategoryId}-${control.id}`}
+                    style={{ backgroundColor: currentFlashRow === control.id ? '#e3f5e6': ''}}
+                  >
+                    {controlCategoryIndex}.{`${control.order_no}`} {control.title}{" "}
+                    <span style={{color: 'grey' }}>{`(${control.description})`}</span>
+                  </TableCell>
+                  <TableCell 
+                    sx={cellStyle} 
+                    key={`owner-${control.id}`}
+                    style={{ backgroundColor: currentFlashRow === control.id ? '#e3f5e6': ''}}
+                  >
+                    {control.owner ? control.owner : "Not set"}
+                  </TableCell>
+                  <TableCell 
+                    sx={cellStyle} 
+                    key={`noOfSubControls-${control.id}`}
+                    style={{ backgroundColor: currentFlashRow === control.id ? '#e3f5e6': ''}}
+                  >
+                    {`${control.numberOfSubcontrols} Subcontrols`}
+                  </TableCell>
+                  <TableCell 
+                    sx={cellStyle} 
+                    key={`completion-${control.id}`}
+                    style={{ backgroundColor: currentFlashRow === control.id ? '#e3f5e6': ''}}
+                  >
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <Typography variant="body2">
+                        {`${control.numberOfSubcontrols
+                          ? (
+                            (control.numberOfDoneSubcontrols! /
+                              control.numberOfSubcontrols) * 100
+                          ).toFixed(0)
+                          : "0"
+                          }%`}
+                      </Typography>
+                      <LinearProgress
+                        variant="determinate"
+                        value={
+                          control.numberOfSubcontrols
+                            ? ((control.numberOfDoneSubcontrols ?? 0) /
+                              control.numberOfSubcontrols) *
+                            100
+                            : 0
+                        }
+                        sx={{
+                          width: "100px",
+                          height: "5px",
+                          borderRadius: "4px",
+                          backgroundColor: theme.palette.grey[200],
+                          "& .MuiLinearProgress-bar": {
+                            backgroundColor: getProgressColor(
+                              control.numberOfSubcontrols
+                                ? ((control.numberOfDoneSubcontrols ?? 0) /
+                                  control.numberOfSubcontrols) *
+                                100
+                                : 0
+                            ),
+                          },
+                        }}
+                      />
+                    </Stack>
+                  </TableCell>
+                </TableRow>
+              ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
   );
 };
 

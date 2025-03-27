@@ -57,6 +57,7 @@ const NewControlPane = ({
   const [alert, setAlert] = useState<{
     type: "success" | "error";
     message: string;
+    showOverlay?: boolean;
   } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletedFilesIds, setDeletedFilesIds] = useState<number[]>([]);
@@ -276,25 +277,22 @@ const NewControlPane = ({
       if (response.status === 200) {
         console.log("Controls updated successfully:", response);
         setIsSubmitting(false);
-        setAlert({ type: "success", message: "Controls updated successfully" });
         
         // Clear upload files after successful save
         setUploadFiles({});
         
+        // Notify parent components about success
         OnSave?.(state);
         onComplianceUpdate?.();
         
-        setTimeout(() => {
-          setAlert(null);
-          handleClose();
-        }, 2000);
+        // Close the modal
+        handleClose();
       } else {
-        setAlert({ type: "error", message: "Error updating controls" });
+        console.error("Error updating controls");
         setIsSubmitting(false);
       }
     } catch (error) {
       console.error("Error updating controls:", error);
-      setAlert({ type: "error", message: "Error updating controls" });
       setIsSubmitting(false);
     }
     setIsModalOpen(false);
@@ -307,21 +305,43 @@ const NewControlPane = ({
   return (
     <>
       {alert && (
-        <Box
-          sx={{
-            position: "fixed",
-            top: theme.spacing(2),
-            right: theme.spacing(2),
-            zIndex: 1400,
-          }}
-        >
-          <Alert
-            variant={alert.type}
-            body={alert.message}
-            isToast={true}
-            onClick={() => setAlert(null)}
-          />
-        </Box>
+        <>
+          {alert.showOverlay && (
+            <Box
+              sx={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: "rgba(0, 0, 0, 0.3)",
+                zIndex: 9998,
+              }}
+            />
+          )}
+          <Box
+            sx={{
+              position: "fixed",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              zIndex: 9999,
+              width: "100%",
+              maxWidth: "400px",
+              textAlign: "center"
+            }}
+          >
+            <Alert
+              variant={alert.type}
+              body={alert.message}
+              isToast={true}
+              onClick={() => setAlert(null)}
+              sx={{
+                boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.15)",
+              }}
+            />
+          </Box>
+        </>
       )}
 
       {isSubmitting && <VWToast title="Saving control. Please wait..." />}

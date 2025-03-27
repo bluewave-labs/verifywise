@@ -1,5 +1,5 @@
 import { Box, Typography, Button, useTheme, Dialog, Stack } from "@mui/material";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import RichTextEditor from "../../../components/RichTextEditor/index";
 import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
 import Alert, { AlertProps } from "../../../components/Alert";
@@ -19,6 +19,22 @@ interface AuditorFeedbackProps {
   onUploadFilesChange: (files: FileData[]) => void;
 }
 
+const parseFileData = (file: FileData | string): FileData => {
+  if (typeof file === 'string') {
+    try {
+      const parsedFile = JSON.parse(file);
+      return {
+        ...parsedFile,
+        data: undefined  // API files don't have data property
+      } as FileData;
+    } catch (error) {
+      console.error('Failed to parse file data:', error);
+      throw new Error('Invalid file data format');
+    }
+  }
+  return file;
+};
+
 const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
   activeSection,
   feedback,
@@ -32,24 +48,11 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
 }) => {
   const theme = useTheme();
   const [isFileUploadOpen, setIsFileUploadOpen] = useState<boolean>(false);
-  const [evidenceFiles, setEvidenceFiles] = useState<FileData[]>([]);
+  const [evidenceFiles, setEvidenceFiles] = useState<FileData[]>(() => 
+    files.map(parseFileData)
+  );
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [uppy] = useState(() => new Uppy());
-
-  // Parse files when they change
-  useEffect(() => {
-    const parsedFiles = files.map(file => {
-      if (typeof file === 'string') {
-        const parsedFile = JSON.parse(file);
-        return {
-          ...parsedFile,
-          data: undefined  // API files don't have data property
-        } as FileData;
-      }
-      return file;
-    });
-    setEvidenceFiles(parsedFiles);
-  }, [files]);
 
   const handleContentChange = (content: string) => {
     onChange({
@@ -184,7 +187,7 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
               textWrap: "wrap",
             }}
           >
-            {`${uploadFiles.length} files pending upload`}
+            {`${uploadFiles.length} ${uploadFiles.length === 1 ? 'file' : 'files'} pending upload`}
           </Typography>
         )}
         </Stack>

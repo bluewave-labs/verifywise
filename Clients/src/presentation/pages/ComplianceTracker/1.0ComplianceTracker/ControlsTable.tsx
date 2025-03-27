@@ -181,22 +181,21 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
                 <TableCell sx={cellStyle} key={`completion-${control.id}`}>
                   <Stack direction="row" alignItems="center" spacing={1}>
                     <Typography variant="body2">
-                      {`${
-                        control.numberOfSubcontrols
-                          ? (
-                              (control.numberOfDoneSubcontrols! /
-                              control.numberOfSubcontrols) * 100
-                            ).toFixed(0)
-                          : "0"
-                      }%`}
+                      {`${control.numberOfSubcontrols
+                        ? (
+                          (control.numberOfDoneSubcontrols! /
+                            control.numberOfSubcontrols) * 100
+                        ).toFixed(0)
+                        : "0"
+                        }%`}
                     </Typography>
                     <LinearProgress
                       variant="determinate"
                       value={
                         control.numberOfSubcontrols
                           ? ((control.numberOfDoneSubcontrols ?? 0) /
-                              control.numberOfSubcontrols) *
-                            100
+                            control.numberOfSubcontrols) *
+                          100
                           : 0
                       }
                       sx={{
@@ -208,8 +207,8 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
                           backgroundColor: getProgressColor(
                             control.numberOfSubcontrols
                               ? ((control.numberOfDoneSubcontrols ?? 0) /
-                                  control.numberOfSubcontrols) *
-                                  100
+                                control.numberOfSubcontrols) *
+                              100
                               : 0
                           ),
                         },

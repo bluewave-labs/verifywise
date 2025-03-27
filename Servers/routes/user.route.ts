@@ -50,7 +50,7 @@ router.get("/", authenticateJWT, getAllUsers);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.get("/by-email/:email", authenticateJWT, getUserByEmail);
+router.get("/by-email/:email", getUserByEmail);
 
 /**
  * GET /users/:id
@@ -122,7 +122,7 @@ router.post("/reset-password", resetPassword);
  */
 router.patch("/:id", authenticateJWT, updateUserById);
 
-router.patch("/chng-pass/:id", authenticateJWT, ChangePassword);
+router.patch("/chng-pass/:id", ChangePassword);
 
 /**
  * DELETE /users/:id
@@ -150,7 +150,7 @@ router.delete("/:id", authenticateJWT, deleteUserById);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.get("/check/exists", authenticateJWT, checkUserExists);
+router.get("/check/exists", checkUserExists);
 
 router.get("/:id/calculate-progress", authenticateJWT, calculateProgress);
 

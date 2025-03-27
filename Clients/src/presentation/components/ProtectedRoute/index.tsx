@@ -35,16 +35,13 @@ const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
     // Check if user exists in the database
     const checkUserExistsInDatabase = async () => {
       try {
-        const data = await getAllEntities({
-          routeUrl: "/users",
+        const response = await getAllEntities({
+          routeUrl: "/users/check/exists",
         });
-        const userCount = data?.data?.length || 0;
-        if (userCount > 0) {
-          dispatch(setUserExists(true));
-        } else {
-          dispatch(setUserExists(false));
-        }
-        console.log("userCount", userCount);
+        const userExists = response ?? false
+     
+        dispatch(setUserExists(userExists));     
+     
         console.log("No auth token found, redirecting to login");
         console.log("Current location:", location.pathname);
         console.log("Auth state:", authState);

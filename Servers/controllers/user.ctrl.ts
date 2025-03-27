@@ -43,9 +43,9 @@ async function getUserByEmail(req: Request, res: Response) {
   try {
     const email = req.params.email;
     const user = await getUserByEmailQuery(email) as UserModel;
-    const { password_hash, ...safeUser } = user.get({ plain: true });
 
     if (user) {
+      const { password_hash, ...safeUser } = user.get({ plain: true });
       return res.status(200).json(STATUS_CODE[200](safeUser));
     }
 
@@ -59,9 +59,9 @@ async function getUserById(req: Request, res: Response) {
   try {
     const id = parseInt(req.params.id);
     const user = await getUserByIdQuery(id) as UserModel;
-    const { password_hash, ...safeUser } = user.get({ plain: true });
 
     if (user) {
+      const { password_hash, ...safeUser } = user.get({ plain: true });
       return res.status(200).json(STATUS_CODE[200](safeUser));
     }
 
@@ -92,9 +92,9 @@ async function createNewUser(req: Request, res: Response) {
       created_at,
       last_login,
     }) as UserModel;
-    const { password_hash: _, ...safeUser } = user.get({ plain: true });
 
     if (user) {
+      const { password_hash: _, ...safeUser } = user.get({ plain: true });
       return res.status(201).json(STATUS_CODE[201](safeUser));
     }
 

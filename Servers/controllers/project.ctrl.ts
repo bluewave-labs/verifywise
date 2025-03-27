@@ -88,8 +88,8 @@ export async function getAllProjects(
                               (project.dataValues.totalAssessments || 0) +
                               questions.length;
 
-                            project.dataValues.asnweredAssessments =
-                              (project.dataValues.asnweredAssessments || 0) +
+                            project.dataValues.answeredAssessments =
+                              (project.dataValues.answeredAssessments || 0) +
                               questions.filter(
                                 (q) =>
                                   q.answer?.trim().length !== 0 &&

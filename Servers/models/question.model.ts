@@ -18,7 +18,7 @@ export type Question = {
   evidence_required: boolean; // gets assigned from the structure
   is_required: boolean; // gets assigned from the structure
   dropdown_options?: any[]; // gets assigned from the structure
-  evidence_files?: string[]; // gets assigned from the structure
+  evidence_files?: Object[]; // gets assigned from the structure
   answer?: string; // won't get any values, will be filled by user
   subtopic_id: number; // when subtopic is created, its id will be stored and assign here as FK
 };
@@ -80,9 +80,9 @@ export class QuestionModel extends Model<Question> {
   dropdown_options?: any[];
 
   @Column({
-    type: DataType.ARRAY(DataType.STRING)
+    type: DataType.JSONB
   })
-  evidence_files?: string[];
+  evidence_files?: { id: string, fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[];
 
   @Column({
     type: DataType.STRING

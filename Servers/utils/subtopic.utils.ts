@@ -38,7 +38,7 @@ export const createNewSubtopicQuery = async (
       replacements: { topic_id: subtopic.topic_id, title: subtopic.title },
       mapToModel: true,
       model: SubtopicModel,
-      type: QueryTypes.INSERT
+      // type: QueryTypes.INSERT
     }
   );
   return result[0];
@@ -66,7 +66,7 @@ export const updateSubtopicByIdQuery = async (
     replacements: updateSubTopic,
     mapToModel: true,
     model: SubtopicModel,
-    type: QueryTypes.UPDATE,
+    // type: QueryTypes.UPDATE,
   });
 
   return result[0];
@@ -143,7 +143,7 @@ export const createNewSubTopicsQuery = async (
       subTopicStruct.questions,
       enable_ai_data_insertion
     );
-    createdSubTopics.push({ ...result[0], questions });
+    createdSubTopics.push({ ...result[0].dataValues, questions });
   }
   return createdSubTopics;
 };

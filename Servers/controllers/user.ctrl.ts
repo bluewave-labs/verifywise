@@ -119,7 +119,7 @@ async function loginUser(req: Request, res: Response): Promise<any> {
           })
         );
       } else {
-        return res.status(406).json(STATUS_CODE[406]({}));
+        return res.status(406).json(STATUS_CODE[406]("Password mismatch"));
       }
     }
 

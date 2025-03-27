@@ -13,13 +13,13 @@ import {
 import authenticateJWT from "../middleware/auth.middleware";
 
 // GET requests
-router.get("/", /*authenticateJWT,*/ getAllTopics);
-router.get("/:id", /*authenticateJWT,*/ getTopicById);
-router.get("/byassessmentid/:id", getTopicByAssessmentId);
+router.get("/", authenticateJWT, getAllTopics);
+router.get("/:id", authenticateJWT, getTopicById);
+router.get("/byassessmentid/:id", authenticateJWT, getTopicByAssessmentId);
 
 // POST, PUT, DELETE requests
-router.post("/", /*authenticateJWT,*/ createNewTopic);
-router.put("/:id", /*authenticateJWT,*/ updateTopicById);
-router.delete("/:id", /*authenticateJWT,*/ deleteTopicById);
+router.post("/", authenticateJWT, createNewTopic);
+router.put("/:id", authenticateJWT, updateTopicById);
+router.delete("/:id", authenticateJWT, deleteTopicById);
 
 export default router;

@@ -22,8 +22,8 @@ export type Subcontrol = {
   implementation_details?: string; // won't get any values, will be filled by user
   evidence_description?: string; // won't get any values, will be filled by user
   feedback_description?: string; // won't get any values, will be filled by user
-  evidence_files?: string[]; // fill be filed automatically when a file is uploaded
-  feedback_files?: string[]; // fill be filed automatically when a file is uploaded
+  evidence_files?: Object[]; // fill be filed automatically when a file is uploaded
+  feedback_files?: Object[]; // fill be filed automatically when a file is uploaded
   control_id: number; // when control is created, its id will be stored and assign here as FK
 };
 
@@ -102,14 +102,14 @@ export class SubcontrolModel extends Model<Subcontrol> {
   feedback_description?: string;
 
   @Column({
-    type: DataType.ARRAY(DataType.STRING)
+    type: DataType.JSONB
   })
-  evidence_files?: string[];
+  evidence_files?: { id: string, fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[];
 
   @Column({
-    type: DataType.ARRAY(DataType.STRING)
+    type: DataType.JSONB
   })
-  feedback_files?: string[];
+  feedback_files?: { id: string, fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[];
 
   @ForeignKey(() => ControlModel)
   @Column({

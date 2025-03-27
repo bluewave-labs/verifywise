@@ -20,13 +20,17 @@ import {
 import bcrypt from "bcrypt";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { generateToken } from "../utils/jwt.util";
+import { UserModel } from "../models/user.model";
 
 async function getAllUsers(req: Request, res: Response): Promise<any> {
   try {
-    const users = await getAllUsersQuery();
+    const users = await getAllUsersQuery() as UserModel[];
 
     if (users) {
-      return res.status(200).json(STATUS_CODE[200](users));
+      return res.status(200).json(STATUS_CODE[200](users.map(user => {
+        const { password_hash, ...safeUser } = user.get({ plain: true });
+        return safeUser;
+      })));
     }
 
     return res.status(204).json(STATUS_CODE[204](users));
@@ -38,10 +42,11 @@ async function getAllUsers(req: Request, res: Response): Promise<any> {
 async function getUserByEmail(req: Request, res: Response) {
   try {
     const email = req.params.email;
-    const user = await getUserByEmailQuery(email);
+    const user = await getUserByEmailQuery(email) as UserModel;
+    const { password_hash, ...safeUser } = user.get({ plain: true });
 
     if (user) {
-      return res.status(200).json(STATUS_CODE[200](user));
+      return res.status(200).json(STATUS_CODE[200](safeUser));
     }
 
     return res.status(404).json(STATUS_CODE[404](user));
@@ -53,10 +58,11 @@ async function getUserByEmail(req: Request, res: Response) {
 async function getUserById(req: Request, res: Response) {
   try {
     const id = parseInt(req.params.id);
-    const user = await getUserByIdQuery(id);
+    const user = await getUserByIdQuery(id) as UserModel;
+    const { password_hash, ...safeUser } = user.get({ plain: true });
 
     if (user) {
-      return res.status(200).json(STATUS_CODE[200](user));
+      return res.status(200).json(STATUS_CODE[200](safeUser));
     }
 
     return res.status(404).json(STATUS_CODE[404](user));
@@ -85,10 +91,11 @@ async function createNewUser(req: Request, res: Response) {
       role,
       created_at,
       last_login,
-    });
+    }) as UserModel;
+    const { password_hash: _, ...safeUser } = user.get({ plain: true });
 
     if (user) {
-      return res.status(201).json(STATUS_CODE[201](user));
+      return res.status(201).json(STATUS_CODE[201](safeUser));
     }
 
     return res.status(400).json(STATUS_CODE[400](user));
@@ -133,14 +140,15 @@ async function resetPassword(req: Request, res: Response) {
   try {
     const { email, newPassword } = req.body;
 
-    const user = await getUserByEmailQuery(email);
+    const user = await getUserByEmailQuery(email) as UserModel;
 
     if (user) {
       const hashedPassword = await bcrypt.hash(newPassword, 10);
-      user.password_hash = hashedPassword;
-      const updatedUser = await resetPasswordQuery(email, hashedPassword);
+      user.dataValues.password_hash = hashedPassword;
+      const updatedUser = await resetPasswordQuery(email, hashedPassword) as UserModel;
+      const { password_hash, ...safeUser } = updatedUser.get({ plain: true });
 
-      return res.status(202).json(STATUS_CODE[202](updatedUser));
+      return res.status(202).json(STATUS_CODE[202](safeUser));
     }
 
     return res.status(404).json(STATUS_CODE[404](user));
@@ -152,7 +160,7 @@ async function resetPassword(req: Request, res: Response) {
 async function updateUserById(req: Request, res: Response) {
   try {
     const id = parseInt(req.params.id);
-    const { name, surname, email, password_hash, role, last_login } = req.body;
+    const { name, surname, email, role, last_login } = req.body;
 
     const user = await getUserByIdQuery(id);
 
@@ -161,12 +169,12 @@ async function updateUserById(req: Request, res: Response) {
         name: name ?? user.name,
         surname: surname ?? user.surname,
         email: email ?? user.email,
-        password_hash: password_hash ?? user.password_hash,
         role: role ?? user.role,
         last_login: last_login ?? user.last_login,
-      });
+      }) as UserModel;
+      const { password_hash, ...safeUser } = updatedUser.get({ plain: true });
 
-      return res.status(202).json(STATUS_CODE[202](updatedUser));
+      return res.status(202).json(STATUS_CODE[202](safeUser));
     }
 
     return res.status(404).json(STATUS_CODE[404]({}));
@@ -335,9 +343,10 @@ async function ChangePassword(req: Request, res: Response) {
     // Hash the new password and update the user's password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password_hash = hashedPassword;
-    const updatedUser = await resetPasswordQuery(user.email, hashedPassword);
+    const updatedUser = await resetPasswordQuery(user.email, hashedPassword) as UserModel;
+    const { password_hash, ...safeUser } = updatedUser.get({ plain: true });
 
-    return res.status(202).json(STATUS_CODE[202](updatedUser));
+    return res.status(202).json(STATUS_CODE[202](safeUser));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

@@ -227,7 +227,6 @@ export const updateUserByIdQuery = async (
     "name",
     "surname",
     "email",
-    "password_hash",
     "role",
     "last_login",
   ].filter(f => {

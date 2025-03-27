@@ -43,8 +43,7 @@ wait_for_postgres() {
         echo "Error: PostgreSQL container not found or not running. Please ensure the container name matches 'postgresdb' in your docker-compose.yml file."
         exit 1
     fi
-
-    #until docker exec $PG_CONTAINER pg_isready -U $DB_USER -d $DB_NAME; do
+ 
     until docker exec $PG_CONTAINER pg_isready; do
         echo "PostgreSQL is unavailable - sleeping"
         sleep 1

@@ -161,7 +161,7 @@ export const createNewUserQuery = async (
         },
         mapToModel: true,
         model: UserModel,
-        type: QueryTypes.INSERT
+        // type: QueryTypes.INSERT
       }
     );
 
@@ -194,7 +194,7 @@ export const resetPasswordQuery = async (
       },
       mapToModel: true,
       model: UserModel,
-      type: QueryTypes.UPDATE
+      // type: QueryTypes.UPDATE
     }
   );
   return result[0];
@@ -245,7 +245,7 @@ export const updateUserByIdQuery = async (
     replacements: updateUser,
     mapToModel: true,
     model: UserModel,
-    type: QueryTypes.UPDATE,
+    // type: QueryTypes.UPDATE,
   });
 
   return result[0];
@@ -280,7 +280,7 @@ export const deleteUserByIdQuery = async (id: number): Promise<Boolean> => {
           `UPDATE ${entry.table} SET ${f} = :x WHERE ${f} = :id`,
           {
             replacements: { x: null, id },
-            type: QueryTypes.UPDATE
+            // type: QueryTypes.UPDATE
           }
         )
       })

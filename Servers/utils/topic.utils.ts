@@ -36,7 +36,7 @@ export const createNewTopicQuery = async (topic: Topic): Promise<Topic> => {
       },
       mapToModel: true,
       model: TopicModel,
-      type: QueryTypes.INSERT
+      // type: QueryTypes.INSERT
     }
   );
   return result[0];
@@ -64,7 +64,7 @@ export const updateTopicByIdQuery = async (
     replacements: updateTopic,
     mapToModel: true,
     model: TopicModel,
-    type: QueryTypes.UPDATE,
+    // type: QueryTypes.UPDATE,
   });
 
   return result[0];
@@ -113,7 +113,7 @@ export const createNewTopicsQuery = async (assessmentId: number, enable_ai_data_
         },
         mapToModel: true,
         model: TopicModel,
-        type: QueryTypes.INSERT,
+        // type: QueryTypes.INSERT,
       }
     );
     const topic_id = result[0].id!;
@@ -122,7 +122,7 @@ export const createNewTopicsQuery = async (assessmentId: number, enable_ai_data_
       topicStruct.subtopics,
       enable_ai_data_insertion
     );
-    createdTopics.push({ ...result[0], subTopics });
+    createdTopics.push({ ...result[0].dataValues, subTopics });
   }
   return createdTopics;
 };

@@ -21,7 +21,7 @@ export const getAllVendorsQuery = async (): Promise<Vendor[]> => {
         model: VendorsProjectsModel
       }
     )
-    vendor["projects"] = projects.map(p => p.project_id)
+    vendor.dataValues["projects"] = projects.map(p => p.project_id)
   }
   return vendors
 };
@@ -46,7 +46,7 @@ export const getVendorByIdQuery = async (
       model: VendorsProjectsModel
     }
   )
-  return { ...result[0], projects: (projects || []).map(p => p.project_id) }
+  return { ...result[0].dataValues, projects: (projects || []).map(p => p.project_id) }
 };
 
 export const getVendorByProjectIdQuery = async (
@@ -76,7 +76,7 @@ export const getVendorByProjectIdQuery = async (
     // commenting as, for the current functionality, project and vendor have 1:1 mapping
     // const projects = await sequelize.query("SELECT project_id FROM vendors_projects WHERE vendor_id = $1", [vendors_project.vendor_id])
     // vendors.push({ ...vendor[0], projects: projects.map(p => p.project_id) })
-    vendors.push({ ...vendor[0], projects: [project_id] })
+    vendors.push({ ...vendor[0].dataValues, projects: [project_id] })
   }
   return vendors
 };
@@ -107,7 +107,7 @@ export const createNewVendorQuery = async (vendor: Vendor): Promise<Vendor | nul
         },
         mapToModel: true,
         model: VendorModel,
-        type: QueryTypes.INSERT
+        // type: QueryTypes.INSERT
       }
     );
 
@@ -131,7 +131,7 @@ export const createNewVendorQuery = async (vendor: Vendor): Promise<Vendor | nul
           },
           mapToModel: true,
           model: VendorsProjectsModel,
-          type: QueryTypes.INSERT
+          // type: QueryTypes.INSERT
         }
       );
       createdVendor["projects"] = vendors_projects.map(p => p.project_id)
@@ -175,7 +175,7 @@ export const updateVendorByIdQuery = async (
     replacements: updateVendor,
     mapToModel: true,
     model: VendorModel,
-    type: QueryTypes.UPDATE,
+    // type: QueryTypes.UPDATE,
   });
 
   return result[0];

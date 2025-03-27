@@ -23,6 +23,7 @@ export const getAllProjectsQuery = async (): Promise<Project[]> => {
       model: ProjectModel
     }
   );
+  console.log(projects);
   if (projects.length) {
     for (let project of projects) {
       const assessment = await sequelize.query(
@@ -33,7 +34,7 @@ export const getAllProjectsQuery = async (): Promise<Project[]> => {
           model: AssessmentModel
         }
       );
-      (project as any)["assessment_id"] = assessment[0].id
+      (project.dataValues as any)["assessment_id"] = assessment[0].id
 
       const members = await sequelize.query(
         "SELECT user_id FROM projects_members WHERE project_id = :project_id",
@@ -43,7 +44,7 @@ export const getAllProjectsQuery = async (): Promise<Project[]> => {
           model: ProjectsMembersModel
         }
       );
-      (project as any)["members"] = members.map(m => m.user_id)
+      (project.dataValues as any)["members"] = members.map(m => m.user_id)
     }
   }
   return projects;
@@ -70,7 +71,7 @@ export const getProjectByIdQuery = async (
       model: AssessmentModel
     }
   );
-  (project as any)["assessment_id"] = assessment[0].id
+  (project.dataValues as any)["assessment_id"] = assessment[0].id
 
   const members = await sequelize.query(
     "SELECT user_id FROM projects_members WHERE project_id = :project_id",
@@ -80,7 +81,7 @@ export const getProjectByIdQuery = async (
       model: ProjectsMembersModel
     }
   );
-  (project as any)["members"] = members.map(m => m.user_id)
+  (project.dataValues as any)["members"] = members.map(m => m.user_id)
 
   return project;
 };
@@ -110,11 +111,11 @@ export const createNewProjectQuery = async (
       },
       mapToModel: true,
       model: ProjectModel,
-      type: QueryTypes.INSERT
+      // type: QueryTypes.INSERT
     }
   );
   const createdProject = result[0];
-  (createdProject as any)["members"] = []
+  (createdProject.dataValues as any)["members"] = []
   for (let member of members) {
     await sequelize.query(
       `INSERT INTO projects_members (project_id, user_id) VALUES (:project_id, :user_id) RETURNING *`,
@@ -124,10 +125,10 @@ export const createNewProjectQuery = async (
         },
         mapToModel: true,
         model: ProjectsMembersModel,
-        type: QueryTypes.INSERT
+        // type: QueryTypes.INSERT
       }
     );
-    (createdProject as any)["members"].push(member)
+    (createdProject.dataValues as any)["members"].push(member)
   }
   return createdProject
 };
@@ -170,7 +171,7 @@ export const updateProjectByIdQuery = async (
         replacements: { user_id: member, project_id: id },
         mapToModel: true,
         model: ProjectsMembersModel,
-        type: QueryTypes.INSERT
+        // type: QueryTypes.INSERT
       }
     )
   }
@@ -200,7 +201,7 @@ export const updateProjectByIdQuery = async (
     replacements: updateProject,
     mapToModel: true,
     model: ProjectModel,
-    type: QueryTypes.UPDATE,
+    // type: QueryTypes.UPDATE,
   });
 
   const updatedMembers = await sequelize.query(
@@ -212,7 +213,7 @@ export const updateProjectByIdQuery = async (
     }
   )
   return result.length ? {
-    ...result[0],
+    ...result[0].dataValues,
     members: updatedMembers.map(m => m.user_id)
   } : null;
 };

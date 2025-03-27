@@ -1,0 +1,20 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: ./Servers
+      dockerfile: Dockerfile.dev
+    env_file:
+      - ./.env.dev
+
+  frontend:
+    build:
+      context: ./Clients
+      dockerfile: Dockerfile.dev
+    ports:
+      - $FRONTEND_PORT:$FRONTEND_PORT
+    env_file:
+      - ./.env.dev
+    environment:
+      - VITE_APP_PORT=$FRONTEND_PORT

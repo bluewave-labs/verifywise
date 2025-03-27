@@ -70,7 +70,7 @@ export const updateAssessmentByIdQuery = async (
       },
       mapToModel: true,
       model: AssessmentModel,
-      type: QueryTypes.UPDATE
+      // type: QueryTypes.UPDATE
     }
   );
   return result.length > 0;

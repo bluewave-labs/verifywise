@@ -24,4 +24,11 @@ export class VendorsProjectsModel extends Model<VendorsProjects> {
     primaryKey: true
   })
   project_id!: number;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
+  })
+  is_demo?: boolean;
 }

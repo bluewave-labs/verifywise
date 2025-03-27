@@ -36,7 +36,7 @@ import authenticateJWT from "../middleware/auth.middleware";
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.get("/", /*authenticateJWT, */ getAllUsers);
+router.get("/", authenticateJWT, getAllUsers);
 
 /**
  * GET /users/by-email/:email
@@ -50,7 +50,7 @@ router.get("/", /*authenticateJWT, */ getAllUsers);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.get("/by-email/:email", authenticateJWT, getUserByEmail);
+router.get("/by-email/:email", getUserByEmail);
 
 /**
  * GET /users/:id
@@ -64,7 +64,7 @@ router.get("/by-email/:email", authenticateJWT, getUserByEmail);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.get("/:id", /*authenticateJWT,*/ getUserById);
+router.get("/:id", authenticateJWT, getUserById);
 
 /**
  * POST /users/register
@@ -120,9 +120,9 @@ router.post("/reset-password", resetPassword);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.patch("/:id", /* authenticateJWT,*/ updateUserById);
+router.patch("/:id", authenticateJWT, updateUserById);
 
-router.patch("/chng-pass/:id", /* authenticateJWT,*/ ChangePassword);
+router.patch("/chng-pass/:id", ChangePassword);
 
 /**
  * DELETE /users/:id
@@ -136,7 +136,7 @@ router.patch("/chng-pass/:id", /* authenticateJWT,*/ ChangePassword);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.delete("/:id", /* authenticateJWT,*/ deleteUserById);
+router.delete("/:id", authenticateJWT, deleteUserById);
 
 /**
  * GET /users/check-user-exists
@@ -152,7 +152,7 @@ router.delete("/:id", /* authenticateJWT,*/ deleteUserById);
  */
 router.get("/check/exists", checkUserExists);
 
-router.get("/:id/calculate-progress", calculateProgress);
+router.get("/:id/calculate-progress", authenticateJWT, calculateProgress);
 
 export default router;
 

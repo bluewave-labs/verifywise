@@ -55,7 +55,7 @@ export const createNewVendorRiskQuery = async (vendorRisk: VendorRisk): Promise<
       },
       mapToModel: true,
       model: VendorRiskModel,
-      type: QueryTypes.INSERT
+      // type: QueryTypes.INSERT
     }
   );
   return result[0];
@@ -91,7 +91,7 @@ export const updateVendorRiskByIdQuery = async (
     replacements: updateVendorRisk,
     mapToModel: true,
     model: VendorRiskModel,
-    type: QueryTypes.UPDATE,
+    // type: QueryTypes.UPDATE,
   });
 
   return result[0];

@@ -21,34 +21,28 @@ import {
 import authenticateJWT from "../middleware/auth.middleware";
 
 // GET requests
-router.get("/", /*authenticateJWT,*/ getAllProjects);
-router.get(
-  "/calculateProjectRisks/:id",
-  /*authenticateJWT,*/ getProjectRisksCalculations
-);
-router.get(
-  "/calculateVendorRisks/:id",
-  /*authenticateJWT,*/ getVendorRisksCalculations
-);
-router.get("/:id", /*authenticateJWT,*/ getProjectById);
-router.get("/stats/:id", getProjectStatsById);
+router.get("/", authenticateJWT, getAllProjects);
+router.get("/calculateProjectRisks/:id", authenticateJWT, getProjectRisksCalculations);
+router.get("/calculateVendorRisks/:id", authenticateJWT, getVendorRisksCalculations);
+router.get("/:id", authenticateJWT, getProjectById);
+router.get("/stats/:id", authenticateJWT, getProjectStatsById);
 
-router.get("/complainces/:projid", getCompliances);
+router.get("/complainces/:projid", authenticateJWT, getCompliances);
 
-router.get("/compliance/progress/:id", projectComplianceProgress);
-router.get("/assessment/progress/:id", projectAssessmentProgress);
+router.get("/compliance/progress/:id", authenticateJWT, projectComplianceProgress);
+router.get("/assessment/progress/:id", authenticateJWT, projectAssessmentProgress);
 
-router.get("/all/compliance/progress", allProjectsComplianceProgress);
-router.get("/all/assessment/progress", allProjectsAssessmentProgress);
+router.get("/all/compliance/progress", authenticateJWT, allProjectsComplianceProgress);
+router.get("/all/assessment/progress", authenticateJWT, allProjectsAssessmentProgress);
 
 // POSTs
-router.post("/", /*authenticateJWT,*/ createProject);
-// router.post("/saveControls", /*authenticateJWT,*/ saveControls);
+router.post("/", authenticateJWT, createProject);
+// router.post("/saveControls", authenticateJWT, saveControls);
 
 // Patches
-router.patch("/:id", /*authenticateJWT,*/ updateProjectById);
+router.patch("/:id", authenticateJWT, updateProjectById);
 
 // DELETEs
-router.delete("/:id", /*authenticateJWT,*/ deleteProjectById);
+router.delete("/:id", authenticateJWT, deleteProjectById);
 
 export default router;

@@ -283,11 +283,6 @@ const VWQuestion = ({ question }: QuestionProps) => {
               border: "1px solid #D0D5DD",
               backgroundColor: "white",
               color: "#344054",
-              "&:hover": {
-                boxShadow: "1px 0px 6px 2px rgba(202, 202, 202, 0.75)",
-                WebkitBoxShadow: "1px 0px 6px 2px rgba(202, 202, 202, 0.75)",
-                MozBoxShadow: "1px 0px 6px 2px rgba(202, 202, 202, 0.75)",
-              },
             }}
             style={currentEl === values.id ? highlight : {}}
             disableRipple

@@ -26,6 +26,7 @@ export type Vendor = {
   | "Low risk"
   | "Very low risk"; // won't get any values, will be filled by user
   review_date: Date; // won't get any values, will be filled by user
+  created_at?: Date;
 };
 
 @Table({
@@ -106,4 +107,9 @@ export class VendorModel extends Model<Vendor> {
     defaultValue: false
   })
   is_demo?: boolean;
+
+  @Column({
+    type: DataType.DATE
+  })
+  created_at?: Date;
 }

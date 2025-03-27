@@ -17,7 +17,7 @@ import { SubtopicModel } from "../models/subtopic.model";
 
 export const getAllProjectsQuery = async (): Promise<Project[]> => {
   const projects = await sequelize.query(
-    "SELECT * FROM projects",
+    "SELECT * FROM projects ORDER BY created_at DESC, id ASC",
     {
       mapToModel: true,
       model: ProjectModel
@@ -106,7 +106,7 @@ export const createNewProjectQuery = async (
         ai_risk_classification: project.ai_risk_classification,
         type_of_high_risk_role: project.type_of_high_risk_role,
         goal: project.goal,
-        last_updated: project.start_date,
+        last_updated: Date.now(),
         last_updated_by: project.last_updated_by,
       },
       mapToModel: true,

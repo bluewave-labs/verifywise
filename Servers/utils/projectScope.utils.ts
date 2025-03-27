@@ -4,7 +4,7 @@ import { QueryTypes } from "sequelize";
 
 export const getAllProjectScopesQuery = async (): Promise<ProjectScope[]> => {
   const projectScopes = await sequelize.query(
-    "SELECT * FROM projectscopes",
+    "SELECT * FROM projectscopes ORDER BY created_at DESC, id ASC",
     {
       mapToModel: true,
       model: ProjectScopeModel

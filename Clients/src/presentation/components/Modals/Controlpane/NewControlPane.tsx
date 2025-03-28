@@ -16,7 +16,7 @@ import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
 import { updateEntityById } from "../../../../application/repository/entity.repository";
 import { Subcontrol } from "../../../../domain/Subcontrol";
 import { Control } from "../../../../domain/Control";
-import { FileData } from "../../../../domain/Subcontrol";
+import {  FileData } from "../../../../domain/File";
 import Alert from "../../Alert";
 import VWToast from "../../../vw-v2-components/Toast";
 import SaveIcon from "@mui/icons-material/Save";

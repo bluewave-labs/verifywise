@@ -4,7 +4,7 @@ import RichTextEditor from "../../../components/RichTextEditor/index";
 import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
 import Alert, { AlertProps } from "../../../components/Alert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
-import { FileData } from "../../../../domain/Subcontrol";
+import { FileData } from "../../../../domain/File";
 import Uppy from "@uppy/core";
 
 interface AuditorFeedbackProps {

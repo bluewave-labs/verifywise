@@ -40,6 +40,11 @@ const descriptionCellStyle = {
   textOverflow: "ellipsis",
 };
 
+const getRowStyle = (controlId: number | undefined, currentFlashRow: number | null, baseStyle: any) => ({
+  ...baseStyle,
+  ...(currentFlashRow === controlId && { backgroundColor: '#e3f5e6' })
+});
+
 interface Column {
   name: string;
 }
@@ -52,26 +57,11 @@ interface ControlsTableProps {
   flashRow?: number | null;
 }
 
-const flashAnimation = {
-  "@keyframes flashBackground": {
-    "0%": { backgroundColor: "#FFFFFF" },
-    "50%": { backgroundColor: "#E8F5E9" },
-    "100%": { backgroundColor: "#FFFFFF" },
-  },
-};
-
-const getRowStyle = (rowId: number | undefined | null, flashRowId: number | null) => ({
-  ...cellStyle,
-  backgroundColor: rowId === flashRowId ? "#E8F5E9" : "inherit",
-  transition: "background-color 0.3s ease-in-out"
-});
-
 const ControlsTable: React.FC<ControlsTableProps> = ({
   controlCategoryId,
   controlCategoryIndex,
   columns,
   onComplianceUpdate,
-  flashRow
 }) => {
   const theme = useTheme();
   const [controls, setControls] = useState<Control[]>([]);
@@ -232,31 +222,27 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
                     />
                   )}
                   <TableCell
-                    sx={descriptionCellStyle}
+                    sx={(theme) => getRowStyle(control.id, currentFlashRow, descriptionCellStyle)}
                     key={`${controlCategoryId}-${control.id}`}
-                    style={{ backgroundColor: currentFlashRow === control.id ? '#e3f5e6': ''}}
                   >
                     {controlCategoryIndex}.{`${control.order_no}`} {control.title}{" "}
                     <span style={{color: 'grey' }}>{`(${control.description})`}</span>
                   </TableCell>
                   <TableCell 
-                    sx={cellStyle} 
+                    sx={(theme) => getRowStyle(control.id, currentFlashRow, cellStyle)}
                     key={`owner-${control.id}`}
-                    style={{ backgroundColor: currentFlashRow === control.id ? '#e3f5e6': ''}}
                   >
                     {control.owner ? control.owner : "Not set"}
                   </TableCell>
                   <TableCell 
-                    sx={cellStyle} 
+                    sx={(theme) => getRowStyle(control.id, currentFlashRow, cellStyle)}
                     key={`noOfSubControls-${control.id}`}
-                    style={{ backgroundColor: currentFlashRow === control.id ? '#e3f5e6': ''}}
                   >
                     {`${control.numberOfSubcontrols} Subcontrols`}
                   </TableCell>
                   <TableCell 
-                    sx={cellStyle} 
+                    sx={(theme) => getRowStyle(control.id, currentFlashRow, cellStyle)}
                     key={`completion-${control.id}`}
-                    style={{ backgroundColor: currentFlashRow === control.id ? '#e3f5e6': ''}}
                   >
                     <Stack direction="row" alignItems="center" spacing={1}>
                       <Typography variant="body2">

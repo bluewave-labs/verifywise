@@ -96,20 +96,21 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   const handleSaveSuccess = (control: Control) => {
     handleControlUpdate();
     handleCloseModal();
+    
+    // Set flash effect and alert
     if (control.id) {
       setCurrentFlashRow(control.id);
+      setAlert({
+        type: "success",
+        message: "Control updated successfully"
+      });
+
+      // Use a single timeout to clear both effects
       setTimeout(() => {
         setCurrentFlashRow(null);
+        setAlert(null);
       }, 2000);
     }
-    // Show success notification
-    setAlert({
-      type: "success",
-      message: "Control updated successfully"
-    });
-    setTimeout(() => {
-      setAlert(null);
-    }, 2000);
   };
 
   useEffect(() => {

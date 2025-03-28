@@ -22,7 +22,7 @@ import {
   updateControlCategoryByIdQuery,
 } from "../utils/controlCategory.util";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
-import { Control } from "../models/control.model";
+import { Control, ControlModel } from "../models/control.model";
 import { Subcontrol } from "../models/subcontrol.model";
 import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
 
@@ -252,10 +252,10 @@ export async function getComplianceById(
 ): Promise<any> {
   const control_id = req.params.id;
   try {
-    const control = await getControlByIdQuery(parseInt(control_id));
+    const control = await getControlByIdQuery(parseInt(control_id)) as ControlModel;
     if (control && control.id) {
       const subControls = await getAllSubcontrolsByControlIdQuery(control.id);
-      control.subControls = subControls;
+      control.dataValues.subControls = subControls;
       return res.status(200).json(STATUS_CODE[200](control));
     } else {
       return res.status(404).json(STATUS_CODE[404]("Control not found"));
@@ -271,9 +271,9 @@ export async function getControlsByControlCategoryId(
 ): Promise<any> {
   try {
     const controlCategoryId = parseInt(req.params.id);
-    const controls: Control[] = await getAllControlsByControlGroupQuery(
+    const controls = await getAllControlsByControlGroupQuery(
       controlCategoryId
-    );
+    ) as ControlModel[];
     for (const control of controls) {
       if (control && control.id !== undefined) {
         const subControls = await getAllSubcontrolsByControlIdQuery(control.id);
@@ -287,9 +287,9 @@ export async function getControlsByControlCategoryId(
           }
         }
 
-        control.numberOfSubcontrols = numberOfSubcontrols;
-        control.numberOfDoneSubcontrols = numberOfDoneSubcontrols;
-        control.subControls = subControls;
+        control.dataValues.numberOfSubcontrols = numberOfSubcontrols;
+        control.dataValues.numberOfDoneSubcontrols = numberOfDoneSubcontrols;
+        control.dataValues.subControls = subControls;
       }
     }
     return res.status(200).json(STATUS_CODE[200](controls));

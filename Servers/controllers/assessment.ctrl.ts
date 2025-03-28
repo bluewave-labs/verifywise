@@ -27,7 +27,9 @@ import {
   updateQuestionByIdQuery,
   UploadedFile,
 } from "../utils/question.utils";
-import { Assessment } from "../models/assessment.model";
+import { Assessment, AssessmentModel } from "../models/assessment.model";
+import { TopicModel } from "../models/topic.model";
+import { SubtopicModel } from "../models/subtopic.model";
 
 export async function getAllAssessments(
   req: Request,
@@ -212,18 +214,18 @@ export async function deleteAssessmentById(
 export async function getAnswers(req: Request, res: Response): Promise<any> {
   try {
     const assessmentId = parseInt(req.params.id);
-    const assessment = await getAssessmentByIdQuery(assessmentId);
-    const topics = await getTopicByAssessmentIdQuery(assessment!.id!);
+    const assessment = await getAssessmentByIdQuery(assessmentId) as AssessmentModel;
+    const topics = await getTopicByAssessmentIdQuery(assessment!.id!) as TopicModel[];
     for (let topic of topics) {
-      const subTopics = await getSubTopicByTopicIdQuery(topic.id!);
+      const subTopics = await getSubTopicByTopicIdQuery(topic.id!) as SubtopicModel[];
 
       for (let subTopic of subTopics) {
         const questions = await getQuestionBySubTopicIdQuery(subTopic.id!);
-        (subTopic as any)["questions"] = questions;
+        (subTopic.dataValues as any)["questions"] = questions;
       }
-      (topic as any)["subTopics"] = subTopics;
+      (topic.dataValues as any)["subTopics"] = subTopics;
     }
-    (assessment as any)["topics"] = topics;
+    (assessment.dataValues as any)["topics"] = topics;
 
     return res.status(200).json(STATUS_CODE[200]({ message: assessment }));
   } catch (error) {

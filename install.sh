@@ -1,14 +1,24 @@
 #!/bin/bash
 
+# Function to detect whether to use `docker-compose` or `docker compose`
+detect_docker_compose() {
+    if command -v docker-compose &> /dev/null; then
+        DOCKER_COMPOSE_CMD="docker-compose"
+    elif docker compose version &> /dev/null; then
+        DOCKER_COMPOSE_CMD="docker compose"
+    else
+        echo "Error: Neither 'docker-compose' nor 'docker compose' is available. Please install Docker Compose."
+        exit 1
+    fi
+}
+
 # Function to read environment variables from .env file
 load_env() {
-    if [ -f .env ]; then
-        export $(cat .env | grep -v '#' | awk '/=/ {print $1}')
-
-        # Store the backend api url in the env file of frontend
-        echo "VITE_APP_API_BASE_URL=$VITE_APP_API_HOST:$BACKEND_PORT" > ./Clients/.env
+    ENV_FILE=$1
+    if [ -f $ENV_FILE ]; then
+        export $(cat $ENV_FILE | grep -v '#' | awk '/=/ {print $1}')
     else
-        echo "Error: .env file not found"
+        echo "Error: $ENV_FILE file not found"
         exit 1
     fi
 }
@@ -26,9 +36,14 @@ check_db_initialized() {
 wait_for_postgres() {
     echo "Waiting for PostgreSQL to be ready..."
     # Get the PostgreSQL container ID
-    PG_CONTAINER=$(docker-compose ps | grep postgresdb | grep Up | awk '{print $1}')
+    PG_CONTAINER=$($DOCKER_COMPOSE_CMD ps | grep postgresdb | grep Up | awk '{print $1}')
     
     # Wait for PostgreSQL to be ready to accept connections
+    if [ -z "$PG_CONTAINER" ]; then
+        echo "Error: PostgreSQL container not found or not running. Please ensure the container name matches 'postgresdb' in your docker-compose.yml file."
+        exit 1
+    fi
+ 
     until docker exec $PG_CONTAINER pg_isready; do
         echo "PostgreSQL is unavailable - sleeping"
         sleep 1
@@ -44,7 +59,7 @@ initialize_db() {
     wait_for_postgres
     
     # Get the PostgreSQL container ID
-    PG_CONTAINER=$(docker-compose ps | grep postgresdb | grep Up | awk '{print $1}')
+    PG_CONTAINER=$($DOCKER_COMPOSE_CMD ps | grep postgresdb | grep Up | awk '{print $1}')
     
     # Check if SQL files exist
     if [ ! -f "Servers/SQL_Commands.sql" ]; then
@@ -74,12 +89,20 @@ initialize_db() {
 
 # Main script
 main() {
-    # Load environment variables
-    load_env
+    detect_docker_compose
+
+    ENVIRONMENT=${1:-prod}
+    echo "Running in $ENVIRONMENT mode"
 
     # Start Docker Compose
     echo "Starting Docker Compose..."
-    docker-compose up -d
+    if [ $ENVIRONMENT == "dev" ]; then
+        load_env .env.dev
+        $DOCKER_COMPOSE_CMD --env-file .env.dev up --build -d
+    else
+        load_env .env.prod
+        $DOCKER_COMPOSE_CMD -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod up -d
+    fi
 
     # Check if database needs initialization
     if ! check_db_initialized; then
@@ -89,8 +112,8 @@ main() {
     fi
 
     # Keep containers running in foreground
-    docker-compose logs -f
+    $DOCKER_COMPOSE_CMD logs -f
 }
 
 # Run main function
-main
+main $1

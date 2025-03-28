@@ -1,0 +1,21 @@
+version: '3.9'
+
+services:
+  postgresdb:
+    volumes:
+      - db-prod:/var/lib/postgresql/data  # Separate volume for prod database
+
+  backend:
+    env_file:
+      - ./.env.prod
+  #   image: pharsh4585/verifywise-backend:latest
+
+  frontend:
+  #   image: pharsh4585/verifywise-frontend:latest  # Use pre-built production image
+    ports:
+      - $FRONTEND_PORT:80
+    env_file:
+      - ./.env.prod
+
+volumes:
+  db-prod:

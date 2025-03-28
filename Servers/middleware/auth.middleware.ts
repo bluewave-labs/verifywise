@@ -6,7 +6,7 @@ const authenticateJWT = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void | Response> => {
   const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {

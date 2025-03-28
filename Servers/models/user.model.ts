@@ -12,8 +12,11 @@
  * @property {Date} last_login - The date and time when the user last logged in.
  */
 
+import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
+import { RoleModel } from "./role.model";
+
 export type User = {
-  id: number;
+  id?: number;
   name: string;
   surname: string;
   email: string;
@@ -22,3 +25,58 @@ export type User = {
   created_at: Date;
   last_login: Date;
 };
+
+@Table({
+  tableName: "users"
+})
+export class UserModel extends Model<User> {
+  @Column({
+    type: DataType.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  })
+  id?: number;
+
+  @Column({
+    type: DataType.STRING
+  })
+  name!: string;
+
+  @Column({
+    type: DataType.STRING
+  })
+  surname!: string;
+
+  @Column({
+    type: DataType.STRING
+  })
+  email!: string;
+
+  @Column({
+    type: DataType.STRING
+  })
+  password_hash!: string;
+
+  @ForeignKey(() => RoleModel)
+  @Column({
+    type: DataType.INTEGER
+  })
+  role!: number;
+
+  @Column({
+    type: DataType.DATE
+  })
+  created_at!: Date;
+
+  @Column({
+    type: DataType.DATE
+  })
+  last_login!: Date;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
+  })
+  is_demo?: boolean;
+}

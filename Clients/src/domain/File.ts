@@ -1,7 +1,12 @@
-export interface FileData {
+export interface File {
   id: string;
+  name: string;
+  type: string;
+  uploadDate: string;
+  uploader: string;
   fileName: string;
   size: number;
-  type: string;
   data?: Blob;
 }
+
+

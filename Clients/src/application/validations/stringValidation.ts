@@ -51,7 +51,7 @@ export function checkStringValidation(
     return feedbackToString(false, `${title} is required.`);
   }
 
-  if(value.trim() === ""){
+  if(value.length > 0 && type !== 'password' && value.trim() === ""){
     return feedbackToString(false, `${title} cannot be an empty string.`);
   }
 

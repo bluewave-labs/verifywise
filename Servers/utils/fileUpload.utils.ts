@@ -1,5 +1,7 @@
 import { UploadedFile } from "./question.utils";
-import pool from "../database/db";
+import { sequelize } from "../database/db";
+import { FileModel } from "../models/file.model";
+import { QueryTypes } from "sequelize";
 
 export const uploadFile = async (
   file: UploadedFile,
@@ -7,25 +9,54 @@ export const uploadFile = async (
   project_id: number
 ) => {
   const query = `INSERT INTO files
-    (filename, content, project_id, uploaded_by, uploaded_time)
-    VALUES ($1, $2, $3, $4, $5) RETURNING *`;
-  const result = await pool.query(query, [
-    file.originalname,
-    file.buffer,
-    project_id,
-    user_id,
-    new Date().toISOString()
-  ]);
-  return result.rows[0];
+    (
+      filename, content, project_id, uploaded_by, uploaded_time
+    )
+    VALUES (
+      :filename, :content, :project_id, :uploaded_by, :uploaded_time
+    ) RETURNING *`;
+  const result = await sequelize.query(query, {
+    replacements: {
+      filename: file.originalname,
+      content: file.buffer,
+      project_id,
+      uploaded_by: user_id,
+      uploaded_time: new Date().toISOString()
+    },
+    mapToModel: true,
+    model: FileModel,
+    // type: QueryTypes.INSERT
+  });
+  return result[0];
 }
 
 export const deleteFileById = async (id: number) => {
-  const query = `DELETE FROM files WHERE id = $1`;
-  await pool.query(query, [id]);
+  const query = `DELETE FROM files WHERE id = :id`;
+  const result = await sequelize.query(query, {
+    replacements: { id },
+    mapToModel: true,
+    model: FileModel,
+    type: QueryTypes.DELETE
+  });
+  return result.length > 0
 }
 
 export const getFileById = async (id: number) => {
-  const query = `SELECT * FROM files WHERE id = $1`;
-  const result = await pool.query(query, [id]);
-  return result.rows[0];
+  const query = `SELECT * FROM files WHERE id = :id`;
+  const result = await sequelize.query(query, {
+    replacements: { id },
+    mapToModel: true,
+    model: FileModel
+  });
+  return result[0];
+}
+
+export const getFileMetadataByProjectId = async (project_id: number) => {
+  const query = `SELECT id, filename, project_id, uploaded_by, uploaded_time FROM files WHERE project_id = :project_id`;
+  const result = await sequelize.query(query, {
+    replacements: { project_id },
+    mapToModel: true,
+    model: FileModel
+  });
+  return result;
 }

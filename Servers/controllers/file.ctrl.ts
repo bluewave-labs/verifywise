@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import { deleteFileById, getFileById, uploadFile } from "../utils/fileUpload.utils";
+import { deleteFileById, getFileById, getFileMetadataByProjectId, uploadFile } from "../utils/fileUpload.utils";
 import { addFileToQuestion, RequestWithFile, UploadedFile } from "../utils/question.utils";
 
 export async function getFileContentById(
@@ -13,6 +13,31 @@ export async function getFileContentById(
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader("Content-Disposition", `attachment; filename="${file.filename}"`);
       return res.status(200).send(file.content);
+    }
+    return res.status(404).json(STATUS_CODE[404]({}));
+  } catch (error) {
+    console.error("Error downloading file:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getFileMetaByProjectId(
+  req: Request,
+  res: Response
+): Promise<any> {
+  try {
+    const id = req.params.id
+    // id validations
+    if (!id) {
+      return res.status(400).json(STATUS_CODE[400]("File ID is required"));
+    }
+    const fileId = parseInt(id);
+    if (isNaN(fileId) || fileId <= 0) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid File ID"));
+    }
+    const files = await getFileMetadataByProjectId(fileId);
+    if (files && files.length > 0) {
+      return res.status(200).send(files);
     }
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
@@ -43,7 +68,7 @@ export async function postFileContent(
     for (let file of req.files! as UploadedFile[]) {
       const uploadedFile = await uploadFile(file, body.user_id, body.project_id);
       uploadedFiles.push({
-        id: uploadedFile.id.toString(),
+        id: uploadedFile.id!.toString(),
         fileName: uploadedFile.filename,
         project_id: uploadedFile.project_id,
         uploaded_by: uploadedFile.uploaded_by,

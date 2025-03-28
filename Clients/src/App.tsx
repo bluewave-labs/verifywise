@@ -34,6 +34,7 @@ import ComplianceTracker from "./presentation/pages/ComplianceTracker/1.0Complia
 import VWHome from "./presentation/pages/Home/1.0Home";
 import VWProjectView from "./presentation/pages/ProjectView/V1.0ProjectView";
 import { Project } from "./domain/Project";
+import PageNotFound from "./presentation/pages/PageNotFound";
 
 function App() {
   const mode = useSelector((state: any) => state.ui?.mode || "light");
@@ -177,6 +178,7 @@ function App() {
                 element={<ProtectedRoute Component={ResetPasswordContinue} />}
               />
               <Route path="/playground" element={<Playground />} />
+              <Route path="*" element={<PageNotFound />} />
             </Routes>
           </ThemeProvider>
         </VerifyWiseContext.Provider>

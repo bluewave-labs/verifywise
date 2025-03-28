@@ -12,20 +12,17 @@ import {
 } from "../controllers/controlCategory.ctrl";
 
 // GET requests
-router.get("/" /*authenticateJWT, */, getAllControlCategories);
-router.get("/:id" /*authenticateJWT, */, getControlCategoryById);
-router.get(
-  "/byprojectid/:id" /*authenticateJWT, */,
-  getControlCategoryByProjectId
-);
+router.get("/", authenticateJWT, getAllControlCategories);
+router.get("/:id", authenticateJWT, getControlCategoryById);
+router.get("/byprojectid/:id", authenticateJWT, getControlCategoryByProjectId);
 
 // POSTs
-router.post("/" /*authenticateJWT, */, createControlCategory);
+router.post("/", authenticateJWT, createControlCategory);
 
 // PUTs
-router.put("/:id" /*authenticateJWT, */, updateControlCategoryById);
+router.put("/:id", authenticateJWT, updateControlCategoryById);
 
 // DELETEs
-router.delete("/:id" /*authenticateJWT, */, deleteControlCategoryById);
+router.delete("/:id", authenticateJWT, deleteControlCategoryById);
 
 export default router;

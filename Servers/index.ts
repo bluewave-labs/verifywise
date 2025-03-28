@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import cookieParser from "cookie-parser";
 // import { checkAndCreateTables } from "./database/db";
 
 import assessmentRoutes from "./routes/assessment.route";
@@ -48,6 +49,7 @@ try {
   );
   app.use(helmet()); // Use helmet for security headers
   app.use(express.json());
+  app.use(cookieParser());
 
   // Routes
   app.use("/users", userRoutes);

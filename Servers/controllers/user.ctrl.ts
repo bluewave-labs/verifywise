@@ -19,7 +19,7 @@ import {
 } from "../utils/user.utils";
 import bcrypt from "bcrypt";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import { generateToken } from "../utils/jwt.util";
+import { generateRefreshToken, generateToken, getRefreshTokenPayload } from "../utils/jwt.util";
 import { UserModel } from "../models/user.model";
 
 async function getAllUsers(req: Request, res: Response): Promise<any> {
@@ -120,6 +120,14 @@ async function loginUser(req: Request, res: Response): Promise<any> {
           id: user!.id,
           email: email,
         });
+        const refreshToken = generateRefreshToken(
+          { id: user!.id, email: email }
+        );
+        res.cookie("refresh_token", refreshToken, {
+          httpOnly: true,
+          path: "/refresh-token",
+          expires: new Date(Date.now() + 1 * 3600 * 1000 * 24 * 30), // 30 days
+        });
         return res.status(202).json(
           STATUS_CODE[202]({
             token,
@@ -131,6 +139,38 @@ async function loginUser(req: Request, res: Response): Promise<any> {
     }
 
     return res.status(404).json(STATUS_CODE[404]({}));
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+async function refreshAccessToken(req: Request, res: Response): Promise<any> {
+  try {
+    const refreshToken = req.cookies.refresh_token;
+
+    if (!refreshToken) {
+      return res.status(400).json(STATUS_CODE[400]("Refresh token is required"));
+    }
+
+    const decoded = getRefreshTokenPayload(refreshToken);
+
+    if (!decoded) {
+      return res.status(401).json(STATUS_CODE[401]("Invalid refresh token"));
+    }
+
+    if (decoded.expire < Date.now())
+      return res.status(406).json(STATUS_CODE[406]({ message: "Token expired" }));
+
+    const newAccessToken = generateToken({
+      id: decoded.id,
+      email: decoded.email,
+    });
+
+    return res.status(200).json(
+      STATUS_CODE[200]({
+        token: newAccessToken,
+      })
+    );
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -364,4 +404,5 @@ export {
   checkUserExists,
   calculateProgress,
   ChangePassword,
+  refreshAccessToken
 };

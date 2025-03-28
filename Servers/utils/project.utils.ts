@@ -23,7 +23,6 @@ export const getAllProjectsQuery = async (): Promise<Project[]> => {
       model: ProjectModel
     }
   );
-  console.log(projects);
   if (projects.length) {
     for (let project of projects) {
       const assessment = await sequelize.query(

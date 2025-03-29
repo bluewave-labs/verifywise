@@ -5,7 +5,7 @@ import AscendingIcon from "../../../assets/icons/up-arrow.svg";
 import DescendingIcon from "../../../assets/icons/down-arrow.svg";
 import EmptyTableImage from "../../../assets/imgs/empty-state.svg";
 import { FileData } from "../../../../domain/File";
-import { mockFiles } from "./data";
+// import { mockFiles } from "./data";
 
 type SortDirection = "asc" | "desc" | null;
 
@@ -21,9 +21,6 @@ interface FileTableProps {
   files: FileData[];
   onRowClick: (fileId: string) => void;
 }
-
-//fallback mock data for dev purposes
-
 /**
  *
  * Displays an empty state when no files are available.
@@ -72,11 +69,9 @@ const FileTable: React.FC<FileTableProps> = ({ cols, files, onRowClick }) => {
     setSortField(field);
   };
 
-  const displayFiles = files && files.length > 0 ? files : mockFiles;
-
   const sortedFiles = useMemo(() => {
-    if (!sortField) return displayFiles;
-    return [...displayFiles].sort((a, b) => {
+    if (!sortField) return files;
+    return [...files].sort((a, b) => {
       const aValue = a[sortField] ?? "";
       const bValue = b[sortField] ?? "";
 
@@ -88,7 +83,7 @@ const FileTable: React.FC<FileTableProps> = ({ cols, files, onRowClick }) => {
 
       return 0;
     });
-  }, [displayFiles, sortField, sortDirection]);
+  }, [files, sortField, sortDirection]);
 
   const sortedCols = useMemo(
     () =>
@@ -129,20 +124,20 @@ const FileTable: React.FC<FileTableProps> = ({ cols, files, onRowClick }) => {
     () =>
       sortedFiles.map((file) => ({
         id: file.id,
-        file: file.filename,
+        file: file.name || file.filename,
         uploadDate: file.uploadDate,
         uploader: file.uploader,
       })),
     [sortedFiles]
   );
 
-  return mockFiles.length === 0 ? (
+  return files.length === 0 ? (
     <EmptyState />
   ) : (
     <FileBasicTable
       data={{ cols: sortedCols, rows }}
-      bodyData={displayFiles}
-      paginated={displayFiles.length > 0}
+      bodyData={sortedFiles}
+      paginated={files.length > 0}
       table="fileManager"
       onRowClick={onRowClick}
       setSelectedRow={(row) => onRowClick(row.id)}

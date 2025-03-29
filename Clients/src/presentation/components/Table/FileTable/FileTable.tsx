@@ -4,7 +4,7 @@ import { Stack, Box, Typography } from "@mui/material";
 import AscendingIcon from "../../../assets/icons/up-arrow.svg";
 import DescendingIcon from "../../../assets/icons/down-arrow.svg";
 import EmptyTableImage from "../../../assets/imgs/empty-state.svg";
-import { File } from "../../../../domain/File";
+import { FileData } from "../../../../domain/File";
 import { mockFiles } from "./data";
 
 type SortDirection = "asc" | "desc" | null;
@@ -13,12 +13,12 @@ type SortDirection = "asc" | "desc" | null;
  * Represents the props of the FileTable component.
  * @typedef {Object} FileTableProps
  * @property {Array} cols - The columns of the table.
- * @property {Array<File>} files - The list of files.
+ * @property {Array<FileData>} files - The list of files.
  * @property {Function} onRowClick - Callback to handle row selection.
  */
 interface FileTableProps {
   cols: any[];
-  files: File[];
+  files: FileData[];
   onRowClick: (fileId: string) => void;
 }
 
@@ -63,10 +63,10 @@ const EmptyState: React.FC = (): JSX.Element => (
 );
 
 const FileTable: React.FC<FileTableProps> = ({ cols, files, onRowClick }) => {
-  const [sortField, setSortField] = useState<keyof File | null>(null);
+  const [sortField, setSortField] = useState<keyof FileData | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
-  const handleSort = (field: keyof File) => {
+  const handleSort = (field: keyof FileData) => {
     const isAsc = sortField === field && sortDirection === "asc";
     setSortDirection(isAsc ? "desc" : "asc");
     setSortField(field);
@@ -103,7 +103,7 @@ const FileTable: React.FC<FileTableProps> = ({ cols, files, onRowClick }) => {
                 <Stack
                   direction="row"
                   alignItems="center"
-                  onClick={() => handleSort(colKey as keyof File)}
+                  onClick={() => handleSort(colKey as keyof FileData)}
                   sx={{ cursor: "pointer" }}
                 >
                   {col.name}
@@ -129,7 +129,7 @@ const FileTable: React.FC<FileTableProps> = ({ cols, files, onRowClick }) => {
     () =>
       sortedFiles.map((file) => ({
         id: file.id,
-        file: file.name,
+        file: file.filename,
         uploadDate: file.uploadDate,
         uploader: file.uploader,
       })),

@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { getEntityById } from "../repository/entity.repository";
-import { File} from "../../domain/File"
+import { FileData} from "../../domain/File"
 
 export const useFetchFiles = (projectID:string) => {
-  const [filesData, setFilesData] = useState<File[]>([]);
+  const [filesData, setFilesData] = useState<FileData[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {

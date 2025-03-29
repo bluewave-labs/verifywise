@@ -1,6 +1,6 @@
 export interface FileData {
   id: string;
-  name: string;
+  filename: string;
   type: string;
   uploadDate: string;
   uploader: string;

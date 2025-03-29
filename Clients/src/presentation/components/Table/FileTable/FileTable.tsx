@@ -124,7 +124,7 @@ const FileTable: React.FC<FileTableProps> = ({ cols, files, onRowClick }) => {
     () =>
       sortedFiles.map((file) => ({
         id: file.id,
-        file: file.name || file.filename,
+        file: file.filename,
         uploadDate: file.uploadDate,
         uploader: file.uploader,
       })),

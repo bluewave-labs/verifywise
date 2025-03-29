@@ -112,7 +112,7 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
                   "&:hover": { backgroundColor: "#FBFBFB", cursor: "pointer" },
                 }}
               >
-                <TableCell>{row.name}</TableCell>
+                <TableCell>{row.filename}</TableCell>
                 <TableCell>{row.uploadDate}</TableCell>
                 <TableCell>{row.uploader}</TableCell>
               </TableRow>

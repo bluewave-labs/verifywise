@@ -1,8 +1,10 @@
-import React, {SyntheticEvent, useState} from 'react';
+import React, {Suspense, SyntheticEvent, lazy, useState} from 'react';
 import { Stack, Typography, useTheme, Theme, Tab, Box } from '@mui/material';
 import { vwhomeHeading } from '../Home/1.0Home/style';
 import {TabContext, TabPanel, TabList} from '@mui/lab';
 import { tabStyle, tabPanelStyle } from '../Vendors/style';
+const GenerateReport = lazy(() => import('./GenerateReport'));
+const ReportLists = lazy(() => import('./Reports'));
 
 const Reporting = () => {
   const theme = useTheme();
@@ -42,9 +44,15 @@ const Reporting = () => {
           </Box>
           <TabPanel value="generate" sx={tabPanelStyle}>
             {/* Render generate view */}
+            <Suspense fallback={"loading..."}>
+              <GenerateReport />
+            </Suspense>
           </TabPanel>
           <TabPanel value="reports" sx={tabPanelStyle}>
             {/* Render a report view */}
+            <Suspense fallback={"loading..."}>
+              <ReportLists />
+            </Suspense>
           </TabPanel>
         </TabContext>
       </Stack>

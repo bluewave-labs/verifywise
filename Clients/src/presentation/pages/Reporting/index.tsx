@@ -1,13 +1,54 @@
-import React from 'react';
-import { Stack, Typography, useTheme, Theme } from '@mui/material';
+import React, {SyntheticEvent, useState} from 'react';
+import { Stack, Typography, useTheme, Theme, Tab, Box } from '@mui/material';
 import { vwhomeHeading } from '../Home/1.0Home/style';
+import {TabContext, TabPanel, TabList} from '@mui/lab';
+import { tabStyle, tabPanelStyle } from '../Vendors/style';
 
 const Reporting = () => {
   const theme = useTheme();
+  const [value, setValue] = useState<string>("generate");
+
+  const handleTabChange = (_: SyntheticEvent, newValue: string) => {
+    setValue(newValue);
+  }
 
   return (
     <Stack className="vwhome" gap={"20px"}>
       <ReportingHeader theme={theme} />
+      <Stack>
+        <TabContext value={value}>
+          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+            <TabList
+              TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
+              sx={{
+                minHeight: "20px",
+                "& .MuiTabs-flexContainer": { columnGap: "34px" },
+              }}
+              onChange={handleTabChange}
+            >
+              <Tab 
+                sx={tabStyle} 
+                label="Generate a report"
+                value="generate"
+                disableRipple
+              />
+              <Tab 
+                sx={tabStyle} 
+                label="Reports generated"
+                value="reports"
+                disableRipple
+              />
+            </TabList>
+          </Box>
+          <TabPanel value="generate" sx={tabPanelStyle}>
+            {/* Render generate view */}
+          </TabPanel>
+          <TabPanel value="reports" sx={tabPanelStyle}>
+            {/* Render a report view */}
+          </TabPanel>
+        </TabContext>
+      </Stack>
+    
     </Stack>
   )
 }

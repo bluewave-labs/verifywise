@@ -8,5 +8,3 @@ export interface FileData {
   size: number;
   data?: Blob;
 }
-
-

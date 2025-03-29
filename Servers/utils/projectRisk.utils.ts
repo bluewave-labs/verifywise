@@ -6,7 +6,7 @@ export const getAllProjectRisksQuery = async (
   projectId: number
 ): Promise<ProjectRisk[]> => {
   const projectRisks = await sequelize.query(
-    "SELECT * FROM projectrisks WHERE project_id = :project_id",
+    "SELECT * FROM projectrisks WHERE project_id = :project_id ORDER BY created_at DESC, id ASC",
     {
       replacements: { project_id: projectId },
       mapToModel: true,

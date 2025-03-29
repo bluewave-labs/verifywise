@@ -12,6 +12,7 @@ export type Topic = {
   title: string; // gets assigned from the structure
   order_no?: number; // gets assigned from the structure
   assessment_id: number; // when assessment is created, its id will be stored and assign here as FK
+  created_at?: Date;
 };
 
 @Table({
@@ -47,4 +48,9 @@ export class TopicModel extends Model<Topic> {
     defaultValue: false
   })
   is_demo?: boolean;
+
+  @Column({
+    type: DataType.DATE
+  })
+  created_at?: Date;
 }

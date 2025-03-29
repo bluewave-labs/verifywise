@@ -5,7 +5,7 @@ import { QueryTypes } from "sequelize";
 
 export const getAllAssessmentsQuery = async (): Promise<Assessment[]> => {
   const assessments = await sequelize.query(
-    "SELECT * FROM assessments",
+    "SELECT * FROM assessments ORDER BY created_at DESC, id ASC",
     {
       mapToModel: true,
       model: AssessmentModel
@@ -32,7 +32,7 @@ export const getAssessmentByProjectIdQuery = async (
   projectId: number
 ): Promise<Assessment[]> => {
   const result = await sequelize.query(
-    "SELECT * FROM assessments WHERE project_id = :project_id",
+    "SELECT * FROM assessments WHERE project_id = :project_id ORDER BY created_at DESC, id ASC",
     {
       replacements: { project_id: projectId },
       mapToModel: true,

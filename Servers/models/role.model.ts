@@ -4,6 +4,7 @@ export type Role = {
   id?: number;
   name: string;
   description: string;
+  created_at?: Date;
 }
 
 @Table({
@@ -34,4 +35,9 @@ export class RoleModel extends Model<Role> {
     defaultValue: false
   })
   is_demo?: boolean;
+
+  @Column({
+    type: DataType.DATE
+  })
+  created_at?: Date;
 }

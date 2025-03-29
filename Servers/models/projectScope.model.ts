@@ -11,6 +11,7 @@ export type ProjectScope = {
   hasOngoingMonitoring: boolean;
   unintendedOutcomes: string;
   technologyDocumentation: string;
+  created_at?: Date;
 };
 
 @Table({
@@ -84,4 +85,9 @@ export class ProjectScopeModel extends Model<ProjectScope> {
     defaultValue: false
   })
   is_demo?: boolean;
+
+  @Column({
+    type: DataType.DATE
+  })
+  created_at?: Date;
 }

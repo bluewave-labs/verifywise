@@ -14,6 +14,7 @@ export type ControlCategory = {
   title: string; // gets assigned from the structure
   order_no?: number; // gets assigned from the structure
   controls?: Control[];
+  created_at?: Date;
 };
 
 @Table({
@@ -49,4 +50,9 @@ export class ControlCategoryModel extends Model<ControlCategory> {
     defaultValue: false
   })
   is_demo?: boolean;
+
+  @Column({
+    type: DataType.DATE
+  })
+  created_at?: Date;
 }

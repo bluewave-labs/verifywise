@@ -4,7 +4,7 @@ import { QueryTypes } from "sequelize";
 
 export const getAllRolesQuery = async (): Promise<Role[]> => {
   const roles = await sequelize.query(
-    "SELECT * FROM roles",
+    "SELECT * FROM roles ORDER BY created_at DESC, id ASC",
     {
       mapToModel: true,
       model: RoleModel

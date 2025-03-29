@@ -6,7 +6,7 @@ import { QueryTypes } from "sequelize";
 
 export const getAllQuestionsQuery = async (): Promise<(Question & { evidence_files: Object[] })[]> => {
   const questions = await sequelize.query(
-    "SELECT * FROM questions",
+    "SELECT * FROM questions ORDER BY created_at DESC, id ASC",
     {
       mapToModel: true,
       model: QuestionModel
@@ -187,7 +187,7 @@ export const getQuestionBySubTopicIdQuery = async (
   subTopicId: number
 ): Promise<Question[]> => {
   const result = await sequelize.query(
-    `SELECT * FROM questions WHERE subtopic_id = :subtopic_id`,
+    `SELECT * FROM questions WHERE subtopic_id = :subtopic_id ORDER BY created_at DESC, id ASC`,
     {
       replacements: { subtopic_id: subTopicId },
       mapToModel: true,
@@ -201,7 +201,7 @@ export const getQuestionByTopicIdQuery = async (
   topicId: number
 ): Promise<Question[]> => {
   const result = await sequelize.query(
-    `SELECT * FROM questions WHERE subtopic_id IN (SELECT id FROM subtopics WHERE topic_id = :topic_id);`,
+    `SELECT * FROM questions WHERE subtopic_id IN (SELECT id FROM subtopics WHERE topic_id = :topic_id) ORDER BY created_at DESC, id ASC;`,
     {
       replacements: { topic_id: topicId },
       mapToModel: true,

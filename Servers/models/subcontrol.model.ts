@@ -25,6 +25,7 @@ export type Subcontrol = {
   evidence_files?: Object[]; // fill be filed automatically when a file is uploaded
   feedback_files?: Object[]; // fill be filed automatically when a file is uploaded
   control_id: number; // when control is created, its id will be stored and assign here as FK
+  created_at?: Date;
 };
 
 @Table({
@@ -123,4 +124,9 @@ export class SubcontrolModel extends Model<Subcontrol> {
     defaultValue: false
   })
   is_demo?: boolean;
+
+  @Column({
+    type: DataType.DATE
+  })
+  created_at?: Date;
 }

@@ -19,6 +19,7 @@ export type Project = {
   goal: string;
   last_updated: Date;
   last_updated_by: number;
+  created_at?: Date;
   // vendors: string[];
 
   // statistical fields
@@ -92,4 +93,9 @@ export class ProjectModel extends Model<Project> {
     defaultValue: false
   })
   is_demo?: boolean;
+
+  @Column({
+    type: DataType.DATE
+  })
+  created_at?: Date;
 }

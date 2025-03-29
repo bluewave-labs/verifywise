@@ -52,7 +52,7 @@ import { QuestionModel } from "../models/question.model";
  */
 export const getAllUsersQuery = async (): Promise<User[]> => {
   const users = await sequelize.query(
-    "SELECT * FROM users",
+    "SELECT * FROM users ORDER BY created_at DESC, id ASC",
     {
       mapToModel: true,
       model: UserModel,

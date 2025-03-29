@@ -13,6 +13,7 @@ changing "projectId" to "project_id" for more consistancy
 export type Assessment = {
   id?: number;
   project_id: number;
+  created_at?: Date;
 };
 
 @Table({
@@ -38,4 +39,9 @@ export class AssessmentModel extends Model<Assessment> {
     defaultValue: false
   })
   is_demo?: boolean;
+
+  @Column({
+    type: DataType.DATE
+  })
+  created_at?: Date;
 }

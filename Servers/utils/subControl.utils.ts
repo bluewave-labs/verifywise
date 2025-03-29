@@ -6,7 +6,7 @@ import { QueryTypes } from "sequelize";
 
 export const getAllSubcontrolsQuery = async (): Promise<Subcontrol[]> => {
   const subcontrols = await sequelize.query(
-    "SELECT * FROM subcontrols",
+    "SELECT * FROM subcontrols ORDER BY created_at DESC, id ASC",
     {
       mapToModel: true,
       model: SubcontrolModel
@@ -19,7 +19,7 @@ export const getAllSubcontrolsByControlIdQuery = async (
   controlId: number
 ): Promise<Subcontrol[]> => {
   const subcontrols = await sequelize.query(
-    "SELECT * FROM subcontrols WHERE control_id = :id",
+    "SELECT * FROM subcontrols WHERE control_id = :id ORDER BY created_at DESC, id ASC",
     {
       replacements: { id: controlId },
       mapToModel: true,

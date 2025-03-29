@@ -74,6 +74,7 @@ export type ProjectRisk = {
   risk_approval: number;
   approval_status: string;
   date_of_assessment: Date;
+  created_at?: Date;
   recommendations?: string;
 };
 
@@ -258,4 +259,9 @@ export class ProjectRiskModel extends Model<ProjectRisk> {
     defaultValue: false
   })
   is_demo?: boolean;
+
+  @Column({
+    type: DataType.DATE
+  })
+  created_at?: Date;
 }

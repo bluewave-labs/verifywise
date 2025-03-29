@@ -6,7 +6,7 @@ import { QueryTypes } from "sequelize";
 
 export const getAllSubtopicsQuery = async (): Promise<Subtopic[]> => {
   const subtopics = await sequelize.query(
-    "SELECT * FROM subtopics",
+    "SELECT * FROM subtopics ORDER BY created_at DESC, id ASC",
     {
       mapToModel: true,
       model: SubtopicModel
@@ -91,7 +91,7 @@ export const getSubTopicByTopicIdQuery = async (
   topicId: number
 ): Promise<Subtopic[]> => {
   const result = await sequelize.query(
-    `SELECT * FROM subtopics WHERE topic_id = :topic_id`,
+    `SELECT * FROM subtopics WHERE topic_id = :topic_id ORDER BY created_at DESC, id ASC`,
     {
       replacements: { topic_id: topicId },
       mapToModel: true,

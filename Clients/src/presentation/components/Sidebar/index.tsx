@@ -25,6 +25,7 @@ import { ReactComponent as ArrowRight } from "../../assets/icons/right-arrow.svg
 import { ReactComponent as Dashboard } from "../../assets/icons/dashboard.svg";
 import { ReactComponent as DotsVertical } from "../../assets/icons/dots-vertical.svg";
 import { ReactComponent as LogoutSvg } from "../../assets/icons/logout.svg";
+import { ReactComponent as ReportingSvg } from "../../assets/icons/reporting.svg";
 
 import { ReactComponent as Compliance } from "../../assets/icons/globe.svg";
 import { ReactComponent as Assessment } from "../../assets/icons/chart.svg";
@@ -69,6 +70,11 @@ const menu = [
     name: "Evidences",
     icon: <FileManager />,
     path: "/file-manager",
+  },
+  {
+    name: "Reporting",
+    icon: <ReportingSvg />,
+    path: "/reporting",
   },
 ];
 

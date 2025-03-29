@@ -19,6 +19,7 @@ import SetNewPassword from "./presentation/pages/Authentication/SetNewPassword";
 import ResetPasswordContinue from "./presentation/pages/Authentication/ResetPasswordContinue";
 import ProjectView from "./presentation/pages/ProjectView";
 import FileManager from "./presentation/pages/FileManager";
+import Reporting from "./presentation/pages/Reporting";
 
 import { VerifyWiseContext } from "./application/contexts/VerifyWise.context";
 import { useMemo, useState } from "react";
@@ -148,6 +149,7 @@ function App() {
                 <Route path="/file-manager" element={<FileManager />} />
                 <Route path="/" element={<VWHome />} />
                 <Route path="/project-view" element={<VWProjectView />} />
+                <Route path="/reporting" element={<Reporting />}/>
               </Route>
               <Route
                 path="/admin-reg"

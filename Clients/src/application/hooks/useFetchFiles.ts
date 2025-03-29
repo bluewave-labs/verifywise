@@ -10,14 +10,14 @@ export const useFetchFiles = (projectID:string) => {
     const fetchFilesData = async () => {
       try {
         setLoading(true);
-       const routeUrl = projectID ? `/files?projectID=${projectID}` : "/files";
+       const routeUrl = projectID ? `/files/by-projid/${projectID}` : "/files";
        const filesResponse = await getEntityById({ routeUrl });
 
         if (filesResponse && Array.isArray(filesResponse)) {
           setFilesData(
             filesResponse.map((file) => ({
               id: file.id,
-              name: file.name,
+              name: file.filename,
               type: file.type || "N/A",
               uploadDate: file.uploadDate ? new Date(file.uploadDate).toLocaleDateString() : "Invalid Date",
               uploader: file.uploader || "N/A",

@@ -18,9 +18,8 @@ export const useFetchFiles = (projectID:string) => {
             filesResponse.map((file) => ({
               id: file.id,
               filename: file.filename,
-              type: file.type || "N/A",
-              uploadDate: file.uploadDate ? new Date(file.uploadDate).toLocaleDateString() : "Invalid Date",
-              uploader: file.uploader || "N/A",
+              uploaded_time: file.uploaded_time ? new Date(file.uploaded_time).toLocaleDateString() : "Invalid Date",
+              uploaded_by: file.uploaded_by || "N/A",
             }))
           );
         } else {

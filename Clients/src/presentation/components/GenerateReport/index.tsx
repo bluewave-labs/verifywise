@@ -88,6 +88,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
   const theme = useTheme();
   const [values, setValues] = useState<FormValues>(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [isReportRequest, setIsReportRequest] = useState<boolean>(false);
   const fieldStyle = useMemo(
     () => ({  
       fontWeight: 'bold',    
@@ -107,76 +108,110 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
       },
     [values, errors]
   );
+
+  const handleFormSubmit = () => {
+    setIsReportRequest(true);
+    // backend API call
+  }
   
   return (
-    <Box sx={{padding: theme.spacing(12)}} component="form">
-      <Stack>
-        <Typography sx={{ 
-          fontSize: theme.palette.text.primary, 
-          color: "#344054", 
-          fontWeight: "bold" }}>Report Type</Typography>
-        <Typography 
-          sx={{
-            color: theme.palette.text.secondary,
-            fontSize: theme.typography.fontSize,
-          }}>
-          Pick the kind of report you want to create.
-        </Typography>
-        <IconButton onClick={onClose} sx={{position: 'absolute', right: '12px', top: '10px'}}>
-          <CloseIcon sx={{ width: 24, height: 24 }} />
-        </IconButton>
-      </Stack>
-      <Stack sx={{paddingTop: theme.spacing(8)}}>
-        <FormControl>
-          <RadioGroup
-            aria-labelledby="report-types-radio-buttons-group-label"
-            defaultValue="Project risks report"
-            name="radio-buttons-group"
+    <Box 
+      sx={{
+        padding: theme.spacing(12), 
+        width: { xs: "100%", sm: "398px" },
+        height: '421px'
+      }} 
+      style={{display: isReportRequest? 'flex' : '', alignItems: isReportRequest ? 'center' : '', justifyContent: isReportRequest ? 'center' : ''}}
+      component="form">
+      <IconButton onClick={onClose} sx={{position: 'absolute', right: '12px', top: '10px'}}>
+        <CloseIcon sx={{ width: 24, height: 24 }} />
+      </IconButton>
+      {isReportRequest ? 
+        <Stack sx={{textAlign: isReportRequest ? 'center' : '', padding: theme.spacing(30)}}>
+          <Typography sx={{ 
+            fontSize: theme.palette.text.primary, 
+            color: "#344054", 
+            fontWeight: "bold", 
+            mb: theme.spacing(4) }}
           >
-            {REPORT_TYPES.map(report => (
-              <FormControlLabel 
-                value={report} 
-                control={<RadioElement />} 
-                label={report} 
-                sx={{color: "#475467", fontSize: theme.typography.fontSize}} 
+            Preparing your report...
+          </Typography>
+          <Typography 
+            sx={{
+              color: theme.palette.text.secondary,
+              fontSize: theme.typography.fontSize,
+            }}>
+            Your report is being generated and will download automatically. <br /> Hang tight!
+          </Typography>
+        </Stack> : 
+        <>
+          <Stack>
+            <Typography sx={{ 
+              fontSize: theme.palette.text.primary, 
+              color: "#344054", 
+              fontWeight: "bold" }}>Report Type</Typography>
+            <Typography 
+              sx={{
+                color: theme.palette.text.secondary,
+                fontSize: theme.typography.fontSize,
+              }}>
+              Pick the kind of report you want to create.
+            </Typography>
+          </Stack>
+          <Stack sx={{paddingTop: theme.spacing(8)}}>
+            <FormControl>
+              <RadioGroup
+                aria-labelledby="report-types-radio-buttons-group-label"
+                defaultValue="Project risks report"
+                name="radio-buttons-group"
+              >
+                {REPORT_TYPES.map((report, index) => (
+                  <FormControlLabel 
+                    key={index}
+                    value={report} 
+                    control={<RadioElement />} 
+                    label={report} 
+                    sx={{color: "#475467", fontSize: theme.typography.fontSize}} 
+                  />
+                ))}
+              </RadioGroup>
+            </FormControl>
+          </Stack>
+          <Stack sx={{paddingTop: theme.spacing(4)}}>
+            <Suspense fallback={<div>Loading...</div>}>
+              <Field
+                id="report-name"
+                label="What should we call your report?"
+                width="350px"
+                value={values.report_name}
+                onChange={handleOnTextFieldChange("report_name")}
+                error={errors.report_name}
+                sx={fieldStyle}
               />
-            ))}
-          </RadioGroup>
-        </FormControl>
-      </Stack>
-      <Stack sx={{paddingTop: theme.spacing(4)}}>
-        <Suspense fallback={<div>Loading...</div>}>
-          <Field
-            id="report-name"
-            label="What should we call your report?"
-            width="350px"
-            value={values.report_name}
-            onChange={handleOnTextFieldChange("report_name")}
-            error={errors.report_name}
-            sx={fieldStyle}
-          />
-        </Suspense>
-      </Stack>
-      <Stack 
-        sx={{
-          paddingTop: theme.spacing(12),
-          display: 'flex',
-          alignItems: 'flex-end'
-        }}
-      >
-        <VWButton
-          sx={{
-            width: { xs: "100%", sm: theme.spacing(80) },
-            mb: theme.spacing(4),
-            backgroundColor: "#4C7DE7",
-            color: "#fff",
-            border: "1px solid #4C7DE7",
-            gap: 2,
-          }}
-          variant="contained"
-          text="Generate report"
-        />
-      </Stack>
+            </Suspense>
+          </Stack>
+          <Stack 
+            sx={{
+              paddingTop: theme.spacing(12),
+              display: 'flex',
+              alignItems: 'flex-end'
+            }}
+          >
+            <VWButton
+              sx={{
+                width: { xs: "100%", sm: theme.spacing(80) },
+                backgroundColor: "#4C7DE7",
+                color: "#fff",
+                border: "1px solid #4C7DE7",
+                gap: 2,
+              }}
+              variant="contained"
+              text="Generate report"
+              onClick={handleFormSubmit}
+            />
+          </Stack>
+        </>
+      }
     </Box>
   )
 }

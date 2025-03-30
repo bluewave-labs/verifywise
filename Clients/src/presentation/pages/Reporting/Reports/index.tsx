@@ -24,7 +24,8 @@ const data = [
 const Reports = () => {
   const [ reports, setReports ] = useState<any[]>(data);
   const { dashboardValues } = useContext(VerifyWiseContext);
-  const { selectedProjectId} = dashboardValues
+  const { selectedProjectId} = dashboardValues;
+  const [currentPage, setCurrentPage] = useState(0);
 
   const fetchGeneratedReports = async() => {
     // Call backend API
@@ -40,12 +41,18 @@ const Reports = () => {
     // function for remove report 
   }
 
+  const setCurrentPagingation = (page: number) => {
+    setCurrentPage(page)
+  }
+
   return (
     <Stack sx={{pt: "1rem"}}>
       <ReportTable
         columns={TITLE_OF_COLUMNS}
         rows={reports}
         removeReport={handleRemoveReport}
+        setPage={setCurrentPagingation}
+        page={currentPage}
       />
     </Stack>
   )

@@ -139,7 +139,12 @@ const IconButton: React.FC<IconButtonProps> = ({
         },
       }}
     >
-      <MenuItem onClick={(e) => handleEdit(e)}>Edit</MenuItem>
+      {type !== 'report' ? 
+        <MenuItem onClick={(e) => handleEdit(e)}>Edit</MenuItem>
+      :
+        <MenuItem onClick={(e) => handleEdit(e)}>Download</MenuItem>
+      }
+      
       <MenuItem onClick={(e) => {
         setIsOpenRemoveModal(true);
         if (e) {

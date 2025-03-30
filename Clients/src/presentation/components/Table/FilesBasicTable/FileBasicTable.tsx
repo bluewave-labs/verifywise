@@ -113,8 +113,8 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
                 }}
               >
                 <TableCell>{row.filename}</TableCell>
-                <TableCell>{row.uploadDate}</TableCell>
-                <TableCell>{row.uploader}</TableCell>
+                <TableCell>{row.uploaded_time}</TableCell>
+                <TableCell>{row.uploaded_by}</TableCell>
               </TableRow>
             ))}
           </TableBody>

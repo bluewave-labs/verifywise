@@ -36,9 +36,9 @@ const GenerateReport = () => {
           sx={{
             width: { xs: "100%", sm: theme.spacing(110) },
             mb: theme.spacing(4),
-            backgroundColor: "#4C7DE7",
+            backgroundColor: "#13715B",
             color: "#fff",
-            border: isDisabled ? "1px solid #dddddd" : "1px solid #4C7DE7",
+            border: isDisabled ? "1px solid #dddddd" : "1px solid #13715B",
             gap: 2,
           }}
           variant="contained"

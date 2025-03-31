@@ -3,7 +3,6 @@ import { Stack } from '@mui/material';
 import ReportTable from '../../../components/Table/ReportTable';
 import { VerifyWiseContext } from '../../../../application/contexts/VerifyWise.context';
 
-
 const TITLE_OF_COLUMNS = [
   "REPORT NAME",
   "TYPE OF REPORT",
@@ -22,18 +21,23 @@ const data = [
 ]
 
 const Reports = () => {
-  const [ reports, setReports ] = useState<any[]>(data);
+  const [ reports, setReports ] = useState<any[]>([]);
   const { dashboardValues } = useContext(VerifyWiseContext);
   const { selectedProjectId} = dashboardValues;
   const [currentPage, setCurrentPage] = useState(0);
 
   const fetchGeneratedReports = async() => {
     // Call backend API
+    setReports(data)
   }
 
   useEffect(() => {
+    console.log('ss', dashboardValues)
+    console.log('id', selectedProjectId)
     if(selectedProjectId){
       fetchGeneratedReports();
+    }else{
+      setReports([])
     }
   }, [selectedProjectId])
 

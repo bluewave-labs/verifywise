@@ -101,7 +101,8 @@ const BasicModal: React.FC<BasicModalProps> = ({
             sx={{
               width: 140,
               fontSize: 13,
-              backgroundColor: theme.palette.error.main,
+              backgroundColor: "#DB504A",
+              border: "1px solid #DB504A",
               boxShadow: "none",
               borderRadius: "4px",
               "&:hover": {

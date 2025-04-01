@@ -12,6 +12,6 @@ export const DEMO_DATA = [
     report_name: "Assessment report May",
     type: "Assessment tracker report",
     date: "",
-    generated_by: "Billy"
+    generated_by: 1
   }
 ]

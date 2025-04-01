@@ -1,6 +1,6 @@
-import { useState, useContext } from 'react'
+import { useState, useContext, lazy, Suspense } from 'react'
 import { Stack } from '@mui/material';
-import ReportTable from '../../../components/Table/ReportTable';
+const ReportTable = lazy(() => import('../../../components/Table/ReportTable'));
 import { VerifyWiseContext } from '../../../../application/contexts/VerifyWise.context';
 import { DEMO_DATA, TITLE_OF_COLUMNS } from './instants';
 import useGeneratedReports from '../../../../application/hooks/useGeneratedReports';
@@ -26,13 +26,15 @@ const Reports = () => {
 
   return (
     <Stack sx={styles.tableContainer}>
-      <ReportTable
-        columns={TITLE_OF_COLUMNS}
-        rows={generatedReports}
-        removeReport={handleRemoveReport}
-        setPage={setCurrentPagingation}
-        page={currentPage}
-      />
+      <Suspense fallback={<div>Loading...</div>}>
+        <ReportTable
+          columns={TITLE_OF_COLUMNS}
+          rows={generatedReports}
+          removeReport={handleRemoveReport}
+          setPage={setCurrentPagingation}
+          page={currentPage}
+        />
+      </Suspense>
     </Stack>
   )
 }

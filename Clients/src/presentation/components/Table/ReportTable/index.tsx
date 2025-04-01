@@ -1,10 +1,9 @@
-import {useState, useMemo, useCallback} from 'react';
+import {useState, useMemo, useCallback, lazy, Suspense} from 'react';
 import {
   Table,
   TableBody,
   TableCell,
   TableContainer,
-  TableHead,
   TablePagination,
   TableRow,
   Typography,
@@ -12,123 +11,27 @@ import {
   Stack
 } from "@mui/material";
 import singleTheme from '../../../themes/v1SingleTheme';
-import { formatDate } from '../../../tools/isoDateToString';
 import placeholderImage from "../../../assets/imgs/empty-state.svg";
-import IconButton from '../../IconButton';
 import { ReactComponent as SelectorVertical } from '../../../assets/icons/selector-vertical.svg'
 import TablePaginationActions from '../../TablePagination';
+import TableHeader from '../TableHead';
+const ReportTableBody = lazy(() => import("./TableBody"))
+import {styles, emptyData, paginationWrapper, pagniationStatus, paginationStyle, paginationDropdown, paginationSelect} from './styles'
 
-const ReportTableHead = ({ columns }: { columns: any[] }) => {
-  return(<>
-    <TableHead
-      sx={{
-        backgroundColor:
-          singleTheme.tableStyles.primary.header.backgroundColors,
-      }}
-    >
-      <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-        {columns.map((column, index) => (
-          <TableCell
-            key={index}
-            style={{
-              ...singleTheme.tableStyles.primary.header.cell,
-              ...(index === columns.length - 1
-                ? {
-                    position: "sticky",
-                    right: 0,
-                    backgroundColor:
-                      singleTheme.tableStyles.primary.header.backgroundColors,
-                  }
-                : {}),
-            }}
-          >
-            {column}
-          </TableCell>
-        ))}
-      </TableRow>
-    </TableHead>
-  </>)
-}
-
-const ReportTableBody = ({
-  rows,
-  onRemoveReport,
-  page,
-  rowsPerPage
-} : {
-  rows: any[],
-  onRemoveReport: (id: number) => void;
+interface ReportTableProps {
+  columns: any[];
+  rows: any[];
+  removeReport: (id: number) => void;
   page: number,
-  rowsPerPage: number
-}) => {
-  const cellStyle = singleTheme.tableStyles.primary.body.cell;
-
-  const handleRemoveReport = async (reportId: number) => {
-    onRemoveReport(reportId);
-  };
-
-  const handelDownloadReport = async (reportId: number) => {
-    // Call backend API
-  };
-
-  // row onclick function
-  const handelEditRisk = (row: any, event?: React.SyntheticEvent) => {}
-
-  return (
-    <TableBody>
-      {rows &&
-        rows
-        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-          .map((row, index: number) => (
-            <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row}>
-              <TableCell sx={cellStyle}>
-                {row.report_name ? row.report_name : '-'}
-              </TableCell>
-              <TableCell sx={cellStyle}>
-                {row.type ? row.type : '-'}
-              </TableCell>
-              <TableCell sx={cellStyle}>
-                {row.deadline ? formatDate(row.date.toString()) : "NA"}
-              </TableCell>
-              <TableCell sx={cellStyle}>
-                {row.generated_by ? row.generated_by : '-'}
-              </TableCell>
-              <TableCell
-                sx={{
-                  ...singleTheme.tableStyles.primary.body.cell,
-                  position: "sticky",
-                  right: 0,
-                  minWidth: "50px",
-                }}
-              >
-                <IconButton
-                  id={row.id}
-                  type="report"
-                  onMouseEvent={(e) => handelEditRisk(row, e)}
-                  onDelete={() => handleRemoveReport(row.id)}
-                  onEdit={() => handelDownloadReport(row)}
-                  warningTitle="Remove this report?"
-                  warningMessage={`Are you sure you want to remove "${row.report_name}" report. This action is non-recoverable.`}
-                ></IconButton>
-              </TableCell>
-            </TableRow>
-          ))}
-    </TableBody>
-  );
+  setPage: (pageNo: number) => void;
 }
 
-const ReportTable = ({
+const ReportTable: React.FC<ReportTableProps> = ({
     columns,
     rows,
     removeReport,
     page,
     setPage
-  }: {
-    columns: any[];
-    rows: any[];
-    removeReport: (id: number) => void;
-    page: number,
-    setPage: (pageNo: number) => void;
   }) => {
   const theme = useTheme();
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -159,14 +62,16 @@ const ReportTable = ({
             ...singleTheme.tableStyles.primary.frame,
           }}
         >
-          <ReportTableHead columns={columns} />
+          <TableHeader columns={columns} />
           {rows.length !== 0 ? 
-            <ReportTableBody 
-              rows={rows} 
-              onRemoveReport={removeReport}
-              page={page}
-              rowsPerPage={rowsPerPage} 
-            /> 
+            <Suspense fallback={<div>Loading...</div>}>
+              <ReportTableBody 
+                rows={rows} 
+                onRemoveReport={removeReport}
+                page={page}
+                rowsPerPage={rowsPerPage} 
+              /> 
+            </Suspense>
           : (
             <>
               <TableBody>
@@ -174,13 +79,10 @@ const ReportTable = ({
                   <TableCell
                     colSpan={8}
                     align="center"
-                    style={{
-                      padding: theme.spacing(15, 5),
-                      paddingBottom: theme.spacing(20),
-                    }}
+                    sx={emptyData}
                   >
                     <img src={placeholderImage} alt="Placeholder" />
-                    <Typography sx={{ fontSize: "13px", color: "#475467" }}>
+                    <Typography sx={styles.textBase}>
                       There is currently no data in this table.
                     </Typography>
                   </TableCell>
@@ -191,25 +93,8 @@ const ReportTable = ({
         </Table>
       </TableContainer>
       {rows.length !== 0 &&
-        <Stack
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            paddingX: theme.spacing(4),
-            "& p": {
-              color: theme.palette.text.tertiary,
-            },
-          }}
-        >
-          <Typography
-            sx={{
-              paddingX: theme.spacing(2),
-              fontSize: 12,
-              opacity: 0.7,
-            }}
-          >
+        <Stack sx={paginationWrapper}>
+          <Typography sx={pagniationStatus}>
             Showing {getRange} of {rows?.length} project report(s)
           </Typography>
           <TablePagination
@@ -224,30 +109,14 @@ const ReportTable = ({
             labelDisplayedRows={({ page, count }) =>
               `Page ${page + 1} of ${Math.max(0, Math.ceil(count / rowsPerPage))}`
             }
-            sx={{
-              mt: theme.spacing(6),
-              color: theme.palette.text.secondary,
-              "& .MuiSelect-icon": {
-                width: "24px",
-                height: "fit-content",
-              },
-              "& .MuiSelect-select": {
-                width: theme.spacing(10),
-                borderRadius: theme.shape.borderRadius,
-                border: `1px solid ${theme.palette.border.light}`,
-                padding: theme.spacing(4),
-              },
-            }}
+            sx={paginationStyle}
             slotProps={{
               select: {
                 MenuProps: {
                   keepMounted: true,
                   PaperProps: {
                     className: "pagination-dropdown",
-                    sx: {
-                      mt: 0,
-                      mb: theme.spacing(2),
-                    },
+                    sx: {paginationDropdown},
                   },
                   transformOrigin: { vertical: "bottom", horizontal: "left" },
                   anchorOrigin: { vertical: "top", horizontal: "left" },
@@ -255,15 +124,7 @@ const ReportTable = ({
                 },
                 inputProps: { id: "pagination-dropdown" },
                 IconComponent: SelectorVertical,
-                sx: {
-                  ml: theme.spacing(4),
-                  mr: theme.spacing(12),
-                  minWidth: theme.spacing(20),
-                  textAlign: "left",
-                  "&.Mui-focused > div": {
-                    backgroundColor: theme.palette.background.main,
-                  },
-                },
+                sx: {paginationSelect},
               },
             }}
           />

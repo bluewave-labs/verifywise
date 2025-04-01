@@ -5,7 +5,6 @@ import AscendingIcon from "../../../assets/icons/up-arrow.svg";
 import DescendingIcon from "../../../assets/icons/down-arrow.svg";
 import EmptyTableImage from "../../../assets/imgs/empty-state.svg";
 import { FileData } from "../../../../domain/File";
-// import { mockFiles } from "./data";
 
 type SortDirection = "asc" | "desc" | null;
 
@@ -125,8 +124,8 @@ const FileTable: React.FC<FileTableProps> = ({ cols, files, onRowClick }) => {
       sortedFiles.map((file) => ({
         id: file.id,
         file: file.filename,
-        uploadDate: file.uploaded_time,
-        uploader: file.uploaded_by,
+        uploadDate: file.uploadedTime,
+        uploader: file.uploadedBy,
       })),
     [sortedFiles]
   );

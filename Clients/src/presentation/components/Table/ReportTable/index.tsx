@@ -116,7 +116,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
                   keepMounted: true,
                   PaperProps: {
                     className: "pagination-dropdown",
-                    sx: {paginationDropdown},
+                    sx: paginationDropdown,
                   },
                   transformOrigin: { vertical: "bottom", horizontal: "left" },
                   anchorOrigin: { vertical: "top", horizontal: "left" },

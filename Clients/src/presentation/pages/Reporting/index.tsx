@@ -4,7 +4,7 @@ import {TabContext, TabPanel, TabList} from '@mui/lab';
 import { tabStyle, tabPanelStyle } from '../Vendors/style';
 const GenerateReport = lazy(() => import('./GenerateReport'));
 const ReportLists = lazy(() => import('./Reports'));
-const ReportingHeader = lazy(() => import('../../components/GenerateReport/ReportOverviewHeader'));
+const ReportingHeader = lazy(() => import('../../components/Reporting/ReportOverviewHeader'));
 import { styles } from './styles';
 
 const Reporting = () => {

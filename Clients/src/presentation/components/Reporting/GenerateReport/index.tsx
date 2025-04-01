@@ -2,8 +2,8 @@ import React, { lazy, Suspense, useMemo, useState, useCallback } from 'react'
 import { Stack, Typography, IconButton, Box, Radio, RadioProps, RadioGroup, FormControlLabel, FormControl, useTheme, TextField, Button } from '@mui/material';
 import CloseIcon from "@mui/icons-material/Close";
 import styled from 'styled-components';
-const Field = lazy(() => import("../Inputs/Field"))
-import VWButton from '../../vw-v2-components/Buttons';
+const Field = lazy(() => import("../../Inputs/Field"))
+import VWButton from '../../../vw-v2-components/Buttons';
 
 interface GenerateReportProps {
   onClose: () => void;

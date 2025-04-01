@@ -1,13 +1,13 @@
-import React, {Suspense, SyntheticEvent, lazy, useState} from 'react';
-import { Stack, Typography, useTheme, Theme, Tab, Box } from '@mui/material';
-import { vwhomeHeading } from '../Home/1.0Home/style';
+import {Suspense, SyntheticEvent, lazy, useState} from 'react';
+import { Stack, Tab, Box } from '@mui/material';
 import {TabContext, TabPanel, TabList} from '@mui/lab';
 import { tabStyle, tabPanelStyle } from '../Vendors/style';
 const GenerateReport = lazy(() => import('./GenerateReport'));
 const ReportLists = lazy(() => import('./Reports'));
+const ReportingHeader = lazy(() => import('../../components/GenerateReport/ReportOverviewHeader'));
+import { styles } from './styles';
 
 const Reporting = () => {
-  const theme = useTheme();
   const [value, setValue] = useState<string>("generate");
 
   const handleTabChange = (_: SyntheticEvent, newValue: string) => {
@@ -16,16 +16,18 @@ const Reporting = () => {
 
   return (
     <Stack className="vwhome" gap={"20px"}>
-      <ReportingHeader theme={theme} />
+      <Suspense fallback={"loading..."}>
+        <ReportingHeader  
+          titlesx={styles.vwHeadingTitle}
+          subsx={styles.vwSubHeadingTitle}
+        />
+      </Suspense>
       <Stack>
         <TabContext value={value}>
-          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+          <Box sx={styles.tabDivider}>
             <TabList
               TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
-              sx={{
-                minHeight: "20px",
-                "& .MuiTabs-flexContainer": { columnGap: "34px" },
-              }}
+              sx={styles.tabList}
               onChange={handleTabChange}
             >
               <Tab 
@@ -60,19 +62,5 @@ const Reporting = () => {
     </Stack>
   )
 }
-
-const ReportingHeader: React.FC<{ theme: Theme }> = ({ theme }) => (  
-  <Stack className='vwhome-header'>
-    <Typography sx={vwhomeHeading}>Reporting</Typography>
-    <Typography
-      sx={{
-        color: theme.palette.text.secondary,
-        fontSize: theme.typography.fontSize,
-      }}
-    >
-      This section will generate a report based on the information entered in Compliance Tracker, Assessment Tracker, Vendors and Risks sections.
-    </Typography>
-  </Stack>
-);
  
 export default Reporting;

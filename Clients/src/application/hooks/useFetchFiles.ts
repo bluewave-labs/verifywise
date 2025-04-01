@@ -1,3 +1,10 @@
+/** 
+ * Custom hook to fetch files data from the server based on project ID.
+ * 
+ * @param {string} projectID - The ID of the project to fetch files for.
+ * @returns {{ filesData: FileData[], loading: boolean }} - An object containing the files data and loading state.
+ */
+
 import { useState, useEffect } from "react";
 import { getEntityById } from "../repository/entity.repository";
 import { FileData} from "../../domain/File"

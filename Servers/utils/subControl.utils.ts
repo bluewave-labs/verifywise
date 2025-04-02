@@ -96,7 +96,7 @@ export const createNewSubcontrolQuery = async (
         control_id: controlId,
         title: subcontrol.title,
         description: subcontrol.description,
-        order_no: subcontrol.order_no,
+        order_no: subcontrol.order_no || null,
         status: subcontrol.status,
         approver: subcontrol.approver,
         risk_review: subcontrol.risk_review,

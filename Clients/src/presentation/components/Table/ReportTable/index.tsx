@@ -124,7 +124,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
                 },
                 inputProps: { id: "pagination-dropdown" },
                 IconComponent: SelectorVertical,
-                sx: {paginationSelect},
+                sx: paginationSelect,
               },
             }}
           />

@@ -16,11 +16,11 @@ module.exports = {
       "DROP TYPE enum_projects_ai_risk_classification_temp;"
     ]
     try {
-      await Promise.all(queries.map(async query => {
+      for (let query of queries) {
         await queryInterface.sequelize.query(
           query, { transaction }
         );
-      }));
+      }
       await transaction.commit();
     } catch (error) {
       await transaction.rollback();
@@ -42,11 +42,11 @@ module.exports = {
       "DROP TYPE enum_projects_ai_risk_classification_temp;"
     ]
     try {
-      await Promise.all(queries.map(async query => {
+      for (let query of queries) {
         await queryInterface.sequelize.query(
           query, { transaction }
         );
-      }));
+      }
       await transaction.commit();
     } catch (error) {
       await transaction.rollback();

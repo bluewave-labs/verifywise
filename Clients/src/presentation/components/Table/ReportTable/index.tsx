@@ -44,7 +44,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
 
   const handleChangePage = useCallback((_: unknown, newPage: number) => {
     setCurrentPagingation(newPage);
-  }, []);
+  }, [setCurrentPagingation]);
 
   const handleChangeRowsPerPage = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {

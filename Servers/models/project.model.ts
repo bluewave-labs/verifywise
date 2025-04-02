@@ -10,12 +10,12 @@ export type Project = {
   start_date: Date;
   ai_risk_classification: "high risk" | "limited risk" | "minimal risk";
   type_of_high_risk_role:
-  | "deployer"
-  | "provider"
-  | "distributor"
-  | "importer"
-  | "product manufacturer"
-  | "authorized representative";
+  | "Deployer"
+  | "Provider"
+  | "Distributor"
+  | "Importer"
+  | "Product manufacturer"
+  | "Authorized representative";
   goal: string;
   last_updated: Date;
   last_updated_by: number;
@@ -62,14 +62,14 @@ export class ProjectModel extends Model<Project> {
   ai_risk_classification!: "high risk" | "limited risk" | "minimal risk";
 
   @Column({
-    type: DataType.ENUM("deployer", "provider", "distributor", "importer", "product manufacturer", "authorized representative"),
+    type: DataType.ENUM("Deployer", "Provider", "Distributor", "Importer", "Product manufacturer", "Authorized representative"),
   })
-  type_of_high_risk_role!: | "deployer"
-    | "provider"
-    | "distributor"
-    | "importer"
-    | "product manufacturer"
-    | "authorized representative";
+  type_of_high_risk_role!: | "Deployer"
+    | "Provider"
+    | "Distributor"
+    | "Importer"
+    | "Product manufacturer"
+    | "Authorized representative";
 
   @Column({
     type: DataType.STRING,

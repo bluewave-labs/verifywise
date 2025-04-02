@@ -60,7 +60,7 @@ const useVendorRisks = ({
 
   const vendorRisksSummary = vendorRisks.reduce(
     (acc, risk) => {
-      const _risk = convertToCamelCaseRiskKey(risk.risk_severity);
+      const _risk = convertToCamelCaseRiskKey(risk.risk_level);
       const key = `${_risk.replace(/risks?$/i, "")}Risks` as keyof typeof acc;
       acc[key] = acc[key] + 1;
 

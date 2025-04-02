@@ -51,7 +51,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
       setRowsPerPage(parseInt(event.target.value, 10));
       setCurrentPagingation(0);
     },
-    []
+    [setRowsPerPage, setCurrentPagingation]
   );
 
   return (

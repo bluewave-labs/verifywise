@@ -43,7 +43,7 @@ export const createNewVendorRiskQuery = async (vendorRisk: VendorRisk): Promise<
     {
       replacements: {
         vendor_id: vendorRisk.vendor_id,
-        order_no: vendorRisk.order_no,
+        order_no: vendorRisk.order_no || null,
         risk_description: vendorRisk.risk_description,
         impact_description: vendorRisk.impact_description,
         impact: vendorRisk.impact,

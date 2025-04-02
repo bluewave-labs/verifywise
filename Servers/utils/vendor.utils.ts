@@ -93,7 +93,7 @@ export const createNewVendorQuery = async (vendor: Vendor): Promise<Vendor | nul
       ) RETURNING *`,
       {
         replacements: {
-          order_no: vendor.order_no,
+          order_no: vendor.order_no || null,
           vendor_name: vendor.vendor_name,
           vendor_provides: vendor.vendor_provides,
           assignee: vendor.assignee,

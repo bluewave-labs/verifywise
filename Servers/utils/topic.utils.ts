@@ -109,7 +109,7 @@ export const createNewTopicsQuery = async (assessmentId: number, enable_ai_data_
         replacements: {
           assessment_id: assessmentId,
           title: topicStruct.title,
-          order_no: topicStruct.order_no,
+          order_no: topicStruct.order_no || null,
         },
         mapToModel: true,
         model: TopicModel,

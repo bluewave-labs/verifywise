@@ -248,7 +248,7 @@ export const createNewQuestionsQuery = async (
         is_required: question.isrequired,
         priority_level: question.priority_level,
         answer: enable_ai_data_insertion ? question.answer : null,
-        order_no: question.order_no,
+        order_no: question.order_no || null,
         input_type: question.input_type,
       },
       mapToModel: true,

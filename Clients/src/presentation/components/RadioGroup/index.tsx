@@ -1,16 +1,18 @@
 import React from 'react';
-import { FormControl, RadioGroup, FormControlLabel } from '@mui/material';
+import { FormControl, RadioGroup, FormControlLabel, Theme } from '@mui/material';
 import RadioElement from './RadioElement';
 import { labelStyle } from './styles';
 
 interface RadioProps {
-  values: any[];
-  defaultValue: string
+  values: string[];
+  defaultValue: string;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const RadioComponent: React.FC<RadioProps> = ({
   values,
-  defaultValue
+  defaultValue,
+  onChange
 }) => {
   return (
     <FormControl>
@@ -18,6 +20,7 @@ const RadioComponent: React.FC<RadioProps> = ({
         aria-labelledby="radio-buttons-group-label"
         defaultValue={defaultValue}
         name="radio-buttons-group"
+        onChange={onChange}
       >
       {values.map((value, index) => (
         <FormControlLabel 
@@ -25,12 +28,12 @@ const RadioComponent: React.FC<RadioProps> = ({
           value={value} 
           control={<RadioElement />} 
           label={value} 
-          sx={labelStyle}           
+          sx={(theme) => labelStyle(theme)}           
         />
       ))}
       </RadioGroup>
     </FormControl>
-  )
-}
+  );
+};
 
-export default RadioComponent
+export default RadioComponent;

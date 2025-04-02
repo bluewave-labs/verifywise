@@ -23,7 +23,7 @@ interface ReportTableProps {
   rows: any[];
   removeReport: (id: number) => void;
   page: number,
-  setPage: (pageNo: number) => void;
+  setCurrentPagingation: (pageNo: number) => void;
 }
 
 const ReportTable: React.FC<ReportTableProps> = ({
@@ -31,7 +31,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
     rows,
     removeReport,
     page,
-    setPage
+    setCurrentPagingation
   }) => {
   const theme = useTheme();
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -43,13 +43,13 @@ const ReportTable: React.FC<ReportTableProps> = ({
   }, [page, rowsPerPage, rows?.length ?? 0]);
 
   const handleChangePage = useCallback((_: unknown, newPage: number) => {
-    setPage(newPage);
+    setCurrentPagingation(newPage);
   }, []);
 
   const handleChangeRowsPerPage = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       setRowsPerPage(parseInt(event.target.value, 10));
-      setPage(0);
+      setCurrentPagingation(0);
     },
     []
   );

@@ -2,7 +2,7 @@ import { useState, useContext, lazy, Suspense } from 'react'
 import { Stack } from '@mui/material';
 const ReportTable = lazy(() => import('../../../components/Table/ReportTable'));
 import { VerifyWiseContext } from '../../../../application/contexts/VerifyWise.context';
-import { DEMO_DATA, TITLE_OF_COLUMNS } from './instants';
+import { TITLE_OF_COLUMNS } from './constants';
 import useGeneratedReports from '../../../../application/hooks/useGeneratedReports';
 import {styles} from './styles';
 
@@ -31,7 +31,7 @@ const Reports = () => {
           columns={TITLE_OF_COLUMNS}
           rows={generatedReports}
           removeReport={handleRemoveReport}
-          setPage={setCurrentPagingation}
+          setCurrentPagingation={setCurrentPagingation}
           page={currentPage}
         />
       </Suspense>

@@ -105,7 +105,7 @@ export const createNewProjectQuery = async (
         ai_risk_classification: project.ai_risk_classification,
         type_of_high_risk_role: project.type_of_high_risk_role,
         goal: project.goal,
-        last_updated: Date.now(),
+        last_updated: new Date(Date.now()),
         last_updated_by: project.last_updated_by,
       },
       mapToModel: true,

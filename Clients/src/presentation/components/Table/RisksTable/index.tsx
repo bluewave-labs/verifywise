@@ -11,7 +11,7 @@ import {
   Typography,
   Box,
 } from "@mui/material";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback,useMemo, useState } from "react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
 import singleTheme from "../../../themes/v1SingleTheme";
 import IconButton from "../../IconButton";
@@ -54,6 +54,14 @@ const RiskTable: React.FC<RiskTableProps> = ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
   }));
+
+  const formattedVendors = useMemo(() => {
+    if (!dashboardValues?.vendors) return []
+    return dashboardValues.vendors.map((vendor: any) => ({
+      _id: vendor.id, 
+      name: vendor.vendor_name,
+    }));
+  }, [dashboardValues?.vendors]);
 
   const handleChangePage = useCallback((_: unknown, newPage: number) => {
     setPage(newPage);
@@ -129,9 +137,9 @@ const RiskTable: React.FC<RiskTableProps> = ({
               >
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   {
-                    dashboardValues.vendors.find(
-                      (vendor: any) => vendor.id === row.vendor_id
-                    )?.vendor_name
+                    formattedVendors?.find(
+                      (vendor: any) => vendor._id === row.vendor_id
+                    )?.name
                   }
                 </TableCell>
                 <TableCell sx={cellStyle}>{row.impact}</TableCell>

@@ -9,7 +9,7 @@ import {
   Box
 } from "@mui/material";
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
-import React, { useState, useCallback, useMemo, useEffect } from "react";
+import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import Field from "../../../components/Inputs/Field";
 import DatePicker from "../../../components/Inputs/Datepicker";
 import dayjs, { Dayjs } from "dayjs";
@@ -112,6 +112,29 @@ const ProjectSettings = React.memo(({ triggerRefresh = () => {} }: { triggerRefr
   const [memberRequired, setMemberRequired] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showVWSkeleton, setShowVWSkeleton] = useState<boolean>(false);
+  const initialValuesRef = useRef<FormValues>({ ...initialState });
+  const isModified = useMemo(() => {
+    if (!initialValuesRef.current.projectTitle) return false;
+    return (
+      values.projectTitle !== initialValuesRef.current.projectTitle ||
+      values.goal !== initialValuesRef.current.goal ||
+      values.owner !== initialValuesRef.current.owner ||
+      JSON.stringify(values.members) !== JSON.stringify(initialValuesRef.current.members) ||
+      values.startDate !== initialValuesRef.current.startDate ||
+      values.riskClassification !== initialValuesRef.current.riskClassification ||
+      values.typeOfHighRiskRole !== initialValuesRef.current.typeOfHighRiskRole
+    );
+  }, [values]);
+
+  const isSaveDisabled = useMemo(() => {
+    if (showVWSkeleton) return true;
+
+    if (!isModified) return true;
+    
+    const hasErrors = Object.values(errors).some(error => error && error.length > 0);
+    
+    return hasErrors;
+  }, [isModified, errors, showVWSkeleton]);
 
   useEffect(() => {
     if (project) {
@@ -147,6 +170,7 @@ const ProjectSettings = React.memo(({ triggerRefresh = () => {} }: { triggerRefr
               project.type_of_high_risk_role.toLowerCase()
           )?._id || 0,
       };
+      initialValuesRef.current = returnedData;
       setShowVWSkeleton(false)
       setValues(returnedData);
     }
@@ -626,7 +650,9 @@ const ProjectSettings = React.memo(({ triggerRefresh = () => {} }: { triggerRefr
                 alignSelf: "flex-end",
                 width: "fit-content",
                 backgroundColor: "#13715B",
-                border: "1px solid #13715B",
+                border: isSaveDisabled
+                ? "1px solid rgba(0, 0, 0, 0.26)"
+                : "1px solid #13715B",
                 gap: 2,
               }}
               icon={<SaveIcon />}
@@ -634,6 +660,7 @@ const ProjectSettings = React.memo(({ triggerRefresh = () => {} }: { triggerRefr
               onClick={(event: any) => {
                 handleSubmit(event);
               }}
+              isDisabled={isSaveDisabled}
               text="Save"
             />
 

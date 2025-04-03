@@ -77,7 +77,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
               <TableBody>
                 <TableRow>
                   <TableCell
-                    colSpan={8}
+                    colSpan={columns.length}
                     align="center"
                     sx={emptyData}
                   >

@@ -29,6 +29,7 @@ import Button from "../Button";
 
 interface QuestionProps {
   question: Question;
+  setRefreshKey: () => void;
 }
 
 /**
@@ -46,7 +47,7 @@ interface QuestionProps {
  * Usage:
  * <VWQuestion question={questionObject} />
  */
-const VWQuestion = ({ question }: QuestionProps) => {
+const VWQuestion = ({ question,setRefreshKey }: QuestionProps) => {
   const { userId, currentProjectId } = useContext(VerifyWiseContext);
   const [values, setValues] = useState<Question>(question);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
@@ -97,6 +98,7 @@ const VWQuestion = ({ question }: QuestionProps) => {
       });
       if (response.status === 202) {
         setValues(response.data.data);
+        setRefreshKey()
         console.log("Question updated successfully:", response.data);
         handleAlert({
           variant: "success",

@@ -2,9 +2,9 @@
 
 Briefly describe the changes you made and their purpose.
 
-## Write your issue number after "Fixes: "
+## Write your issue number after "Fixes "
 
-Fixes: #123 
+Fixes #123 
 
 ## Please ensure all items are checked off before requesting a review:
 

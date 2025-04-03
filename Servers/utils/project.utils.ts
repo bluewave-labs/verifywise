@@ -14,6 +14,7 @@ import { ProjectScopeModel } from "../models/projectScope.model";
 import { ControlCategoryModel } from "../models/controlCategory.model";
 import { ControlModel } from "../models/control.model";
 import { SubtopicModel } from "../models/subtopic.model";
+import { FileModel } from "../models/file.model";
 
 export const getAllProjectsQuery = async (): Promise<Project[]> => {
   const projects = await sequelize.query(
@@ -287,6 +288,7 @@ export const deleteProjectByIdQuery = async (
         }
       }
     },
+    { "files": { foreignKey: "project_id", model: FileModel } },
     { "projectrisks": { foreignKey: "project_id", model: ProjectRiskModel } },
     { "projects_members": { foreignKey: "project_id", model: ProjectsMembersModel } },
     {

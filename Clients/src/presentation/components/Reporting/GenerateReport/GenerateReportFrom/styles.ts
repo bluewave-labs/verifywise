@@ -1,6 +1,3 @@
-import {Stack, TextField } from '@mui/material';
-import { styled } from '@mui/material/styles';
-
 export const styles = {
   btnWrap: {
     paddingTop: 12,
@@ -9,9 +6,9 @@ export const styles = {
   },
   VWButton: {
     width: { xs: "100%", sm: 160 },
-    backgroundColor: "#4C7DE7",
+    backgroundColor: "#13715B",
     color: "#fff",
-    border: "1px solid #4C7DE7",
+    border: "1px solid #13715B",
     gap: 2,
   },
   titleText: {

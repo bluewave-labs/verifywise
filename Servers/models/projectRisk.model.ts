@@ -2,6 +2,7 @@
 
 import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
 import { ProjectModel } from "./project.model";
+import { UserModel } from "./user.model";
 
 export type ProjectRisk = {
   id?: number;
@@ -100,6 +101,7 @@ export class ProjectRiskModel extends Model<ProjectRisk> {
   })
   risk_name!: string;
 
+  @ForeignKey(() => UserModel)
   @Column({
     type: DataType.INTEGER
   })
@@ -238,6 +240,7 @@ export class ProjectRiskModel extends Model<ProjectRisk> {
   })
   final_risk_level!: string;
 
+  @ForeignKey(() => UserModel)
   @Column({
     type: DataType.INTEGER
   })

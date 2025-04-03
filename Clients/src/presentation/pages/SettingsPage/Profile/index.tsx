@@ -384,11 +384,6 @@ const ProfileForm: React.FC = () => {
         isToast: true,
         visible: true,
       });
-
-      // Add any additional logic needed after account deletion, e.g., redirecting to a login page
-      setTimeout(() => {
-        window.location.href = "/login";
-      }, 3000); // Redirect to login page after 3 seconds
     } catch (error) {
       logEngine({
         type: "error",

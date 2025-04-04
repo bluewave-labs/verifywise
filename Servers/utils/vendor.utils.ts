@@ -6,7 +6,7 @@ import { QueryTypes } from "sequelize";
 
 export const getAllVendorsQuery = async (): Promise<Vendor[]> => {
   const vendors = await sequelize.query(
-    "SELECT * FROM vendors",
+    "SELECT * FROM vendors ORDER BY created_at DESC, id ASC",
     {
       mapToModel: true,
       model: VendorModel
@@ -64,7 +64,7 @@ export const getVendorByProjectIdQuery = async (
   const vendors: Vendor[] = []
   for (let vendors_project of (result || [])) {
     const vendor = await sequelize.query(
-      "SELECT * FROM vendors WHERE id = :id",
+      "SELECT * FROM vendors WHERE id = :id ORDER BY created_at DESC, id ASC",
       {
         replacements: {
           id: vendors_project.vendor_id
@@ -93,7 +93,7 @@ export const createNewVendorQuery = async (vendor: Vendor): Promise<Vendor | nul
       ) RETURNING *`,
       {
         replacements: {
-          order_no: vendor.order_no,
+          order_no: vendor.order_no || null,
           vendor_name: vendor.vendor_name,
           vendor_provides: vendor.vendor_provides,
           assignee: vendor.assignee,

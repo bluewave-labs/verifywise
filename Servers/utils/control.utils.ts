@@ -5,7 +5,7 @@ import { Model, QueryTypes } from "sequelize";
 
 export const getAllControlsQuery = async (): Promise<Control[]> => {
   const controls = await sequelize.query(
-    "SELECT * FROM controls",
+    "SELECT * FROM controls ORDER BY created_at DESC, id ASC",
     {
       mapToModel: true,
       model: ControlModel
@@ -32,7 +32,7 @@ export const getAllControlsByControlGroupQuery = async (
   controlGroupId: any
 ): Promise<Control[]> => {
   const controls = await sequelize.query(
-    "SELECT * FROM controls WHERE control_category_id = :control_category_id",
+    "SELECT * FROM controls WHERE control_category_id = :control_category_id ORDER BY created_at DESC, id ASC",
     {
       replacements: { control_category_id: controlGroupId },
       mapToModel: true,
@@ -83,7 +83,7 @@ export const createNewControlQuery = async (
       replacements: {
         title: control.title,
         description: control.description,
-        order_no: control.order_no,
+        order_no: control.order_no || null,
         status: control.status,
         approver: control.approver,
         risk_review: control.risk_review,

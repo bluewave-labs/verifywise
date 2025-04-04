@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import cookieParser from "cookie-parser";
 // import { checkAndCreateTables } from "./database/db";
 
 import assessmentRoutes from "./routes/assessment.route";
@@ -28,7 +29,13 @@ const swaggerDoc = YAML.load("./swagger.yaml");
 
 const app = express();
 
-const port = process.env.PORT || 3000;
+const DEFAULT_PORT = "3000";
+const DEFAULT_HOST = "localhost";
+
+const portString = process.env.PORT || DEFAULT_PORT;
+const host = process.env.HOST || DEFAULT_HOST;
+
+const port = parseInt(portString, 10); // Convert to number
 
 try {
   // (async () => {
@@ -48,6 +55,7 @@ try {
   );
   app.use(helmet()); // Use helmet for security headers
   app.use(express.json());
+  app.use(cookieParser());
 
   // Routes
   app.use("/users", userRoutes);
@@ -75,7 +83,7 @@ try {
   });
 
   app.listen(port, () => {
-    console.log(`Server running on port http://localhost:${port}/`);
+    console.log(`Server running on port http://${host}:${port}/`);
   });
 } catch (error) {
   console.error("Error setting up the server:", error);

@@ -78,7 +78,8 @@ const Vendors = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const { selectedProjectId } = dashboardValues;
   const { vendorRisksSummary } = useVendorRisks({
-    projectId: selectedProjectId?.toString(),refreshKey
+    projectId: selectedProjectId?.toString(),
+    refreshKey,
   });
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -96,7 +97,7 @@ const Vendors = () => {
   ];
   const createAbortController = () => {
     if (controller) {
-      controller.abort(); 
+      controller.abort();
     }
     const newController = new AbortController();
     setController(newController);
@@ -144,7 +145,7 @@ const Vendors = () => {
           ...prevValues,
           vendors: response.data,
         }));
-        setRefreshKey((prevKey) => prevKey + 1);    
+        setRefreshKey((prevKey) => prevKey + 1);
       }
     } catch (error) {
       console.error("Error fetching vendors:", error);
@@ -169,7 +170,7 @@ const Vendors = () => {
           vendorRisks: response.data,
           selectedProjectId: selectedProjectId,
         }));
-        setRefreshKey((prevKey) => prevKey + 1);    
+        setRefreshKey((prevKey) => prevKey + 1);
       }
     } catch (error) {
       console.error("Error fetching vendorRisks:", error);
@@ -259,7 +260,8 @@ const Vendors = () => {
     };
     try {
       const response = await deleteEntityById({
-        routeUrl: `/vendorRisks/${vendorId}`,signal
+        routeUrl: `/vendorRisks/${vendorId}`,
+        signal,
       });
 
       if (response.status === 202) {
@@ -401,8 +403,8 @@ const Vendors = () => {
                 Vendor risks list
               </Typography>
               <Typography sx={singleTheme.textStyles.pageDescription}>
-                This table includes a list of risks related to a vendor. You
-                can create and manage all vendor risks here.
+                This table includes a list of risks related to a vendor. You can
+                create and manage all vendor risks here.
               </Typography>
             </Stack>
           </>
@@ -422,7 +424,7 @@ const Vendors = () => {
             </TabList>
           </Box>
           {value !== "1" &&
-            (isRisksLoading ? (
+            (isRisksLoading || isVendorsLoading ? (
               <VWSkeleton variant="rectangular" width="50%" height={100} />
             ) : (
               project && <RisksCard risksSummary={vendorRisksSummary} />
@@ -455,7 +457,7 @@ const Vendors = () => {
             )
           )}
 
-          {isRisksLoading && value !== "1" ? (
+          {(isRisksLoading || isVendorsLoading) && value !== "1" ? (
             <VWSkeleton
               variant="rectangular"
               width={"15%"}
@@ -501,7 +503,7 @@ const Vendors = () => {
               />
             </TabPanel>
           )}
-          {isRisksLoading && value !== "1" ? (
+          {(isRisksLoading || isVendorsLoading) && value !== "1" ? (
             <VWSkeleton
               height={"20vh"}
               minHeight={"20vh"}

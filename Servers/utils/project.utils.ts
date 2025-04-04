@@ -14,10 +14,11 @@ import { ProjectScopeModel } from "../models/projectScope.model";
 import { ControlCategoryModel } from "../models/controlCategory.model";
 import { ControlModel } from "../models/control.model";
 import { SubtopicModel } from "../models/subtopic.model";
+import { FileModel } from "../models/file.model";
 
 export const getAllProjectsQuery = async (): Promise<Project[]> => {
   const projects = await sequelize.query(
-    "SELECT * FROM projects",
+    "SELECT * FROM projects ORDER BY created_at DESC, id ASC",
     {
       mapToModel: true,
       model: ProjectModel
@@ -105,7 +106,7 @@ export const createNewProjectQuery = async (
         ai_risk_classification: project.ai_risk_classification,
         type_of_high_risk_role: project.type_of_high_risk_role,
         goal: project.goal,
-        last_updated: project.start_date,
+        last_updated: new Date(Date.now()),
         last_updated_by: project.last_updated_by,
       },
       mapToModel: true,
@@ -287,6 +288,7 @@ export const deleteProjectByIdQuery = async (
         }
       }
     },
+    { "files": { foreignKey: "project_id", model: FileModel } },
     { "projectrisks": { foreignKey: "project_id", model: ProjectRiskModel } },
     { "projects_members": { foreignKey: "project_id", model: ProjectsMembersModel } },
     {

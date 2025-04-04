@@ -21,6 +21,7 @@ export type Question = {
   evidence_files?: Object[]; // gets assigned from the structure
   answer?: string; // won't get any values, will be filled by user
   subtopic_id: number; // when subtopic is created, its id will be stored and assign here as FK
+  created_at?: Date;
 };
 
 @Table({
@@ -101,4 +102,9 @@ export class QuestionModel extends Model<Question> {
     defaultValue: false
   })
   is_demo?: boolean;
+
+  @Column({
+    type: DataType.DATE
+  })
+  created_at?: Date;
 }

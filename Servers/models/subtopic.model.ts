@@ -12,6 +12,7 @@ export type Subtopic = {
   title: string; // gets assigned from the structure
   order_no?: number; // gets assigned from the structure
   topic_id: number; // when topic is created, its id will be stored and assign here as FK
+  created_at?: Date;
 };
 
 @Table({
@@ -47,5 +48,10 @@ export class SubtopicModel extends Model<Subtopic> {
     defaultValue: false
   })
   is_demo?: boolean;
+
+  @Column({
+    type: DataType.DATE
+  })
+  created_at?: Date;
 }
 

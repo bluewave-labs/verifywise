@@ -612,7 +612,7 @@ export async function deleteMockData() {
   // // await deleteExistingData("roles", "name");
 
   for (let table of ["questions", "subtopics", "topics", "projectscopes", "projectrisks", "vendorrisks",
-    "subcontrols", "controls", "controlcategories", "assessments", "vendors", "projects", "users"]) {
+    "subcontrols", "controls", "controlcategories", "assessments", "vendors", "files", "projects", "users"]) {
     await deleteDEMOData(table)
   }
 }

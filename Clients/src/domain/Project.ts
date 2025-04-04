@@ -22,6 +22,7 @@ export type Project = {
   // statistical fields
   doneSubcontrols?: number;
   totalSubcontrols?: number;
-  asnweredAssessments?: number;
+  answeredAssessments
+?: number;
   totalAssessments?: number;
 };

@@ -20,6 +20,7 @@ export type VendorRisk = {
   action_plan: string;
   action_owner: number;
   risk_level: string;
+  created_at?: Date;
 };
 
 @Table({
@@ -91,4 +92,9 @@ export class VendorRiskModel extends Model<VendorRisk> {
     defaultValue: false
   })
   is_demo?: boolean;
+
+  @Column({
+    type: DataType.DATE
+  })
+  created_at?: Date;
 }

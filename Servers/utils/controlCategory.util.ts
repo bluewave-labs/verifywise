@@ -8,7 +8,7 @@ export const getAllControlCategoriesQuery = async (): Promise<
   ControlCategory[]
 > => {
   const controlCategories = await sequelize.query(
-    "SELECT * FROM controlcategories",
+    "SELECT * FROM controlcategories ORDER BY created_at DESC, id ASC",
     {
       mapToModel: true,
       model: ControlCategoryModel
@@ -50,7 +50,7 @@ export const getControlCategoryByProjectIdQuery = async (
   projectId: number
 ): Promise<ControlCategory[]> => {
   const result = await sequelize.query(
-    "SELECT * FROM controlcategories WHERE project_id = :project_id",
+    "SELECT * FROM controlcategories WHERE project_id = :project_id ORDER BY created_at DESC, id ASC",
     {
       replacements: { project_id: projectId },
       mapToModel: true,
@@ -71,7 +71,7 @@ export const createControlCategoryQuery = async (
       replacements: {
         project_id: controlCategory.project_id,
         title: controlCategory.title,
-        order_no: controlCategory.order_no
+        order_no: controlCategory.order_no || null
       },
       mapToModel: true,
       model: ControlCategoryModel,

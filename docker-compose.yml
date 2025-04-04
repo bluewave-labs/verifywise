@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   postgresdb:
-    image: postgres
+    image: postgres:16.8
     ports:
       - $LOCAL_DB_PORT:$DB_PORT
     volumes:

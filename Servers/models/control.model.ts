@@ -24,6 +24,7 @@ export type Control = {
   numberOfSubcontrols?: number;
   numberOfDoneSubcontrols?: number;
   subControls?: Subcontrol[];
+  created_at?: Date;
 };
 
 @Table({
@@ -100,4 +101,9 @@ export class ControlModel extends Model<Control> {
     defaultValue: false
   })
   is_demo?: boolean;
+
+  @Column({
+    type: DataType.DATE
+  })
+  created_at?: Date;
 }

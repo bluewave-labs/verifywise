@@ -8,17 +8,18 @@ export type Project = {
   project_title: string;
   owner: number;
   start_date: Date;
-  ai_risk_classification: "high risk" | "limited risk" | "minimal risk";
+  ai_risk_classification: "High risk" | "Limited risk" | "Minimal risk";
   type_of_high_risk_role:
-  | "deployer"
-  | "provider"
-  | "distributor"
-  | "importer"
-  | "product manufacturer"
-  | "authorized representative";
+  | "Deployer"
+  | "Provider"
+  | "Distributor"
+  | "Importer"
+  | "Product manufacturer"
+  | "Authorized representative";
   goal: string;
   last_updated: Date;
   last_updated_by: number;
+  created_at?: Date;
   // vendors: string[];
 
   // statistical fields
@@ -56,19 +57,19 @@ export class ProjectModel extends Model<Project> {
   start_date!: Date;
 
   @Column({
-    type: DataType.ENUM("high risk", "limited risk", "minimal risk"),
+    type: DataType.ENUM("High risk", "Limited risk", "Minimal risk"),
   })
-  ai_risk_classification!: "high risk" | "limited risk" | "minimal risk";
+  ai_risk_classification!: "High risk" | "Limited risk" | "Minimal risk";
 
   @Column({
-    type: DataType.ENUM("deployer", "provider", "distributor", "importer", "product manufacturer", "authorized representative"),
+    type: DataType.ENUM("Deployer", "Provider", "Distributor", "Importer", "Product manufacturer", "Authorized representative"),
   })
-  type_of_high_risk_role!: | "deployer"
-    | "provider"
-    | "distributor"
-    | "importer"
-    | "product manufacturer"
-    | "authorized representative";
+  type_of_high_risk_role!: | "Deployer"
+    | "Provider"
+    | "Distributor"
+    | "Importer"
+    | "Product manufacturer"
+    | "Authorized representative";
 
   @Column({
     type: DataType.STRING,
@@ -92,4 +93,9 @@ export class ProjectModel extends Model<Project> {
     defaultValue: false
   })
   is_demo?: boolean;
+
+  @Column({
+    type: DataType.DATE
+  })
+  created_at?: Date;
 }

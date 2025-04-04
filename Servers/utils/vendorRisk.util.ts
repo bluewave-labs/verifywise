@@ -6,7 +6,7 @@ export const getVendorRisksByProjectIdQuery = async (
   projectId: number
 ): Promise<VendorRisk[]> => {
   const vendorRisks = await sequelize.query(
-    "SELECT * FROM vendorRisks WHERE vendor_id IN (SELECT vendor_id FROM vendors_projects WHERE project_id = :project_id);",
+    "SELECT * FROM vendorRisks WHERE vendor_id IN (SELECT vendor_id FROM vendors_projects WHERE project_id = :project_id) ORDER BY created_at DESC, id ASC;",
     {
       replacements: { project_id: projectId },
       mapToModel: true,
@@ -20,7 +20,7 @@ export const getVendorRiskByIdQuery = async (
   id: number
 ): Promise<VendorRisk | null> => {
   const result = await sequelize.query(
-    "SELECT * FROM vendorRisks WHERE id = :id",
+    "SELECT * FROM vendorRisks WHERE id = :id ORDER BY created_at DESC, id ASC",
     {
       replacements: { id },
       mapToModel: true,
@@ -43,7 +43,7 @@ export const createNewVendorRiskQuery = async (vendorRisk: VendorRisk): Promise<
     {
       replacements: {
         vendor_id: vendorRisk.vendor_id,
-        order_no: vendorRisk.order_no,
+        order_no: vendorRisk.order_no || null,
         risk_description: vendorRisk.risk_description,
         impact_description: vendorRisk.impact_description,
         impact: vendorRisk.impact,

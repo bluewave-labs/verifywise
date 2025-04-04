@@ -51,13 +51,14 @@ const VWProjectCard = ({ project }: { project: Project }) => {
         </Stack>
         <Stack className="project-progress" sx={{ gap: 1 }}>
           <ProgressBar
-            progress={`${project.asnweredAssessments}/${project.totalAssessments}`}
+            progress={`${project.answeredAssessments}/${project.totalAssessments}`}
           />
           <Typography sx={progressStyle}>
             {`Assesments completed: ${
-              isNaN(project.asnweredAssessments!)
+              isNaN(project.answeredAssessments!)
                 ? 0
-                : project.asnweredAssessments
+                : project.answeredAssessments
+
             } out of ${
               isNaN(project.totalAssessments!) ? 0 : project.totalAssessments
             }`}

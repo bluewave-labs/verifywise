@@ -16,12 +16,12 @@ import { FileData } from "../../../../domain/File";
 import UppyDashboard from "../../../components/UppyDashboard";
 import Button from "../../../components/Button";
 
-
 interface UppyUploadFileProps {
   uppy: Uppy;
   files: FileData[];
   onClose: () => void;
   onRemoveFile: (fileId: string) => void;
+  hideProgressIndicators?: boolean;
 }
 
 const FileListItem: React.FC<{
@@ -57,6 +57,7 @@ const UppyUploadFile: React.FC<UppyUploadFileProps> = ({
   files,
   onClose,
   onRemoveFile,
+  hideProgressIndicators,
 }) => {
   const theme = useTheme();
   const styles = getStyles(theme);
@@ -65,6 +66,10 @@ const UppyUploadFile: React.FC<UppyUploadFileProps> = ({
     fileId: "",
     fileName: "",
   });
+
+  // Separate files into pending uploads and attached files
+  const pendingUploads = files.filter(file => file.data instanceof Blob);
+  const attachedFiles = files.filter(file => !(file.data instanceof Blob));
 
   const handleOpenDeleteFileModal = (fileId: string, fileName: string) => {
     setDeleteFileModal({ isOpen: true, fileId, fileName });
@@ -87,18 +92,42 @@ const UppyUploadFile: React.FC<UppyUploadFileProps> = ({
         </IconButton>
       </Stack>
 
-      <UppyDashboard uppy={uppy} width={400} height={250}/>
+      <UppyDashboard 
+        uppy={uppy} 
+        width={400} 
+        height={250} 
+        hideProgressIndicators={hideProgressIndicators ?? false}
+        files={pendingUploads}
+      />
 
-      { files?.length > 0 && <Stack sx={styles.fileList}>
-        {files.map((file) => (
-          <FileListItem
-            key={file.id}
-            file={file}
-            onDeleteClick={handleOpenDeleteFileModal}
-            styles={styles}
-          />
-        ))}
-      </Stack>}
+      {attachedFiles.length > 0 && (
+        <>
+          <Typography
+            sx={{
+              fontSize: 14,
+              fontWeight: 500,
+              color: "#344054",
+              mt: 2,
+              mb: 1,
+              borderTop: "1px solid #E5E7EB",
+              pt: 2,
+              width: "100%"
+            }}
+          >
+            Attached Files
+          </Typography>
+          <Stack sx={styles.fileList}>
+            {attachedFiles.map((file) => (
+              <FileListItem
+                key={file.id}
+                file={file}
+                onDeleteClick={handleOpenDeleteFileModal}
+                styles={styles}
+              />
+            ))}
+          </Stack>
+        </>
+      )}
 
       <DeleteFileModal
         isOpen={deleteFileModal.isOpen}

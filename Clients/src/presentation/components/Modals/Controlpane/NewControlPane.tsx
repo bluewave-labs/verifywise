@@ -16,6 +16,7 @@ import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
 import { updateEntityById } from "../../../../application/repository/entity.repository";
 import { Subcontrol } from "../../../../domain/Subcontrol";
 import { Control } from "../../../../domain/Control";
+import {  FileData } from "../../../../domain/File";
 import Alert from "../../Alert";
 import VWToast from "../../../vw-v2-components/Toast";
 import SaveIcon from "@mui/icons-material/Save";
@@ -56,9 +57,16 @@ const NewControlPane = ({
   const [alert, setAlert] = useState<{
     type: "success" | "error";
     message: string;
+    showOverlay?: boolean;
   } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletedFilesIds, setDeletedFilesIds] = useState<number[]>([]);
+  const [uploadFiles, setUploadFiles] = useState<{
+    [key: string]: {
+      evidence: FileData[];
+      feedback: FileData[];
+    };
+  }>({});
   const context = useContext(VerifyWiseContext);
 
   const sanitizeField = (value: string | undefined | null): string => {
@@ -162,6 +170,20 @@ const NewControlPane = ({
     },
   };
 
+  const getUploadFilesForSubcontrol = (subcontrolId: string, type: 'evidence' | 'feedback') => {
+    return uploadFiles[subcontrolId]?.[type] || [];
+  };
+
+  const setUploadFilesForSubcontrol = (subcontrolId: string, type: 'evidence' | 'feedback', files: FileData[]) => {
+    setUploadFiles(prev => ({
+      ...prev,
+      [subcontrolId]: {
+        ...prev[subcontrolId],
+        [type]: files
+      }
+    }));
+  };
+
   const confirmSave = async () => {
     console.log("state controlToSave : ", state);
     setIsSubmitting(true);
@@ -201,29 +223,40 @@ const NewControlPane = ({
 
       // Add files for each subcontrol
       state.subControls?.forEach(sc => {
-        if (sc.evidence_files && Array.isArray(sc.evidence_files)) {
-          sc.evidence_files.forEach(fileData => {
-            if (fileData.data instanceof Blob) {
-              // Create a new File object if needed
-              const fileToUpload = fileData.data instanceof File
-                ? fileData.data
-                : new File([fileData.data], fileData.fileName, { type: fileData.type });
-              formData.append(`evidence_files_${sc.id}`, fileToUpload);
-            }
-          });
-        }
+        const scId = sc.id?.toString();
+        if (!scId) return;
 
-        if (sc.feedback_files && Array.isArray(sc.feedback_files)) {
-          sc.feedback_files.forEach(fileData => {
-            if (fileData.data instanceof Blob) {
-              // Create a new File object if needed
-              const fileToUpload = fileData.data instanceof File
-                ? fileData.data
-                : new File([fileData.data], fileData.fileName, { type: fileData.type });
-              formData.append(`feedback_files_${sc.id}`, fileToUpload);
-            }
-          });
-        }
+        // Get both existing files and pending uploads for evidence
+        const evidenceFiles = [
+          ...(Array.isArray(sc.evidence_files) ? sc.evidence_files : []),
+          ...(uploadFiles[scId]?.evidence || [])
+        ];
+
+        // Get both existing files and pending uploads for feedback
+        const feedbackFiles = [
+          ...(Array.isArray(sc.feedback_files) ? sc.feedback_files : []),
+          ...(uploadFiles[scId]?.feedback || [])
+        ];
+
+        // Add evidence files to form data
+        evidenceFiles.forEach(fileData => {
+          if (fileData.data instanceof Blob) {
+            const fileToUpload = fileData.data instanceof File
+              ? fileData.data
+              : new File([fileData.data], fileData.fileName, { type: fileData.type });
+            formData.append(`evidence_files_${sc.id}`, fileToUpload);
+          }
+        });
+
+        // Add feedback files to form data
+        feedbackFiles.forEach(fileData => {
+          if (fileData.data instanceof Blob) {
+            const fileToUpload = fileData.data instanceof File
+              ? fileData.data
+              : new File([fileData.data], fileData.fileName, { type: fileData.type });
+            formData.append(`feedback_files_${sc.id}`, fileToUpload);
+          }
+        });
       });
 
       // Add user and project info
@@ -243,21 +276,23 @@ const NewControlPane = ({
 
       if (response.status === 200) {
         console.log("Controls updated successfully:", response);
-        setAlert({ type: "success", message: "Controls updated successfully" });
+        setIsSubmitting(false);
+        
+        // Clear upload files after successful save
+        setUploadFiles({});
+        
+        // Notify parent components about success
         OnSave?.(state);
         onComplianceUpdate?.();
-      } else {
-        setAlert({ type: "error", message: "Error updating controls" });
-      }
-
-      setTimeout(() => {
-        setAlert(null);
+        
+        // Close the modal
         handleClose();
+      } else {
+        console.error("Error updating controls");
         setIsSubmitting(false);
-      }, 3000);
+      }
     } catch (error) {
       console.error("Error updating controls:", error);
-      setAlert({ type: "error", message: "Error updating controls" });
       setIsSubmitting(false);
     }
     setIsModalOpen(false);
@@ -270,43 +305,47 @@ const NewControlPane = ({
   return (
     <>
       {alert && (
-        <Box
-          sx={{
-            position: "fixed",
-            top: theme.spacing(2),
-            right: theme.spacing(2),
-            zIndex: 1400,
-          }}
-        >
-          <Alert
-            variant={alert.type}
-            body={alert.message}
-            isToast={true}
-            onClick={() => setAlert(null)}
-          />
-        </Box>
+        <>
+          {alert.showOverlay && (
+            <Box
+              sx={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: "rgba(0, 0, 0, 0.3)",
+                zIndex: 9998,
+              }}
+            />
+          )}
+          <Box
+            sx={{
+              position: "fixed",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              zIndex: 9999,
+              width: "100%",
+              maxWidth: "400px",
+              textAlign: "center"
+            }}
+          >
+            <Alert
+              variant={alert.type}
+              body={alert.message}
+              isToast={true}
+              onClick={() => setAlert(null)}
+              sx={{
+                boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.15)",
+              }}
+            />
+          </Box>
+        </>
       )}
 
-      {isSubmitting && (
-        <Stack
-          sx={{
-            width: "100%",
-            height: "100%",
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "rgba(255, 255, 255, 0.8)",
-            zIndex: 9999,
-          }}
-        >
-          <VWToast title="Saving control. Please wait..." />
-        </Stack>
-      )}
+      {isSubmitting && <VWToast title="Saving control. Please wait..." />}
+
       <Modal
         id={`${data.id}-modal`}
         open={isOpen}
@@ -484,6 +523,8 @@ const NewControlPane = ({
                 }}
                 deletedFilesIds={deletedFilesIds}
                 onDeletedFilesChange={setDeletedFilesIds}
+                uploadFiles={getUploadFilesForSubcontrol(state.subControls![selectedTab].id.toString(), 'evidence')}
+                onUploadFilesChange={(files) => setUploadFilesForSubcontrol(state.subControls![selectedTab].id.toString(), 'evidence', files)}
               />
             )}
             {activeSection === "Auditor Feedback" && (
@@ -504,6 +545,8 @@ const NewControlPane = ({
                 }}
                 deletedFilesIds={deletedFilesIds}
                 onDeletedFilesChange={setDeletedFilesIds}
+                uploadFiles={getUploadFilesForSubcontrol(state.subControls![selectedTab].id.toString(), 'feedback')}
+                onUploadFilesChange={(files) => setUploadFilesForSubcontrol(state.subControls![selectedTab].id.toString(), 'feedback', files)}
               />
             )}
           </Box>

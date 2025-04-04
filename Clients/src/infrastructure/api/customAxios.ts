@@ -34,7 +34,7 @@ const CustomAxios = axios.create({
     Accept: "application/json",
   },
   // Don't send credentials by default
-  withCredentials: false,
+  withCredentials: true,
 });
 
 // Flag to prevent multiple refresh token requests

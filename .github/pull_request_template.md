@@ -2,9 +2,9 @@
 
 Briefly describe the changes you made and their purpose.
 
-## Issue number
+## Write your issue number after "Fixes "
 
-Mention the issue number(s) this PR addresses (e.g., #123).
+Fixes #123 
 
 ## Please ensure all items are checked off before requesting a review:
 

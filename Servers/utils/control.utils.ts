@@ -83,7 +83,7 @@ export const createNewControlQuery = async (
       replacements: {
         title: control.title,
         description: control.description,
-        order_no: control.order_no,
+        order_no: control.order_no || null,
         status: control.status,
         approver: control.approver,
         risk_review: control.risk_review,

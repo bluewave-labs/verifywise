@@ -20,9 +20,10 @@ const defaultAssessmentProgress = {
   answeredQuestions: 0,
 };
 const useAssessmentProgress = ({
-  selectedProjectId,
+  selectedProjectId, refreshKey
 }: {
   selectedProjectId: string;
+  refreshKey: boolean
 }) => {
   const [assessmentProgress, setAssessmentProgress] =
     useState<AssessmentProgress>(defaultAssessmentProgress);
@@ -55,7 +56,7 @@ const useAssessmentProgress = ({
         setLoading(false);
       }
     },
-    [selectedProjectId]
+    [selectedProjectId, refreshKey]
   );
   useEffect(() => {
     const controller = new AbortController();

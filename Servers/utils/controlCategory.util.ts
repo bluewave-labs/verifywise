@@ -71,7 +71,7 @@ export const createControlCategoryQuery = async (
       replacements: {
         project_id: controlCategory.project_id,
         title: controlCategory.title,
-        order_no: controlCategory.order_no
+        order_no: controlCategory.order_no || null
       },
       mapToModel: true,
       model: ControlCategoryModel,

@@ -168,7 +168,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
                 <StyledTableRow
                   key={control.id}
                   onClick={() => control.id !== undefined && handleRowClick(control.id)}
-                  isflashing={currentFlashRow === control.id ? 1 : 0}
+                  isFlashing={currentFlashRow === control.id ? 1 : 0}
                 >
                   {modalOpen && selectedRow === control.id && (
                     <NewControlPane

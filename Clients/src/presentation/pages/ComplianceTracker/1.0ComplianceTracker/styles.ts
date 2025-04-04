@@ -2,13 +2,13 @@ import { styled } from "@mui/material/styles";
 import { TableRow, Box } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
 
-export const StyledTableRow = styled(TableRow)<{ isflashing: number }>(({ theme, isflashing }) => ({
+export const StyledTableRow = styled(TableRow)<{ isFlashing: number }>(({ theme, isFlashing }) => ({
   '& > *': {
-    backgroundColor: isflashing ? '#e3f5e6 !important' : 'inherit',
+    backgroundColor: isFlashing ? '#e3f5e6' : 'inherit',
     transition: 'background-color 0.3s ease',
   },
   '&:hover > *': {
-    backgroundColor: isflashing ? '#e3f5e6 !important' : "#FBFBFB",
+    backgroundColor: isFlashing ? '#e3f5e6' : "#FBFBFB",
     cursor: 'pointer',
   }
 }));
@@ -42,7 +42,7 @@ export const styles = {
     boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.15)",
   },
 
-  progressBar: (theme: any) => ({
+  progressBar: (theme: import('@mui/material/styles').Theme) => ({
     width: "100px",
     height: "5px",
     borderRadius: "4px",

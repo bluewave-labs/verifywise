@@ -27,10 +27,11 @@ import useAssessmentSubtopics from "../../../../application/hooks/useAssessmentS
 
 const AssessmentTracker = () => {
   const theme = useTheme();
+  const [refreshKey, setRefreshKey] = useState(false)
   const { dashboardValues } = useContext(VerifyWiseContext);
   const { selectedProjectId } = dashboardValues;
   const { assessmentProgress, loading: loadingAssessmentProgress } = useAssessmentProgress({
-    selectedProjectId,
+    selectedProjectId,refreshKey
   })
   const { assessmentData } = useAssessmentData({
     selectedProjectId,
@@ -165,7 +166,7 @@ const AssessmentTracker = () => {
             ) : assessmentSubtopics ? (
               assessmentSubtopics.map((subtopic: any, index: number) => (
                 <div key={`subtopic-${subtopic.id || index}`}>
-                  <Questions subtopic={subtopic} />
+                  <Questions subtopic={subtopic} setRefreshKey={() => setRefreshKey((prev) => !prev)} />
                 </div>
               ))
             ) : (

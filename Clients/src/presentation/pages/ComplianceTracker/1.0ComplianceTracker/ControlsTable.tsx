@@ -16,34 +16,12 @@ import {
   Box,
 } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
-import singleTheme from "../../../themes/v1SingleTheme";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import { Control } from "../../../../domain/Control";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import NewControlPane from "../../../components/Modals/Controlpane/NewControlPane";
 import Alert from "../../../components/Alert";
-
-const cellStyle = {
-  ...singleTheme.tableStyles.primary.body.row,
-  height: "36px",
-  "&:hover": {
-    backgroundColor: "#FBFBFB",
-    cursor: "pointer",
-  },
-};
-
-const descriptionCellStyle = {
-  ...cellStyle,
-  maxWidth: "450px",
-  whiteSpace: "nowrap",
-  overflow: "hidden",
-  textOverflow: "ellipsis",
-};
-
-const getRowStyle = (controlId: number | undefined, currentFlashRow: number | null, baseStyle: any) => ({
-  ...baseStyle,
-  ...(currentFlashRow === controlId && { backgroundColor: '#e3f5e6' })
-});
+import {StyledTableRow, AlertBox, styles} from "./styles";
 
 interface Column {
   name: string;
@@ -94,10 +72,6 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   };
 
   const handleSaveSuccess = (control: Control) => {
-    handleControlUpdate();
-    handleCloseModal();
-    
-    // Set flash effect and alert
     if (control.id) {
       setCurrentFlashRow(control.id);
       setAlert({
@@ -105,11 +79,13 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
         message: "Control updated successfully"
       });
 
-      // Use a single timeout to clear both effects
       setTimeout(() => {
         setCurrentFlashRow(null);
         setAlert(null);
-      }, 2000);
+      }, 1000);
+
+      handleControlUpdate();
+      handleCloseModal();
     }
   };
 
@@ -161,41 +137,24 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   return (
     <>
       {alert && (
-        <Box
-          sx={{
-            position: "fixed",
-            top: theme.spacing(2),
-            right: theme.spacing(2),
-            zIndex: 9999,
-            width: "auto",
-            maxWidth: "400px",
-            textAlign: "left"
-          }}
-        >
+        <AlertBox>
           <Alert
             variant={alert.type}
             body={alert.message}
             isToast={true}
             onClick={() => setAlert(null)}
-            sx={{
-              boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.15)",
-            }}
+            sx={styles.alert}
           />
-        </Box>
+        </AlertBox>
       )}
       <TableContainer className="controls-table-container">
         <Table className="controls-table">
-          <TableHead
-            sx={{
-              backgroundColors:
-                singleTheme.tableStyles.primary.header.backgroundColors,
-            }}
-          >
+          <TableHead sx={styles.tableHead}>
             <TableRow>
               {columns.map((col: Column, index: number) => (
                 <TableCell
                   key={index}
-                  sx={singleTheme.tableStyles.primary.header.cell}
+                  sx={styles.headerCell}
                 >
                   {col.name}
                 </TableCell>
@@ -206,11 +165,10 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
             {controls
               .sort((a, b) => (a.order_no ?? 0) - (b.order_no ?? 0))
               .map((control: Control) => (
-                <TableRow
+                <StyledTableRow
                   key={control.id}
-                  onClick={() =>
-                    control.id !== undefined && handleRowClick(control.id)
-                  }
+                  onClick={() => control.id !== undefined && handleRowClick(control.id)}
+                  isflashing={currentFlashRow === control.id ? 1 : 0}
                 >
                   {modalOpen && selectedRow === control.id && (
                     <NewControlPane
@@ -223,26 +181,26 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
                     />
                   )}
                   <TableCell
-                    sx={(theme) => getRowStyle(control.id, currentFlashRow, descriptionCellStyle)}
+                    sx={styles.descriptionCell}
                     key={`${controlCategoryId}-${control.id}`}
                   >
                     {controlCategoryIndex}.{`${control.order_no}`} {control.title}{" "}
                     <span style={{color: 'grey' }}>{`(${control.description})`}</span>
                   </TableCell>
                   <TableCell 
-                    sx={(theme) => getRowStyle(control.id, currentFlashRow, cellStyle)}
+                    sx={styles.cell}
                     key={`owner-${control.id}`}
                   >
                     {control.owner ? control.owner : "Not set"}
                   </TableCell>
                   <TableCell 
-                    sx={(theme) => getRowStyle(control.id, currentFlashRow, cellStyle)}
+                    sx={styles.cell}
                     key={`noOfSubControls-${control.id}`}
                   >
                     {`${control.numberOfSubcontrols} Subcontrols`}
                   </TableCell>
                   <TableCell 
-                    sx={(theme) => getRowStyle(control.id, currentFlashRow, cellStyle)}
+                    sx={styles.cell}
                     key={`completion-${control.id}`}
                   >
                     <Stack direction="row" alignItems="center" spacing={1}>
@@ -264,11 +222,8 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
                             100
                             : 0
                         }
-                        sx={{
-                          width: "100px",
-                          height: "5px",
-                          borderRadius: "4px",
-                          backgroundColor: theme.palette.grey[200],
+                        sx={(theme) => ({
+                          ...styles.progressBar(theme),
                           "& .MuiLinearProgress-bar": {
                             backgroundColor: getProgressColor(
                               control.numberOfSubcontrols
@@ -278,11 +233,11 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
                                 : 0
                             ),
                           },
-                        }}
+                        })}
                       />
                     </Stack>
                   </TableCell>
-                </TableRow>
+                </StyledTableRow>
               ))}
           </TableBody>
         </Table>

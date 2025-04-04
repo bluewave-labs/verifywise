@@ -1,4 +1,4 @@
-import { RiskLikelihood, RiskSeverity, MitigationStatus } from "../RiskLevel/riskValues";
+import { RiskLikelihood, MitigationStatus } from "../RiskLevel/riskValues";
 import { RISK_LABELS, Likelihood, Severity } from "../RiskLevel/constants";
 
 // Setting up risk-type
@@ -74,9 +74,9 @@ export const likelihoodItems: riskType[] = [
 ]
 
 export const riskSeverityItems: riskType[] = [
-    { _id: Severity.Negligible, name: RiskSeverity.Negligible },
-    { _id: Severity.Minor, name: RiskSeverity.Minor },
-    { _id: Severity.Moderate, name: RiskSeverity.Moderate },
-    { _id: Severity.Major, name: RiskSeverity.Major },
-    { _id: Severity.Critical, name: RiskSeverity.Critical },
+    { _id: Severity.VeryLow, name: RISK_LABELS.negligible.text },
+    { _id: Severity.Low, name: RISK_LABELS.minor.text },
+    { _id: Severity.Moderate, name: RISK_LABELS.moderate.text },
+    { _id: Severity.High, name: RISK_LABELS.major.text },
+    { _id: Severity.VeryHigh, name: RISK_LABELS.catastrophic.text },
 ]

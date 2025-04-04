@@ -12,18 +12,15 @@
 import { useEffect, useState } from "react";
 import { getEntityById } from "../repository/entity.repository";
 import { convertToCamelCaseRiskKey } from "../tools/stringUtil";
+import { VendorRisk } from "../../domain/VendorRisk";
 
-export interface VendorRisk {
-  id: number;
-  project_id: number;
-  vendor_name: string;
-  risk_name: string;
-  owner: string;
-  risk_level: string;
-  review_date: string;
-}
-
-const useVendorRisks = ({ projectId }: { projectId?: string | null }) => {
+const useVendorRisks = ({
+  projectId,
+  refreshKey,
+}: {
+  projectId?: string | null;
+  refreshKey?: number;
+}) => {
   const [vendorRisks, setVendorRisks] = useState<VendorRisk[]>([]);
   const [loadingVendorRisks, setLoadingVendorRisks] = useState<boolean>(true);
   const [error, setError] = useState<string | boolean>(false);
@@ -34,18 +31,14 @@ const useVendorRisks = ({ projectId }: { projectId?: string | null }) => {
 
     const updateVendorRisks = async () => {
       setLoadingVendorRisks(true);
+      if (!projectId) return;
       try {
         const response = await getEntityById({
           routeUrl: `/vendorRisks/by-projid/${projectId}`,
           signal,
         });
-        if (response.data) {
-          const filteredVendorRisks = projectId
-            ? response.data.filter(
-                (risk: VendorRisk) => risk.project_id === Number(projectId)
-              )
-            : response.data;
-          setVendorRisks(filteredVendorRisks);
+        if (response?.data) {
+          setVendorRisks(response?.data);
         }
       } catch (err) {
         if (err instanceof Error) {
@@ -63,7 +56,7 @@ const useVendorRisks = ({ projectId }: { projectId?: string | null }) => {
     return () => {
       controller.abort();
     };
-  }, [projectId]);
+  }, [projectId, refreshKey]);
 
   const vendorRisksSummary = vendorRisks.reduce(
     (acc, risk) => {

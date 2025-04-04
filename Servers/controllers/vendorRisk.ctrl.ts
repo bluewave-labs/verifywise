@@ -4,8 +4,8 @@ import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
   createNewVendorRiskQuery,
   deleteVendorRiskByIdQuery,
-  getAllVendorRisksQuery,
   getVendorRiskByIdQuery,
+  getVendorRisksByProjectIdQuery,
   updateVendorRiskByIdQuery,
 } from "../utils/vendorRisk.util";
 import { VendorRisk } from "../models/vendorRisk.model";
@@ -16,7 +16,7 @@ export async function getAllVendorRisks(
 ): Promise<any> {
   try {
     const projectId = parseInt(req.params.id);
-    const vendorRisks = await getAllVendorRisksQuery(projectId);
+    const vendorRisks = await getVendorRisksByProjectIdQuery(projectId);
 
     if (vendorRisks) {
       return res.status(200).json(STATUS_CODE[200](vendorRisks));

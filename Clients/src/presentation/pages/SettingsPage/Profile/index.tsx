@@ -29,6 +29,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import VWToast from "../../../vw-v2-components/Toast"; // Import VWToast component
+import useLogout from "../../../../application/hooks/useLogout";
 
 /**
  * Interface representing a user object.
@@ -93,6 +94,8 @@ const ProfileForm: React.FC = () => {
 
   const isSaveDisabled =
     !!firstnameError || !!lastnameError || !!emailError || !isModified;
+
+  const logout = useLogout();
 
   /**
    * Fetch user data on component mount.
@@ -181,7 +184,6 @@ const ProfileForm: React.FC = () => {
         email,
         pathToImage: profilePhoto,
       };
-
       const response = await updateEntityById({
         routeUrl: `/users/${id}`,
         body: updatedUser,
@@ -362,7 +364,7 @@ const ProfileForm: React.FC = () => {
    * Proceeds with deleting the account.
    */
 
-  const handleConfirmDelete = useCallback(async () => {
+  const handleDeleteAccount = useCallback(async () => {
     setShowToast(true); // Show toast when request is sent
     try {
       // const userId = localStorage.getItem("userId") || "1";
@@ -370,8 +372,10 @@ const ProfileForm: React.FC = () => {
       //clear all storage
       await localStorage.removeItem("userId");
       await localStorage.removeItem("authToken");
-      //clear redux state
-      store.dispatch(clearAuthState());
+      
+      // Use the logout hook instead of directly dispatching
+      logout();
+
       //success alert
       setAlert({
         variant: "success",
@@ -380,10 +384,6 @@ const ProfileForm: React.FC = () => {
         isToast: true,
         visible: true,
       });
-      // Add any additional logic needed after account deletion, e.g., redirecting to a login page
-      setTimeout(() => {
-        window.location.href = "/login";
-      }, 3000); // Redirect to login page after 3 seconds
     } catch (error) {
       logEngine({
         type: "error",
@@ -409,7 +409,7 @@ const ProfileForm: React.FC = () => {
         setShowToast(false);
       }, 1000);
     }
-  }, [email, firstname, lastname]);
+  }, [email, firstname, lastname, logout]);
 
   // User object for Avatar component
   const user: User = useMemo(
@@ -646,7 +646,7 @@ const ProfileForm: React.FC = () => {
           cancelText="Cancel"
           proceedText="Delete"
           onCancel={handleCloseDeleteDialog}
-          onProceed={handleConfirmDelete}
+          onProceed={handleDeleteAccount}
           proceedButtonColor="error"
           proceedButtonVariant="contained"
         />

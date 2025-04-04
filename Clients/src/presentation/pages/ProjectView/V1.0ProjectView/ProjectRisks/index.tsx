@@ -19,14 +19,14 @@ import VWToast from "../../../../vw-v2-components/Toast";
 import VWSkeleton from "../../../../vw-v2-components/Skeletons";
 
 const TITLE_OF_COLUMNS = [
-  "RISK NAME",
-  "IMPACT",
-  "OWNER",
-  "SEVERITY",
-  "LIKELIHOOD",
-  "RISK LEVEL",
-  "MITIGATION",
-  "FINAL RISK LEVEL",
+  "RISK NAME", // value from risk tab
+  "OWNER", // value from risk tab
+  "SEVERITY", // value from risk tab
+  "LIKELIHOOD", // value from risk tab
+  "MITIGATION", // mitigation plan
+  "STATUS", // mitigation status
+  "RISK LEVEL", // risk auto calculated value from risk tab
+  "TARGET DATE", // start date (deadline) value from mitigation tab
   "",
 ];
 
@@ -60,6 +60,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [isLoading, setIsLoading] = useState<LoadingStatus>(initialLoadingState);
   const [showVWSkeleton, setShowVWSkeleton] = useState<boolean>(false);
+  const [currentRow, setCurrentRow] = useState<number | null>(null);
   
   const fetchProjectRisks = useCallback(async () => {
     try {
@@ -89,7 +90,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
   */  
 
   const [anchor, setAnchor] = useState<null | HTMLElement>(null);
-  const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
+  const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {    
     setAnchor(anchor ? null : event.currentTarget);
     setSelectedRow([]);
   };
@@ -125,11 +126,15 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
   };
 
   const handleUpdate = () => {
-    setTimeout(()=> {
-      setIsLoading(initialLoadingState);
+    setTimeout(()=> {      
+      setIsLoading(initialLoadingState);      
+      setCurrentRow(selectedRow[0].id); // set current row to trigger flash-feedback
       handleToast("success", "Risk updated successfully")
     }, 1000)
 
+    setTimeout(() => {
+      setCurrentRow(null);
+    }, 2000)
     fetchProjectRisks();
     setRefreshKey((prevKey) => prevKey + 1); // Update refreshKey to trigger re-render
   };
@@ -194,7 +199,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
       )}
       {isLoading.loading && <VWToast title={isLoading.message} />}
       <Stack className="vw-project-risks-row" sx={rowStyle}>
-        <RisksCard projectRisksSummary={projectRisksSummary} />
+        <RisksCard risksSummary={projectRisksSummary} />
       </Stack>
       <br />
       <Stack
@@ -279,6 +284,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
             setSelectedRow={(row: ProjectRisk) => setSelectedRow([row])}
             setAnchor={setAnchor}
             deleteRisk={handleDelete}
+            flashRow={currentRow}
           />
         )}
       </Stack>

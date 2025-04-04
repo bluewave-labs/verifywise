@@ -34,6 +34,8 @@ import ComplianceTracker from "./presentation/pages/ComplianceTracker/1.0Complia
 import VWHome from "./presentation/pages/Home/1.0Home";
 import VWProjectView from "./presentation/pages/ProjectView/V1.0ProjectView";
 import { Project } from "./domain/Project";
+import PageNotFound from "./presentation/pages/PageNotFound";
+import { CookiesProvider } from 'react-cookie';
 
 function App() {
   const mode = useSelector((state: any) => state.ui?.mode || "light");
@@ -116,72 +118,75 @@ function App() {
   };
 
   return (
-    <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        <VerifyWiseContext.Provider value={contextValues}>
-          <ThemeProvider theme={mode === "light" ? light : dark}>
-            <CssBaseline />
-            <Routes>
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute
-                    Component={Dashboard}
-                    reloadTrigger={triggerSidebar}
+    <CookiesProvider>
+      <Provider store={store}>
+        <PersistGate loading={null} persistor={persistor}>
+          <VerifyWiseContext.Provider value={contextValues}>
+            <ThemeProvider theme={mode === "light" ? light : dark}>
+              <CssBaseline />
+              <Routes>
+                <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute
+                      Component={Dashboard}
+                      reloadTrigger={triggerSidebar}
+                    />
+                  }
+                >
+                  <Route
+                    path="/test"
+                    element={<Home onProjectUpdate={triggerSidebarReload} />}
                   />
-                }
-              >
+                  <Route
+                    path="/compliance-tracker"
+                    element={<ComplianceTracker />}
+                  />
+                  <Route path="/assessment" element={<AssessmentTracker />} />
+                  <Route path="/vendors" element={<Vendors />} />
+                  <Route path="/setting" element={<Setting />} />
+                  <Route path="/team" element={<Team />} />
+                  <Route path="/test/project-view" element={<ProjectView />} />
+                  <Route path="/file-manager" element={<FileManager />} />
+                  <Route path="/" element={<VWHome />} />
+                  <Route path="/project-view" element={<VWProjectView />} />
+                </Route>
                 <Route
-                  path="/test"
-                  element={<Home onProjectUpdate={triggerSidebarReload} />}
+                  path="/admin-reg"
+                  element={<ProtectedRoute Component={RegisterAdmin} />}
                 />
                 <Route
-                  path="/compliance-tracker"
-                  element={<ComplianceTracker />}
+                  path="/user-reg"
+                  element={<ProtectedRoute Component={RegisterUser} />}
                 />
-                <Route path="/assessment" element={<AssessmentTracker />} />
-                <Route path="/vendors" element={<Vendors />} />
-                <Route path="/setting" element={<Setting />} />
-                <Route path="/team" element={<Team />} />
-                <Route path="/test/project-view" element={<ProjectView />} />
-                <Route path="/file-manager" element={<FileManager />} />
-                <Route path="/" element={<VWHome />} />
-                <Route path="/project-view" element={<VWProjectView />} />
-              </Route>
-              <Route
-                path="/admin-reg"
-                element={<ProtectedRoute Component={RegisterAdmin} />}
-              />
-              <Route
-                path="/user-reg"
-                element={<ProtectedRoute Component={RegisterUser} />}
-              />
-              <Route
-                path="/login"
-                element={<ProtectedRoute Component={Login} />}
-              />
-              <Route
-                path="/forgot-password"
-                element={<ProtectedRoute Component={ForgotPassword} />}
-              />
-              <Route
-                path="/reset-password"
-                element={<ProtectedRoute Component={ResetPassword} />}
-              />
-              <Route
-                path="/set-new-password"
-                element={<ProtectedRoute Component={SetNewPassword} />}
-              />
-              <Route
-                path="/reset-password-continue"
-                element={<ProtectedRoute Component={ResetPasswordContinue} />}
-              />
-              <Route path="/playground" element={<Playground />} />
-            </Routes>
-          </ThemeProvider>
-        </VerifyWiseContext.Provider>
-      </PersistGate>
-    </Provider>
+                <Route
+                  path="/login"
+                  element={<ProtectedRoute Component={Login} />}
+                />
+                <Route
+                  path="/forgot-password"
+                  element={<ProtectedRoute Component={ForgotPassword} />}
+                />
+                <Route
+                  path="/reset-password"
+                  element={<ProtectedRoute Component={ResetPassword} />}
+                />
+                <Route
+                  path="/set-new-password"
+                  element={<ProtectedRoute Component={SetNewPassword} />}
+                />
+                <Route
+                  path="/reset-password-continue"
+                  element={<ProtectedRoute Component={ResetPasswordContinue} />}
+                />
+                <Route path="/playground" element={<Playground />} />
+                <Route path="*" element={<PageNotFound />} />
+              </Routes>
+            </ThemeProvider>
+          </VerifyWiseContext.Provider>
+        </PersistGate>
+      </Provider>
+    </CookiesProvider>
   );
 }
 

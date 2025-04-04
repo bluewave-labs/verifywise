@@ -7,43 +7,31 @@ import {
 } from "./style";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
-import { SyntheticEvent, useEffect, useState } from "react";
+import { SyntheticEvent, useState } from "react";
 import TabContext from "@mui/lab/TabContext";
 import VWProjectOverview from "./Overview";
 import { useSearchParams } from "react-router-dom";
-import { getEntityById } from "../../../../application/repository/entity.repository";
-import { Project } from "../../../../domain/Project";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import VWProjectRisks from "./ProjectRisks";
 import ProjectSettings from "../ProjectSettings";
+import useProjectData from "../../../../application/hooks/useProjectData";
 
 const VWProjectView = () => {
   const [searchParams] = useSearchParams();
-  const projectId = searchParams.get("projectId");
-  const [project, setProject] = useState<Project>();
+  const projectId = searchParams.get("projectId") ?? "1";;  
+  const [refreshKey, setRefreshKey] = useState(0);
+  const { project } = useProjectData({ projectId, refreshKey });
 
   const [value, setValue] = useState("overview");
   const handleChange = (_: SyntheticEvent, newValue: string) => {
     setValue(newValue);
   };
 
-  useEffect(() => {
-    const fetchProject = async () => {
-      try {
-        const projectData = await getEntityById({
-          routeUrl: `/projects/${projectId}`,
-        });
-        console.log("Project data:", projectData.data);
-        setProject(projectData.data);
-      } catch (error) {
-        console.error("Failed to fetch project data:", error);
-      }
-    };
-
-    if (projectId) {
-      fetchProject();
+  const handleRefresh = (isTrigger: boolean) => {
+    if(isTrigger){
+      setRefreshKey((prevKey) => prevKey + 1); // send refresh trigger to projectdata hook
     }
-  }, [projectId]);
+  }
 
   return (
     <Stack className="vw-project-view" overflow={"hidden"}>
@@ -99,6 +87,7 @@ const VWProjectView = () => {
           <TabPanel value="overview" sx={tabPanelStyle}>
             {project ? (
               <VWProjectOverview project={project} />
+              // <></>
             ) : (
               <VWSkeleton variant="rectangular" width="100%" height={400} />
             )}
@@ -114,7 +103,7 @@ const VWProjectView = () => {
           <TabPanel value="settings" sx={tabPanelStyle}>
             {project ? (
               // Render settings content here
-              <ProjectSettings />
+              <ProjectSettings triggerRefresh={handleRefresh} />
             ) : (
               <VWSkeleton variant="rectangular" width="100%" height={400} />
             )}

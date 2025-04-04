@@ -61,7 +61,7 @@ const insertQuery = {
       return `(
         '${user.name}',
         '${user.surname}',
-        '${user.email}',
+        '${Date.now()}${user.email}',
         '${user.password_hash}',
         ${user.role},
         '${user.created_at.toISOString().split("T")[0]}',
@@ -84,7 +84,7 @@ const insertQuery = {
         '${project.type_of_high_risk_role}',
         '${project.goal}',
         '${project.last_updated.toISOString().split("T")[0]}',
-        '${project.last_updated_by}',
+        ${project.last_updated_by},
         '1'
       )`;
     },
@@ -198,8 +198,8 @@ const insertQuery = {
         '${subControl.implementation_details}',
         '${subControl.evidence_description}',
         '${subControl.feedback_description}',
-        ARRAY[]::TEXT[],
-        ARRAY[]::TEXT[],
+        '[]'::jsonb,
+        '[]'::jsonb,
         '${subControl.control_id}',
         '1'
       )`;
@@ -321,7 +321,7 @@ const insertQuery = {
         '${question.hint}',
         ${question.is_required},
         '${question.priority_level}',
-        ARRAY[]::TEXT[],
+        '[]'::jsonb,
         ARRAY[]::TEXT[],
         '${question.answer}',
         '${question.input_type}',
@@ -382,7 +382,7 @@ export async function insertMockData() {
       userGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    users = await insertData(insertString as string);
+    users = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 
   var {
@@ -393,11 +393,11 @@ export async function insertMockData() {
   } = insertQuery["projects"];
   let projects;
   if (projectMockData.length !== 0) {
-    const values = projectMockData(users![0].id, users![1].id).map((d) =>
+    const values = projectMockData(users![0].id!, users![1].id!).map((d) =>
       projectGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    projects = await insertData(insertString as string);
+    projects = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 
   var {
@@ -408,11 +408,11 @@ export async function insertMockData() {
   } = insertQuery["projectMembers"];
   let projectMembers;
   if (projectMembersMockData.length !== 0) {
-    const values = projectMembersMockData(users![0].id, users![1].id, projects![0].id, projects![1].id).map((d) =>
+    const values = projectMembersMockData(users![0].id!, users![1].id!, projects![0].id!, projects![1].id!).map((d) =>
       projectMembersGenerateValuesString(d as any)
     );
     insertString += values.join(",") + ";";
-    projectMembers = await insertData(insertString as string);
+    projectMembers = (await insertData(insertString as string) as [{}[], number])[0];
   }
 
   var {
@@ -423,11 +423,11 @@ export async function insertMockData() {
   } = insertQuery["vendors"];
   let vendors;
   if (vendorMockData.length !== 0) {
-    const values = vendorMockData(users![0].id, users![1].id).map((d) =>
+    const values = vendorMockData(users![0].id!, users![1].id!).map((d) =>
       vendorGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    vendors = await insertData(insertString as string);
+    vendors = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 
   var {
@@ -439,15 +439,15 @@ export async function insertMockData() {
   let vendorsProjects;
   if (vendorsProjectsMockData.length !== 0) {
     const values = vendorsProjectsMockData(
-      vendors![0].id,
-      vendors![1].id,
-      vendors![2].id,
-      vendors![3].id,
-      projects![0].id,
-      projects![1].id
+      vendors![0].id!,
+      vendors![1].id!,
+      vendors![2].id!,
+      vendors![3].id!,
+      projects![0].id!,
+      projects![1].id!
     ).map((d) => vendorsProjectsGenerateValuesString(d as any));
     insertString += values.join(",") + ";";
-    vendorsProjects = await insertData(insertString as string);
+    vendorsProjects = (await insertData(insertString as string) as [{}[], number])[0];
   }
 
   var {
@@ -458,11 +458,11 @@ export async function insertMockData() {
   } = insertQuery["assessments"];
   let assessments;
   if (assessmentMockData.length !== 0) {
-    const values = assessmentMockData(projects![0].id, projects![1].id).map(
+    const values = assessmentMockData(projects![0].id!, projects![1].id!).map(
       (d) => assessmentGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    assessments = await insertData(insertString as string);
+    assessments = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 
   var {
@@ -474,11 +474,11 @@ export async function insertMockData() {
   let controlCategories;
   if (controlCategoriesMockData.length !== 0) {
     const values = controlCategoriesMockData(
-      projects![0].id,
-      projects![1].id
+      projects![0].id!,
+      projects![1].id!
     ).map((d) => controlCategoriesGenerateValuesString(d as any));
     insertString += values.join(",") + "RETURNING id;";
-    controlCategories = await insertData(insertString as string);
+    controlCategories = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 
   var {
@@ -489,9 +489,9 @@ export async function insertMockData() {
   } = insertQuery["mockControls"];
   let controls;
   if (controlMockData.length !== 0) {
-    const values = controlMockData(controlCategories!.map(c => c.id), users![0].id, users![1].id).map((d) => controlGenerateValuesString(d as any));
+    const values = controlMockData(controlCategories!.map(c => c.id!), users![0].id!, users![1].id!).map((d) => controlGenerateValuesString(d as any));
     insertString += values.join(",") + "RETURNING id;";
-    controls = await insertData(insertString as string);
+    controls = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 
   var {
@@ -502,9 +502,9 @@ export async function insertMockData() {
   } = insertQuery["subcontrols"];
   let subControls;
   if (controlMockData.length !== 0) {
-    const values = subControlMockData(controls!.map(c => c.id), users![0].id, users![1].id).map((d) => subControlGenerateValuesString(d as any));
+    const values = subControlMockData(controls!.map(c => c.id!), users![0].id!, users![1].id!).map((d) => subControlGenerateValuesString(d as any));
     insertString += values.join(",") + "RETURNING id;";
-    subControls = await insertData(insertString as string);
+    subControls = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 
   var {
@@ -515,11 +515,11 @@ export async function insertMockData() {
   } = insertQuery["mockProjectRisks"];
   let projectRisks;
   if (controlMockData.length !== 0) {
-    const values = projectRisksMockData(projects![0].id, users![0].id, users![1].id).map((d) =>
+    const values = projectRisksMockData(projects![0].id!, users![0].id!, users![1].id!).map((d) =>
       projectRisksGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    projectRisks = await insertData(insertString as string);
+    projectRisks = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 
   var {
@@ -531,14 +531,14 @@ export async function insertMockData() {
   let vendorRisks;
   if (controlMockData.length !== 0) {
     const values = vendorRisksMockData(
-      vendors![0].id,
-      vendors![1].id,
-      vendors![2].id,
-      vendors![3].id,
-      users![0].id, users![1].id
+      vendors![0].id!,
+      vendors![1].id!,
+      vendors![2].id!,
+      vendors![3].id!,
+      users![0].id!, users![1].id!
     ).map((d) => vendorRisksGenerateValuesString(d as any));
     insertString += values.join(",") + "RETURNING id;";
-    vendorRisks = await insertData(insertString as string);
+    vendorRisks = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 
   var {
@@ -549,11 +549,11 @@ export async function insertMockData() {
   } = insertQuery["projectScopes"];
   let projectScopes;
   if (projectScopeMockData.length !== 0) {
-    const values = projectScopeMockData(assessments![0].id).map((d) =>
+    const values = projectScopeMockData(assessments![0].id!).map((d) =>
       projectScopeGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    projectScopes = await insertData(insertString as string);
+    projectScopes = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 
   var {
@@ -564,11 +564,11 @@ export async function insertMockData() {
   } = insertQuery["topics"];
   let topics;
   if (topicMockData.length !== 0) {
-    const values = topicMockData(assessments![0].id, assessments![1].id).map(
+    const values = topicMockData(assessments![0].id!, assessments![1].id!).map(
       (d) => topicGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    topics = await insertData(insertString as string);
+    topics = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 
   var {
@@ -579,11 +579,11 @@ export async function insertMockData() {
   } = insertQuery["subtopics"];
   let subTopics;
   if (subTopicMockData.length !== 0) {
-    const values = subTopicMockData(topics!.map((t) => t.id)).map((d) =>
+    const values = subTopicMockData(topics!.map((t) => t.id!)).map((d) =>
       subTopicGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    subTopics = await insertData(insertString as string);
+    subTopics = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 
   var {
@@ -594,25 +594,25 @@ export async function insertMockData() {
   } = insertQuery["questions"];
   let questions;
   if (questionMockData.length !== 0) {
-    const values = questionMockData(subTopics!.map((s) => s.id)).map((d) =>
+    const values = questionMockData(subTopics!.map((s) => s.id!)).map((d) =>
       questionGenerateValuesString(d as any)
     );
     insertString += values.join(",") + "RETURNING id;";
-    questions = await insertData(insertString as string);
+    questions = (await insertData(insertString as string) as [{ id: number }[], number])[0];
   }
 }
 
 export async function deleteMockData() {
   // const projects = await getDEMOProjects()
   // for (let project of projects) {
-  //   await deleteProjectByIdQuery(project.id)
+  //   await deleteProjectByIdQuery(project.id!)
   // };
   // await deleteExistingData("vendors", "vendor_name");
   // await deleteExistingData("users", "name");
   // // await deleteExistingData("roles", "name");
 
   for (let table of ["questions", "subtopics", "topics", "projectscopes", "projectrisks", "vendorrisks",
-    "subcontrols", "controls", "controlcategories", "assessments", "vendors", "projects", "users"]) {
+    "subcontrols", "controls", "controlcategories", "assessments", "vendors", "files", "projects", "users"]) {
     await deleteDEMOData(table)
   }
 }

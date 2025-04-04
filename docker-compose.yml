@@ -2,9 +2,7 @@ version: '3.9'
 
 services:
   postgresdb:
-    image: postgres
-    env_file:
-      - ./.env
+    image: postgres:16.8
     ports:
       - $LOCAL_DB_PORT:$DB_PORT
     volumes:
@@ -18,8 +16,6 @@ services:
       - postgresdb
     image: pharsh4585/verifywise-backend:latest
     pull_policy: always
-    env_file:
-      - ./.env
     ports:
       - $BACKEND_PORT:$BACKEND_PORT
     environment:
@@ -38,10 +34,8 @@ services:
       - backend
     image: pharsh4585/verifywise-frontend:latest
     pull_policy: always
-    env_file:
-      - ./.env
-    ports:
-      - $FRONTEND_PORT:80
+    # ports:
+    #   - $FRONTEND_PORT:80
     # environment:
     #   # backend URL
     #   - VITE_APP_API_BASE_URL=$VITE_APP_API_HOST:$BACKEND_PORT

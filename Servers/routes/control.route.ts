@@ -17,25 +17,23 @@ import {
 import authenticateJWT from "../middleware/auth.middleware";
 
 // GET requests
-router.get("/", /*authenticateJWT,*/ getAllControls);
-router.get("/:id", /*authenticateJWT,*/ getControlById);
-router.get("/all/bycategory/:id", getControlsByControlCategoryId);
+router.get("/", authenticateJWT, getAllControls);
+router.get("/:id", authenticateJWT, getControlById);
+router.get("/all/bycategory/:id", authenticateJWT, getControlsByControlCategoryId);
 
 // POST, PUT, DELETE requests
-router.post("/", /*authenticateJWT,*/ createControl);
-router.post("/compliance/:id", /*authenticateJWT,*/ getComplianceById);
+router.post("/", authenticateJWT, createControl);
+router.post("/compliance/:id", authenticateJWT, getComplianceById);
 
 router.patch(
   "/saveControls/:id",
-  /*authenticateJWT,*/ upload.fields([
-    { name: "evidenceFiles" },
-    { name: "feedbackFiles" },
-  ]),
+  authenticateJWT,
+  upload.any(),
   saveControls
 );
-router.put("/:id", /*authenticateJWT,*/ updateControlById);
-// router.put("/updateControls/:id", /*authenticateJWT,*/ updateControls);
+router.put("/:id", authenticateJWT, updateControlById);
+// router.put("/updateControls/:id", authenticateJWT, updateControls);
 
-router.delete("/:id", /*authenticateJWT,*/ deleteControlById);
+router.delete("/:id", authenticateJWT, deleteControlById);
 
 export default router;

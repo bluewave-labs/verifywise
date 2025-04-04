@@ -16,8 +16,21 @@
  * @module utils/user.utils
  */
 
-import { User } from "../models/user.model";
-import pool from "../database/db";
+import { User, UserModel } from "../models/user.model";
+import { sequelize } from "../database/db";
+import { QueryTypes } from "sequelize";
+import { ProjectModel } from "../models/project.model";
+import { VendorModel } from "../models/vendor.model";
+import { ControlModel } from "../models/control.model";
+import { SubcontrolModel } from "../models/subcontrol.model";
+import { ProjectRiskModel } from "../models/projectRisk.model";
+import { VendorRiskModel } from "../models/vendorRisk.model";
+import { FileModel } from "../models/file.model";
+import { ControlCategoryModel } from "../models/controlCategory.model";
+import { AssessmentModel } from "../models/assessment.model";
+import { TopicModel } from "../models/topic.model";
+import { SubtopicModel } from "../models/subtopic.model";
+import { QuestionModel } from "../models/question.model";
 
 /**
  * Retrieves all users from the database.
@@ -38,8 +51,14 @@ import pool from "../database/db";
  * @throws {Error} If there is an error executing the SQL query.
  */
 export const getAllUsersQuery = async (): Promise<User[]> => {
-  const users = await pool.query("SELECT * FROM users");
-  return users.rows;
+  const users = await sequelize.query(
+    "SELECT * FROM users ORDER BY created_at DESC, id ASC",
+    {
+      mapToModel: true,
+      model: UserModel,
+    }
+  );
+  return users;
 };
 
 /**
@@ -57,10 +76,15 @@ export const getAllUsersQuery = async (): Promise<User[]> => {
 export const getUserByEmailQuery = async (email: string): Promise<User> => {
   console.log("getUserByEmail");
   try {
-    const user = await pool.query("SELECT * FROM users WHERE email = $1", [
-      email,
-    ]);
-    return user.rows[0];
+    const user = await sequelize.query(
+      "SELECT * FROM users WHERE email = :email",
+      {
+        replacements: { email },
+        mapToModel: true,
+        model: UserModel,
+      }
+    );
+    return user[0];
   } catch (error) {
     console.error("Error getting user by email:", error);
     throw error;
@@ -88,8 +112,15 @@ export const getUserByEmailQuery = async (email: string): Promise<User> => {
  * ```
  */
 export const getUserByIdQuery = async (id: number): Promise<User> => {
-  const user = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
-  return user.rows[0];
+  const user = await sequelize.query(
+    "SELECT * FROM users WHERE id = :id",
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: UserModel,
+    }
+  );
+  return user[0];
 };
 
 /**
@@ -121,13 +152,20 @@ export const createNewUserQuery = async (
   const last_login = new Date();
 
   try {
-    const result = await pool.query(
+    const result = await sequelize.query(
       `INSERT INTO users (name, surname, email, password_hash, role, created_at, last_login)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-      [name, surname, email, password_hash, role, created_at, last_login]
+        VALUES (:name, :surname, :email, :password_hash, :role, :created_at, :last_login) RETURNING *`,
+      {
+        replacements: {
+          name, surname, email, password_hash, role, created_at, last_login
+        },
+        mapToModel: true,
+        model: UserModel,
+        // type: QueryTypes.INSERT
+      }
     );
 
-    return result.rows[0];
+    return result[0];
   } catch (error) {
     console.error("Error creating new user:", error);
     throw error;
@@ -147,11 +185,19 @@ export const resetPasswordQuery = async (
   email: string,
   newPassword: string
 ): Promise<User> => {
-  const result = await pool.query(
-    `UPDATE users SET password_hash = $1 WHERE email = $2 RETURNING *`,
-    [newPassword, email]
+  const result = await sequelize.query(
+    `UPDATE users SET password_hash = :password_hash WHERE email = :email RETURNING *`,
+    {
+      replacements: {
+        password_hash: newPassword,
+        email
+      },
+      mapToModel: true,
+      model: UserModel,
+      // type: QueryTypes.UPDATE
+    }
   );
-  return result.rows[0];
+  return result[0];
 };
 
 /**
@@ -176,13 +222,32 @@ export const updateUserByIdQuery = async (
   id: number,
   user: Partial<User>
 ): Promise<User> => {
-  const { name, email, password_hash, role, last_login } = user;
-  const result = await pool.query(
-    `UPDATE users SET name = $1, email = $2, password_hash = $3, role = $4, last_login = $5
-     WHERE id = $6 RETURNING *`,
-    [name, email, password_hash, role, last_login, id]
-  );
-  return result.rows[0];
+  const updateUser: Partial<Record<keyof User, any>> = {};
+  const setClause = [
+    "name",
+    "surname",
+    "email",
+    "role",
+    "last_login",
+  ].filter(f => {
+    if (user[f as keyof User] !== undefined) {
+      updateUser[f as keyof User] = user[f as keyof User]
+      return true
+    }
+  }).map(f => `${f} = :${f}`).join(", ");
+
+  const query = `UPDATE users SET ${setClause} WHERE id = :id RETURNING *;`;
+
+  updateUser.id = id;
+
+  const result = await sequelize.query(query, {
+    replacements: updateUser,
+    mapToModel: true,
+    model: UserModel,
+    // type: QueryTypes.UPDATE,
+  });
+
+  return result[0];
 };
 
 /**
@@ -196,37 +261,48 @@ export const updateUserByIdQuery = async (
  *
  * @throws {Error} If the query fails or the user does not exist.
  */
-export const deleteUserByIdQuery = async (id: number): Promise<User> => {
+export const deleteUserByIdQuery = async (id: number): Promise<Boolean> => {
   const usersFK = [
-    { table: "projects", fields: ["owner", "last_updated_by"] },
-    { table: "vendors", fields: ["assignee", "reviewer"] },
-    { table: "controls", fields: ["approver", "owner", "reviewer"] },
-    { table: "subcontrols", fields: ["approver", "owner", "reviewer"] },
-    { table: "projectrisks", fields: ["risk_owner", "risk_approval"] },
-    { table: "vendorrisks", fields: ["action_owner"] },
-    { table: "files", fields: ["uploaded_by"] }
+    { table: "projects", model: ProjectModel, fields: ["owner", "last_updated_by"] },
+    { table: "vendors", model: VendorModel, fields: ["assignee", "reviewer"] },
+    { table: "controls", model: ControlModel, fields: ["approver", "owner", "reviewer"] },
+    { table: "subcontrols", model: SubcontrolModel, fields: ["approver", "owner", "reviewer"] },
+    { table: "projectrisks", model: ProjectRiskModel, fields: ["risk_owner", "risk_approval"] },
+    { table: "vendorrisks", model: VendorRiskModel, fields: ["action_owner"] },
+    { table: "files", model: FileModel, fields: ["uploaded_by"] }
   ]
 
   for (let entry of usersFK) {
     await Promise.all(
       entry.fields.map(async f => {
-        await pool.query(
-          `UPDATE ${entry.table} SET ${f} = NULL WHERE ${f} = $1`,
-          [id]
+        await sequelize.query(
+          `UPDATE ${entry.table} SET ${f} = :x WHERE ${f} = :id`,
+          {
+            replacements: { x: null, id },
+            // type: QueryTypes.UPDATE
+          }
         )
       })
-    )
+    );
   }
 
-  await pool.query(
-    `DELETE FROM projects_members WHERE user_id = $1`,
-    [id]
+  await sequelize.query(
+    `DELETE FROM projects_members WHERE user_id = :user_id`,
+    {
+      replacements: { user_id: id },
+      type: QueryTypes.DELETE
+    }
   );
-  const result = await pool.query(
-    "DELETE FROM users WHERE id = $1 RETURNING *",
-    [id]
+  const result = await sequelize.query(
+    "DELETE FROM users WHERE id = :id RETURNING *",
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: UserModel,
+      type: QueryTypes.DELETE
+    }
   );
-  return result.rows[0];
+  return result.length > 0;
 };
 
 /**
@@ -245,8 +321,13 @@ export const deleteUserByIdQuery = async (id: number): Promise<User> => {
  */
 export const checkUserExistsQuery = async (): Promise<boolean> => {
   try {
-    const result = await pool.query("SELECT COUNT(*) FROM users");
-    return result.rows[0].count > 0;
+    const result = await sequelize.query<{ count: number }>(
+      "SELECT COUNT(*) FROM users",
+      {
+        type: QueryTypes.SELECT
+      }
+    );
+    return result[0].count > 0;
   } catch (error) {
     console.error("Error checking user existence:", error);
     throw error;
@@ -254,64 +335,97 @@ export const checkUserExistsQuery = async (): Promise<boolean> => {
 };
 
 export const getUserProjects = async (id: number) => {
-  const result = await pool.query("SELECT id FROM projects WHERE id = $1", [
-    id,
-  ]);
-  return result.rows;
+  const result = await sequelize.query(
+    "SELECT id FROM projects WHERE id = :id",
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: ProjectModel
+    }
+  );
+  return result;
 };
 
 export const getControlCategoriesForProject = async (id: number) => {
-  const result = await pool.query(
-    "SELECT id FROM controlcategories WHERE project_id = $1",
-    [id]
+  const result = await sequelize.query(
+    "SELECT id FROM controlcategories WHERE project_id = :project_id",
+    {
+      replacements: { project_id: id },
+      mapToModel: true,
+      model: ControlCategoryModel
+    }
   );
-  return result.rows;
+  return result;
 };
 
 export const getControlForControlCategory = async (id: number) => {
-  const result = await pool.query(
-    "SELECT id FROM controls WHERE control_category_id = $1",
-    [id]
+  const result = await sequelize.query(
+    "SELECT id FROM controls WHERE control_category_id = :control_category_id",
+    {
+      replacements: { control_category_id: id },
+      mapToModel: true,
+      model: ControlModel
+    }
   );
-  return result.rows;
+  return result;
 };
 
 export const getSubControlForControl = async (id: number) => {
-  const result = await pool.query(
-    "SELECT * FROM subcontrols WHERE control_id = $1",
-    [id]
+  const result = await sequelize.query(
+    "SELECT * FROM subcontrols WHERE control_id = :control_id",
+    {
+      replacements: { control_id: id },
+      mapToModel: true,
+      model: SubcontrolModel
+    }
   );
-  return result.rows;
+  return result;
 };
 
 export const getAssessmentsForProject = async (id: number) => {
-  const result = await pool.query(
-    "SELECT id FROM assessments WHERE project_id = $1",
-    [id]
+  const result = await sequelize.query(
+    "SELECT id FROM assessments WHERE project_id = :project_id",
+    {
+      replacements: { project_id: id },
+      mapToModel: true,
+      model: AssessmentModel
+    }
   );
-  return result.rows;
+  return result;
 };
 
 export const getTopicsForAssessment = async (id: number) => {
-  const result = await pool.query(
-    "SELECT id FROM topics WHERE assessment_id = $1",
-    [id]
+  const result = await sequelize.query(
+    "SELECT id FROM topics WHERE assessment_id = :assessment_id",
+    {
+      replacements: { assessment_id: id },
+      mapToModel: true,
+      model: TopicModel
+    }
   );
-  return result.rows;
+  return result;
 };
 
 export const getSubTopicsForTopic = async (id: number) => {
-  const result = await pool.query(
-    "SELECT id FROM subtopics WHERE topic_id = $1",
-    [id]
+  const result = await sequelize.query(
+    "SELECT id FROM subtopics WHERE topic_id = :topic_id",
+    {
+      replacements: { topic_id: id },
+      mapToModel: true,
+      model: SubtopicModel
+    }
   );
-  return result.rows;
+  return result;
 };
 
 export const getQuestionsForSubTopic = async (id: number) => {
-  const result = await pool.query(
-    "SELECT * FROM questions WHERE subtopic_id = $1",
-    [id]
+  const result = await sequelize.query(
+    "SELECT * FROM questions WHERE subtopic_id = :subtopic_id",
+    {
+      replacements: { subtopic_id: id },
+      mapToModel: true,
+      model: QuestionModel
+    }
   );
-  return result.rows;
+  return result;
 };

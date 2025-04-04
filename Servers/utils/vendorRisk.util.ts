@@ -1,127 +1,130 @@
-import { VendorRisk } from "../models/vendorRisk.model";
-import pool from "../database/db";
+import { VendorRisk, VendorRiskModel } from "../models/vendorRisk.model";
+import { sequelize } from "../database/db";
+import { QueryTypes } from "sequelize";
 
-export const getAllVendorRisksQuery = async (
-  vendorId: number
+export const getVendorRisksByProjectIdQuery = async (
+  projectId: number
 ): Promise<VendorRisk[]> => {
-  console.log("getAllVendorRisks for vendor", vendorId);
-  const vendorRisks = await pool.query(
-    "SELECT * FROM vendorRisks WHERE vendor_id = $1",
-    [vendorId]
+  const vendorRisks = await sequelize.query(
+    "SELECT * FROM vendorRisks WHERE vendor_id IN (SELECT vendor_id FROM vendors_projects WHERE project_id = :project_id) ORDER BY created_at DESC, id ASC;",
+    {
+      replacements: { project_id: projectId },
+      mapToModel: true,
+      model: VendorRiskModel
+    }
   );
-  return vendorRisks.rows;
+  return vendorRisks;
 };
 
 export const getVendorRiskByIdQuery = async (
   id: number
 ): Promise<VendorRisk | null> => {
-  const result = await pool.query("SELECT * FROM vendorRisks WHERE id = $1", [
-    id,
-  ]);
-  return result.rows.length ? result.rows[0] : null;
+  const result = await sequelize.query(
+    "SELECT * FROM vendorRisks WHERE id = :id ORDER BY created_at DESC, id ASC",
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: VendorRiskModel
+    }
+  );
+  return result[0];
 };
 
 export const createNewVendorRiskQuery = async (vendorRisk: VendorRisk): Promise<VendorRisk> => {
   console.log("createNewVendorRisk", vendorRisk);
-  const result = await pool.query(
+  const result = await sequelize.query(
     `INSERT INTO vendorRisks (
-      vendor_id, order_no, risk_description, impact_description, impact, 
+      vendor_id, order_no, risk_description, impact_description, impact,
       likelihood, risk_severity, action_plan, action_owner, risk_level
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
-    [
-      vendorRisk.vendor_id,
-      vendorRisk.order_no,
-      vendorRisk.risk_description,
-      vendorRisk.impact_description,
-      vendorRisk.impact,
-      vendorRisk.likelihood,
-      vendorRisk.risk_severity,
-      vendorRisk.action_plan,
-      vendorRisk.action_owner,
-      vendorRisk.risk_level,
-    ]
+    ) VALUES (
+      :vendor_id, :order_no, :risk_description, :impact_description, :impact,
+      :likelihood, :risk_severity, :action_plan, :action_owner, :risk_level
+    ) RETURNING *`,
+    {
+      replacements: {
+        vendor_id: vendorRisk.vendor_id,
+        order_no: vendorRisk.order_no || null,
+        risk_description: vendorRisk.risk_description,
+        impact_description: vendorRisk.impact_description,
+        impact: vendorRisk.impact,
+        likelihood: vendorRisk.likelihood,
+        risk_severity: vendorRisk.risk_severity,
+        action_plan: vendorRisk.action_plan,
+        action_owner: vendorRisk.action_owner,
+        risk_level: vendorRisk.risk_level,
+      },
+      mapToModel: true,
+      model: VendorRiskModel,
+      // type: QueryTypes.INSERT
+    }
   );
-  return result.rows[0];
+  return result[0];
 };
 
 export const updateVendorRiskByIdQuery = async (
   id: number,
   vendorRisk: Partial<VendorRisk>
 ): Promise<VendorRisk | null> => {
-  const fields = [];
-  const values = [];
-  let query = "UPDATE vendorRisks SET ";
+  const updateVendorRisk: Partial<Record<keyof VendorRisk, any>> = {};
+  const setClause = [
+    "vendor_id",
+    "risk_description",
+    "impact_description",
+    "impact",
+    "likelihood",
+    "risk_severity",
+    "action_plan",
+    "action_owner",
+    "risk_level",
+  ].filter(f => {
+    if (vendorRisk[f as keyof VendorRisk] !== undefined) {
+      updateVendorRisk[f as keyof VendorRisk] = vendorRisk[f as keyof VendorRisk]
+      return true
+    }
+  }).map(f => `${f} = :${f}`).join(", ");
 
-  if (vendorRisk.vendor_id !== undefined) {
-    fields.push(`vendor_id = $${fields.length + 1}`);
-    values.push(vendorRisk.vendor_id);
-  }
-  if (vendorRisk.order_no !== undefined) {
-    fields.push(`order_no = $${fields.length + 1}`);
-    values.push(vendorRisk.order_no);
-  }
-  if (vendorRisk.risk_description !== undefined) {
-    fields.push(`risk_description = $${fields.length + 1}`);
-    values.push(vendorRisk.risk_description);
-  }
-  if (vendorRisk.impact_description !== undefined) {
-    fields.push(`impact_description = $${fields.length + 1}`);
-    values.push(vendorRisk.impact_description);
-  }
-  if (vendorRisk.impact !== undefined) {
-    fields.push(`impact = $${fields.length + 1}`);
-    values.push(vendorRisk.impact);
-  }
-  if (vendorRisk.likelihood !== undefined) {
-    fields.push(`likelihood = $${fields.length + 1}`);
-    values.push(vendorRisk.likelihood);
-  }
-  if (vendorRisk.risk_severity !== undefined) {
-    fields.push(`risk_severity = $${fields.length + 1}`);
-    values.push(vendorRisk.risk_severity);
-  }
-  if (vendorRisk.action_plan !== undefined) {
-    fields.push(`action_plan = $${fields.length + 1}`);
-    values.push(vendorRisk.action_plan);
-  }
-  if (vendorRisk.action_owner !== undefined) {
-    fields.push(`action_owner = $${fields.length + 1}`);
-    values.push(vendorRisk.action_owner);
-  }
-  if (vendorRisk.risk_level !== undefined) {
-    fields.push(`risk_level = $${fields.length + 1}`);
-    values.push(vendorRisk.risk_level);
-  }
+  const query = `UPDATE vendorrisks SET ${setClause} WHERE id = :id RETURNING *;`;
 
-  if (fields.length === 0) {
-    throw new Error("No fields to update");
-  }
+  updateVendorRisk.id = id;
 
-  query += fields.join(", ") + ` WHERE id = $${fields.length + 1} RETURNING *`;
-  values.push(id);
+  const result = await sequelize.query(query, {
+    replacements: updateVendorRisk,
+    mapToModel: true,
+    model: VendorRiskModel,
+    // type: QueryTypes.UPDATE,
+  });
 
-  const result = await pool.query(query, values);
-  return result.rows.length ? result.rows[0] : null;
+  return result[0];
 };
 
 export const deleteVendorRiskByIdQuery = async (
   id: number
-): Promise<boolean> => {
-  const result = await pool.query(
-    "DELETE FROM vendorRisks WHERE id = $1 RETURNING id",
-    [id]
+): Promise<Boolean> => {
+  const result = await sequelize.query(
+    "DELETE FROM vendorRisks WHERE id = :id RETURNING id",
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: VendorRiskModel,
+      type: QueryTypes.DELETE,
+    }
   );
-  return result.rowCount !== null && result.rowCount > 0;
+  return result.length > 0;
 };
 
 export const deleteVendorRisksForVendorQuery = async (
   vendorId: number
 ): Promise<Boolean> => {
   console.log(`Deleting vendorrisks for vendor: ${vendorId}`);
-  const result = await pool.query(
-    `DELETE FROM vendorrisks WHERE vendor_id = $1 RETURNING id`,
-    [vendorId]
+  const result = await sequelize.query(
+    `DELETE FROM vendorrisks WHERE vendor_id = :vendor_id RETURNING id`,
+    {
+      replacements: { vendor_id: vendorId },
+      mapToModel: true,
+      model: VendorRiskModel,
+      type: QueryTypes.UPDATE,
+    }
   )
-  console.log(`Deleted ${result.rowCount} rows of vendorrisks for vendor: ${vendorId}`);
-  return result.rowCount !== null && result.rowCount > 0;
+  console.log(`Deleted ${result.length} rows of vendorrisks for vendor: ${vendorId}`);
+  return result.length > 0;
 }

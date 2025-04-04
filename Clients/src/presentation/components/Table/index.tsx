@@ -128,7 +128,7 @@ const VWBasicTable = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {bodyData?.map((row) => (
+            {data.rows?.map((row) => (
               <TableRow
                 key={row.id}
                 sx={{
@@ -171,6 +171,10 @@ const VWBasicTable = ({
           alignItems="center"
           justifyContent="space-between"
           px={theme.spacing(4)}
+          sx={{
+            width: "100%",
+            display: "flex",
+          }}
         >
           <Typography px={theme.spacing(2)} fontSize={12} sx={{ opacity: 0.7 }}>
             Showing {page * rowsPerPage + 1} -{" "}

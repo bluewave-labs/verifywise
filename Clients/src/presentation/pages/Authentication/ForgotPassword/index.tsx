@@ -10,21 +10,21 @@ import { ReactComponent as Background } from "../../../assets/imgs/background-gr
 import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate, useLocation } from "react-router-dom";
-import { resetPassword } from "../../../../application/repository/entity.repository";
+import { apiServices } from "../../../../infrastructure/api/networkServices";
+import { handleAlert } from "../../../../application/tools/alertUtils";
+import { AlertProps } from "../../../components/Alert";
+import Alert from "../../../components/Alert";
 
 // Define the shape of form values
 interface FormValues {
   email: string;
 }
 
-// Initial state for the form
-const initialState: FormValues = {
-  email: "",
-};
-
 const ForgotPassword: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [alert, setAlert] = useState<AlertProps | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Update initial state to use the email from navigation state if available
   const initialState: FormValues = {
@@ -37,24 +37,32 @@ const ForgotPassword: React.FC = () => {
   // Handle changes in input fields
   const handleChange =
     (prop: keyof FormValues) =>
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setValues({ ...values, [prop]: event.target.value });
-    };
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        setValues({ ...values, [prop]: event.target.value });
+      };
 
   // Handle form submission
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    console.log("Form submitted:", values);
-    // Reset form after successful submission
-    const response = await resetPassword({
-      routeUrl: "/invite",
-      body: { email: values.email },
-    });
-    console.log("Response:", response);
-    if (response.status === 200) {
+    setIsSubmitting(true);
+    try {
+      const formData = {
+        to: values.email,
+        email: values.email,
+        name: values.email,
+      };
+      apiServices.post("/mail/reset-password", formData);
       navigate("/reset-password", { state: { email: values.email } });
+    } catch (error) {
+      handleAlert({
+        variant: "error",
+        body: "Failed to send reset email. Please try again.",
+        setAlert,
+      });
+    } finally {
+      setIsSubmitting(false);
+      setValues(initialState);
     }
-    setValues(initialState);
   };
 
   const theme = useTheme();
@@ -82,6 +90,15 @@ const ForgotPassword: React.FC = () => {
           transform: "translateX(-50%)",
         }}
       />
+      {alert && (
+        <Alert
+          variant={alert.variant}
+          title={alert.title}
+          body={alert.body}
+          isToast={true}
+          onClick={() => setAlert(null)}
+        />
+      )}
       <form onSubmit={handleSubmit}>
         <Stack
           className="reg-admin-form"
@@ -94,6 +111,9 @@ const ForgotPassword: React.FC = () => {
             margin: "auto",
             mt: 40,
             gap: theme.spacing(20),
+            position: "relative",
+            zIndex: isSubmitting ? 0 : 1,
+            pointerEvents: isSubmitting ? "none" : "auto",
           }}
         >
           <Stack
@@ -132,8 +152,8 @@ const ForgotPassword: React.FC = () => {
               type="submit"
               disableRipple
               variant="contained"
+              disabled={isSubmitting || values.email === ""}
               sx={singleTheme.buttons.primary}
-              disabled={values.email === ""}
             >
               Reset password
             </Button>

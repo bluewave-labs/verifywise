@@ -9,6 +9,7 @@ import {
   TableRow,
   Typography,
   useTheme,
+  Box
 } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";
 import { useCallback, useContext, useMemo, useState } from "react";
@@ -19,17 +20,7 @@ import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.cont
 import { RISK_LABELS } from "../../components/RiskLevel/constants";
 import IconButton from "../../components/IconButton";
 import placeholderImage from "../../assets/imgs/empty-state.svg";
-
-const riskLevelChecker = (score: string) => {
-  const parsedScore = parseInt(score, 10);
-  if (!isNaN(parsedScore)) {
-    if (parsedScore <= 3) return RISK_LABELS.low.text;
-    if (parsedScore <= 6) return RISK_LABELS.medium.text;
-    if (parsedScore <= 9) return RISK_LABELS.high.text;
-    return RISK_LABELS.critical.text;
-  }
-  return score;
-};
+import { formatDate } from "../../tools/isoDateToString";
 
 const VWProjectRisksTableHead = ({ columns }: { columns: any[] }) => {
   return (
@@ -70,6 +61,7 @@ const VWProjectRisksTableBody = ({
   setSelectedRow,
   setAnchor,
   onDeleteRisk,
+  flashRow
 }: {
   rows: any[];
   page: number;
@@ -77,10 +69,11 @@ const VWProjectRisksTableBody = ({
   setSelectedRow: any;
   setAnchor: any;
   onDeleteRisk: (id: number) => void;
+  flashRow: number | null
 }) => {
   const { setInputValues, dashboardValues } = useContext(VerifyWiseContext);
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
-
+  const theme = useTheme();
   const handelEditRisk = (row: any, event?: React.SyntheticEvent) => {
     setSelectedRow(row);
     setInputValues(row);
@@ -107,29 +100,47 @@ const VWProjectRisksTableBody = ({
         rows
           .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
           .map((row: ProjectRisk, index: number) => (
-            <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row}>
-              <TableCell sx={cellStyle}>
-                {row.risk_name?.length > 30
+            <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row} onClick={(e) => handelEditRisk(row, e)}>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
+                {row.risk_name ? (row.risk_name?.length > 30
                   ? `${row.risk_name.slice(0, 30)}...`
-                  : row.risk_name}
+                  : row.risk_name) : '-'}
               </TableCell>
-              <TableCell sx={cellStyle}>
-                {row.impact?.length > 30
-                  ? `${row.impact.slice(0, 30)}...`
-                  : row.impact}
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
+                {row.risk_owner ? displayUserFullName(row.risk_owner) : '-'}
               </TableCell>
-              <TableCell sx={cellStyle}>
-                {displayUserFullName(row.risk_owner)}
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
+                {row.severity ? row.severity : '-'}
               </TableCell>
-              <TableCell sx={cellStyle}>
-                {riskLevelChecker(row.risk_level_autocalculated)}
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
+                {row.likelihood ? row.likelihood : '-'} 
               </TableCell>
-              <TableCell sx={cellStyle}>{row.likelihood}</TableCell>
-              <TableCell sx={cellStyle}>
-                {row.risk_level_autocalculated}
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
+                {row.mitigation_plan ? (row.mitigation_plan.length > 30 ? `${row.mitigation_plan.slice(0, 30)}...` : row.mitigation_plan) : '-'}                
               </TableCell>
-              <TableCell sx={cellStyle}>{row.mitigation_status}</TableCell>
-              <TableCell sx={cellStyle}>{row.final_risk_level}</TableCell>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
+                {row.mitigation_status ? row.mitigation_status : '-'}
+              </TableCell>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
+                <Box
+                  sx={{
+                    backgroundColor:
+                      Object.values(RISK_LABELS).find(
+                        (risk) => risk.text === row.risk_level_autocalculated
+                      )?.color || "transparent",
+                    borderRadius: theme.shape.borderRadius,
+                    padding: "8px",
+                    textAlign: "center",
+                    justifyContent: "center",
+                    color: "white",
+                  }}
+                >
+                {row.risk_level_autocalculated ? row.risk_level_autocalculated : '-'}
+                </Box>
+              </TableCell>
+              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
+                {row.deadline ? formatDate(row.deadline.toString()) : "NA"}
+              </TableCell>
               <TableCell
                 sx={{
                   ...singleTheme.tableStyles.primary.body.cell,
@@ -137,6 +148,7 @@ const VWProjectRisksTableBody = ({
                   right: 0,
                   minWidth: "50px",
                 }}
+                style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}
               >
                 <IconButton
                   id={row.id}
@@ -162,6 +174,7 @@ const VWProjectRisksTable = ({
   deleteRisk,
   setPage,
   page,
+  flashRow
 }: {
   columns: any[];
   rows: any[];
@@ -170,6 +183,7 @@ const VWProjectRisksTable = ({
   deleteRisk: (id: number) => void;
   setPage: (pageNo: number) => void;
   page: number;
+  flashRow: number | null;
 }) => {
   const theme = useTheme();
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -209,6 +223,7 @@ const VWProjectRisksTable = ({
               setSelectedRow={setSelectedRow}
               setAnchor={setAnchor}
               onDeleteRisk={deleteRisk}
+              flashRow={flashRow}
             />
           ) : (
             <>

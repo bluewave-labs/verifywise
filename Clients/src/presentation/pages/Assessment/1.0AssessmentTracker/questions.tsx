@@ -8,9 +8,10 @@ import { Question } from "../../../../domain/Question";
 
 type QuestionsProps = {
   subtopic: Subtopic;
+  setRefreshKey: () => void;
 };
 
-const Questions = ({ subtopic }: QuestionsProps) => {
+const Questions = ({ subtopic,setRefreshKey }: QuestionsProps) => {
   const [questionsData, setQuestionsData] = useState<Question[]>();
   const [loadingQuestions, setLoadingQuestions] = useState<boolean>(true);
 
@@ -23,7 +24,6 @@ const Questions = ({ subtopic }: QuestionsProps) => {
         const response = await getEntityById({
           routeUrl: `/questions/bysubtopic/${subtopic.id}`,
         });
-        console.log("response.data : ", response.data);
         setQuestionsData(response.data);
       } catch (error) {
         console.error("Failed to fetch questions data:", error);
@@ -57,7 +57,7 @@ const Questions = ({ subtopic }: QuestionsProps) => {
           )
           .map((question: any) => (
             <div key={question.id}>
-              <VWQuestion question={question} />
+              <VWQuestion question={question} setRefreshKey={setRefreshKey} />
             </div>
           ))
       ) : (

@@ -1,4 +1,6 @@
+import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
 import { Control } from "./control.model";
+import { ProjectModel } from "./project.model";
 
 /*
 
@@ -12,11 +14,45 @@ export type ControlCategory = {
   title: string; // gets assigned from the structure
   order_no?: number; // gets assigned from the structure
   controls?: Control[];
+  created_at?: Date;
 };
 
-// export type ControlCategory = {
-//   id?: number;
-//   projectId: number;
-//   name: string;
-//   orderNo: number;
-// };
+@Table({
+  tableName: "control_categories"
+})
+export class ControlCategoryModel extends Model<ControlCategory> {
+  @Column({
+    type: DataType.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  })
+  id?: number;
+
+  @ForeignKey(() => ProjectModel)
+  @Column({
+    type: DataType.INTEGER,
+  })
+  project_id!: number;
+
+  @Column({
+    type: DataType.STRING,
+  })
+  title!: string;
+
+  @Column({
+    type: DataType.INTEGER,
+  })
+  order_no?: number;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
+  })
+  is_demo?: boolean;
+
+  @Column({
+    type: DataType.DATE
+  })
+  created_at?: Date;
+}

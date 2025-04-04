@@ -1,89 +1,153 @@
-import { ControlCategory } from "../models/controlCategory.model";
-import pool from "../database/db";
+import { ControlCategory, ControlCategoryModel } from "../models/controlCategory.model";
+import { sequelize } from "../database/db";
 import { createNewControlsQuery } from "./control.utils";
 import { ControlCategories } from "../structures/compliance-tracker/controlCategories.struct"
+import { QueryTypes } from "sequelize";
 
 export const getAllControlCategoriesQuery = async (): Promise<
   ControlCategory[]
 > => {
-  const controlCategories = await pool.query("SELECT * FROM controlcategories");
-  return controlCategories.rows;
+  const controlCategories = await sequelize.query(
+    "SELECT * FROM controlcategories ORDER BY created_at DESC, id ASC",
+    {
+      mapToModel: true,
+      model: ControlCategoryModel
+    }
+  );
+  return controlCategories;
 };
 
 export const getControlCategoryByIdQuery = async (
   id: number
 ): Promise<ControlCategory | null> => {
-  const result = await pool.query(
-    "SELECT * FROM controlcategories WHERE id = $1",
-    [id]
+  const result = await sequelize.query(
+    "SELECT * FROM controlcategories WHERE id = :id",
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: ControlCategoryModel
+    }
   );
-  return result.rows.length ? result.rows[0] : null;
+  return result[0];
 };
 
 export const getControlCategoryByTitleAndProjectIdQuery = async (
   title: string,
   projectId: number
 ): Promise<ControlCategory | null> => {
-  const result = await pool.query(
-    "SELECT * FROM controlcategories WHERE title = $1 AND project_id = $2",
-    [title, projectId]
+  const result = await sequelize.query(
+    "SELECT * FROM controlcategories WHERE title = :title AND project_id = :project_id",
+    {
+      replacements: { title, project_id: projectId },
+      mapToModel: true,
+      model: ControlCategoryModel
+    }
   );
-  return result.rows.length ? result.rows[0] : null;
+  return result[0];
 };
 
 export const getControlCategoryByProjectIdQuery = async (
   projectId: number
 ): Promise<ControlCategory[]> => {
-  const result = await pool.query(
-    "SELECT * FROM controlcategories WHERE project_id = $1",
-    [projectId]
+  const result = await sequelize.query(
+    "SELECT * FROM controlcategories WHERE project_id = :project_id ORDER BY created_at DESC, id ASC",
+    {
+      replacements: { project_id: projectId },
+      mapToModel: true,
+      model: ControlCategoryModel
+    }
   );
-  return result.rows;
+  return result;
 };
 
 export const createControlCategoryQuery = async (
   controlCategory: ControlCategory
 ): Promise<ControlCategory> => {
-  const result = await pool.query(
-    "INSERT INTO controlcategories (project_id, title, order_no) VALUES ($1, $2, $3) RETURNING *",
-    [controlCategory.project_id, controlCategory.title, controlCategory.order_no]
+  const result = await sequelize.query(
+    `INSERT INTO controlcategories (
+      project_id, title, order_no
+    ) VALUES (:project_id, :title, :order_no) RETURNING *`,
+    {
+      replacements: {
+        project_id: controlCategory.project_id,
+        title: controlCategory.title,
+        order_no: controlCategory.order_no || null
+      },
+      mapToModel: true,
+      model: ControlCategoryModel,
+      // type: QueryTypes.INSERT
+    }
   );
-  return result.rows[0];
+  return result[0];
 };
 
 export const updateControlCategoryByIdQuery = async (
   id: number,
   controlCategory: Partial<ControlCategory>
 ): Promise<ControlCategory | null> => {
-  const result = await pool.query(
-    "UPDATE controlcategories SET title = $1 WHERE id = $2 RETURNING *",
-    [controlCategory.title, id]
-  );
-  return result.rows.length ? result.rows[0] : null;
+  const updateControlCategory: Partial<Record<keyof ControlCategory, any>> = {};
+  const setClause = ["title"].filter(f => {
+    if (controlCategory[f as keyof ControlCategory] !== undefined) {
+      updateControlCategory[f as keyof ControlCategory] = controlCategory[f as keyof ControlCategory]
+      return true
+    }
+  }).map(f => `${f} = :${f}`).join(", ");
+
+  const query = `UPDATE controlcategories SET ${setClause} WHERE id = :id RETURNING *;`;
+
+  updateControlCategory.id = id;
+
+  const result = await sequelize.query(query, {
+    replacements: updateControlCategory,
+    mapToModel: true,
+    model: ControlCategoryModel,
+    // type: QueryTypes.UPDATE,
+  });
+
+  return result[0];
 };
 
 export const deleteControlCategoryByIdQuery = async (
   id: number
-): Promise<ControlCategory | null> => {
-  const result = await pool.query(
-    "DELETE FROM controlcategories WHERE id = $1 RETURNING *",
-    [id]
+): Promise<Boolean> => {
+  const result = await sequelize.query(
+    "DELETE FROM controlcategories WHERE id = :id RETURNING *",
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: ControlCategoryModel,
+      type: QueryTypes.DELETE
+    }
   );
-  return result.rows.length ? result.rows[0] : null;
+  return result.length > 0;
 };
 
 export const createNewControlCategories = async (projectId: number, enable_ai_data_insertion: boolean) => {
   const createdControlCategories = []
-  let query = "INSERT INTO controlcategories(project_id, title, order_no) VALUES ($1, $2, $3) RETURNING *;";
+  let query = `INSERT INTO controlcategories(
+    project_id, title, order_no
+  ) VALUES (:project_id, :title, :order_no) RETURNING *;`;
   for (let controlCategoryStruct of ControlCategories) {
-    const result = await pool.query(query, [projectId, controlCategoryStruct.title, controlCategoryStruct.order_no])
-    const control_category_id = result.rows[0].id
+    const result = await sequelize.query(
+      query,
+      {
+        replacements: {
+          project_id: projectId,
+          title: controlCategoryStruct.title,
+          order_no: controlCategoryStruct.order_no
+        },
+        mapToModel: true,
+        model: ControlCategoryModel,
+        // type: QueryTypes.INSERT
+      }
+    )
+    const control_category_id = result[0].id!
     const controls = await createNewControlsQuery(
       control_category_id,
       controlCategoryStruct.controls,
       enable_ai_data_insertion
     )
-    createdControlCategories.push({ ...result.rows[0], controls })
+    createdControlCategories.push({ ...result[0].dataValues, controls })
   }
   return createdControlCategories;
 };

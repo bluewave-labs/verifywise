@@ -105,11 +105,11 @@ const IMPACT_OPTIONS = [
 ];
 
 const RISK_SEVERITY_OPTIONS = [
-  { _id: Severity.VeryLow, name: RISK_LABELS.noRisk.text },
-  { _id: Severity.Low, name: RISK_LABELS.low.text },
+  { _id: Severity.Negligible, name: RISK_LABELS.noRisk.text },
+  { _id: Severity.Minor, name: RISK_LABELS.low.text },
   { _id: Severity.Moderate, name: RISK_LABELS.medium.text },
-  { _id: Severity.High, name: RISK_LABELS.high.text },
-  { _id: Severity.VeryHigh, name: RISK_LABELS.critical.text },
+  { _id: Severity.Major, name: RISK_LABELS.high.text },
+  { _id: Severity.Catastrophic, name: RISK_LABELS.critical.text },
 ];
 
 const AddNewRisk: React.FC<AddNewRiskProps> = ({
@@ -181,7 +181,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           formattedUsers?.find((user) => user._id === existingRisk.action_owner)
             ?._id || "",
         risk_severity:
-          RISK_SEVERITY_OPTIONS.find(
+        riskSeverityItems.find(
             (r) => r.name === existingRisk.risk_severity
           )?._id || 0,
         likelihood:
@@ -303,7 +303,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
       )?._id,
       action_plan: values.action_plan,
       risk_severity:
-        RISK_SEVERITY_OPTIONS.find((r) => r._id === values.risk_severity)
+      riskSeverityItems.find((r) => r._id === values.risk_severity)
           ?.name || "",
       risk_level: risk_risklevel.text,
       likelihood:

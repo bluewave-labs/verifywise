@@ -50,7 +50,10 @@ try {
 
   app.use(
     cors({
-      origin: "*",
+      origin: [
+        `http://localhost:${process.env.FRONTEND_PORT}`,
+      ],
+      credentials: true,
     })
   );
   app.use(helmet()); // Use helmet for security headers

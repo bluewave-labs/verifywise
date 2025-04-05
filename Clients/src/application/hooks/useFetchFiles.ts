@@ -24,9 +24,12 @@ export const useFetchFiles = (projectID:string) => {
           setFilesData(
             filesResponse.map((file) => ({
               id: file.id,
-              filename: file.filename,
-              uploadedTime: file.uploadedTime ? new Date(file.uploadedTime).toLocaleDateString() : "Invalid Date",
-              uploadedBy: file.uploadedBy || "N/A",
+              name: file.name || "N/A",
+              type: file.type || "N/A",
+              size: file.size || 0,
+              fileName: file.filename,
+              uploadDate: file.uploadedTime ? new Date(file.uploadedTime).toLocaleDateString() : "Invalid Date",
+              uploader: file.uploadedBy || "N/A",
             }))
           );
         } else {

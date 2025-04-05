@@ -127,6 +127,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
           steps={homeSteps}
           run={runHomeTour}
           onFinish={() => setRunHomeTour(false)}
+          tourKey="home-tour"
         />
       )}
       <Outlet />

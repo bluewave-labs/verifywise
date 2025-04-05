@@ -12,18 +12,10 @@ import {
 } from "@mui/material";
 import TablePaginationActions from "../../TablePagination";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { useEffect } from "react";
-import { useCallback } from "react";
-import { useState } from "react";
+import { useState, useEffect, useCallback} from "react";
+import { FileData } from "../../../../domain/File";
 
 const DEFAULT_ROWS_PER_PAGE = 5;
-
-interface FileData {
-  id: string;
-  name: string;
-  uploadDate: string;
-  uploader: string;
-}
 
 interface Column {
   id: number;
@@ -120,7 +112,7 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
                   "&:hover": { backgroundColor: "#FBFBFB", cursor: "pointer" },
                 }}
               >
-                <TableCell>{row.name}</TableCell>
+                <TableCell>{row.fileName}</TableCell>
                 <TableCell>{row.uploadDate}</TableCell>
                 <TableCell>{row.uploader}</TableCell>
               </TableRow>

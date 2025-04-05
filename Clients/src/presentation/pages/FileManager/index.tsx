@@ -97,6 +97,7 @@ const FileManager: React.FC = (): JSX.Element => {
         steps={FILE_STEPS}
         run={runFileTour}
         onFinish={() => setRunFileTour(false)}
+        tourKey="file-manager-tour"
       />
       <FileManagerHeader theme={theme} />
       {loading ? (

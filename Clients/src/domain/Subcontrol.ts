@@ -1,10 +1,4 @@
-export interface FileData {
-  data?: File;
-  id: string;
-  fileName: string;
-  size: number;
-  type: string;
-}
+import { FileData } from "./File";
 
 export interface Subcontrol {
   control_id?: number;

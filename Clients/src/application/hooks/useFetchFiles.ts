@@ -19,6 +19,7 @@ export const useFetchFiles = (projectID:string) => {
         setLoading(true);
        const routeUrl = projectID ? `/files/by-projid/${projectID}` : "/files";
        const filesResponse = await getEntityById({ routeUrl });
+       console.log("filesResponse", filesResponse);
 
         if (filesResponse && Array.isArray(filesResponse)) {
           setFilesData(

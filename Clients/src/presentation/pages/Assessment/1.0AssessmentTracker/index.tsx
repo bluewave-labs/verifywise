@@ -44,53 +44,18 @@ const AssessmentTracker = () => {
     refreshKey
   });
 
-  // Log assessment progress
-  useEffect(() => {
-    console.log('Assessment Progress:', { 
-      progress: assessmentProgress, 
-      loading: loadingAssessmentProgress,
-      forProject: currentProjectId 
-    });
-  }, [assessmentProgress, loadingAssessmentProgress, currentProjectId]);
 
   const { assessmentData, loading: loadingAssessmentData } = useAssessmentData({
     selectedProjectId: currentProjectId || '',
   });
 
-  // Log assessment data
-  useEffect(() => {
-    console.log('Assessment Data:', { 
-      data: assessmentData, 
-      loading: loadingAssessmentData,
-      forProject: currentProjectId 
-    });
-  }, [assessmentData, loadingAssessmentData, currentProjectId]);
-
   const { assessmentTopics, loading: loadingAssessmentTopics } = useAssessmentTopics({
     assessmentId: assessmentData?.id,
   });
 
-  // Log topics data
-  useEffect(() => {
-    console.log('Assessment Topics:', { 
-      topics: assessmentTopics, 
-      loading: loadingAssessmentTopics,
-      forAssessmentId: assessmentData?.id 
-    });
-  }, [assessmentTopics, loadingAssessmentTopics, assessmentData?.id]);
-
   const { assessmentSubtopics, loading: loadingAssessmentSubtopic } = useAssessmentSubtopics({
     activeAssessmentTopicId: assessmentTopics?.[activeTab]?.id,
   });
-
-  // Log subtopics data
-  useEffect(() => {
-    console.log('Assessment Subtopics:', { 
-      subtopics: assessmentSubtopics, 
-      loading: loadingAssessmentSubtopic,
-      forTopicId: assessmentTopics?.[activeTab]?.id 
-    });
-  }, [assessmentSubtopics, loadingAssessmentSubtopic, assessmentTopics, activeTab]);
 
   const handleListItemClick = useCallback((index: number) => {
     setActiveTab(index);

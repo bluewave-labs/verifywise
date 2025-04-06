@@ -4,25 +4,24 @@ import React, { useEffect, useState } from "react";
 interface PageTourProps {
   steps: Step[];
   run: boolean;
-  tourKey: string;
   onFinish?: () => void;
 }
 
-const PageTour: React.FC<PageTourProps> = ({ steps, run, onFinish, tourKey }) => {
+const PageTour: React.FC<PageTourProps> = ({ steps, run, onFinish }) => {
   const [shouldRun, setShouldRun] = useState(false);
 
   useEffect(() => {
     //always check if tour was seen first before running it
-    const hasSeenTour = localStorage.getItem(tourKey);
+    const hasSeenTour = localStorage.getItem("hasSeenTour");
     if (!hasSeenTour && run) {
       setShouldRun(true);
     }
-  }, [run, tourKey]);
+  }, [run]);
 
   const handleCallback = (data: any) => {
     const { status } = data;
     if (status === "finished" || status === "skipped") {
-      localStorage.setItem(tourKey, "true");
+      localStorage.setItem("hasSeenTour", "true");
       setShouldRun(false);
       if (onFinish) {
         onFinish();

@@ -345,7 +345,6 @@ const Vendors = () => {
         steps={vendorSteps}
         run={runVendorTour}
         onFinish={() => setRunVendorTour(false)}
-        tourKey="vendor-tour"
       />
       <Stack gap={theme.spacing(10)} maxWidth={1400}>
         {value === "1" ? (

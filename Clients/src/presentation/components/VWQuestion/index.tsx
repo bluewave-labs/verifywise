@@ -13,7 +13,7 @@ import {
   PriorityLevel,
 } from "../../pages/Assessment/NewAssessment/priorities";
 import RichTextEditor from "../RichTextEditor";
-import { useCallback, useContext, useMemo, useState } from "react";
+import { useCallback, useContext, useMemo, useState, useEffect } from "react";
 import UppyUploadFile from "../../vw-v2-components/Inputs/FileUpload";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import createUppy from "../../../application/tools/createUppy";
@@ -47,26 +47,38 @@ interface QuestionProps {
  * Usage:
  * <VWQuestion question={questionObject} />
  */
-const VWQuestion = ({ question,setRefreshKey }: QuestionProps) => {
+const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
   const { userId, currentProjectId } = useContext(VerifyWiseContext);
   const [values, setValues] = useState<Question>(question);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
 
-  const initialEvidenceFiles = question.evidence_files
-    ? question.evidence_files.reduce((acc: FileData[], file) => {
-        try {
-          acc.push(JSON.parse(file));
-        } catch (error) {
-          console.error("Failed to parse evidence file:", error);
-        }
-        return acc;
-      }, [])
-    : [];
+  // Reset values when question or project changes
+  useEffect(() => {
+    console.log('VWQuestion: Resetting state for question', question.id, 'project:', currentProjectId);
+    setValues(question);
+  }, [question, currentProjectId]);
 
+  const initialEvidenceFiles = useMemo(() => {
+    return question.evidence_files
+      ? question.evidence_files.reduce((acc: FileData[], file) => {
+          try {
+            acc.push(JSON.parse(file));
+          } catch (error) {
+            console.error("Failed to parse evidence file:", error);
+          }
+          return acc;
+        }, [])
+      : [];
+  }, [question.evidence_files]);
 
   const authToken = useSelector((state: any) => state.auth.authToken);
-    const [evidenceFiles, setEvidenceFiles] = useState<FileData[]>(initialEvidenceFiles);
+  const [evidenceFiles, setEvidenceFiles] = useState<FileData[]>(initialEvidenceFiles);
   const [alert, setAlert] = useState<AlertProps | null>(null);
+
+  // Reset evidence files when initialEvidenceFiles changes
+  useEffect(() => {
+    setEvidenceFiles(initialEvidenceFiles);
+  }, [initialEvidenceFiles]);
 
   const handleChangeEvidenceFiles = useCallback((files: FileData[]) => {
     setEvidenceFiles(files);
@@ -91,6 +103,7 @@ const VWQuestion = ({ question,setRefreshKey }: QuestionProps) => {
   const [uppy] = useState(createUppy(createUppyProps));
 
   const handleSave = async () => {
+    console.log('VWQuestion: Saving answer for question', question.id, 'project:', currentProjectId);
     try {
       const response = await updateEntityById({
         routeUrl: `/questions/${question.id}`,
@@ -98,7 +111,7 @@ const VWQuestion = ({ question,setRefreshKey }: QuestionProps) => {
       });
       if (response.status === 202) {
         setValues(response.data.data);
-        setRefreshKey()
+        setRefreshKey();
         console.log("Question updated successfully:", response.data);
         handleAlert({
           variant: "success",

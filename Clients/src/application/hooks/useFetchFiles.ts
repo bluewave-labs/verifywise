@@ -10,6 +10,7 @@ import { getEntityById } from "../repository/entity.repository";
 import { FileData} from "../../domain/File"
 
 export const useFetchFiles = (projectID:string) => {
+  console.log("useFetchFiles called with projectID:", projectID);
   const [filesData, setFilesData] = useState<FileData[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -18,6 +19,7 @@ export const useFetchFiles = (projectID:string) => {
       try {
         setLoading(true);
        const routeUrl = projectID ? `/files/by-projid/${projectID}` : "/files";
+       console.log("fetching files for projectID:",projectID)
        const filesResponse = await getEntityById({ routeUrl });
        console.log("filesResponse", filesResponse);
 
@@ -29,9 +31,11 @@ export const useFetchFiles = (projectID:string) => {
               type: file.type || "N/A",
               size: file.size || 0,
               fileName: file.filename,
-              uploadDate: file.uploadedTime ? new Date(file.uploadedTime).toLocaleDateString() : "Invalid Date",
-              uploader: file.uploadedBy || "N/A",
-            }))
+              uploadDate: file.uploaded_time
+                ? new Date(file.uploaded_time).toLocaleDateString()
+                : "Invalid Date",
+              uploader: file.uploaded_by?.toString() || "N/A",
+        }))
           );
         } else {
             setFilesData([]);

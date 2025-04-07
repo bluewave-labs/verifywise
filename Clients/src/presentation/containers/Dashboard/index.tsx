@@ -53,7 +53,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
     },
   ];
 
-  const {newProjectRef, selectProjectRef, dashboardNavRef } = useJoyrideRef();
+  const {newProjectRef, selectProjectRef, dashboardNavRef,vendorButtonRef } = useJoyrideRef();
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -103,7 +103,9 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
      if(
       newProjectRef.current &&
       selectProjectRef.current &&
-      dashboardNavRef.current
+      dashboardNavRef.current &&
+      vendorButtonRef.current
+
      ) {
       console.log("Joyride targets found.");
         setRunHomeTour(true);
@@ -116,7 +118,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
     }, 500);
 
     return () => clearInterval(interval);
-  }, [newProjectRef, selectProjectRef, dashboardNavRef]);
+  }, [newProjectRef, selectProjectRef, dashboardNavRef, vendorButtonRef]);
 
   const mappedProjects =
     projects?.map((project: any) => ({

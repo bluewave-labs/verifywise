@@ -206,7 +206,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
                         isOpen={modalOpen}
                         handleClose={handleCloseModal}
                         OnSave={handleSaveSuccess}
-                        controlCategoryId={control.order_no?.toString()}
+                        controlCategoryId={controlCategoryIndex?.toString()}
                         onComplianceUpdate={onComplianceUpdate}
                       />
                     )}
@@ -214,7 +214,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
                       sx={styles.descriptionCell}
                       key={`${controlCategoryId}-${control.id}`}
                     >
-                      {controlCategoryIndex}.{`${control.order_no}`} {control.title}{" "}
+                    {controlCategoryIndex}.{`${control.order_no}`} {control.title}{" "}
                       <span style={{color: 'grey' }}>{`(${control.description})`}</span>
                     </TableCell>
                     <TableCell 

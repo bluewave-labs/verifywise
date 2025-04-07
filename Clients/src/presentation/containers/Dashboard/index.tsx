@@ -91,34 +91,38 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
 /**  
  * Waits for Joyride targets to be available in the DOM before starting the tour.
  * Checks up to 10 times every 500ms.
- * If all targets are found, it sets the runHomeTour state to true.
+ * If all targets are found, it sets the runHomeTour and runVendorTour state to true.
  */
   useEffect(() => {
-    const shouldRun = localStorage.getItem("home-tour") !== "true";
+    const shouldRunHomeTour = localStorage.getItem("home-tour") !== "true";
+    const shouldRunVendorTour = localStorage.getItem("vendor-tour") !== "true";
 
-    if (!shouldRun) return;
+    if (!shouldRunHomeTour && !shouldRunVendorTour) return;
 
     let attempts = 0;
     const interval = setInterval(() => {
-     if(
-      newProjectRef.current &&
-      selectProjectRef.current &&
-      dashboardNavRef.current &&
-      vendorButtonRef.current
+      const homeReady =
+        newProjectRef.current &&
+        selectProjectRef.current &&
+        dashboardNavRef.current;
 
-     ) {
-      console.log("Joyride targets found.");
+      const vendorReady = vendorButtonRef.current;
+
+      if (shouldRunHomeTour && homeReady) {
+        console.log("Home tour refs found");
         setRunHomeTour(true);
-        clearInterval(interval);
-     }
-      if (++attempts > 10) {
-        console.log("Joyride target check timed out.");
-        clearInterval(interval);
       }
+
+      if (shouldRunVendorTour && vendorReady) {
+        console.log("Vendor tour ref found");
+      }
+
+      if (homeReady && vendorReady) clearInterval(interval);
+      if (++attempts > 10) clearInterval(interval);
     }, 500);
 
     return () => clearInterval(interval);
-  }, [newProjectRef, selectProjectRef, dashboardNavRef, vendorButtonRef]);
+  }, [location.pathname]);
 
   const mappedProjects =
     projects?.map((project: any) => ({

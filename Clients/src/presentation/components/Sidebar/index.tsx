@@ -44,6 +44,7 @@ import { Link as MuiLink } from "@mui/material";
 import { User } from "../../../application/hooks/useUsers";
 import { ROLES } from "../../../application/constants/roles";
 import useLogout from "../../../application/hooks/useLogout";
+import { useJoyrideRef } from "../../../application/contexts/JoyrideRefContext";
 
 const menu = [
   {
@@ -114,6 +115,9 @@ const Sidebar = ({ projects }: { projects: any }) => {
   const { dashboardValues, setDashboardValues, setCurrentProjectId, userId } =
     useContext(VerifyWiseContext);
   const { users } = dashboardValues;
+
+  const {newProjectRef:_, selectProjectRef, dashboardNavRef } =
+    useJoyrideRef();
 
   const user: User = users
     ? users.find((user: User) => user.id === userId)
@@ -275,6 +279,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
             justifyContent: "flex-start",
             width: "fit-content",
           }}
+          ref={selectProjectRef}
           data-joyride-id="select-project"
         >
           {projects.length > 0 ? (
@@ -310,6 +315,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
         aria-labelledby="nested-menu-subheader"
         disablePadding
         sx={{ px: theme.spacing(8) }}
+        ref={dashboardNavRef}
         data-joyride-id="dashboard-navigation"
       >
         {/* Items of the menu */}

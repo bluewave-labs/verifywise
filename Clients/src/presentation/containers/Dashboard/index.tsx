@@ -2,7 +2,7 @@ import { Stack } from "@mui/material";
 import "./index.css";
 import Sidebar from "../../components/Sidebar";
 import { Outlet, useLocation } from "react-router";
-import { useContext, useEffect, useState, FC } from "react";
+import { useContext, useEffect, useState, FC, useRef} from "react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import {
   getEntityById,
@@ -19,7 +19,11 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
   const { token, setDashboardValues, projects, setProjects } =
     useContext(VerifyWiseContext);
   const location = useLocation();
+
   const [runHomeTour, setRunHomeTour] = useState(false);
+const newProjectRef = useRef<HTMLDivElement | null>(null);
+  const selectProjectRef = useRef<HTMLDivElement | null>(null);
+  const dashboardNavRef = useRef<HTMLDivElement | null>(null);
   //joyride steps
   const homeSteps = [
     // Sidebar steps

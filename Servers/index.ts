@@ -48,14 +48,6 @@ try {
   //   await sequelize.sync();
   // })();
 
-const allowedOrigins = ['http:locahost:5173']
-app.use(
-    cors({
-      origin: allowedOrigins,
-      credentials: true,
-    }
-  ));
-
   app.use(
     cors({
       origin: [

@@ -18,6 +18,7 @@ import {
 import { useCallback, useEffect, useState, useContext } from "react";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import { Control } from "../../../../domain/Control";
+import { User } from "../../../../domain/User";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import NewControlPane from "../../../components/Modals/Controlpane/NewControlPane";
 import Alert from "../../../components/Alert";
@@ -43,7 +44,8 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   onComplianceUpdate,
 }) => {
   const theme = useTheme();
-  const { currentProjectId } = useContext(VerifyWiseContext);
+  const { currentProjectId, dashboardValues } = useContext(VerifyWiseContext);
+  const { users } = dashboardValues;
   const [controls, setControls] = useState<Control[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<unknown>(null);
@@ -58,7 +60,6 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
 
   // Reset state when project changes
   useEffect(() => {
-    console.log('ControlsTable: Project changed to:', currentProjectId);
     setControls([]);
     setLoading(true);
     setError(null);
@@ -105,7 +106,6 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
 
   useEffect(() => {
     const fetchControls = async () => {
-      console.log('ControlsTable: Fetching controls for category:', controlCategoryId, 'project:', currentProjectId);
       if (!currentProjectId) return;
       
       setLoading(true);
@@ -113,10 +113,8 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
         const response = await getEntityById({
           routeUrl: `/controls/all/bycategory/${controlCategoryId}`,
         });
-        console.log('ControlsTable: Received controls:', response.data);
         setControls(response.data);
       } catch (err) {
-        console.error('ControlsTable: Error fetching controls:', err);
         setError(err);
       } finally {
         setLoading(false);
@@ -143,6 +141,12 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
     if (!control.numberOfSubcontrols) return 0;
     return Math.round((control.numberOfDoneSubcontrols ?? 0) / control.numberOfSubcontrols * 100);
   }, []);
+
+  const getOwnerName = (ownerId: number | undefined) => {
+    if (!ownerId) return "Not set";
+    const owner = users?.find((user: User) => user.id === ownerId);
+    return owner ? `${owner.name} ${owner.surname}` : "Not set";
+  };
 
   if (loading) {
     return (
@@ -217,7 +221,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
                       sx={styles.cell}
                       key={`owner-${control.id}`}
                     >
-                      {control.owner ? control.owner : "Not set"}
+                      {getOwnerName(control.owner)}
                     </TableCell>
                     <TableCell 
                       sx={styles.cell}

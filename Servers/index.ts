@@ -47,12 +47,10 @@ try {
   // (async () => {
   //   await sequelize.sync();
   // })();
-
+const allowedOrigins = [`http://localhost:${process.env.FRONTEND_PORT || 5173}`];
   app.use(
     cors({
-      origin: [
-        `http://localhost:${process.env.FRONTEND_PORT}`,
-      ],
+      origin: allowedOrigins,
       credentials: true,
     })
   );

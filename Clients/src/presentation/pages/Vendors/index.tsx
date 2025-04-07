@@ -347,7 +347,7 @@ const Vendors = () => {
       <PageTour
         steps={vendorSteps}
         run={runVendorTour}
-        onFinish={() => setRunVendorTour(false)}
+        onFinish={() => {setRunVendorTour(false); localStorage.setItem("vendor-tour", "true")}}
         tourKey="vendor-tour"
       />
       <Stack gap={theme.spacing(10)} maxWidth={1400}>

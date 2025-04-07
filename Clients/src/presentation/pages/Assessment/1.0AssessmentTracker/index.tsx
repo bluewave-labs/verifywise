@@ -117,7 +117,9 @@ const AssessmentTracker = () => {
       <PageTour
         steps={assessmentSteps}
         run={runAssessmentTour}
-        onFinish={() => setRunAssessmentTour(false)}
+        onFinish={() => {
+          localStorage.setItem("assessment-tour", "true");
+          setRunAssessmentTour(false)}}
         tourKey="assessment-tracker-tour"
       />
       <Stack

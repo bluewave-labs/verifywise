@@ -115,7 +115,9 @@ const ComplianceTracker = () => {
       <PageTour
         steps={complianceSteps}
         run={runComplianceTour}
-        onFinish={() => setRunComplianceTour(false)}
+        onFinish={() => {
+          localStorage.setItem("compliance-tour", "true");
+          setRunComplianceTour(false)}}
         tourKey="compliance-tour"
       />
       <Typography sx={pageHeadingStyle}

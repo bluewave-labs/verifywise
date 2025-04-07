@@ -200,7 +200,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
             text="Create Demo Data"
             onClick={handleOpenOrCloseDemoDataModal}
           />
-          <Stack data-joyride-id="new-project-button">
+          <Stack ref={newProjectRef} data-joyride-id="new-project-button">
           <Suspense fallback={<div>Loading...</div>}>
             <Popup
               popupId="create-project-popup"

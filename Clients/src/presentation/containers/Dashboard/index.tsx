@@ -119,7 +119,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
 
       if (homeReady && vendorReady) clearInterval(interval);
       if (++attempts > 10) clearInterval(interval);
-    }, 500);
+    }, 1000);
 
     return () => clearInterval(interval);
   }, [location.pathname]);

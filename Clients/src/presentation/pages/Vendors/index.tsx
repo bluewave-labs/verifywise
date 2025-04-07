@@ -363,7 +363,6 @@ const Vendors = () => {
             )}
             <Stack>
               <Typography
-                data-joyride-id="assessment-status"
                 sx={vwhomeHeading}
               >
                 Vendor list
@@ -391,7 +390,6 @@ const Vendors = () => {
 
             <Stack>
               <Typography
-                data-joyride-id="assessment-status"
                 variant="h2"
                 component="div"
                 sx={{
@@ -443,6 +441,7 @@ const Vendors = () => {
                 <VWButton
                   variant="contained"
                   text="Add new vendor"
+                  data-joyride-id="add-new-vendor"
                   sx={{
                     backgroundColor: "#13715B",
                     border: "1px solid #13715B",

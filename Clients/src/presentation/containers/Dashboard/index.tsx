@@ -21,9 +21,6 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
   const location = useLocation();
 
   const [runHomeTour, setRunHomeTour] = useState(false);
-const newProjectRef = useRef<HTMLDivElement | null>(null);
-  const selectProjectRef = useRef<HTMLDivElement | null>(null);
-  const dashboardNavRef = useRef<HTMLDivElement | null>(null);
   //joyride steps
   const homeSteps = [
     // Sidebar steps

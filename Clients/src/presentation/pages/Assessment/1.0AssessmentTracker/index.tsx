@@ -29,54 +29,53 @@ import CustomStep from "../../../components/PageTour/CustomStep";
 
 const AssessmentTracker = () => {
   const theme = useTheme();
-  const [refreshKey, setRefreshKey] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(false);
   const { dashboardValues } = useContext(VerifyWiseContext);
   const { selectedProjectId } = dashboardValues;
-const [runAssessmentTour, setRunAssessmentTour] = useState(false);
+  const [runAssessmentTour, setRunAssessmentTour] = useState(false);
 
-  const { assessmentProgress, loading: loadingAssessmentProgress } = useAssessmentProgress({
-    selectedProjectId,refreshKey
-  })
+  const { assessmentProgress, loading: loadingAssessmentProgress } =
+    useAssessmentProgress({
+      selectedProjectId,
+      refreshKey,
+    });
   const { assessmentData } = useAssessmentData({
     selectedProjectId,
-  })
-  const { assessmentTopics, loading: loadingAssessmentTopics } = useAssessmentTopics({
-    assessmentId: assessmentData?.id,
-  })
+  });
+  const { assessmentTopics, loading: loadingAssessmentTopics } =
+    useAssessmentTopics({
+      assessmentId: assessmentData?.id,
+    });
 
   const [activeTab, setActiveTab] = useState<number>(0);
 
-  const {assessmentSubtopics, loading: loadingAssessmentSubtopic} = useAssessmentSubtopics({
-    activeAssessmentTopicId: assessmentTopics?.[activeTab]?.id,
-  })
-
+  const { assessmentSubtopics, loading: loadingAssessmentSubtopic } =
+    useAssessmentSubtopics({
+      activeAssessmentTopicId: assessmentTopics?.[activeTab]?.id,
+    });
 
   const handleListItemClick = useCallback((index: number) => {
     setActiveTab(index);
   }, []);
 
-  useEffect(() => { 
+  useEffect(() => {
     setRunAssessmentTour(true);
-  },[])
+  }, []);
 
   const assessmentSteps = [
     {
       target: '[data-joyride-id="assessment-progress-bar"]',
       content: (
-        <CustomStep
-          body="Check the status of your assessment tracker here."
-        />
+        <CustomStep body="Check the status of your assessment tracker here." />
       ),
     },
     {
       target: '[data-joyride-id="assessment-topics"]',
       content: (
-        <CustomStep
-          body="Go to your assessments and start filling in the assessment questions for your project."
-        />
+        <CustomStep body="Go to your assessments and start filling in the assessment questions for your project." />
       ),
     },
-  ]
+  ];
 
   const topicsList = useCallback(
     (topic: any, index: number) => (
@@ -119,7 +118,8 @@ const [runAssessmentTour, setRunAssessmentTour] = useState(false);
         steps={assessmentSteps}
         run={runAssessmentTour}
         onFinish={() => setRunAssessmentTour(false)}
-        tourKey="assessment-tracker-tour"/>
+        tourKey="assessment-tracker-tour"
+      />
       <Stack
         className="assessment-tracker-holder"
         sx={{
@@ -157,11 +157,13 @@ const [runAssessmentTour, setRunAssessmentTour] = useState(false);
         <Divider sx={{ marginY: 10 }} />
         <Box sx={{ display: "flex", height: "100vh", paddingX: "8px" }}>
           <Stack sx={topicsListStyle}>
-            <Stack data-joyride-id="assessment-topics">
-            <Typography sx={subHeadingStyle}>
+            <Typography
+              sx={subHeadingStyle}
+              data-joyride-id="assessment-topics"
+            >
               High risk conformity assessment
             </Typography>
-            </Stack>
+
             <List>
               {loadingAssessmentTopics ? (
                 <VWSkeleton
@@ -202,7 +204,10 @@ const [runAssessmentTour, setRunAssessmentTour] = useState(false);
             ) : assessmentSubtopics ? (
               assessmentSubtopics.map((subtopic: any, index: number) => (
                 <div key={`subtopic-${subtopic.id || index}`}>
-                  <Questions subtopic={subtopic} setRefreshKey={() => setRefreshKey((prev) => !prev)} />
+                  <Questions
+                    subtopic={subtopic}
+                    setRefreshKey={() => setRefreshKey((prev) => !prev)}
+                  />
                 </div>
               ))
             ) : (

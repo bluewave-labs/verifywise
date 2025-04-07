@@ -38,7 +38,7 @@ const Popup: FC<PopupProps> = ({
       borderRadius: 2,
       border: "1px solid #175CD3",
       "&:hover": { boxShadow: "none", backgroundColor: "#175CD3 " },
-      display: "none"
+      display: "none",
     },
     closePopupButton: {
       position: "absolute",
@@ -82,8 +82,16 @@ const Popup: FC<PopupProps> = ({
         type="button"
         variant="contained"
         onClick={handleOpenOrClose}
-        sx={styles.openPopupButton}
+        sx={{
+          opacity: 0.01,
+          position: "absolute",
+          pointerEvents: "none",
+          top: 0,
+          left: 0,
+          zIndex: 9999,
+        }}
         disableRipple={theme.components?.MuiButton?.defaultProps?.disableRipple}
+        data-joyride-id="new-project-button"
       >
         {openPopupButtonName}
       </Button>

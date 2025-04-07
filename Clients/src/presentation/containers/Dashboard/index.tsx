@@ -93,7 +93,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
   useEffect(() => {
     const shouldRun = localStorage.getItem("home-tour") !== "true";
 
-    if (!shouldRun || location.pathname !== "/") return;
+    if (!shouldRun) return;
 
     let attempts = 0;
     const interval = setInterval(() => {

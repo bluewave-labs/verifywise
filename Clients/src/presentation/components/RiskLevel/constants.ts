@@ -50,9 +50,10 @@ export enum Likelihood {
 }
 
 export enum Severity {
-  VeryLow = 1,
-  Low = 2,
+  Negligible = 1,
+  Minor = 2,
   Moderate = 3,
-  High = 4,
-  VeryHigh = 5,
+  Major = 4,
+  Catastrophic = 5,
 }
+

@@ -98,7 +98,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
     let attempts = 0;
     const interval = setInterval(() => {
       const newProject = document.querySelector(
-        '[data-joyride-id="new-project-step"]'
+        '[data-joyride-id="new-project-button"]'
       );
       const selectProject = document.querySelector(
         '[data-joyride-id="select-project"]'

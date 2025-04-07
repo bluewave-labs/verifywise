@@ -26,8 +26,8 @@ import Alert from "../../Alert";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import useUsers from "../../../../application/hooks/useUsers";
-import { Likelihood, RISK_LABELS, Severity } from "../../RiskLevel/constants";
-import { RiskLikelihood, RiskSeverity } from "../../RiskLevel/riskValues";
+import { Likelihood, RISK_LABELS } from "../../RiskLevel/constants";
+import { RiskLikelihood } from "../../RiskLevel/riskValues";
 import VWToast from "../../../vw-v2-components/Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import { User } from "../../../../domain/User";
@@ -101,16 +101,10 @@ const IMPACT_OPTIONS = [
   { _id: 1, name: "Negligible" },
   { _id: 2, name: "Minor" },
   { _id: 3, name: "Moderate" },
-  { _id: 4, name: "Critical" },
+  { _id: 4, name: "Major" },
+  { _id: 5, name: "Critical" },
 ];
 
-const RISK_SEVERITY_OPTIONS = [
-  { _id: Severity.Negligible, name: RISK_LABELS.noRisk.text },
-  { _id: Severity.Minor, name: RISK_LABELS.low.text },
-  { _id: Severity.Moderate, name: RISK_LABELS.medium.text },
-  { _id: Severity.Major, name: RISK_LABELS.high.text },
-  { _id: Severity.Catastrophic, name: RISK_LABELS.critical.text },
-];
 
 const AddNewRisk: React.FC<AddNewRiskProps> = ({
   isOpen,

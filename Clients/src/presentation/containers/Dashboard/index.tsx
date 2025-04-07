@@ -10,6 +10,7 @@ import {
 } from "../../../application/repository/entity.repository";
 import PageTour from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
+import { useJoyrideRef } from "../../../application/contexts/JoyrideRefContext";
 
 interface DashboardProps {
   reloadTrigger: boolean;
@@ -18,7 +19,6 @@ interface DashboardProps {
 const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
   const { token, setDashboardValues, projects, setProjects } =
     useContext(VerifyWiseContext);
-  const location = useLocation();
 
   const [runHomeTour, setRunHomeTour] = useState(false);
   //joyride steps
@@ -52,6 +52,8 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
       ),
     },
   ];
+
+  const {newProjectRef, selectProjectRef, dashboardNavRef } = useJoyrideRef();
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -98,28 +100,15 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
 
     let attempts = 0;
     const interval = setInterval(() => {
-      const newProject = document.querySelector(
-        '[data-joyride-id="new-project-button"]'
-      );
-      const selectProject = document.querySelector(
-        '[data-joyride-id="select-project"]'
-      );
-      const dashboardNav = document.querySelector(
-        '[data-joyride-id="dashboard-navigation"]'
-      );
-
-      //debug logs
-      console.log("New Project Button:", newProject);
-      console.log("Select Project:", selectProject);
-      console.log("Dashboard Navigation:", dashboardNav);
-      console.log("Attempt:", attempts);
-
-      if (newProject && selectProject && dashboardNav) {
-        console.log("All Joyride targets found. Starting tour.");
+     if(
+      newProjectRef.current &&
+      selectProjectRef.current &&
+      dashboardNavRef.current
+     ) {
+      console.log("Joyride targets found.");
         setRunHomeTour(true);
         clearInterval(interval);
-      }
-
+     }
       if (++attempts > 10) {
         console.log("Joyride target check timed out.");
         clearInterval(interval);
@@ -127,7 +116,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
     }, 500);
 
     return () => clearInterval(interval);
-  }, [location.pathname]);
+  }, [newProjectRef, selectProjectRef, dashboardNavRef]);
 
   const mappedProjects =
     projects?.map((project: any) => ({

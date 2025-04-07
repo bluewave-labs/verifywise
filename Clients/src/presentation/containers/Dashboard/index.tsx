@@ -83,25 +83,44 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
 
     fetchProjects();
     fetchUsers();
+  }, [setDashboardValues, reloadTrigger]);
 
-    //check if required DOM elements are ready
-    const checkTourElements = () => {
-      const newProjectButton = document.querySelector(
-        '[data-joyride-id="new-project-button"]'
+/**  
+ * Waits for Joyride targets to be available in the DOM before starting the tour.
+ * Checks up to 10 times every 500ms.
+ * If all targets are found, it sets the runHomeTour state to true.
+ */
+  useEffect(() => {
+    const shouldRun = localStorage.getItem("home-tour") !== "true";
+
+    if (!shouldRun || location.pathname !== "/") return;
+
+    let attempts = 0;
+    const interval = setInterval(() => {
+      const newProject = document.querySelector(
+        '[data-joyride-id="new-project-step"]'
+      );
+      const selectProject = document.querySelector(
+        '[data-joyride-id="select-project"]'
       );
       const dashboardNav = document.querySelector(
         '[data-joyride-id="dashboard-navigation"]'
       );
 
-      if (location.pathname === "/" && newProjectButton && dashboardNav) {
+      if (newProject && selectProject && dashboardNav) {
+        console.log("All Joyride targets found. Starting tour.");
         setRunHomeTour(true);
-      } else {
-        setRunHomeTour(false);
+        clearInterval(interval);
       }
-    };
-    const timeout = setTimeout(checkTourElements, 1000);
-    return () => clearTimeout(timeout);
-  }, [setDashboardValues, reloadTrigger, location.pathname]);
+
+      if (++attempts > 10) {
+        console.log("Joyride target check timed out.");
+        clearInterval(interval);
+      }
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [location.pathname]);
 
   const mappedProjects =
     projects?.map((project: any) => ({
@@ -126,7 +145,9 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
         <PageTour
           steps={homeSteps}
           run={runHomeTour}
-          onFinish={() => setRunHomeTour(false)}
+          onFinish={() => {
+            localStorage.setItem("home-tour", "true");
+            setRunHomeTour(false)}}
           tourKey="home-tour"
         />
       )}

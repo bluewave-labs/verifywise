@@ -200,6 +200,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
             text="Create Demo Data"
             onClick={handleOpenOrCloseDemoDataModal}
           />
+          <Stack data-joyride-id="new-project-button">
           <Suspense fallback={<div>Loading...</div>}>
             <Popup
               popupId="create-project-popup"
@@ -217,6 +218,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
               key={anchor ? "open" : "closed"}
             />
           </Suspense>
+          </Stack>
         </Stack>
         <NoProject
           message='You have no projects, yet. Click on the "New Project" button to
@@ -243,22 +245,24 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
 
   const PopupRender = useCallback(() => {
     return (
-      <Suspense fallback={<div>Loading...</div>}>
-        <Popup
-          popupId="create-project-popup"
-          popupContent={
-            <CreateProjectForm
-              onNewProject={newProjectChecker}
-              closePopup={() => setAnchor(null)}
-            />
-          }
-          openPopupButtonName="New project"
-          popupTitle="Create new project"
-          popupSubtitle="Create a new project from scratch by filling in the following."
-          handleOpenOrClose={handleOpenOrClose}
-          anchor={anchor}
-        />
-      </Suspense>
+      <Stack data-joyride-id="new-project-button">
+        <Suspense fallback={<div>Loading...</div>}>
+          <Popup
+            popupId="create-project-popup"
+            popupContent={
+              <CreateProjectForm
+                onNewProject={newProjectChecker}
+                closePopup={() => setAnchor(null)}
+              />
+            }
+            openPopupButtonName="New project"
+            popupTitle="Create new project"
+            popupSubtitle="Create a new project from scratch by filling in the following."
+            handleOpenOrClose={handleOpenOrClose}
+            anchor={anchor}
+          />
+        </Suspense>
+      </Stack>
     );
   }, [newProjectChecker, handleOpenOrClose, anchor]);
 

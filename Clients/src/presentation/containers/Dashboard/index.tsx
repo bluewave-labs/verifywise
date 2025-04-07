@@ -1,7 +1,7 @@
 import { Stack } from "@mui/material";
 import "./index.css";
 import Sidebar from "../../components/Sidebar";
-import { Outlet, useLocation } from "react-router";
+import { Outlet} from "react-router";
 import { useContext, useEffect, useState, FC} from "react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import {

@@ -32,6 +32,7 @@ import VWButton from "../../vw-v2-components/Buttons";
 import NoProject from "../../components/NoProject/NoProject";
 import { AlertProps } from "../../components/Alert";
 import { handleAlert } from "../../../application/tools/alertUtils";
+import { useJoyrideRef } from "../../../application/contexts/JoyrideRefContext";
 
 // Lazy load components
 const ProjectCard = lazy(() => import("../../components/ProjectCard"));
@@ -125,6 +126,9 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
 
   const [isCreatingDemoData, setIsCreatingDemoData] = useState(false);
 
+  const { newProjectRef, selectProjectRef:_, dashboardNavRef:__ } =
+    useJoyrideRef();
+
   const createDemoData = useCallback(async () => {
     setIsCreatingDemoData(true);
     try {
@@ -200,7 +204,8 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
             text="Create Demo Data"
             onClick={handleOpenOrCloseDemoDataModal}
           />
-          <Stack data-joyride-id="new-project-button">
+          <Stack ref={newProjectRef}
+          data-joyride-id="new-project-button">
           <Suspense fallback={<div>Loading...</div>}>
             <Popup
               popupId="create-project-popup"
@@ -245,7 +250,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
 
   const PopupRender = useCallback(() => {
     return (
-      <Stack data-joyride-id="new-project-button">
+      <Stack ref={newProjectRef} data-joyride-id="new-project-button">
         <Suspense fallback={<div>Loading...</div>}>
           <Popup
             popupId="create-project-popup"

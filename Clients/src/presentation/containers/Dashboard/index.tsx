@@ -107,6 +107,12 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
         '[data-joyride-id="dashboard-navigation"]'
       );
 
+      //debug logs
+      console.log("New Project Button:", newProject);
+      console.log("Select Project:", selectProject);
+      console.log("Dashboard Navigation:", dashboardNav);
+      console.log("Attempt:", attempts);
+
       if (newProject && selectProject && dashboardNav) {
         console.log("All Joyride targets found. Starting tour.");
         setRunHomeTour(true);

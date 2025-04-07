@@ -31,6 +31,7 @@ import { Project } from "../../../domain/Project";
 import RisksCard from "../../components/Cards/RisksCard";
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import useVendorRisks from "../../../application/hooks/useVendorRisks";
+import { useJoyrideRef } from "../../../application/contexts/JoyrideRefContext";
 
 interface ExistingRisk {
   id?: number;
@@ -86,7 +87,9 @@ const Vendors = () => {
     title?: string;
     body: string;
   } | null>(null);
+
   const [runVendorTour, setRunVendorTour] = useState(false);
+  const { vendorButtonRef } = useJoyrideRef();
   const vendorSteps = [
     {
       target: '[data-joyride-id="add-new-vendor"]',
@@ -362,11 +365,7 @@ const Vendors = () => {
               </Suspense>
             )}
             <Stack>
-              <Typography
-                sx={vwhomeHeading}
-              >
-                Vendor list
-              </Typography>
+              <Typography sx={vwhomeHeading}>Vendor list</Typography>
               <Typography sx={singleTheme.textStyles.pageDescription}>
                 This table includes a list of external entities that provides
                 AI-related products, services, or components. You can create and
@@ -437,11 +436,14 @@ const Vendors = () => {
             />
           ) : (
             value === "1" && (
-              <Stack sx={{ alignItems: "flex-end" }}>
+              <Stack
+                sx={{ alignItems: "flex-end" }}
+                data-joyride-id="add-new-vendor"
+                ref={vendorButtonRef}
+              >
                 <VWButton
                   variant="contained"
                   text="Add new vendor"
-                  data-joyride-id="add-new-vendor"
                   sx={{
                     backgroundColor: "#13715B",
                     border: "1px solid #13715B",

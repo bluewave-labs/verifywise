@@ -106,13 +106,15 @@ const ComplianceTracker = () => {
       )}
       <Stack>
         {controlCategories &&
-          controlCategories.map((controlCategory: ControlCategoryModel) => (
-            <ControlCategoryTile
-              key={controlCategory.id}
-              controlCategory={controlCategory}
-              onComplianceUpdate={fetchComplianceData}
-            />
-          ))}
+          controlCategories
+            .sort((a, b) => (a.order_no ?? 0) - (b.order_no ?? 0))
+            .map((controlCategory: ControlCategoryModel) => (
+              <ControlCategoryTile
+                key={controlCategory.id}
+                controlCategory={controlCategory}
+                onComplianceUpdate={fetchComplianceData}
+              />
+            ))}
       </Stack>
     </Stack>
   );

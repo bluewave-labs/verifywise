@@ -1,29 +1,39 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { Stack, Typography } from "@mui/material";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import { Subtopic } from "../../../../domain/Subtopic";
 import VWQuestion from "../../../components/VWQuestion";
 import { Question } from "../../../../domain/Question";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 type QuestionsProps = {
   subtopic: Subtopic;
   setRefreshKey: () => void;
 };
 
-const Questions = ({ subtopic,setRefreshKey }: QuestionsProps) => {
+const Questions = ({ subtopic, setRefreshKey }: QuestionsProps) => {
+  const { currentProjectId } = useContext(VerifyWiseContext);
   const [questionsData, setQuestionsData] = useState<Question[]>();
   const [loadingQuestions, setLoadingQuestions] = useState<boolean>(true);
+
+  useEffect(() => {
+    console.log('Questions: Resetting state for subtopic', subtopic?.id, 'project:', currentProjectId);
+    // Reset state when project changes
+    setQuestionsData(undefined);
+  }, [currentProjectId]);
 
   useEffect(() => {
     const fetchQuestionsData = async () => {
       if (!subtopic?.id) return;
 
+      console.log('Questions: Fetching data for subtopic', subtopic.id, 'project:', currentProjectId);
       setLoadingQuestions(true);
       try {
         const response = await getEntityById({
           routeUrl: `/questions/bysubtopic/${subtopic.id}`,
         });
+        console.log('Questions: Received data for subtopic', subtopic.id, ':', response.data);
         setQuestionsData(response.data);
       } catch (error) {
         console.error("Failed to fetch questions data:", error);
@@ -34,7 +44,7 @@ const Questions = ({ subtopic,setRefreshKey }: QuestionsProps) => {
     };
 
     fetchQuestionsData();
-  }, [subtopic]);
+  }, [subtopic?.id, currentProjectId]);
 
   return (
     <Stack mb={15} >

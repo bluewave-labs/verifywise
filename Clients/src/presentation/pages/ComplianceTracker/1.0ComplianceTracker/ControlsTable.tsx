@@ -15,13 +15,14 @@ import {
   useTheme,
   Box,
 } from "@mui/material";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useContext } from "react";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import { Control } from "../../../../domain/Control";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import NewControlPane from "../../../components/Modals/Controlpane/NewControlPane";
 import Alert from "../../../components/Alert";
 import {StyledTableRow, AlertBox, styles} from "./styles";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 interface Column {
   name: string;
@@ -42,6 +43,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   onComplianceUpdate,
 }) => {
   const theme = useTheme();
+  const { currentProjectId } = useContext(VerifyWiseContext);
   const [controls, setControls] = useState<Control[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<unknown>(null);
@@ -53,6 +55,18 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
     type: "success" | "error";
     message: string;
   } | null>(null);
+
+  // Reset state when project changes
+  useEffect(() => {
+    console.log('ControlsTable: Project changed to:', currentProjectId);
+    setControls([]);
+    setLoading(true);
+    setError(null);
+    setSelectedRow(null);
+    setModalOpen(false);
+    setCurrentFlashRow(null);
+    setAlert(null);
+  }, [currentProjectId]);
 
   const handleRowClick = (id: number) => {
     setSelectedRow(id);
@@ -91,13 +105,18 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
 
   useEffect(() => {
     const fetchControls = async () => {
+      console.log('ControlsTable: Fetching controls for category:', controlCategoryId, 'project:', currentProjectId);
+      if (!currentProjectId) return;
+      
       setLoading(true);
       try {
         const response = await getEntityById({
           routeUrl: `/controls/all/bycategory/${controlCategoryId}`,
         });
+        console.log('ControlsTable: Received controls:', response.data);
         setControls(response.data);
       } catch (err) {
+        console.error('ControlsTable: Error fetching controls:', err);
         setError(err);
       } finally {
         setLoading(false);
@@ -105,7 +124,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
     };
 
     fetchControls();
-  }, [controlCategoryId, refreshTrigger]);
+  }, [controlCategoryId, currentProjectId, refreshTrigger]);
 
   const getProgressColor = useCallback((value: number) => {
     if (value <= 10) return "#FF4500"; // 0-10%
@@ -118,6 +137,11 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
     if (value <= 80) return "#32CD32"; // 71-80%
     if (value <= 90) return "#228B22"; // 81-90%
     return "#008000"; // 91-100%
+  }, []);
+
+  const calculateCompletionPercentage = useCallback((control: Control) => {
+    if (!control.numberOfSubcontrols) return 0;
+    return Math.round((control.numberOfDoneSubcontrols ?? 0) / control.numberOfSubcontrols * 100);
   }, []);
 
   if (loading) {
@@ -164,81 +188,70 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
           <TableBody>
             {controls
               .sort((a, b) => (a.order_no ?? 0) - (b.order_no ?? 0))
-              .map((control: Control) => (
-                <StyledTableRow
-                  key={control.id}
-                  onClick={() => control.id !== undefined && handleRowClick(control.id)}
-                  isFlashing={currentFlashRow === control.id ? 1 : 0}
-                >
-                  {modalOpen && selectedRow === control.id && (
-                    <NewControlPane
-                      data={control}
-                      isOpen={modalOpen}
-                      handleClose={handleCloseModal}
-                      OnSave={handleSaveSuccess}
-                      controlCategoryId={control.order_no?.toString()}
-                      onComplianceUpdate={onComplianceUpdate}
-                    />
-                  )}
-                  <TableCell
-                    sx={styles.descriptionCell}
-                    key={`${controlCategoryId}-${control.id}`}
+              .map((control: Control) => {
+                const completionPercentage = calculateCompletionPercentage(control);
+                return (
+                  <StyledTableRow
+                    key={control.id}
+                    onClick={() => control.id !== undefined && handleRowClick(control.id)}
+                    isFlashing={currentFlashRow === control.id ? 1 : 0}
                   >
-                    {controlCategoryIndex}.{`${control.order_no}`} {control.title}{" "}
-                    <span style={{color: 'grey' }}>{`(${control.description})`}</span>
-                  </TableCell>
-                  <TableCell 
-                    sx={styles.cell}
-                    key={`owner-${control.id}`}
-                  >
-                    {control.owner ? control.owner : "Not set"}
-                  </TableCell>
-                  <TableCell 
-                    sx={styles.cell}
-                    key={`noOfSubControls-${control.id}`}
-                  >
-                    {`${control.numberOfSubcontrols} Subcontrols`}
-                  </TableCell>
-                  <TableCell 
-                    sx={styles.cell}
-                    key={`completion-${control.id}`}
-                  >
-                    <Stack direction="row" alignItems="center" spacing={1}>
-                      <Typography variant="body2">
-                        {`${control.numberOfSubcontrols
-                          ? (
-                            (control.numberOfDoneSubcontrols! /
-                              control.numberOfSubcontrols) * 100
-                          ).toFixed(0)
-                          : "0"
-                          }%`}
-                      </Typography>
-                      <LinearProgress
-                        variant="determinate"
-                        value={
-                          control.numberOfSubcontrols
-                            ? ((control.numberOfDoneSubcontrols ?? 0) /
-                              control.numberOfSubcontrols) *
-                            100
-                            : 0
-                        }
-                        sx={(theme) => ({
-                          ...styles.progressBar(theme),
-                          "& .MuiLinearProgress-bar": {
-                            backgroundColor: getProgressColor(
-                              control.numberOfSubcontrols
-                                ? ((control.numberOfDoneSubcontrols ?? 0) /
-                                  control.numberOfSubcontrols) *
-                                100
-                                : 0
-                            ),
-                          },
-                        })}
+                    {modalOpen && selectedRow === control.id && (
+                      <NewControlPane
+                        data={control}
+                        isOpen={modalOpen}
+                        handleClose={handleCloseModal}
+                        OnSave={handleSaveSuccess}
+                        controlCategoryId={control.order_no?.toString()}
+                        onComplianceUpdate={onComplianceUpdate}
                       />
-                    </Stack>
-                  </TableCell>
-                </StyledTableRow>
-              ))}
+                    )}
+                    <TableCell
+                      sx={styles.descriptionCell}
+                      key={`${controlCategoryId}-${control.id}`}
+                    >
+                      {controlCategoryIndex}.{`${control.order_no}`} {control.title}{" "}
+                      <span style={{color: 'grey' }}>{`(${control.description})`}</span>
+                    </TableCell>
+                    <TableCell 
+                      sx={styles.cell}
+                      key={`owner-${control.id}`}
+                    >
+                      {control.owner ? control.owner : "Not set"}
+                    </TableCell>
+                    <TableCell 
+                      sx={styles.cell}
+                      key={`noOfSubControls-${control.id}`}
+                    >
+                      {`${control.numberOfSubcontrols} Subcontrols`}
+                    </TableCell>
+                    <TableCell 
+                      sx={styles.cell}
+                      key={`completion-${control.id}`}
+                    >
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        <Box sx={{ width: '100%', mr: 1 }}>
+                          <LinearProgress
+                            variant="determinate"
+                            value={completionPercentage}
+                            sx={{
+                              height: 8,
+                              borderRadius: 4,
+                              backgroundColor: '#E5E7EB',
+                              '& .MuiLinearProgress-bar': {
+                                backgroundColor: getProgressColor(completionPercentage),
+                              },
+                            }}
+                          />
+                        </Box>
+                        <Typography variant="body2" color="text.secondary">
+                          {`${completionPercentage}%`}
+                        </Typography>
+                      </Stack>
+                    </TableCell>
+                  </StyledTableRow>
+                );
+              })}
           </TableBody>
         </Table>
       </TableContainer>

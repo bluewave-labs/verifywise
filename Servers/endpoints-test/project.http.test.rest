@@ -1,9 +1,6 @@
 ### get all projects
 
 GET http://localhost:3000/projects
-authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJlbWFpbEBlbWFpbC5jb20iLCJleHBpcmUiOjE3NDQwOTk4NzEyNDMsImlhdCI6MTc0NDA5NjI3MX0.QlTV7QqQThdRXmkLit-leWoo10VftPOUi0rZPfVJr50
-
-
 
 ### get project stats
 
@@ -24,10 +21,8 @@ GET http://localhost:3000/projects/assessment/progress/1
 ### get project by id
 
 GET http://localhost:3000/projects/all/compliance/progress
-authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJlbWFpbEBlbWFpbC5jb20iLCJleHBpcmUiOjE3NDQwOTk4NzEyNDMsImlhdCI6MTc0NDA5NjI3MX0.QlTV7QqQThdRXmkLit-leWoo10VftPOUi0rZPfVJr50
-
 
 ### get project by id
 
 GET http://localhost:3000/projects/all/assessment/progress
-authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJlbWFpbEBlbWFpbC5jb20iLCJleHBpcmUiOjE3NDQwOTk4NzEyNDMsImlhdCI6MTc0NDA5NjI3MX0.QlTV7QqQThdRXmkLit-leWoo10VftPOUi0rZPfVJr50
+

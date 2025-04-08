@@ -157,7 +157,9 @@ const AssessmentTracker = () => {
         onFinish={() => {
           localStorage.setItem("assessment-tour", "true");
           setRunAssessmentTour(false);
-        }}/>
+        }}
+        tourKey="assessment-tour"
+        />
       <Stack
         className="assessment-tracker-holder"
         sx={{

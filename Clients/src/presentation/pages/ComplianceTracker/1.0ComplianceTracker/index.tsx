@@ -155,7 +155,9 @@ if (!shouldRun) return;
         onFinish={()=>{
           localStorage.setItem("compliance-tour", "true");
           setRunComplianceTour(false);
-        }} />
+        }} 
+        tourKey="compliance-tour"
+        />
       <Typography ref={titleRef} data-joyride-id="compliance-heading" sx={pageHeadingStyle}>Compliance tracker</Typography>
       {complianceData && (
         <Stack ref={progressRef} data-joyride-id="compliance-progress-bar" sx={{ display:"inline-block" }}>

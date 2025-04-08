@@ -107,6 +107,7 @@ const FileManager: React.FC = (): JSX.Element => {
         onFinish={() => {
           localStorage.setItem("file-tour", "true");
           setRunFileTour(false)}}
+          tourKey="file-tour"
       />
       <FileManagerHeader theme={theme} titleRef={titleRef}/>
       {loading ? (

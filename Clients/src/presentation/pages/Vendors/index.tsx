@@ -355,6 +355,7 @@ const Vendors = () => {
         onFinish={() => {
           localStorage.setItem("vendor-tour", "true");
           setRunVendorTour(false)}}
+        tourKey="vendor-tour"
       />
       <Stack gap={theme.spacing(10)} maxWidth={1400}>
         {value === "1" ? (

@@ -5,23 +5,24 @@ interface PageTourProps {
   steps: Step[];
   run: boolean;
   onFinish?: () => void;
+  tourKey: string;
 }
 
-const PageTour: React.FC<PageTourProps> = ({ steps, run, onFinish }) => {
+const PageTour: React.FC<PageTourProps> = ({ steps, run, onFinish, tourKey }) => {
   const [shouldRun, setShouldRun] = useState(false);
 
   useEffect(() => {
     //always check if tour was seen first before running it
-    const hasSeenTour = localStorage.getItem("hasSeenTour");
+    const hasSeenTour = localStorage.getItem(tourKey);
     if (!hasSeenTour && run) {
       setShouldRun(true);
     }
-  }, [run]);
+  }, [run, tourKey]);
 
   const handleCallback = (data: any) => {
     const { status } = data;
     if (status === "finished" || status === "skipped") {
-      localStorage.setItem("hasSeenTour", "true");
+      localStorage.setItem(tourKey, "true");
       setShouldRun(false);
       if (onFinish) {
         onFinish();

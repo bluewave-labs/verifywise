@@ -1,4 +1,4 @@
-import { Stack, Typography, useTheme } from "@mui/material";
+import { Stack, Typography, useTheme, SelectChangeEvent } from "@mui/material";
 import { useContext, useEffect, useState } from "react";
 import Select from "../Select";
 import DatePicker from "../Datepicker";
@@ -7,6 +7,7 @@ import { formatDate } from "../../../tools/isoDateToString";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import { User } from "../../../../domain/User";
+import { Dayjs } from "dayjs";
 
 interface DropDownsProps {
   elementId?: string;
@@ -20,15 +21,13 @@ const DropDowns: React.FC<DropDownsProps> = ({
   state,
   setState,
 }) => {
-  const [status, setStatus] = useState(state?.status || "");
-  const [approver, setApprover] = useState(state?.approver || "");
-  const [riskReview, setRiskReview] = useState(state?.risk_review || "");
-  const [owner, setOwner] = useState<string>(state?.owner?.toString() || "");
-  const [reviewer, setReviewer] = useState(state?.reviewer || "");
-  const [date, setDate] = useState(state?.due_date || null);
-  const [implementationDetails, setImplementationDetails] = useState(
-    state?.implementation_details || ""
-  );
+  const [status, setStatus] = useState("");
+  const [approver, setApprover] = useState("");
+  const [riskReview, setRiskReview] = useState("");
+  const [owner, setOwner] = useState("");
+  const [reviewer, setReviewer] = useState("");
+  const [date, setDate] = useState<Dayjs | null>(null);
+  const [implementationDetails, setImplementationDetails] = useState("");
   const theme = useTheme();
   const { dashboardValues, currentProjectId } = useContext(VerifyWiseContext);
   const { users } = dashboardValues;
@@ -53,18 +52,49 @@ const DropDowns: React.FC<DropDownsProps> = ({
     }
   }, [project, users]);
 
-  // Update local state when the state prop changes
+  // Update local state when the state prop or projectMembers changes
   useEffect(() => {
     if (state) {
-      setStatus(state?.status);
-      setApprover(state?.approver);
-      setRiskReview(state?.risk_review);
-      setOwner(state?.owner?.toString() || "");
-      setReviewer(state?.reviewer);
-      setDate(state?.due_date);
-      setImplementationDetails(state?.implementation_details);
+      setStatus(state?.status || "");
+      
+      // Only set user-related states if the value exists in projectMembers
+      if (state?.approver && projectMembers.some(user => user.id?.toString() === state.approver.toString())) {
+        setApprover(state.approver.toString());
+      } else {
+        setApprover("");
+      }
+
+      if (state?.risk_review) {
+        const validRiskReviews = ["Acceptable risk", "Residual risk", "Unacceptable risk"];
+        setRiskReview(validRiskReviews.includes(state.risk_review.toString()) ? state.risk_review.toString() : "");
+      } else {
+        setRiskReview("");
+      }
+
+      if (state?.owner && projectMembers.some(user => user.id?.toString() === state.owner.toString())) {
+        setOwner(state.owner.toString());
+      } else {
+        setOwner("");
+      }
+
+      if (state?.reviewer && projectMembers.some(user => user.id?.toString() === state.reviewer.toString())) {
+        setReviewer(state.reviewer.toString());
+      } else {
+        setReviewer("");
+      }
+
+      setDate(state?.due_date || null);
+      setImplementationDetails(state?.implementation_details || "");
     }
-  }, [state]);
+  }, [state, projectMembers]);
+
+  const handleChange = (e: SelectChangeEvent<string | number>, setter: (value: string) => void, field: string) => {
+    const stringValue = e.target.value.toString();
+    setter(stringValue);
+    if (setState) {
+      setState({ ...state, [field]: e.target.value });
+    }
+  };
 
   return (
     <Stack
@@ -83,13 +113,8 @@ const DropDowns: React.FC<DropDownsProps> = ({
         <Select
           id="status"
           label="Status:"
-          value={status || ""}
-          onChange={(e) => {
-            setStatus(e.target.value);
-            if (setState) {
-              setState({ ...state, status: e.target.value });
-            }
-          }}
+          value={status}
+          onChange={(e) => handleChange(e, setStatus, 'status')}
           items={[
             { _id: "Waiting", name: "Waiting" },
             { _id: "In progress", name: "In progress" },
@@ -102,13 +127,8 @@ const DropDowns: React.FC<DropDownsProps> = ({
         <Select
           id="Approver"
           label="Approver:"
-          value={approver || ""}
-          onChange={(e) => {
-            setApprover(e.target.value);
-            if (setState) {
-              setState({ ...state, approver: e.target.value });
-            }
-          }}
+          value={approver}
+          onChange={(e) => handleChange(e, setApprover, 'approver')}
           items={projectMembers.map((user) => ({
             _id: user.id?.toString() || "",
             name: `${user.name} ${user.surname}`
@@ -120,13 +140,8 @@ const DropDowns: React.FC<DropDownsProps> = ({
         <Select
           id="Risk review"
           label="Risk review:"
-          value={riskReview || ""}
-          onChange={(e) => {
-            setRiskReview(e.target.value);
-            if (setState) {
-              setState({ ...state, risk_review: e.target.value });
-            }
-          }}
+          value={riskReview}
+          onChange={(e) => handleChange(e, setRiskReview, 'risk_review')}
           items={[
             { _id: "Acceptable risk", name: "Acceptable risk" },
             { _id: "Residual risk", name: "Residual risk" },
@@ -149,13 +164,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
           id="Owner"
           label="Owner:"
           value={owner}
-          onChange={(e) => {
-            const newValue = e.target.value.toString();
-            setOwner(newValue);
-            if (setState) {
-              setState({ ...state, owner: newValue });
-            }
-          }}
+          onChange={(e) => handleChange(e, setOwner, 'owner')}
           items={projectMembers.map((user) => ({
             _id: user.id?.toString() || "",
             name: `${user.name} ${user.surname}`
@@ -167,13 +176,8 @@ const DropDowns: React.FC<DropDownsProps> = ({
         <Select
           id="Reviewer"
           label="Reviewer:"
-          value={reviewer || ""}
-          onChange={(e) => {
-            setReviewer(e.target.value);
-            if (setState) {
-              setState({ ...state, reviewer: e.target.value });
-            }
-          }}
+          value={reviewer}
+          onChange={(e) => handleChange(e, setReviewer, 'reviewer')}
           items={projectMembers.map((user) => ({
             _id: user.id?.toString() || "",
             name: `${user.name} ${user.surname}`

@@ -12,7 +12,6 @@ import {
   TableHead,
   TableRow,
   Typography,
-  useTheme,
   Box,
 } from "@mui/material";
 import { useCallback, useEffect, useState, useContext } from "react";
@@ -43,7 +42,6 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   columns,
   onComplianceUpdate,
 }) => {
-  const theme = useTheme();
   const { currentProjectId, dashboardValues } = useContext(VerifyWiseContext);
   const { users } = dashboardValues;
   const [controls, setControls] = useState<Control[]>([]);
@@ -198,7 +196,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
                   <StyledTableRow
                     key={control.id}
                     onClick={() => control.id !== undefined && handleRowClick(control.id)}
-                    isFlashing={currentFlashRow === control.id ? 1 : 0}
+                    isflashing={currentFlashRow === control.id ? 1 : 0}
                   >
                     {modalOpen && selectedRow === control.id && (
                       <NewControlPane

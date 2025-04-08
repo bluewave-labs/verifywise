@@ -523,8 +523,8 @@ const NewControlPane = ({
                 }}
                 deletedFilesIds={deletedFilesIds}
                 onDeletedFilesChange={setDeletedFilesIds}
-                uploadFiles={getUploadFilesForSubcontrol(state.subControls![selectedTab].id.toString(), 'evidence')}
-                onUploadFilesChange={(files) => setUploadFilesForSubcontrol(state.subControls![selectedTab].id.toString(), 'evidence', files)}
+                uploadFiles={getUploadFilesForSubcontrol(state.subControls![selectedTab].id?.toString() || '', 'evidence')}
+                onUploadFilesChange={(files) => setUploadFilesForSubcontrol(state.subControls![selectedTab].id?.toString() || '', 'evidence', files)}
               />
             )}
             {activeSection === "Auditor Feedback" && (
@@ -545,8 +545,8 @@ const NewControlPane = ({
                 }}
                 deletedFilesIds={deletedFilesIds}
                 onDeletedFilesChange={setDeletedFilesIds}
-                uploadFiles={getUploadFilesForSubcontrol(state.subControls![selectedTab].id.toString(), 'feedback')}
-                onUploadFilesChange={(files) => setUploadFilesForSubcontrol(state.subControls![selectedTab].id.toString(), 'feedback', files)}
+                uploadFiles={getUploadFilesForSubcontrol(state.subControls![selectedTab].id?.toString() || '', 'feedback')}
+                onUploadFilesChange={(files) => setUploadFilesForSubcontrol(state.subControls![selectedTab].id?.toString() || '', 'feedback', files)}
               />
             )}
           </Box>

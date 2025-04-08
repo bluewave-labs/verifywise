@@ -15,7 +15,7 @@ export const projectCardTitleStyle = {
   fontWeight: 600,
 };
 
-export const framewrokLogo = {
+export const frameworkLogo = {
   width: 20,
   height: 20,
   borderRadius: "50%",
@@ -37,3 +37,11 @@ export const projectCardSpecsStyle = {
 export const projectCardSpecKeyStyle = { fontSize: 11, color: "#8594AC" };
 
 export const projectCardSpecValueyStyle = { fontSize: 13, color: "#344054" };
+
+export const viewProjectButtonStyle = {
+  border: "1px solid #D0D5DD",
+  color: "#344054",
+  "&:hover": {
+    backgroundColor: "transparent",
+  },
+};

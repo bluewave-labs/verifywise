@@ -1,4 +1,4 @@
-import { useCallback, useContext, useState, useEffect } from "react";
+import { useCallback, useContext, useState, useEffect, useRef } from "react";
 import {
   Box,
   Divider,
@@ -24,38 +24,72 @@ import useAssessmentProgress from "../../../../application/hooks/useAssessmentPr
 import useAssessmentData from "../../../../application/hooks/useAssessmentData";
 import useAssessmentTopics from "../../../../application/hooks/useAssessmentTopcis";
 import useAssessmentSubtopics from "../../../../application/hooks/useAssessmentSubtopics";
+import PageTour from "../../../components/PageTour";
+import CustomStep from "../../../components/PageTour/CustomStep";
 
 const AssessmentTracker = () => {
   const theme = useTheme();
   const [refreshKey, setRefreshKey] = useState(false);
   const { currentProjectId } = useContext(VerifyWiseContext);
   const [activeTab, setActiveTab] = useState<number>(0);
+  const [runAssessmentTour, setRunAssessmentTour] = useState(false);
 
+  const progressRef = useRef<HTMLDivElement | null>(null);
+  const topicsRef = useRef<HTMLDivElement | null>(null);
+
+  const assessmentSteps = [
+    {
+      target: '[data-joyride-id="assessment-progress-bar"]',
+      content: (
+        <CustomStep
+          body="Check the status of your assessment tracker here."
+        />
+      ),
+    },
+    {
+      target: '[data-joyride-id="assessment-topics"]',
+      content: (
+        <CustomStep
+          body="Go to your assessments and start filling in the assessment questions for your project."
+        />
+      ),
+    },
+  ];  
+
+  useEffect(()=>{
+    const shouldRun = localStorage.getItem("assessment-tour") !== "true";
+    if (!shouldRun) return;
+    if (progressRef.current && topicsRef.current) {
+      setRunAssessmentTour(true);
+    }
+  })
 
   // Reset active tab when project changes
   useEffect(() => {
-    console.log('Project changed to:', currentProjectId);
+    console.log("Project changed to:", currentProjectId);
     setActiveTab(0);
-    setRefreshKey(prev => !prev); // Force refresh when project changes
+    setRefreshKey((prev) => !prev); // Force refresh when project changes
   }, [currentProjectId]);
 
-  const { assessmentProgress, loading: loadingAssessmentProgress } = useAssessmentProgress({
-    selectedProjectId: currentProjectId || '',
-    refreshKey
-  });
-
+  const { assessmentProgress, loading: loadingAssessmentProgress } =
+    useAssessmentProgress({
+      selectedProjectId: currentProjectId || "",
+      refreshKey,
+    });
 
   const { assessmentData, loading: loadingAssessmentData } = useAssessmentData({
-    selectedProjectId: currentProjectId || '',
+    selectedProjectId: currentProjectId || "",
   });
 
-  const { assessmentTopics, loading: loadingAssessmentTopics } = useAssessmentTopics({
-    assessmentId: assessmentData?.id,
-  });
+  const { assessmentTopics, loading: loadingAssessmentTopics } =
+    useAssessmentTopics({
+      assessmentId: assessmentData?.id,
+    });
 
-  const { assessmentSubtopics, loading: loadingAssessmentSubtopic } = useAssessmentSubtopics({
-    activeAssessmentTopicId: assessmentTopics?.[activeTab]?.id,
-  });
+  const { assessmentSubtopics, loading: loadingAssessmentSubtopic } =
+    useAssessmentSubtopics({
+      activeAssessmentTopicId: assessmentTopics?.[activeTab]?.id,
+    });
 
   const handleListItemClick = useCallback((index: number) => {
     setActiveTab(index);
@@ -97,7 +131,7 @@ const AssessmentTracker = () => {
 
   // Show loading state if we're loading the initial assessment data
   if (loadingAssessmentData) {
-    console.log('Showing loading state');
+    console.log("Showing loading state");
     return (
       <Stack sx={{ padding: 2 }}>
         <VWSkeleton height={400} variant="rectangular" />
@@ -107,7 +141,7 @@ const AssessmentTracker = () => {
 
   // Show message if no project is selected
   if (!currentProjectId) {
-    console.log('No project selected');
+    console.log("No project selected");
     return (
       <Stack sx={{ padding: 2 }}>
         <Typography>Please select a project to view assessments</Typography>
@@ -117,6 +151,13 @@ const AssessmentTracker = () => {
 
   return (
     <Stack className="assessment-tracker">
+      <PageTour
+        run={runAssessmentTour}
+        steps={assessmentSteps}
+        onFinish={() => {
+          localStorage.setItem("assessment-tour", "true");
+          setRunAssessmentTour(false);
+        }}/>
       <Stack
         className="assessment-tracker-holder"
         sx={{
@@ -127,6 +168,8 @@ const AssessmentTracker = () => {
         <Typography sx={pageHeadingStyle}>Assessment tracker</Typography>
         <Stack
           sx={{ maxWidth: 1400, marginTop: "10px", gap: theme.spacing(10) }}
+          data-joyride-id="assessment-progress-bar"
+          ref={progressRef}
         >
           {loadingAssessmentProgress ? (
             <VWSkeleton
@@ -153,7 +196,9 @@ const AssessmentTracker = () => {
         <Divider sx={{ marginY: 10 }} />
         <Box sx={{ display: "flex", height: "100vh", paddingX: "8px" }}>
           <Stack sx={topicsListStyle}>
-            <Typography sx={subHeadingStyle}>
+            <Typography sx={subHeadingStyle}
+              data-joyride-id="assessment-topics"
+              ref={topicsRef}>
               High risk conformity assessment
             </Typography>
             <List>
@@ -196,7 +241,10 @@ const AssessmentTracker = () => {
             ) : assessmentSubtopics ? (
               assessmentSubtopics.map((subtopic: any, index: number) => (
                 <div key={`subtopic-${subtopic.id || index}`}>
-                  <Questions subtopic={subtopic} setRefreshKey={() => setRefreshKey((prev) => !prev)}/>
+                  <Questions
+                    subtopic={subtopic}
+                    setRefreshKey={() => setRefreshKey((prev) => !prev)}
+                  />
                 </div>
               ))
             ) : (

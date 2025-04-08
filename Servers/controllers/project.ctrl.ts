@@ -34,7 +34,7 @@ export async function getAllProjects(
   res: Response
 ): Promise<any> {
   try {
-    const projects = await getAllProjectsQuery() as ProjectModel[];
+    const projects = (await getAllProjectsQuery()) as ProjectModel[];
 
     if (projects && projects.length > 0) {
       for (const project of projects) {
@@ -57,7 +57,8 @@ export async function getAllProjects(
                   (subControl) => subControl.status === "Done"
                 ).length;
                 project.dataValues.totalSubcontrols =
-                  (project.dataValues.totalSubcontrols || 0) + subControls.length;
+                  (project.dataValues.totalSubcontrols || 0) +
+                  subControls.length;
                 project.dataValues.doneSubcontrols =
                   (project.dataValues.doneSubcontrols || 0) +
                   control.numberOfDoneSubcontrols;
@@ -68,7 +69,9 @@ export async function getAllProjects(
 
         // calculating assessments
 
-        const assessments = await getAssessmentByProjectIdQuery(project.id!) as AssessmentModel[];
+        const assessments = (await getAssessmentByProjectIdQuery(
+          project.id!
+        )) as AssessmentModel[];
         if (assessments.length !== 0) {
           for (const assessment of assessments) {
             if (assessment.id !== undefined) {
@@ -152,10 +155,16 @@ export async function createProject(req: Request, res: Response): Promise<any> {
     }
     console.log(newProject);
 
-    const createdProject = await createNewProjectQuery(newProject, newProject.members);
-    const assessments: Object = await createNewAssessmentQuery({
-      project_id: createdProject.id!,
-    }, newProject.enable_ai_data_insertion);
+    const createdProject = await createNewProjectQuery(
+      newProject,
+      newProject.members
+    );
+    const assessments: Object = await createNewAssessmentQuery(
+      {
+        project_id: createdProject.id!,
+      },
+      newProject.enable_ai_data_insertion
+    );
     const controls = await createNewControlCategories(
       createdProject.id!,
       newProject.enable_ai_data_insertion
@@ -304,12 +313,14 @@ export async function getCompliances(req: Request, res: Response) {
   try {
     const project = await getProjectByIdQuery(projectId);
     if (project) {
-      const controlCategories = await getControlCategoryByProjectIdQuery(
+      const controlCategories = (await getControlCategoryByProjectIdQuery(
         project.id!
-      ) as ControlCategoryModel[];
+      )) as ControlCategoryModel[];
       for (const category of controlCategories) {
         if (category) {
-          const controls = await getAllControlsByControlGroupQuery(category.id) as ControlModel[];
+          const controls = (await getAllControlsByControlGroupQuery(
+            category.id
+          )) as ControlModel[];
           for (const control of controls) {
             if (control && control.id) {
               const subControls = await getAllSubcontrolsByControlIdQuery(
@@ -346,7 +357,9 @@ export async function projectComplianceProgress(req: Request, res: Response) {
       );
       for (const category of controlCategories) {
         if (category) {
-          const controls = await getAllControlsByControlGroupQuery(category.id) as ControlModel[];
+          const controls = (await getAllControlsByControlGroupQuery(
+            category.id
+          )) as ControlModel[];
           for (const control of controls) {
             if (control && control.id) {
               const subControls = await getAllSubcontrolsByControlIdQuery(
@@ -357,7 +370,8 @@ export async function projectComplianceProgress(req: Request, res: Response) {
                 (subControl) => subControl.status === "Done"
               ).length;
               totalNumberOfSubcontrols += subControls.length;
-              totalNumberOfDoneSubcontrols += control.dataValues.numberOfDoneSubcontrols;
+              totalNumberOfDoneSubcontrols +=
+                control.dataValues.numberOfDoneSubcontrols;
             }
           }
         }
@@ -466,13 +480,13 @@ export async function allProjectsComplianceProgress(
             }
           }
         }
-        return res.status(200).json(
-          STATUS_CODE[200]({
-            allsubControls: totalNumberOfSubcontrols,
-            allDonesubControls: totalNumberOfDoneSubcontrols,
-          })
-        );
       }
+      return res.status(200).json(
+        STATUS_CODE[200]({
+          allsubControls: totalNumberOfSubcontrols,
+          allDonesubControls: totalNumberOfDoneSubcontrols,
+        })
+      );
     } else {
       return res.status(404).json(STATUS_CODE[404](projects));
     }
@@ -527,13 +541,13 @@ export async function allProjectsAssessmentProgress(
             }
           }
         }
-        return res.status(200).json(
-          STATUS_CODE[200]({
-            totalQuestions: totalNumberOfQuestions,
-            answeredQuestions: totalNumberOfAnsweredQuestions,
-          })
-        );
       }
+      return res.status(200).json(
+        STATUS_CODE[200]({
+          totalQuestions: totalNumberOfQuestions,
+          answeredQuestions: totalNumberOfAnsweredQuestions,
+        })
+      );
     } else {
       return res.status(404).json(STATUS_CODE[404](projects));
     }

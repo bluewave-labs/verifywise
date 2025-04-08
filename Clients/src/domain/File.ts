@@ -1,6 +1,5 @@
 export interface FileData {
   id: string;
-  name: string;
   type: string;
   uploadDate: string;
   uploader: string;
@@ -8,5 +7,3 @@ export interface FileData {
   size: number;
   data?: Blob;
 }
-
-

@@ -2,8 +2,7 @@ import "./index.css";
 import { Box, Stack, Tab, Typography, useTheme } from "@mui/material";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
 import RiskTable from "../../components/Table/RisksTable";
-import { Suspense, useCallback, useContext, useEffect, useState } from "react";
-
+import { Suspense, useCallback, useContext, useEffect, useState, useRef } from "react";
 import AddNewVendor from "../../components/Modals/NewVendor";
 import singleTheme from "../../themes/v1SingleTheme";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
@@ -86,7 +85,9 @@ const Vendors = () => {
     title?: string;
     body: string;
   } | null>(null);
+
   const [runVendorTour, setRunVendorTour] = useState(false);
+  const vendorButtonRef = useRef<HTMLDivElement | null>(null);
   const vendorSteps = [
     {
       target: '[data-joyride-id="add-new-vendor"]',
@@ -181,7 +182,6 @@ const Vendors = () => {
 
   useEffect(() => {
     fetchVendors();
-    setRunVendorTour(true);
     return () => {
       controller?.abort();
     };
@@ -193,6 +193,14 @@ const Vendors = () => {
       controller?.abort();
     };
   }, [selectedProjectId]);
+
+  useEffect(()=>{
+    const shouldRun = localStorage.getItem("vendor-tour") !== "true";
+    if (!shouldRun) return;
+    if (vendorButtonRef.current){
+      setRunVendorTour(true);
+    }
+  }, [vendorButtonRef.current]);
 
   const handleDeleteVendor = async (vendorId: number) => {
     setIsSubmitting(true);
@@ -344,7 +352,9 @@ const Vendors = () => {
       <PageTour
         steps={vendorSteps}
         run={runVendorTour}
-        onFinish={() => setRunVendorTour(false)}
+        onFinish={() => {
+          localStorage.setItem("vendor-tour", "true");
+          setRunVendorTour(false)}}
       />
       <Stack gap={theme.spacing(10)} maxWidth={1400}>
         {value === "1" ? (
@@ -361,10 +371,7 @@ const Vendors = () => {
               </Suspense>
             )}
             <Stack>
-              <Typography
-                data-joyride-id="assessment-status"
-                sx={vwhomeHeading}
-              >
+              <Typography sx={vwhomeHeading}>
                 Vendor list
               </Typography>
               <Typography sx={singleTheme.textStyles.pageDescription}>
@@ -390,7 +397,6 @@ const Vendors = () => {
 
             <Stack>
               <Typography
-                data-joyride-id="assessment-status"
                 variant="h2"
                 component="div"
                 sx={{
@@ -438,7 +444,10 @@ const Vendors = () => {
             />
           ) : (
             value === "1" && (
-              <Stack sx={{ alignItems: "flex-end" }}>
+              <Stack 
+              data-joyride-id="add-new-vendor"
+              ref={vendorButtonRef}
+              sx={{ alignItems: "flex-end" }}>
                 <VWButton
                   variant="contained"
                   text="Add new vendor"

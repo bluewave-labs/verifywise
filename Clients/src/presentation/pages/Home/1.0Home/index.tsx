@@ -54,6 +54,7 @@ const VWHome = () => {
         "/projects/all/compliance/progress",
         setComplianceProgress
       );
+      console.log("complianceProgress: --> ", complianceProgress);
       await fetchData(
         "/projects/all/assessment/progress",
         setAssessmentProgress

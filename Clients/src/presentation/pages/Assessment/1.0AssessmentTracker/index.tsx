@@ -62,7 +62,7 @@ const AssessmentTracker = () => {
     if (progressRef.current && topicsRef.current) {
       setRunAssessmentTour(true);
     }
-  })
+  },[progressRef.current, topicsRef.current]);
 
   // Reset active tab when project changes
   useEffect(() => {

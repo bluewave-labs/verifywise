@@ -4,6 +4,7 @@ import React, {
   useContext,
   useCallback,
   useMemo,
+  useRef
 } from "react";
 import { Stack, Box, Typography, useTheme, Theme } from "@mui/material";
 import { getEntityById } from "../../../application/repository/entity.repository";
@@ -59,6 +60,8 @@ const FileManager: React.FC = (): JSX.Element => {
   const { dashboardValues } = useContext(VerifyWiseContext);
   const theme = useTheme();
   const [runFileTour, setRunFileTour] = useState(false);
+  const titleRef = useRef<HTMLDivElement | null>(null);
+
   const { selectedProjectId } = dashboardValues;
   const projectID = selectedProjectId?.toString();
   const { filesData, loading } = useFetchFiles(projectID);
@@ -84,8 +87,13 @@ const FileManager: React.FC = (): JSX.Element => {
   );
 
   useEffect(() => {
-    setRunFileTour(true);
-  }, []);
+    const shouldRun = localStorage.getItem("file-tour") !== "true";
+    if (!shouldRun) return; 
+
+    if (titleRef.current){
+      setRunFileTour(true);
+    }
+  }, [titleRef.current]);
 
   if (error) {
     return <Typography color="error">{error}</Typography>;
@@ -96,9 +104,11 @@ const FileManager: React.FC = (): JSX.Element => {
       <PageTour
         steps={FILE_STEPS}
         run={runFileTour}
-        onFinish={() => setRunFileTour(false)}
+        onFinish={() => {
+          localStorage.setItem("file-tour", "true");
+          setRunFileTour(false)}}
       />
-      <FileManagerHeader theme={theme} />
+      <FileManagerHeader theme={theme} titleRef={titleRef}/>
       {loading ? (
         <VWSkeleton variant="rectangular" sx={filesTablePlaceholder} />
       ) : (
@@ -114,8 +124,8 @@ const FileManager: React.FC = (): JSX.Element => {
   );
 };
 
-const FileManagerHeader: React.FC<{ theme: Theme }> = ({ theme }) => (
-  <Stack className="vwhome-header" data-joyride-id="file-manager-title">
+const FileManagerHeader: React.FC<{ theme: Theme,titleRef:React.RefObject<HTMLDivElement> }> = ({ theme, titleRef }) => (
+  <Stack className="vwhome-header" ref={titleRef} data-joyride-id="file-manager-title">
     <Typography sx={vwhomeHeading}>Evidences & documents</Typography>
     <Typography
       sx={{

@@ -25,7 +25,7 @@ const ComplianceTracker = () => {
 
   const complianceSteps =[
     {
-      target: '[data-tour="compliance-heading"]',
+      target: '[data-joyride-id="compliance-heading"]',
       content:(
         <CustomStep
         body="Here youll see a list of controls related to the regulation you selected."
@@ -33,14 +33,14 @@ const ComplianceTracker = () => {
       )
     },
     {
-      target:'[data-tour="compliance-progress-bar"]',
+      target:'[data-joyride-id="compliance-progress-bar"]',
       content:(
         <CustomStep 
         body="Check th status of your compliance tracker here."
         />)
     },
     {
-      target:'[data-tour="control-groups"]',
+      target:'[data-joyride-id="control-groups"]',
       content:(
         <CustomStep
         body="Those are the groups where controls and subcontrols reside. As you fill them, your statistics improve."
@@ -49,8 +49,6 @@ const ComplianceTracker = () => {
     }
   ]
 useEffect(()=>{
-  const shouldRun = localStorage.getItem("compliance-tour") !== "true";
-if (!shouldRun) return;
   if (titleRef.current && progressRef.current && controlsRef.current) {
     setRunComplianceTour(true);
   }
@@ -160,7 +158,7 @@ if (!shouldRun) return;
         />
       <Typography ref={titleRef} data-joyride-id="compliance-heading" sx={pageHeadingStyle}>Compliance tracker</Typography>
       {complianceData && (
-        <Stack ref={progressRef} data-joyride-id="compliance-progress-bar" sx={{ display:"inline-block" }}>
+        <Stack ref={progressRef} data-joyride-id="compliance-progress-bar">
         <StatsCard
           completed={complianceData.allDonesubControls}
           total={complianceData.allsubControls}

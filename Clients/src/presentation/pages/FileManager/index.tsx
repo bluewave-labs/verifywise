@@ -87,9 +87,6 @@ const FileManager: React.FC = (): JSX.Element => {
   );
 
   useEffect(() => {
-    const shouldRun = localStorage.getItem("file-tour") !== "true";
-    if (!shouldRun) return; 
-
     if (titleRef.current){
       setRunFileTour(true);
     }

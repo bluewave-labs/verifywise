@@ -57,8 +57,6 @@ const AssessmentTracker = () => {
   ];  
 
   useEffect(()=>{
-    const shouldRun = localStorage.getItem("assessment-tour") !== "true";
-    if (!shouldRun) return;
     if (progressRef.current && topicsRef.current) {
       setRunAssessmentTour(true);
     }

@@ -195,8 +195,6 @@ const Vendors = () => {
   }, [selectedProjectId]);
 
   useEffect(()=>{
-    const shouldRun = localStorage.getItem("vendor-tour") !== "true";
-    if (!shouldRun) return;
     if (vendorButtonRef.current){
       setRunVendorTour(true);
     }

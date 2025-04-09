@@ -2,7 +2,14 @@ import "./index.css";
 import { Box, Stack, Tab, Typography, useTheme } from "@mui/material";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
 import RiskTable from "../../components/Table/RisksTable";
-import { Suspense, useCallback, useContext, useEffect, useState, useRef } from "react";
+import {
+  Suspense,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  useRef,
+} from "react";
 import AddNewVendor from "../../components/Modals/NewVendor";
 import singleTheme from "../../themes/v1SingleTheme";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
@@ -14,7 +21,7 @@ import {
 import { tabPanelStyle, tabStyle } from "./style";
 import { logEngine } from "../../../application/tools/log.engine";
 import Alert from "../../components/Alert";
-import PageTour, {PageTourStep} from "../../components/PageTour";
+import PageTour, { PageTourStep } from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
@@ -94,7 +101,7 @@ const Vendors = () => {
       content: (
         <CustomStep body="Here, you can add AI providers that you use in our project, and input the necessary information to ensure compliance." />
       ),
-      placement:"bottom-end"
+      placement: "bottom-end",
     },
   ];
   const createAbortController = () => {
@@ -195,13 +202,13 @@ const Vendors = () => {
     };
   }, [selectedProjectId]);
 
-  useEffect(()=>{
+  useEffect(() => {
     const timer = setTimeout(() => {
-     if (vendorButtonRef.current){
-      setRunVendorTour(true);
-    } 
-    }, 1000)
-    return ()=> clearTimeout(timer);
+      if (vendorButtonRef.current) {
+        setRunVendorTour(true);
+      }
+    }, 1000);
+    return () => clearTimeout(timer);
   }, [vendorButtonRef.current]);
 
   const handleDeleteVendor = async (vendorId: number) => {
@@ -356,7 +363,8 @@ const Vendors = () => {
         run={runVendorTour}
         onFinish={() => {
           localStorage.setItem("vendor-tour", "true");
-          setRunVendorTour(false)}}
+          setRunVendorTour(false);
+        }}
         tourKey="vendor-tour"
       />
       <Stack gap={theme.spacing(10)} maxWidth={1400}>
@@ -374,9 +382,7 @@ const Vendors = () => {
               </Suspense>
             )}
             <Stack>
-              <Typography sx={vwhomeHeading}>
-                Vendor list
-              </Typography>
+              <Typography sx={vwhomeHeading}>Vendor list</Typography>
               <Typography sx={singleTheme.textStyles.pageDescription}>
                 This table includes a list of external entities that provides
                 AI-related products, services, or components. You can create and
@@ -447,24 +453,23 @@ const Vendors = () => {
             />
           ) : (
             value === "1" && (
-              <Stack 
-              data-joyride-id="add-new-vendor"
-              ref={vendorButtonRef}
-              sx={{ alignItems: "flex-end" }}>
-                <VWButton
-                  variant="contained"
-                  text="Add new vendor"
-                  sx={{
-                    backgroundColor: "#13715B",
-                    border: "1px solid #13715B",
-                    gap: 2,
-                  }}
-                  icon={<AddCircleOutlineIcon />}
-                  onClick={() => {
-                    openAddNewVendor();
-                    setSelectedVendor(null);
-                  }}
-                />
+              <Stack sx={{ alignItems: "flex-end" }}>
+                <div data-joyride-id="add-new-vendor" ref={vendorButtonRef}>
+                  <VWButton
+                    variant="contained"
+                    text="Add new vendor"
+                    sx={{
+                      backgroundColor: "#13715B",
+                      border: "1px solid #13715B",
+                      gap: 2,
+                    }}
+                    icon={<AddCircleOutlineIcon />}
+                    onClick={() => {
+                      openAddNewVendor();
+                      setSelectedVendor(null);
+                    }}
+                  />
+                </div>
               </Stack>
             )
           )}

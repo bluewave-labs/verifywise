@@ -14,7 +14,7 @@ import TablePaginationActions from "../../TablePagination";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useState, useEffect, useCallback} from "react";
 import { FileData } from "../../../../domain/File";
-import EvidencesDownload from "../../../assets/icons/evidences-download.svg"
+import { ReactComponent as EvidencesDownload} from "../../../assets/icons/evidences-download.svg"
 import IconButton from "@mui/material/IconButton";
 
 const DEFAULT_ROWS_PER_PAGE = 5;
@@ -137,6 +137,13 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
                 <TableCell>{row.fileName}</TableCell>
                 <TableCell>{row.uploadDate}</TableCell>
                 <TableCell>{row.uploader}</TableCell>
+                <TableCell>
+                  <IconButton
+                  onClick={() => handleDownload(row.id, row.fileName)}
+                  >
+                    <EvidencesDownload />
+                  </IconButton>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

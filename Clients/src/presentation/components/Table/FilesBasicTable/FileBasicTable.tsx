@@ -14,6 +14,8 @@ import TablePaginationActions from "../../TablePagination";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useState, useEffect, useCallback} from "react";
 import { FileData } from "../../../../domain/File";
+import EvidencesDownload from "../../../assets/icons/evidences-download.svg"
+import IconButton from "@mui/material/IconButton";
 
 const DEFAULT_ROWS_PER_PAGE = 5;
 
@@ -77,6 +79,26 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
     page * rowsPerPage + rowsPerPage
   );
 
+  //download file
+  const handleDownload = (fileId: string, fileName:string) => {
+    const token = localStorage.getItem("token");
+
+    fetch(`http://localhost:3000/files/${fileId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.blob())
+      .then((blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName; 
+        a.click();
+        window.URL.revokeObjectURL(url);
+      })
+      .catch((err) => console.error("Download failed:", err));
+  };
   return (
     <>
       <TableContainer id={table}>

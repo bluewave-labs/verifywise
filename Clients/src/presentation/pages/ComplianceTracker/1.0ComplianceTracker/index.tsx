@@ -7,7 +7,7 @@ import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import { ControlCategory as ControlCategoryModel } from "../../../../domain/ControlCategory";
 import ControlCategoryTile from "./ControlCategory";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import PageTour, {PageTourStep} from "../../../components/PageTour";
+import PageTour, { PageTourStep } from "../../../components/PageTour";
 import CustomStep from "../../../components/PageTour/CustomStep";
 
 const ComplianceTracker = () => {
@@ -46,12 +46,16 @@ const ComplianceTracker = () => {
       placement: "left",
     },
   ];
-useEffect(()=>{
-  if (titleRef.current && progressRef.current && controlsRef.current) {
-    setRunComplianceTour(true);
-  }
-},[titleRef.current, progressRef.current, controlsRef.current]);
-
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (titleRef.current && progressRef.current && controlsRef.current) {
+        setRunComplianceTour(true);
+      }
+    }, 1000);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [titleRef.current, progressRef.current, controlsRef.current]);
 
   // Reset state when project changes
   useEffect(() => {
@@ -148,30 +152,30 @@ useEffect(()=>{
       <PageTour
         run={runComplianceTour}
         steps={complianceSteps}
-        onFinish={()=>{
+        onFinish={() => {
           localStorage.setItem("compliance-tour", "true");
           setRunComplianceTour(false);
-        }} 
+        }}
         tourKey="compliance-tour"
-        />
-        <Stack
-        ref={titleRef} data-joyride-id="compliance-heading"
-        >
-      <Typography  sx={pageHeadingStyle}>Compliance tracker</Typography>
+      />
+      <Stack
+        ref={titleRef}
+        data-joyride-id="compliance-heading"
+        sx={{ position: "relative" }}
+      >
+        <Typography sx={pageHeadingStyle}>Compliance tracker</Typography>
       </Stack>
       {complianceData && (
         <Stack ref={progressRef} data-joyride-id="compliance-progress-bar">
-        <StatsCard
-          completed={complianceData.allDonesubControls}
-          total={complianceData.allsubControls}
-          title="Subcontrols"
-          progressbarColor="#13715B"
-        />
+          <StatsCard
+            completed={complianceData.allDonesubControls}
+            total={complianceData.allsubControls}
+            title="Subcontrols"
+            progressbarColor="#13715B"
+          />
         </Stack>
       )}
-      <Stack
-        ref={controlsRef}
-        data-joyride-id="control-groups">
+      <Stack ref={controlsRef} data-joyride-id="control-groups">
         {controlCategories &&
           controlCategories
             .sort((a, b) => (a.order_no ?? 0) - (b.order_no ?? 0))

@@ -11,7 +11,7 @@ interface PageTourProps {
 export interface PageTourStep {
   target: string;
   content: JSX.Element;
-  placement: "left" | "right" | "top" | "bottom" | "top-start" | "bottom-start";
+  placement?: "left" | "right" | "top" | "bottom" | "top-start" | "bottom-start" | "bottom-end" | "top-end";
 }
 
 const PageTour: React.FC<PageTourProps> = ({ steps, run, onFinish, tourKey }) => {

@@ -24,7 +24,7 @@ import useAssessmentProgress from "../../../../application/hooks/useAssessmentPr
 import useAssessmentData from "../../../../application/hooks/useAssessmentData";
 import useAssessmentTopics from "../../../../application/hooks/useAssessmentTopcis";
 import useAssessmentSubtopics from "../../../../application/hooks/useAssessmentSubtopics";
-import PageTour, {PageTourStep} from "../../../components/PageTour";
+import PageTour from "../../../components/PageTour";
 import CustomStep from "../../../components/PageTour/CustomStep";
 
 const AssessmentTracker = () => {
@@ -37,32 +37,29 @@ const AssessmentTracker = () => {
   const progressRef = useRef<HTMLDivElement | null>(null);
   const topicsRef = useRef<HTMLDivElement | null>(null);
 
-  const assessmentSteps: PageTourStep[] = [
+  const assessmentSteps = [
     {
       target: '[data-joyride-id="assessment-progress-bar"]',
       content: (
-        <CustomStep
-          body="Check the status of your assessment tracker here."
-        />
+        <CustomStep body="Check the status of your assessment tracker here." />
       ),
-      placement: "left",
     },
     {
       target: '[data-joyride-id="assessment-topics"]',
       content: (
-        <CustomStep
-          body="Go to your assessments and start filling in the assessment questions for your project."
-        />
+        <CustomStep body="Go to your assessments and start filling in the assessment questions for your project." />
       ),
-      placement: "left",
     },
-  ];  
+  ];
 
-  useEffect(()=>{
-    if (progressRef.current && topicsRef.current) {
-      setRunAssessmentTour(true);
-    }
-  },[progressRef.current, topicsRef.current]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (progressRef.current && topicsRef.current) {
+        setRunAssessmentTour(true);
+      }
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [progressRef.current, topicsRef.current]);
 
   // Reset active tab when project changes
   useEffect(() => {
@@ -159,7 +156,7 @@ const AssessmentTracker = () => {
           setRunAssessmentTour(false);
         }}
         tourKey="assessment-tour"
-        />
+      />
       <Stack
         className="assessment-tracker-holder"
         sx={{
@@ -198,9 +195,11 @@ const AssessmentTracker = () => {
         <Divider sx={{ marginY: 10 }} />
         <Box sx={{ display: "flex", height: "100vh", paddingX: "8px" }}>
           <Stack sx={topicsListStyle}>
-            <Typography sx={subHeadingStyle}
+            <Typography
+              sx={subHeadingStyle}
               data-joyride-id="assessment-topics"
-              ref={topicsRef}>
+              ref={topicsRef}
+            >
               High risk conformity assessment
             </Typography>
             <List>

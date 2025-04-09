@@ -14,7 +14,7 @@ import {
 import { tabPanelStyle, tabStyle } from "./style";
 import { logEngine } from "../../../application/tools/log.engine";
 import Alert from "../../components/Alert";
-import PageTour, { PageTourStep } from "../../components/PageTour";
+import PageTour, {PageTourStep} from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
@@ -94,7 +94,7 @@ const Vendors = () => {
       content: (
         <CustomStep body="Here, you can add AI providers that you use in our project, and input the necessary information to ensure compliance." />
       ),
-      placement: "left",
+      placement:"bottom-end"
     },
   ];
   const createAbortController = () => {
@@ -196,9 +196,12 @@ const Vendors = () => {
   }, [selectedProjectId]);
 
   useEffect(()=>{
-    if (vendorButtonRef.current){
+    const timer = setTimeout(() => {
+     if (vendorButtonRef.current){
       setRunVendorTour(true);
-    }
+    } 
+    }, 1000)
+    return ()=> clearTimeout(timer);
   }, [vendorButtonRef.current]);
 
   const handleDeleteVendor = async (vendorId: number) => {

@@ -3,9 +3,7 @@ import {
   Box,
   SelectChangeEvent,
   Stack,
-  SxProps,
   TextField,
-  Theme,
   Typography,
   useTheme,
 } from "@mui/material";
@@ -14,7 +12,14 @@ import { Suspense, useCallback, useContext, useMemo, useState } from "react";
 import VWButton from "../../Buttons";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import Field from "../../../components/Inputs/Field";
-import { textfieldStyle } from "./style";
+import {
+  createProjectButtonStyle,
+  datePickerStyle,
+  teamMembersRenderInputStyle,
+  teamMembersSlotProps,
+  teamMembersSxStyle,
+  textfieldStyle,
+} from "./style";
 import Select from "../../../components/Inputs/Select";
 import useUsers from "../../../../application/hooks/useUsers";
 import DatePicker from "../../../components/Inputs/Datepicker";
@@ -22,72 +27,21 @@ import dayjs, { Dayjs } from "dayjs";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import selectValidation from "../../../../application/validations/selectValidation";
 import { createNewUser } from "../../../../application/repository/entity.repository";
-import VWToast from "../../Toast"; // will be used when we wait for the response
+import VWToast from "../../Toast";
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { useSelector } from "react-redux";
 import Checkbox from "../../../components/Inputs/Checkbox";
 import { Project } from "../../../../domain/Project";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-
-enum RiskClassificationEnum {
-  HighRisk = "High risk",
-  LimitedRisk = "Limited risk",
-  MinimalRisk = "Minimal risk",
-}
-
-enum HighRiskRoleEnum {
-  Deployer = "Deployer",
-  Provider = "Provider",
-  Distributor = "Distributor",
-  Importer = "Importer",
-  ProductManufacturer = "Product manufacturer",
-  AuthorizedRepresentative = "Authorized representative",
-}
-
-interface User {
-  _id: string;
-  name: string;
-  surname: string;
-  email: string;
-}
-
-interface FormValues {
-  project_title: string;
-  owner: number;
-  members: User[];
-  start_date: string;
-  ai_risk_classification: number;
-  type_of_high_risk_role: number;
-  goal: string;
-  enable_ai_data_insertion: boolean;
-}
-
-interface FormErrors {
-  projectTitle?: string;
-  members?: string;
-  owner?: string;
-  startDate?: string;
-  riskClassification?: string;
-  typeOfHighRiskRole?: string;
-  goal?: string;
-}
-
-const initialState: FormValues = {
-  project_title: "",
-  members: [],
-  owner: 0,
-  start_date: new Date().toISOString(),
-  ai_risk_classification: 0,
-  type_of_high_risk_role: 0,
-  goal: "",
-  enable_ai_data_insertion: false,
-};
-
-interface VWProjectFormProps {
-  onClose: () => void;
-  sx?: SxProps<Theme> | undefined;
-}
+import {
+  FormErrors,
+  HighRiskRoleEnum,
+  RiskClassificationEnum,
+} from "./constants";
+import { FormValues } from "./constants";
+import { initialState } from "./constants";
+import { VWProjectFormProps } from "./constants";
 
 const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
   const theme = useTheme();
@@ -446,53 +400,14 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
                     {...params}
                     placeholder="Select Users"
                     error={memberRequired}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        paddingTop: "3.8px !important",
-                        paddingBottom: "3.8px !important",
-                      },
-                      "& ::placeholder": {
-                        fontSize: "13px",
-                      },
-                    }}
+                    sx={teamMembersRenderInputStyle}
                   />
                 )}
                 sx={{
-                  width: "350px",
                   backgroundColor: theme.palette.background.main,
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "3px",
-                    "&:hover .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "none",
-                    },
-                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#888",
-                      borderWidth: "1px",
-                    },
-                  },
+                  ...teamMembersSxStyle,
                 }}
-                slotProps={{
-                  paper: {
-                    sx: {
-                      "& .MuiAutocomplete-listbox": {
-                        "& .MuiAutocomplete-option": {
-                          fontSize: "13px",
-                          color: "#1c2130",
-                          paddingLeft: "9px",
-                          paddingRight: "9px",
-                        },
-                        "& .MuiAutocomplete-option.Mui-focused": {
-                          background: "#f9fafb",
-                        },
-                      },
-                      "& .MuiAutocomplete-noOptions": {
-                        fontSize: "13px",
-                        paddingLeft: "9px",
-                        paddingRight: "9px",
-                      },
-                    },
-                  },
-                }}
+                slotProps={teamMembersSlotProps}
               />
               {memberRequired && (
                 <Typography
@@ -510,10 +425,7 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
               values.start_date ? dayjs(values.start_date) : dayjs(new Date())
             }
             handleDateChange={handleDateChange}
-            sx={{
-              width: "130px",
-              "& input": { width: "85px" },
-            }}
+            sx={datePickerStyle}
             isRequired
             error={errors.startDate}
           />
@@ -550,11 +462,7 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
       >
         <VWButton
           text="Create project"
-          sx={{
-            backgroundColor: "#13715B",
-            border: "1px solid #13715B",
-            gap: 2,
-          }}
+          sx={createProjectButtonStyle}
           icon={<AddCircleOutlineIcon />}
           onClick={() => handleSubmit()}
         />

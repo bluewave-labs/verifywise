@@ -29,7 +29,7 @@ const FILE_STEPS: PageTourStep[] = [
   {
     target: '[data-joyride-id="file-manager-title"]',
     content: (
-      <CustomStep body="This table lists all the files uploaded to the system." />
+      <CustomStep body="The table below lists all the files uploaded to the system." />
     ),
     placement: "left",
   },

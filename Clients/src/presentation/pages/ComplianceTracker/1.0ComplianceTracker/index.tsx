@@ -7,7 +7,7 @@ import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import { ControlCategory as ControlCategoryModel } from "../../../../domain/ControlCategory";
 import ControlCategoryTile from "./ControlCategory";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import PageTour from "../../../components/PageTour";
+import PageTour, {PageTourStep} from "../../../components/PageTour";
 import CustomStep from "../../../components/PageTour/CustomStep";
 
 const ComplianceTracker = () => {
@@ -23,31 +23,29 @@ const ComplianceTracker = () => {
   const progressRef = useRef<HTMLDivElement | null>(null);
   const controlsRef = useRef<HTMLDivElement | null>(null);
 
-  const complianceSteps =[
+  const complianceSteps: PageTourStep[] = [
     {
       target: '[data-joyride-id="compliance-heading"]',
-      content:(
-        <CustomStep
-        body="Here youll see a list of controls related to the regulation you selected."
-        />
-      )
+      content: (
+        <CustomStep body="Here youll see a list of controls related to the regulation you selected." />
+      ),
+      placement: "left",
     },
     {
-      target:'[data-joyride-id="compliance-progress-bar"]',
-      content:(
-        <CustomStep 
-        body="Check th status of your compliance tracker here."
-        />)
+      target: '[data-joyride-id="compliance-progress-bar"]',
+      content: (
+        <CustomStep body="Check th status of your compliance tracker here." />
+      ),
+      placement: "left",
     },
     {
-      target:'[data-joyride-id="control-groups"]',
-      content:(
-        <CustomStep
-        body="Those are the groups where controls and subcontrols reside. As you fill them, your statistics improve."
-        />
-      )
-    }
-  ]
+      target: '[data-joyride-id="control-groups"]',
+      content: (
+        <CustomStep body="Those are the groups where controls and subcontrols reside. As you fill them, your statistics improve." />
+      ),
+      placement: "left",
+    },
+  ];
 useEffect(()=>{
   if (titleRef.current && progressRef.current && controlsRef.current) {
     setRunComplianceTour(true);
@@ -156,7 +154,11 @@ useEffect(()=>{
         }} 
         tourKey="compliance-tour"
         />
-      <Typography ref={titleRef} data-joyride-id="compliance-heading" sx={pageHeadingStyle}>Compliance tracker</Typography>
+        <Stack
+        ref={titleRef} data-joyride-id="compliance-heading"
+        >
+      <Typography  sx={pageHeadingStyle}>Compliance tracker</Typography>
+      </Stack>
       {complianceData && (
         <Stack ref={progressRef} data-joyride-id="compliance-progress-bar">
         <StatsCard

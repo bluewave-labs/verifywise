@@ -2,10 +2,16 @@ import Joyride, { Step } from "react-joyride";
 import React, { useEffect, useState } from "react";
 
 interface PageTourProps {
-  steps: Step[];
+  steps: PageTourStep[];
   run: boolean;
   onFinish?: () => void;
   tourKey: string;
+}
+
+export interface PageTourStep {
+  target: string;
+  content: JSX.Element;
+  placement: "left" | "right" | "top" | "bottom" | "top-start" | "bottom-start";
 }
 
 const PageTour: React.FC<PageTourProps> = ({ steps, run, onFinish, tourKey }) => {
@@ -39,7 +45,7 @@ const PageTour: React.FC<PageTourProps> = ({ steps, run, onFinish, tourKey }) =>
 
   return (
     <Joyride
-      steps={steps}
+      steps={steps as Step[]}
       run={shouldRun}
       continuous
       hideCloseButton

@@ -14,7 +14,7 @@ import {
 import { tabPanelStyle, tabStyle } from "./style";
 import { logEngine } from "../../../application/tools/log.engine";
 import Alert from "../../components/Alert";
-import PageTour from "../../components/PageTour";
+import PageTour, { PageTourStep } from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
@@ -88,12 +88,13 @@ const Vendors = () => {
 
   const [runVendorTour, setRunVendorTour] = useState(false);
   const vendorButtonRef = useRef<HTMLDivElement | null>(null);
-  const vendorSteps = [
+  const vendorSteps: PageTourStep[] = [
     {
       target: '[data-joyride-id="add-new-vendor"]',
       content: (
         <CustomStep body="Here, you can add AI providers that you use in our project, and input the necessary information to ensure compliance." />
       ),
+      placement: "left",
     },
   ];
   const createAbortController = () => {

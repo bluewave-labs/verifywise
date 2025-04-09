@@ -24,7 +24,7 @@ import useAssessmentProgress from "../../../../application/hooks/useAssessmentPr
 import useAssessmentData from "../../../../application/hooks/useAssessmentData";
 import useAssessmentTopics from "../../../../application/hooks/useAssessmentTopcis";
 import useAssessmentSubtopics from "../../../../application/hooks/useAssessmentSubtopics";
-import PageTour from "../../../components/PageTour";
+import PageTour, {PageTourStep} from "../../../components/PageTour";
 import CustomStep from "../../../components/PageTour/CustomStep";
 
 const AssessmentTracker = () => {
@@ -37,7 +37,7 @@ const AssessmentTracker = () => {
   const progressRef = useRef<HTMLDivElement | null>(null);
   const topicsRef = useRef<HTMLDivElement | null>(null);
 
-  const assessmentSteps = [
+  const assessmentSteps: PageTourStep[] = [
     {
       target: '[data-joyride-id="assessment-progress-bar"]',
       content: (
@@ -45,6 +45,7 @@ const AssessmentTracker = () => {
           body="Check the status of your assessment tracker here."
         />
       ),
+      placement: "left",
     },
     {
       target: '[data-joyride-id="assessment-topics"]',
@@ -53,6 +54,7 @@ const AssessmentTracker = () => {
           body="Go to your assessments and start filling in the assessment questions for your project."
         />
       ),
+      placement: "left",
     },
   ];  
 

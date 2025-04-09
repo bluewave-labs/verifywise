@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { Stack, Box, Typography, useTheme, Theme } from "@mui/material";
 import { getEntityById } from "../../../application/repository/entity.repository";
-import PageTour from "../../components/PageTour";
+import PageTour, {PageTourStep} from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
 import VWSkeleton from "../../vw-v2-components/Skeletons";
 import { vwhomeHeading } from "../Home/1.0Home/style";
@@ -19,19 +19,13 @@ import { filesTableFrame, filesTablePlaceholder } from "./styles";
 
 const COLUMN_NAMES = ["File", "Upload Date", "Uploader"];
 
-interface FileStep {
-  target: string;
-  content: JSX.Element;
-  placement: "left" | "right" | "top" | "bottom";
-}
-
 interface Column {
   id: number;
   name: string;
   sx: { width: string };
 }
 
-const FILE_STEPS: FileStep[] = [
+const FILE_STEPS: PageTourStep[] = [
   {
     target: '[data-joyride-id="file-manager-title"]',
     content: (

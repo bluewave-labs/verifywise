@@ -175,18 +175,29 @@ const ComplianceTracker = () => {
           />
         </Stack>
       )}
-      <Stack ref={controlsRef} data-joyride-id="control-groups">
-        {controlCategories &&
-          controlCategories
-            .sort((a, b) => (a.order_no ?? 0) - (b.order_no ?? 0))
-            .map((controlCategory: ControlCategoryModel) => (
+      {controlCategories &&
+        controlCategories
+          .sort((a, b) => (a.order_no ?? 0) - (b.order_no ?? 0))
+          .map((controlCategory: ControlCategoryModel, index) =>
+            index === 0 ? (
+              <div
+                ref={controlsRef}
+                data-joyride-id="control-groups"
+                key={controlCategory.id}
+              >
+                <ControlCategoryTile
+                  controlCategory={controlCategory}
+                  onComplianceUpdate={fetchComplianceData}
+                />
+              </div>
+            ) : (
               <ControlCategoryTile
                 key={controlCategory.id}
                 controlCategory={controlCategory}
                 onComplianceUpdate={fetchComplianceData}
               />
-            ))}
-      </Stack>
+            )
+          )}
     </Stack>
   );
 };

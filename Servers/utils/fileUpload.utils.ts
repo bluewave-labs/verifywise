@@ -59,8 +59,17 @@ export const getFileById = async (id: number) => {
 }
 
 export const getFileMetadataByProjectId = async (project_id: number) => {
-  const query = `SELECT id, filename, project_id, uploaded_by, uploaded_time 
-    FROM files WHERE project_id = :project_id ORDER BY uploaded_time DESC, id ASC`;
+  const query = `SELECT 
+  f.id, 
+  f.filename, 
+  f.project_id,  
+  f.uploaded_time,
+  u.name AS uploader_name,
+  u.surname AS uploader_surname, 
+    FROM files f
+  JOIN users u ON f.uploaded_by = u.id
+    WHERE project_id = :project_id 
+    ORDER BY uploaded_time DESC, id ASC`;
   const result = await sequelize.query(query, {
     replacements: { project_id },
     mapToModel: true,

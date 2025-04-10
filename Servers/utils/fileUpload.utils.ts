@@ -65,7 +65,7 @@ export const getFileMetadataByProjectId = async (project_id: number) => {
   f.project_id,  
   f.uploaded_time,
   u.name AS uploader_name,
-  u.surname AS uploader_surname, 
+  u.surname AS uploader_surname 
     FROM files f
   JOIN users u ON f.uploaded_by = u.id
     WHERE project_id = :project_id 

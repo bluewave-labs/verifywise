@@ -6,7 +6,7 @@ import { DragDropArea, Icon } from './FileUpload.styles';
 import { List, ListItem, ListItemText, Stack, Typography, IconButton, Button } from '@mui/material';
 import DeleteIcon from "@mui/icons-material/Delete";
 
-const FileUploadComponent = ({onClose, onHeightChange, topicId = 0, assessmentsValues = {}, setAssessmentsValue, allowedFileTypes}: FileUploadProps) => {
+const FileUploadComponent = ({onClose, onHeightChange, topicId = 0, assessmentsValues = [], setAssessmentsValue, allowedFileTypes}: FileUploadProps) => {
 
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -34,27 +34,31 @@ const FileUploadComponent = ({onClose, onHeightChange, topicId = 0, assessmentsV
     }
   }, [fileList.length, onHeightChange]);
 
-  const onFileDrop = (e) => {
-    const newFile = e.target.files[0];
+  const onFileDrop = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newFile: File | undefined = e.target.files?.[0];
+
+    if (!newFile) {
+      return;
+    }
 
     if (!allowedFileTypes?.includes(newFile.type)) {
       console.error(`invalid file type: ${newFile.type}`);
-      return;
+      return;                                           
     }
     // Prevent duplicate files
     if (newFile) {
       const fileExists = fileList.some(
-        (f) => f.name === newFile.name || f.size === newFile.size
+        (f: FileProps) => f.name === newFile.name || f.size === newFile.size
       );
       if (fileExists) {
         console.warn(`File ${newFile.name} already exists.`);
-        return
+        return;
       }
-    // Update the file list
-    const updatedList = [...fileList, newFile];
-    setFileList(updatedList);
     }
-  }
+    // Update the file list
+    const updatedList: FileProps[] = [...fileList, newFile];
+    setFileList(updatedList);
+  };
 
   const handleRemoveFile = (index: number) => {
     const newFiles = fileList.filter((_, i) => i !== index);

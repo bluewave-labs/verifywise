@@ -8,6 +8,7 @@ interface User {
   email?: string;
   firstname: string;
   lastname: string;
+  role: number;
 }
 
 const useRegisterUser = () => {
@@ -37,7 +38,7 @@ const useRegisterUser = () => {
     try {
       const response = await createNewUser({
         routeUrl: "/users/register",
-        body: values
+        body: {...values, role: user.role || 1}
       });
       handleApiResponse({response, user, setIsSubmitting});
       return {

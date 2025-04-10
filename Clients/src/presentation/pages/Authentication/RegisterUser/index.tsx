@@ -76,6 +76,7 @@ const RegisterUser: React.FC = () => {
       id: "At register level as user",
       firstname: values.name || "",
       lastname: values.surname || "",
+      role: Number(values.role) || 1
     };
     const { isFormValid, errors } = validateForm(values);
     if (!isFormValid) {
@@ -144,7 +145,8 @@ const RegisterUser: React.FC = () => {
           const userData: FormValues = {
             ...initialState,
             name: userInfo.name ?? "",
-            email: userInfo.email ?? ""
+            email: userInfo.email ?? "",
+            role: Number(userInfo.role) ?? 1
           }
           setValues(userData)
         }

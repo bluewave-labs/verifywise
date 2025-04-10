@@ -39,7 +39,7 @@ export const useFetchFiles = (projectID: string) => {
               uploadDate: file.uploaded_time
                 ? new Date(file.uploaded_time).toLocaleDateString()
                 : "Invalid Date",
-              uploader: file.uploaded_by?.toString() || "N/A",
+              uploader: `${file.uploader_name ?? ""} ${file.uploader_surname ?? ""}`.trim() || "N/A",
             }))
           );
         } else {

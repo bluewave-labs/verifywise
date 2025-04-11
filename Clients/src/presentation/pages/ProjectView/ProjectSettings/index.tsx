@@ -449,7 +449,7 @@ const ProjectSettings = React.memo(({ triggerRefresh = () => {} }: { triggerRefr
           <Select
             id="owner"
             label="Owner"
-            value={values.owner}
+            value={values.owner || ''}
             onChange={handleOnSelectChange("owner")}
             items={
               users?.map((user) => ({

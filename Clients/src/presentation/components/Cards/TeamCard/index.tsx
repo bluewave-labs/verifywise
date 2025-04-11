@@ -11,7 +11,11 @@ const TeamCard = ({
   return (
     <Stack sx={infoCardStyle}>
       <Typography sx={infoCardTitleStyle}>{title}</Typography>
-      <Typography sx={descCardbodyStyle}>{members.join(", ")}</Typography>
+      {members.length !== 0 ? 
+        <Typography sx={descCardbodyStyle}>{members.join(", ")}</Typography>
+      : 
+        <Typography sx={descCardbodyStyle}>No member has been asigned to the project</Typography>
+      }
     </Stack>
   );
 };

@@ -4,6 +4,8 @@ import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
   calculateProjectRisks,
   calculateVendirRisks,
+  countAnswersByProjectId,
+  countSubControlsByProjectId,
   createNewProjectQuery,
   deleteProjectByIdQuery,
   getAllProjectsQuery,
@@ -37,83 +39,21 @@ export async function getAllProjects(
     const projects = (await getAllProjectsQuery()) as ProjectModel[];
 
     if (projects && projects.length > 0) {
-      for (const project of projects) {
-        // calculating compliances
-        const controlCategories = await getControlCategoryByProjectIdQuery(
-          project.id!
-        );
-        for (const category of controlCategories) {
-          if (category) {
-            const controls = await getAllControlsByControlGroupQuery(
-              category.id
-            );
-            for (const control of controls) {
-              if (control && control.id) {
-                const subControls = await getAllSubcontrolsByControlIdQuery(
-                  control.id
-                );
-                control.numberOfSubcontrols = subControls.length;
-                control.numberOfDoneSubcontrols = subControls.filter(
-                  (subControl) => subControl.status === "Done"
-                ).length;
-                project.dataValues.totalSubcontrols =
-                  (project.dataValues.totalSubcontrols || 0) +
-                  subControls.length;
-                project.dataValues.doneSubcontrols =
-                  (project.dataValues.doneSubcontrols || 0) +
-                  control.numberOfDoneSubcontrols;
-              }
-            }
-          }
-        }
+      await Promise.all(
+        projects.map(async (project) => {
+          // calculating compliances
+          const { totalSubcontrols, doneSubcontrols } = await countSubControlsByProjectId(project.id!);
+          project.dataValues.totalSubcontrols = parseInt(totalSubcontrols);
+          project.dataValues.doneSubcontrols = parseInt(doneSubcontrols);
 
-        // calculating assessments
-
-        const assessments = (await getAssessmentByProjectIdQuery(
-          project.id!
-        )) as AssessmentModel[];
-        if (assessments.length !== 0) {
-          for (const assessment of assessments) {
-            if (assessment.id !== undefined) {
-              const topics = await getTopicByAssessmentIdQuery(assessment.id);
-              if (topics.length !== 0) {
-                for (const topic of topics) {
-                  if (topic.id !== undefined) {
-                    const subtopics = await getSubTopicByTopicIdQuery(topic.id);
-                    if (subtopics.length !== 0) {
-                      for (const subtopic of subtopics) {
-                        if (subtopic.id !== undefined) {
-                          const questions = await getQuestionBySubTopicIdQuery(
-                            subtopic.id
-                          );
-                          if (questions && questions.length > 0) {
-                            project.dataValues.totalAssessments =
-                              (project.dataValues.totalAssessments || 0) +
-                              questions.length;
-
-                            project.dataValues.answeredAssessments =
-                              (project.dataValues.answeredAssessments || 0) +
-                              questions.filter(
-                                (q) =>
-                                  q.answer?.trim().length !== 0 &&
-                                  q.answer !== null &&
-                                  q.answer !== undefined
-                              ).length;
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+          // calculating assessments
+          const { totalAssessments, answeredAssessments } = await countAnswersByProjectId(project.id!);
+          project.dataValues.totalAssessments = parseInt(totalAssessments);
+          project.dataValues.answeredAssessments = parseInt(answeredAssessments);
+        })
+      );
       return res.status(200).json(STATUS_CODE[200](projects));
     }
-
-    return res.status(204).json(STATUS_CODE[204](projects));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

@@ -4,10 +4,11 @@ import React, {
   useContext,
   useCallback,
   useMemo,
+  useRef
 } from "react";
 import { Stack, Box, Typography, useTheme, Theme } from "@mui/material";
 import { getEntityById } from "../../../application/repository/entity.repository";
-import PageTour from "../../components/PageTour";
+import PageTour, {PageTourStep} from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
 import VWSkeleton from "../../vw-v2-components/Skeletons";
 import { vwhomeHeading } from "../Home/1.0Home/style";
@@ -18,23 +19,17 @@ import { filesTableFrame, filesTablePlaceholder } from "./styles";
 
 const COLUMN_NAMES = ["File", "Upload Date", "Uploader"];
 
-interface FileStep {
-  target: string;
-  content: JSX.Element;
-  placement: "left" | "right" | "top" | "bottom";
-}
-
 interface Column {
   id: number;
   name: string;
   sx: { width: string };
 }
 
-const FILE_STEPS: FileStep[] = [
+const FILE_STEPS: PageTourStep[] = [
   {
     target: '[data-joyride-id="file-manager-title"]',
     content: (
-      <CustomStep body="This table lists all the files uploaded to the system." />
+      <CustomStep body="The table below lists all the files uploaded to the system." />
     ),
     placement: "left",
   },
@@ -59,6 +54,8 @@ const FileManager: React.FC = (): JSX.Element => {
   const { dashboardValues } = useContext(VerifyWiseContext);
   const theme = useTheme();
   const [runFileTour, setRunFileTour] = useState(false);
+  const titleRef = useRef<HTMLDivElement | null>(null);
+
   const { selectedProjectId } = dashboardValues;
   const projectID = selectedProjectId?.toString();
   const { filesData, loading } = useFetchFiles(projectID);
@@ -84,8 +81,10 @@ const FileManager: React.FC = (): JSX.Element => {
   );
 
   useEffect(() => {
-    setRunFileTour(true);
-  }, []);
+    if (titleRef.current){
+      setRunFileTour(true);
+    }
+  }, [titleRef.current]);
 
   if (error) {
     return <Typography color="error">{error}</Typography>;
@@ -96,9 +95,12 @@ const FileManager: React.FC = (): JSX.Element => {
       <PageTour
         steps={FILE_STEPS}
         run={runFileTour}
-        onFinish={() => setRunFileTour(false)}
+        onFinish={() => {
+          localStorage.setItem("file-tour", "true");
+          setRunFileTour(false)}}
+          tourKey="file-tour"
       />
-      <FileManagerHeader theme={theme} />
+      <FileManagerHeader theme={theme} titleRef={titleRef}/>
       {loading ? (
         <VWSkeleton variant="rectangular" sx={filesTablePlaceholder} />
       ) : (
@@ -114,8 +116,8 @@ const FileManager: React.FC = (): JSX.Element => {
   );
 };
 
-const FileManagerHeader: React.FC<{ theme: Theme }> = ({ theme }) => (
-  <Stack className="vwhome-header" data-joyride-id="file-manager-title">
+const FileManagerHeader: React.FC<{ theme: Theme,titleRef:React.RefObject<HTMLDivElement> }> = ({ theme, titleRef }) => (
+  <Stack className="vwhome-header" ref={titleRef} data-joyride-id="file-manager-title">
     <Typography sx={vwhomeHeading}>Evidences & documents</Typography>
     <Typography
       sx={{

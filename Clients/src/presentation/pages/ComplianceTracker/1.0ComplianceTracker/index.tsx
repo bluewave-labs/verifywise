@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext, useRef } from "react";
 import { Stack, Typography } from "@mui/material";
 import { pageHeadingStyle } from "../../Assessment/1.0AssessmentTracker/index.style";
 import { getEntityById } from "../../../../application/repository/entity.repository";
@@ -7,17 +7,59 @@ import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import { ControlCategory as ControlCategoryModel } from "../../../../domain/ControlCategory";
 import ControlCategoryTile from "./ControlCategory";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import PageTour, { PageTourStep } from "../../../components/PageTour";
+import CustomStep from "../../../components/PageTour/CustomStep";
 
 const ComplianceTracker = () => {
   const { currentProjectId } = useContext(VerifyWiseContext);
   const [complianceData, setComplianceData] = useState<any>(null);
-  const [controlCategories, setControlCategories] = useState<ControlCategoryModel[]>();
+  const [controlCategories, setControlCategories] =
+    useState<ControlCategoryModel[]>();
   const [error, setError] = useState<unknown>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [runComplianceTour, setRunComplianceTour] = useState(false);
+
+  const titleRef = useRef<HTMLDivElement | null>(null);
+  const progressRef = useRef<HTMLDivElement | null>(null);
+  const controlsRef = useRef<HTMLDivElement | null>(null);
+
+  const complianceSteps: PageTourStep[] = [
+    {
+      target: '[data-joyride-id="compliance-heading"]',
+      content: (
+        <CustomStep body="Here youll see a list of controls related to the regulation you selected." />
+      ),
+      placement: "left",
+    },
+    {
+      target: '[data-joyride-id="compliance-progress-bar"]',
+      content: (
+        <CustomStep body="Check th status of your compliance tracker here." />
+      ),
+      placement: "left",
+    },
+    {
+      target: '[data-joyride-id="control-groups"]',
+      content: (
+        <CustomStep body="Those are the groups where controls and subcontrols reside. As you fill them, your statistics improve." />
+      ),
+      placement: "left",
+    },
+  ];
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (titleRef.current && progressRef.current && controlsRef.current) {
+        setRunComplianceTour(true);
+      }
+    }, 1000);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [titleRef.current, progressRef.current, controlsRef.current]);
 
   // Reset state when project changes
   useEffect(() => {
-    console.log('ComplianceTracker: Project changed to:', currentProjectId);
+    console.log("ComplianceTracker: Project changed to:", currentProjectId);
     setComplianceData(null);
     setControlCategories(undefined);
     setError(null);
@@ -25,14 +67,20 @@ const ComplianceTracker = () => {
   }, [currentProjectId]);
 
   const fetchComplianceData = async () => {
-    console.log("ComplianceTracker: Fetching compliance data for project:", currentProjectId);
+    console.log(
+      "ComplianceTracker: Fetching compliance data for project:",
+      currentProjectId
+    );
     if (!currentProjectId) return;
 
     try {
       const response = await getEntityById({
         routeUrl: `projects/compliance/progress/${currentProjectId}`,
       });
-      console.log("ComplianceTracker: Received compliance data:", response.data);
+      console.log(
+        "ComplianceTracker: Received compliance data:",
+        response.data
+      );
       setComplianceData(response.data);
     } catch (err) {
       console.error("ComplianceTracker: Error fetching compliance data:", err);
@@ -43,7 +91,10 @@ const ComplianceTracker = () => {
   };
 
   const fetchControlCategories = async () => {
-    console.log("ComplianceTracker: Fetching control categories for project:", currentProjectId);
+    console.log(
+      "ComplianceTracker: Fetching control categories for project:",
+      currentProjectId
+    );
     if (!currentProjectId) return;
 
     try {
@@ -53,7 +104,10 @@ const ComplianceTracker = () => {
       console.log("ComplianceTracker: Received control categories:", response);
       setControlCategories(response);
     } catch (err) {
-      console.error("ComplianceTracker: Error fetching control categories:", err);
+      console.error(
+        "ComplianceTracker: Error fetching control categories:",
+        err
+      );
       setError(err);
     }
   };
@@ -95,27 +149,55 @@ const ComplianceTracker = () => {
 
   return (
     <Stack className="compliance-tracker" sx={{ gap: "16px" }}>
-      <Typography sx={pageHeadingStyle}>Compliance tracker</Typography>
+      <PageTour
+        run={runComplianceTour}
+        steps={complianceSteps}
+        onFinish={() => {
+          localStorage.setItem("compliance-tour", "true");
+          setRunComplianceTour(false);
+        }}
+        tourKey="compliance-tour"
+      />
+      <Stack
+        ref={titleRef}
+        data-joyride-id="compliance-heading"
+        sx={{ position: "relative" }}
+      >
+        <Typography sx={pageHeadingStyle}>Compliance tracker</Typography>
+      </Stack>
       {complianceData && (
-        <StatsCard
-          completed={complianceData.allDonesubControls}
-          total={complianceData.allsubControls}
-          title="Subcontrols"
-          progressbarColor="#13715B"
-        />
+        <Stack ref={progressRef} data-joyride-id="compliance-progress-bar">
+          <StatsCard
+            completed={complianceData.allDonesubControls}
+            total={complianceData.allsubControls}
+            title="Subcontrols"
+            progressbarColor="#13715B"
+          />
+        </Stack>
       )}
-      <Stack>
-        {controlCategories &&
-          controlCategories
-            .sort((a, b) => (a.order_no ?? 0) - (b.order_no ?? 0))
-            .map((controlCategory: ControlCategoryModel) => (
+      {controlCategories &&
+        controlCategories
+          .sort((a, b) => (a.order_no ?? 0) - (b.order_no ?? 0))
+          .map((controlCategory: ControlCategoryModel, index) =>
+            index === 0 ? (
+              <div
+                ref={controlsRef}
+                data-joyride-id="control-groups"
+                key={controlCategory.id}
+              >
+                <ControlCategoryTile
+                  controlCategory={controlCategory}
+                  onComplianceUpdate={fetchComplianceData}
+                />
+              </div>
+            ) : (
               <ControlCategoryTile
                 key={controlCategory.id}
                 controlCategory={controlCategory}
                 onComplianceUpdate={fetchComplianceData}
               />
-            ))}
-      </Stack>
+            )
+          )}
     </Stack>
   );
 };

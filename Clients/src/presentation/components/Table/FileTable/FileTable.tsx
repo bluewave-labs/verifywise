@@ -4,8 +4,7 @@ import { Stack, Box, Typography } from "@mui/material";
 import AscendingIcon from "../../../assets/icons/up-arrow.svg";
 import DescendingIcon from "../../../assets/icons/down-arrow.svg";
 import EmptyTableImage from "../../../assets/imgs/empty-state.svg";
-import { File } from "../../../../domain/File";
-import { mockFiles } from "./data";
+import { FileData } from "../../../../domain/File";
 
 type SortDirection = "asc" | "desc" | null;
 
@@ -13,17 +12,14 @@ type SortDirection = "asc" | "desc" | null;
  * Represents the props of the FileTable component.
  * @typedef {Object} FileTableProps
  * @property {Array} cols - The columns of the table.
- * @property {Array<File>} files - The list of files.
+ * @property {Array<FileData>} files - The list of files.
  * @property {Function} onRowClick - Callback to handle row selection.
  */
 interface FileTableProps {
   cols: any[];
-  files: File[];
+  files: FileData[];
   onRowClick: (fileId: string) => void;
 }
-
-//fallback mock data for dev purposes
-
 /**
  *
  * Displays an empty state when no files are available.
@@ -63,20 +59,18 @@ const EmptyState: React.FC = (): JSX.Element => (
 );
 
 const FileTable: React.FC<FileTableProps> = ({ cols, files, onRowClick }) => {
-  const [sortField, setSortField] = useState<keyof File | null>(null);
+  const [sortField, setSortField] = useState<keyof FileData | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
-  const handleSort = (field: keyof File) => {
+  const handleSort = (field: keyof FileData) => {
     const isAsc = sortField === field && sortDirection === "asc";
     setSortDirection(isAsc ? "desc" : "asc");
     setSortField(field);
   };
 
-  const displayFiles = files && files.length > 0 ? files : mockFiles;
-
   const sortedFiles = useMemo(() => {
-    if (!sortField) return displayFiles;
-    return [...displayFiles].sort((a, b) => {
+    if (!sortField) return files;
+    return [...files].sort((a, b) => {
       const aValue = a[sortField] ?? "";
       const bValue = b[sortField] ?? "";
 
@@ -88,7 +82,7 @@ const FileTable: React.FC<FileTableProps> = ({ cols, files, onRowClick }) => {
 
       return 0;
     });
-  }, [displayFiles, sortField, sortDirection]);
+  }, [files, sortField, sortDirection]);
 
   const sortedCols = useMemo(
     () =>
@@ -103,7 +97,7 @@ const FileTable: React.FC<FileTableProps> = ({ cols, files, onRowClick }) => {
                 <Stack
                   direction="row"
                   alignItems="center"
-                  onClick={() => handleSort(colKey as keyof File)}
+                  onClick={() => handleSort(colKey as keyof FileData)}
                   sx={{ cursor: "pointer" }}
                 >
                   {col.name}
@@ -129,20 +123,20 @@ const FileTable: React.FC<FileTableProps> = ({ cols, files, onRowClick }) => {
     () =>
       sortedFiles.map((file) => ({
         id: file.id,
-        file: file.name,
+        file: file.fileName,
         uploadDate: file.uploadDate,
         uploader: file.uploader,
       })),
     [sortedFiles]
   );
 
-  return mockFiles.length === 0 ? (
+  return files.length === 0 ? (
     <EmptyState />
   ) : (
     <FileBasicTable
       data={{ cols: sortedCols, rows }}
-      bodyData={displayFiles}
-      paginated={displayFiles.length > 0}
+      bodyData={sortedFiles}
+      paginated={files.length > 0}
       table="fileManager"
       onRowClick={onRowClick}
       setSelectedRow={(row) => onRowClick(row.id)}

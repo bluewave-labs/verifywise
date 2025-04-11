@@ -12,7 +12,7 @@ export enum RiskLikelihood {
   Unlikely = "Unlikely",
   Possible = "Possible",
   Likely = "Likely",
-  AlmostCertain = "Almost Certain",
+  AlmostCertain = "Almost certain",
 }
 
 export enum RiskSeverity {

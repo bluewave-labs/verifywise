@@ -1,4 +1,4 @@
-import { useCallback, useContext, useState } from "react";
+import { useCallback, useContext, useState, useEffect } from "react";
 import {
   Box,
   Divider,
@@ -27,25 +27,35 @@ import useAssessmentSubtopics from "../../../../application/hooks/useAssessmentS
 
 const AssessmentTracker = () => {
   const theme = useTheme();
-  const [refreshKey, setRefreshKey] = useState(false)
-  const { dashboardValues } = useContext(VerifyWiseContext);
-  const { selectedProjectId } = dashboardValues;
-  const { assessmentProgress, loading: loadingAssessmentProgress } = useAssessmentProgress({
-    selectedProjectId,refreshKey
-  })
-  const { assessmentData } = useAssessmentData({
-    selectedProjectId,
-  })
-  const { assessmentTopics, loading: loadingAssessmentTopics } = useAssessmentTopics({
-    assessmentId: assessmentData?.id,
-  })
-
+  const [refreshKey, setRefreshKey] = useState(false);
+  const { currentProjectId } = useContext(VerifyWiseContext);
   const [activeTab, setActiveTab] = useState<number>(0);
 
-  const {assessmentSubtopics, loading: loadingAssessmentSubtopic} = useAssessmentSubtopics({
-    activeAssessmentTopicId: assessmentTopics?.[activeTab]?.id,
-  })
 
+  // Reset active tab when project changes
+  useEffect(() => {
+    console.log('Project changed to:', currentProjectId);
+    setActiveTab(0);
+    setRefreshKey(prev => !prev); // Force refresh when project changes
+  }, [currentProjectId]);
+
+  const { assessmentProgress, loading: loadingAssessmentProgress } = useAssessmentProgress({
+    selectedProjectId: currentProjectId || '',
+    refreshKey
+  });
+
+
+  const { assessmentData, loading: loadingAssessmentData } = useAssessmentData({
+    selectedProjectId: currentProjectId || '',
+  });
+
+  const { assessmentTopics, loading: loadingAssessmentTopics } = useAssessmentTopics({
+    assessmentId: assessmentData?.id,
+  });
+
+  const { assessmentSubtopics, loading: loadingAssessmentSubtopic } = useAssessmentSubtopics({
+    activeAssessmentTopicId: assessmentTopics?.[activeTab]?.id,
+  });
 
   const handleListItemClick = useCallback((index: number) => {
     setActiveTab(index);
@@ -53,7 +63,7 @@ const AssessmentTracker = () => {
 
   const topicsList = useCallback(
     (topic: any, index: number) => (
-      <ListItem key={index} disablePadding sx={listItemStyle}>
+      <ListItem key={topic.id || index} disablePadding sx={listItemStyle}>
         <ListItemButton
           disableRipple
           selected={index === activeTab}
@@ -84,6 +94,26 @@ const AssessmentTracker = () => {
     ),
     [activeTab, handleListItemClick, theme.palette.text.primary]
   );
+
+  // Show loading state if we're loading the initial assessment data
+  if (loadingAssessmentData) {
+    console.log('Showing loading state');
+    return (
+      <Stack sx={{ padding: 2 }}>
+        <VWSkeleton height={400} variant="rectangular" />
+      </Stack>
+    );
+  }
+
+  // Show message if no project is selected
+  if (!currentProjectId) {
+    console.log('No project selected');
+    return (
+      <Stack sx={{ padding: 2 }}>
+        <Typography>Please select a project to view assessments</Typography>
+      </Stack>
+    );
+  }
 
   return (
     <Stack className="assessment-tracker">
@@ -166,7 +196,7 @@ const AssessmentTracker = () => {
             ) : assessmentSubtopics ? (
               assessmentSubtopics.map((subtopic: any, index: number) => (
                 <div key={`subtopic-${subtopic.id || index}`}>
-                  <Questions subtopic={subtopic} setRefreshKey={() => setRefreshKey((prev) => !prev)} />
+                  <Questions subtopic={subtopic} setRefreshKey={() => setRefreshKey((prev) => !prev)}/>
                 </div>
               ))
             ) : (

@@ -9,24 +9,33 @@ import ControlCategoryTile from "./ControlCategory";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 const ComplianceTracker = () => {
-  const { dashboardValues } = useContext(VerifyWiseContext);
-  const { selectedProjectId } = dashboardValues;
+  const { currentProjectId } = useContext(VerifyWiseContext);
   const [complianceData, setComplianceData] = useState<any>(null);
-  const [controlCategories, setControlCategories] =
-    useState<ControlCategoryModel[]>();
+  const [controlCategories, setControlCategories] = useState<ControlCategoryModel[]>();
   const [error, setError] = useState<unknown>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
+  // Reset state when project changes
+  useEffect(() => {
+    console.log('ComplianceTracker: Project changed to:', currentProjectId);
+    setComplianceData(null);
+    setControlCategories(undefined);
+    setError(null);
+    setLoading(true);
+  }, [currentProjectId]);
+
   const fetchComplianceData = async () => {
-    console.log("fetchComplianceData selectedProjectId: ", selectedProjectId);
-    if (!selectedProjectId) return;
+    console.log("ComplianceTracker: Fetching compliance data for project:", currentProjectId);
+    if (!currentProjectId) return;
 
     try {
       const response = await getEntityById({
-        routeUrl: `projects/compliance/progress/${selectedProjectId}`,
+        routeUrl: `projects/compliance/progress/${currentProjectId}`,
       });
+      console.log("ComplianceTracker: Received compliance data:", response.data);
       setComplianceData(response.data);
     } catch (err) {
+      console.error("ComplianceTracker: Error fetching compliance data:", err);
       setError(err);
     } finally {
       setLoading(false);
@@ -34,26 +43,27 @@ const ComplianceTracker = () => {
   };
 
   const fetchControlCategories = async () => {
-    console.log(
-      "fetchControlCategories selectedProjectId: ",
-      selectedProjectId
-    );
-    if (!selectedProjectId) return;
+    console.log("ComplianceTracker: Fetching control categories for project:", currentProjectId);
+    if (!currentProjectId) return;
 
     try {
       const response = await getEntityById({
-        routeUrl: `/controlCategory/byprojectid/${selectedProjectId}`,
+        routeUrl: `/controlCategory/byprojectid/${currentProjectId}`,
       });
+      console.log("ComplianceTracker: Received control categories:", response);
       setControlCategories(response);
     } catch (err) {
+      console.error("ComplianceTracker: Error fetching control categories:", err);
       setError(err);
     }
   };
 
   useEffect(() => {
-    fetchComplianceData();
-    fetchControlCategories();
-  }, [selectedProjectId]);
+    if (currentProjectId) {
+      fetchComplianceData();
+      fetchControlCategories();
+    }
+  }, [currentProjectId]);
 
   if (loading) {
     return (
@@ -74,6 +84,15 @@ const ComplianceTracker = () => {
     return <Typography>Error loading compliance data</Typography>;
   }
 
+  if (!currentProjectId) {
+    return (
+      <Stack className="compliance-tracker" sx={{ gap: "16px" }}>
+        <Typography sx={pageHeadingStyle}>Compliance tracker</Typography>
+        <Typography>Please select a project to view compliance data</Typography>
+      </Stack>
+    );
+  }
+
   return (
     <Stack className="compliance-tracker" sx={{ gap: "16px" }}>
       <Typography sx={pageHeadingStyle}>Compliance tracker</Typography>
@@ -87,13 +106,15 @@ const ComplianceTracker = () => {
       )}
       <Stack>
         {controlCategories &&
-          controlCategories.map((controlCategory: ControlCategoryModel) => (
-            <ControlCategoryTile
-              key={controlCategory.id}
-              controlCategory={controlCategory}
-              onComplianceUpdate={fetchComplianceData}
-            />
-          ))}
+          controlCategories
+            .sort((a, b) => (a.order_no ?? 0) - (b.order_no ?? 0))
+            .map((controlCategory: ControlCategoryModel) => (
+              <ControlCategoryTile
+                key={controlCategory.id}
+                controlCategory={controlCategory}
+                onComplianceUpdate={fetchComplianceData}
+              />
+            ))}
       </Stack>
     </Stack>
   );

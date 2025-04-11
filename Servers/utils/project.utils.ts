@@ -86,6 +86,49 @@ export const getProjectByIdQuery = async (
   return project;
 };
 
+export const countSubControlsByProjectId = async (
+  project_id: number
+): Promise<{
+  totalSubcontrols: string;
+  doneSubcontrols: string;
+}> => {
+  const result = await sequelize.query(
+    `SELECT COUNT(*) AS "totalSubcontrols", COUNT(CASE WHEN sc.status = 'Done' THEN 1 END) AS "doneSubcontrols" FROM
+      controlcategories cc JOIN controls c ON cc.id = c.control_category_id
+        JOIN subcontrols sc ON c.id = sc.control_id WHERE cc.project_id = :project_id`,
+    {
+      replacements: { project_id },
+      type: QueryTypes.SELECT
+    }
+  );
+  return result[0] as {
+    totalSubcontrols: string;
+    doneSubcontrols: string;
+  };
+}
+
+export const countAnswersByProjectId = async (
+  project_id: number
+): Promise<{
+  totalAssessments: string;
+  answeredAssessments: string;
+}> => {
+  const result = await sequelize.query(
+    `SELECT COUNT(*) AS "totalAssessments", COUNT(CASE WHEN q.answer <> '' THEN 1 END) AS "answeredAssessments" FROM
+      assessments a JOIN topics t ON a.id = t.assessment_id
+        JOIN subtopics st ON t.id = st.topic_id
+          JOIN questions q ON st.id = q.subtopic_id WHERE a.project_id = :project_id`,
+    {
+      replacements: { project_id },
+      type: QueryTypes.SELECT
+    }
+  );
+  return result[0] as {
+    totalAssessments: string;
+    answeredAssessments: string;
+  };
+}
+
 export const createNewProjectQuery = async (
   project: Partial<Project>,
   members: number[]

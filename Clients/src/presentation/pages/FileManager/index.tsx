@@ -16,7 +16,7 @@ import FileTable from "../../components/Table/FileTable/FileTable";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
 
-const COLUMN_NAMES = ["File", "Upload Date", "Uploader"];
+const COLUMN_NAMES = ["File", "Upload Date", "Uploader", "Action"];
 
 interface FileStep {
   target: string;

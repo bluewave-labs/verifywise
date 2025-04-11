@@ -9,11 +9,16 @@ import {
   TableRow,
   Typography,
   useTheme,
+  IconButton,
+  Menu,
+  MenuItem
 } from "@mui/material";
 import TablePaginationActions from "../../TablePagination";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useState, useEffect, useCallback} from "react";
 import { FileData } from "../../../../domain/File";
+import { ReactComponent as EvidencesDownload} from "../../../assets/icons/evidences-download.svg";
+
 
 const DEFAULT_ROWS_PER_PAGE = 5;
 
@@ -48,6 +53,8 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
   const theme = useTheme();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
+  const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | null>(null);
+  const [selectedFile, setSelectedFile] = useState<FileData | null>(null);
 
   useEffect(() => setPage(0), [data]);
 
@@ -77,6 +84,29 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
     page * rowsPerPage + rowsPerPage
   );
 
+  //download file
+  const handleDownload = async (fileId: string, fileName:string) => {
+    const token = localStorage.getItem("token");
+    try{
+      const res = await fetch(`http://localhost:3000/files/${fileId}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading file:", error);
+    }
+  };
   return (
     <>
       <TableContainer id={table}>
@@ -115,11 +145,39 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
                 <TableCell>{row.fileName}</TableCell>
                 <TableCell>{row.uploadDate}</TableCell>
                 <TableCell>{row.uploader}</TableCell>
+                <TableCell>
+                  <IconButton
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedFile(row);
+                    setAnchorEl(e.currentTarget);
+                    setSelectedRow(row);
+                    setMenuAnchorEl(e.currentTarget);
+                  }}
+                  >
+                    <EvidencesDownload />
+                  </IconButton>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
+      <Menu
+        anchorEl={menuAnchorEl}
+        open={Boolean(menuAnchorEl)}
+        onClose={() => setMenuAnchorEl(null)}>
+<MenuItem
+onClick={()=> {
+  if (selectedFile) {
+    handleDownload(selectedFile.id, selectedFile.fileName);
+  }
+  setMenuAnchorEl(null);
+}}
+>
+  Download
+</MenuItem>
+        </Menu>
       {paginated && (
         <Stack
           direction="row"

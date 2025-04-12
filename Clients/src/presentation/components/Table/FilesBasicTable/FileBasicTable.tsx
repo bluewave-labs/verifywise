@@ -148,6 +148,7 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
                  warningTitle="Are you sure you want to download this file?"
                  warningMessage="This action will download the file to your local machine."
                  onMouseEvent={()=>{}}
+                  hideRemove={true}
                  />
                 </TableCell>
               </TableRow>

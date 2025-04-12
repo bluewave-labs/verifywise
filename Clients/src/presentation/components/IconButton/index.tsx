@@ -36,7 +36,8 @@ const IconButton: React.FC<IconButtonProps> = ({
   warningTitle,
   warningMessage,
   type,
-  onMouseEvent
+  onMouseEvent,
+  hideRemove
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
@@ -145,13 +146,14 @@ const IconButton: React.FC<IconButtonProps> = ({
       :
         <MenuItem onClick={(e) => handleEdit(e)}>Download</MenuItem>
       }
-      
+      {!hideRemove && (
       <MenuItem onClick={(e) => {
         setIsOpenRemoveModal(true);
         if (e) {
           closeDropDownMenu(e);
         }
         }}>Remove</MenuItem>
+        )}
     </Menu>
   );
 

@@ -24,7 +24,6 @@ import { mitigationStatusItems, riskLevelItems, approvalStatusItems } from "../p
 const Select = lazy(() => import("../../Inputs/Select"));
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
-const FileUploadModal = lazy(() => import("../../Modals/FileUpload"));
 const RiskLevel = lazy(() => import("../../RiskLevel"));
 const Alert = lazy(() => import("../../Alert"));
 
@@ -83,7 +82,6 @@ export enum MitigationStatus {
  * @requires Select
  * @requires Field
  * @requires DatePicker
- * @requires FileUploadModal
  * @requires Divider
  * @requires Typography
  * @requires RiskLevel
@@ -105,7 +103,6 @@ const MitigationSection: FC<MitigationSectionProps> = ({
     title?: string;
     body: string;
   } | null>(null);
-  const [fileUploadOpen, setFileUploadOpen] = useState(false);
 
   const { users } = useUsers();
 
@@ -144,10 +141,6 @@ const MitigationSection: FC<MitigationSectionProps> = ({
       },
     []
   );  
-
-  const handleFileUploadClose = useCallback(() => {
-    setFileUploadOpen(false);
-  }, []);
 
   return (
     <Stack>
@@ -251,14 +244,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                   error={migitateErrors.deadline}
                 />
               </Stack>
-            </Suspense>
-            <Suspense fallback={<div>Loading...</div>}>
-              {/* <FileUploadModal
-                open={fileUploadOpen}
-                onClose={handleFileUploadClose}
-                uploadProps={{ open: false }}
-              /> */}
-            </Suspense>
+            </Suspense>           
           </Stack>
         </Stack>
         <Divider />

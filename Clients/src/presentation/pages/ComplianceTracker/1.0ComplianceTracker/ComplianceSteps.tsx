@@ -1,7 +1,7 @@
 import CustomStep from "../../../components/PageTour/CustomStep";
 import { PageTourStep } from "../../../components/PageTour";
 
-const complianceSteps: PageTourStep[] = [
+const ComplianceSteps: PageTourStep[] = [
     {
       target: '[data-joyride-id="compliance-heading"]',
       content: (
@@ -25,4 +25,4 @@ const complianceSteps: PageTourStep[] = [
     },
   ];
 
-export default complianceSteps;
+export default ComplianceSteps;

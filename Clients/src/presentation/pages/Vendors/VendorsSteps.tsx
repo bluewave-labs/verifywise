@@ -1,7 +1,7 @@
 import CustomStep from "../../components/PageTour/CustomStep";
 import { PageTourStep } from "../../components/PageTour";
 
-const VendorSteps: PageTourStep[] = [
+const VendorsSteps: PageTourStep[] = [
   {
     target: '[data-joyride-id="add-new-vendor"]',
     content: (
@@ -11,4 +11,4 @@ const VendorSteps: PageTourStep[] = [
   },
 ];
 
-export default VendorSteps;
+export default VendorsSteps;

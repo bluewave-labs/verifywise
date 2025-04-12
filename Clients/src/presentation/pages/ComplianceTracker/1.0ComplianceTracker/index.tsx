@@ -21,7 +21,7 @@ const ComplianceTracker = () => {
   const [runComplianceTour, setRunComplianceTour] = useState(false);
 
   const {refs, allVisible} = useMultipleOnScreen<HTMLDivElement>({
-    countToTrigger: 2,
+    countToTrigger: 3,
   });
 
   useEffect(()=>{

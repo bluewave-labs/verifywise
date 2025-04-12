@@ -8,7 +8,6 @@ import {
   useContext,
   useEffect,
   useState,
-  useRef,
 } from "react";
 import AddNewVendor from "../../components/Modals/NewVendor";
 import singleTheme from "../../themes/v1SingleTheme";
@@ -21,8 +20,9 @@ import {
 import { tabPanelStyle, tabStyle } from "./style";
 import { logEngine } from "../../../application/tools/log.engine";
 import Alert from "../../components/Alert";
-import PageTour, { PageTourStep } from "../../components/PageTour";
-import CustomStep from "../../components/PageTour/CustomStep";
+import PageTour from "../../components/PageTour";
+import VendorsSteps from "./VendorsSteps";
+import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
@@ -94,16 +94,10 @@ const Vendors = () => {
   } | null>(null);
 
   const [runVendorTour, setRunVendorTour] = useState(false);
-  const vendorButtonRef = useRef<HTMLDivElement | null>(null);
-  const vendorSteps: PageTourStep[] = [
-    {
-      target: '[data-joyride-id="add-new-vendor"]',
-      content: (
-        <CustomStep body="Here, you can add AI providers that you use in our project, and input the necessary information to ensure compliance." />
-      ),
-      placement: "bottom-end",
-    },
-  ];
+  const {refs, allVisible} = useMultipleOnScreen<HTMLDivElement>({
+    countToTrigger: 1,
+  });
+
   const createAbortController = () => {
     if (controller) {
       controller.abort();
@@ -203,13 +197,10 @@ const Vendors = () => {
   }, [selectedProjectId]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (vendorButtonRef.current) {
-        setRunVendorTour(true);
-      }
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [vendorButtonRef.current]);
+    if (allVisible) {
+      setRunVendorTour(true);
+    }
+  }, [allVisible]);
 
   const handleDeleteVendor = async (vendorId: number) => {
     setIsSubmitting(true);
@@ -359,7 +350,7 @@ const Vendors = () => {
   return (
     <div className="vendors-page">
       <PageTour
-        steps={vendorSteps}
+        steps={VendorsSteps}
         run={runVendorTour}
         onFinish={() => {
           localStorage.setItem("vendor-tour", "true");
@@ -454,7 +445,7 @@ const Vendors = () => {
           ) : (
             value === "1" && (
               <Stack sx={{ alignItems: "flex-end" }}>
-                <div data-joyride-id="add-new-vendor" ref={vendorButtonRef}>
+                <div data-joyride-id="add-new-vendor" ref={refs[0]}>
                   <VWButton
                     variant="contained"
                     text="Add new vendor"

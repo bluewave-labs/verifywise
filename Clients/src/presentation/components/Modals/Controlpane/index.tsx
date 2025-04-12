@@ -223,6 +223,11 @@ const CustomModal: React.FC<CustomModalProps> = ({
               activeSection={activeSection}
               feedback=""
               onChange={(e) => console.log(e.target.value)}
+              files={[]}
+              deletedFilesIds={[]} 
+              onDeletedFilesChange={(ids) => console.log("Deleted Files:", ids)} // Add a handler
+              uploadFiles={[]} 
+              onUploadFilesChange={(files) => console.log("Uploaded Files:", files)} // Add a handler
             />
           )}
         </Box>

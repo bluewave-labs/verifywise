@@ -4,7 +4,7 @@
 
 <h3 align="center">Democratizing AI Governance</a></h3>
 
-[VerifyWise](https://verifywise.ai) is an open-source AI governance platform designed to help businesses harness the power of artificial intelligence safely and responsibly. Our platform ensures compliance and robust AI management without compromising on security.
+[VerifyWise](https://verifywise.ai) is an open-source AI governance platform designed to help businesses use the power of AI safely and responsibly. Our platform ensures compliance and robust AI management without compromising on security.
 
 We are democratizing AI best practices with an open-source solution that can be hosted on-premises, giving you complete control over your AI governance.
 
@@ -60,15 +60,21 @@ VerifyWise is designed for:
 - End-to-end encryption for data in transit and at rest to ensure data security
 - Faster audits using AI-generated answers for compliance and assessment questions.
 - Full access to the source code for transparency, security audits, and customization
-- Docker deployment
+- Docker deployment (deployable on render.com and similar platforms)
 - User registration, authentication and role-based access control (RBAC) support.
 - Key metrics, visualizations, and real-time reporting capabilities.
 - Major features:
-  - Multiple projects
-  - Compliance tracker
-  - Assessment tracker
-  - Vendors
-  - Risks
-  - AI Trust Center
-  - File manager
+  - Multiple projects *(complete)*
+  - Compliance tracker *(complete)*
+  - Assessment tracker *(complete)*
+  - Vendors *(complete)*
+  - Risks *(complete)*
+  - Evidence center *(complete)*
+  - Reports *(in progress)* 
+  - AI Trust Center *(in progress)*
+ 
+## Security
+
+If you find a vulnerability, please report it [here](https://github.com/bluewave-labs/verifywise/security/advisories/new).
+
 

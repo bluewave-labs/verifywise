@@ -19,13 +19,12 @@ export interface GeneratedReports {
 }
 
 const useGeneratedReports = ({projectId} : {projectId: string | null}) => {
-  const [generatedReports, setGeneratedReports] = useState<GeneratedReports[]>([]);
+  const [generatedReports, _] = useState<GeneratedReports[]>([]);
   const [loadingReports, setLoadingReports] = useState<boolean>(true);
   const [error, setError] = useState<string | boolean>(false);
 
   useEffect(() => {
     const controller = new AbortController();
-    const signal = controller.signal;
 
     const fetchGeneratedReports = async () => {
       setLoadingReports(true);

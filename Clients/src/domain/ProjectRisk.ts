@@ -66,7 +66,7 @@ export type ProjectRisk = {
     | "Possible"
     | "Likely"
     | "Almost Certain";
-  risk_severity: "Negligible" | "Minor" | "Moderate" | "Major" | "Critical";
+  risk_severity: "Negligible" | "Minor" | "Moderate" | "Major" | "Catastrophic";
   final_risk_level: string;
   risk_approval: string;
   approval_status: string;

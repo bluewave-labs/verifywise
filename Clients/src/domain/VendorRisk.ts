@@ -6,12 +6,7 @@ export type VendorRisk = {
   impact_description: string;
   impact: "Negligible" | "Minor" | "Moderate" | "Major" | "Critical";
   likelihood: "Rare" | "Unlikely" | "Possible" | "Likely" | "Almost certain";
-  risk_severity:
-    | "Very low risk"
-    | "Low risk"
-    | "Medium risk"
-    | "High risk"
-    | "Very high risk";
+  risk_severity: "Negligible" | "Minor" | "Moderate" | "Major" | "Catastrophic";
   action_plan: string;
   action_owner: number;
   risk_level: string;

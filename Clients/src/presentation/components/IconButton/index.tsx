@@ -26,6 +26,7 @@ interface IconButtonProps {
   warningMessage: string;
   type:string;
   onMouseEvent: (event: React.SyntheticEvent) => void;
+  hideRemove?: boolean;
 }
 
 const IconButton: React.FC<IconButtonProps> = ({

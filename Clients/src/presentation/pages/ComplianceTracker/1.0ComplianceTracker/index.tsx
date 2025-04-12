@@ -9,6 +9,7 @@ import ControlCategoryTile from "./ControlCategory";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import PageTour, { PageTourStep } from "../../../components/PageTour";
 import CustomStep from "../../../components/PageTour/CustomStep";
+import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
 
 const ComplianceTracker = () => {
   const { currentProjectId } = useContext(VerifyWiseContext);

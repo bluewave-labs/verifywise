@@ -60,15 +60,21 @@ VerifyWise is designed for:
 - End-to-end encryption for data in transit and at rest to ensure data security
 - Faster audits using AI-generated answers for compliance and assessment questions.
 - Full access to the source code for transparency, security audits, and customization
-- Docker deployment
+- Docker deployment (deployable on render.com and similar platforms)
 - User registration, authentication and role-based access control (RBAC) support.
 - Key metrics, visualizations, and real-time reporting capabilities.
 - Major features:
-  - Multiple projects
-  - Compliance tracker
-  - Assessment tracker
-  - Vendors
-  - Risks
-  - AI Trust Center
-  - File manager
+  - Multiple projects *(complete)*
+  - Compliance tracker *(complete)*
+  - Assessment tracker *(complete)*
+  - Vendors *(complete)*
+  - Risks *(complete)*
+  - Evidence center *(complete)*
+  - Reports *(in progress)* 
+  - AI Trust Center *(in progress)*
+ 
+## Security
+
+If you find a vulnerability, please report it [here](https://github.com/bluewave-labs/verifywise/security/advisories/new).
+
 

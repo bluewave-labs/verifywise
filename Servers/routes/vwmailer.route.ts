@@ -35,18 +35,18 @@ router.post("/invite", async (req, res) => {
     const data = { name, link };
 
     // Send the email
-    await sendEmail(
+    const info = await sendEmail(
       to,
       "Create your account",
       "Please use the link to create your account.",
       template,
       data
     );
-
+    console.log("Message sent: %s", info.messageId);
     return res.status(200).json({ message: "Email sent successfully" });
   } catch (error) {
     console.error("Error sending email:", error);
-    return res.status(500).json({ error: "Failed to send email" });
+    return res.status(500).json({ error: "Failed to send email", details: (error as Error).message });
   }
 });
 
@@ -78,7 +78,7 @@ router.post("/reset-password", async (req, res) => {
     const data = { name, email, url };
 
     // Send the email
-    await sendEmail(
+    const info = await sendEmail(
       to,
       "Password reset request",
       "Please use the link to reset your password.",
@@ -86,10 +86,11 @@ router.post("/reset-password", async (req, res) => {
       data
     );
 
-    res.status(200).json({ message: "Email sent successfully" });
+    console.log("Message sent: %s", info.messageId);
+    return res.status(200).json({ message: "Email sent successfully" });
   } catch (error) {
     console.error("Error sending email:", error);
-    res.status(500).json({ error: "Failed to send email" });
+    return res.status(500).json({ error: "Failed to send email", details: (error as Error).message });
   }
 });
 

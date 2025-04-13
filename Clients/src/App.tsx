@@ -36,23 +36,32 @@ import VWHome from "./presentation/pages/Home/1.0Home";
 import VWProjectView from "./presentation/pages/ProjectView/V1.0ProjectView";
 import { Project } from "./domain/Project";
 import PageNotFound from "./presentation/pages/PageNotFound";
-import { CookiesProvider } from 'react-cookie';
+import { CookiesProvider } from "react-cookie";
+
+interface DashboardState {
+  dashboard: Record<string, unknown>;
+  projects: Record<string, unknown>;
+  compliance: Record<string, unknown>;
+  assessments: Record<string, unknown>;
+  vendors: unknown[];
+}
+
+interface AppState {
+  ui: {
+    mode: "light" | "dark";
+  };
+  auth: {
+    authToken: string;
+  };
+}
 
 function App() {
-  const mode = useSelector((state: any) => state.ui?.mode || "light");
-  const token = useSelector(
-    (state: { auth: { authToken: string } }) => state.auth.authToken
-  );
+  const mode = useSelector((state: AppState) => state.ui?.mode || "light");
+  const token = useSelector((state: AppState) => state.auth?.authToken);
 
   const [uiValues, setUiValues] = useState<unknown | undefined>({}); // responsible for things like: Sidebar, light/dark mode, etc.
   const [authValues, setAuthValues] = useState<unknown | undefined>({}); // for user authentication
-  const [dashboardValues, setDashboardValues] = useState<{
-    dashboard: Record<string, unknown>;
-    projects: Record<string, unknown>;
-    compliance: Record<string, unknown>;
-    assessments: Record<string, unknown>;
-    vendors: unknown[];
-  }>({
+  const [dashboardValues, setDashboardValues] = useState<DashboardState>({
     dashboard: {},
     projects: {},
     compliance: {},
@@ -149,7 +158,7 @@ function App() {
                   <Route path="/team" element={<Team />} />
                   <Route path="/test/project-view" element={<ProjectView />} />
                   <Route path="/file-manager" element={<FileManager />} />
-                  <Route path="/reporting" element={<Reporting />}/>
+                  <Route path="/reporting" element={<Reporting />} />
                   <Route path="/" element={<VWHome />} />
                   <Route path="/project-view" element={<VWProjectView />} />
                 </Route>

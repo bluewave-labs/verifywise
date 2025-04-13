@@ -534,16 +534,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                   <Typography sx={{ fontSize: "13px" }}>
                     {option.name}
                   </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: "11px",
-                      color: "rgb(157, 157, 157)",
-                      position: "absolute",
-                      right: "9px",
-                    }}
-                  >
-                    {option.name}
-                  </Typography>
                 </Box>
               );
             }}
@@ -558,9 +548,11 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 required
                 sx={{
                   "& .MuiOutlinedInput-root": {
-                    height: "34px",
-                    paddingTop: "0px !important",
-                    paddingBottom: "0px !important",
+                    minHeight: "34px",
+                    height: "auto",
+                    paddingY: "3px !important",
+                    flexWrap: "wrap",
+                    gap: "2px",
                   },
                   "& ::placeholder": {
                     fontSize: "13px",
@@ -583,6 +575,12 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               },
               "& .MuiAutocomplete-tag": {
                 margin: "2px",
+                maxWidth: "calc(100% - 25px)",
+                "& .MuiChip-label": {
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }
               },
             }}
             slotProps={{

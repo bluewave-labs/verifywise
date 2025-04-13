@@ -53,7 +53,6 @@ const NewControlPane = ({
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [alert, setAlert] = useState<{
     type: "success" | "error";
     message: string;
@@ -118,7 +117,7 @@ const NewControlPane = ({
   const handleSelectedTab = (_: React.SyntheticEvent, newValue: number) => {
     setState(prevState => ({
       ...prevState,
-      subControls: prevState.subControls!.map((sc, idx) => ({
+      subControls: prevState.subControls!.map((sc) => ({
         ...sc,
         evidence_files: sc.evidence_files || [],
         feedback_files: sc.feedback_files || []
@@ -295,7 +294,6 @@ const NewControlPane = ({
       console.error("Error updating controls:", error);
       setIsSubmitting(false);
     }
-    setIsModalOpen(false);
   };
 
   const handleCloseWrapper = () => {

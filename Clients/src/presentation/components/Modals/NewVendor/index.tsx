@@ -26,7 +26,6 @@ import {
 } from "../../../../application/repository/entity.repository";
 import Alert from "../../Alert";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
-import useUsers from "../../../../application/hooks/useUsers";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import VWToast from "../../../vw-v2-components/Toast";
 import { User } from "../../../../domain/User";

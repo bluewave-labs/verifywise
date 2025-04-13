@@ -11,24 +11,26 @@ interface StatsCardProps {
 }
 
 const StatsCard = ({ title, completed, total }: StatsCardProps) => {
-  const progress = useMemo(() => `${completed}/${total}`, [completed, total]);
-  const percentage = useMemo(() => {
-    if (total === 0 || isNaN(completed) || isNaN(total)) return 0;
-    const result = Math.floor((Number(completed) / Number(total)) * 100);
-    return isNaN(result) ? 0 : result;
-  }, [completed, total]);
+  // Convert to numbers and ensure they are non-negative
+  const completedNum = useMemo(() => {
+    const num = Number(completed);
+    return isNaN(num) || num < 0 ? 0 : num;
+  }, [completed]);
 
-  if (
-    typeof completed !== "number" ||
-    typeof total !== "number" ||
-    total < 0 ||
-    completed < 0
-  ) {
-    console.error(
-      "Invalid props: completed and total should be non-negative numbers."
-    );
-    return null;
-  }
+  const totalNum = useMemo(() => {
+    const num = Number(total);
+    return isNaN(num) || num < 0 ? 0 : num;
+  }, [total]);
+
+  const progress = useMemo(
+    () => `${completedNum}/${totalNum}`,
+    [completedNum, totalNum]
+  );
+  const percentage = useMemo(() => {
+    if (totalNum === 0) return 0;
+    const result = Math.floor((completedNum / totalNum) * 100);
+    return isNaN(result) ? 0 : result;
+  }, [completedNum, totalNum]);
 
   return (
     <Stack sx={StatsCardFrame}>
@@ -48,7 +50,7 @@ const StatsCard = ({ title, completed, total }: StatsCardProps) => {
             fontSize: 13,
           }}
         >
-          {`${completed} ${title} out of ${total} is completed`}
+          {`${completedNum} ${title} out of ${totalNum} is completed`}
         </Typography>
       </Stack>
       <Typography sx={StatsCardRate}>{`${percentage}%`}</Typography>

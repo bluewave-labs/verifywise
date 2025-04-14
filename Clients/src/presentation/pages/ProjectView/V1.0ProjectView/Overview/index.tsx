@@ -82,10 +82,17 @@ const VWProjectOverview = ({ project }: { project?: Project}) => {
               title="Last updated"
               body={formatDate(project.last_updated.toString())}
             />
-            <InfoCard
-              title="Last updated by"
-              body={`${user.name} ${user.surname}`}
-            />
+            {user.name !== undefined && user.surname !== undefined ? <>
+              <InfoCard
+                title="Last updated by"
+                body={`${user.name} ${user.surname}`}
+              />
+            </> : <>
+              <InfoCard
+                title="Last updated by"
+                body="N/A"
+              />
+            </>}
           </>
         ) : (
           <>

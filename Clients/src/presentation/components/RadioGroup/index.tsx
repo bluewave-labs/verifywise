@@ -1,5 +1,5 @@
 import React from 'react';
-import { FormControl, RadioGroup, FormControlLabel, Theme } from '@mui/material';
+import { FormControl, RadioGroup, FormControlLabel } from '@mui/material';
 import RadioElement from './RadioElement';
 import { labelStyle } from './styles';
 

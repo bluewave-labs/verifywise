@@ -55,6 +55,22 @@ const ComplianceTracker = () => {
         "ComplianceTracker: Received compliance data:",
         response.data
       );
+      console.log(
+        "ComplianceTracker: allDonesubControls type:",
+        typeof response.data.allDonesubControls
+      );
+      console.log(
+        "ComplianceTracker: allsubControls type:",
+        typeof response.data.allsubControls
+      );
+      console.log(
+        "ComplianceTracker: allDonesubControls value:",
+        response.data.allDonesubControls
+      );
+      console.log(
+        "ComplianceTracker: allsubControls value:",
+        response.data.allsubControls
+      );
       setComplianceData(response.data);
     } catch (err) {
       console.error("ComplianceTracker: Error fetching compliance data:", err);

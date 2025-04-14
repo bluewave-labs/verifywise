@@ -41,7 +41,6 @@ interface DashboardValues {
 
 const VWBasicTable = ({
   data,
-  bodyData,
   paginated = false,
   table,
   onRowClick,

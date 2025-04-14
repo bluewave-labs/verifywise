@@ -24,12 +24,12 @@ const ReportTableBody: React.FC<TableProps> = ({
     onRemoveReport(reportId);
   };
 
-  const handleDownloadReport = async (reportId: number) => {
+  const handleDownloadReport = async () => {
     // Call backend API
   };
 
   // row onclick function
-  const handleEditRisk = (row: any, event?: React.SyntheticEvent) => {}
+  const handleEditRisk = () => {}
 
   return (
     <TableBody>
@@ -59,9 +59,9 @@ const ReportTableBody: React.FC<TableProps> = ({
                 <IconButton
                   id={row.id}
                   type="report"
-                  onMouseEvent={(e) => handleEditRisk(row, e)}
+                  onMouseEvent={() => handleEditRisk()}
                   onDelete={() => handleRemoveReport(row.id)}
-                  onEdit={() => handleDownloadReport(row.id)}
+                  onEdit={() => handleDownloadReport()}
                   warningTitle="Remove this report?"
                   warningMessage={`Are you sure you want to remove "${row.report_name}" report. This action is non-recoverable.`}
                 ></IconButton>

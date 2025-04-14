@@ -17,12 +17,19 @@ import VWToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 import { logEngine } from "../../../../application/tools/log.engine";
 import VWProjectForm from "../../../vw-v2-components/Forms/ProjectForm";
+import { Project } from "../../../../domain/Project";
+import {
+  AssessmentProgress,
+  ComplianceProgress,
+} from "../../../../application/interfaces/iprogress";
 
 const VWHome = () => {
   const { setDashboardValues } = useContext(VerifyWiseContext);
-  const [complianceProgress, setComplianceProgress] = useState<any>({});
-  const [assessmentProgress, setAssessmentProgress] = useState<any>({});
-  const [projects, setProjects] = useState<any[]>([]);
+  const [complianceProgress, setComplianceProgress] =
+    useState<ComplianceProgress>();
+  const [assessmentProgress, setAssessmentProgress] =
+    useState<AssessmentProgress>();
+  const [projects, setProjects] = useState<Project[]>([]);
   const [_, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [__, setIsGeneratingDemoData] = useState(false);

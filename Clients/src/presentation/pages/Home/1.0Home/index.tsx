@@ -221,7 +221,7 @@ const VWHome = () => {
               gap: 2,
             }}
           >
-            {!projects && (
+            {projects.length === 0 && (
               <VWButton
                 variant="contained"
                 text="Insert demo data"

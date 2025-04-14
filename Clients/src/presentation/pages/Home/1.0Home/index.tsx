@@ -17,11 +17,11 @@ import VWToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 import { logEngine } from "../../../../application/tools/log.engine";
 import VWProjectForm from "../../../vw-v2-components/Forms/ProjectForm";
-import { Project } from "../../../../domain/Project";
 import {
   AssessmentProgress,
   ComplianceProgress,
 } from "../../../../application/interfaces/iprogress";
+import { useProjectData } from "../../../../application/hooks/useFetchProjects";
 
 const VWHome = () => {
   const { setDashboardValues } = useContext(VerifyWiseContext);
@@ -29,9 +29,7 @@ const VWHome = () => {
     useState<ComplianceProgress>();
   const [assessmentProgress, setAssessmentProgress] =
     useState<AssessmentProgress>();
-  const [projects, setProjects] = useState<Project[]>([]);
   const [_, setUsers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [__, setIsGeneratingDemoData] = useState(false);
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -41,6 +39,8 @@ const VWHome = () => {
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
   const [shouldFetchProjects, setShouldFetchProjects] = useState(false);
   const [showToast, setShowToast] = useState(false);
+
+  const { projects, loading: projectLoading, fetchProjects } = useProjectData();
 
   const fetchData = async (routeUrl: string, setData: (data: any) => void) => {
     try {
@@ -65,12 +65,11 @@ const VWHome = () => {
         "/projects/all/assessment/progress",
         setAssessmentProgress
       );
-      await fetchData("/projects", setProjects);
-      setLoading(false);
+      await fetchProjects();
     };
 
     fetchProgressData();
-  }, [setDashboardValues, shouldFetchProjects]);
+  }, [setDashboardValues, shouldFetchProjects, fetchProjects]);
 
   const handleProjectFormClose = () => {
     setIsProjectFormOpen(false);
@@ -103,7 +102,7 @@ const VWHome = () => {
         }, 3000);
 
         // Fetch the updated data
-        await fetchData("/projects", setProjects);
+        await fetchProjects();
         await fetchData(
           "/projects/all/compliance/progress",
           setComplianceProgress
@@ -176,7 +175,7 @@ const VWHome = () => {
             gap: "20px",
           }}
         >
-          {loading ? (
+          {projectLoading ? (
             <VWSkeleton variant="rectangular" sx={headerCardPlaceholder} />
           ) : (
             <SmallStatsCard
@@ -190,7 +189,7 @@ const VWHome = () => {
               }
             />
           )}
-          {loading ? (
+          {projectLoading ? (
             <VWSkeleton variant="rectangular" sx={headerCardPlaceholder} />
           ) : (
             <SmallStatsCard

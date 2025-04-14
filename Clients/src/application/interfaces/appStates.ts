@@ -15,4 +15,10 @@ interface AppState {
   };
 }
 
-export type { DashboardState, AppState };
+interface AlertState {
+  variant: "success" | "info" | "warning" | "error";
+  title?: string;
+  body: string;
+}
+
+export type { DashboardState, AppState, AlertState };

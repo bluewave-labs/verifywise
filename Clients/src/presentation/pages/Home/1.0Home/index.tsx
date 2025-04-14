@@ -22,6 +22,8 @@ import {
   ComplianceProgress,
 } from "../../../../application/interfaces/iprogress";
 import { useProjectData } from "../../../../application/hooks/useFetchProjects";
+import { User } from "../../../../domain/User";
+import { AlertState } from "../../../../application/interfaces/appStates";
 
 const VWHome = () => {
   const { setDashboardValues } = useContext(VerifyWiseContext);
@@ -31,11 +33,7 @@ const VWHome = () => {
     useState<AssessmentProgress>();
   const [_, setUsers] = useState<any[]>([]);
   const [__, setIsGeneratingDemoData] = useState(false);
-  const [alert, setAlert] = useState<{
-    variant: "success" | "info" | "warning" | "error";
-    title?: string;
-    body: string;
-  } | null>();
+  const [alert, setAlert] = useState<AlertState>();
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
   const [shouldFetchProjects, setShouldFetchProjects] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -79,11 +77,11 @@ const VWHome = () => {
   async function generateDemoData() {
     setIsGeneratingDemoData(true);
     setShowToast(true);
-    const user = {
-      id: "demo-user-id", // Replace with actual user ID
+    const user: User = {
+      id: 0, // Replace with actual user ID
       email: "demo-user@example.com", // Replace with actual user email
-      firstname: "Demo",
-      lastname: "User",
+      name: "Demo",
+      surname: "User",
     };
     try {
       const response = await postAutoDrivers();
@@ -98,7 +96,7 @@ const VWHome = () => {
           body: "Demo data generated successfully.",
         });
         setTimeout(() => {
-          setAlert(null);
+          setAlert(undefined);
         }, 3000);
 
         // Fetch the updated data
@@ -123,7 +121,7 @@ const VWHome = () => {
           body: "Failed to generate demo data.",
         });
         setTimeout(() => {
-          setAlert(null);
+          setAlert(undefined);
         }, 3000);
       }
     } catch (error) {
@@ -138,7 +136,7 @@ const VWHome = () => {
         body: `An error occurred: ${errorMessage}`,
       });
       setTimeout(() => {
-        setAlert(null);
+        setAlert(undefined);
       }, 3000);
     } finally {
       setIsGeneratingDemoData(false);
@@ -158,7 +156,7 @@ const VWHome = () => {
           title={alert.title}
           body={alert.body}
           isToast={true}
-          onClick={() => setAlert(null)}
+          onClick={() => setAlert(undefined)}
         />
       )}
       {showToast && <VWToast title="Generating demo data. Please wait..." />}

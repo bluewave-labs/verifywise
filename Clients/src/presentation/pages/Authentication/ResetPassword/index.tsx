@@ -8,7 +8,6 @@ import { ReactComponent as Email } from "../../../assets/icons/email.svg";
 import { ReactComponent as LeftArrowLong } from "../../../assets/icons/left-arrow-long.svg";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, lazy, Suspense } from "react";
-import { resetPassword } from "../../../../application/repository/entity.repository";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { AlertProps } from "../../../components/Alert";

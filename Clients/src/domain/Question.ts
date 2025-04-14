@@ -1,3 +1,5 @@
+import { FileData } from "./File";
+
 export type Question = {
   id?: number;
   order_no?: number;
@@ -9,7 +11,7 @@ export type Question = {
   evidence_required: boolean;
   is_required: boolean;
   dropdown_options?: any[];
-  evidence_files?: string[];
+  evidence_files?: FileData[];
   answer?: string;
   subtopic_id: number;
 };

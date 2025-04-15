@@ -1,13 +1,11 @@
+import { getEntityById } from "../repository/entity.repository";
+
 export const handleDownload = async (fileId: string, fileName: string) => {
-  const token = localStorage.getItem("token");
   try {
-    const res = await fetch(`http://localhost:3000/files/${fileId}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const response = await getEntityById({
+      routeUrl: `/files/${fileId}`,
     });
-    const blob = await res.blob();
+    const blob = new Blob([response], { type: "application/octet-stream" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;

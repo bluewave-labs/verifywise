@@ -381,7 +381,7 @@ const NewControlPane = ({
             }}
           >
             <Typography
-              component="div"
+              component="span"
               fontSize={16}
               fontWeight={600}
               sx={{ textAlign: "left" }}
@@ -389,7 +389,7 @@ const NewControlPane = ({
               {`${controlCategoryId + "." + data.order_no}`} {data.title}
             </Typography>
             <Box
-              component="div"
+              component="span"
               role="button"
               tabIndex={0}
               onClick={(e) => {
@@ -409,7 +409,7 @@ const NewControlPane = ({
               <CloseIcon />
             </Box>
           </Stack>
-          <Typography component="div" fontSize={13}>{data.description}</Typography>
+          <Typography component="span" fontSize={13}>{data.description}</Typography>
           <DropDowns
             key={`control-${data.id}`}
             isControl={true}
@@ -478,7 +478,7 @@ const NewControlPane = ({
           </Stack>
           <Box>
             <Typography
-              component="div"
+              component="span"
               fontSize={16}
               fontWeight={600}
               sx={{ textAlign: "left", mb: 3 }}
@@ -486,11 +486,11 @@ const NewControlPane = ({
               {`${controlCategoryId}.${data.order_no}.${state.subControls![selectedTab].order_no}`}{" "}
               {state.subControls![selectedTab].title}
             </Typography>
-            <Typography component="div" sx={{ mb: 5, fontSize: 13 }}>
+            <Typography component="span" sx={{ mb: 5, fontSize: 13 }}>
               {state.subControls![selectedTab].description}
             </Typography>
             {activeSection === "Overview" && (
-              <Typography component="div" fontSize={13}>
+              <Typography component="span" fontSize={13}>
                 <DropDowns
                   key={`sub-control-${data.order_no}.${state.subControls![selectedTab].id}`}
                   isControl={false}

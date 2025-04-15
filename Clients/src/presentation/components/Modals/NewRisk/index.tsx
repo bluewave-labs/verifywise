@@ -26,7 +26,6 @@ import Alert from "../../Alert";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import useUsers from "../../../../application/hooks/useUsers";
-import { Likelihood, RISK_LABELS } from "../../RiskLevel/constants";
 import VWToast from "../../../vw-v2-components/Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import VWButton from "../../../vw-v2-components/Buttons";
@@ -95,25 +94,17 @@ const RISK_LEVEL_OPTIONS = [
 
 const LIKELIHOOD_OPTIONS = [
   { _id: 1, name: RiskLikelihood.Rare },
-
   { _id: 2, name: RiskLikelihood.Unlikely },
-
   { _id: 3, name: RiskLikelihood.Possible },
-
   { _id: 4, name: RiskLikelihood.Likely },
-
   { _id: 5, name: RiskLikelihood.AlmostCertain },
 ] as const;
 
 const RISK_SEVERITY_OPTIONS = [
   { _id: 1, name: RiskSeverity.Negligible },
-
   { _id: 2, name: RiskSeverity.Minor },
-
   { _id: 3, name: RiskSeverity.Moderate },
-
   { _id: 4, name: RiskSeverity.Major },
-
   { _id: 5, name: RiskSeverity.Catastrophic },
 ] as const;
 
@@ -213,22 +204,10 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
    * @param field - The field name to update
    * @param value - The new value
    */
-  // const getRiskLevel = (score: number): { text: string; color: string } => {
-  //   if (score <= 3) {
-  //     return RISK_LABELS.low;
-  //   } else if (score <= 6) {
-  //     return RISK_LABELS.medium;
-  //   } else if (score <= 9) {
-  //     return RISK_LABELS.high;
-  //   } else {
-  //     return RISK_LABELS.critical;
-  //   }
-  // };
 
   const handleOnChange = (field: string, value: string | number) => {
     setValues((prevValues) => ({
       ...prevValues,
-
       [field]: value,
     }));
     setErrors({ ...errors, [field]: "" });
@@ -309,7 +288,6 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
     // Use RiskCalculator to get the risk level
     const risk_risklevel = RiskCalculator.getRiskLevel(
       selectedLikelihood?.name,
-
       selectedSeverity?.name
     );
     const _riskDetails = {
@@ -323,9 +301,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
       )?._id,
       action_plan: values.action_plan,
       risk_severity: selectedSeverity.name,
-
       risk_level: risk_risklevel.level,
-
       likelihood: selectedLikelihood.name,
     };
     if (existingRisk) {

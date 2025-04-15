@@ -122,9 +122,6 @@ const dropDownStyles = {
       },
     },
     "& li:hover": { borderRadius: 4 },
-    "& li:last-of-type": {
-      color: "#d32f2f",
-    },
     boxShadow: shadowEffect.primary,
   },
 };

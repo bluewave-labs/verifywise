@@ -12,8 +12,7 @@ import {
   memo,
   lazy,
   Suspense,
-  useEffect,
-  useContext,
+  useEffect,  
 } from "react";
 import BasicTable from "../../../components/Table";
 import Risks from "../../../components/Risks";
@@ -21,10 +20,10 @@ import AddNewRiskForm from "../../../components/AddNewRiskForm";
 import Popup from "../../../components/Popup";
 import AddNewVendorRiskForm from "../../../components/AddNewVendorRiskForm";
 import { ProjectRisk } from "../../../../application/hooks/useProjectRisks";
-import { VendorRisk } from "../../../../application/hooks/useVendorRisks";
+
 import { getAllEntities } from "../../../../application/repository/entity.repository";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import { handleAlert } from "../../../../application/tools/alertUtils";
+import { VendorRisk } from "../../../../domain/VendorRisk";
 
 const Alert = lazy(() => import("../../../components/Alert"));
 
@@ -119,7 +118,7 @@ const RisksView: FC<RisksViewProps> = memo(
         });
 
         acc.push({
-          id: `${(item as ProjectRisk | VendorRisk).risk_name}_${i}`,
+          id: `${(item as ProjectRisk | VendorRisk).risk_description}_${i}`,
           data: rowData,
         });
 
@@ -143,7 +142,6 @@ const RisksView: FC<RisksViewProps> = memo(
     const [selectedRow, setSelectedRow] = useState<ProjectRisk>();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [riskData1, setRiskData] = useState<ProjectRisk[] | VendorRisk[]>([]);
-    const { currentProjectId } = useContext(VerifyWiseContext);
 
     const [alert, setAlert] = useState<{
       variant: "success" | "info" | "warning" | "error";

@@ -58,30 +58,14 @@ const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
     setValues(question);
   }, [question, currentProjectId]);
 
-  const initialEvidenceFiles = useMemo(() => {
-    return question.evidence_files
-      ? question.evidence_files.reduce((acc: FileData[], file) => {
-          try {
-            acc.push(JSON.parse(file));
-          } catch (error) {
-            console.error("Failed to parse evidence file:", error);
-          }
-          return acc;
-        }, [])
-      : [];
-  }, [question.evidence_files]);
-
   const authToken = useSelector((state: any) => state.auth.authToken);
-  const [evidenceFiles, setEvidenceFiles] = useState<FileData[]>(initialEvidenceFiles);
   const [alert, setAlert] = useState<AlertProps | null>(null);
 
-  // Reset evidence files when initialEvidenceFiles changes
-  useEffect(() => {
-    setEvidenceFiles(initialEvidenceFiles);
-  }, [initialEvidenceFiles]);
-
   const handleChangeEvidenceFiles = useCallback((files: FileData[]) => {
-    setEvidenceFiles(files);
+    setValues((prevValues) => ({
+      ...prevValues,
+      evidence_files: files,
+    }));   
   }, []);
 
   const createUppyProps = useMemo(
@@ -174,10 +158,13 @@ const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
       );
 
       if (response.status === 201 && response.data) {
-        const newEvidenceFiles = evidenceFiles.filter(
+        const newEvidenceFiles = values?.evidence_files?.filter(
           (file) => file.id !== fileId
-        );
-        setEvidenceFiles(newEvidenceFiles);
+        ) || [];
+        setValues((prevValues) => ({
+          ...prevValues,
+          evidence_files: newEvidenceFiles,
+        }));        
 
         handleAlert({
           variant: "success",
@@ -302,7 +289,7 @@ const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
               textWrap: "wrap",
             }}
           >
-            {`${evidenceFiles.length || 0} evidence files attached`}
+            {`${values?.evidence_files?.length || 0} evidence files attached`}
           </Typography>
         </Stack>
         <Typography sx={{ fontSize: 11, color: "#344054", fontWeight: "300" }}>
@@ -315,7 +302,7 @@ const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
       >
         <UppyUploadFile
           uppy={uppy}
-          files={evidenceFiles}
+          files={values?.evidence_files || []}
           onClose={() => setIsFileUploadOpen(false)}
           onRemoveFile={handleRemoveFile}
         />

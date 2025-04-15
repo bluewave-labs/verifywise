@@ -8,18 +8,23 @@ interface User {
   email?: string;
   firstname: string;
   lastname: string;
+  role: number;
 }
 
 const useRegisterUser = () => {
-
-  const handleApiResponse = ({response, user, setIsSubmitting} : {response: Response, user: User, setIsSubmitting: (value: boolean) => void}) => {
+  const handleApiResponse = ({
+    response,
+    setIsSubmitting,
+  }: {
+    response: Response;
+    user: User;
+    setIsSubmitting: (value: boolean) => void;
+  }) => {
     const config = API_RESPONSES[response.status] || UNEXPECTED;
-
 
     logEngine({
       type: config.logType,
       message: config.message,
-      user
     });
 
     setIsSubmitting(false);
@@ -37,22 +42,23 @@ const useRegisterUser = () => {
     try {
       const response = await createNewUser({
         routeUrl: "/users/register",
-        body: values
+        body: { ...values, role: user.role || 1 },
       });
-      handleApiResponse({response, user, setIsSubmitting});
+      handleApiResponse({ response, user, setIsSubmitting });
       return {
-        isSuccess: response.status
+        isSuccess: response.status,
       };
     } catch (error) {
-      console.log(error)
+      console.log(error);
       logEngine({
         type: "error",
-        message: `An error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        user,
+        message: `An error occurred: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
       });
       setIsSubmitting(false);
       return {
-        isSuccess: false
+        isSuccess: false,
       };
     }
   };

@@ -26,12 +26,9 @@ import {
 } from "../../../../application/repository/entity.repository";
 import Alert from "../../Alert";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
-import useUsers from "../../../../application/hooks/useUsers";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import VWToast from "../../../vw-v2-components/Toast";
-import { User } from "../../../../domain/User";
 import { logEngine } from "../../../../application/tools/log.engine";
-import { getUserForLogging } from "../../../../application/tools/userHelpers";
 import VWButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 
@@ -127,18 +124,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   const { dashboardValues } = useContext(VerifyWiseContext);
   const { projects } = dashboardValues;
 
-
-  const formattedUsers = dashboardValues?.users?.map((user:any) => ({
+  const formattedUsers = dashboardValues?.users?.map((user: any) => ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
   }));
-
-  const user: User = {
-    id: Number(localStorage.getItem("userId")) || -1,
-    email: "N/A",
-    name: "N/A",
-    surname: "N/A",
-  };
 
   const formattedProjects = useMemo(() => {
     return Array.isArray(projects)
@@ -149,12 +138,12 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       : [];
   }, [projects]);
 
-    useEffect(() => {
-      if (!isOpen) {
-        setValues(initialState); 
-        setErrors({} as FormErrors); 
-      }
-    }, [isOpen]);
+  useEffect(() => {
+    if (!isOpen) {
+      setValues(initialState);
+      setErrors({} as FormErrors);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen && !projectsLoaded) {
@@ -185,7 +174,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             )?._id || "",
           reviewer:
             formattedUsers?.find(
-              (user:any) => user._id === existingVendor.reviewer
+              (user: any) => user._id === existingVendor.reviewer
             )?._id || "",
           reviewResult: existingVendor.review_result,
           riskStatus:
@@ -194,7 +183,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             )?._id || 0,
           assignee:
             formattedUsers?.find(
-              (user:any) => user._id === existingVendor.assignee
+              (user: any) => user._id === existingVendor.assignee
             )?._id || " ",
           reviewDate: existingVendor.review_date,
         },
@@ -340,7 +329,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       projects: [values.vendorDetails.projectId],
       vendor_name: values.vendorDetails.vendorName,
       assignee: formattedUsers?.find(
-        (user:any) => user._id === values.vendorDetails.assignee
+        (user: any) => user._id === values.vendorDetails.assignee
       )?._id,
       vendor_provides: values.vendorDetails.vendorProvides,
       website: values.vendorDetails.website,
@@ -351,7 +340,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           (s) => s._id === values.vendorDetails.reviewStatus
         )?.name || "",
       reviewer: formattedUsers?.find(
-        (user:any) => user._id === values.vendorDetails.reviewer
+        (user: any) => user._id === values.vendorDetails.reviewer
       )?._id,
       risk_status:
         RISK_LEVEL_OPTIONS?.find(
@@ -401,7 +390,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       logEngine({
         type: "error",
         message: "Unexpected response. Please try again.",
-        user: getUserForLogging(user),
       });
 
       setAlert({
@@ -454,7 +442,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       logEngine({
         type: "error",
         message: "Unexpected response. Please try again.",
-        user: getUserForLogging(user),
       });
       setAlert({
         variant: "error",
@@ -480,7 +467,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         <Field // vendorName
           label="Vendor name"
           width={220}
-          value={values?.vendorDetails?.vendorName }
+          value={values?.vendorDetails?.vendorName}
           onChange={(e) => handleOnChange("vendorName", e.target.value)}
           error={errors.vendorName}
           isRequired

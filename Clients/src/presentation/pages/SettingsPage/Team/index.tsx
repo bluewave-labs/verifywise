@@ -4,8 +4,7 @@ import React, {
   useMemo,
   useContext,
   lazy,
-  Suspense,
-  useEffect,
+  Suspense,  
 } from "react";
 import {
   Box,

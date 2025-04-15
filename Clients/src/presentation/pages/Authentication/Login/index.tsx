@@ -12,8 +12,6 @@ import { setAuthToken } from "../../../../application/authentication/authSlice";
 import { setExpiration } from "../../../../application/authentication/authSlice";
 import VWToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
-import { User } from "../../../../domain/User";
-import { getUserForLogging } from "../../../../application/tools/userHelpers";
 
 // Define the shape of form values
 interface FormValues {
@@ -63,15 +61,6 @@ const Login: React.FC = () => {
       .then((response) => {
         setValues(initialState); // Extract `userData` from API response
 
-        const userData = response?.data?.data?.user || {}; // Prevent errors if undefined
-
-        const user: User = {
-          id: Number(userData.id) || 0,
-          email: userData.email ?? values.email, //fallback to form input
-          name: userData.name ?? "N/A",
-          surname: userData.surname ?? "N/A",
-        };
-
         if (response.status === 202) {
           const token = response.data.data.token;
 
@@ -87,7 +76,6 @@ const Login: React.FC = () => {
           logEngine({
             type: "info",
             message: "Login successful.",
-            user: getUserForLogging(user),
           });
 
           setTimeout(() => {
@@ -98,7 +86,6 @@ const Login: React.FC = () => {
           logEngine({
             type: "event",
             message: "User not found. Please try again.",
-            user: getUserForLogging(user),
           });
 
           setIsSubmitting(false);
@@ -111,7 +98,6 @@ const Login: React.FC = () => {
           logEngine({
             type: "event",
             message: "Invalid password. Please try again.",
-            user: getUserForLogging(user),
           });
 
           setIsSubmitting(false);
@@ -124,7 +110,6 @@ const Login: React.FC = () => {
           logEngine({
             type: "error",
             message: "Unexpected response. Please try again.",
-            user: getUserForLogging(user),
           });
 
           setIsSubmitting(false);
@@ -141,12 +126,6 @@ const Login: React.FC = () => {
         logEngine({
           type: "error",
           message: `An error occurred: ${error.message}`,
-          user: getUserForLogging({
-            id: 0,
-            email: values.email,
-            name: "N/A",
-            surname: "N/A",
-          }),
         });
 
         setIsSubmitting(false);
@@ -267,7 +246,9 @@ const Login: React.FC = () => {
                   cursor: "pointer",
                 }}
                 onClick={() => {
-                  navigate("/forgot-password", { state: { email: values.email } });
+                  navigate("/forgot-password", {
+                    state: { email: values.email },
+                  });
                 }}
               >
                 Forgot password

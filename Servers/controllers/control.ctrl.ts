@@ -25,6 +25,7 @@ import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { Control, ControlModel } from "../models/control.model";
 import { Subcontrol } from "../models/subcontrol.model";
 import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
+import { updateProjectUpdatedByIdQuery } from "../utils/project.utils";
 
 export async function getAllControls(
   req: Request,
@@ -238,6 +239,9 @@ export async function saveControls(
     const response = {
       ...{ control, subControls: subControlResp },
     };
+    // Update the project's last updated date
+    await updateProjectUpdatedByIdQuery(controlId, "controls");
+
     return res.status(200).json(
       STATUS_CODE[200]({ response })
     );

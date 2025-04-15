@@ -2,13 +2,7 @@ import "./index.css";
 import { Box, Stack, Tab, Typography, useTheme } from "@mui/material";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
 import RiskTable from "../../components/Table/RisksTable";
-import {
-  Suspense,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { Suspense, useCallback, useContext, useEffect, useState } from "react";
 import AddNewVendor from "../../components/Modals/NewVendor";
 import singleTheme from "../../themes/v1SingleTheme";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
@@ -27,8 +21,6 @@ import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import { User } from "../../../domain/User";
-import { getUserForLogging } from "../../../application/tools/userHelpers";
 import AddNewRisk from "../../components/Modals/NewRisk";
 import VWButton from "../../vw-v2-components/Buttons";
 import VWSkeleton from "../../vw-v2-components/Skeletons";
@@ -94,7 +86,7 @@ const Vendors = () => {
   } | null>(null);
 
   const [runVendorTour, setRunVendorTour] = useState(false);
-  const {refs, allVisible} = useMultipleOnScreen<HTMLDivElement>({
+  const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({
     countToTrigger: 1,
   });
 
@@ -204,12 +196,7 @@ const Vendors = () => {
 
   const handleDeleteVendor = async (vendorId: number) => {
     setIsSubmitting(true);
-    const user: User = {
-      id: Number(localStorage.getItem("userId")) || -1,
-      email: "N/A",
-      name: "N/A",
-      surname: "N/A",
-    };
+
     try {
       const response = await deleteEntityById({
         routeUrl: `/vendors/${vendorId}`,
@@ -243,7 +230,6 @@ const Vendors = () => {
         logEngine({
           type: "error",
           message: "Unexpected response. Please try again.",
-          user: getUserForLogging(user),
         });
       }
     } catch (error) {
@@ -251,7 +237,6 @@ const Vendors = () => {
       logEngine({
         type: "error",
         message: `An error occurred: ${error}`,
-        user: getUserForLogging(user),
       });
     } finally {
       setIsSubmitting(false);
@@ -260,12 +245,7 @@ const Vendors = () => {
   const handleDeleteRisk = async (vendorId: number) => {
     const signal = createAbortController();
     setIsSubmitting(true);
-    const user: User = {
-      id: Number(localStorage.getItem("userId")) || -1,
-      email: "N/A",
-      name: "N/A",
-      surname: "N/A",
-    };
+
     try {
       const response = await deleteEntityById({
         routeUrl: `/vendorRisks/${vendorId}`,
@@ -292,7 +272,6 @@ const Vendors = () => {
         logEngine({
           type: "error",
           message: "Unexpected response. Please try again.",
-          user: getUserForLogging(user),
         });
       }
     } catch (error) {
@@ -300,7 +279,6 @@ const Vendors = () => {
       logEngine({
         type: "error",
         message: `An error occurred: ${error}`,
-        user: getUserForLogging(user),
       });
     } finally {
       setIsSubmitting(false);
@@ -317,12 +295,6 @@ const Vendors = () => {
       logEngine({
         type: "error",
         message: "Failed to update risk data.",
-        user: {
-          id: String(localStorage.getItem("userId")) || "N/A",
-          email: "N/A",
-          firstname: "N/A",
-          lastname: "N/A",
-        },
       });
     }
   };
@@ -337,12 +309,6 @@ const Vendors = () => {
       logEngine({
         type: "error",
         message: "Failed to fetch vendor data.",
-        user: {
-          id: String(localStorage.getItem("userId")) || "N/A",
-          email: "N/A",
-          firstname: "N/A",
-          lastname: "N/A",
-        },
       });
     }
   };

@@ -12,8 +12,10 @@ import {
 } from "@mui/material";
 import TablePaginationActions from "../../TablePagination";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { useState, useEffect, useCallback} from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FileData } from "../../../../domain/File";
+import IconButton from "../../IconButton";
+import { handleDownload } from "../../../../application/tools/fileDownload";
 
 const DEFAULT_ROWS_PER_PAGE = 5;
 
@@ -115,6 +117,18 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
                 <TableCell>{row.fileName}</TableCell>
                 <TableCell>{row.uploadDate}</TableCell>
                 <TableCell>{row.uploader}</TableCell>
+                <TableCell>
+                  <IconButton
+                    id={Number(row.id)}
+                    type="report"
+                    onEdit={() => handleDownload(row.id, row.fileName)}
+                    onDelete={() => {}}
+                    warningTitle="Are you sure you want to download this file?"
+                    warningMessage="This action will download the file to your local machine."
+                    onMouseEvent={() => {}}
+                    hideRemove={true}
+                  />
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

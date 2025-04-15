@@ -381,6 +381,7 @@ const NewControlPane = ({
             }}
           >
             <Typography
+              component="div"
               fontSize={16}
               fontWeight={600}
               sx={{ textAlign: "left" }}
@@ -408,7 +409,7 @@ const NewControlPane = ({
               <CloseIcon />
             </Box>
           </Stack>
-          <Typography fontSize={13}>{data.description}</Typography>
+          <Typography component="div" fontSize={13}>{data.description}</Typography>
           <DropDowns
             key={`control-${data.id}`}
             isControl={true}
@@ -477,25 +478,23 @@ const NewControlPane = ({
           </Stack>
           <Box>
             <Typography
+              component="div"
               fontSize={16}
               fontWeight={600}
               sx={{ textAlign: "left", mb: 3 }}
             >
-              {`${controlCategoryId}.${data.order_no}.${state.subControls![selectedTab].order_no
-                }`}{" "}
+              {`${controlCategoryId}.${data.order_no}.${state.subControls![selectedTab].order_no}`}{" "}
               {state.subControls![selectedTab].title}
             </Typography>
-            <Typography sx={{ mb: 5, fontSize: 13 }}>
+            <Typography component="div" sx={{ mb: 5, fontSize: 13 }}>
               {state.subControls![selectedTab].description}
             </Typography>
             {activeSection === "Overview" && (
-              <Typography fontSize={13}>
+              <Typography component="div" fontSize={13}>
                 <DropDowns
-                  key={`sub-control-${data.order_no}.${state.subControls![selectedTab].id
-                    }`}
+                  key={`sub-control-${data.order_no}.${state.subControls![selectedTab].id}`}
                   isControl={false}
-                  elementId={`sub-control-${data.order_no}.${state.subControls![selectedTab].id
-                    }`}
+                  elementId={`sub-control-${data.order_no}.${state.subControls![selectedTab].id}`}
                   state={state.subControls![selectedTab]}
                   setState={(newState) =>
                     handleSubControlStateChange(selectedTab, newState)

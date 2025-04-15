@@ -145,15 +145,17 @@ const VWProjectCard = React.memo(
             </Stack>
           </Stack>
           <Tooltip title="View project details">
-            <VWButton
-              variant="outlined"
-              onClick={() =>
-                navigate("/project-view", { projectId: project.id.toString() })
-              }
-              size="medium"
-              text="View project"
-              sx={viewProjectButtonStyle}
-            />
+            <>
+              <VWButton
+                variant="outlined"
+                onClick={() =>
+                  navigate("/project-view", { projectId: project.id.toString() })
+                }
+                size="medium"
+                text="View project"
+                sx={viewProjectButtonStyle}
+              />
+            </>
           </Tooltip>
         </Stack>
       );

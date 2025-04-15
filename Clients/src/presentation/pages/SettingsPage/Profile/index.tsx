@@ -129,12 +129,6 @@ const ProfileForm: React.FC = () => {
         logEngine({
           type: "error",
           message: "Failed to fetch user data.",
-          user: {
-            id: String(localStorage.getItem("userId")) || "N/A",
-            email: "N/A",
-            firstname: "N/A",
-            lastname: "N/A",
-          },
         });
       } finally {
         setLoading(false);
@@ -157,12 +151,6 @@ const ProfileForm: React.FC = () => {
         logEngine({
           type: "error",
           message: "Validation errors occured while saving the profile.",
-          user: {
-            id: "N/A",
-            email,
-            firstname,
-            lastname,
-          },
         });
         setAlert({
           variant: "error",
@@ -202,12 +190,6 @@ const ProfileForm: React.FC = () => {
       logEngine({
         type: "error",
         message: "An error occured while updating the profile.",
-        user: {
-          id: String(localStorage.getItem("userId")) || "N/A",
-          email,
-          firstname,
-          lastname,
-        },
       });
       setAlert({
         variant: "error",
@@ -371,7 +353,7 @@ const ProfileForm: React.FC = () => {
       //clear all storage
       await localStorage.removeItem("userId");
       await localStorage.removeItem("authToken");
-      
+
       // Use the logout hook instead of directly dispatching
       logout();
 
@@ -387,12 +369,6 @@ const ProfileForm: React.FC = () => {
       logEngine({
         type: "error",
         message: "An error occured while deleting the account.",
-        user: {
-          id: String(localStorage.getItem("userId")) || "N/A",
-          email,
-          firstname,
-          lastname,
-        },
       });
       setAlert({
         variant: "error",

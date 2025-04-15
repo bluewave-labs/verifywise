@@ -22,7 +22,6 @@ import {
   ComplianceProgress,
 } from "../../../../application/interfaces/iprogress";
 import { useProjectData } from "../../../../application/hooks/useFetchProjects";
-import { User } from "../../../../domain/User";
 import { AlertState } from "../../../../application/interfaces/appStates";
 
 const VWHome = () => {
@@ -77,19 +76,12 @@ const VWHome = () => {
   async function generateDemoData() {
     setIsGeneratingDemoData(true);
     setShowToast(true);
-    const user: User = {
-      id: 0, // Replace with actual user ID
-      email: "demo-user@example.com", // Replace with actual user email
-      name: "Demo",
-      surname: "User",
-    };
     try {
       const response = await postAutoDrivers();
       if (response.status === 201) {
         logEngine({
           type: "info",
           message: "Demo data generated successfully.",
-          user,
         });
         setAlert({
           variant: "success",
@@ -114,7 +106,6 @@ const VWHome = () => {
         logEngine({
           type: "error",
           message: "Failed to generate demo data.",
-          user,
         });
         setAlert({
           variant: "error",
@@ -129,7 +120,6 @@ const VWHome = () => {
       logEngine({
         type: "error",
         message: `An error occurred: ${errorMessage}`,
-        user,
       });
       setAlert({
         variant: "error",

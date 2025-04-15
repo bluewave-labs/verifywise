@@ -9,16 +9,12 @@ import {
   TableRow,
   Typography,
   useTheme,
-  IconButton,
-  Menu,
-  MenuItem
 } from "@mui/material";
 import TablePaginationActions from "../../TablePagination";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useState, useEffect, useCallback} from "react";
 import { FileData } from "../../../../domain/File";
-import { ReactComponent as EvidencesDownload} from "../../../assets/icons/evidences-download.svg";
-
+import IconButton from "../../IconButton";
 
 const DEFAULT_ROWS_PER_PAGE = 5;
 
@@ -53,8 +49,6 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
   const theme = useTheme();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
-  const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | null>(null);
-  const [selectedFile, setSelectedFile] = useState<FileData | null>(null);
 
   useEffect(() => setPage(0), [data]);
 
@@ -146,38 +140,22 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
                 <TableCell>{row.uploadDate}</TableCell>
                 <TableCell>{row.uploader}</TableCell>
                 <TableCell>
-                  <IconButton
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedFile(row);
-                    setAnchorEl(e.currentTarget);
-                    setSelectedRow(row);
-                    setMenuAnchorEl(e.currentTarget);
-                  }}
-                  >
-                    <EvidencesDownload />
-                  </IconButton>
+                 <IconButton 
+                 id={Number(row.id)}
+                 type="report"
+                 onEdit={()=> handleDownload(row.id, row.fileName)}
+                 onDelete={() =>{}}
+                 warningTitle="Are you sure you want to download this file?"
+                 warningMessage="This action will download the file to your local machine."
+                 onMouseEvent={()=>{}}
+                  hideRemove={true}
+                 />
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
-      <Menu
-        anchorEl={menuAnchorEl}
-        open={Boolean(menuAnchorEl)}
-        onClose={() => setMenuAnchorEl(null)}>
-<MenuItem
-onClick={()=> {
-  if (selectedFile) {
-    handleDownload(selectedFile.id, selectedFile.fileName);
-  }
-  setMenuAnchorEl(null);
-}}
->
-  Download
-</MenuItem>
-        </Menu>
       {paginated && (
         <Stack
           direction="row"

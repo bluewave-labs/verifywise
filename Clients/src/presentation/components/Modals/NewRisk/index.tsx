@@ -313,6 +313,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
       selectedSeverity?.name
     );
     const _riskDetails = {
+      vendor_id: values.vendor_id,
       risk_description: values.risk_description,
       impact_description: values.impact_description,
       impact:

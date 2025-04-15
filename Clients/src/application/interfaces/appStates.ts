@@ -13,6 +13,14 @@ interface AppState {
   auth: {
     authToken: string;
   };
+  dashboard: {
+    users: Array<{
+      id: number;
+      email: string;
+      name: string;
+      surname: string;
+    }>;
+  };
 }
 
 interface AlertState {

@@ -1,0 +1,29 @@
+name: Frontend Checks
+
+on:
+  pull_request:
+    branches: ['master', 'develop']     
+    paths:
+      - 'Clients/**'
+
+jobs:
+  build-check:
+    name: Frontend Checks / build-check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Clients
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build

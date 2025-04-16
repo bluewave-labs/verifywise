@@ -20,7 +20,7 @@ export const uploadFile = async (
       filename, content, project_id, uploaded_by, uploaded_time, is_demo, source
     )
     VALUES (
-      :filename, :content, :project_id, :uploaded_by, :uploaded_time, :is_demo
+      :filename, :content, :project_id, :uploaded_by, :uploaded_time, :is_demo, :source
     ) RETURNING *`;
   const result = await sequelize.query(query, {
     replacements: {

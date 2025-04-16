@@ -3,6 +3,7 @@ import { sequelize } from "../database/db";
 import { deleteVendorRisksForVendorQuery } from "./vendorRisk.util";
 import { VendorsProjectsModel } from "../models/vendorsProjects.model";
 import { QueryTypes, Sequelize, Transaction } from "sequelize";
+import { updateProjectUpdatedByIdQuery } from "./project.utils";
 
 export const getAllVendorsQuery = async (): Promise<Vendor[]> => {
   const vendors = await sequelize.query(
@@ -160,6 +161,7 @@ export const createNewVendorQuery = async (vendor: Vendor): Promise<Vendor | nul
       createdVendor.dataValues["projects"] = vendors_projects.map(p => p.project_id)
     }
     await transaction.commit();
+    await updateProjectUpdatedByIdQuery(vendorId, "vendors");
 
     return createdVendor;
   } catch (error) {
@@ -231,6 +233,7 @@ export const updateVendorByIdQuery = async (
       result[0].dataValues["projects"] = projects.map(p => p.project_id)
     }
     await transaction.commit();
+    await updateProjectUpdatedByIdQuery(id, "vendors");
 
     return result[0];
   } catch (error) {
@@ -242,6 +245,7 @@ export const updateVendorByIdQuery = async (
 
 export const deleteVendorByIdQuery = async (id: number): Promise<Boolean> => {
   await deleteVendorRisksForVendorQuery(id);
+  await updateProjectUpdatedByIdQuery(id, "vendors");
   await sequelize.query(
     `DELETE FROM vendors_projects WHERE vendor_id = :id`,
     {

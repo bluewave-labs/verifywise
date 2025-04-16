@@ -16,22 +16,22 @@ module.exports = {
 
       const queries = [
         {
-          getFiles: "SELECT evidence_files FROM questions;",
+          getFiles: "SELECT id, evidence_files FROM questions WHERE jsonb_array_length(evidence_files) > 0;",
           updateFiles: "UPDATE files SET source = 'Assessment tracker group' WHERE id = :id;",
           updateRecords: "UPDATE questions SET evidence_files = :files WHERE id = :id;",
           source: 'Assessment tracker group',
           field: 'evidence_files'
         },
         {
-          getFiles: "SELECT evidence_files FROM subcontrols;",
-          updateFiles: "UPDATE files SET source = 'Assessment tracker group' WHERE id = :id;",
+          getFiles: "SELECT id, evidence_files FROM subcontrols WHERE jsonb_array_length(evidence_files) > 0;",
+          updateFiles: "UPDATE files SET source = 'Compliance tracker group' WHERE id = :id;",
           updateRecords: "UPDATE subcontrols SET evidence_files = :files WHERE id = :id;",
           source: 'Compliance tracker group',
           field: 'evidence_files'
         },
         {
-          getFiles: "SELECT feedback_files FROM subcontrols;",
-          updateFiles: "UPDATE files SET source = 'Assessment tracker group' WHERE id = :id;",
+          getFiles: "SELECT id, feedback_files FROM subcontrols WHERE jsonb_array_length(feedback_files) > 0;",
+          updateFiles: "UPDATE files SET source = 'Compliance tracker group' WHERE id = :id;",
           updateRecords: "UPDATE subcontrols SET feedback_files = :files WHERE id = :id;",
           source: 'Compliance tracker group',
           field: 'feedback_files'
@@ -57,7 +57,7 @@ module.exports = {
       }));
 
       await queryInterface.sequelize.query(
-        "ALTER TABLE files ALTER COLUMN source source SET NOT NULL;",
+        "ALTER TABLE files ALTER COLUMN source SET NOT NULL;",
         { transaction }
       );
       await transaction.commit();
@@ -72,17 +72,17 @@ module.exports = {
     try {
       const queries = [
         {
-          getFiles: "SELECT id, evidence_files FROM questions;",
+          getFiles: "SELECT id, evidence_files FROM questions WHERE jsonb_array_length(evidence_files) > 0;",
           updateRecords: "UPDATE questions SET evidence_files = :files WHERE id = :id;",
           field: 'evidence_files'
         },
         {
-          getFiles: "SELECT id, evidence_files FROM subcontrols;",
+          getFiles: "SELECT id, evidence_files FROM subcontrols WHERE jsonb_array_length(evidence_files) > 0;",
           updateRecords: "UPDATE subcontrols SET evidence_files = :files WHERE id = :id;",
           field: 'evidence_files'
         },
         {
-          getFiles: "SELECT id, feedback_files FROM subcontrols;",
+          getFiles: "SELECT id, feedback_files FROM subcontrols WHERE jsonb_array_length(feedback_files) > 0;",
           updateRecords: "UPDATE subcontrols SET feedback_files = :files WHERE id = :id;",
           field: 'feedback_files'
         }

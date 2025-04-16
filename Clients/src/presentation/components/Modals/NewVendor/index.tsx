@@ -13,7 +13,16 @@
 
 import TabContext from "@mui/lab/TabContext";
 import TabPanel from "@mui/lab/TabPanel";
-import { Modal, Stack, Typography, useTheme } from "@mui/material";
+import {
+  Autocomplete,
+  AutocompleteRenderInputParams,
+  Box,
+  Modal,
+  Stack,
+  TextField,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
@@ -31,10 +40,10 @@ import VWToast from "../../../vw-v2-components/Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import VWButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
+import { KeyboardArrowDown } from "@mui/icons-material";
 
 export interface VendorDetails {
   id?: number;
-  projectId?: number;
   vendor_name: string;
   vendor_provides: string;
   website: string;
@@ -52,7 +61,7 @@ interface FormErrors {
   vendorName?: string;
   vendorProvides?: string;
   website?: string;
-  projectId?: string;
+  projectIds?: string;
   vendorContactPerson?: string;
   reviewStatus?: string;
   assignee?: string;
@@ -65,7 +74,7 @@ const initialState = {
   vendorDetails: {
     vendorName: "",
     website: "",
-    projectId: 0,
+    projectIds: [] as number[],
     vendorProvides: "",
     vendorContactPerson: "",
     reviewStatus: "",
@@ -163,9 +172,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           ...prevValues.vendorDetails,
           vendorName: existingVendor.vendor_name,
           website: existingVendor.website,
-          projectId: existingVendor.projects?.length
-            ? existingVendor.projects[0]
-            : 0,
+          projectIds: existingVendor.projects || [],
           vendorProvides: existingVendor.vendor_provides,
           vendorContactPerson: existingVendor.vendor_contact_person,
           reviewStatus:
@@ -222,10 +229,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
    * @param field - The field name to update
    * @param value - The new value
    */
-  const handleOnChange = (field: string, value: string | number) => {
+  const handleOnChange = (field: string, value: string | number | number[]) => {
     setValues((prevValues) => ({
       ...prevValues,
-
       vendorDetails: {
         ...prevValues.vendorDetails,
         [field]: value,
@@ -268,10 +274,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       newErrors.reviewResult = vendorReviewResult.message;
     }
     if (
-      !values.vendorDetails.projectId ||
-      Number(values.vendorDetails.projectId) === 0
+      !values.vendorDetails.projectIds ||
+      Number(values.vendorDetails.projectIds.length) === 0
     ) {
-      newErrors.projectId = "Please select a project from the dropdown";
+      newErrors.projectIds = "Please select a project from the dropdown";
     }
     const vendorProvides = checkStringValidation(
       "Vendor Provides",
@@ -326,7 +332,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
    */
   const handleOnSave = async () => {
     const _vendorDetails = {
-      projects: [values.vendorDetails.projectId],
+      projects: values.vendorDetails.projectIds,
       vendor_name: values.vendorDetails.vendorName,
       assignee: formattedUsers?.find(
         (user: any) => user._id === values.vendorDetails.assignee
@@ -463,37 +469,133 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         direction={"row"}
         justifyContent={"space-between"}
         marginBottom={theme.spacing(8)}
+        gap={theme.spacing(8)}
       >
-        <Field // vendorName
-          label="Vendor name"
-          width={220}
-          value={values?.vendorDetails?.vendorName}
-          onChange={(e) => handleOnChange("vendorName", e.target.value)}
-          error={errors.vendorName}
-          isRequired
-        />
-        <Field // website
-          label="Website"
-          width={220}
-          value={values.vendorDetails.website}
-          onChange={(e) => handleOnChange("website", e.target.value)}
-          error={errors.website}
-          isRequired
-        />
-        <Select // projectId
-          items={projectOptions}
-          label="Project name"
-          placeholder="Select project"
-          isHidden={false}
-          id=""
-          value={values.vendorDetails.projectId}
-          onChange={(e) => handleOnChange("projectId", e.target.value)}
-          sx={{
-            width: 220,
-          }}
-          error={errors.projectId}
-          isRequired
-        />
+        <Stack>
+          <Field // vendorName
+            label="Vendor name"
+            width={220}
+            value={values?.vendorDetails?.vendorName}
+            onChange={(e) => handleOnChange("vendorName", e.target.value)}
+            error={errors.vendorName}
+            isRequired
+          />
+          <Box mt={theme.spacing(8)}>
+            <Field // website
+              label="Website"
+              width={220}
+              value={values.vendorDetails.website}
+              onChange={(e) => handleOnChange("website", e.target.value)}
+              error={errors.website}
+              isRequired
+            />
+          </Box>
+        </Stack>
+        <Stack sx={{ flex: 1 }}>
+          <Typography
+            sx={{
+              fontSize: theme.typography.fontSize,
+              fontWeight: 500,
+              mb: 2,
+            }}
+          >
+            Projects*
+          </Typography>
+          <Autocomplete
+            multiple
+            id="projects-input"
+            size="small"
+            value={projectOptions?.filter(project => 
+              values.vendorDetails.projectIds?.includes(project._id)
+            ) || []}
+            options={projectOptions || []}
+            noOptionsText={values?.vendorDetails?.projectIds?.length === projectOptions?.length
+              ? "All projects are selected"
+              : "No options"}
+            onChange={(event, newValue: { _id: number; name: string }[]) => {
+              handleOnChange("projectIds", newValue.map(project => project._id));
+            }}
+            getOptionLabel={(project: { _id: number; name: string }) => project.name}
+            renderOption={(props, option: { _id: number; name: string }) => {
+              const { key, ...optionProps } = props;
+              return (
+                <Box key={option._id} component="li" {...optionProps}>
+                  <Typography sx={{ fontSize: "13px" }}>
+                    {option.name}
+                  </Typography>
+                </Box>
+              );
+            }}
+            filterSelectedOptions
+            popupIcon={<KeyboardArrowDown />}
+            renderInput={(params: AutocompleteRenderInputParams) => (
+              <TextField
+                {...params}
+                placeholder="Select projects"
+                error={!!errors.projectIds}
+                helperText={errors.projectIds}
+                required
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    minHeight: "34px",
+                    height: "auto",
+                    paddingY: "3px !important",
+                    flexWrap: "wrap",
+                    gap: "2px",
+                  },
+                  "& ::placeholder": {
+                    fontSize: "13px",
+                  },
+                }}
+              />
+            )}
+            sx={{
+              width: "100%",
+              backgroundColor: theme.palette.background.main,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "3px",
+                "&:hover .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "none",
+                },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#888",
+                  borderWidth: "1px",
+                },
+              },
+              "& .MuiAutocomplete-tag": {
+                margin: "2px",
+                maxWidth: "calc(100% - 25px)",
+                "& .MuiChip-label": {
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }
+              },
+            }}
+            slotProps={{
+              paper: {
+                sx: {
+                  "& .MuiAutocomplete-listbox": {
+                    "& .MuiAutocomplete-option": {
+                      fontSize: "13px",
+                      color: "#1c2130",
+                      paddingLeft: "9px",
+                      paddingRight: "9px",
+                    },
+                    "& .MuiAutocomplete-option.Mui-focused": {
+                      background: "#f9fafb",
+                    },
+                  },
+                  "& .MuiAutocomplete-noOptions": {
+                    fontSize: "13px",
+                    paddingLeft: "9px",
+                    paddingRight: "9px",
+                  },
+                },
+              },
+            }}
+          />
+        </Stack>
       </Stack>
       <Stack marginBottom={theme.spacing(8)}>
         <Field // vendorProvides

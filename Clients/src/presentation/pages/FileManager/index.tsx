@@ -2,12 +2,10 @@ import React, {
   useState,
   useEffect,
   useContext,
-  useCallback,
   useMemo,
   forwardRef,
 } from "react";
 import { Stack, Box, Typography, useTheme, Theme } from "@mui/material";
-import { getEntityById } from "../../../application/repository/entity.repository";
 import PageTour from "../../components/PageTour";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import FileSteps from "./FileSteps";
@@ -52,16 +50,6 @@ const FileManager: React.FC = (): JSX.Element => {
   const { selectedProjectId } = dashboardValues;
   const projectID = selectedProjectId?.toString();
   const { filesData, loading } = useFetchFiles(projectID);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleRowClick = useCallback(async (fileId: string) => {
-    try {
-      await getEntityById({ routeUrl: `/files/${fileId}` });
-    } catch (error) {
-      console.error("Error fetching file details", error);
-      setError("Failed to fetch file details");
-    }
-  }, []);
 
   const boxStyles = useMemo(
     () => ({
@@ -79,10 +67,6 @@ const FileManager: React.FC = (): JSX.Element => {
     }
   }, [allVisible]);
 
-  if (error) {
-    return <Typography color="error">{error}</Typography>;
-  }
-
   return (
     <Stack className="vwhome" gap={"20px"}>
       <PageTour
@@ -99,11 +83,7 @@ const FileManager: React.FC = (): JSX.Element => {
         <VWSkeleton variant="rectangular" sx={filesTablePlaceholder} />
       ) : (
         <Box sx={boxStyles}>
-          <FileTable
-            cols={COLUMNS}
-            files={filesData}
-            onRowClick={handleRowClick}
-          />
+          <FileTable cols={COLUMNS} files={filesData} />
         </Box>
       )}
     </Stack>

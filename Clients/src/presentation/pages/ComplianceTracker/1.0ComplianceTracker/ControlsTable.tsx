@@ -102,6 +102,17 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
     }
   };
 
+  const handleSaveError = () => {
+    setAlert({
+      type: "error",
+      message: "Failed to save control changes. Please try again."
+    });
+    setTimeout(() => {
+      setAlert(null);
+    }, 1000);
+    handleCloseModal();
+  };
+
   useEffect(() => {
     const fetchControls = async () => {
       if (!currentProjectId) return;
@@ -261,6 +272,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
           isOpen={modalOpen}
           handleClose={handleCloseModal}
           OnSave={handleSaveSuccess}
+          OnError={handleSaveError}
           controlCategoryId={controlCategoryIndex?.toString()}
           onComplianceUpdate={onComplianceUpdate}
         />

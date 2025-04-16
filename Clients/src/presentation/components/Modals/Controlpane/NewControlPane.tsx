@@ -41,6 +41,7 @@ const NewControlPane = ({
   handleClose,
   controlCategoryId,
   OnSave,
+  OnError,
   onComplianceUpdate,
 }: {
   data: Control;
@@ -48,6 +49,7 @@ const NewControlPane = ({
   handleClose: () => void;
   controlCategoryId?: string;
   OnSave?: (state: Control) => void;
+  OnError?: () => void; 
   onComplianceUpdate?: () => void;
 }) => {
   const theme = useTheme();
@@ -287,12 +289,20 @@ const NewControlPane = ({
         // Close the modal
         handleClose();
       } else {
-        console.error("Error updating controls");
+        console.error("Failed to save control changes. Please try again.");
         setIsSubmitting(false);
+        // Notify parent components about error
+        OnError?.();
+        // Close the modal
+        handleClose();
       }
     } catch (error) {
-      console.error("Error updating controls:", error);
+      console.error("Failed to save control changes. Please try again.", error);
       setIsSubmitting(false);
+      // Notify parent components about error
+      OnError?.();
+      // Close the modal
+      handleClose();
     }
   };
 

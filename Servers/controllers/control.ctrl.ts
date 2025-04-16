@@ -25,6 +25,7 @@ import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { Control, ControlModel } from "../models/control.model";
 import { Subcontrol } from "../models/subcontrol.model";
 import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
+import { FileType } from "../models/file.model";
 
 export async function getAllControls(
   req: Request,
@@ -159,18 +160,13 @@ export async function saveControls(
         const feedbackFiles =
           ((req.files as UploadedFile[]) || []).filter(f => f.fieldname === `feedback_files_${parseInt(subcontrol.id)}`);
 
-        let evidenceUploadedFiles: {
-          id: string;
-          fileName: string;
-          project_id: number;
-          uploaded_by: number;
-          uploaded_time: Date;
-        }[] = [];
+        let evidenceUploadedFiles: FileType[] = [];
         for (let f of evidenceFiles) {
           const evidenceUploadedFile = await uploadFile(
             f,
             Control.user_id,
-            Control.project_id
+            Control.project_id,
+            "Compliance tracker group"
           );
           evidenceUploadedFiles.push({
             id: evidenceUploadedFile.id!.toString(),
@@ -178,21 +174,17 @@ export async function saveControls(
             project_id: evidenceUploadedFile.project_id,
             uploaded_by: evidenceUploadedFile.uploaded_by,
             uploaded_time: evidenceUploadedFile.uploaded_time,
+            source: evidenceUploadedFile.source,
           });
         };
 
-        let feedbackUploadedFiles: {
-          id: string;
-          fileName: string;
-          project_id: number;
-          uploaded_by: number;
-          uploaded_time: Date;
-        }[] = [];
+        let feedbackUploadedFiles: FileType[] = [];
         for (let f of feedbackFiles) {
           const feedbackUploadedFile = await uploadFile(
             f,
             Control.user_id,
-            Control.project_id
+            Control.project_id,
+            "Compliance tracker group"
           );
           feedbackUploadedFiles.push({
             id: feedbackUploadedFile.id!.toString(),
@@ -200,6 +192,7 @@ export async function saveControls(
             project_id: feedbackUploadedFile.project_id,
             uploaded_by: feedbackUploadedFile.uploaded_by,
             uploaded_time: feedbackUploadedFile.uploaded_time,
+            source: feedbackUploadedFile.source,
           });
         }
 

@@ -8,6 +8,16 @@ export interface File {
   project_id: number;
   uploaded_by: number;
   uploaded_time: Date;
+  source: "Assessment tracker group" | "Compliance tracker group";
+}
+
+export interface FileType {
+  id: string;
+  fileName: string;
+  project_id: number;
+  uploaded_by: number;
+  uploaded_time: Date;
+  source: "Assessment tracker group" | "Compliance tracker group";
 }
 
 @Table({
@@ -47,6 +57,11 @@ export class FileModel extends Model<File> {
     type: DataType.DATE
   })
   uploaded_time!: Date;
+
+  @Column({
+    type: DataType.ENUM("Assessment tracker group", "Compliance tracker group"),
+  })
+  source!: "Assessment tracker group" | "Compliance tracker group";
 
   @Column({
     type: DataType.BOOLEAN,

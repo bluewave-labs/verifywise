@@ -3,6 +3,7 @@ import { sequelize } from "../database/db";
 import { UploadedFile } from "./question.utils";
 import { uploadFile } from "./fileUpload.utils";
 import { QueryTypes } from "sequelize";
+import { FileType } from "../models/file.model";
 
 export const getAllSubcontrolsQuery = async (): Promise<Subcontrol[]> => {
   const subcontrols = await sequelize.query(
@@ -51,30 +52,32 @@ export const createNewSubcontrolQuery = async (
   evidenceFiles?: UploadedFile[],
   feedbackFiles?: UploadedFile[]
 ): Promise<Subcontrol> => {
-  let uploadedEvidenceFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[] = [];
+  let uploadedEvidenceFiles: FileType[] = [];
   await Promise.all(
     evidenceFiles!.map(async (file) => {
-      const uploadedFile = await uploadFile(file, user_id, project_id);
+      const uploadedFile = await uploadFile(file, user_id, project_id, "Compliance tracker group");
       uploadedEvidenceFiles.push({
         id: uploadedFile.id!.toString(),
         fileName: uploadedFile.filename,
         project_id: uploadedFile.project_id,
         uploaded_by: uploadedFile.uploaded_by,
-        uploaded_time: uploadedFile.uploaded_time
+        uploaded_time: uploadedFile.uploaded_time,
+        source: uploadedFile.source
       });
     })
   );
 
-  let uploadedFeedbackFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[] = [];
+  let uploadedFeedbackFiles: FileType[] = [];
   await Promise.all(
     feedbackFiles!.map(async (file) => {
-      const uploadedFile = await uploadFile(file, user_id, project_id);
+      const uploadedFile = await uploadFile(file, user_id, project_id, "Compliance tracker group");
       uploadedFeedbackFiles.push({
         id: uploadedFile.id!.toString(),
         fileName: uploadedFile.filename,
         project_id: uploadedFile.project_id,
         uploaded_by: uploadedFile.uploaded_by,
-        uploaded_time: uploadedFile.uploaded_time
+        uploaded_time: uploadedFile.uploaded_time,
+        source: uploadedFile.source
       });
     })
   );

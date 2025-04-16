@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { deleteFileById, getFileById, getFileMetadataByProjectId, uploadFile } from "../utils/fileUpload.utils";
 import { addFileToQuestion, RequestWithFile, UploadedFile } from "../utils/question.utils";
+import { FileType } from "../models/file.model";
 
 export async function getFileContentById(
   req: Request,
@@ -64,15 +65,16 @@ export async function postFileContent(
     }
 
     const questionId = parseInt(body.question_id)
-    let uploadedFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[] = [];
+    let uploadedFiles: FileType[] = [];
     for (let file of req.files! as UploadedFile[]) {
-      const uploadedFile = await uploadFile(file, body.user_id, body.project_id);
+      const uploadedFile = await uploadFile(file, body.user_id, body.project_id, "Assessment tracker group");
       uploadedFiles.push({
         id: uploadedFile.id!.toString(),
         fileName: uploadedFile.filename,
         project_id: uploadedFile.project_id,
         uploaded_by: uploadedFile.uploaded_by,
-        uploaded_time: uploadedFile.uploaded_time
+        uploaded_time: uploadedFile.uploaded_time,
+        source: uploadedFile.source
       });
     }
 

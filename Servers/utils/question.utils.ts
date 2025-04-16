@@ -17,8 +17,8 @@ export const getAllQuestionsQuery = async (): Promise<(Question & { evidence_fil
       let evidenceFiles: Object[] = [];
       await Promise.all(
         (question.evidence_files || []).map(async (f) => {
-          const file = await getFileById(parseInt(f.id));
-          evidenceFiles.push({ id: file.id, filename: file.filename });
+          // const file = await getFileById(parseInt(f.id));
+          evidenceFiles.push({ id: f.id, filename: f.fileName });
         })
       );
       return { ...question.dataValues, evidence_files: evidenceFiles };
@@ -41,8 +41,8 @@ export const getQuestionByIdQuery = async (
   let evidenceFiles: Object[] = [];
   await Promise.all(
     (result[0].evidence_files || []).map(async (f) => {
-      const file = await getFileById(parseInt(f.id));
-      evidenceFiles.push({ id: file.id, filename: file.filename });
+      // const file = await getFileById(parseInt(f.id));
+      evidenceFiles.push({ id: f.id, filename: f.fileName });
     })
   );
   return { ...result[0].dataValues, evidence_files: evidenceFiles } as (QuestionModel & { evidence_files: string[] });

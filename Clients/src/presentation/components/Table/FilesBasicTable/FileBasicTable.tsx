@@ -33,9 +33,6 @@ interface FileBasicTableProps {
   bodyData: FileData[];
   paginated?: boolean;
   table: string;
-  onRowClick: (id: string) => void;
-  setSelectedRow: (row: any) => void;
-  setAnchorEl: (element: HTMLElement | null) => void;
 }
 
 const FileBasicTable: React.FC<FileBasicTableProps> = ({
@@ -43,9 +40,6 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
   bodyData,
   paginated = false,
   table,
-  onRowClick,
-  setSelectedRow,
-  setAnchorEl,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);

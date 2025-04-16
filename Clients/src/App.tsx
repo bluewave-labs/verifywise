@@ -44,6 +44,9 @@ function App() {
 
   const [currentProjectId, setCurrentProjectId] = useState<string | null>("");
 
+  const [runHomeTour, setRunHomeTour] = useState(false);
+  const [homeTourRefs, setHomeTourRefs] = useState<(HTMLElement | null)[]>([]);
+
   const contextValues = useMemo(
     () => ({
       uiValues,
@@ -63,6 +66,10 @@ function App() {
       userId,
       projects,
       setProjects,
+      runHomeTour,
+      setRunHomeTour,
+      homeTourRefs, 
+      setHomeTourRefs
     }),
     [
       uiValues,
@@ -82,6 +89,10 @@ function App() {
       userId,
       projects,
       setProjects,
+      runHomeTour,
+      setRunHomeTour,
+      homeTourRefs,
+      setHomeTourRefs,
     ]
   );
 

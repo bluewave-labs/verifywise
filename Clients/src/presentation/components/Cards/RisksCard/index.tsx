@@ -52,7 +52,7 @@ const RisksCard = ({
       </Stack>
       <Stack
         className="vw-project-risks-tile"
-        sx={{ ...projectRisksTileCard, color: "#B8D39C" }}
+        sx={{ ...projectRisksTileCard, color: "#52AB43" }}
       >
         <Typography sx={projectRisksTileCardKey}>Low</Typography>
         <Typography sx={projectRisksTileCardvalue}>
@@ -61,7 +61,7 @@ const RisksCard = ({
       </Stack>
       <Stack
         className="vw-project-risks-tile"
-        sx={{ ...projectRisksTileCard, color: "#52AB43" }}
+        sx={{ ...projectRisksTileCard, color: "#B8D39C" }}
       >
         <Typography sx={projectRisksTileCardKey}>Very Low</Typography>
         <Typography sx={projectRisksTileCardvalue}>

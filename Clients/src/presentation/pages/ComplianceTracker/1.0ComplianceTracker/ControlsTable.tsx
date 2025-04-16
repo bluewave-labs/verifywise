@@ -198,34 +198,32 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
                     onClick={() => control.id !== undefined && handleRowClick(control.id)}
                     isflashing={currentFlashRow === control.id ? 1 : 0}
                   >
-                    {modalOpen && selectedRow === control.id && (
-                      <NewControlPane
-                        data={control}
-                        isOpen={modalOpen}
-                        handleClose={handleCloseModal}
-                        OnSave={handleSaveSuccess}
-                        controlCategoryId={controlCategoryIndex?.toString()}
-                        onComplianceUpdate={onComplianceUpdate}
-                      />
-                    )}
                     <TableCell
                       sx={styles.descriptionCell}
                       key={`${controlCategoryId}-${control.id}`}
                     >
-                    {controlCategoryIndex}.{`${control.order_no}`} {control.title}{" "}
-                      <span style={{color: 'grey' }}>{`(${control.description})`}</span>
+                      <Typography component="span" variant="body2">
+                        {controlCategoryIndex}.{`${control.order_no}`} {control.title}{" "}
+                        <Typography component="span" sx={{ color: 'grey', fontSize: "13px" }}>
+                          {`(${control.description})`}
+                        </Typography>
+                      </Typography>
                     </TableCell>
                     <TableCell 
                       sx={styles.cell}
                       key={`owner-${control.id}`}
                     >
-                      {getOwnerName(control.owner)}
+                      <Typography component="span" variant="body2">
+                        {getOwnerName(control.owner)}
+                      </Typography>
                     </TableCell>
                     <TableCell 
                       sx={styles.cell}
                       key={`noOfSubControls-${control.id}`}
                     >
-                      {`${control.numberOfSubcontrols} Subcontrols`}
+                      <Typography component="span" variant="body2">
+                        {`${control.numberOfSubcontrols} Subcontrols`}
+                      </Typography>
                     </TableCell>
                     <TableCell 
                       sx={styles.cell}
@@ -246,7 +244,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
                             }}
                           />
                         </Box>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography component="span" variant="body2">
                           {`${completionPercentage}%`}
                         </Typography>
                       </Stack>
@@ -257,6 +255,16 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
           </TableBody>
         </Table>
       </TableContainer>
+      {modalOpen && selectedRow !== null && (
+        <NewControlPane
+          data={controls.find(c => c.id === selectedRow)!}
+          isOpen={modalOpen}
+          handleClose={handleCloseModal}
+          OnSave={handleSaveSuccess}
+          controlCategoryId={controlCategoryIndex?.toString()}
+          onComplianceUpdate={onComplianceUpdate}
+        />
+      )}
     </>
   );
 };

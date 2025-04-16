@@ -6,26 +6,18 @@ import {
   deleteControlByIdQuery,
   getAllControlsByControlGroupQuery,
   getAllControlsQuery,
-  getControlByIdAndControlTitleAndControlDescriptionQuery,
   getControlByIdQuery,
   updateControlByIdQuery,
 } from "../utils/control.utils";
 import {
-  createNewSubcontrolQuery,
   getAllSubcontrolsByControlIdQuery,
   updateSubcontrolByIdQuery,
 } from "../utils/subControl.utils";
-import {
-  createControlCategoryQuery,
-  getControlCategoryByIdQuery,
-  getControlCategoryByTitleAndProjectIdQuery,
-  updateControlCategoryByIdQuery,
-} from "../utils/controlCategory.util";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { Control, ControlModel } from "../models/control.model";
-import { Subcontrol } from "../models/subcontrol.model";
 import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
 import { FileType } from "../models/file.model";
+import { updateProjectUpdatedByIdQuery } from "../utils/project.utils";
 
 export async function getAllControls(
   req: Request,
@@ -125,10 +117,10 @@ export async function saveControls(
   try {
     const controlId = parseInt(req.params.id);
     const Control = req.body as Control & {
-      subControls: string,
-      user_id: number,
-      project_id: number,
-      delete: string
+      subControls: string;
+      user_id: number;
+      project_id: number;
+      delete: string;
     };
 
     // now we need to create the control for the control category, and use the control category id as the foreign key
@@ -146,7 +138,7 @@ export async function saveControls(
       control_category_id: Control.control_category_id,
     });
 
-    const filesToDelete = JSON.parse(Control.delete || '[]') as number[]
+    const filesToDelete = JSON.parse(Control.delete || "[]") as number[];
     for (let f of filesToDelete) {
       await deleteFileById(f);
     }
@@ -155,10 +147,12 @@ export async function saveControls(
     const subControlResp = [];
     if (Control.subControls) {
       for (const subcontrol of JSON.parse(Control.subControls)) {
-        const evidenceFiles =
-          ((req.files as UploadedFile[]) || []).filter(f => f.fieldname === `evidence_files_${parseInt(subcontrol.id)}`);
-        const feedbackFiles =
-          ((req.files as UploadedFile[]) || []).filter(f => f.fieldname === `feedback_files_${parseInt(subcontrol.id)}`);
+        const evidenceFiles = ((req.files as UploadedFile[]) || []).filter(
+          (f) => f.fieldname === `evidence_files_${parseInt(subcontrol.id)}`
+        );
+        const feedbackFiles = ((req.files as UploadedFile[]) || []).filter(
+          (f) => f.fieldname === `feedback_files_${parseInt(subcontrol.id)}`
+        );
 
         let evidenceUploadedFiles: FileType[] = [];
         for (let f of evidenceFiles) {
@@ -176,7 +170,7 @@ export async function saveControls(
             uploaded_time: evidenceUploadedFile.uploaded_time,
             source: evidenceUploadedFile.source,
           });
-        };
+        }
 
         let feedbackUploadedFiles: FileType[] = [];
         for (let f of feedbackFiles) {
@@ -231,9 +225,10 @@ export async function saveControls(
     const response = {
       ...{ control, subControls: subControlResp },
     };
-    return res.status(200).json(
-      STATUS_CODE[200]({ response })
-    );
+    // Update the project's last updated date
+    await updateProjectUpdatedByIdQuery(controlId, "controls");
+
+    return res.status(200).json(STATUS_CODE[200]({ response }));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -245,7 +240,9 @@ export async function getComplianceById(
 ): Promise<any> {
   const control_id = req.params.id;
   try {
-    const control = await getControlByIdQuery(parseInt(control_id)) as ControlModel;
+    const control = (await getControlByIdQuery(
+      parseInt(control_id)
+    )) as ControlModel;
     if (control && control.id) {
       const subControls = await getAllSubcontrolsByControlIdQuery(control.id);
       control.dataValues.subControls = subControls;
@@ -264,9 +261,9 @@ export async function getControlsByControlCategoryId(
 ): Promise<any> {
   try {
     const controlCategoryId = parseInt(req.params.id);
-    const controls = await getAllControlsByControlGroupQuery(
+    const controls = (await getAllControlsByControlGroupQuery(
       controlCategoryId
-    ) as ControlModel[];
+    )) as ControlModel[];
     for (const control of controls) {
       if (control && control.id !== undefined) {
         const subControls = await getAllSubcontrolsByControlIdQuery(control.id);

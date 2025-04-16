@@ -1,6 +1,7 @@
 import { ProjectRisk, ProjectRiskModel } from "../models/projectRisk.model";
 import { sequelize } from "../database/db";
 import { QueryTypes } from "sequelize";
+import { updateProjectUpdatedByIdQuery } from "./project.utils";
 
 export const getAllProjectRisksQuery = async (
   projectId: number
@@ -79,6 +80,7 @@ export const createProjectRiskQuery = async (projectRisk: Partial<ProjectRisk>):
       // type: QueryTypes.INSERT
     }
   );
+  await updateProjectUpdatedByIdQuery(result[0].id!, "projectrisks");
   return result[0];
 };
 
@@ -130,7 +132,7 @@ export const updateProjectRiskByIdQuery = async (
     model: ProjectRiskModel,
     // type: QueryTypes.UPDATE,
   });
-
+  await updateProjectUpdatedByIdQuery(id, "projectrisks");
   return result[0];
 };
 
@@ -146,5 +148,6 @@ export const deleteProjectRiskByIdQuery = async (
       type: QueryTypes.DELETE,
     }
   );
+  await updateProjectUpdatedByIdQuery(id, "projectrisks");
   return result.length > 0;
 };

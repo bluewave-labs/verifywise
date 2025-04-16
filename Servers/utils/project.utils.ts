@@ -15,6 +15,7 @@ import { ControlCategoryModel } from "../models/controlCategory.model";
 import { ControlModel } from "../models/control.model";
 import { SubtopicModel } from "../models/subtopic.model";
 import { FileModel } from "../models/file.model";
+import { table } from "console";
 
 export const getAllProjectsQuery = async (): Promise<Project[]> => {
   const projects = await sequelize.query(
@@ -175,6 +176,44 @@ export const createNewProjectQuery = async (
   }
   return createdProject
 };
+
+export const updateProjectUpdatedByIdQuery = async (
+  id: number, // this is not the project id,
+  byTable: "controls" | "questions" | "projectrisks" | "vendors",
+): Promise<void> => {
+  const queryMap = {
+    "controls": `SELECT p.id FROM
+      projects p JOIN controlcategories cc ON p.id = cc.project_id
+        JOIN controls c ON cc.id = c.control_category_id
+          WHERE c.id = :id;`,
+    "questions": `SELECT p.id FROM
+      projects p JOIN assessments a ON p.id = a.project_id
+        JOIN topics t ON a.id = t.assessment_id
+          JOIN subtopics st ON t.id = st.topic_id
+            JOIN questions q ON st.id = q.subtopic_id
+              WHERE q.id = :id;`,
+    "projectrisks": `SELECT p.id FROM
+      projects p JOIN projectrisks pr ON p.id = pr.project_id
+        WHERE pr.id = :id;`,
+    "vendors": `SELECT project_id as id FROM vendors_projects WHERE vendor_id = :id;`,
+  };
+  const query = queryMap[byTable];
+  const result = await sequelize.query(query, {
+    replacements: { id },
+  })
+  const projects = result[0] as { id: number }[]
+  for (let p of projects) {
+    await sequelize.query(
+      `UPDATE projects SET last_updated = :last_updated WHERE id = :project_id;`,
+      {
+        replacements: {
+          last_updated: new Date(Date.now()),
+          project_id: p.id
+        }
+      }
+    )
+  }
+}
 
 export const updateProjectByIdQuery = async (
   id: number,

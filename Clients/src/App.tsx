@@ -20,9 +20,7 @@ import { AppState } from "./application/interfaces/appStates";
 
 function App() {
   const mode = useSelector((state: AppState) => state.ui?.mode || "light");
-  const token = useSelector((state: AppState) => state.auth?.authToken);
-
-  const unsed = 1234
+  const token = useSelector((state: AppState) => state.auth?.authToken); 
 
   const [uiValues, setUiValues] = useState<unknown | undefined>({});
   const [authValues, setAuthValues] = useState<unknown | undefined>({});

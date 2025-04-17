@@ -53,7 +53,12 @@ export const getVendorByIdQuery = async (
 export const getVendorByProjectIdQuery = async (
   project_id: number
 ): Promise<Vendor[] | null> => {
-  const result = await sequelize.query(
+  const projectExists = await sequelize.query(
+    "SELECT 1 AS exists FROM projects WHERE id = :project_id",
+    { replacements: { project_id } }
+  );
+  if (!(projectExists[0].length > 0)) return null;
+  const vendors_projects = await sequelize.query(
     "SELECT vendor_id FROM vendors_projects WHERE project_id = :project_id",
     {
       replacements: { project_id },
@@ -61,9 +66,8 @@ export const getVendorByProjectIdQuery = async (
       model: VendorsProjectsModel
     }
   );
-  if (!result.length) return null;
   const vendors: Vendor[] = []
-  for (let vendors_project of (result || [])) {
+  for (let vendors_project of (vendors_projects || [])) {
     const vendor = await sequelize.query(
       "SELECT * FROM vendors WHERE id = :id ORDER BY created_at DESC, id ASC",
       {

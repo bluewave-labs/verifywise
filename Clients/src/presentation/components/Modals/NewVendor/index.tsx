@@ -464,7 +464,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   };
 
   const vendorDetailsPanel = (
-    <TabPanel value="1" sx={{ paddingTop: theme.spacing(15), paddingX: 0 }}>
+    <TabPanel value="1" sx={{ paddingTop: theme.spacing(15), paddingX: 8 }}>
       <Stack
         direction={"row"}
         justifyContent={"space-between"}
@@ -539,6 +539,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                   "& .MuiOutlinedInput-root": {
                     minHeight: "34px",
                     height: "auto",
+                    alignItems: "flex-start",
                     paddingY: "3px !important",
                     flexWrap: "wrap",
                     gap: "2px",
@@ -554,12 +555,22 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               backgroundColor: theme.palette.background.main,
               "& .MuiOutlinedInput-root": {
                 borderRadius: "3px",
-                "&:hover .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "none",
+                overflowY:"auto",
+                flexWrap: "wrap",
+                maxHeight: "115px",
+                alignItems: "flex-start",
+                "&:hover": {
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    border: "none",
+                  }
                 },
-                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#888",
-                  borderWidth: "1px",
+                "& .MuiOutlinedInput-notchedOutline": {
+                  border: "none",
+                },
+                "&.Mui-focused": {
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    border: "none",
+                  }
                 },
               },
               "& .MuiAutocomplete-tag": {
@@ -571,6 +582,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                   whiteSpace: "nowrap",
                 }
               },
+              border: `1px solid ${theme.palette.border.dark}`,
+              borderRadius: "3px",
             }}
             slotProps={{
               paper: {
@@ -756,6 +769,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             left: "50%",
             transform: "translate(-50%, -50%)",
             width: 800,
+            maxHeight: "80vh",
+            display: "flex",
+            flexDirection: "column",
             bgcolor: theme.palette.background.main,
             border: 1,
             borderColor: theme.palette.border,
@@ -765,8 +781,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             "&:focus": {
               outline: "none",
             },
-            mt: 5,
-            mb: 5,
           }}
         >
           <Stack
@@ -784,26 +798,29 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             </Typography>
             <Close style={{ cursor: "pointer" }} onClick={setIsOpen} />
           </Stack>
-          <TabContext value={value}>
-            {vendorDetailsPanel}
-            <Stack
+          <Box sx={{ flex: 1, overflow: "auto", marginBottom: theme.spacing(8) }}>
+            <TabContext value={value}>
+              {vendorDetailsPanel}
+            </TabContext>
+          </Box>
+          <Stack
+            sx={{
+              alignItems: "flex-end",
+              marginTop: "auto",
+            }}
+          >
+            <VWButton
+              variant="contained"
+              text="Save"
               sx={{
-                alignItems: "flex-end",
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
+                gap: 2,
               }}
-            >
-              <VWButton
-                variant="contained"
-                text="Save"
-                sx={{
-                  backgroundColor: "#13715B",
-                  border: "1px solid #13715B",
-                  gap: 2,
-                }}
-                onClick={handleSave}
-                icon={<SaveIcon />}
-              />
-            </Stack>
-          </TabContext>
+              onClick={handleSave}
+              icon={<SaveIcon />}
+            />
+          </Stack>
         </Stack>
       </Modal>
     </Stack>

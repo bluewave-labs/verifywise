@@ -512,7 +512,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             noOptionsText={values?.vendorDetails?.projectIds?.length === projectOptions?.length
               ? "All projects are selected"
               : "No options"}
-            onChange={(event, newValue: { _id: number; name: string }[]) => {
+            onChange={(_event, newValue: { _id: number; name: string }[]) => {
               handleOnChange("projectIds", newValue.map(project => project._id));
             }}
             getOptionLabel={(project: { _id: number; name: string }) => project.name}

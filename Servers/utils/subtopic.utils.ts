@@ -52,7 +52,7 @@ export const updateSubtopicByIdQuery = async (
   const setClause = [
     "title",
   ].filter(f => {
-    if (subtopic[f as keyof Subtopic] !== undefined) {
+    if (subtopic[f as keyof Subtopic] !== undefined && subtopic[f as keyof Subtopic]) {
       updateSubTopic[f as keyof Subtopic] = subtopic[f as keyof Subtopic]
       return true
     }

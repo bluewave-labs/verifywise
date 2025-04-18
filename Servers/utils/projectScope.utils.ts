@@ -74,7 +74,7 @@ export const updateProjectScopeByIdQuery = async (
     "unintended_outcomes",
     "technology_documentation",
   ].filter(f => {
-    if (projectScope[f as keyof ProjectScope] !== undefined) {
+    if (projectScope[f as keyof ProjectScope] !== undefined && projectScope[f as keyof ProjectScope]) {
       updateProjectScope[f as keyof ProjectScope] = projectScope[f as keyof ProjectScope]
       return true
     }

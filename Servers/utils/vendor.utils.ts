@@ -193,7 +193,7 @@ export const updateVendorByIdQuery = async (
       "risk_status",
       "review_date",
     ].filter(f => {
-      if (vendor[f as keyof Vendor] !== undefined) {
+      if (vendor[f as keyof Vendor] !== undefined && vendor[f as keyof Vendor]) {
         updateVendor[f as keyof Vendor] = vendor[f as keyof Vendor]
         return true
       }

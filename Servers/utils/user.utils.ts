@@ -230,7 +230,7 @@ export const updateUserByIdQuery = async (
     "role",
     "last_login",
   ].filter(f => {
-    if (user[f as keyof User] !== undefined) {
+    if (user[f as keyof User] !== undefined && user[f as keyof User]) {
       updateUser[f as keyof User] = user[f as keyof User]
       return true
     }

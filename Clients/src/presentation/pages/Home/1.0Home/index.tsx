@@ -125,9 +125,6 @@ const VWHome = () => {
     }
   }
 
-  console.log("complianceProgress: ", complianceProgress);
-  console.log("assessmentProgress: ", assessmentProgress);
-
   return (
     <Stack className="vwhome">
       {alert && (

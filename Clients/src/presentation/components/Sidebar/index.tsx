@@ -111,7 +111,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const logout = useLogout();
 
-  const { dashboardValues, setDashboardValues, setCurrentProjectId, userId } =
+  const { dashboardValues, setDashboardValues, setCurrentProjectId, userId, homeTourRefs } =
     useContext(VerifyWiseContext);
   const { users } = dashboardValues;
 
@@ -276,6 +276,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
             width: "fit-content",
           }}
           data-joyride-id="select-project"
+          ref={(el) => (homeTourRefs[1] = el)}
         >
           {projects.length > 0 ? (
             <Select
@@ -311,6 +312,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
         disablePadding
         sx={{ px: theme.spacing(8) }}
         data-joyride-id="dashboard-navigation"
+        ref={(el) => (homeTourRefs[2] = el)}
       >
         {/* Items of the menu */}
         {menu.map((item) =>

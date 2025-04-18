@@ -20,7 +20,7 @@ import { AppState } from "./application/interfaces/appStates";
 
 function App() {
   const mode = useSelector((state: AppState) => state.ui?.mode || "light");
-  const token = useSelector((state: AppState) => state.auth?.authToken);
+  const token = useSelector((state: AppState) => state.auth?.authToken); 
 
   const [uiValues, setUiValues] = useState<unknown | undefined>({});
   const [authValues, setAuthValues] = useState<unknown | undefined>({});
@@ -44,6 +44,9 @@ function App() {
 
   const [currentProjectId, setCurrentProjectId] = useState<string | null>("");
 
+  const [runHomeTour, setRunHomeTour] = useState(false);
+  const [homeTourRefs, setHomeTourRefs] = useState<(HTMLElement | null)[]>([]);
+
   const contextValues = useMemo(
     () => ({
       uiValues,
@@ -63,6 +66,10 @@ function App() {
       userId,
       projects,
       setProjects,
+      runHomeTour,
+      setRunHomeTour,
+      homeTourRefs, 
+      setHomeTourRefs
     }),
     [
       uiValues,
@@ -82,6 +89,10 @@ function App() {
       userId,
       projects,
       setProjects,
+      runHomeTour,
+      setRunHomeTour,
+      homeTourRefs,
+      setHomeTourRefs,
     ]
   );
 

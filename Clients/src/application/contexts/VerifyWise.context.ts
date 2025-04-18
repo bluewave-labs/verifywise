@@ -20,6 +20,10 @@ interface VerifyWiseContextProps {
   userId: string;
   projects: Project[];
   setProjects: React.Dispatch<React.SetStateAction<Project[]>>;
+  runHomeTour: boolean;
+  setRunHomeTour: React.Dispatch<React.SetStateAction<boolean>>;
+  homeTourRefs: (HTMLElement | null)[];
+  setHomeTourRefs: React.Dispatch<React.SetStateAction<(HTMLElement | null)[]>>;
 }
 
 const VerifyWiseContext = createContext<VerifyWiseContextProps>({
@@ -40,6 +44,10 @@ const VerifyWiseContext = createContext<VerifyWiseContextProps>({
   userId: "",
   projects: [],
   setProjects: () => {},
+  runHomeTour: false,
+  setRunHomeTour: () => {},
+  homeTourRefs: [] as (HTMLElement | null)[], 
+  setHomeTourRefs: () => {},
 });
 
 export { VerifyWiseContext };

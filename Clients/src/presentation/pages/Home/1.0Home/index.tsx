@@ -23,9 +23,11 @@ import {
 } from "../../../../application/interfaces/iprogress";
 import { useProjectData } from "../../../../application/hooks/useFetchProjects";
 import { AlertState } from "../../../../application/interfaces/appStates";
+import PageTour from "../../../components/PageTour";
+import HomeSteps from "./HomeSteps";
 
 const VWHome = () => {
-  const { setDashboardValues } = useContext(VerifyWiseContext);
+  const { setDashboardValues,homeTourRefs,runHomeTour, setRunHomeTour } = useContext(VerifyWiseContext);
   const [complianceProgress, setComplianceProgress] =
     useState<ComplianceProgress>();
   const [assessmentProgress, setAssessmentProgress] =
@@ -138,6 +140,9 @@ const VWHome = () => {
   console.log("complianceProgress: ", complianceProgress);
   console.log("assessmentProgress: ", assessmentProgress);
 
+  console.log("runhometour: ", runHomeTour);
+  console.log("homeTourRefs: ", homeTourRefs);
+
   return (
     <Stack className="vwhome">
       {alert && (
@@ -228,18 +233,22 @@ const VWHome = () => {
                 onClick={() => generateDemoData()}
               />
             )}
-
-            <VWButton
-              variant="contained"
-              text="New project"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              icon={<AddCircleOutlineIcon />}
-              onClick={() => setIsProjectFormOpen(true)}
-            />
+            <div
+              data-joyride-id="new-project-button"
+              ref={(el) => (homeTourRefs[0] = el)}
+            >
+              <VWButton
+                variant="contained"
+                text="New project"
+                sx={{
+                  backgroundColor: "#13715B",
+                  border: "1px solid #13715B",
+                  gap: 2,
+                }}
+                icon={<AddCircleOutlineIcon />}
+                onClick={() => setIsProjectFormOpen(true)}
+              />
+            </div>
           </Stack>
         </Stack>
         <Stack
@@ -320,6 +329,14 @@ const VWHome = () => {
           <VWProjectForm onClose={handleProjectFormClose} />
         </Box>
       </Modal>
+      <PageTour
+        steps={HomeSteps}
+        run={runHomeTour}
+        onFinish={() => {
+          setRunHomeTour(false);
+        }}
+        tourKey="home-tour"
+      />
     </Stack>
   );
 };

@@ -7,10 +7,7 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import VWProjectCard from "../../../components/Cards/ProjectCard";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
-import {
-  getAllEntities,
-  postAutoDrivers,
-} from "../../../../application/repository/entity.repository";
+import { postAutoDrivers } from "../../../../application/repository/entity.repository";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import NoProject from "../../../components/NoProject/NoProject";
 import VWToast from "../../../vw-v2-components/Toast";
@@ -23,6 +20,8 @@ import {
 } from "../../../../application/interfaces/iprogress";
 import { useProjectData } from "../../../../application/hooks/useFetchProjects";
 import { AlertState } from "../../../../application/interfaces/appStates";
+import { User } from "../../../../domain/User";
+import { fetchData } from "../../../../application/hooks/fetchDataHook";
 
 const VWHome = () => {
   const { setDashboardValues } = useContext(VerifyWiseContext);
@@ -30,7 +29,7 @@ const VWHome = () => {
     useState<ComplianceProgress>();
   const [assessmentProgress, setAssessmentProgress] =
     useState<AssessmentProgress>();
-  const [_, setUsers] = useState<any[]>([]);
+  const [_, setUsers] = useState<User[]>([]);
   const [__, setIsGeneratingDemoData] = useState(false);
   const [alert, setAlert] = useState<AlertState>();
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
@@ -38,15 +37,6 @@ const VWHome = () => {
   const [showToast, setShowToast] = useState(false);
 
   const { projects, loading: projectLoading, fetchProjects } = useProjectData();
-
-  const fetchData = async (routeUrl: string, setData: (data: any) => void) => {
-    try {
-      const response = await getAllEntities({ routeUrl });
-      setData(response.data);
-    } catch (error) {
-      console.error(`Error fetching data from ${routeUrl}:`, error);
-    }
-  };
 
   useEffect(() => {
     const fetchProgressData = async () => {
@@ -300,7 +290,6 @@ const VWHome = () => {
       </Stack>
       <Modal
         open={isProjectFormOpen}
-        // open={true}
         onClose={handleProjectFormClose}
         aria-labelledby="modal-title"
         aria-describedby="modal-description"

@@ -22,6 +22,7 @@ export type Question = {
   answer?: string; // won't get any values, will be filled by user
   subtopic_id: number; // when subtopic is created, its id will be stored and assign here as FK
   created_at?: Date;
+  status?: "Not started" | "In progress" | "Done"
 };
 
 @Table({
@@ -107,4 +108,9 @@ export class QuestionModel extends Model<Question> {
     type: DataType.DATE
   })
   created_at?: Date;
+
+  @Column({
+    type: DataType.ENUM("Not started", "In progress", "Done")
+  })
+  status?: "Not started" | "In progress" | "Done"
 }

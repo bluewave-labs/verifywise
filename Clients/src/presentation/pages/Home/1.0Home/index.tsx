@@ -1,6 +1,15 @@
 import { useContext, useEffect, useState } from "react";
 import { Stack, Typography, Modal, Box } from "@mui/material";
-import { headerCardPlaceholder, vwhomeHeading } from "./style";
+import {
+  headerCardPlaceholder,
+  vwhomeBody,
+  vwhomeBodyControls,
+  vwhomeBodyProjects,
+  vwhomeBodyProjectsGrid,
+  vwhomeCreateModalFrame,
+  vwhomeHeaderCards,
+  vwhomeHeading,
+} from "./style";
 import SmallStatsCard from "../../../components/Cards/SmallStatsCard";
 import VWButton from "../../../vw-v2-components/Buttons";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
@@ -147,15 +156,7 @@ const VWHome = () => {
         <Typography sx={vwhomeHeading}>
           All projects compliance status
         </Typography>
-        <Stack
-          className="vwhome-header-cards"
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            gap: "20px",
-          }}
-        >
+        <Stack className="vwhome-header-cards" sx={vwhomeHeaderCards}>
           {projectLoading ? (
             <VWSkeleton variant="rectangular" sx={headerCardPlaceholder} />
           ) : (
@@ -195,25 +196,9 @@ const VWHome = () => {
         </Stack>
       </Stack>
       <Stack className="vwhome-body">
-        <Stack
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 9,
-          }}
-        >
+        <Stack sx={vwhomeBody}>
           <Typography sx={vwhomeHeading}>Projects overview</Typography>
-          <Stack
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: 2,
-            }}
-          >
+          <Stack sx={vwhomeBodyControls}>
             {projects.length === 0 && (
               <VWButton
                 variant="contained"
@@ -241,17 +226,7 @@ const VWHome = () => {
             />
           </Stack>
         </Stack>
-        <Stack
-          className="vwhome-body-projects"
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            flexWrap: "wrap",
-            justifyContent: "flex-start",
-            alignItems: "center",
-            gap: "20px",
-          }}
-        >
+        <Stack className="vwhome-body-projects" sx={vwhomeBodyProjects}>
           {projects?.length === 0 || !projects ? (
             <NoProject message="There no projects available." />
           ) : projects?.length <= 3 ? (
@@ -274,18 +249,7 @@ const VWHome = () => {
             </>
           ) : (
             <>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: {
-                    xs: "repeat(1, 1fr)",
-                    sm: "repeat(2, 1fr)",
-                    md: "repeat(3, 1fr)",
-                  },
-                  gap: { xs: 10, md: 10 },
-                  width: "100%",
-                }}
-              >
+              <Box sx={vwhomeBodyProjectsGrid}>
                 {projects &&
                   projects.map((project) => (
                     <Box key={project.id} sx={{ gridColumn: "span 1" }}>
@@ -303,18 +267,7 @@ const VWHome = () => {
         aria-labelledby="modal-title"
         aria-describedby="modal-description"
       >
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            bgcolor: "background.paper",
-            boxShadow: 24,
-            p: 4,
-            borderRadius: 1,
-          }}
-        >
+        <Box sx={vwhomeCreateModalFrame}>
           <VWProjectForm onClose={handleProjectFormModalClose} />
         </Box>
       </Modal>

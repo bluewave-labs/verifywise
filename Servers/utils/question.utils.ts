@@ -137,14 +137,20 @@ export const addFileToQuestion = async (
 
 export const updateQuestionByIdQuery = async (
   id: number,
-  answer: string,
+  question: Partial<Question>,
 ): Promise<Question | null> => {
   const updateQuestion: Partial<Record<keyof Question, any>> = {};
   const setClause = [
     "answer",
+    "status"
   ].filter(f => {
-    updateQuestion[f as keyof Question] = answer
-    return true
+    if (question[f as keyof Question] !== undefined) {
+      updateQuestion[f as keyof Question] = question[f as keyof Question]
+      if (f === "answer" && !question[f]) {
+        updateQuestion[f as keyof Question] = ""
+      }
+      return true
+    }
   }).map(f => `${f} = :${f}`).join(", ");
 
   const query = `UPDATE questions SET ${setClause} WHERE id = :id RETURNING *;`;

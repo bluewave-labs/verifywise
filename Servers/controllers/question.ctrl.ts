@@ -92,11 +92,11 @@ export async function updateQuestionById(
 ): Promise<any> {
   try {
     const questionId = parseInt(req.params.id);
-    const body: { answer: string } = req.body;
+    const body: Partial<Question> = req.body;
 
     const question = (await updateQuestionByIdQuery(
       questionId,
-      body.answer || "",
+      body,
     )) as Question;
 
     if (!question) {

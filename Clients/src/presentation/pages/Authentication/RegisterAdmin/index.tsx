@@ -17,10 +17,11 @@ import type {
 } from "../../../../application/validations/formValidation";
 import VWToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
-import { User } from "../../../../domain/User";
-import { getUserForLogging } from "../../../../application/tools/userHelpers";
 import { useDispatch } from "react-redux";
-import { setUserExists, setAuthToken } from "../../../../application/authentication/authSlice";
+import {
+  setUserExists,
+  setAuthToken,
+} from "../../../../application/authentication/authSlice";
 
 // Initial state for form values
 const initialState: FormValues = {
@@ -53,8 +54,8 @@ const RegisterAdmin: React.FC = () => {
 
   useEffect(() => {
     localStorage.clear();
-    dispatch(setAuthToken(''));
-  }, [])
+    dispatch(setAuthToken(""));
+  }, []);
 
   // Handle input field changes
   const handleChange =
@@ -70,7 +71,7 @@ const RegisterAdmin: React.FC = () => {
     setIsSubmitting(true);
 
     const { isFormValid, errors } = validateForm(values);
-    console.log(isFormValid)
+    console.log(isFormValid);
     if (!isFormValid) {
       setErrors(errors);
       setIsSubmitting(false);
@@ -83,22 +84,12 @@ const RegisterAdmin: React.FC = () => {
     })
       .then((response) => {
         setValues(initialState);
-        setErrors({}); 
-
-        const userData = response?.data?.data?.user;
-
-        const user: User = {
-          id: Number(userData?.id) || 0,
-          email: userData?.email ?? values.email,
-          name: userData?.name ?? values.name ?? "N/A",
-          surname: userData?.surname ?? values.surname ?? "N/A",
-        };
+        setErrors({});
 
         if (response.status === 201) {
           logEngine({
             type: "info",
             message: "Account created successfully.",
-            user: getUserForLogging(user), 
           });
           setTimeout(() => {
             setIsSubmitting(false);
@@ -109,7 +100,6 @@ const RegisterAdmin: React.FC = () => {
           logEngine({
             type: "error",
             message: "Bad request. Please check your input.",
-            user: getUserForLogging(user),
           });
           setIsSubmitting(false);
           setAlert({
@@ -121,7 +111,6 @@ const RegisterAdmin: React.FC = () => {
           logEngine({
             type: "event",
             message: "Account already exists.",
-            user: getUserForLogging(user),
           });
           setIsSubmitting(false);
           setAlert({ variant: "error", body: "Account already exists." });
@@ -130,7 +119,6 @@ const RegisterAdmin: React.FC = () => {
           logEngine({
             type: "error",
             message: "Internal server error. Please try again later.",
-            user: getUserForLogging(user),
           });
           setIsSubmitting(false);
           setAlert({
@@ -142,7 +130,6 @@ const RegisterAdmin: React.FC = () => {
           logEngine({
             type: "error",
             message: "Unexpected response. Please try again.",
-            user: getUserForLogging(user),
           });
           setIsSubmitting(false);
           setAlert({
@@ -156,12 +143,6 @@ const RegisterAdmin: React.FC = () => {
         logEngine({
           type: "error",
           message: `An error occurred: ${error.message}`,
-          user: getUserForLogging({
-            id: 0,
-            email: values.email ?? "N/A",
-            name: values.name ?? "N/A",
-            surname: values.surname ?? "N/A",
-          }),
         });
         setIsSubmitting(false);
       });

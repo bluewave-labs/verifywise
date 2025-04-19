@@ -13,11 +13,9 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
   onClose
 }) => {
   const [isReportRequest, setIsReportRequest] = useState<boolean>(false);  
-  const [requestData, setRequestData] = useState({})
 
-  const handleGenerateForm = (FormValues: any) => {    
+  const handleGenerateForm = () => {    
     setIsReportRequest(true);
-    setRequestData(FormValues);
   }
 
   return (

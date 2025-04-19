@@ -12,15 +12,14 @@ export enum RiskLikelihood {
   Unlikely = "Unlikely",
   Possible = "Possible",
   Likely = "Likely",
-  AlmostCertain = "Almost Certain",
+  AlmostCertain = "Almost certain",
 }
-
 export enum RiskSeverity {
-  VeryLow = "Very low risk",
-  Low = "Low risk",
-  Moderate = "Medium risk",
-  High = "High risk",
-  VeryHigh = "Very high risk",
+  Negligible = "Negligible",
+  Minor = "Minor",
+  Moderate = "Moderate",
+  Major = "Major",
+  Catastrophic = "Catastrophic",
 }
 
 // New enums for mitigation form

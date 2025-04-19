@@ -1,6 +1,21 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
 import { store } from "../redux/store"; // Adjust the import path as necessary
 
+// Define the RootState type
+type RootState = {
+  auth: {
+    authToken: string;
+    user: string;
+    userExists: boolean;
+    isLoading: boolean;
+    success: boolean | null;
+    message: string | null;
+    expirationDate: number | null;
+  };
+  ui: any; // You should replace 'any' with the actual UI state type
+  files: any; // You should replace 'any' with the actual files state type
+};
+
 interface RequestParams {
   routeUrl: string;
   body?: any;
@@ -15,7 +30,7 @@ interface RequestParams {
  * @returns {string} The authToken from the Redux store.
  */
 const getAuthToken = (): string => {
-  const state = store.getState();
+  const state = store.getState() as RootState;
   return state.auth.authToken;
 };
 

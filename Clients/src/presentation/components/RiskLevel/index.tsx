@@ -1,7 +1,6 @@
 import { SelectChangeEvent, Stack, Typography, useTheme } from "@mui/material";
 import { FC } from "react";
 import Select from "../Inputs/Select";
-import { RiskLikelihood, RiskSeverity } from "./riskValues";
 import { Likelihood, RISK_LABELS, Severity } from "./constants";
 import { riskSeverityItems, likelihoodItems } from "../AddNewRiskForm/projectRiskValue";
 

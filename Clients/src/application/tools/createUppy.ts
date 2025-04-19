@@ -19,12 +19,16 @@ interface UppyProps {
 /**
  * Creates and configures an instance of Uppy for file uploads.
  *
- * @param {UppyProps} params - The configuration parameters for the Uppy instance.
- * @param {Record<string, any>} params.meta - Metadata to be attached to each file upload.
- * @param {(files: FileData[]) => void} params.onChangeFiles - Callback function triggered when files are successfully uploaded.
- * @param {string[]} params.allowedMetaFields - List of allowed metadata fields for the upload.
- * @param {string} params.routeUrl - The endpoint route URL for file uploads.
- * @param {string} params.authToken - The authentication token for the upload request.
+ * @param {UppyProps} props - The configuration properties for the Uppy instance.
+ * @param {Record<string, unknown>} [props.meta] - Metadata to be included with the upload.
+ * @param {string[]} [props.allowedMetaFields] - List of allowed metadata fields for the upload.
+ * @param {(files: FileData[]) => void} [props.onChangeFiles] - Callback triggered when files are successfully uploaded.
+ * @param {string} props.routeUrl - The route URL to which files will be uploaded.
+ * @param {string} [props.authToken] - Authorization token for the upload request.
+ * @param {Object} [props.restrictions] - Restrictions for the file uploads.
+ * @param {number} [props.restrictions.maxFileSize] - Maximum file size allowed for uploads (in bytes).
+ * @param {number} [props.restrictions.maxNumberOfFiles] - Maximum number of files allowed for uploads.
+ * @param {string[]} [props.restrictions.allowedFileTypes] - List of allowed file types for uploads.
  *
  * @returns {Uppy} - A configured Uppy instance ready for file uploads.
  *
@@ -85,17 +89,7 @@ const createUppy = ({
   uppy.on("upload-success", (_, response) => {
     if (!onChangeFiles || !response?.body?.data) return;
 
-    const data = response.body.data as string[];
-
-    const files: FileData[] = data.reduce((acc: FileData[], file) => {
-      try {
-        const parsedFile = JSON.parse(file);
-        acc.push(parsedFile);
-      } catch (error) {
-        console.error("Error parsing file data:", file, error);
-      }
-      return acc;
-    }, []);
+    const files = response.body.data as FileData[];
 
     onChangeFiles(files);
   });

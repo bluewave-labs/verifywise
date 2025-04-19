@@ -17,7 +17,7 @@ export type Vendor = {
   website: string; // won't get any values, will be filled by user
   vendor_contact_person: string; // won't get any values, will be filled by user
   review_result: string; // won't get any values, will be filled by user
-  review_status: "Active" | "Under review" | "Not active"; // won't get any values, will be filled by user
+  review_status: "Not started" | "In review" | "Reviewed" | "Requires follow-up"; // won't get any values, will be filled by user
   reviewer: number; // won't get any values, will be filled by user
   risk_status:
   | "Very high risk"
@@ -77,9 +77,9 @@ export class VendorModel extends Model<Vendor> {
   review_result!: string;
 
   @Column({
-    type: DataType.ENUM("Active", "Under review", "Not active")
+    type: DataType.ENUM("Not started", "In review", "Reviewed", "Requires follow-up")
   })
-  review_status!: "Active" | "Under review" | "Not active";
+  review_status!: "Not started" | "In review" | "Reviewed" | "Requires follow-up";
 
   @ForeignKey(() => UserModel)
   @Column({

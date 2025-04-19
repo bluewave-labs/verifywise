@@ -4,6 +4,8 @@ import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
   calculateProjectRisks,
   calculateVendirRisks,
+  countAnswersByProjectId,
+  countSubControlsByProjectId,
   createNewProjectQuery,
   deleteProjectByIdQuery,
   getAllProjectsQuery,
@@ -34,83 +36,24 @@ export async function getAllProjects(
   res: Response
 ): Promise<any> {
   try {
-    const projects = await getAllProjectsQuery() as ProjectModel[];
+    const projects = (await getAllProjectsQuery()) as ProjectModel[];
 
     if (projects && projects.length > 0) {
-      for (const project of projects) {
-        // calculating compliances
-        const controlCategories = await getControlCategoryByProjectIdQuery(
-          project.id!
-        );
-        for (const category of controlCategories) {
-          if (category) {
-            const controls = await getAllControlsByControlGroupQuery(
-              category.id
-            );
-            for (const control of controls) {
-              if (control && control.id) {
-                const subControls = await getAllSubcontrolsByControlIdQuery(
-                  control.id
-                );
-                control.numberOfSubcontrols = subControls.length;
-                control.numberOfDoneSubcontrols = subControls.filter(
-                  (subControl) => subControl.status === "Done"
-                ).length;
-                project.dataValues.totalSubcontrols =
-                  (project.dataValues.totalSubcontrols || 0) + subControls.length;
-                project.dataValues.doneSubcontrols =
-                  (project.dataValues.doneSubcontrols || 0) +
-                  control.numberOfDoneSubcontrols;
-              }
-            }
-          }
-        }
+      await Promise.all(
+        projects.map(async (project) => {
+          // calculating compliances
+          const { totalSubcontrols, doneSubcontrols } = await countSubControlsByProjectId(project.id!);
+          project.dataValues.totalSubcontrols = parseInt(totalSubcontrols);
+          project.dataValues.doneSubcontrols = parseInt(doneSubcontrols);
 
-        // calculating assessments
-
-        const assessments = await getAssessmentByProjectIdQuery(project.id!) as AssessmentModel[];
-        if (assessments.length !== 0) {
-          for (const assessment of assessments) {
-            if (assessment.id !== undefined) {
-              const topics = await getTopicByAssessmentIdQuery(assessment.id);
-              if (topics.length !== 0) {
-                for (const topic of topics) {
-                  if (topic.id !== undefined) {
-                    const subtopics = await getSubTopicByTopicIdQuery(topic.id);
-                    if (subtopics.length !== 0) {
-                      for (const subtopic of subtopics) {
-                        if (subtopic.id !== undefined) {
-                          const questions = await getQuestionBySubTopicIdQuery(
-                            subtopic.id
-                          );
-                          if (questions && questions.length > 0) {
-                            project.dataValues.totalAssessments =
-                              (project.dataValues.totalAssessments || 0) +
-                              questions.length;
-
-                            project.dataValues.answeredAssessments =
-                              (project.dataValues.answeredAssessments || 0) +
-                              questions.filter(
-                                (q) =>
-                                  q.answer?.trim().length !== 0 &&
-                                  q.answer !== null &&
-                                  q.answer !== undefined
-                              ).length;
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+          // calculating assessments
+          const { totalAssessments, answeredAssessments } = await countAnswersByProjectId(project.id!);
+          project.dataValues.totalAssessments = parseInt(totalAssessments);
+          project.dataValues.answeredAssessments = parseInt(answeredAssessments);
+        })
+      );
       return res.status(200).json(STATUS_CODE[200](projects));
     }
-
-    return res.status(204).json(STATUS_CODE[204](projects));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -152,10 +95,16 @@ export async function createProject(req: Request, res: Response): Promise<any> {
     }
     console.log(newProject);
 
-    const createdProject = await createNewProjectQuery(newProject, newProject.members);
-    const assessments: Object = await createNewAssessmentQuery({
-      project_id: createdProject.id!,
-    }, newProject.enable_ai_data_insertion);
+    const createdProject = await createNewProjectQuery(
+      newProject,
+      newProject.members
+    );
+    const assessments: Object = await createNewAssessmentQuery(
+      {
+        project_id: createdProject.id!,
+      },
+      newProject.enable_ai_data_insertion
+    );
     const controls = await createNewControlCategories(
       createdProject.id!,
       newProject.enable_ai_data_insertion
@@ -304,12 +253,14 @@ export async function getCompliances(req: Request, res: Response) {
   try {
     const project = await getProjectByIdQuery(projectId);
     if (project) {
-      const controlCategories = await getControlCategoryByProjectIdQuery(
+      const controlCategories = (await getControlCategoryByProjectIdQuery(
         project.id!
-      ) as ControlCategoryModel[];
+      )) as ControlCategoryModel[];
       for (const category of controlCategories) {
         if (category) {
-          const controls = await getAllControlsByControlGroupQuery(category.id) as ControlModel[];
+          const controls = (await getAllControlsByControlGroupQuery(
+            category.id
+          )) as ControlModel[];
           for (const control of controls) {
             if (control && control.id) {
               const subControls = await getAllSubcontrolsByControlIdQuery(
@@ -336,36 +287,14 @@ export async function getCompliances(req: Request, res: Response) {
 
 export async function projectComplianceProgress(req: Request, res: Response) {
   const projectId = parseInt(req.params.id);
-  let totalNumberOfSubcontrols = 0;
-  let totalNumberOfDoneSubcontrols = 0;
   try {
     const project = await getProjectByIdQuery(projectId);
     if (project) {
-      const controlCategories = await getControlCategoryByProjectIdQuery(
-        project.id!
-      );
-      for (const category of controlCategories) {
-        if (category) {
-          const controls = await getAllControlsByControlGroupQuery(category.id) as ControlModel[];
-          for (const control of controls) {
-            if (control && control.id) {
-              const subControls = await getAllSubcontrolsByControlIdQuery(
-                control.id
-              );
-              control.dataValues.numberOfSubcontrols = subControls.length;
-              control.dataValues.numberOfDoneSubcontrols = subControls.filter(
-                (subControl) => subControl.status === "Done"
-              ).length;
-              totalNumberOfSubcontrols += subControls.length;
-              totalNumberOfDoneSubcontrols += control.dataValues.numberOfDoneSubcontrols;
-            }
-          }
-        }
-      }
+      const { totalSubcontrols, doneSubcontrols } = await countSubControlsByProjectId(project.id!);
       return res.status(200).json(
         STATUS_CODE[200]({
-          allsubControls: totalNumberOfSubcontrols,
-          allDonesubControls: totalNumberOfDoneSubcontrols,
+          allsubControls: totalSubcontrols,
+          allDonesubControls: doneSubcontrols,
         })
       );
     } else {
@@ -377,52 +306,15 @@ export async function projectComplianceProgress(req: Request, res: Response) {
 }
 
 export async function projectAssessmentProgress(req: Request, res: Response) {
-  let totalNumberOfQuestions = 0;
   const projectId = parseInt(req.params.id);
-  let totalNumberOfAnsweredQuestions = 0;
   try {
     const project = await getProjectByIdQuery(projectId);
     if (project) {
-      const assessments = await getAssessmentByProjectIdQuery(project.id!);
-      if (assessments.length !== 0) {
-        for (const assessment of assessments) {
-          if (assessment.id !== undefined) {
-            const topics = await getTopicByAssessmentIdQuery(assessment.id);
-            if (topics.length !== 0) {
-              for (const topic of topics) {
-                if (topic.id !== undefined) {
-                  const subtopics = await getSubTopicByTopicIdQuery(topic.id);
-                  if (subtopics.length !== 0) {
-                    for (const subtopic of subtopics) {
-                      if (subtopic.id !== undefined) {
-                        const questions = await getQuestionBySubTopicIdQuery(
-                          subtopic.id
-                        );
-                        if (questions.length !== 0) {
-                          totalNumberOfQuestions =
-                            totalNumberOfQuestions + questions.length;
-                          for (const question of questions) {
-                            if (
-                              question.answer &&
-                              question.answer.trim() !== ""
-                            ) {
-                              totalNumberOfAnsweredQuestions++;
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+      const { totalAssessments, answeredAssessments } = await countAnswersByProjectId(project.id!);
       return res.status(200).json(
         STATUS_CODE[200]({
-          totalQuestions: totalNumberOfQuestions,
-          answeredQuestions: totalNumberOfAnsweredQuestions,
+          totalQuestions: totalAssessments,
+          answeredQuestions: answeredAssessments,
         })
       );
     } else {
@@ -442,37 +334,20 @@ export async function allProjectsComplianceProgress(
   try {
     const projects = await getAllProjectsQuery();
     if (projects && projects.length > 0) {
-      for (const project of projects) {
-        const controlCategories = await getControlCategoryByProjectIdQuery(
-          project.id!
-        );
-        for (const category of controlCategories) {
-          if (category) {
-            const controls = await getAllControlsByControlGroupQuery(
-              category.id
-            );
-            for (const control of controls) {
-              if (control && control.id) {
-                const subControls = await getAllSubcontrolsByControlIdQuery(
-                  control.id
-                );
-                control.numberOfSubcontrols = subControls.length;
-                control.numberOfDoneSubcontrols = subControls.filter(
-                  (subControl) => subControl.status === "Done"
-                ).length;
-                totalNumberOfSubcontrols += subControls.length;
-                totalNumberOfDoneSubcontrols += control.numberOfDoneSubcontrols;
-              }
-            }
-          }
-        }
-        return res.status(200).json(
-          STATUS_CODE[200]({
-            allsubControls: totalNumberOfSubcontrols,
-            allDonesubControls: totalNumberOfDoneSubcontrols,
-          })
-        );
-      }
+      await Promise.all(
+        projects.map(async (project) => {
+          // calculating compliances
+          const { totalSubcontrols, doneSubcontrols } = await countSubControlsByProjectId(project.id!);
+          totalNumberOfSubcontrols += parseInt(totalSubcontrols);
+          totalNumberOfDoneSubcontrols += parseInt(doneSubcontrols);
+        })
+      );
+      return res.status(200).json(
+        STATUS_CODE[200]({
+          allsubControls: totalNumberOfSubcontrols,
+          allDonesubControls: totalNumberOfDoneSubcontrols,
+        })
+      );
     } else {
       return res.status(404).json(STATUS_CODE[404](projects));
     }
@@ -490,50 +365,20 @@ export async function allProjectsAssessmentProgress(
   try {
     const projects = await getAllProjectsQuery();
     if (projects && projects.length > 0) {
-      for (const project of projects) {
-        const assessments = await getAssessmentByProjectIdQuery(project.id!);
-        if (assessments.length !== 0) {
-          for (const assessment of assessments) {
-            if (assessment.id !== undefined) {
-              const topics = await getTopicByAssessmentIdQuery(assessment.id);
-              if (topics.length !== 0) {
-                for (const topic of topics) {
-                  if (topic.id !== undefined) {
-                    const subtopics = await getSubTopicByTopicIdQuery(topic.id);
-                    if (subtopics.length !== 0) {
-                      for (const subtopic of subtopics) {
-                        if (subtopic.id !== undefined) {
-                          const questions = await getQuestionBySubTopicIdQuery(
-                            subtopic.id
-                          );
-                          if (questions.length !== 0) {
-                            totalNumberOfQuestions =
-                              totalNumberOfQuestions + questions.length;
-                            for (const question of questions) {
-                              if (
-                                question.answer &&
-                                question.answer.trim() !== ""
-                              ) {
-                                totalNumberOfAnsweredQuestions++;
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-        return res.status(200).json(
-          STATUS_CODE[200]({
-            totalQuestions: totalNumberOfQuestions,
-            answeredQuestions: totalNumberOfAnsweredQuestions,
-          })
-        );
-      }
+      await Promise.all(
+        projects.map(async (project) => {
+          // // calculating assessments
+          const { totalAssessments, answeredAssessments } = await countAnswersByProjectId(project.id!);
+          totalNumberOfQuestions = parseInt(totalAssessments);
+          totalNumberOfAnsweredQuestions = parseInt(answeredAssessments);
+        })
+      );
+      return res.status(200).json(
+        STATUS_CODE[200]({
+          totalQuestions: totalNumberOfQuestions,
+          answeredQuestions: totalNumberOfAnsweredQuestions,
+        })
+      );
     } else {
       return res.status(404).json(STATUS_CODE[404](projects));
     }

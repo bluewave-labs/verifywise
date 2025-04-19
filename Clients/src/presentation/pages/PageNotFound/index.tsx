@@ -1,7 +1,6 @@
 import { ReactComponent as Background } from "../../assets/imgs/background-grid.svg";
 import { ReactComponent as LeftArrowLong } from "../../assets/icons/left-arrow-long.svg";
 import { Typography, Stack, useTheme } from '@mui/material';
-import singleTheme from '../../themes/v1SingleTheme';
 import { useNavigate } from 'react-router-dom';
 
 function PageNotFound() {

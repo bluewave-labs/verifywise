@@ -2,13 +2,13 @@ import { styled } from "@mui/material/styles";
 import { TableRow, Box } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
 
-export const StyledTableRow = styled(TableRow)<{ isFlashing: number }>(({ theme, isFlashing }) => ({
+export const StyledTableRow = styled(TableRow)<{ isflashing: number }>(({ isflashing }) => ({
   '& > *': {
-    backgroundColor: isFlashing ? '#e3f5e6' : 'inherit',
+    backgroundColor: isflashing ? '#e3f5e6' : 'inherit',
     transition: 'background-color 0.3s ease',
   },
   '&:hover > *': {
-    backgroundColor: isFlashing ? '#e3f5e6' : "#FBFBFB",
+    backgroundColor: isflashing ? '#e3f5e6' : "#FBFBFB",
     cursor: 'pointer',
   }
 }));

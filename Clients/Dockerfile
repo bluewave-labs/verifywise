@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # Step 6: Build the application
-RUN npm run build-dev
+RUN npm run build
 
 # Step 7: Use a lightweight web server for production
 FROM nginx:1.25-alpine

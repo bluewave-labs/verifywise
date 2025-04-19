@@ -2,13 +2,13 @@ import React, {
   useState,
   useEffect,
   useContext,
-  useCallback,
   useMemo,
+  forwardRef,
 } from "react";
 import { Stack, Box, Typography, useTheme, Theme } from "@mui/material";
-import { getEntityById } from "../../../application/repository/entity.repository";
 import PageTour from "../../components/PageTour";
-import CustomStep from "../../components/PageTour/CustomStep";
+import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
+import FileSteps from "./FileSteps";
 import VWSkeleton from "../../vw-v2-components/Skeletons";
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import { useFetchFiles } from "../../../application/hooks/useFetchFiles";
@@ -16,29 +16,13 @@ import FileTable from "../../components/Table/FileTable/FileTable";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
 
-const COLUMN_NAMES = ["File", "Upload Date", "Uploader"];
-
-interface FileStep {
-  target: string;
-  content: JSX.Element;
-  placement: "left" | "right" | "top" | "bottom";
-}
+const COLUMN_NAMES = ["File", "Upload Date", "Uploader", "Action"];
 
 interface Column {
   id: number;
   name: string;
   sx: { width: string };
 }
-
-const FILE_STEPS: FileStep[] = [
-  {
-    target: '[data-joyride-id="file-manager-title"]',
-    content: (
-      <CustomStep body="This table lists all the files uploaded to the system." />
-    ),
-    placement: "left",
-  },
-];
 
 const COLUMNS: Column[] = COLUMN_NAMES.map((name, index) => ({
   id: index + 1,
@@ -59,19 +43,13 @@ const FileManager: React.FC = (): JSX.Element => {
   const { dashboardValues } = useContext(VerifyWiseContext);
   const theme = useTheme();
   const [runFileTour, setRunFileTour] = useState(false);
+  const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({
+    countToTrigger: 1,
+  });
+
   const { selectedProjectId } = dashboardValues;
   const projectID = selectedProjectId?.toString();
   const { filesData, loading } = useFetchFiles(projectID);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleRowClick = useCallback(async (fileId: string) => {
-    try {
-      await getEntityById({ routeUrl: `/files/${fileId}` });
-    } catch (error) {
-      console.error("Error fetching file details", error);
-      setError("Failed to fetch file details");
-    }
-  }, []);
 
   const boxStyles = useMemo(
     () => ({
@@ -84,48 +62,56 @@ const FileManager: React.FC = (): JSX.Element => {
   );
 
   useEffect(() => {
-    setRunFileTour(true);
-  }, []);
-
-  if (error) {
-    return <Typography color="error">{error}</Typography>;
-  }
+    if (allVisible) {
+      setRunFileTour(true);
+    }
+  }, [allVisible]);
 
   return (
     <Stack className="vwhome" gap={"20px"}>
       <PageTour
-        steps={FILE_STEPS}
+        steps={FileSteps}
         run={runFileTour}
-        onFinish={() => setRunFileTour(false)}
+        onFinish={() => {
+          localStorage.setItem("file-tour", "true");
+          setRunFileTour(false);
+        }}
+        tourKey="file-tour"
       />
-      <FileManagerHeader theme={theme} />
+      <FileManagerHeader theme={theme} ref={refs[0]} />
       {loading ? (
         <VWSkeleton variant="rectangular" sx={filesTablePlaceholder} />
       ) : (
         <Box sx={boxStyles}>
-          <FileTable
-            cols={COLUMNS}
-            files={filesData}
-            onRowClick={handleRowClick}
-          />
+          <FileTable cols={COLUMNS} files={filesData} />
         </Box>
       )}
     </Stack>
   );
 };
 
-const FileManagerHeader: React.FC<{ theme: Theme }> = ({ theme }) => (
-  <Stack className="vwhome-header" data-joyride-id="file-manager-title">
-    <Typography sx={vwhomeHeading}>Evidences & documents</Typography>
-    <Typography
-      sx={{
-        color: theme.palette.text.secondary,
-        fontSize: theme.typography.fontSize,
-      }}
+/**
+ * Header component for the FileManager.
+ * Uses React.forwardRef to handle the ref passed from the parent component.
+ */
+const FileManagerHeader = forwardRef<HTMLDivElement, { theme: Theme }>(
+  ({ theme }, ref) => (
+    <Stack
+      className="vwhome-header"
+      ref={ref}
+      data-joyride-id="file-manager-title"
     >
-      This table lists all the files uploaded to the system.
-    </Typography>
-  </Stack>
+      <Typography sx={vwhomeHeading}>Evidences & documents</Typography>
+      <Typography
+        sx={{
+          color: theme.palette.text.secondary,
+          fontSize: theme.typography.fontSize,
+        }}
+      >
+        This table lists all the files uploaded to the system.
+      </Typography>
+    </Stack>
+  )
 );
 
 export default FileManager;

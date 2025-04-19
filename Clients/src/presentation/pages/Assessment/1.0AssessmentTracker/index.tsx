@@ -1,4 +1,4 @@
-import { useCallback, useContext, useState } from "react";
+import { useCallback, useContext, useState, useEffect } from "react";
 import {
   Box,
   Divider,
@@ -24,28 +24,35 @@ import useAssessmentProgress from "../../../../application/hooks/useAssessmentPr
 import useAssessmentData from "../../../../application/hooks/useAssessmentData";
 import useAssessmentTopics from "../../../../application/hooks/useAssessmentTopcis";
 import useAssessmentSubtopics from "../../../../application/hooks/useAssessmentSubtopics";
+import PageTour from "../../../components/PageTour";
+import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
+import AssessmentSteps from "./AssessmentSteps";
 
 const AssessmentTracker = () => {
   const theme = useTheme();
-  const [refreshKey, setRefreshKey] = useState(false)
-  const { dashboardValues } = useContext(VerifyWiseContext);
-  const { selectedProjectId } = dashboardValues;
-  const { assessmentProgress, loading: loadingAssessmentProgress } = useAssessmentProgress({
-    selectedProjectId,refreshKey
-  })
-  const { assessmentData } = useAssessmentData({
-    selectedProjectId,
-  })
-  const { assessmentTopics, loading: loadingAssessmentTopics } = useAssessmentTopics({
-    assessmentId: assessmentData?.id,
-  })
-
+  const [refreshKey, setRefreshKey] = useState(false);
+  const { currentProjectId } = useContext(VerifyWiseContext);
   const [activeTab, setActiveTab] = useState<number>(0);
+  const [runAssessmentTour, setRunAssessmentTour] = useState(false);
 
-  const {assessmentSubtopics, loading: loadingAssessmentSubtopic} = useAssessmentSubtopics({
-    activeAssessmentTopicId: assessmentTopics?.[activeTab]?.id,
-  })
+  const { assessmentProgress, loading: loadingAssessmentProgress } = useAssessmentProgress({ selectedProjectId: currentProjectId || "", refreshKey });
+  const { assessmentData, loading: loadingAssessmentData } = useAssessmentData({ selectedProjectId: currentProjectId || "" });
+  const { assessmentTopics, loading: loadingAssessmentTopics } = useAssessmentTopics({ assessmentId: assessmentData?.id });
+  const { assessmentSubtopics, loading: loadingAssessmentSubtopic } = useAssessmentSubtopics({ activeAssessmentTopicId: assessmentTopics?.[activeTab]?.id });
 
+  const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({ countToTrigger: 2,  });
+
+  useEffect(() => {
+    if (allVisible) {    
+      setRunAssessmentTour(true);
+    }
+  }, [allVisible]);
+
+  // Reset active tab when project changes
+  useEffect(() => {
+    setActiveTab(0);
+    setRefreshKey((prev) => !prev); // Force refresh when project changes
+  }, [currentProjectId]);
 
   const handleListItemClick = useCallback((index: number) => {
     setActiveTab(index);
@@ -53,7 +60,7 @@ const AssessmentTracker = () => {
 
   const topicsList = useCallback(
     (topic: any, index: number) => (
-      <ListItem key={index} disablePadding sx={listItemStyle}>
+      <ListItem key={topic.id || index} disablePadding sx={listItemStyle}>
         <ListItemButton
           disableRipple
           selected={index === activeTab}
@@ -85,8 +92,35 @@ const AssessmentTracker = () => {
     [activeTab, handleListItemClick, theme.palette.text.primary]
   );
 
+  // Show loading state if we're loading the initial assessment data
+  if (loadingAssessmentData) {
+    return (
+      <Stack sx={{ padding: 2 }}>
+        <VWSkeleton height={400} variant="rectangular" />
+      </Stack>
+    );
+  }
+
+  // Show message if no project is selected
+  if (!currentProjectId) {
+    return (
+      <Stack sx={{ padding: 2 }}>
+        <Typography>Please select a project to view assessments</Typography>
+      </Stack>
+    );
+  }
+
   return (
     <Stack className="assessment-tracker">
+      <PageTour
+        run={runAssessmentTour}
+        steps={AssessmentSteps}
+        onFinish={() => {
+          localStorage.setItem("assessment-tour", "true");
+          setRunAssessmentTour(false);
+        }}
+        tourKey="assessment-tour"
+      />
       <Stack
         className="assessment-tracker-holder"
         sx={{
@@ -97,6 +131,8 @@ const AssessmentTracker = () => {
         <Typography sx={pageHeadingStyle}>Assessment tracker</Typography>
         <Stack
           sx={{ maxWidth: 1400, marginTop: "10px", gap: theme.spacing(10) }}
+          data-joyride-id="assessment-progress-bar"
+          ref={refs[0]}
         >
           {loadingAssessmentProgress ? (
             <VWSkeleton
@@ -123,7 +159,11 @@ const AssessmentTracker = () => {
         <Divider sx={{ marginY: 10 }} />
         <Box sx={{ display: "flex", height: "100vh", paddingX: "8px" }}>
           <Stack sx={topicsListStyle}>
-            <Typography sx={subHeadingStyle}>
+            <Typography
+              sx={subHeadingStyle}
+              data-joyride-id="assessment-topics"
+              ref={refs[1]}
+            >
               High risk conformity assessment
             </Typography>
             <List>
@@ -166,7 +206,10 @@ const AssessmentTracker = () => {
             ) : assessmentSubtopics ? (
               assessmentSubtopics.map((subtopic: any, index: number) => (
                 <div key={`subtopic-${subtopic.id || index}`}>
-                  <Questions subtopic={subtopic} setRefreshKey={() => setRefreshKey((prev) => !prev)} />
+                  <Questions
+                    subtopic={subtopic}
+                    setRefreshKey={() => setRefreshKey((prev) => !prev)}
+                  />
                 </div>
               ))
             ) : (

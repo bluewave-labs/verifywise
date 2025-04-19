@@ -23,7 +23,6 @@ import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import Alert from "../../../components/Alert"; // Import Alert component
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
-import { clearAuthState } from "../../../../application/authentication/authSlice";
 import VWButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -130,12 +129,6 @@ const ProfileForm: React.FC = () => {
         logEngine({
           type: "error",
           message: "Failed to fetch user data.",
-          user: {
-            id: String(localStorage.getItem("userId")) || "N/A",
-            email: "N/A",
-            firstname: "N/A",
-            lastname: "N/A",
-          },
         });
       } finally {
         setLoading(false);
@@ -158,12 +151,6 @@ const ProfileForm: React.FC = () => {
         logEngine({
           type: "error",
           message: "Validation errors occured while saving the profile.",
-          user: {
-            id: "N/A",
-            email,
-            firstname,
-            lastname,
-          },
         });
         setAlert({
           variant: "error",
@@ -203,12 +190,6 @@ const ProfileForm: React.FC = () => {
       logEngine({
         type: "error",
         message: "An error occured while updating the profile.",
-        user: {
-          id: String(localStorage.getItem("userId")) || "N/A",
-          email,
-          firstname,
-          lastname,
-        },
       });
       setAlert({
         variant: "error",
@@ -372,7 +353,7 @@ const ProfileForm: React.FC = () => {
       //clear all storage
       await localStorage.removeItem("userId");
       await localStorage.removeItem("authToken");
-      
+
       // Use the logout hook instead of directly dispatching
       logout();
 
@@ -388,12 +369,6 @@ const ProfileForm: React.FC = () => {
       logEngine({
         type: "error",
         message: "An error occured while deleting the account.",
-        user: {
-          id: String(localStorage.getItem("userId")) || "N/A",
-          email,
-          firstname,
-          lastname,
-        },
       });
       setAlert({
         variant: "error",

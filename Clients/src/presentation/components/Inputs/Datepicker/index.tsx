@@ -97,7 +97,7 @@ const DatePicker = ({
               height: "20px",
             },
             "& button:before": {
-              content: "url('/src/presentation/assets/icons/calendar.svg')",
+              content: "url('/assets/icons/calendar.svg')",
               display: "block",
               position: "absolute",
               top: 0,

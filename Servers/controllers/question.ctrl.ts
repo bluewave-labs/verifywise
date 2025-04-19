@@ -13,6 +13,7 @@ import {
   getQuestionByTopicIdQuery,
 } from "../utils/question.utils";
 import { Question } from "../models/question.model";
+import { updateProjectUpdatedByIdQuery } from "../utils/project.utils";
 
 export async function getAllQuestions(
   req: Request,
@@ -91,16 +92,19 @@ export async function updateQuestionById(
 ): Promise<any> {
   try {
     const questionId = parseInt(req.params.id);
-    const body: { answer: string } = req.body;
+    const body: Partial<Question> = req.body;
 
     const question = (await updateQuestionByIdQuery(
       questionId,
-      body.answer || "",
+      body,
     )) as Question;
 
     if (!question) {
       return res.status(404).json(STATUS_CODE[404]({}));
     }
+
+    // Update the project's last updated date
+    await updateProjectUpdatedByIdQuery(questionId, "questions");
 
     return res.status(202).json(STATUS_CODE[202](question));
   } catch (error) {

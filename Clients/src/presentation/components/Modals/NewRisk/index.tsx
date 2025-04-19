@@ -26,15 +26,18 @@ import Alert from "../../Alert";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import useUsers from "../../../../application/hooks/useUsers";
-import { Likelihood, RISK_LABELS, Severity } from "../../RiskLevel/constants";
-import { RiskLikelihood, RiskSeverity } from "../../RiskLevel/riskValues";
 import VWToast from "../../../vw-v2-components/Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
-import { User } from "../../../../domain/User";
-import { getUserForLogging } from "../../../../application/tools/userHelpers";
 import VWButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
-import { riskSeverityItems, likelihoodItems } from "../../AddNewRiskForm/projectRiskValue";
+import {
+  riskSeverityItems,
+  likelihoodItems,
+} from "../../AddNewRiskForm/projectRiskValue";
+
+import { RiskCalculator } from "../../../tools/riskCalculator";
+
+import { RiskLikelihood, RiskSeverity } from "../../RiskLevel/riskValues";
 
 interface ExistingRisk {
   id?: number;
@@ -90,26 +93,27 @@ const RISK_LEVEL_OPTIONS = [
 ];
 
 const LIKELIHOOD_OPTIONS = [
-  { _id: Likelihood.Rare, name: RiskLikelihood.Rare },
-  { _id: Likelihood.Unlikely, name: RiskLikelihood.Unlikely },
-  { _id: Likelihood.Possible, name: RiskLikelihood.Possible },
-  { _id: Likelihood.Likely, name: RiskLikelihood.Likely },
-  { _id: Likelihood.AlmostCertain, name: RiskLikelihood.AlmostCertain },
-];
+  { _id: 1, name: RiskLikelihood.Rare },
+  { _id: 2, name: RiskLikelihood.Unlikely },
+  { _id: 3, name: RiskLikelihood.Possible },
+  { _id: 4, name: RiskLikelihood.Likely },
+  { _id: 5, name: RiskLikelihood.AlmostCertain },
+] as const;
+
+const RISK_SEVERITY_OPTIONS = [
+  { _id: 1, name: RiskSeverity.Negligible },
+  { _id: 2, name: RiskSeverity.Minor },
+  { _id: 3, name: RiskSeverity.Moderate },
+  { _id: 4, name: RiskSeverity.Major },
+  { _id: 5, name: RiskSeverity.Catastrophic },
+] as const;
 
 const IMPACT_OPTIONS = [
   { _id: 1, name: "Negligible" },
   { _id: 2, name: "Minor" },
   { _id: 3, name: "Moderate" },
-  { _id: 4, name: "Critical" },
-];
-
-const RISK_SEVERITY_OPTIONS = [
-  { _id: Severity.VeryLow, name: RISK_LABELS.noRisk.text },
-  { _id: Severity.Low, name: RISK_LABELS.low.text },
-  { _id: Severity.Moderate, name: RISK_LABELS.medium.text },
-  { _id: Severity.High, name: RISK_LABELS.high.text },
-  { _id: Severity.VeryHigh, name: RISK_LABELS.critical.text },
+  { _id: 4, name: "Major" },
+  { _id: 5, name: "Critical" },
 ];
 
 const AddNewRisk: React.FC<AddNewRiskProps> = ({
@@ -149,13 +153,6 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
   } | null>(null);
 
   const { users } = useUsers();
-
-  const user: User = {
-    id: Number(localStorage.getItem("userId")) || -1,
-    email: "N/A",
-    name: "N/A",
-    surname: "N/A",
-  };
   const formattedUsers = users?.map((user) => ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
@@ -181,9 +178,8 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           formattedUsers?.find((user) => user._id === existingRisk.action_owner)
             ?._id || "",
         risk_severity:
-          RISK_SEVERITY_OPTIONS.find(
-            (r) => r.name === existingRisk.risk_severity
-          )?._id || 0,
+          riskSeverityItems.find((r) => r.name === existingRisk.risk_severity)
+            ?._id || 0,
         likelihood:
           LIKELIHOOD_OPTIONS.find((r) => r.name === existingRisk.likelihood)
             ?._id || 0,
@@ -208,22 +204,10 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
    * @param field - The field name to update
    * @param value - The new value
    */
-  const getRiskLevel = (score: number): { text: string; color: string } => {
-    if (score <= 3) {
-      return RISK_LABELS.low;
-    } else if (score <= 6) {
-      return RISK_LABELS.medium;
-    } else if (score <= 9) {
-      return RISK_LABELS.high;
-    } else {
-      return RISK_LABELS.critical;
-    }
-  };
 
   const handleOnChange = (field: string, value: string | number) => {
     setValues((prevValues) => ({
       ...prevValues,
-
       [field]: value,
     }));
     setErrors({ ...errors, [field]: "" });
@@ -290,10 +274,24 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
    */
 
   const handleOnSave = async () => {
-    const risk_risklevel = getRiskLevel(
-      values.likelihood * values.risk_severity
+    const selectedLikelihood = LIKELIHOOD_OPTIONS.find(
+      (r) => r._id === values.likelihood
+    );
+    const selectedSeverity = RISK_SEVERITY_OPTIONS.find(
+      (r) => r._id === values.risk_severity
+    );
+    if (!selectedLikelihood || !selectedSeverity) {
+      console.error("Could not find selected likelihood or severity");
+      return;
+    }
+
+    // Use RiskCalculator to get the risk level
+    const risk_risklevel = RiskCalculator.getRiskLevel(
+      selectedLikelihood?.name,
+      selectedSeverity?.name
     );
     const _riskDetails = {
+      vendor_id: values.vendor_id,
       risk_description: values.risk_description,
       impact_description: values.impact_description,
       impact:
@@ -302,13 +300,9 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
         (user) => user._id === values.action_owner
       )?._id,
       action_plan: values.action_plan,
-      risk_severity:
-        RISK_SEVERITY_OPTIONS.find((r) => r._id === values.risk_severity)
-          ?.name || "",
-      risk_level: risk_risklevel.text,
-      likelihood:
-        LIKELIHOOD_OPTIONS.find((r) => r._id === values.likelihood)?.name || "",
-      vendor_id: values.vendor_id,
+      risk_severity: selectedSeverity.name,
+      risk_level: risk_risklevel.level,
+      likelihood: selectedLikelihood.name,
     };
     if (existingRisk) {
       await updateRisk(existingRisk.id!, _riskDetails);
@@ -351,7 +345,6 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
       logEngine({
         type: "error",
         message: "Unexpected response. Please try again.",
-        user: getUserForLogging(user),
       });
 
       setAlert({
@@ -403,7 +396,6 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
       logEngine({
         type: "error",
         message: "Unexpected response. Please try again.",
-        user: getUserForLogging(user),
       });
 
       setAlert({

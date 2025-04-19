@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import { Button, Stack, Typography, useTheme, Box } from "@mui/material";
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
@@ -32,7 +28,7 @@ export interface AlertType {
 }
 
 // Initial state for form values
-const initialState: FormValues = {  
+const initialState: FormValues = {
   name: "",
   surname: "",
   email: "",
@@ -42,13 +38,13 @@ const initialState: FormValues = {
 
 const RegisterUser: React.FC = () => {
   const navigate = useNavigate();
-  const {registerUser} = useRegisterUser();
+  const { registerUser } = useRegisterUser();
   // Extract user token
   const [searchParams] = useSearchParams();
-  const userToken = searchParams.get("token"); 
+  const userToken = searchParams.get("token");
   const [isInvitationValid, setIsInvitationValid] = useState<boolean>(true);
   const [alert, setAlert] = useState<AlertType | null>(null);
-    
+
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
   // State for form errors
@@ -76,6 +72,7 @@ const RegisterUser: React.FC = () => {
       id: "At register level as user",
       firstname: values.name || "",
       lastname: values.surname || "",
+      role: Number(values.role) || 1,
     };
     const { isFormValid, errors } = validateForm(values);
     if (!isFormValid) {
@@ -98,14 +95,14 @@ const RegisterUser: React.FC = () => {
         logEngine({
           type: "error",
           message: "Registration failed.",
-          user,
         });
         setIsSubmitting(false);
-        
+
         handleAlert({
           variant: "error",
-          body: isSuccess === 409 ? "User already exist." : "Registration failed.",
-          setAlert
+          body:
+            isSuccess === 409 ? "User already exist." : "Registration failed.",
+          setAlert,
         });
       }
     }
@@ -119,38 +116,39 @@ const RegisterUser: React.FC = () => {
     backgroundColor: "#fff",
   };
 
-  const checkValidInvitation = (expDate: any) => {    
+  const checkValidInvitation = (expDate: any) => {
     let todayDate = new Date();
     let currentTime = todayDate.getTime();
-    console.log(currentTime)
+    console.log(currentTime);
 
-    if(currentTime < expDate){
+    if (currentTime < expDate) {
       setIsInvitationValid(true);
-    }else{
-      console.log("The link has expired already.")
+    } else {
+      console.log("The link has expired already.");
       setIsInvitationValid(false);
     }
     return isInvitationValid;
-  }
+  };
 
   useEffect(() => {
-    if(userToken !== null){
+    if (userToken !== null) {
       const userInfo = extractUserToken(userToken);
-      console.log(userInfo)      
-      if(userInfo !== null){        
+      console.log(userInfo);
+      if (userInfo !== null) {
         const isValidLink = checkValidInvitation(userInfo?.expire);
 
-        if(isValidLink){
+        if (isValidLink) {
           const userData: FormValues = {
             ...initialState,
             name: userInfo.name ?? "",
-            email: userInfo.email ?? ""
-          }
-          setValues(userData)
+            email: userInfo.email ?? "",
+            role: Number(userInfo.role) ?? 1,
+          };
+          setValues(userData);
         }
       }
     }
-  }, [userToken])
+  }, [userToken]);
 
   return (
     <Stack
@@ -188,126 +186,132 @@ const RegisterUser: React.FC = () => {
         }}
       />
       <form onSubmit={handleSubmit}>
-          <Stack
-            className="reg-user-form"
+        <Stack
+          className="reg-user-form"
+          sx={{
+            width: 360,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100%",
+            margin: "auto",
+            mt: 40,
+            gap: theme.spacing(20),
+          }}
+        >
+          <Typography
             sx={{
-              width: 360,
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "100%",
-              margin: "auto",
-              mt: 40,
-              gap: theme.spacing(20),
+              fontSize: 40,
             }}
           >
+            Verify
+            <span style={{ color: singleTheme.textColors.theme }}>Wise</span>
+          </Typography>
+          {isInvitationValid === true ? (
+            <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>
+              Create VerifyWise user account
+            </Typography>
+          ) : (
             <Typography
               sx={{
-                fontSize: 40,
+                fontSize: 16,
+                fontWeight: "semi-bold",
+                color: "error.main",
               }}
             >
-              Verify
-              <span style={{ color: singleTheme.textColors.theme }}>Wise</span>
+              This invitation link is expired. You need to be invited again to
+              gain access to the dashboard
             </Typography>
-            {isInvitationValid === true ? 
-              <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>
-                Create VerifyWise user account
-              </Typography>
-            : 
-              <Typography sx={{ fontSize: 16, fontWeight: "semi-bold", color: 'error.main'}}>
-                This invitation link is expired. 
-                You need to be invited again to gain access to the dashboard
-              </Typography>
-            }
+          )}
 
-            <Stack sx={{ gap: theme.spacing(7.5) }}>
-              <Field
-                label="Name"
-                isRequired
-                placeholder="Your name"
-                sx={fieldStyles}
-                value={values.name}
-                onChange={handleChange("name")}
-                error={errors.name}
-                disabled={!isInvitationValid}
+          <Stack sx={{ gap: theme.spacing(7.5) }}>
+            <Field
+              label="Name"
+              isRequired
+              placeholder="Your name"
+              sx={fieldStyles}
+              value={values.name}
+              onChange={handleChange("name")}
+              error={errors.name}
+              disabled={!isInvitationValid}
+            />
+            <Field
+              label="Surname"
+              isRequired
+              placeholder="Your surname"
+              sx={fieldStyles}
+              value={values.surname}
+              onChange={handleChange("surname")}
+              error={errors.surname}
+              disabled={!isInvitationValid}
+            />
+            <Field
+              label="Email"
+              isRequired
+              placeholder="name.surname@companyname.com"
+              sx={fieldStyles}
+              type="email"
+              value={values.email}
+              onChange={handleChange("email")}
+              error={errors.email}
+              disabled
+            />
+            <Field
+              label="Password"
+              isRequired
+              placeholder="Create a password"
+              sx={fieldStyles}
+              type="password"
+              value={values.password}
+              onChange={handleChange("password")}
+              error={errors.password}
+              disabled={!isInvitationValid}
+            />
+            <Field
+              label="Confirm password"
+              isRequired
+              placeholder="Confirm your password"
+              sx={fieldStyles}
+              type="password"
+              value={values.confirmPassword}
+              onChange={handleChange("confirmPassword")}
+              error={errors.confirmPassword}
+              disabled={!isInvitationValid}
+            />
+            <Stack
+              sx={{
+                gap: theme.spacing(6),
+              }}
+            >
+              <Check
+                text="Must be at least 8 characters"
+                variant={passwordChecks.length ? "success" : "info"}
               />
-              <Field
-                label="Surname"
-                isRequired
-                placeholder="Your surname"
-                sx={fieldStyles}
-                value={values.surname}
-                onChange={handleChange("surname")}
-                error={errors.surname}
-                disabled={!isInvitationValid}
+              <Check
+                text="Must contain one special character"
+                variant={passwordChecks.specialChar ? "success" : "info"}
               />
-              <Field
-                label="Email"
-                isRequired
-                placeholder="name.surname@companyname.com"
-                sx={fieldStyles}
-                type="email"
-                value={values.email}
-                onChange={handleChange("email")}
-                error={errors.email}
-                disabled
+              <Check
+                text="Must contain at least one uppercase letter"
+                variant={passwordChecks.uppercase ? "success" : "info"}
               />
-              <Field
-                label="Password"
-                isRequired
-                placeholder="Create a password"
-                sx={fieldStyles}
-                type="password"
-                value={values.password}
-                onChange={handleChange("password")}
-                error={errors.password}
-                disabled={!isInvitationValid}
+              <Check
+                text="Must contain atleast one number"
+                variant={passwordChecks.number ? "success" : "info"}
               />
-              <Field
-                label="Confirm password"
-                isRequired
-                placeholder="Confirm your password"
-                sx={fieldStyles}
-                type="password"
-                value={values.confirmPassword}
-                onChange={handleChange("confirmPassword")}
-                error={errors.confirmPassword}
-                disabled={!isInvitationValid}
-              />
-              <Stack
-                sx={{
-                  gap: theme.spacing(6),
-                }}
-              >
-                <Check
-                  text="Must be at least 8 characters"
-                  variant={passwordChecks.length ? "success" : "info"}
-                />
-                <Check
-                  text="Must contain one special character"
-                  variant={passwordChecks.specialChar ? "success" : "info"}
-                />
-                <Check
-                  text="Must contain at least one uppercase letter"
-                  variant={passwordChecks.uppercase ? "success" : "info"}
-                />
-                <Check
-                  text="Must contain atleast one number"
-                  variant={passwordChecks.number ? "success" : "info"}
-                />
-              </Stack>
-              <Button
-                type="submit"
-                disableRipple
-                variant="contained"
-                sx={singleTheme.buttons.primary}
-                disabled={!isInvitationValid}
-              >
-                Get started 
-              </Button> 
             </Stack>
+            <Button
+              type="submit"
+              disableRipple
+              variant="contained"
+              sx={singleTheme.buttons.primary}
+              disabled={!isInvitationValid}
+            >
+              Get started
+            </Button>
           </Stack>
-        </form>
+        </Stack>
+      </form>
     </Stack>
   );
 };

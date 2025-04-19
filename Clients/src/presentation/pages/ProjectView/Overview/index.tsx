@@ -119,7 +119,7 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
         <Stack sx={styles.block}>
           <Typography sx={styles.title}>Last updated</Typography>
           <Typography sx={styles.value}>
-            {formatDate(project.last_updated)}
+            {formatDate(project.last_updated.toISOString())}
           </Typography>
         </Stack>
         <Stack sx={styles.block}>

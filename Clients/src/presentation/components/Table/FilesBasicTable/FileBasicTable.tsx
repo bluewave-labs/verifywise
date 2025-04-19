@@ -12,18 +12,12 @@ import {
 } from "@mui/material";
 import TablePaginationActions from "../../TablePagination";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { useEffect } from "react";
-import { useCallback } from "react";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { FileData } from "../../../../domain/File";
+import IconButton from "../../IconButton";
+import { handleDownload } from "../../../../application/tools/fileDownload";
 
 const DEFAULT_ROWS_PER_PAGE = 5;
-
-interface FileData {
-  id: string;
-  name: string;
-  uploadDate: string;
-  uploader: string;
-}
 
 interface Column {
   id: number;
@@ -39,9 +33,6 @@ interface FileBasicTableProps {
   bodyData: FileData[];
   paginated?: boolean;
   table: string;
-  onRowClick: (id: string) => void;
-  setSelectedRow: (row: any) => void;
-  setAnchorEl: (element: HTMLElement | null) => void;
 }
 
 const FileBasicTable: React.FC<FileBasicTableProps> = ({
@@ -49,9 +40,6 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
   bodyData,
   paginated = false,
   table,
-  onRowClick,
-  setSelectedRow,
-  setAnchorEl,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -70,15 +58,6 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
     },
     []
   );
-
-  const onRowClickHandler = (
-    event: React.MouseEvent<HTMLTableRowElement>,
-    rowData: any
-  ) => {
-    setSelectedRow(rowData);
-    setAnchorEl(event.currentTarget);
-    onRowClick(rowData.id);
-  };
 
   const paginatedRows = bodyData.slice(
     page * rowsPerPage,
@@ -113,16 +92,26 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
             {paginatedRows.map((row) => (
               <TableRow
                 key={row.id}
-                onClick={(e) => onRowClickHandler(e, row)}
                 sx={{
                   ...singleTheme.tableStyles.primary.body.row,
                   height: "36px",
-                  "&:hover": { backgroundColor: "#FBFBFB", cursor: "pointer" },
+                  "&:hover": { backgroundColor: "#FBFBFB" },
                 }}
               >
-                <TableCell>{row.name}</TableCell>
+                <TableCell>{row.fileName}</TableCell>
                 <TableCell>{row.uploadDate}</TableCell>
                 <TableCell>{row.uploader}</TableCell>
+                <TableCell>
+                  <IconButton
+                    id={Number(row.id)}
+                    type="report"
+                    onEdit={() => handleDownload(row.id, row.fileName)}
+                    onDelete={() => {}}
+                    warningTitle="Are you sure you want to download this file?"
+                    warningMessage="This action will download the file to your local machine."
+                    onMouseEvent={() => {}}
+                  />
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

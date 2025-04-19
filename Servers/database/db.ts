@@ -32,7 +32,7 @@ const sequelize = new Sequelize(
     host: conf.host!,
     port: Number(conf.port!),
     dialect: conf.dialect! as Dialect,
-    logging: true,
+    logging: false,
     models: [
       RoleModel,
       AssessmentModel,

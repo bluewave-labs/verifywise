@@ -7,42 +7,36 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import VWProjectCard from "../../../components/Cards/ProjectCard";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
-import {
-  getAllEntities,
-  postAutoDrivers,
-} from "../../../../application/repository/entity.repository";
+import { postAutoDrivers } from "../../../../application/repository/entity.repository";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import NoProject from "../../../components/NoProject/NoProject";
 import VWToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 import { logEngine } from "../../../../application/tools/log.engine";
 import VWProjectForm from "../../../vw-v2-components/Forms/ProjectForm";
+import {
+  AssessmentProgress,
+  ComplianceProgress,
+} from "../../../../application/interfaces/iprogress";
+import { useProjectData } from "../../../../application/hooks/useFetchProjects";
+import { AlertState } from "../../../../application/interfaces/appStates";
+import { User } from "../../../../domain/User";
+import { fetchData } from "../../../../application/hooks/fetchDataHook";
 
 const VWHome = () => {
   const { setDashboardValues } = useContext(VerifyWiseContext);
-  const [complianceProgress, setComplianceProgress] = useState<any>({});
-  const [assessmentProgress, setAssessmentProgress] = useState<any>({});
-  const [projects, setProjects] = useState<any[]>([]);
-  const [_, setUsers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [complianceProgress, setComplianceProgress] =
+    useState<ComplianceProgress>();
+  const [assessmentProgress, setAssessmentProgress] =
+    useState<AssessmentProgress>();
+  const [_, setUsers] = useState<User[]>([]);
   const [__, setIsGeneratingDemoData] = useState(false);
-  const [alert, setAlert] = useState<{
-    variant: "success" | "info" | "warning" | "error";
-    title?: string;
-    body: string;
-  } | null>();
+  const [alert, setAlert] = useState<AlertState>();
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
   const [shouldFetchProjects, setShouldFetchProjects] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
-  const fetchData = async (routeUrl: string, setData: (data: any) => void) => {
-    try {
-      const response = await getAllEntities({ routeUrl });
-      setData(response.data);
-    } catch (error) {
-      console.error(`Error fetching data from ${routeUrl}:`, error);
-    }
-  };
+  const { projects, loading: projectLoading, fetchProjects } = useProjectData();
 
   useEffect(() => {
     const fetchProgressData = async () => {
@@ -58,12 +52,11 @@ const VWHome = () => {
         "/projects/all/assessment/progress",
         setAssessmentProgress
       );
-      await fetchData("/projects", setProjects);
-      setLoading(false);
+      await fetchProjects();
     };
 
     fetchProgressData();
-  }, [setDashboardValues, shouldFetchProjects]);
+  }, [setDashboardValues, shouldFetchProjects, fetchProjects]);
 
   const handleProjectFormClose = () => {
     setIsProjectFormOpen(false);
@@ -73,30 +66,23 @@ const VWHome = () => {
   async function generateDemoData() {
     setIsGeneratingDemoData(true);
     setShowToast(true);
-    const user = {
-      id: "demo-user-id", // Replace with actual user ID
-      email: "demo-user@example.com", // Replace with actual user email
-      firstname: "Demo",
-      lastname: "User",
-    };
     try {
       const response = await postAutoDrivers();
       if (response.status === 201) {
         logEngine({
           type: "info",
           message: "Demo data generated successfully.",
-          user,
         });
         setAlert({
           variant: "success",
           body: "Demo data generated successfully.",
         });
         setTimeout(() => {
-          setAlert(null);
+          setAlert(undefined);
         }, 3000);
 
         // Fetch the updated data
-        await fetchData("/projects", setProjects);
+        await fetchProjects();
         await fetchData(
           "/projects/all/compliance/progress",
           setComplianceProgress
@@ -110,14 +96,13 @@ const VWHome = () => {
         logEngine({
           type: "error",
           message: "Failed to generate demo data.",
-          user,
         });
         setAlert({
           variant: "error",
           body: "Failed to generate demo data.",
         });
         setTimeout(() => {
-          setAlert(null);
+          setAlert(undefined);
         }, 3000);
       }
     } catch (error) {
@@ -125,14 +110,13 @@ const VWHome = () => {
       logEngine({
         type: "error",
         message: `An error occurred: ${errorMessage}`,
-        user,
       });
       setAlert({
         variant: "error",
         body: `An error occurred: ${errorMessage}`,
       });
       setTimeout(() => {
-        setAlert(null);
+        setAlert(undefined);
       }, 3000);
     } finally {
       setIsGeneratingDemoData(false);
@@ -140,9 +124,6 @@ const VWHome = () => {
       setShouldFetchProjects((prev) => !prev);
     }
   }
-
-  console.log("complianceProgress: ", complianceProgress);
-  console.log("assessmentProgress: ", assessmentProgress);
 
   return (
     <Stack className="vwhome">
@@ -152,7 +133,7 @@ const VWHome = () => {
           title={alert.title}
           body={alert.body}
           isToast={true}
-          onClick={() => setAlert(null)}
+          onClick={() => setAlert(undefined)}
         />
       )}
       {showToast && <VWToast title="Generating demo data. Please wait..." />}
@@ -169,7 +150,7 @@ const VWHome = () => {
             gap: "20px",
           }}
         >
-          {loading ? (
+          {projectLoading ? (
             <VWSkeleton variant="rectangular" sx={headerCardPlaceholder} />
           ) : (
             <SmallStatsCard
@@ -183,7 +164,7 @@ const VWHome = () => {
               }
             />
           )}
-          {loading ? (
+          {projectLoading ? (
             <VWSkeleton variant="rectangular" sx={headerCardPlaceholder} />
           ) : (
             <SmallStatsCard
@@ -221,7 +202,7 @@ const VWHome = () => {
               gap: 2,
             }}
           >
-            {!projects && (
+            {projects.length === 0 && (
               <VWButton
                 variant="contained"
                 text="Insert demo data"
@@ -306,7 +287,6 @@ const VWHome = () => {
       </Stack>
       <Modal
         open={isProjectFormOpen}
-        // open={true}
         onClose={handleProjectFormClose}
         aria-labelledby="modal-title"
         aria-describedby="modal-description"

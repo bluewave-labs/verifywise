@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { getEntityById } from "../repository/entity.repository";
+import { useSelector } from "react-redux";
 
 /**
  * Represents the status of a project, including assessments and controls.
@@ -75,10 +76,48 @@ export const defaultProjectStatus: ProjectStatus = {
 };
 
 const useProjectStatus = ({ userId }: { userId: string }) => {
-  const [projectStatus, setProjectStatus] =
-    useState<ProjectStatus>(defaultProjectStatus);
+  const [projectStatus, setProjectStatus] = useState<ProjectStatus>(defaultProjectStatus);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | boolean>(false);
+  
+  // Get auth token from Redux store
+  const authToken = useSelector((state: { auth: { authToken: string } }) => state.auth.authToken);
+
+  const fetchProjectStatus = useCallback(async (signal: AbortSignal) => {
+    try {
+      const response = await getEntityById({
+        routeUrl: `/users/${userId}/calculate-progress`,
+        signal,
+      });
+
+      setProjectStatus({
+        assessments: {
+          percentageComplete:
+            (response.allDoneAssessments / response.allTotalAssessments) *
+            100,
+          allDoneAssessments: response.allDoneAssessments,
+          allTotalAssessments: response.allTotalAssessments,
+          projects: response.assessmentsMetadata,
+        },
+        controls: {
+          percentageComplete:
+            (response.allDoneSubControls / response.allTotalSubControls) *
+            100,
+          allDoneSubControls: response.allDoneSubControls,
+          allTotalSubControls: response.allTotalSubControls,
+          projects: response.controlsMetadata,
+        },
+      });
+    } catch (error) {
+      if (!signal.aborted) {
+        setError(error instanceof Error ? error.message : String(error));
+      }
+    } finally {
+      if (!signal.aborted) {
+        setLoading(false);
+      }
+    }
+  }, [userId]);
 
   useEffect(() => {
     if (!userId) {
@@ -87,52 +126,30 @@ const useProjectStatus = ({ userId }: { userId: string }) => {
       return;
     }
 
+    // Only fetch project status if user is logged in (authToken exists)
+    if (!authToken) {
+      setLoading(false);
+      setError("User not authenticated");
+      return;
+    }
+
     const controller = new AbortController();
     setLoading(true);
+    setError(false);
 
-    const fetchProjectStatus = async () => {
-      try {
-        const response = await getEntityById({
-          routeUrl: `/users/${userId}/calculate-progress`,
-          signal: controller.signal,
-        });
-
-        setProjectStatus({
-          assessments: {
-            percentageComplete:
-              (response.allDoneAssessments / response.allTotalAssessments) *
-              100,
-            allDoneAssessments: response.allDoneAssessments,
-            allTotalAssessments: response.allTotalAssessments,
-            projects: response.assessmentsMetadata,
-          },
-          controls: {
-            percentageComplete:
-              (response.allDoneSubControls / response.allTotalSubControls) *
-              100,
-            allDoneSubControls: response.allDoneSubControls,
-            allTotalSubControls: response.allTotalSubControls,
-            projects: response.controlsMetadata,
-          },
-        });
-      } catch (error) {
-        setError(error instanceof Error ? error.message : String(error));
-      } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
-      }
-    };
-    fetchProjectStatus();
+    fetchProjectStatus(controller.signal);
 
     return () => controller.abort();
-  }, [userId]);
+  }, [userId, authToken, fetchProjectStatus]);
 
-  return {
+  // Memoize the returned object to prevent unnecessary re-renders
+  const memoizedProjectStatus = useMemo(() => ({
     projectStatus: projectStatus ?? defaultProjectStatus,
     loading,
     error,
-  };
+  }), [projectStatus, loading, error]);
+
+  return memoizedProjectStatus;
 };
 
 export default useProjectStatus;

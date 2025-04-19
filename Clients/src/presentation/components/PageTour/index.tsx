@@ -2,26 +2,33 @@ import Joyride, { Step } from "react-joyride";
 import React, { useEffect, useState } from "react";
 
 interface PageTourProps {
-  steps: Step[];
+  steps: PageTourStep[];
   run: boolean;
   onFinish?: () => void;
+  tourKey: string;
 }
 
-const PageTour: React.FC<PageTourProps> = ({ steps, run, onFinish }) => {
+export interface PageTourStep {
+  target: string;
+  content: JSX.Element;
+  placement?: "left" | "right" | "top" | "bottom" | "top-start" | "bottom-start" | "bottom-end" | "top-end";
+}
+
+const PageTour: React.FC<PageTourProps> = ({ steps, run, onFinish, tourKey }) => {
   const [shouldRun, setShouldRun] = useState(false);
 
   useEffect(() => {
     //always check if tour was seen first before running it
-    const hasSeenTour = localStorage.getItem("hasSeenTour");
+    const hasSeenTour = localStorage.getItem(tourKey);
     if (!hasSeenTour && run) {
       setShouldRun(true);
     }
-  }, [run]);
+  }, [run, tourKey]);
 
   const handleCallback = (data: any) => {
     const { status } = data;
     if (status === "finished" || status === "skipped") {
-      localStorage.setItem("hasSeenTour", "true");
+      localStorage.setItem(tourKey, "true");
       setShouldRun(false);
       if (onFinish) {
         onFinish();
@@ -38,7 +45,7 @@ const PageTour: React.FC<PageTourProps> = ({ steps, run, onFinish }) => {
 
   return (
     <Joyride
-      steps={steps}
+      steps={steps as Step[]}
       run={shouldRun}
       continuous
       hideCloseButton

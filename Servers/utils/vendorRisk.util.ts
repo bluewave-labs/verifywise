@@ -77,7 +77,7 @@ export const updateVendorRiskByIdQuery = async (
     "action_owner",
     "risk_level",
   ].filter(f => {
-    if (vendorRisk[f as keyof VendorRisk] !== undefined) {
+    if (vendorRisk[f as keyof VendorRisk] !== undefined && vendorRisk[f as keyof VendorRisk]) {
       updateVendorRisk[f as keyof VendorRisk] = vendorRisk[f as keyof VendorRisk]
       return true
     }

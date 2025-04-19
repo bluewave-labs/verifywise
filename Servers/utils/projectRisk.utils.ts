@@ -116,7 +116,7 @@ export const updateProjectRiskByIdQuery = async (
     "approval_status",
     "date_of_assessment",
   ].filter(f => {
-    if (projectRisk[f as keyof ProjectRisk] !== undefined) {
+    if (projectRisk[f as keyof ProjectRisk] !== undefined && projectRisk[f as keyof ProjectRisk]) {
       updateProjectRisk[f as keyof ProjectRisk] = projectRisk[f as keyof ProjectRisk]
       return true
     }

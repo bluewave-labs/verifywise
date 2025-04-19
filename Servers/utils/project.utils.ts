@@ -269,7 +269,7 @@ export const updateProjectByIdQuery = async (
     "last_updated",
     "last_updated_by"
   ].filter(f => {
-    if (project[f as keyof Project] !== undefined) {
+    if (project[f as keyof Project] !== undefined && project[f as keyof Project]) {
       updateProject[f as keyof Project] = project[f as keyof Project]
       return true
     }

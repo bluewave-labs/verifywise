@@ -87,7 +87,7 @@ export const updateControlCategoryByIdQuery = async (
 ): Promise<ControlCategory | null> => {
   const updateControlCategory: Partial<Record<keyof ControlCategory, any>> = {};
   const setClause = ["title"].filter(f => {
-    if (controlCategory[f as keyof ControlCategory] !== undefined) {
+    if (controlCategory[f as keyof ControlCategory] !== undefined && controlCategory[f as keyof ControlCategory]) {
       updateControlCategory[f as keyof ControlCategory] = controlCategory[f as keyof ControlCategory]
       return true
     }

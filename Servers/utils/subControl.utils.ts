@@ -175,7 +175,7 @@ export const updateSubcontrolByIdQuery = async (
       updateSubControl['feedback_files'] = JSON.stringify(currentFeedbackFiles);
       return true;
     }
-    if (subcontrol[f as keyof Subcontrol] !== undefined) {
+    if (subcontrol[f as keyof Subcontrol] !== undefined && subcontrol[f as keyof Subcontrol]) {
       updateSubControl[f as keyof Subcontrol] = subcontrol[f as keyof Subcontrol]
       return true
     }

@@ -25,47 +25,51 @@ import { fetchData } from "../../../../application/hooks/fetchDataHook";
 
 const VWHome = () => {
   const { setDashboardValues } = useContext(VerifyWiseContext);
-  const [complianceProgress, setComplianceProgress] =
+
+  const [complianceProgressData, setComplianceProgressData] =
     useState<ComplianceProgress>();
-  const [assessmentProgress, setAssessmentProgress] =
+  const [assessmentProgressData, setAssessmentProgressData] =
     useState<AssessmentProgress>();
-  const [_, setUsers] = useState<User[]>([]);
-  const [__, setIsGeneratingDemoData] = useState(false);
-  const [alert, setAlert] = useState<AlertState>();
-  const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
-  const [shouldFetchProjects, setShouldFetchProjects] = useState(false);
-  const [showToast, setShowToast] = useState(false);
+  const [_, setUserList] = useState<User[]>([]);
+  const [__, setIsDemoDataGenerating] = useState<boolean>(false);
+  const [alertState, setAlertState] = useState<AlertState>();
+  const [isProjectFormModalOpen, setIsProjectFormModalOpen] =
+    useState<boolean>(false);
+  const [refreshProjectsFlag, setRefreshProjectsFlag] =
+    useState<boolean>(false);
+  const [showToastNotification, setShowToastNotification] =
+    useState<boolean>(false);
 
   const { projects, loading: projectLoading, fetchProjects } = useProjectData();
 
   useEffect(() => {
     const fetchProgressData = async () => {
       await fetchData("/users", (data) => {
-        setUsers(data);
+        setUserList(data);
         setDashboardValues({ users: data });
       });
       await fetchData(
         "/projects/all/compliance/progress",
-        setComplianceProgress
+        setComplianceProgressData
       );
       await fetchData(
         "/projects/all/assessment/progress",
-        setAssessmentProgress
+        setAssessmentProgressData
       );
       await fetchProjects();
     };
 
     fetchProgressData();
-  }, [setDashboardValues, shouldFetchProjects, fetchProjects]);
+  }, [setDashboardValues, refreshProjectsFlag, fetchProjects]);
 
-  const handleProjectFormClose = () => {
-    setIsProjectFormOpen(false);
-    setShouldFetchProjects((prev) => !prev);
+  const handleProjectFormModalClose = () => {
+    setIsProjectFormModalOpen(false);
+    setRefreshProjectsFlag((prev) => !prev);
   };
 
-  async function generateDemoData() {
-    setIsGeneratingDemoData(true);
-    setShowToast(true);
+  const handleGenerateDemoDataClick = async () => {
+    setIsDemoDataGenerating(true);
+    setShowToastNotification(true);
     try {
       const response = await postAutoDrivers();
       if (response.status === 201) {
@@ -73,23 +77,23 @@ const VWHome = () => {
           type: "info",
           message: "Demo data generated successfully.",
         });
-        setAlert({
+        setAlertState({
           variant: "success",
           body: "Demo data generated successfully.",
         });
         setTimeout(() => {
-          setAlert(undefined);
+          setAlertState(undefined);
         }, 3000);
 
         // Fetch the updated data
         await fetchProjects();
         await fetchData(
           "/projects/all/compliance/progress",
-          setComplianceProgress
+          setComplianceProgressData
         );
         await fetchData(
           "/projects/all/assessment/progress",
-          setAssessmentProgress
+          setAssessmentProgressData
         );
         window.location.reload();
       } else {
@@ -97,12 +101,12 @@ const VWHome = () => {
           type: "error",
           message: "Failed to generate demo data.",
         });
-        setAlert({
+        setAlertState({
           variant: "error",
           body: "Failed to generate demo data.",
         });
         setTimeout(() => {
-          setAlert(undefined);
+          setAlertState(undefined);
         }, 3000);
       }
     } catch (error) {
@@ -111,32 +115,34 @@ const VWHome = () => {
         type: "error",
         message: `An error occurred: ${errorMessage}`,
       });
-      setAlert({
+      setAlertState({
         variant: "error",
         body: `An error occurred: ${errorMessage}`,
       });
       setTimeout(() => {
-        setAlert(undefined);
+        setAlertState(undefined);
       }, 3000);
     } finally {
-      setIsGeneratingDemoData(false);
-      setShowToast(false);
-      setShouldFetchProjects((prev) => !prev);
+      setIsDemoDataGenerating(false);
+      setShowToastNotification(false);
+      setRefreshProjectsFlag((prev) => !prev);
     }
-  }
+  };
 
   return (
     <Stack className="vwhome">
-      {alert && (
+      {alertState && (
         <Alert
-          variant={alert.variant}
-          title={alert.title}
-          body={alert.body}
+          variant={alertState.variant}
+          title={alertState.title}
+          body={alertState.body}
           isToast={true}
-          onClick={() => setAlert(undefined)}
+          onClick={() => setAlertState(undefined)}
         />
       )}
-      {showToast && <VWToast title="Generating demo data. Please wait..." />}
+      {showToastNotification && (
+        <VWToast title="Generating demo data. Please wait..." />
+      )}
       <Stack className="vwhome-header" sx={{ mb: 15 }}>
         <Typography sx={vwhomeHeading}>
           All projects compliance status
@@ -156,11 +162,17 @@ const VWHome = () => {
             <SmallStatsCard
               attributeTitle="Compliance tracker"
               progress={`${
-                complianceProgress ? complianceProgress.allDonesubControls : 0
-              }/${complianceProgress ? complianceProgress.allsubControls : 1}`}
+                complianceProgressData
+                  ? complianceProgressData.allDonesubControls
+                  : 0
+              }/${
+                complianceProgressData
+                  ? complianceProgressData.allsubControls
+                  : 1
+              }`}
               rate={
-                (complianceProgress?.allDonesubControls ?? 0) /
-                (complianceProgress?.allsubControls ?? 1)
+                (complianceProgressData?.allDonesubControls ?? 0) /
+                (complianceProgressData?.allsubControls ?? 1)
               }
             />
           )}
@@ -169,13 +181,13 @@ const VWHome = () => {
           ) : (
             <SmallStatsCard
               attributeTitle="Assessment tracker"
-              progress={`${assessmentProgress?.answeredQuestions ?? 0}/${
-                assessmentProgress?.totalQuestions ?? 1
+              progress={`${assessmentProgressData?.answeredQuestions ?? 0}/${
+                assessmentProgressData?.totalQuestions ?? 1
               }`}
               rate={
-                assessmentProgress
-                  ? (assessmentProgress.answeredQuestions ?? 0) /
-                    (assessmentProgress.totalQuestions ?? 1)
+                assessmentProgressData
+                  ? (assessmentProgressData.answeredQuestions ?? 0) /
+                    (assessmentProgressData.totalQuestions ?? 1)
                   : 0
               }
             />
@@ -212,7 +224,7 @@ const VWHome = () => {
                   gap: 2,
                 }}
                 icon={<CloudDownloadIcon />}
-                onClick={() => generateDemoData()}
+                onClick={() => handleGenerateDemoDataClick()}
               />
             )}
 
@@ -225,7 +237,7 @@ const VWHome = () => {
                 gap: 2,
               }}
               icon={<AddCircleOutlineIcon />}
-              onClick={() => setIsProjectFormOpen(true)}
+              onClick={() => setIsProjectFormModalOpen(true)}
             />
           </Stack>
         </Stack>
@@ -286,8 +298,8 @@ const VWHome = () => {
         </Stack>
       </Stack>
       <Modal
-        open={isProjectFormOpen}
-        onClose={handleProjectFormClose}
+        open={isProjectFormModalOpen}
+        onClose={handleProjectFormModalClose}
         aria-labelledby="modal-title"
         aria-describedby="modal-description"
       >
@@ -303,7 +315,7 @@ const VWHome = () => {
             borderRadius: 1,
           }}
         >
-          <VWProjectForm onClose={handleProjectFormClose} />
+          <VWProjectForm onClose={handleProjectFormModalClose} />
         </Box>
       </Modal>
     </Stack>

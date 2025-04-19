@@ -1,16 +1,15 @@
 import { extractUserToken } from "./extractToken";
 import { store } from "../redux/store";
-import { useContext } from "react";
-import { VerifyWiseContext } from "../contexts/VerifyWise.context";
 
 interface LogProps {
   type: "info" | "error" | "event";
   message: string;
   timestamp?: Date;
+  users?: any[]; // Add users as an optional parameter
 }
 
 export function logEngine(props: LogProps) {
-  const { type, message, timestamp = new Date() } = props;
+  const { type, message, timestamp = new Date(), users = [] } = props;
 
   // Get auth token from Redux store
   const state = store.getState();
@@ -18,10 +17,6 @@ export function logEngine(props: LogProps) {
 
   // Extract user info from token
   const tokenUser = authToken ? extractUserToken(authToken) : null;
-
-  // Get users from VerifyWiseContext
-  const { dashboardValues } = useContext(VerifyWiseContext);
-  const users = dashboardValues?.users || [];
 
   // Find user in users list
   const contextUser = tokenUser?.id

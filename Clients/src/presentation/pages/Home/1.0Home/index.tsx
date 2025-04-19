@@ -29,7 +29,6 @@ import {
 } from "../../../../application/interfaces/iprogress";
 import { useProjectData } from "../../../../application/hooks/useFetchProjects";
 import { AlertState } from "../../../../application/interfaces/appStates";
-import { User } from "../../../../domain/User";
 import { fetchData } from "../../../../application/hooks/fetchDataHook";
 
 const VWHome = () => {
@@ -39,8 +38,6 @@ const VWHome = () => {
     useState<ComplianceProgress>();
   const [assessmentProgressData, setAssessmentProgressData] =
     useState<AssessmentProgress>();
-  const [_, setUserList] = useState<User[]>([]);
-  const [__, setIsDemoDataGenerating] = useState<boolean>(false);
   const [alertState, setAlertState] = useState<AlertState>();
   const [isProjectFormModalOpen, setIsProjectFormModalOpen] =
     useState<boolean>(false);
@@ -54,7 +51,6 @@ const VWHome = () => {
   useEffect(() => {
     const fetchProgressData = async () => {
       await fetchData("/users", (data) => {
-        setUserList(data);
         setDashboardValues({ users: data });
       });
       await fetchData(
@@ -77,7 +73,6 @@ const VWHome = () => {
   };
 
   const handleGenerateDemoDataClick = async () => {
-    setIsDemoDataGenerating(true);
     setShowToastNotification(true);
     try {
       const response = await postAutoDrivers();
@@ -92,9 +87,8 @@ const VWHome = () => {
         });
         setTimeout(() => {
           setAlertState(undefined);
-        }, 3000);
+        }, 100);
 
-        // Fetch the updated data
         await fetchProjects();
         await fetchData(
           "/projects/all/compliance/progress",
@@ -104,6 +98,7 @@ const VWHome = () => {
           "/projects/all/assessment/progress",
           setAssessmentProgressData
         );
+        setShowToastNotification(false);
         window.location.reload();
       } else {
         logEngine({
@@ -116,8 +111,9 @@ const VWHome = () => {
         });
         setTimeout(() => {
           setAlertState(undefined);
-        }, 3000);
+        }, 100);
       }
+      setShowToastNotification(false);
     } catch (error) {
       const errorMessage = (error as Error).message;
       logEngine({
@@ -130,9 +126,8 @@ const VWHome = () => {
       });
       setTimeout(() => {
         setAlertState(undefined);
-      }, 3000);
+      }, 100);
     } finally {
-      setIsDemoDataGenerating(false);
       setShowToastNotification(false);
       setRefreshProjectsFlag((prev) => !prev);
     }

@@ -1,5 +1,5 @@
 import { Button, Stack, Typography, useTheme } from "@mui/material";
-import React, { Suspense, useState, useEffect } from "react";
+import React, { Suspense, useState, useEffect, useContext } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Check from "../../../components/Checks";
 import Field from "../../../components/Inputs/Field";
@@ -22,6 +22,7 @@ import {
   setUserExists,
   setAuthToken,
 } from "../../../../application/authentication/authSlice";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 // Initial state for form values
 const initialState: FormValues = {
@@ -36,6 +37,8 @@ const initialState: FormValues = {
 const RegisterAdmin: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { dashboardValues } = useContext(VerifyWiseContext);
+  const users = dashboardValues?.users || [];
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
   // State for form errors
@@ -90,6 +93,7 @@ const RegisterAdmin: React.FC = () => {
           logEngine({
             type: "info",
             message: "Account created successfully.",
+            users,
           });
           setTimeout(() => {
             setIsSubmitting(false);
@@ -100,6 +104,7 @@ const RegisterAdmin: React.FC = () => {
           logEngine({
             type: "error",
             message: "Bad request. Please check your input.",
+            users,
           });
           setIsSubmitting(false);
           setAlert({
@@ -111,6 +116,7 @@ const RegisterAdmin: React.FC = () => {
           logEngine({
             type: "event",
             message: "Account already exists.",
+            users,
           });
           setIsSubmitting(false);
           setAlert({ variant: "error", body: "Account already exists." });
@@ -119,6 +125,7 @@ const RegisterAdmin: React.FC = () => {
           logEngine({
             type: "error",
             message: "Internal server error. Please try again later.",
+            users,
           });
           setIsSubmitting(false);
           setAlert({
@@ -130,6 +137,7 @@ const RegisterAdmin: React.FC = () => {
           logEngine({
             type: "error",
             message: "Unexpected response. Please try again.",
+            users,
           });
           setIsSubmitting(false);
           setAlert({
@@ -143,6 +151,7 @@ const RegisterAdmin: React.FC = () => {
         logEngine({
           type: "error",
           message: `An error occurred: ${error.message}`,
+          users,
         });
         setIsSubmitting(false);
       });

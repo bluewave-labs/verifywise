@@ -21,7 +21,6 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
     projects,
     setProjects,
     setRunHomeTour,
-    setHomeTourRefs,
     runHomeTour,
   } = useContext(VerifyWiseContext);
   const location = useLocation();
@@ -41,10 +40,6 @@ console.log("refs visibility state:", refs.map((ref,i)=>[i, !!ref]))
       setRunHomeTour(true);
     }
   }, [allVisible]);
-
-  useEffect(() => {
-    setHomeTourRefs(refs.map(() => null));
-  }, []);
 
   useEffect(() => {
     const fetchProjects = async () => {

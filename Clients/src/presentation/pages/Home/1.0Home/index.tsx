@@ -27,7 +27,7 @@ import PageTour from "../../../components/PageTour";
 import HomeSteps from "./HomeSteps";
 
 const VWHome = () => {
-  const { setDashboardValues,homeTourRefs,runHomeTour, setRunHomeTour } = useContext(VerifyWiseContext);
+  const { setDashboardValues, runHomeTour, setRunHomeTour } = useContext(VerifyWiseContext);
   const [complianceProgress, setComplianceProgress] =
     useState<ComplianceProgress>();
   const [assessmentProgress, setAssessmentProgress] =
@@ -141,7 +141,6 @@ const VWHome = () => {
   console.log("assessmentProgress: ", assessmentProgress);
 
   console.log("runhometour: ", runHomeTour);
-  console.log("homeTourRefs: ", homeTourRefs);
 
   return (
     <Stack className="vwhome">
@@ -235,7 +234,6 @@ const VWHome = () => {
             )}
             <div
               data-joyride-id="new-project-button"
-              ref={(el) => (homeTourRefs[0] = el)}
             >
               <VWButton
                 variant="contained"

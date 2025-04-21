@@ -21,7 +21,7 @@ import { ComponentVisible } from "./application/interfaces/ComponentVisible";
 
 function App() {
   const mode = useSelector((state: AppState) => state.ui?.mode || "light");
-  const token = useSelector((state: AppState) => state.auth?.authToken);
+  const token = useSelector((state: AppState) => state.auth?.authToken); 
 
   const [uiValues, setUiValues] = useState<unknown | undefined>({});
   const [authValues, setAuthValues] = useState<unknown | undefined>({});

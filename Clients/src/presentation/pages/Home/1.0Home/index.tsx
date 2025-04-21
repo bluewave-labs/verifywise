@@ -25,9 +25,10 @@ import { useProjectData } from "../../../../application/hooks/useFetchProjects";
 import { AlertState } from "../../../../application/interfaces/appStates";
 import PageTour from "../../../components/PageTour";
 import HomeSteps from "./HomeSteps";
+import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
 
 const VWHome = () => {
-  const { setDashboardValues, runHomeTour, setRunHomeTour } = useContext(VerifyWiseContext);
+  const { setDashboardValues, setRunHomeTour, runHomeTour, setComponentsVisible } = useContext(VerifyWiseContext);
   const [complianceProgress, setComplianceProgress] =
     useState<ComplianceProgress>();
   const [assessmentProgress, setAssessmentProgress] =
@@ -40,6 +41,19 @@ const VWHome = () => {
   const [showToast, setShowToast] = useState(false);
 
   const { projects, loading: projectLoading, fetchProjects } = useProjectData();
+
+  const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
+    countToTrigger: 1,
+  });
+  useEffect(()=>{
+    if(allVisible){
+      setComponentsVisible((prev) => ({
+        ...prev,
+        home: true,
+      }));
+      setRunHomeTour(true);
+    }
+  },[allVisible]);
 
   const fetchData = async (routeUrl: string, setData: (data: any) => void) => {
     try {
@@ -140,8 +154,6 @@ const VWHome = () => {
   console.log("complianceProgress: ", complianceProgress);
   console.log("assessmentProgress: ", assessmentProgress);
 
-  console.log("runhometour: ", runHomeTour);
-
   return (
     <Stack className="vwhome">
       {alert && (
@@ -234,6 +246,7 @@ const VWHome = () => {
             )}
             <div
               data-joyride-id="new-project-button"
+              ref={refs[0]}
             >
               <VWButton
                 variant="contained"

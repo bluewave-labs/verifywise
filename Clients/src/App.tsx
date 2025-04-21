@@ -81,6 +81,7 @@ const changeComponentVisibility = useCallback(
       runHomeTour,
       setRunHomeTour,
       componentsVisible,
+      setComponentsVisible,
       changeComponentVisibility,
     }),
     [
@@ -104,6 +105,7 @@ const changeComponentVisibility = useCallback(
       runHomeTour,
       setRunHomeTour,
       componentsVisible,
+      setComponentsVisible,
       changeComponentVisibility,
     ]
   );

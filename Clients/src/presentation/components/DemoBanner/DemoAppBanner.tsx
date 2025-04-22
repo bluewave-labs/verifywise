@@ -1,26 +1,16 @@
-import { Box, Typography } from "@mui/material";
 import { ENV_VARs } from "../../../../env.vars";
-import styles from "./styles";
+import { Container, Text } from './styles';
 
-interface DemoAppBannerProps {
-    sx?: React.CSSProperties;
-}
+const DemoAppBanner = () => {
 
-const DemoAppBanner = ({ sx }: DemoAppBannerProps) => {
-
-    const isDemoApp = ENV_VARs.IS_DEMO_APP;
-    if (!isDemoApp) {
+    if (!ENV_VARs.IS_DEMO_APP) {
         return null;
     }
 
     return (
-        <Box
-            sx={{ ...styles.container, ...sx }}
-        >
-            <Typography sx={styles.text} >
-                You're viewing a public demo of the VerifyWise AI governance platform. Feel free to explore using demo data, but please don't enter any personal or company information.
-            </Typography>
-        </Box>
+        <Container>
+            <Text>You're viewing a public demo of the VerifyWise AI governance platform. Feel free to explore using demo data, but please don't enter any personal or company information.</Text>
+        </Container>
     );
 }
 

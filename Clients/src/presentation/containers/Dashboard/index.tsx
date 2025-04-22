@@ -8,7 +8,6 @@ import {
   getEntityById,
   getAllEntities,
 } from "../../../application/repository/entity.repository";
-import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 
 interface DashboardProps {
   reloadTrigger: boolean;
@@ -20,26 +19,8 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
     setDashboardValues,
     projects,
     setProjects,
-    setRunHomeTour,
-    runHomeTour,
   } = useContext(VerifyWiseContext);
   const location = useLocation();
-
-  const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
-    countToTrigger: 3,
-  });
-  console.log("refs check:", refs);
-
-  useEffect(() => {
-console.log("allVisible check:", allVisible);
-console.log("runHomeTour check:", runHomeTour);
-console.log("refs visibility state:", refs.map((ref,i)=>[i, !!ref]))
-
-    if (allVisible) {
-      console.log("All elements are visible, starting the tour");
-      setRunHomeTour(true);
-    }
-  }, [allVisible]);
 
   useEffect(() => {
     const fetchProjects = async () => {

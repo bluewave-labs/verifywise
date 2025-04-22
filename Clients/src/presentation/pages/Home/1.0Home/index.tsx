@@ -28,7 +28,13 @@ import HomeSteps from "./HomeSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
 
 const VWHome = () => {
-  const { setDashboardValues, setRunHomeTour, runHomeTour, setComponentsVisible } = useContext(VerifyWiseContext);
+  const {
+    setDashboardValues,
+    setRunHomeTour,
+    runHomeTour,
+    componentsVisible,
+    setComponentsVisible,
+  } = useContext(VerifyWiseContext);
   const [complianceProgress, setComplianceProgress] =
     useState<ComplianceProgress>();
   const [assessmentProgress, setAssessmentProgress] =
@@ -45,15 +51,20 @@ const VWHome = () => {
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
     countToTrigger: 1,
   });
-  useEffect(()=>{
-    if(allVisible){
+  useEffect(() => {
+    if (allVisible) {
       setComponentsVisible((prev) => ({
         ...prev,
         home: true,
       }));
+    }
+  }, [allVisible]);
+
+  useEffect(() => {
+    if (componentsVisible.home && componentsVisible.sidebar) {
       setRunHomeTour(true);
     }
-  },[allVisible]);
+  }, [componentsVisible]);
 
   const fetchData = async (routeUrl: string, setData: (data: any) => void) => {
     try {
@@ -244,10 +255,7 @@ const VWHome = () => {
                 onClick={() => generateDemoData()}
               />
             )}
-            <div
-              data-joyride-id="new-project-button"
-              ref={refs[0]}
-            >
+            <div data-joyride-id="new-project-button" ref={refs[0]}>
               <VWButton
                 variant="contained"
                 text="New project"

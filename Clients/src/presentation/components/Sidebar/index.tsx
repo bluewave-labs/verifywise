@@ -117,7 +117,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
   const { users } = dashboardValues;
 
 const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
-  countToTrigger: 2,
+  countToTrigger: 1,
 });
 
   const user: User = users

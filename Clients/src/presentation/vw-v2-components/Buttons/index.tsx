@@ -32,7 +32,6 @@
 import { Button } from "@mui/material";
 import PropTypes from "prop-types";
 import { ButtonProps } from "@mui/material/Button";
-import { forwardRef } from "react";
 import singleTheme from "../../themes/v1SingleTheme";
 
 interface VWButtonProps {
@@ -47,7 +46,7 @@ interface VWButtonProps {
   icon?: any;
 }
 
-const VWButton = forwardRef<HTMLButtonElement, VWButtonProps>(
+const VWButton: React.FC< VWButtonProps> = (
   (
     {
       variant = "contained",
@@ -59,14 +58,11 @@ const VWButton = forwardRef<HTMLButtonElement, VWButtonProps>(
       sx,
       text = "VWButton",
       icon,
-    },
-    ref
-  ) => {
+    }) => {
     const appearance = singleTheme.buttons[color][variant];
 
     return (
       <Button
-        ref={ref}
         disableRipple
         variant={variant as ButtonProps["variant"]}
         size={size as ButtonProps["size"]}

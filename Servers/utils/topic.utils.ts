@@ -50,7 +50,7 @@ export const updateTopicByIdQuery = async (
   const setClause = [
     "title",
   ].filter(f => {
-    if (topic[f as keyof Topic] !== undefined) {
+    if (topic[f as keyof Topic] !== undefined && topic[f as keyof Topic]) {
       updateTopic[f as keyof Topic] = topic[f as keyof Topic]
       return true
     }

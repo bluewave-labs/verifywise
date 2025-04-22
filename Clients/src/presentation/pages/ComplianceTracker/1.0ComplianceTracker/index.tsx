@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext} from "react";
+import { useEffect, useState, useContext } from "react";
 import { Stack, Typography } from "@mui/material";
 import { pageHeadingStyle } from "../../Assessment/1.0AssessmentTracker/index.style";
 import { getEntityById } from "../../../../application/repository/entity.repository";
@@ -20,20 +20,18 @@ const ComplianceTracker = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [runComplianceTour, setRunComplianceTour] = useState(false);
 
-  const {refs, allVisible} = useMultipleOnScreen<HTMLDivElement>({
+  const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({
     countToTrigger: 3,
   });
 
-  useEffect(()=>{
+  useEffect(() => {
     if (allVisible) {
       setRunComplianceTour(true);
     }
   }, [allVisible]);
- 
 
   // Reset state when project changes
   useEffect(() => {
-    console.log("ComplianceTracker: Project changed to:", currentProjectId);
     setComplianceData(null);
     setControlCategories(undefined);
     setError(null);
@@ -41,36 +39,12 @@ const ComplianceTracker = () => {
   }, [currentProjectId]);
 
   const fetchComplianceData = async () => {
-    console.log(
-      "ComplianceTracker: Fetching compliance data for project:",
-      currentProjectId
-    );
     if (!currentProjectId) return;
 
     try {
       const response = await getEntityById({
         routeUrl: `projects/compliance/progress/${currentProjectId}`,
       });
-      console.log(
-        "ComplianceTracker: Received compliance data:",
-        response.data
-      );
-      console.log(
-        "ComplianceTracker: allDonesubControls type:",
-        typeof response.data.allDonesubControls
-      );
-      console.log(
-        "ComplianceTracker: allsubControls type:",
-        typeof response.data.allsubControls
-      );
-      console.log(
-        "ComplianceTracker: allDonesubControls value:",
-        response.data.allDonesubControls
-      );
-      console.log(
-        "ComplianceTracker: allsubControls value:",
-        response.data.allsubControls
-      );
       setComplianceData(response.data);
     } catch (err) {
       console.error("ComplianceTracker: Error fetching compliance data:", err);
@@ -81,17 +55,12 @@ const ComplianceTracker = () => {
   };
 
   const fetchControlCategories = async () => {
-    console.log(
-      "ComplianceTracker: Fetching control categories for project:",
-      currentProjectId
-    );
     if (!currentProjectId) return;
 
     try {
       const response = await getEntityById({
         routeUrl: `/controlCategory/byprojectid/${currentProjectId}`,
       });
-      console.log("ComplianceTracker: Received control categories:", response);
       setControlCategories(response);
     } catch (err) {
       console.error(

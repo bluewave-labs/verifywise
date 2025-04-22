@@ -18,7 +18,6 @@ type SortDirection = "asc" | "desc" | null;
 interface FileTableProps {
   cols: any[];
   files: FileData[];
-  onRowClick: (fileId: string) => void;
 }
 /**
  *
@@ -58,7 +57,7 @@ const EmptyState: React.FC = (): JSX.Element => (
   </Stack>
 );
 
-const FileTable: React.FC<FileTableProps> = ({ cols, files, onRowClick }) => {
+const FileTable: React.FC<FileTableProps> = ({ cols, files }) => {
   const [sortField, setSortField] = useState<keyof FileData | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
@@ -138,9 +137,6 @@ const FileTable: React.FC<FileTableProps> = ({ cols, files, onRowClick }) => {
       bodyData={sortedFiles}
       paginated={files.length > 0}
       table="fileManager"
-      onRowClick={onRowClick}
-      setSelectedRow={(row) => onRowClick(row.id)}
-      setAnchorEl={() => {}}
     />
   );
 };

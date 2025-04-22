@@ -26,7 +26,6 @@ interface IconButtonProps {
   warningMessage: string;
   type:string;
   onMouseEvent: (event: React.SyntheticEvent) => void;
-  hideRemove?: boolean;
 }
 
 const IconButton: React.FC<IconButtonProps> = ({
@@ -37,7 +36,6 @@ const IconButton: React.FC<IconButtonProps> = ({
   warningMessage,
   type,
   onMouseEvent,
-  hideRemove
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
@@ -106,7 +104,7 @@ const IconButton: React.FC<IconButtonProps> = ({
       onMouseEvent(e);
     }
   };
-  function handleCancle(e?: React.SyntheticEvent){
+  function handleCancle(e?: React.SyntheticEvent) {
     setIsOpenRemoveModal(false);
     if (e) {
       closeDropDownMenu(e);
@@ -114,21 +112,27 @@ const IconButton: React.FC<IconButtonProps> = ({
   }
 
   /**
-   * A dropdown list of options rendered as a Material-UI Menu component.
+   * List of context-specific dropdown actions used to render menu items.
+   *
+   * - For type "report", the menu item will be "download".
+   * - For other types (e.g. "Vendor"), the menu item will be "edit", "remove".
+   */
+  const listOfButtons = type === "report" ? ["download"] : ["edit", "remove"];
+
+  /**
+   * Renders a dropdown menu with dynamic options (e.g., Edit, Download, Remove)
+   * based on the context (e.g., "Vendor", "report", etc.).
+   *
+   * The menu is styled using the theme's dropdown styles. The "Remove" option is
+   * conditionally styled in red, while others use default styling.
+   *
+   * The options are dynamically mapped from a list of button labels (`listOfButtons`),
+   * which is determined by the `type` prop (e.g., "report" only shows "Download").
    *
    * @constant
    * @type {JSX.Element}
    *
-   * @param {HTMLElement} anchorEl - The HTML element used to set the position of the dropdown menu.
-   * @param {boolean} open - Boolean value indicating whether the dropdown menu is open.
-   * @param {function} onClose - Function to handle the closing of the dropdown menu.
-   * @param {object} slotProps - Additional properties for customizing the dropdown menu.
-   * @param {object} slotProps.paper - Custom styles for the dropdown menu paper.
-   * @param {object} slotProps.paper.sx - Custom styles applied to the dropdown menu.
-   * @param {function} openAddNewVendor - Function to handle the action of opening the "Add New Vendor" dialog.
-   * @param {function} openRemoveVendor - Function to handle the action of opening the "Remove Vendor" dialog.
-   *
-   * @returns {JSX.Element} The rendered dropdown menu with "Edit" and "Remove" options.
+   * @returns {JSX.Element} A Material-UI Menu component containing context-based actions.
    */
   const dropDownListOfOptions: JSX.Element = (
     <Menu
@@ -141,19 +145,22 @@ const IconButton: React.FC<IconButtonProps> = ({
         },
       }}
     >
-      {type !== 'report' ? 
-        <MenuItem onClick={(e) => handleEdit(e)}>Edit</MenuItem>
-      :
-        <MenuItem onClick={(e) => handleEdit(e)}>Download</MenuItem>
-      }
-      {!hideRemove && (
-      <MenuItem onClick={(e) => {
-        setIsOpenRemoveModal(true);
-        if (e) {
-          closeDropDownMenu(e);
-        }
-        }}>Remove</MenuItem>
-        )}
+      {listOfButtons.map((item) => (
+        <MenuItem
+          key={item}
+          onClick={(e) => {
+            if (item === "edit" || item === "download") {
+              handleEdit(e);
+            } else if (item === "remove") {
+              setIsOpenRemoveModal(true);
+              if (e) closeDropDownMenu(e);
+            }
+          }}
+          sx={item === "remove" ? { color: "#d32f2f" } : {}}
+        >
+          {item.charAt(0).toUpperCase() + item.slice(1)}
+        </MenuItem>
+      ))}
     </Menu>
   );
 
@@ -198,7 +205,7 @@ const IconButton: React.FC<IconButtonProps> = ({
         onDelete={(e) => handleDelete(e)}
         warningTitle={warningTitle}
         warningMessage={warningMessage}
-        onCancel = {(e) =>handleCancle(e)}
+        onCancel={(e) => handleCancle(e)}
         type={type}
       />
       {alert && (

@@ -58,7 +58,7 @@ const processQueue = (error: any, token: string | null = null) => {
 
 // Request interceptor to handle both authorization token and credentials
 CustomAxios.interceptors.request.use(
-  (config) => {
+  (config) => {    
     // Add authorization token
     const state = store.getState();
     const token = state.auth.authToken;
@@ -88,6 +88,15 @@ CustomAxios.interceptors.response.use(
 
     // If error is 406 (Token Expired) and we haven't tried to refresh yet
     if (error.response?.status === 406 && !originalRequest._retry) {
+      // If this is the refresh token request itself returning 406
+      if (originalRequest.url === '/users/refresh-token') {
+        console.log('Refresh token expired, redirecting to login');
+        store.dispatch(setAuthToken(""));
+        window.location.href = '/login';
+        return Promise.reject(error);
+      }
+
+      // For other APIs returning 406, try to refresh the token
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -96,16 +105,22 @@ CustomAxios.interceptors.response.use(
             originalRequest.headers.Authorization = `Bearer ${token}`;
             return CustomAxios(originalRequest);
           })
-          .catch((err) => Promise.reject(err));
+          .catch((err) => {
+            // If refresh token fails, redirect to login
+            if (err.response?.status === 406) {
+              store.dispatch(setAuthToken(""));
+              window.location.href = '/login';
+            }
+            return Promise.reject(err);
+          });
       }
 
       originalRequest._retry = true;
       isRefreshing = true;
 
       try {
-        // Call refresh token endpoint with credentials
-        const response = await axios.post(
-          `${ENV_VARs.URL}/users/refresh-token`,
+        const response = await CustomAxios.post(
+          `/users/refresh-token`,
           {},
           { withCredentials: true }
         );
@@ -117,8 +132,13 @@ CustomAxios.interceptors.response.use(
           processQueue(null, newToken);
           return CustomAxios(originalRequest);
         }
-      } catch (refreshError) {
+      } catch (refreshError: any) {
         processQueue(refreshError, null);
+        // If refresh token request fails with 406, redirect to login
+        if (refreshError.response?.status === 406) {
+          store.dispatch(setAuthToken(""));
+          window.location.href = '/login';
+        }
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

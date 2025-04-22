@@ -41,6 +41,7 @@ const NewControlPane = ({
   handleClose,
   controlCategoryId,
   OnSave,
+  OnError,
   onComplianceUpdate,
 }: {
   data: Control;
@@ -48,6 +49,7 @@ const NewControlPane = ({
   handleClose: () => void;
   controlCategoryId?: string;
   OnSave?: (state: Control) => void;
+  OnError?: () => void; 
   onComplianceUpdate?: () => void;
 }) => {
   const theme = useTheme();
@@ -287,12 +289,20 @@ const NewControlPane = ({
         // Close the modal
         handleClose();
       } else {
-        console.error("Error updating controls");
+        console.error("Failed to save control changes. Please try again.");
         setIsSubmitting(false);
+        // Notify parent components about error
+        OnError?.();
+        // Close the modal
+        handleClose();
       }
     } catch (error) {
-      console.error("Error updating controls:", error);
+      console.error("Failed to save control changes. Please try again.", error);
       setIsSubmitting(false);
+      // Notify parent components about error
+      OnError?.();
+      // Close the modal
+      handleClose();
     }
   };
 
@@ -381,6 +391,7 @@ const NewControlPane = ({
             }}
           >
             <Typography
+              component="span"
               fontSize={16}
               fontWeight={600}
               sx={{ textAlign: "left" }}
@@ -388,7 +399,7 @@ const NewControlPane = ({
               {`${controlCategoryId + "." + data.order_no}`} {data.title}
             </Typography>
             <Box
-              component="div"
+              component="span"
               role="button"
               tabIndex={0}
               onClick={(e) => {
@@ -408,7 +419,7 @@ const NewControlPane = ({
               <CloseIcon />
             </Box>
           </Stack>
-          <Typography fontSize={13}>{data.description}</Typography>
+          <Typography component="span" fontSize={13}>{data.description}</Typography>
           <DropDowns
             key={`control-${data.id}`}
             isControl={true}
@@ -477,25 +488,23 @@ const NewControlPane = ({
           </Stack>
           <Box>
             <Typography
+              component="span"
               fontSize={16}
               fontWeight={600}
               sx={{ textAlign: "left", mb: 3 }}
             >
-              {`${controlCategoryId}.${data.order_no}.${state.subControls![selectedTab].order_no
-                }`}{" "}
+              {`${controlCategoryId}.${data.order_no}.${state.subControls![selectedTab].order_no}`}{" "}
               {state.subControls![selectedTab].title}
             </Typography>
-            <Typography sx={{ mb: 5, fontSize: 13 }}>
+            <Typography component="span" sx={{ mb: 5, fontSize: 13 }}>
               {state.subControls![selectedTab].description}
             </Typography>
             {activeSection === "Overview" && (
-              <Typography fontSize={13}>
+              <Typography component="span" fontSize={13}>
                 <DropDowns
-                  key={`sub-control-${data.order_no}.${state.subControls![selectedTab].id
-                    }`}
+                  key={`sub-control-${data.order_no}.${state.subControls![selectedTab].id}`}
                   isControl={false}
-                  elementId={`sub-control-${data.order_no}.${state.subControls![selectedTab].id
-                    }`}
+                  elementId={`sub-control-${data.order_no}.${state.subControls![selectedTab].id}`}
                   state={state.subControls![selectedTab]}
                   setState={(newState) =>
                     handleSubControlStateChange(selectedTab, newState)

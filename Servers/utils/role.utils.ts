@@ -53,7 +53,7 @@ export const updateRoleByIdQuery = async (
     "name",
     "description"
   ].filter(f => {
-    if (role[f as keyof Role] !== undefined) {
+    if (role[f as keyof Role] !== undefined && role[f as keyof Role]) {
       updateRole[f as keyof Role] = role[f as keyof Role]
       return true
     }

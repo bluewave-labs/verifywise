@@ -17,8 +17,8 @@ export const getAllQuestionsQuery = async (): Promise<(Question & { evidence_fil
       let evidenceFiles: Object[] = [];
       await Promise.all(
         (question.evidence_files || []).map(async (f) => {
-          const file = await getFileById(parseInt(f.id));
-          evidenceFiles.push({ id: file.id, filename: file.filename });
+          // const file = await getFileById(parseInt(f.id));
+          evidenceFiles.push({ id: f.id, filename: f.fileName });
         })
       );
       return { ...question.dataValues, evidence_files: evidenceFiles };
@@ -41,8 +41,8 @@ export const getQuestionByIdQuery = async (
   let evidenceFiles: Object[] = [];
   await Promise.all(
     (result[0].evidence_files || []).map(async (f) => {
-      const file = await getFileById(parseInt(f.id));
-      evidenceFiles.push({ id: file.id, filename: file.filename });
+      // const file = await getFileById(parseInt(f.id));
+      evidenceFiles.push({ id: f.id, filename: f.fileName });
     })
   );
   return { ...result[0].dataValues, evidence_files: evidenceFiles } as (QuestionModel & { evidence_files: string[] });
@@ -137,14 +137,20 @@ export const addFileToQuestion = async (
 
 export const updateQuestionByIdQuery = async (
   id: number,
-  answer: string,
+  question: Partial<Question>,
 ): Promise<Question | null> => {
   const updateQuestion: Partial<Record<keyof Question, any>> = {};
   const setClause = [
     "answer",
+    "status"
   ].filter(f => {
-    updateQuestion[f as keyof Question] = answer
-    return true
+    if (question[f as keyof Question] !== undefined) {
+      updateQuestion[f as keyof Question] = question[f as keyof Question]
+      if (f === "answer" && !question[f]) {
+        updateQuestion[f as keyof Question] = ""
+      }
+      return true
+    }
   }).map(f => `${f} = :${f}`).join(", ");
 
   const query = `UPDATE questions SET ${setClause} WHERE id = :id RETURNING *;`;

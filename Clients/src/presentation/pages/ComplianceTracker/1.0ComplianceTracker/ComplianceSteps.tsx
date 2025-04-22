@@ -12,7 +12,7 @@ const ComplianceSteps: PageTourStep[] = [
     {
       target: '[data-joyride-id="compliance-progress-bar"]',
       content: (
-        <CustomStep body="Check th status of your compliance tracker here." />
+        <CustomStep body="Check the status of your compliance tracker here." />
       ),
       placement: "left",
     },

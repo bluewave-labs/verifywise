@@ -33,9 +33,6 @@ interface FileBasicTableProps {
   bodyData: FileData[];
   paginated?: boolean;
   table: string;
-  onRowClick: (id: string) => void;
-  setSelectedRow: (row: any) => void;
-  setAnchorEl: (element: HTMLElement | null) => void;
 }
 
 const FileBasicTable: React.FC<FileBasicTableProps> = ({
@@ -43,9 +40,6 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
   bodyData,
   paginated = false,
   table,
-  onRowClick,
-  setSelectedRow,
-  setAnchorEl,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -64,15 +58,6 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
     },
     []
   );
-
-  const onRowClickHandler = (
-    event: React.MouseEvent<HTMLTableRowElement>,
-    rowData: any
-  ) => {
-    setSelectedRow(rowData);
-    setAnchorEl(event.currentTarget);
-    onRowClick(rowData.id);
-  };
 
   const paginatedRows = bodyData.slice(
     page * rowsPerPage,
@@ -107,11 +92,10 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
             {paginatedRows.map((row) => (
               <TableRow
                 key={row.id}
-                onClick={(e) => onRowClickHandler(e, row)}
                 sx={{
                   ...singleTheme.tableStyles.primary.body.row,
                   height: "36px",
-                  "&:hover": { backgroundColor: "#FBFBFB", cursor: "pointer" },
+                  "&:hover": { backgroundColor: "#FBFBFB" },
                 }}
               >
                 <TableCell>{row.fileName}</TableCell>
@@ -126,7 +110,6 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
                     warningTitle="Are you sure you want to download this file?"
                     warningMessage="This action will download the file to your local machine."
                     onMouseEvent={() => {}}
-                    hideRemove={true}
                   />
                 </TableCell>
               </TableRow>

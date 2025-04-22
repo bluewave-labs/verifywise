@@ -116,7 +116,7 @@ export const updateControlByIdQuery = async (
     "due_date",
     "implementation_details"
   ].filter(f => {
-    if (control[f as keyof Control] !== undefined) {
+    if (control[f as keyof Control] !== undefined && control[f as keyof Control]) {
       updateControl[f as keyof Control] = control[f as keyof Control]
       return true
     }

@@ -341,7 +341,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
                 }
                 className={
                   location.pathname === item.path ||
-                  customMenuHandler() === item.path
+                    customMenuHandler() === item.path
                     ? "selected-path"
                     : "unselected"
                 }
@@ -353,7 +353,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
                   px: theme.spacing(4),
                   backgroundColor:
                     location.pathname === item.path ||
-                    customMenuHandler() === item.path
+                      customMenuHandler() === item.path
                       ? "#F9F9F9"
                       : "transparent",
 
@@ -505,10 +505,10 @@ const Sidebar = ({ projects }: { projects: any }) => {
               onClick={() =>
                 item.path === "support"
                   ? window.open(
-                      "https://github.com/bluewave-labs/bluewave-uptime/issues",
-                      "_blank",
-                      "noreferrer"
-                    )
+                    "https://github.com/bluewave-labs/bluewave-uptime/issues",
+                    "_blank",
+                    "noreferrer"
+                  )
                   : navigate(`${item.path}`)
               }
               sx={{
@@ -529,9 +529,11 @@ const Sidebar = ({ projects }: { projects: any }) => {
           </Tooltip>
         ))}
       </List>
-      <Box sx={{height: '100%', alignContent: 'flex-end', justifyItems: 'center'}}>
-        <ReadyToSubscribeBox />
-      </Box>
+      {!collapsed &&
+        <Box sx={{ height: '100%', alignContent: 'flex-end', justifyItems: 'center' }}>
+          <ReadyToSubscribeBox />
+        </Box>
+      }
       <Divider sx={{ mt: "auto" }} />
       <Stack
         direction="row"

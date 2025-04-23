@@ -29,12 +29,11 @@ import {
 } from "../../../../application/interfaces/iprogress";
 import { useProjectData } from "../../../../application/hooks/useFetchProjects";
 import { AlertState } from "../../../../application/interfaces/appStates";
+import { fetchData } from "../../../../application/hooks/fetchDataHook";
 import PageTour from "../../../components/PageTour";
 import HomeSteps from "./HomeSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
         
-import { fetchData } from "../../../../application/hooks/fetchDataHook";
-
 const VWHome = () => {
   const {
     setDashboardValues,
@@ -75,14 +74,6 @@ const VWHome = () => {
     }
   }, [componentsVisible]);
 
-  const fetchData = async (routeUrl: string, setData: (data: any) => void) => {
-    try {
-      const response = await getAllEntities({ routeUrl });
-      setData(response.data);
-    } catch (error) {
-      console.error(`Error fetching data from ${routeUrl}:`, error);
-    }
-  };
   useEffect(() => {
     const fetchProgressData = async () => {
       await fetchData("/users", (data) => {

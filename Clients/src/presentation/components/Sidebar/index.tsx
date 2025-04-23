@@ -530,7 +530,13 @@ const Sidebar = ({ projects }: { projects: any }) => {
         ))}
       </List>
       {!collapsed &&
-        <Box sx={{ height: '100%', alignContent: 'flex-end', justifyItems: 'center' }}>
+        <Box sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          justifyContent: 'flex-end',
+          alignItems: 'center'
+        }}>
           <ReadyToSubscribeBox />
         </Box>
       }

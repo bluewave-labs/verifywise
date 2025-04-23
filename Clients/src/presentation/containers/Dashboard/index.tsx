@@ -10,6 +10,7 @@ import {
 } from "../../../application/repository/entity.repository";
 import PageTour from "../../components/PageTour";
 import CustomStep from "../../components/PageTour/CustomStep";
+import DemoAppBanner from "../../components/DemoBanner/DemoAppBanner";
 
 interface DashboardProps {
   reloadTrigger: boolean;
@@ -120,17 +121,20 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
       sx={{ backgroundColor: "#FCFCFD" }}
     >
       <Sidebar projects={mappedProjects} />
+      <Stack spacing={3}>      
+        <DemoAppBanner />                      
 
-      {/* Joyride */}
-      {runHomeTour && (
-        <PageTour
+        {/* Joyride */}
+        {runHomeTour && (
+          <PageTour
           steps={homeSteps}
           run={runHomeTour}
           onFinish={() => setRunHomeTour(false)}
           tourKey="home-tour"
-        />
-      )}
-      <Outlet />
+          />
+        )}
+        <Outlet />
+      </Stack>
     </Stack>
   );
 };

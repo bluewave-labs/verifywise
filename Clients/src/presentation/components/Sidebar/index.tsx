@@ -44,6 +44,7 @@ import { Link as MuiLink } from "@mui/material";
 import { User } from "../../../application/hooks/useUsers";
 import { ROLES } from "../../../application/constants/roles";
 import useLogout from "../../../application/hooks/useLogout";
+import ReadyToSubscribeBox from "../ReadyToSubscribeBox/ReadyToSubscribeBox";
 
 const menu = [
   {
@@ -340,7 +341,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
                 }
                 className={
                   location.pathname === item.path ||
-                  customMenuHandler() === item.path
+                    customMenuHandler() === item.path
                     ? "selected-path"
                     : "unselected"
                 }
@@ -352,7 +353,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
                   px: theme.spacing(4),
                   backgroundColor:
                     location.pathname === item.path ||
-                    customMenuHandler() === item.path
+                      customMenuHandler() === item.path
                       ? "#F9F9F9"
                       : "transparent",
 
@@ -504,10 +505,10 @@ const Sidebar = ({ projects }: { projects: any }) => {
               onClick={() =>
                 item.path === "support"
                   ? window.open(
-                      "https://github.com/bluewave-labs/bluewave-uptime/issues",
-                      "_blank",
-                      "noreferrer"
-                    )
+                    "https://github.com/bluewave-labs/bluewave-uptime/issues",
+                    "_blank",
+                    "noreferrer"
+                  )
                   : navigate(`${item.path}`)
               }
               sx={{
@@ -528,6 +529,17 @@ const Sidebar = ({ projects }: { projects: any }) => {
           </Tooltip>
         ))}
       </List>
+      {!collapsed &&
+        <Box sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          justifyContent: 'flex-end',
+          alignItems: 'center'
+        }}>
+          <ReadyToSubscribeBox />
+        </Box>
+      }
       <Divider sx={{ mt: "auto" }} />
       <Stack
         direction="row"

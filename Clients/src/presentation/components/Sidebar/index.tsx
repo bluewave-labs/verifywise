@@ -44,6 +44,7 @@ import { Link as MuiLink } from "@mui/material";
 import { User } from "../../../application/hooks/useUsers";
 import { ROLES } from "../../../application/constants/roles";
 import useLogout from "../../../application/hooks/useLogout";
+import ReadyToSubscribeBox from "../ReadyToSubscribeBox/ReadyToSubscribeBox";
 
 const menu = [
   {
@@ -528,6 +529,9 @@ const Sidebar = ({ projects }: { projects: any }) => {
           </Tooltip>
         ))}
       </List>
+      <Box sx={{height: '100%', alignContent: 'flex-end', justifyItems: 'center'}}>
+        <ReadyToSubscribeBox />
+      </Box>
       <Divider sx={{ mt: "auto" }} />
       <Stack
         direction="row"

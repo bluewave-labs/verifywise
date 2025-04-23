@@ -217,6 +217,7 @@ const Vendors = () => {
           setAlert(null);
         }, 3000);
         await fetchVendors();
+        await  fetchRisks();
       } else if (response.status === 404) {
         setAlert({
           variant: "error",

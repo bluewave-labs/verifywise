@@ -37,8 +37,6 @@ import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScre
 const VWHome = () => {
   const {
     setDashboardValues,
-    setRunHomeTour,
-    runHomeTour,
     componentsVisible,
     changeComponentVisibility
   } = useContext(VerifyWiseContext);
@@ -56,6 +54,7 @@ const VWHome = () => {
 
   const { projects, loading: projectLoading, fetchProjects } = useProjectData();
 
+   const [runHomeTour, setRunHomeTour] = useState(false);
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
     countToTrigger: 1,
   });

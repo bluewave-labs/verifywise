@@ -44,8 +44,6 @@ function App() {
   } = useProjectStatus({ userId });
 
   const [currentProjectId, setCurrentProjectId] = useState<string | null>("");
-
-  const [runHomeTour, setRunHomeTour] = useState(false);
 const [componentsVisible, setComponentsVisible] = useState<ComponentVisible>({
   home: false,
   sidebar: false,
@@ -78,8 +76,6 @@ const changeComponentVisibility = useCallback(
       userId,
       projects,
       setProjects,
-      runHomeTour,
-      setRunHomeTour,
       componentsVisible,
       changeComponentVisibility,
     }),
@@ -101,8 +97,6 @@ const changeComponentVisibility = useCallback(
       userId,
       projects,
       setProjects,
-      runHomeTour,
-      setRunHomeTour,
       componentsVisible,
       changeComponentVisibility,
     ]

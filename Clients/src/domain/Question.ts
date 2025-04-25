@@ -14,4 +14,5 @@ export type Question = {
   evidence_files?: FileData[];
   answer?: string;
   subtopic_id: number;
+  status: string;
 };

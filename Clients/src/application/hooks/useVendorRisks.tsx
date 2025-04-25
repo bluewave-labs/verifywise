@@ -9,10 +9,11 @@
  *   - `error` {string | boolean} - The error state of the vendor risks request.
  *   - `vendorRisksSummary` {Object} - The summary of vendor risks categorized by risk levels.
  */
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { getEntityById } from "../repository/entity.repository";
 import { convertToCamelCaseRiskKey } from "../tools/stringUtil";
 import { VendorRisk } from "../../domain/VendorRisk";
+import { VerifyWiseContext } from "../contexts/VerifyWise.context";
 
 const useVendorRisks = ({
   projectId,
@@ -24,6 +25,8 @@ const useVendorRisks = ({
   const [vendorRisks, setVendorRisks] = useState<VendorRisk[]>([]);
   const [loadingVendorRisks, setLoadingVendorRisks] = useState<boolean>(true);
   const [error, setError] = useState<string | boolean>(false);
+    const { currentProjectId } = useContext(VerifyWiseContext);
+  
 
   useEffect(() => {
     const controller = new AbortController();
@@ -34,7 +37,7 @@ const useVendorRisks = ({
       if (!projectId) return;
       try {
         const response = await getEntityById({
-          routeUrl: `/vendorRisks/by-projid/${projectId}`,
+          routeUrl: `/vendorRisks/by-projid/${currentProjectId}`,
           signal,
         });
         if (response?.data) {

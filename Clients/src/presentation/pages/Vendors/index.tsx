@@ -74,6 +74,7 @@ const Vendors = () => {
   const [selectedRisk, setSelectedRisk] = useState<ExistingRisk | null>(null);
   const [controller, setController] = useState<AbortController | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const { currentProjectId } = useContext(VerifyWiseContext);
   const { selectedProjectId } = dashboardValues;
   const { vendorRisksSummary } = useVendorRisks({
     projectId: selectedProjectId?.toString(),
@@ -112,7 +113,7 @@ const Vendors = () => {
     const fetchProject = async () => {
       try {
         const projectData = await getEntityById({
-          routeUrl: `/projects/${selectedProjectId}`,
+          routeUrl: `/projects/${currentProjectId}`,
         });
         setProject(projectData.data);
       } catch (error) {
@@ -120,19 +121,19 @@ const Vendors = () => {
       }
     };
 
-    if (selectedProjectId) {
+    if (currentProjectId) {
       fetchProject();
     }
-  }, [selectedProjectId]);
+  }, [currentProjectId]);
 
   const fetchVendors = useCallback(async () => {
     const signal = createAbortController();
     if (signal.aborted) return;
     setIsVendorsLoading(true);
-    if (!selectedProjectId) return;
+    if (!currentProjectId) return;
     try {
       const response = await getAllEntities({
-        routeUrl: `/vendors/project-id/${selectedProjectId}`,
+        routeUrl: `/vendors/project-id/${currentProjectId}`,
         signal,
       });
       if (response?.data) {
@@ -147,16 +148,16 @@ const Vendors = () => {
     } finally {
       setIsVendorsLoading(false);
     }
-  }, [selectedProjectId]);
+  }, [currentProjectId]);
 
   const fetchRisks = useCallback(async () => {
     const signal = createAbortController();
     if (signal.aborted) return;
     setIsRisksLoading(true);
-    if (!selectedProjectId) return;
+    if (!currentProjectId) return;
     try {
       const response = await getAllEntities({
-        routeUrl: `/vendorRisks/by-projid/${selectedProjectId}`,
+        routeUrl: `/vendorRisks/by-projid/${currentProjectId}`,
         signal,
       });
       if (response?.data) {
@@ -172,21 +173,21 @@ const Vendors = () => {
     } finally {
       setIsRisksLoading(false);
     }
-  }, [selectedProjectId]);
+  }, [currentProjectId]);
 
   useEffect(() => {
     fetchVendors();
     return () => {
       controller?.abort();
     };
-  }, [selectedProjectId]);
+  }, [currentProjectId]);
 
   useEffect(() => {
     fetchRisks();
     return () => {
       controller?.abort();
     };
-  }, [selectedProjectId]);
+  }, [currentProjectId]);
 
   useEffect(() => {
     if (allVisible) {

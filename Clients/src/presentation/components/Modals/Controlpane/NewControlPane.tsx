@@ -487,18 +487,20 @@ const NewControlPane = ({
             )}
           </Stack>
           <Box>
-            <Typography
-              component="span"
-              fontSize={16}
-              fontWeight={600}
-              sx={{ textAlign: "left", mb: 3 }}
-            >
-              {`${controlCategoryId}.${data.order_no}.${state.subControls![selectedTab].order_no}`}{" "}
-              {state.subControls![selectedTab].title}
-            </Typography>
-            <Typography component="span" sx={{ mb: 5, fontSize: 13 }}>
-              {state.subControls![selectedTab].description}
-            </Typography>
+            <Stack direction="column" justifyContent="space-between">
+              <Typography
+                component="span"
+                fontSize={16}
+                fontWeight={600}
+                sx={{ textAlign: "left", mb: 3 }}
+              >
+                {`${controlCategoryId}.${data.order_no}.${state.subControls![selectedTab].order_no}`}{" "}
+                {state.subControls![selectedTab].title}
+              </Typography>
+              <Typography component="span" sx={{ mb: 5, fontSize: 13 }}>
+                {state.subControls![selectedTab].description}
+              </Typography>
+            </Stack>
             {activeSection === "Overview" && (
               <Typography component="span" fontSize={13}>
                 <DropDowns

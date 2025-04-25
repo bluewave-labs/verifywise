@@ -26,6 +26,7 @@ import { ENV_VARs } from "../../../../env.vars";
 import { FileData } from "../../../domain/File";
 import { useSelector } from "react-redux";
 import Button from "../Button";
+import Select from "../Inputs/Select";
 
 interface QuestionProps {
   question: Question;
@@ -52,14 +53,14 @@ const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
   const [values, setValues] = useState<Question>(question);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
 
-  // Reset values when question or project changes
-  useEffect(() => {
-    console.log('VWQuestion: Resetting state for question', question.id, 'project:', currentProjectId);
-    setValues(question);
-  }, [question, currentProjectId]);
-
   const authToken = useSelector((state: any) => state.auth.authToken);
   const [alert, setAlert] = useState<AlertProps | null>(null);
+
+  const STATUS_OPTIONS = [
+    { _id: "notStarted", name: "Not started" },
+    { _id: "inProgress", name: "In progress" },
+    { _id: "done", name: "Done" },
+  ];
 
   const handleChangeEvidenceFiles = useCallback((files: FileData[]) => {
     setValues((prevValues) => ({
@@ -67,6 +68,17 @@ const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
       evidence_files: files,
     }));   
   }, []);
+
+  const handleStatusChange = (field: string, value: string | number) => {
+    setValues(prevValues => ({
+      ...prevValues,
+      [field]: value
+    }));
+  };
+
+  useEffect(() => {
+    setValues(question);
+  }, [question, currentProjectId]);
 
   const createUppyProps = useMemo(
     () => ({
@@ -213,16 +225,30 @@ const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
             </Box>
           )}
         </Typography>
-        <Chip
-          label={question.priority_level}
-          sx={{
-            backgroundColor:
+        <Stack direction="row" alignItems="center" gap={2}>
+          <Select
+            items={STATUS_OPTIONS}
+            isHidden={false}
+            id=""
+            onChange={(e) => handleStatusChange("status", e.target.value)}
+            value={values.status}
+            getOptionValue={(item) => item.name}
+            sx={{
+              width: 175,
+              height : 24,
+            }}
+          />
+          <Chip
+            label={question.priority_level}
+            sx={{
+              backgroundColor:
               priorities[question.priority_level as PriorityLevel].color,
-            color: "#FFFFFF",
-            borderRadius: "4px",
-          }}
-          size="small"
-        />
+              color: "#FFFFFF",
+              borderRadius: "4px",
+            }}
+            size="small"
+          />
+        </Stack>
       </Box>
       <RichTextEditor
         key={question.id}

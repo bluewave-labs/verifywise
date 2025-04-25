@@ -45,6 +45,7 @@ import { User } from "../../../application/hooks/useUsers";
 import { ROLES } from "../../../application/constants/roles";
 import useLogout from "../../../application/hooks/useLogout";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
+import ReadyToSubscribeBox from "../ReadyToSubscribeBox/ReadyToSubscribeBox";
 
 const menu = [
   {
@@ -353,7 +354,7 @@ useEffect(() => {
                 }
                 className={
                   location.pathname === item.path ||
-                  customMenuHandler() === item.path
+                    customMenuHandler() === item.path
                     ? "selected-path"
                     : "unselected"
                 }
@@ -365,7 +366,7 @@ useEffect(() => {
                   px: theme.spacing(4),
                   backgroundColor:
                     location.pathname === item.path ||
-                    customMenuHandler() === item.path
+                      customMenuHandler() === item.path
                       ? "#F9F9F9"
                       : "transparent",
 
@@ -517,10 +518,10 @@ useEffect(() => {
               onClick={() =>
                 item.path === "support"
                   ? window.open(
-                      "https://github.com/bluewave-labs/bluewave-uptime/issues",
-                      "_blank",
-                      "noreferrer"
-                    )
+                    "https://github.com/bluewave-labs/bluewave-uptime/issues",
+                    "_blank",
+                    "noreferrer"
+                  )
                   : navigate(`${item.path}`)
               }
               sx={{
@@ -541,6 +542,17 @@ useEffect(() => {
           </Tooltip>
         ))}
       </List>
+      {!collapsed &&
+        <Box sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          justifyContent: 'flex-end',
+          alignItems: 'center'
+        }}>
+          <ReadyToSubscribeBox />
+        </Box>
+      }
       <Divider sx={{ mt: "auto" }} />
       <Stack
         direction="row"

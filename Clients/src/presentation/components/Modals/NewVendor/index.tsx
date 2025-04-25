@@ -96,9 +96,10 @@ interface AddNewVendorProps {
 }
 
 const REVIEW_STATUS_OPTIONS = [
-  { _id: "notstarted", name: "Not started" },
-  { _id: "inreview", name: "In review" },
+  { _id: "notStarted", name: "Not started" },
+  { _id: "inReview", name: "In review" },
   { _id: "reviewed", name: "Reviewed" },
+  { _id: "requiresFollowUp", name: "Requires follow-up" },
 ];
 
 const RISK_LEVEL_OPTIONS = [

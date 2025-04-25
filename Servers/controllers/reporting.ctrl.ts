@@ -12,16 +12,19 @@ export async function getProjectRiskReports(
 ): Promise<any> {
   try {
     const projectId = parseInt(req.params.id);
+    if (isNaN(projectId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid project ID"));
+    }
     const projectRisks = await getProjectRisksReportQuery(projectId);
 
     if (projectRisks) {
       let projectRows;
-      
-      if(projectRisks.length > 0) {
+
+      if (projectRisks.length > 0) {
         projectRows = projectRisks.map(risk => 
-          `| ${risk.risk_name} | ${risk.risk_owner} | ${risk.risk_severity} | ${risk.likelihood} | ${risk.approval_status} | ${risk.risk_level_autocalculated} | ${risk.deadline.toLocaleDateString()} |}`
+          `| ${risk.risk_name} | ${risk.risk_owner} | ${risk.risk_severity} | ${risk.likelihood} | ${risk.approval_status} | ${risk.risk_level_autocalculated} | ${risk.deadline.toLocaleDateString()} |`
         ).join('\n');
-      }else{
+      } else {
         projectRows = `| - | - | - | - | - | - | - |`
       }
 
@@ -31,7 +34,7 @@ export async function getProjectRiskReports(
 * **Report Date :** ${new Date().toLocaleDateString()}
 
 ## Project Risk Table
-Risk Name	| Owner	| Severity	| Likelihood	| Mitigation Status	| Risk Level	| Target Date| 
+| Risk Name | Owner | Severity | Likelihood | Mitigation Status	| Risk Level | Target Date | 
 |----|----|----|----|----|----|----|
 ${projectRows}
 `     
@@ -49,7 +52,8 @@ ${projectRows}
       try {
         uploadedFile = await uploadFile(docFile, 3, projectId, "Assessment tracker group");
       } catch (error) {
-        console.log(error)
+        console.error("File upload error:", error);
+        return res.status(500).json(STATUS_CODE[500]("Error uploading report file"));
       }
       
       if (uploadedFile) {
@@ -57,6 +61,8 @@ ${projectRows}
         res.setHeader("Content-Disposition", `attachment; filename="${uploadedFile.filename}"`);
         const fileContent = {fileName: uploadedFile.filename, file: uploadedFile.content}
         return res.status(200).send(fileContent);
+      } else {
+        return res.status(500).json(STATUS_CODE[500]("Error uploading report file"));
       }
     }
   } catch (error) {

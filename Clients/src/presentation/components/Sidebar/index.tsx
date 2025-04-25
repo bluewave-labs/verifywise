@@ -112,7 +112,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const logout = useLogout();
 
-  const { dashboardValues, setDashboardValues, setCurrentProjectId, userId, setComponentsVisible} =
+  const { dashboardValues, setDashboardValues, setCurrentProjectId, userId, changeComponentVisibility} =
     useContext(VerifyWiseContext);
   const { users } = dashboardValues;
 
@@ -169,10 +169,7 @@ const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
 
 useEffect(() => {
   if (allVisible) {
-    setComponentsVisible((prev) => ({
-      ...prev,
-      sidebar: true,
-    }));
+   changeComponentVisibility("sidebar", true);
   }
 }, [allVisible]);
 

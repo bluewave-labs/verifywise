@@ -40,7 +40,7 @@ const VWHome = () => {
     setRunHomeTour,
     runHomeTour,
     componentsVisible,
-    setComponentsVisible,
+    changeComponentVisibility
   } = useContext(VerifyWiseContext);
   const [complianceProgressData, setComplianceProgressData] =
     useState<ComplianceProgress>();
@@ -61,10 +61,7 @@ const VWHome = () => {
   });
   useEffect(() => {
     if (allVisible) {
-      setComponentsVisible((prev) => ({
-        ...prev,
-        home: true,
-      }));
+      changeComponentVisibility("home", true);
     }
   }, [allVisible]);
 

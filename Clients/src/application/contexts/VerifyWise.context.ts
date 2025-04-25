@@ -24,7 +24,6 @@ interface VerifyWiseContextProps {
   runHomeTour: boolean;
   setRunHomeTour: React.Dispatch<React.SetStateAction<boolean>>;
   componentsVisible: ComponentVisible;
-  setComponentsVisible: React.Dispatch<React.SetStateAction<ComponentVisible>>;
   changeComponentVisibility: (component: keyof ComponentVisible, value:boolean) => void;
 }
 
@@ -49,7 +48,6 @@ const VerifyWiseContext = createContext<VerifyWiseContextProps>({
   runHomeTour: false,
   setRunHomeTour: () => {},
   componentsVisible: {home:false, sidebar:false},
-  setComponentsVisible: () => {},
   changeComponentVisibility: () => {},
 });
 

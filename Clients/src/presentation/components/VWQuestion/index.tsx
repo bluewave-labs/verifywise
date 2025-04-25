@@ -57,8 +57,8 @@ const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
   const [alert, setAlert] = useState<AlertProps | null>(null);
 
   const STATUS_OPTIONS = [
-    { _id: "notstarted", name: "Not started" },
-    { _id: "inprogress", name: "In progress" },
+    { _id: "notStarted", name: "Not started" },
+    { _id: "inProgress", name: "In progress" },
     { _id: "done", name: "Done" },
   ];
 
@@ -69,7 +69,7 @@ const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
     }));   
   }, []);
 
-  const handleOnChange = (field: string, value: string | number) => {
+  const handleStatusChange = (field: string, value: string | number) => {
     setValues(prevValues => ({
       ...prevValues,
       [field]: value
@@ -77,7 +77,6 @@ const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
   };
 
   useEffect(() => {
-    console.log('VWQuestion: Resetting state for question', question.id, 'project:', currentProjectId);
     setValues(question);
   }, [question, currentProjectId]);
 
@@ -231,7 +230,7 @@ const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
             items={STATUS_OPTIONS}
             isHidden={false}
             id=""
-            onChange={(e) => handleOnChange("status", e.target.value)}
+            onChange={(e) => handleStatusChange("status", e.target.value)}
             value={values.status}
             getOptionValue={(item) => item.name}
             sx={{

@@ -8,8 +8,6 @@ import {
   getEntityById,
   getAllEntities,
 } from "../../../application/repository/entity.repository";
-import PageTour from "../../components/PageTour";
-import CustomStep from "../../components/PageTour/CustomStep";
 import DemoAppBanner from "../../components/DemoBanner/DemoAppBanner";
 
 interface DashboardProps {
@@ -77,16 +75,6 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
       <Sidebar projects={mappedProjects} />
       <Stack spacing={3}>      
         <DemoAppBanner />                      
-
-        {/* Joyride */}
-        {runHomeTour && (
-          <PageTour
-          steps={homeSteps}
-          run={runHomeTour}
-          onFinish={() => setRunHomeTour(false)}
-          tourKey="home-tour"
-          />
-        )}
         <Outlet />
       </Stack>
     </Stack>

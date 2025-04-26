@@ -86,7 +86,7 @@ try {
   app.use("/files", fileRoutes);
   app.use("/mail", mailRoutes);
   app.use("/controlCategory", controlCategory);
-  app.use("/eu", euRouter);
+  app.use("/eu-ai-act", euRouter);
 
   app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 

@@ -75,9 +75,8 @@ const Vendors = () => {
   const [controller, setController] = useState<AbortController | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const { currentProjectId } = useContext(VerifyWiseContext);
-  const { selectedProjectId } = dashboardValues;
   const { vendorRisksSummary } = useVendorRisks({
-    projectId: selectedProjectId?.toString(),
+    projectId: currentProjectId?.toString(),
     refreshKey,
   });
   const [alert, setAlert] = useState<{
@@ -164,9 +163,9 @@ const Vendors = () => {
         setDashboardValues((prevValues: any) => ({
           ...prevValues,
           vendorRisks: response.data,
-          selectedProjectId: selectedProjectId,
         }));
         setRefreshKey((prevKey) => prevKey + 1);
+
       }
     } catch (error) {
       console.error("Error fetching vendorRisks:", error);

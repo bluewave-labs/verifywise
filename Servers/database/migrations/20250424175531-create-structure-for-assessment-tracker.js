@@ -1,7 +1,7 @@
 'use strict';
-const { Topics } = require("../../dist/structures/assessment-tracker/topics.struct");
 
 function getAssessmentTrackerStruct() {
+  const { Topics } = require("../../dist/structures/assessment-tracker/topics.struct");
   let topics = [], subTopics = [], questions = []
   for (let topic of Topics) {
     topics.push({
@@ -191,6 +191,24 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
+      const projectIdsProjectFrameworks = await queryInterface.sequelize.query(
+        `SELECT pf.project_id AS project_id, a.id AS assessment_id FROM 
+          assessments a JOIN projects_frameworks pf ON a.projects_frameworks_id = pf.id WHERE a.project_id IS NULL;`,
+        { transaction }
+      );
+      await Promise.all(
+        projectIdsProjectFrameworks[0].map(async (assessment) => {
+          await queryInterface.sequelize.query(
+            `UPDATE assessments SET project_id = ${assessment.project_id} WHERE id = ${assessment.assessment_id};`,
+            { transaction }
+          );
+        })
+      );
+      await queryInterface.sequelize.query(
+        `ALTER TABLE assessments ALTER COLUMN project_id SET NOT NULL;`,
+        { transaction }
+      );
+      // migrate the data from the new column to the old column
       const queries = [
         `ALTER TABLE assessments DROP COLUMN projects_frameworks_id;`,
         'DROP TABLE IF EXISTS answers_eu CASCADE;',

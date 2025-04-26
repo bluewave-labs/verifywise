@@ -1,7 +1,7 @@
 'use strict';
-const { ControlCategories } = require("../../dist/structures/compliance-tracker/controlCategories.struct");
 
 function getComplianceTrackerStruct() {
+  const { ControlCategories } = require("../../dist/structures/compliance-tracker/controlCategories.struct");
   let controlCategories = [], controls = [], subControls = []
   for (let controlCategory of ControlCategories) {
     controlCategories.push({

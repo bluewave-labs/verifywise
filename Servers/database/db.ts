@@ -19,6 +19,18 @@ import { VendorRiskModel } from "../models/vendorRisk.model";
 import { VendorsProjectsModel } from "../models/vendorsProjects.model";
 import dbConfig from "./config/config";
 import { Dialect } from "sequelize";
+import { FrameworkModel } from "../models/frameworks.model";
+import { ProjectFrameworksModel } from "../models/projectFrameworks.model";
+import { TopicStructEUModel } from "../models/EU/topicStructEU.model";
+import { SubtopicStructEUModel } from "../models/EU/subTopicStructEU.model";
+import { QuestionStructEUModel } from "../models/EU/questionStructEU.model";
+import { AnswerEUModel } from "../models/EU/answerEU.model";
+import { ControlCategoryStructEUModel } from "../models/EU/controlCategoryStructEU.model";
+import { ControlStructEUModel } from "../models/EU/controlStructEU.model";
+import { SubcontrolStructEUModel } from "../models/EU/subControlStructEU.model";
+import { ControlEUModel } from "../models/EU/controlEU.model";
+import { SubcontrolEUModel } from "../models/EU/subControlEU.model";
+import { AssessmentEUModel } from "../models/EU/assessmentEU.model";
 
 dotenv.config();
 
@@ -50,7 +62,19 @@ const sequelize = new Sequelize(
       UserModel,
       VendorModel,
       VendorRiskModel,
-      VendorsProjectsModel
+      VendorsProjectsModel,
+      FrameworkModel,
+      ProjectFrameworksModel,
+      AssessmentEUModel,
+      TopicStructEUModel,
+      SubtopicStructEUModel,
+      QuestionStructEUModel,
+      AnswerEUModel,
+      ControlCategoryStructEUModel,
+      ControlStructEUModel,
+      SubcontrolStructEUModel,
+      ControlEUModel,
+      SubcontrolEUModel
     ]
   }
 ) as Sequelize;

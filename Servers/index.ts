@@ -20,6 +20,7 @@ import roleRoutes from "./routes/role.route";
 import fileRoutes from "./routes/file.route";
 import mailRoutes from "./routes/vwmailer.route";
 import controlCategory from "./routes/controlCategory.route";
+import euRouter from "./routes/eu.route";
 
 import autoDriverRoutes from "./routes/autoDriver.route";
 import swaggerUi from "swagger-ui-express";
@@ -85,6 +86,7 @@ try {
   app.use("/files", fileRoutes);
   app.use("/mail", mailRoutes);
   app.use("/controlCategory", controlCategory);
+  app.use("/eu", euRouter);
 
   app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 

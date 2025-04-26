@@ -21,7 +21,7 @@ export const TechnicalDocumentation = [
         order_no: 2,
         question:
           "What is your strategy for validating the model? How does this strategy ensure the model meets its intended purposes while minimizing unintended consequences?",
-        hint: "Describe your organization’s validation processes for the AI system, emphasizing actions taken to mitigate risks in sensitive use cases.",
+        hint: "Describe your organization''s validation processes for the AI system, emphasizing actions taken to mitigate risks in sensitive use cases.",
         priority_level: "medium priority",
         answer_type: "Long text",
         input_type: "Tiptap area",

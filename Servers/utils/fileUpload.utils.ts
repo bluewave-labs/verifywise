@@ -7,12 +7,16 @@ import { ProjectModel } from "../models/project.model";
 export const uploadFile = async (
   file: UploadedFile,
   user_id: number,
-  project_id: number,
+  project_framework_id: number,
   source: "Assessment tracker group" | "Compliance tracker group"
 ) => {
+  const project = await sequelize.query(
+    "SELECT project_id FROM projects_frameworks WHERE id = :id",
+    { replacements: { id: project_framework_id } },
+  ) as [{ project_id: number }[], number]
   const projectIsDemo = await sequelize.query(
     "SELECT is_demo FROM projects WHERE id = :id",
-    { replacements: { id: project_id }, mapToModel: true, model: ProjectModel },
+    { replacements: { id: project[0][0].project_id }, mapToModel: true, model: ProjectModel },
   )
   const is_demo = projectIsDemo[0].is_demo || false
   const query = `INSERT INTO files
@@ -26,7 +30,7 @@ export const uploadFile = async (
     replacements: {
       filename: file.originalname,
       content: file.buffer,
-      project_id,
+      project_id: project[0][0].project_id,
       uploaded_by: user_id,
       uploaded_time: new Date().toISOString(),
       is_demo,

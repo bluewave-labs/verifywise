@@ -62,7 +62,6 @@ const Vendors = () => {
   const theme = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [isVendorsLoading, setIsVendorsLoading] = useState(true);
-  const [isRisksLoading, setIsRisksLoading] = useState(true);
   const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [value, setValue] = useState("1");
@@ -73,11 +72,9 @@ const Vendors = () => {
   );
   const [selectedRisk, setSelectedRisk] = useState<ExistingRisk | null>(null);
   const [controller, setController] = useState<AbortController | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0);
   const { selectedProjectId } = dashboardValues;
-  const { vendorRisksSummary } = useVendorRisks({
+  const { vendorRisksSummary,refetchVendorRisks,vendorRisks,loadingVendorRisks } = useVendorRisks({
     projectId: selectedProjectId?.toString(),
-    refreshKey,
   });
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -140,37 +137,11 @@ const Vendors = () => {
           ...prevValues,
           vendors: response.data,
         }));
-        setRefreshKey((prevKey) => prevKey + 1);
       }
     } catch (error) {
       console.error("Error fetching vendors:", error);
     } finally {
       setIsVendorsLoading(false);
-    }
-  }, [selectedProjectId]);
-
-  const fetchRisks = useCallback(async () => {
-    const signal = createAbortController();
-    if (signal.aborted) return;
-    setIsRisksLoading(true);
-    if (!selectedProjectId) return;
-    try {
-      const response = await getAllEntities({
-        routeUrl: `/vendorRisks/by-projid/${selectedProjectId}`,
-        signal,
-      });
-      if (response?.data) {
-        setDashboardValues((prevValues: any) => ({
-          ...prevValues,
-          vendorRisks: response.data,
-          selectedProjectId: selectedProjectId,
-        }));
-        setRefreshKey((prevKey) => prevKey + 1);
-      }
-    } catch (error) {
-      console.error("Error fetching vendorRisks:", error);
-    } finally {
-      setIsRisksLoading(false);
     }
   }, [selectedProjectId]);
 
@@ -182,7 +153,7 @@ const Vendors = () => {
   }, [selectedProjectId]);
 
   useEffect(() => {
-    fetchRisks();
+    refetchVendorRisks();
     return () => {
       controller?.abort();
     };
@@ -217,7 +188,7 @@ const Vendors = () => {
           setAlert(null);
         }, 3000);
         await fetchVendors();
-        await  fetchRisks();
+        await  refetchVendorRisks();
       } else if (response.status === 404) {
         setAlert({
           variant: "error",
@@ -262,7 +233,7 @@ const Vendors = () => {
           setAlert(null);
         }, 3000);
 
-        await fetchRisks();
+        await refetchVendorRisks();
       } else if (response.status === 404) {
         setAlert({
           variant: "error",
@@ -397,7 +368,7 @@ const Vendors = () => {
             </TabList>
           </Box>
           {value !== "1" &&
-            (isRisksLoading || isVendorsLoading ? (
+            (loadingVendorRisks || isVendorsLoading ? (
               <VWSkeleton variant="rectangular" width="50%" height={100} />
             ) : (
               project && <RisksCard risksSummary={vendorRisksSummary} />
@@ -432,7 +403,7 @@ const Vendors = () => {
             )
           )}
 
-          {(isRisksLoading || isVendorsLoading) && value !== "1" ? (
+          {(loadingVendorRisks || isVendorsLoading) && value !== "1" ? (
             <VWSkeleton
               variant="rectangular"
               width={"15%"}
@@ -478,7 +449,7 @@ const Vendors = () => {
               />
             </TabPanel>
           )}
-          {(isRisksLoading || isVendorsLoading) && value !== "1" ? (
+          {(loadingVendorRisks || isVendorsLoading) && value !== "1" ? (
             <VWSkeleton
               height={"20vh"}
               minHeight={"20vh"}
@@ -491,6 +462,7 @@ const Vendors = () => {
             <TabPanel value="2" sx={tabPanelStyle}>
               <RiskTable
                 dashboardValues={dashboardValues}
+                vendorRisks = {vendorRisks}
                 onDelete={handleDeleteRisk}
                 onEdit={handleEditRisk}
               />
@@ -510,7 +482,7 @@ const Vendors = () => {
         handleChange={handleChange}
         setIsOpen={handleRiskModal}
         value={value}
-        onSuccess={fetchRisks}
+        onSuccess={refetchVendorRisks}
         existingRisk={selectedRisk}
       />
       {isSubmitting && (

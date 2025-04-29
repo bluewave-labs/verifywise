@@ -6,31 +6,11 @@
 
 [VerifyWise](https://verifywise.ai) is an open-source AI governance platform designed to help businesses use the power of AI safely and responsibly. Our platform ensures compliance and robust AI management without compromising on security.
 
-We are democratizing AI best practices with an open-source solution that can be hosted on-premises, giving you complete control over your AI governance.
+We are democratizing AI best practices with an open-source solution that can be hosted on-premises, giving you complete control over your AI governance. 
+
+Please [get in touch](https://tidycal.com/verifywise/info-session) with us to see the latest demo, or [join the waitlist](https://airtable.com/appdK4RIXT5xKd2Zh/pagamLEwP1yvJgP0C/form) to be notified when the release announcement is made.
 
 <img width="1433" alt="VerifyWise" src="https://github.com/user-attachments/assets/268a2c44-01de-4f7b-8e10-1dd4f76e86a8">
-
-## Developer Setup
-
-The VerifyWise application has two components: a frontend in Reactjs and backend in Nodejs. At present, you can use Docker (recommended) or `npm` to run VerifyWise. 
-
-A PostGreSQL database is required.
-
-To run a development instance of VerifyWise via `npm`, follow these steps:
-
-1. Crate "verifywise" database in your local PostgreSQL server.
-2. Fork and clone the repository. Go to the Clients directory.
-3. Run `npm i; npm run dev`
-4. Go to ../Servers directory.
-5. Run `npm i; npm run watch`
-6. Now the application is up and running on `https://localhost:5173` 
-
-Currently the application is in rapid development, so check back here often.
-
-## Quick links
-
-- This application is currently in the development stage. The designs and workflows are [available for everyone](https://www.figma.com/design/o4xu4PeC5bo1Ii4dyom6vQ/VerifyWise?node-id=0-1&t=Ty2Jh4S8QgHGrqon-1). This link includes 2 pages: dashboard designs and the style guide.
-- The [VerifyWise presentation](https://pitch.com/v/verifywise-democratizing-ai-governance-zhxvh6), including terminology, why we started this project, technology, and roadmap
 
 ## Who is it for?
 
@@ -65,13 +45,36 @@ VerifyWise is designed for:
 - Key metrics, visualizations, and real-time reporting capabilities.
 - Major features:
   - Multiple projects *(complete)*
-  - Compliance tracker *(complete)*
-  - Assessment tracker *(complete)*
+  - Compliance tracker and assessment tracker for EU AI Act *(complete)*
+  - ISO 42001 support *(in progress)*
   - Vendors *(complete)*
   - Risks *(complete)*
   - Evidence center *(complete)*
   - Reports *(in progress)* 
-  - AI Trust Center *(in progress)*
+  - AI Trust Center *(planning)*
+
+## Developer setup
+
+The VerifyWise application has two components: a frontend in Reactjs and backend in Nodejs. At present, you can use Docker (recommended) or `npm` to run VerifyWise. 
+
+A PostGreSQL database is required.
+
+To run a development instance of VerifyWise via `npm`, follow these steps:
+
+1. Crate "verifywise" database in your local PostgreSQL server.
+2. Fork and clone the repository. Go to the Clients directory.
+3. Run `npm i; npm run dev`
+4. Go to ../Servers directory.
+5. cp the `.env.dev` [file](https://github.com/bluewave-labs/verifywise/blob/develop/.env.dev) to this directory using name `.env` and modify the contents to match your environment.
+6. Run `npm i; npm run watch`
+7. Now the application is up and running on `https://localhost:5173` 
+
+Currently the application is in rapid development, so check back here often.
+
+## Quick links
+
+- This application is currently in the development stage. The designs and workflows are [available for everyone](https://www.figma.com/design/o4xu4PeC5bo1Ii4dyom6vQ/VerifyWise?node-id=0-1&t=Ty2Jh4S8QgHGrqon-1). This link includes 2 pages: dashboard designs and the style guide.
+- The [VerifyWise presentation](https://pitch.com/v/verifywise-democratizing-ai-governance-zhxvh6), including terminology, why we started this project, technology, and roadmap
  
 ## Security
 

@@ -32,7 +32,6 @@
 import { Button } from "@mui/material";
 import PropTypes from "prop-types";
 import { ButtonProps } from "@mui/material/Button";
-
 import singleTheme from "../../themes/v1SingleTheme";
 
 interface VWButtonProps {
@@ -47,35 +46,38 @@ interface VWButtonProps {
   icon?: any;
 }
 
-const VWButton: React.FC<VWButtonProps> = ({
-  variant = "contained",
-  size = "medium",
-  isDisabled = false,
-  isLink = false,
-  color = "primary",
-  onClick,
-  sx,
-  text = "VWButton",
-  icon,
-}) => {
-  const appearance = singleTheme.buttons[color][variant];
+const VWButton: React.FC< VWButtonProps> = (
+  (
+    {
+      variant = "contained",
+      size = "medium",
+      isDisabled = false,
+      isLink = false,
+      color = "primary",
+      onClick,
+      sx,
+      text = "VWButton",
+      icon,
+    }) => {
+    const appearance = singleTheme.buttons[color][variant];
 
-  return (
-    <Button
-      disableRipple
-      variant={variant as ButtonProps["variant"]}
-      size={size as ButtonProps["size"]}
-      disabled={isDisabled}
-      color={color as ButtonProps["color"]}
-      onClick={onClick}
-      sx={{ ...appearance, ...sx }}
-      disableElevation={variant === "contained" && !isLink}
-    >
-      {icon}
-      {text}
-    </Button>
-  );
-};
+    return (
+      <Button
+        disableRipple
+        variant={variant as ButtonProps["variant"]}
+        size={size as ButtonProps["size"]}
+        disabled={isDisabled}
+        color={color as ButtonProps["color"]}
+        onClick={onClick}
+        sx={{ ...appearance, ...sx }}
+        disableElevation={variant === "contained" && !isLink}
+      >
+        {icon}
+        {text}
+      </Button>
+    );
+  }
+);
 
 VWButton.propTypes = {
   variant: PropTypes.oneOf(["contained", "outlined", "text"]),
@@ -92,6 +94,8 @@ VWButton.propTypes = {
   ]),
   onClick: PropTypes.func,
   sx: PropTypes.object,
+  text: PropTypes.string,
+  icon: PropTypes.node,
 };
 
 export default VWButton;

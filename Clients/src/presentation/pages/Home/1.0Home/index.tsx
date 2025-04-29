@@ -30,10 +30,16 @@ import {
 import { useProjectData } from "../../../../application/hooks/useFetchProjects";
 import { AlertState } from "../../../../application/interfaces/appStates";
 import { fetchData } from "../../../../application/hooks/fetchDataHook";
-
+import PageTour from "../../../components/PageTour";
+import HomeSteps from "./HomeSteps";
+import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
+        
 const VWHome = () => {
-  const { setDashboardValues } = useContext(VerifyWiseContext);
-
+  const {
+    setDashboardValues,
+    componentsVisible,
+    changeComponentVisibility
+  } = useContext(VerifyWiseContext);
   const [complianceProgressData, setComplianceProgressData] =
     useState<ComplianceProgress>();
   const [assessmentProgressData, setAssessmentProgressData] =
@@ -47,6 +53,22 @@ const VWHome = () => {
     useState<boolean>(false);
 
   const { projects, loading: projectLoading, fetchProjects } = useProjectData();
+
+   const [runHomeTour, setRunHomeTour] = useState(false);
+  const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
+    countToTrigger: 1,
+  });
+  useEffect(() => {
+    if (allVisible) {
+      changeComponentVisibility("home", true);
+    }
+  }, [allVisible]);
+
+  useEffect(() => {
+    if (componentsVisible.home && componentsVisible.sidebar) {
+      setRunHomeTour(true);
+    }
+  }, [componentsVisible]);
 
   useEffect(() => {
     const fetchProgressData = async () => {
@@ -207,18 +229,19 @@ const VWHome = () => {
                 onClick={() => handleGenerateDemoDataClick()}
               />
             )}
-
-            <VWButton
-              variant="contained"
-              text="New project"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              icon={<AddCircleOutlineIcon />}
-              onClick={() => setIsProjectFormModalOpen(true)}
-            />
+            <div data-joyride-id="new-project-button" ref={refs[0]}>
+              <VWButton
+                variant="contained"
+                text="New project"
+                sx={{
+                  backgroundColor: "#13715B",
+                  border: "1px solid #13715B",
+                  gap: 2,
+                }}
+                icon={<AddCircleOutlineIcon />}
+                onClick={() => setIsProjectFormModalOpen(true)}
+              />
+            </div>
           </Stack>
         </Stack>
         <Stack className="vwhome-body-projects" sx={vwhomeBodyProjects}>
@@ -266,6 +289,14 @@ const VWHome = () => {
           <VWProjectForm onClose={handleProjectFormModalClose} />
         </Box>
       </Modal>
+      <PageTour
+        steps={HomeSteps}
+        run={runHomeTour}
+        onFinish={() => {
+          setRunHomeTour(false);
+        }}
+        tourKey="home-tour"
+      />
     </Stack>
   );
 };

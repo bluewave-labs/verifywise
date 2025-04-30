@@ -380,7 +380,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                         </TableCell>
                         <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                           <Select
-                            value={member.role || '1'}
+                            value={member.role || ""}
                             onChange={(e) => handleRoleChange(e, member.id)}
                             size="small"
                             displayEmpty

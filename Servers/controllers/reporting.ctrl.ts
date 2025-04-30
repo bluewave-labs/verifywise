@@ -7,7 +7,7 @@ import { DefaultReportName } from "../models/reporting.model";
 import marked from 'marked';
 const htmlDocx = require("html-to-docx");
 
-export async function getProjectRiskReports(
+export async function generateReports(
   req: Request,
   res: Response
 ): Promise<any> {

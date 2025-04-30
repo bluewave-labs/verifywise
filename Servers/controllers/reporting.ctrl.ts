@@ -11,7 +11,9 @@ export async function getProjectRiskReports(
   res: Response
 ): Promise<any> {
   try {
-    const projectId = parseInt(req.params.id);
+    console.log("req.body : ", req.body);
+    const projectId = parseInt(req.body.projectId);
+    const userId = parseInt(req.body.userId)
     if (isNaN(projectId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid project ID"));
     }
@@ -50,7 +52,7 @@ ${projectRows}
 
       let uploadedFile;
       try {
-        uploadedFile = await uploadFile(docFile, 3, projectId, "Assessment tracker group");
+        uploadedFile = await uploadFile(docFile, userId, projectId, "Assessment tracker group");
       } catch (error) {
         console.error("File upload error:", error);
         return res.status(500).json(STATUS_CODE[500]("Error uploading report file"));
@@ -59,7 +61,8 @@ ${projectRows}
       if (uploadedFile) {
         res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
         res.setHeader("Content-Disposition", `attachment; filename="${uploadedFile.filename}"`);
-        const fileContent = {fileName: uploadedFile.filename, file: uploadedFile.content}
+        res.setHeader("Content-Type", "application/json");
+        const fileContent = {fileName: uploadedFile.filename, file: uploadedFile.content.toString("base64")};                
         return res.status(200).send(fileContent);
       } else {
         return res.status(500).json(STATUS_CODE[500]("Error uploading report file"));

@@ -89,7 +89,7 @@ function getReportData(
       markdownFormattedData = getProjectRiskMarkdown(id)
       break;
     default:
-      markdownFormattedData = ``;
+      throw new Error(`Report type "${reportType}" is not supported`);
   }
   return markdownFormattedData;
 }

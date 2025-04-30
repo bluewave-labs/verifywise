@@ -17,6 +17,9 @@ export async function generateReports(
     if (isNaN(projectId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid project ID"));
     }
+    if (isNaN(userId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid user ID"));
+    }
 
     const markdownData = getReportData(projectId, req.body.reportType);         
     const markdownDoc = await marked.parse(await markdownData); // markdown file             
@@ -60,7 +63,6 @@ export async function generateReports(
     }    
     
     if (uploadedFile) {
-      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
       res.setHeader("Content-Disposition", `attachment; filename="${uploadedFile.filename}"`);
       res.setHeader("Content-Type", "application/json");
       const fileContent = {fileName: uploadedFile.filename, file: uploadedFile.content.toString("base64")};                

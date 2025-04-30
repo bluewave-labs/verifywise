@@ -182,7 +182,8 @@ export const getAllQuestionsQuery = async (
       a.status AS status,
       a.created_at AS created_at
     FROM questions_struct_eu q JOIN answers_eu a ON q.id = a.question_id WHERE 
-      q.subtopic_id = :subtopic_id AND a.assessment_id = :assessment_id;`,
+      q.subtopic_id = :subtopic_id AND a.assessment_id = :assessment_id
+      ORDER BY created_at DESC, question_id ASC;`,
     {
       replacements: { subtopic_id: subtopicId, assessment_id: assessmentId },
     }
@@ -237,7 +238,8 @@ export const getControlByIdQuery = async (
       c.due_date AS due_date,
       c.implementation_details AS implementation_details,
       c.created_at AS created_at
-    FROM controls_eu c JOIN controls_struct_eu cs ON c.control_meta_id = cs.id WHERE c.id = :control_id;`,
+    FROM controls_eu c JOIN controls_struct_eu cs ON c.control_meta_id = cs.id WHERE c.id = :control_id
+    ORDER BY created_at DESC, id ASC;`,
     {
       replacements: { control_id: controlId },
     }
@@ -268,7 +270,8 @@ export const getSubControlsByIdQuery = async (
       sc.evidence_description AS evidence_description,
       sc.feedback_description AS feedback_description,
       sc.created_at AS created_at
-    FROM subcontrols_eu sc JOIN subcontrols_struct_eu scs ON sc.subcontrol_meta_id = scs.id WHERE sc.control_id = :control_id;`,
+    FROM subcontrols_eu sc JOIN subcontrols_struct_eu scs ON sc.subcontrol_meta_id = scs.id WHERE sc.control_id = :control_id
+    ORDER BY created_at DESC, id ASC;`,
     {
       replacements: { control_id: subControlId },
     }

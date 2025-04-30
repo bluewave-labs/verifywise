@@ -191,6 +191,76 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
+      for (let query of [
+        "DELETE FROM questions WHERE 1=1;",
+        "DELETE FROM subtopics WHERE 1=1;",
+        "DELETE FROM topics WHERE 1=1;",
+      ]) {
+        await queryInterface.sequelize.query(query, { transaction });
+      };
+
+      const allAssessments = await queryInterface.sequelize.query(
+        `SELECT
+          t.id as t_id, t.title as t_title, t.order_no as t_order_no, t.is_demo as t_is_demo, t.framework_id as t_framework_id,
+          st.id as st_id, st.title as st_title, st.order_no as st_order_no, st.is_demo as st_is_demo, st.topic_id as st_topic_id,
+          q.id as q_id, q.order_no as q_order_no, q.question as q_question, q.hint as q_hint, q.priority_level as q_priority_level,
+            q.answer_type as q_answer_type, q.input_type as q_input_type, q.evidence_required as q_evidence_required,
+            q.is_required as q_is_required, q.subtopic_id as q_subtopic_id, q.is_demo as q_is_demo,
+          a.id as a_id, a.assessment_id as a_assessment_id, a.question_id as a_question_id, a.answer as a_answer,
+            a.evidence_files as a_evidence_files, a.dropdown_options as a_dropdown_options, a.status as a_status, a.created_at as a_created_at
+        FROM topics_struct_eu t JOIN subtopics_struct_eu st ON t.id = st.topic_id
+	        JOIN questions_struct_eu q ON st.id = q.subtopic_id
+	        JOIN answers_eu a ON q.id = a.question_id
+            ORDER BY a.assessment_id, t.id, st.id, q.id;`
+      );
+
+      let ctr = 0
+      let topicId = null;
+      let subtopicId = null;
+      while (ctr < allAssessments[0].length) {
+        const record = allAssessments[0][ctr];
+        if (!topicId) {
+          const result = await queryInterface.sequelize.query(
+            `INSERT INTO topics (title, order_no, assessment_id, is_demo, created_at) VALUES (
+              '${record.t_title}', ${record.t_order_no}, ${record.a_assessment_id}, ${record.t_is_demo}, '${new Date(record.a_created_at).toISOString()}'
+            ) RETURNING id;`,
+            { transaction }
+          );
+          topicId = result[0][0].id;
+        };
+
+        if (!subtopicId) {
+          const result = await queryInterface.sequelize.query(
+            `INSERT INTO subtopics (title, order_no, topic_id, is_demo, created_at) VALUES (
+              '${record.st_title}', ${record.st_order_no}, ${topicId}, ${record.st_is_demo}, '${new Date(record.a_created_at).toISOString()}'
+            ) RETURNING id;`,
+            { transaction }
+          );
+          subtopicId = result[0][0].id;
+        };
+
+        await queryInterface.sequelize.query(
+          `INSERT INTO questions (
+            order_no, question, hint, priority_level, answer_type, input_type, evidence_required, is_required, 
+            dropdown_options, answer, subtopic_id, is_demo, created_at, evidence_files, status
+          ) VALUES (
+            ${record.q_order_no}, '${record.q_question.replace(/'/g, "''")}', '${record.q_hint.replace(/'/g, "''")}', '${record.q_priority_level}', '${record.q_answer_type}', '${record.q_input_type}', 
+            ${record.q_evidence_required}, ${record.q_is_required}, ${record.a_dropdown_options?.length ? `'${record.a_dropdown_options}'` : null}, 
+            ${record.a_answer ? `'${record.a_answer.replace(/'/g, "''")}'` : null}, ${subtopicId}, ${record.q_is_demo}, '${new Date(record.a_created_at).toISOString()}', 
+            ${record.a_evidence_files ? `'${JSON.stringify(record.a_evidence_files)}'` : null}, '${record.a_status}'
+          );`,
+          { transaction }
+        );
+
+        if (record.t_id !== allAssessments[0][ctr + 1]?.t_id) {
+          topicId = null;
+        }
+        if (record.st_id !== allAssessments[0][ctr + 1]?.st_id) {
+          subtopicId = null;
+        }
+        ctr++;
+      }
+
       const projectIdsProjectFrameworks = await queryInterface.sequelize.query(
         `SELECT pf.project_id AS project_id, a.id AS assessment_id FROM 
           assessments a JOIN projects_frameworks pf ON a.projects_frameworks_id = pf.id WHERE a.project_id IS NULL;`,

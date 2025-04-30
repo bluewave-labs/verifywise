@@ -5,58 +5,53 @@
  * @param {number} [params.id] - The optional project ID to fetch specific vendor risks.
  * @returns {Object} - The hook returns an object containing:
  *   - `vendorRisks` {VendorRisk[]} - The list of vendor risks.
- *   - `loadingvendorRisks` {boolean} - The loading state of the vendor risks.
+ *   - `loadingVendorRisks` {boolean} - The loading state of the vendor risks.
  *   - `error` {string | boolean} - The error state of the vendor risks request.
  *   - `vendorRisksSummary` {Object} - The summary of vendor risks categorized by risk levels.
+ *   - `refetchVendorRisks` {Function} - Function to manually refetch vendor risks data.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getEntityById } from "../repository/entity.repository";
 import { convertToCamelCaseRiskKey } from "../tools/stringUtil";
 import { VendorRisk } from "../../domain/VendorRisk";
 
 const useVendorRisks = ({
   projectId,
-  refreshKey,
 }: {
   projectId?: string | null;
-  refreshKey?: number;
 }) => {
   const [vendorRisks, setVendorRisks] = useState<VendorRisk[]>([]);
   const [loadingVendorRisks, setLoadingVendorRisks] = useState<boolean>(true);
   const [error, setError] = useState<string | boolean>(false);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    const signal = controller.signal;
-
-    const updateVendorRisks = async () => {
-      setLoadingVendorRisks(true);
-      if (!projectId) return;
-      try {
-        const response = await getEntityById({
-          routeUrl: `/vendorRisks/by-projid/${projectId}`,
-          signal,
-        });
-        if (response?.data) {
-          setVendorRisks(response?.data);
-        }
-      } catch (err) {
-        if (err instanceof Error) {
-          setError(`Request failed: ${err.message}`);
-        } else {
-          setError(`Request failed`);
-        }
-      } finally {
-        setLoadingVendorRisks(false);
+  const fetchVendorRisks = useCallback(async () => {
+    setLoadingVendorRisks(true);
+    if (!projectId) {
+      setLoadingVendorRisks(false);
+      return;
+    }
+    
+    try {
+      const response = await getEntityById({
+        routeUrl: `/vendorRisks/by-projid/${projectId}`,
+      });
+      if (response?.data) {
+        setVendorRisks(response?.data);
       }
-    };
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(`Request failed: ${err.message}`);
+      } else {
+        setError(`Request failed`);
+      }
+    } finally {
+      setLoadingVendorRisks(false);
+    }
+  }, [projectId]);
 
-    updateVendorRisks();
-
-    return () => {
-      controller.abort();
-    };
-  }, [projectId, refreshKey]);
+  useEffect(() => {
+    fetchVendorRisks();
+  }, [fetchVendorRisks]);
 
   const vendorRisksSummary = vendorRisks.reduce(
     (acc, risk) => {
@@ -80,6 +75,7 @@ const useVendorRisks = ({
     error,
     vendorRisks,
     vendorRisksSummary,
+    refetchVendorRisks: fetchVendorRisks,
   };
 };
 

@@ -44,6 +44,7 @@ import { Link as MuiLink } from "@mui/material";
 import { User } from "../../../application/hooks/useUsers";
 import { ROLES } from "../../../application/constants/roles";
 import useLogout from "../../../application/hooks/useLogout";
+import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import ReadyToSubscribeBox from "../ReadyToSubscribeBox/ReadyToSubscribeBox";
 
 const menu = [
@@ -112,9 +113,13 @@ const Sidebar = ({ projects }: { projects: any }) => {
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const logout = useLogout();
 
-  const { dashboardValues, setDashboardValues, setCurrentProjectId, userId } =
+  const { dashboardValues, setDashboardValues, setCurrentProjectId, userId, changeComponentVisibility} =
     useContext(VerifyWiseContext);
   const { users } = dashboardValues;
+
+const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
+  countToTrigger: 1,
+});
 
   const user: User = users
     ? users.find((user: User) => user.id === userId)
@@ -162,6 +167,12 @@ const Sidebar = ({ projects }: { projects: any }) => {
         return null;
     }
   };
+
+useEffect(() => {
+  if (allVisible) {
+   changeComponentVisibility("sidebar", true);
+  }
+}, [allVisible]);
 
   useEffect(() => {
     if (projects.length === 0) {
@@ -277,6 +288,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
             width: "fit-content",
           }}
           data-joyride-id="select-project"
+          ref={refs[0]}
         >
           {projects.length > 0 ? (
             <Select
@@ -312,6 +324,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
         disablePadding
         sx={{ px: theme.spacing(8) }}
         data-joyride-id="dashboard-navigation"
+        ref={refs[1]}
       >
         {/* Items of the menu */}
         {menu.map((item) =>

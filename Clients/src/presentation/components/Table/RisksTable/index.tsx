@@ -34,12 +34,14 @@ const titleOfTableColumns = [
 
 interface RiskTableProps {
   dashboardValues: any;
+  vendorRisks: any;
   onDelete: (riskId: number) => void;
   onEdit: (riskId: number) => void;
 }
 
 const RiskTable: React.FC<RiskTableProps> = ({
   dashboardValues,
+  vendorRisks,
   onDelete,
   onEdit,
 }) => {
@@ -83,10 +85,10 @@ const RiskTable: React.FC<RiskTableProps> = ({
     const start = page * rowsPerPage + 1;
     const end = Math.min(
       page * rowsPerPage + rowsPerPage,
-      dashboardValues?.vendorRisks?.length ?? 0
+    vendorRisks?.length ?? 0
     );
     return `${start} - ${end}`;
-  }, [page, rowsPerPage, dashboardValues?.vendorRisks?.length ?? 0]);
+  }, [page, rowsPerPage, vendorRisks?.length ?? 0]);
 
   const tableHeader = useMemo(
     () => (
@@ -126,8 +128,8 @@ const RiskTable: React.FC<RiskTableProps> = ({
   const tableBody = useMemo(
     () => (
       <TableBody>
-        {dashboardValues.vendorRisks &&
-          dashboardValues.vendorRisks
+        {vendorRisks &&
+          vendorRisks
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
             .map((row: any, index: number) => (
               <TableRow
@@ -197,7 +199,7 @@ const RiskTable: React.FC<RiskTableProps> = ({
       </TableBody>
     ),
     [
-      dashboardValues.vendorRisks,
+     vendorRisks,
       page,
       rowsPerPage,
       cellStyle,
@@ -213,7 +215,7 @@ const RiskTable: React.FC<RiskTableProps> = ({
           {tableHeader}
           {tableBody}
         </Table>
-        {!dashboardValues.vendorRisks?.length && (
+        {!vendorRisks?.length && (
           <div
             style={{
               display: "grid",
@@ -246,11 +248,11 @@ const RiskTable: React.FC<RiskTableProps> = ({
         }}
       >
         <Typography px={theme.spacing(2)} fontSize={12} sx={{ opacity: 0.7 }}>
-          Showing {getRange} of {dashboardValues.vendorRisks?.length} vendor
+          Showing {getRange} of {vendorRisks?.length} vendor
           risk(s)
         </Typography>
         <TablePagination
-          count={dashboardValues.vendorRisks?.length}
+          count={vendorRisks?.length}
           page={page}
           onPageChange={handleChangePage}
           rowsPerPage={rowsPerPage}

@@ -6,7 +6,7 @@ import light from "./presentation/themes/light";
 import dark from "./presentation/themes/dark";
 import { CssBaseline } from "@mui/material";
 import { VerifyWiseContext } from "./application/contexts/VerifyWise.context";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./application/redux/store";
@@ -17,10 +17,11 @@ import { CookiesProvider } from "react-cookie";
 import { createRoutes } from "./application/config/routes";
 import { DashboardState } from "./application/interfaces/appStates";
 import { AppState } from "./application/interfaces/appStates";
+import { ComponentVisible } from "./application/interfaces/ComponentVisible";
 
 function App() {
   const mode = useSelector((state: AppState) => state.ui?.mode || "light");
-  const token = useSelector((state: AppState) => state.auth?.authToken);
+  const token = useSelector((state: AppState) => state.auth?.authToken); 
 
   const [uiValues, setUiValues] = useState<unknown | undefined>({});
   const [authValues, setAuthValues] = useState<unknown | undefined>({});
@@ -43,6 +44,18 @@ function App() {
   } = useProjectStatus({ userId });
 
   const [currentProjectId, setCurrentProjectId] = useState<string | null>("");
+const [componentsVisible, setComponentsVisible] = useState<ComponentVisible>({
+  home: false,
+  sidebar: false,
+})
+const changeComponentVisibility = useCallback(
+  (component: keyof ComponentVisible, value: boolean) => {
+    setComponentsVisible((prev) => ({
+      ...prev,
+      [component]: value,
+    }));
+  }, []
+);
 
   const contextValues = useMemo(
     () => ({
@@ -63,6 +76,8 @@ function App() {
       userId,
       projects,
       setProjects,
+      componentsVisible,
+      changeComponentVisibility,
     }),
     [
       uiValues,
@@ -82,6 +97,8 @@ function App() {
       userId,
       projects,
       setProjects,
+      componentsVisible,
+      changeComponentVisibility,
     ]
   );
 

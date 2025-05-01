@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState } from "react";
 import { Stack, Typography } from "@mui/material";
 import { pageHeadingStyle } from "../../Assessment/1.0AssessmentTracker/index.style";
 import { getEntityById } from "../../../../application/repository/entity.repository";
@@ -6,7 +6,6 @@ import StatsCard from "../../../components/Cards/StatsCard";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import { ControlCategory as ControlCategoryModel } from "../../../../domain/types/ControlCategory";
 import ControlCategoryTile from "./ControlCategory";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import PageTour from "../../../components/PageTour";
 import ComplianceSteps from "./ComplianceSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
@@ -41,7 +40,7 @@ const ComplianceTracker = ({ project }: { project: any }) => {
 
   const fetchComplianceData = async () => {
     if (!currentProjectId) return;
-    
+
     try {
       const response = await getEntityById({
         routeUrl: `projects/compliance/progress/${currentProjectId}`,

@@ -35,15 +35,27 @@ const AssessmentTracker = () => {
   const [activeTab, setActiveTab] = useState<number>(0);
   const [runAssessmentTour, setRunAssessmentTour] = useState(false);
 
-  const { assessmentProgress, loading: loadingAssessmentProgress } = useAssessmentProgress({ selectedProjectId: currentProjectId || "", refreshKey });
-  const { assessmentData, loading: loadingAssessmentData } = useAssessmentData({ selectedProjectId: currentProjectId || "" });
-  const { assessmentTopics, loading: loadingAssessmentTopics } = useAssessmentTopics({ assessmentId: assessmentData?.id });
-  const { assessmentSubtopics, loading: loadingAssessmentSubtopic } = useAssessmentSubtopics({ activeAssessmentTopicId: assessmentTopics?.[activeTab]?.id });
+  const { assessmentProgress, loading: loadingAssessmentProgress } =
+    useAssessmentProgress({
+      selectedProjectId: currentProjectId || "",
+      refreshKey,
+    });
+  const { assessmentData, loading: loadingAssessmentData } = useAssessmentData({
+    selectedProjectId: currentProjectId || "",
+  });
+  const { assessmentTopics, loading: loadingAssessmentTopics } =
+    useAssessmentTopics({ assessmentId: assessmentData?.id });
+  const { assessmentSubtopics, loading: loadingAssessmentSubtopic } =
+    useAssessmentSubtopics({
+      activeAssessmentTopicId: assessmentTopics?.[activeTab]?.id,
+    });
 
-  const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({ countToTrigger: 2,  });
+  const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({
+    countToTrigger: 2,
+  });
 
   useEffect(() => {
-    if (allVisible) {    
+    if (allVisible) {
       setRunAssessmentTour(true);
     }
   }, [allVisible]);

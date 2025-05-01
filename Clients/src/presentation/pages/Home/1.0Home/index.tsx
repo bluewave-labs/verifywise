@@ -33,13 +33,10 @@ import { fetchData } from "../../../../application/hooks/fetchDataHook";
 import PageTour from "../../../components/PageTour";
 import HomeSteps from "./HomeSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
-        
+
 const VWHome = () => {
-  const {
-    setDashboardValues,
-    componentsVisible,
-    changeComponentVisibility
-  } = useContext(VerifyWiseContext);
+  const { setDashboardValues, componentsVisible, changeComponentVisibility } =
+    useContext(VerifyWiseContext);
   const [complianceProgressData, setComplianceProgressData] =
     useState<ComplianceProgress>();
   const [assessmentProgressData, setAssessmentProgressData] =
@@ -54,7 +51,7 @@ const VWHome = () => {
 
   const { projects, loading: projectLoading, fetchProjects } = useProjectData();
 
-   const [runHomeTour, setRunHomeTour] = useState(false);
+  const [runHomeTour, setRunHomeTour] = useState(false);
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
     countToTrigger: 1,
   });

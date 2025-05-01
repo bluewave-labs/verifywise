@@ -54,7 +54,7 @@ const ComingSoonMessage = () => (
 const ProjectFrameworks = ({ project }: { project: Project }) => {
   const [framework, setFramework] = useState('eu-ai-act');
   const [tracker, setTracker] = useState('compliance');
-  console.log("project in project frameworks", project);
+  
   return (
     <Box sx={containerStyle}>
       {/* Framework Tabs and Add Button */}

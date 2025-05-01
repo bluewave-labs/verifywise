@@ -1,7 +1,6 @@
-
 import { useCallback, useEffect, useState } from "react";
 import { getEntityById } from "../repository/entity.repository";
-import { Topic } from "../../domain/Topic";
+import { Topic } from "../../domain/types/Topic";
 
 /**
  * Custom hook to fetch and manage assessment topics.
@@ -22,8 +21,7 @@ const useAssessmentTopics = ({
 }: {
   assessmentId: string | undefined;
 }) => {
-  const [assessmentTopics, setAssessmentTopics] =
-    useState<Topic[]>([]);
+  const [assessmentTopics, setAssessmentTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   const fetchAssessmentTopics = useCallback(

@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from "react";
 import { getEntityById } from "../repository/entity.repository";
-import { FileData } from "../../domain/File";
+import { FileData } from "../../domain/types/File";
 
 export const useFetchFiles = (projectID: string) => {
   const [filesData, setFilesData] = useState<FileData[]>([]);
@@ -36,7 +36,10 @@ export const useFetchFiles = (projectID: string) => {
               uploadDate: file.uploaded_time
                 ? new Date(file.uploaded_time).toLocaleDateString()
                 : "Invalid Date",
-              uploader: `${file.uploader_name ?? ""} ${file.uploader_surname ?? ""}`.trim() || "N/A",
+              uploader:
+                `${file.uploader_name ?? ""} ${
+                  file.uploader_surname ?? ""
+                }`.trim() || "N/A",
             }))
           );
         } else {

@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
-import { Box, Button, Tab, Typography } from '@mui/material';
+import { useState } from 'react';
+import { Box, Button, Tab } from '@mui/material';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import TabContext from '@mui/lab/TabContext';
 import { tabStyle, tabPanelStyle } from '../V1.0ProjectView/style';
+import VWSkeleton from '../../../vw-v2-components/Skeletons';
+import ComplianceTracker from '../../../pages/ComplianceTracker/1.0ComplianceTracker';
 import {
   containerStyle,
   headerContainerStyle,
@@ -17,15 +19,16 @@ const frameworks = [
   { label: 'EU AI Act', value: 'eu-ai-act' },
   { label: 'ISO 42001', value: 'iso-42001' },
 ];
+
 const trackerTabs = [
   { label: 'Compliance tracker', value: 'compliance' },
   { label: 'Assessment tracker', value: 'assessment' },
 ];
 
-const ProjectFrameworks = () => {
+const ProjectFrameworks = ({ project }: { project: any }) => {
   const [framework, setFramework] = useState('eu-ai-act');
   const [tracker, setTracker] = useState('compliance');
-
+  console.log("project in project frameworks", project);
   return (
     <Box sx={containerStyle}>
       {/* Framework Tabs and Add Button */}
@@ -70,7 +73,11 @@ const ProjectFrameworks = () => {
           </TabList>
         </Box>
         <TabPanel value="compliance" sx={tabPanelStyle}>
-          {/* Compliance tracker content goes here */}
+          {project ? (
+            <ComplianceTracker project={project} />
+          ) : (
+            <VWSkeleton variant="rectangular" width="100%" height={400} />
+          )}
         </TabPanel>
         <TabPanel value="assessment" sx={tabPanelStyle}>
           {/* Assessment tracker content goes here */}

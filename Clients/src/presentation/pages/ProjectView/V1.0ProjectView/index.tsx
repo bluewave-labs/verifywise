@@ -110,7 +110,7 @@ const VWProjectView = () => {
           <TabPanel value="frameworks" sx={tabPanelStyle}>
             {project ? (
               // Render frameworks content here
-              <ProjectFrameworks />
+              <ProjectFrameworks project={project} />
             ) : (
               <VWSkeleton variant="rectangular" width="100%" height={400} />
             )}

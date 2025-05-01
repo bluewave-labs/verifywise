@@ -53,11 +53,11 @@ const menu = [
     icon: <Dashboard />,
     path: "/",
   },
-  {
-    name: "Compliance tracker",
-    icon: <Compliance />,
-    path: "/compliance-tracker",
-  },
+  // {
+  //   name: "Compliance tracker",
+  //   icon: <Compliance />,
+  //   path: "/compliance-tracker",
+  // },
   {
     name: "Assessment tracker",
     icon: <Assessment />,

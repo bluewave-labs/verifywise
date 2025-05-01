@@ -12,8 +12,8 @@ import ComplianceSteps from "./ComplianceSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
 import { ComplianceData } from "../../../../domain/interfaces/iCompliance";
 
-const ComplianceTracker = () => {
-  const { currentProjectId } = useContext(VerifyWiseContext);
+const ComplianceTracker = ({ project }: { project: any }) => {
+  const currentProjectId = project?.id;
   const [complianceData, setComplianceData] = useState<ComplianceData>();
   const [controlCategories, setControlCategories] =
     useState<ControlCategoryModel[]>();
@@ -41,7 +41,7 @@ const ComplianceTracker = () => {
 
   const fetchComplianceData = async () => {
     if (!currentProjectId) return;
-
+    
     try {
       const response = await getEntityById({
         routeUrl: `projects/compliance/progress/${currentProjectId}`,
@@ -123,7 +123,7 @@ const ComplianceTracker = () => {
         data-joyride-id="compliance-heading"
         sx={{ position: "relative" }}
       >
-        <Typography sx={pageHeadingStyle}>Compliance tracker</Typography>
+        {/* <Typography sx={pageHeadingStyle}>Compliance tracker</Typography> */}
       </Stack>
       {complianceData && (
         <Stack ref={refs[1]} data-joyride-id="compliance-progress-bar">

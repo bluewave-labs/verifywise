@@ -72,9 +72,9 @@ const Vendors = () => {
   );
   const [selectedRisk, setSelectedRisk] = useState<ExistingRisk | null>(null);
   const [controller, setController] = useState<AbortController | null>(null);
-  const { selectedProjectId } = dashboardValues;
+  const { currentProjectId } = useContext(VerifyWiseContext);
   const { vendorRisksSummary,refetchVendorRisks,vendorRisks,loadingVendorRisks } = useVendorRisks({
-    projectId: selectedProjectId?.toString(),
+    projectId: currentProjectId?.toString(),
   });
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -109,7 +109,7 @@ const Vendors = () => {
     const fetchProject = async () => {
       try {
         const projectData = await getEntityById({
-          routeUrl: `/projects/${selectedProjectId}`,
+          routeUrl: `/projects/${currentProjectId}`,
         });
         setProject(projectData.data);
       } catch (error) {
@@ -117,19 +117,19 @@ const Vendors = () => {
       }
     };
 
-    if (selectedProjectId) {
+    if (currentProjectId) {
       fetchProject();
     }
-  }, [selectedProjectId]);
+  }, [currentProjectId]);
 
   const fetchVendors = useCallback(async () => {
     const signal = createAbortController();
     if (signal.aborted) return;
     setIsVendorsLoading(true);
-    if (!selectedProjectId) return;
+    if (!currentProjectId) return;
     try {
       const response = await getAllEntities({
-        routeUrl: `/vendors/project-id/${selectedProjectId}`,
+        routeUrl: `/vendors/project-id/${currentProjectId}`,
         signal,
       });
       if (response?.data) {
@@ -143,21 +143,21 @@ const Vendors = () => {
     } finally {
       setIsVendorsLoading(false);
     }
-  }, [selectedProjectId]);
+  }, [currentProjectId]);
 
   useEffect(() => {
     fetchVendors();
     return () => {
       controller?.abort();
     };
-  }, [selectedProjectId]);
+  }, [currentProjectId]);
 
   useEffect(() => {
     refetchVendorRisks();
     return () => {
       controller?.abort();
     };
-  }, [selectedProjectId]);
+  }, [currentProjectId]);
 
   useEffect(() => {
     if (allVisible) {

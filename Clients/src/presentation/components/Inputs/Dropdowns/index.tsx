@@ -6,7 +6,7 @@ import Field from "../Field";
 import { formatDate } from "../../../tools/isoDateToString";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import useProjectData from "../../../../application/hooks/useProjectData";
-import { User } from "../../../../domain/User";
+import { User } from "../../../../domain/types/User";
 import { Dayjs } from "dayjs";
 
 interface DropDownsProps {
@@ -43,10 +43,12 @@ const DropDowns: React.FC<DropDownsProps> = ({
   const [projectMembers, setProjectMembers] = useState<User[]>([]);
 
   // Filter users to only show project members
-  useEffect(() => {    
+  useEffect(() => {
     if (project && users?.length > 0) {
-      const members = users.filter((user: User) => 
-        typeof user.id === 'number' && project.members.some(memberId => Number(memberId) === user.id)
+      const members = users.filter(
+        (user: User) =>
+          typeof user.id === "number" &&
+          project.members.some((memberId) => Number(memberId) === user.id)
       );
       setProjectMembers(members);
     }
@@ -56,28 +58,51 @@ const DropDowns: React.FC<DropDownsProps> = ({
   useEffect(() => {
     if (state) {
       setStatus(state?.status || "");
-      
+
       // Only set user-related states if the value exists in projectMembers
-      if (state?.approver && projectMembers.some(user => user.id?.toString() === state.approver.toString())) {
+      if (
+        state?.approver &&
+        projectMembers.some(
+          (user) => user.id?.toString() === state.approver.toString()
+        )
+      ) {
         setApprover(state.approver.toString());
       } else {
         setApprover("");
       }
 
       if (state?.risk_review) {
-        const validRiskReviews = ["Acceptable risk", "Residual risk", "Unacceptable risk"];
-        setRiskReview(validRiskReviews.includes(state.risk_review.toString()) ? state.risk_review.toString() : "");
+        const validRiskReviews = [
+          "Acceptable risk",
+          "Residual risk",
+          "Unacceptable risk",
+        ];
+        setRiskReview(
+          validRiskReviews.includes(state.risk_review.toString())
+            ? state.risk_review.toString()
+            : ""
+        );
       } else {
         setRiskReview("");
       }
 
-      if (state?.owner && projectMembers.some(user => user.id?.toString() === state.owner.toString())) {
+      if (
+        state?.owner &&
+        projectMembers.some(
+          (user) => user.id?.toString() === state.owner.toString()
+        )
+      ) {
         setOwner(state.owner.toString());
       } else {
         setOwner("");
       }
 
-      if (state?.reviewer && projectMembers.some(user => user.id?.toString() === state.reviewer.toString())) {
+      if (
+        state?.reviewer &&
+        projectMembers.some(
+          (user) => user.id?.toString() === state.reviewer.toString()
+        )
+      ) {
         setReviewer(state.reviewer.toString());
       } else {
         setReviewer("");
@@ -88,7 +113,11 @@ const DropDowns: React.FC<DropDownsProps> = ({
     }
   }, [state, projectMembers]);
 
-  const handleChange = (e: SelectChangeEvent<string | number>, setter: (value: string) => void, field: string) => {
+  const handleChange = (
+    e: SelectChangeEvent<string | number>,
+    setter: (value: string) => void,
+    field: string
+  ) => {
     const stringValue = e.target.value.toString();
     setter(stringValue);
     if (setState) {
@@ -114,11 +143,11 @@ const DropDowns: React.FC<DropDownsProps> = ({
           id="status"
           label="Status:"
           value={status}
-          onChange={(e) => handleChange(e, setStatus, 'status')}
+          onChange={(e) => handleChange(e, setStatus, "status")}
           items={[
             { _id: "Waiting", name: "Waiting" },
             { _id: "In progress", name: "In progress" },
-            { _id: "Done", name: "Done" }
+            { _id: "Done", name: "Done" },
           ]}
           sx={inputStyles}
           placeholder={"Select status"}
@@ -128,10 +157,10 @@ const DropDowns: React.FC<DropDownsProps> = ({
           id="Approver"
           label="Approver:"
           value={approver}
-          onChange={(e) => handleChange(e, setApprover, 'approver')}
+          onChange={(e) => handleChange(e, setApprover, "approver")}
           items={projectMembers.map((user) => ({
             _id: user.id?.toString() || "",
-            name: `${user.name} ${user.surname}`
+            name: `${user.name} ${user.surname}`,
           }))}
           sx={inputStyles}
           placeholder={"Select approver"}
@@ -141,11 +170,11 @@ const DropDowns: React.FC<DropDownsProps> = ({
           id="Risk review"
           label="Risk review:"
           value={riskReview}
-          onChange={(e) => handleChange(e, setRiskReview, 'risk_review')}
+          onChange={(e) => handleChange(e, setRiskReview, "risk_review")}
           items={[
             { _id: "Acceptable risk", name: "Acceptable risk" },
             { _id: "Residual risk", name: "Residual risk" },
-            { _id: "Unacceptable risk", name: "Unacceptable risk" }
+            { _id: "Unacceptable risk", name: "Unacceptable risk" },
           ]}
           sx={inputStyles}
           placeholder={"Select risk review"}
@@ -164,10 +193,10 @@ const DropDowns: React.FC<DropDownsProps> = ({
           id="Owner"
           label="Owner:"
           value={owner}
-          onChange={(e) => handleChange(e, setOwner, 'owner')}
+          onChange={(e) => handleChange(e, setOwner, "owner")}
           items={projectMembers.map((user) => ({
             _id: user.id?.toString() || "",
-            name: `${user.name} ${user.surname}`
+            name: `${user.name} ${user.surname}`,
           }))}
           sx={inputStyles}
           placeholder={"Select owner"}
@@ -177,10 +206,10 @@ const DropDowns: React.FC<DropDownsProps> = ({
           id="Reviewer"
           label="Reviewer:"
           value={reviewer}
-          onChange={(e) => handleChange(e, setReviewer, 'reviewer')}
+          onChange={(e) => handleChange(e, setReviewer, "reviewer")}
           items={projectMembers.map((user) => ({
             _id: user.id?.toString() || "",
-            name: `${user.name} ${user.surname}`
+            name: `${user.name} ${user.surname}`,
           }))}
           sx={inputStyles}
           placeholder={"Select reviewer"}

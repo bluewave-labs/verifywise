@@ -349,7 +349,7 @@ const ProfileForm: React.FC = () => {
     setShowToast(true); // Show toast when request is sent
     try {
       // const userId = localStorage.getItem("userId") || "1";
-      await deleteEntityById({ routeUrl: `/users/${id}` });
+      await deleteEntityById({ routeUrl: `/users/${Number(id)}` });
       //clear all storage
       await localStorage.removeItem("userId");
       await localStorage.removeItem("authToken");

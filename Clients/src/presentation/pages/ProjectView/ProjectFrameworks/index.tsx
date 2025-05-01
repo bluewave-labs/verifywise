@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, Button, Tab } from '@mui/material';
+import { Box, Button, Tab, Typography, Stack } from '@mui/material';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import TabContext from '@mui/lab/TabContext';
@@ -7,6 +7,7 @@ import { tabStyle, tabPanelStyle } from '../V1.0ProjectView/style';
 import VWSkeleton from '../../../vw-v2-components/Skeletons';
 import ComplianceTracker from '../../../pages/ComplianceTracker/1.0ComplianceTracker';
 import { Project } from '../../../../domain/types/Project';
+import AssessmentTracker from '../../Assessment/1.0AssessmentTracker';
 
 import {
   containerStyle,
@@ -17,7 +18,6 @@ import {
   tabListStyle,
 } from './styles';
 
-
 const frameworks = [
   { label: 'EU AI Act', value: 'eu-ai-act' },
   { label: 'ISO 42001', value: 'iso-42001' },
@@ -27,6 +27,29 @@ const trackerTabs = [
   { label: 'Compliance tracker', value: 'compliance' },
   { label: 'Assessment tracker', value: 'assessment' },
 ];
+
+const ComingSoonMessage = () => (
+  <Stack 
+    sx={{ 
+      height: 400, 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center',
+      backgroundColor: '#F5F6F6',
+      borderRadius: 2,
+      p: 4
+    }}
+  >
+    <Typography variant="h6" sx={{ color: '#13715B', mb: 2 }}>
+      Coming Soon!
+    </Typography>
+    <Typography sx={{ color: '#232B3A', textAlign: 'center' }}>
+      We're currently working on implementing this framework.
+      <br />
+      EU AI Act is currently available for your compliance and assessment needs.
+    </Typography>
+  </Stack>
+);
 
 const ProjectFrameworks = ({ project }: { project: Project }) => {
   const [framework, setFramework] = useState('eu-ai-act');
@@ -77,13 +100,25 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
         </Box>
         <TabPanel value="compliance" sx={tabPanelStyle}>
           {project ? (
-            <ComplianceTracker project={project} />
+            framework === 'eu-ai-act' ? (
+              <ComplianceTracker project={project} />
+            ) : (
+              <ComingSoonMessage />
+            )
           ) : (
             <VWSkeleton variant="rectangular" width="100%" height={400} />
           )}
         </TabPanel>
         <TabPanel value="assessment" sx={tabPanelStyle}>
-          {/* Assessment tracker content goes here */}
+          {project ? (
+            framework === 'eu-ai-act' ? (
+              <AssessmentTracker project={project} />
+            ) : (
+              <ComingSoonMessage />
+            )
+          ) : (
+            <VWSkeleton variant="rectangular" width="100%" height={400} />
+          )}
         </TabPanel>
       </TabContext>
     </Box>

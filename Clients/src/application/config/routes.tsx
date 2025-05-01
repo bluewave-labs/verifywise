@@ -16,7 +16,6 @@ import FileManager from "../../presentation/pages/FileManager";
 import Reporting from "../../presentation/pages/Reporting";
 import Playground from "../../presentation/pages";
 import AssessmentTracker from "../../presentation/pages/Assessment/1.0AssessmentTracker";
-import ComplianceTracker from "../../presentation/pages/ComplianceTracker/1.0ComplianceTracker";
 import VWHome from "../../presentation/pages/Home/1.0Home";
 import VWProjectView from "../../presentation/pages/ProjectView/V1.0ProjectView";
 import PageNotFound from "../../presentation/pages/PageNotFound";
@@ -37,7 +36,6 @@ export const createRoutes = (
       path="/test"
       element={<Home onProjectUpdate={triggerSidebarReload} />}
     />
-    <Route path="/compliance-tracker" element={<ComplianceTracker />} />
     <Route path="/assessment" element={<AssessmentTracker />} />
     <Route path="/vendors" element={<Vendors />} />
     <Route path="/setting" element={<Setting />} />

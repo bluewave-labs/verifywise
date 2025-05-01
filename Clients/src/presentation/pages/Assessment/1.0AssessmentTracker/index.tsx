@@ -1,4 +1,4 @@
-import { useCallback, useContext, useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import {
   Box,
   Divider,
@@ -12,7 +12,6 @@ import {
 } from "@mui/material";
 import {
   listItemStyle,
-  pageHeadingStyle,
   subHeadingStyle,
   topicsListStyle,
 } from "./index.style";

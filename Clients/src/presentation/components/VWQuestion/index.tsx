@@ -1,12 +1,5 @@
-import {
-  Box,
-  Chip,
-  Stack,
-  Tooltip,
-  Typography,
-  Dialog,
-} from "@mui/material";
-import { Question } from "../../../domain/Question";
+import { Box, Chip, Stack, Tooltip, Typography, Dialog } from "@mui/material";
+import { Question } from "../../../domain/types/Question";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import {
   priorities,
@@ -23,7 +16,7 @@ import { handleAlert } from "../../../application/tools/alertUtils";
 import { store } from "../../../application/redux/store";
 import { apiServices } from "../../../infrastructure/api/networkServices";
 import { ENV_VARs } from "../../../../env.vars";
-import { FileData } from "../../../domain/File";
+import { FileData } from "../../../domain/types/File";
 import { useSelector } from "react-redux";
 import Button from "../Button";
 import Select from "../Inputs/Select";
@@ -66,13 +59,13 @@ const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
     setValues((prevValues) => ({
       ...prevValues,
       evidence_files: files,
-    }));   
+    }));
   }, []);
 
   const handleStatusChange = (field: string, value: string | number) => {
-    setValues(prevValues => ({
+    setValues((prevValues) => ({
       ...prevValues,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -93,13 +86,24 @@ const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
       routeUrl: "files",
       authToken,
     }),
-    [question.id, userId, currentProjectId, handleChangeEvidenceFiles, authToken]
+    [
+      question.id,
+      userId,
+      currentProjectId,
+      handleChangeEvidenceFiles,
+      authToken,
+    ]
   );
 
   const [uppy] = useState(createUppy(createUppyProps));
 
   const handleSave = async () => {
-    console.log('VWQuestion: Saving answer for question', question.id, 'project:', currentProjectId);
+    console.log(
+      "VWQuestion: Saving answer for question",
+      question.id,
+      "project:",
+      currentProjectId
+    );
     try {
       const response = await updateEntityById({
         routeUrl: `/questions/${question.id}`,
@@ -170,13 +174,12 @@ const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
       );
 
       if (response.status === 201 && response.data) {
-        const newEvidenceFiles = values?.evidence_files?.filter(
-          (file) => file.id !== fileId
-        ) || [];
+        const newEvidenceFiles =
+          values?.evidence_files?.filter((file) => file.id !== fileId) || [];
         setValues((prevValues) => ({
           ...prevValues,
           evidence_files: newEvidenceFiles,
-        }));        
+        }));
 
         handleAlert({
           variant: "success",
@@ -235,14 +238,14 @@ const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
             getOptionValue={(item) => item.name}
             sx={{
               width: 175,
-              height : 24,
+              height: 24,
             }}
           />
           <Chip
             label={question.priority_level}
             sx={{
               backgroundColor:
-              priorities[question.priority_level as PriorityLevel].color,
+                priorities[question.priority_level as PriorityLevel].color,
               color: "#FFFFFF",
               borderRadius: "4px",
             }}
@@ -283,17 +286,13 @@ const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
             gap: 4,
           }}
         >
-          <Button
-            variant="contained"          
-            disableRipple
-            onClick={handleSave}
-          >
+          <Button variant="contained" disableRipple onClick={handleSave}>
             Save
           </Button>
           <Button
             variant="contained"
             sx={{
-              width: 155,  
+              width: 155,
               border: "1px solid #D0D5DD",
               backgroundColor: "white",
               color: "#344054",

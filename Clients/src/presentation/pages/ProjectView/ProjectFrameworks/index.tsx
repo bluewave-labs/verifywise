@@ -6,6 +6,7 @@ import TabContext from '@mui/lab/TabContext';
 import { tabStyle, tabPanelStyle } from '../V1.0ProjectView/style';
 import VWSkeleton from '../../../vw-v2-components/Skeletons';
 import ComplianceTracker from '../../../pages/ComplianceTracker/1.0ComplianceTracker';
+import { Project } from '../../../../domain/types/Project';
 
 import {
   containerStyle,
@@ -15,6 +16,7 @@ import {
   addButtonStyle,
   tabListStyle,
 } from './styles';
+
 
 const frameworks = [
   { label: 'EU AI Act', value: 'eu-ai-act' },
@@ -26,7 +28,7 @@ const trackerTabs = [
   { label: 'Assessment tracker', value: 'assessment' },
 ];
 
-const ProjectFrameworks = ({ project }: { project: any }) => {
+const ProjectFrameworks = ({ project }: { project: Project }) => {
   const [framework, setFramework] = useState('eu-ai-act');
   const [tracker, setTracker] = useState('compliance');
   console.log("project in project frameworks", project);

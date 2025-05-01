@@ -10,8 +10,9 @@ import PageTour from "../../../components/PageTour";
 import ComplianceSteps from "./ComplianceSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
 import { ComplianceData } from "../../../../domain/interfaces/iCompliance";
+import { Project } from "../../../../domain/types/Project";
 
-const ComplianceTracker = ({ project }: { project: any }) => {
+const ComplianceTracker = ({ project }: { project: Project }) => {
   const currentProjectId = project?.id;
   const [complianceData, setComplianceData] = useState<ComplianceData>();
   const [controlCategories, setControlCategories] =

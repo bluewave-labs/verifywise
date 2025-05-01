@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
+import './types/express';
 // import { checkAndCreateTables } from "./database/db";
 
 import assessmentRoutes from "./routes/assessment.route";

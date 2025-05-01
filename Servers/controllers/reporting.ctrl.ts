@@ -13,11 +13,11 @@ export async function generateReports(
 ): Promise<any> {
   try {   
     const projectId = parseInt(req.body.projectId);
-    const userId = parseInt(req.body.userId);
+    const userId = req.userId;
     if (isNaN(projectId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid project ID"));
     }
-    if (isNaN(userId)) {
+    if (typeof userId !== 'number' || isNaN(userId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid user ID"));
     }
 

@@ -29,7 +29,7 @@
     // "paths": {},                                      /* Specify a set of entries that re-map imports to additional lookup locations. */
     // "rootDirs": [],                                   /* Allow multiple folders to be treated as one when resolving modules. */
     "typeRoots": [
-      "node_modules/@types"
+      "node_modules/@types", "./types",
     ], /* Specify multiple folders that act like './node_modules/@types'. */
     // "types": [],                                      /* Specify type package names to be included without being referenced in a source file. */
     // "allowUmdGlobalAccess": true,                     /* Allow accessing UMD globals from modules. */
@@ -106,7 +106,8 @@
     "./routes/**/*.ts",
     "./controllers/**/*.ts",
     "./models/**/*.ts",
-    "./utils/**/*.ts"
+    "./utils/**/*.ts",
+    "./types/**/*.d.ts"
   ],
   "exclude": [
     "node_modules",

@@ -1,5 +1,7 @@
 import { ProjectRisk, ProjectRiskModel } from "../models/projectRisk.model";
 import { sequelize } from "../database/db";
+import { ProjectsMembers, ProjectsMembersModel } from "../models/projectsMembers.model";
+
 
 export const getProjectRisksReportQuery = async (
   projectId: number
@@ -13,4 +15,18 @@ export const getProjectRisksReportQuery = async (
     }
   );
   return projectRisks;
+};
+
+export const getMembersByProjectIdQuery = async (
+  projectId: number
+): Promise<ProjectsMembers[]> => {
+  const members = await sequelize.query(
+    "SELECT * FROM projects_members WHERE project_id = :project_id",
+    {
+      replacements: { project_id: projectId },
+      mapToModel: true,
+      model: ProjectsMembersModel
+    }
+  );
+  return members;
 };

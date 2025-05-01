@@ -1,6 +1,6 @@
 import { FileData } from "./File";
 
-export interface Subcontrol {
+export type Subcontrol = {
   control_id?: number;
   id?: number;
   order_no?: number;
@@ -17,4 +17,4 @@ export interface Subcontrol {
   feedback_description?: string;
   evidence_files?: FileData[];
   feedback_files?: FileData[];
-}
+};

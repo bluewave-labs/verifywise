@@ -11,9 +11,14 @@ import PageTour from "../../../components/PageTour";
 import ComplianceSteps from "./ComplianceSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
 
+interface ComplianceData {
+  allDonesubControls: number;
+  allsubControls: number;
+}
+
 const ComplianceTracker = () => {
   const { currentProjectId } = useContext(VerifyWiseContext);
-  const [complianceData, setComplianceData] = useState<any>(null);
+  const [complianceData, setComplianceData] = useState<ComplianceData>();
   const [controlCategories, setControlCategories] =
     useState<ControlCategoryModel[]>();
   const [error, setError] = useState<unknown>(null);
@@ -32,7 +37,7 @@ const ComplianceTracker = () => {
 
   // Reset state when project changes
   useEffect(() => {
-    setComplianceData(null);
+    setComplianceData(undefined);
     setControlCategories(undefined);
     setError(null);
     setLoading(true);

@@ -89,11 +89,13 @@ export async function getEntityById({
   routeUrl,
   signal,
   authToken = getAuthToken(),
-}: RequestParams): Promise<any> {
+  responseType = "json",
+}: RequestParams & { responseType?: "json" | "blob" }): Promise<any> {
   try {
     const response = await apiServices.get(routeUrl, {
       headers: { Authorization: `Bearer ${authToken}` },
       signal,
+      responseType,
     });
     return response.data;
   } catch (error) {

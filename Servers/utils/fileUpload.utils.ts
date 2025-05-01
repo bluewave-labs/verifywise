@@ -4,6 +4,8 @@ import { FileModel } from "../models/file.model";
 import { QueryTypes } from "sequelize";
 import { ProjectModel } from "../models/project.model";
 
+const sanitizeFilename = (name: string) => name.replace(/[^a-zA-Z0-9-_\.]/g, '_');
+
 export const uploadFile = async (
   file: UploadedFile,
   user_id: number,
@@ -17,15 +19,16 @@ export const uploadFile = async (
   const is_demo = projectIsDemo[0].is_demo || false
   const query = `INSERT INTO files
     (
-      filename, content, project_id, uploaded_by, uploaded_time, is_demo, source
+      filename, content, type, project_id, uploaded_by, uploaded_time, is_demo, source
     )
     VALUES (
-      :filename, :content, :project_id, :uploaded_by, :uploaded_time, :is_demo, :source
+      :filename, :content, :type, :project_id, :uploaded_by, :uploaded_time, :is_demo, :source
     ) RETURNING *`;
   const result = await sequelize.query(query, {
     replacements: {
-      filename: file.originalname,
+      filename: sanitizeFilename(file.originalname),
       content: file.buffer,
+      type: file.mimetype,
       project_id,
       uploaded_by: user_id,
       uploaded_time: new Date().toISOString(),

@@ -4,8 +4,10 @@ export const handleDownload = async (fileId: string, fileName: string) => {
   try {
     const response = await getEntityById({
       routeUrl: `/files/${fileId}`,
+      responseType: "blob",
     });
-    const blob = new Blob([response], { type: "application/octet-stream" });
+    console.log("response", response);
+    const blob = new Blob([response], { type: response.type });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;

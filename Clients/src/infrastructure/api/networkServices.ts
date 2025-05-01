@@ -70,11 +70,11 @@ export const apiServices = {
    */
   async get<T>(
     endpoint: string,
-    params: RequestParams = {}
+    params: RequestParams & { responseType?: "json" | "blob" } = {}
   ): Promise<ApiResponse<T>> {
     logRequest("get", endpoint, params);
     try {
-      const response = await CustomAxios.get(endpoint, { params });
+      const response = await CustomAxios.get(endpoint, { params, responseType: params.responseType ?? "json" });
 
       logResponse("get", endpoint, response);
       return {

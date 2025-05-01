@@ -10,11 +10,7 @@ import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.c
 import PageTour from "../../../components/PageTour";
 import ComplianceSteps from "./ComplianceSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
-
-interface ComplianceData {
-  allDonesubControls: number;
-  allsubControls: number;
-}
+import { ComplianceData } from "../../../../domain/interfaces/iCompliance";
 
 const ComplianceTracker = () => {
   const { currentProjectId } = useContext(VerifyWiseContext);

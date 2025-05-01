@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { getEntityById } from "../repository/entity.repository";
-import { AssessmentData } from "../../domain/Framework";
+import { Framework } from "../../domain/Framework";
 
 /**
  * Custom hook to fetch and manage assessment data based on the selected project ID.
@@ -20,9 +20,7 @@ const useAssessmentData = ({
 }: {
   selectedProjectId: string;
 }) => {
-  const [assessmentData, setAssessmentData] = useState<AssessmentData | null>(
-    null
-  );
+  const [assessmentData, setAssessmentData] = useState<Framework | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   const fetchAssessmentData = useCallback(

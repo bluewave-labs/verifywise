@@ -4,7 +4,7 @@ import { pageHeadingStyle } from "../../Assessment/1.0AssessmentTracker/index.st
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import StatsCard from "../../../components/Cards/StatsCard";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
-import { ControlCategory as ControlCategoryModel } from "../../../../domain/ControlCategory";
+import { ControlCategory as ControlCategoryModel } from "../../../../domain/types/ControlCategory";
 import ControlCategoryTile from "./ControlCategory";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import PageTour from "../../../components/PageTour";

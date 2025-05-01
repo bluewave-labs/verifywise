@@ -12,7 +12,7 @@ import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./application/redux/store";
 import useProjectStatus from "./application/hooks/useProjectStatus";
 import { extractUserToken } from "./application/tools/extractToken";
-import { Project } from "./domain/Project";
+import { Project } from "./domain/types/Project";
 import { CookiesProvider } from "react-cookie";
 import { createRoutes } from "./application/config/routes";
 import { DashboardState } from "./application/interfaces/appStates";
@@ -21,7 +21,7 @@ import { ComponentVisible } from "./application/interfaces/ComponentVisible";
 
 function App() {
   const mode = useSelector((state: AppState) => state.ui?.mode || "light");
-  const token = useSelector((state: AppState) => state.auth?.authToken); 
+  const token = useSelector((state: AppState) => state.auth?.authToken);
 
   const [uiValues, setUiValues] = useState<unknown | undefined>({});
   const [authValues, setAuthValues] = useState<unknown | undefined>({});
@@ -44,18 +44,19 @@ function App() {
   } = useProjectStatus({ userId });
 
   const [currentProjectId, setCurrentProjectId] = useState<string | null>("");
-const [componentsVisible, setComponentsVisible] = useState<ComponentVisible>({
-  home: false,
-  sidebar: false,
-})
-const changeComponentVisibility = useCallback(
-  (component: keyof ComponentVisible, value: boolean) => {
-    setComponentsVisible((prev) => ({
-      ...prev,
-      [component]: value,
-    }));
-  }, []
-);
+  const [componentsVisible, setComponentsVisible] = useState<ComponentVisible>({
+    home: false,
+    sidebar: false,
+  });
+  const changeComponentVisibility = useCallback(
+    (component: keyof ComponentVisible, value: boolean) => {
+      setComponentsVisible((prev) => ({
+        ...prev,
+        [component]: value,
+      }));
+    },
+    []
+  );
 
   const contextValues = useMemo(
     () => ({

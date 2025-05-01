@@ -18,7 +18,7 @@ import useProjectData from "../../../../application/hooks/useProjectData";
 
 const VWProjectView = () => {
   const [searchParams] = useSearchParams();
-  const projectId = searchParams.get("projectId") ?? "1";;  
+  const projectId = searchParams.get("projectId") ?? "1";
   const [refreshKey, setRefreshKey] = useState(0);
   const { project } = useProjectData({ projectId, refreshKey });
 
@@ -28,10 +28,10 @@ const VWProjectView = () => {
   };
 
   const handleRefresh = (isTrigger: boolean) => {
-    if(isTrigger){
+    if (isTrigger) {
       setRefreshKey((prevKey) => prevKey + 1); // send refresh trigger to projectdata hook
     }
-  }
+  };
 
   return (
     <Stack className="vw-project-view" overflow={"hidden"}>
@@ -87,8 +87,8 @@ const VWProjectView = () => {
           <TabPanel value="overview" sx={tabPanelStyle}>
             {project ? (
               <VWProjectOverview project={project} />
-              // <></>
             ) : (
+              // <></>
               <VWSkeleton variant="rectangular" width="100%" height={400} />
             )}
           </TabPanel>

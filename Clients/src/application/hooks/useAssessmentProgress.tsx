@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { getEntityById } from "../repository/entity.repository";
-import { AssessmentProgress } from "../../domain/Assessment";
+import { AssessmentProgress } from "../../domain/interfaces/iAssessment";
 
 /**
  * Custom hook to fetch and manage assessment progress data for a selected project.
@@ -20,10 +20,11 @@ const defaultAssessmentProgress = {
   answeredQuestions: 0,
 };
 const useAssessmentProgress = ({
-  selectedProjectId, refreshKey
+  selectedProjectId,
+  refreshKey,
 }: {
   selectedProjectId: string;
-  refreshKey: boolean
+  refreshKey: boolean;
 }) => {
   const [assessmentProgress, setAssessmentProgress] =
     useState<AssessmentProgress>(defaultAssessmentProgress);

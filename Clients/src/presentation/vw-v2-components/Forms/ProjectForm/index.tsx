@@ -32,7 +32,7 @@ import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { useSelector } from "react-redux";
 import Checkbox from "../../../components/Inputs/Checkbox";
-import { Project } from "../../../../domain/Project";
+import { Project } from "../../../../domain/types/Project";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import {
   FormErrors,

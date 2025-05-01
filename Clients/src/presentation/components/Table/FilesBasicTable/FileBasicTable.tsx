@@ -13,9 +13,9 @@ import {
 import TablePaginationActions from "../../TablePagination";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useState, useEffect, useCallback } from "react";
-import { FileData } from "../../../../domain/File";
 import IconButton from "../../IconButton";
 import { handleDownload } from "../../../../application/tools/fileDownload";
+import { FileData } from "../../../../domain/types/File";
 
 const DEFAULT_ROWS_PER_PAGE = 5;
 

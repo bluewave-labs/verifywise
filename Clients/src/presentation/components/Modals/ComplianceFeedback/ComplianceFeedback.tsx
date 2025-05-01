@@ -1,10 +1,17 @@
-import { Box, Typography, Button, useTheme, Dialog, Stack } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Button,
+  useTheme,
+  Dialog,
+  Stack,
+} from "@mui/material";
 import React, { useState } from "react";
 import RichTextEditor from "../../../components/RichTextEditor/index";
 import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
 import Alert, { AlertProps } from "../../../components/Alert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
-import { FileData } from "../../../../domain/File";
+import { FileData } from "../../../../domain/types/File";
 import Uppy from "@uppy/core";
 
 interface AuditorFeedbackProps {
@@ -20,16 +27,16 @@ interface AuditorFeedbackProps {
 }
 
 const parseFileData = (file: FileData | string): FileData => {
-  if (typeof file === 'string') {
+  if (typeof file === "string") {
     try {
       const parsedFile = JSON.parse(file);
       return {
         ...parsedFile,
-        data: undefined  // API files don't have data property
+        data: undefined, // API files don't have data property
       } as FileData;
     } catch (error) {
-      console.error('Failed to parse file data:', error);
-      throw new Error('Invalid file data format');
+      console.error("Failed to parse file data:", error);
+      throw new Error("Invalid file data format");
     }
   }
   return file;
@@ -44,11 +51,11 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
   deletedFilesIds,
   onDeletedFilesChange,
   uploadFiles = [],
-  onUploadFilesChange = () => {}
+  onUploadFilesChange = () => {},
 }) => {
   const theme = useTheme();
   const [isFileUploadOpen, setIsFileUploadOpen] = useState<boolean>(false);
-  const [evidenceFiles, setEvidenceFiles] = useState<FileData[]>(() => 
+  const [evidenceFiles, setEvidenceFiles] = useState<FileData[]>(() =>
     files.map(parseFileData)
   );
   const [alert, setAlert] = useState<AlertProps | null>(null);
@@ -79,8 +86,8 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
     }
 
     // Check if file is in evidenceFiles or uploadFiles
-    const isEvidenceFile = evidenceFiles.some(file => file.id === fileId);
-    
+    const isEvidenceFile = evidenceFiles.some((file) => file.id === fileId);
+
     if (isEvidenceFile) {
       const newEvidenceFiles = evidenceFiles.filter(
         (file) => file.id !== fileId
@@ -89,9 +96,7 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
       onFilesChange?.(newEvidenceFiles);
       onDeletedFilesChange([...deletedFilesIds, fileIdNumber]);
     } else {
-      const newUploadFiles = uploadFiles.filter(
-        (file) => file.id !== fileId
-      );
+      const newUploadFiles = uploadFiles.filter((file) => file.id !== fileId);
       onUploadFilesChange(newUploadFiles);
     }
 
@@ -105,16 +110,16 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
   const closeFileUploadModal = () => {
     const uppyFiles = uppy.getFiles();
     const newUploadFiles = uppyFiles
-      .map(file => {
+      .map((file) => {
         if (!(file.data instanceof Blob)) {
           return null;
         }
         return {
-          data: file.data,  // Keep the actual file for upload
+          data: file.data, // Keep the actual file for upload
           id: file.id,
-          fileName: file.name || 'unnamed',
+          fileName: file.name || "unnamed",
           size: file.size || 0,
-          type: file.type || 'application/octet-stream'
+          type: file.type || "application/octet-stream",
         } as FileData;
       })
       .filter((file): file is FileData => file !== null);
@@ -160,21 +165,6 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
           Add/Remove evidence
         </Button>
         <Stack direction="row" spacing={10}>
-        <Typography
-          sx={{
-            fontSize: 11,
-            color: "#344054",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            textAlign: "center",
-            margin: "auto",
-            textWrap: "wrap",
-          }}
-        >
-          {`${evidenceFiles.length || 0} evidence files attached`}
-        </Typography>
-        {uploadFiles.length > 0 && (
           <Typography
             sx={{
               fontSize: 11,
@@ -187,15 +177,29 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
               textWrap: "wrap",
             }}
           >
-            {`${uploadFiles.length} ${uploadFiles.length === 1 ? 'file' : 'files'} pending upload`}
+            {`${evidenceFiles.length || 0} evidence files attached`}
           </Typography>
-        )}
+          {uploadFiles.length > 0 && (
+            <Typography
+              sx={{
+                fontSize: 11,
+                color: "#344054",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                textAlign: "center",
+                margin: "auto",
+                textWrap: "wrap",
+              }}
+            >
+              {`${uploadFiles.length} ${
+                uploadFiles.length === 1 ? "file" : "files"
+              } pending upload`}
+            </Typography>
+          )}
         </Stack>
       </Stack>
-      <Dialog
-        open={isFileUploadOpen}
-        onClose={closeFileUploadModal}
-      >
+      <Dialog open={isFileUploadOpen} onClose={closeFileUploadModal}>
         <UppyUploadFile
           uppy={uppy}
           files={[...evidenceFiles, ...uploadFiles]}

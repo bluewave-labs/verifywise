@@ -1,11 +1,11 @@
 import { useContext, useEffect, useState } from "react";
 import { getEntityById } from "../repository/entity.repository";
 import { VerifyWiseContext } from "../contexts/VerifyWise.context";
-import { Project } from "../../domain/Project";
+import { Project } from "../../domain/types/Project";
 
 interface UseProjectDataParams {
   projectId: string;
-  refreshKey?: any
+  refreshKey?: any;
 }
 interface UseProjectDataResult {
   project: Project | null;
@@ -23,7 +23,7 @@ export interface User {
 
 const useProjectData = ({
   projectId,
-  refreshKey
+  refreshKey,
 }: UseProjectDataParams): UseProjectDataResult => {
   const [project, setProject] = useState<Project | null>(null);
   const [projectOwner, setProjectOwner] = useState<string | null>(null);
@@ -34,7 +34,7 @@ const useProjectData = ({
   const { selectedProjectId, users } = dashboardValues;
 
   useEffect(() => {
-    console.log('is key refresh', refreshKey)
+    console.log("is key refresh", refreshKey);
     if (!projectId) {
       setError("No project ID provided");
       setIsLoading(false);
@@ -66,7 +66,7 @@ const useProjectData = ({
           const temp = ownerUser.name + ` ` + ownerUser.surname;
           setProjectOwner(temp);
         }
-        
+
         setProjectRisks(data.risks); // Set projectRisks from the fetched data
         setProject(data); // Ensure project is set correctly
         setError(null);

@@ -4,7 +4,7 @@ import { Stack, Box, Typography } from "@mui/material";
 import AscendingIcon from "../../../assets/icons/up-arrow.svg";
 import DescendingIcon from "../../../assets/icons/down-arrow.svg";
 import EmptyTableImage from "../../../assets/imgs/empty-state.svg";
-import { FileData } from "../../../../domain/File";
+import { FileData } from "../../../../domain/types/File";
 
 type SortDirection = "asc" | "desc" | null;
 

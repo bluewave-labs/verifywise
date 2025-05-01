@@ -1,6 +1,6 @@
 import React, { createContext } from "react";
 import { defaultProjectStatus, ProjectStatus } from "../hooks/useProjectStatus";
-import { Project } from "../../domain/Project";
+import { Project } from "../../domain/types/Project";
 import { ComponentVisible } from "../../application/interfaces/ComponentVisible";
 
 interface VerifyWiseContextProps {
@@ -22,7 +22,10 @@ interface VerifyWiseContextProps {
   projects: Project[];
   setProjects: React.Dispatch<React.SetStateAction<Project[]>>;
   componentsVisible: ComponentVisible;
-  changeComponentVisibility: (component: keyof ComponentVisible, value:boolean) => void;
+  changeComponentVisibility: (
+    component: keyof ComponentVisible,
+    value: boolean
+  ) => void;
 }
 
 const VerifyWiseContext = createContext<VerifyWiseContextProps>({
@@ -43,7 +46,7 @@ const VerifyWiseContext = createContext<VerifyWiseContextProps>({
   userId: "",
   projects: [],
   setProjects: () => {},
-  componentsVisible: {home:false, sidebar:false},
+  componentsVisible: { home: false, sidebar: false },
   changeComponentVisibility: () => {},
 });
 

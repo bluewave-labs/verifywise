@@ -10,7 +10,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { ControlCategory as ControlCategoryModel } from "../../../../domain/ControlCategory";
+import { ControlCategory as ControlCategoryModel } from "../../../../domain/types/ControlCategory";
 import { useState } from "react";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ControlsTable from "./ControlsTable";

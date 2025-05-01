@@ -6,18 +6,18 @@ import RisksCard from "../../../../components/Cards/RisksCard";
 import InfoCard from "../../../../components/Cards/InfoCard";
 import DescriptionCard from "../../../../components/Cards/DescriptionCard";
 import TeamCard from "../../../../components/Cards/TeamCard";
-import { Project } from "../../../../../domain/Project";
+import { Project } from "../../../../../domain/types/Project";
 import useProjectData from "../../../../../application/hooks/useProjectData";
 import { useSearchParams } from "react-router-dom";
 import VWSkeleton from "../../../../vw-v2-components/Skeletons";
 import { formatDate } from "../../../../tools/isoDateToString";
 import { useContext, useEffect, useState } from "react";
 import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
-import { User } from "../../../../../domain/User";
+import { User } from "../../../../../domain/types/User";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
 import useProjectRisks from "../../../../../application/hooks/useProjectRisks";
 
-const VWProjectOverview = ({ project }: { project?: Project}) => {
+const VWProjectOverview = ({ project }: { project?: Project }) => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") ?? "0";
   const { dashboardValues } = useContext(VerifyWiseContext);
@@ -68,7 +68,7 @@ const VWProjectOverview = ({ project }: { project?: Project}) => {
 
   const projectMembers: string[] = project
     ? users
-        .filter((user: { id: any; }) => project.members.includes(user.id || ''))
+        .filter((user: { id: any }) => project.members.includes(user.id || ""))
         .map((user: User) => `${user.name} ${user.surname}`)
     : [];
 
@@ -82,17 +82,18 @@ const VWProjectOverview = ({ project }: { project?: Project}) => {
               title="Last updated"
               body={formatDate(project.last_updated.toString())}
             />
-            {user.name !== undefined && user.surname !== undefined ? <>
-              <InfoCard
-                title="Last updated by"
-                body={`${user.name} ${user.surname}`}
-              />
-            </> : <>
-              <InfoCard
-                title="Last updated by"
-                body="N/A"
-              />
-            </>}
+            {user.name !== undefined && user.surname !== undefined ? (
+              <>
+                <InfoCard
+                  title="Last updated by"
+                  body={`${user.name} ${user.surname}`}
+                />
+              </>
+            ) : (
+              <>
+                <InfoCard title="Last updated by" body="N/A" />
+              </>
+            )}
           </>
         ) : (
           <>

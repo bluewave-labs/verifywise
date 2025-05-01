@@ -9,13 +9,13 @@ import {
   TableRow,
   Typography,
   useTheme,
-  Box
+  Box,
 } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";
 import { useCallback, useContext, useMemo, useState } from "react";
 import TablePaginationActions from "../../components/TablePagination";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
-import { ProjectRisk } from "../../../domain/ProjectRisk";
+import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { RISK_LABELS } from "../../components/RiskLevel/constants";
 import IconButton from "../../components/IconButton";
@@ -61,7 +61,7 @@ const VWProjectRisksTableBody = ({
   setSelectedRow,
   setAnchor,
   onDeleteRisk,
-  flashRow
+  flashRow,
 }: {
   rows: any[];
   page: number;
@@ -69,7 +69,7 @@ const VWProjectRisksTableBody = ({
   setSelectedRow: any;
   setAnchor: any;
   onDeleteRisk: (id: number) => void;
-  flashRow: number | null
+  flashRow: number | null;
 }) => {
   const { setInputValues, dashboardValues } = useContext(VerifyWiseContext);
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
@@ -100,28 +100,73 @@ const VWProjectRisksTableBody = ({
         rows
           .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
           .map((row: ProjectRisk, index: number) => (
-            <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row} onClick={(e) => handelEditRisk(row, e)}>
-              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
-                {row.risk_name ? (row.risk_name?.length > 30
-                  ? `${row.risk_name.slice(0, 30)}...`
-                  : row.risk_name) : '-'}
+            <TableRow
+              key={index}
+              sx={singleTheme.tableStyles.primary.body.row}
+              onClick={(e) => handelEditRisk(row, e)}
+            >
+              <TableCell
+                sx={cellStyle}
+                style={{
+                  backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                }}
+              >
+                {row.risk_name
+                  ? row.risk_name?.length > 30
+                    ? `${row.risk_name.slice(0, 30)}...`
+                    : row.risk_name
+                  : "-"}
               </TableCell>
-              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
-                {row.risk_owner ? displayUserFullName(row.risk_owner) : '-'}
+              <TableCell
+                sx={cellStyle}
+                style={{
+                  backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                }}
+              >
+                {row.risk_owner ? displayUserFullName(row.risk_owner) : "-"}
               </TableCell>
-              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
-                {row.severity ? row.severity : '-'}
+              <TableCell
+                sx={cellStyle}
+                style={{
+                  backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                }}
+              >
+                {row.severity ? row.severity : "-"}
               </TableCell>
-              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
-                {row.likelihood ? row.likelihood : '-'} 
+              <TableCell
+                sx={cellStyle}
+                style={{
+                  backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                }}
+              >
+                {row.likelihood ? row.likelihood : "-"}
               </TableCell>
-              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
-                {row.mitigation_plan ? (row.mitigation_plan.length > 30 ? `${row.mitigation_plan.slice(0, 30)}...` : row.mitigation_plan) : '-'}                
+              <TableCell
+                sx={cellStyle}
+                style={{
+                  backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                }}
+              >
+                {row.mitigation_plan
+                  ? row.mitigation_plan.length > 30
+                    ? `${row.mitigation_plan.slice(0, 30)}...`
+                    : row.mitigation_plan
+                  : "-"}
               </TableCell>
-              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
-                {row.mitigation_status ? row.mitigation_status : '-'}
+              <TableCell
+                sx={cellStyle}
+                style={{
+                  backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                }}
+              >
+                {row.mitigation_status ? row.mitigation_status : "-"}
               </TableCell>
-              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
+              <TableCell
+                sx={cellStyle}
+                style={{
+                  backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                }}
+              >
                 <Box
                   sx={{
                     backgroundColor:
@@ -135,10 +180,17 @@ const VWProjectRisksTableBody = ({
                     color: "white",
                   }}
                 >
-                {row.risk_level_autocalculated ? row.risk_level_autocalculated : '-'}
+                  {row.risk_level_autocalculated
+                    ? row.risk_level_autocalculated
+                    : "-"}
                 </Box>
               </TableCell>
-              <TableCell sx={cellStyle} style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}>
+              <TableCell
+                sx={cellStyle}
+                style={{
+                  backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                }}
+              >
                 {row.deadline ? formatDate(row.deadline.toString()) : "NA"}
               </TableCell>
               <TableCell
@@ -148,7 +200,9 @@ const VWProjectRisksTableBody = ({
                   right: 0,
                   minWidth: "50px",
                 }}
-                style={{ backgroundColor: flashRow === row.id ? '#e3f5e6': ''}}
+                style={{
+                  backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                }}
               >
                 <IconButton
                   id={row.id}
@@ -174,7 +228,7 @@ const VWProjectRisksTable = ({
   deleteRisk,
   setPage,
   page,
-  flashRow
+  flashRow,
 }: {
   columns: any[];
   rows: any[];

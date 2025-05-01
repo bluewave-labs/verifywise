@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { getEntityById } from "../repository/entity.repository";
-import { Subtopic } from "../../domain/Subtopic";
+import { Subtopic } from "../../domain/types/Subtopic";
 
 /**
  * Custom hook to fetch and manage assessment subtopics based on the active assessment topic ID.
@@ -21,8 +21,9 @@ const useAssessmentSubtopics = ({
 }: {
   activeAssessmentTopicId: number | undefined;
 }) => {
-  const [assessmentSubtopics, setAssessmentSubtopics] =
-    useState<Subtopic[]>([]);
+  const [assessmentSubtopics, setAssessmentSubtopics] = useState<Subtopic[]>(
+    []
+  );
   const [loading, setLoading] = useState<boolean>(true);
 
   const fetchAssessmentTopics = useCallback(

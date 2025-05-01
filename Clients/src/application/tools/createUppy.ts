@@ -64,7 +64,7 @@ const createUppy = ({
     restrictions: {
       maxFileSize: restrictions?.maxFileSize ?? 10000000,
       maxNumberOfFiles: restrictions?.maxNumberOfFiles ?? 5,
-      allowedFileTypes: restrictions?.allowedFileTypes ?? ["application/pdf"],
+      // allowedFileTypes: restrictions?.allowedFileTypes ?? ["application/pdf"],
     },
   });
 

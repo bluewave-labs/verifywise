@@ -70,7 +70,7 @@ export const apiServices = {
    */
   async get<T>(
     endpoint: string,
-    params: RequestParams & { responseType?: "json" | "blob" } = {}
+    params: RequestParams = {}
   ): Promise<ApiResponse<T>> {
     logRequest("get", endpoint, params);
     try {

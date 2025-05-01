@@ -15,6 +15,7 @@ import getStyles from "./getStyles";
 import { FileData } from "../../../../domain/File";
 import UppyDashboard from "../../../components/UppyDashboard";
 import Button from "../../../components/Button";
+import { handleDownload } from "../../../../application/tools/fileDownload";
 
 interface UppyUploadFileProps {
   uppy: Uppy;
@@ -37,7 +38,10 @@ const FileListItem: React.FC<{
     sx={styles.fileItem}
   >
     <Link
-      href={`${ENV_VARs.URL}/files/${file.id}`}
+      href={`${ENV_VARs.URL}/files/download/${file.id}`}
+      onClick={(e) => {
+        e.preventDefault();
+        handleDownload(file.id, file.fileName)}}
       target="_blank"
       rel="noopener noreferrer"
       sx={styles.fileLink}

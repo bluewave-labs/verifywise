@@ -24,6 +24,10 @@ interface RequestParams {
   headers?: any;
 }
 
+interface GetRequestParams extends RequestParams {
+  responseType?: "json" | "blob";
+}
+
 /**
  * Retrieves the authToken from the Redux store.
  *
@@ -90,7 +94,7 @@ export async function getEntityById({
   signal,
   authToken = getAuthToken(),
   responseType = "json",
-}: RequestParams & { responseType?: "json" | "blob" }): Promise<any> {
+}: GetRequestParams): Promise<any> {
   try {
     const response = await apiServices.get(routeUrl, {
       headers: { Authorization: `Bearer ${authToken}` },

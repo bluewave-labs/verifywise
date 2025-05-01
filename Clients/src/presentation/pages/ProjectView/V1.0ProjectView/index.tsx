@@ -15,6 +15,7 @@ import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import VWProjectRisks from "./ProjectRisks";
 import ProjectSettings from "../ProjectSettings";
 import useProjectData from "../../../../application/hooks/useProjectData";
+import ProjectFrameworks from "../ProjectFrameworks";
 
 const VWProjectView = () => {
   const [searchParams] = useSearchParams();
@@ -77,6 +78,12 @@ const VWProjectView = () => {
                 disableRipple
               />
               <Tab
+                label="Frameworks"
+                value="frameworks"
+                sx={tabStyle}
+                disableRipple
+              />
+              <Tab
                 sx={tabStyle}
                 label="Settings"
                 value="settings"
@@ -96,6 +103,14 @@ const VWProjectView = () => {
             {project ? (
               // Render project risks content here
               <VWProjectRisks />
+            ) : (
+              <VWSkeleton variant="rectangular" width="100%" height={400} />
+            )}
+          </TabPanel>
+          <TabPanel value="frameworks" sx={tabPanelStyle}>
+            {project ? (
+              // Render frameworks content here
+              <ProjectFrameworks />
             ) : (
               <VWSkeleton variant="rectangular" width="100%" height={400} />
             )}

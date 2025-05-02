@@ -21,6 +21,7 @@ import { RiskFormValues, RiskFormErrors } from "../interface";
 import styles from "../styles.module.css";
 import useUsers from "../../../../application/hooks/useUsers";
 import { aiLifecyclePhase, riskCategoryItems } from "../projectRiskValue";
+import { alertState } from "../../../../domain/interfaces/iAlert";
 
 const RiskLevel = React.lazy(() => import("../../RiskLevel"));
 
@@ -67,11 +68,7 @@ const RiskSection: FC<RiskSectionProps> = ({
   const theme = useTheme();
   // const [values, setValues] = useState<RiskFormValues>(initialState);
   const [_, setErrors] = useState<RiskFormErrors>({});
-  const [alert, setAlert] = useState<{
-    variant: "success" | "info" | "warning" | "error";
-    title?: string;
-    body: string;
-  } | null>(null);
+  const [alert, setAlert] = useState<alertState | null>(null);
   const { users } = useUsers();
 
   const handleOnSelectChange = useCallback(
@@ -99,7 +96,7 @@ const RiskSection: FC<RiskSectionProps> = ({
   );
 
   return (
-    <Stack sx={{}}>
+    <Stack>
       {alert && (
         <Alert
           variant={alert.variant}

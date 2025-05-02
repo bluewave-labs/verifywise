@@ -41,7 +41,7 @@ const FileListItem: React.FC<{
       component="button"
       onClick={() => handleDownload(file.id, file.fileName)}
       sx={styles.fileLink}
-    ></Link>
+    >
       <Typography component="span" variant="body2" sx={styles.fileName}>
         {file.fileName}
       </Typography>

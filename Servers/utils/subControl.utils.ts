@@ -62,6 +62,7 @@ export const createNewSubcontrolQuery = async (
         project_id: uploadedFile.project_id,
         uploaded_by: uploadedFile.uploaded_by,
         uploaded_time: uploadedFile.uploaded_time,
+        type: uploadedFile.type,
         source: uploadedFile.source
       });
     })
@@ -77,6 +78,7 @@ export const createNewSubcontrolQuery = async (
         project_id: uploadedFile.project_id,
         uploaded_by: uploadedFile.uploaded_by,
         uploaded_time: uploadedFile.uploaded_time,
+        type: uploadedFile.type,
         source: uploadedFile.source
       });
     })

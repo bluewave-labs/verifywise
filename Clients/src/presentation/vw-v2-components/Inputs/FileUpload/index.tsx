@@ -3,12 +3,12 @@ import Uppy from "@uppy/core";
 import { useState } from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { ENV_VARs } from "../../../../../env.vars";
 import DeleteFileModal from "./DeleteFileModal";
 import getStyles from "./getStyles";
 import { FileData } from "../../../../domain/types/File";
 import UppyDashboard from "../../../components/UppyDashboard";
 import Button from "../../../components/Button";
+import { handleDownload } from "../../../../application/tools/fileDownload";
 
 interface UppyUploadFileProps {
   uppy: Uppy;
@@ -31,9 +31,8 @@ const FileListItem: React.FC<{
     sx={styles.fileItem}
   >
     <Link
-      href={`${ENV_VARs.URL}/files/${file.id}`}
-      target="_blank"
-      rel="noopener noreferrer"
+      component="button"
+      onClick={() => handleDownload(file.id, file.fileName)}
       sx={styles.fileLink}
     >
       <Typography component="span" variant="body2" sx={styles.fileName}>

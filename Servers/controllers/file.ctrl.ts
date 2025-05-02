@@ -11,9 +11,9 @@ export async function getFileContentById(
   try {
     const file = await getFileById(parseInt(req.params.id));
     if (file) {
-      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Type", file.type);
       res.setHeader("Content-Disposition", `attachment; filename="${file.filename}"`);
-      return res.status(200).send(file.content);
+      return res.status(200).end(file.content);
     }
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
@@ -74,6 +74,7 @@ export async function postFileContent(
         project_id: uploadedFile.project_id,
         uploaded_by: uploadedFile.uploaded_by,
         uploaded_time: uploadedFile.uploaded_time,
+        type: uploadedFile.type,
         source: uploadedFile.source
       });
     }

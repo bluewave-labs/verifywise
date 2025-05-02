@@ -6,7 +6,6 @@ import {
   FC,
   useState,
   useCallback,
-  useMemo,
   lazy,
   Suspense,
   useContext,
@@ -44,6 +43,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import UpdateIcon from "@mui/icons-material/Update";
 import { AddNewRiskFormProps } from "../../../domain/interfaces/iRiskForm";
 import { ApiResponse } from "../../../domain/interfaces/iResponse";
+import { tabStyle } from "./style";
 
 const RiskSection = lazy(() => import("./RisksSection"));
 const MitigationSection = lazy(() => import("./MitigationSection"));
@@ -128,21 +128,6 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   const projectId = searchParams.get("projectId");
   const { inputValues } = useContext(VerifyWiseContext);
   const { users } = useUsers();
-
-  const tabStyle = useMemo(
-    () => ({
-      textTransform: "none",
-      fontWeight: 400,
-      alignItems: "flex-start",
-      justifyContent: "flex-end",
-      padding: "16px 0 7px",
-      minHeight: "20px",
-      "&.Mui-selected": {
-        color: "#13715B",
-      },
-    }),
-    []
-  );
 
   useEffect(() => {
     if (popupStatus === "edit") {

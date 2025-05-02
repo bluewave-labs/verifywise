@@ -12,3 +12,9 @@ export interface AddNewRiskFormProps {
   onError?: (message: any) => void;
   onLoading?: (message: any) => void;
 }
+
+export interface RiskSectionProps {
+  closePopup: () => void;
+  onSuccess: () => void;
+  popupStatus: string;
+}

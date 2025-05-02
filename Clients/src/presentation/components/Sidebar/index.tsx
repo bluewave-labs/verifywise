@@ -27,7 +27,6 @@ import { ReactComponent as DotsVertical } from "../../assets/icons/dots-vertical
 import { ReactComponent as LogoutSvg } from "../../assets/icons/logout.svg";
 import { ReactComponent as ReportingSvg } from "../../assets/icons/reporting.svg";
 
-import { ReactComponent as Compliance } from "../../assets/icons/globe.svg";
 import { ReactComponent as Assessment } from "../../assets/icons/chart.svg";
 import { ReactComponent as Vendors } from "../../assets/icons/building.svg";
 import { ReactComponent as Settings } from "../../assets/icons/setting.svg";
@@ -52,11 +51,6 @@ const menu = [
     name: "Dashboard",
     icon: <Dashboard />,
     path: "/",
-  },
-  {
-    name: "Compliance tracker",
-    icon: <Compliance />,
-    path: "/compliance-tracker",
   },
   {
     name: "Assessment tracker",

@@ -1,5 +1,6 @@
 import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
 import { ProjectModel } from "../project.model";
+import { ProjectFrameworksModel } from "../projectFrameworks.model";
 
 /*
 
@@ -13,6 +14,7 @@ changing "projectId" to "project_id" for more consistancy
 export type AssessmentEU = {
   id?: number;
   project_id: number;
+  projects_frameworks_id?: number;
   created_at?: Date;
 };
 
@@ -32,6 +34,12 @@ export class AssessmentEUModel extends Model<AssessmentEU> {
     type: DataType.INTEGER,
   })
   project_id!: number;
+
+  @ForeignKey(() => ProjectFrameworksModel)
+  @Column({
+    type: DataType.INTEGER,
+  })
+  projects_frameworks_id!: number;
 
   @Column({
     type: DataType.BOOLEAN,

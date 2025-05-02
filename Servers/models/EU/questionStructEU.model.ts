@@ -18,7 +18,6 @@ export type QuestionStructEU = {
   evidence_required: boolean; // gets assigned from the structure
   is_required: boolean; // gets assigned from the structure
   subtopic_id: number; // when subtopic is created, its id will be stored and assign here as FK
-  created_at?: Date;
 };
 
 @Table({
@@ -85,8 +84,4 @@ export class QuestionStructEUModel extends Model<QuestionStructEU> {
   })
   is_demo?: boolean;
 
-  @Column({
-    type: DataType.DATE
-  })
-  created_at?: Date;
 }

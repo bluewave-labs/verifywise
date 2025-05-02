@@ -1,6 +1,7 @@
 import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
 import { ControlEU } from "./controlEU.model";
 import { ProjectModel } from "../project.model";
+import { FrameworkModel } from "../frameworks.model";
 
 /*
 
@@ -13,7 +14,7 @@ export type ControlCategoryStructEU = {
   title: string; // gets assigned from the structure
   order_no?: number; // gets assigned from the structure
   controls?: ControlEU[];
-  created_at?: Date;
+  framework_id?: number; // gets assigned from the structure
 };
 
 @Table({
@@ -44,8 +45,10 @@ export class ControlCategoryStructEUModel extends Model<ControlCategoryStructEU>
   })
   is_demo?: boolean;
 
+  @ForeignKey(() => FrameworkModel)
   @Column({
-    type: DataType.DATE
+    type: DataType.INTEGER,
   })
-  created_at?: Date;
+  framework_id?: number;
+
 }

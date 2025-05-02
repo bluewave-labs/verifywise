@@ -1,9 +1,9 @@
 import { Column, DataType, ForeignKey, Model, Table, Validate } from "sequelize-typescript";
 // import { SubcontrolEU } from "./subcontrolEU.model";
 import { ControlCategoryStructEUModel } from "./controlCategoryStructEU.model";
-import { ProjectModel } from "../project.model";
 import { UserModel } from "../user.model";
 import { SubcontrolEU } from "./subControlEU.model";
+import { ProjectFrameworksModel } from "../projectFrameworks.model";
 
 /*
 
@@ -21,7 +21,7 @@ export type ControlEU = {
   due_date?: Date; // won't get any values, will be filled by user
   implementation_details?: string; // won't get any values, will be filled by user
   control_meta_id: number; // when control category is created, its id will be stored and assign here as FK
-  project_id: number; // FK to the project table
+  projects_frameworks_id: number; // FK to the project table
   numberOfSubcontrols?: number;
   numberOfDoneSubcontrols?: number;
   subControls?: SubcontrolEU[];
@@ -84,11 +84,11 @@ export class ControlEUModel extends Model<ControlEU> {
   })
   control_meta_id!: number;
 
-  @ForeignKey(() => ProjectModel)
+  @ForeignKey(() => ProjectFrameworksModel)
   @Column({
     type: DataType.INTEGER,
   })
-  project_id!: number;
+  projects_frameworks_id!: number;
 
   @Column({
     type: DataType.BOOLEAN,

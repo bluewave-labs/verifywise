@@ -9,7 +9,6 @@ import Uppy from "@uppy/core";
 import { useState } from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { ENV_VARs } from "../../../../../env.vars";
 import DeleteFileModal from "./DeleteFileModal";
 import getStyles from "./getStyles";
 import { FileData } from "../../../../domain/File";

@@ -10,7 +10,7 @@
  * @property {(Blob|undefined)} data - Blob containing the file data, optional.
  */
 
-export interface FileData {
+export type FileData = {
   id: string;
   type?: string;
   uploadDate: string;
@@ -18,4 +18,4 @@ export interface FileData {
   fileName: string;
   size?: number;
   data?: Blob;
-}
+};

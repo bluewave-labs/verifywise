@@ -12,12 +12,12 @@ import {
   projectCardTitleStyle,
   viewProjectButtonStyle,
 } from "./style";
-import { Project } from "../../../../domain/Project";
+import { Project } from "../../../../domain/types/Project";
 import { formatDate } from "../../../tools/isoDateToString";
 import { useContext } from "react";
 import React from "react";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import { User } from "../../../../domain/User";
+import { User } from "../../../../domain/types/User";
 import useNavigateSearch from "../../../../application/hooks/useNavigateSearch";
 
 // Error fallback component
@@ -149,7 +149,9 @@ const VWProjectCard = React.memo(
               <VWButton
                 variant="outlined"
                 onClick={() =>
-                  navigate("/project-view", { projectId: project.id.toString() })
+                  navigate("/project-view", {
+                    projectId: project.id.toString(),
+                  })
                 }
                 size="medium"
                 text="View project"

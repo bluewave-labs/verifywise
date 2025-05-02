@@ -1,7 +1,7 @@
 import Uppy from "@uppy/core";
 import XHRUpload from "@uppy/xhr-upload";
 import { ENV_VARs } from "../../../env.vars";
-import { FileData } from "../../domain/File";
+import { FileData } from "../../domain/types/File";
 
 interface UppyProps {
   meta?: Record<string, unknown>;
@@ -63,8 +63,7 @@ const createUppy = ({
     autoProceed: false,
     restrictions: {
       maxFileSize: restrictions?.maxFileSize ?? 10000000,
-      maxNumberOfFiles: restrictions?.maxNumberOfFiles ?? 5,
-      allowedFileTypes: restrictions?.allowedFileTypes ?? ["application/pdf"],
+      maxNumberOfFiles: restrictions?.maxNumberOfFiles ?? 5   
     },
   });
 

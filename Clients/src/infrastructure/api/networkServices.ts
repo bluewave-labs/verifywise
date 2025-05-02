@@ -74,7 +74,7 @@ export const apiServices = {
   ): Promise<ApiResponse<T>> {
     logRequest("get", endpoint, params);
     try {
-      const response = await CustomAxios.get(endpoint, { params });
+      const response = await CustomAxios.get(endpoint, { params, responseType: params.responseType ?? "json" });
 
       logResponse("get", endpoint, response);
       return {

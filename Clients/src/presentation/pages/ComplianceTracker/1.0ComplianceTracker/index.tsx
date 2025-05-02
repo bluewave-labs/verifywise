@@ -1,19 +1,20 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState } from "react";
 import { Stack, Typography } from "@mui/material";
 import { pageHeadingStyle } from "../../Assessment/1.0AssessmentTracker/index.style";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import StatsCard from "../../../components/Cards/StatsCard";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
-import { ControlCategory as ControlCategoryModel } from "../../../../domain/ControlCategory";
+import { ControlCategory as ControlCategoryModel } from "../../../../domain/types/ControlCategory";
 import ControlCategoryTile from "./ControlCategory";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import PageTour from "../../../components/PageTour";
 import ComplianceSteps from "./ComplianceSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
+import { ComplianceData } from "../../../../domain/interfaces/iCompliance";
+import { Project } from "../../../../domain/types/Project";
 
-const ComplianceTracker = () => {
-  const { currentProjectId } = useContext(VerifyWiseContext);
-  const [complianceData, setComplianceData] = useState<any>(null);
+const ComplianceTracker = ({ project }: { project: Project }) => {
+  const currentProjectId = project?.id;
+  const [complianceData, setComplianceData] = useState<ComplianceData>();
   const [controlCategories, setControlCategories] =
     useState<ControlCategoryModel[]>();
   const [error, setError] = useState<unknown>(null);
@@ -32,7 +33,7 @@ const ComplianceTracker = () => {
 
   // Reset state when project changes
   useEffect(() => {
-    setComplianceData(null);
+    setComplianceData(undefined);
     setControlCategories(undefined);
     setError(null);
     setLoading(true);
@@ -122,7 +123,7 @@ const ComplianceTracker = () => {
         data-joyride-id="compliance-heading"
         sx={{ position: "relative" }}
       >
-        <Typography sx={pageHeadingStyle}>Compliance tracker</Typography>
+        {/* <Typography sx={pageHeadingStyle}>Compliance tracker</Typography> */}
       </Stack>
       {complianceData && (
         <Stack ref={refs[1]} data-joyride-id="compliance-progress-bar">

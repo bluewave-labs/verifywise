@@ -13,13 +13,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { getEntityById } from "../repository/entity.repository";
 import { convertToCamelCaseRiskKey } from "../tools/stringUtil";
-import { VendorRisk } from "../../domain/VendorRisk";
+import { VendorRisk } from "../../domain/types/VendorRisk";
 
-const useVendorRisks = ({
-  projectId,
-}: {
-  projectId?: string | null;
-}) => {
+const useVendorRisks = ({ projectId }: { projectId?: string | null }) => {
   const [vendorRisks, setVendorRisks] = useState<VendorRisk[]>([]);
   const [loadingVendorRisks, setLoadingVendorRisks] = useState<boolean>(true);
   const [error, setError] = useState<string | boolean>(false);
@@ -30,7 +26,7 @@ const useVendorRisks = ({
       setLoadingVendorRisks(false);
       return;
     }
-    
+
     try {
       const response = await getEntityById({
         routeUrl: `/vendorRisks/by-projid/${projectId}`,

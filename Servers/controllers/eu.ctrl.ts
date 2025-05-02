@@ -135,6 +135,7 @@ export async function saveControls(
             project_id: evidenceUploadedFile.project_id,
             uploaded_by: evidenceUploadedFile.uploaded_by,
             uploaded_time: evidenceUploadedFile.uploaded_time,
+            type: evidenceUploadedFile.type,
             source: evidenceUploadedFile.source,
           });
         }
@@ -153,6 +154,7 @@ export async function saveControls(
             project_id: feedbackUploadedFile.project_id,
             uploaded_by: feedbackUploadedFile.uploaded_by,
             uploaded_time: feedbackUploadedFile.uploaded_time,
+            type: feedbackUploadedFile.type,
             source: feedbackUploadedFile.source,
           });
         }

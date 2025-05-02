@@ -4,6 +4,8 @@ import { FileModel } from "../models/file.model";
 import { QueryTypes } from "sequelize";
 import { ProjectModel } from "../models/project.model";
 
+const sanitizeFilename = (name: string) => name.replace(/[^a-zA-Z0-9-_\.]/g, '_');
+
 export const uploadFile = async (
   file: UploadedFile,
   user_id: number,
@@ -14,6 +16,7 @@ export const uploadFile = async (
     "SELECT project_id FROM projects_frameworks WHERE id = :id",
     { replacements: { id: project_framework_id } },
   ) as [{ project_id: number }[], number]
+  console.log("aa");
   const projectIsDemo = await sequelize.query(
     "SELECT is_demo FROM projects WHERE id = :id",
     { replacements: { id: project[0][0].project_id }, mapToModel: true, model: ProjectModel },
@@ -21,16 +24,17 @@ export const uploadFile = async (
   const is_demo = projectIsDemo[0].is_demo || false
   const query = `INSERT INTO files
     (
-      filename, content, project_id, uploaded_by, uploaded_time, is_demo, source
+      filename, content, type, project_id, uploaded_by, uploaded_time, is_demo, source
     )
     VALUES (
-      :filename, :content, :project_id, :uploaded_by, :uploaded_time, :is_demo, :source
+      :filename, :content, :type, :project_id, :uploaded_by, :uploaded_time, :is_demo, :source
     ) RETURNING *`;
   const result = await sequelize.query(query, {
     replacements: {
-      filename: file.originalname,
+      filename: sanitizeFilename(file.originalname),
       content: file.buffer,
       project_id: project[0][0].project_id,
+      type: file.mimetype,
       uploaded_by: user_id,
       uploaded_time: new Date().toISOString(),
       is_demo,

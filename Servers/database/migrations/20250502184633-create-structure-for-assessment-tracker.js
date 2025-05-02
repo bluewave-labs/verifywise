@@ -181,6 +181,13 @@ module.exports = {
         ) VALUES ${answersInsert};`,
         { transaction }
       );
+      for (let query of [
+        "DELETE FROM questions WHERE 1=1;",
+        "DELETE FROM subtopics WHERE 1=1;",
+        "DELETE FROM topics WHERE 1=1;",
+      ]) {
+        await queryInterface.sequelize.query(query, { transaction });
+      };
       await transaction.commit();
     } catch (error) {
       await transaction.rollback();
@@ -191,13 +198,13 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
-      for (let query of [
-        "DELETE FROM questions WHERE 1=1;",
-        "DELETE FROM subtopics WHERE 1=1;",
-        "DELETE FROM topics WHERE 1=1;",
-      ]) {
-        await queryInterface.sequelize.query(query, { transaction });
-      };
+      // for (let query of [
+      //   "DELETE FROM questions WHERE 1=1;",
+      //   "DELETE FROM subtopics WHERE 1=1;",
+      //   "DELETE FROM topics WHERE 1=1;",
+      // ]) {
+      //   await queryInterface.sequelize.query(query, { transaction });
+      // };
 
       const allAssessments = await queryInterface.sequelize.query(
         `SELECT

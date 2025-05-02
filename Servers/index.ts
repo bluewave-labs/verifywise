@@ -21,6 +21,7 @@ import fileRoutes from "./routes/file.route";
 import mailRoutes from "./routes/vwmailer.route";
 import controlCategory from "./routes/controlCategory.route";
 import euRouter from "./routes/eu.route";
+import reportRoutes from "./routes/reporting.route";
 
 import autoDriverRoutes from "./routes/autoDriver.route";
 import swaggerUi from "swagger-ui-express";
@@ -88,6 +89,7 @@ try {
   app.use("/controlCategory", controlCategory);
   app.use("/eu-ai-act", euRouter);
 
+  app.use("/reporting", reportRoutes);
   app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 
   app.use("/", (req, res) => {

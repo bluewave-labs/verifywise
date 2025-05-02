@@ -228,6 +228,13 @@ module.exports = {
         `ALTER TABLE controls_eu DROP COLUMN current_id_temp;`,
         { transaction }
       );
+      for (let query of [
+        "DELETE FROM subcontrols WHERE 1=1;",
+        "DELETE FROM controls WHERE 1=1;",
+        "DELETE FROM controlcategories WHERE 1=1;",
+      ]) {
+        await queryInterface.sequelize.query(query, { transaction });
+      }
       await transaction.commit();
     } catch (error) {
       await transaction.rollback();
@@ -238,13 +245,13 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
-      for (let query of [
-        "DELETE FROM subcontrols WHERE 1=1;",
-        "DELETE FROM controls WHERE 1=1;",
-        "DELETE FROM controlcategories WHERE 1=1;",
-      ]) {
-        await queryInterface.sequelize.query(query, { transaction });
-      }
+      // for (let query of [
+      //   "DELETE FROM subcontrols WHERE 1=1;",
+      //   "DELETE FROM controls WHERE 1=1;",
+      //   "DELETE FROM controlcategories WHERE 1=1;",
+      // ]) {
+      //   await queryInterface.sequelize.query(query, { transaction });
+      // }
 
       const allCompliances = await queryInterface.sequelize.query(
         `SELECT 
@@ -302,7 +309,6 @@ module.exports = {
           );`,
           { transaction }
         )
-        ctr++;
 
         if (record.ccs_id !== allCompliances[0][ctr + 1]?.ccs_id) {
           controlCategoryId = null;
@@ -310,6 +316,7 @@ module.exports = {
         if (record.cs_id !== allCompliances[0][ctr + 1]?.cs_id) {
           controlId = null;
         }
+        ctr++;
       }
 
       const queries = [

@@ -2,9 +2,9 @@ import { useEffect, useState, useContext } from "react";
 import { Stack, Typography } from "@mui/material";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
-import { Subtopic } from "../../../../domain/Subtopic";
+import { Subtopic } from "../../../../domain/types/Subtopic";
 import VWQuestion from "../../../components/VWQuestion";
-import { Question } from "../../../../domain/Question";
+import { Question } from "../../../../domain/types/Question";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 type QuestionsProps = {
@@ -18,7 +18,12 @@ const Questions = ({ subtopic, setRefreshKey }: QuestionsProps) => {
   const [loadingQuestions, setLoadingQuestions] = useState<boolean>(true);
 
   useEffect(() => {
-    console.log('Questions: Resetting state for subtopic', subtopic?.id, 'project:', currentProjectId);
+    console.log(
+      "Questions: Resetting state for subtopic",
+      subtopic?.id,
+      "project:",
+      currentProjectId
+    );
     // Reset state when project changes
     setQuestionsData(undefined);
   }, [currentProjectId]);
@@ -27,13 +32,23 @@ const Questions = ({ subtopic, setRefreshKey }: QuestionsProps) => {
     const fetchQuestionsData = async () => {
       if (!subtopic?.id) return;
 
-      console.log('Questions: Fetching data for subtopic', subtopic.id, 'project:', currentProjectId);
+      console.log(
+        "Questions: Fetching data for subtopic",
+        subtopic.id,
+        "project:",
+        currentProjectId
+      );
       setLoadingQuestions(true);
       try {
         const response = await getEntityById({
           routeUrl: `/questions/bysubtopic/${subtopic.id}`,
         });
-        console.log('Questions: Received data for subtopic', subtopic.id, ':', response.data);
+        console.log(
+          "Questions: Received data for subtopic",
+          subtopic.id,
+          ":",
+          response.data
+        );
         setQuestionsData(response.data);
       } catch (error) {
         console.error("Failed to fetch questions data:", error);
@@ -47,7 +62,7 @@ const Questions = ({ subtopic, setRefreshKey }: QuestionsProps) => {
   }, [subtopic?.id, currentProjectId]);
 
   return (
-    <Stack mb={15} >
+    <Stack mb={15}>
       <Typography sx={{ fontSize: 16, color: "#344054" }}>
         {subtopic.title}
       </Typography>

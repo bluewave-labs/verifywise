@@ -1,7 +1,7 @@
 import { ReactComponent as Background } from "../../assets/imgs/background-grid.svg";
 import { ReactComponent as LeftArrowLong } from "../../assets/icons/left-arrow-long.svg";
-import { Typography, Stack, useTheme } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { Typography, Stack, useTheme } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 function PageNotFound() {
   const theme = useTheme();
@@ -53,7 +53,7 @@ function PageNotFound() {
         </Stack>
       </Stack>
     </div>
-  )
+  );
 }
 
-export default PageNotFound
+export default PageNotFound;

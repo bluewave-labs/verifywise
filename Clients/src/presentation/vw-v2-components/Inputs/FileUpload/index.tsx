@@ -38,14 +38,10 @@ const FileListItem: React.FC<{
     sx={styles.fileItem}
   >
     <Link
-      href={`${ENV_VARs.URL}/files/download/${file.id}`}
-      onClick={(e) => {
-        e.preventDefault();
-        handleDownload(file.id, file.fileName)}}
-      target="_blank"
-      rel="noopener noreferrer"
+      component="button"
+      onClick={() => handleDownload(file.id, file.fileName)}
       sx={styles.fileLink}
-    >
+    ></Link>
       <Typography component="span" variant="body2" sx={styles.fileName}>
         {file.fileName}
       </Typography>

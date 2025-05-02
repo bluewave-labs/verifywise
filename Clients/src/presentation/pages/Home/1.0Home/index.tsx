@@ -1,6 +1,15 @@
 import { useContext, useEffect, useState } from "react";
 import { Stack, Typography, Modal, Box } from "@mui/material";
-import { headerCardPlaceholder, vwhomeHeading } from "./style";
+import {
+  headerCardPlaceholder,
+  vwhomeBody,
+  vwhomeBodyControls,
+  vwhomeBodyProjects,
+  vwhomeBodyProjectsGrid,
+  vwhomeCreateModalFrame,
+  vwhomeHeaderCards,
+  vwhomeHeading,
+} from "./style";
 import SmallStatsCard from "../../../components/Cards/SmallStatsCard";
 import VWButton from "../../../vw-v2-components/Buttons";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
@@ -20,52 +29,70 @@ import {
 } from "../../../../application/interfaces/iprogress";
 import { useProjectData } from "../../../../application/hooks/useFetchProjects";
 import { AlertState } from "../../../../application/interfaces/appStates";
-import { User } from "../../../../domain/User";
 import { fetchData } from "../../../../application/hooks/fetchDataHook";
+import PageTour from "../../../components/PageTour";
+import HomeSteps from "./HomeSteps";
+import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
 
 const VWHome = () => {
-  const { setDashboardValues } = useContext(VerifyWiseContext);
-  const [complianceProgress, setComplianceProgress] =
+  const { setDashboardValues, componentsVisible, changeComponentVisibility } =
+    useContext(VerifyWiseContext);
+  const [complianceProgressData, setComplianceProgressData] =
     useState<ComplianceProgress>();
-  const [assessmentProgress, setAssessmentProgress] =
+  const [assessmentProgressData, setAssessmentProgressData] =
     useState<AssessmentProgress>();
-  const [_, setUsers] = useState<User[]>([]);
-  const [__, setIsGeneratingDemoData] = useState(false);
-  const [alert, setAlert] = useState<AlertState>();
-  const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
-  const [shouldFetchProjects, setShouldFetchProjects] = useState(false);
-  const [showToast, setShowToast] = useState(false);
+  const [alertState, setAlertState] = useState<AlertState>();
+  const [isProjectFormModalOpen, setIsProjectFormModalOpen] =
+    useState<boolean>(false);
+  const [refreshProjectsFlag, setRefreshProjectsFlag] =
+    useState<boolean>(false);
+  const [showToastNotification, setShowToastNotification] =
+    useState<boolean>(false);
 
   const { projects, loading: projectLoading, fetchProjects } = useProjectData();
+
+  const [runHomeTour, setRunHomeTour] = useState(false);
+  const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
+    countToTrigger: 1,
+  });
+  useEffect(() => {
+    if (allVisible) {
+      changeComponentVisibility("home", true);
+    }
+  }, [allVisible]);
+
+  useEffect(() => {
+    if (componentsVisible.home && componentsVisible.sidebar) {
+      setRunHomeTour(true);
+    }
+  }, [componentsVisible]);
 
   useEffect(() => {
     const fetchProgressData = async () => {
       await fetchData("/users", (data) => {
-        setUsers(data);
         setDashboardValues({ users: data });
       });
       await fetchData(
         "/projects/all/compliance/progress",
-        setComplianceProgress
+        setComplianceProgressData
       );
       await fetchData(
         "/projects/all/assessment/progress",
-        setAssessmentProgress
+        setAssessmentProgressData
       );
       await fetchProjects();
     };
 
     fetchProgressData();
-  }, [setDashboardValues, shouldFetchProjects, fetchProjects]);
+  }, [setDashboardValues, refreshProjectsFlag, fetchProjects]);
 
-  const handleProjectFormClose = () => {
-    setIsProjectFormOpen(false);
-    setShouldFetchProjects((prev) => !prev);
+  const handleProjectFormModalClose = () => {
+    setIsProjectFormModalOpen(false);
+    setRefreshProjectsFlag((prev) => !prev);
   };
 
-  async function generateDemoData() {
-    setIsGeneratingDemoData(true);
-    setShowToast(true);
+  const handleGenerateDemoDataClick = async () => {
+    setShowToastNotification(true);
     try {
       const response = await postAutoDrivers();
       if (response.status === 201) {
@@ -73,94 +100,94 @@ const VWHome = () => {
           type: "info",
           message: "Demo data generated successfully.",
         });
-        setAlert({
+        setAlertState({
           variant: "success",
           body: "Demo data generated successfully.",
         });
         setTimeout(() => {
-          setAlert(undefined);
-        }, 3000);
+          setAlertState(undefined);
+        }, 100);
 
-        // Fetch the updated data
         await fetchProjects();
         await fetchData(
           "/projects/all/compliance/progress",
-          setComplianceProgress
+          setComplianceProgressData
         );
         await fetchData(
           "/projects/all/assessment/progress",
-          setAssessmentProgress
+          setAssessmentProgressData
         );
+        setShowToastNotification(false);
         window.location.reload();
       } else {
         logEngine({
           type: "error",
           message: "Failed to generate demo data.",
         });
-        setAlert({
+        setAlertState({
           variant: "error",
           body: "Failed to generate demo data.",
         });
         setTimeout(() => {
-          setAlert(undefined);
-        }, 3000);
+          setAlertState(undefined);
+        }, 100);
       }
+      setShowToastNotification(false);
     } catch (error) {
       const errorMessage = (error as Error).message;
       logEngine({
         type: "error",
         message: `An error occurred: ${errorMessage}`,
       });
-      setAlert({
+      setAlertState({
         variant: "error",
         body: `An error occurred: ${errorMessage}`,
       });
       setTimeout(() => {
-        setAlert(undefined);
-      }, 3000);
+        setAlertState(undefined);
+      }, 100);
     } finally {
-      setIsGeneratingDemoData(false);
-      setShowToast(false);
-      setShouldFetchProjects((prev) => !prev);
+      setShowToastNotification(false);
+      setRefreshProjectsFlag((prev) => !prev);
     }
-  }
+  };
 
   return (
     <Stack className="vwhome">
-      {alert && (
+      {alertState && (
         <Alert
-          variant={alert.variant}
-          title={alert.title}
-          body={alert.body}
+          variant={alertState.variant}
+          title={alertState.title}
+          body={alertState.body}
           isToast={true}
-          onClick={() => setAlert(undefined)}
+          onClick={() => setAlertState(undefined)}
         />
       )}
-      {showToast && <VWToast title="Generating demo data. Please wait..." />}
+      {showToastNotification && (
+        <VWToast title="Generating demo data. Please wait..." />
+      )}
       <Stack className="vwhome-header" sx={{ mb: 15 }}>
         <Typography sx={vwhomeHeading}>
           All projects compliance status
         </Typography>
-        <Stack
-          className="vwhome-header-cards"
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            gap: "20px",
-          }}
-        >
+        <Stack className="vwhome-header-cards" sx={vwhomeHeaderCards}>
           {projectLoading ? (
             <VWSkeleton variant="rectangular" sx={headerCardPlaceholder} />
           ) : (
             <SmallStatsCard
               attributeTitle="Compliance tracker"
               progress={`${
-                complianceProgress ? complianceProgress.allDonesubControls : 0
-              }/${complianceProgress ? complianceProgress.allsubControls : 1}`}
+                complianceProgressData
+                  ? complianceProgressData.allDonesubControls
+                  : 0
+              }/${
+                complianceProgressData
+                  ? complianceProgressData.allsubControls
+                  : 1
+              }`}
               rate={
-                (complianceProgress?.allDonesubControls ?? 0) /
-                (complianceProgress?.allsubControls ?? 1)
+                (complianceProgressData?.allDonesubControls ?? 0) /
+                (complianceProgressData?.allsubControls ?? 1)
               }
             />
           )}
@@ -169,13 +196,13 @@ const VWHome = () => {
           ) : (
             <SmallStatsCard
               attributeTitle="Assessment tracker"
-              progress={`${assessmentProgress?.answeredQuestions ?? 0}/${
-                assessmentProgress?.totalQuestions ?? 1
+              progress={`${assessmentProgressData?.answeredQuestions ?? 0}/${
+                assessmentProgressData?.totalQuestions ?? 1
               }`}
               rate={
-                assessmentProgress
-                  ? (assessmentProgress.answeredQuestions ?? 0) /
-                    (assessmentProgress.totalQuestions ?? 1)
+                assessmentProgressData
+                  ? (assessmentProgressData.answeredQuestions ?? 0) /
+                    (assessmentProgressData.totalQuestions ?? 1)
                   : 0
               }
             />
@@ -183,25 +210,9 @@ const VWHome = () => {
         </Stack>
       </Stack>
       <Stack className="vwhome-body">
-        <Stack
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 9,
-          }}
-        >
+        <Stack sx={vwhomeBody}>
           <Typography sx={vwhomeHeading}>Projects overview</Typography>
-          <Stack
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: 2,
-            }}
-          >
+          <Stack sx={vwhomeBodyControls}>
             {projects.length === 0 && (
               <VWButton
                 variant="contained"
@@ -212,34 +223,25 @@ const VWHome = () => {
                   gap: 2,
                 }}
                 icon={<CloudDownloadIcon />}
-                onClick={() => generateDemoData()}
+                onClick={() => handleGenerateDemoDataClick()}
               />
             )}
-
-            <VWButton
-              variant="contained"
-              text="New project"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              icon={<AddCircleOutlineIcon />}
-              onClick={() => setIsProjectFormOpen(true)}
-            />
+            <div data-joyride-id="new-project-button" ref={refs[0]}>
+              <VWButton
+                variant="contained"
+                text="New project"
+                sx={{
+                  backgroundColor: "#13715B",
+                  border: "1px solid #13715B",
+                  gap: 2,
+                }}
+                icon={<AddCircleOutlineIcon />}
+                onClick={() => setIsProjectFormModalOpen(true)}
+              />
+            </div>
           </Stack>
         </Stack>
-        <Stack
-          className="vwhome-body-projects"
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            flexWrap: "wrap",
-            justifyContent: "flex-start",
-            alignItems: "center",
-            gap: "20px",
-          }}
-        >
+        <Stack className="vwhome-body-projects" sx={vwhomeBodyProjects}>
           {projects?.length === 0 || !projects ? (
             <NoProject message="There no projects available." />
           ) : projects?.length <= 3 ? (
@@ -262,18 +264,7 @@ const VWHome = () => {
             </>
           ) : (
             <>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: {
-                    xs: "repeat(1, 1fr)",
-                    sm: "repeat(2, 1fr)",
-                    md: "repeat(3, 1fr)",
-                  },
-                  gap: { xs: 10, md: 10 },
-                  width: "100%",
-                }}
-              >
+              <Box sx={vwhomeBodyProjectsGrid}>
                 {projects &&
                   projects.map((project) => (
                     <Box key={project.id} sx={{ gridColumn: "span 1" }}>
@@ -286,26 +277,23 @@ const VWHome = () => {
         </Stack>
       </Stack>
       <Modal
-        open={isProjectFormOpen}
-        onClose={handleProjectFormClose}
+        open={isProjectFormModalOpen}
+        onClose={handleProjectFormModalClose}
         aria-labelledby="modal-title"
         aria-describedby="modal-description"
       >
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            bgcolor: "background.paper",
-            boxShadow: 24,
-            p: 4,
-            borderRadius: 1,
-          }}
-        >
-          <VWProjectForm onClose={handleProjectFormClose} />
+        <Box sx={vwhomeCreateModalFrame}>
+          <VWProjectForm onClose={handleProjectFormModalClose} />
         </Box>
       </Modal>
+      <PageTour
+        steps={HomeSteps}
+        run={runHomeTour}
+        onFinish={() => {
+          setRunHomeTour(false);
+        }}
+        tourKey="home-tour"
+      />
     </Stack>
   );
 };

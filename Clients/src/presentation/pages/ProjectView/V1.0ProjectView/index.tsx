@@ -15,10 +15,11 @@ import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import VWProjectRisks from "./ProjectRisks";
 import ProjectSettings from "../ProjectSettings";
 import useProjectData from "../../../../application/hooks/useProjectData";
+import ProjectFrameworks from "../ProjectFrameworks";
 
 const VWProjectView = () => {
   const [searchParams] = useSearchParams();
-  const projectId = searchParams.get("projectId") ?? "1";;  
+  const projectId = searchParams.get("projectId") ?? "1";
   const [refreshKey, setRefreshKey] = useState(0);
   const { project } = useProjectData({ projectId, refreshKey });
 
@@ -28,10 +29,10 @@ const VWProjectView = () => {
   };
 
   const handleRefresh = (isTrigger: boolean) => {
-    if(isTrigger){
+    if (isTrigger) {
       setRefreshKey((prevKey) => prevKey + 1); // send refresh trigger to projectdata hook
     }
-  }
+  };
 
   return (
     <Stack className="vw-project-view" overflow={"hidden"}>
@@ -77,6 +78,12 @@ const VWProjectView = () => {
                 disableRipple
               />
               <Tab
+                label="Frameworks"
+                value="frameworks"
+                sx={tabStyle}
+                disableRipple
+              />
+              <Tab
                 sx={tabStyle}
                 label="Settings"
                 value="settings"
@@ -87,8 +94,8 @@ const VWProjectView = () => {
           <TabPanel value="overview" sx={tabPanelStyle}>
             {project ? (
               <VWProjectOverview project={project} />
-              // <></>
             ) : (
+              // <></>
               <VWSkeleton variant="rectangular" width="100%" height={400} />
             )}
           </TabPanel>
@@ -96,6 +103,14 @@ const VWProjectView = () => {
             {project ? (
               // Render project risks content here
               <VWProjectRisks />
+            ) : (
+              <VWSkeleton variant="rectangular" width="100%" height={400} />
+            )}
+          </TabPanel>
+          <TabPanel value="frameworks" sx={tabPanelStyle}>
+            {project ? (
+              // Render frameworks content here
+              <ProjectFrameworks project={project} />
             ) : (
               <VWSkeleton variant="rectangular" width="100%" height={400} />
             )}

@@ -1,6 +1,6 @@
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { Box, Stack, Typography } from "@mui/material";
-import { Project } from "../../../../../domain/Project";
+import { Project } from "../../../../../domain/types/Project";
 import { useSearchParams } from "react-router-dom";
 import useProjectRisks from "../../../../../application/hooks/useProjectRisks";
 import RisksCard from "../../../../components/Cards/RisksCard";
@@ -9,7 +9,7 @@ import VWButton from "../../../../vw-v2-components/Buttons";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
 import VWProjectRisksTable from "../../../../vw-v2-components/Table";
-import { ProjectRisk } from "../../../../../domain/ProjectRisk";
+import { ProjectRisk } from "../../../../../domain/types/ProjectRisk";
 import AddNewRiskForm from "../../../../components/AddNewRiskForm";
 import Popup from "../../../../components/Popup";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
@@ -32,23 +32,24 @@ const TITLE_OF_COLUMNS = [
 
 /**
  * Set initial loading status for all CRUD process
-*/  
+ */
 interface LoadingStatus {
   loading: boolean;
   message: string;
 }
 
-const initialLoadingState : LoadingStatus = {
+const initialLoadingState: LoadingStatus = {
   loading: false,
-  message: ""
-}
+  message: "",
+};
 
 const VWProjectRisks = ({ project }: { project?: Project }) => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") || project?.id;
   const [refreshKey, setRefreshKey] = useState(0); // Add refreshKey state
   const { projectRisksSummary } = useProjectRisks({
-    projectId: projectId?.toString(), refreshKey
+    projectId: projectId?.toString(),
+    refreshKey,
   });
   const [projectRisks, setProjectRisks] = useState<ProjectRisk[]>([]);
   const [selectedRow, setSelectedRow] = useState<ProjectRisk[]>([]);
@@ -58,10 +59,11 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     body: string;
   } | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
-  const [isLoading, setIsLoading] = useState<LoadingStatus>(initialLoadingState);
+  const [isLoading, setIsLoading] =
+    useState<LoadingStatus>(initialLoadingState);
   const [showVWSkeleton, setShowVWSkeleton] = useState<boolean>(false);
   const [currentRow, setCurrentRow] = useState<number | null>(null);
-  
+
   const fetchProjectRisks = useCallback(async () => {
     try {
       const response = await getEntityById({
@@ -70,8 +72,11 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
       setShowVWSkeleton(false);
       setProjectRisks(response.data);
     } catch (error) {
-      console.error("Error fetching project risks:", error);      
-      handleToast("error", "Unexpected error occurs while fetching project risks.");      
+      console.error("Error fetching project risks:", error);
+      handleToast(
+        "error",
+        "Unexpected error occurs while fetching project risks."
+      );
     }
   }, [projectId]);
 
@@ -83,21 +88,21 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
   }, [projectId, fetchProjectRisks, refreshKey]); // Add refreshKey to dependencies
 
   /**
-   * Handle actions for project risk modal 
+   * Handle actions for project risk modal
    * Set an anchor to open/close the add-new-risk-popup
    * Display tostify for create and update project risk
-   * 
-  */  
+   *
+   */
 
   const [anchor, setAnchor] = useState<null | HTMLElement>(null);
-  const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {    
+  const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
     setAnchor(anchor ? null : event.currentTarget);
     setSelectedRow([]);
   };
 
-  const handleLoading = (message: string) => {  
-    setIsLoading((prev) => ({...prev, loading: true, message: message}))
-  }
+  const handleLoading = (message: string) => {
+    setIsLoading((prev) => ({ ...prev, loading: true, message: message }));
+  };
 
   const handleToast = (type: any, message: string) => {
     handleAlert({
@@ -108,79 +113,81 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     setTimeout(() => {
       setAlert(null);
     }, 3000);
-  }
+  };
 
   const handleSuccess = () => {
-    setTimeout(()=> {
+    setTimeout(() => {
       setIsLoading(initialLoadingState);
       handleToast("success", "Risk created successfully");
-    }, 1000)
+    }, 1000);
 
     // set pagination for FIFO risk listing after adding a new risk
     let rowsPerPage = 5;
-    let pageCount = Math.floor(projectRisks.length/rowsPerPage);
-    setCurrentPage(pageCount)
-    
+    let pageCount = Math.floor(projectRisks.length / rowsPerPage);
+    setCurrentPage(pageCount);
+
     fetchProjectRisks();
-    setRefreshKey((prevKey) => prevKey + 1);    
+    setRefreshKey((prevKey) => prevKey + 1);
   };
 
   const handleUpdate = () => {
-    setTimeout(()=> {      
-      setIsLoading(initialLoadingState);      
+    setTimeout(() => {
+      setIsLoading(initialLoadingState);
       setCurrentRow(selectedRow[0].id); // set current row to trigger flash-feedback
-      handleToast("success", "Risk updated successfully")
-    }, 1000)
+      handleToast("success", "Risk updated successfully");
+    }, 1000);
 
     setTimeout(() => {
       setCurrentRow(null);
-    }, 2000)
+    }, 2000);
     fetchProjectRisks();
     setRefreshKey((prevKey) => prevKey + 1); // Update refreshKey to trigger re-render
   };
 
-  const handleError = (errorMessage: any) => {        
+  const handleError = (errorMessage: any) => {
     handleToast("error", errorMessage);
-  }
+  };
 
-  const handleDelete = async(riskId: number) => {
+  const handleDelete = async (riskId: number) => {
     handleLoading("Deleting the risk. Please wait...");
     try {
       const response = await deleteEntityById({
         routeUrl: `/projectRisks/${riskId}`,
-      });          
-      if (response.status === 200) { 
+      });
+      if (response.status === 200) {
         // Set current pagination number after deleting the risk
         let rowsPerPage = 5;
-        let rowCount = projectRisks.slice(currentPage * rowsPerPage, currentPage * rowsPerPage + rowsPerPage);
-    
-        if(currentPage !== 0 && rowCount.length === 1){
-          setCurrentPage(currentPage - 1)
-        }else{
-          setCurrentPage(currentPage)
-        }   
-        setTimeout(()=> {
+        let rowCount = projectRisks.slice(
+          currentPage * rowsPerPage,
+          currentPage * rowsPerPage + rowsPerPage
+        );
+
+        if (currentPage !== 0 && rowCount.length === 1) {
+          setCurrentPage(currentPage - 1);
+        } else {
+          setCurrentPage(currentPage);
+        }
+        setTimeout(() => {
           setIsLoading(initialLoadingState);
-          handleToast("success", "Risk deleted successfully.");       
-        }, 1000)
-        
-        
-        fetchProjectRisks(); 
+          handleToast("success", "Risk deleted successfully.");
+        }, 1000);
+
+        fetchProjectRisks();
         setRefreshKey((prevKey) => prevKey + 1);
       } else if (response.status === 404) {
-        handleToast("error", "Risk not found.");          
+        handleToast("error", "Risk not found.");
       } else {
-        handleToast("error", "Unexpected error occurs. Risk delete fails.");        
+        handleToast("error", "Unexpected error occurs. Risk delete fails.");
       }
     } catch (error) {
       console.error("Error sending request", error);
-      handleToast("error", "Risk delete fails.");      
+      handleToast("error", "Risk delete fails.");
     }
-  }
+  };
 
   const setCurrentPagingation = (page: number) => {
-    setCurrentPage(page)
-  }
+    setCurrentPage(page);
+  };
 
   return (
     <Stack className="vw-project-risks" key={refreshKey}>
@@ -234,7 +241,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
             icon={<AddCircleOutlineIcon />}
           />
         </Stack>
-        
+
         {selectedRow.length > 0 && anchor ? (
           <Popup
             popupId="edit-new-risk-popup"
@@ -252,9 +259,8 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
             handleOpenOrClose={handleOpenOrClose}
             anchor={anchor}
           />
-          )
-          : (
-            <Popup
+        ) : (
+          <Popup
             popupId="add-new-risk-popup"
             popupContent={
               <AddNewRiskForm
@@ -271,8 +277,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
             handleOpenOrClose={handleOpenOrClose}
             anchor={anchor}
           />
-          )
-        }
+        )}
         {showVWSkeleton ? (
           <VWSkeleton variant="rectangular" width="100%" height={200} />
         ) : (

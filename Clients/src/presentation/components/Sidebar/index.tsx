@@ -27,8 +27,6 @@ import { ReactComponent as DotsVertical } from "../../assets/icons/dots-vertical
 import { ReactComponent as LogoutSvg } from "../../assets/icons/logout.svg";
 import { ReactComponent as ReportingSvg } from "../../assets/icons/reporting.svg";
 
-import { ReactComponent as Compliance } from "../../assets/icons/globe.svg";
-import { ReactComponent as Assessment } from "../../assets/icons/chart.svg";
 import { ReactComponent as Vendors } from "../../assets/icons/building.svg";
 import { ReactComponent as Settings } from "../../assets/icons/setting.svg";
 import { ReactComponent as FileManager } from "../../assets/icons/file.svg";
@@ -44,22 +42,14 @@ import { Link as MuiLink } from "@mui/material";
 import { User } from "../../../application/hooks/useUsers";
 import { ROLES } from "../../../application/constants/roles";
 import useLogout from "../../../application/hooks/useLogout";
+import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
+import ReadyToSubscribeBox from "../ReadyToSubscribeBox/ReadyToSubscribeBox";
 
 const menu = [
   {
     name: "Dashboard",
     icon: <Dashboard />,
     path: "/",
-  },
-  {
-    name: "Compliance tracker",
-    icon: <Compliance />,
-    path: "/compliance-tracker",
-  },
-  {
-    name: "Assessment tracker",
-    icon: <Assessment />,
-    path: "/assessment",
   },
   {
     name: "Vendors",
@@ -111,9 +101,13 @@ const Sidebar = ({ projects }: { projects: any }) => {
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const logout = useLogout();
 
-  const { dashboardValues, setDashboardValues, setCurrentProjectId, userId } =
+  const { dashboardValues, setDashboardValues, setCurrentProjectId, userId, changeComponentVisibility} =
     useContext(VerifyWiseContext);
   const { users } = dashboardValues;
+
+const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
+  countToTrigger: 1,
+});
 
   const user: User = users
     ? users.find((user: User) => user.id === userId)
@@ -161,6 +155,12 @@ const Sidebar = ({ projects }: { projects: any }) => {
         return null;
     }
   };
+
+useEffect(() => {
+  if (allVisible) {
+   changeComponentVisibility("sidebar", true);
+  }
+}, [allVisible]);
 
   useEffect(() => {
     if (projects.length === 0) {
@@ -276,6 +276,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
             width: "fit-content",
           }}
           data-joyride-id="select-project"
+          ref={refs[0]}
         >
           {projects.length > 0 ? (
             <Select
@@ -311,6 +312,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
         disablePadding
         sx={{ px: theme.spacing(8) }}
         data-joyride-id="dashboard-navigation"
+        ref={refs[1]}
       >
         {/* Items of the menu */}
         {menu.map((item) =>
@@ -340,7 +342,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
                 }
                 className={
                   location.pathname === item.path ||
-                  customMenuHandler() === item.path
+                    customMenuHandler() === item.path
                     ? "selected-path"
                     : "unselected"
                 }
@@ -352,7 +354,7 @@ const Sidebar = ({ projects }: { projects: any }) => {
                   px: theme.spacing(4),
                   backgroundColor:
                     location.pathname === item.path ||
-                    customMenuHandler() === item.path
+                      customMenuHandler() === item.path
                       ? "#F9F9F9"
                       : "transparent",
 
@@ -504,10 +506,10 @@ const Sidebar = ({ projects }: { projects: any }) => {
               onClick={() =>
                 item.path === "support"
                   ? window.open(
-                      "https://github.com/bluewave-labs/bluewave-uptime/issues",
-                      "_blank",
-                      "noreferrer"
-                    )
+                    "https://github.com/bluewave-labs/bluewave-uptime/issues",
+                    "_blank",
+                    "noreferrer"
+                  )
                   : navigate(`${item.path}`)
               }
               sx={{
@@ -528,6 +530,17 @@ const Sidebar = ({ projects }: { projects: any }) => {
           </Tooltip>
         ))}
       </List>
+      {!collapsed &&
+        <Box sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          justifyContent: 'flex-end',
+          alignItems: 'center'
+        }}>
+          <ReadyToSubscribeBox />
+        </Box>
+      }
       <Divider sx={{ mt: "auto" }} />
       <Stack
         direction="row"

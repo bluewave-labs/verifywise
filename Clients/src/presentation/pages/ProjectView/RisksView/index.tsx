@@ -12,7 +12,7 @@ import {
   memo,
   lazy,
   Suspense,
-  useEffect,  
+  useEffect,
 } from "react";
 import BasicTable from "../../../components/Table";
 import Risks from "../../../components/Risks";
@@ -23,7 +23,7 @@ import { ProjectRisk } from "../../../../application/hooks/useProjectRisks";
 
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { handleAlert } from "../../../../application/tools/alertUtils";
-import { VendorRisk } from "../../../../domain/VendorRisk";
+import { VendorRisk } from "../../../../domain/types/VendorRisk";
 
 const Alert = lazy(() => import("../../../components/Alert"));
 

@@ -158,8 +158,12 @@ const TeamManagement: React.FC = (): JSX.Element => {
   };
 
   const confirmDelete = async () => {
+    if(!memberToDelete) return;
+
+    const memberId = Number(memberToDelete);
+
     const response = await deleteEntityById({
-      routeUrl: `/users/${memberToDelete}`,
+      routeUrl: `/users/${memberId}`,
     });
     if(response.status === 202) {
       handleAlert({
@@ -169,7 +173,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
       });
       if (memberToDelete) {
         setTeamUsers((members) =>
-          members.filter((member) => member.id !== memberToDelete)
+          members.filter((member) => Number(member.id) !== memberId)
         );
       }
     } else {
@@ -376,7 +380,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                         </TableCell>
                         <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                           <Select
-                            value={member.role || '1'}
+                            value={member.role || ""}
                             onChange={(e) => handleRoleChange(e, member.id)}
                             size="small"
                             displayEmpty

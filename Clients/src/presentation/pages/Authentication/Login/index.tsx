@@ -12,6 +12,9 @@ import { setAuthToken } from "../../../../application/authentication/authSlice";
 import { setExpiration } from "../../../../application/authentication/authSlice";
 import VWToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
+import { ENV_VARs } from "../../../../../env.vars";
+
+const isDemoApp = ENV_VARs.IS_DEMO_APP;
 
 // Define the shape of form values
 interface FormValues {
@@ -22,8 +25,8 @@ interface FormValues {
 
 // Initial state for the form
 const initialState: FormValues = {
-  email: "",
-  password: "",
+  email: isDemoApp ? "verifywise@email.com" : "",
+  password: isDemoApp ? "Verifywise#1": "",
   rememberMe: false,
 };
 
@@ -209,6 +212,7 @@ const Login: React.FC = () => {
               type="email"
               value={values.email}
               onChange={handleChange("email")}
+              disabled={isDemoApp}
             />
             <Field
               label="Password"
@@ -218,6 +222,7 @@ const Login: React.FC = () => {
               type="password"
               value={values.password}
               onChange={handleChange("password")}
+              disabled={isDemoApp}
             />
             <Stack
               sx={{

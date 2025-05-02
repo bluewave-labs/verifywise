@@ -1,20 +1,14 @@
-import {
-  Stack,
-  useTheme,
-  IconButton,
-  Typography,
-  Link,
-} from "@mui/material";
+import { Stack, useTheme, IconButton, Typography, Link } from "@mui/material";
 import Uppy from "@uppy/core";
 import { useState } from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { ENV_VARs } from "../../../../../env.vars";
 import DeleteFileModal from "./DeleteFileModal";
 import getStyles from "./getStyles";
-import { FileData } from "../../../../domain/File";
+import { FileData } from "../../../../domain/types/File";
 import UppyDashboard from "../../../components/UppyDashboard";
 import Button from "../../../components/Button";
+import { handleDownload } from "../../../../application/tools/fileDownload";
 
 interface UppyUploadFileProps {
   uppy: Uppy;
@@ -37,9 +31,8 @@ const FileListItem: React.FC<{
     sx={styles.fileItem}
   >
     <Link
-      href={`${ENV_VARs.URL}/files/${file.id}`}
-      target="_blank"
-      rel="noopener noreferrer"
+      component="button"
+      onClick={() => handleDownload(file.id, file.fileName)}
       sx={styles.fileLink}
     >
       <Typography component="span" variant="body2" sx={styles.fileName}>
@@ -68,8 +61,8 @@ const UppyUploadFile: React.FC<UppyUploadFileProps> = ({
   });
 
   // Separate files into pending uploads and attached files
-  const pendingUploads = files.filter(file => file.data instanceof Blob);
-  const attachedFiles = files.filter(file => !(file.data instanceof Blob));
+  const pendingUploads = files.filter((file) => file.data instanceof Blob);
+  const attachedFiles = files.filter((file) => !(file.data instanceof Blob));
 
   const handleOpenDeleteFileModal = (fileId: string, fileName: string) => {
     setDeleteFileModal({ isOpen: true, fileId, fileName });
@@ -92,10 +85,10 @@ const UppyUploadFile: React.FC<UppyUploadFileProps> = ({
         </IconButton>
       </Stack>
 
-      <UppyDashboard 
-        uppy={uppy} 
-        width={400} 
-        height={250} 
+      <UppyDashboard
+        uppy={uppy}
+        width={400}
+        height={250}
         hideProgressIndicators={hideProgressIndicators ?? false}
         files={pendingUploads}
       />
@@ -111,7 +104,7 @@ const UppyUploadFile: React.FC<UppyUploadFileProps> = ({
               mb: 1,
               borderTop: "1px solid #E5E7EB",
               pt: 2,
-              width: "100%"
+              width: "100%",
             }}
           >
             Attached Files
@@ -135,11 +128,7 @@ const UppyUploadFile: React.FC<UppyUploadFileProps> = ({
         onClose={handleCloseDeleteFileModal}
         onDelete={handleDeleteFile}
       />
-      <Button
-        variant="contained"      
-        disableRipple
-        onClick={onClose}
-      >
+      <Button variant="contained" disableRipple onClick={onClose}>
         I am done
       </Button>
     </Stack>

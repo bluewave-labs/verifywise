@@ -1,4 +1,4 @@
-import { useCallback, useContext, useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import {
   Box,
   Divider,
@@ -12,14 +12,12 @@ import {
 } from "@mui/material";
 import {
   listItemStyle,
-  pageHeadingStyle,
   subHeadingStyle,
   topicsListStyle,
 } from "./index.style";
 import StatsCard from "../../../components/Cards/StatsCard";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import Questions from "./questions";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import useAssessmentProgress from "../../../../application/hooks/useAssessmentProgress";
 import useAssessmentData from "../../../../application/hooks/useAssessmentData";
 import useAssessmentTopics from "../../../../application/hooks/useAssessmentTopcis";
@@ -27,23 +25,36 @@ import useAssessmentSubtopics from "../../../../application/hooks/useAssessmentS
 import PageTour from "../../../components/PageTour";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
 import AssessmentSteps from "./AssessmentSteps";
+import { Project } from "../../../../domain/types/Project";
 
-const AssessmentTracker = () => {
+const AssessmentTracker = ({ project }: { project: Project }) => {
   const theme = useTheme();
   const [refreshKey, setRefreshKey] = useState(false);
-  const { currentProjectId } = useContext(VerifyWiseContext);
+  const currentProjectId = project?.id;
   const [activeTab, setActiveTab] = useState<number>(0);
   const [runAssessmentTour, setRunAssessmentTour] = useState(false);
 
-  const { assessmentProgress, loading: loadingAssessmentProgress } = useAssessmentProgress({ selectedProjectId: currentProjectId || "", refreshKey });
-  const { assessmentData, loading: loadingAssessmentData } = useAssessmentData({ selectedProjectId: currentProjectId || "" });
-  const { assessmentTopics, loading: loadingAssessmentTopics } = useAssessmentTopics({ assessmentId: assessmentData?.id });
-  const { assessmentSubtopics, loading: loadingAssessmentSubtopic } = useAssessmentSubtopics({ activeAssessmentTopicId: assessmentTopics?.[activeTab]?.id });
+  const { assessmentProgress, loading: loadingAssessmentProgress } =
+    useAssessmentProgress({
+      selectedProjectId: String(currentProjectId) || "",
+      refreshKey,
+    });
+  const { assessmentData, loading: loadingAssessmentData } = useAssessmentData({
+    selectedProjectId: String(currentProjectId) || "",
+  });
+  const { assessmentTopics, loading: loadingAssessmentTopics } =
+    useAssessmentTopics({ assessmentId: assessmentData?.id });
+  const { assessmentSubtopics, loading: loadingAssessmentSubtopic } =
+    useAssessmentSubtopics({
+      activeAssessmentTopicId: assessmentTopics?.[activeTab]?.id,
+    });
 
-  const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({ countToTrigger: 2,  });
+  const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({
+    countToTrigger: 2,
+  });
 
   useEffect(() => {
-    if (allVisible) {    
+    if (allVisible) {
       setRunAssessmentTour(true);
     }
   }, [allVisible]);
@@ -128,7 +139,6 @@ const AssessmentTracker = () => {
           backgroundColor: theme.palette.background.alt,
         }}
       >
-        <Typography sx={pageHeadingStyle}>Assessment tracker</Typography>
         <Stack
           sx={{ maxWidth: 1400, marginTop: "10px", gap: theme.spacing(10) }}
           data-joyride-id="assessment-progress-bar"

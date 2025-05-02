@@ -38,10 +38,10 @@ const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
         const response = await getAllEntities({
           routeUrl: "/users/check/exists",
         });
-        const userExists = response ?? false
-     
-        dispatch(setUserExists(userExists));     
-     
+        const userExists = response ?? false;
+
+        dispatch(setUserExists(userExists));
+
         console.log("No auth token found, redirecting to login");
         console.log("Current location:", location.pathname);
         console.log("Auth state:", authState);

@@ -11,3 +11,57 @@ export const headerCardPlaceholder = {
   width: "100%",
   maxWidth: "100%",
 };
+
+export const vwhomeHeaderCards = {
+  display: "flex",
+  flexDirection: "row",
+  justifyContent: "space-between",
+  gap: "20px",
+};
+
+export const vwhomeBody = {
+  display: "flex",
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  mb: 9,
+};
+
+export const vwhomeBodyControls = {
+  display: "flex",
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: 2,
+};
+
+export const vwhomeBodyProjects = {
+  display: "flex",
+  flexDirection: "row",
+  flexWrap: "wrap",
+  justifyContent: "flex-start",
+  alignItems: "center",
+  gap: "20px",
+};
+
+export const vwhomeBodyProjectsGrid = {
+  display: "grid",
+  gridTemplateColumns: {
+    xs: "repeat(1, 1fr)",
+    sm: "repeat(2, 1fr)",
+    md: "repeat(3, 1fr)",
+  },
+  gap: { xs: 10, md: 10 },
+  width: "100%",
+};
+
+export const vwhomeCreateModalFrame = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  bgcolor: "background.paper",
+  boxShadow: 24,
+  p: 4,
+  borderRadius: 1,
+};

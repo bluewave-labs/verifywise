@@ -17,6 +17,7 @@ export interface FileType {
   project_id: number;
   uploaded_by: number;
   uploaded_time: Date;
+  type: string;
   source: "Assessment tracker group" | "Compliance tracker group";
 }
 
@@ -62,6 +63,11 @@ export class FileModel extends Model<File> {
     type: DataType.ENUM("Assessment tracker group", "Compliance tracker group"),
   })
   source!: "Assessment tracker group" | "Compliance tracker group";
+
+  @Column({
+    type: DataType.STRING
+  })
+  type!: string;
 
   @Column({
     type: DataType.BOOLEAN,

@@ -16,12 +16,12 @@ import {
 } from "@mui/material";
 import { useCallback, useEffect, useState, useContext } from "react";
 import { getEntityById } from "../../../../application/repository/entity.repository";
-import { Control } from "../../../../domain/Control";
-import { User } from "../../../../domain/User";
+import { Control } from "../../../../domain/types/Control";
+import { User } from "../../../../domain/types/User";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import NewControlPane from "../../../components/Modals/Controlpane/NewControlPane";
 import Alert from "../../../components/Alert";
-import {StyledTableRow, AlertBox, styles} from "./styles";
+import { StyledTableRow, AlertBox, styles } from "./styles";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 interface Column {
@@ -78,7 +78,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   };
 
   const handleControlUpdate = () => {
-    setRefreshTrigger(prev => prev + 1);
+    setRefreshTrigger((prev) => prev + 1);
     if (onComplianceUpdate) {
       onComplianceUpdate();
     }
@@ -89,7 +89,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
       setCurrentFlashRow(control.id);
       setAlert({
         type: "success",
-        message: "Control updated successfully"
+        message: "Control updated successfully",
       });
 
       setTimeout(() => {
@@ -105,7 +105,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   const handleSaveError = () => {
     setAlert({
       type: "error",
-      message: "Failed to save control changes. Please try again."
+      message: "Failed to save control changes. Please try again.",
     });
     setTimeout(() => {
       setAlert(null);
@@ -116,7 +116,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   useEffect(() => {
     const fetchControls = async () => {
       if (!currentProjectId) return;
-      
+
       setLoading(true);
       try {
         const response = await getEntityById({
@@ -148,7 +148,10 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
 
   const calculateCompletionPercentage = useCallback((control: Control) => {
     if (!control.numberOfSubcontrols) return 0;
-    return Math.round((control.numberOfDoneSubcontrols ?? 0) / control.numberOfSubcontrols * 100);
+    return Math.round(
+      ((control.numberOfDoneSubcontrols ?? 0) / control.numberOfSubcontrols) *
+        100
+    );
   }, []);
 
   const getOwnerName = (ownerId: number | undefined) => {
@@ -189,10 +192,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
           <TableHead sx={styles.tableHead}>
             <TableRow>
               {columns.map((col: Column, index: number) => (
-                <TableCell
-                  key={index}
-                  sx={styles.headerCell}
-                >
+                <TableCell key={index} sx={styles.headerCell}>
                   {col.name}
                 </TableCell>
               ))}
@@ -202,11 +202,14 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
             {controls
               .sort((a, b) => (a.order_no ?? 0) - (b.order_no ?? 0))
               .map((control: Control) => {
-                const completionPercentage = calculateCompletionPercentage(control);
+                const completionPercentage =
+                  calculateCompletionPercentage(control);
                 return (
                   <StyledTableRow
                     key={control.id}
-                    onClick={() => control.id !== undefined && handleRowClick(control.id)}
+                    onClick={() =>
+                      control.id !== undefined && handleRowClick(control.id)
+                    }
                     isflashing={currentFlashRow === control.id ? 1 : 0}
                   >
                     <TableCell
@@ -214,21 +217,22 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
                       key={`${controlCategoryId}-${control.id}`}
                     >
                       <Typography component="span" variant="body2">
-                        {controlCategoryIndex}.{`${control.order_no}`} {control.title}{" "}
-                        <Typography component="span" sx={{ color: 'grey', fontSize: "13px" }}>
+                        {controlCategoryIndex}.{`${control.order_no}`}{" "}
+                        {control.title}{" "}
+                        <Typography
+                          component="span"
+                          sx={{ color: "grey", fontSize: "13px" }}
+                        >
                           {`(${control.description})`}
                         </Typography>
                       </Typography>
                     </TableCell>
-                    <TableCell 
-                      sx={styles.cell}
-                      key={`owner-${control.id}`}
-                    >
+                    <TableCell sx={styles.cell} key={`owner-${control.id}`}>
                       <Typography component="span" variant="body2">
                         {getOwnerName(control.owner)}
                       </Typography>
                     </TableCell>
-                    <TableCell 
+                    <TableCell
                       sx={styles.cell}
                       key={`noOfSubControls-${control.id}`}
                     >
@@ -236,21 +240,22 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
                         {`${control.numberOfSubcontrols} Subcontrols`}
                       </Typography>
                     </TableCell>
-                    <TableCell 
+                    <TableCell
                       sx={styles.cell}
                       key={`completion-${control.id}`}
                     >
                       <Stack direction="row" alignItems="center" spacing={1}>
-                        <Box sx={{ width: '100%', mr: 1 }}>
+                        <Box sx={{ width: "100%", mr: 1 }}>
                           <LinearProgress
                             variant="determinate"
                             value={completionPercentage}
                             sx={{
                               height: 8,
                               borderRadius: 4,
-                              backgroundColor: '#E5E7EB',
-                              '& .MuiLinearProgress-bar': {
-                                backgroundColor: getProgressColor(completionPercentage),
+                              backgroundColor: "#E5E7EB",
+                              "& .MuiLinearProgress-bar": {
+                                backgroundColor:
+                                  getProgressColor(completionPercentage),
                               },
                             }}
                           />
@@ -268,7 +273,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
       </TableContainer>
       {modalOpen && selectedRow !== null && (
         <NewControlPane
-          data={controls.find(c => c.id === selectedRow)!}
+          data={controls.find((c) => c.id === selectedRow)!}
           isOpen={modalOpen}
           handleClose={handleCloseModal}
           OnSave={handleSaveSuccess}

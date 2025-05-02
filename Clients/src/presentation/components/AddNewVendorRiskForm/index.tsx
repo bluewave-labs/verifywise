@@ -18,30 +18,10 @@ import { useSearchParams } from "react-router-dom";
 import useUsers from "../../../application/hooks/useUsers";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import { AlertProps } from "../Alert";
+import { RiskSectionProps } from "../../../domain/interfaces/iRiskForm";
+import { FormErrors, FormValues } from "../../../domain/interfaces/iForm";
 
 const Alert = lazy(() => import("../Alert"));
-
-interface RiskSectionProps {
-  closePopup: () => void;
-  onSuccess: () => void;
-  popupStatus: string;
-}
-
-interface FormValues {
-  vendorName: number;
-  actionOwner: number;
-  riskName: string;
-  reviewDate: string;
-  riskDescription: string;
-}
-
-interface FormErrors {
-  vendorName?: string;
-  actionOwner?: string;
-  riskName?: string;
-  reviewDate?: string;
-  riskDescription?: string;
-}
 
 const initialState: FormValues = {
   vendorName: 0,
@@ -366,7 +346,6 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({
             textTransform: "inherit",
             backgroundColor: "#4C7DE7",
             boxShadow: "none",
-            // border: "1px solid #175CD3",
             ml: "auto",
             mr: 0,
             mt: "30px",

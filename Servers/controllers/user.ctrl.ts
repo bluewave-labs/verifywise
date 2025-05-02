@@ -127,6 +127,8 @@ async function loginUser(req: Request, res: Response): Promise<any> {
           httpOnly: true,
           path: "/users",
           expires: new Date(Date.now() + 1 * 3600 * 1000 * 24 * 30), // 30 days
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         });
         return res.status(202).json(
           STATUS_CODE[202]({

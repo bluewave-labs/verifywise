@@ -3,12 +3,12 @@ import { Dashboard } from "@uppy/react";
 import "@uppy/core/dist/style.min.css";
 import "@uppy/dashboard/dist/style.min.css";
 import styled from "styled-components";
-import { FileData } from "../../../domain/File";
+import { FileData } from "../../../domain/types/File";
 
 const StyledDashboard = styled.div`
   .uppy-Dashboard-AddFiles-title {
     margin-bottom: 50%;
-    margin-top: 50%;   
+    margin-top: 50%;
   }
 `;
 
@@ -20,15 +20,20 @@ interface UppyDashboardProps {
   files?: FileData[];
 }
 
-const UppyDashboard = ({ uppy, hideProgressIndicators, files = [], ...restProps }: UppyDashboardProps) => {
+const UppyDashboard = ({
+  uppy,
+  hideProgressIndicators,
+  files = [],
+  ...restProps
+}: UppyDashboardProps) => {
   // Add files to Uppy if they're not already added
-  files.forEach(file => {
+  files.forEach((file) => {
     if (file.data instanceof Blob && !uppy.getFile(file.id)) {
       uppy.addFile({
         name: file.fileName,
         type: file.type,
         data: file.data,
-        source: 'Local',
+        source: "Local",
         isRemote: false,
       });
     }
@@ -36,8 +41,8 @@ const UppyDashboard = ({ uppy, hideProgressIndicators, files = [], ...restProps 
 
   return (
     <StyledDashboard>
-      <Dashboard 
-        uppy={uppy} 
+      <Dashboard
+        uppy={uppy}
         {...restProps}
         disableStatusBar={hideProgressIndicators}
       />

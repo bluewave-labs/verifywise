@@ -14,11 +14,11 @@ export const headerContainerStyle: SxProps<Theme> = {
 
 export const frameworkTabsContainerStyle: SxProps<Theme> = {
   display: 'flex',
-  border: '1px solid #BFC9C5',
+  border: (theme) => `1px solid ${theme.palette.divider}`,
   borderRadius: '4px',
   overflow: 'hidden',
   height: 43,
-  bgcolor: '#fff',
+  bgcolor: 'background.paper'
 };
 
 export const getFrameworkTabStyle = (isActive: boolean, isLast: boolean): SxProps<Theme> => ({
@@ -28,12 +28,12 @@ export const getFrameworkTabStyle = (isActive: boolean, isLast: boolean): SxProp
   alignItems: 'center',
   justifyContent: 'center',
   height: '100%',
-  bgcolor: isActive ? '#F5F6F6' : '#fff',
-  color: '#232B3A',
-  fontFamily: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif',
-  fontSize: 13,
-  borderRight: isLast ? 'none' : '1px solid #BFC9C5',
-  fontWeight: 400,
+  bgcolor: isActive ? 'action.hover' : 'background.paper',
+  color: 'text.primary',
+  fontFamily: (theme) => theme.typography.fontFamily,
+  fontSize: (theme) => theme.typography.caption.fontSize,
+  borderRight: (theme) => isLast ? 'none' : `1px solid ${theme.palette.divider}`,
+  fontWeight: (theme) => theme.typography.body2.fontWeight,
   transition: 'background 0.2s',
   userSelect: 'none',
   width: '142px',

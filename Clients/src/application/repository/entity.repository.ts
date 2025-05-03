@@ -258,3 +258,30 @@ export async function getAllUsers({
     throw error;
   }
 }
+
+/**
+ * Create generated reports.
+ *
+ * @param {RequestParams} params - The parameters for the request.
+ * @returns {Promise<any>} A promise that resolves returning the generated report.
+ * @throws Will throw an error if the request fails.
+ */
+export async function generatReport({
+  routeUrl,
+  body,
+  signal,
+  authToken = getAuthToken(),
+}: RequestParams): Promise<any> {
+  try { 
+    const response = await apiServices.post(routeUrl, body, {
+      headers: { 
+        Authorization: `Bearer ${authToken}`,
+      },
+      signal,
+    });
+
+    return response;
+  } catch (error) {
+    throw error;
+  }
+}

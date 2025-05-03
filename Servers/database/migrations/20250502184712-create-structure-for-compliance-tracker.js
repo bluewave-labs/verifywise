@@ -41,7 +41,6 @@ module.exports = {
           id SERIAL PRIMARY KEY,
           title TEXT NOT NULL,
           order_no INTEGER,
-          is_demo BOOLEAN NOT NULL DEFAULT false,
           framework_id INTEGER NOT NULL,
           FOREIGN KEY (framework_id) REFERENCES frameworks(id) ON DELETE CASCADE);`,
         `CREATE TABLE controls_struct_eu (

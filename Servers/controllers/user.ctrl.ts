@@ -21,6 +21,7 @@ import bcrypt from "bcrypt";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { generateRefreshToken, generateToken, getRefreshTokenPayload } from "../utils/jwt.util";
 import { UserModel } from "../models/user.model";
+import { sequelize } from "../database/db";
 
 async function getAllUsers(req: Request, res: Response): Promise<any> {
   try {
@@ -72,6 +73,7 @@ async function getUserById(req: Request, res: Response) {
 }
 
 async function createNewUser(req: Request, res: Response) {
+  const transaction = await sequelize.transaction();
   try {
     const { name, surname, email, password, role, created_at, last_login } =
       req.body;
@@ -91,15 +93,17 @@ async function createNewUser(req: Request, res: Response) {
       role,
       created_at,
       last_login,
-    }) as UserModel;
+    }, transaction) as UserModel;
 
     if (user) {
+      await transaction.commit();
       const { password_hash: _, ...safeUser } = user.get({ plain: true });
       return res.status(201).json(STATUS_CODE[201](safeUser));
     }
 
     return res.status(400).json(STATUS_CODE[400](user));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

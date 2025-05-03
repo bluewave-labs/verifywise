@@ -9,6 +9,7 @@ import {
   updateVendorRiskByIdQuery,
 } from "../utils/vendorRisk.util";
 import { VendorRisk } from "../models/vendorRisk.model";
+import { sequelize } from "../database/db";
 
 export async function getAllVendorRisks(
   req: Request,
@@ -51,12 +52,14 @@ export async function createVendorRisk(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const newVendorRisk: VendorRisk = req.body;
 
-    const createdVendorRisk = await createNewVendorRiskQuery(newVendorRisk);
+    const createdVendorRisk = await createNewVendorRiskQuery(newVendorRisk, transaction);
 
     if (createdVendorRisk) {
+      await transaction.commit();
       return res.status(201).json(STATUS_CODE[201](createdVendorRisk));
     }
 

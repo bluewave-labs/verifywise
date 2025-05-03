@@ -104,74 +104,63 @@ const addVendorProjects = async (vendorId: number, projects: number[], transacti
   return vendors_projects
 }
 
-export const createNewVendorQuery = async (vendor: Vendor): Promise<Vendor | null> => {
-  const transaction = await sequelize.transaction();
-  try {
-    const result = await sequelize.query(
-      `INSERT INTO vendors (
+export const createNewVendorQuery = async (vendor: Vendor, transaction: Transaction, is_demo: boolean = false): Promise<Vendor> => {
+  const result = await sequelize.query(
+    `INSERT INTO vendors (
         order_no, vendor_name, vendor_provides, assignee, website, vendor_contact_person,
-        review_result, review_status, reviewer, risk_status, review_date
+        review_result, review_status, reviewer, risk_status, review_date, is_demo
       ) VALUES (
         :order_no, :vendor_name, :vendor_provides, :assignee, :website, :vendor_contact_person,
-        :review_result, :review_status, :reviewer, :risk_status, :review_date
+        :review_result, :review_status, :reviewer, :risk_status, :review_date, :is_demo
       ) RETURNING *`,
-      {
-        replacements: {
-          order_no: vendor.order_no || null,
-          vendor_name: vendor.vendor_name,
-          vendor_provides: vendor.vendor_provides,
-          assignee: vendor.assignee,
-          website: vendor.website,
-          vendor_contact_person: vendor.vendor_contact_person,
-          review_result: vendor.review_result,
-          review_status: vendor.review_status,
-          reviewer: vendor.reviewer,
-          risk_status: vendor.risk_status,
-          review_date: vendor.review_date
-        },
-        mapToModel: true,
-        model: VendorModel,
-        // type: QueryTypes.INSERT
-        transaction
-      }
-    );
-
-    if (!result || !result || result.length === 0) {
-      console.error(" Error: Vendor insert query did not return any data.");
-      return null;
+    {
+      replacements: {
+        order_no: vendor.order_no || null,
+        vendor_name: vendor.vendor_name,
+        vendor_provides: vendor.vendor_provides,
+        assignee: vendor.assignee,
+        website: vendor.website,
+        vendor_contact_person: vendor.vendor_contact_person,
+        review_result: vendor.review_result,
+        review_status: vendor.review_status,
+        reviewer: vendor.reviewer,
+        risk_status: vendor.risk_status,
+        review_date: vendor.review_date,
+        is_demo: is_demo
+      },
+      mapToModel: true,
+      model: VendorModel,
+      // type: QueryTypes.INSERT
+      transaction
     }
+  );
 
-    const createdVendor = result[0] as (VendorModel & { projects: number[] })
-    const vendorId = createdVendor.id!;
+  const createdVendor = result[0] as (VendorModel & { projects: number[] })
+  const vendorId = createdVendor.id!;
 
-    createdVendor.dataValues["projects"] = []
+  createdVendor.dataValues["projects"] = []
 
-    if (vendor.projects && vendor.projects.length > 0) {
-      // let vendorsProjectFlat = []
-      // let placeholdersArray = []
-      // for (let project of vendor.projects) {
-      //   vendorsProjectFlat.push(vendorId, project)
-      //   placeholdersArray.push("(?, ?)")
-      // }
-      // let placeholders = placeholdersArray.join(", ")
-      // const query = `INSERT INTO vendors_projects (vendor_id, project_id) VALUES ${placeholders} RETURNING *`;
-      // const vendors_projects = await sequelize.query(query, {
-      //   replacements: vendorsProjectFlat,
-      //   mapToModel: true,
-      //   model: VendorsProjectsModel,
-      //   transaction
-      // });
-      const vendors_projects = await addVendorProjects(vendorId, vendor.projects, transaction)
-      createdVendor.dataValues["projects"] = vendors_projects.map(p => p.project_id)
-    }
-    await transaction.commit();
-    await updateProjectUpdatedByIdQuery(vendorId, "vendors");
-
-    return createdVendor;
-  } catch (error) {
-    console.error(" Error in createNewVendorQuery:", error);
-    return null;
+  if (vendor.projects && vendor.projects.length > 0) {
+    // let vendorsProjectFlat = []
+    // let placeholdersArray = []
+    // for (let project of vendor.projects) {
+    //   vendorsProjectFlat.push(vendorId, project)
+    //   placeholdersArray.push("(?, ?)")
+    // }
+    // let placeholders = placeholdersArray.join(", ")
+    // const query = `INSERT INTO vendors_projects (vendor_id, project_id) VALUES ${placeholders} RETURNING *`;
+    // const vendors_projects = await sequelize.query(query, {
+    //   replacements: vendorsProjectFlat,
+    //   mapToModel: true,
+    //   model: VendorsProjectsModel,
+    //   transaction
+    // });
+    const vendors_projects = await addVendorProjects(vendorId, vendor.projects, transaction)
+    createdVendor.dataValues["projects"] = vendors_projects.map(p => p.project_id)
   }
+  await updateProjectUpdatedByIdQuery(vendorId, "vendors");
+
+  return createdVendor;
 };
 
 export const updateVendorByIdQuery = async (

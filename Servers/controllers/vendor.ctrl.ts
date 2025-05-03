@@ -10,6 +10,7 @@ import {
   updateVendorByIdQuery,
 } from "../utils/vendor.utils";
 import { Vendor } from "../models/vendor.model";
+import { sequelize } from "../database/db";
 
 export async function getAllVendors(req: Request, res: Response): Promise<any> {
   try {
@@ -58,6 +59,7 @@ export async function getVendorByProjectId(req: Request, res: Response): Promise
 }
 
 export async function createVendor(req: Request, res: Response): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const newVendor: Vendor = req.body;
 
@@ -69,14 +71,16 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
       );
     }
 
-    const createdVendor = await createNewVendorQuery(newVendor);
+    const createdVendor = await createNewVendorQuery(newVendor, transaction);
 
     if (createdVendor) {
+      await transaction.commit();
       return res.status(201).json(STATUS_CODE[201](createdVendor));
     }
 
     return res.status(503).json(STATUS_CODE[503]({}));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

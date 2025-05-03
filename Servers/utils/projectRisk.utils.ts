@@ -1,6 +1,6 @@
 import { ProjectRisk, ProjectRiskModel } from "../models/projectRisk.model";
 import { sequelize } from "../database/db";
-import { QueryTypes } from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 import { updateProjectUpdatedByIdQuery } from "./project.utils";
 
 export const getAllProjectRisksQuery = async (
@@ -30,7 +30,7 @@ export const getProjectRiskByIdQuery = async (
   return result[0];
 };
 
-export const createProjectRiskQuery = async (projectRisk: Partial<ProjectRisk>): Promise<ProjectRisk> => {
+export const createProjectRiskQuery = async (projectRisk: Partial<ProjectRisk>, transaction: Transaction): Promise<ProjectRisk> => {
   const result = await sequelize.query(
     `INSERT INTO projectrisks (
       project_id, risk_name, risk_owner, ai_lifecycle_phase, risk_description,
@@ -78,6 +78,7 @@ export const createProjectRiskQuery = async (projectRisk: Partial<ProjectRisk>):
       mapToModel: true,
       model: ProjectRiskModel,
       // type: QueryTypes.INSERT
+      transaction
     }
   );
   await updateProjectUpdatedByIdQuery(result[0].id!, "projectrisks");

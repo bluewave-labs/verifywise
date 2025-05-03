@@ -1,6 +1,6 @@
 import { VendorRisk, VendorRiskModel } from "../models/vendorRisk.model";
 import { sequelize } from "../database/db";
-import { QueryTypes } from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 
 export const getVendorRisksByProjectIdQuery = async (
   projectId: number
@@ -30,7 +30,7 @@ export const getVendorRiskByIdQuery = async (
   return result[0];
 };
 
-export const createNewVendorRiskQuery = async (vendorRisk: VendorRisk): Promise<VendorRisk> => {
+export const createNewVendorRiskQuery = async (vendorRisk: VendorRisk, transaction: Transaction): Promise<VendorRisk> => {
   console.log("createNewVendorRisk", vendorRisk);
   const result = await sequelize.query(
     `INSERT INTO vendorRisks (
@@ -56,6 +56,7 @@ export const createNewVendorRiskQuery = async (vendorRisk: VendorRisk): Promise<
       mapToModel: true,
       model: VendorRiskModel,
       // type: QueryTypes.INSERT
+      transaction,
     }
   );
   return result[0];

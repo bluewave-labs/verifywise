@@ -2,7 +2,7 @@ import { Project, ProjectModel } from "../models/project.model";
 import { sequelize } from "../database/db";
 import { AssessmentModel } from "../models/assessment.model";
 import { ProjectsMembersModel } from "../models/projectsMembers.model";
-import { QueryTypes } from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 import { VendorsProjectsModel } from "../models/vendorsProjects.model";
 import { VendorModel } from "../models/vendor.model";
 import { VendorRiskModel } from "../models/vendorRisk.model";
@@ -137,15 +137,17 @@ export const countAnswersByProjectId = async (
 export const createNewProjectQuery = async (
   project: Partial<Project>,
   members: number[],
-  frameworks: number[]
+  frameworks: number[],
+  transaction: Transaction,
+  isDemo: boolean = false
 ): Promise<Project> => {
   const result = await sequelize.query(
     `INSERT INTO projects (
       project_title, owner, start_date, ai_risk_classification, 
-      type_of_high_risk_role, goal, last_updated, last_updated_by
+      type_of_high_risk_role, goal, last_updated, last_updated_by, is_demo
     ) VALUES (
       :project_title, :owner, :start_date, :ai_risk_classification, 
-      :type_of_high_risk_role, :goal, :last_updated, :last_updated_by
+      :type_of_high_risk_role, :goal, :last_updated, :last_updated_by, :is_demo
     ) RETURNING *`,
     {
       replacements: {
@@ -157,24 +159,27 @@ export const createNewProjectQuery = async (
         goal: project.goal,
         last_updated: new Date(Date.now()),
         last_updated_by: project.last_updated_by,
+        is_demo: isDemo
       },
       mapToModel: true,
       model: ProjectModel,
       // type: QueryTypes.INSERT
+      transaction
     }
   );
   const createdProject = result[0];
   (createdProject.dataValues as any)["members"] = []
   for (let member of members) {
     await sequelize.query(
-      `INSERT INTO projects_members (project_id, user_id) VALUES (:project_id, :user_id) RETURNING *`,
+      `INSERT INTO projects_members (project_id, user_id, is_demo) VALUES (:project_id, :user_id, :is_demo) RETURNING *`,
       {
         replacements: {
-          project_id: createdProject.id, user_id: member
+          project_id: createdProject.id, user_id: member, is_demo: isDemo
         },
         mapToModel: true,
         model: ProjectsMembersModel,
         // type: QueryTypes.INSERT
+        transaction
       }
     );
     (createdProject.dataValues as any)["members"].push(member)
@@ -182,13 +187,14 @@ export const createNewProjectQuery = async (
   (createdProject.dataValues as any)["framework"] = []
   for (let framework of frameworks) {
     await sequelize.query(
-      `INSERT INTO projects_frameworks (project_id, framework_id) VALUES (:project_id, :framework_id) RETURNING *`,
+      `INSERT INTO projects_frameworks (project_id, framework_id, is_demo) VALUES (:project_id, :framework_id, :is_demo) RETURNING *`,
       {
         replacements: {
-          project_id: createdProject.id, framework_id: framework
+          project_id: createdProject.id, framework_id: framework, is_demo: isDemo
         },
         mapToModel: true,
         model: ProjectFrameworksModel,
+        transaction
       }
     );
     (createdProject.dataValues as any)["framework"].push(framework)
@@ -238,7 +244,8 @@ export const updateProjectByIdQuery = async (
   id: number,
   project: Partial<Project>,
   members: number[],
-  frameworks: number[]
+  frameworks: number[],
+  transaction: Transaction
 ): Promise<Project & { members: number[] } | null> => {
   const _currentMembers = await sequelize.query(
     `SELECT user_id FROM projects_members WHERE project_id = :project_id`,
@@ -246,6 +253,7 @@ export const updateProjectByIdQuery = async (
       replacements: { project_id: id },
       mapToModel: true,
       model: ProjectsMembersModel,
+      transaction
     }
   )
   const currentMembers = _currentMembers.map(m => m.user_id)
@@ -259,7 +267,8 @@ export const updateProjectByIdQuery = async (
         replacements: { user_id: member, project_id: id },
         mapToModel: true,
         model: ProjectsMembersModel,
-        type: QueryTypes.DELETE
+        type: QueryTypes.DELETE,
+        transaction
       }
     )
   }
@@ -272,6 +281,7 @@ export const updateProjectByIdQuery = async (
         mapToModel: true,
         model: ProjectsMembersModel,
         // type: QueryTypes.INSERT
+        transaction
       }
     )
   }
@@ -282,6 +292,7 @@ export const updateProjectByIdQuery = async (
       replacements: { project_id: id },
       mapToModel: true,
       model: ProjectFrameworksModel,
+      transaction
     }
   )
   const currentFrameworks = _currentFrameworks.map(m => m.framework_id)
@@ -294,11 +305,12 @@ export const updateProjectByIdQuery = async (
         replacements: { framework_id: framework, project_id: id },
         mapToModel: true,
         model: ProjectFrameworksModel,
-        type: QueryTypes.DELETE
+        type: QueryTypes.DELETE,
+        transaction
       }
     );
     // if (framework === 1) {
-    await deleteProjectFrameworkEUQuery(id)
+    await deleteProjectFrameworkEUQuery(id, transaction)
     // }
   }
   for (let framework of newFrameworks) {
@@ -309,10 +321,11 @@ export const updateProjectByIdQuery = async (
         mapToModel: true,
         model: ProjectFrameworksModel,
         // type: QueryTypes.INSERT
+        transaction
       }
     )
     // if (framework === 1) {
-    await createEUFrameworkQuery(id, false)
+    await createEUFrameworkQuery(id, false, transaction)
     // }
   }
 
@@ -363,6 +376,7 @@ const deleteTable = async (
   foreignKey: string,
   id: number,
   // model: Object
+  transaction: Transaction
 ) => {
   let tableToDelete = entity;
   if (entity === "vendors") {
@@ -374,12 +388,13 @@ const deleteTable = async (
       replacements: { x: id },
       mapToModel: true,
       // model: model,
-      type: QueryTypes.DELETE
+      type: QueryTypes.DELETE,
+      transaction
     }
   );
 };
 
-export const deleteHelper = async (childObject: Record<string, any>, parent_id: number) => {
+export const deleteHelper = async (childObject: Record<string, any>, parent_id: number, transaction: Transaction) => {
   const childTableName = Object.keys(childObject).filter(k => !["foreignKey", "model"].includes(k))[0]
   let childIds: any = {}
   if (childTableName !== "projects_members" && childTableName !== "projects_frameworks") {
@@ -389,7 +404,8 @@ export const deleteHelper = async (childObject: Record<string, any>, parent_id: 
         {
           replacements: { project_id: parent_id },
           mapToModel: true,
-          model: VendorsProjectsModel
+          model: VendorsProjectsModel,
+          transaction
         }
       )
     } else {
@@ -397,7 +413,8 @@ export const deleteHelper = async (childObject: Record<string, any>, parent_id: 
         {
           replacements: { x: parent_id },
           mapToModel: true,
-          model: childObject[childTableName].model
+          model: childObject[childTableName].model,
+          transaction
         }
       )
     }
@@ -408,21 +425,23 @@ export const deleteHelper = async (childObject: Record<string, any>, parent_id: 
       for (let ch of childIds) {
         let childId = ch.id
         if (childTableName === "vendors") childId = ch.vendor_id
-        await deleteHelper({ [k]: childObject[childTableName][k] }, childId)
+        await deleteHelper({ [k]: childObject[childTableName][k] }, childId, transaction)
       }
     }))
-  await deleteTable(childTableName, childObject[childTableName].foreignKey, parent_id)
+  await deleteTable(childTableName, childObject[childTableName].foreignKey, parent_id, transaction)
 };
 
 export const deleteProjectByIdQuery = async (
-  id: number
+  id: number,
+  transaction: Transaction
 ): Promise<Boolean> => {
   const frameworks = await sequelize.query(
     `SELECT framework_id FROM projects_frameworks WHERE project_id = :project_id`,
     {
       replacements: { project_id: id },
       mapToModel: true,
-      model: ProjectFrameworksModel
+      model: ProjectFrameworksModel,
+      transaction
     }
   )
   const dependantEntities = [
@@ -438,51 +457,14 @@ export const deleteProjectByIdQuery = async (
     },
     { "files": { foreignKey: "project_id", model: FileModel } },
     { "projectrisks": { foreignKey: "project_id", model: ProjectRiskModel } },
-    { "projects_members": { foreignKey: "project_id", model: ProjectsMembersModel } },
-    // { "projects_frameworks": { foreignKey: "project_id", model: ProjectFrameworksModel } },
-    // {
-    //   assessments: {
-    //     foreignKey: "project_id",
-    //     model: AssessmentModel,
-    //     topics: {
-    //       foreignKey: "assessment_id",
-    //       model: TopicModel,
-    //       subtopics: {
-    //         foreignKey: "topic_id",
-    //         model: SubtopicModel,
-    //         questions: {
-    //           foreignKey: "subtopic_id",
-    //           model: QuestionModel,
-    //         },
-    //       },
-    //     },
-    //     projectscopes: {
-    //       foreignKey: "assessment_id",
-    //       model: ProjectScopeModel,
-    //     },
-    //   },
-    // },
-    // {
-    //   controlcategories: {
-    //     foreignKey: "project_id",
-    //     model: ControlCategoryModel,
-    //     controls: {
-    //       foreignKey: "control_category_id",
-    //       model: ControlModel,
-    //       subcontrols: {
-    //         foreignKey: "control_id",
-    //         model: SubcontrolModel,
-    //       },
-    //     },
-    //   },
-    // },
+    { "projects_members": { foreignKey: "project_id", model: ProjectsMembersModel } }
   ];
   for (let entity of dependantEntities) {
-    await deleteHelper(entity, id);
+    await deleteHelper(entity, id, transaction);
   }
   for (let framework of frameworks) {
     // if (framework.framework_id === 1) {
-    await deleteProjectFrameworkEUQuery(id);
+    await deleteProjectFrameworkEUQuery(id, transaction);
     // }
   }
 
@@ -492,7 +474,8 @@ export const deleteProjectByIdQuery = async (
       replacements: { id },
       mapToModel: true,
       model: ProjectModel,
-      type: QueryTypes.DELETE
+      type: QueryTypes.DELETE,
+      transaction
     }
   );
   return result.length > 0;

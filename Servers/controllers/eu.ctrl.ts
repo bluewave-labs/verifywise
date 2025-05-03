@@ -231,16 +231,19 @@ export async function deleteAssessmentsByProjectId(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const projectFrameworkId = parseInt(req.params.id);
-    const result = await deleteAssessmentEUByProjectIdQuery(projectFrameworkId);
+    const result = await deleteAssessmentEUByProjectIdQuery(projectFrameworkId, transaction);
 
     if (result) {
+      await transaction.commit();
       return res.status(200).json(STATUS_CODE[200](result));
     }
 
     return res.status(400).json(STATUS_CODE[400](result));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -249,16 +252,19 @@ export async function deleteCompliancesByProjectId(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const projectFrameworkId = parseInt(req.params.id);
-    const result = await deleteComplianeEUByProjectIdQuery(projectFrameworkId);
+    const result = await deleteComplianeEUByProjectIdQuery(projectFrameworkId, transaction);
 
     if (result) {
+      await transaction.commit();
       return res.status(200).json(STATUS_CODE[200](result));
     }
 
     return res.status(400).json(STATUS_CODE[400](result));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

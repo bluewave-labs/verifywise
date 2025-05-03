@@ -18,7 +18,7 @@
 
 import { User, UserModel } from "../models/user.model";
 import { sequelize } from "../database/db";
-import { QueryTypes } from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 import { ProjectModel } from "../models/project.model";
 import { VendorModel } from "../models/vendor.model";
 import { ControlModel } from "../models/control.model";
@@ -145,7 +145,9 @@ export const getUserByIdQuery = async (id: number): Promise<User> => {
  * @throws Will throw an error if the database query fails.
  */
 export const createNewUserQuery = async (
-  user: Omit<User, "id">
+  user: Omit<User, "id">,
+  transaction: Transaction,
+  is_demo: boolean = false
 ): Promise<User> => {
   const { name, surname, email, password_hash, role } = user;
   const created_at = new Date();
@@ -153,15 +155,16 @@ export const createNewUserQuery = async (
 
   try {
     const result = await sequelize.query(
-      `INSERT INTO users (name, surname, email, password_hash, role, created_at, last_login)
-        VALUES (:name, :surname, :email, :password_hash, :role, :created_at, :last_login) RETURNING *`,
+      `INSERT INTO users (name, surname, email, password_hash, role, created_at, last_login, is_demo)
+        VALUES (:name, :surname, :email, :password_hash, :role, :created_at, :last_login, :is_demo) RETURNING *`,
       {
         replacements: {
-          name, surname, email, password_hash, role, created_at, last_login
+          name, surname, email, password_hash, role, created_at, last_login, is_demo
         },
         mapToModel: true,
         model: UserModel,
         // type: QueryTypes.INSERT
+        transaction
       }
     );
 

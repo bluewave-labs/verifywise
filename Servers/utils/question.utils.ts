@@ -2,7 +2,7 @@ import { Question, QuestionModel } from "../models/question.model";
 import { sequelize } from "../database/db";
 import { deleteFileById, getFileById } from "./fileUpload.utils";
 import { Request } from "express";
-import { QueryTypes } from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 
 export const getAllQuestionsQuery = async (): Promise<(Question & { evidence_files: Object[] })[]> => {
   const questions = await sequelize.query(
@@ -65,6 +65,7 @@ export interface UploadedFile {
 
 export const createNewQuestionQuery = async (
   question: Question,
+  transaction: Transaction
 ): Promise<Question> => {
   const result = await sequelize.query(
     `INSERT INTO questions (
@@ -88,6 +89,7 @@ export const createNewQuestionQuery = async (
       mapToModel: true,
       model: QuestionModel,
       // type: QueryTypes.INSERT
+      transaction
     }
   );
   return result[0];
@@ -96,7 +98,8 @@ export const createNewQuestionQuery = async (
 export const addFileToQuestion = async (
   id: number,
   uploadedFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[],
-  deletedFiles: number[]
+  deletedFiles: number[],
+  transaction: Transaction
 ): Promise<Question> => {
   // get the existing evidence files
   const evidenceFilesResult = await sequelize.query(
@@ -104,7 +107,8 @@ export const addFileToQuestion = async (
     {
       replacements: { id },
       mapToModel: true,
-      model: QuestionModel
+      model: QuestionModel,
+      transaction
     }
   )
 
@@ -130,6 +134,7 @@ export const addFileToQuestion = async (
       mapToModel: true,
       model: QuestionModel,
       // type: QueryTypes.UPDATE
+      transaction
     }
   )
   return result[0];
@@ -138,6 +143,7 @@ export const addFileToQuestion = async (
 export const updateQuestionByIdQuery = async (
   id: number,
   question: Partial<Question>,
+  transaction: Transaction
 ): Promise<Question | null> => {
   const updateQuestion: Partial<Record<keyof Question, any>> = {};
   const setClause = [
@@ -162,13 +168,15 @@ export const updateQuestionByIdQuery = async (
     mapToModel: true,
     model: QuestionModel,
     // type: QueryTypes.UPDATE,
+    transaction
   });
 
   return result[0];
 };
 
 export const deleteQuestionByIdQuery = async (
-  id: number
+  id: number,
+  transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
     "DELETE FROM questions WHERE id = :id RETURNING *",
@@ -177,12 +185,13 @@ export const deleteQuestionByIdQuery = async (
       mapToModel: true,
       model: QuestionModel,
       type: QueryTypes.DELETE,
+      transaction
     }
   );
   if (result.length) {
     Promise.all(
       (result[0].evidence_files || []).map(async (f) => {
-        await deleteFileById(parseInt(f.id));
+        await deleteFileById(parseInt(f.id), transaction);
       })
     );
   }
@@ -232,7 +241,8 @@ export const createNewQuestionsQuery = async (
     dropdown_options: never[];
     answer: string;
   }[],
-  enable_ai_data_insertion: boolean
+  enable_ai_data_insertion: boolean,
+  transaction: Transaction
 ) => {
   let query = `
     INSERT INTO questions(
@@ -260,6 +270,7 @@ export const createNewQuestionsQuery = async (
       mapToModel: true,
       model: QuestionModel,
       // type: QueryTypes.INSERT
+      transaction
     })
     createdQuestions = createdQuestions.concat(result)
   }

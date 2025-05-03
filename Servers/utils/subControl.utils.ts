@@ -2,7 +2,7 @@ import { Subcontrol, SubcontrolModel } from "../models/subcontrol.model";
 import { sequelize } from "../database/db";
 import { UploadedFile } from "./question.utils";
 import { uploadFile } from "./fileUpload.utils";
-import { QueryTypes } from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 import { FileType } from "../models/file.model";
 
 export const getAllSubcontrolsQuery = async (): Promise<Subcontrol[]> => {
@@ -49,13 +49,14 @@ export const createNewSubcontrolQuery = async (
   subcontrol: Partial<Subcontrol>,
   project_id: number,
   user_id: number,
+  transaction: Transaction,
   evidenceFiles?: UploadedFile[],
-  feedbackFiles?: UploadedFile[]
+  feedbackFiles?: UploadedFile[],
 ): Promise<Subcontrol> => {
   let uploadedEvidenceFiles: FileType[] = [];
   await Promise.all(
     evidenceFiles!.map(async (file) => {
-      const uploadedFile = await uploadFile(file, user_id, project_id, "Compliance tracker group");
+      const uploadedFile = await uploadFile(file, user_id, project_id, "Compliance tracker group", transaction);
       uploadedEvidenceFiles.push({
         id: uploadedFile.id!.toString(),
         fileName: uploadedFile.filename,
@@ -71,7 +72,7 @@ export const createNewSubcontrolQuery = async (
   let uploadedFeedbackFiles: FileType[] = [];
   await Promise.all(
     feedbackFiles!.map(async (file) => {
-      const uploadedFile = await uploadFile(file, user_id, project_id, "Compliance tracker group");
+      const uploadedFile = await uploadFile(file, user_id, project_id, "Compliance tracker group", transaction);
       uploadedFeedbackFiles.push({
         id: uploadedFile.id!.toString(),
         fileName: uploadedFile.filename,
@@ -117,6 +118,7 @@ export const createNewSubcontrolQuery = async (
       mapToModel: true,
       model: SubcontrolModel,
       // type: QueryTypes.INSERT
+      transaction
     }
   );
   return result[0];
@@ -125,16 +127,18 @@ export const createNewSubcontrolQuery = async (
 export const updateSubcontrolByIdQuery = async (
   id: number,
   subcontrol: Partial<Subcontrol>,
+  transaction: Transaction,
   evidenceUploadedFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[] = [],
   feedbackUploadedFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[] = [],
-  deletedFiles: number[] = []
+  deletedFiles: number[] = [],
 ): Promise<Subcontrol | null> => {
   const files = await sequelize.query(
     `SELECT evidence_files, feedback_files FROM subcontrols WHERE id = :id`,
     {
       replacements: { id },
       mapToModel: true,
-      model: SubcontrolModel
+      model: SubcontrolModel,
+      transaction
     }
   );
 
@@ -194,13 +198,15 @@ export const updateSubcontrolByIdQuery = async (
     mapToModel: true,
     model: SubcontrolModel,
     // type: QueryTypes.UPDATE,
+    transaction,
   });
 
   return result[0];
 };
 
 export const deleteSubcontrolByIdQuery = async (
-  id: number
+  id: number,
+  transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
     "DELETE FROM subcontrols WHERE id = :id RETURNING *",
@@ -209,6 +215,7 @@ export const deleteSubcontrolByIdQuery = async (
       mapToModel: true,
       model: SubcontrolModel,
       type: QueryTypes.DELETE,
+      transaction
     }
   );
   return result.length > 0;
@@ -224,7 +231,8 @@ export const createNewSubControlsQuery = async (
     evidence_description?: string;
     feedback_description?: string;
   }[],
-  enable_ai_data_insertion: boolean
+  enable_ai_data_insertion: boolean,
+  transaction: Transaction
 ) => {
   let query =
     `INSERT INTO subcontrols(
@@ -251,6 +259,7 @@ export const createNewSubControlsQuery = async (
         mapToModel: true,
         model: SubcontrolModel,
         // type: QueryTypes.INSERT
+        transaction
       }
     )
     createdSubControls = createdSubControls.concat(result)

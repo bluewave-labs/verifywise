@@ -2,7 +2,7 @@ import { Topic, TopicModel } from "../models/topic.model";
 import { sequelize } from "../database/db";
 import { createNewSubTopicsQuery } from "./subtopic.utils";
 import { Topics } from "../structures/assessment-tracker/topics.struct";
-import { QueryTypes } from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 
 export const getAllTopicsQuery = async (): Promise<Topic[]> => {
   const topics = await sequelize.query(
@@ -27,7 +27,7 @@ export const getTopicByIdQuery = async (id: number): Promise<Topic | null> => {
   return result[0];
 };
 
-export const createNewTopicQuery = async (topic: Topic): Promise<Topic> => {
+export const createNewTopicQuery = async (topic: Topic, transaction: Transaction): Promise<Topic> => {
   const result = await sequelize.query(
     `INSERT INTO topics (assessment_id, title) VALUES (:assessment_id, :title) RETURNING *`,
     {
@@ -37,6 +37,7 @@ export const createNewTopicQuery = async (topic: Topic): Promise<Topic> => {
       mapToModel: true,
       model: TopicModel,
       // type: QueryTypes.INSERT
+      transaction
     }
   );
   return result[0];
@@ -44,7 +45,8 @@ export const createNewTopicQuery = async (topic: Topic): Promise<Topic> => {
 
 export const updateTopicByIdQuery = async (
   id: number,
-  topic: Partial<Topic>
+  topic: Partial<Topic>,
+  transaction: Transaction
 ): Promise<Topic | null> => {
   const updateTopic: Partial<Record<keyof Topic, any>> = {};
   const setClause = [
@@ -65,13 +67,14 @@ export const updateTopicByIdQuery = async (
     mapToModel: true,
     model: TopicModel,
     // type: QueryTypes.UPDATE,
+    transaction
   });
 
   return result[0];
 };
 
 export const deleteTopicByIdQuery = async (
-  id: number
+  id: number, transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
     `DELETE FROM topics WHERE id = :id RETURNING *`,
@@ -80,6 +83,7 @@ export const deleteTopicByIdQuery = async (
       mapToModel: true,
       model: TopicModel,
       type: QueryTypes.DELETE,
+      transaction
     }
   );
   return result.length > 0;
@@ -99,7 +103,7 @@ export const getTopicByAssessmentIdQuery = async (
   return result;
 };
 
-export const createNewTopicsQuery = async (assessmentId: number, enable_ai_data_insertion: boolean) => {
+export const createNewTopicsQuery = async (assessmentId: number, enable_ai_data_insertion: boolean, transaction: Transaction) => {
   const createdTopics = [];
   let query =
     "INSERT INTO topics(assessment_id, title, order_no) VALUES (:assessment_id, :title, :order_no) RETURNING *;";
@@ -114,13 +118,15 @@ export const createNewTopicsQuery = async (assessmentId: number, enable_ai_data_
         mapToModel: true,
         model: TopicModel,
         // type: QueryTypes.INSERT,
+        transaction
       }
     );
     const topic_id = result[0].id!;
     const subTopics = await createNewSubTopicsQuery(
       topic_id,
       topicStruct.subtopics,
-      enable_ai_data_insertion
+      enable_ai_data_insertion,
+      transaction
     );
     createdTopics.push({ ...result[0].dataValues, subTopics });
   }

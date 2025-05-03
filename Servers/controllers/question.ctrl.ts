@@ -14,6 +14,7 @@ import {
 } from "../utils/question.utils";
 import { Question } from "../models/question.model";
 import { updateProjectUpdatedByIdQuery } from "../utils/project.utils";
+import { sequelize } from "../database/db";
 
 export async function getAllQuestions(
   req: Request,
@@ -55,6 +56,7 @@ export async function createQuestion(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const newQuestion: Question = req.body;
 
@@ -73,15 +75,17 @@ export async function createQuestion(
     }
 
     const createdQuestion = await createNewQuestionQuery(
-      newQuestion
+      newQuestion, transaction
     );
 
     if (createdQuestion) {
+      await transaction.commit();
       return res.status(201).json(STATUS_CODE[201](createdQuestion));
     }
 
     return res.status(503).json(STATUS_CODE[503]({}));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -90,6 +94,7 @@ export async function updateQuestionById(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const questionId = parseInt(req.params.id);
     const body: Partial<Question> = req.body;
@@ -97,17 +102,21 @@ export async function updateQuestionById(
     const question = (await updateQuestionByIdQuery(
       questionId,
       body,
+      transaction
     )) as Question;
 
     if (!question) {
+      await transaction.rollback();
       return res.status(404).json(STATUS_CODE[404]({}));
     }
 
     // Update the project's last updated date
-    await updateProjectUpdatedByIdQuery(questionId, "questions");
+    await updateProjectUpdatedByIdQuery(questionId, "questions", transaction);
+    await transaction.commit();
 
     return res.status(202).json(STATUS_CODE[202](question));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -116,17 +125,20 @@ export async function deleteQuestionById(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const questionId = parseInt(req.params.id);
 
-    const deletedQuestion = await deleteQuestionByIdQuery(questionId);
+    const deletedQuestion = await deleteQuestionByIdQuery(questionId, transaction);
 
     if (deletedQuestion) {
+      await transaction.commit();
       return res.status(202).json(STATUS_CODE[202](deletedQuestion));
     }
 
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

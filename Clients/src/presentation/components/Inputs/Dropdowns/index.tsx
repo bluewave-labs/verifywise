@@ -14,7 +14,7 @@ interface DropDownsProps {
   state?: any;
   setState?: (newState: any) => void;
   isControl?: boolean;
-  projectId: number;
+  projectId?: number;
 }
 
 const DropDowns: React.FC<DropDownsProps> = ({

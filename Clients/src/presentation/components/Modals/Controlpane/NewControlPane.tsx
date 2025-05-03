@@ -540,6 +540,7 @@ const NewControlPane = ({
                   elementId={`sub-control-${data.order_no}.${
                     state.subControls![selectedTab].id
                   }`}
+                  projectId={projectId}
                   state={state.subControls![selectedTab]}
                   setState={(newState) =>
                     handleSubControlStateChange(selectedTab, newState)

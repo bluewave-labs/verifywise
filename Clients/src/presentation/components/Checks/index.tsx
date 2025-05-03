@@ -14,8 +14,7 @@ import "./index.css";
 
 import { ReactComponent as CheckGrey } from "../../assets/icons/check.svg";
 import { ReactComponent as CheckOutlined } from "../../assets/icons/checkbox-outline.svg";
-
-type Variant = "success" | "error" | "info" | "warning";
+import { CheckVariants } from "../../../domain/enums/checkVariants";
 
 const Check = ({
   text,
@@ -23,7 +22,7 @@ const Check = ({
   outlined = false,
 }: {
   text: string;
-  variant?: Variant;
+  variant?: CheckVariants;
   outlined?: boolean;
 }) => {
   const theme = useTheme();

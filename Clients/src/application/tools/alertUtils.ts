@@ -9,13 +9,13 @@
  * @param {React.Dispatch<React.SetStateAction<AlertProps | null>>} props.setAlert - The function to set the alert state.
  * @returns {() => void} A function to clear the timeout for the alert.
  */
-import { AlertProps } from "../../presentation/components/Alert";
+import { AlertProps } from "../../domain/interfaces/iAlert";
 
 interface HandleAlertProps extends AlertProps {
   setAlert: React.Dispatch<React.SetStateAction<AlertProps | null>>;
 }
 
-const ALERT_TIMEOUT = 2500
+const ALERT_TIMEOUT = 2500;
 
 const handleAlert = ({ variant, body, title, setAlert }: HandleAlertProps) => {
   setAlert({
@@ -24,10 +24,9 @@ const handleAlert = ({ variant, body, title, setAlert }: HandleAlertProps) => {
     body,
   });
   const timeoutId = setTimeout(() => {
-    setAlert(null)
-  }, ALERT_TIMEOUT)
-  return () => clearTimeout(timeoutId)
+    setAlert(null);
+  }, ALERT_TIMEOUT);
+  return () => clearTimeout(timeoutId);
 };
 
-
-export { handleAlert }
+export { handleAlert };

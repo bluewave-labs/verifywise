@@ -30,7 +30,7 @@ import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.cont
 import CreateDemoData from "../../components/CreateDemoData";
 import VWButton from "../../vw-v2-components/Buttons";
 import NoProject from "../../components/NoProject/NoProject";
-import { AlertProps } from "../../components/Alert";
+import { AlertProps } from "../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../application/tools/alertUtils";
 
 // Lazy load components

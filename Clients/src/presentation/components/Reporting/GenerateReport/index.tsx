@@ -4,6 +4,8 @@ import CloseIcon from "@mui/icons-material/Close";
 import {styles} from './styles';
 const GenerateReportFrom = lazy(() => import('./GenerateReportFrom'));
 const DownloadReportForm = lazy(() => import('./DownloadReportFrom'));
+import { generatReport } from '../../../../application/repository/entity.repository';
+import { handleAutoDownload } from '../../../../application/tools/fileDownload';
 
 interface GenerateReportProps {
   onClose: () => void;
@@ -14,8 +16,12 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
 }) => {
   const [isReportRequest, setIsReportRequest] = useState<boolean>(false);  
 
-  const handleGenerateForm = () => {    
+  const handleGenerateReport = async () => {    
     setIsReportRequest(true);
+    const body = {
+      
+    }
+    const report = await handleAutoDownload(body);
   }
 
   return (
@@ -35,7 +41,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
         </Suspense> : 
         <Suspense fallback={<div>Loading...</div>}>
           <GenerateReportFrom 
-            onGenerate={handleGenerateForm}
+            onGenerate={handleGenerateReport}
           />
         </Suspense>
       }

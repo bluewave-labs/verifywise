@@ -115,7 +115,7 @@ export const countAnswersByProjectId = async (
   answeredAssessments: string;
 }> => {
   const result = await sequelize.query(
-    `SELECT COUNT(*) AS "totalAssessments", COUNT(CASE WHEN q.answer <> '' THEN 1 END) AS "answeredAssessments" FROM
+    `SELECT COUNT(*) AS "totalAssessments", COUNT(CASE WHEN q.status = 'Done' THEN 1 END) AS "answeredAssessments" FROM
       assessments a JOIN topics t ON a.id = t.assessment_id
         JOIN subtopics st ON t.id = st.topic_id
           JOIN questions q ON st.id = q.subtopic_id WHERE a.project_id = :project_id`,

@@ -8,7 +8,8 @@
     "start": "npm run migrate-db && node dist/index.js",
     "postbuild": "node scripts/copyFiles.js",
     "migrate-db": "npx sequelize db:migrate",
-    "watch": "tsc-watch --noClear --onSuccess \"npm-run-all postbuild start\""
+    "watch": "tsc-watch --noClear --onSuccess \"npm-run-all postbuild start\"",
+    "reset-db": "ts-node scripts/resetDatabase.ts"
   },
   "author": "",
   "license": "ISC",

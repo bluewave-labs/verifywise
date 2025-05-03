@@ -10,7 +10,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useState, lazy, Suspense } from "react";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { handleAlert } from "../../../../application/tools/alertUtils";
-import { AlertProps } from "../../../components/Alert";
+import { AlertProps } from "../../../../domain/interfaces/iAlert";
 
 const Alert = lazy(() => import("../../../components/Alert"));
 
@@ -23,7 +23,7 @@ const ResetPassword = () => {
   const theme = useTheme();
   const location = useLocation();
   const [alert, setAlert] = useState<AlertProps | null>(null);
-  
+
   // Update initial state to use the email from navigation state if available
   const initialState: FormValues = {
     email: location.state?.email || "",
@@ -41,7 +41,8 @@ const ResetPassword = () => {
     const response = await apiServices.post("/mail/reset-password", formData);
     handleAlert({
       variant: response.status === 200 ? "success" : "error",
-      body: response.status === 200 ? "Email sent successfully" : "Email failed",
+      body:
+        response.status === 200 ? "Email sent successfully" : "Email failed",
       setAlert,
     });
     setValues(initialState);

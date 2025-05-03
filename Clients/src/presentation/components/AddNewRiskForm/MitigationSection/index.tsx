@@ -18,7 +18,12 @@ import dayjs, { Dayjs } from "dayjs";
 import { MitigationFormValues, MitigationFormErrors } from "../interface";
 import styles from "../styles.module.css";
 import useUsers from "../../../../application/hooks/useUsers";
-import { mitigationStatusItems, riskLevelItems, approvalStatusItems } from "../projectRiskValue";
+import {
+  mitigationStatusItems,
+  riskLevelItems,
+  approvalStatusItems,
+} from "../projectRiskValue";
+import { alertState } from "../../../../domain/interfaces/iAlert";
 
 // Lazy load components
 const Select = lazy(() => import("../../Inputs/Select"));
@@ -32,17 +37,6 @@ interface MitigationSectionProps {
   setMitigationValues: Dispatch<SetStateAction<MitigationFormValues>>;
   migitateErrors: MitigationFormErrors;
 }
-
-export enum MitigationStatus {
-  NotStarted = "Not started",
-  InProgress = "In Progress",
-  Completed = "Completed",
-  OnHold = "On Hold",
-  Deferred = "Deferred",
-  Canceled = "Closed",
-  RequiresReview = "Requires review",
-}
-
 /**
  * MitigationSection component is a form used to add or edit mitigation details for a risk.
  * It includes fields for mitigation plan, implementation strategy, recommendations, deadlines, and approval status.
@@ -98,11 +92,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
   const theme = useTheme();
   // const [values, setValues] = useState<MitigationFormValues>(initialState);
   const [_, setErrors] = useState<MitigationFormErrors>({});
-  const [alert, setAlert] = useState<{
-    variant: "success" | "info" | "warning" | "error";
-    title?: string;
-    body: string;
-  } | null>(null);
+  const [alert, setAlert] = useState<alertState | null>(null);
 
   const { users } = useUsers();
 
@@ -140,7 +130,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
         setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
       },
     []
-  );  
+  );
 
   return (
     <Stack>
@@ -244,7 +234,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                   error={migitateErrors.deadline}
                 />
               </Stack>
-            </Suspense>           
+            </Suspense>
           </Stack>
         </Stack>
         <Divider />
@@ -278,7 +268,10 @@ const MitigationSection: FC<MitigationSectionProps> = ({
               }
               onChange={handleOnSelectChange("approver")}
               items={
-                users?.map((user) => ({ _id: user.id, name: `${user.name} ${user.surname}` })) || []
+                users?.map((user) => ({
+                  _id: user.id,
+                  name: `${user.name} ${user.surname}`,
+                })) || []
               }
               sx={{
                 width: 324,

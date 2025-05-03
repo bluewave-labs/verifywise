@@ -25,11 +25,13 @@ const Table_Columns = [
 interface ControlCategoryProps {
   controlCategory: ControlCategoryModel;
   onComplianceUpdate?: () => void;
+  projectId: number;
 }
 
 const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
   controlCategory,
   onComplianceUpdate,
+  projectId,
 }) => {
   const [expanded, setExpanded] = useState<number | false>(false);
 
@@ -84,6 +86,7 @@ const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
             controlCategoryIndex={controlCategory.order_no ?? 1}
             columns={Table_Columns}
             onComplianceUpdate={onComplianceUpdate}
+            projectId={projectId}
           />
         </AccordionDetails>
       </Accordion>

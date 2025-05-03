@@ -40,6 +40,7 @@ export const useFetchFiles = (projectID: string) => {
                 `${file.uploader_name ?? ""} ${
                   file.uploader_surname ?? ""
                 }`.trim() || "N/A",
+              source: file.source,
             }))
           );
         } else {

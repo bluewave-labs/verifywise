@@ -1,5 +1,13 @@
 import "./index.css";
-import { Box, Stack, Tab, Typography, useTheme } from "@mui/material";
+import {
+  Box,
+  MenuItem,
+  SelectChangeEvent,
+  Stack,
+  Tab,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
 import RiskTable from "../../components/Table/RisksTable";
 import { Suspense, useCallback, useContext, useEffect, useState } from "react";
@@ -29,6 +37,7 @@ import { Project } from "../../../domain/types/Project";
 import RisksCard from "../../components/Cards/RisksCard";
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import useVendorRisks from "../../../application/hooks/useVendorRisks";
+import Select from "../../components/Inputs/Select";
 
 interface ExistingRisk {
   id?: number;
@@ -65,21 +74,23 @@ const Vendors = () => {
   const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [value, setValue] = useState("1");
-  const [project, setProject] = useState<Project>();
+  const [projects, setProjects] = useState<Project[]>([]);
   const { dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);
   const [selectedVendor, setSelectedVendor] = useState<VendorDetails | null>(
     null
   );
   const [selectedRisk, setSelectedRisk] = useState<ExistingRisk | null>(null);
   const [controller, setController] = useState<AbortController | null>(null);
-  const { currentProjectId } = useContext(VerifyWiseContext);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null
+  );
   const {
     vendorRisksSummary,
     refetchVendorRisks,
     vendorRisks,
     loadingVendorRisks,
   } = useVendorRisks({
-    projectId: currentProjectId?.toString(),
+    projectId: selectedProjectId?.toString(),
   });
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -111,30 +122,37 @@ const Vendors = () => {
     setValue(newValue);
   };
   useEffect(() => {
-    const fetchProject = async () => {
+    const fetchProjects = async () => {
       try {
-        const projectData = await getEntityById({
-          routeUrl: `/projects/${currentProjectId}`,
-        });
-        setProject(projectData.data);
+        const response = await getAllEntities({ routeUrl: "/projects" });
+        if (response?.data && response.data.length > 0) {
+          setProjects(response.data);
+          setSelectedProjectId(response.data[0].id?.toString() ?? null); // Default to first project as string
+        }
       } catch (error) {
-        console.error("Failed to fetch project data:", error);
+        console.error("Failed to fetch projects:", error);
       }
     };
+    fetchProjects();
+  }, []);
 
-    if (currentProjectId) {
-      fetchProject();
-    }
-  }, [currentProjectId]);
+  const mappedProjects =
+    projects?.map((project: any) => ({
+      _id: project.id,
+      name: project.project_title,
+    })) || [];
 
   const fetchVendors = useCallback(async () => {
     const signal = createAbortController();
     if (signal.aborted) return;
     setIsVendorsLoading(true);
-    if (!currentProjectId) return;
+    if (!selectedProjectId) return;
     try {
+      const routeUrl = selectedProjectId === "all"
+        ? "/vendors"
+        : `/vendors/project-id/${selectedProjectId}`;
       const response = await getAllEntities({
-        routeUrl: `/vendors/project-id/${currentProjectId}`,
+        routeUrl,
         signal,
       });
       if (response?.data) {
@@ -148,21 +166,21 @@ const Vendors = () => {
     } finally {
       setIsVendorsLoading(false);
     }
-  }, [currentProjectId]);
+  }, [selectedProjectId]);
 
   useEffect(() => {
     fetchVendors();
     return () => {
       controller?.abort();
     };
-  }, [currentProjectId]);
+  }, [selectedProjectId]);
 
   useEffect(() => {
     refetchVendorRisks();
     return () => {
       controller?.abort();
     };
-  }, [currentProjectId]);
+  }, [selectedProjectId]);
 
   useEffect(() => {
     if (allVisible) {
@@ -289,6 +307,14 @@ const Vendors = () => {
       });
     }
   };
+  const handleProjectChange = (event: SelectChangeEvent<string | number>, _child: React.ReactNode) => {
+    const selectedId = event.target.value.toString();
+    setSelectedProjectId(selectedId);
+    setDashboardValues({
+      ...dashboardValues,
+      selectedProjectId: selectedId,
+    });
+  };
 
   return (
     <div className="vendors-page">
@@ -323,6 +349,45 @@ const Vendors = () => {
                 manage all vendors here.
               </Typography>
             </Stack>
+              <Stack
+                sx={{
+                  padding: theme.spacing(4),
+                  justifyContent: "flex-start",
+                  width: "fit-content",
+                }}
+                data-joyride-id="select-project"
+                ref={refs[0]}
+              >
+                {projects.length > 0 ? (
+                  <Select
+                    id="projects"
+                    value={selectedProjectId ?? ""}
+                    items={[
+                      { _id: "all", name: "All Projects" },
+                      ...projects.map((project) => ({
+                        _id: project.id.toString(),
+                        name: project.project_title,
+                      })),
+                    ]}
+                    onChange={handleProjectChange}
+                    sx={{
+                      width: "180px",
+                      minHeight: "34px",
+                      borderRadius: theme.shape.borderRadius,
+                    }}
+                  />
+                ) : (
+                  <Box
+                    className="empty-project"
+                    sx={{
+                      marginLeft: theme.spacing(8),
+                      borderColor: theme.palette.border.dark,
+                    }}
+                  >
+                    No Project
+                  </Box>
+                )}
+              </Stack>
           </>
         ) : (
           <>
@@ -355,6 +420,41 @@ const Vendors = () => {
                 This table includes a list of risks related to a vendor. You can
                 create and manage all vendor risks here.
               </Typography>
+              {/* <Stack
+                        sx={{
+                          padding: theme.spacing(4),
+                          justifyContent: "flex-start",
+                          width: "fit-content",
+                        }}
+                        data-joyride-id="select-project"
+                        ref={refs[0]}
+                      >
+                        {mappedProjects?.length > 0 ? (
+                          <Select
+                            id="projects"
+                            value={selectedProjectId}
+                            items={mappedProjects.map((project: any) => ({
+                              ...project,
+                              name:
+                                project.name.length > 18
+                                  ? project.name.slice(0, 18) + "..."
+                                  : project.name,
+                            }))}
+                            onChange={handleProjectChange}
+                            sx={{ width: "180px", marginLeft: theme.spacing(8) }}
+                          />
+                        ) : (
+                          <Box
+                            className="empty-project"
+                            sx={{
+                              marginLeft: theme.spacing(8),
+                              borderColor: theme.palette.border.dark,
+                            }}
+                          >
+                            No Project
+                          </Box>
+                        )}
+                      </Stack> */}
             </Stack>
           </>
         )}
@@ -376,7 +476,7 @@ const Vendors = () => {
             (loadingVendorRisks || isVendorsLoading ? (
               <VWSkeleton variant="rectangular" width="50%" height={100} />
             ) : (
-              project && <RisksCard risksSummary={vendorRisksSummary} />
+              <RisksCard risksSummary={vendorRisksSummary} />
             ))}
           {isVendorsLoading && value === "1" ? (
             <VWSkeleton

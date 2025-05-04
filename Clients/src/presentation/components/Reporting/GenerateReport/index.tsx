@@ -19,7 +19,10 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
   const handleGenerateReport = async () => {    
     setIsReportRequest(true);
     const body = {
-      
+      projectId: 1,
+      userId: 1,
+      reportType: 'Project risks report',
+      reportName: ''
     }
     const report = await handleAutoDownload(body);
   }

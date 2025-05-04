@@ -26,14 +26,19 @@ export const handleAutoDownload = async (requestBody: any) => {
       routeUrl: `/reporting/generate-report`,
       body: requestBody
     });
-    console.log('download report - ', response)
     if (response.status === 200) {
+      const headerContent = response.headers.get('Content-Disposition');
+      const fileAttachment = [...headerContent.matchAll(/"([^"]+)"/g)];
+      const fileName = fileAttachment.map(m => m[1]);
+
       const blobFileContent = response.data;
-      const blob = new Blob([blobFileContent.file], { type: response.type });
+      const responseType = response.headers.get('Content-Type');
+
+      const blob = new Blob([blobFileContent], { type: responseType });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = blobFileContent.fileName;
+      a.download = fileName[0];
       document.body.appendChild(a);
       a.click();
       a.remove();

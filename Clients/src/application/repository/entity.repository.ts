@@ -278,6 +278,7 @@ export async function generatReport({
         Authorization: `Bearer ${authToken}`,
       },
       signal,
+      responseType: 'blob'
     });
 
     return response;

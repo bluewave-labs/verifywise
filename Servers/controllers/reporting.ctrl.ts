@@ -53,7 +53,7 @@ export async function generateReports(
       const docFile = {
         originalname: `${defaultFileName}.docx`,
         buffer: generatedDoc,
-        fieldname: '',
+        fieldname: 'file',
         mimetype: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
       }
 
@@ -68,6 +68,7 @@ export async function generateReports(
       if (uploadedFile) {
         res.setHeader("Content-Disposition", `attachment; filename="${uploadedFile.filename}"`);
         res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+        res.setHeader('Access-Control-Expose-Headers','Content-Disposition');
         return res.status(200).send(uploadedFile.content);
       } else {
         return res.status(500).json(STATUS_CODE[500]("Error uploading report file"));

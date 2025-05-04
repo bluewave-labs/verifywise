@@ -43,8 +43,10 @@ export const handleAutoDownload = async (requestBody: any) => {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
+      return true;
     } else {
       console.error("Error downloading report");
+      return false;
     }
   } catch (error) {
     console.error("Error generating report", error);

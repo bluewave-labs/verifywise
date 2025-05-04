@@ -1,5 +1,6 @@
 import { getProjectRisksReportQuery, getMembersByProjectIdQuery } from "../utils/reporting.utils";
-import { DefaultReportName } from "../models/reporting.model";
+import { ReportType } from "../models/reporting.model";
+
 /*
   Get member lists by projectId
   Check whether the user belongs to current project
@@ -29,7 +30,7 @@ export async function getReportData(
     
   let markdownFormattedData;
   switch(reportType) {
-    case DefaultReportName.PROJECTRISK_REPORT:
+    case ReportType.PROJECTRISK_REPORT:
       markdownFormattedData = getProjectRiskMarkdown(projectId, reportBody)
       break;
     default:

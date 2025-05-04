@@ -829,7 +829,8 @@ export const deleteProjectFrameworkEUQuery = async (
       replacements: { project_id: projectId },
       mapToModel: true,
       model: ProjectFrameworksModel,
-      type: QueryTypes.DELETE
+      type: QueryTypes.DELETE,
+      transaction
     }
   )
   return result.length > 0 && assessmentDeleted && complianceDeleted;

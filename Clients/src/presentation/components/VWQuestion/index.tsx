@@ -25,6 +25,7 @@ import Select from "../Inputs/Select";
 interface QuestionProps {
   question: Question;
   setRefreshKey: () => void;
+  currentProjectId: number;
 }
 
 /**
@@ -42,8 +43,8 @@ interface QuestionProps {
  * Usage:
  * <VWQuestion question={questionObject} />
  */
-const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
-  const { userId, currentProjectId } = useContext(VerifyWiseContext);
+const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps) => {
+  const { userId } = useContext(VerifyWiseContext);
   const [values, setValues] = useState<Question>(question);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
 

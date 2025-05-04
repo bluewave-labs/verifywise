@@ -10,6 +10,7 @@ import {
 } from "../utils/subControl.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { Subcontrol } from "../models/subcontrol.model";
+import { sequelize } from "../database/db";
 
 export async function getAllSubcontrols(
   req: Request,
@@ -51,6 +52,7 @@ export async function createNewSubcontrol(
   req: RequestWithFile,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const subcontrol: Subcontrol & { user_id: number, project_id: number } = req.body;
 
@@ -62,6 +64,7 @@ export async function createNewSubcontrol(
       subcontrol,
       project_id,
       user_id,
+      transaction,
       (
         req.files as {
           [key: string]: UploadedFile[];
@@ -71,15 +74,17 @@ export async function createNewSubcontrol(
         req.files as {
           [key: string]: UploadedFile[];
         }
-      ).feedbackFiles
+      ).feedbackFiles,
     );
 
     if (newSubcontrol) {
+      await transaction.commit();
       return res.status(200).json(STATUS_CODE[200](newSubcontrol));
     }
 
     return res.status(204).json(STATUS_CODE[204](newSubcontrol));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -88,21 +93,25 @@ export async function updateSubcontrolById(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const subcontrolId = parseInt(req.params.id);
     const subcontrol: Partial<Subcontrol> & { user_id: number, project_id: number } = req.body;
 
     const updatedSubcontrol = await updateSubcontrolByIdQuery(
       subcontrolId,
-      subcontrol
+      subcontrol,
+      transaction
     );
 
     if (updatedSubcontrol) {
+      await transaction.commit();
       return res.status(200).json(STATUS_CODE[200](updatedSubcontrol));
     }
 
     return res.status(204).json(STATUS_CODE[204](updatedSubcontrol));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -111,17 +120,20 @@ export async function deleteSubcontrolById(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const subcontrolId = parseInt(req.params.id);
 
-    const deletedSubcontrol = await deleteSubcontrolByIdQuery(subcontrolId);
+    const deletedSubcontrol = await deleteSubcontrolByIdQuery(subcontrolId, transaction);
 
     if (deletedSubcontrol) {
+      await transaction.commit();
       return res.status(200).json(STATUS_CODE[200](deletedSubcontrol));
     }
 
     return res.status(204).json(STATUS_CODE[204](deletedSubcontrol));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

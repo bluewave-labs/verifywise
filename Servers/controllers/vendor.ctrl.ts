@@ -89,6 +89,7 @@ export async function updateVendorById(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const vendorId = parseInt(req.params.id);
     const updatedVendor: Vendor = req.body;
@@ -101,14 +102,16 @@ export async function updateVendorById(
       );
     }
 
-    const vendor = await updateVendorByIdQuery(vendorId, updatedVendor);
+    const vendor = await updateVendorByIdQuery(vendorId, updatedVendor, transaction);
 
     if (vendor) {
+      await transaction.commit();
       return res.status(202).json(STATUS_CODE[202](vendor));
     }
 
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -117,17 +120,20 @@ export async function deleteVendorById(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const vendorId = parseInt(req.params.id);
 
-    const deletedVendor = await deleteVendorByIdQuery(vendorId);
+    const deletedVendor = await deleteVendorByIdQuery(vendorId, transaction);
 
     if (deletedVendor) {
+      await transaction.commit();
       return res.status(202).json(STATUS_CODE[202](deletedVendor));
     }
 
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

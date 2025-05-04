@@ -119,7 +119,7 @@ export const countAnswersByProjectId = async (
   answeredAssessments: string;
 }> => {
   const result = await sequelize.query(
-    `SELECT COUNT(*) AS "totalAssessments", COUNT(CASE WHEN q.answer <> '' THEN 1 END) AS "answeredAssessments" FROM
+    `SELECT COUNT(*) AS "totalAssessments", COUNT(CASE WHEN q.status = 'Done' THEN 1 END) AS "answeredAssessments" FROM
       assessments a JOIN topics t ON a.id = t.assessment_id
         JOIN subtopics st ON t.id = st.topic_id
           JOIN questions q ON st.id = q.subtopic_id WHERE a.project_id = :project_id`,
@@ -205,6 +205,7 @@ export const createNewProjectQuery = async (
 export const updateProjectUpdatedByIdQuery = async (
   id: number, // this is not the project id,
   byTable: "controls" | "questions" | "projectrisks" | "vendors",
+  transaction: Transaction
 ): Promise<void> => {
   const queryMap = {
     "controls": `SELECT p.id FROM
@@ -224,7 +225,7 @@ export const updateProjectUpdatedByIdQuery = async (
   };
   const query = queryMap[byTable];
   const result = await sequelize.query(query, {
-    replacements: { id },
+    replacements: { id }, transaction
   })
   const projects = result[0] as { id: number }[]
   for (let p of projects) {
@@ -234,7 +235,8 @@ export const updateProjectUpdatedByIdQuery = async (
         replacements: {
           last_updated: new Date(Date.now()),
           project_id: p.id
-        }
+        },
+        transaction
       }
     )
   }
@@ -355,6 +357,7 @@ export const updateProjectByIdQuery = async (
     mapToModel: true,
     model: ProjectModel,
     // type: QueryTypes.UPDATE,
+    transaction
   });
 
   const updatedMembers = await sequelize.query(
@@ -363,6 +366,7 @@ export const updateProjectByIdQuery = async (
       replacements: { project_id: id },
       mapToModel: true,
       model: ProjectsMembersModel,
+      transaction
     }
   )
   return result.length ? {

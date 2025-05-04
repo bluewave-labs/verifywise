@@ -22,50 +22,16 @@ const Field = lazy(() => import("../Inputs/Field"));
 import { extractUserToken } from "../../../application/tools/extractToken";
 import React from "react";
 import useUsers from "../../../application/hooks/useUsers";
+import {
+  HighRiskRoleEnum,
+  RiskClassificationEnum,
+} from "../../../domain/enums/risk";
+import {
+  CreateProjectFormErrors,
+  CreateProjectFormValues,
+} from "../../../domain/interfaces/iForm";
 
-enum RiskClassificationEnum {
-  HighRisk = "High risk",
-  LimitedRisk = "Limited risk",
-  MinimalRisk = "Minimal risk",
-}
-
-enum HighRiskRoleEnum {
-  Deployer = "Deployer",
-  Provider = "Provider",
-  Distributor = "Distributor",
-  Importer = "Importer",
-  ProductManufacturer = "Product manufacturer",
-  AuthorizedRepresentative = "Authorized representative",
-}
-
-interface User {
-  _id: string;
-  name: string;
-  surname: string;
-  email: string;
-}
-
-interface FormValues {
-  project_title: string;
-  owner: number;
-  members: User[];
-  start_date: string;
-  ai_risk_classification: number;
-  type_of_high_risk_role: number;
-  goal: string;
-}
-
-interface FormErrors {
-  projectTitle?: string;
-  members?: string;
-  owner?: string;
-  startDate?: string;
-  riskClassification?: string;
-  typeOfHighRiskRole?: string;
-  goal?: string;
-}
-
-const initialState: FormValues = {
+const initialState: CreateProjectFormValues = {
   project_title: "",
   members: [],
   owner: 0,
@@ -95,8 +61,8 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
   onNewProject,
 }) => {
   const theme = useTheme();
-  const [values, setValues] = useState<FormValues>(initialState);
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [values, setValues] = useState<CreateProjectFormValues>(initialState);
+  const [errors, setErrors] = useState<CreateProjectFormErrors>({});
   const { users } = useUsers();
   const authState = useSelector(
     (state: { auth: { authToken: string; userExists: boolean } }) => state.auth
@@ -118,15 +84,16 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
   }, []);
 
   const handleOnSelectChange = useCallback(
-    (prop: keyof FormValues) => (event: SelectChangeEvent<string | number>) => {
-      setValues({ ...values, [prop]: event.target.value });
-      setErrors({ ...errors, [prop]: "" });
-    },
+    (prop: keyof CreateProjectFormValues) =>
+      (event: SelectChangeEvent<string | number>) => {
+        setValues({ ...values, [prop]: event.target.value });
+        setErrors({ ...errors, [prop]: "" });
+      },
     [values, errors]
   );
 
   const handleOnTextFieldChange = useCallback(
-    (prop: keyof FormValues) =>
+    (prop: keyof CreateProjectFormValues) =>
       (event: React.ChangeEvent<HTMLInputElement>) => {
         setValues({ ...values, [prop]: event.target.value });
         setErrors({ ...errors, [prop]: "" });
@@ -135,7 +102,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
   );
 
   const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
+    const newErrors: CreateProjectFormErrors = {};
 
     const projectTitle = checkStringValidation(
       "Project title",
@@ -256,7 +223,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
   );
 
   const handleOnMultiSelect = useCallback(
-    (prop: keyof FormValues) =>
+    (prop: keyof CreateProjectFormValues) =>
       (_event: React.SyntheticEvent, newValue: any[]) => {
         setValues((prevValues) => ({
           ...prevValues,

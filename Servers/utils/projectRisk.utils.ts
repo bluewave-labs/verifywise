@@ -81,13 +81,14 @@ export const createProjectRiskQuery = async (projectRisk: Partial<ProjectRisk>, 
       transaction
     }
   );
-  await updateProjectUpdatedByIdQuery(result[0].id!, "projectrisks");
+  await updateProjectUpdatedByIdQuery(result[0].id!, "projectrisks", transaction);
   return result[0];
 };
 
 export const updateProjectRiskByIdQuery = async (
   id: number,
-  projectRisk: Partial<ProjectRisk>
+  projectRisk: Partial<ProjectRisk>,
+  transaction: Transaction
 ): Promise<ProjectRisk | null> => {
   const updateProjectRisk: Partial<Record<keyof ProjectRisk, any>> = {};
   const setClause = [
@@ -132,13 +133,15 @@ export const updateProjectRiskByIdQuery = async (
     mapToModel: true,
     model: ProjectRiskModel,
     // type: QueryTypes.UPDATE,
+    transaction
   });
-  await updateProjectUpdatedByIdQuery(id, "projectrisks");
+  await updateProjectUpdatedByIdQuery(id, "projectrisks", transaction);
   return result[0];
 };
 
 export const deleteProjectRiskByIdQuery = async (
-  id: number
+  id: number,
+  transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
     "DELETE FROM projectrisks WHERE id = :id RETURNING *",
@@ -147,8 +150,9 @@ export const deleteProjectRiskByIdQuery = async (
       mapToModel: true,
       model: ProjectRiskModel,
       type: QueryTypes.DELETE,
+      transaction
     }
   );
-  await updateProjectUpdatedByIdQuery(id, "projectrisks");
+  await updateProjectUpdatedByIdQuery(id, "projectrisks", transaction);
   return result.length > 0;
 };

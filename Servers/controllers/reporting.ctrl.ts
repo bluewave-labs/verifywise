@@ -5,12 +5,14 @@ import { DefaultReportName } from "../models/reporting.model";
 import { getReportData, isAuthorizedUser } from '../services/reportService';
 
 import marked from 'marked';
+import { sequelize } from "../database/db";
 const htmlDocx = require("html-to-docx");
 
 export async function generateReports(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {   
     const projectId = parseInt(req.body.projectId);
     const userId = req.userId;

@@ -31,7 +31,6 @@ export const getVendorRiskByIdQuery = async (
 };
 
 export const createNewVendorRiskQuery = async (vendorRisk: VendorRisk, transaction: Transaction): Promise<VendorRisk> => {
-  console.log("createNewVendorRisk", vendorRisk);
   const result = await sequelize.query(
     `INSERT INTO vendorRisks (
       vendor_id, order_no, risk_description, impact_description, impact,
@@ -56,7 +55,7 @@ export const createNewVendorRiskQuery = async (vendorRisk: VendorRisk, transacti
       mapToModel: true,
       model: VendorRiskModel,
       // type: QueryTypes.INSERT
-      transaction,
+      transaction
     }
   );
   return result[0];
@@ -64,7 +63,8 @@ export const createNewVendorRiskQuery = async (vendorRisk: VendorRisk, transacti
 
 export const updateVendorRiskByIdQuery = async (
   id: number,
-  vendorRisk: Partial<VendorRisk>
+  vendorRisk: Partial<VendorRisk>,
+  transaction: Transaction
 ): Promise<VendorRisk | null> => {
   const updateVendorRisk: Partial<Record<keyof VendorRisk, any>> = {};
   const setClause = [
@@ -93,13 +93,15 @@ export const updateVendorRiskByIdQuery = async (
     mapToModel: true,
     model: VendorRiskModel,
     // type: QueryTypes.UPDATE,
+    transaction
   });
 
   return result[0];
 };
 
 export const deleteVendorRiskByIdQuery = async (
-  id: number
+  id: number,
+  transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
     "DELETE FROM vendorRisks WHERE id = :id RETURNING id",
@@ -108,15 +110,16 @@ export const deleteVendorRiskByIdQuery = async (
       mapToModel: true,
       model: VendorRiskModel,
       type: QueryTypes.DELETE,
+      transaction,
     }
   );
   return result.length > 0;
 };
 
 export const deleteVendorRisksForVendorQuery = async (
-  vendorId: number
+  vendorId: number,
+  transaction: Transaction
 ): Promise<Boolean> => {
-  console.log(`Deleting vendorrisks for vendor: ${vendorId}`);
   const result = await sequelize.query(
     `DELETE FROM vendorrisks WHERE vendor_id = :vendor_id RETURNING id`,
     {
@@ -124,8 +127,8 @@ export const deleteVendorRisksForVendorQuery = async (
       mapToModel: true,
       model: VendorRiskModel,
       type: QueryTypes.UPDATE,
+      transaction,
     }
   )
-  console.log(`Deleted ${result.length} rows of vendorrisks for vendor: ${vendorId}`);
   return result.length > 0;
 }

@@ -83,7 +83,6 @@ export async function getProjectById(
 export async function createProject(req: Request, res: Response): Promise<any> {
   const transaction = await sequelize.transaction();
   try {
-    console.log("req.body : ", req.body);
     const newProject: Partial<Project> & {
       members: number[];
       framework: number[];
@@ -97,7 +96,6 @@ export async function createProject(req: Request, res: Response): Promise<any> {
           STATUS_CODE[400]({ message: "project_title and owner are required" })
         );
     }
-    console.log(newProject);
 
     const createdProject = await createNewProjectQuery(
       newProject,

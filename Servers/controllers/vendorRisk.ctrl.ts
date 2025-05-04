@@ -65,6 +65,7 @@ export async function createVendorRisk(
 
     return res.status(503).json(STATUS_CODE[503]({}));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -73,21 +74,25 @@ export async function updateVendorRiskById(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const vendorRiskId = parseInt(req.params.id);
     const updatedVendorRisk: VendorRisk = req.body;
 
     const vendorRisk = await updateVendorRiskByIdQuery(
       vendorRiskId,
-      updatedVendorRisk
+      updatedVendorRisk,
+      transaction
     );
 
     if (vendorRisk) {
+      await transaction.commit();
       return res.status(202).json(STATUS_CODE[202](vendorRisk));
     }
 
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -96,17 +101,20 @@ export async function deleteVendorRiskById(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const vendorRiskId = parseInt(req.params.id);
 
-    const deletedVendorRisk = await deleteVendorRiskByIdQuery(vendorRiskId);
+    const deletedVendorRisk = await deleteVendorRiskByIdQuery(vendorRiskId, transaction);
 
     if (deletedVendorRisk) {
+      await transaction.commit();
       return res.status(202).json(STATUS_CODE[202](deletedVendorRisk));
     }
 
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

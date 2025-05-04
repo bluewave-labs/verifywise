@@ -10,6 +10,7 @@ import {
   updateSubtopicByIdQuery,
 } from "../utils/subtopic.utils";
 import { Subtopic } from "../models/subtopic.model";
+import { sequelize } from "../database/db";
 
 export async function getAllSubtopics(
   req: Request,
@@ -51,15 +52,18 @@ export async function createNewSubtopic(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
-    const subtopic = await createNewSubtopicQuery(req.body as Subtopic);
+    const subtopic = await createNewSubtopicQuery(req.body as Subtopic, transaction);
 
     if (subtopic) {
+      await transaction.commit();
       return res.status(200).json(STATUS_CODE[200](subtopic));
     }
 
     return res.status(204).json(STATUS_CODE[204](subtopic));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -68,20 +72,24 @@ export async function updateSubtopicById(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const subtopicId = parseInt(req.params.id);
 
     const subtopic = await updateSubtopicByIdQuery(
       subtopicId,
-      req.body as Subtopic
+      req.body as Subtopic,
+      transaction
     );
 
     if (subtopic) {
+      await transaction.commit();
       return res.status(200).json(STATUS_CODE[200](subtopic));
     }
 
     return res.status(204).json(STATUS_CODE[204](subtopic));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -90,17 +98,20 @@ export async function deleteSubtopicById(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const subtopicId = parseInt(req.params.id);
 
-    const subtopic = await deleteSubtopicByIdQuery(subtopicId);
+    const subtopic = await deleteSubtopicByIdQuery(subtopicId, transaction);
 
     if (subtopic) {
+      await transaction.commit();
       return res.status(200).json(STATUS_CODE[200](subtopic));
     }
 
     return res.status(204).json(STATUS_CODE[204](subtopic));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

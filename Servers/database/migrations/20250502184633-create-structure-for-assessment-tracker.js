@@ -207,12 +207,12 @@ module.exports = {
 
       const allAssessments = await queryInterface.sequelize.query(
         `SELECT
-          t.id as t_id, t.title as t_title, t.order_no as t_order_no, t.is_demo as t_is_demo, t.framework_id as t_framework_id,
-          st.id as st_id, st.title as st_title, st.order_no as st_order_no, st.is_demo as st_is_demo, st.topic_id as st_topic_id,
+          t.id as t_id, t.title as t_title, t.order_no as t_order_no, t.framework_id as t_framework_id,
+          st.id as st_id, st.title as st_title, st.order_no as st_order_no, st.topic_id as st_topic_id,
           q.id as q_id, q.order_no as q_order_no, q.question as q_question, q.hint as q_hint, q.priority_level as q_priority_level,
             q.answer_type as q_answer_type, q.input_type as q_input_type, q.evidence_required as q_evidence_required,
-            q.is_required as q_is_required, q.subtopic_id as q_subtopic_id, q.is_demo as q_is_demo,
-          a.id as a_id, a.assessment_id as a_assessment_id, a.question_id as a_question_id, a.answer as a_answer,
+            q.is_required as q_is_required, q.subtopic_id as q_subtopic_id,
+          a.id as a_id, a.assessment_id as a_assessment_id, a.question_id as a_question_id, a.answer as a_answer, a.is_demo as a_is_demo,
             a.evidence_files as a_evidence_files, a.dropdown_options as a_dropdown_options, a.status as a_status, a.created_at as a_created_at
         FROM topics_struct_eu t JOIN subtopics_struct_eu st ON t.id = st.topic_id
 	        JOIN questions_struct_eu q ON st.id = q.subtopic_id
@@ -248,11 +248,11 @@ module.exports = {
         await queryInterface.sequelize.query(
           `INSERT INTO questions (
             order_no, question, hint, priority_level, answer_type, input_type, evidence_required, is_required, 
-            dropdown_options, answer, subtopic_id, created_at, evidence_files, status
+            dropdown_options, answer, subtopic_id, is_demo, created_at, evidence_files, status
           ) VALUES (
             ${record.q_order_no}, '${record.q_question.replace(/'/g, "''")}', '${record.q_hint.replace(/'/g, "''")}', '${record.q_priority_level}', '${record.q_answer_type}', '${record.q_input_type}', 
             ${record.q_evidence_required}, ${record.q_is_required}, ${record.a_dropdown_options?.length ? `'${record.a_dropdown_options}'` : null}, 
-            ${record.a_answer ? `'${record.a_answer.replace(/'/g, "''")}'` : null}, ${subtopicId}, '${new Date(record.a_created_at).toISOString()}', 
+            ${record.a_answer ? `'${record.a_answer.replace(/'/g, "''")}'` : null}, ${subtopicId}, ${record.a_is_demo}, '${new Date(record.a_created_at).toISOString()}', 
             ${record.a_evidence_files ? `'${JSON.stringify(record.a_evidence_files)}'` : null}, '${record.a_status}'
           );`,
           { transaction }

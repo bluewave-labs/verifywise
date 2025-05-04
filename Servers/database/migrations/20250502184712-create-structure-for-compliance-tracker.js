@@ -254,7 +254,7 @@ module.exports = {
 
       const allCompliances = await queryInterface.sequelize.query(
         `SELECT 
-          ccs.id AS ccs_id, ccs.title AS ccs_title, ccs.order_no AS ccs_order_no, ccs.is_demo AS ccs_is_demo, ccs.framework_id AS ccs_framework_id,
+          ccs.id AS ccs_id, ccs.title AS ccs_title, ccs.order_no AS ccs_order_no, ccs.framework_id AS ccs_framework_id,
           cs.id AS cs_id, cs.title AS cs_title, cs.description AS cs_description, cs.order_no AS cs_order_no, cs.control_category_id AS cs_control_category_id,
           c.id AS c_id, c.status AS c_status, c.approver AS c_approver, c.risk_review AS c_risk_review, c.implementation_details AS c_implementation_details,
           c.owner AS c_owner, c.reviewer AS c_reviewer, c.due_date AS c_due_date, c.is_demo AS c_is_demo, c.projects_frameworks_id AS c_projects_frameworks_id, c.created_at AS c_created_at,
@@ -279,8 +279,8 @@ module.exports = {
         const record = allCompliances[0][ctr];
         if (!controlCategoryId) {
           const result = await queryInterface.sequelize.query(
-            `INSERT INTO controlcategories (title, order_no, is_demo, project_id, created_at) VALUES (
-              '${record.ccs_title.replace(/'/g, "''")}', ${record.ccs_order_no}, ${record.ccs_is_demo}, ${record.pf_project_id}, '${new Date(record.c_created_at).toISOString()}'
+            `INSERT INTO controlcategories (title, order_no, project_id, created_at) VALUES (
+              '${record.ccs_title.replace(/'/g, "''")}', ${record.ccs_order_no}, ${record.pf_project_id}, '${new Date(record.c_created_at).toISOString()}'
             ) RETURNING id;`,
             { transaction }
           )

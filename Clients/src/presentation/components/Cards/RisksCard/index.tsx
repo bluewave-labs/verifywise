@@ -5,20 +5,9 @@ import {
   projectRisksTileCardKey,
   projectRisksTileCardvalue,
 } from "./style";
+import { risksSummary } from "../../../../domain/interfaces/iRiskSummary";
 
-type risksSummary = {
-  veryHighRisks: number;
-  highRisks: number;
-  mediumRisks: number;
-  lowRisks: number;
-  veryLowRisks: number;
-};
-
-const RisksCard = ({
-  risksSummary,
-}: {
-  risksSummary: risksSummary;
-}) => {
+const RisksCard = ({ risksSummary }: { risksSummary: risksSummary }) => {
   const getValidRiskValue = (value: number) => (isNaN(value) ? 0 : value);
 
   return (

@@ -18,4 +18,5 @@ export type FileData = {
   fileName: string;
   size?: number;
   data?: Blob;
+  source?: string;
 };

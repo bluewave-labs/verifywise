@@ -1,4 +1,12 @@
-import { getEntityById, generatReport } from "../repository/entity.repository";
+import { getEntityById, generateReport } from "../repository/entity.repository";
+
+interface GenerateReportProps {
+  projectId: string | null;
+  projectTitle: string;
+  projectOwner: string;
+  reportType: string;
+  reportName: string;
+}
 
 export const handleDownload = async (fileId: string, fileName: string) => {
   try {
@@ -20,9 +28,9 @@ export const handleDownload = async (fileId: string, fileName: string) => {
   }
 };
 
-export const handleAutoDownload = async (requestBody: any) => {
+export const handleAutoDownload = async (requestBody: GenerateReportProps) => {
   try {
-    const response = await generatReport({
+    const response = await generateReport({
       routeUrl: `/reporting/generate-report`,
       body: requestBody
     });
@@ -53,6 +61,7 @@ export const handleAutoDownload = async (requestBody: any) => {
     }
   } catch (error) {
     console.error("Error generating report", error);
+    return 500;
   }
 };
 

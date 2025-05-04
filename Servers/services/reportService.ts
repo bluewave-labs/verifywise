@@ -1,6 +1,11 @@
 import { getProjectRisksReportQuery, getMembersByProjectIdQuery } from "../utils/reporting.utils";
 import { ReportType } from "../models/reporting.model";
 
+interface reportBodyData {
+  projectTitle: string,
+  projectOwner: string
+}
+
 /*
   Get member lists by projectId
   Check whether the user belongs to current project
@@ -25,7 +30,7 @@ export async function isAuthorizedUser(
 export async function getReportData(
     projectId: number,
     reportType: string,
-    reportBody: any
+    reportBody: reportBodyData
   ) : Promise<any> {
     
   let markdownFormattedData;
@@ -44,7 +49,7 @@ export async function getReportData(
 */
 export async function getProjectRiskMarkdown (
     projectId: number,
-    data: any
+    data: reportBodyData
   ) : Promise<any> {
   let rows: string;
   const reportData = await getProjectRisksReportQuery(projectId);

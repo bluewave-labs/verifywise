@@ -266,7 +266,7 @@ export async function getAllUsers({
  * @returns {Promise<any>} A promise that resolves returning the generated report.
  * @throws Will throw an error if the request fails.
  */
-export async function generatReport({
+export async function generateReport({
   routeUrl,
   body,
   signal,

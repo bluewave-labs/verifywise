@@ -13,6 +13,11 @@ interface GenerateReportProps {
   onClose: () => void;
 }
 
+interface InputProps {
+  report_type: string;
+  report_name: string;
+}
+
 const GenerateReportPopup: React.FC<GenerateReportProps> = ({
   onClose
 }) => {
@@ -36,9 +41,15 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
     }, 3000);
   };
 
-  const handleGenerateReport = async (input: any) => {   
+  const handleGenerateReport = async (input: InputProps) => {   
     setIsReportRequest(true);
     const currentProject = dashboardValues.projects.find((project: { id: string | null; }) => project.id === currentProjectId);         
+    
+    if (!currentProject) {
+      handleToast("error", "Project not found");
+      return;
+    }
+    
     const owner = dashboardValues.users.find(
       (user: any) => user.id === parseInt(currentProject.owner)
     );

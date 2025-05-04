@@ -1,8 +1,8 @@
 export const styles = {
   formContainer: {
     padding: 12,
-    width: { xs: "100%", sm: "398px" },
-    height: '421px'
+    width: { xs: "100%", sm: "400px" },
+    height: '520px'
   },
   contentCenter: {
     display: 'flex',

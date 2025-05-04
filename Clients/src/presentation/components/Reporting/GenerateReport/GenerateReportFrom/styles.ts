@@ -19,6 +19,11 @@ export const styles = {
   baseText: {
     color: "#344054",
     fontSize: 13,
+  },
+  semiTitleText: {
+    color: "#344054",
+    fontSize: 13,
+    fontWeight: "medium"
   }
 }
 

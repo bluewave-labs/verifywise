@@ -93,7 +93,7 @@ export class QuestionModel extends Model<Question> {
 
   @ForeignKey(() => SubtopicModel)
   @Column({
-    type: DataType.NUMBER
+    type: DataType.INTEGER
   })
   subtopic_id!: number;
 

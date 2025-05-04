@@ -9,14 +9,7 @@
 
 import "./index.css";
 import React from "react";
-import {
-  Box,
-  IconButton,
-  Stack,
-  SxProps,
-  Theme,
-  Typography,
-} from "@mui/material";
+import { Box, IconButton, Stack, Typography } from "@mui/material";
 import { useTheme } from "@mui/material";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import SuccessOutlinedIcon from "@mui/icons-material/CheckCircleOutline";
@@ -24,67 +17,9 @@ import ErrorOutlinedIcon from "@mui/icons-material/ErrorOutline";
 import WarningOutlinedIcon from "@mui/icons-material/WarningOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import singleTheme from "../../themes/v1SingleTheme";
-
-/**
- * Props for the Alert component.
- *
- * @interface AlertProps
- * @property {"success" | "info" | "warning" | "error"} variant - The type of alert to display.
- * @property {string} title - The title text of the alert.
- * @property {string} body - The body text of the alert.
- * @property {boolean} isToast - Whether the alert is a toast notification.
- * @property {boolean} [hasIcon] - Whether to display an icon in the alert. Defaults to true.
- * @property {() => void} onClick - Callback function to handle click events.
- */
-export interface AlertProps {
-  variant: "success" | "info" | "warning" | "error";
-  title?: string;
-  body: string;
-  isToast?: boolean;
-  hasIcon?: boolean;
-  onClick?: () => void;
-  sx?: SxProps<Theme> | undefined;
-}
-
-/**
- * Props for the CloseButton component.
- *
- * @interface CloseIconProps
- * @property {string} text - The color of the close icon.
- */
-interface CloseIconProps {
-  text: string;
-}
-
-/**
- * Styles for the IconButton component.
- *
- * @param {boolean} hasIcon - Whether the alert has an icon.
- * @returns {object} The styles for the IconButton component.
- */
-const iconButtonStyles = (hasIcon: boolean): object => ({
-  alignSelf: "flex-start",
-  ml: "auto",
-  mr: "-5px",
-  mt: hasIcon ? "-5px" : 0,
-  "&:focus": {
-    outline: "none",
-  },
-  "&:hover": {
-    backgroundColor: "transparent",
-  },
-});
-
-/**
- * Styles for the CloseIcon component.
- *
- * @param {string} text - The color of the close icon.
- * @returns {object} The styles for the CloseIcon component.
- */
-const closeIconStyles = (text: string): object => ({
-  fontSize: 20,
-  fill: text,
-});
+import { AlertProps } from "../../../domain/interfaces/iAlert";
+import { closeIconStyles, iconButtonStyles } from "./style";
+import { CloseIconProps } from "../../../domain/interfaces/iWidget";
 
 /**
  * Mapping of alert variants to their respective icons.

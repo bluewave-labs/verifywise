@@ -66,7 +66,6 @@ module.exports = {
           id SERIAL PRIMARY KEY,
           title TEXT,
           order_no INT,
-          is_demo BOOLEAN NOT NULL DEFAULT false,
           framework_id INTEGER NOT NULL,
           FOREIGN KEY (framework_id) REFERENCES frameworks(id) ON DELETE CASCADE);`,
         `CREATE TABLE subtopics_struct_eu (
@@ -74,7 +73,6 @@ module.exports = {
           title TEXT NOT NULL,
           order_no INTEGER,
           topic_id INTEGER NOT NULL,
-          is_demo BOOLEAN NOT NULL DEFAULT false,
           FOREIGN KEY (topic_id) REFERENCES topics_struct_eu(id) ON DELETE CASCADE);`,
         `CREATE TABLE questions_struct_eu (
           id SERIAL PRIMARY KEY,
@@ -87,7 +85,6 @@ module.exports = {
           evidence_required BOOLEAN NOT NULL,
           is_required BOOLEAN NOT NULL,
           subtopic_id INTEGER NOT NULL,
-          is_demo BOOLEAN NOT NULL DEFAULT false,
           FOREIGN KEY (subtopic_id) REFERENCES subtopics_struct_eu(id) ON DELETE CASCADE);`,
         `CREATE TABLE answers_eu(
           id SERIAL PRIMARY KEY,
@@ -98,6 +95,7 @@ module.exports = {
           dropdown_options TEXT[],
           status enum_status_questions DEFAULT 'Not started'::enum_status_questions,
           created_at TIMESTAMP DEFAULT NOW(),
+          is_demo BOOLEAN NOT NULL DEFAULT false,
           FOREIGN KEY (assessment_id) REFERENCES assessments(id) ON DELETE CASCADE,
           FOREIGN KEY (question_id) REFERENCES questions_struct_eu(id) ON DELETE CASCADE);`,
       ]
@@ -155,7 +153,7 @@ module.exports = {
       const questionAnswers = await queryInterface.sequelize.query(
         `SELECT 
           q.question as question, q.answer AS answer, q.evidence_files AS evidence_files, q.dropdown_options AS dropdown_options,
-            q.status AS status, q.created_at AS created_at, t.assessment_id AS assessment_id
+            q.status AS status, q.created_at AS created_at, t.assessment_id AS assessment_id, q.is_demo AS is_demo
               FROM questions q JOIN subtopics st ON q.subtopic_id = st.id JOIN topics t ON st.topic_id = t.id;`,
         { type: Sequelize.QueryTypes.SELECT, transaction }
       );
@@ -173,11 +171,12 @@ module.exports = {
           ${question.evidence_files ? `'${JSON.stringify(question.evidence_files)}'` : null}, 
           ${question.dropdown_options?.length ? `'${question.dropdown_options}'` : null}, 
           '${question.status}', 
-          '${new Date(question.created_at).toISOString()}')`;
+          '${new Date(question.created_at).toISOString()}',
+          ${question.is_demo})`;
       }).join(', ');
       await queryInterface.sequelize.query(
         `INSERT INTO answers_eu (
-          assessment_id, question_id, answer, evidence_files, dropdown_options, status, created_at
+          assessment_id, question_id, answer, evidence_files, dropdown_options, status, created_at, is_demo
         ) VALUES ${answersInsert};`,
         { transaction }
       );
@@ -208,12 +207,12 @@ module.exports = {
 
       const allAssessments = await queryInterface.sequelize.query(
         `SELECT
-          t.id as t_id, t.title as t_title, t.order_no as t_order_no, t.is_demo as t_is_demo, t.framework_id as t_framework_id,
-          st.id as st_id, st.title as st_title, st.order_no as st_order_no, st.is_demo as st_is_demo, st.topic_id as st_topic_id,
+          t.id as t_id, t.title as t_title, t.order_no as t_order_no, t.framework_id as t_framework_id,
+          st.id as st_id, st.title as st_title, st.order_no as st_order_no, st.topic_id as st_topic_id,
           q.id as q_id, q.order_no as q_order_no, q.question as q_question, q.hint as q_hint, q.priority_level as q_priority_level,
             q.answer_type as q_answer_type, q.input_type as q_input_type, q.evidence_required as q_evidence_required,
-            q.is_required as q_is_required, q.subtopic_id as q_subtopic_id, q.is_demo as q_is_demo,
-          a.id as a_id, a.assessment_id as a_assessment_id, a.question_id as a_question_id, a.answer as a_answer,
+            q.is_required as q_is_required, q.subtopic_id as q_subtopic_id,
+          a.id as a_id, a.assessment_id as a_assessment_id, a.question_id as a_question_id, a.answer as a_answer, a.is_demo as a_is_demo,
             a.evidence_files as a_evidence_files, a.dropdown_options as a_dropdown_options, a.status as a_status, a.created_at as a_created_at
         FROM topics_struct_eu t JOIN subtopics_struct_eu st ON t.id = st.topic_id
 	        JOIN questions_struct_eu q ON st.id = q.subtopic_id
@@ -228,8 +227,8 @@ module.exports = {
         const record = allAssessments[0][ctr];
         if (!topicId) {
           const result = await queryInterface.sequelize.query(
-            `INSERT INTO topics (title, order_no, assessment_id, is_demo, created_at) VALUES (
-              '${record.t_title}', ${record.t_order_no}, ${record.a_assessment_id}, ${record.t_is_demo}, '${new Date(record.a_created_at).toISOString()}'
+            `INSERT INTO topics (title, order_no, assessment_id, created_at) VALUES (
+              '${record.t_title}', ${record.t_order_no}, ${record.a_assessment_id}, '${new Date(record.a_created_at).toISOString()}'
             ) RETURNING id;`,
             { transaction }
           );
@@ -238,8 +237,8 @@ module.exports = {
 
         if (!subtopicId) {
           const result = await queryInterface.sequelize.query(
-            `INSERT INTO subtopics (title, order_no, topic_id, is_demo, created_at) VALUES (
-              '${record.st_title}', ${record.st_order_no}, ${topicId}, ${record.st_is_demo}, '${new Date(record.a_created_at).toISOString()}'
+            `INSERT INTO subtopics (title, order_no, topic_id, created_at) VALUES (
+              '${record.st_title}', ${record.st_order_no}, ${topicId}, '${new Date(record.a_created_at).toISOString()}'
             ) RETURNING id;`,
             { transaction }
           );
@@ -253,7 +252,7 @@ module.exports = {
           ) VALUES (
             ${record.q_order_no}, '${record.q_question.replace(/'/g, "''")}', '${record.q_hint.replace(/'/g, "''")}', '${record.q_priority_level}', '${record.q_answer_type}', '${record.q_input_type}', 
             ${record.q_evidence_required}, ${record.q_is_required}, ${record.a_dropdown_options?.length ? `'${record.a_dropdown_options}'` : null}, 
-            ${record.a_answer ? `'${record.a_answer.replace(/'/g, "''")}'` : null}, ${subtopicId}, ${record.q_is_demo}, '${new Date(record.a_created_at).toISOString()}', 
+            ${record.a_answer ? `'${record.a_answer.replace(/'/g, "''")}'` : null}, ${subtopicId}, ${record.a_is_demo}, '${new Date(record.a_created_at).toISOString()}', 
             ${record.a_evidence_files ? `'${JSON.stringify(record.a_evidence_files)}'` : null}, '${record.a_status}'
           );`,
           { transaction }

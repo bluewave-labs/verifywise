@@ -16,5 +16,5 @@ export const StatsCardFrame = {
 
 export const StatsCardRate = {
   color: "#2D3748",
-  fontSize: 40,
+  fontSize: 26,
 };

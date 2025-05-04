@@ -6,7 +6,6 @@ import {
   FC,
   useState,
   useCallback,
-  useMemo,
   lazy,
   Suspense,
   useContext,
@@ -42,24 +41,12 @@ import {
 import VWButton from "../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import UpdateIcon from "@mui/icons-material/Update";
+import { AddNewRiskFormProps } from "../../../domain/interfaces/iRiskForm";
+import { ApiResponse } from "../../../domain/interfaces/iResponse";
+import { tabStyle } from "./style";
 
 const RiskSection = lazy(() => import("./RisksSection"));
 const MitigationSection = lazy(() => import("./MitigationSection"));
-
-interface AddNewRiskFormProps {
-  closePopup: () => void;
-  popupStatus: string;
-  initialRiskValues?: RiskFormValues; // New prop for initial values
-  initialMitigationValues?: MitigationFormValues; // New prop for initial values
-  onSuccess: () => void;
-  onError?: (message: any) => void;
-  onLoading?: (message: any) => void;
-}
-
-interface ApiResponse {
-  message: string;
-  error: string;
-}
 
 const riskInitialState: RiskFormValues = {
   riskName: "",
@@ -142,24 +129,8 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   const { inputValues } = useContext(VerifyWiseContext);
   const { users } = useUsers();
 
-  const tabStyle = useMemo(
-    () => ({
-      textTransform: "none",
-      fontWeight: 400,
-      alignItems: "flex-start",
-      justifyContent: "flex-end",
-      padding: "16px 0 7px",
-      minHeight: "20px",
-      "&.Mui-selected": {
-        color: "#13715B",
-      },
-    }),
-    []
-  );
-
   useEffect(() => {
     if (popupStatus === "edit") {
-
       // riskData
       const currentRiskData: RiskFormValues = {
         ...riskInitialState,
@@ -273,7 +244,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
       newErrors.potentialImpact = potentialImpact.message;
     }
 
-    if(riskValues.reviewNotes.length > 0){
+    if (riskValues.reviewNotes.length > 0) {
       const reviewNotes = checkStringValidation(
         "Review notes",
         riskValues.reviewNotes,
@@ -284,7 +255,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         newErrors.reviewNotes = reviewNotes.message;
       }
     }
-    
+
     const actionOwner = selectValidation(
       "Action owner",
       riskValues.actionOwner
@@ -367,7 +338,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     if (!approvalStatus.accepted) {
       newMitigationErrors.approvalStatus = approvalStatus.message;
     }
-    if(mitigationValues.recommendations.length > 0) {
+    if (mitigationValues.recommendations.length > 0) {
       const recommendations = checkStringValidation(
         "Recommendation",
         mitigationValues.recommendations,
@@ -377,7 +348,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
       if (!recommendations.accepted) {
         newMitigationErrors.recommendations = recommendations.message;
       }
-    }    
+    }
 
     setMigitateErrors(newMitigationErrors);
     setRiskErrors(newErrors);
@@ -398,7 +369,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
 
   const riskFormSubmitHandler = async () => {
     const { isValid, errors } = validateForm();
-    
+
     const risk_risklevel = getRiskLevel(
       riskValues.likelihood * riskValues.riskSeverity
     );
@@ -408,9 +379,11 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
 
     // check forms validate
     if (isValid) {
-      onLoading(popupStatus !== "new" ? 
-      "Updating the risk. Please wait..." : 
-      "Creating the risk. Please wait...");
+      onLoading(
+        popupStatus !== "new"
+          ? "Updating the risk. Please wait..."
+          : "Creating the risk. Please wait..."
+      );
 
       const formData = {
         project_id: projectId,
@@ -465,27 +438,26 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
       };
 
       try {
-        const response = (popupStatus !== "new") ? 
-        await apiServices.put(
-          "/projectRisks/" + inputValues.id,
-          formData) : 
-        await apiServices.post("/projectRisks", formData);
+        const response =
+          popupStatus !== "new"
+            ? await apiServices.put("/projectRisks/" + inputValues.id, formData)
+            : await apiServices.post("/projectRisks", formData);
 
         if (response.status === 201) {
           // risk create success
           closePopup();
           onSuccess();
-        }else if (response.status === 200) {
+        } else if (response.status === 200) {
           // risk update success
           closePopup();
           onSuccess();
-        }else{
+        } else {
           console.error((response.data as ApiResponse)?.error);
           onError((response.data as ApiResponse)?.message);
         }
       } catch (error) {
         console.error("Error sending request", error);
-        if(error){
+        if (error) {
           onError(error);
         }
       }

@@ -20,7 +20,7 @@ interface FormValues {
 interface FormErrors {
   report_type?: string;
   report_name?: string;
-  project?: number;
+  project?: string;
 }
 
 const initialState: FormValues = {
@@ -75,7 +75,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
             id="project-input"
             label="Project"
             placeholder="Select project"
-            value={values.project === 0 ? "" : values.project}
+            value={values.project}
             onChange={handleOnSelectChange("project")}
             items={
               dashboardValues.projects?.map((project: { id: any; project_title: any; }) => ({
@@ -87,7 +87,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
               width: "350px",
               backgroundColor: theme.palette.background.main,
             }}
-            error={errors.report_name}
+            error={errors.project}
             isRequired
           />
         </Suspense>

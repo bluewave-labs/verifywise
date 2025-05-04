@@ -1,5 +1,5 @@
 import React from "react";
-import { Select, MenuItem, FormControl, InputLabel } from "@mui/material";
+import { Select, MenuItem, FormControl, Typography } from "@mui/material";
 
 interface ProjectFilterDropdownProps {
   projects: { id: string; name: string }[];
@@ -7,20 +7,47 @@ interface ProjectFilterDropdownProps {
   onChange: (projectId: string | null) => void;
 }
 
+const inputStyles = {
+  minWidth: 100,
+  maxWidth: 200,
+  height: 34,
+};
+
 const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
   projects,
   selectedProject,
   onChange,
 }) => {
   return (
-    <FormControl fullWidth>
-      <InputLabel id="project-filter-label">Filter by Project</InputLabel>
+    <FormControl
+      sx={{
+        ...inputStyles,
+        marginBottom: 10,
+      }}
+    >
+      <Typography
+        sx={{
+          fontSize: 13,
+          marginBottom: 4,
+        }}
+      >
+        Project:
+      </Typography>
       <Select
-        labelId="project-filter-label"
+        id="project-filter"
         value={selectedProject || ""}
         onChange={(e) => onChange(e.target.value || null)}
+        displayEmpty
+        sx={{
+          ...inputStyles,
+          borderRadius: 2,
+          padding: "0 12px 0 0",
+          fontSize: 13,
+          color: "#111827",
+        }}
       >
-        <MenuItem value="">All Files</MenuItem>
+        <MenuItem value="">Select a project</MenuItem>
+        <MenuItem value="all">All Files</MenuItem>
         {projects.map((project) => (
           <MenuItem key={project.id} value={project.id}>
             {project.name}

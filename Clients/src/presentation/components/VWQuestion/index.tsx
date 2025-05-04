@@ -82,7 +82,7 @@ const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps
       meta: {
         question_id: question.id,
         user_id: userId,
-        project_id: currentProjectId,
+        project_id: currentProjectId.toString(),
         delete: "[]",
       },
       routeUrl: "files",
@@ -161,7 +161,7 @@ const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps
     formData.append("question_id", question.id?.toString() || "");
     formData.append("user_id", userId);
     if (currentProjectId) {
-      formData.append("project_id", currentProjectId);
+      formData.append("project_id", currentProjectId.toString());
     }
     try {
       const response = await apiServices.post(

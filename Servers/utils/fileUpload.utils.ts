@@ -16,7 +16,6 @@ export const uploadFile = async (
     "SELECT project_id FROM projects_frameworks WHERE id = :id",
     { replacements: { id: project_framework_id } },
   ) as [{ project_id: number }[], number]
-  console.log("aa");
   const projectIsDemo = await sequelize.query(
     "SELECT is_demo FROM projects WHERE id = :id",
     { replacements: { id: project[0][0].project_id }, mapToModel: true, model: ProjectModel },

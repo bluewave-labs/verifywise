@@ -173,14 +173,14 @@ export const getAllQuestionsQuery = async (
       q.evidence_required AS evidence_required,
       q.is_required AS is_required,
       q.subtopic_id AS subtopic_id,
-      q.is_demo AS is_demo,
       a.id AS answer_id,
       a.assessment_id AS assessment_id,
       a.answer AS answer,
       a.evidence_files AS evidence_files,
       a.dropdown_options AS dropdown_options,
       a.status AS status,
-      a.created_at AS created_at
+      a.created_at AS created_at,
+      a.is_demo AS is_demo
     FROM questions_struct_eu q JOIN answers_eu a ON q.id = a.question_id WHERE 
       q.subtopic_id = :subtopic_id AND a.assessment_id = :assessment_id
       ORDER BY created_at DESC, question_id ASC;`,
@@ -663,7 +663,6 @@ export const addFileToAnswerEU = async (
     evidence_required: question[0][0].evidence_required,
     is_required: question[0][0].is_required,
     subtopic_id: question[0][0].subtopic_id,
-    is_demo: question[0][0].is_demo,
   } as QuestionStructEUModel & AnswerEUModel;
 }
 

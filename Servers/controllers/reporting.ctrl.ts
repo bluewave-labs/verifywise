@@ -22,9 +22,12 @@ export async function generateReports(
     }
 
     const authorizedUser = await isAuthorizedUser(projectId, userId); // check whether the user is authorized to download the report or not
-    
+    const reportData = {
+      projectTitle: req.body.projectTitle,
+      projectOwner: req.body.projectOwner,
+    }
     if(authorizedUser){
-      const markdownData = getReportData(projectId, req.body.reportType);         
+      const markdownData = getReportData(projectId, req.body.reportType, reportData);         
       const markdownDoc = await marked.parse(await markdownData); // markdown file             
       const generatedDoc = await htmlDocx(markdownDoc); // convert markdown to docx                
       

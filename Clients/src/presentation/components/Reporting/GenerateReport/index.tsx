@@ -1,11 +1,11 @@
-import React, { useState, lazy, Suspense } from 'react'
+import React, { useState, lazy, Suspense, useContext } from 'react'
 import { IconButton, Box } from '@mui/material';
 import CloseIcon from "@mui/icons-material/Close";
 import {styles} from './styles';
 const GenerateReportFrom = lazy(() => import('./GenerateReportFrom'));
 const DownloadReportForm = lazy(() => import('./DownloadReportFrom'));
-import { generatReport } from '../../../../application/repository/entity.repository';
 import { handleAutoDownload } from '../../../../application/tools/fileDownload';
+import { VerifyWiseContext } from '../../../../application/contexts/VerifyWise.context';
 
 interface GenerateReportProps {
   onClose: () => void;
@@ -15,16 +15,25 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
   onClose
 }) => {
   const [isReportRequest, setIsReportRequest] = useState<boolean>(false);  
+  const { currentProjectId, dashboardValues } = useContext(VerifyWiseContext);
 
-  const handleGenerateReport = async () => {    
+  const handleGenerateReport = async (input: any) => {   
     setIsReportRequest(true);
+    const currentProject = dashboardValues.projects.find((project: { id: string | null; }) => project.id === currentProjectId);         
+    const owner = dashboardValues.users.find(
+      (user: any) => user.id === parseInt(currentProject.owner)
+    );
+    const currentProjectOwner = owner ? `${owner.name} ${owner.surname}`: "";          
+
     const body = {
-      projectId: 1,
-      userId: 1,
-      reportType: 'Project risks report',
-      reportName: ''
+      projectId: currentProjectId,
+      projectTitle: currentProject.project_title,
+      projectOwner: currentProjectOwner,
+      reportType: input.report_type,
+      reportName: input.report_name
     }
     const report = await handleAutoDownload(body);
+    onClose();
   }
 
   return (

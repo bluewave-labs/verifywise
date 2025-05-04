@@ -51,13 +51,19 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
       reportType: input.report_type,
       reportName: input.report_name
     }
-    const report = await handleAutoDownload(body);
+    const reportDownloadResponse = await handleAutoDownload(body);
+    console.log('***' , reportDownloadResponse)
 
-    if(report){
+    if(reportDownloadResponse === 200){
       handleToast(
         "success", 
         "Report successfully downloaded.");
-    }else{
+    } else if (reportDownloadResponse === 403) {
+      handleToast(
+        "warning",
+        "Unauthorized user to download the report."
+      );
+    } else {
       handleToast(
         "error",
         "Unexpected error occurs while downloading the report."

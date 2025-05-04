@@ -26,6 +26,9 @@ export const handleAutoDownload = async (requestBody: any) => {
       routeUrl: `/reporting/generate-report`,
       body: requestBody
     });
+
+    console.log('staus code -- ', response.status)
+
     if (response.status === 200) {
       const headerContent = response.headers.get('Content-Disposition');
       const fileAttachment = [...headerContent.matchAll(/"([^"]+)"/g)];
@@ -43,10 +46,10 @@ export const handleAutoDownload = async (requestBody: any) => {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      return true;
+      return response.status;
     } else {
       console.error("Error downloading report");
-      return false;
+      return response.status;
     }
   } catch (error) {
     console.error("Error generating report", error);

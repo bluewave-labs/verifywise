@@ -107,7 +107,7 @@ const FileManager: React.FC = (): JSX.Element => {
           onChange={setSelectedProject}
         />
       )}
-      {loadingProjects ? (
+      {loadingFiles ? (
         <VWSkeleton variant="rectangular" sx={filesTablePlaceholder} />
       ) : (
         <Box sx={boxStyles}>

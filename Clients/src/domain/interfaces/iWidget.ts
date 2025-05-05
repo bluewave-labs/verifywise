@@ -7,3 +7,13 @@
 export interface CloseIconProps {
   text: string;
 }
+
+export interface IconButtonProps {
+  id: number;
+  onDelete: () => void;
+  onEdit: () => void;
+  warningTitle: string;
+  warningMessage: string;
+  type: string;
+  onMouseEvent: (event: React.SyntheticEvent) => void;
+}

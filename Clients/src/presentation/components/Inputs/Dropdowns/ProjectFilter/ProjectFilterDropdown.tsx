@@ -1,5 +1,5 @@
 import React from "react";
-import { Select, MenuItem, FormControl, Typography } from "@mui/material";
+import { Select, MenuItem, FormControl} from "@mui/material";
 
 interface ProjectFilterDropdownProps {
   projects: { id: string; name: string }[];
@@ -31,14 +31,6 @@ const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
         marginBottom: 10,
       }}
     >
-      <Typography
-        sx={{
-          fontSize: 13,
-          marginBottom: 4,
-        }}
-      >
-        Project:
-      </Typography>
       <Select
         id="project-filter"
         value={selectedProject || ""}

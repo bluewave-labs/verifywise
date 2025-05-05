@@ -22,9 +22,12 @@ export async function generateReports(
     }
 
     const authorizedUser = await isAuthorizedUser(projectId, userId); // check whether the user is authorized to download the report or not
-    
+    const reportData = {
+      projectTitle: req.body.projectTitle,
+      projectOwner: req.body.projectOwner,
+    }
     if(authorizedUser){
-      const markdownData = getReportData(projectId, req.body.reportType);         
+      const markdownData = getReportData(projectId, req.body.reportType, reportData);         
       const markdownDoc = await marked.parse(await markdownData); // markdown file             
       const generatedDoc = await htmlDocx(markdownDoc); // convert markdown to docx                
       
@@ -53,7 +56,7 @@ export async function generateReports(
       const docFile = {
         originalname: `${defaultFileName}.docx`,
         buffer: generatedDoc,
-        fieldname: '',
+        fieldname: 'file',
         mimetype: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
       }
 
@@ -68,6 +71,7 @@ export async function generateReports(
       if (uploadedFile) {
         res.setHeader("Content-Disposition", `attachment; filename="${uploadedFile.filename}"`);
         res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+        res.setHeader('Access-Control-Expose-Headers','Content-Disposition');
         return res.status(200).send(uploadedFile.content);
       } else {
         return res.status(500).json(STATUS_CODE[500]("Error uploading report file"));

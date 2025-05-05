@@ -8,7 +8,7 @@
 
 import CustomAxios from "./customAxios";
 import CustomException from "../exceptions/customeException";
-import axios from "axios";
+import axios, { AxiosResponseHeaders } from "axios";
 
 // Define types for request parameters and response data
 interface RequestParams {
@@ -19,6 +19,7 @@ interface ApiResponse<T> {
   data: T;
   status: number;
   statusText: string;
+  headers?: AxiosResponseHeaders;
 }
 
 // Utility function to handle errors
@@ -110,6 +111,7 @@ export const apiServices = {
         data: response.data,
         status: response.status,
         statusText: response.statusText,
+        headers: response.headers as AxiosResponseHeaders,
       };
     } catch (error) {
       handleError(error);

@@ -44,9 +44,27 @@ import UpdateIcon from "@mui/icons-material/Update";
 import { AddNewRiskFormProps } from "../../../domain/interfaces/iRiskForm";
 import { ApiResponse } from "../../../domain/interfaces/iResponse";
 import { tabStyle } from "./style";
+import { RiskCalculator } from "../../tools/riskCalculator";
+import { RiskLikelihood, RiskSeverity } from "../RiskLevel/riskValues";
 
 const RiskSection = lazy(() => import("./RisksSection"));
 const MitigationSection = lazy(() => import("./MitigationSection"));
+
+const LIKELIHOOD_OPTIONS = [
+  { _id: 1, name: RiskLikelihood.Rare },
+  { _id: 2, name: RiskLikelihood.Unlikely },
+  { _id: 3, name: RiskLikelihood.Possible },
+  { _id: 4, name: RiskLikelihood.Likely },
+  { _id: 5, name: RiskLikelihood.AlmostCertain },
+] as const;
+
+const RISK_SEVERITY_OPTIONS = [
+  { _id: 1, name: RiskSeverity.Negligible },
+  { _id: 2, name: RiskSeverity.Minor },
+  { _id: 3, name: RiskSeverity.Moderate },
+  { _id: 4, name: RiskSeverity.Major },
+  { _id: 5, name: RiskSeverity.Catastrophic },
+] as const;
 
 const riskInitialState: RiskFormValues = {
   riskName: "",
@@ -369,12 +387,36 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
 
   const riskFormSubmitHandler = async () => {
     const { isValid, errors } = validateForm();
-
-    const risk_risklevel = getRiskLevel(
-      riskValues.likelihood * riskValues.riskSeverity
+    const selectedRiskLikelihood = likelihoodItems.find(
+      (r) => r._id === riskValues.likelihood
     );
-    const mitigation_risklevel = getRiskLevel(
-      mitigationValues.likelihood * mitigationValues.riskSeverity
+    const selectedRiskSeverity = riskSeverityItems.find(
+      (r) => r._id === riskValues.riskSeverity
+    );
+    if (!selectedRiskLikelihood || !selectedRiskSeverity) {
+      console.error("Could not find selected likelihood or severity");
+      return;
+    }
+
+    const risk_risklevel = RiskCalculator.getRiskLevel(
+      selectedRiskLikelihood.name,
+      selectedRiskSeverity.name
+    );
+
+    const selectedMitigationLikelihood = likelihoodItems.find(
+      (r) => r._id === mitigationValues.likelihood
+    );
+    const selectedMitigationSeverity = riskSeverityItems.find(
+      (r) => r._id === mitigationValues.riskSeverity
+    );
+    if (!selectedMitigationLikelihood || !selectedMitigationSeverity) {
+      console.error("Could not find selected likelihood or severity");
+      return;
+    }
+
+    const mitigation_risklevel = RiskCalculator.getRiskLevel(
+      selectedMitigationLikelihood.name,
+      selectedMitigationSeverity.name
     );
 
     // check forms validate
@@ -406,7 +448,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         severity:
           riskSeverityItems.find((item) => item._id === riskValues.riskSeverity)
             ?.name || "",
-        risk_level_autocalculated: risk_risklevel.text,
+        risk_level_autocalculated: risk_risklevel.level,
         review_notes: riskValues.reviewNotes,
         mitigation_status:
           mitigationStatusItems.find(
@@ -428,7 +470,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
           riskSeverityItems.find(
             (item) => item._id === mitigationValues.riskSeverity
           )?.name || "",
-        final_risk_level: mitigation_risklevel.text,
+        final_risk_level: mitigation_risklevel.level,
         risk_approval: mitigationValues.approver,
         approval_status:
           approvalStatusItems.find(

@@ -138,15 +138,16 @@ export const createNewProjectQuery = async (
   project: Partial<Project>,
   members: number[],
   frameworks: number[],
-  transaction: Transaction
+  transaction: Transaction,
+  isDemo: boolean = false
 ): Promise<Project> => {
   const result = await sequelize.query(
     `INSERT INTO projects (
       project_title, owner, start_date, ai_risk_classification, 
-      type_of_high_risk_role, goal, last_updated, last_updated_by
+      type_of_high_risk_role, goal, last_updated, last_updated_by, is_demo
     ) VALUES (
       :project_title, :owner, :start_date, :ai_risk_classification, 
-      :type_of_high_risk_role, :goal, :last_updated, :last_updated_by
+      :type_of_high_risk_role, :goal, :last_updated, :last_updated_by, :is_demo
     ) RETURNING *`,
     {
       replacements: {
@@ -158,6 +159,7 @@ export const createNewProjectQuery = async (
         goal: project.goal,
         last_updated: new Date(Date.now()),
         last_updated_by: project.last_updated_by,
+        is_demo: isDemo
       },
       mapToModel: true,
       model: ProjectModel,
@@ -169,10 +171,10 @@ export const createNewProjectQuery = async (
   (createdProject.dataValues as any)["members"] = []
   for (let member of members) {
     await sequelize.query(
-      `INSERT INTO projects_members (project_id, user_id) VALUES (:project_id, :user_id) RETURNING *`,
+      `INSERT INTO projects_members (project_id, user_id, is_demo) VALUES (:project_id, :user_id, :is_demo) RETURNING *`,
       {
         replacements: {
-          project_id: createdProject.id, user_id: member
+          project_id: createdProject.id, user_id: member, is_demo: isDemo
         },
         mapToModel: true,
         model: ProjectsMembersModel,
@@ -185,10 +187,10 @@ export const createNewProjectQuery = async (
   (createdProject.dataValues as any)["framework"] = []
   for (let framework of frameworks) {
     await sequelize.query(
-      `INSERT INTO projects_frameworks (project_id, framework_id) VALUES (:project_id, :framework_id) RETURNING *`,
+      `INSERT INTO projects_frameworks (project_id, framework_id, is_demo) VALUES (:project_id, :framework_id, :is_demo) RETURNING *`,
       {
         replacements: {
-          project_id: createdProject.id, framework_id: framework
+          project_id: createdProject.id, framework_id: framework, is_demo: isDemo
         },
         mapToModel: true,
         model: ProjectFrameworksModel,
@@ -459,44 +461,7 @@ export const deleteProjectByIdQuery = async (
     },
     { "files": { foreignKey: "project_id", model: FileModel } },
     { "projectrisks": { foreignKey: "project_id", model: ProjectRiskModel } },
-    { "projects_members": { foreignKey: "project_id", model: ProjectsMembersModel } },
-    // { "projects_frameworks": { foreignKey: "project_id", model: ProjectFrameworksModel } },
-    // {
-    //   assessments: {
-    //     foreignKey: "project_id",
-    //     model: AssessmentModel,
-    //     topics: {
-    //       foreignKey: "assessment_id",
-    //       model: TopicModel,
-    //       subtopics: {
-    //         foreignKey: "topic_id",
-    //         model: SubtopicModel,
-    //         questions: {
-    //           foreignKey: "subtopic_id",
-    //           model: QuestionModel,
-    //         },
-    //       },
-    //     },
-    //     projectscopes: {
-    //       foreignKey: "assessment_id",
-    //       model: ProjectScopeModel,
-    //     },
-    //   },
-    // },
-    // {
-    //   controlcategories: {
-    //     foreignKey: "project_id",
-    //     model: ControlCategoryModel,
-    //     controls: {
-    //       foreignKey: "control_category_id",
-    //       model: ControlModel,
-    //       subcontrols: {
-    //         foreignKey: "control_id",
-    //         model: SubcontrolModel,
-    //       },
-    //     },
-    //   },
-    // },
+    { "projects_members": { foreignKey: "project_id", model: ProjectsMembersModel } }
   ];
   for (let entity of dependantEntities) {
     await deleteHelper(entity, id, transaction);

@@ -35,6 +35,16 @@ const getDemoControls = (): Object[] => {
   return controls
 };
 
+const findIsDemo = async (tableName: string, id: number, transaction: Transaction) => {
+  const result = await sequelize.query(
+    `SELECT is_demo FROM ${tableName} WHERE id = :id`,
+    {
+      replacements: { id }, transaction
+    }
+  ) as [{ is_demo: boolean }[], number];
+  return result[0][0].is_demo;
+}
+
 export const countAnswersEUByProjectId = async (
   projectFrameworkId: number
 ): Promise<{
@@ -356,9 +366,12 @@ export const createNewAssessmentEUQuery = async (
   //   throw new Error("Project not added to framework");
   // }
   const result = await sequelize.query(
-    `INSERT INTO assessments (projects_frameworks_id) VALUES (:projects_frameworks_id) RETURNING *`,
+    `INSERT INTO assessments (projects_frameworks_id, is_demo) VALUES (:projects_frameworks_id, :is_demo) RETURNING *`,
     {
-      replacements: { projects_frameworks_id: projectFrameworkId[0][0].id },
+      replacements: {
+        projects_frameworks_id: projectFrameworkId[0][0].id,
+        is_demo: await findIsDemo("projects", assessment.project_id, transaction)
+      },
       mapToModel: true,
       model: AssessmentEUModel,
       transaction
@@ -388,15 +401,16 @@ export const createNewAnswersEUQuery = async (
   let ansCtr = 0;
   for (let question of questions) {
     const result = await sequelize.query(
-      `INSERT INTO answers_eu(assessment_id, question_id, answer, status) VALUES (
-        :assessment_id, :question_id, :answer, :status
+      `INSERT INTO answers_eu(assessment_id, question_id, answer, status, is_demo) VALUES (
+        :assessment_id, :question_id, :answer, :status, :is_demo
       ) RETURNING *;`,
       {
         replacements: {
           assessment_id: assessmentId,
           question_id: question.id!,
           answer: enable_ai_data_insertion ? demoAnswers[ansCtr++] : null,
-          status: 'Not started'
+          status: 'Not started',
+          is_demo: await findIsDemo("assessments", assessmentId, transaction)
         },
         mapToModel: true,
         model: AnswerEUModel,
@@ -434,15 +448,16 @@ export const createNewControlsQuery = async (
       }
     ) as [{ id: number }[], number];
     const result = await sequelize.query(
-      `INSERT INTO controls_eu(control_meta_id, implementation_details, status, projects_frameworks_id) VALUES (
-        :control_meta_id, :implementation_details, :status, :projects_frameworks_id
+      `INSERT INTO controls_eu(control_meta_id, implementation_details, status, projects_frameworks_id, is_demo) VALUES (
+        :control_meta_id, :implementation_details, :status, :projects_frameworks_id, :is_demo
       ) RETURNING id;`,
       {
         replacements: {
           control_meta_id: controlStruct.id!,
           implementation_details: enable_ai_data_insertion ? demoControls[controlCtr].implementation_details : null,
           status: enable_ai_data_insertion ? 'Waiting' : null,
-          projects_frameworks_id: projectFrameworkId[0][0].id
+          projects_frameworks_id: projectFrameworkId[0][0].id,
+          is_demo: await findIsDemo("projects", projectId, transaction)
         },
         mapToModel: true,
         model: ControlEUModel,
@@ -452,7 +467,7 @@ export const createNewControlsQuery = async (
     controlIds.push(result[0].id!);
     await createNewSubControlsQuery(
       controlStruct.id!,
-      demoControls[controlCtr++],
+      demoControls[controlCtr++].subControls,
       result[0].id!,
       enable_ai_data_insertion,
       transaction
@@ -479,8 +494,8 @@ export const createNewSubControlsQuery = async (
   let createdSubControls: SubcontrolEUModel[] = []
   for (let subControl of subControlMetaIds[0] as { id: number }[]) {
     const result = await sequelize.query(
-      `INSERT INTO subcontrols_eu(control_id, subcontrol_meta_id, implementation_details, evidence_description, feedback_description, status) VALUES (
-        :control_id, :subcontrol_meta_id, :implementation_details, :evidence_description, :feedback_description, :status
+      `INSERT INTO subcontrols_eu(control_id, subcontrol_meta_id, implementation_details, evidence_description, feedback_description, status, is_demo) VALUES (
+        :control_id, :subcontrol_meta_id, :implementation_details, :evidence_description, :feedback_description, :status, :is_demo
       ) RETURNING *`,
       {
         replacements: {
@@ -489,7 +504,8 @@ export const createNewSubControlsQuery = async (
           implementation_details: enable_ai_data_insertion ? demoSubControls[ctr].implementation_details : null,
           evidence_description: enable_ai_data_insertion && demoSubControls[ctr].evidence_description ? demoSubControls[ctr].evidence_description : null,
           feedback_description: enable_ai_data_insertion && demoSubControls[ctr].feedback_description ? demoSubControls[ctr].feedback_description : null,
-          status: enable_ai_data_insertion ? 'Waiting' : null
+          status: enable_ai_data_insertion ? 'Waiting' : null,
+          is_demo: await findIsDemo("controls_eu", controlId, transaction)
         },
         mapToModel: true,
         model: SubcontrolEUModel,
@@ -813,7 +829,8 @@ export const deleteProjectFrameworkEUQuery = async (
       replacements: { project_id: projectId },
       mapToModel: true,
       model: ProjectFrameworksModel,
-      type: QueryTypes.DELETE
+      type: QueryTypes.DELETE,
+      transaction
     }
   )
   return result.length > 0 && assessmentDeleted && complianceDeleted;

@@ -104,14 +104,14 @@ const addVendorProjects = async (vendorId: number, projects: number[], transacti
   return vendors_projects
 }
 
-export const createNewVendorQuery = async (vendor: Vendor, transaction: Transaction): Promise<Vendor> => {
+export const createNewVendorQuery = async (vendor: Vendor, transaction: Transaction, is_demo: boolean = false): Promise<Vendor> => {
   const result = await sequelize.query(
     `INSERT INTO vendors (
         order_no, vendor_name, vendor_provides, assignee, website, vendor_contact_person,
-        review_result, review_status, reviewer, risk_status, review_date
+        review_result, review_status, reviewer, risk_status, review_date, is_demo
       ) VALUES (
         :order_no, :vendor_name, :vendor_provides, :assignee, :website, :vendor_contact_person,
-        :review_result, :review_status, :reviewer, :risk_status, :review_date
+        :review_result, :review_status, :reviewer, :risk_status, :review_date, :is_demo
       ) RETURNING *`,
     {
       replacements: {
@@ -125,7 +125,8 @@ export const createNewVendorQuery = async (vendor: Vendor, transaction: Transact
         review_status: vendor.review_status,
         reviewer: vendor.reviewer,
         risk_status: vendor.risk_status,
-        review_date: vendor.review_date
+        review_date: vendor.review_date,
+        is_demo: is_demo
       },
       mapToModel: true,
       model: VendorModel,

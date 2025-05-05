@@ -1,6 +1,7 @@
 import { Theme } from "@mui/material";
 
 import { SxProps } from "@mui/material";
+import { Dayjs } from "dayjs";
 
 /**
  * Props for the CloseButton component.
@@ -48,4 +49,14 @@ export interface CheckboxProps {
   value: string;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   isDisabled?: boolean;
+}
+export interface DatePickerProps {
+  label?: string;
+  isRequired?: boolean;
+  isOptional?: boolean;
+  optionalLabel?: string;
+  sx?: object;
+  date: Dayjs | null;
+  error?: string;
+  handleDateChange: (date: Dayjs | null) => void;
 }

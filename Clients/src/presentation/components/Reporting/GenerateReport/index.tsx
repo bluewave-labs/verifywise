@@ -16,13 +16,14 @@ interface GenerateReportProps {
 interface InputProps {
   report_type: string;
   report_name: string;
+  project: number
 }
 
 const GenerateReportPopup: React.FC<GenerateReportProps> = ({
   onClose
 }) => {
   const [isReportRequest, setIsReportRequest] = useState<boolean>(false);  
-  const { currentProjectId, dashboardValues } = useContext(VerifyWiseContext);
+  const { dashboardValues } = useContext(VerifyWiseContext);
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
@@ -43,7 +44,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
 
   const handleGenerateReport = async (input: InputProps) => {   
     setIsReportRequest(true);
-    const currentProject = dashboardValues.projects.find((project: { id: string | null; }) => project.id === currentProjectId);         
+    const currentProject = dashboardValues.projects.find((project: { id: number | null; }) => project.id === input.project);         
     
     if (!currentProject) {
       handleToast("error", "Project not found");
@@ -56,14 +57,13 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
     const currentProjectOwner = owner ? `${owner.name} ${owner.surname}`: "";          
 
     const body = {
-      projectId: currentProjectId,
+      projectId: input.project,
       projectTitle: currentProject.project_title,
       projectOwner: currentProjectOwner,
       reportType: input.report_type,
       reportName: input.report_name
     }
     const reportDownloadResponse = await handleAutoDownload(body);
-    console.log('***' , reportDownloadResponse)
 
     if(reportDownloadResponse === 200){
       handleToast(

@@ -1,7 +1,7 @@
 import { getEntityById, generateReport } from "../repository/entity.repository";
 
 interface GenerateReportProps {
-  projectId: string | null;
+  projectId: number | null;
   projectTitle: string;
   projectOwner: string;
   reportType: string;
@@ -34,8 +34,6 @@ export const handleAutoDownload = async (requestBody: GenerateReportProps) => {
       routeUrl: `/reporting/generate-report`,
       body: requestBody
     });
-
-    console.log('staus code -- ', response.status)
 
     if (response.status === 200) {
       const headerContent = response.headers.get('Content-Disposition');

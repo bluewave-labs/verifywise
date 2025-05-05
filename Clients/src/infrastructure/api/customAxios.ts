@@ -85,7 +85,10 @@ CustomAxios.interceptors.response.use(
   },
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
-
+    if (error.response?.status === 404) {
+      const errorMessage = (error.response.data as { message?: string })?.message || 'Not found';
+      return Promise.reject(new Error(errorMessage));
+    }
     // If error is 406 (Token Expired) and we haven't tried to refresh yet
     if (error.response?.status === 406 && !originalRequest._retry) {
       // If this is the refresh token request itself returning 406

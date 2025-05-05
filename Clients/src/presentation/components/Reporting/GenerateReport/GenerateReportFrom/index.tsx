@@ -1,10 +1,12 @@
-import React, {useState, lazy, Suspense, useCallback} from 'react';
-import { Stack, Typography, useTheme} from '@mui/material';
+import React, {useState, lazy, Suspense, useCallback, useContext} from 'react';
+import { Stack, Typography, useTheme, SelectChangeEvent} from '@mui/material';
 import VWButton from '../../../../vw-v2-components/Buttons';
 const Field = lazy(() => import('../../../Inputs/Field'));
 import {styles, fieldStyle} from './styles';
 import { REPORT_TYPES } from '../constants';
 const RadioGroup = lazy(() => import('../../../RadioGroup'));
+const Select = lazy(() => import('../../../../components/Inputs/Select'));
+import { VerifyWiseContext } from '../../../../../application/contexts/VerifyWise.context';
 
 /** 
  * Set form values 
@@ -12,16 +14,19 @@ const RadioGroup = lazy(() => import('../../../RadioGroup'));
 interface FormValues {
   report_type: string;
   report_name: string;
+  project: number;
 }
 
 interface FormErrors {
   report_type?: string;
   report_name?: string;
+  project?: string;
 }
 
 const initialState: FormValues = {
   report_type: "Project risks report",
-  report_name: ""
+  report_name: "",
+  project: 1
 }
 
 interface ReportProps {
@@ -34,6 +39,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
   const [values, setValues] = useState<FormValues>(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
   const theme = useTheme();
+  const { dashboardValues } = useContext(VerifyWiseContext);
 
   const handleOnTextFieldChange = useCallback(
     (prop: keyof FormValues) =>
@@ -44,18 +50,50 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
     [values, errors]
   );
 
+  const handleOnSelectChange = useCallback(
+    (prop: keyof FormValues) =>
+      (event: SelectChangeEvent<string | number>) => {
+        setValues({ ...values, [prop]: event.target.value });
+        setErrors({ ...errors, [prop]: "" });
+      },
+    [values, errors]
+  );
+
   const handleFormSubmit = () => {
-    // backend API call
     onGenerate(values);
   }
 
   return (
     <>
-      <Typography sx={styles.titleText}>Report Type</Typography>
+      <Typography sx={styles.titleText}>Generate Report</Typography>
       <Typography sx={styles.baseText}>
         Pick the kind of report you want to create.
       </Typography>
       <Stack sx={{paddingTop: theme.spacing(8)}}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <Select
+            id="project-input"
+            label="Project"
+            placeholder="Select project"
+            value={values.project}
+            onChange={handleOnSelectChange("project")}
+            items={
+              dashboardValues.projects?.map((project: { id: any; project_title: any; }) => ({
+                _id: project.id,
+                name: project.project_title,
+              })) || []
+            }
+            sx={{
+              width: "350px",
+              backgroundColor: theme.palette.background.main,
+            }}
+            error={errors.project}
+            isRequired
+          />
+        </Suspense>
+      </Stack>
+      <Stack sx={{paddingTop: theme.spacing(8)}}>
+        <Typography sx={styles.semiTitleText}>Project Type *</Typography>
         <Suspense fallback={<div>Loading...</div>}>
           <RadioGroup 
             values={REPORT_TYPES} 

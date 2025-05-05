@@ -28,7 +28,7 @@ export const getFrameworkTabStyle = (isActive: boolean, isLast: boolean): SxProp
   alignItems: 'center',
   justifyContent: 'center',
   height: '100%',
-  bgcolor: isActive ? 'action.hover' : 'background.paper',
+  bgcolor: isActive ? 'background.paper' : 'action.hover',
   color: 'text.primary',
   fontFamily: (theme) => theme.typography.fontFamily,
   fontSize: (theme) => theme.typography.caption.fontSize,

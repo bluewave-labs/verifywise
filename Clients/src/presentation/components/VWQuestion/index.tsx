@@ -25,6 +25,7 @@ import Select from "../Inputs/Select";
 interface QuestionProps {
   question: Question;
   setRefreshKey: () => void;
+  currentProjectId: number;
 }
 
 /**
@@ -42,8 +43,8 @@ interface QuestionProps {
  * Usage:
  * <VWQuestion question={questionObject} />
  */
-const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
-  const { userId, currentProjectId } = useContext(VerifyWiseContext);
+const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps) => {
+  const { userId } = useContext(VerifyWiseContext);
   const [values, setValues] = useState<Question>(question);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
 
@@ -81,7 +82,7 @@ const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
       meta: {
         question_id: question.id,
         user_id: userId,
-        project_id: currentProjectId,
+        project_id: currentProjectId.toString(),
         delete: "[]",
       },
       routeUrl: "files",
@@ -160,7 +161,7 @@ const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
     formData.append("question_id", question.id?.toString() || "");
     formData.append("user_id", userId);
     if (currentProjectId) {
-      formData.append("project_id", currentProjectId);
+      formData.append("project_id", currentProjectId.toString());
     }
     try {
       const response = await apiServices.post(

@@ -1,19 +1,18 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState } from "react";
 import { Stack, Typography } from "@mui/material";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import { Subtopic } from "../../../../domain/types/Subtopic";
 import VWQuestion from "../../../components/VWQuestion";
 import { Question } from "../../../../domain/types/Question";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 type QuestionsProps = {
   subtopic: Subtopic;
   setRefreshKey: () => void;
+  currentProjectId: number;
 };
 
-const Questions = ({ subtopic, setRefreshKey }: QuestionsProps) => {
-  const { currentProjectId } = useContext(VerifyWiseContext);
+const Questions = ({ subtopic, setRefreshKey, currentProjectId }: QuestionsProps) => {
   const [questionsData, setQuestionsData] = useState<Question[]>();
   const [loadingQuestions, setLoadingQuestions] = useState<boolean>(true);
 
@@ -82,7 +81,7 @@ const Questions = ({ subtopic, setRefreshKey }: QuestionsProps) => {
           )
           .map((question: any) => (
             <div key={question.id}>
-              <VWQuestion question={question} setRefreshKey={setRefreshKey} />
+              <VWQuestion question={question} setRefreshKey={setRefreshKey} currentProjectId={currentProjectId} />
             </div>
           ))
       ) : (

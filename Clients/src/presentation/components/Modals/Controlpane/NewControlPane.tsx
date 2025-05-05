@@ -43,6 +43,7 @@ const NewControlPane = ({
   OnSave,
   OnError,
   onComplianceUpdate,
+  projectId,
 }: {
   data: Control;
   isOpen: boolean;
@@ -51,6 +52,7 @@ const NewControlPane = ({
   OnSave?: (state: Control) => void;
   OnError?: () => void;
   onComplianceUpdate?: () => void;
+  projectId: number;
 }) => {
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
@@ -283,10 +285,7 @@ const NewControlPane = ({
 
       // Add user and project info
       formData.append("user_id", context?.userId?.toString() || "");
-      formData.append(
-        "project_id",
-        context?.currentProjectId?.toString() || ""
-      );
+      formData.append("project_id", projectId.toString());
 
       // Add delete array if needed (you might want to track deleted files)
       formData.append("delete", JSON.stringify(deletedFilesIds));
@@ -447,6 +446,7 @@ const NewControlPane = ({
             {data.description}
           </Typography>
           <DropDowns
+            projectId={projectId}
             key={`control-${data.id}`}
             isControl={true}
             elementId={`control-${data.id}`}
@@ -540,6 +540,7 @@ const NewControlPane = ({
                   elementId={`sub-control-${data.order_no}.${
                     state.subControls![selectedTab].id
                   }`}
+                  projectId={projectId}
                   state={state.subControls![selectedTab]}
                   setState={(newState) =>
                     handleSubControlStateChange(selectedTab, newState)

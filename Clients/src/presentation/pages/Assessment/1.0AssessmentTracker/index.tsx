@@ -217,6 +217,7 @@ const AssessmentTracker = ({ project }: { project: Project }) => {
               assessmentSubtopics.map((subtopic: any, index: number) => (
                 <div key={`subtopic-${subtopic.id || index}`}>
                   <Questions
+                    currentProjectId={currentProjectId}
                     subtopic={subtopic}
                     setRefreshKey={() => setRefreshKey((prev) => !prev)}
                   />

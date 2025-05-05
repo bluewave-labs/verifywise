@@ -1,22 +1,44 @@
-import { useEffect, useRef, useState } from 'react';
-import './drop-file-input.css';
-import UploadSmallIcon from '../../assets/icons/folder-upload.svg';
-import { FileProps, FileUploadProps } from './types';
-import { DragDropArea, Icon } from './FileUpload.styles';
-import { List, ListItem, ListItemText, Stack, Typography, IconButton, Button } from '@mui/material';
+import { useEffect, useRef, useState } from "react";
+import "./drop-file-input.css";
+import UploadSmallIcon from "../../assets/icons/folder-upload.svg";
+import { FileProps, FileUploadProps } from "./types";
+import {
+  DragDropArea,
+  fileListStyleFrame,
+  fileListText,
+  filesListItem,
+  Icon,
+} from "./FileUpload.styles";
+import {
+  List,
+  ListItem,
+  ListItemText,
+  Stack,
+  Typography,
+  IconButton,
+  Button,
+} from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-const FileUploadComponent = ({onClose, onHeightChange, topicId = 0, assessmentsValues = [], setAssessmentsValue, allowedFileTypes}: FileUploadProps) => {
-
+const FileUploadComponent = ({
+  onClose,
+  onHeightChange,
+  topicId = 0,
+  assessmentsValues = [],
+  setAssessmentsValue,
+  allowedFileTypes,
+}: FileUploadProps) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const [fileList, setFileList] = useState<FileProps[]>(assessmentsValues[topicId]?.file || []);
+  const [fileList, setFileList] = useState<FileProps[]>(
+    assessmentsValues[topicId]?.file || []
+  );
 
-  const onDragEnter = () => wrapperRef?.current?.classList.add('dragover');
+  const onDragEnter = () => wrapperRef?.current?.classList.add("dragover");
 
-  const onDragLeave = () => wrapperRef?.current?.classList.remove('dragover');
+  const onDragLeave = () => wrapperRef?.current?.classList.remove("dragover");
 
-  const onDrop = () => wrapperRef?.current?.classList.remove('dragover');
+  const onDrop = () => wrapperRef?.current?.classList.remove("dragover");
 
   // Dynamically adjust based on uploaded files
   useEffect(() => {
@@ -43,7 +65,7 @@ const FileUploadComponent = ({onClose, onHeightChange, topicId = 0, assessmentsV
 
     if (!allowedFileTypes?.includes(newFile.type)) {
       console.error(`invalid file type: ${newFile.type}`);
-      return;                                           
+      return;
     }
     // Prevent duplicate files
     if (newFile) {
@@ -66,12 +88,20 @@ const FileUploadComponent = ({onClose, onHeightChange, topicId = 0, assessmentsV
   };
 
   const handleUploadClick = () => {
-    if (assessmentsValues != null && topicId != null && assessmentsValues[topicId] != null && typeof assessmentsValues === "object" && assessmentsValues[topicId].file != null ) {
-      const newAssessmentValues = { ...assessmentsValues,
-      [topicId]: {
-        ...assessmentsValues[topicId],
-        file: fileList,
-      }}
+    if (
+      assessmentsValues != null &&
+      topicId != null &&
+      assessmentsValues[topicId] != null &&
+      typeof assessmentsValues === "object" &&
+      assessmentsValues[topicId].file != null
+    ) {
+      const newAssessmentValues = {
+        ...assessmentsValues,
+        [topicId]: {
+          ...assessmentsValues[topicId],
+          file: fileList,
+        },
+      };
       setAssessmentsValue?.(newAssessmentValues);
     }
 
@@ -115,36 +145,14 @@ const FileUploadComponent = ({onClose, onHeightChange, topicId = 0, assessmentsV
             <input type="file" value="" onChange={onFileDrop} />
           </div>
           {fileList.length > 0 && (
-            <Stack
-              sx={{
-                mt: 2,
-                borderTop: "1px solid #e5e7eb",
-                width: "100%",
-                padding: "8px",
-                maxHeight: "300px",
-                overflowY: "auto",
-                boxSizing: "border-box",
-              }}
-            >
+            <Stack sx={fileListStyleFrame}>
               <List>
                 {fileList.map((file, index) => (
-                  <ListItem
-                    key={index}
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      padding: "0",
-                    }}
-                  >
+                  <ListItem key={index} sx={filesListItem}>
                     <ListItemText
                       primary={file.name}
                       secondary={`Size: ${file.size}`}
-                      sx={{
-                        fontSize: "12px",
-                        wordBreak: "break-word",
-                        maxWidth: "100%",
-                      }}
+                      sx={fileListText}
                     />
                     <IconButton
                       onClick={() => handleRemoveFile(index)}
@@ -175,6 +183,6 @@ const FileUploadComponent = ({onClose, onHeightChange, topicId = 0, assessmentsV
       </Stack>
     </>
   );
-}
+};
 
 export default FileUploadComponent;

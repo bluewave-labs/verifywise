@@ -2,7 +2,7 @@ import { ControlCategory, ControlCategoryModel } from "../models/controlCategory
 import { sequelize } from "../database/db";
 import { createNewControlsQuery } from "./control.utils";
 import { ControlCategories } from "../structures/compliance-tracker/controlCategories.struct"
-import { QueryTypes } from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 
 export const getAllControlCategoriesQuery = async (): Promise<
   ControlCategory[]
@@ -61,7 +61,8 @@ export const getControlCategoryByProjectIdQuery = async (
 };
 
 export const createControlCategoryQuery = async (
-  controlCategory: ControlCategory
+  controlCategory: ControlCategory,
+  transaction: Transaction
 ): Promise<ControlCategory> => {
   const result = await sequelize.query(
     `INSERT INTO controlcategories (
@@ -76,6 +77,7 @@ export const createControlCategoryQuery = async (
       mapToModel: true,
       model: ControlCategoryModel,
       // type: QueryTypes.INSERT
+      transaction
     }
   );
   return result[0];
@@ -83,7 +85,8 @@ export const createControlCategoryQuery = async (
 
 export const updateControlCategoryByIdQuery = async (
   id: number,
-  controlCategory: Partial<ControlCategory>
+  controlCategory: Partial<ControlCategory>,
+  transaction: Transaction
 ): Promise<ControlCategory | null> => {
   const updateControlCategory: Partial<Record<keyof ControlCategory, any>> = {};
   const setClause = ["title"].filter(f => {
@@ -102,13 +105,15 @@ export const updateControlCategoryByIdQuery = async (
     mapToModel: true,
     model: ControlCategoryModel,
     // type: QueryTypes.UPDATE,
+    transaction
   });
 
   return result[0];
 };
 
 export const deleteControlCategoryByIdQuery = async (
-  id: number
+  id: number,
+  transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
     "DELETE FROM controlcategories WHERE id = :id RETURNING *",
@@ -116,13 +121,14 @@ export const deleteControlCategoryByIdQuery = async (
       replacements: { id },
       mapToModel: true,
       model: ControlCategoryModel,
-      type: QueryTypes.DELETE
+      type: QueryTypes.DELETE,
+      transaction
     }
   );
   return result.length > 0;
 };
 
-export const createNewControlCategories = async (projectId: number, enable_ai_data_insertion: boolean) => {
+export const createNewControlCategories = async (projectId: number, enable_ai_data_insertion: boolean, transaction: Transaction) => {
   const createdControlCategories = []
   let query = `INSERT INTO controlcategories(
     project_id, title, order_no
@@ -139,13 +145,15 @@ export const createNewControlCategories = async (projectId: number, enable_ai_da
         mapToModel: true,
         model: ControlCategoryModel,
         // type: QueryTypes.INSERT
+        transaction
       }
     )
     const control_category_id = result[0].id!
     const controls = await createNewControlsQuery(
       control_category_id,
       controlCategoryStruct.controls,
-      enable_ai_data_insertion
+      enable_ai_data_insertion,
+      transaction
     )
     createdControlCategories.push({ ...result[0].dataValues, controls })
   }

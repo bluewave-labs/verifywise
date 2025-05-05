@@ -1,7 +1,7 @@
 import { UploadedFile } from "./question.utils";
 import { sequelize } from "../database/db";
 import { FileModel } from "../models/file.model";
-import { QueryTypes } from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 import { ProjectModel } from "../models/project.model";
 
 const sanitizeFilename = (name: string) => name.replace(/[^a-zA-Z0-9-_\.]/g, '_');
@@ -10,15 +10,16 @@ export const uploadFile = async (
   file: UploadedFile,
   user_id: number,
   project_framework_id: number,
-  source: "Assessment tracker group" | "Compliance tracker group"
+  source: "Assessment tracker group" | "Compliance tracker group",
+  transaction: Transaction | null = null
 ) => {
   const project = await sequelize.query(
     "SELECT project_id FROM projects_frameworks WHERE id = :id",
-    { replacements: { id: project_framework_id } },
+    { replacements: { id: project_framework_id }, ...(transaction && { transaction }) },
   ) as [{ project_id: number }[], number]
   const projectIsDemo = await sequelize.query(
     "SELECT is_demo FROM projects WHERE id = :id",
-    { replacements: { id: project[0][0].project_id }, mapToModel: true, model: ProjectModel },
+    { replacements: { id: project[0][0].project_id }, mapToModel: true, model: ProjectModel, ...(transaction && { transaction }) },
   )
   const is_demo = projectIsDemo[0].is_demo || false
   const query = `INSERT INTO files
@@ -42,17 +43,19 @@ export const uploadFile = async (
     mapToModel: true,
     model: FileModel,
     // type: QueryTypes.INSERT
+    ...(transaction && { transaction })
   });
   return result[0];
 }
 
-export const deleteFileById = async (id: number) => {
+export const deleteFileById = async (id: number, transaction: Transaction) => {
   const query = `DELETE FROM files WHERE id = :id`;
   const result = await sequelize.query(query, {
     replacements: { id },
     mapToModel: true,
     model: FileModel,
-    type: QueryTypes.DELETE
+    type: QueryTypes.DELETE,
+    transaction
   });
   return result.length > 0
 }

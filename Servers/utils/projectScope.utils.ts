@@ -1,6 +1,6 @@
 import { ProjectScope, ProjectScopeModel } from "../models/projectScope.model";
 import { sequelize } from "../database/db";
-import { QueryTypes } from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 
 export const getAllProjectScopesQuery = async (): Promise<ProjectScope[]> => {
   const projectScopes = await sequelize.query(
@@ -27,7 +27,7 @@ export const getProjectScopeByIdQuery = async (
   return result[0];
 };
 
-export const createProjectScopeQuery = async (projectScope: Partial<ProjectScope>): Promise<ProjectScope> => {
+export const createProjectScopeQuery = async (projectScope: Partial<ProjectScope>, transaction: Transaction): Promise<ProjectScope> => {
   const result = await sequelize.query(
     `INSERT INTO projectscopes (
       assessment_id, describe_ai_environment, is_new_ai_technology,
@@ -53,6 +53,7 @@ export const createProjectScopeQuery = async (projectScope: Partial<ProjectScope
       mapToModel: true,
       model: ProjectScopeModel,
       // type: QueryTypes.INSERT
+      transaction
     }
   );
   return result[0];
@@ -60,7 +61,8 @@ export const createProjectScopeQuery = async (projectScope: Partial<ProjectScope
 
 export const updateProjectScopeByIdQuery = async (
   id: number,
-  projectScope: Partial<ProjectScope>
+  projectScope: Partial<ProjectScope>,
+  transaction: Transaction
 ): Promise<ProjectScope | null> => {
   const updateProjectScope: Partial<Record<keyof ProjectScope, any>> = {};
   const setClause = [
@@ -89,13 +91,15 @@ export const updateProjectScopeByIdQuery = async (
     mapToModel: true,
     model: ProjectScopeModel,
     // type: QueryTypes.UPDATE,
+    transaction
   });
 
   return result[0];
 };
 
 export const deleteProjectScopeByIdQuery = async (
-  id: number
+  id: number,
+  transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
     "DELETE FROM projectscopes WHERE id = :id RETURNING *",
@@ -104,6 +108,7 @@ export const deleteProjectScopeByIdQuery = async (
       mapToModel: true,
       model: ProjectScopeModel,
       type: QueryTypes.DELETE,
+      transaction
     }
   );
   return result.length > 0;

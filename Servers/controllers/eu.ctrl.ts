@@ -85,6 +85,7 @@ export async function saveControls(
   req: RequestWithFile,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const controlId = parseInt(req.params.id);
     const Control = req.body as ControlEU & {
@@ -103,11 +104,11 @@ export async function saveControls(
       reviewer: Control.reviewer,
       due_date: Control.due_date,
       implementation_details: Control.implementation_details
-    });
+    }, transaction);
 
     const filesToDelete = JSON.parse(Control.delete || "[]") as number[];
     for (let f of filesToDelete) {
-      await deleteFileById(f);
+      await deleteFileById(f, transaction);
     }
 
     // now we need to iterate over subcontrols inside the control, and create a subcontrol for each subcontrol
@@ -127,7 +128,8 @@ export async function saveControls(
             f,
             Control.user_id,
             Control.project_framework_id,
-            "Compliance tracker group"
+            "Compliance tracker group",
+            transaction
           );
           evidenceUploadedFiles.push({
             id: evidenceUploadedFile.id!.toString(),
@@ -146,7 +148,8 @@ export async function saveControls(
             f,
             Control.user_id,
             Control.project_framework_id,
-            "Compliance tracker group"
+            "Compliance tracker group",
+            transaction
           );
           feedbackUploadedFiles.push({
             id: feedbackUploadedFile.id!.toString(),
@@ -182,7 +185,8 @@ export async function saveControls(
           },
           evidenceUploadedFiles,
           feedbackUploadedFiles,
-          filesToDelete
+          filesToDelete,
+          transaction
         );
         if (subcontrolToSave) {
           subControlResp.push(subcontrolToSave)
@@ -193,10 +197,12 @@ export async function saveControls(
       ...{ control, subControls: subControlResp },
     };
     // Update the project's last updated date
-    await updateProjectUpdatedByIdQuery(controlId, "controls");
+    await updateProjectUpdatedByIdQuery(controlId, "controls", transaction);
+    await transaction.commit();
 
     return res.status(200).json(STATUS_CODE[200]({ response }));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -205,6 +211,7 @@ export async function updateQuestionById(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const questionId = parseInt(req.params.id);
     const body: Partial<AnswerEU> = req.body;
@@ -212,17 +219,21 @@ export async function updateQuestionById(
     const question = (await updateQuestionEUByIdQuery(
       questionId,
       body,
+      transaction
     )) as AnswerEU;
 
     if (!question) {
+      await transaction.rollback();
       return res.status(404).json(STATUS_CODE[404]({}));
     }
 
     // Update the project's last updated date
-    await updateProjectUpdatedByIdQuery(questionId, "questions");
+    await updateProjectUpdatedByIdQuery(questionId, "questions", transaction);
+    await transaction.commit();
 
     return res.status(202).json(STATUS_CODE[202](question));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -231,16 +242,19 @@ export async function deleteAssessmentsByProjectId(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const projectFrameworkId = parseInt(req.params.id);
-    const result = await deleteAssessmentEUByProjectIdQuery(projectFrameworkId);
+    const result = await deleteAssessmentEUByProjectIdQuery(projectFrameworkId, transaction);
 
     if (result) {
+      await transaction.commit();
       return res.status(200).json(STATUS_CODE[200](result));
     }
 
     return res.status(400).json(STATUS_CODE[400](result));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -249,16 +263,19 @@ export async function deleteCompliancesByProjectId(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const projectFrameworkId = parseInt(req.params.id);
-    const result = await deleteComplianeEUByProjectIdQuery(projectFrameworkId);
+    const result = await deleteComplianeEUByProjectIdQuery(projectFrameworkId, transaction);
 
     if (result) {
+      await transaction.commit();
       return res.status(200).json(STATUS_CODE[200](result));
     }
 
     return res.status(400).json(STATUS_CODE[400](result));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

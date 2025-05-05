@@ -1,6 +1,6 @@
 import { Role, RoleModel } from "../models/role.model";
 import { sequelize } from "../database/db";
-import { QueryTypes } from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 
 export const getAllRolesQuery = async (): Promise<Role[]> => {
   const roles = await sequelize.query(
@@ -25,10 +25,7 @@ export const getRoleByIdQuery = async (id: number): Promise<Role | null> => {
   return result[0];
 };
 
-export const createNewRoleQuery = async (role: {
-  name: string;
-  description: string;
-}): Promise<Role> => {
+export const createNewRoleQuery = async (role: Partial<Role>, transaction: Transaction): Promise<Role> => {
   const result = await sequelize.query(
     `INSERT INTO roles(name, description) VALUES (:name, :description) RETURNING *`,
     {
@@ -39,6 +36,7 @@ export const createNewRoleQuery = async (role: {
       mapToModel: true,
       model: RoleModel,
       // type: QueryTypes.INSERT
+      transaction
     }
   );
   return result[0];
@@ -46,7 +44,8 @@ export const createNewRoleQuery = async (role: {
 
 export const updateRoleByIdQuery = async (
   id: number,
-  role: Partial<Role>
+  role: Partial<Role>,
+  transaction: Transaction
 ): Promise<Role | null> => {
   const updateRole: Partial<Record<keyof Role, any>> = {};
   const setClause = [
@@ -68,12 +67,13 @@ export const updateRoleByIdQuery = async (
     mapToModel: true,
     model: RoleModel,
     // type: QueryTypes.UPDATE,
+    transaction
   });
 
   return result[0];
 };
 
-export const deleteRoleByIdQuery = async (id: number): Promise<Boolean> => {
+export const deleteRoleByIdQuery = async (id: number, transaction: Transaction): Promise<Boolean> => {
   const result = await sequelize.query(
     `DELETE FROM roles WHERE id = :id RETURNING *`,
     {
@@ -81,6 +81,7 @@ export const deleteRoleByIdQuery = async (id: number): Promise<Boolean> => {
       mapToModel: true,
       model: RoleModel,
       type: QueryTypes.DELETE,
+      transaction
     }
   );
   return result.length > 0;

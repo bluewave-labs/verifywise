@@ -1,4 +1,4 @@
-import { QueryTypes } from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 import { sequelize } from "../database/db";
 import { AnswerEU, AnswerEUModel } from "../models/EU/answerEU.model";
 import { AssessmentEU, AssessmentEUModel } from "../models/EU/assessmentEU.model";
@@ -132,26 +132,29 @@ export const getControlByIdForProjectQuery = async (
   return control;
 }
 
-export const getAllTopicsQuery = async () => {
+export const getAllTopicsQuery = async (transaction: Transaction | null = null) => {
   const topicStruct = await sequelize.query(
     "SELECT * FROM topics_struct_eu;",
     {
       mapToModel: true,
-      model: TopicStructEUModel
+      model: TopicStructEUModel,
+      ...(transaction && { transaction })
     }
   );
   return topicStruct;
 }
 
 export const getAllSubTopicsQuery = async (
-  topicId: number
+  topicId: number,
+  transaction: Transaction | null = null
 ) => {
   const subtopicStruct = await sequelize.query(
     "SELECT * FROM subtopics_struct_eu WHERE topic_id = :topic_id;",
     {
       replacements: { topic_id: topicId },
       mapToModel: true,
-      model: SubtopicStructEUModel
+      model: SubtopicStructEUModel,
+      ...(transaction && { transaction })
     }
   );
   return subtopicStruct;
@@ -159,7 +162,8 @@ export const getAllSubTopicsQuery = async (
 
 export const getAllQuestionsQuery = async (
   subtopicId: number,
-  assessmentId: number
+  assessmentId: number,
+  transaction: Transaction | null = null
 ) => {
   const questionAnswers = await sequelize.query(
     `SELECT 
@@ -186,20 +190,22 @@ export const getAllQuestionsQuery = async (
       ORDER BY created_at DESC, question_id ASC;`,
     {
       replacements: { subtopic_id: subtopicId, assessment_id: assessmentId },
+      ...(transaction && { transaction }),
     }
   ) as [Partial<QuestionStructEUModel & AnswerEU>[], number];
   return questionAnswers[0];
 }
 
 export const getAssessmentsEUByIdQuery = async (
-  assessmentId: number
+  assessmentId: number,
+  transaction: Transaction | null = null
 ) => {
-  const topicStruct = await getAllTopicsQuery();
+  const topicStruct = await getAllTopicsQuery(transaction);
   for (let topic of topicStruct) {
-    const subtopicStruct = await getAllSubTopicsQuery(topic.id!);
+    const subtopicStruct = await getAllSubTopicsQuery(topic.id!, transaction);
     (topic.dataValues as any).subTopics = subtopicStruct;
     for (let subtopic of subtopicStruct) {
-      const questionAnswers = await getAllQuestionsQuery(subtopic.id!, assessmentId);
+      const questionAnswers = await getAllQuestionsQuery(subtopic.id!, assessmentId, transaction);
       (subtopic.dataValues as any).questions = [];
       for (let question of questionAnswers) {
         (subtopic.dataValues as any).questions.push({ ...question });
@@ -209,19 +215,21 @@ export const getAssessmentsEUByIdQuery = async (
   return topicStruct;
 };
 
-export const getAllControlCategoriesQuery = async () => {
+export const getAllControlCategoriesQuery = async (transaction: Transaction | null = null) => {
   const controlCategoriesStruct = await sequelize.query(
     `SELECT * FROM controlcategories_struct_eu;`,
     {
       mapToModel: true,
-      model: ControlCategoryStructEUModel
+      model: ControlCategoryStructEUModel,
+      ...(transaction && { transaction })
     }
   );
   return controlCategoriesStruct;
 }
 
 export const getControlByIdQuery = async (
-  controlId: number
+  controlId: number,
+  transaction: Transaction | null = null
 ) => {
   const controls = await sequelize.query(
     `SELECT 
@@ -241,14 +249,15 @@ export const getControlByIdQuery = async (
     FROM controls_eu c JOIN controls_struct_eu cs ON c.control_meta_id = cs.id WHERE c.id = :control_id
     ORDER BY created_at DESC, id ASC;`,
     {
-      replacements: { control_id: controlId },
+      replacements: { control_id: controlId }, ...(transaction && { transaction })
     }
   ) as [Partial<ControlEUModel & ControlStructEUModel>[], number]
   return controls[0];
 }
 
 export const getSubControlsByIdQuery = async (
-  subControlId: number
+  subControlId: number,
+  transaction: Transaction | null = null
 ) => {
   const subControls = await sequelize.query(
     `SELECT 
@@ -273,16 +282,17 @@ export const getSubControlsByIdQuery = async (
     FROM subcontrols_eu sc JOIN subcontrols_struct_eu scs ON sc.subcontrol_meta_id = scs.id WHERE sc.control_id = :control_id
     ORDER BY created_at DESC, id ASC;`,
     {
-      replacements: { control_id: subControlId },
+      replacements: { control_id: subControlId }, ...(transaction && { transaction })
     }
   ) as [Partial<SubcontrolEUModel | ControlStructEUModel>[], number]
   return subControls[0];
 }
 
 export const getCompliancesEUByIdQuery = async (
-  controlIds: number[]
+  controlIds: number[],
+  transaction: Transaction | null = null
 ) => {
-  const controlCategoriesStruct = await getAllControlCategoriesQuery();
+  const controlCategoriesStruct = await getAllControlCategoriesQuery(transaction);
   let controlCategoryIdIndexMap = new Map();
   for (let [i, controlCategory] of controlCategoriesStruct.entries()) {
     (controlCategory.dataValues as any).controls = [];
@@ -290,11 +300,11 @@ export const getCompliancesEUByIdQuery = async (
   };
 
   for (let controlId of controlIds) {
-    const controls = await getControlByIdQuery(controlId);
+    const controls = await getControlByIdQuery(controlId, transaction);
 
     for (let control of controls) {
       (controlCategoriesStruct as any)[controlCategoryIdIndexMap.get(control.control_category_id)].dataValues.controls.push(control);
-      const subControls = await getSubControlsByIdQuery(control.id!);
+      const subControls = await getSubControlsByIdQuery(control.id!, transaction);
       (control as any).subControls = [];
       for (let subControl of subControls) {
         (control as any).subControls.push({ ...subControl });
@@ -333,12 +343,13 @@ export const getComplianceEUByProjectIdQuery = async (
 
 export const createNewAssessmentEUQuery = async (
   assessment: AssessmentEU,
-  enable_ai_data_insertion: boolean
+  enable_ai_data_insertion: boolean,
+  transaction: Transaction
 ): Promise<Object> => {
   const projectFrameworkId = await sequelize.query(
     `SELECT id FROM projects_frameworks WHERE project_id = :project_id AND framework_id = 1`,
     {
-      replacements: { project_id: assessment.project_id }
+      replacements: { project_id: assessment.project_id }, transaction
     }
   ) as [{ id: number }[], number];
   // if (projectFrameworkId[0].length === 0) {
@@ -349,17 +360,19 @@ export const createNewAssessmentEUQuery = async (
     {
       replacements: { projects_frameworks_id: projectFrameworkId[0][0].id },
       mapToModel: true,
-      model: AssessmentEUModel
+      model: AssessmentEUModel,
+      transaction
     }
   );
-  await createNewAnswersEUQuery(result[0].id!, enable_ai_data_insertion);
-  const assessments = await getAssessmentsEUByIdQuery(result[0].id!);
+  await createNewAnswersEUQuery(result[0].id!, enable_ai_data_insertion, transaction);
+  const assessments = await getAssessmentsEUByIdQuery(result[0].id!, transaction);
   return { ...result[0].dataValues, topics: assessments };
 };
 
 export const createNewAnswersEUQuery = async (
   assessmentId: number,
-  enable_ai_data_insertion: boolean
+  enable_ai_data_insertion: boolean,
+  transaction: Transaction
 ) => {
   let demoAnswers: String[] = [];
   if (enable_ai_data_insertion) demoAnswers = getDemoAnswers();
@@ -367,7 +380,8 @@ export const createNewAnswersEUQuery = async (
     "SELECT * FROM questions_struct_eu;",
     {
       mapToModel: true,
-      model: QuestionStructEUModel
+      model: QuestionStructEUModel,
+      transaction
     }
   );
   let createdAnswers: (AnswerEUModel | QuestionStructEUModel)[] = []
@@ -385,7 +399,8 @@ export const createNewAnswersEUQuery = async (
           status: 'Not started'
         },
         mapToModel: true,
-        model: AnswerEUModel
+        model: AnswerEUModel,
+        transaction
       }
     );
     createdAnswers = createdAnswers.concat(Object.assign({}, result[0], question));
@@ -395,7 +410,8 @@ export const createNewAnswersEUQuery = async (
 
 export const createNewControlsQuery = async (
   projectId: number,
-  enable_ai_data_insertion: boolean
+  enable_ai_data_insertion: boolean,
+  transaction: Transaction
 ) => {
   let demoControls: any[] = []
   if (enable_ai_data_insertion) demoControls = getDemoControls();
@@ -404,7 +420,8 @@ export const createNewControlsQuery = async (
     "SELECT * FROM controls_struct_eu;",
     {
       mapToModel: true,
-      model: ControlStructEUModel
+      model: ControlStructEUModel,
+      transaction
     }
   );
   let controlCtr = 0;
@@ -413,7 +430,7 @@ export const createNewControlsQuery = async (
     const projectFrameworkId = await sequelize.query(
       `SELECT id FROM projects_frameworks WHERE project_id = :project_id AND framework_id = 1`,
       {
-        replacements: { project_id: projectId }
+        replacements: { project_id: projectId }, transaction
       }
     ) as [{ id: number }[], number];
     const result = await sequelize.query(
@@ -428,7 +445,8 @@ export const createNewControlsQuery = async (
           projects_frameworks_id: projectFrameworkId[0][0].id
         },
         mapToModel: true,
-        model: ControlEUModel
+        model: ControlEUModel,
+        transaction
       }
     );
     controlIds.push(result[0].id!);
@@ -436,10 +454,11 @@ export const createNewControlsQuery = async (
       controlStruct.id!,
       demoControls[controlCtr++],
       result[0].id!,
-      enable_ai_data_insertion
+      enable_ai_data_insertion,
+      transaction
     );
   };
-  const compliances = await getCompliancesEUByIdQuery(controlIds);
+  const compliances = await getCompliancesEUByIdQuery(controlIds, transaction);
   return compliances;
 };
 
@@ -447,12 +466,13 @@ export const createNewSubControlsQuery = async (
   controlStructId: number,
   demoSubControls: any[],
   controlId: number,
-  enable_ai_data_insertion: boolean
+  enable_ai_data_insertion: boolean,
+  transaction: Transaction
 ) => {
   const subControlMetaIds = await sequelize.query(
     "SELECT id FROM subcontrols_struct_eu WHERE control_id = :control_id",
     {
-      replacements: { control_id: controlStructId }
+      replacements: { control_id: controlStructId }, transaction
     }
   )
   let ctr = 0
@@ -472,7 +492,8 @@ export const createNewSubControlsQuery = async (
           status: enable_ai_data_insertion ? 'Waiting' : null
         },
         mapToModel: true,
-        model: SubcontrolEUModel
+        model: SubcontrolEUModel,
+        transaction
       }
     )
     createdSubControls = createdSubControls.concat(result)
@@ -483,14 +504,16 @@ export const createNewSubControlsQuery = async (
 
 export const createEUFrameworkQuery = async (
   projectId: number,
-  enable_ai_data_insertion: boolean
+  enable_ai_data_insertion: boolean,
+  transaction: Transaction
 ) => {
   const assessments: Object = await createNewAssessmentEUQuery(
     { project_id: projectId, },
-    enable_ai_data_insertion
+    enable_ai_data_insertion,
+    transaction
   );
   const controls = await createNewControlsQuery(
-    projectId, enable_ai_data_insertion
+    projectId, enable_ai_data_insertion, transaction
   );
   return {
     assessment_tracker: assessments,
@@ -500,7 +523,8 @@ export const createEUFrameworkQuery = async (
 
 export const updateControlEUByIdQuery = async (
   id: number,
-  control: Partial<ControlEU>
+  control: Partial<ControlEU>,
+  transaction: Transaction
 ): Promise<ControlEU> => {
   const updateControl: Partial<Record<keyof ControlEU, any>> = {};
   const setClause = [
@@ -527,6 +551,7 @@ export const updateControlEUByIdQuery = async (
     mapToModel: true,
     model: ControlEUModel,
     // type: QueryTypes.UPDATE,
+    transaction
   });
   return result[0];
 };
@@ -536,14 +561,16 @@ export const updateSubcontrolEUByIdQuery = async (
   subcontrol: Partial<SubcontrolEU>,
   evidenceUploadedFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[] = [],
   feedbackUploadedFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[] = [],
-  deletedFiles: number[] = []
+  deletedFiles: number[] = [],
+  transaction: Transaction
 ): Promise<SubcontrolEU | null> => {
   const files = await sequelize.query(
     `SELECT evidence_files, feedback_files FROM subcontrols_eu WHERE id = :id`,
     {
       replacements: { id },
       mapToModel: true,
-      model: SubcontrolEUModel
+      model: SubcontrolEUModel,
+      transaction
     }
   );
 
@@ -604,6 +631,7 @@ export const updateSubcontrolEUByIdQuery = async (
     mapToModel: true,
     model: SubcontrolEUModel,
     // type: QueryTypes.UPDATE,
+    transaction
   });
 
   return result[0];
@@ -613,11 +641,12 @@ export const addFileToAnswerEU = async (
   questionId: number,
   projectFrameworkId: number,
   uploadedFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[],
-  deletedFiles: number[]
+  deletedFiles: number[],
+  transaction: Transaction
 ): Promise<QuestionStructEUModel & AnswerEUModel> => {
   const assessmentId = await sequelize.query(
     "SELECT id FROM assessments WHERE projects_frameworks_id = :project_framework_id;",
-    { replacements: { project_framework_id: projectFrameworkId } }
+    { replacements: { project_framework_id: projectFrameworkId }, transaction }
   ) as [{ id: number }[], number];
   // get the existing evidence files
   const evidenceFilesResult = await sequelize.query(
@@ -625,7 +654,8 @@ export const addFileToAnswerEU = async (
     {
       replacements: { id: questionId, assessment_id: assessmentId[0][0].id },
       mapToModel: true,
-      model: AnswerEUModel
+      model: AnswerEUModel,
+      transaction
     }
   )
 
@@ -646,11 +676,12 @@ export const addFileToAnswerEU = async (
     `UPDATE answers_eu SET evidence_files = :evidence_files WHERE question_id = :id AND assessment_id = :assessment_id RETURNING *;`,
     {
       replacements: { evidence_files: JSON.stringify(evidenceFiles), id: questionId, assessment_id: assessmentId[0][0].id },
+      transaction
     }
   ) as [AnswerEUModel[], number];
   const question = await sequelize.query(
     `SELECT * FROM questions_struct_eu WHERE id = :id`,
-    { replacements: { id: answer[0][0].question_id } }
+    { replacements: { id: answer[0][0].question_id }, transaction }
   ) as [QuestionStructEUModel[], number];
   return {
     ...answer[0][0],
@@ -669,6 +700,7 @@ export const addFileToAnswerEU = async (
 export const updateQuestionEUByIdQuery = async (
   id: number,
   question: Partial<AnswerEU>,
+  transaction: Transaction
 ): Promise<AnswerEU | null> => {
   const updateQuestion: Partial<Record<keyof AnswerEU, any>> = {};
   const setClause = [
@@ -693,18 +725,20 @@ export const updateQuestionEUByIdQuery = async (
     mapToModel: true,
     model: AnswerEUModel,
     // type: QueryTypes.UPDATE,
+    transaction
   });
 
   return result[0];
 };
 
 export const deleteAssessmentEUByProjectIdQuery = async (
-  projectFrameworkId: number
+  projectFrameworkId: number,
+  transaction: Transaction
 ) => {
   const assessmentId = await sequelize.query(
     `SELECT id FROM assessments WHERE projects_frameworks_id = :projects_frameworks_id`,
     {
-      replacements: { projects_frameworks_id: projectFrameworkId }
+      replacements: { projects_frameworks_id: projectFrameworkId }, transaction
     }
   ) as [{ id: number }[], number];
   if (assessmentId[0].length === 0) {
@@ -713,7 +747,7 @@ export const deleteAssessmentEUByProjectIdQuery = async (
   await sequelize.query(
     `DELETE FROM answers_eu WHERE assessment_id = :assessment_id`,
     {
-      replacements: { assessment_id: assessmentId[0][0].id }
+      replacements: { assessment_id: assessmentId[0][0].id }, transaction
     }
   )
   const result = await sequelize.query(
@@ -722,19 +756,21 @@ export const deleteAssessmentEUByProjectIdQuery = async (
       replacements: { assessment_id: assessmentId[0][0].id },
       mapToModel: true,
       model: AssessmentEUModel,
-      type: QueryTypes.DELETE
+      type: QueryTypes.DELETE,
+      transaction
     }
   )
   return result.length > 0;
 }
 
 export const deleteComplianeEUByProjectIdQuery = async (
-  projectFrameworkId: number
+  projectFrameworkId: number,
+  transaction: Transaction
 ) => {
   const controlIds = await sequelize.query(
     `SELECT id FROM controls_eu WHERE projects_frameworks_id = :projects_frameworks_id`,
     {
-      replacements: { projects_frameworks_id: projectFrameworkId }
+      replacements: { projects_frameworks_id: projectFrameworkId }, transaction
     }
   ) as [{ id: number }[], number];
   if (controlIds[0].length === 0) {
@@ -743,7 +779,7 @@ export const deleteComplianeEUByProjectIdQuery = async (
   for (let control of controlIds[0]) {
     await sequelize.query(
       `DELETE FROM subcontrols_eu WHERE control_id = :control_id`,
-      { replacements: { control_id: control.id } }
+      { replacements: { control_id: control.id }, transaction }
     )
   };
   const result = await sequelize.query(
@@ -752,23 +788,25 @@ export const deleteComplianeEUByProjectIdQuery = async (
       replacements: { projects_frameworks_id: projectFrameworkId },
       mapToModel: true,
       model: ControlEUModel,
-      type: QueryTypes.DELETE
+      type: QueryTypes.DELETE,
+      transaction
     }
   )
   return result.length > 0;
 }
 
 export const deleteProjectFrameworkEUQuery = async (
-  projectId: number
+  projectId: number,
+  transaction: Transaction
 ) => {
   const projectFrameworkId = await sequelize.query(
     `SELECT id FROM projects_frameworks WHERE project_id = :project_id AND framework_id = 1`,
     {
-      replacements: { project_id: projectId }
+      replacements: { project_id: projectId }, transaction
     }
   ) as [{ id: number }[], number];
-  const assessmentDeleted = await deleteAssessmentEUByProjectIdQuery(projectFrameworkId[0][0].id);
-  const complianceDeleted = await deleteComplianeEUByProjectIdQuery(projectFrameworkId[0][0].id);
+  const assessmentDeleted = await deleteAssessmentEUByProjectIdQuery(projectFrameworkId[0][0].id, transaction);
+  const complianceDeleted = await deleteComplianeEUByProjectIdQuery(projectFrameworkId[0][0].id, transaction);
   const result = await sequelize.query(
     `DELETE FROM projects_frameworks WHERE project_id = :project_id AND framework_id = 1 RETURNING *`,
     {

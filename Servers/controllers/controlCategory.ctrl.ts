@@ -11,6 +11,7 @@ import {
   getControlCategoryByProjectIdQuery,
 } from "../utils/controlCategory.util";
 import { ControlCategory } from "../models/controlCategory.model";
+import { sequelize } from "../database/db";
 
 export async function getAllControlCategories(
   req: Request,
@@ -58,13 +59,16 @@ export async function createControlCategory(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const newControlCategory: ControlCategory = req.body;
     const createdControlCategory = await createControlCategoryQuery(
-      newControlCategory
+      newControlCategory, transaction
     );
+    await transaction.commit();
     return res.status(201).json(createdControlCategory);
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -73,15 +77,19 @@ export async function updateControlCategoryById(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const controlCategoryId = parseInt(req.params.id);
     const updatedControlCategoryData: Partial<ControlCategory> = req.body;
     const updatedControlCategory = await updateControlCategoryByIdQuery(
       controlCategoryId,
-      updatedControlCategoryData
+      updatedControlCategoryData,
+      transaction
     );
+    await transaction.commit();
     return res.status(202).json(updatedControlCategory);
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -90,13 +98,16 @@ export async function deleteControlCategoryById(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const controlCategoryId = parseInt(req.params.id);
     const deletedControlCategory = await deleteControlCategoryByIdQuery(
-      controlCategoryId
+      controlCategoryId, transaction
     );
+    await transaction.commit();
     return res.status(202).json(deletedControlCategory);
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

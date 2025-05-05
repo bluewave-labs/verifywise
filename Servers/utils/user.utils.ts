@@ -18,7 +18,7 @@
 
 import { User, UserModel } from "../models/user.model";
 import { sequelize } from "../database/db";
-import { QueryTypes } from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 import { ProjectModel } from "../models/project.model";
 import { VendorModel } from "../models/vendor.model";
 import { ControlModel } from "../models/control.model";
@@ -145,7 +145,8 @@ export const getUserByIdQuery = async (id: number): Promise<User> => {
  * @throws Will throw an error if the database query fails.
  */
 export const createNewUserQuery = async (
-  user: Omit<User, "id">
+  user: Omit<User, "id">,
+  transaction: Transaction
 ): Promise<User> => {
   const { name, surname, email, password_hash, role } = user;
   const created_at = new Date();
@@ -162,6 +163,7 @@ export const createNewUserQuery = async (
         mapToModel: true,
         model: UserModel,
         // type: QueryTypes.INSERT
+        transaction
       }
     );
 
@@ -183,7 +185,8 @@ export const createNewUserQuery = async (
  */
 export const resetPasswordQuery = async (
   email: string,
-  newPassword: string
+  newPassword: string,
+  transaction: Transaction
 ): Promise<User> => {
   const result = await sequelize.query(
     `UPDATE users SET password_hash = :password_hash WHERE email = :email RETURNING *`,
@@ -195,6 +198,7 @@ export const resetPasswordQuery = async (
       mapToModel: true,
       model: UserModel,
       // type: QueryTypes.UPDATE
+      transaction
     }
   );
   return result[0];
@@ -220,7 +224,8 @@ export const resetPasswordQuery = async (
  */
 export const updateUserByIdQuery = async (
   id: number,
-  user: Partial<User>
+  user: Partial<User>,
+  transaction: Transaction
 ): Promise<User> => {
   const updateUser: Partial<Record<keyof User, any>> = {};
   const setClause = [
@@ -245,6 +250,7 @@ export const updateUserByIdQuery = async (
     mapToModel: true,
     model: UserModel,
     // type: QueryTypes.UPDATE,
+    transaction,
   });
 
   return result[0];
@@ -261,7 +267,7 @@ export const updateUserByIdQuery = async (
  *
  * @throws {Error} If the query fails or the user does not exist.
  */
-export const deleteUserByIdQuery = async (id: number): Promise<Boolean> => {
+export const deleteUserByIdQuery = async (id: number, transaction: Transaction): Promise<Boolean> => {
   const usersFK = [
     { table: "projects", model: ProjectModel, fields: ["owner", "last_updated_by"] },
     { table: "vendors", model: VendorModel, fields: ["assignee", "reviewer"] },
@@ -280,6 +286,7 @@ export const deleteUserByIdQuery = async (id: number): Promise<Boolean> => {
           {
             replacements: { x: null, id },
             // type: QueryTypes.UPDATE
+            transaction
           }
         )
       })
@@ -290,7 +297,8 @@ export const deleteUserByIdQuery = async (id: number): Promise<Boolean> => {
     `DELETE FROM projects_members WHERE user_id = :user_id`,
     {
       replacements: { user_id: id },
-      type: QueryTypes.DELETE
+      type: QueryTypes.DELETE,
+      transaction
     }
   );
   const result = await sequelize.query(
@@ -299,7 +307,8 @@ export const deleteUserByIdQuery = async (id: number): Promise<Boolean> => {
       replacements: { id },
       mapToModel: true,
       model: UserModel,
-      type: QueryTypes.DELETE
+      type: QueryTypes.DELETE,
+      transaction
     }
   );
   return result.length > 0;

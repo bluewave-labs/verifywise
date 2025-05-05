@@ -1,29 +1,19 @@
 import React from "react";
-import { Select, MenuItem, FormControl} from "@mui/material";
-
-interface ProjectFilterDropdownProps {
-  projects: { id: string; name: string }[];
-  selectedProject: string | null;
-  onChange: (projectId: string | null) => void;
-}
-
-const inputStyles = {
-  minWidth: 100,
-  maxWidth: 200,
-  height: 34,
-};
+import { Select, MenuItem, FormControl } from "@mui/material";
+import { dropdownStyles, inputStyles } from "./style";
+import { ProjectFilterDropdownProps } from "../../../../../domain/interfaces/iDropdown";
 
 const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
   projects,
   selectedProject,
   onChange,
 }) => {
-//remove duplicate projects
-    const uniqueProjects = Array.from(
-      new Map(
-        projects.map((project) => [project.id.trim().toLowerCase(), project])
-      ).values()
-    );
+  //remove duplicate projects
+  const uniqueProjects = Array.from(
+    new Map(
+      projects.map((project) => [project.id.trim().toLowerCase(), project])
+    ).values()
+  );
   return (
     <FormControl
       sx={{
@@ -38,10 +28,7 @@ const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
         displayEmpty
         sx={{
           ...inputStyles,
-          borderRadius: 2,
-          padding: "0 12px 0 0",
-          fontSize: 13,
-          color: "#111827",
+          ...dropdownStyles,
         }}
       >
         <MenuItem value="">Select a project</MenuItem>

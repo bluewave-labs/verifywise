@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { uploadFile } from "../utils/fileUpload.utils";
-import { DefaultReportName } from "../models/reporting.model";
-import { getReportData, isAuthorizedUser } from '../services/reportService';
+import { getReportData, isAuthorizedUser, getFormattedReportName } from '../services/reportService';
 
 import marked from 'marked';
 const htmlDocx = require("html-to-docx");
@@ -31,28 +30,7 @@ export async function generateReports(
       const markdownDoc = await marked.parse(await markdownData); // markdown file             
       const generatedDoc = await htmlDocx(markdownDoc); // convert markdown to docx                
       
-      let defaultFileName;
-      if (req.body.reportName === ''){
-        switch(req.body.reportType) {
-          case "Project risks report":
-            defaultFileName = DefaultReportName.PROJECTRISK_REPORT;
-            break;
-          case "Vendors and risks report":
-            defaultFileName = DefaultReportName.VENDOR_REPORT;
-            break;
-          case "Assessment tracker report":
-            defaultFileName = DefaultReportName.ASSESSMENT_REPORT;
-            break;
-          case "Compliance tracker report":
-            defaultFileName = DefaultReportName.COMPLIANCE_REPORT;
-            break;
-          default:
-            defaultFileName = DefaultReportName.ALL_REPORT;
-        }
-      }else {
-        defaultFileName = req.body.reportName;
-      }
-
+      let defaultFileName = getFormattedReportName(req.body.reportName, req.body.reportType);   
       const docFile = {
         originalname: `${defaultFileName}.docx`,
         buffer: generatedDoc,

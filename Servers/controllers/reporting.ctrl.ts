@@ -12,7 +12,7 @@ export async function generateReports(
   req: Request,
   res: Response
 ): Promise<any> {
-  const transaction = await sequelize.transaction();
+  // const transaction = await sequelize.transaction();
   try {   
     const projectId = parseInt(req.body.projectId);
     const userId = req.userId;

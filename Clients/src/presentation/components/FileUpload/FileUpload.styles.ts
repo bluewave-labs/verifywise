@@ -42,15 +42,15 @@ export const DragDropArea = styled("div", {
   shouldForwardProp: (prop) => prop !== "uploadedFilesCount",
 })<{ uploadedFilesCount?: number }>(({ uploadedFilesCount = 0 }) => ({
   width: "320px",
-  minHeight:"200px",
-  maxHeight:"400px",
+  minHeight: "200px",
+  maxHeight: "400px",
   height: `${190 + Math.min(uploadedFilesCount * 40, 200)}px`,
   border: "1px dashed #D1D5DB",
   display: "flex",
   alignItems: "center",
   flexDirection: "column",
   justifyContent: "center",
-  gap:4,
+  gap: 4,
   borderRadius: "8px",
   backgroundColor: "#FFFFFF",
   transition: "height 0.3s ease",
@@ -61,7 +61,6 @@ export const DragDropArea = styled("div", {
     display: "none !important",
     //remove default uppy container while maintaining drag drop functionality
   },
-
 }));
 
 export const Icon = styled("img")({
@@ -73,5 +72,27 @@ export const Icon = styled("img")({
 export const ButtonWrapper = styled("div")({
   display: "flex",
   justifyContent: "flex-end",
-
 });
+
+export const fileListStyleFrame = {
+  mt: 2,
+  borderTop: "1px solid #e5e7eb",
+  width: "100%",
+  padding: "8px",
+  maxHeight: "300px",
+  overflowY: "auto",
+  boxSizing: "border-box",
+};
+
+export const filesListItem = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  padding: "0",
+};
+
+export const fileListText = {
+  fontSize: "12px",
+  wordBreak: "break-word",
+  maxWidth: "100%",
+};

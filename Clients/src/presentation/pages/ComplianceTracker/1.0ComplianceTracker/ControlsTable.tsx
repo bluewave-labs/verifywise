@@ -34,6 +34,7 @@ interface ControlsTableProps {
   columns: Column[];
   onComplianceUpdate?: () => void;
   flashRow?: number | null;
+  projectId: number;
 }
 
 const ControlsTable: React.FC<ControlsTableProps> = ({
@@ -41,9 +42,11 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   controlCategoryIndex,
   columns,
   onComplianceUpdate,
+  projectId,
 }) => {
-  const { currentProjectId, dashboardValues } = useContext(VerifyWiseContext);
+  const { dashboardValues } = useContext(VerifyWiseContext);
   const { users } = dashboardValues;
+  const currentProjectId = projectId;
   const [controls, setControls] = useState<Control[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<unknown>(null);
@@ -280,6 +283,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
           OnError={handleSaveError}
           controlCategoryId={controlCategoryIndex?.toString()}
           onComplianceUpdate={onComplianceUpdate}
+          projectId={currentProjectId}
         />
       )}
     </>

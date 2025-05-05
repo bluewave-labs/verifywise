@@ -18,7 +18,6 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
   const {
     token,
     setDashboardValues,
-    projects,
     setProjects,
   } = useContext(VerifyWiseContext);
   const location = useLocation();
@@ -56,12 +55,6 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
     fetchUsers();
   }, [setDashboardValues, reloadTrigger, location.pathname]);
 
-  const mappedProjects =
-    projects?.map((project: any) => ({
-      _id: project.id,
-      name: project.project_title,
-    })) || [];
-
   console.log("This is the token in the dashboard :", token);
 
   return (
@@ -72,7 +65,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
       gap={14}
       sx={{ backgroundColor: "#FCFCFD" }}
     >
-      <Sidebar projects={mappedProjects} />
+      <Sidebar />
       <Stack spacing={3}>      
         <DemoAppBanner />                      
         <Outlet />

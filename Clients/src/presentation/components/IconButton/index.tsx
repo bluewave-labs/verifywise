@@ -17,16 +17,8 @@ import { useState } from "react";
 import BasicModal from "../Modals/Basic";
 import singleTheme from "../../themes/v1SingleTheme";
 import Alert from "../Alert";
-
-interface IconButtonProps {
-  id: number;
-  onDelete: () => void;
-  onEdit: () => void;
-  warningTitle: string;
-  warningMessage: string;
-  type:string;
-  onMouseEvent: (event: React.SyntheticEvent) => void;
-}
+import { IconButtonProps } from "../../../domain/interfaces/iWidget";
+import { AlertProps } from "../../../domain/interfaces/iAlert";
 
 const IconButton: React.FC<IconButtonProps> = ({
   id,
@@ -41,11 +33,7 @@ const IconButton: React.FC<IconButtonProps> = ({
   const [anchorEl, setAnchorEl] = useState(null);
   const [actions, setActions] = useState({});
   const [isOpenRemoveModal, setIsOpenRemoveModal] = useState(false);
-  const [alert, setAlert] = useState<{
-    variant: "success" | "info" | "warning" | "error";
-    title?: string;
-    body: string;
-  } | null>(null);
+  const [alert, setAlert] = useState<AlertProps | null>(null);
 
   const dropDownStyle = singleTheme.dropDownStyles.primary;
 

@@ -74,6 +74,7 @@ const ComplianceTracker = ({ project }: { project: Project }) => {
 
   useEffect(() => {
     if (currentProjectId) {
+      console.log("currentProjectId", currentProjectId);
       fetchComplianceData();
       fetchControlCategories();
     }
@@ -148,6 +149,7 @@ const ComplianceTracker = ({ project }: { project: Project }) => {
                 <ControlCategoryTile
                   controlCategory={controlCategory}
                   onComplianceUpdate={fetchComplianceData}
+                  projectId={currentProjectId}
                 />
               </div>
             ) : (
@@ -155,6 +157,7 @@ const ComplianceTracker = ({ project }: { project: Project }) => {
                 key={controlCategory.id}
                 controlCategory={controlCategory}
                 onComplianceUpdate={fetchComplianceData}
+                projectId={currentProjectId}
               />
             )
           )}

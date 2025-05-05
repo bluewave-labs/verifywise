@@ -39,3 +39,13 @@ export interface AutoCompleteFieldProps {
   setAutoCompleteValue: (value: AutoCompleteOption | undefined) => void;
   error?: string;
 }
+
+export interface CheckboxProps {
+  id: string;
+  label: string;
+  size?: "small" | "medium" | "large";
+  isChecked: boolean;
+  value: string;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  isDisabled?: boolean;
+}

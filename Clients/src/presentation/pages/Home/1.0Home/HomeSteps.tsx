@@ -12,15 +12,6 @@ const HomeSteps: PageTourStep[] = [
        ),
      },
      {
-       target: '[data-joyride-id="select-project"]',
-       content: (
-         <CustomStep
-           header="Select a project"
-           body="Once created, you can select it here."
-         />
-       ),
-     },
-     {
        target: '[data-joyride-id="dashboard-navigation"]',
        content: (
          <CustomStep

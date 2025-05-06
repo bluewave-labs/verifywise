@@ -8,14 +8,8 @@ import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.c
 import useProjectData from "../../../../application/hooks/useProjectData";
 import { User } from "../../../../domain/types/User";
 import { Dayjs } from "dayjs";
-
-interface DropDownsProps {
-  elementId?: string;
-  state?: any;
-  setState?: (newState: any) => void;
-  isControl?: boolean;
-  projectId?: number;
-}
+import { DropDownsProps } from "../../../../domain/interfaces/iWidget";
+import { inputStyles } from "./style";
 
 const DropDowns: React.FC<DropDownsProps> = ({
   elementId,
@@ -34,13 +28,6 @@ const DropDowns: React.FC<DropDownsProps> = ({
   const { dashboardValues } = useContext(VerifyWiseContext);
   const { users } = dashboardValues;
   const { project } = useProjectData({ projectId: String(projectId) || "0" });
-
-  const inputStyles = {
-    minWidth: 200,
-    maxWidth: 400,
-    flexGrow: 1,
-    height: 34,
-  };
 
   const [projectMembers, setProjectMembers] = useState<User[]>([]);
 

@@ -60,3 +60,11 @@ export interface DatePickerProps {
   error?: string;
   handleDateChange: (date: Dayjs | null) => void;
 }
+
+export interface DropDownsProps {
+  elementId?: string;
+  state?: any;
+  setState?: (newState: any) => void;
+  isControl?: boolean;
+  projectId?: number;
+}

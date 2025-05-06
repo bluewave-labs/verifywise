@@ -30,6 +30,8 @@ import { getQuestionBySubTopicIdQuery } from "../utils/question.utils";
 import { AssessmentModel } from "../models/assessment.model";
 import { ControlModel } from "../models/control.model";
 import { ControlCategoryModel } from "../models/controlCategory.model";
+import { createEUFrameworkQuery } from "../utils/eu.utils";
+import { sequelize } from "../database/db";
 
 export async function getAllProjects(
   req: Request,
@@ -79,10 +81,11 @@ export async function getProjectById(
 }
 
 export async function createProject(req: Request, res: Response): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
-    console.log("req.body : ", req.body);
     const newProject: Partial<Project> & {
       members: number[];
+      framework: number[];
       enable_ai_data_insertion: boolean;
     } = req.body;
 
@@ -93,35 +96,36 @@ export async function createProject(req: Request, res: Response): Promise<any> {
           STATUS_CODE[400]({ message: "project_title and owner are required" })
         );
     }
-    console.log(newProject);
 
     const createdProject = await createNewProjectQuery(
       newProject,
-      newProject.members
+      newProject.members,
+      [1], // newProject.framework,
+      transaction
     );
-    const assessments: Object = await createNewAssessmentQuery(
-      {
-        project_id: createdProject.id!,
-      },
-      newProject.enable_ai_data_insertion
-    );
-    const controls = await createNewControlCategories(
+    const frameworks: { [key: string]: Object } = {}
+    // if (newProject.framework[0] === 1) {
+    const eu = await createEUFrameworkQuery(
       createdProject.id!,
-      newProject.enable_ai_data_insertion
-    );
+      newProject.enable_ai_data_insertion,
+      transaction
+    )
+    frameworks["eu"] = eu;
+    // }
 
     if (createdProject) {
+      await transaction.commit();
       return res.status(201).json(
         STATUS_CODE[201]({
           project: createdProject,
-          assessment_tracker: assessments,
-          compliance_tracker: controls,
+          frameworks
         })
       );
     }
 
     return res.status(503).json(STATUS_CODE[503]({}));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -130,12 +134,15 @@ export async function updateProjectById(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const projectId = parseInt(req.params.id);
-    const updatedProject: Partial<Project> & { members?: number[] } = req.body;
+    const updatedProject: Partial<Project> & { members?: number[], framework?: number[] } = req.body;
     const members = updatedProject.members || [];
+    const framework = [1] // updatedProject.framework || [];
 
     delete updatedProject.members;
+    delete updatedProject.framework;
     delete updatedProject.id;
 
     if (!updatedProject.project_title || !updatedProject.owner) {
@@ -149,15 +156,19 @@ export async function updateProjectById(
     const project = await updateProjectByIdQuery(
       projectId,
       updatedProject,
-      members
+      members,
+      framework,
+      transaction
     );
 
     if (project) {
+      await transaction.commit();
       return res.status(202).json(STATUS_CODE[202](project));
     }
 
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -166,17 +177,20 @@ export async function deleteProjectById(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const projectId = parseInt(req.params.id);
 
-    const deletedProject = await deleteProjectByIdQuery(projectId);
+    const deletedProject = await deleteProjectByIdQuery(projectId, transaction);
 
     if (deletedProject) {
+      await transaction.commit();
       return res.status(202).json(STATUS_CODE[202](deletedProject));
     }
 
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

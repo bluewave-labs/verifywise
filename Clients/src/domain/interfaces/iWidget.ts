@@ -1,4 +1,4 @@
-import { Theme } from "@mui/material";
+import { SelectChangeEvent, Theme } from "@mui/material";
 
 import { SxProps } from "@mui/material";
 import { Dayjs } from "dayjs";
@@ -104,4 +104,26 @@ export interface RadioProps {
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   title: string;
   desc: string;
+}
+
+export interface SelectProps {
+  id: string;
+  label?: string;
+  placeholder?: string;
+  isHidden?: boolean;
+  value: string | number;
+  items: {
+    _id: string | number;
+    name: string;
+    email?: string;
+    surname?: string;
+  }[];
+  isRequired?: boolean;
+  error?: string;
+  onChange: (
+    event: SelectChangeEvent<string | number>,
+    child: React.ReactNode
+  ) => void;
+  sx?: object;
+  getOptionValue?: (item: any) => any;
 }

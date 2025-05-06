@@ -23,6 +23,7 @@ export const useFetchFiles = (projectID: string) => {
         setLoading(true);
         setError(null);
         const routeUrl = projectID ? `/files/by-projid/${projectID}` : "/files";
+         console.log("fetching files from the routeURL", routeUrl);
         const filesResponse = await getEntityById({
           routeUrl,
           signal: abortController.signal,

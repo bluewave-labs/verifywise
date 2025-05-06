@@ -56,12 +56,13 @@ const FileManager: React.FC = (): JSX.Element => {
     fetchProjects,
   } = useProjectData();
 
-  useEffect(() => {
-    fetchProjects();
-  }, [fetchProjects]);
-
   // State for selected project
-  const [selectedProject, setSelectedProject] = useState<string | null>(dashboardValues.selectedProjectId?.toString() || null);
+  const [selectedProject, setSelectedProject] = useState<string | null>(null);
+
+    useEffect(() => {
+      console.log("selected project ID:", selectedProject);
+      fetchProjects();
+    }, [fetchProjects, selectedProject]);
 
   // Fetch files based on selected project
   const { filesData, loading: loadingFiles } = useFetchFiles(selectedProject || "");

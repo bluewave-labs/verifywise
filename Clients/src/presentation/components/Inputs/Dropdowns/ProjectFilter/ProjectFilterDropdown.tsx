@@ -23,7 +23,9 @@ const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
       <Select
         id="project-filter"
         value={selectedProject || ""}
-        onChange={(e) => onChange(e.target.value || null)}
+        onChange={(e) =>
+        {  console.log("selected project ID:", e.target.value);
+           onChange(e.target.value || null)}}
         displayEmpty
         sx={{
           ...inputStyles,

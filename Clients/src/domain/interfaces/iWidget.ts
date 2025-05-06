@@ -127,3 +127,9 @@ export interface SelectProps {
   sx?: object;
   getOptionValue?: (item: any) => any;
 }
+
+export interface IBannerProps {
+  onClose: () => void;
+  bannerText: string;
+  bannerWidth: string;
+}

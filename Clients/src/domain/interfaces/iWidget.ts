@@ -95,3 +95,13 @@ export interface ImageFieldProps {
   loading: boolean;
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
 }
+
+export interface RadioProps {
+  checked: boolean;
+  value: string;
+  id: string;
+  size: "small" | "medium";
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  title: string;
+  desc: string;
+}

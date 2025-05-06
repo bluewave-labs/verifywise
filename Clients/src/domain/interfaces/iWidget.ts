@@ -68,3 +68,22 @@ export interface DropDownsProps {
   isControl?: boolean;
   projectId?: number;
 }
+
+export interface FieldProps {
+  type?: string;
+  id?: string;
+  label?: string;
+  https?: boolean;
+  isRequired?: boolean;
+  isOptional?: boolean;
+  optionalLabel?: string;
+  autoComplete?: string;
+  placeholder?: string;
+  value?: string;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onInput?: (event: React.FormEvent<HTMLInputElement>) => void;
+  error?: string;
+  disabled?: boolean;
+  width?: number | string;
+  sx?: SxProps<Theme>;
+}

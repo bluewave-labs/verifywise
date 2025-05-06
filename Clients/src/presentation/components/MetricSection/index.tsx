@@ -1,17 +1,7 @@
 import { FC, memo } from "react";
 import { Typography, Stack } from "@mui/material";
 import { StyledStack, styles } from "./styles";
-import {
-  Assessments,
-  Controls,
-} from "../../../application/hooks/useProjectStatus";
-
-interface MetricSectionProps {
-  title: string;
-  metricType?: "compliance" | "risk";
-  assessments: Assessments;
-  controls: Controls;
-}
+import { MetricSectionProps } from "../../../domain/interfaces/iMetricSection";
 
 /**
  * MetricSection component displays a section with metrics based on the provided metric type.
@@ -41,23 +31,7 @@ const MetricSection: FC<MetricSectionProps> = ({
       title: "Assessment tracker completion rate",
       value: `${assessments.percentageComplete.toFixed(2)}%`,
     },
-    // {
-    //     title: "Assessment completion rate",
-    //     value: `${complianceStatus.completedRequirementsPercentage}%`,
-    // },
   ];
-  // Uncomment the following code to display risk metrics
-  // const riskMetrics: {
-  //     title: string;
-  //     value: string | number;
-  // }[] = [
-  //         { title: "Acceptable risks", value: riskStatus.acceptableRisks },
-  //         { title: "Residual risks", value: riskStatus.residualRisks },
-  //         { title: "Unacceptable risks", value: riskStatus.unacceptableRisks },
-  //     ];
-
-  // Replace metrics with the appropriate metrics based on the metric type to display risk or compliance metrics
-  //  const metrics = metricType === "compliance" ? complianceMetrics : riskMetrics;
   const metrics = complianceMetrics;
 
   return (

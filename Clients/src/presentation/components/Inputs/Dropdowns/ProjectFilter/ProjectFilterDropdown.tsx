@@ -10,10 +10,9 @@ const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
 }) => {
   //remove duplicate projects
   const uniqueProjects = Array.from(
-    new Map(
-      projects.map((project) => [project.id.trim().toLowerCase(), project])
-    ).values()
+    new Map(projects.map((project) => [project.name.toLowerCase(), project])).values()
   );
+  console.log("Unique Projects in Dropdown:", uniqueProjects); // Debugging log
   return (
     <FormControl
       sx={{

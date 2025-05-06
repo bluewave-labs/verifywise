@@ -2,6 +2,7 @@ import { Theme } from "@mui/material";
 
 import { SxProps } from "@mui/material";
 import { Dayjs } from "dayjs";
+import { ChangeEvent } from "react";
 
 /**
  * Props for the CloseButton component.
@@ -86,4 +87,11 @@ export interface FieldProps {
   disabled?: boolean;
   width?: number | string;
   sx?: SxProps<Theme>;
+}
+
+export interface ImageFieldProps {
+  id: string;
+  src: string;
+  loading: boolean;
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
 }

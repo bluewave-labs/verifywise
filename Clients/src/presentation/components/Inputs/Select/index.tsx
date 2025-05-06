@@ -18,35 +18,13 @@
 import {
   MenuItem,
   Select as MuiSelect,
-  SelectChangeEvent,
   Stack,
   Typography,
   useTheme,
 } from "@mui/material";
 import "./index.css";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-
-interface SelectProps {
-  id: string;
-  label?: string;
-  placeholder?: string;
-  isHidden?: boolean;
-  value: string | number;
-  items: {
-    _id: string | number;
-    name: string;
-    email?: string;
-    surname?: string;
-  }[];
-  isRequired?: boolean;
-  error?: string;
-  onChange: (
-    event: SelectChangeEvent<string | number>,
-    child: React.ReactNode
-  ) => void;
-  sx?: object;
-  getOptionValue?: (item: any) => any;
-}
+import { SelectProps } from "../../../../domain/interfaces/iWidget";
 
 const Select: React.FC<SelectProps> = ({
   id,

@@ -152,7 +152,7 @@ export const DataGovernance = [
       {
         order_no: 3,
         question:
-          "What are the legal bases for processing personal and sensitive data. What measures are in place to ensure that the processing logic remains consistent with the original purpose for which consent was obtained, and that data is deleted after the stipulated period?",
+          "What are the legal bases for processing personal and sensitive data? What measures are in place to ensure that the processing logic remains consistent with the original purpose for which consent was obtained, and that data is deleted after the stipulated period?",
         hint: "Detail the datasets processed, specifying the sensitive and personal data involved, how they are collected, and the purposes of processing.",
         priority_level: "high priority",
         answer_type: "Long text",

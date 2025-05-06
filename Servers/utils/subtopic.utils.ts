@@ -2,7 +2,7 @@ import { Subtopic, SubtopicModel } from "../models/subtopic.model";
 import { sequelize } from "../database/db";
 import { createNewQuestionsQuery } from "./question.utils";
 import { Question } from "../models/question.model";
-import { QueryTypes } from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 
 export const getAllSubtopicsQuery = async (): Promise<Subtopic[]> => {
   const subtopics = await sequelize.query(
@@ -30,7 +30,8 @@ export const getSubtopicByIdQuery = async (
 };
 
 export const createNewSubtopicQuery = async (
-  subtopic: Subtopic
+  subtopic: Subtopic,
+  transaction: Transaction
 ): Promise<Subtopic> => {
   const result = await sequelize.query(
     `INSERT INTO subtopics (topic_id, title) VALUES (:topic_id, :title) RETURNING *`,
@@ -39,6 +40,7 @@ export const createNewSubtopicQuery = async (
       mapToModel: true,
       model: SubtopicModel,
       // type: QueryTypes.INSERT
+      transaction
     }
   );
   return result[0];
@@ -46,7 +48,8 @@ export const createNewSubtopicQuery = async (
 
 export const updateSubtopicByIdQuery = async (
   id: number,
-  subtopic: Partial<Subtopic>
+  subtopic: Partial<Subtopic>,
+  transaction: Transaction
 ): Promise<Subtopic | null> => {
   const updateSubTopic: Partial<Record<keyof Subtopic, any>> = {};
   const setClause = [
@@ -67,13 +70,15 @@ export const updateSubtopicByIdQuery = async (
     mapToModel: true,
     model: SubtopicModel,
     // type: QueryTypes.UPDATE,
+    transaction
   });
 
   return result[0];
 };
 
 export const deleteSubtopicByIdQuery = async (
-  id: number
+  id: number,
+  transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
     "DELETE FROM subtopics WHERE id = :id RETURNING *",
@@ -82,6 +87,7 @@ export const deleteSubtopicByIdQuery = async (
       mapToModel: true,
       model: SubtopicModel,
       type: QueryTypes.DELETE,
+      transaction
     }
   );
   return result.length > 0;
@@ -120,7 +126,8 @@ export const createNewSubTopicsQuery = async (
       answer: string;
     }[];
   }[],
-  enable_ai_data_insertion: boolean
+  enable_ai_data_insertion: boolean,
+  transaction: Transaction
 ) => {
   const createdSubTopics = [];
   let query =
@@ -135,13 +142,15 @@ export const createNewSubTopicsQuery = async (
         },
         mapToModel: true,
         model: SubtopicModel,
+        transaction
       }
     );
     const subtopic_id = result[0].id!;
     const questions = await createNewQuestionsQuery(
       subtopic_id,
       subTopicStruct.questions,
-      enable_ai_data_insertion
+      enable_ai_data_insertion,
+      transaction
     );
     createdSubTopics.push({ ...result[0].dataValues, questions });
   }

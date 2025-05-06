@@ -27,9 +27,7 @@ import {
   IconButton,
   InputAdornment,
   Stack,
-  SxProps,
   TextField,
-  Theme,
   Typography,
   useTheme,
 } from "@mui/material";
@@ -38,25 +36,7 @@ import { forwardRef, useState } from "react";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 import { ForwardedRef } from "react";
-
-interface FieldProps {
-  type?: string;
-  id?: string;
-  label?: string;
-  https?: boolean;
-  isRequired?: boolean;
-  isOptional?: boolean;
-  optionalLabel?: string;
-  autoComplete?: string;
-  placeholder?: string;
-  value?: string;
-  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onInput?: (event: React.FormEvent<HTMLInputElement>) => void;
-  error?: string;
-  disabled?: boolean;
-  width?: number | string;
-  sx?: SxProps<Theme>;
-}
+import { FieldProps } from "../../../../domain/interfaces/iWidget";
 
 const Field = forwardRef(
   (

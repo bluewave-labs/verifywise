@@ -21,6 +21,10 @@ export type Project = {
   last_updated_by: number;
   created_at?: Date;
   // vendors: string[];
+  framework?: {
+    project_framework_id: number;
+    framework_id: number;
+  }[]; // FK to the projectFrameworks table
 
   // statistical fields
   doneSubcontrols?: number;

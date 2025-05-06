@@ -1,7 +1,8 @@
-import { Theme } from "@mui/material";
+import { SelectChangeEvent, Theme } from "@mui/material";
 
 import { SxProps } from "@mui/material";
 import { Dayjs } from "dayjs";
+import { ChangeEvent } from "react";
 
 /**
  * Props for the CloseButton component.
@@ -59,4 +60,76 @@ export interface DatePickerProps {
   date: Dayjs | null;
   error?: string;
   handleDateChange: (date: Dayjs | null) => void;
+}
+
+export interface DropDownsProps {
+  elementId?: string;
+  state?: any;
+  setState?: (newState: any) => void;
+  isControl?: boolean;
+  projectId?: number;
+}
+
+export interface FieldProps {
+  type?: string;
+  id?: string;
+  label?: string;
+  https?: boolean;
+  isRequired?: boolean;
+  isOptional?: boolean;
+  optionalLabel?: string;
+  autoComplete?: string;
+  placeholder?: string;
+  value?: string;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onInput?: (event: React.FormEvent<HTMLInputElement>) => void;
+  error?: string;
+  disabled?: boolean;
+  width?: number | string;
+  sx?: SxProps<Theme>;
+}
+
+export interface ImageFieldProps {
+  id: string;
+  src: string;
+  loading: boolean;
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+}
+
+export interface RadioProps {
+  checked: boolean;
+  value: string;
+  id: string;
+  size: "small" | "medium";
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  title: string;
+  desc: string;
+}
+
+export interface SelectProps {
+  id: string;
+  label?: string;
+  placeholder?: string;
+  isHidden?: boolean;
+  value: string | number;
+  items: {
+    _id: string | number;
+    name: string;
+    email?: string;
+    surname?: string;
+  }[];
+  isRequired?: boolean;
+  error?: string;
+  onChange: (
+    event: SelectChangeEvent<string | number>,
+    child: React.ReactNode
+  ) => void;
+  sx?: object;
+  getOptionValue?: (item: any) => any;
+}
+
+export interface IBannerProps {
+  onClose: () => void;
+  bannerText: string;
+  bannerWidth: string;
 }

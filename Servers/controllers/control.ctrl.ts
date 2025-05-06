@@ -18,6 +18,7 @@ import { Control, ControlModel } from "../models/control.model";
 import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
 import { FileType } from "../models/file.model";
 import { updateProjectUpdatedByIdQuery } from "../utils/project.utils";
+import { sequelize } from "../database/db";
 
 export async function getAllControls(
   req: Request,
@@ -56,17 +57,20 @@ export async function getControlById(
 }
 
 export async function createControl(req: Request, res: Response): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const newControl: Control = req.body;
 
-    const createdControl = await createNewControlQuery(newControl);
+    const createdControl = await createNewControlQuery(newControl, transaction);
 
     if (createdControl) {
+      await transaction.commit();
       return res.status(201).json(STATUS_CODE[201](createdControl));
     }
 
     return res.status(400).json(STATUS_CODE[400]({}));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -75,18 +79,21 @@ export async function updateControlById(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const controlId = parseInt(req.params.id);
     const updatedControl: Control = req.body;
 
-    const control = await updateControlByIdQuery(controlId, updatedControl);
+    const control = await updateControlByIdQuery(controlId, updatedControl, transaction);
 
     if (control) {
+      await transaction.commit();
       return res.status(200).json(STATUS_CODE[200](control));
     }
 
     return res.status(400).json(STATUS_CODE[400](control));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -95,17 +102,20 @@ export async function deleteControlById(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const controlId = parseInt(req.params.id);
 
-    const control = await deleteControlByIdQuery(controlId);
+    const control = await deleteControlByIdQuery(controlId, transaction);
 
     if (control) {
+      await transaction.commit();
       return res.status(200).json(STATUS_CODE[200](control));
     }
 
     return res.status(400).json(STATUS_CODE[400](control));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -114,6 +124,7 @@ export async function saveControls(
   req: RequestWithFile,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const controlId = parseInt(req.params.id);
     const Control = req.body as Control & {
@@ -136,11 +147,11 @@ export async function saveControls(
       due_date: Control.due_date,
       implementation_details: Control.implementation_details,
       control_category_id: Control.control_category_id,
-    });
+    }, transaction);
 
     const filesToDelete = JSON.parse(Control.delete || "[]") as number[];
     for (let f of filesToDelete) {
-      await deleteFileById(f);
+      await deleteFileById(f, transaction);
     }
 
     // now we need to iterate over subcontrols inside the control, and create a subcontrol for each subcontrol
@@ -160,7 +171,8 @@ export async function saveControls(
             f,
             Control.user_id,
             Control.project_id,
-            "Compliance tracker group"
+            "Compliance tracker group",
+            transaction
           );
           evidenceUploadedFiles.push({
             id: evidenceUploadedFile.id!.toString(),
@@ -179,7 +191,8 @@ export async function saveControls(
             f,
             Control.user_id,
             Control.project_id,
-            "Compliance tracker group"
+            "Compliance tracker group",
+            transaction
           );
           feedbackUploadedFiles.push({
             id: feedbackUploadedFile.id!.toString(),
@@ -217,9 +230,10 @@ export async function saveControls(
             feedback_description: subcontrol.feedback_description,
             control_id: subcontrol.control_id,
           },
+          transaction,
           evidenceUploadedFiles,
           feedbackUploadedFiles,
-          filesToDelete
+          filesToDelete,
         );
         subControlResp.push(subcontrolToSave);
       }
@@ -228,10 +242,13 @@ export async function saveControls(
       ...{ control, subControls: subControlResp },
     };
     // Update the project's last updated date
-    await updateProjectUpdatedByIdQuery(controlId, "controls");
+    await updateProjectUpdatedByIdQuery(controlId, "controls", transaction);
+
+    await transaction.commit();
 
     return res.status(200).json(STATUS_CODE[200]({ response }));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

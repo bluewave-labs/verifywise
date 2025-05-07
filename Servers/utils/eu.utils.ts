@@ -237,6 +237,20 @@ export const getAllControlCategoriesQuery = async (transaction: Transaction | nu
   return controlCategoriesStruct;
 }
 
+export const getControlStructByControlCategoryIdQuery = async (
+  controlCategoryId: number
+) => {
+  const controlsStruct = await sequelize.query(
+    `SELECT * FROM controls_struct_eu WHERE control_category_id = :control_category_id;`,
+    {
+      replacements: { control_category_id: controlCategoryId },
+      mapToModel: true,
+      model: ControlStructEUModel
+    }
+  );
+  return controlsStruct;
+}
+
 export const getControlByIdQuery = async (
   controlId: number,
   transaction: Transaction | null = null

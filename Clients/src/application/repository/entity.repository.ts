@@ -286,3 +286,12 @@ export async function generateReport({
     throw error;
   }
 }
+
+export async function getAllFrameworks({
+  authToken = getAuthToken(),
+}: RequestParams): Promise<any> {
+  const response = await apiServices.get("/frameworks", {
+    headers: { Authorization: `Bearer ${authToken}` },
+  });
+  return response.data;
+}

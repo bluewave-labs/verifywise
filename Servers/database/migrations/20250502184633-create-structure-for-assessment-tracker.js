@@ -173,13 +173,16 @@ module.exports = {
           '${question.status}', 
           '${new Date(question.created_at).toISOString()}',
           ${question.is_demo})`;
-      }).join(', ');
-      await queryInterface.sequelize.query(
-        `INSERT INTO answers_eu (
-          assessment_id, question_id, answer, evidence_files, dropdown_options, status, created_at, is_demo
-        ) VALUES ${answersInsert};`,
-        { transaction }
-      );
+      });
+      if (answersInsert.length > 0) {
+        const answersInsertString = answersInsert.join(', ');
+        await queryInterface.sequelize.query(
+          `INSERT INTO answers_eu (
+            assessment_id, question_id, answer, evidence_files, dropdown_options, status, created_at, is_demo
+          ) VALUES ${answersInsertString};`,
+          { transaction }
+        );
+      }
       for (let query of [
         "DELETE FROM questions WHERE 1=1;",
         "DELETE FROM subtopics WHERE 1=1;",

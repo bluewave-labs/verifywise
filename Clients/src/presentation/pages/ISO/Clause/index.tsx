@@ -8,43 +8,7 @@ import {
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { accordionStyle } from "../style";
 import { useState } from "react";
-
-const ISO42001ClauseList = [
-  {
-    id: 1,
-    title: "Management System",
-    clauses: [
-      {
-        number: 4,
-        title: "Context of the Organization",
-      },
-      {
-        number: 5,
-        title: "Leadership",
-      },
-      {
-        number: 6,
-        title: "Planning",
-      },
-      {
-        number: 7,
-        title: "Support",
-      },
-      {
-        number: 8,
-        title: "Operation",
-      },
-      {
-        number: 9,
-        title: "Performance Evaluation",
-      },
-      {
-        number: 10,
-        title: "Improvement",
-      },
-    ],
-  },
-];
+import { ISO42001ClauseList } from "./clause.structure";
 
 const ISO42001Clauses = () => {
   const [expanded, setExpanded] = useState<number | false>(false);

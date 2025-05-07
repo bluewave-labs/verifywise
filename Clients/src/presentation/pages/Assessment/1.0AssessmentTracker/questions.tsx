@@ -1,7 +1,4 @@
-import { useEffect, useState } from "react";
 import { Stack, Typography } from "@mui/material";
-import { getEntityById } from "../../../../application/repository/entity.repository";
-import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import { Subtopic } from "../../../../domain/types/Subtopic";
 import VWQuestion from "../../../components/VWQuestion";
 import { Question } from "../../../../domain/types/Question";

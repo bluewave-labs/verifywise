@@ -48,17 +48,17 @@ export interface ProjectStatus {
   controls: Controls;
 }
 
-const defaultControlsProject: ControlsProject = {
-  projectId: 1,
-  totalSubControls: 1,
-  doneSubControls: 0,
-};
+// const defaultControlsProject: ControlsProject = {
+//   projectId: 1,
+//   totalSubControls: 1,
+//   doneSubControls: 0,
+// };
 
-const defaultAssessmentsProject: AssessmentsProject = {
-  projectId: 1,
-  totalAssessments: 1,
-  doneAssessments: 0,
-};
+// const defaultAssessmentsProject: AssessmentsProject = {
+//   projectId: 1,
+//   totalAssessments: 1,
+//   doneAssessments: 0,
+// };
 
 export const defaultProjectStatus: ProjectStatus = {
   assessments: {

@@ -8,7 +8,6 @@ import DescriptionCard from "../../../../components/Cards/DescriptionCard";
 import TeamCard from "../../../../components/Cards/TeamCard";
 import { Project } from "../../../../../domain/types/Project";
 import useProjectData from "../../../../../application/hooks/useProjectData";
-import { useSearchParams } from "react-router-dom";
 import VWSkeleton from "../../../../vw-v2-components/Skeletons";
 import { formatDate } from "../../../../tools/isoDateToString";
 import { useContext, useEffect, useState } from "react";

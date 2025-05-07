@@ -19,7 +19,6 @@ import StatsCard from "../../../components/Cards/StatsCard";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import Questions from "./questions";
 import useAssessmentProgress from "../../../../application/hooks/useAssessmentProgress";
-import useAssessmentData from "../../../../application/hooks/useAssessmentData";
 import useAssessmentTopics from "../../../../application/hooks/useAssessmentTopcis";
 import useAssessmentSubtopics from "../../../../application/hooks/useAssessmentSubtopics";
 import PageTour from "../../../components/PageTour";

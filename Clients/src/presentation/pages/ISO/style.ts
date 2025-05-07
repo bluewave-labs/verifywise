@@ -1,4 +1,5 @@
 export const accordionStyle = {
+  marginTop: "9px",
   border: "1px solid #eaecf0",
   width: "100%",
   marginLeft: "1.5px",

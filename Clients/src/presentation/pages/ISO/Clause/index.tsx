@@ -55,14 +55,7 @@ const ISO42001Clauses = () => {
     };
 
   return (
-    <Stack
-      className="iso-42001-clauses"
-      sx={{
-        maxWidth: "1400px",
-        marginTop: "14px",
-        gap: "20px",
-      }}
-    >
+    <Stack className="iso-42001-clauses">
       {ISO42001ClauseList.map((clause) => (
         <>
           <Typography
@@ -72,11 +65,24 @@ const ISO42001Clauses = () => {
             {clause.title} {" Clauses"}
           </Typography>
           {clause.clauses.map((clause) => (
-            <Stack key={clause.number}>
+            <Stack
+              key={clause.number}
+              sx={{
+                maxWidth: "1400px",
+                marginTop: "14px",
+                gap: "20px",
+              }}
+            >
               <Accordion
                 key={clause.number}
-                expanded={true}
-                sx={accordionStyle}
+                expanded={expanded === clause.number}
+                sx={{
+                  ...accordionStyle,
+                  ".MuiAccordionDetails-root": {
+                    padding: 0,
+                    margin: 0,
+                  },
+                }}
                 onChange={handleAccordionChange(clause.number ?? 0)}
               >
                 <AccordionSummary

@@ -17,6 +17,10 @@ export type Project = {
   goal: string;
   last_updated: Date;
   last_updated_by: number;
+  framework: {
+    project_framework_id: number;
+    framework_id: number;
+  }[];
   // vendors: string[];
 
   // statistical fields

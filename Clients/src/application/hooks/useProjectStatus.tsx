@@ -26,14 +26,14 @@ export interface Assessments {
   percentageComplete: number;
   allDoneAssessments: number;
   allTotalAssessments: number;
-  projects: AssessmentsProject[];
+  projects?: AssessmentsProject[];
 }
 
 export interface Controls {
   percentageComplete: number;
   allDoneSubControls: number;
   allTotalSubControls: number;
-  projects: ControlsProject[];
+  projects?: ControlsProject[];
 }
 
 export interface MetricSectionProps {
@@ -64,14 +64,14 @@ export const defaultProjectStatus: ProjectStatus = {
   assessments: {
     percentageComplete: 0,
     allDoneAssessments: 0,
-    projects: [defaultAssessmentsProject],
+    // projects: [defaultAssessmentsProject],
     allTotalAssessments: 0,
   },
   controls: {
     percentageComplete: 0,
     allDoneSubControls: 0,
     allTotalSubControls: 0,
-    projects: [defaultControlsProject],
+    // projects: [defaultControlsProject],
   },
 };
 
@@ -85,27 +85,31 @@ const useProjectStatus = ({ userId }: { userId: string }) => {
 
   const fetchProjectStatus = useCallback(async (signal: AbortSignal) => {
     try {
-      const response = await getEntityById({
-        routeUrl: `/users/${userId}/calculate-progress`,
+      const compliance = await getEntityById({
+        routeUrl: `eu-ai-act/all/compliances/progress`,
+        signal,
+      });
+      const assessment = await getEntityById({
+        routeUrl: `eu-ai-act/all/assessments/progress`,
         signal,
       });
 
       setProjectStatus({
         assessments: {
           percentageComplete:
-            (response.allDoneAssessments / response.allTotalAssessments) *
+            (assessment.totalQuestions / assessment.answeredQuestions) *
             100,
-          allDoneAssessments: response.allDoneAssessments,
-          allTotalAssessments: response.allTotalAssessments,
-          projects: response.assessmentsMetadata,
+          allDoneAssessments: assessment.totalQuestions,
+          allTotalAssessments: assessment.answeredQuestions,
+          // projects: response.assessmentsMetadata,
         },
         controls: {
           percentageComplete:
-            (response.allDoneSubControls / response.allTotalSubControls) *
+            (compliance.allDonesubControls / compliance.allsubControls) *
             100,
-          allDoneSubControls: response.allDoneSubControls,
-          allTotalSubControls: response.allTotalSubControls,
-          projects: response.controlsMetadata,
+          allDoneSubControls: compliance.allDonesubControls,
+          allTotalSubControls: compliance.allsubControls,
+          // projects: compliance.controlsMetadata,
         },
       });
     } catch (error) {

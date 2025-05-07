@@ -73,11 +73,11 @@ const VWHome = () => {
         setDashboardValues({ users: data });
       });
       await fetchData(
-        "/projects/all/compliance/progress",
+        "/eu-ai-act/all/compliances/progress",
         setComplianceProgressData
       );
       await fetchData(
-        "/projects/all/assessment/progress",
+        "/eu-ai-act/all/assessments/progress",
         setAssessmentProgressData
       );
       await fetchProjects();
@@ -110,11 +110,11 @@ const VWHome = () => {
 
         await fetchProjects();
         await fetchData(
-          "/projects/all/compliance/progress",
+          "/eu-ai-act/all/compliances/progress",
           setComplianceProgressData
         );
         await fetchData(
-          "/projects/all/assessment/progress",
+          "/eu-ai-act/all/assessments/progress",
           setAssessmentProgressData
         );
         setShowToastNotification(false);

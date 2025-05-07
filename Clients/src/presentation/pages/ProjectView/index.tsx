@@ -23,7 +23,7 @@ const ProjectView = () => {
     loadingProjectRisks,
     error: errorFetchingProjectRisks,
     projectRisksSummary,
-  } = useProjectRisks({ projectId });
+  } = useProjectRisks({ projectId: parseInt(projectId) });
   const {
     error: errorFetchingVendorRisks,
     // vendorRisks,

@@ -6,10 +6,10 @@ import { getAllProjectsQuery, updateProjectUpdatedByIdQuery } from "../utils/pro
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { QuestionStructEU } from "../models/EU/questionStructEU.model";
-import { countAnswersEUByProjectId, countSubControlsEUByProjectId, deleteAssessmentEUByProjectIdQuery, deleteComplianeEUByProjectIdQuery, getAssessmentsEUByProjectIdQuery, getComplianceEUByProjectIdQuery, getControlByIdForProjectQuery, getTopicByIdForProjectQuery, updateControlEUByIdQuery, updateQuestionEUByIdQuery, updateSubcontrolEUByIdQuery } from "../utils/eu.utils";
+import { countAnswersEUByProjectId, countSubControlsEUByProjectId, deleteAssessmentEUByProjectIdQuery, deleteComplianeEUByProjectIdQuery, getAllControlCategoriesQuery, getAllTopicsQuery, getAssessmentsEUByProjectIdQuery, getComplianceEUByProjectIdQuery, getControlByIdForProjectQuery, getControlStructByControlCategoryIdQuery, getTopicByIdForProjectQuery, updateControlEUByIdQuery, updateQuestionEUByIdQuery, updateSubcontrolEUByIdQuery } from "../utils/eu.utils";
 import { AnswerEU } from "../models/EU/answerEU.model";
 import { sequelize } from "../database/db";
-import { ProjectModel } from "../models/project.model";
+import { Project, ProjectModel } from "../models/project.model";
 
 export async function getAssessmentsByProjectId(
   req: Request,
@@ -333,8 +333,12 @@ export async function getAllProjectsAssessmentProgress(
     if (projects && projects.length > 0) {
       await Promise.all(
         projects.map(async (project) => {
-          // // calculating assessments
-          const { totalAssessments, answeredAssessments } = await countAnswersEUByProjectId(project.id!);
+          // calculating assessments
+          const projectFrameworkId = (project as unknown as { dataValues: Project }).dataValues.framework?.filter((f) => f.framework_id === 1).map((f) => f.project_framework_id)[0];
+          if (!projectFrameworkId) {
+            return;
+          }
+          const { totalAssessments, answeredAssessments } = await countAnswersEUByProjectId(projectFrameworkId);
           totalNumberOfQuestions = parseInt(totalAssessments);
           totalNumberOfAnsweredQuestions = parseInt(answeredAssessments);
         })
@@ -365,8 +369,9 @@ export async function getAllProjectsComplianceProgress(
     if (projects && projects.length > 0) {
       await Promise.all(
         projects.map(async (project) => {
-          // [0] assuming that the project has only one EU framework (if it has)
-          const projectFrameworkId = (project as ProjectModel & { frameworks: any[] }).frameworks.filter((f) => f.framework_id === 1).map((f) => f.id)[0];
+          console.log("project", project);
+          // [0] assuming that the project has only one EU framework (if it has))
+          const projectFrameworkId = (project as unknown as { dataValues: Project }).dataValues.framework?.filter((f) => f.framework_id === 1).map((f) => f.project_framework_id)[0];
           if (!projectFrameworkId) {
             return;
           }
@@ -384,6 +389,43 @@ export async function getAllProjectsComplianceProgress(
     } else {
       return res.status(404).json(STATUS_CODE[404](projects));
     }
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getAllControlCategories(
+  req: Request,
+  res: Response
+): Promise<any> {
+  try {
+    const controlCategories = await getAllControlCategoriesQuery();
+    return res.status(200).json(controlCategories);
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getControlsByControlCategoryId(
+  req: Request,
+  res: Response
+): Promise<any> {
+  try {
+    const controlCategoryId = parseInt(req.params.id);
+    const controls = await getControlStructByControlCategoryIdQuery(controlCategoryId);
+    return res.status(200).json(controls);
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getAllTopics(
+  req: Request,
+  res: Response
+): Promise<any> {
+  try {
+    const topics = await getAllTopicsQuery();
+    return res.status(200).json(topics);
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

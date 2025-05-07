@@ -6,13 +6,13 @@ import { AssessmentProgress } from "../../domain/interfaces/iAssessment";
  * Custom hook to fetch and manage assessment progress data for a selected project.
  *
  * @param {Object} params - The parameters object.
- * @param {string} params.selectedProjectId - The ID of the selected project.
+ * @param {string} params.projectFrameworkId - The ID of the selected project.
  * @returns {Object} - An object containing the assessment progress data and loading state.
  * @returns {AssessmentProgress | null} return.AssessmentProgressData - The fetched assessment progress data or null if not yet fetched.
  * @returns {boolean} return.loading - The loading state indicating whether the data is currently being fetched.
  *
  * @example
- * const { assessmentProgress, loading } = useAssessmentProgress({ selectedProjectId: 'project-id' });
+ * const { assessmentProgress, loading } = useAssessmentProgress({ projectFrameworkId: 'project-id' });
  */
 
 const defaultAssessmentProgress = {
@@ -20,10 +20,10 @@ const defaultAssessmentProgress = {
   answeredQuestions: 0,
 };
 const useAssessmentProgress = ({
-  selectedProjectId,
+  projectFrameworkId,
   refreshKey,
 }: {
-  selectedProjectId: string;
+  projectFrameworkId: number;
   refreshKey: boolean;
 }) => {
   const [assessmentProgress, setAssessmentProgress] =
@@ -32,19 +32,19 @@ const useAssessmentProgress = ({
 
   const fetchAssessmentProgress = useCallback(
     async ({ signal }: { signal: AbortSignal }) => {
-      if (!selectedProjectId) return;
+      if (!projectFrameworkId) return;
       if (signal.aborted) return;
 
       setLoading(true);
       try {
         const response = await getEntityById({
-          routeUrl: `/projects/assessment/progress/${selectedProjectId}`,
+          routeUrl: `/eu-ai-act/assessments/progress/${projectFrameworkId}`,
           signal,
         });
-        if (!response.ok) {
-          setAssessmentProgress(defaultAssessmentProgress);
-          console.error(`Failed to fetch progress data: ${response.message}`);
-        }
+        // if (!response.ok) {
+        //   setAssessmentProgress(defaultAssessmentProgress);
+        //   console.error(`Failed to fetch progress data: ${response.message}`);
+        // }
         if (response?.data) {
           setAssessmentProgress(response.data);
         } else {
@@ -57,7 +57,7 @@ const useAssessmentProgress = ({
         setLoading(false);
       }
     },
-    [selectedProjectId, refreshKey]
+    [projectFrameworkId, refreshKey]
   );
   useEffect(() => {
     const controller = new AbortController();
@@ -67,7 +67,7 @@ const useAssessmentProgress = ({
     return () => {
       controller.abort();
     };
-  }, [selectedProjectId, fetchAssessmentProgress]);
+  }, [projectFrameworkId, fetchAssessmentProgress]);
 
   return {
     assessmentProgress,

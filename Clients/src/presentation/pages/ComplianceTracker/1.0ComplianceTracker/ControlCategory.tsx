@@ -26,12 +26,14 @@ interface ControlCategoryProps {
   controlCategory: ControlCategoryModel;
   onComplianceUpdate?: () => void;
   projectId: number;
+  projectFrameworkId: number;
 }
 
 const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
   controlCategory,
   onComplianceUpdate,
   projectId,
+  projectFrameworkId,
 }) => {
   const [expanded, setExpanded] = useState<number | false>(false);
 
@@ -87,6 +89,7 @@ const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
             columns={Table_Columns}
             onComplianceUpdate={onComplianceUpdate}
             projectId={projectId}
+            projectFrameworkId={projectFrameworkId}
           />
         </AccordionDetails>
       </Accordion>

@@ -35,6 +35,7 @@ interface ControlsTableProps {
   onComplianceUpdate?: () => void;
   flashRow?: number | null;
   projectId: number;
+  projectFrameworkId: number;
 }
 
 const ControlsTable: React.FC<ControlsTableProps> = ({
@@ -43,6 +44,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   columns,
   onComplianceUpdate,
   projectId,
+  projectFrameworkId,
 }) => {
   const { dashboardValues } = useContext(VerifyWiseContext);
   const { users } = dashboardValues;
@@ -123,9 +125,9 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
       setLoading(true);
       try {
         const response = await getEntityById({
-          routeUrl: `/controls/all/bycategory/${controlCategoryId}`,
+          routeUrl: `/eu-ai-act/controls/byControlCategoryId/${controlCategoryId}`,
         });
-        setControls(response.data);
+        setControls(response);
       } catch (err) {
         setError(err);
       } finally {
@@ -276,7 +278,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
       </TableContainer>
       {modalOpen && selectedRow !== null && (
         <NewControlPane
-          data={controls.find((c) => c.id === selectedRow)!}
+          _data={controls.find((c) => c.id === selectedRow)!}
           isOpen={modalOpen}
           handleClose={handleCloseModal}
           OnSave={handleSaveSuccess}
@@ -284,6 +286,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
           controlCategoryId={controlCategoryIndex?.toString()}
           onComplianceUpdate={onComplianceUpdate}
           projectId={currentProjectId}
+          projectFrameworkId={projectFrameworkId}
         />
       )}
     </>

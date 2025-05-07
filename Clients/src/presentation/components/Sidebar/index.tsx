@@ -239,19 +239,6 @@ useEffect(() => {
       >
         {collapsed ? <ArrowRight /> : <ArrowLeft />}
       </IconButton>
-      {/* Select */}
-      {!collapsed && (
-        <Stack
-          sx={{
-            padding: theme.spacing(4),
-            justifyContent: "flex-start",
-            width: "fit-content",
-          }}
-          data-joyride-id="select-project"
-          ref={refs[0]}
-        >
-        </Stack>
-      )}
       {/* menu */}
       <List
         component="nav"

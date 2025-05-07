@@ -15,4 +15,5 @@ export type Question = {
   answer?: string;
   subtopic_id: number;
   status: string;
+  answer_id: number;
 };

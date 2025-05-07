@@ -8,7 +8,6 @@ import DescriptionCard from "../../../../components/Cards/DescriptionCard";
 import TeamCard from "../../../../components/Cards/TeamCard";
 import { Project } from "../../../../../domain/types/Project";
 import useProjectData from "../../../../../application/hooks/useProjectData";
-import { useSearchParams } from "react-router-dom";
 import VWSkeleton from "../../../../vw-v2-components/Skeletons";
 import { formatDate } from "../../../../tools/isoDateToString";
 import { useContext, useEffect, useState } from "react";
@@ -18,8 +17,10 @@ import { getEntityById } from "../../../../../application/repository/entity.repo
 import useProjectRisks from "../../../../../application/hooks/useProjectRisks";
 
 const VWProjectOverview = ({ project }: { project?: Project }) => {
-  const [searchParams] = useSearchParams();
-  const projectId = searchParams.get("projectId") ?? "0";
+  const projectId = project!.id;
+  const projectFrameworkId = project?.framework.filter(
+    (p) => p.framework_id === 1
+  )[0].project_framework_id;
   const { dashboardValues } = useContext(VerifyWiseContext);
   const { users } = dashboardValues;
 
@@ -38,12 +39,12 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
     const fetchProgressData = async () => {
       try {
         const complianceData = await getEntityById({
-          routeUrl: `/projects/compliance/progress/${projectId}`,
+          routeUrl: `/eu-ai-act/compliances/progress/${projectFrameworkId}`,
         });
         setComplianceProgress(complianceData.data);
 
         const assessmentData = await getEntityById({
-          routeUrl: `/projects/assessment/progress/${projectId}`,
+          routeUrl: `/eu-ai-act/assessments/progress/${projectFrameworkId}`,
         });
         setAssessmentProgress(assessmentData.data);
       } catch (error) {
@@ -52,7 +53,7 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
     };
 
     fetchProgressData();
-  }, [projectId]);
+  }, [projectFrameworkId]);
 
   console.log("complianceProgress: ", complianceProgress);
   console.log("assessmentProgress: ", assessmentProgress);
@@ -63,7 +64,7 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
     : ({} as User);
 
   const { projectOwner } = useProjectData({
-    projectId: project?.id.toString() || projectId,
+    projectId: String(projectId),
   });
 
   const projectMembers: string[] = project

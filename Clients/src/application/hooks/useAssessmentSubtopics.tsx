@@ -18,8 +18,10 @@ import { Subtopic } from "../../domain/types/Subtopic";
 
 const useAssessmentSubtopics = ({
   activeAssessmentTopicId,
+  projectFrameworkId,
 }: {
   activeAssessmentTopicId: number | undefined;
+  projectFrameworkId?: number;
 }) => {
   const [assessmentSubtopics, setAssessmentSubtopics] = useState<Subtopic[]>(
     []
@@ -34,15 +36,15 @@ const useAssessmentSubtopics = ({
       setLoading(true);
       try {
         const response = await getEntityById({
-          routeUrl: `/subtopics/bytopic/${activeAssessmentTopicId}`,
+          routeUrl: `eu-ai-act/topicById?topicId=${activeAssessmentTopicId}&projectFrameworkId=${projectFrameworkId}`,
           signal,
         });
-        if (!response.ok) {
-          setAssessmentSubtopics([]);
-          console.error(`Failed to fetch subtopics data: ${response.message}`);
-        }
+        // if (!response.ok) {
+        //   setAssessmentSubtopics([]);
+        //   console.error(`Failed to fetch subtopics data: ${response.message}`);
+        // }
         if (response?.data) {
-          setAssessmentSubtopics(response.data);
+          setAssessmentSubtopics(response.data.subTopics);
         } else {
           setAssessmentSubtopics([]);
         }

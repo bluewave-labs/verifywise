@@ -41,6 +41,7 @@ export type ProjectRisk = {
   severity: "Negligible" | "Minor" | "Moderate" | "Major" | "Catastrophic";
   risk_level_autocalculated:
   | "No risk"
+  | "Very low risk"
   | "Low risk"
   | "Medium risk"
   | "High risk"

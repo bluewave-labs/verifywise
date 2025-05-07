@@ -18,6 +18,23 @@ const ISO42001Clauses = () => {
       setExpanded(isExpanded ? panel : false);
     };
 
+  function getStatusColor(status: string) {
+    switch (status) {
+      case "Not Started":
+        return "#C63622";
+      case "Draft":
+        return "#D68B61";
+      case "In Review":
+        return "#D6B971";
+      case "Approved":
+        return "#52AB43";
+      case "Implemented":
+        return "#B8D39C";
+      case "Needs Rework":
+        return "#800080";
+    }
+  }
+
   return (
     <Stack className="iso-42001-clauses">
       {ISO42001ClauseList.map((clause) => (
@@ -74,7 +91,41 @@ const ISO42001Clauses = () => {
                     {"Clause "} {clause.number} {" : "} {clause.title}
                   </Typography>
                 </AccordionSummary>
-                <AccordionDetails sx={{ padding: 0 }}></AccordionDetails>
+                <AccordionDetails sx={{ padding: 0 }}>
+                  {clause.subClauses.map((subClause) => (
+                    <Stack
+                      key={subClause.number}
+                      sx={{
+                        display: "flex",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        padding: "16px",
+                        borderBottom:
+                          clause.subClauses.length - 1 ===
+                          clause.subClauses.indexOf(subClause)
+                            ? "none"
+                            : "1px solid #eaecf0",
+                        cursor: "pointer",
+                        fontSize: 13,
+                      }}
+                    >
+                      <Typography>
+                        {clause.number + "." + subClause.number}{" "}
+                        {subClause.title}
+                      </Typography>
+                      <Stack
+                        sx={{
+                          borderRadius: "4px",
+                          padding: "5px",
+                          backgroundColor: getStatusColor(subClause.status),
+                          color: "#fff",
+                        }}
+                      >
+                        {subClause.status}
+                      </Stack>
+                    </Stack>
+                  ))}
+                </AccordionDetails>
               </Accordion>
             </Stack>
           ))}

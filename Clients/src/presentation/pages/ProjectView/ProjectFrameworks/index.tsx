@@ -17,7 +17,8 @@ import {
   addButtonStyle,
   tabListStyle,
 } from "./styles";
-import ISO42001 from "../../ISO";
+import ISO42001Annex from "../../ISO/Annex";
+import ISO42001Clauses from "../../ISO/Clause";
 
 const frameworks = [
   { label: "EU AI Act", value: "eu-ai-act" },
@@ -93,14 +94,14 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
           <>
             <TabPanel value="clauses" sx={tabPanelStyle}>
               {project ? (
-                <ISO42001 />
+                <ISO42001Clauses />
               ) : (
                 <VWSkeleton variant="rectangular" width="100%" height={400} />
               )}
             </TabPanel>
             <TabPanel value="annexs" sx={tabPanelStyle}>
               {project ? (
-                <ISO42001 />
+                <ISO42001Annex />
               ) : (
                 <VWSkeleton variant="rectangular" width="100%" height={400} />
               )}

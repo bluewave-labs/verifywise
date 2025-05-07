@@ -166,49 +166,6 @@ const VWHome = () => {
       {showToastNotification && (
         <VWToast title="Generating demo data. Please wait..." />
       )}
-      <Stack className="vwhome-header" sx={{ mb: 15 }}>
-        <Typography sx={vwhomeHeading}>
-          All projects compliance status
-        </Typography>
-        <Stack className="vwhome-header-cards" sx={vwhomeHeaderCards}>
-          {projectLoading ? (
-            <VWSkeleton variant="rectangular" sx={headerCardPlaceholder} />
-          ) : (
-            <SmallStatsCard
-              attributeTitle="Compliance tracker"
-              progress={`${
-                complianceProgressData
-                  ? complianceProgressData.allDonesubControls
-                  : 0
-              }/${
-                complianceProgressData
-                  ? complianceProgressData.allsubControls
-                  : 1
-              }`}
-              rate={
-                (complianceProgressData?.allDonesubControls ?? 0) /
-                (complianceProgressData?.allsubControls ?? 1)
-              }
-            />
-          )}
-          {projectLoading ? (
-            <VWSkeleton variant="rectangular" sx={headerCardPlaceholder} />
-          ) : (
-            <SmallStatsCard
-              attributeTitle="Assessment tracker"
-              progress={`${assessmentProgressData?.answeredQuestions ?? 0}/${
-                assessmentProgressData?.totalQuestions ?? 1
-              }`}
-              rate={
-                assessmentProgressData
-                  ? (assessmentProgressData.answeredQuestions ?? 0) /
-                    (assessmentProgressData.totalQuestions ?? 1)
-                  : 0
-              }
-            />
-          )}
-        </Stack>
-      </Stack>
       <Stack className="vwhome-body">
         <Stack sx={vwhomeBody}>
           <Typography sx={vwhomeHeading}>Projects overview</Typography>

@@ -3,6 +3,7 @@
  */
 
 import { Stack } from "@mui/material";
+import ISO42001 from "./ISO";
 
 const Playground = () => {
   return (
@@ -16,7 +17,9 @@ const Playground = () => {
         minHeight: "100vh",
         padding: "20px",
       }}
-    ></Stack>
+    >
+      <ISO42001 />
+    </Stack>
   );
 };
 

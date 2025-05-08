@@ -80,10 +80,10 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
     }
   }, [loading, projectFrameworks, selectedFrameworkId]);
 
-  const currentFramework = useMemo(() =>
-    frameworks.find(fw => Number(fw.id) === selectedFrameworkId),
-    [frameworks, selectedFrameworkId]
-  );
+  // const currentFramework = useMemo(() =>
+  //   frameworks.find(fw => Number(fw.id) === selectedFrameworkId),
+  //   [frameworks, selectedFrameworkId]
+  // );
 
   const handleFrameworkChange = (frameworkId: number) => {
     setSelectedFrameworkId(frameworkId);

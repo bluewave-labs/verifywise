@@ -44,9 +44,9 @@ module.exports = {
         return `(${project.id}, ${framework_id})`
       });
       if (prjectsFrameworksInsert.length > 0) {
-        const prjectsFrameworksInsertString = prjectsFrameworksInsert.join(', ')
+        const projectsFrameworksInsertString = prjectsFrameworksInsert.join(', ')
         await queryInterface.sequelize.query(
-          `INSERT INTO projects_frameworks (project_id, framework_id) VALUES ${prjectsFrameworksInsertString};`, { transaction }
+          `INSERT INTO projects_frameworks (project_id, framework_id) VALUES ${projectsFrameworksInsertString};`, { transaction }
         );
       }
       await transaction.commit();

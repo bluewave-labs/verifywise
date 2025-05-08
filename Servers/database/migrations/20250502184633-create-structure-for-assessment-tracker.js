@@ -1,12 +1,16 @@
-'use strict';
+"use strict";
 
 function getAssessmentTrackerStruct() {
-  const { Topics } = require("../../dist/structures/assessment-tracker/topics.struct");
-  let topics = [], subTopics = [], questions = []
+  const {
+    Topics,
+  } = require("../../dist/structures/assessment-tracker/topics.struct");
+  let topics = [],
+    subTopics = [],
+    questions = [];
   for (let topic of Topics) {
     topics.push({
       title: topic.title,
-      order_no: topic.order_no
+      order_no: topic.order_no,
     });
     for (let subTopic of topic.subtopics) {
       subTopics.push({
@@ -29,8 +33,8 @@ function getAssessmentTrackerStruct() {
   return {
     topics,
     subTopics,
-    questions
-  }
+    questions,
+  };
 }
 
 /** @type {import('sequelize-cli').Migration} */
@@ -53,13 +57,13 @@ module.exports = {
           `UPDATE assessments SET projects_frameworks_id = ${assessment.projects_frameworks_id} WHERE id = ${assessment.assessment_id};`,
           { transaction }
         );
-      };
+      }
       for (let query of [
         `ALTER TABLE assessments ALTER COLUMN project_id DROP NOT NULL;`,
         `ALTER TABLE assessments ALTER COLUMN projects_frameworks_id SET NOT NULL;`,
       ]) {
         await queryInterface.sequelize.query(query, { transaction });
-      };
+      }
 
       const queries = [
         `CREATE TABLE topics_struct_eu (
@@ -98,49 +102,62 @@ module.exports = {
           is_demo BOOLEAN NOT NULL DEFAULT false,
           FOREIGN KEY (assessment_id) REFERENCES assessments(id) ON DELETE CASCADE,
           FOREIGN KEY (question_id) REFERENCES questions_struct_eu(id) ON DELETE CASCADE);`,
-      ]
+      ];
       for (const query of queries) {
         await queryInterface.sequelize.query(query, { transaction });
       }
 
       const { topics, subTopics, questions } = getAssessmentTrackerStruct();
-      const topicsStructInsert = topics.map((topic) => {
-        return `('${topic.title}', ${topic.order_no}, ${1})`;
-      }).join(', ');
-      const topicsStruct = await queryInterface.sequelize.query(`INSERT INTO topics_struct_eu (title, order_no, framework_id) VALUES ${topicsStructInsert} RETURNING id;`, { transaction });
+      const topicsStructInsert = topics
+        .map((topic) => {
+          return `('${topic.title}', ${topic.order_no}, ${1})`;
+        })
+        .join(", ");
+      const topicsStruct = await queryInterface.sequelize.query(
+        `INSERT INTO topics_struct_eu (title, order_no, framework_id) VALUES ${topicsStructInsert} RETURNING id;`,
+        { transaction }
+      );
 
       let subTopicsStructInsert = subTopics.map((subTopic) => {
         return `('${subTopic.title}', ${subTopic.order_no}`;
-      })
+      });
       let tCtr = 0;
       let stCtr1 = 0;
-      [2, 2, 2, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1].forEach(skip => {
+      [2, 2, 2, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1].forEach((skip) => {
         for (let i = 0; i < skip; i++) {
-          subTopicsStructInsert[stCtr1] = subTopicsStructInsert[stCtr1].concat(`, ${topicsStruct[0][tCtr].id})`);
+          subTopicsStructInsert[stCtr1] = subTopicsStructInsert[stCtr1].concat(
+            `, ${topicsStruct[0][tCtr].id})`
+          );
           stCtr1++;
         }
         tCtr++;
       });
-      subTopicsStructInsert = subTopicsStructInsert.join(', ');
-      const subTopicsStruct = await queryInterface.sequelize.query(`
+      subTopicsStructInsert = subTopicsStructInsert.join(", ");
+      const subTopicsStruct = await queryInterface.sequelize.query(
+        `
         INSERT INTO subtopics_struct_eu (title, order_no, topic_id) VALUES ${subTopicsStructInsert} RETURNING id;`,
         { transaction }
       );
 
       let questionsStructInsert = questions.map((question) => {
         return `('${question.question}', '${question.hint}', '${question.priority_level}', '${question.answer_type}', '${question.input_type}', ${question.evidence_required}, ${question.is_required}`;
-      })
+      });
       let stCtr2 = 0;
       let qCtr = 0;
-      [4, 4, 3, 4, 8, 8, 3, 4, 4, 3, 2, 2, 3, 3, 3, 3, 4, 3, 2].forEach(skip => {
-        for (let i = 0; i < skip; i++) {
-          questionsStructInsert[qCtr] = questionsStructInsert[qCtr].concat(`, ${subTopicsStruct[0][stCtr2].id})`);
-          qCtr++;
+      [4, 4, 3, 4, 8, 8, 3, 4, 4, 3, 2, 2, 3, 3, 3, 3, 4, 3, 2].forEach(
+        (skip) => {
+          for (let i = 0; i < skip; i++) {
+            questionsStructInsert[qCtr] = questionsStructInsert[qCtr].concat(
+              `, ${subTopicsStruct[0][stCtr2].id})`
+            );
+            qCtr++;
+          }
+          stCtr2++;
         }
-        stCtr2++;
-      });
-      questionsStructInsert = questionsStructInsert.join(', ');
-      const questionStruct = await queryInterface.sequelize.query(`
+      );
+      questionsStructInsert = questionsStructInsert.join(", ");
+      const questionStruct = await queryInterface.sequelize.query(
+        `
         INSERT INTO questions_struct_eu (question, hint, priority_level, answer_type, input_type, evidence_required, is_required, subtopic_id) VALUES ${questionsStructInsert} RETURNING id, question;`,
         { transaction }
       );
@@ -157,38 +174,55 @@ module.exports = {
               FROM questions q JOIN subtopics st ON q.subtopic_id = st.id JOIN topics t ON st.topic_id = t.id;`,
         { type: Sequelize.QueryTypes.SELECT, transaction }
       );
-      const answersInsert = questionAnswers.map((question) => {
-        let question_ = question.question.replaceAll("''", "'");
-        if (question_.includes("What are the legal bases for processing")) {
-          question_ = "What are the legal bases for processing personal and sensitive data? What measures are in place to ensure that the processing logic remains consistent with the original purpose for which consent was obtained, and that data is deleted after the stipulated period?"
-        } else if (question_.includes("How is human oversight empowered")) {
-          question_ = "How is human oversight empowered to stop or alter the AI system's operations, ensuring the ability to intervene throughout its lifecycle and mitigate fundamental rights risks?"
-        }
-        return `(
+      const answersInsert = questionAnswers
+        .map((question) => {
+          let question_ = question.question.replaceAll("''", "'");
+          if (question_.includes("What are the legal bases for processing")) {
+            question_ =
+              "What are the legal bases for processing personal and sensitive data? What measures are in place to ensure that the processing logic remains consistent with the original purpose for which consent was obtained, and that data is deleted after the stipulated period?";
+          } else if (question_.includes("How is human oversight empowered")) {
+            question_ =
+              "How is human oversight empowered to stop or alter the AI system's operations, ensuring the ability to intervene throughout its lifecycle and mitigate fundamental rights risks?";
+          }
+          return `(
           ${question.assessment_id}, 
           ${questionsStructMap.get(question_)}, 
-          ${question.answer ? `'${question.answer.replace(/'/g, "''")}'` : null}, 
-          ${question.evidence_files ? `'${JSON.stringify(question.evidence_files)}'` : null}, 
-          ${question.dropdown_options?.length ? `'${question.dropdown_options}'` : null}, 
+          ${
+            question.answer ? `'${question.answer.replace(/'/g, "''")}'` : null
+          }, 
+          ${
+            question.evidence_files
+              ? `'${JSON.stringify(question.evidence_files)}'`
+              : null
+          }, 
+          ${
+            question.dropdown_options?.length
+              ? `'${question.dropdown_options}'`
+              : null
+          }, 
           '${question.status}', 
           '${new Date(question.created_at).toISOString()}',
           ${question.is_demo})`;
-      }).join(', ');
-      await queryInterface.sequelize.query(
-        `INSERT INTO answers_eu (
+        })
+        .join(", ");
+      if (answersInsert) {
+        await queryInterface.sequelize.query(
+          `INSERT INTO answers_eu (
           assessment_id, question_id, answer, evidence_files, dropdown_options, status, created_at, is_demo
         ) VALUES ${answersInsert};`,
-        { transaction }
-      );
+          { transaction }
+        );
+      }
       for (let query of [
         "DELETE FROM questions WHERE 1=1;",
         "DELETE FROM subtopics WHERE 1=1;",
         "DELETE FROM topics WHERE 1=1;",
       ]) {
         await queryInterface.sequelize.query(query, { transaction });
-      };
+      }
       await transaction.commit();
     } catch (error) {
+      console.log("error --", error);
       await transaction.rollback();
       throw error;
     }
@@ -220,7 +254,7 @@ module.exports = {
             ORDER BY a.assessment_id, t.id, st.id, q.id;`
       );
 
-      let ctr = 0
+      let ctr = 0;
       let topicId = null;
       let subtopicId = null;
       while (ctr < allAssessments[0].length) {
@@ -228,32 +262,55 @@ module.exports = {
         if (!topicId) {
           const result = await queryInterface.sequelize.query(
             `INSERT INTO topics (title, order_no, assessment_id, created_at) VALUES (
-              '${record.t_title}', ${record.t_order_no}, ${record.a_assessment_id}, '${new Date(record.a_created_at).toISOString()}'
+              '${record.t_title}', ${record.t_order_no}, ${
+              record.a_assessment_id
+            }, '${new Date(record.a_created_at).toISOString()}'
             ) RETURNING id;`,
             { transaction }
           );
           topicId = result[0][0].id;
-        };
+        }
 
         if (!subtopicId) {
           const result = await queryInterface.sequelize.query(
             `INSERT INTO subtopics (title, order_no, topic_id, created_at) VALUES (
-              '${record.st_title}', ${record.st_order_no}, ${topicId}, '${new Date(record.a_created_at).toISOString()}'
+              '${record.st_title}', ${
+              record.st_order_no
+            }, ${topicId}, '${new Date(record.a_created_at).toISOString()}'
             ) RETURNING id;`,
             { transaction }
           );
           subtopicId = result[0][0].id;
-        };
+        }
 
         await queryInterface.sequelize.query(
           `INSERT INTO questions (
             order_no, question, hint, priority_level, answer_type, input_type, evidence_required, is_required, 
             dropdown_options, answer, subtopic_id, is_demo, created_at, evidence_files, status
           ) VALUES (
-            ${record.q_order_no}, '${record.q_question.replace(/'/g, "''")}', '${record.q_hint.replace(/'/g, "''")}', '${record.q_priority_level}', '${record.q_answer_type}', '${record.q_input_type}', 
-            ${record.q_evidence_required}, ${record.q_is_required}, ${record.a_dropdown_options?.length ? `'${record.a_dropdown_options}'` : null}, 
-            ${record.a_answer ? `'${record.a_answer.replace(/'/g, "''")}'` : null}, ${subtopicId}, ${record.a_is_demo}, '${new Date(record.a_created_at).toISOString()}', 
-            ${record.a_evidence_files ? `'${JSON.stringify(record.a_evidence_files)}'` : null}, '${record.a_status}'
+            ${record.q_order_no}, '${record.q_question.replace(
+            /'/g,
+            "''"
+          )}', '${record.q_hint.replace(/'/g, "''")}', '${
+            record.q_priority_level
+          }', '${record.q_answer_type}', '${record.q_input_type}', 
+            ${record.q_evidence_required}, ${record.q_is_required}, ${
+            record.a_dropdown_options?.length
+              ? `'${record.a_dropdown_options}'`
+              : null
+          }, 
+            ${
+              record.a_answer
+                ? `'${record.a_answer.replace(/'/g, "''")}'`
+                : null
+            }, ${subtopicId}, ${record.a_is_demo}, '${new Date(
+            record.a_created_at
+          ).toISOString()}', 
+            ${
+              record.a_evidence_files
+                ? `'${JSON.stringify(record.a_evidence_files)}'`
+                : null
+            }, '${record.a_status}'
           );`,
           { transaction }
         );
@@ -287,10 +344,10 @@ module.exports = {
       // migrate the data from the new column to the old column
       const queries = [
         `ALTER TABLE assessments DROP COLUMN projects_frameworks_id;`,
-        'DROP TABLE IF EXISTS answers_eu CASCADE;',
-        'DROP TABLE IF EXISTS questions_struct_eu CASCADE;',
-        'DROP TABLE IF EXISTS topics_struct_eu CASCADE;',
-        'DROP TABLE IF EXISTS subtopics_struct_eu CASCADE;',
+        "DROP TABLE IF EXISTS answers_eu CASCADE;",
+        "DROP TABLE IF EXISTS questions_struct_eu CASCADE;",
+        "DROP TABLE IF EXISTS topics_struct_eu CASCADE;",
+        "DROP TABLE IF EXISTS subtopics_struct_eu CASCADE;",
       ];
 
       for (const query of queries) {
@@ -301,5 +358,5 @@ module.exports = {
       await transaction.rollback();
       throw error;
     }
-  }
+  },
 };

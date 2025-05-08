@@ -16,11 +16,13 @@ import {
   getFrameworkTabStyle,
   addButtonStyle,
   tabListStyle,
-} from './styles';
+} from "./styles";
+import ISO42001Annex from "../../ISO/Annex";
+import ISO42001Clauses from "../../ISO/Clause";
 
 const trackerTabs = [
-  { label: 'Compliance tracker', value: 'compliance' },
-  { label: 'Assessment tracker', value: 'assessment' },
+  { label: "Compliance tracker", value: "compliance" },
+  { label: "Assessment tracker", value: "assessment" },
 ];
 
 const ComingSoonMessage = () => (
@@ -106,7 +108,7 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
       </Box>
     );
   }
-
+  
   return (
     <Box sx={containerStyle}>
       {/* Framework Tabs and Add Button */}
@@ -136,14 +138,14 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
       </Box>
 
       {/* Tracker Tabs */}
-      <TabContext value={tracker}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 1 }}>
+      <TabContext value={currentValue}>
+        <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 1 }}>
           <TabList
-            onChange={(_, v) => setTracker(v)}
-            TabIndicatorProps={{ style: { backgroundColor: '#13715B' } }}
+            onChange={(_, v) => setCurrentValue(v)}
+            TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
             sx={tabListStyle}
           >
-            {trackerTabs.map(tab => (
+            {currentTabs.map((tab) => (
               <Tab
                 key={tab.value}
                 sx={tabStyle}

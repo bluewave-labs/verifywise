@@ -33,9 +33,10 @@ export const modalCloseButtonStyle: SxProps<Theme> = {
 
 export const modalDescriptionStyle: SxProps<Theme> = {
   color: '#6B7280',
-  mb: 3,
+  mb: 6,
   fontSize: 14,
   textAlign: 'left',
+  mt: 6,
 };
 
 export const frameworkCardStyle: SxProps<Theme> = {
@@ -64,6 +65,7 @@ export const frameworkCardDescriptionStyle: SxProps<Theme> = {
   color: '#6B7280',
   fontSize: 14,
   textAlign: 'left',
+  mb: 2,
 };
 
 export const modalDoneButtonStyle: SxProps<Theme> = {

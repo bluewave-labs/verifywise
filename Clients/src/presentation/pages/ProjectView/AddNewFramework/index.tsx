@@ -24,6 +24,14 @@ interface AddFrameworkModalProps {
 }
 
 const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({ open, onClose, frameworks, project }) => {
+  frameworks = [...frameworks, {
+    id: '2',
+    framework_id: '2',
+    name: 'ISO 42001',
+    description: 'ISO 42001 is a framework for managing and improving the quality of products and services.',
+    is_demo: false,
+    project_id: '',
+  }];
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={modalContainerStyle}>
@@ -39,7 +47,7 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({ open, onClose, fr
           <Typography sx={modalDescriptionStyle}>
             Add or remove AI frameworks to your platform. Selected frameworks will be integrated into your compliance workflow.
           </Typography>
-          <Stack spacing={3}>
+          <Stack spacing={6}>
             {frameworks.map(fw => {
               const isAdded = project.framework?.some(pf => Number(pf.framework_id) === Number(fw.id));
               return (

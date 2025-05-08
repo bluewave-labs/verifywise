@@ -1,7 +1,7 @@
 import { ProjectRisk, ProjectRiskModel } from "../models/projectRisk.model";
 import { sequelize } from "../database/db";
 import { ProjectsMembers, ProjectsMembersModel } from "../models/projectsMembers.model";
-
+import { FileModel } from "../models/file.model";
 
 export const getProjectRisksReportQuery = async (
   projectId: number
@@ -30,3 +30,14 @@ export const getMembersByProjectIdQuery = async (
   );
   return members;
 };
+
+export const getGeneratedReportsQuery = async () => {
+  const reports = await sequelize.query(
+    "SELECT * FROM files WHERE source = 'Report'",
+    {
+      mapToModel: true,
+      model: FileModel
+    }
+  );
+  return reports;
+}

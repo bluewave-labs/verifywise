@@ -9,7 +9,7 @@ export type AnnexCategoryISO = {
   justification_for_exclusion: string;
   implementation_description: string;
   evidence_links: Object[];
-  status: string;
+  status: "Not Started" | "Draft" | "In Progress" | "Awaiting Review" | "Awaiting Approval" | "Implemented" | "Audited" | "Needs Rework";
   owner: number;
   reviewer: number;
   approver: number;
@@ -53,9 +53,16 @@ export class AnnexCategoryISOModel extends Model<AnnexCategoryISO> {
   evidence_links?: Object[];
 
   @Column({
-    type: DataType.STRING
+    type: DataType.ENUM("Not Started", "Draft", "In Progress", "Awaiting Review", "Awaiting Approval", "Implemented", "Audited", "Needs Rework")
   })
-  status?: string;
+  status?: "Not Started" |
+    "Draft" |
+    "In Progress" |
+    "Awaiting Review" |
+    "Awaiting Approval" |
+    "Implemented" |
+    "Audited" |
+    "Needs Rework";
 
   @ForeignKey(() => UserModel)
   @Column({

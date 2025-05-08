@@ -30,7 +30,6 @@ export async function getFileMetaByProjectId(
 ): Promise<any> {
   try {
     const id = req.params.id
-    console.log("File ID:", id); // Debugging log
     // id validations
     if (!id) {
       return res.status(400).json(STATUS_CODE[400]("File ID is required"));
@@ -40,7 +39,6 @@ export async function getFileMetaByProjectId(
       return res.status(400).json(STATUS_CODE[400]("Invalid File ID"));
     }
     const files = await getFileMetadataByProjectId(fileId);
-    console.log("Files:", files); // Debugging log
     if (files && files.length > 0) {
       return res.status(200).send(files);
     }

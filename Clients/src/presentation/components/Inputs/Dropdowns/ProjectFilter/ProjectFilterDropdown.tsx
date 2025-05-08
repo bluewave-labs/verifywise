@@ -8,11 +8,6 @@ const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
   selectedProject,
   onChange,
 }) => {
-  //remove duplicate projects
-  const uniqueProjects = Array.from(
-    new Map(projects.map((project) => [project.name.toLowerCase(), project])).values()
-  );
-  console.log("Unique Projects in Dropdown:", uniqueProjects); // Debugging log
   return (
     <FormControl
       sx={{
@@ -23,9 +18,7 @@ const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
       <Select
         id="project-filter"
         value={selectedProject || ""}
-        onChange={(e) =>
-        {  console.log("selected project ID:", e.target.value);
-           onChange(e.target.value || null)}}
+        onChange={(e) => onChange(e.target.value || null)}
         displayEmpty
         sx={{
           ...inputStyles,
@@ -34,7 +27,7 @@ const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
       >
         <MenuItem value="">Select a project</MenuItem>
         <MenuItem value="all">All Files</MenuItem>
-        {uniqueProjects.map((project) => (
+        {projects.map((project) => (
           <MenuItem key={project.id} value={project.id}>
             {project.name}
           </MenuItem>

@@ -292,8 +292,8 @@ export async function getProjectAssessmentProgress(req: Request, res: Response) 
     const { totalAssessments, answeredAssessments } = await countAnswersEUByProjectId(projectFrameworkId);
     return res.status(200).json(
       STATUS_CODE[200]({
-        totalQuestions: totalAssessments,
-        answeredQuestions: answeredAssessments,
+        totalQuestions: parseInt(totalAssessments),
+        answeredQuestions: parseInt(answeredAssessments),
       })
     );
   } catch (error) {
@@ -313,8 +313,8 @@ export async function getProjectComplianceProgress(req: Request, res: Response) 
     const { totalSubcontrols, doneSubcontrols } = await countSubControlsEUByProjectId(projectFrameworkId);
     return res.status(200).json(
       STATUS_CODE[200]({
-        allsubControls: totalSubcontrols,
-        allDonesubControls: doneSubcontrols,
+        allsubControls: parseInt(totalSubcontrols),
+        allDonesubControls: parseInt(doneSubcontrols),
       })
     );
   } catch (error) {

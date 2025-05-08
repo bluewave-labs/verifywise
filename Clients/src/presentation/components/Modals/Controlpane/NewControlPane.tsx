@@ -37,7 +37,7 @@ const tabStyle = {
 };
 
 const NewControlPane = ({
-  _data,
+  data,
   isOpen,
   handleClose,
   controlCategoryId,
@@ -45,9 +45,8 @@ const NewControlPane = ({
   OnError,
   onComplianceUpdate,
   projectId,
-  projectFrameworkId,
 }: {
-  _data: Control;
+  data: Control;
   isOpen: boolean;
   handleClose: () => void;
   controlCategoryId?: string;
@@ -55,11 +54,8 @@ const NewControlPane = ({
   OnError?: () => void;
   onComplianceUpdate?: () => void;
   projectId: number;
-  projectFrameworkId: number;
 }) => {
   const theme = useTheme();
-  const [data, setData] = useState<Control>(_data);
-  const [loading, setLoading] = useState<boolean>(true);
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
   const [alert, setAlert] = useState<{
@@ -76,35 +72,6 @@ const NewControlPane = ({
     };
   }>({});
   const context = useContext(VerifyWiseContext);
-
-  useEffect(() => {
-    const fetchControls = async () => {
-      setLoading(true);
-      const response = await getEntityById({
-        routeUrl: `eu-ai-act/controlById?controlId=${_data.id}&projectFrameworkId=${projectFrameworkId}`,
-      });
-      setData(response.data);
-      setLoading(false);
-      setState({
-        order_no: response.data.order_no,
-        id: response.data.id,
-        title: response.data.title,
-        description: response.data.description,
-        status: response.data.status,
-        approver: response.data.approver,
-        risk_review: response.data.risk_review,
-        owner: response.data.owner,
-        reviewer: response.data.reviewer,
-        implementation_details: response.data.implementation_details,
-        due_date: response.data.due_date,
-        control_category_id: response.data.control_category_id, // Added missing property
-    
-        subControls: response.data.subControls,
-      })
-    };
-
-    fetchControls();
-  }, [isOpen])
 
   const sanitizeField = (value: string | undefined | null): string => {
     if (!value || value === "undefined") {
@@ -365,16 +332,6 @@ const NewControlPane = ({
   const handleCloseWrapper = () => {
     handleClose();
   };
-
-  if (loading) {
-    return (
-      <Stack spacing={2}>
-        <VWSkeleton variant="rectangular" width="100%" height={36} />
-        <VWSkeleton variant="rectangular" width="100%" height={36} />
-        <VWSkeleton variant="rectangular" width="100%" height={36} />
-      </Stack>
-    );
-  }
 
   return (
     <>

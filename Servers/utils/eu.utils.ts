@@ -122,6 +122,22 @@ export const getTopicByIdForProjectQuery = async (
   return topic;
 }
 
+const getSubControlsCalculations = async (
+  controlId: number,
+) => {
+  const result = await sequelize.query(
+    `SELECT COUNT(*) AS "numberOfSubcontrols", COUNT(CASE WHEN sc.status = 'Done' THEN 1 END) AS "numberOfDoneSubcontrols" FROM
+      controls_eu c JOIN subcontrols_eu sc ON c.id = sc.control_id WHERE c.id = :control_id;`,
+    {
+      replacements: { control_id: controlId },
+    }
+  ) as [{ numberOfSubcontrols: string; numberOfDoneSubcontrols: string }[], number];
+  return result[0][0] as {
+    numberOfSubcontrols: string;
+    numberOfDoneSubcontrols: string;
+  };
+}
+
 export const getControlByIdForProjectQuery = async (
   controlStructId: number,
   projectFrameworkId: number
@@ -139,6 +155,9 @@ export const getControlByIdForProjectQuery = async (
   for (let subControl of subControls) {
     (control as any).subControls.push({ ...subControl });
   }
+  const subControlsCalculations = await getSubControlsCalculations(control.id!);
+  (control as any).numberOfSubcontrols = parseInt(subControlsCalculations.numberOfSubcontrols);
+  (control as any).numberOfDoneSubcontrols = parseInt(subControlsCalculations.numberOfDoneSubcontrols);
   return control;
 }
 
@@ -571,6 +590,9 @@ export const updateControlEUByIdQuery = async (
       return true
     }
   }).map(f => `${f} = :${f}`).join(", ");
+  if (!setClause) {
+    return control as ControlEU;
+  }
 
   const query = `UPDATE controls_eu SET ${setClause} WHERE id = :id RETURNING *;`;
 
@@ -593,7 +615,7 @@ export const updateSubcontrolEUByIdQuery = async (
   feedbackUploadedFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[] = [],
   deletedFiles: number[] = [],
   transaction: Transaction
-): Promise<SubcontrolEU | null> => {
+): Promise<SubcontrolEU> => {
   const files = await sequelize.query(
     `SELECT evidence_files, feedback_files FROM subcontrols_eu WHERE id = :id`,
     {
@@ -649,7 +671,7 @@ export const updateSubcontrolEUByIdQuery = async (
   }).join(", ");
 
   if (setClause.length === 0) {
-    return null;
+    return subcontrol as SubcontrolEU;
   }
 
   const query = `UPDATE subcontrols_eu SET ${setClause} WHERE id = :id RETURNING *;`;

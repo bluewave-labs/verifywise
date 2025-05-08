@@ -179,7 +179,7 @@ module.exports = {
           '${new Date(control.created_at).toISOString()}', 
           ${control.id})`;
       });
-      if (controlsInsert.length === 0) {
+      if (controlsInsert.length > 0) {
         const controlsInsertString = controlsInsert.join(', ');
         const controlsEU = await queryInterface.sequelize.query(
           `INSERT INTO controls_eu (
@@ -215,7 +215,7 @@ module.exports = {
             ${subControlsStructMap.get(title_)}, 
             ${subControl.is_demo}, 
             ${subControl.evidence_files ? `'${JSON.stringify(subControl.evidence_files)}'` : null}, 
-            ${subControl.feedback_filed ? `'${JSON.stringify(subControl.feedback_filed)}'` : null}, 
+            ${subControl.feedback_files ? `'${JSON.stringify(subControl.feedback_files)}'` : null}, 
             ${subControl.evidence_description ? `'${subControl.evidence_description}'` : null},
             ${subControl.feedback_description ? `'${subControl.feedback_description}'` : null}, 
             '${new Date(subControl.created_at).toISOString()}')`;

@@ -42,10 +42,13 @@ module.exports = {
       );
       const prjectsFrameworksInsert = projectsQuery[0].map((project) => {
         return `(${project.id}, ${framework_id})`
-      }).join(', ');
-      await queryInterface.sequelize.query(
-        `INSERT INTO projects_frameworks (project_id, framework_id) VALUES ${prjectsFrameworksInsert};`, { transaction }
-      );
+      });
+      if (prjectsFrameworksInsert.length > 0) {
+        const prjectsFrameworksInsertString = prjectsFrameworksInsert.join(', ')
+        await queryInterface.sequelize.query(
+          `INSERT INTO projects_frameworks (project_id, framework_id) VALUES ${prjectsFrameworksInsertString};`, { transaction }
+        );
+      }
       await transaction.commit();
     } catch (error) {
       await transaction.rollback();

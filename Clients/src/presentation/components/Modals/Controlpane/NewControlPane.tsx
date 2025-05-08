@@ -79,7 +79,7 @@ const NewControlPane = ({
     return value;
   };
 
-  const initialSubControlState = (data.subControls || []).length > 0 && data
+  const initialSubControlState = data
     .subControls!.slice()
     .sort((a, b) => a.order_no! - b.order_no!)
     .map((subControl: Subcontrol) => ({

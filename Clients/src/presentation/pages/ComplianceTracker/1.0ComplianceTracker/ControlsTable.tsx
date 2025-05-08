@@ -127,15 +127,14 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
         const response = await getEntityById({
           routeUrl: `/eu-ai-act/controls/byControlCategoryId/${controlCategoryId}`,
         });
-        for (const control of response) {
+        let _response = []
+        for (let control of response) {
           const subControlsResponse = await getEntityById({
             routeUrl: `eu-ai-act/controlById?controlId=${control.id}&projectFrameworkId=${projectFrameworkId}`,
           });
-          control.subControls = subControlsResponse.data.subControls;
-          control.numberOfSubcontrols = subControlsResponse.data.numberOfSubcontrols;
-          control.numberOfDoneSubcontrols = subControlsResponse.data.numberOfDoneSubcontrols;
+          _response.push({...subControlsResponse.data, ...control});
         }
-        setControls(response);
+        setControls(_response);
       } catch (err) {
         setError(err);
       } finally {

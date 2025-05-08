@@ -1,4 +1,6 @@
-export const ContextOfOrganization = [
+import { SubClauseStructISO } from "../../../../models/ISO-42001/subClauseStructISO.model";
+
+export const ContextOfOrganization: SubClauseStructISO[] = [
   {
     title: "Understanding the organization and its context",
     order_no: 1,

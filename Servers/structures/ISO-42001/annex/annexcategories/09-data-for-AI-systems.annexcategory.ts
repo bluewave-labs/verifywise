@@ -1,4 +1,6 @@
-export const DataForAISystems = [
+import { AnnexCategoryStructISO } from "../../../../models/ISO-42001/annexCategoryStructISO.model";
+
+export const DataForAISystems: AnnexCategoryStructISO[] = [
   {
     sub_id: 1.1,
     order_no: 1,

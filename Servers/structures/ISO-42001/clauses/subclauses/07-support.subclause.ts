@@ -1,4 +1,6 @@
-export const Support = [
+import { SubClauseStructISO } from "../../../../models/ISO-42001/subClauseStructISO.model";
+
+export const Support: SubClauseStructISO[] = [
   {
     title: "Resources",
     order_no: 1,

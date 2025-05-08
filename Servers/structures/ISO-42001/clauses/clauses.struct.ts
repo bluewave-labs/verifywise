@@ -5,8 +5,9 @@ import { Support } from "./subclauses/07-support.subclause";
 import { Operation } from "./subclauses/08-operation.subclause";
 import { PerformanceEvaluation } from "./subclauses/09-performance-evaluation.subclause";
 import { Improvement } from "./subclauses/10-improvement.subclause";
+import { ClauseStructISO } from "../../../models/ISO-42001/clauseStructISO.model";
 
-export const Clauses = [
+export const Clauses: ClauseStructISO[] = [
   {
     title: "Context of the Organization",
     clause_no: 4,

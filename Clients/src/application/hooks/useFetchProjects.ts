@@ -13,6 +13,7 @@ export const useProjectData = () => {
       setProjects(response.data);
     } catch (error) {
       // Handle error
+      console.error("Error fetching projects:", error);
     } finally {
       setLoading(false);
     }

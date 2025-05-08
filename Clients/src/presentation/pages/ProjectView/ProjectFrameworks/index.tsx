@@ -41,13 +41,13 @@ const ISO_42001_TABS = [
 type TrackerTab = typeof TRACKER_TABS[number]['value'];
 type ISO42001Tab = typeof ISO_42001_TABS[number]['value'];
 
-interface Framework {
-  id: number;
-  name: string;
-  description: string;
-  is_demo: boolean;
-  project_id: string;
-}
+// interface Framework {
+//   id: number;
+//   name: string;
+//   description: string;
+//   is_demo: boolean;
+//   project_id: string;
+// }
 
 const ProjectFrameworks = ({ project }: { project: Project }) => {
   const { frameworks, loading, error, refreshFrameworks } = useFrameworks();
@@ -90,32 +90,32 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
     setTracker(frameworkId === FRAMEWORK_IDS.ISO_42001 ? 'clauses' : 'compliance');
   };
 
-  const renderFrameworkContent = () => {
-    if (!project) {
-      return <VWSkeleton variant="rectangular" width="100%" height={400} />;
-    }
+  // const renderFrameworkContent = () => {
+  //   if (!project) {
+  //     return <VWSkeleton variant="rectangular" width="100%" height={400} />;
+  //   }
 
-    const isEUAIAct = Number(currentFramework?.id) === FRAMEWORK_IDS.EU_AI_ACT;
-    const isISO42001 = Number(currentFramework?.id) === FRAMEWORK_IDS.ISO_42001;
+  //   const isEUAIAct = Number(currentFramework?.id) === FRAMEWORK_IDS.EU_AI_ACT;
+  //   const isISO42001 = Number(currentFramework?.id) === FRAMEWORK_IDS.ISO_42001;
 
-    if (isEUAIAct) {
-      return tracker === 'compliance' ? (
-        <ComplianceTracker project={project} />
-      ) : (
-        <AssessmentTracker project={project} />
-      );
-    }
+  //   if (isEUAIAct) {
+  //     return tracker === 'compliance' ? (
+  //       <ComplianceTracker project={project} />
+  //     ) : (
+  //       <AssessmentTracker project={project} />
+  //     );
+  //   }
 
-    if (isISO42001) {
-      return tracker === 'clauses' ? (
-        <ISO42001Clauses />
-      ) : (
-        <ISO42001Annex />
-      );
-    }
+  //   if (isISO42001) {
+  //     return tracker === 'clauses' ? (
+  //       <ISO42001Clauses />
+  //     ) : (
+  //       <ISO42001Annex />
+  //     );
+  //   }
 
-    return null;
-  };
+  //   return null;
+  // };
 
   if (error) {
     return (

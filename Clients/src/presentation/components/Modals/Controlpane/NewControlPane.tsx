@@ -11,9 +11,9 @@ import {
 } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import DropDowns from "../../Inputs/Dropdowns";
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext } from "react";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
-import { getEntityById, updateEntityById } from "../../../../application/repository/entity.repository";
+import { updateEntityById } from "../../../../application/repository/entity.repository";
 import { Subcontrol } from "../../../../domain/types/Subcontrol";
 import { Control } from "../../../../domain/types/Control";
 import { FileData } from "../../../../domain/types/File";
@@ -22,7 +22,6 @@ import VWToast from "../../../vw-v2-components/Toast";
 import SaveIcon from "@mui/icons-material/Save";
 import VWButton from "../../../vw-v2-components/Buttons";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import VWSkeleton from "../../../vw-v2-components/Skeletons";
 
 const tabStyle = {
   textTransform: "none",

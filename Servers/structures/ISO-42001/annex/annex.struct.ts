@@ -4,7 +4,7 @@ import { ResourcesForAISystems } from "./annexcategories/07-resource-for-AI-syst
 import { AISystemLifecycle } from "./annexcategories/08-AI-system-lifecycle.annexcategory";
 import { DataForAISystems } from "./annexcategories/09-data-for-AI-systems.annexcategory";
 import { ICT } from "./annexcategories/10-ict.annexcategory";
-import { ThirdPartyRelationships } from "./annexcategories/11-third-party-relatioships.annexcategory";
+import { ThirdPartyRelationships } from "./annexcategories/11-third-party-relationships.annexcategory";
 
 export const Annex = [
   {

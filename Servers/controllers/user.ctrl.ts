@@ -125,7 +125,7 @@ async function loginUser(req: Request, res: Response): Promise<any> {
         );
         res.cookie("refresh_token", refreshToken, {
           httpOnly: true,
-          path: "/users",
+          path: "/api/users",
           expires: new Date(Date.now() + 1 * 3600 * 1000 * 24 * 30), // 30 days
           secure: process.env.NODE_ENV === "production",
           sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",

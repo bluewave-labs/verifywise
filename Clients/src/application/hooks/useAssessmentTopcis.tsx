@@ -16,31 +16,26 @@ import { Topic } from "../../domain/types/Topic";
  * const { assessmentTopics, loading } = useAssessmentTopics({ assessmentId: "12345" });
  */
 
-const useAssessmentTopics = ({
-  assessmentId,
-}: {
-  assessmentId: string | undefined;
-}) => {
+const useAssessmentTopics = () => {
   const [assessmentTopics, setAssessmentTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   const fetchAssessmentTopics = useCallback(
     async ({ signal }: { signal: AbortSignal }) => {
-      if (!assessmentId) return;
       if (signal.aborted) return;
 
       setLoading(true);
       try {
         const response = await getEntityById({
-          routeUrl: `/topics/byassessmentid/${assessmentId}`,
+          routeUrl: `eu-ai-act/topics`,
           signal,
         });
-        if (!response.ok) {
-          setAssessmentTopics([]);
-          console.error(`Failed to fetch topics data: ${response.message}`);
-        }
-        if (response?.data) {
-          setAssessmentTopics(response.data);
+        // if (!response.ok) {
+        //   setAssessmentTopics([]);
+        //   console.error(`Failed to fetch topics data: ${response.message}`);
+        // }
+        if (response) {
+          setAssessmentTopics(response);
         } else {
           setAssessmentTopics([]);
         }
@@ -51,7 +46,7 @@ const useAssessmentTopics = ({
         setLoading(false);
       }
     },
-    [assessmentId]
+    []
   );
   useEffect(() => {
     const controller = new AbortController();
@@ -61,7 +56,7 @@ const useAssessmentTopics = ({
     return () => {
       controller.abort();
     };
-  }, [assessmentId, fetchAssessmentTopics]);
+  }, [fetchAssessmentTopics]);
 
   return {
     assessmentTopics,

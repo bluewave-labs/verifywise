@@ -22,6 +22,7 @@ import mailRoutes from "./routes/vwmailer.route";
 import controlCategory from "./routes/controlCategory.route";
 import euRouter from "./routes/eu.route";
 import reportRoutes from "./routes/reporting.route";
+import frameworks from "./routes/frameworks.route";
 
 import autoDriverRoutes from "./routes/autoDriver.route";
 import swaggerUi from "swagger-ui-express";
@@ -70,29 +71,30 @@ try {
   app.use(cookieParser());
 
   // Routes
-  app.use("/users", userRoutes);
-  app.use("/vendorRisks", vendorRiskRoutes);
-  app.use("/vendors", vendorRoutes);
-  app.use("/projects", projectRoutes);
-  app.use("/questions", questionRoutes);
-  app.use("/autoDrivers", autoDriverRoutes);
-  app.use("/assessments", assessmentRoutes);
-  app.use("/controls", controlRoutes);
-  app.use("/projectRisks", projectRisksRoutes);
-  app.use("/projectScopes", projectScopeRoutes);
-  app.use("/subcontrols", subcontrolRoutes);
-  app.use("/subtopics", subtopicRoutes);
-  app.use("/topics", topicRoutes);
-  app.use("/roles", roleRoutes);
-  app.use("/files", fileRoutes);
-  app.use("/mail", mailRoutes);
-  app.use("/controlCategory", controlCategory);
-  app.use("/eu-ai-act", euRouter);
+  app.use("/api/users", userRoutes);
+  app.use("/api/vendorRisks", vendorRiskRoutes);
+  app.use("/api/vendors", vendorRoutes);
+  app.use("/api/projects", projectRoutes);
+  app.use("/api/questions", questionRoutes);
+  app.use("/api/autoDrivers", autoDriverRoutes);
+  app.use("/api/assessments", assessmentRoutes);
+  app.use("/api/controls", controlRoutes);
+  app.use("/api/projectRisks", projectRisksRoutes);
+  app.use("/api/projectScopes", projectScopeRoutes);
+  app.use("/api/subcontrols", subcontrolRoutes);
+  app.use("/api/subtopics", subtopicRoutes);
+  app.use("/api/topics", topicRoutes);
+  app.use("/api/roles", roleRoutes);
+  app.use("/api/files", fileRoutes);
+  app.use("/api/mail", mailRoutes);
+  app.use("/api/controlCategory", controlCategory);
+  app.use("/api/frameworks", frameworks);
+  app.use("/api/eu-ai-act", euRouter);
 
-  app.use("/reporting", reportRoutes);
-  app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
+  app.use("/api/reporting", reportRoutes);
+  app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 
-  app.use("/", (req, res) => {
+  app.use("/api", (req, res) => {
     res.json("Welcome to  VerifyWise root directory.");
   });
 

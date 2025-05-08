@@ -4,13 +4,12 @@ const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
 
 import authenticateJWT from "../middleware/auth.middleware";
-import { deleteAssessmentsByProjectId, deleteCompliancesByProjectId, getAllProjectsAssessmentProgress, getAllProjectsComplianceProgress, getAssessmentsByProjectId, getCompliancesByProjectId, getControlById, getProjectAssessmentProgress, getProjectComplianceProgress, getTopicById, saveControls, updateQuestionById } from "../controllers/eu.ctrl";
+import { deleteAssessmentsByProjectId, deleteCompliancesByProjectId, getAllControlCategories, getAllProjectsAssessmentProgress, getAllProjectsComplianceProgress, getAllTopics, getAssessmentsByProjectId, getCompliancesByProjectId, getControlById, getControlsByControlCategoryId, getProjectAssessmentProgress, getProjectComplianceProgress, getTopicById, saveControls, updateQuestionById } from "../controllers/eu.ctrl";
 
-// router.get("/:id", authenticateJWT, getAssessmentById);
-// router.get("/:id", authenticateJWT, getControlById);
+router.get("/controlCategories", authenticateJWT, getAllControlCategories);
+router.get("/controls/byControlCategoryId/:id", authenticateJWT, getControlsByControlCategoryId);
 
-// router.get("/getAnswers/:id", authenticateJWT, getAnswers);
-// router.get("/compliance/:id", authenticateJWT, getComplianceById);
+router.get("/topics", authenticateJWT, getAllTopics);
 
 // "/project/byid/:id"
 router.get("/assessments/byProjectId/:id", authenticateJWT, getAssessmentsByProjectId);
@@ -27,14 +26,6 @@ router.get("/all/assessments/progress", authenticateJWT, getAllProjectsAssessmen
 router.get("/topicById", authenticateJWT, getTopicById);
 // get control by id
 router.get("/controlById", authenticateJWT, getControlById);
-
-// router.get("/byassessmentid/:id", authenticateJWT, getTopicByAssessmentId);
-// router.get("/bytopic/:id", authenticateJWT, getSubtopicByTopicId);
-
-// router.get("/bysubtopic/:id", authenticateJWT, getQuestionsBySubtopicId);
-// router.get("/bytopic/:id", authenticateJWT, getQuestionsByTopicId);
-
-// router.get("/all/bycategory/:id", authenticateJWT, getControlsByControlCategoryId);
 
 router.patch(
   "/saveControls/:id",

@@ -45,10 +45,10 @@ const initialLoadingState: LoadingStatus = {
 
 const VWProjectRisks = ({ project }: { project?: Project }) => {
   const [searchParams] = useSearchParams();
-  const projectId = searchParams.get("projectId") || project?.id;
+  const projectId = parseInt(searchParams.get("projectId") ?? "0") || project!.id;
   const [refreshKey, setRefreshKey] = useState(0); // Add refreshKey state
   const { projectRisksSummary } = useProjectRisks({
-    projectId: projectId?.toString(),
+    projectId,
     refreshKey,
   });
   const [projectRisks, setProjectRisks] = useState<ProjectRisk[]>([]);

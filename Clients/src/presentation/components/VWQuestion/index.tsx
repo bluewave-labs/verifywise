@@ -104,11 +104,13 @@ const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps
       "VWQuestion: Saving answer for question",
       question.id,
       "project:",
-      currentProjectId
+      currentProjectId,
+      "values:",
+      values
     );
     try {
       const response = await updateEntityById({
-        routeUrl: `/questions/${question.id}`,
+        routeUrl: `/eu-ai-act/saveAnswer/${question.answer_id}`,
         body: values,
       });
       if (response.status === 202) {

@@ -1,4 +1,6 @@
-export const Leadership = [
+import { SubClauseStructISO } from "../../../../models/ISO-42001/subClauseStructISO.model";
+
+export const Leadership: SubClauseStructISO[] = [
   {
     title: "Leadership and commitment",
     order_no: 1,

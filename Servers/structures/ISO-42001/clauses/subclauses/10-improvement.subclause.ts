@@ -1,4 +1,6 @@
-export const Improvement = [
+import { SubClauseStructISO } from "../../../../models/ISO-42001/subClauseStructISO.model";
+
+export const Improvement: SubClauseStructISO[] = [
   {
     title: "Nonconformity and corrective action",
     order_no: 1,

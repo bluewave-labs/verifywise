@@ -5,8 +5,10 @@ import { AISystemLifecycle } from "./annexcategories/08-AI-system-lifecycle.anne
 import { DataForAISystems } from "./annexcategories/09-data-for-AI-systems.annexcategory";
 import { ICT } from "./annexcategories/10-ict.annexcategory";
 import { ThirdPartyRelationships } from "./annexcategories/11-third-party-relationships.annexcategory";
+import { AnnexCategoryISOModel } from "../../../models/ISO-42001/annexCategoryISO.model";
+import { AnnexStructISO } from "../../../models/ISO-42001/annexStructISO.model";
 
-export const Annex = [
+export const Annex: AnnexStructISO[] = [
   {
     title: "Organizational policies and governance",
     annex_no: 5,

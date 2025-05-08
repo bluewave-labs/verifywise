@@ -1,4 +1,6 @@
-export const ICT = [
+import { AnnexCategoryStructISO } from "../../../../models/ISO-42001/annexCategoryStructISO.model";
+
+export const ICT: AnnexCategoryStructISO[] = [
   {
     sub_id: 1.1,
     order_no: 1,

@@ -1,4 +1,6 @@
-export const Planning = [
+import { SubClauseStructISO } from "../../../../models/ISO-42001/subClauseStructISO.model";
+
+export const Planning: SubClauseStructISO[] = [
   {
     title: "Actions to address risks and opportunities (Includes Risk Assessment, Treatment, Impact Assessment)",
     order_no: 1,

@@ -39,16 +39,19 @@ const ReportTableBody: React.FC<TableProps> = ({
           .map((row, index: number) => (
             <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row}>
               <TableCell sx={cellStyle}>
-                {row.report_name ? row.report_name : '-'}
+                {row.filename ? row.filename : '-'}
               </TableCell>
               <TableCell sx={cellStyle}>
                 {row.type ? row.type : '-'}
               </TableCell>
               <TableCell sx={cellStyle}>
-                {row.deadline ? formatDate(row.date.toString()) : "NA"}
+                {row.project_title ? row.project_title : '-'}
               </TableCell>
               <TableCell sx={cellStyle}>
-                {row.generated_by ? row.generated_by : '-'}
+                {row.uploaded_time ? formatDate(row.uploaded_time.toString()) : "NA"}
+              </TableCell>
+              <TableCell sx={cellStyle}>
+                {row.uploader_name ? row.uploader_name : '-'} {row.uploader_surname ? row.uploader_surname : '-'}
               </TableCell>
               <TableCell
                 sx={{

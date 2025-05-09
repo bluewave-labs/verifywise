@@ -25,10 +25,6 @@ const ReportTableBody: React.FC<TableProps> = ({
     onRemoveReport(reportId);
   };
 
-  const handleDownloadReport = async () => {
-    // Call backend API
-  };
-
   // row onclick function
   const handleEditRisk = () => {}
 

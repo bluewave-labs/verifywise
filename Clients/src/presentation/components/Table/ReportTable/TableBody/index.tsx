@@ -4,6 +4,7 @@ import IconButton from '../../../IconButton';
 import { formatDate } from '../../../../tools/isoDateToString';
 import singleTheme from '../../../../themes/v1SingleTheme';
 import {styles} from './styles';
+import { handleDownload } from '../../../../../application/tools/fileDownload';
 
 interface TableProps {
   rows: any[];
@@ -22,10 +23,6 @@ const ReportTableBody: React.FC<TableProps> = ({
 
   const handleRemoveReport = async (reportId: number) => {
     onRemoveReport(reportId);
-  };
-
-  const handleDownloadReport = async () => {
-    // Call backend API
   };
 
   // row onclick function
@@ -64,7 +61,7 @@ const ReportTableBody: React.FC<TableProps> = ({
                   type="report"
                   onMouseEvent={() => handleEditRisk()}
                   onDelete={() => handleRemoveReport(row.id)}
-                  onEdit={() => handleDownloadReport()}
+                  onEdit={() => handleDownload(row.id, row.filename)}
                   warningTitle="Remove this report?"
                   warningMessage={`Are you sure you want to remove "${row.report_name}" report. This action is non-recoverable.`}
                 ></IconButton>

@@ -2,3 +2,4 @@
 # *.override.yml
 .db_initialized
 .history
+.env.dev

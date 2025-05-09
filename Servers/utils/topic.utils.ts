@@ -1,7 +1,7 @@
 import { Topic, TopicModel } from "../models/topic.model";
 import { sequelize } from "../database/db";
 import { createNewSubTopicsQuery } from "./subtopic.utils";
-import { Topics } from "../structures/assessment-tracker/topics.struct";
+import { Topics } from "../structures/EU-AI-Act/assessment-tracker/topics.struct";
 import { QueryTypes, Transaction } from "sequelize";
 
 export const getAllTopicsQuery = async (): Promise<Topic[]> => {

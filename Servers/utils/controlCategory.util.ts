@@ -1,7 +1,7 @@
 import { ControlCategory, ControlCategoryModel } from "../models/controlCategory.model";
 import { sequelize } from "../database/db";
 import { createNewControlsQuery } from "./control.utils";
-import { ControlCategories } from "../structures/compliance-tracker/controlCategories.struct"
+import { ControlCategories } from "../structures/EU-AI-Act/compliance-tracker/controlCategories.struct"
 import { QueryTypes, Transaction } from "sequelize";
 
 export const getAllControlCategoriesQuery = async (): Promise<

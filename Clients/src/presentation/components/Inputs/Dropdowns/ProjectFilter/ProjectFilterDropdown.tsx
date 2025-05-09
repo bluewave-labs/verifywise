@@ -8,12 +8,6 @@ const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
   selectedProject,
   onChange,
 }) => {
-  //remove duplicate projects
-  const uniqueProjects = Array.from(
-    new Map(
-      projects.map((project) => [project.id.trim().toLowerCase(), project])
-    ).values()
-  );
   return (
     <FormControl
       sx={{
@@ -33,7 +27,7 @@ const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
       >
         <MenuItem value="">Select a project</MenuItem>
         <MenuItem value="all">All Files</MenuItem>
-        {uniqueProjects.map((project) => (
+        {projects.map((project) => (
           <MenuItem key={project.id} value={project.id}>
             {project.name}
           </MenuItem>

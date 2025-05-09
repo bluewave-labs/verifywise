@@ -1,12 +1,16 @@
-'use strict';
+"use strict";
 
 function getComplianceTrackerStruct() {
-  const { ControlCategories } = require("../../dist/structures/compliance-tracker/controlCategories.struct");
-  let controlCategories = [], controls = [], subControls = []
+  const {
+    ControlCategories,
+  } = require("../../dist/structures/compliance-tracker/controlCategories.struct");
+  let controlCategories = [],
+    controls = [],
+    subControls = [];
   for (let controlCategory of ControlCategories) {
     controlCategories.push({
       title: controlCategory.title,
-      order_no: controlCategory.order_no
+      order_no: controlCategory.order_no,
     });
     for (let control of controlCategory.controls) {
       controls.push({
@@ -19,7 +23,7 @@ function getComplianceTrackerStruct() {
         subControls.push({
           title: subControl.title,
           description: subControl.description,
-          order_no: subControl.order_no
+          order_no: subControl.order_no,
         });
       }
     }
@@ -27,8 +31,8 @@ function getComplianceTrackerStruct() {
   return {
     controlCategories,
     controls,
-    subControls
-  }
+    subControls,
+  };
 }
 
 /** @type {import('sequelize-cli').Migration} */
@@ -104,46 +108,63 @@ module.exports = {
         await queryInterface.sequelize.query(query, { transaction });
       }
 
-      const { controlCategories, controls, subControls } = getComplianceTrackerStruct();
-      const controlCategoriesStructInsert = controlCategories.map((controlCategory) => {
-        return `('${controlCategory.title}', ${controlCategory.order_no}, ${1})`;
-      }).join(', ');
-      const controlCategoriesStruct = await queryInterface.sequelize.query(`INSERT INTO controlcategories_struct_eu (title, order_no, framework_id) VALUES ${controlCategoriesStructInsert} RETURNING id;`, { transaction });
+      const { controlCategories, controls, subControls } =
+        getComplianceTrackerStruct();
+      const controlCategoriesStructInsert = controlCategories
+        .map((controlCategory) => {
+          return `('${controlCategory.title}', ${
+            controlCategory.order_no
+          }, ${1})`;
+        })
+        .join(", ");
+      const controlCategoriesStruct = await queryInterface.sequelize.query(
+        `INSERT INTO controlcategories_struct_eu (title, order_no, framework_id) VALUES ${controlCategoriesStructInsert} RETURNING id;`,
+        { transaction }
+      );
 
       let controlsStructInsert = controls.map((control) => {
         return `('${control.title}', '${control.description}', ${control.order_no}`;
       });
       let ccCtr = 0;
       let cCtr1 = 0;
-      [2, 7, 3, 4, 9, 9, 10, 4, 7, 4, 5, 5, 5].forEach(skip => {
+      [2, 7, 3, 4, 9, 9, 10, 4, 7, 4, 5, 5, 5].forEach((skip) => {
         for (let i = 0; i < skip; i++) {
-          controlsStructInsert[cCtr1] = controlsStructInsert[cCtr1].concat(`, ${controlCategoriesStruct[0][ccCtr].id})`);
+          controlsStructInsert[cCtr1] = controlsStructInsert[cCtr1].concat(
+            `, ${controlCategoriesStruct[0][ccCtr].id})`
+          );
           cCtr1++;
         }
         ccCtr++;
-      })
-      controlsStructInsert = controlsStructInsert.join(', ');
-      const controlsStruct = await queryInterface.sequelize.query(`
+      });
+      controlsStructInsert = controlsStructInsert.join(", ");
+      const controlsStruct = await queryInterface.sequelize.query(
+        `
         INSERT INTO controls_struct_eu (title, description, order_no, control_category_id) VALUES ${controlsStructInsert} RETURNING id, title, order_no;`,
         { transaction }
       );
 
       let subControlsStructInsert = subControls.map((subControl) => {
         return `('${subControl.title}', '${subControl.description}', ${subControl.order_no}`;
-      })
+      });
       let cCtr2 = 0;
       let scCtr = 0;
-      [3, 2, 1, 1, 1, 2, 1, 1, 1, 3, 2, 2, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 6, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 4, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1].forEach(
-        skip => {
-          for (let i = 0; i < skip; i++) {
-            subControlsStructInsert[scCtr] = subControlsStructInsert[scCtr].concat(`, ${controlsStruct[0][cCtr2].id})`);
-            scCtr++;
-          }
-          cCtr2++;
+      [
+        3, 2, 1, 1, 1, 2, 1, 1, 1, 3, 2, 2, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 2, 1, 2, 6, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1,
+        2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 4, 1, 1, 2, 1, 1, 1, 1, 2,
+        1, 1,
+      ].forEach((skip) => {
+        for (let i = 0; i < skip; i++) {
+          subControlsStructInsert[scCtr] = subControlsStructInsert[
+            scCtr
+          ].concat(`, ${controlsStruct[0][cCtr2].id})`);
+          scCtr++;
         }
-      )
-      subControlsStructInsert = subControlsStructInsert.join(', ');
-      const subControlsStruct = await queryInterface.sequelize.query(`
+        cCtr2++;
+      });
+      subControlsStructInsert = subControlsStructInsert.join(", ");
+      const subControlsStruct = await queryInterface.sequelize.query(
+        `
         INSERT INTO subcontrols_struct_eu (title, description, order_no, control_id) VALUES ${subControlsStructInsert} RETURNING id, title;`,
         { transaction }
       );
@@ -151,7 +172,10 @@ module.exports = {
       // -----------------
       const controlsStructMap = new Map();
       controlsStruct[0].forEach((control) => {
-        controlsStructMap.set(`${control.title} && ${control.order_no}`, control.id);
+        controlsStructMap.set(
+          `${control.title} && ${control.order_no}`,
+          control.id
+        );
       });
 
       const existingControls = await queryInterface.sequelize.query(
@@ -159,20 +183,33 @@ module.exports = {
           c.reviewer AS reviewer, c.due_date AS due_date, c.is_demo AS is_demo, c.created_at AS created_at, c.title as title, c.order_no AS order_no
 	          FROM controls c JOIN controlcategories cc ON c.control_category_id = cc.id
 			  	    JOIN projects_frameworks pf ON pf.project_id = cc.project_id;`,
-        { transaction });
-      const controlsInsert = existingControls[0].map((control) => {
-        // THIS WAS BUG IN MY DB WHERE THE TITLE WAS SET SAME AS THE DESCRIPTION
-        if (control.title ===
-          "Maintain accurate records of AI system activities, including modifications and third-party involvements."
-        ) { control.title = "AI System Scope and Impact Definition"; }
-        return `(
+        { transaction }
+      );
+      const controlsInsert = existingControls[0]
+        .map((control) => {
+          // THIS WAS BUG IN MY DB WHERE THE TITLE WAS SET SAME AS THE DESCRIPTION
+          if (
+            control.title ===
+            "Maintain accurate records of AI system activities, including modifications and third-party involvements."
+          ) {
+            control.title = "AI System Scope and Impact Definition";
+          }
+          return `(
           ${control.status ? `'${control.status}'` : null}, 
           ${control.approver}, 
           ${control.risk_review ? `'${control.risk_review}'` : null}, 
           ${control.owner}, 
           ${control.reviewer}, 
-          ${control.implementation_details ? `'${control.implementation_details}'` : null}, 
-          ${control.due_date ? `'${new Date(control.due_date).toISOString()}'` : null}, 
+          ${
+            control.implementation_details
+              ? `'${control.implementation_details}'`
+              : null
+          }, 
+          ${
+            control.due_date
+              ? `'${new Date(control.due_date).toISOString()}'`
+              : null
+          }, 
           ${control.is_demo}, 
           ${control.pf_id}, 
           ${controlsStructMap.get(`${control.title} && ${control.order_no}`)}, 
@@ -237,6 +274,7 @@ module.exports = {
       ]) {
         await queryInterface.sequelize.query(query, { transaction });
       }
+
       await transaction.commit();
     } catch (error) {
       await transaction.rollback();
@@ -272,7 +310,7 @@ module.exports = {
           JOIN subcontrols_eu sc ON c.id = sc.control_id
           JOIN subcontrols_struct_eu scs ON scs.id = sc.subcontrol_meta_id
           JOIN projects_frameworks pf ON pf.id = c.projects_frameworks_id
-          ORDER BY c.projects_frameworks_id, ccs.id, cs.id, scs.id;`,
+          ORDER BY c.projects_frameworks_id, ccs.id, cs.id, scs.id;`
       );
 
       let ctr = 0;
@@ -283,34 +321,88 @@ module.exports = {
         if (!controlCategoryId) {
           const result = await queryInterface.sequelize.query(
             `INSERT INTO controlcategories (title, order_no, project_id, created_at) VALUES (
-              '${record.ccs_title.replace(/'/g, "''")}', ${record.ccs_order_no}, ${record.pf_project_id}, '${new Date(record.c_created_at).toISOString()}'
+              '${record.ccs_title.replace(/'/g, "''")}', ${
+              record.ccs_order_no
+            }, ${record.pf_project_id}, '${new Date(
+              record.c_created_at
+            ).toISOString()}'
             ) RETURNING id;`,
             { transaction }
-          )
+          );
           controlCategoryId = result[0][0].id;
-        };
+        }
 
         if (!controlId) {
           const result = await queryInterface.sequelize.query(
             `INSERT INTO controls (title, description, order_no, control_category_id, status, approver, risk_review, implementation_details, owner, reviewer, due_date, is_demo, created_at) VALUES (
-              '${record.cs_title.replace(/'/g, "''")}', '${record.cs_description.replace(/'/g, "''")}', ${record.cs_order_no}, ${controlCategoryId}, ${record.c_status ? `'${record.c_status}'` : null}, 
-              ${record.c_approver}, ${record.c_risk_review ? `'${record.c_risk_review}'` : null}, ${record.c_implementation_details ? `'${record.c_implementation_details}'` : null}, ${record.c_owner}, 
-              ${record.c_reviewer}, ${record.c_due_date ? `'${new Date(record.c_due_date).toISOString()}'` : null}, ${record.c_is_demo}, '${new Date(record.c_created_at).toISOString()}'
+              '${record.cs_title.replace(
+                /'/g,
+                "''"
+              )}', '${record.cs_description.replace(/'/g, "''")}', ${
+              record.cs_order_no
+            }, ${controlCategoryId}, ${
+              record.c_status ? `'${record.c_status}'` : null
+            }, 
+              ${record.c_approver}, ${
+              record.c_risk_review ? `'${record.c_risk_review}'` : null
+            }, ${
+              record.c_implementation_details
+                ? `'${record.c_implementation_details}'`
+                : null
+            }, ${record.c_owner}, 
+              ${record.c_reviewer}, ${
+              record.c_due_date
+                ? `'${new Date(record.c_due_date).toISOString()}'`
+                : null
+            }, ${record.c_is_demo}, '${new Date(
+              record.c_created_at
+            ).toISOString()}'
             ) RETURNING id;`,
             { transaction }
-          )
+          );
           controlId = result[0][0].id;
         }
 
         await queryInterface.sequelize.query(
           `INSERT INTO subcontrols (title, description, order_no, status, approver, risk_review, implementation_details, owner, reviewer, due_date, control_id, is_demo, evidence_files, feedback_files, evidence_description, feedback_description, created_at) VALUES (
-            '${record.scs_title.replace(/'/g, "''")}', '${record.scs_description.replace(/'/g, "''")}', ${record.scs_order_no}, ${record.sc_status ? `'${record.sc_status}'` : null}, ${record.sc_approver}, ${record.sc_risk_review ? `'${record.sc_risk_review}'` : null}, 
-            ${record.sc_implementation_details ? `'${record.sc_implementation_details}'` : null}, ${record.sc_owner}, ${record.sc_reviewer}, ${record.sc_due_date ? `'${new Date(record.sc_due_date).toISOString()}'` : null}, ${controlId}, 
-            ${record.sc_is_demo}, ${record.sc_evidence_files ? `'${JSON.stringify(record.sc_evidence_files)}'` : null}, ${record.sc_feedback_files ? `'${JSON.stringify(record.sc_feedback_files)}'` : null}, 
-            ${record.sc_evidence_description ? `'${record.sc_evidence_description}'` : null}, ${record.sc_feedback_description ? `'${record.sc_feedback_description}'` : null}, '${new Date(record.sc_created_at).toISOString()}'
+            '${record.scs_title.replace(
+              /'/g,
+              "''"
+            )}', '${record.scs_description.replace(/'/g, "''")}', ${
+            record.scs_order_no
+          }, ${record.sc_status ? `'${record.sc_status}'` : null}, ${
+            record.sc_approver
+          }, ${record.sc_risk_review ? `'${record.sc_risk_review}'` : null}, 
+            ${
+              record.sc_implementation_details
+                ? `'${record.sc_implementation_details}'`
+                : null
+            }, ${record.sc_owner}, ${record.sc_reviewer}, ${
+            record.sc_due_date
+              ? `'${new Date(record.sc_due_date).toISOString()}'`
+              : null
+          }, ${controlId}, 
+            ${record.sc_is_demo}, ${
+            record.sc_evidence_files
+              ? `'${JSON.stringify(record.sc_evidence_files)}'`
+              : null
+          }, ${
+            record.sc_feedback_files
+              ? `'${JSON.stringify(record.sc_feedback_files)}'`
+              : null
+          }, 
+            ${
+              record.sc_evidence_description
+                ? `'${record.sc_evidence_description}'`
+                : null
+            }, ${
+            record.sc_feedback_description
+              ? `'${record.sc_feedback_description}'`
+              : null
+          }, '${new Date(record.sc_created_at).toISOString()}'
           );`,
           { transaction }
-        )
+        );
 
         if (record.ccs_id !== allCompliances[0][ctr + 1]?.ccs_id) {
           controlCategoryId = null;
@@ -322,11 +414,11 @@ module.exports = {
       }
 
       const queries = [
-        'DROP TABLE IF EXISTS subcontrols_eu CASCADE;',
-        'DROP TABLE IF EXISTS controls_eu CASCADE;',
-        'DROP TABLE IF EXISTS subcontrols_struct_eu CASCADE;',
-        'DROP TABLE IF EXISTS controls_struct_eu CASCADE;',
-        'DROP TABLE IF EXISTS controlcategories_struct_eu CASCADE;'
+        "DROP TABLE IF EXISTS subcontrols_eu CASCADE;",
+        "DROP TABLE IF EXISTS controls_eu CASCADE;",
+        "DROP TABLE IF EXISTS subcontrols_struct_eu CASCADE;",
+        "DROP TABLE IF EXISTS controls_struct_eu CASCADE;",
+        "DROP TABLE IF EXISTS controlcategories_struct_eu CASCADE;",
       ];
 
       for (const query of queries) {
@@ -337,5 +429,5 @@ module.exports = {
       await transaction.rollback();
       throw error;
     }
-  }
+  },
 };

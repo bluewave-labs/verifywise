@@ -27,7 +27,7 @@ import { setAuthToken } from "../../application/authentication/authSlice";
 
 // Create an instance of axios with default configurations
 const CustomAxios = axios.create({
-  baseURL: ENV_VARs.URL,
+  baseURL: `${ENV_VARs.URL}/api`,
   timeout: 20000,
   headers: {
     "Content-Type": "application/json",

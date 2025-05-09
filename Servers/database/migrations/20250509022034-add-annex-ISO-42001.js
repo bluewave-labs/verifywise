@@ -47,14 +47,14 @@ module.exports = {
           annex_id INT,
           FOREIGN KEY (annex_id) REFERENCES annex_struct_iso(id) ON DELETE CASCADE
         );`,
-        `CREATE TYPE enum_annexcategories_iso_status AS ENUM ('Not Started', 'Draft', 'In Progress', 'Awaiting Review', 'Awaiting Approval', 'Implemented', 'Audited', 'Needs Rework');`,
+        `CREATE TYPE enum_annexcategories_iso_status AS ENUM ('Not started', 'Draft', 'In progress', 'Awaiting review', 'Awaiting approval', 'Implemented', 'Audited', 'Needs rework');`,
         `CREATE TABLE annexcategories_iso(
           id SERIAL PRIMARY KEY,
           is_applicable BOOLEAN DEFAULT FALSE,
           justification_for_exclusion TEXT,
           implementation_description TEXT,
           evidence_links JSONB,
-          status enum_annexcategories_iso_status DEFAULT 'Not Started',
+          status enum_annexcategories_iso_status DEFAULT 'Not started',
           owner INT,
           reviewer INT,
           approver INT,
@@ -72,8 +72,7 @@ module.exports = {
         );`,
         `CREATE TABLE annexcategories_iso__risks(
           annexcategory_id INT,
-          projects_risks_id INT,
-          PRIMARY KEY (annexcategory_id, projects_risks_id),
+          projects_risks_id INT PRIMARY KEY,
           FOREIGN KEY (annexcategory_id) REFERENCES annexcategories_iso(id) ON DELETE CASCADE,
           FOREIGN KEY (projects_risks_id) REFERENCES projectrisks(id) ON DELETE CASCADE
         );`
@@ -120,11 +119,11 @@ module.exports = {
     const transaction = await queryInterface.sequelize.transaction();
     try {
       const queries = [
-        `DROP TABLE IF EXISTS annexcategories_iso__risks;`,
-        `DROP TABLE IF EXISTS annexcategories_iso;`,
-        `DROP TYPE IF EXISTS enum_annexcategories_iso_status;`,
-        `DROP TABLE IF EXISTS annexcategories_struct_iso;`,
-        `DROP TABLE IF EXISTS annex_struct_iso;`
+        `DROP TABLE IF EXISTS annexcategories_iso__risks CASCADE;`,
+        `DROP TABLE IF EXISTS annexcategories_iso CASCADE;`,
+        `DROP TYPE IF EXISTS enum_annexcategories_iso_status CASCADE;`,
+        `DROP TABLE IF EXISTS annexcategories_struct_iso CASCADE;`,
+        `DROP TABLE IF EXISTS annex_struct_iso CASCADE;`
       ];
       for (const query of queries) {
         await queryInterface.sequelize.query(query, { transaction });

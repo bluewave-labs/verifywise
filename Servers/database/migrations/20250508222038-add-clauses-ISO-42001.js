@@ -47,12 +47,12 @@ module.exports = {
           clause_id INT,
           FOREIGN KEY (clause_id) REFERENCES clauses_struct_iso(id) ON DELETE CASCADE
         );`,
-        `CREATE TYPE enum_subclauses_iso_status AS ENUM ('Not Started', 'Draft', 'In Review', 'Approved', 'Implemented', 'Needs Rework');`,
+        `CREATE TYPE enum_subclauses_iso_status AS ENUM ('Not started', 'Draft', 'In progress', 'Awaiting review', 'Awaiting approval', 'Implemented', 'Audited', 'Needs rework');`,
         `CREATE TABLE subclauses_iso(
           id SERIAL PRIMARY KEY,
           implementation_description TEXT,
           evidence_links JSONB,
-          status enum_subclauses_iso_status DEFAULT 'Not Started',
+          status enum_subclauses_iso_status DEFAULT 'Not started',
           owner INT,
           reviewer INT,
           approver INT,
@@ -113,10 +113,10 @@ module.exports = {
     const transaction = await queryInterface.sequelize.transaction();
     try {
       const queries = [
-        `DROP TABLE IF EXISTS subclauses_iso;`,
-        `DROP TYPE IF EXISTS enum_subclauses_iso_status;`,
-        `DROP TABLE IF EXISTS subclauses_struct_iso;`,
-        `DROP TABLE IF EXISTS clauses_struct_iso;`
+        `DROP TABLE IF EXISTS subclauses_iso CASCADE;`,
+        `DROP TYPE IF EXISTS enum_subclauses_iso_status CASCADE;`,
+        `DROP TABLE IF EXISTS subclauses_struct_iso CASCADE;`,
+        `DROP TABLE IF EXISTS clauses_struct_iso CASCADE;`
       ];
       for (let query of queries) {
         await queryInterface.sequelize.query(query, { transaction });

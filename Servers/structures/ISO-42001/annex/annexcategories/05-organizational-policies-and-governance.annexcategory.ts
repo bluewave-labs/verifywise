@@ -55,6 +55,6 @@ export const OrganizationalPoliciesAndGovernance: AnnexCategoryStructISO[] = [
     order_no: 8,
     title: "AI in project management",
     description: "Integrating AI aspects into project management.",
-    guidance: "AI should be integrated into the organization's project management."
+    guidance: "AI should be integrated into the organization''s project management."
   }
 ]

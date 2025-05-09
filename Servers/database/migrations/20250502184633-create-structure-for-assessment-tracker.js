@@ -1,7 +1,7 @@
 'use strict';
 
 function getAssessmentTrackerStruct() {
-  const { Topics } = require("../../dist/structures/assessment-tracker/topics.struct");
+  const { Topics } = require("../../dist/structures/EU-AI-Act/assessment-tracker/topics.struct");
   let topics = [], subTopics = [], questions = []
   for (let topic of Topics) {
     topics.push({

@@ -286,3 +286,17 @@ export async function generateReport({
     throw error;
   }
 }
+
+export async function getAllFrameworks({
+  authToken = getAuthToken(),
+}: RequestParams): Promise<any> {
+  try {
+    const response = await apiServices.get("/frameworks", {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error getting all frameworks:", error);
+    throw error;
+  }
+}

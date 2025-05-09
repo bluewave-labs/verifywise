@@ -9,7 +9,7 @@ import { ClauseStructISO } from "../../../models/ISO-42001/clauseStructISO.model
 
 export const Clauses: ClauseStructISO[] = [
   {
-    title: "Context of the Organization",
+    title: "Clause 4: Context of the Organization",
     clause_no: 4,
     subclauses: ContextOfOrganization
   },

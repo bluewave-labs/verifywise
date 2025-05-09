@@ -22,7 +22,7 @@ export const Leadership: SubClauseStructISO[] = [
   {
     title: "Policy",
     order_no: 2,
-    summary: "Establish, communicate, and maintain an AI Policy appropriate to the organization's context.",
+    summary: "Establish, communicate, and maintain an AI Policy appropriate to the organization''s context.",
     questions: [
       "Is there a documented AI Policy?",
       "Does it include commitments to requirements and continual improvement?",

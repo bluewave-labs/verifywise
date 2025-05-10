@@ -5,10 +5,15 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
-      await queryInterface.sequelize.query(
-        `ALTER TYPE enum_files_source ADD VALUE 'Report';`,
-        { transaction }
-      );
+      for (let query of [
+        `ALTER TYPE enum_files_source ADD VALUE 'Project risks report';`,
+        `ALTER TYPE enum_files_source ADD VALUE 'Compliance tracker report';`,
+        `ALTER TYPE enum_files_source ADD VALUE 'Assessment tracker report';`,
+        `ALTER TYPE enum_files_source ADD VALUE 'Vendors and risks report';`,
+        `ALTER TYPE enum_files_source ADD VALUE 'All reports';`,
+      ]) {
+        await queryInterface.sequelize.query(query, { transaction });
+      }
       await transaction.commit();
     } catch (error) {
       await transaction.rollback();
@@ -16,7 +21,5 @@ module.exports = {
     }
   },
 
-  async down(queryInterface, Sequelize) {
-    // The enum value won't cause any issues if it is not removed
-  }
+  async down(queryInterface, Sequelize) {}
 };

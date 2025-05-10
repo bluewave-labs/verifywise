@@ -64,6 +64,7 @@ try {
         testOrigin({origin, allowedOrigins , callback});
       },
       credentials: true,
+      allowedHeaders: "*",      
     })
   );
   app.use(helmet()); // Use helmet for security headers

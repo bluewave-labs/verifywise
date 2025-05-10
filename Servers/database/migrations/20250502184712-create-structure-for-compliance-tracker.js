@@ -215,15 +215,16 @@ module.exports = {
           ${controlsStructMap.get(`${control.title} && ${control.order_no}`)}, 
           '${new Date(control.created_at).toISOString()}', 
           ${control.id})`;
-        })
-        .join(", ");
-      if (controlsInsert) {
+      });
+      if (controlsInsert.length > 0) {
+        const controlsInsertString = controlsInsert.join(', ');
         const controlsEU = await queryInterface.sequelize.query(
           `INSERT INTO controls_eu (
-          status, approver, risk_review, owner, reviewer, implementation_details, due_date, is_demo, projects_frameworks_id, control_meta_id, created_at, current_id_temp
-        ) VALUES ${controlsInsert} RETURNING id, current_id_temp;`,
+            status, approver, risk_review, owner, reviewer, implementation_details, due_date, is_demo, projects_frameworks_id, control_meta_id, created_at, current_id_temp
+          ) VALUES ${controlsInsertString} RETURNING id, current_id_temp;`,
           { transaction }
         );
+
         const controlsIdMap = new Map();
         controlsEU[0].forEach((control) => {
           controlsIdMap.set(control.current_id_temp, control.id);
@@ -237,67 +238,41 @@ module.exports = {
             control_id, is_demo, evidence_files, feedback_files, evidence_description, feedback_description, created_at FROM subcontrols`,
           { transaction }
         );
-        const subControlsInsert = existingSubControls[0]
-          .map((subControl) => {
-            let title_ = subControl.title.replaceAll("''", "'");
-            return `(
+        const subControlsInsertString = existingSubControls[0].map((subControl) => {
+          let title_ = subControl.title.replaceAll("''", "'");
+          return `(
             ${subControl.status ? `'${subControl.status}'` : null}, 
             ${subControl.approver}, 
             ${subControl.risk_review ? `'${subControl.risk_review}'` : null} , 
             ${subControl.owner}, 
             ${subControl.reviewer}, 
-            ${
-              subControl.due_date
-                ? `'${new Date(subControl.due_date).toISOString()}'`
-                : null
-            }, 
-            ${
-              subControl.implementation_details
-                ? `'${subControl.implementation_details}'`
-                : null
-            }, 
+            ${subControl.due_date ? `'${new Date(subControl.due_date).toISOString()}'` : null}, 
+            ${subControl.implementation_details ? `'${subControl.implementation_details}'` : null}, 
             ${controlsIdMap.get(subControl.control_id)}, 
             ${subControlsStructMap.get(title_)}, 
             ${subControl.is_demo}, 
-            ${
-              subControl.evidence_files
-                ? `'${JSON.stringify(subControl.evidence_files)}'`
-                : null
-            }, 
-            ${
-              subControl.feedback_filed
-                ? `'${JSON.stringify(subControl.feedback_filed)}'`
-                : null
-            }, 
-            ${
-              subControl.evidence_description
-                ? `'${subControl.evidence_description}'`
-                : null
-            },
-            ${
-              subControl.feedback_description
-                ? `'${subControl.feedback_description}'`
-                : null
-            }, 
+            ${subControl.evidence_files ? `'${JSON.stringify(subControl.evidence_files)}'` : null}, 
+            ${subControl.feedback_files ? `'${JSON.stringify(subControl.feedback_files)}'` : null}, 
+            ${subControl.evidence_description ? `'${subControl.evidence_description}'` : null},
+            ${subControl.feedback_description ? `'${subControl.feedback_description}'` : null}, 
             '${new Date(subControl.created_at).toISOString()}')`;
-          })
-          .join(", ");
+        }).join(', ');
         await queryInterface.sequelize.query(
           `INSERT INTO subcontrols_eu (status, approver, risk_review, owner, reviewer, due_date, implementation_details, control_id, 
-            subcontrol_meta_id, is_demo, evidence_files, feedback_files, evidence_description, feedback_description, created_at) VALUES ${subControlsInsert} RETURNING id;`,
+            subcontrol_meta_id, is_demo, evidence_files, feedback_files, evidence_description, feedback_description, created_at) VALUES ${subControlsInsertString} RETURNING id;`,
           { transaction }
         );
         await queryInterface.sequelize.query(
           `ALTER TABLE controls_eu DROP COLUMN current_id_temp;`,
           { transaction }
         );
-        for (let query of [
-          "DELETE FROM subcontrols WHERE 1=1;",
-          "DELETE FROM controls WHERE 1=1;",
-          "DELETE FROM controlcategories WHERE 1=1;",
-        ]) {
-          await queryInterface.sequelize.query(query, { transaction });
-        }
+      }
+      for (let query of [
+        "DELETE FROM subcontrols WHERE 1=1;",
+        "DELETE FROM controls WHERE 1=1;",
+        "DELETE FROM controlcategories WHERE 1=1;",
+      ]) {
+        await queryInterface.sequelize.query(query, { transaction });
       }
 
       await transaction.commit();

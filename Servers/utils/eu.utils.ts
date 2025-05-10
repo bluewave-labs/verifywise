@@ -270,6 +270,27 @@ export const getControlStructByControlCategoryIdQuery = async (
   return controlsStruct;
 }
 
+export const getControlStructByControlCategoryIdForAProjectQuery = async (
+  controlCategoryId: number,
+  projectFrameworkId: number,
+) => {
+  const controlsStruct = await sequelize.query(
+    `SELECT cs.*, c.owner FROM controls_struct_eu cs JOIN controls_eu c ON cs.id = c.control_meta_id
+      WHERE cs.control_category_id = :control_category_id AND c.projects_frameworks_id = :projects_frameworks_id;`,
+    {
+      replacements: {
+        control_category_id: controlCategoryId, projects_frameworks_id: projectFrameworkId
+      }
+    }
+  ) as [Partial<ControlStructEUModel & ControlEUModel>[], number];
+  for (let control of controlsStruct[0]) {
+    const subControlsCalculations = await getSubControlsCalculations(control.id!);
+    (control as any).numberOfSubcontrols = parseInt(subControlsCalculations.numberOfSubcontrols);
+    (control as any).numberOfDoneSubcontrols = parseInt(subControlsCalculations.numberOfDoneSubcontrols);
+  }
+  return controlsStruct[0];
+}
+
 export const getControlByIdQuery = async (
   controlId: number,
   transaction: Transaction | null = null

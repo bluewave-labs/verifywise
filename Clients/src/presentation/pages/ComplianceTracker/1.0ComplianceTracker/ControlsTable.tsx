@@ -50,6 +50,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   const { users } = dashboardValues;
   const currentProjectId = projectId;
   const [controls, setControls] = useState<Control[]>([]);
+  const [selectedControl, setSelectedControl] = useState<Control | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<unknown>(null);
   const [selectedRow, setSelectedRow] = useState<number | null>(null);
@@ -72,7 +73,11 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
     setAlert(null);
   }, [currentProjectId]);
 
-  const handleRowClick = (id: number) => {
+  const handleRowClick = async (id: number) => {
+    const subControlsResponse = await getEntityById({
+      routeUrl: `eu-ai-act/controlById?controlId=${id}&projectFrameworkId=${projectFrameworkId}`,
+    });
+    setSelectedControl(subControlsResponse.data);
     setSelectedRow(id);
     setModalOpen(true);
   };
@@ -125,16 +130,9 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
       setLoading(true);
       try {
         const response = await getEntityById({
-          routeUrl: `/eu-ai-act/controls/byControlCategoryId/${controlCategoryId}`,
+          routeUrl: `/eu-ai-act/controls/byControlCategoryId/${controlCategoryId}?projectFrameworkId=${projectFrameworkId}`,
         });
-        let _response = []
-        for (let control of response) {
-          const subControlsResponse = await getEntityById({
-            routeUrl: `eu-ai-act/controlById?controlId=${control.id}&projectFrameworkId=${projectFrameworkId}`,
-          });
-          _response.push({...subControlsResponse.data, ...control});
-        }
-        setControls(_response);
+        setControls(response);
       } catch (err) {
         setError(err);
       } finally {
@@ -285,7 +283,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
       </TableContainer>
       {modalOpen && selectedRow !== null && (
         <NewControlPane
-          data={controls.find((c) => c.id === selectedRow)!}
+          data={selectedControl!}
           isOpen={modalOpen}
           handleClose={handleCloseModal}
           OnSave={handleSaveSuccess}

@@ -6,7 +6,7 @@ import { getAllProjectsQuery, updateProjectUpdatedByIdQuery } from "../utils/pro
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { QuestionStructEU } from "../models/EU/questionStructEU.model";
-import { countAnswersEUByProjectId, countSubControlsEUByProjectId, deleteAssessmentEUByProjectIdQuery, deleteComplianeEUByProjectIdQuery, getAllControlCategoriesQuery, getAllTopicsQuery, getAssessmentsEUByProjectIdQuery, getComplianceEUByProjectIdQuery, getControlByIdForProjectQuery, getControlStructByControlCategoryIdQuery, getTopicByIdForProjectQuery, updateControlEUByIdQuery, updateQuestionEUByIdQuery, updateSubcontrolEUByIdQuery } from "../utils/eu.utils";
+import { countAnswersEUByProjectId, countSubControlsEUByProjectId, deleteAssessmentEUByProjectIdQuery, deleteComplianeEUByProjectIdQuery, getAllControlCategoriesQuery, getAllTopicsQuery, getAssessmentsEUByProjectIdQuery, getComplianceEUByProjectIdQuery, getControlByIdForProjectQuery, getControlStructByControlCategoryIdForAProjectQuery, getControlStructByControlCategoryIdQuery, getTopicByIdForProjectQuery, updateControlEUByIdQuery, updateQuestionEUByIdQuery, updateSubcontrolEUByIdQuery } from "../utils/eu.utils";
 import { AnswerEU } from "../models/EU/answerEU.model";
 import { sequelize } from "../database/db";
 import { Project, ProjectModel } from "../models/project.model";
@@ -292,8 +292,8 @@ export async function getProjectAssessmentProgress(req: Request, res: Response) 
     const { totalAssessments, answeredAssessments } = await countAnswersEUByProjectId(projectFrameworkId);
     return res.status(200).json(
       STATUS_CODE[200]({
-        totalQuestions: totalAssessments,
-        answeredQuestions: answeredAssessments,
+        totalQuestions: parseInt(totalAssessments),
+        answeredQuestions: parseInt(answeredAssessments),
       })
     );
   } catch (error) {
@@ -313,8 +313,8 @@ export async function getProjectComplianceProgress(req: Request, res: Response) 
     const { totalSubcontrols, doneSubcontrols } = await countSubControlsEUByProjectId(projectFrameworkId);
     return res.status(200).json(
       STATUS_CODE[200]({
-        allsubControls: totalSubcontrols,
-        allDonesubControls: doneSubcontrols,
+        allsubControls: parseInt(totalSubcontrols),
+        allDonesubControls: parseInt(doneSubcontrols),
       })
     );
   } catch (error) {
@@ -412,7 +412,8 @@ export async function getControlsByControlCategoryId(
 ): Promise<any> {
   try {
     const controlCategoryId = parseInt(req.params.id);
-    const controls = await getControlStructByControlCategoryIdQuery(controlCategoryId);
+    const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
+    const controls = await getControlStructByControlCategoryIdForAProjectQuery(controlCategoryId, projectFrameworkId);
     return res.status(200).json(controls);
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

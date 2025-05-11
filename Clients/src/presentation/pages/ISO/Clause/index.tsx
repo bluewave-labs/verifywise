@@ -9,14 +9,30 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { accordionStyle } from "../style";
 import { useState } from "react";
 import { ISO42001ClauseList } from "./clause.structure";
+import VWISO42001ClauseDrawerDialog from "../../../components/Drawer/ClauseDrawerDialog";
 
 const ISO42001Clauses = () => {
   const [expanded, setExpanded] = useState<number | false>(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedSubClause, setSelectedSubClause] = useState<any>(null);
+  const [selectedClause, setSelectedClause] = useState<any>(null);
 
   const handleAccordionChange =
     (panel: number) => (_: React.SyntheticEvent, isExpanded: boolean) => {
       setExpanded(isExpanded ? panel : false);
     };
+
+  const handleSubClauseClick = (clause: any, subClause: any) => {
+    setSelectedClause(clause);
+    setSelectedSubClause(subClause);
+    setDrawerOpen(true);
+  };
+
+  const handleDrawerClose = () => {
+    setDrawerOpen(false);
+    setSelectedSubClause(null);
+    setSelectedClause(null);
+  };
 
   function getStatusColor(status: string) {
     switch (status) {
@@ -95,6 +111,7 @@ const ISO42001Clauses = () => {
                   {clause.subClauses.map((subClause) => (
                     <Stack
                       key={subClause.number}
+                      onClick={() => handleSubClauseClick(clause, subClause)}
                       sx={{
                         display: "flex",
                         flexDirection: "row",
@@ -131,6 +148,12 @@ const ISO42001Clauses = () => {
           ))}
         </>
       ))}
+      <VWISO42001ClauseDrawerDialog
+        open={drawerOpen}
+        onClose={handleDrawerClose}
+        subClause={selectedSubClause}
+        clause={selectedClause}
+      />
     </Stack>
   );
 };

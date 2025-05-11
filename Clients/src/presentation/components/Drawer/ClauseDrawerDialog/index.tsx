@@ -9,6 +9,17 @@ import {
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import Field from "../../Inputs/Field";
 import { FileData } from "../../../../domain/types/File";
+import Select from "../../Inputs/Select";
+import DatePicker from "../../Inputs/Datepicker";
+import { Dayjs } from "dayjs";
+import { useState } from "react";
+
+export const inputStyles = {
+  minWidth: 200,
+  maxWidth: "100%",
+  flexGrow: 1,
+  height: 34,
+};
 
 interface SubClause {
   number: string;
@@ -42,6 +53,7 @@ const VWISO42001ClauseDrawerDialog = ({
   evidenceFiles = [],
   uploadFiles = [],
 }: VWISO42001ClauseDrawerDialogProps) => {
+  const [date, setDate] = useState<Dayjs | null>(null);
   console.log("subClause : ", subClause);
   return (
     <Drawer
@@ -204,6 +216,90 @@ const VWISO42001ClauseDrawerDialog = ({
           </Stack>
         </Stack>
         <Divider />
+        <Stack
+          sx={{
+            padding: "15px 20px",
+          }}
+          gap={"20px"}
+        >
+          <Select
+            id="status"
+            label="Status:"
+            value={subClause?.status || ""}
+            onChange={() => {}}
+            items={[
+              { _id: "Not Started", name: "Not Started" },
+              { _id: "Draft", name: "Draft" },
+              { _id: "In Progress", name: "In Progress" },
+              { _id: "Awaiting Review", name: "Awaiting Review" },
+              { _id: "Awaiting Approval", name: "Awaiting Approval" },
+              { _id: "Implemented", name: "Implemented" },
+              { _id: "Audited", name: "Audited" },
+              { _id: "Needs Rework", name: "Needs Rework" },
+            ]}
+            sx={inputStyles}
+            placeholder={"Select status"}
+          />
+
+          <Select
+            id="Owner"
+            label="Owner:"
+            value={""}
+            onChange={() => {}}
+            items={[]}
+            sx={inputStyles}
+            placeholder={"Select owner"}
+          />
+
+          <Select
+            id="Reviewer"
+            label="Reviewer:"
+            value={""}
+            onChange={() => {}}
+            items={[]}
+            sx={inputStyles}
+            placeholder={"Select reviewer"}
+          />
+
+          <Select
+            id="Approver"
+            label="Approver:"
+            value={""}
+            onChange={() => {}}
+            items={[]}
+            sx={inputStyles}
+            placeholder={"Select approver"}
+          />
+
+          <DatePicker
+            label="Due date:"
+            sx={inputStyles}
+            date={date}
+            handleDateChange={(newDate) => {
+              setDate(newDate);
+            }}
+          />
+          <Stack>
+            <Typography
+              fontSize={13}
+              fontWeight={600}
+              sx={{ marginBottom: "5px" }}
+            >
+              Auditor Feedback:
+            </Typography>
+            <Field
+              type="description"
+              sx={{
+                cursor: "text",
+                "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
+                  {
+                    height: "73px",
+                  },
+              }}
+              placeholder="Enter any feedback from the internal or external audits..."
+            />
+          </Stack>
+        </Stack>
       </Stack>
     </Drawer>
   );

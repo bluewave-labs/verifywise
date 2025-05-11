@@ -8,14 +8,32 @@ import {
 import { ISO42001AnnexList } from "./annex.structure";
 import { useState } from "react";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import VWISO42001AnnexDrawerDialog from "../../../components/Drawer/AnnexDrawerDialog";
 
 const ISO42001Annex = () => {
   const [expanded, setExpanded] = useState<number | false>(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [selectedControl, setSelectedControl] = useState<any>(null);
+  const [selectedAnnex, setSelectedAnnex] = useState<any>(null);
 
   const handleAccordionChange =
     (panel: number) => (_: React.SyntheticEvent, isExpanded: boolean) => {
       setExpanded(isExpanded ? panel : false);
     };
+
+  const handleControlClick = (order: any, annex: any, control: any) => {
+    setSelectedOrder(order);
+    setSelectedAnnex(annex);
+    setSelectedControl(control);
+    setDrawerOpen(true);
+  };
+
+  const handleDrawerClose = () => {
+    setDrawerOpen(false);
+    setSelectedControl(null);
+    setSelectedAnnex(null);
+  };
 
   function getStatusColor(status: string) {
     switch (status) {
@@ -107,6 +125,9 @@ const ISO42001Annex = () => {
                   {item.controls.map((control) => (
                     <Stack
                       key={control.id}
+                      onClick={() =>
+                        handleControlClick(annex.order, item, control)
+                      }
                       sx={{
                         display: "flex",
                         flexDirection: "row",
@@ -156,6 +177,13 @@ const ISO42001Annex = () => {
           ))}
         </>
       ))}
+      <VWISO42001AnnexDrawerDialog
+        open={drawerOpen}
+        onClose={handleDrawerClose}
+        title={`${selectedOrder}.${selectedAnnex?.order}.${selectedControl?.control_no}.${selectedControl?.control_subSection}: ${selectedControl?.title}`}
+        control={selectedControl}
+        annex={selectedAnnex}
+      />
     </Stack>
   );
 };

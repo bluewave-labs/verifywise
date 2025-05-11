@@ -1,5 +1,14 @@
-import { Divider, Drawer, Paper, Stack, Typography } from "@mui/material";
+import {
+  Button,
+  Divider,
+  Drawer,
+  Paper,
+  Stack,
+  Typography,
+} from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
+import Field from "../../Inputs/Field";
+import { FileData } from "../../../../domain/types/File";
 
 interface SubClause {
   number: string;
@@ -21,6 +30,8 @@ interface VWISO42001ClauseDrawerDialogProps {
   onClose: () => void;
   subClause: SubClause | null;
   clause: Clause | null;
+  evidenceFiles?: FileData[];
+  uploadFiles?: FileData[];
 }
 
 const VWISO42001ClauseDrawerDialog = ({
@@ -28,6 +39,8 @@ const VWISO42001ClauseDrawerDialog = ({
   onClose,
   subClause,
   clause,
+  evidenceFiles = [],
+  uploadFiles = [],
 }: VWISO42001ClauseDrawerDialogProps) => {
   console.log("subClause : ", subClause);
   return (
@@ -64,7 +77,7 @@ const VWISO42001ClauseDrawerDialog = ({
           <Typography fontSize={15} fontWeight={700}>
             {clause?.number + "." + subClause?.number} {subClause?.title}
           </Typography>
-          <CloseIcon />
+          <CloseIcon onClick={onClose} style={{ cursor: "pointer" }} />
         </Stack>
         <Divider />
         <Stack
@@ -109,6 +122,88 @@ const VWISO42001ClauseDrawerDialog = ({
             </ul>
           </Paper>
         </Stack>
+        <Divider />
+        <Stack
+          sx={{
+            padding: "15px 20px",
+          }}
+          gap={"20px"}
+        >
+          <Stack>
+            <Typography
+              fontSize={13}
+              fontWeight={600}
+              sx={{ marginBottom: "5px" }}
+            >
+              Implementation Description:
+            </Typography>
+            <Field
+              type="description"
+              sx={{
+                cursor: "text",
+                "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
+                  {
+                    height: "73px",
+                  },
+              }}
+              placeholder="Describe how this requirement is implemented"
+            />
+          </Stack>
+          <Stack direction="row" spacing={2}>
+            <Button
+              variant="contained"
+              sx={{
+                mt: 2,
+                borderRadius: 2,
+                width: 155,
+                height: 25,
+                fontSize: 11,
+                border: "1px solid #D0D5DD",
+                backgroundColor: "white",
+                color: "#344054",
+              }}
+              disableRipple={false}
+              onClick={() => {}}
+            >
+              Add/Remove evidence
+            </Button>
+            <Stack direction="row" spacing={10}>
+              <Typography
+                sx={{
+                  fontSize: 11,
+                  color: "#344054",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  textAlign: "center",
+                  margin: "auto",
+                  textWrap: "wrap",
+                }}
+              >
+                {`${evidenceFiles.length || 0} evidence files attached`}
+              </Typography>
+              {uploadFiles.length > 0 && (
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: "#344054",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    textAlign: "center",
+                    margin: "auto",
+                    textWrap: "wrap",
+                  }}
+                >
+                  {`${uploadFiles.length} ${
+                    uploadFiles.length === 1 ? "file" : "files"
+                  } pending upload`}
+                </Typography>
+              )}
+            </Stack>
+          </Stack>
+        </Stack>
+        <Divider />
       </Stack>
     </Drawer>
   );

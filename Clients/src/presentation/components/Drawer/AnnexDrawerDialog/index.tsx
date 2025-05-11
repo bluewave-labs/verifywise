@@ -2,9 +2,22 @@ import { Divider, Drawer, Stack, Typography } from "@mui/material";
 import { FileData } from "../../../../domain/types/File";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 
-interface Control {}
+interface Control {
+  id: number;
+  control_no: number;
+  control_subSection: number;
+  title: string;
+  shortDescription: string;
+  guidance: string;
+  status: string;
+}
 
-interface Annex {}
+interface Annex {
+  id: number;
+  order: number;
+  title: string;
+  controls: Control[];
+}
 
 interface VWISO42001ClauseDrawerDialogProps {
   title: string;
@@ -20,6 +33,10 @@ const VWISO42001AnnexDrawerDialog = ({
   title,
   open,
   onClose,
+  control,
+  annex,
+  evidenceFiles = [],
+  uploadFiles = [],
 }: VWISO42001ClauseDrawerDialogProps) => {
   return (
     <Drawer
@@ -46,25 +63,36 @@ const VWISO42001AnnexDrawerDialog = ({
           sx={{
             width: 600,
             padding: "15px 20px",
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Typography fontSize={15} fontWeight={700}>
+            {title}
+          </Typography>
+          <CloseIcon onClick={onClose} style={{ cursor: "pointer" }} />
+        </Stack>
+        <Divider />
+        <Stack
+          sx={{
+            padding: "15px 20px",
           }}
         >
           <Stack
+            className="vw-iso-42001-annex-drawer-dialog-content-annex-guidance"
             sx={{
-              width: 600,
-              padding: "15px 20px",
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
+              border: `1px solid #eee`,
+              padding: "10px",
+              backgroundColor: "#f8f9fa",
+              borderRadius: "4px",
             }}
           >
-            <Typography fontSize={15} fontWeight={700}>
-              {title}
+            <Typography fontSize={13}>
+              <strong>Guidance:</strong> {control?.guidance}
             </Typography>
-            <CloseIcon onClick={onClose} style={{ cursor: "pointer" }} />
           </Stack>
-          <Divider />
-          <Stack></Stack>
         </Stack>
       </Stack>
     </Drawer>

@@ -10,8 +10,8 @@ interface VWISO42001ClauseDrawerDialogProps {
   title: string;
   open: boolean;
   onClose: () => void;
-  subClause: Control | null;
-  clause: Annex | null;
+  control: Control | null;
+  annex: Annex | null;
   evidenceFiles?: FileData[];
   uploadFiles?: FileData[];
 }

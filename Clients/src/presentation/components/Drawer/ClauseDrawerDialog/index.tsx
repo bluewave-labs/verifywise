@@ -13,6 +13,8 @@ import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
 import { Dayjs } from "dayjs";
 import { useState } from "react";
+import VWButton from "../../../vw-v2-components/Buttons";
+import SaveIcon from "@mui/icons-material/Save";
 
 export const inputStyles = {
   minWidth: 200,
@@ -299,6 +301,28 @@ const VWISO42001ClauseDrawerDialog = ({
               placeholder="Enter any feedback from the internal or external audits..."
             />
           </Stack>
+        </Stack>
+        <Divider />
+        <Stack
+          className="vw-iso-42001-clause-drawer-dialog-footer"
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "flex-end",
+            padding: "15px 20px",
+          }}
+        >
+          <VWButton
+            variant="contained"
+            text="Save"
+            sx={{
+              backgroundColor: "#13715B",
+              border: "1px solid #13715B",
+              gap: 2,
+            }}
+            onClick={() => {}}
+            icon={<SaveIcon />}
+          />
         </Stack>
       </Stack>
     </Drawer>

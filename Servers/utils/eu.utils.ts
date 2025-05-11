@@ -10,8 +10,8 @@ import { SubcontrolEU, SubcontrolEUModel } from "../models/EU/subControlEU.model
 import { SubtopicStructEUModel } from "../models/EU/subTopicStructEU.model";
 import { TopicStructEUModel } from "../models/EU/topicStructEU.model";
 import { ProjectScopeModel } from "../models/projectScope.model";
-import { Topics } from "../structures/assessment-tracker/topics.struct";
-import { ControlCategories } from "../structures/compliance-tracker/controlCategories.struct";
+import { Topics } from "../structures/EU-AI-Act/assessment-tracker/topics.struct";
+import { ControlCategories } from "../structures/EU-AI-Act/compliance-tracker/controlCategories.struct";
 import { deleteHelper } from "./project.utils";
 import { ProjectFrameworksModel } from "../models/projectFrameworks.model";
 

@@ -1,10 +1,13 @@
-import { Divider, Drawer, Stack, Typography } from "@mui/material";
+import { Divider, Drawer, Paper, Stack, Typography } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 
 interface SubClause {
   number: string;
   title: string;
   status: string;
+  summary: string;
+  keyQuestions: string[];
+  evidenceExamples: string[];
 }
 
 interface Clause {
@@ -26,12 +29,14 @@ const VWISO42001ClauseDrawerDialog = ({
   subClause,
   clause,
 }: VWISO42001ClauseDrawerDialogProps) => {
+  console.log("subClause : ", subClause);
   return (
     <Drawer
       className="vw-iso-42001-clause-drawer-dialog"
       open={open}
       onClose={onClose}
       sx={{
+        width: 600,
         margin: 0,
         "& .MuiDrawer-paper": {
           margin: 0,
@@ -40,7 +45,12 @@ const VWISO42001ClauseDrawerDialog = ({
       }}
       anchor="right"
     >
-      <Stack className="vw-iso-42001-clause-drawer-dialog-content">
+      <Stack
+        className="vw-iso-42001-clause-drawer-dialog-content"
+        sx={{
+          width: 600,
+        }}
+      >
         <Stack
           sx={{
             width: 600,
@@ -57,6 +67,48 @@ const VWISO42001ClauseDrawerDialog = ({
           <CloseIcon />
         </Stack>
         <Divider />
+        <Stack
+          sx={{
+            padding: "15px 20px",
+          }}
+        >
+          <Paper
+            elevation={0}
+            sx={{
+              backgroundColor: "#f8f9fa",
+              borderLeft: `3px solid #13715B`,
+              p: "10px",
+              mt: "10px",
+              mb: "15px",
+            }}
+          >
+            <Typography fontSize={13} sx={{ marginBottom: "13px" }}>
+              <strong>Requirement Summary: </strong>
+              {subClause?.summary}
+            </Typography>
+            <Typography fontSize={13} fontWeight={600}>
+              Key Questions:
+            </Typography>
+            <ul style={{ paddingLeft: "20px" }}>
+              {subClause?.keyQuestions.map((question, index) => (
+                <li key={index}>
+                  <Typography fontSize={13}>{question}</Typography>
+                </li>
+              ))}
+            </ul>
+
+            <Typography fontSize={13} fontWeight={600}>
+              Evidence Examples:
+            </Typography>
+            <ul style={{ paddingLeft: "20px" }}>
+              {subClause?.evidenceExamples.map((example, index) => (
+                <li key={index}>
+                  <Typography fontSize={13}>{example}</Typography>
+                </li>
+              ))}
+            </ul>
+          </Paper>
+        </Stack>
       </Stack>
     </Drawer>
   );

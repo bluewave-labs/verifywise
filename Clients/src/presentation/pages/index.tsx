@@ -1,7 +1,3 @@
-/**
- * This file is currently in use
- */
-
 import { Stack } from "@mui/material";
 
 const Playground = () => {

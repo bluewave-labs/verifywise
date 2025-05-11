@@ -62,6 +62,7 @@ try {
         testOrigin({origin, allowedOrigins , callback});
       },
       credentials: true,
+      allowedHeaders: ['Authorization', 'Content-Type', 'X-Requested-With'],
     })
   );
   app.use(helmet()); // Use helmet for security headers

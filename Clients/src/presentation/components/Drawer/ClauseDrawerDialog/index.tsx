@@ -144,11 +144,7 @@ const VWISO42001ClauseDrawerDialog = ({
           gap={"20px"}
         >
           <Stack>
-            <Typography
-              fontSize={13}
-              fontWeight={600}
-              sx={{ marginBottom: "5px" }}
-            >
+            <Typography fontSize={13} sx={{ marginBottom: "5px" }}>
               Implementation Description:
             </Typography>
             <Field
@@ -282,11 +278,7 @@ const VWISO42001ClauseDrawerDialog = ({
             }}
           />
           <Stack>
-            <Typography
-              fontSize={13}
-              fontWeight={600}
-              sx={{ marginBottom: "5px" }}
-            >
+            <Typography fontSize={13} sx={{ marginBottom: "5px" }}>
               Auditor Feedback:
             </Typography>
             <Field

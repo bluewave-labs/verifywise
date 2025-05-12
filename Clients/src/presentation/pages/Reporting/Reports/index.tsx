@@ -19,10 +19,11 @@ const Reports = () => {
     title?: string;
     body: string;
   } | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const {
     generatedReports
-  } = useGeneratedReports({ projectId });
+  } = useGeneratedReports({ projectId, refreshKey });
 
   const handleToast = (type: any, message: string) => {
     handleAlert({
@@ -42,6 +43,7 @@ const Reports = () => {
       });
       if (response.status === 200) {
         handleToast("success", "Report deleted successfully.");
+        setRefreshKey((prevKey) => prevKey + 1);
       } else if (response.status === 204) {
         handleToast("error", "Report not found.");
       } else {

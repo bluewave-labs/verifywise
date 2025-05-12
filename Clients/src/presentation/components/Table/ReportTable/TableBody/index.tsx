@@ -39,7 +39,7 @@ const ReportTableBody: React.FC<TableProps> = ({
                 {row.filename ? row.filename : '-'}
               </TableCell>
               <TableCell sx={cellStyle}>
-                {row.type ? row.type : '-'}
+                {row.source ? row.source : '-'}
               </TableCell>
               <TableCell sx={cellStyle}>
                 {row.project_title ? row.project_title : '-'}

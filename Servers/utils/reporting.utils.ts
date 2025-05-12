@@ -74,3 +74,15 @@ export const deleteReportByIdQuery = async (id: number, transaction: Transaction
   
   return result.length > 0
 }
+
+export const getReportByIdQuery = async (id: number) => {
+  const result = await sequelize.query(
+    `SELECT * FROM files WHERE id = :id`, 
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: FileModel
+    }
+  );
+  return result[0];
+}

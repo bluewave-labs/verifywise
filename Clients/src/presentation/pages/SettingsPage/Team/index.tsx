@@ -345,6 +345,9 @@ const TeamManagement: React.FC = (): JSX.Element => {
             </Box>
           </Stack>
 
+{/* only render table and pagination if team is loaded  */}
+{rolesLoading || roles.length === 0 ? null : (
+  <>
           <TableContainer sx={{ overflowX: "auto" }}>
             <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>
               <TableHead sx={{ backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors }}>
@@ -519,7 +522,8 @@ const TeamManagement: React.FC = (): JSX.Element => {
               },
             }}
           />
-
+          </>
+        )}
           <Box
             sx={{ display: "flex", justifyContent: "flex-end", mt: 20 }}
           ></Box>

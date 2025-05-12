@@ -95,6 +95,10 @@ export async function deleteGeneratedReportById(
     }
 
     const report = await getReportByIdQuery(reportId); // get report detail
+    if (!report) {
+      return res.status(404).json(STATUS_CODE[404]("Report not found"));
+    }
+    
     const authorizedUser = await isAuthorizedUser(report.project_id, userId); // check whether the user is authorized to delete the report or not
     
     if (authorizedUser) {

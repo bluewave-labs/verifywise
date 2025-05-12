@@ -521,7 +521,7 @@ export const createNewControlsQuery = async (
     controlIds.push(result[0].id!);
     await createNewSubControlsQuery(
       controlStruct.id!,
-      demoControls[controlCtr++].subControls,
+      demoControls[controlCtr++]?.subControls || [],
       result[0].id!,
       enable_ai_data_insertion,
       transaction

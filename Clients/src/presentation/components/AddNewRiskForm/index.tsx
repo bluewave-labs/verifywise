@@ -28,7 +28,6 @@ import { useSearchParams } from "react-router-dom";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import dayjs from "dayjs";
 import useUsers from "../../../application/hooks/useUsers";
-import { RISK_LABELS } from "../RiskLevel/constants";
 import {
   aiLifecyclePhase,
   riskCategoryItems,
@@ -50,21 +49,6 @@ import { RiskLikelihood, RiskSeverity } from "../RiskLevel/riskValues";
 const RiskSection = lazy(() => import("./RisksSection"));
 const MitigationSection = lazy(() => import("./MitigationSection"));
 
-const LIKELIHOOD_OPTIONS = [
-  { _id: 1, name: RiskLikelihood.Rare },
-  { _id: 2, name: RiskLikelihood.Unlikely },
-  { _id: 3, name: RiskLikelihood.Possible },
-  { _id: 4, name: RiskLikelihood.Likely },
-  { _id: 5, name: RiskLikelihood.AlmostCertain },
-] as const;
-
-const RISK_SEVERITY_OPTIONS = [
-  { _id: 1, name: RiskSeverity.Negligible },
-  { _id: 2, name: RiskSeverity.Minor },
-  { _id: 3, name: RiskSeverity.Moderate },
-  { _id: 4, name: RiskSeverity.Major },
-  { _id: 5, name: RiskSeverity.Catastrophic },
-] as const;
 
 const riskInitialState: RiskFormValues = {
   riskName: "",
@@ -213,18 +197,6 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
       setMitigationValues(currentMitigationData);
     }
   }, [popupStatus, users]);
-
-  const getRiskLevel = (score: number): { text: string; color: string } => {
-    if (score <= 3) {
-      return RISK_LABELS.low;
-    } else if (score <= 6) {
-      return RISK_LABELS.medium;
-    } else if (score <= 9) {
-      return RISK_LABELS.high;
-    } else {
-      return RISK_LABELS.critical;
-    }
-  };
 
   const validateForm = useCallback((): {
     isValid: boolean;
@@ -399,8 +371,8 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     }
 
     const risk_risklevel = RiskCalculator.getRiskLevel(
-      selectedRiskLikelihood.name,
-      selectedRiskSeverity.name
+      selectedRiskLikelihood.name as RiskLikelihood,
+      selectedRiskSeverity.name as RiskSeverity
     );
 
     const selectedMitigationLikelihood = likelihoodItems.find(
@@ -415,8 +387,8 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     }
 
     const mitigation_risklevel = RiskCalculator.getRiskLevel(
-      selectedMitigationLikelihood.name,
-      selectedMitigationSeverity.name
+      selectedMitigationLikelihood.name as RiskLikelihood,
+      selectedMitigationSeverity.name as RiskSeverity
     );
 
     // check forms validate

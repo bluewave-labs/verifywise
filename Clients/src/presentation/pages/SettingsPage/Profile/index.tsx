@@ -470,13 +470,17 @@ const ProfileForm: React.FC = () => {
             )}
             <Typography
               variant="caption"
-              sx={{ mt: 1, display: "block", color: "#667085" }}
+              sx={{ mt: 1, 
+                mb:{ xs: 5, md: 0 },
+                display: "block", color: "#667085" }}
             >
               This is your current email address — it cannot be changed.
             </Typography>
           </Box>
-          <Box sx={{ width: { xs: "100%", md: "40%" }, textAlign: "center" }}>
-            <Stack direction="column" alignItems="center" spacing={2}>
+          <Box sx={{ width: { xs: "100%", md: "40%" }, 
+          textAlign: { xs: "left", md: "center" },
+          }}>
+            <Stack direction="column" alignItems={{xs: "flex-start", md: "center"}} spacing={2}>
               <Typography
                 fontWeight="600"
                 variant="subtitle1"

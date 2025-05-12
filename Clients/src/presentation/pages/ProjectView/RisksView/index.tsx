@@ -15,7 +15,6 @@ import {
   useEffect,
 } from "react";
 import BasicTable from "../../../components/Table";
-import Risks from "../../../components/Risks";
 import AddNewRiskForm from "../../../components/AddNewRiskForm";
 import Popup from "../../../components/Popup";
 import AddNewVendorRiskForm from "../../../components/AddNewVendorRiskForm";
@@ -269,7 +268,6 @@ const RisksView: FC<RisksViewProps> = memo(
             </Box>
           </Suspense>
         )}
-        {/* <Risks {...risksSummary} /> */}
         <RisksCard risksSummary={risksSummary} />
         <Stack
           sx={{ mt: "32px", mb: "28px" }}

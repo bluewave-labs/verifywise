@@ -5,6 +5,7 @@ import { VerifyWiseContext } from '../../../../application/contexts/VerifyWise.c
 import { TITLE_OF_COLUMNS } from './constants';
 import useGeneratedReports from '../../../../application/hooks/useGeneratedReports';
 import {styles} from './styles';
+import { deleteEntityById } from '../../../../application/repository/entity.repository';
 
 const Reports = () => {
   const { dashboardValues } = useContext(VerifyWiseContext);
@@ -16,8 +17,23 @@ const Reports = () => {
     generatedReports
   } = useGeneratedReports({ projectId });
 
-  const handleRemoveReport = () => {
+  const handleRemoveReport = async (id: number) => {
     // function for remove report 
+    console.log('id:', id)
+    try {
+      const response = await deleteEntityById({
+        routeUrl: `/reporting/${id}`,
+      });
+      if (response.status === 200) {
+        console.log("success", "Report deleted successfully.");
+      } else if (response.status === 404) {
+        console.log("error", "Report not found.");
+      } else {
+        console.log("error", "Unexpected error occurs. Report delete fails.");
+      }
+    } catch (error) {
+      console.error("Error sending request", error);
+    }
   }
 
   const setCurrentPagingation = (page: number) => {

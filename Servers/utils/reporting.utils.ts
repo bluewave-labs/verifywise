@@ -61,13 +61,16 @@ export const getGeneratedReportsQuery = async () => {
 }
 
 export const deleteReportByIdQuery = async (id: number, transaction: Transaction) => {
-  const query = `DELETE FROM files WHERE id = :id`;
-  const result = await sequelize.query(query, {
-    replacements: { id },
-    mapToModel: true,
-    model: FileModel,
-    type: QueryTypes.DELETE,
-    transaction
-  });
+  const result = await sequelize.query(
+    "DELETE FROM files WHERE id = :id RETURNING *",
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: FileModel,
+      type: QueryTypes.DELETE,
+      transaction
+    }
+  );
+  
   return result.length > 0
 }

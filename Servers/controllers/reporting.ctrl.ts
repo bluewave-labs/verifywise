@@ -86,8 +86,7 @@ export async function deleteGeneratedReportById(
   const transaction = await sequelize.transaction();
   try {
     const reportId = parseInt(req.params.id);
-
-    const deletedReport = await deleteReportByIdQuery(reportId, transaction);
+    const deletedReport = await deleteReportByIdQuery(reportId, transaction); 
 
     if (deletedReport) {
       await transaction.commit();

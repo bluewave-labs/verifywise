@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { uploadFile } from "../utils/fileUpload.utils";
 import { getReportData, isAuthorizedUser, getFormattedReportName } from '../services/reportService';
-
+import { getGeneratedReportsQuery } from "../utils/reporting.utils";
 import marked from 'marked';
 import { sequelize } from "../database/db";
 const htmlDocx = require("html-to-docx");
@@ -42,7 +42,7 @@ export async function generateReports(
 
       let uploadedFile;
       try {
-        uploadedFile = await uploadFile(docFile, userId, projectId, "Assessment tracker group");
+        uploadedFile = await uploadFile(docFile, userId, projectId, "Report");
       } catch (error) {
         console.error("File upload error:", error);
         return res.status(500).json(STATUS_CODE[500]("Error uploading report file"));
@@ -59,6 +59,21 @@ export async function generateReports(
     }else{
       return res.status(403).json(STATUS_CODE[500]("Unauthorized user to download the report."));
     }
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getAllGeneratedReports(  
+  req: Request,
+  res: Response
+): Promise<any>{
+  try {
+    const reports = await getGeneratedReportsQuery();
+    if (reports) {
+      return res.status(200).json(STATUS_CODE[200](reports));
+    }
+    return res.status(404).json(STATUS_CODE[404](reports));  
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

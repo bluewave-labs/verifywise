@@ -1,7 +1,6 @@
 import React, {
   useState,
   useEffect,
-  useContext,
   useMemo,
   forwardRef,
 } from "react";
@@ -14,7 +13,6 @@ import { vwhomeHeading } from "../Home/1.0Home/style";
 import { useFetchFiles } from "../../../application/hooks/useFetchFiles";
 import { useProjectData } from "../../../application/hooks/useFetchProjects";
 import FileTable from "../../components/Table/FileTable/FileTable";
-import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
 import ProjectFilterDropdown from "../../components/Inputs/Dropdowns/ProjectFilter/ProjectFilterDropdown";
 
@@ -42,7 +40,6 @@ const COLUMNS: Column[] = COLUMN_NAMES.map((name, index) => ({
  * @returns {JSX.Element} The FileManager component.
  */
 const FileManager: React.FC = (): JSX.Element => {
-  const { dashboardValues } = useContext(VerifyWiseContext);
   const theme = useTheme();
   const [runFileTour, setRunFileTour] = useState(false);
   const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({
@@ -53,15 +50,10 @@ const FileManager: React.FC = (): JSX.Element => {
   const {
     projects,
     loading: loadingProjects,
-    fetchProjects,
   } = useProjectData();
 
-  useEffect(() => {
-    fetchProjects();
-  }, [fetchProjects]);
-
   // State for selected project
-  const [selectedProject, setSelectedProject] = useState<string | null>(dashboardValues.selectedProjectId?.toString() || null);
+  const [selectedProject, setSelectedProject] = useState<string | null>(null);
 
   // Fetch files based on selected project
   const { filesData, loading: loadingFiles } = useFetchFiles(selectedProject || "");

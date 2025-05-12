@@ -1,21 +1,18 @@
 import { useContext, useEffect, useState } from "react";
 import { Stack, Typography, Modal, Box } from "@mui/material";
 import {
-  headerCardPlaceholder,
   vwhomeBody,
   vwhomeBodyControls,
   vwhomeBodyProjects,
   vwhomeBodyProjectsGrid,
   vwhomeCreateModalFrame,
-  vwhomeHeaderCards,
   vwhomeHeading,
 } from "./style";
-import SmallStatsCard from "../../../components/Cards/SmallStatsCard";
 import VWButton from "../../../vw-v2-components/Buttons";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import VWProjectCard from "../../../components/Cards/ProjectCard";
-import VWSkeleton from "../../../vw-v2-components/Skeletons";
+
 import { postAutoDrivers } from "../../../../application/repository/entity.repository";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import NoProject from "../../../components/NoProject/NoProject";
@@ -23,10 +20,6 @@ import VWToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 import { logEngine } from "../../../../application/tools/log.engine";
 import VWProjectForm from "../../../vw-v2-components/Forms/ProjectForm";
-import {
-  AssessmentProgress,
-  ComplianceProgress,
-} from "../../../../application/interfaces/iprogress";
 import { useProjectData } from "../../../../application/hooks/useFetchProjects";
 import { AlertState } from "../../../../application/interfaces/appStates";
 import { fetchData } from "../../../../application/hooks/fetchDataHook";
@@ -37,10 +30,10 @@ import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScre
 const VWHome = () => {
   const { setDashboardValues, componentsVisible, changeComponentVisibility } =
     useContext(VerifyWiseContext);
-  const [complianceProgressData, setComplianceProgressData] =
-    useState<ComplianceProgress>();
-  const [assessmentProgressData, setAssessmentProgressData] =
-    useState<AssessmentProgress>();
+  // const [complianceProgressData, setComplianceProgressData] =
+  //   useState<ComplianceProgress>();
+  // const [assessmentProgressData, setAssessmentProgressData] =
+  //   useState<AssessmentProgress>();
   const [alertState, setAlertState] = useState<AlertState>();
   const [isProjectFormModalOpen, setIsProjectFormModalOpen] =
     useState<boolean>(false);
@@ -49,7 +42,7 @@ const VWHome = () => {
   const [showToastNotification, setShowToastNotification] =
     useState<boolean>(false);
 
-  const { projects, loading: projectLoading, fetchProjects } = useProjectData();
+  const { projects, fetchProjects } = useProjectData();
 
   const [runHomeTour, setRunHomeTour] = useState(false);
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
@@ -72,14 +65,14 @@ const VWHome = () => {
       await fetchData("/users", (data) => {
         setDashboardValues({ users: data });
       });
-      await fetchData(
-        "/eu-ai-act/all/compliances/progress",
-        setComplianceProgressData
-      );
-      await fetchData(
-        "/eu-ai-act/all/assessments/progress",
-        setAssessmentProgressData
-      );
+      // await fetchData(
+      //   "/eu-ai-act/all/compliances/progress",
+      //   setComplianceProgressData
+      // );
+      // await fetchData(
+      //   "/eu-ai-act/all/assessments/progress",
+      //   setAssessmentProgressData
+      // );
       await fetchProjects();
     };
 
@@ -109,14 +102,14 @@ const VWHome = () => {
         }, 100);
 
         await fetchProjects();
-        await fetchData(
-          "/eu-ai-act/all/compliances/progress",
-          setComplianceProgressData
-        );
-        await fetchData(
-          "/eu-ai-act/all/assessments/progress",
-          setAssessmentProgressData
-        );
+        // await fetchData(
+        //   "/eu-ai-act/all/compliances/progress",
+        //   setComplianceProgressData
+        // );
+        // await fetchData(
+        //   "/eu-ai-act/all/assessments/progress",
+        //   setAssessmentProgressData
+        // );
         setShowToastNotification(false);
         window.location.reload();
       } else {
@@ -166,49 +159,6 @@ const VWHome = () => {
       {showToastNotification && (
         <VWToast title="Generating demo data. Please wait..." />
       )}
-      <Stack className="vwhome-header" sx={{ mb: 15 }}>
-        <Typography sx={vwhomeHeading}>
-          All projects compliance status
-        </Typography>
-        <Stack className="vwhome-header-cards" sx={vwhomeHeaderCards}>
-          {projectLoading ? (
-            <VWSkeleton variant="rectangular" sx={headerCardPlaceholder} />
-          ) : (
-            <SmallStatsCard
-              attributeTitle="Compliance tracker"
-              progress={`${
-                complianceProgressData
-                  ? complianceProgressData.allDonesubControls
-                  : 0
-              }/${
-                complianceProgressData
-                  ? complianceProgressData.allsubControls
-                  : 1
-              }`}
-              rate={
-                (complianceProgressData?.allDonesubControls ?? 0) /
-                (complianceProgressData?.allsubControls ?? 1)
-              }
-            />
-          )}
-          {projectLoading ? (
-            <VWSkeleton variant="rectangular" sx={headerCardPlaceholder} />
-          ) : (
-            <SmallStatsCard
-              attributeTitle="Assessment tracker"
-              progress={`${assessmentProgressData?.answeredQuestions ?? 0}/${
-                assessmentProgressData?.totalQuestions ?? 1
-              }`}
-              rate={
-                assessmentProgressData
-                  ? (assessmentProgressData.answeredQuestions ?? 0) /
-                    (assessmentProgressData.totalQuestions ?? 1)
-                  : 0
-              }
-            />
-          )}
-        </Stack>
-      </Stack>
       <Stack className="vwhome-body">
         <Stack sx={vwhomeBody}>
           <Typography sx={vwhomeHeading}>Projects overview</Typography>

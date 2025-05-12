@@ -50,6 +50,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   const { users } = dashboardValues;
   const currentProjectId = projectId;
   const [controls, setControls] = useState<Control[]>([]);
+  const [selectedControl, setSelectedControl] = useState<Control | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<unknown>(null);
   const [selectedRow, setSelectedRow] = useState<number | null>(null);
@@ -72,7 +73,11 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
     setAlert(null);
   }, [currentProjectId]);
 
-  const handleRowClick = (id: number) => {
+  const handleRowClick = async (id: number) => {
+    const subControlsResponse = await getEntityById({
+      routeUrl: `eu-ai-act/controlById?controlId=${id}&projectFrameworkId=${projectFrameworkId}`,
+    });
+    setSelectedControl(subControlsResponse.data);
     setSelectedRow(id);
     setModalOpen(true);
   };
@@ -125,7 +130,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
       setLoading(true);
       try {
         const response = await getEntityById({
-          routeUrl: `/eu-ai-act/controls/byControlCategoryId/${controlCategoryId}`,
+          routeUrl: `/eu-ai-act/controls/byControlCategoryId/${controlCategoryId}?projectFrameworkId=${projectFrameworkId}`,
         });
         setControls(response);
       } catch (err) {
@@ -278,7 +283,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
       </TableContainer>
       {modalOpen && selectedRow !== null && (
         <NewControlPane
-          _data={controls.find((c) => c.id === selectedRow)!}
+          data={selectedControl!}
           isOpen={modalOpen}
           handleClose={handleCloseModal}
           OnSave={handleSaveSuccess}
@@ -286,7 +291,6 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
           controlCategoryId={controlCategoryIndex?.toString()}
           onComplianceUpdate={onComplianceUpdate}
           projectId={currentProjectId}
-          projectFrameworkId={projectFrameworkId}
         />
       )}
     </>

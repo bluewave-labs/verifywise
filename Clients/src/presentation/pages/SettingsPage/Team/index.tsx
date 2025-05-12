@@ -88,7 +88,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const [page, setPage] = useState(0); // Current page
   const { dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);
   const [teamUsers, setTeamUsers] = useState<TeamMember[]>(
-    dashboardValues.users
+    dashboardValues.users || []
   );
   const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
   const [inviteUserModalOpen, setInviteUserModalOpen] = useState(false);

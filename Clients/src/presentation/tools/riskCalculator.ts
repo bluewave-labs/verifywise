@@ -83,15 +83,15 @@ export class RiskCalculator {
 
   private static mapRiskLevel(score: number): RiskLevel {
     if (score <= 4) {
-      return { level: "Very Low Risk", color: RISK_LABELS.noRisk.color };
+      return { level: "Very low risk", color: RISK_LABELS.noRisk.color };
     } else if (score <= 8) {
-      return { level: "Low Risk", color: RISK_LABELS.low.color };
+      return { level: "Low risk", color: RISK_LABELS.low.color };
     } else if (score <= 12) {
-      return { level: "Medium Risk", color: RISK_LABELS.medium.color };
+      return { level: "Medium risk", color: RISK_LABELS.medium.color };
     } else if (score <= 16) {
-      return { level: "High Risk", color: RISK_LABELS.high.color };
+      return { level: "High risk", color: RISK_LABELS.high.color };
     } else {
-      return { level: "Very High Risk", color: RISK_LABELS.critical.color };
+      return { level: "Very high risk", color: RISK_LABELS.critical.color };
     }
   }
 }

@@ -35,7 +35,7 @@ export const getSubClauseByIdQuery = async (subClauseId: number, transaction: Tr
       sc.approver AS approver,
       sc.due_date AS due_date,
       sc.auditor_feedback AS auditor_feedback,
-      sc.created_at AS created_at,
+      sc.created_at AS created_at
     FROM subclauses_struct_iso scs JOIN subclauses_iso sc ON scs.id = sc.subclause_meta_id
     WHERE sc.id = :id ORDER BY created_at DESC, id ASC;`,
     {
@@ -91,8 +91,8 @@ export const getAnnexCategoriesByIdQuery = async (annexId: number, transaction: 
       ac.approver AS approver,
       ac.due_date AS due_date,
       ac.auditor_feedback AS auditor_feedback,
-      ac.created_at AS created_at,
-    FROM annexcategories_struct_iso acs JOIN annexcategories_iso ac ON acs.id = ac.category_meta_id
+      ac.created_at AS created_at
+    FROM annexcategories_struct_iso acs JOIN annexcategories_iso ac ON acs.id = ac.annexcategory_meta_id
     WHERE ac.id = :id ORDER BY created_at DESC, id ASC;`,
     {
       replacements: { id: annexId },
@@ -147,7 +147,7 @@ export const createNewSubClausesQuery = async (
   const subClauseIds = []
   for (let _subClauseId of subClauses) {
     const subClauseId = await sequelize.query(
-      `INSERT INTO clauses_struct_iso (
+      `INSERT INTO subclauses_iso (
         subclause_meta_id, projects_frameworks_id
       ) VALUES (
         :subclause_meta_id, :projects_frameworks_id
@@ -195,13 +195,13 @@ export const createNewAnnexeCategoriesQuery = async (
   for (let _annexCategoryId of annexCategories) {
     const annexCategoryId = await sequelize.query(
       `INSERT INTO annexcategories_iso (
-        category_meta_id, projects_frameworks_id
+        annexcategory_meta_id, projects_frameworks_id
       ) VALUES (
-        :category_meta_id, :projects_frameworks_id
+        :annexcategory_meta_id, :projects_frameworks_id
       ) RETURNING id;`,
       {
         replacements: {
-          category_meta_id: _annexCategoryId,
+          annexcategory_meta_id: _annexCategoryId,
           projects_frameworks_id: projectFrameworkId
         },
         transaction

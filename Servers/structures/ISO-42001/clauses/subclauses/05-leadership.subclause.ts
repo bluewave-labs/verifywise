@@ -1,4 +1,6 @@
-export const Leadership = [
+import { SubClauseStructISO } from "../../../../models/ISO-42001/subClauseStructISO.model";
+
+export const Leadership: SubClauseStructISO[] = [
   {
     title: "Leadership and commitment",
     order_no: 1,
@@ -20,7 +22,7 @@ export const Leadership = [
   {
     title: "Policy",
     order_no: 2,
-    summary: "Establish, communicate, and maintain an AI Policy appropriate to the organization's context.",
+    summary: "Establish, communicate, and maintain an AI Policy appropriate to the organization''s context.",
     questions: [
       "Is there a documented AI Policy?",
       "Does it include commitments to requirements and continual improvement?",

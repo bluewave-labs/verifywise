@@ -1,4 +1,6 @@
-export const Operation = [
+import { SubClauseStructISO } from "../../../../models/ISO-42001/subClauseStructISO.model";
+
+export const Operation: SubClauseStructISO[] = [
   {
     title: "Operational planning and control",
     order_no: 1,

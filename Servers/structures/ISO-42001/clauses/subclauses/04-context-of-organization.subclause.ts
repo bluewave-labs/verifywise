@@ -1,14 +1,16 @@
-export const ContextOfOrganization = [
+import { SubClauseStructISO } from "../../../../models/ISO-42001/subClauseStructISO.model";
+
+export const ContextOfOrganization: SubClauseStructISO[] = [
   {
     title: "Understanding the organization and its context",
     order_no: 1,
     summary:
-      "Determine external and internal issues relevant to the organization's purpose and its AIMS, including AI principles/values and strategic direction.",
+      "Determine external and internal issues relevant to the organization''s purpose and its AIMS, including AI principles/values and strategic direction.",
     questions: [
       "What internal factors (culture, resources, knowledge) influence our AIMS?",
       "What external factors (legal, ethical, market, social, technological) influence our AIMS?",
       "How does our use/development of AI align with our business strategy?",
-      "What are our organization's guiding principles or values related to AI?"
+      "What are our organization''s guiding principles or values related to AI?"
     ],
     evidence_examples: [
       "Context analysis document (PESTLE, SWOT focused on AI)",

@@ -1,4 +1,6 @@
-export const OrganizationalPoliciesAndGovernance = [
+import { AnnexCategoryStructISO } from "../../../../models/ISO-42001/annexCategoryStructISO.model";
+
+export const OrganizationalPoliciesAndGovernance: AnnexCategoryStructISO[] = [
   {
     sub_id: 1.1,
     order_no: 1,
@@ -53,6 +55,6 @@ export const OrganizationalPoliciesAndGovernance = [
     order_no: 8,
     title: "AI in project management",
     description: "Integrating AI aspects into project management.",
-    guidance: "AI should be integrated into the organization's project management."
+    guidance: "AI should be integrated into the organization''s project management."
   }
 ]

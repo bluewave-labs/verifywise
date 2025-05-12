@@ -1,4 +1,6 @@
-export const PerformanceEvaluation = [
+import { SubClauseStructISO } from "../../../../models/ISO-42001/subClauseStructISO.model";
+
+export const PerformanceEvaluation: SubClauseStructISO[] = [
   {
     title: "Monitoring, measurement, analysis, and evaluation",
     order_no: 1,

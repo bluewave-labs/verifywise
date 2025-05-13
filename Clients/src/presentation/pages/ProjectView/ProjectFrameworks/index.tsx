@@ -1,15 +1,15 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Box, Button, Tab, Alert } from '@mui/material';
-import TabList from '@mui/lab/TabList';
-import TabPanel from '@mui/lab/TabPanel';
-import TabContext from '@mui/lab/TabContext';
-import { tabStyle, tabPanelStyle } from '../V1.0ProjectView/style';
-import VWSkeleton from '../../../vw-v2-components/Skeletons';
-import ComplianceTracker from '../../../pages/ComplianceTracker/1.0ComplianceTracker';
-import { Project } from '../../../../domain/types/Project';
-import AssessmentTracker from '../../Assessment/1.0AssessmentTracker';
-import useFrameworks from '../../../../application/hooks/useFrameworks';
-import AddFrameworkModal from '../AddNewFramework';
+import { useState, useEffect, useMemo } from "react";
+import { Box, Button, Tab, Alert } from "@mui/material";
+import TabList from "@mui/lab/TabList";
+import TabPanel from "@mui/lab/TabPanel";
+import TabContext from "@mui/lab/TabContext";
+import { tabStyle, tabPanelStyle } from "../V1.0ProjectView/style";
+import VWSkeleton from "../../../vw-v2-components/Skeletons";
+import ComplianceTracker from "../../../pages/ComplianceTracker/1.0ComplianceTracker";
+import { Project } from "../../../../domain/types/Project";
+import AssessmentTracker from "../../Assessment/1.0AssessmentTracker";
+import useFrameworks from "../../../../application/hooks/useFrameworks";
+import AddFrameworkModal from "../AddNewFramework";
 
 import {
   containerStyle,
@@ -18,9 +18,10 @@ import {
   getFrameworkTabStyle,
   addButtonStyle,
   tabListStyle,
-} from './styles';
-import ISO42001Annex from '../../ISO/Annex';
-import ISO42001Clauses from '../../ISO/Clause';
+} from "./styles";
+import ISO42001Annex from "../../ISO/Annex";
+import ISO42001Clauses from "../../ISO/Clause";
+import AiGeneratedISO42001Clauses from "../../ISO/AiImplemented/AiGeneratedISO42001Clauses";
 
 // Constants
 const FRAMEWORK_IDS = {
@@ -36,10 +37,13 @@ const TRACKER_TABS = [
 const ISO_42001_TABS = [
   { label: "Clauses", value: "clauses" },
   { label: "Annexs", value: "annexs" },
+  // TODO: Remove this after testing
+  // Only for test purposes
+  { label: "AI Generated Clauses", value: "ai-clauses" },
 ] as const;
 
-type TrackerTab = typeof TRACKER_TABS[number]['value'];
-type ISO42001Tab = typeof ISO_42001_TABS[number]['value'];
+type TrackerTab = (typeof TRACKER_TABS)[number]["value"];
+type ISO42001Tab = (typeof ISO_42001_TABS)[number]["value"];
 
 // interface Framework {
 //   id: number;
@@ -51,31 +55,46 @@ type ISO42001Tab = typeof ISO_42001_TABS[number]['value'];
 
 const ProjectFrameworks = ({ project }: { project: Project }) => {
   const { frameworks, loading, error, refreshFrameworks } = useFrameworks();
-  const [selectedFrameworkId, setSelectedFrameworkId] = useState<number | null>(null);
-  const [tracker, setTracker] = useState<TrackerTab | ISO42001Tab>('compliance');
+  const [selectedFrameworkId, setSelectedFrameworkId] = useState<number | null>(
+    null
+  );
+  const [tracker, setTracker] = useState<TrackerTab | ISO42001Tab>(
+    "compliance"
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const associatedFrameworkIds = project.framework?.map(f => f.framework_id) || [];
-  
-  const projectFrameworks = useMemo(() => [
-    ...frameworks.filter(fw => associatedFrameworkIds.includes(Number(fw.id))),
-    {
-      id: FRAMEWORK_IDS.ISO_42001,
-      name: 'ISO 42001',
-      description: 'ISO 42001 is a framework for managing and improving the quality of products and services.',
-      is_demo: false,
-      project_id: '',
-    }
-  ], [frameworks, associatedFrameworkIds]);
+  const associatedFrameworkIds =
+    project.framework?.map((f) => f.framework_id) || [];
+
+  const projectFrameworks = useMemo(
+    () => [
+      ...frameworks.filter((fw) =>
+        associatedFrameworkIds.includes(Number(fw.id))
+      ),
+      {
+        id: FRAMEWORK_IDS.ISO_42001,
+        name: "ISO 42001",
+        description:
+          "ISO 42001 is a framework for managing and improving the quality of products and services.",
+        is_demo: false,
+        project_id: "",
+      },
+    ],
+    [frameworks, associatedFrameworkIds]
+  );
 
   // Set initial framework when frameworks are loaded
   useEffect(() => {
     if (!loading && projectFrameworks.length > 0) {
-      const validIds = projectFrameworks.map(fw => Number(fw.id));
+      const validIds = projectFrameworks.map((fw) => Number(fw.id));
       if (!selectedFrameworkId || !validIds.includes(selectedFrameworkId)) {
         const initialFramework = projectFrameworks[0];
         setSelectedFrameworkId(Number(initialFramework.id));
-        setTracker(Number(initialFramework.id) === FRAMEWORK_IDS.ISO_42001 ? 'clauses' : 'compliance');
+        setTracker(
+          Number(initialFramework.id) === FRAMEWORK_IDS.ISO_42001
+            ? "clauses"
+            : "compliance"
+        );
       }
     }
   }, [loading, projectFrameworks, selectedFrameworkId]);
@@ -87,7 +106,9 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
 
   const handleFrameworkChange = (frameworkId: number) => {
     setSelectedFrameworkId(frameworkId);
-    setTracker(frameworkId === FRAMEWORK_IDS.ISO_42001 ? 'clauses' : 'compliance');
+    setTracker(
+      frameworkId === FRAMEWORK_IDS.ISO_42001 ? "clauses" : "compliance"
+    );
   };
 
   // const renderFrameworkContent = () => {
@@ -144,14 +165,21 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
               <Box
                 key={fw.id}
                 onClick={() => handleFrameworkChange(Number(fw.id))}
-                sx={getFrameworkTabStyle(selectedFrameworkId === Number(fw.id), idx === projectFrameworks.length - 1)}
+                sx={getFrameworkTabStyle(
+                  selectedFrameworkId === Number(fw.id),
+                  idx === projectFrameworks.length - 1
+                )}
               >
                 {fw.name}
               </Box>
             ))
           )}
         </Box>
-        <Button variant="contained" sx={addButtonStyle} onClick={() => setIsModalOpen(true)}>
+        <Button
+          variant="contained"
+          sx={addButtonStyle}
+          onClick={() => setIsModalOpen(true)}
+        >
           Add new framework
         </Button>
       </Box>
@@ -164,13 +192,13 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
       />
 
       <TabContext value={tracker}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 1 }}>
+        <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 1 }}>
           <TabList
             onChange={(_, v) => setTracker(v)}
-            TabIndicatorProps={{ style: { backgroundColor: '#13715B' } }}
+            TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
             sx={tabListStyle}
           >
-            {tabs.map(tab => (
+            {tabs.map((tab) => (
               <Tab
                 key={tab.value}
                 sx={tabStyle}
@@ -188,6 +216,10 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
             </TabPanel>
             <TabPanel value="annexs" sx={tabPanelStyle}>
               <ISO42001Annex />
+            </TabPanel>
+            {/** Ai Generated ISO 42001 Clauses. Only for test purposes */}
+            <TabPanel value="ai-clauses" sx={tabPanelStyle}>
+              <AiGeneratedISO42001Clauses />
             </TabPanel>
           </>
         ) : (

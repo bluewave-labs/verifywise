@@ -1,7 +1,6 @@
 import "./index.css";
 import {
   Box,
-  MenuItem,
   SelectChangeEvent,
   Stack,
   Tab,
@@ -10,7 +9,7 @@ import {
 } from "@mui/material";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
 import RiskTable from "../../components/Table/RisksTable";
-import { Suspense, useCallback, useContext, useEffect, useState } from "react";
+import { Suspense, useCallback, useContext, useEffect, useState, useMemo } from "react";
 import AddNewVendor from "../../components/Modals/NewVendor";
 import singleTheme from "../../themes/v1SingleTheme";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
@@ -84,6 +83,7 @@ const Vendors = () => {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
     null
   );
+  const [selectedVendorId, setSelectedVendorId] = useState<string>("all");
   const {
     vendorRisksSummary,
     refetchVendorRisks,
@@ -91,6 +91,7 @@ const Vendors = () => {
     loadingVendorRisks,
   } = useVendorRisks({
     projectId: selectedProjectId?.toString(),
+    vendorId: selectedVendorId?.toString(),
   });
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -135,12 +136,6 @@ const Vendors = () => {
     };
     fetchProjects();
   }, []);
-
-  const mappedProjects =
-    projects?.map((project: any) => ({
-      _id: project.id,
-      name: project.project_title,
-    })) || [];
 
   const fetchVendors = useCallback(async () => {
     const signal = createAbortController();
@@ -310,11 +305,42 @@ const Vendors = () => {
   const handleProjectChange = (event: SelectChangeEvent<string | number>, _child: React.ReactNode) => {
     const selectedId = event.target.value.toString();
     setSelectedProjectId(selectedId);
-    setDashboardValues({
-      ...dashboardValues,
-      selectedProjectId: selectedId,
-    });
   };
+
+  const handleVendorChange = (event: SelectChangeEvent<string | number>, _child: React.ReactNode) => {
+    const selectedId = event.target.value.toString();
+    setSelectedVendorId(selectedId);
+  };
+
+  // Get unique vendors from vendor risks data
+  const vendorOptions = useMemo(() => {
+    const uniqueVendors = new Map();
+    vendorRisks.forEach(risk => {
+      if (!uniqueVendors.has(risk.vendor_id)) {
+        uniqueVendors.set(risk.vendor_id, {
+          id: risk.vendor_id,
+          name: risk.vendor_name,
+          project_id: risk.project_id
+        });
+      }
+    });
+
+    const vendors = Array.from(uniqueVendors.values());
+    if (!selectedProjectId || selectedProjectId === "all") {
+      return vendors;
+    }
+    return vendors.filter(vendor => vendor.project_id.toString() === selectedProjectId);
+  }, [vendorRisks, selectedProjectId]);
+
+  useEffect(() => {
+    // If the selected vendor is not in the new vendor options, reset to "all"
+    if (
+      selectedVendorId !== "all" &&
+      !vendorOptions.some((vendor) => vendor.id.toString() === selectedVendorId)
+    ) {
+      setSelectedVendorId("all");
+    }
+  }, [selectedProjectId, vendorOptions, selectedVendorId]);
 
   return (
     <div className="vendors-page">
@@ -349,45 +375,27 @@ const Vendors = () => {
                 manage all vendors here.
               </Typography>
             </Stack>
-              <Stack
-                sx={{
-                  padding: theme.spacing(4),
-                  justifyContent: "flex-start",
-                  width: "fit-content",
-                }}
-                data-joyride-id="select-project"
-                ref={refs[0]}
-              >
-                {projects.length > 0 ? (
-                  <Select
-                    id="projects"
-                    value={selectedProjectId ?? ""}
-                    items={[
-                      { _id: "all", name: "All Projects" },
-                      ...projects.map((project) => ({
-                        _id: project.id.toString(),
-                        name: project.project_title,
-                      })),
-                    ]}
-                    onChange={handleProjectChange}
-                    sx={{
-                      width: "180px",
-                      minHeight: "34px",
-                      borderRadius: theme.shape.borderRadius,
-                    }}
-                  />
-                ) : (
-                  <Box
-                    className="empty-project"
-                    sx={{
-                      marginLeft: theme.spacing(8),
-                      borderColor: theme.palette.border.dark,
-                    }}
-                  >
-                    No Project
-                  </Box>
-                )}
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Stack direction="row" gap={2} alignItems="center">
+                <Select
+                  id="projects"
+                  value={selectedProjectId ?? ""}
+                  items={[
+                    { _id: "all", name: "All Projects" },
+                    ...projects.map((project) => ({
+                      _id: project.id.toString(),
+                      name: project.project_title,
+                    })),
+                  ]}
+                  onChange={handleProjectChange}
+                  sx={{
+                    width: "180px",
+                    minHeight: "34px",
+                    borderRadius: theme.shape.borderRadius,
+                  }}
+                />
               </Stack>
+            </Stack>
           </>
         ) : (
           <>
@@ -420,41 +428,28 @@ const Vendors = () => {
                 This table includes a list of risks related to a vendor. You can
                 create and manage all vendor risks here.
               </Typography>
-              {/* <Stack
-                        sx={{
-                          padding: theme.spacing(4),
-                          justifyContent: "flex-start",
-                          width: "fit-content",
-                        }}
-                        data-joyride-id="select-project"
-                        ref={refs[0]}
-                      >
-                        {mappedProjects?.length > 0 ? (
-                          <Select
-                            id="projects"
-                            value={selectedProjectId}
-                            items={mappedProjects.map((project: any) => ({
-                              ...project,
-                              name:
-                                project.name.length > 18
-                                  ? project.name.slice(0, 18) + "..."
-                                  : project.name,
-                            }))}
-                            onChange={handleProjectChange}
-                            sx={{ width: "180px", marginLeft: theme.spacing(8) }}
-                          />
-                        ) : (
-                          <Box
-                            className="empty-project"
-                            sx={{
-                              marginLeft: theme.spacing(8),
-                              borderColor: theme.palette.border.dark,
-                            }}
-                          >
-                            No Project
-                          </Box>
-                        )}
-                      </Stack> */}
+            </Stack>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Stack direction="row" gap={2} alignItems="center">
+                <Select
+                  id="projects"
+                  value={selectedProjectId ?? ""}
+                  items={[
+                    { _id: "all", name: "All Projects" },
+                    ...projects.map((project) => ({
+                      _id: project.id.toString(),
+                      name: project.project_title,
+                    })),
+                  ]}
+                  onChange={handleProjectChange}
+                  sx={{
+                    width: "180px",
+                    minHeight: "34px",
+                    borderRadius: theme.shape.borderRadius,
+                  }}
+                />
+
+              </Stack>
             </Stack>
           </>
         )}
@@ -518,20 +513,39 @@ const Vendors = () => {
           ) : (
             value !== "1" && (
               <Stack sx={{ alignItems: "flex-end" }}>
-                <VWButton
-                  variant="contained"
-                  text="Add new Risk"
-                  sx={{
-                    backgroundColor: "#13715B",
-                    border: "1px solid #13715B",
-                    gap: 2,
-                  }}
-                  icon={<AddCircleOutlineIcon />}
-                  onClick={() => {
-                    setSelectedRisk(null);
-                    handleRiskModal();
-                  }}
-                />
+                <Stack direction="row" alignItems="center" gap={2}>
+                  <Select
+                    id="vendors"
+                    value={selectedVendorId}
+                    items={[
+                      { _id: "all", name: "All Vendors" },
+                      ...vendorOptions.map((vendor) => ({
+                        _id: vendor.id.toString(),
+                        name: vendor.name,
+                      })),
+                    ]}
+                    onChange={handleVendorChange}
+                    sx={{
+                      width: "180px",
+                      minHeight: "34px",
+                      borderRadius: theme.shape.borderRadius,
+                    }}
+                  />
+                  <VWButton
+                    variant="contained"
+                    text="Add new Risk"
+                    sx={{
+                      backgroundColor: "#13715B",
+                      border: "1px solid #13715B",
+                      gap: 2,
+                    }}
+                    icon={<AddCircleOutlineIcon />}
+                    onClick={() => {
+                      setSelectedRisk(null);
+                      handleRiskModal();
+                    }}
+                  />
+                </Stack>
               </Stack>
             )
           )}

@@ -15,6 +15,35 @@ import marked from "marked";
 import { sequelize } from "../database/db";
 const htmlDocx = require("html-to-docx");
 
+function mapReportTypeToFileSource(
+  reportType: string
+):
+  | "Assessment tracker group"
+  | "Compliance tracker group"
+  | "Report"
+  | "Project risks report"
+  | "Compliance tracker report"
+  | "Assessment tracker report"
+  | "Vendors and risks report"
+  | "All reports" {
+  // These values must match the enum_files_source in the database
+  switch (reportType) {
+    case "Project risks report":
+      return "Project risks report";
+    case "Compliance tracker report":
+      return "Compliance tracker report";
+    case "Assessment tracker report":
+      return "Assessment tracker report";
+    case "Vendors and risks report":
+      return "Vendors and risks report";
+    case "All reports":
+      return "All reports";
+    default:
+      // fallback or throw error
+      throw new Error(`Invalid report type for file source: ${reportType}`);
+  }
+}
+
 export async function generateReports(
   req: Request,
   res: Response
@@ -62,7 +91,7 @@ export async function generateReports(
           docFile,
           userId,
           projectId,
-          req.body.reportType
+          mapReportTypeToFileSource(req.body.reportType)
         );
       } catch (error) {
         console.error("File upload error:", error);
@@ -103,11 +132,12 @@ export async function getAllGeneratedReports(
 ): Promise<any> {
   try {
     const reports = await getGeneratedReportsQuery();
-    if (reports) {
+    if (reports && reports.length > 0) {
       return res.status(200).json(STATUS_CODE[200](reports));
     }
-    return res.status(404).json(STATUS_CODE[404](reports));
+    return res.status(404).json(STATUS_CODE[404]("No reports found"));
   } catch (error) {
+    console.error("Error in getAllGeneratedReports:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

@@ -10,10 +10,11 @@ import {
   updateVendorRiskByIdQuery,
 } from "../utils/vendorRisk.util";
 import { VendorRisk } from "../models/vendorRisk.model";
-import { sequelize } from "../database/db";
 
-export async function getAllVendorRisksAllProjects(  req: Request,
-  res: Response): Promise<any> {
+export async function getAllVendorRisksAllProjects(
+  req: Request,
+  res: Response
+): Promise<any> {
   try {
     const risks = await getAllVendorRisksAllProjectsQuery();
     return res.status(200).json(STATUS_CODE[200](risks));
@@ -67,7 +68,10 @@ export async function createVendorRisk(
   try {
     const newVendorRisk: VendorRisk = req.body;
 
-    const createdVendorRisk = await createNewVendorRiskQuery(newVendorRisk, transaction);
+    const createdVendorRisk = await createNewVendorRiskQuery(
+      newVendorRisk,
+      transaction
+    );
 
     if (createdVendorRisk) {
       await transaction.commit();
@@ -116,7 +120,10 @@ export async function deleteVendorRiskById(
   try {
     const vendorRiskId = parseInt(req.params.id);
 
-    const deletedVendorRisk = await deleteVendorRiskByIdQuery(vendorRiskId, transaction);
+    const deletedVendorRisk = await deleteVendorRiskByIdQuery(
+      vendorRiskId,
+      transaction
+    );
 
     if (deletedVendorRisk) {
       await transaction.commit();

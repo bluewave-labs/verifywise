@@ -77,7 +77,7 @@ export const getUserByEmailQuery = async (email: string): Promise<User> => {
   console.log("getUserByEmail");
   try {
     const user = await sequelize.query(
-      "SELECT * FROM users WHERE email = :email",
+      "SELECT * FROM users WHERE LOWER(email) = LOWER(:email)",
       {
         replacements: { email },
         mapToModel: true,

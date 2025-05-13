@@ -39,7 +39,7 @@ const ReportTableBody: React.FC<TableProps> = ({
                 {row.filename ? row.filename : '-'}
               </TableCell>
               <TableCell sx={cellStyle}>
-                {row.type ? row.type : '-'}
+                {row.source ? row.source : '-'}
               </TableCell>
               <TableCell sx={cellStyle}>
                 {row.project_title ? row.project_title : '-'}
@@ -63,7 +63,7 @@ const ReportTableBody: React.FC<TableProps> = ({
                   onDelete={() => handleRemoveReport(row.id)}
                   onEdit={() => handleDownload(row.id, row.filename)}
                   warningTitle="Remove this report?"
-                  warningMessage={`Are you sure you want to remove "${row.report_name}" report. This action is non-recoverable.`}
+                  warningMessage={`Are you sure you want to remove this report. This action is non-recoverable.`}
                 ></IconButton>
               </TableCell>
             </TableRow>

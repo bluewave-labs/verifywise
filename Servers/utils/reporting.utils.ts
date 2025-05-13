@@ -2,7 +2,7 @@ import { ProjectRisk, ProjectRiskModel } from "../models/projectRisk.model";
 import { sequelize } from "../database/db";
 import { ProjectsMembers, ProjectsMembersModel } from "../models/projectsMembers.model";
 import { FileModel } from "../models/file.model";
-import { ProjectModel } from "../models/project.model";
+import { QueryTypes, Transaction } from "sequelize";
 
 export const getProjectRisksReportQuery = async (
   projectId: number
@@ -58,4 +58,31 @@ export const getGeneratedReportsQuery = async () => {
   );
 
   return reports;
+}
+
+export const deleteReportByIdQuery = async (id: number, transaction: Transaction) => {
+  const result = await sequelize.query(
+    "DELETE FROM files WHERE id = :id RETURNING *",
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: FileModel,
+      type: QueryTypes.DELETE,
+      transaction
+    }
+  );
+  
+  return result.length > 0
+}
+
+export const getReportByIdQuery = async (id: number) => {
+  const result = await sequelize.query(
+    `SELECT * FROM files WHERE id = :id`, 
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: FileModel
+    }
+  );
+  return result[0];
 }

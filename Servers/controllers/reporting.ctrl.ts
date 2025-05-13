@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { uploadFile } from "../utils/fileUpload.utils";
 import { getReportData, isAuthorizedUser, getFormattedReportName } from '../services/reportService';
-import { getGeneratedReportsQuery } from "../utils/reporting.utils";
+import { deleteReportByIdQuery, getGeneratedReportsQuery, getReportByIdQuery } from "../utils/reporting.utils";
 import marked from 'marked';
 import { sequelize } from "../database/db";
 const htmlDocx = require("html-to-docx");
@@ -75,6 +75,44 @@ export async function getAllGeneratedReports(
     }
     return res.status(404).json(STATUS_CODE[404](reports));  
   } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function deleteGeneratedReportById(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const transaction = await sequelize.transaction();
+  try {
+    const reportId = parseInt(req.params.id);
+    const userId = req.userId;
+    if (isNaN(reportId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid report ID"));
+    }
+    if (typeof userId !== 'number' || isNaN(userId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid user ID"));
+    }
+
+    const report = await getReportByIdQuery(reportId); // get report detail
+    if (!report) {
+      return res.status(404).json(STATUS_CODE[404]("Report not found"));
+    }
+    
+    const authorizedUser = await isAuthorizedUser(report.project_id, userId); // check whether the user is authorized to delete the report or not
+    
+    if (authorizedUser) {
+      const deletedReport = await deleteReportByIdQuery(reportId, transaction); 
+      if (deletedReport) {
+        await transaction.commit();
+        return res.status(200).json(STATUS_CODE[200](deletedReport));
+      }
+      return res.status(204).json(STATUS_CODE[204](deletedReport));
+    } else {
+      return res.status(403).json(STATUS_CODE[403]("Unauthorized user to delete the report."));
+    }
+  } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

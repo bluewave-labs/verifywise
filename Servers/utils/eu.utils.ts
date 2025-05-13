@@ -444,7 +444,7 @@ export const createNewAnswersEUQuery = async (
   let demoAnswers: String[] = [];
   if (enable_ai_data_insertion) demoAnswers = getDemoAnswers();
   const questions = await sequelize.query(
-    "SELECT * FROM questions_struct_eu;",
+    "SELECT * FROM questions_struct_eu ORDER BY id;",
     {
       mapToModel: true,
       model: QuestionStructEUModel,

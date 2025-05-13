@@ -18,6 +18,7 @@ import { FileModel } from "../models/file.model";
 import { table } from "console";
 import { ProjectFrameworksModel } from "../models/projectFrameworks.model";
 import { createEUFrameworkQuery, deleteProjectFrameworkEUQuery } from "./eu.utils";
+import { createISOFrameworkQuery } from "./iso42001.utils";
 
 export const getAllProjectsQuery = async (): Promise<Project[]> => {
   const projects = await sequelize.query(
@@ -326,9 +327,11 @@ export const updateProjectByIdQuery = async (
         transaction
       }
     )
-    // if (framework === 1) {
-    await createEUFrameworkQuery(id, false, transaction)
-    // }
+    if (framework === 1) {
+      await createEUFrameworkQuery(id, false, transaction)
+    } else if (framework === 2) {
+      await createISOFrameworkQuery(id, false, transaction)
+    }
   }
 
   const updateProject: Partial<Record<keyof Project, any>> = {};
@@ -467,9 +470,9 @@ export const deleteProjectByIdQuery = async (
     await deleteHelper(entity, id, transaction);
   }
   for (let framework of frameworks) {
-    // if (framework.framework_id === 1) {
-    await deleteProjectFrameworkEUQuery(id, transaction);
-    // }
+    if (framework.framework_id === 1) {
+      await deleteProjectFrameworkEUQuery(id, transaction);
+    }
   }
 
   const result = await sequelize.query(

@@ -23,6 +23,7 @@ import controlCategory from "./routes/controlCategory.route";
 import euRouter from "./routes/eu.route";
 import reportRoutes from "./routes/reporting.route";
 import frameworks from "./routes/frameworks.route";
+import organizationRoutes from "./routes/organization.route";
 
 import autoDriverRoutes from "./routes/autoDriver.route";
 import swaggerUi from "swagger-ui-express";
@@ -61,10 +62,10 @@ try {
   app.use(
     cors({
       origin: (origin, callback) => {
-        testOrigin({origin, allowedOrigins , callback});
+        testOrigin({ origin, allowedOrigins, callback });
       },
       credentials: true,
-      allowedHeaders: ['Authorization', 'Content-Type', 'X-Requested-With'],
+      allowedHeaders: ["Authorization", "Content-Type", "X-Requested-With"],
     })
   );
   app.use(helmet()); // Use helmet for security headers
@@ -91,6 +92,7 @@ try {
   app.use("/api/controlCategory", controlCategory);
   app.use("/api/frameworks", frameworks);
   app.use("/api/eu-ai-act", euRouter);
+  app.use("/api/organizations", organizationRoutes);
 
   app.use("/api/reporting", reportRoutes);
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));

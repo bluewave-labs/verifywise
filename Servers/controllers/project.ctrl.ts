@@ -32,6 +32,7 @@ import { ControlModel } from "../models/control.model";
 import { ControlCategoryModel } from "../models/controlCategory.model";
 import { createEUFrameworkQuery } from "../utils/eu.utils";
 import { sequelize } from "../database/db";
+import { createISOFrameworkQuery } from "../utils/iso42001.utils";
 
 export async function getAllProjects(
   req: Request,
@@ -100,18 +101,27 @@ export async function createProject(req: Request, res: Response): Promise<any> {
     const createdProject = await createNewProjectQuery(
       newProject,
       newProject.members,
-      [1], // newProject.framework,
+      newProject.framework,
       transaction
     );
     const frameworks: { [key: string]: Object } = {}
-    // if (newProject.framework[0] === 1) {
-    const eu = await createEUFrameworkQuery(
-      createdProject.id!,
-      newProject.enable_ai_data_insertion,
-      transaction
-    )
-    frameworks["eu"] = eu;
-    // }
+    for (const framework of newProject.framework) {
+      if (framework === 1) {
+        const eu = await createEUFrameworkQuery(
+          createdProject.id!,
+          newProject.enable_ai_data_insertion,
+          transaction
+        )
+        frameworks["eu"] = eu;
+      } else if (framework === 2) {
+        const iso42001 = await createISOFrameworkQuery(
+          createdProject.id!,
+          newProject.enable_ai_data_insertion, // false
+          transaction
+        )
+        frameworks["iso42001"] = iso42001;
+      }
+    }
 
     if (createdProject) {
       await transaction.commit();

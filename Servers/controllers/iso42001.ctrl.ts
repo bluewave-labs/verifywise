@@ -1,10 +1,10 @@
-import { Response } from "express";
+import { Request, Response } from "express";
 import { sequelize } from "../database/db";
 import { SubClauseISO } from "../models/ISO-42001/subClauseISO.model";
 import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import { updateAnnexCategoryQuery, updateSubClauseQuery } from "../utils/iso42001.utils";
+import { deleteAnnexCategoriesISOByProjectIdQuery, deleteProjectFrameworkISOQuery, deleteSubClausesISOByProjectIdQuery, updateAnnexCategoryQuery, updateSubClauseQuery } from "../utils/iso42001.utils";
 import { FileType } from "../models/file.model";
 import { AnnexCategoryISO } from "../models/ISO-42001/annexCategoryISO.model";
 
@@ -120,6 +120,69 @@ export async function saveAnnexes(
     await transaction.commit();
 
     return res.status(200).json(STATUS_CODE[200](updatedAnnexCategory));
+  } catch (error) {
+    await transaction.rollback();
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function deleteManagementSystemClauses(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const transaction = await sequelize.transaction();
+  try {
+    const projectFrameworkId = parseInt(req.params.id);
+    const result = await deleteSubClausesISOByProjectIdQuery(projectFrameworkId, transaction);
+
+    if (result) {
+      await transaction.commit();
+      return res.status(200).json(STATUS_CODE[200](result));
+    }
+
+    return res.status(400).json(STATUS_CODE[400](result));
+  } catch (error) {
+    await transaction.rollback();
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function deleteReferenceControls(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const transaction = await sequelize.transaction();
+  try {
+    const projectFrameworkId = parseInt(req.params.id);
+    const result = await deleteAnnexCategoriesISOByProjectIdQuery(projectFrameworkId, transaction);
+
+    if (result) {
+      await transaction.commit();
+      return res.status(200).json(STATUS_CODE[200](result));
+    }
+
+    return res.status(400).json(STATUS_CODE[400](result));
+  } catch (error) {
+    await transaction.rollback();
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function deleteISO42001(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const transaction = await sequelize.transaction();
+  try {
+    const projectId = parseInt(req.params.id);
+    const result = await deleteProjectFrameworkISOQuery(projectId, transaction);
+
+    if (result) {
+      await transaction.commit();
+      return res.status(200).json(STATUS_CODE[200](result));
+    }
+
+    return res.status(400).json(STATUS_CODE[400](result));
   } catch (error) {
     await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

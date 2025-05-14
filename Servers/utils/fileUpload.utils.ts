@@ -10,7 +10,7 @@ export const uploadFile = async (
   file: UploadedFile,
   user_id: number,
   project_framework_id: number,
-  source: "Assessment tracker group" | "Compliance tracker group" | "Report",
+  source: "Assessment tracker group" | "Compliance tracker group" | "Report" | "Management system clauses group" | "Reference controls group",
   transaction: Transaction | null = null
 ) => {
   const project = await sequelize.query(

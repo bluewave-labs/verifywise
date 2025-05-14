@@ -132,3 +132,20 @@ export const deleteVendorRisksForVendorQuery = async (
   )
   return result.length > 0;
 }
+
+export const getAllVendorRisksAllProjectsQuery = async () => {
+  const risks = await sequelize.query(
+    `SELECT *
+     FROM vendorRisks
+     JOIN vendors ON vendorRisks.vendor_id = vendors.id
+     JOIN vendors_projects ON vendors.id = vendors_projects.vendor_id
+     ORDER BY vendors_projects.project_id, vendors.id, vendorRisks.id`,
+    {
+      mapToModel: true,
+      model: VendorRiskModel,
+      type: QueryTypes.SELECT,
+    }
+  );
+  return risks;
+};
+

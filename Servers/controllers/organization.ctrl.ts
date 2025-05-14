@@ -1,6 +1,19 @@
 import { Request, Response } from "express";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { sequelize } from "../database/db";
+import {
+  addMemberToOrganizationQuery,
+  addProjectToOrganizationQuery,
+  createOrganizationQuery,
+  deleteOrganizationByIdQuery,
+  getAllOrganizationsQuery,
+  getOrganizationByIdQuery,
+  getOrganizationMembersQuery,
+  getOrganizationProjectsQuery,
+  removeMemberFromOrganizationQuery,
+  removeProjectFromOrganizationQuery,
+  updateOrganizationByIdQuery,
+} from "../utils/organization.util";
 
 /**
  * Get all organizations
@@ -14,8 +27,13 @@ export async function getAllOrganizations(
   res: Response
 ): Promise<any> {
   try {
-    // Placeholder - will be implemented in next step
-    return res.status(501).json({ message: "Not implemented yet" });
+    const organizations = await getAllOrganizationsQuery();
+
+    if (organizations && organizations.length > 0) {
+      return res.status(200).json(STATUS_CODE[200](organizations));
+    }
+
+    return res.status(204).json(STATUS_CODE[204]([]));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -34,9 +52,13 @@ export async function getOrganizationById(
 ): Promise<any> {
   try {
     const organizationId = parseInt(req.params.id);
+    const organization = await getOrganizationByIdQuery(organizationId);
 
-    // Placeholder - will be implemented in next step
-    return res.status(501).json({ message: "Not implemented yet" });
+    if (organization) {
+      return res.status(200).json(STATUS_CODE[200](organization));
+    }
+
+    return res.status(404).json(STATUS_CODE[404](null));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -55,9 +77,9 @@ export async function getOrganizationMembers(
 ): Promise<any> {
   try {
     const organizationId = parseInt(req.params.id);
+    const members = await getOrganizationMembersQuery(organizationId);
 
-    // Placeholder - will be implemented in next step
-    return res.status(501).json({ message: "Not implemented yet" });
+    return res.status(200).json(STATUS_CODE[200](members));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -76,9 +98,9 @@ export async function getOrganizationProjects(
 ): Promise<any> {
   try {
     const organizationId = parseInt(req.params.id);
+    const projects = await getOrganizationProjectsQuery(organizationId);
 
-    // Placeholder - will be implemented in next step
-    return res.status(501).json({ message: "Not implemented yet" });
+    return res.status(200).json(STATUS_CODE[200](projects));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -97,9 +119,29 @@ export async function createOrganization(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   try {
-    // Placeholder - will be implemented in next step
+    const newOrganization = req.body;
+
+    if (!newOrganization.name) {
+      await transaction.rollback();
+      return res
+        .status(400)
+        .json(STATUS_CODE[400]("Organization name is required"));
+    }
+
+    const createdOrganization = await createOrganizationQuery(
+      newOrganization,
+      transaction
+    );
+
+    if (createdOrganization) {
+      await transaction.commit();
+      return res.status(201).json(STATUS_CODE[201](createdOrganization));
+    }
+
     await transaction.rollback();
-    return res.status(501).json({ message: "Not implemented yet" });
+    return res
+      .status(400)
+      .json(STATUS_CODE[400]("Unable to create organization"));
   } catch (error) {
     await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -122,9 +164,24 @@ export async function addMemberToOrganization(
     const organizationId = parseInt(req.params.id);
     const memberId = req.body.memberId;
 
-    // Placeholder - will be implemented in next step
+    if (!memberId) {
+      await transaction.rollback();
+      return res.status(400).json(STATUS_CODE[400]("Member ID is required"));
+    }
+
+    const updatedOrganization = await addMemberToOrganizationQuery(
+      organizationId,
+      memberId,
+      transaction
+    );
+
+    if (updatedOrganization) {
+      await transaction.commit();
+      return res.status(200).json(STATUS_CODE[200](updatedOrganization));
+    }
+
     await transaction.rollback();
-    return res.status(501).json({ message: "Not implemented yet" });
+    return res.status(404).json(STATUS_CODE[404]("Organization not found"));
   } catch (error) {
     await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -147,9 +204,24 @@ export async function addProjectToOrganization(
     const organizationId = parseInt(req.params.id);
     const projectId = req.body.projectId;
 
-    // Placeholder - will be implemented in next step
+    if (!projectId) {
+      await transaction.rollback();
+      return res.status(400).json(STATUS_CODE[400]("Project ID is required"));
+    }
+
+    const updatedOrganization = await addProjectToOrganizationQuery(
+      organizationId,
+      projectId,
+      transaction
+    );
+
+    if (updatedOrganization) {
+      await transaction.commit();
+      return res.status(200).json(STATUS_CODE[200](updatedOrganization));
+    }
+
     await transaction.rollback();
-    return res.status(501).json({ message: "Not implemented yet" });
+    return res.status(404).json(STATUS_CODE[404]("Organization not found"));
   } catch (error) {
     await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -170,10 +242,21 @@ export async function updateOrganizationById(
   const transaction = await sequelize.transaction();
   try {
     const organizationId = parseInt(req.params.id);
+    const updatedOrganization = req.body;
 
-    // Placeholder - will be implemented in next step
+    const organization = await updateOrganizationByIdQuery(
+      organizationId,
+      updatedOrganization,
+      transaction
+    );
+
+    if (organization) {
+      await transaction.commit();
+      return res.status(200).json(STATUS_CODE[200](organization));
+    }
+
     await transaction.rollback();
-    return res.status(501).json({ message: "Not implemented yet" });
+    return res.status(404).json(STATUS_CODE[404]("Organization not found"));
   } catch (error) {
     await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -195,9 +278,28 @@ export async function deleteOrganizationById(
   try {
     const organizationId = parseInt(req.params.id);
 
-    // Placeholder - will be implemented in next step
+    // First get the organization to return it in the response
+    const organization = await getOrganizationByIdQuery(organizationId);
+
+    if (!organization) {
+      await transaction.rollback();
+      return res.status(404).json(STATUS_CODE[404]("Organization not found"));
+    }
+
+    const isDeleted = await deleteOrganizationByIdQuery(
+      organizationId,
+      transaction
+    );
+
+    if (isDeleted) {
+      await transaction.commit();
+      return res.status(200).json(STATUS_CODE[200](organization));
+    }
+
     await transaction.rollback();
-    return res.status(501).json({ message: "Not implemented yet" });
+    return res
+      .status(400)
+      .json(STATUS_CODE[400]("Unable to delete organization"));
   } catch (error) {
     await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -220,9 +322,19 @@ export async function removeMemberFromOrganization(
     const organizationId = parseInt(req.params.id);
     const memberId = parseInt(req.params.memberId);
 
-    // Placeholder - will be implemented in next step
+    const updatedOrganization = await removeMemberFromOrganizationQuery(
+      organizationId,
+      memberId,
+      transaction
+    );
+
+    if (updatedOrganization) {
+      await transaction.commit();
+      return res.status(200).json(STATUS_CODE[200](updatedOrganization));
+    }
+
     await transaction.rollback();
-    return res.status(501).json({ message: "Not implemented yet" });
+    return res.status(404).json(STATUS_CODE[404]("Organization not found"));
   } catch (error) {
     await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -245,9 +357,19 @@ export async function removeProjectFromOrganization(
     const organizationId = parseInt(req.params.id);
     const projectId = parseInt(req.params.projectId);
 
-    // Placeholder - will be implemented in next step
+    const updatedOrganization = await removeProjectFromOrganizationQuery(
+      organizationId,
+      projectId,
+      transaction
+    );
+
+    if (updatedOrganization) {
+      await transaction.commit();
+      return res.status(200).json(STATUS_CODE[200](updatedOrganization));
+    }
+
     await transaction.rollback();
-    return res.status(501).json({ message: "Not implemented yet" });
+    return res.status(404).json(STATUS_CODE[404]("Organization not found"));
   } catch (error) {
     await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

@@ -1,0 +1,57 @@
+### Get all organizations
+GET http://localhost:3000/api/organizations
+
+### Get organization by ID
+GET http://localhost:3000/api/organizations/1
+
+### Get organization members
+GET http://localhost:3000/api/organizations/1/members
+
+### Get organization projects
+GET http://localhost:3000/api/organizations/1/projects
+
+### Create a new organization
+POST http://localhost:3000/api/organizations
+Content-Type: application/json
+
+{
+  "name": "Example Organization",
+  "logo": "https://example.com/logo.png",
+  "members": [1, 2, 3],
+  "projects": [1, 2]
+}
+
+### Add a member to an organization
+POST http://localhost:3000/api/organizations/1/members
+Content-Type: application/json
+
+{
+  "memberId": 4
+}
+
+### Add a project to an organization
+POST http://localhost:3000/api/organizations/1/projects
+Content-Type: application/json
+
+{
+  "projectId": 3
+}
+
+### Update an organization
+PATCH http://localhost:3000/api/organizations/1
+Content-Type: application/json
+
+{
+  "name": "Updated Organization Name",
+  "logo": "https://example.com/updated-logo.png"
+}
+
+### Delete an organization
+DELETE http://localhost:3000/api/organizations/1
+
+### Remove a member from an organization
+DELETE http://localhost:3000/api/organizations/1/members/2
+
+### Remove a project from an organization
+DELETE http://localhost:3000/api/organizations/1/projects/2
+

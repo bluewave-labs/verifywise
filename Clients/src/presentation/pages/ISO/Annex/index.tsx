@@ -116,6 +116,7 @@ const ISO42001Annex = () => {
                   <Typography
                     sx={{
                       paddingLeft: "2.5px",
+                      fontSize: 13,
                     }}
                   >
                     {annex.order}.{item.order} : {item.title}

@@ -21,8 +21,6 @@ import {
 } from "./styles";
 import ISO42001Annex from "../../ISO/Annex";
 import ISO42001Clauses from "../../ISO/Clause";
-import AiGeneratedISO42001Clauses from "../../ISO/AiImplemented/AiGeneratedISO42001Clauses";
-import AiGeneratedISO42001Annexes from "../../ISO/AiImplemented/AiGeneratedISO42001Annexes";
 
 // Constants
 const FRAMEWORK_IDS = {
@@ -37,11 +35,7 @@ const TRACKER_TABS = [
 
 const ISO_42001_TABS = [
   { label: "Clauses", value: "clauses" },
-  { label: "Annexs", value: "annexs" },
-  // TODO: Remove this after testing
-  // Only for test purposes
-  { label: "AI Generated Clauses", value: "ai-clauses" },
-  { label: "AI Generated Annexes", value: "ai-annexes" },
+  { label: "Annexes", value: "annexes" },
 ] as const;
 
 type TrackerTab = (typeof TRACKER_TABS)[number]["value"];
@@ -216,16 +210,8 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
             <TabPanel value="clauses" sx={tabPanelStyle}>
               <ISO42001Clauses />
             </TabPanel>
-            <TabPanel value="annexs" sx={tabPanelStyle}>
+            <TabPanel value="annexes" sx={tabPanelStyle}>
               <ISO42001Annex />
-            </TabPanel>
-            {/** Ai Generated ISO 42001 Clauses. Only for test purposes */}
-            <TabPanel value="ai-clauses" sx={tabPanelStyle}>
-              <AiGeneratedISO42001Clauses />
-            </TabPanel>
-            {/** Ai Generated ISO 42001 Annexes. Only for test purposes */}
-            <TabPanel value="ai-annexes" sx={tabPanelStyle}>
-              <AiGeneratedISO42001Annexes />
             </TabPanel>
           </>
         ) : (

@@ -102,6 +102,7 @@ const ISO42001Clauses = () => {
                   <Typography
                     sx={{
                       paddingLeft: "2.5px",
+                      fontSize: 13,
                     }}
                   >
                     {"Clause "} {clause.number} {" : "} {clause.title}

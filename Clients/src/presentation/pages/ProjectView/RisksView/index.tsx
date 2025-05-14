@@ -15,7 +15,6 @@ import {
   useEffect,
 } from "react";
 import BasicTable from "../../../components/Table";
-import Risks from "../../../components/Risks";
 import AddNewRiskForm from "../../../components/AddNewRiskForm";
 import Popup from "../../../components/Popup";
 import AddNewVendorRiskForm from "../../../components/AddNewVendorRiskForm";
@@ -24,6 +23,7 @@ import { ProjectRisk } from "../../../../application/hooks/useProjectRisks";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { VendorRisk } from "../../../../domain/types/VendorRisk";
+import RisksCard from "../../../components/Cards/RisksCard";
 
 const Alert = lazy(() => import("../../../components/Alert"));
 
@@ -268,7 +268,7 @@ const RisksView: FC<RisksViewProps> = memo(
             </Box>
           </Suspense>
         )}
-        <Risks {...risksSummary} />
+        <RisksCard risksSummary={risksSummary} />
         <Stack
           sx={{ mt: "32px", mb: "28px" }}
           direction="row"

@@ -102,10 +102,11 @@ const IconButton: React.FC<IconButtonProps> = ({
   /**
    * List of context-specific dropdown actions used to render menu items.
    *
-   * - For type "report", the menu item will be "download".
+   * - For type "evidence", the menu item will be "download".
+   * - For type "report", the menu item will be "download", "remove".
    * - For other types (e.g. "Vendor"), the menu item will be "edit", "remove".
    */
-  const listOfButtons = type === "report" ? ["download"] : ["edit", "remove"];
+  const listOfButtons = type === "report" ? ["download", "remove"] : type === "evidence" ? ["download"] : ["edit", "remove"];
 
   /**
    * Renders a dropdown menu with dynamic options (e.g., Edit, Download, Remove)

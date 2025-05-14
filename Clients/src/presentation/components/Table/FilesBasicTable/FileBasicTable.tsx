@@ -106,7 +106,7 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
                 <TableCell>
                   <IconButton
                     id={Number(row.id)}
-                    type="report"
+                    type="evidence"
                     onEdit={() => handleDownload(row.id, row.fileName)}
                     onDelete={() => {}}
                     warningTitle="Are you sure you want to download this file?"

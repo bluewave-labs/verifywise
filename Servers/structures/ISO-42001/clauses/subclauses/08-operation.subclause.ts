@@ -1,6 +1,7 @@
+import { SubClauseISO } from "../../../../models/ISO-42001/subClauseISO.model";
 import { SubClauseStructISO } from "../../../../models/ISO-42001/subClauseStructISO.model";
 
-export const Operation: SubClauseStructISO[] = [
+export const Operation: Partial<SubClauseStructISO & SubClauseISO>[] = [
   {
     title: "Operational planning and control",
     order_no: 1,
@@ -14,7 +15,9 @@ export const Operation: SubClauseStructISO[] = [
       "Standard Operating Procedures (SOPs) for AI lifecycle stages",
       "Change management procedures and records",
       "Supplier contracts and oversight procedures"
-    ]
+    ],
+    implementation_description: "AI operational processes are governed by SOPs that define planning, execution, and change control mechanisms. Outsourced activities are covered by SLAs.",
+    auditor_feedback: "Comprehensive procedures in place. Suggest adding traceability from change requests to impact assessments for full alignment."
   },
   {
     title: "AI risk assessment (Operational)",
@@ -27,7 +30,9 @@ export const Operation: SubClauseStructISO[] = [
     evidence_examples: [
       "Schedule/plan for risk assessment reviews",
       "Updated risk assessment reports"
-    ]
+    ],
+    implementation_description: "Risk assessments are reviewed quarterly or upon major system changes. A defined trigger protocol exists for unscheduled reviews.",
+    auditor_feedback: "Assessment frequency is appropriate. Consider including minor incident trends as triggers for ad-hoc assessments."
   },
   {
     title: "AI risk treatment (Operational)",
@@ -41,7 +46,9 @@ export const Operation: SubClauseStructISO[] = [
       "Records of control implementation (configuration settings, logs, procedure execution records)",
       "Completed checklists",
       "Training records related to specific controls"
-    ]
+    ],
+    implementation_description: "Risk treatment plans are executed by control owners. Implementation is tracked using checklists and control operation logs.",
+    auditor_feedback: "Implementation is traceable. Recommend adding automated control verification for higher-risk systems."
   },
   {
     title: "AI System Lifecycle",
@@ -64,7 +71,9 @@ export const Operation: SubClauseStructISO[] = [
       "Deployment procedures",
       "Monitoring procedures and logs",
       "Retirement plans"
-    ]
+    ],
+    implementation_description: "AI lifecycle management spans from requirements gathering to retirement, with documented checkpoints at each phase. Ethical principles are embedded throughout.",
+    auditor_feedback: "Lifecycle approach is well-structured. Suggest more emphasis on bias mitigation during model training and validation."
   },
   {
     title: "Third-party relationships",
@@ -81,6 +90,8 @@ export const Operation: SubClauseStructISO[] = [
       "Contracts with AI clauses",
       "Supplier audit reports",
       "Service Level Agreements (SLAs)"
-    ]
+    ],
+    implementation_description: "Third-party risks are assessed during onboarding and annually thereafter. Contracts include AI-specific obligations and audit clauses.",
+    auditor_feedback: "Good supplier oversight. Recommend periodic spot checks to ensure compliance with contractual AI clauses."
   }
 ]

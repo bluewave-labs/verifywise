@@ -13,6 +13,7 @@ import { createNewVendorRiskQuery } from "../utils/vendorRisk.util";
 import { createNewUserQuery } from "../utils/user.utils";
 import { User } from "../models/user.model";
 import { Vendor } from "../models/vendor.model";
+import { createISOFrameworkQuery } from "../utils/iso42001.utils";
 
 export async function insertMockData() {
   const transaction = await sequelize.transaction();
@@ -61,7 +62,7 @@ export async function insertMockData() {
           last_updated_by: users[0].id!,
         },
         users.map((user) => user.id!),
-        [1], // frameworks
+        [1, 2], // frameworks
         transaction,
         true // is demo
       )
@@ -141,6 +142,7 @@ export async function insertMockData() {
 
       // create eu framework
       await createEUFrameworkQuery(project.id!, true, transaction)
+      await createISOFrameworkQuery(project.id!, true, transaction)
     } else {
       // project already exists, delete it and insert a new one
     }

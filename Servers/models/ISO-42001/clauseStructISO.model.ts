@@ -8,7 +8,7 @@ export type ClauseStructISO = {
   title: string; // gets assigned from the structure
   clause_no: number; // gets assigned from the structure
   framework_id?: number; // gets assigned from the structure
-  subclauses: (Partial<SubClauseISO> & SubClauseStructISO)[]
+  subclauses: (Partial<SubClauseISO & SubClauseStructISO>)[]
 };
 
 @Table({

@@ -1,6 +1,7 @@
+import { SubClauseISO } from "../../../../models/ISO-42001/subClauseISO.model";
 import { SubClauseStructISO } from "../../../../models/ISO-42001/subClauseStructISO.model";
 
-export const ContextOfOrganization: SubClauseStructISO[] = [
+export const ContextOfOrganization: Partial<SubClauseStructISO & SubClauseISO>[] = [
   {
     title: "Understanding the organization and its context",
     order_no: 1,
@@ -17,7 +18,9 @@ export const ContextOfOrganization: SubClauseStructISO[] = [
       "Documentation of internal/external issues",
       "Strategic planning documents referencing AI",
       "Documented AI Principles/Ethics Statement"
-    ]
+    ],
+    implementation_description: "The organization conducted a PESTLE and SWOT analysis focused on AI applications, incorporating input from legal, ethics, and tech innovation teams. A dedicated strategy session aligned these findings with its AI ethics charter.",
+    auditor_feedback: "Context analysis is well documented. Recommend periodic updates to reflect rapidly evolving AI regulations."
   },
   {
     title: "Understanding the needs and expectations of interested parties",
@@ -33,7 +36,9 @@ export const ContextOfOrganization: SubClauseStructISO[] = [
       "List of applicable legal/regulatory requirements for AI",
       "Records of communication with stakeholders",
       "Contractual requirements related to AI"
-    ]
+    ],
+    implementation_description: "Stakeholder interviews and surveys were conducted quarterly. Legal and compliance teams compiled regulatory obligations in a centralized register.",
+    auditor_feedback: "Stakeholder register is comprehensive. Some stakeholder feedback mechanisms could benefit from structured follow-up actions."
   },
   {
     title: "Determining the scope of the AI Management System",
@@ -47,7 +52,9 @@ export const ContextOfOrganization: SubClauseStructISO[] = [
     ],
     evidence_examples: [
       "Documented AIMS Scope Statement"
-    ]
+    ],
+    implementation_description: "The AIMS was scoped to include R&D and customer-facing AI systems but excluded internal HR tools, with justification documented in the scope statement.",
+    auditor_feedback: "Scope justification is clear and aligned with the organization's operations. Suggest reviewing excluded systems as part of future scope expansion."
   },
   {
     title: "AI Management System",
@@ -64,6 +71,8 @@ export const ContextOfOrganization: SubClauseStructISO[] = [
       "Records of implementation activities",
       "Management review records",
       "Audit results"
-    ]
+    ],
+    implementation_description: "A policy framework and operational procedures were implemented across business units. Quarterly internal audits drive ongoing improvements.",
+    auditor_feedback: "AIMS is well structured. Evidence of improvement cycles is visible. Recommend enhancing tracking of minor audit findings over time."
   }
 ]

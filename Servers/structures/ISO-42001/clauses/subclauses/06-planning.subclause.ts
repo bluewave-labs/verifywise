@@ -1,6 +1,7 @@
+import { SubClauseISO } from "../../../../models/ISO-42001/subClauseISO.model";
 import { SubClauseStructISO } from "../../../../models/ISO-42001/subClauseStructISO.model";
 
-export const Planning: SubClauseStructISO[] = [
+export const Planning: Partial<SubClauseStructISO & SubClauseISO>[] = [
   {
     title: "Actions to address risks and opportunities (Includes Risk Assessment, Treatment, Impact Assessment)",
     order_no: 1,
@@ -23,7 +24,9 @@ export const Planning: SubClauseStructISO[] = [
       "Statement of Applicability (SoA)",
       "AI Impact Assessment Methodology",
       "AI Impact Assessment reports"
-    ]
+    ],
+    implementation_description: "The organization uses a documented AI risk assessment and impact assessment methodology, reviewed annually, with outputs stored in a central risk register and treatment plan.",
+    auditor_feedback: "Comprehensive risk framework in place. Suggest improving traceability between specific AI systems and their associated risks and treatments."
   },
   {
     title: "AI objectives and planning to achieve them",
@@ -40,6 +43,8 @@ export const Planning: SubClauseStructISO[] = [
       "Action plans linked to objectives",
       "Performance indicators (KPIs) for objectives",
       "Management review records discussing objectives progress"
-    ]
+    ],
+    implementation_description: "Measurable AIMS objectives are defined annually, aligned with the AI policy, and tracked using KPIs reviewed in monthly management meetings.",
+    auditor_feedback: "Objectives are clear and measurable. Evidence of consistent tracking found. Consider formalizing responsibility assignments for each objective."
   }
 ]

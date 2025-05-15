@@ -8,6 +8,36 @@ import { AnnexCategoryISO, AnnexCategoryISOModel } from "../models/ISO-42001/ann
 import { AnnexCategoryStructISOModel } from "../models/ISO-42001/annexCategoryStructISO.model";
 import { AnnexCategoryISORisksModel } from "../models/ISO-42001/annexCategoryISORIsks.model";
 import { ProjectFrameworksModel } from "../models/projectFrameworks.model";
+import { Clauses } from "../structures/ISO-42001/clauses/clauses.struct";
+import { Annex } from "../structures/ISO-42001/annex/annex.struct";
+
+const getDemoSubClauses = (): Object[] => {
+  const subClauses = []
+  for (let clause of Clauses) {
+    for (let subClause of clause.subclauses) {
+      subClauses.push({
+        implementation_description: subClause.implementation_description || "",
+        auditor_feedback: subClause.auditor_feedback || "",
+      })
+    }
+  }
+  return subClauses;
+}
+
+const getDemoAnnexCategories = (): Object[] => {
+  const annexCategories = []
+  for (let annex of Annex) {
+    for (let annexCategory of annex.annexcategories) {
+      annexCategories.push({
+        is_applicable: annexCategory.is_applicable,
+        justification_for_exclusion: annexCategory.justification_for_exclusion || "",
+        implementation_description: annexCategory.implementation_description || "",
+        auditor_feedback: annexCategory.auditor_feedback || "",
+      })
+    }
+  }
+  return annexCategories;
+}
 
 export const getAllClausesQuery = async (transaction: Transaction | null = null) => {
   const clauses = await sequelize.query(
@@ -234,8 +264,9 @@ export const createNewClausesQuery = async (
   const subClauses = await sequelize.query(
     `SELECT id FROM subclauses_struct_iso ORDER BY id;`, { transaction }
   ) as [{ id: number }[], number];
+  const demoSubClauses = getDemoSubClauses() as { implementation_description: string, auditor_feedback: string }[];
   const subClauseIds = await createNewSubClausesQuery(
-    subClauses[0].map((subClause) => subClause.id), projectFrameworkId[0][0].id, transaction
+    subClauses[0].map((subClause) => subClause.id), projectFrameworkId[0][0].id, enable_ai_data_insertion, demoSubClauses, transaction
   );
   const clauses = await getManagementSystemClausesQuery(subClauseIds, transaction);
   return clauses;
@@ -244,25 +275,31 @@ export const createNewClausesQuery = async (
 export const createNewSubClausesQuery = async (
   subClauses: number[],
   projectFrameworkId: number,
+  enable_ai_data_insertion: boolean,
+  demoSubClauses: { implementation_description: string, auditor_feedback: string }[],
   transaction: Transaction
 ) => {
   const subClauseIds = []
+  let ctr = 0;
   for (let _subClauseId of subClauses) {
     const subClauseId = await sequelize.query(
       `INSERT INTO subclauses_iso (
-        subclause_meta_id, projects_frameworks_id
+        subclause_meta_id, projects_frameworks_id, implementation_description, auditor_feedback
       ) VALUES (
-        :subclause_meta_id, :projects_frameworks_id
+        :subclause_meta_id, :projects_frameworks_id, :implementation_description, :auditor_feedback
       ) RETURNING id;`,
       {
         replacements: {
           subclause_meta_id: _subClauseId,
-          projects_frameworks_id: projectFrameworkId
+          projects_frameworks_id: projectFrameworkId,
+          implementation_description: enable_ai_data_insertion ? demoSubClauses[ctr].implementation_description : null,
+          auditor_feedback: enable_ai_data_insertion ? demoSubClauses[ctr].auditor_feedback : null
         },
         transaction
       }
     ) as [{ id: number }[], number];
     subClauseIds.push(subClauseId[0][0].id);
+    ctr++;
   }
   return subClauseIds;
 }
@@ -281,8 +318,9 @@ export const createNewAnnexesQUery = async (
   const annexCategories = await sequelize.query(
     `SELECT id FROM annexcategories_struct_iso ORDER BY id;`, { transaction }
   ) as [{ id: number }[], number];
+  const demoAnnexCategories = getDemoAnnexCategories() as { is_applicable: boolean, justification_for_exclusion: string, implementation_description: string, auditor_feedback: string }[];
   const annexCategoryIds = await createNewAnnexeCategoriesQuery(
-    annexCategories[0].map((annexCategory) => annexCategory.id), projectFrameworkId[0][0].id, transaction
+    annexCategories[0].map((annexCategory) => annexCategory.id), projectFrameworkId[0][0].id, demoAnnexCategories, enable_ai_data_insertion, transaction
   );
   const annexes = await getReferenceControlsQuery(annexCategoryIds, transaction);
   return annexes;
@@ -291,25 +329,33 @@ export const createNewAnnexesQUery = async (
 export const createNewAnnexeCategoriesQuery = async (
   annexCategories: number[],
   projectFrameworkId: number,
+  demoAnnexCategories: { is_applicable: boolean, justification_for_exclusion: string, implementation_description: string, auditor_feedback: string }[],
+  enable_ai_data_insertion: boolean,
   transaction: Transaction
 ) => {
   const annexCategoryIds = []
+  let ctr = 0;
   for (let _annexCategoryId of annexCategories) {
     const annexCategoryId = await sequelize.query(
       `INSERT INTO annexcategories_iso (
-        annexcategory_meta_id, projects_frameworks_id
+        annexcategory_meta_id, projects_frameworks_id, is_applicable, justification_for_exclusion, implementation_description, auditor_feedback
       ) VALUES (
-        :annexcategory_meta_id, :projects_frameworks_id
+        :annexcategory_meta_id, :projects_frameworks_id, :is_applicable, :justification_for_exclusion, :implementation_description, :auditor_feedback
       ) RETURNING id;`,
       {
         replacements: {
           annexcategory_meta_id: _annexCategoryId,
-          projects_frameworks_id: projectFrameworkId
+          projects_frameworks_id: projectFrameworkId,
+          is_applicable: enable_ai_data_insertion ? demoAnnexCategories[ctr].is_applicable : null,
+          justification_for_exclusion: enable_ai_data_insertion ? demoAnnexCategories[ctr].justification_for_exclusion : null,
+          implementation_description: enable_ai_data_insertion ? demoAnnexCategories[ctr].implementation_description : null,
+          auditor_feedback: enable_ai_data_insertion ? demoAnnexCategories[ctr].auditor_feedback : null
         },
         transaction
       }
     ) as [{ id: number }[], number];
     annexCategoryIds.push(annexCategoryId[0][0].id);
+    ctr++;
   }
   return annexCategoryIds;
 }

@@ -24,14 +24,12 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { store } from "../../application/redux/store";
 import { ENV_VARs } from "../../../env.vars";
 import { setAuthToken } from "../../application/authentication/authSlice";
-import { AlertProps } from "../../domain/interfaces/iAlert";
 
-// Create a global callback for showing alerts
-let showAlertCallback: ((alert: AlertProps) => void) | null = null;
 
-// Function to set the alert callback
-export const setShowAlertCallback = (callback: (alert: AlertProps) => void) => {
-  showAlertCallback = callback;
+const SESSION_EXPIRY_TIMEOUT = 5000;
+let showSkeletonCallback: ((show: boolean) => void) | null = null;
+export const setShowSkeletonCallback = (callback: (show: boolean) => void) => {
+  showSkeletonCallback = callback;
 };
 
 // Create an instance of axios with default configurations
@@ -102,20 +100,28 @@ CustomAxios.interceptors.response.use(
     if (error.response?.status === 406 && !originalRequest._retry) {
       // If this is the refresh token request itself returning 406
       if (originalRequest.url === '/users/refresh-token') {
-        // Show alert using the callback
-        if (showAlertCallback) {
-          showAlertCallback({
-            variant: "warning",
-            title: "Session Expired",
-            body: "Your session has expired. Redirecting to login...",
-          });
-        }
+        try {
+          // Show skeleton loading state
+          if (showSkeletonCallback) {
+            showSkeletonCallback(true);
+          }
 
-        // Redirect after delay
-        setTimeout(() => {
+          // Clear auth token
           store.dispatch(setAuthToken(""));
-          window.location.href = '/login';
-        }, 5000);
+          
+          // Hide skeleton after timeout
+          setTimeout(() => {
+            if (showSkeletonCallback) {
+              showSkeletonCallback(false);
+            }
+          }, SESSION_EXPIRY_TIMEOUT);
+        } catch (error) {
+          console.error('Error handling session expiry:', error);
+          // Ensure skeleton is hidden even if there's an error
+          if (showSkeletonCallback) {
+            showSkeletonCallback(false);
+          }
+        }
         return Promise.reject(error);
       }
 
@@ -129,10 +135,8 @@ CustomAxios.interceptors.response.use(
             return CustomAxios(originalRequest);
           })
           .catch((err) => {
-            // If refresh token fails, redirect to login
             if (err.response?.status === 406) {
               store.dispatch(setAuthToken(""));
-              window.location.href = '/login';
             }
             return Promise.reject(err);
           });

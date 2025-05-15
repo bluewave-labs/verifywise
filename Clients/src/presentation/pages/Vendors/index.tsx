@@ -9,7 +9,14 @@ import {
 } from "@mui/material";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
 import RiskTable from "../../components/Table/RisksTable";
-import { Suspense, useCallback, useContext, useEffect, useState, useMemo } from "react";
+import {
+  Suspense,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  useMemo,
+} from "react";
 import AddNewVendor from "../../components/Modals/NewVendor";
 import singleTheme from "../../themes/v1SingleTheme";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
@@ -75,7 +82,7 @@ const Vendors = () => {
   const [value, setValue] = useState("1");
   const [projects, setProjects] = useState<Project[]>([]);
   const [vendors, setVendors] = useState<VendorDetails[]>([]);
-  const { dashboardValues} = useContext(VerifyWiseContext);
+  const { dashboardValues } = useContext(VerifyWiseContext);
   const [selectedVendor, setSelectedVendor] = useState<VendorDetails | null>(
     null
   );
@@ -144,9 +151,10 @@ const Vendors = () => {
     setIsVendorsLoading(true);
     if (!selectedProjectId) return;
     try {
-      const routeUrl = selectedProjectId === "all"
-        ? "/vendors"
-        : `/vendors/project-id/${selectedProjectId}`;
+      const routeUrl =
+        selectedProjectId === "all"
+          ? "/vendors"
+          : `/vendors/project-id/${selectedProjectId}`;
       const response = await getAllEntities({
         routeUrl,
         signal,
@@ -190,7 +198,9 @@ const Vendors = () => {
       });
 
       if (response.status === 202) {
-        setVendors(prevVendors => prevVendors.filter(vendor => vendor.id !== vendorId));
+        setVendors((prevVendors) =>
+          prevVendors.filter((vendor) => vendor.id !== vendorId)
+        );
         setAlert({
           variant: "success",
           body: "Vendor deleted successfully.",
@@ -295,12 +305,18 @@ const Vendors = () => {
       });
     }
   };
-  const handleProjectChange = (event: SelectChangeEvent<string | number>, _child: React.ReactNode) => {
+  const handleProjectChange = (
+    event: SelectChangeEvent<string | number>,
+    _child: React.ReactNode
+  ) => {
     const selectedId = event.target.value.toString();
     setSelectedProjectId(selectedId);
   };
 
-  const handleVendorChange = (event: SelectChangeEvent<string | number>, _child: React.ReactNode) => {
+  const handleVendorChange = (
+    event: SelectChangeEvent<string | number>,
+    _child: React.ReactNode
+  ) => {
     const selectedId = event.target.value.toString();
     setSelectedVendorId(selectedId);
   };
@@ -310,12 +326,12 @@ const Vendors = () => {
     const uniqueVendors = new Map();
 
     // Add vendors from vendorRisks
-    vendorRisks.forEach(risk => {
+    vendorRisks.forEach((risk) => {
       if (!uniqueVendors.has(risk.vendor_id)) {
         uniqueVendors.set(risk.vendor_id, {
           id: risk.vendor_id,
           name: risk.vendor_name,
-          project_id: risk.project_id
+          project_id: risk.project_id,
         });
       }
     });
@@ -326,7 +342,7 @@ const Vendors = () => {
         uniqueVendors.set(vendor.id, {
           id: vendor.id,
           name: vendor.vendor_name,
-          project_id: vendor.projects[0] // Assuming first project is the main one
+          project_id: vendor.projects[0], // Assuming first project is the main one
         });
       }
     });
@@ -335,7 +351,9 @@ const Vendors = () => {
     if (!selectedProjectId || selectedProjectId === "all") {
       return vendorList;
     }
-    return vendorList.filter(vendor => vendor.project_id.toString() === selectedProjectId);
+    return vendorList.filter(
+      (vendor) => vendor.project_id.toString() === selectedProjectId
+    );
   }, [vendorRisks, selectedProjectId, vendors]);
 
   useEffect(() => {
@@ -381,27 +399,6 @@ const Vendors = () => {
                 manage all vendors here.
               </Typography>
             </Stack>
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
-              <Stack direction="row" gap={2} alignItems="center">
-                <Select
-                  id="projects"
-                  value={selectedProjectId ?? ""}
-                  items={[
-                    { _id: "all", name: "All Projects" },
-                    ...projects.map((project) => ({
-                      _id: project.id.toString(),
-                      name: project.project_title,
-                    })),
-                  ]}
-                  onChange={handleProjectChange}
-                  sx={{
-                    width: "180px",
-                    minHeight: "34px",
-                    borderRadius: theme.shape.borderRadius,
-                  }}
-                />
-              </Stack>
-            </Stack>
           </>
         ) : (
           <>
@@ -435,28 +432,7 @@ const Vendors = () => {
                 create and manage all vendor risks here.
               </Typography>
             </Stack>
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
-              <Stack direction="row" gap={2} alignItems="center">
-                <Select
-                  id="projects"
-                  value={selectedProjectId ?? ""}
-                  items={[
-                    { _id: "all", name: "All Projects" },
-                    ...projects.map((project) => ({
-                      _id: project.id.toString(),
-                      name: project.project_title,
-                    })),
-                  ]}
-                  onChange={handleProjectChange}
-                  sx={{
-                    width: "180px",
-                    minHeight: "34px",
-                    borderRadius: theme.shape.borderRadius,
-                  }}
-                />
 
-              </Stack>
-            </Stack>
           </>
         )}
         <TabContext value={value}>
@@ -488,7 +464,24 @@ const Vendors = () => {
             />
           ) : (
             value === "1" && (
-              <Stack sx={{ alignItems: "flex-end" }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+                <Select
+                  id="projects"
+                  value={selectedProjectId ?? ""}
+                  items={[
+                    { _id: "all", name: "All Projects" },
+                    ...projects.map((project) => ({
+                      _id: project.id.toString(),
+                      name: project.project_title,
+                    })),
+                  ]}
+                  onChange={handleProjectChange}
+                  sx={{
+                    width: "180px",
+                    minHeight: "34px",
+                    borderRadius: theme.shape.borderRadius,
+                  }}
+                />
                 <div data-joyride-id="add-new-vendor" ref={refs[0]}>
                   <VWButton
                     variant="contained"
@@ -518,8 +511,25 @@ const Vendors = () => {
             />
           ) : (
             value !== "1" && (
-              <Stack sx={{ alignItems: "flex-end" }}>
-                <Stack direction="row" alignItems="center" gap={2}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+                <Stack direction="row" gap={2} alignItems="center">
+                  <Select
+                    id="projects"
+                    value={selectedProjectId ?? ""}
+                    items={[
+                      { _id: "all", name: "All Projects" },
+                      ...projects.map((project) => ({
+                        _id: project.id.toString(),
+                        name: project.project_title,
+                      })),
+                    ]}
+                    onChange={handleProjectChange}
+                    sx={{
+                      width: "180px",
+                      minHeight: "34px",
+                      borderRadius: theme.shape.borderRadius,
+                    }}
+                  />
                   <Select
                     id="vendors"
                     value={selectedVendorId}
@@ -537,21 +547,21 @@ const Vendors = () => {
                       borderRadius: theme.shape.borderRadius,
                     }}
                   />
-                  <VWButton
-                    variant="contained"
-                    text="Add new Risk"
-                    sx={{
-                      backgroundColor: "#13715B",
-                      border: "1px solid #13715B",
-                      gap: 2,
-                    }}
-                    icon={<AddCircleOutlineIcon />}
-                    onClick={() => {
-                      setSelectedRisk(null);
-                      handleRiskModal();
-                    }}
-                  />
                 </Stack>
+                <VWButton
+                  variant="contained"
+                  text="Add new Risk"
+                  sx={{
+                    backgroundColor: "#13715B",
+                    border: "1px solid #13715B",
+                    gap: 2,
+                  }}
+                  icon={<AddCircleOutlineIcon />}
+                  onClick={() => {
+                    setSelectedRisk(null);
+                    handleRiskModal();
+                  }}
+                />
               </Stack>
             )
           )}

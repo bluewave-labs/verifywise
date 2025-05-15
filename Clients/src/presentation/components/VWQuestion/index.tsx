@@ -16,7 +16,6 @@ import { AlertProps } from "../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import { store } from "../../../application/redux/store";
 import { apiServices } from "../../../infrastructure/api/networkServices";
-import { ENV_VARs } from "../../../../env.vars";
 import { FileData } from "../../../domain/types/File";
 import { useSelector } from "react-redux";
 import Button from "../Button";

@@ -477,8 +477,12 @@ export const deleteProjectByIdQuery = async (
     await deleteHelper(entity, id, transaction);
   }
   await Promise.all(
-    frameworks.map(async ({ framework_id }) => {
-      return await frameworkDeletionMap[framework_id](id, transaction);
+    frameworks.map(({ framework_id }) => {
+      const deleteFunction = frameworkDeletionMap[framework_id];
+      if (!deleteFunction) {
+        throw new Error(`Unsupported framework_id encountered: ${framework_id}`);
+      }
+      return deleteFunction(id, transaction);
     })
   );
 

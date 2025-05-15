@@ -148,7 +148,7 @@ export async function deleteManagementSystemClauses(
   const transaction = await sequelize.transaction();
   try {
     const projectFrameworkId = parseInt(req.params.id);
-    if (isNaN(projectFrameworkId)) {
+    if (isNaN(projectFrameworkId) || projectFrameworkId <= 0) {
       return res.status(400).json(STATUS_CODE[400]("Invalid project framework ID"));
     }
     const result = await deleteSubClausesISOByProjectIdQuery(projectFrameworkId, transaction);
@@ -173,7 +173,7 @@ export async function deleteReferenceControls(
   const transaction = await sequelize.transaction();
   try {
     const projectFrameworkId = parseInt(req.params.id);
-    if (isNaN(projectFrameworkId)) {
+    if (isNaN(projectFrameworkId) || projectFrameworkId <= 0) {
       return res.status(400).json(STATUS_CODE[400]("Invalid project framework ID"));
     }
     const result = await deleteAnnexCategoriesISOByProjectIdQuery(projectFrameworkId, transaction);
@@ -198,7 +198,7 @@ export async function deleteISO42001(
   const transaction = await sequelize.transaction();
   try {
     const projectId = parseInt(req.params.id);
-    if (isNaN(projectId)) {
+    if (isNaN(projectId) || projectId <= 0) {
       return res.status(400).json(STATUS_CODE[400]("Invalid project framework ID"));
     }
     const result = await deleteProjectFrameworkISOQuery(projectId, transaction);

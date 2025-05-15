@@ -65,12 +65,12 @@ async function resetDatabase() {
     };
 
     await createNewUserQuery(admin, transaction);
+    await transaction.commit();
     console.log('Default admin user created.');
     
     // Insert mock data (awaiting it to complete)
     await insertMockData();
     console.log('Mock data inserted.');
-    await transaction.commit();
     console.log('Database reset successfully.');
     
     process.exit(0);

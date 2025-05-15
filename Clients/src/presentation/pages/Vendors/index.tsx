@@ -74,7 +74,8 @@ const Vendors = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [value, setValue] = useState("1");
   const [projects, setProjects] = useState<Project[]>([]);
-  const { dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);
+  const [vendors, setVendors] = useState<VendorDetails[]>([]);
+  const { dashboardValues} = useContext(VerifyWiseContext);
   const [selectedVendor, setSelectedVendor] = useState<VendorDetails | null>(
     null
   );
@@ -151,10 +152,7 @@ const Vendors = () => {
         signal,
       });
       if (response?.data) {
-        setDashboardValues((prevValues: any) => ({
-          ...prevValues,
-          vendors: response.data,
-        }));
+        setVendors(response.data);
       }
     } catch (error) {
       console.error("Error fetching vendors:", error);
@@ -192,12 +190,7 @@ const Vendors = () => {
       });
 
       if (response.status === 202) {
-        setDashboardValues((prevValues: any) => ({
-          ...prevValues,
-          vendors: prevValues.vendors.filter(
-            (vendor: any) => vendor.id !== vendorId
-          ),
-        }));
+        setVendors(prevVendors => prevVendors.filter(vendor => vendor.id !== vendorId));
         setAlert({
           variant: "success",
           body: "Vendor deleted successfully.",
@@ -315,6 +308,8 @@ const Vendors = () => {
   // Get unique vendors from vendor risks data
   const vendorOptions = useMemo(() => {
     const uniqueVendors = new Map();
+
+    // Add vendors from vendorRisks
     vendorRisks.forEach(risk => {
       if (!uniqueVendors.has(risk.vendor_id)) {
         uniqueVendors.set(risk.vendor_id, {
@@ -325,12 +320,23 @@ const Vendors = () => {
       }
     });
 
-    const vendors = Array.from(uniqueVendors.values());
+    // Add vendors from local state that don't have risks
+    vendors.forEach((vendor: VendorDetails) => {
+      if (!uniqueVendors.has(vendor.id)) {
+        uniqueVendors.set(vendor.id, {
+          id: vendor.id,
+          name: vendor.vendor_name,
+          project_id: vendor.projects[0] // Assuming first project is the main one
+        });
+      }
+    });
+
+    const vendorList = Array.from(uniqueVendors.values());
     if (!selectedProjectId || selectedProjectId === "all") {
-      return vendors;
+      return vendorList;
     }
-    return vendors.filter(vendor => vendor.project_id.toString() === selectedProjectId);
-  }, [vendorRisks, selectedProjectId]);
+    return vendorList.filter(vendor => vendor.project_id.toString() === selectedProjectId);
+  }, [vendorRisks, selectedProjectId, vendors]);
 
   useEffect(() => {
     // If the selected vendor is not in the new vendor options, reset to "all"
@@ -562,6 +568,7 @@ const Vendors = () => {
           ) : (
             <TabPanel value="1" sx={tabPanelStyle}>
               <TableWithPlaceholder
+                vendors={vendors}
                 dashboardValues={dashboardValues}
                 onDelete={handleDeleteVendor}
                 onEdit={handleEditVendor}
@@ -581,6 +588,7 @@ const Vendors = () => {
             <TabPanel value="2" sx={tabPanelStyle}>
               <RiskTable
                 dashboardValues={dashboardValues}
+                vendors={vendors}
                 vendorRisks={vendorRisks}
                 onDelete={handleDeleteRisk}
                 onEdit={handleEditRisk}
@@ -603,6 +611,7 @@ const Vendors = () => {
         value={value}
         onSuccess={refetchVendorRisks}
         existingRisk={selectedRisk}
+        vendors={vendors}
       />
       {isSubmitting && (
         <VWToast title="Processing your request. Please wait..." />

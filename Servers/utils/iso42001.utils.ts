@@ -256,8 +256,7 @@ export const updateSubClauseQuery = async (
   currentFiles = currentFiles.filter(f => !deletedFiles.includes(parseInt(f.id)));
   currentFiles = currentFiles.concat(uploadedFiles);
 
-
-  const updateSubClause: Partial<Record<keyof SubClauseISO, any>> = {};
+  const updateSubClause: Partial<Record<keyof SubClauseISO, any>> = { id };
   const setClause = [
     "implementation_description",
     "evidence_links",
@@ -267,18 +266,16 @@ export const updateSubClauseQuery = async (
     "approver",
     "due_date",
     "auditor_feedback",
-  ].filter(f => {
-    if (f == 'evidence_links' && currentFiles.length > 0) {
-      updateSubClause['evidence_links'] = JSON.stringify(currentFiles);
-      return true;
+  ].reduce((acc: string[], field) => {
+    if (field === "evidence_links" && currentFiles.length) {
+      updateSubClause["evidence_links"] = JSON.stringify(currentFiles);
+      acc.push(`${field} = :${field}`);
+    } else if (subClause[field as keyof SubClauseISO] != undefined && subClause[field as keyof SubClauseISO]) {
+      updateSubClause[field as keyof SubClauseISO] = subClause[field as keyof SubClauseISO];
+      acc.push(`${field} = :${field}`);
     }
-    if (subClause[f as keyof SubClauseISO] !== undefined && subClause[f as keyof SubClauseISO]) {
-      updateSubClause[f as keyof SubClauseISO] = subClause[f as keyof SubClauseISO]
-      return true
-    }
-  }).map(f => {
-    return `${f} = :${f}`
-  }).join(", ");
+    return acc;
+  }, []).join(", ");
 
   if (setClause.length === 0) {
     return subClause as SubClauseISO;
@@ -335,18 +332,16 @@ export const updateAnnexCategoryQuery = async (
     "approver",
     "due_date",
     "auditor_feedback",
-  ].filter(f => {
-    if (f == 'evidence_links' && currentFiles.length > 0) {
-      updateAnnexCategory['evidence_links'] = JSON.stringify(currentFiles);
-      return true;
+  ].reduce((acc: string[], field) => {
+    if (field === "evidence_links" && currentFiles.length) {
+      updateAnnexCategory["evidence_links"] = JSON.stringify(currentFiles);
+      acc.push(`${field} = :${field}`);
+    } else if (annexCategory[field as keyof AnnexCategoryISO] != undefined && annexCategory[field as keyof AnnexCategoryISO]) {
+      updateAnnexCategory[field as keyof AnnexCategoryISO] = annexCategory[field as keyof AnnexCategoryISO];
+      acc.push(`${field} = :${field}`);
     }
-    if (annexCategory[f as keyof AnnexCategoryISO] !== undefined && annexCategory[f as keyof AnnexCategoryISO]) {
-      updateAnnexCategory[f as keyof AnnexCategoryISO] = annexCategory[f as keyof AnnexCategoryISO]
-      return true
-    }
-  }).map(f => {
-    return `${f} = :${f}`
-  }).join(", ");
+    return acc;
+  }, []).join(", ");
 
   if (setClause.length === 0) {
     return annexCategory as AnnexCategoryISO;
@@ -385,20 +380,17 @@ export const updateAnnexCategoryQuery = async (
       transaction
     }
   );
-  for (let risk of currentRisks) {
-    const annexcategories_risks = await sequelize.query(
-      `INSERT INTO annexcategories_iso__risks (annexcategory_id, projects_risks_id) VALUES (
-        :annexcategory_id, :projects_risks_id
-      ) RETURNING *;`,
+  const annexCategoryRisksInsert = currentRisks.map(risk => `(${id}, ${risk})`).join(", ");
+  if (annexCategoryRisksInsert) {
+    const annexCategoryRisksInsertResult = await sequelize.query(
+      `INSERT INTO annexcategories_iso__risks (annexcategory_id, projects_risks_id) VALUES ${annexCategoryRisksInsert} RETURNING projects_risks_id;`,
       {
-        replacements: {
-          annexcategory_id: id,
-          projects_risks_id: risk
-        },
         transaction
       }
-    ) as [AnnexCategoryISORisksModel[], number];
-    (annexCategoryResult as any).risks.push(annexcategories_risks[0][0]);
+    ) as [{ projects_risks_id: number }[], number];
+    for (let risk of annexCategoryRisksInsertResult[0]) {
+      (annexCategoryResult as any).risks.push(risk.projects_risks_id);
+    }
   }
 
   return annexCategoryResult;

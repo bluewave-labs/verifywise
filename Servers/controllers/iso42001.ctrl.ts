@@ -8,6 +8,51 @@ import { updateAnnexCategoryQuery, updateSubClauseQuery } from "../utils/iso4200
 import { FileType } from "../models/file.model";
 import { AnnexCategoryISO } from "../models/ISO-42001/annexCategoryISO.model";
 
+// helper function to delete files
+async function deleteFiles(
+  filesToDelete: number[],
+  transaction: any
+): Promise<void> {
+  await Promise.all(
+    filesToDelete.map(async (fileId) => {
+      await deleteFileById(fileId, transaction);
+    }
+    ));
+};
+
+// helper function to upload files
+async function uploadFiles(
+  files: UploadedFile[],
+  userId: number,
+  projectFrameworkId: number,
+  source: "Management system clauses group" | "Reference controls group",
+  transaction: any
+): Promise<FileType[]> {
+  let uploadedFiles: FileType[] = [];
+  await Promise.all(
+    files.map(async (file) => {
+      const uploadedFile = await uploadFile(
+        file,
+        userId,
+        projectFrameworkId,
+        source,
+        transaction
+      );
+
+      uploadedFiles.push({
+        id: uploadedFile.id!.toString(),
+        fileName: uploadedFile.filename,
+        project_id: uploadedFile.project_id,
+        uploaded_by: uploadedFile.uploaded_by,
+        uploaded_time: uploadedFile.uploaded_time,
+        type: uploadedFile.type,
+        source: uploadedFile.source,
+      });
+    })
+  );
+  return uploadedFiles;
+};
+
 export async function saveClauses(
   req: RequestWithFile,
   res: Response
@@ -22,30 +67,15 @@ export async function saveClauses(
     };
 
     const filesToDelete = JSON.parse(subClause.delete || "[]") as number[];
-    for (let f of filesToDelete) {
-      await deleteFileById(f, transaction);
-    }
+    await deleteFiles(filesToDelete, transaction);
 
-    let uploadedFiles: FileType[] = [];
-    for (let f of req.files! as UploadedFile[]) {
-      const uploadedFile = await uploadFile(
-        f,
-        subClause.user_id,
-        subClause.project_framework_id,
-        "Management system clauses group",
-        transaction
-      );
-
-      uploadedFiles.push({
-        id: uploadedFile.id!.toString(),
-        fileName: uploadedFile.filename,
-        project_id: uploadedFile.project_id,
-        uploaded_by: uploadedFile.uploaded_by,
-        uploaded_time: uploadedFile.uploaded_time,
-        type: uploadedFile.type,
-        source: uploadedFile.source,
-      });
-    }
+    let uploadedFiles = await uploadFiles(
+      req.files! as UploadedFile[],
+      subClause.user_id,
+      subClause.project_framework_id,
+      "Management system clauses group",
+      transaction
+    );
 
     const updatedSubClause = await updateSubClauseQuery(
       subClauseId,
@@ -82,30 +112,15 @@ export async function saveAnnexes(
     };
 
     const filesToDelete = JSON.parse(annexCategory.delete || "[]") as number[];
-    for (let f of filesToDelete) {
-      await deleteFileById(f, transaction);
-    }
+    await deleteFiles(filesToDelete, transaction);
 
-    let uploadedFiles: FileType[] = [];
-    for (let f of req.files! as UploadedFile[]) {
-      const uploadedFile = await uploadFile(
-        f,
-        annexCategory.user_id,
-        annexCategory.project_framework_id,
-        "Reference controls group",
-        transaction
-      );
-
-      uploadedFiles.push({
-        id: uploadedFile.id!.toString(),
-        fileName: uploadedFile.filename,
-        project_id: uploadedFile.project_id,
-        uploaded_by: uploadedFile.uploaded_by,
-        uploaded_time: uploadedFile.uploaded_time,
-        type: uploadedFile.type,
-        source: uploadedFile.source,
-      });
-    }
+    let uploadedFiles = await uploadFiles(
+      req.files! as UploadedFile[],
+      annexCategory.user_id,
+      annexCategory.project_framework_id,
+      "Reference controls group",
+      transaction
+    );
 
     const updatedAnnexCategory = await updateAnnexCategoryQuery(
       annexCategoryId,

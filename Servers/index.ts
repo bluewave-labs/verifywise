@@ -23,6 +23,7 @@ import controlCategory from "./routes/controlCategory.route";
 import euRouter from "./routes/eu.route";
 import reportRoutes from "./routes/reporting.route";
 import frameworks from "./routes/frameworks.route";
+import organizationRoutes from "./routes/organization.route";
 import isoRoutes from "./routes/iso42001.route";
 
 import autoDriverRoutes from "./routes/autoDriver.route";
@@ -62,10 +63,10 @@ try {
   app.use(
     cors({
       origin: (origin, callback) => {
-        testOrigin({origin, allowedOrigins , callback});
+        testOrigin({ origin, allowedOrigins, callback });
       },
       credentials: true,
-      allowedHeaders: ['Authorization', 'Content-Type', 'X-Requested-With'],
+      allowedHeaders: ["Authorization", "Content-Type", "X-Requested-With"],
     })
   );
   app.use(helmet()); // Use helmet for security headers
@@ -92,6 +93,7 @@ try {
   app.use("/api/controlCategory", controlCategory);
   app.use("/api/frameworks", frameworks);
   app.use("/api/eu-ai-act", euRouter);
+  app.use("/api/organizations", organizationRoutes);
   app.use("/api/iso-42001", isoRoutes);
 
   app.use("/api/reporting", reportRoutes);

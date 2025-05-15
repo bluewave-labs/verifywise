@@ -1,6 +1,5 @@
 .control-category {
   max-width: 1400px;
-  margin-top: 14px;
   gap: 20px;
 }
 
@@ -24,11 +23,12 @@
 
 .control-category-accordion,
 .control-category-accordion-summary {
+  font-size: 13px;
   background-color: #fafafa;
   flex-direction: row-reverse;
 }
 
-new-compliance-tracker-details-accordion-summary-title {
-  font-size: 16px;
+.new-compliance-tracker-details-accordion-summary-title {
+  font-size: 13px;
   padding-left: 2.5px;
 }

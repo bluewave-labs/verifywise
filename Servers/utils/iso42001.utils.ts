@@ -2,10 +2,11 @@ import { Transaction } from "sequelize";
 import { sequelize } from "../database/db";
 import { ClauseStructISOModel } from "../models/ISO-42001/clauseStructISO.model";
 import { SubClauseStructISOModel } from "../models/ISO-42001/subClauseStructISO.model";
-import { SubClauseISOModel } from "../models/ISO-42001/subClauseISO.model";
+import { SubClauseISO, SubClauseISOModel } from "../models/ISO-42001/subClauseISO.model";
 import { AnnexStructISOModel } from "../models/ISO-42001/annexStructISO.model";
-import { AnnexCategoryISOModel } from "../models/ISO-42001/annexCategoryISO.model";
+import { AnnexCategoryISO, AnnexCategoryISOModel } from "../models/ISO-42001/annexCategoryISO.model";
 import { AnnexCategoryStructISOModel } from "../models/ISO-42001/annexCategoryStructISO.model";
+import { AnnexCategoryISORisksModel } from "../models/ISO-42001/annexCategoryISORIsks.model";
 
 export const getAllClausesQuery = async (transaction: Transaction) => {
   const clauses = await sequelize.query(
@@ -229,4 +230,168 @@ export const createISOFrameworkQuery = async (
     management_system_clauses,
     reference_controls
   }
+}
+
+export const updateSubClauseQuery = async (
+  id: number,
+  subClause: Partial<SubClauseISOModel>,
+  uploadedFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[] = [],
+  deletedFiles: number[] = [],
+  transaction: Transaction
+) => {
+  const files = await sequelize.query(
+    `SELECT evidence_links FROM subclauses_iso WHERE id = :id`,
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: SubClauseISOModel,
+      transaction
+    }
+  );
+
+  let currentFiles = (files[0].evidence_links ? files[0].evidence_links : []) as {
+    id: string; fileName: string; project_id: number; uploaded_by: number; uploaded_time: Date;
+  }[]
+
+  currentFiles = currentFiles.filter(f => !deletedFiles.includes(parseInt(f.id)));
+  currentFiles = currentFiles.concat(uploadedFiles);
+
+  const updateSubClause: Partial<Record<keyof SubClauseISO, any>> = { id };
+  const setClause = [
+    "implementation_description",
+    "evidence_links",
+    "status",
+    "owner",
+    "reviewer",
+    "approver",
+    "due_date",
+    "auditor_feedback",
+  ].reduce((acc: string[], field) => {
+    if (field === "evidence_links" && currentFiles.length) {
+      updateSubClause["evidence_links"] = JSON.stringify(currentFiles);
+      acc.push(`${field} = :${field}`);
+    } else if (subClause[field as keyof SubClauseISO] != undefined && subClause[field as keyof SubClauseISO]) {
+      updateSubClause[field as keyof SubClauseISO] = subClause[field as keyof SubClauseISO];
+      acc.push(`${field} = :${field}`);
+    }
+    return acc;
+  }, []).join(", ");
+
+  if (setClause.length === 0) {
+    return subClause as SubClauseISO;
+  }
+
+  const query = `UPDATE subclauses_iso SET ${setClause} WHERE id = :id RETURNING *;`;
+
+  updateSubClause.id = id;
+
+  const result = await sequelize.query(query, {
+    replacements: updateSubClause,
+    mapToModel: true,
+    model: SubClauseISOModel,
+    // type: QueryTypes.UPDATE,
+    transaction
+  });
+
+  return result[0];
+}
+
+export const updateAnnexCategoryQuery = async (
+  id: number,
+  annexCategory: Partial<AnnexCategoryISO & { risksDelete: string, risksMitigated: string }>,
+  uploadedFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[] = [],
+  deletedFiles: number[] = [],
+  transaction: Transaction
+) => {
+  const files = await sequelize.query(
+    `SELECT evidence_links FROM annexcategories_iso WHERE id = :id`,
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: AnnexCategoryISOModel,
+      transaction
+    }
+  );
+
+  let currentFiles = (files[0].evidence_links ? files[0].evidence_links : []) as {
+    id: string; fileName: string; project_id: number; uploaded_by: number; uploaded_time: Date;
+  }[]
+
+  currentFiles = currentFiles.filter(f => !deletedFiles.includes(parseInt(f.id)));
+  currentFiles = currentFiles.concat(uploadedFiles);
+
+  const updateAnnexCategory: Partial<Record<keyof AnnexCategoryISO, any>> = {};
+  const setClause = [
+    "is_applicable",
+    "justification_for_exclusion",
+    "implementation_description",
+    "evidence_links",
+    "status",
+    "owner",
+    "reviewer",
+    "approver",
+    "due_date",
+    "auditor_feedback",
+  ].reduce((acc: string[], field) => {
+    if (field === "evidence_links" && currentFiles.length) {
+      updateAnnexCategory["evidence_links"] = JSON.stringify(currentFiles);
+      acc.push(`${field} = :${field}`);
+    } else if (annexCategory[field as keyof AnnexCategoryISO] != undefined && annexCategory[field as keyof AnnexCategoryISO]) {
+      updateAnnexCategory[field as keyof AnnexCategoryISO] = annexCategory[field as keyof AnnexCategoryISO];
+      acc.push(`${field} = :${field}`);
+    }
+    return acc;
+  }, []).join(", ");
+
+  if (setClause.length === 0) {
+    return annexCategory as AnnexCategoryISO;
+  }
+
+  const query = `UPDATE annexcategories_iso SET ${setClause} WHERE id = :id RETURNING *;`;
+
+  updateAnnexCategory.id = id;
+
+  const result = await sequelize.query(query, {
+    replacements: updateAnnexCategory,
+    // type: QueryTypes.UPDATE,
+    transaction
+  }) as [AnnexCategoryISOModel[], number];
+  const annexCategoryResult = result[0][0];
+  (annexCategoryResult as any).risks = [];
+
+  // update the risks
+  const risksDeleted = JSON.parse(annexCategory.risksDelete || "[]") as number[];
+  const risksMitigated = JSON.parse(annexCategory.risksMitigated || "[]") as number[];
+  const risks = await sequelize.query(
+    `SELECT projects_risks_id FROM annexcategories_iso__risks WHERE annexcategory_id = :id`,
+    {
+      replacements: { id },
+      transaction
+    }
+  ) as [AnnexCategoryISORisksModel[], number];
+  let currentRisks = risks[0].map(r => r.project_risk_id!);
+  currentRisks = currentRisks.filter(r => !risksDeleted.includes(r));
+  currentRisks = currentRisks.concat(risksMitigated);
+
+  await sequelize.query(
+    `DELETE FROM annexcategories_iso__risks WHERE annexcategory_id = :id;`,
+    {
+      replacements: { id },
+      transaction
+    }
+  );
+  const annexCategoryRisksInsert = currentRisks.map(risk => `(${id}, ${risk})`).join(", ");
+  if (annexCategoryRisksInsert) {
+    const annexCategoryRisksInsertResult = await sequelize.query(
+      `INSERT INTO annexcategories_iso__risks (annexcategory_id, projects_risks_id) VALUES ${annexCategoryRisksInsert} RETURNING projects_risks_id;`,
+      {
+        transaction
+      }
+    ) as [{ projects_risks_id: number }[], number];
+    for (let risk of annexCategoryRisksInsertResult[0]) {
+      (annexCategoryResult as any).risks.push(risk.projects_risks_id);
+    }
+  }
+
+  return annexCategoryResult;
 }

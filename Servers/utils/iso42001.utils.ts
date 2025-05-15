@@ -1,4 +1,4 @@
-import { Transaction } from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 import { sequelize } from "../database/db";
 import { ClauseStructISOModel } from "../models/ISO-42001/clauseStructISO.model";
 import { SubClauseStructISOModel } from "../models/ISO-42001/subClauseStructISO.model";
@@ -7,6 +7,7 @@ import { AnnexStructISOModel } from "../models/ISO-42001/annexStructISO.model";
 import { AnnexCategoryISO, AnnexCategoryISOModel } from "../models/ISO-42001/annexCategoryISO.model";
 import { AnnexCategoryStructISOModel } from "../models/ISO-42001/annexCategoryStructISO.model";
 import { AnnexCategoryISORisksModel } from "../models/ISO-42001/annexCategoryISORIsks.model";
+import { ProjectFrameworksModel } from "../models/projectFrameworks.model";
 
 export const getAllClausesQuery = async (transaction: Transaction) => {
   const clauses = await sequelize.query(
@@ -394,4 +395,71 @@ export const updateAnnexCategoryQuery = async (
   }
 
   return annexCategoryResult;
+}
+
+export const deleteSubClausesISOByProjectIdQuery = async (
+  projectFrameworkId: number,
+  transaction: Transaction
+) => {
+  const result = await sequelize.query(
+    `DELETE FROM subclauses_iso WHERE projects_frameworks_id = :projects_frameworks_id RETURNING *`,
+    {
+      replacements: { projects_frameworks_id: projectFrameworkId },
+      mapToModel: true,
+      model: SubClauseISOModel,
+      type: QueryTypes.DELETE,
+      transaction
+    }
+  )
+  return result.length > 0;
+}
+
+export const deleteAnnexCategoriesISOByProjectIdQuery = async (
+  projectFrameworkId: number,
+  transaction: Transaction
+) => {
+  // delete the risks first
+  await sequelize.query(
+    `DELETE FROM annexcategories_iso__risks WHERE annexcategory_id IN (SELECT id FROM annexcategories_iso WHERE projects_frameworks_id = :projects_frameworks_id)`,
+    {
+      replacements: { projects_frameworks_id: projectFrameworkId },
+      transaction
+    }
+  )
+  const result = await sequelize.query(
+    `DELETE FROM annexcategories_iso WHERE projects_frameworks_id = :projects_frameworks_id RETURNING *`,
+    {
+      replacements: { projects_frameworks_id: projectFrameworkId },
+      mapToModel: true,
+      model: AnnexCategoryISOModel,
+      type: QueryTypes.DELETE,
+      transaction
+    }
+  )
+  return result.length > 0;
+}
+
+export const deleteProjectFrameworkISOQuery = async (
+  projectId: number,
+  transaction: Transaction
+) => {
+  const projectFrameworkId = await sequelize.query(
+    `SELECT id FROM projects_frameworks WHERE project_id = :project_id AND framework_id = 2`,
+    {
+      replacements: { project_id: projectId }, transaction
+    }
+  ) as [{ id: number }[], number];
+  const subClausesDeleted = await deleteSubClausesISOByProjectIdQuery(projectFrameworkId[0][0].id, transaction);
+  const annexeCategoriesDeleted = await deleteAnnexCategoriesISOByProjectIdQuery(projectFrameworkId[0][0].id, transaction);
+  const result = await sequelize.query(
+    `DELETE FROM projects_frameworks WHERE project_id = :project_id AND framework_id = 2 RETURNING *`,
+    {
+      replacements: { project_id: projectId },
+      mapToModel: true,
+      model: ProjectFrameworksModel,
+      type: QueryTypes.DELETE,
+      transaction
+    }
+  )
+  return result.length > 0 && subClausesDeleted && annexeCategoriesDeleted;
 }

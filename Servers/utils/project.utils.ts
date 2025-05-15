@@ -18,7 +18,7 @@ import { FileModel } from "../models/file.model";
 import { table } from "console";
 import { ProjectFrameworksModel } from "../models/projectFrameworks.model";
 import { createEUFrameworkQuery, deleteProjectFrameworkEUQuery } from "./eu.utils";
-import { createISOFrameworkQuery } from "./iso42001.utils";
+import { createISOFrameworkQuery, deleteProjectFrameworkISOQuery } from "./iso42001.utils";
 
 export const getAllProjectsQuery = async (): Promise<Project[]> => {
   const projects = await sequelize.query(
@@ -312,9 +312,11 @@ export const updateProjectByIdQuery = async (
         transaction
       }
     );
-    // if (framework === 1) {
-    await deleteProjectFrameworkEUQuery(id, transaction)
-    // }
+    if (framework === 1) {
+      await deleteProjectFrameworkEUQuery(id, transaction)
+    } else if (framework === 2) {
+      await deleteProjectFrameworkISOQuery(id, transaction)
+    }
   }
   for (let framework of newFrameworks) {
     await sequelize.query(
@@ -438,6 +440,11 @@ export const deleteHelper = async (childObject: Record<string, any>, parent_id: 
   await deleteTable(childTableName, childObject[childTableName].foreignKey, parent_id, transaction)
 };
 
+const frameworkDeletionMap: Record<number, (id: number, transaction: Transaction) => Promise<boolean>> = {
+  1: deleteProjectFrameworkEUQuery,
+  2: deleteProjectFrameworkISOQuery,
+};
+
 export const deleteProjectByIdQuery = async (
   id: number,
   transaction: Transaction
@@ -469,11 +476,15 @@ export const deleteProjectByIdQuery = async (
   for (let entity of dependantEntities) {
     await deleteHelper(entity, id, transaction);
   }
-  for (let framework of frameworks) {
-    if (framework.framework_id === 1) {
-      await deleteProjectFrameworkEUQuery(id, transaction);
-    }
-  }
+  await Promise.all(
+    frameworks.map(({ framework_id }) => {
+      const deleteFunction = frameworkDeletionMap[framework_id];
+      if (!deleteFunction) {
+        throw new Error(`Unsupported framework_id encountered: ${framework_id}`);
+      }
+      return deleteFunction(id, transaction);
+    })
+  );
 
   const result = await sequelize.query(
     "DELETE FROM projects WHERE id = :id RETURNING *",

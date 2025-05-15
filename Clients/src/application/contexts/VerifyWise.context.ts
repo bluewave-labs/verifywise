@@ -46,7 +46,7 @@ const VerifyWiseContext = createContext<VerifyWiseContextProps>({
   userId: "",
   projects: [],
   setProjects: () => {},
-  componentsVisible: { home: false, sidebar: false },
+  componentsVisible: { home: false, sidebar: false, projectFrameworks: false, compliance: false },
   changeComponentVisibility: () => {},
 });
 

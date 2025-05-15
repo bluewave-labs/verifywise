@@ -47,6 +47,8 @@ function App() {
   const [componentsVisible, setComponentsVisible] = useState<ComponentVisible>({
     home: false,
     sidebar: false,
+    projectFrameworks: false,
+    compliance: false,
   });
   const changeComponentVisibility = useCallback(
     (component: keyof ComponentVisible, value: boolean) => {

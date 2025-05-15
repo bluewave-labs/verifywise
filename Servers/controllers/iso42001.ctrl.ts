@@ -4,9 +4,143 @@ import { SubClauseISO } from "../models/ISO-42001/subClauseISO.model";
 import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import { deleteAnnexCategoriesISOByProjectIdQuery, deleteProjectFrameworkISOQuery, deleteSubClausesISOByProjectIdQuery, updateAnnexCategoryQuery, updateSubClauseQuery } from "../utils/iso42001.utils";
+import { deleteAnnexCategoriesISOByProjectIdQuery, deleteProjectFrameworkISOQuery, deleteSubClausesISOByProjectIdQuery, getAllAnnexesQuery, getAllClausesQuery, getAnnexCategoriesByAnnexIdQuery, getAnnexCategoryByIdForProjectQuery, getAnnexesByProjectIdQuery, getClausesByProjectIdQuery, getSubClauseByIdForProjectQuery, getSubClausesByClauseIdQuery, updateAnnexCategoryQuery, updateSubClauseQuery } from "../utils/iso42001.utils";
 import { FileType } from "../models/file.model";
 import { AnnexCategoryISO } from "../models/ISO-42001/annexCategoryISO.model";
+
+export async function getAllClauses(req: Request, res: Response): Promise<any> {
+  try {
+    const controlCategories = await getAllClausesQuery();
+    return res.status(200).json(controlCategories);
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getAllAnnexes(req: Request, res: Response): Promise<any> {
+  try {
+    const controlCategories = await getAllAnnexesQuery();
+    return res.status(200).json(controlCategories);
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getSubClausesByClauseId(
+  req: Request,
+  res: Response
+): Promise<any> {
+  try {
+    const clauseId = parseInt(req.params.id);
+    if (!clauseId) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid clause ID"));
+    }
+    const subClauses = await getSubClausesByClauseIdQuery(clauseId);
+    if (subClauses) {
+      return res.status(200).json(STATUS_CODE[200](subClauses));
+    }
+    return res.status(400).json(STATUS_CODE[400]("No sub clauses found"));
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getAnnexCategoriesByAnnexId(
+  req: Request,
+  res: Response
+): Promise<any> {
+  try {
+    const annexId = parseInt(req.params.id);
+    if (!annexId) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid annex ID"));
+    }
+    const annexCategories = await getAnnexCategoriesByAnnexIdQuery(annexId);
+    if (annexCategories) {
+      return res.status(200).json(STATUS_CODE[200](annexCategories));
+    }
+    return res.status(400).json(STATUS_CODE[400]("No annex categories found"));
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getSubClauseById(
+  req: Request,
+  res: Response
+): Promise<any> {
+  try {
+    const subClauseId = parseInt(req.params.id);
+    const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
+    if (isNaN(subClauseId) || isNaN(projectFrameworkId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid query parameters"));
+    };
+    const subClause = await getSubClauseByIdForProjectQuery(subClauseId, projectFrameworkId);
+    if (subClause) {
+      return res.status(200).json(STATUS_CODE[200](subClause));
+    }
+    return res.status(400).json(STATUS_CODE[400]("No sub clause found"));
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getAnnexCategoryById(
+  req: Request,
+  res: Response
+): Promise<any> {
+  try {
+    const annexCategoryId = parseInt(req.params.id);
+    const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
+    if (isNaN(annexCategoryId) || isNaN(projectFrameworkId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid query parameters"));
+    };
+    const annexCategory = await getAnnexCategoryByIdForProjectQuery(annexCategoryId, projectFrameworkId);
+    if (annexCategory) {
+      return res.status(200).json(STATUS_CODE[200](annexCategory));
+    }
+    return res.status(400).json(STATUS_CODE[400]("No annex category found"));
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getClausesByProjectId(
+  req: Request,
+  res: Response
+): Promise<any> {
+  try {
+    const projectFrameworkId = parseInt(req.params.id);
+    if (!projectFrameworkId) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid project ID"));
+    }
+    const subClauses = await getClausesByProjectIdQuery(projectFrameworkId);
+    if (subClauses) {
+      return res.status(200).json(STATUS_CODE[200](subClauses));
+    }
+    return res.status(400).json(STATUS_CODE[400]("No sub clauses found"));
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getAnnexesByProjectId(
+  req: Request,
+  res: Response
+): Promise<any> {
+  try {
+    const projectFrameworkId = parseInt(req.params.id);
+    if (!projectFrameworkId) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid project ID"));
+    }
+    const annexCategories = await getAnnexesByProjectIdQuery(projectFrameworkId);
+    if (annexCategories) {
+      return res.status(200).json(STATUS_CODE[200](annexCategories));
+    }
+    return res.status(400).json(STATUS_CODE[400]("No annex categories found"));
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
 
 // helper function to delete files
 async function deleteFiles(

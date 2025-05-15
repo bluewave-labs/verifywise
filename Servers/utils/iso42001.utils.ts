@@ -153,7 +153,7 @@ export const getAnnexCategoryByIdForProjectQuery = async (annexCategoryId: numbe
   return annexCategories;
 }
 
-export const getAnnexCategoriesByIdQuery = async (annexId: number, transaction: Transaction | null = null) => {
+export const getAnnexCategoriesByIdQuery = async (annexCategoryId: number, transaction: Transaction | null = null) => {
   const annexCategories = await sequelize.query(
     `SELECT
       acs.title AS title,
@@ -175,10 +175,22 @@ export const getAnnexCategoriesByIdQuery = async (annexId: number, transaction: 
     FROM annexcategories_struct_iso acs JOIN annexcategories_iso ac ON acs.id = ac.annexcategory_meta_id
     WHERE ac.id = :id ORDER BY created_at DESC, id ASC;`,
     {
-      replacements: { id: annexId },
+      replacements: { id: annexCategoryId },
       ...(transaction ? { transaction } : {}),
     }) as [Partial<AnnexCategoryStructISOModel & AnnexCategoryISOModel>[], number]
-  return annexCategories[0][0];
+  const annexCategory = annexCategories[0][0];
+  (annexCategory as any).risks = [];
+  const risks = await sequelize.query(
+    `SELECT projects_risks_id FROM annexcategories_iso__risks WHERE annexcategory_id = :id`,
+    {
+      replacements: { id: annexCategoryId },
+      transaction
+    }
+  ) as [{ projects_risks_id: number }[], number];
+  for (let risk of risks[0]) {
+    (annexCategory as any).risks.push(risk.projects_risks_id);
+  }
+  return annexCategory;
 }
 
 export const getAnnexesByProjectIdQuery = async (projectFrameworkId: number) => {

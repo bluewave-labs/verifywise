@@ -24,6 +24,7 @@ import euRouter from "./routes/eu.route";
 import reportRoutes from "./routes/reporting.route";
 import frameworks from "./routes/frameworks.route";
 import organizationRoutes from "./routes/organization.route";
+import isoRoutes from "./routes/iso42001.route";
 
 import autoDriverRoutes from "./routes/autoDriver.route";
 import swaggerUi from "swagger-ui-express";
@@ -93,6 +94,7 @@ try {
   app.use("/api/frameworks", frameworks);
   app.use("/api/eu-ai-act", euRouter);
   app.use("/api/organizations", organizationRoutes);
+  app.use("/api/iso-42001", isoRoutes);
 
   app.use("/api/reporting", reportRoutes);
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));

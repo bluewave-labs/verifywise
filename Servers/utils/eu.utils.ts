@@ -815,7 +815,7 @@ export const deleteAssessmentEUByProjectIdQuery = async (
     }
   ) as [{ id: number }[], number];
   if (assessmentId[0].length === 0) {
-    return;
+    return false;
   }
   await sequelize.query(
     `DELETE FROM answers_eu WHERE assessment_id = :assessment_id`,
@@ -847,7 +847,7 @@ export const deleteComplianeEUByProjectIdQuery = async (
     }
   ) as [{ id: number }[], number];
   if (controlIds[0].length === 0) {
-    return;
+    return false;
   }
   for (let control of controlIds[0]) {
     await sequelize.query(

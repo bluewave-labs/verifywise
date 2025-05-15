@@ -506,6 +506,14 @@ export const deleteAnnexCategoriesISOByProjectIdQuery = async (
   projectFrameworkId: number,
   transaction: Transaction
 ) => {
+  // delete the risks first
+  await sequelize.query(
+    `DELETE FROM annexcategories_iso__risks WHERE annexcategory_id IN (SELECT id FROM annexcategories_iso WHERE projects_frameworks_id = :projects_frameworks_id)`,
+    {
+      replacements: { projects_frameworks_id: projectFrameworkId },
+      transaction
+    }
+  )
   const result = await sequelize.query(
     `DELETE FROM annexcategories_iso WHERE projects_frameworks_id = :projects_frameworks_id RETURNING *`,
     {

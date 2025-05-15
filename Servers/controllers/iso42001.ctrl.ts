@@ -32,9 +32,9 @@ export async function getSubClausesByClauseId(
 ): Promise<any> {
   try {
     const clauseId = parseInt(req.params.id);
-    if (!clauseId) {
-      return res.status(400).json(STATUS_CODE[400]("Invalid clause ID"));
-    }
+    // if (!clauseId) {
+    //   return res.status(400).json(STATUS_CODE[400]("Invalid clause ID"));
+    // }
     const subClauses = await getSubClausesByClauseIdQuery(clauseId);
     if (subClauses) {
       return res.status(200).json(STATUS_CODE[200](subClauses));
@@ -51,9 +51,9 @@ export async function getAnnexCategoriesByAnnexId(
 ): Promise<any> {
   try {
     const annexId = parseInt(req.params.id);
-    if (!annexId) {
-      return res.status(400).json(STATUS_CODE[400]("Invalid annex ID"));
-    }
+    // if (!annexId) {
+    //   return res.status(400).json(STATUS_CODE[400]("Invalid annex ID"));
+    // }
     const annexCategories = await getAnnexCategoriesByAnnexIdQuery(annexId);
     if (annexCategories) {
       return res.status(200).json(STATUS_CODE[200](annexCategories));
@@ -71,9 +71,9 @@ export async function getSubClauseById(
   try {
     const subClauseId = parseInt(req.params.id);
     const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
-    if (isNaN(subClauseId) || isNaN(projectFrameworkId)) {
-      return res.status(400).json(STATUS_CODE[400]("Invalid query parameters"));
-    };
+    // if (isNaN(subClauseId) || isNaN(projectFrameworkId)) {
+    //   return res.status(400).json(STATUS_CODE[400]("Invalid query parameters"));
+    // };
     const subClause = await getSubClauseByIdForProjectQuery(subClauseId, projectFrameworkId);
     if (subClause) {
       return res.status(200).json(STATUS_CODE[200](subClause));
@@ -91,9 +91,9 @@ export async function getAnnexCategoryById(
   try {
     const annexCategoryId = parseInt(req.params.id);
     const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
-    if (isNaN(annexCategoryId) || isNaN(projectFrameworkId)) {
-      return res.status(400).json(STATUS_CODE[400]("Invalid query parameters"));
-    };
+    // if (isNaN(annexCategoryId) || isNaN(projectFrameworkId)) {
+    //   return res.status(400).json(STATUS_CODE[400]("Invalid query parameters"));
+    // };
     const annexCategory = await getAnnexCategoryByIdForProjectQuery(annexCategoryId, projectFrameworkId);
     if (annexCategory) {
       return res.status(200).json(STATUS_CODE[200](annexCategory));
@@ -110,9 +110,9 @@ export async function getClausesByProjectId(
 ): Promise<any> {
   try {
     const projectFrameworkId = parseInt(req.params.id);
-    if (!projectFrameworkId) {
-      return res.status(400).json(STATUS_CODE[400]("Invalid project ID"));
-    }
+    // if (!projectFrameworkId) {
+    //   return res.status(400).json(STATUS_CODE[400]("Invalid project ID"));
+    // }
     const subClauses = await getClausesByProjectIdQuery(projectFrameworkId);
     if (subClauses) {
       return res.status(200).json(STATUS_CODE[200](subClauses));
@@ -129,9 +129,9 @@ export async function getAnnexesByProjectId(
 ): Promise<any> {
   try {
     const projectFrameworkId = parseInt(req.params.id);
-    if (!projectFrameworkId) {
-      return res.status(400).json(STATUS_CODE[400]("Invalid project ID"));
-    }
+    // if (!projectFrameworkId) {
+    //   return res.status(400).json(STATUS_CODE[400]("Invalid project ID"));
+    // }
     const annexCategories = await getAnnexesByProjectIdQuery(projectFrameworkId);
     if (annexCategories) {
       return res.status(200).json(STATUS_CODE[200](annexCategories));
@@ -282,9 +282,9 @@ export async function deleteManagementSystemClauses(
   const transaction = await sequelize.transaction();
   try {
     const projectFrameworkId = parseInt(req.params.id);
-    if (isNaN(projectFrameworkId)) {
-      return res.status(400).json(STATUS_CODE[400]("Invalid project framework ID"));
-    }
+    // if (isNaN(projectFrameworkId)) {
+    //   return res.status(400).json(STATUS_CODE[400]("Invalid project framework ID"));
+    // }
     const result = await deleteSubClausesISOByProjectIdQuery(projectFrameworkId, transaction);
 
     if (result) {
@@ -307,9 +307,9 @@ export async function deleteReferenceControls(
   const transaction = await sequelize.transaction();
   try {
     const projectFrameworkId = parseInt(req.params.id);
-    if (isNaN(projectFrameworkId)) {
-      return res.status(400).json(STATUS_CODE[400]("Invalid project framework ID"));
-    }
+    // if (isNaN(projectFrameworkId)) {
+    //   return res.status(400).json(STATUS_CODE[400]("Invalid project framework ID"));
+    // }
     const result = await deleteAnnexCategoriesISOByProjectIdQuery(projectFrameworkId, transaction);
 
     if (result) {
@@ -332,9 +332,9 @@ export async function deleteISO42001(
   const transaction = await sequelize.transaction();
   try {
     const projectId = parseInt(req.params.id);
-    if (isNaN(projectId)) {
-      return res.status(400).json(STATUS_CODE[400]("Invalid project framework ID"));
-    }
+    // if (isNaN(projectId)) {
+    //   return res.status(400).json(STATUS_CODE[400]("Invalid project framework ID"));
+    // }
     const result = await deleteProjectFrameworkISOQuery(projectId, transaction);
 
     if (result) {

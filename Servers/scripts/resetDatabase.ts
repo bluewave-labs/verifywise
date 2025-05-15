@@ -8,6 +8,7 @@ import { insertMockData } from "../driver/autoDriver.driver";
 const execAsync = promisify(exec);
 
 async function resetDatabase() {
+  const transaction = await sequelize.transaction();
   try {
     console.log('Resetting database...');
 
@@ -63,18 +64,21 @@ async function resetDatabase() {
       password_hash
     };
 
-    await createNewUserQuery(admin);
+    await createNewUserQuery(admin, transaction);
     console.log('Default admin user created.');
-
+    
     // Insert mock data (awaiting it to complete)
     await insertMockData();
     console.log('Mock data inserted.');
-
+    await transaction.commit();
+    console.log('Database reset successfully.');
+    
     process.exit(0);
   } catch (err) {
+    await transaction.rollback();
     console.error('Error resetting database:', err);
     process.exit(1);
   }
-}
+} 
 
 resetDatabase();

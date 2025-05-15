@@ -440,6 +440,11 @@ export const deleteHelper = async (childObject: Record<string, any>, parent_id: 
   await deleteTable(childTableName, childObject[childTableName].foreignKey, parent_id, transaction)
 };
 
+const frameworkDeletionMap: Record<number, (id: number, transaction: Transaction) => Promise<boolean>> = {
+  1: deleteProjectFrameworkEUQuery,
+  2: deleteProjectFrameworkISOQuery,
+};
+
 export const deleteProjectByIdQuery = async (
   id: number,
   transaction: Transaction
@@ -471,13 +476,11 @@ export const deleteProjectByIdQuery = async (
   for (let entity of dependantEntities) {
     await deleteHelper(entity, id, transaction);
   }
-  for (let framework of frameworks) {
-    if (framework.framework_id === 1) {
-      await deleteProjectFrameworkEUQuery(id, transaction);
-    } else if (framework.framework_id === 2) {
-      await deleteProjectFrameworkISOQuery(id, transaction);
-    }
-  }
+  await Promise.all(
+    frameworks.map(async ({ framework_id }) => {
+      return await frameworkDeletionMap[framework_id](id, transaction);
+    })
+  );
 
   const result = await sequelize.query(
     "DELETE FROM projects WHERE id = :id RETURNING *",

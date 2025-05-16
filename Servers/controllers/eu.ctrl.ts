@@ -91,7 +91,7 @@ export async function saveControls(
     const Control = req.body as ControlEU & {
       subControls: string;
       user_id: number;
-      project_framework_id: number;
+      project_id: number;
       delete: string;
     };
 
@@ -127,7 +127,7 @@ export async function saveControls(
           const evidenceUploadedFile = await uploadFile(
             f,
             Control.user_id,
-            Control.project_framework_id,
+            Control.project_id,
             "Compliance tracker group",
             transaction
           );
@@ -147,7 +147,7 @@ export async function saveControls(
           const feedbackUploadedFile = await uploadFile(
             f,
             Control.user_id,
-            Control.project_framework_id,
+            Control.project_id,
             "Compliance tracker group",
             transaction
           );

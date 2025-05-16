@@ -1,6 +1,8 @@
+import { Transaction } from "sequelize";
 import { sequelize } from "../database/db";
 import { FrameworkModel } from "../models/frameworks.model";
 import { ProjectFrameworksModel } from "../models/projectFrameworks.model";
+import { frameworkAdditionMap } from "../types/framework.type";
 
 export const getAllFrameworksQuery = async (
 ): Promise<FrameworkModel[]> => {
@@ -17,7 +19,7 @@ export const getAllFrameworksQuery = async (
       {
         replacements: { frameworkId: framework.id },
         mapToModel: true,
-        model: ProjectFrameworksModel 
+        model: ProjectFrameworksModel
       }
     );
     (framework as any).projects = frameworkProjects;
@@ -42,9 +44,40 @@ export const getAllFrameworkByIdQuery = async (
     {
       replacements: { frameworkId: framework.id },
       mapToModel: true,
-      model: ProjectFrameworksModel 
+      model: ProjectFrameworksModel
     }
   );
   (framework as any).projects = frameworkProjects;
   return framework;
+};
+
+export const addFrameworkToProjectQuery = async (
+  frameworkId: number,
+  projectId: number,
+  transaction: Transaction
+): Promise<boolean> => {
+  const [[{ exists }]] = await sequelize.query(
+    "SELECT EXISTS (SELECT 1 FROM projects_frameworks WHERE project_id = :projectId AND framework_id = :frameworkId) AS exists;",
+    { replacements: { projectId, frameworkId }, transaction }
+  ) as [[{ exists: boolean }], number];
+  if (exists) {
+    return false; // Framework already added
+  }
+
+  const frameworkAdditionFunction = frameworkAdditionMap[frameworkId];
+  if (!frameworkAdditionFunction) {
+    return false;
+  }
+
+  // add the framework to the project
+  const result = await sequelize.query(
+    "INSERT INTO projects_frameworks (project_id, framework_id) VALUES (:projectId, :frameworkId) RETURNING *;",
+    { replacements: { projectId, frameworkId }, transaction }
+  ) as [ProjectFrameworksModel[], number];
+  if (!result[0]?.length) {
+    return false;
+  }
+  // call framework addition function only if insert was successful
+  await frameworkAdditionFunction(projectId, false, transaction);
+  return true;
 };

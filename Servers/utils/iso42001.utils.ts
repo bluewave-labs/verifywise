@@ -8,6 +8,37 @@ import { AnnexCategoryISO, AnnexCategoryISOModel } from "../models/ISO-42001/ann
 import { AnnexCategoryStructISOModel } from "../models/ISO-42001/annexCategoryStructISO.model";
 import { AnnexCategoryISORisksModel } from "../models/ISO-42001/annexCategoryISORIsks.model";
 import { ProjectFrameworksModel } from "../models/projectFrameworks.model";
+import { Clauses } from "../structures/ISO-42001/clauses/clauses.struct";
+import { Annex } from "../structures/ISO-42001/annex/annex.struct";
+import { STATUSES } from "../types/status.type";
+
+const getDemoSubClauses = (): Object[] => {
+  const subClauses = []
+  for (let clause of Clauses) {
+    for (let subClause of clause.subclauses) {
+      subClauses.push({
+        implementation_description: subClause.implementation_description || "",
+        auditor_feedback: subClause.auditor_feedback || "",
+      })
+    }
+  }
+  return subClauses;
+}
+
+const getDemoAnnexCategories = (): Object[] => {
+  const annexCategories = []
+  for (let annex of Annex) {
+    for (let annexCategory of annex.annexcategories) {
+      annexCategories.push({
+        is_applicable: annexCategory.is_applicable,
+        justification_for_exclusion: annexCategory.justification_for_exclusion || "",
+        implementation_description: annexCategory.implementation_description || "",
+        auditor_feedback: annexCategory.auditor_feedback || "",
+      })
+    }
+  }
+  return annexCategories;
+}
 
 export const getAllClausesQuery = async (transaction: Transaction | null = null) => {
   const clauses = await sequelize.query(
@@ -223,7 +254,8 @@ export const getReferenceControlsQuery = async (
 export const createNewClausesQuery = async (
   projectId: number,
   enable_ai_data_insertion: boolean,
-  transaction: Transaction
+  transaction: Transaction,
+  is_mock_data: boolean
 ) => {
   const projectFrameworkId = await sequelize.query(
     `SELECT id FROM projects_frameworks WHERE project_id = :project_id AND framework_id = 2`,
@@ -234,8 +266,9 @@ export const createNewClausesQuery = async (
   const subClauses = await sequelize.query(
     `SELECT id FROM subclauses_struct_iso ORDER BY id;`, { transaction }
   ) as [{ id: number }[], number];
+  const demoSubClauses = getDemoSubClauses() as { implementation_description: string, auditor_feedback: string }[];
   const subClauseIds = await createNewSubClausesQuery(
-    subClauses[0].map((subClause) => subClause.id), projectFrameworkId[0][0].id, transaction
+    subClauses[0].map((subClause) => subClause.id), projectFrameworkId[0][0].id, enable_ai_data_insertion, demoSubClauses, transaction, is_mock_data
   );
   const clauses = await getManagementSystemClausesQuery(subClauseIds, transaction);
   return clauses;
@@ -244,25 +277,33 @@ export const createNewClausesQuery = async (
 export const createNewSubClausesQuery = async (
   subClauses: number[],
   projectFrameworkId: number,
-  transaction: Transaction
+  enable_ai_data_insertion: boolean,
+  demoSubClauses: { implementation_description: string, auditor_feedback: string }[],
+  transaction: Transaction,
+  is_mock_data: boolean
 ) => {
   const subClauseIds = []
+  let ctr = 0;
   for (let _subClauseId of subClauses) {
     const subClauseId = await sequelize.query(
       `INSERT INTO subclauses_iso (
-        subclause_meta_id, projects_frameworks_id
+        subclause_meta_id, projects_frameworks_id, implementation_description, auditor_feedback, status
       ) VALUES (
-        :subclause_meta_id, :projects_frameworks_id
+        :subclause_meta_id, :projects_frameworks_id, :implementation_description, :auditor_feedback, :status
       ) RETURNING id;`,
       {
         replacements: {
           subclause_meta_id: _subClauseId,
-          projects_frameworks_id: projectFrameworkId
+          projects_frameworks_id: projectFrameworkId,
+          implementation_description: enable_ai_data_insertion ? demoSubClauses[ctr].implementation_description : null,
+          auditor_feedback: enable_ai_data_insertion ? demoSubClauses[ctr].auditor_feedback : null,
+          status: is_mock_data ? STATUSES[Math.floor(Math.random() * STATUSES.length)] : 'Not started'
         },
         transaction
       }
     ) as [{ id: number }[], number];
     subClauseIds.push(subClauseId[0][0].id);
+    ctr++;
   }
   return subClauseIds;
 }
@@ -270,7 +311,8 @@ export const createNewSubClausesQuery = async (
 export const createNewAnnexesQUery = async (
   projectId: number,
   enable_ai_data_insertion: boolean,
-  transaction: Transaction
+  transaction: Transaction,
+  is_mock_data: boolean
 ) => {
   const projectFrameworkId = await sequelize.query(
     `SELECT id FROM projects_frameworks WHERE project_id = :project_id AND framework_id = 2`,
@@ -281,8 +323,9 @@ export const createNewAnnexesQUery = async (
   const annexCategories = await sequelize.query(
     `SELECT id FROM annexcategories_struct_iso ORDER BY id;`, { transaction }
   ) as [{ id: number }[], number];
+  const demoAnnexCategories = getDemoAnnexCategories() as { is_applicable: boolean, justification_for_exclusion: string, implementation_description: string, auditor_feedback: string }[];
   const annexCategoryIds = await createNewAnnexeCategoriesQuery(
-    annexCategories[0].map((annexCategory) => annexCategory.id), projectFrameworkId[0][0].id, transaction
+    annexCategories[0].map((annexCategory) => annexCategory.id), projectFrameworkId[0][0].id, demoAnnexCategories, enable_ai_data_insertion, transaction, is_mock_data
   );
   const annexes = await getReferenceControlsQuery(annexCategoryIds, transaction);
   return annexes;
@@ -291,25 +334,35 @@ export const createNewAnnexesQUery = async (
 export const createNewAnnexeCategoriesQuery = async (
   annexCategories: number[],
   projectFrameworkId: number,
-  transaction: Transaction
+  demoAnnexCategories: { is_applicable: boolean, justification_for_exclusion: string, implementation_description: string, auditor_feedback: string }[],
+  enable_ai_data_insertion: boolean,
+  transaction: Transaction,
+  is_mock_data: boolean
 ) => {
   const annexCategoryIds = []
+  let ctr = 0;
   for (let _annexCategoryId of annexCategories) {
     const annexCategoryId = await sequelize.query(
       `INSERT INTO annexcategories_iso (
-        annexcategory_meta_id, projects_frameworks_id
+        annexcategory_meta_id, projects_frameworks_id, is_applicable, justification_for_exclusion, implementation_description, auditor_feedback, status
       ) VALUES (
-        :annexcategory_meta_id, :projects_frameworks_id
+        :annexcategory_meta_id, :projects_frameworks_id, :is_applicable, :justification_for_exclusion, :implementation_description, :auditor_feedback, :status
       ) RETURNING id;`,
       {
         replacements: {
           annexcategory_meta_id: _annexCategoryId,
-          projects_frameworks_id: projectFrameworkId
+          projects_frameworks_id: projectFrameworkId,
+          is_applicable: enable_ai_data_insertion ? demoAnnexCategories[ctr].is_applicable : null,
+          justification_for_exclusion: enable_ai_data_insertion ? demoAnnexCategories[ctr].justification_for_exclusion : null,
+          implementation_description: enable_ai_data_insertion ? demoAnnexCategories[ctr].implementation_description : null,
+          auditor_feedback: enable_ai_data_insertion ? demoAnnexCategories[ctr].auditor_feedback : null,
+          status: is_mock_data ? STATUSES[Math.floor(Math.random() * STATUSES.length)] : 'Not started'
         },
         transaction
       }
     ) as [{ id: number }[], number];
     annexCategoryIds.push(annexCategoryId[0][0].id);
+    ctr++;
   }
   return annexCategoryIds;
 }
@@ -317,15 +370,17 @@ export const createNewAnnexeCategoriesQuery = async (
 export const createISOFrameworkQuery = async (
   projectId: number,
   enable_ai_data_insertion: boolean,
-  transaction: Transaction
+  transaction: Transaction,
+  is_mock_data: boolean = false
 ) => {
   const management_system_clauses = await createNewClausesQuery(
     projectId,
     enable_ai_data_insertion,
-    transaction
+    transaction,
+    is_mock_data
   );
   const reference_controls = await createNewAnnexesQUery(
-    projectId, enable_ai_data_insertion, transaction
+    projectId, enable_ai_data_insertion, transaction, is_mock_data
   );
   return {
     management_system_clauses,

@@ -1,6 +1,7 @@
+import { SubClauseISO } from "../../../../models/ISO-42001/subClauseISO.model";
 import { SubClauseStructISO } from "../../../../models/ISO-42001/subClauseStructISO.model";
 
-export const PerformanceEvaluation: SubClauseStructISO[] = [
+export const PerformanceEvaluation: Partial<SubClauseStructISO & SubClauseISO>[] = [
   {
     title: "Monitoring, measurement, analysis, and evaluation",
     order_no: 1,
@@ -18,7 +19,9 @@ export const PerformanceEvaluation: SubClauseStructISO[] = [
       "Monitoring logs/reports",
       "Performance dashboards",
       "Analysis reports"
-    ]
+    ],
+    implementation_description: "Key AI system metrics (accuracy, fairness, latency) are monitored monthly using automated dashboards. Results are reviewed by the AI governance committee.",
+    auditor_feedback: "Monitoring is thorough. Consider increasing frequency for high-risk AI systems and documenting anomaly thresholds more clearly."
   },
   {
     title: "Internal audit",
@@ -37,7 +40,9 @@ export const PerformanceEvaluation: SubClauseStructISO[] = [
       "Audit plans/reports",
       "Auditor competence records",
       "Nonconformity reports"
-    ]
+    ],
+    implementation_description: "Internal audits are scheduled bi-annually with criteria aligned to ISO 42001. Audits are conducted by independent trained personnel.",
+    auditor_feedback: "Audit process is sound. Encourage rotating auditors across projects to enhance objectivity."
   },
   {
     title: "Management review",
@@ -53,6 +58,8 @@ export const PerformanceEvaluation: SubClauseStructISO[] = [
       "Management review procedure",
       "Review schedule/agendas/minutes",
       "Action items tracker"
-    ]
+    ],
+    implementation_description: "Management reviews occur annually, covering AIMS performance, audit outcomes, and improvement opportunities. Actions are tracked to closure.",
+    auditor_feedback: "Reviews are well-documented. Recommend increasing frequency to bi-annually as system usage scales."
   }
 ]

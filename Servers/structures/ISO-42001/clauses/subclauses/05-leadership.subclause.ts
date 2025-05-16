@@ -1,6 +1,7 @@
+import { SubClauseISO } from "../../../../models/ISO-42001/subClauseISO.model";
 import { SubClauseStructISO } from "../../../../models/ISO-42001/subClauseStructISO.model";
 
-export const Leadership: SubClauseStructISO[] = [
+export const Leadership: Partial<SubClauseStructISO & SubClauseISO>[] = [
   {
     title: "Leadership and commitment",
     order_no: 1,
@@ -17,7 +18,9 @@ export const Leadership: SubClauseStructISO[] = [
       "Resource allocation records (budget, staffing)",
       "Internal communications from leadership",
       "Published AI Policy signed by management"
-    ]
+    ],
+    implementation_description: "Top management holds quarterly AIMS governance meetings, approves AI policy, and allocates resources through annual planning cycles.",
+    auditor_feedback: "Leadership shows commitment through regular reviews and strategic alignment; however, ethical leadership training could be expanded."
   },
   {
     title: "Policy",
@@ -34,7 +37,9 @@ export const Leadership: SubClauseStructISO[] = [
       "The documented AI Policy",
       "Communication records (emails, intranet posts)",
       "Training materials covering the policy"
-    ]
+    ],
+    implementation_description: "The organization has a signed AI Policy, published on the intranet and included in employee onboarding sessions.",
+    auditor_feedback: "Policy is well-documented and aligned with ethical AI principles. Consider translating it into more languages for broader accessibility."
   },
   {
     title: "Organizational roles, responsibilities, and authorities",
@@ -49,6 +54,8 @@ export const Leadership: SubClauseStructISO[] = [
       "Organization chart showing AIMS roles",
       "Documented role descriptions",
       "Responsibility Assignment Matrix (RACI)"
-    ]
+    ],
+    implementation_description: "Roles and responsibilities for AIMS are defined in a RACI matrix and communicated via department meetings and intranet postings.",
+    auditor_feedback: "Role clarity is strong, with good documentation. Future audits should verify if responsibilities are consistently understood at all levels."
   }
 ]

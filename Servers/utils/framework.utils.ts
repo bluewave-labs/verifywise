@@ -56,33 +56,28 @@ export const addFrameworkToProjectQuery = async (
   projectId: number,
   transaction: Transaction
 ): Promise<boolean> => {
-  const currentFrameworksResult = await sequelize.query(
-    "SELECT * FROM projects_frameworks WHERE project_id = :projectId;",
-    {
-      replacements: { projectId }, transaction
-    }
-  ) as [ProjectFrameworksModel[], number];
-  const currentFrameworks = currentFrameworksResult[0].map((framework) => framework.framework_id);
-  if (currentFrameworks.includes(frameworkId)) {
-    return false;
+  const [[{ exists }]] = await sequelize.query(
+    "SELECT EXISTS (SELECT 1 FROM projects_frameworks WHERE project_id = :projectId AND framework_id = :frameworkId) AS exists;",
+    { replacements: { projectId, frameworkId }, transaction }
+  ) as [[{ exists: boolean }], number];
+  if (exists) {
+    return false; // Framework already added
   }
+
   const frameworkAdditionFunction = frameworkAdditionMap[frameworkId];
   if (!frameworkAdditionFunction) {
     return false;
   }
 
   // add the framework to the project
-  await sequelize.query(
-    "INSERT INTO projects_frameworks (project_id, framework_id) VALUES (:projectId, :frameworkId);",
-    {
-      replacements: { projectId, frameworkId }, transaction
-    }
-  );
-  // call the framework addition function
-  await frameworkAdditionFunction(
-    projectId,
-    false,
-    transaction
-  );
+  const result = await sequelize.query(
+    "INSERT INTO projects_frameworks (project_id, framework_id) VALUES (:projectId, :frameworkId) RETURNING *;",
+    { replacements: { projectId, frameworkId }, transaction }
+  ) as [ProjectFrameworksModel[], number];
+  if (!result[0]?.length) {
+    return false;
+  }
+  // call framework addition function only if insert was successful
+  await frameworkAdditionFunction(projectId, false, transaction);
   return true;
 };

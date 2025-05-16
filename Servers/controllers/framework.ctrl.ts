@@ -40,7 +40,7 @@ export async function getFrameworkById(
   }
 }
 
-export async function addFramworkToProject(
+export async function addFrameworkToProject(
   req: Request,
   res: Response
 ): Promise<any> {
@@ -58,7 +58,7 @@ export async function addFramworkToProject(
     }
 
     await transaction.rollback();
-    return res.status(204).json(STATUS_CODE[204](result));
+    return res.status(404).json(STATUS_CODE[404]("Framework not found or could not be added to the project."));
   } catch (error) {
     await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

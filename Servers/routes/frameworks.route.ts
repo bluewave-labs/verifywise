@@ -2,7 +2,7 @@ import express from "express";
 const router = express.Router();
 
 import {
-  addFramworkToProject,
+  addFrameworkToProject,
   getAllFrameworks,
   getFrameworkById
 } from "../controllers/framework.ctrl";
@@ -14,6 +14,6 @@ import { validateId } from "../validations/id.valid";
 router.get("/", authenticateJWT, getAllFrameworks);
 router.get("/:id", authenticateJWT, validateId("id"), getFrameworkById);
 
-router.post("/toProject", authenticateJWT, validateId("frameworkId"), validateId("projectId"), addFramworkToProject);
+router.post("/toProject", authenticateJWT, validateId("frameworkId"), validateId("projectId"), addFrameworkToProject);
 
 export default router;

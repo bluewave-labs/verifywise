@@ -19,29 +19,22 @@ import { DashboardState } from "./application/interfaces/appStates";
 import { AppState } from "./application/interfaces/appStates";
 import { ComponentVisible } from "./application/interfaces/ComponentVisible";
 import { AlertProps } from "./domain/interfaces/iAlert";
-import { setShowSkeletonCallback } from "./infrastructure/api/customAxios";
+import { setShowAlertCallback } from "./infrastructure/api/customAxios";
 import Alert from "./presentation/components/Alert";
-import { Box, Stack } from "@mui/material";
-import VWToast from "./presentation/vw-v2-components/Toast";
-
-
-const SESSION_EXPIRY_MESSAGE = "Session Expired, Navigating you to the login page...";
-const useSkeletonState = () => {
-  const [showSkeleton, setShowSkeleton] = useState(false);
-  
-  useEffect(() => {
-    setShowSkeletonCallback(setShowSkeleton);
-    return () => setShowSkeletonCallback(() => {});
-  }, []);
-
-  return showSkeleton;
-};
 
 function App() {
   const mode = useSelector((state: AppState) => state.ui?.mode || "light");
   const token = useSelector((state: AppState) => state.auth?.authToken);
   const [alert, setAlert] = useState<AlertProps | null>(null);
-  const showSkeleton = useSkeletonState();
+
+  
+  useEffect(() => {
+    setShowAlertCallback((alertProps: AlertProps) => {
+      setAlert(alertProps);
+      setTimeout(() => setAlert(null), 5000);
+    });
+    return () => setShowAlertCallback(() => {});
+  }, []);
 
   const [uiValues, setUiValues] = useState<unknown | undefined>({});
   const [authValues, setAuthValues] = useState<unknown | undefined>({});
@@ -142,29 +135,6 @@ function App() {
                   isToast={true}
                   onClick={() => setAlert(null)}
                 />
-              )}
-              {showSkeleton && (
-                <Box 
-                  sx={{ 
-                    position: 'fixed', 
-                    top: 0, 
-                    left: 0, 
-                    right: 0, 
-                    bottom: 0, 
-                    zIndex: 9999, 
-                    backgroundColor: 'rgba(255, 255, 255, 0.8)'
-                  }}
-                >
-                  <Stack 
-                    sx={{ 
-                      height: '100%', 
-                      justifyContent: 'center', 
-                      alignItems: 'center'
-                    }}
-                  >
-                    <VWToast title={SESSION_EXPIRY_MESSAGE} />
-                  </Stack>
-                </Box>
               )}
               <Routes>
                 {createRoutes(triggerSidebar, triggerSidebarReload)}

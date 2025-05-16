@@ -24,12 +24,14 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { store } from "../../application/redux/store";
 import { ENV_VARs } from "../../../env.vars";
 import { setAuthToken } from "../../application/authentication/authSlice";
+import { AlertProps } from "../../domain/interfaces/iAlert";
 
+// Create a global callback for showing alerts
+let showAlertCallback: ((alert: AlertProps) => void) | null = null;
 
-const SESSION_EXPIRY_TIMEOUT = 5000;
-let showSkeletonCallback: ((show: boolean) => void) | null = null;
-export const setShowSkeletonCallback = (callback: (show: boolean) => void) => {
-  showSkeletonCallback = callback;
+// Function to set the alert callback
+export const setShowAlertCallback = (callback: (alert: AlertProps) => void) => {
+  showAlertCallback = callback;
 };
 
 // Create an instance of axios with default configurations
@@ -100,27 +102,13 @@ CustomAxios.interceptors.response.use(
     if (error.response?.status === 406 && !originalRequest._retry) {
       // If this is the refresh token request itself returning 406
       if (originalRequest.url === '/users/refresh-token') {
-        try {
-          // Show skeleton loading state
-          if (showSkeletonCallback) {
-            showSkeletonCallback(true);
-          }
-
-          // Clear auth token
-          store.dispatch(setAuthToken(""));
-          
-          // Hide skeleton after timeout
-          setTimeout(() => {
-            if (showSkeletonCallback) {
-              showSkeletonCallback(false);
-            }
-          }, SESSION_EXPIRY_TIMEOUT);
-        } catch (error) {
-          console.error('Error handling session expiry:', error);
-          // Ensure skeleton is hidden even if there's an error
-          if (showSkeletonCallback) {
-            showSkeletonCallback(false);
-          }
+        // Show alert using the callback
+        if (showAlertCallback) {
+          showAlertCallback({
+            variant: "warning",
+            title: "Session Expired",
+            body: "Please login again to continue.",
+          });
         }
         return Promise.reject(error);
       }
@@ -135,6 +123,7 @@ CustomAxios.interceptors.response.use(
             return CustomAxios(originalRequest);
           })
           .catch((err) => {
+            // If refresh token fails, redirect to login
             if (err.response?.status === 406) {
               store.dispatch(setAuthToken(""));
             }
@@ -164,7 +153,6 @@ CustomAxios.interceptors.response.use(
         // If refresh token request fails with 406, redirect to login
         if (refreshError.response?.status === 406) {
           store.dispatch(setAuthToken(""));
-          window.location.href = '/login';
         }
         return Promise.reject(refreshError);
       } finally {

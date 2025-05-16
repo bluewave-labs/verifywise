@@ -147,12 +147,10 @@ export async function updateProjectById(
   const transaction = await sequelize.transaction();
   try {
     const projectId = parseInt(req.params.id);
-    const updatedProject: Partial<Project> & { members?: number[], framework?: number[] } = req.body;
+    const updatedProject: Partial<Project> & { members?: number[] } = req.body;
     const members = updatedProject.members || [];
-    const framework = [1] // updatedProject.framework || [];
 
     delete updatedProject.members;
-    delete updatedProject.framework;
     delete updatedProject.id;
 
     if (!updatedProject.project_title || !updatedProject.owner) {
@@ -167,7 +165,6 @@ export async function updateProjectById(
       projectId,
       updatedProject,
       members,
-      framework,
       transaction
     );
 

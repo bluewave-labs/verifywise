@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useContext } from "react";
 import { Box, Button, Tab, Alert } from "@mui/material";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
@@ -10,6 +10,8 @@ import { Project } from "../../../../domain/types/Project";
 import AssessmentTracker from "../../Assessment/1.0AssessmentTracker";
 import useFrameworks from "../../../../application/hooks/useFrameworks";
 import AddFrameworkModal from "../AddNewFramework";
+import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 import {
   containerStyle,
@@ -58,6 +60,21 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
     "compliance"
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
+  //joyride
+  const { changeComponentVisibility } = useContext(VerifyWiseContext);
+
+  const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
+    countToTrigger: 1,
+  });
+
+  useEffect(() => {
+    changeComponentVisibility("projectFrameworks", allVisible);
+    changeComponentVisibility(
+      "compliance",
+      tracker === "compliance" && allVisible
+    );
+    console.log("allVisible", allVisible);
+  }, [allVisible, tracker, changeComponentVisibility]);
 
   const associatedFrameworkIds =
     project.framework?.map((f) => f.framework_id) || [];
@@ -201,6 +218,10 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
                 label={tab.label}
                 value={tab.value}
                 disableRipple
+                data-joyride-id={
+                  tab.value === "compliance" ? "compliance-heading" : undefined
+                } // Add Joyride ID here
+                ref={tab.value === "compliance" ? refs[0] : undefined} // Add ref here
               />
             ))}
           </TabList>
@@ -217,7 +238,7 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
         ) : (
           <>
             <TabPanel value="compliance" sx={tabPanelStyle}>
-              <ComplianceTracker project={project} />
+                <ComplianceTracker project={project} />
             </TabPanel>
             <TabPanel value="assessment" sx={tabPanelStyle}>
               <AssessmentTracker project={project} />

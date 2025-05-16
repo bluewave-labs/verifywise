@@ -57,7 +57,7 @@ export async function postFileContent(
   try {
     const body = req.body as {
       question_id: string,
-      project_framework_id: number,
+      project_id: number,
       user_id: number,
       delete: string
     }
@@ -70,7 +70,7 @@ export async function postFileContent(
     const questionId = parseInt(body.question_id)
     let uploadedFiles: FileType[] = [];
     for (let file of req.files! as UploadedFile[]) {
-      const uploadedFile = await uploadFile(file, body.user_id, body.project_framework_id, "Assessment tracker group", transaction);
+      const uploadedFile = await uploadFile(file, body.user_id, body.project_id, "Assessment tracker group", transaction);
       uploadedFiles.push({
         id: uploadedFile.id!.toString(),
         fileName: uploadedFile.filename,
@@ -82,7 +82,7 @@ export async function postFileContent(
       });
     }
 
-    const question = await addFileToAnswerEU(questionId, body.project_framework_id, uploadedFiles, filesToDelete, transaction);
+    const question = await addFileToAnswerEU(questionId, body.project_id, uploadedFiles, filesToDelete, transaction);
     await transaction.commit();
     return res.status(201).json(STATUS_CODE[201](question.evidence_files))
   } catch (error) {

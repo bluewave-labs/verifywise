@@ -720,14 +720,20 @@ export const updateSubcontrolEUByIdQuery = async (
 
 export const addFileToAnswerEU = async (
   questionId: number,
-  projectFrameworkId: number,
+  projectId: number,
   uploadedFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[],
   deletedFiles: number[],
   transaction: Transaction
 ): Promise<QuestionStructEUModel & AnswerEUModel> => {
+  const projectFrameworkId = await sequelize.query(
+    `SELECT id FROM projects_frameworks WHERE project_id = :project_id AND framework_id = 1`,
+    {
+      replacements: { project_id: projectId }, transaction
+    }
+  ) as [{ id: number }[], number];
   const assessmentId = await sequelize.query(
     "SELECT id FROM assessments WHERE projects_frameworks_id = :project_framework_id;",
-    { replacements: { project_framework_id: projectFrameworkId }, transaction }
+    { replacements: { project_framework_id: projectFrameworkId[0][0].id }, transaction }
   ) as [{ id: number }[], number];
   // get the existing evidence files
   const evidenceFilesResult = await sequelize.query(

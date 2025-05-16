@@ -101,11 +101,6 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
       onUploadFilesChange(newUploadFiles);
     }
 
-    // handleAlert({
-    //   variant: "success",
-    //   body: "File deleted successfully",
-    //   setAlert,
-    // });
   };
 
   const closeFileUploadModal = () => {

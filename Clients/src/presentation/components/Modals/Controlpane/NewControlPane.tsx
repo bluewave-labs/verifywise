@@ -23,6 +23,8 @@ import SaveIcon from "@mui/icons-material/Save";
 import VWButton from "../../../vw-v2-components/Buttons";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import { AlertBox, styles } from "../../../pages/ComplianceTracker/1.0ComplianceTracker/styles";
+import { handleAlert } from "../../../../application/tools/alertUtils";
+import { AlertProps } from "../../../../domain/interfaces/iAlert";
 
 const tabStyle = {
   textTransform: "none",
@@ -58,11 +60,7 @@ const NewControlPane = ({
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
-  const [alert, setAlert] = useState<{
-    type: "success" | "error" | "info";
-    message: string;
-    showOverlay?: boolean;
-  } | null>(null);
+  const [alert, setAlert] = useState<AlertProps | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletedFilesIds, setDeletedFilesIds] = useState<number[]>([]);
   const [uploadFiles, setUploadFiles] = useState<{
@@ -194,13 +192,11 @@ const NewControlPane = ({
       },
     }));
     if (deletedFilesIds.length > 0 || files.length > 0) {
-      setAlert({
-        type: "info",
-        message: `Please save the changes to save the file changes.`,
+      handleAlert({
+        variant: "info",
+        body: "Please save the changes to save the file changes.",
+        setAlert,
       })
-      setTimeout(() => {
-        setAlert(null);
-      }, 1000);
     }
   };
 
@@ -347,8 +343,8 @@ const NewControlPane = ({
       {alert && (
         <AlertBox>
           <Alert
-            variant={alert.type}
-            body={alert.message}
+            variant={alert.variant}
+            body={alert.body}
             isToast={true}
             onClick={() => setAlert(null)}
             sx={styles.alert}

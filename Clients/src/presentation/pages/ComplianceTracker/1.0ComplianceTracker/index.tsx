@@ -17,7 +17,7 @@ const ComplianceTracker = ({ project }: { project: Project }) => {
   const currentProjectId = project?.id;
   const currentProjectFramework = project.framework.filter(
     (p) => p.framework_id === 1
-  )[0].project_framework_id;
+  )[0]?.project_framework_id;
   const [complianceData, setComplianceData] = useState<ComplianceData>();
   const [controlCategories, setControlCategories] =
     useState<ControlCategoryModel[]>();

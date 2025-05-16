@@ -22,6 +22,9 @@ import VWToast from "../../../vw-v2-components/Toast";
 import SaveIcon from "@mui/icons-material/Save";
 import VWButton from "../../../vw-v2-components/Buttons";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import { AlertBox, styles } from "../../../pages/ComplianceTracker/1.0ComplianceTracker/styles";
+import { handleAlert } from "../../../../application/tools/alertUtils";
+import { AlertProps } from "../../../../domain/interfaces/iAlert";
 
 const tabStyle = {
   textTransform: "none",
@@ -57,11 +60,7 @@ const NewControlPane = ({
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
-  const [alert, setAlert] = useState<{
-    type: "success" | "error";
-    message: string;
-    showOverlay?: boolean;
-  } | null>(null);
+  const [alert, setAlert] = useState<AlertProps | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletedFilesIds, setDeletedFilesIds] = useState<number[]>([]);
   const [uploadFiles, setUploadFiles] = useState<{
@@ -192,6 +191,13 @@ const NewControlPane = ({
         [type]: files,
       },
     }));
+    if (deletedFilesIds.length > 0 || files.length > 0) {
+      handleAlert({
+        variant: "info",
+        body: "Please save the changes to save the file changes.",
+        setAlert,
+      })
+    }
   };
 
   const confirmSave = async () => {
@@ -335,43 +341,15 @@ const NewControlPane = ({
   return (
     <>
       {alert && (
-        <>
-          {alert.showOverlay && (
-            <Box
-              sx={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: "rgba(0, 0, 0, 0.3)",
-                zIndex: 9998,
-              }}
-            />
-          )}
-          <Box
-            sx={{
-              position: "fixed",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              zIndex: 9999,
-              width: "100%",
-              maxWidth: "400px",
-              textAlign: "center",
-            }}
-          >
-            <Alert
-              variant={alert.type}
-              body={alert.message}
-              isToast={true}
-              onClick={() => setAlert(null)}
-              sx={{
-                boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.15)",
-              }}
-            />
-          </Box>
-        </>
+        <AlertBox>
+          <Alert
+            variant={alert.variant}
+            body={alert.body}
+            isToast={true}
+            onClick={() => setAlert(null)}
+            sx={styles.alert}
+          />
+        </AlertBox>
       )}
 
       {isSubmitting && <VWToast title="Saving control. Please wait..." />}

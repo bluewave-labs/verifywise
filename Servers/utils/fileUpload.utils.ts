@@ -10,7 +10,7 @@ const sanitizeFilename = (name: string) =>
 export const uploadFile = async (
   file: UploadedFile,
   user_id: number,
-  project_framework_id: number,
+  project_id: number,
   source:
     | "Assessment tracker group"
     | "Compliance tracker group"
@@ -23,17 +23,10 @@ export const uploadFile = async (
     | "Management system clauses group" | "Reference controls group",
   transaction: Transaction | null = null
 ) => {
-  const project = (await sequelize.query(
-    "SELECT project_id FROM projects_frameworks WHERE id = :id",
-    {
-      replacements: { id: project_framework_id },
-      ...(transaction && { transaction }),
-    }
-  )) as [{ project_id: number }[], number];
   const projectIsDemo = await sequelize.query(
     "SELECT is_demo FROM projects WHERE id = :id",
     {
-      replacements: { id: project[0][0].project_id },
+      replacements: { id: project_id },
       mapToModel: true,
       model: ProjectModel,
       ...(transaction && { transaction }),
@@ -51,7 +44,7 @@ export const uploadFile = async (
     replacements: {
       filename: sanitizeFilename(file.originalname),
       content: file.buffer,
-      project_id: project[0][0].project_id,
+      project_id: project_id,
       type: file.mimetype,
       uploaded_by: user_id,
       uploaded_time: new Date().toISOString(),

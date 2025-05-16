@@ -25,11 +25,15 @@ const Table_Columns = [
 interface ControlCategoryProps {
   controlCategory: ControlCategoryModel;
   onComplianceUpdate?: () => void;
+  projectId: number;
+  projectFrameworkId: number;
 }
 
 const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
   controlCategory,
   onComplianceUpdate,
+  projectId,
+  projectFrameworkId,
 }) => {
   const [expanded, setExpanded] = useState<number | false>(false);
 
@@ -71,7 +75,10 @@ const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
             />
           }
         >
-          <Typography className="new-compliance-tracker-details-accordion-summary-title">
+          <Typography
+            className="new-compliance-tracker-details-accordion-summary-title"
+            fontSize={13}
+          >
             {controlCategory.order_no} {controlCategory.title}
           </Typography>
         </AccordionSummary>
@@ -84,6 +91,8 @@ const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
             controlCategoryIndex={controlCategory.order_no ?? 1}
             columns={Table_Columns}
             onComplianceUpdate={onComplianceUpdate}
+            projectId={projectId}
+            projectFrameworkId={projectFrameworkId}
           />
         </AccordionDetails>
       </Accordion>

@@ -17,6 +17,7 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import { formatDate } from "../../../tools/isoDateToString";
 import TablePaginationActions from "../../TablePagination";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { VendorDetails } from "../../../pages/Vendors";
 
 const titleOfTableColumns = [
   "name",
@@ -28,6 +29,7 @@ const titleOfTableColumns = [
 ];
 
 interface TableWithPlaceholderProps {
+  vendors: VendorDetails[];
   dashboardValues: any;
   onDelete: (vendorId: number) => void;
   onEdit: (vendorId: number) => void;
@@ -35,6 +37,7 @@ interface TableWithPlaceholderProps {
 
 const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
   dashboardValues,
+  vendors,
   onDelete,
   onEdit,
 }) => {
@@ -71,10 +74,10 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
     const start = page * rowsPerPage + 1;
     const end = Math.min(
       page * rowsPerPage + rowsPerPage,
-      dashboardValues?.vendors?.length ?? 0
+      vendors?.length ?? 0
     );
     return `${start} - ${end}`;
-  }, [page, rowsPerPage, dashboardValues?.vendors?.length ?? 0]);
+  }, [page, rowsPerPage, vendors?.length ?? 0]);
 
   const tableHeader = useMemo(
     () => (
@@ -113,8 +116,8 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
   const tableBody = useMemo(
     () => (
       <TableBody>
-        {dashboardValues.vendors &&
-          dashboardValues.vendors
+        {vendors &&
+          vendors
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
             .map((row: any, index: number) => (
               <TableRow
@@ -162,7 +165,7 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
       </TableBody>
     ),
     [
-      dashboardValues.vendors,
+      vendors,
       page,
       rowsPerPage,
       cellStyle,
@@ -178,7 +181,7 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
           {tableHeader}
           {tableBody}
         </Table>
-        {!dashboardValues.vendors?.length && (
+        {!vendors?.length && (
           <div
             style={{
               display: "grid",
@@ -211,10 +214,10 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
         }}
       >
         <Typography px={theme.spacing(2)} fontSize={12} sx={{ opacity: 0.7 }}>
-          Showing {getRange} of {dashboardValues.vendors?.length} vendor(s)
+          Showing {getRange} of {vendors?.length} vendor(s)
         </Typography>
         <TablePagination
-          count={dashboardValues.vendors?.length}
+          count={vendors?.length}
           page={page}
           onPageChange={handleChangePage}
           rowsPerPage={rowsPerPage}

@@ -3,18 +3,9 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker as MuiDatePicker } from "@mui/x-date-pickers/DatePicker";
 import "./index.css";
-import dayjs, { Dayjs } from "dayjs";
-
-interface DatePickerProps {
-  label?: string;
-  isRequired?: boolean;
-  isOptional?: boolean;
-  optionalLabel?: string;
-  sx?: object;
-  date: Dayjs | null;
-  error?: string;
-  handleDateChange: (date: Dayjs | null) => void;
-}
+import dayjs from "dayjs";
+import { DatePickerProps } from "../../../../domain/interfaces/iWidget";
+import { DatePickerStyle } from "./style";
 
 const DatePicker = ({
   label,
@@ -87,28 +78,7 @@ const DatePicker = ({
         <MuiDatePicker
           className="mui-date-picker"
           sx={{
-            ".MuiIconButton-root:hover": { backgroundColor: "unset" },
-            "& svg": { display: "none" },
-            "& button": {
-              position: "absolute",
-              left: "14px",
-              top: "7px",
-              width: "20px",
-              height: "20px",
-            },
-            "& button:before": {
-              content: "url('/assets/icons/calendar.svg')",
-              display: "block",
-              position: "absolute",
-              top: 0,
-              left: 0,
-            },
-            "& .MuiInputBase-root input": {
-              position: "absolute",
-              left: "36px",
-              top: "3px",
-              maxWidth: "145px",
-            },
+            ...DatePickerStyle,
             ...sx,
           }}
           value={date ? dayjs(date) : null}

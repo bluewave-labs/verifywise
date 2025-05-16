@@ -13,16 +13,11 @@
  */
 
 import { Button, Modal, Stack, Typography, useTheme } from "@mui/material";
-
-interface BasicModalProps {
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-  onDelete: (e:React.SyntheticEvent) => void;
-  onCancel: (e:React.SyntheticEvent) => void;
-  warningTitle: string;
-  warningMessage: string;
-  type: string;
-}
+import { BasicModalProps } from "../../../../domain/interfaces/iSelect";
+import {
+  BasicModalCancelButtonStyle,
+  BasicModalDeleteButtonStyle,
+} from "./style";
 
 const BasicModal: React.FC<BasicModalProps> = ({
   isOpen,
@@ -31,7 +26,7 @@ const BasicModal: React.FC<BasicModalProps> = ({
   onCancel,
   warningTitle,
   warningMessage,
-  type
+  type,
 }) => {
   const theme = useTheme();
   return (
@@ -79,16 +74,7 @@ const BasicModal: React.FC<BasicModalProps> = ({
             variant="text"
             color="inherit"
             onClick={(e) => onCancel(e)}
-            sx={{
-              width: 100,
-              textTransform: "capitalize",
-              fontSize: 13,
-              borderRadius: "4px",
-              "&:hover": {
-                boxShadow: "none",
-                backgroundColor: "transparent",
-              },
-            }}
+            sx={BasicModalCancelButtonStyle}
           >
             Cancel
           </Button>
@@ -98,20 +84,10 @@ const BasicModal: React.FC<BasicModalProps> = ({
             disableTouchRipple
             variant="contained"
             color="error"
-            sx={{
-              width: 140,
-              fontSize: 13,
-              backgroundColor: "#DB504A",
-              border: "1px solid #DB504A",
-              boxShadow: "none",
-              borderRadius: "4px",
-              "&:hover": {
-                boxShadow: "none",
-              },
-            }}
+            sx={BasicModalDeleteButtonStyle}
             onClick={(e) => onDelete(e)}
           >
-           {`Delete ${type}`}
+            {`Delete ${type}`}
           </Button>
         </Stack>
       </Stack>

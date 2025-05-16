@@ -1,8 +1,22 @@
 import "./index.css";
-import { Box, Stack, Tab, Typography, useTheme } from "@mui/material";
+import {
+  Box,
+  SelectChangeEvent,
+  Stack,
+  Tab,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
 import RiskTable from "../../components/Table/RisksTable";
-import { Suspense, useCallback, useContext, useEffect, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  useMemo,
+} from "react";
 import AddNewVendor from "../../components/Modals/NewVendor";
 import singleTheme from "../../themes/v1SingleTheme";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
@@ -29,6 +43,7 @@ import { Project } from "../../../domain/types/Project";
 import RisksCard from "../../components/Cards/RisksCard";
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import useVendorRisks from "../../../application/hooks/useVendorRisks";
+import Select from "../../components/Inputs/Select";
 
 interface ExistingRisk {
   id?: number;
@@ -65,21 +80,26 @@ const Vendors = () => {
   const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [value, setValue] = useState("1");
-  const [project, setProject] = useState<Project>();
-  const { dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [vendors, setVendors] = useState<VendorDetails[]>([]);
+  const { dashboardValues } = useContext(VerifyWiseContext);
   const [selectedVendor, setSelectedVendor] = useState<VendorDetails | null>(
     null
   );
   const [selectedRisk, setSelectedRisk] = useState<ExistingRisk | null>(null);
   const [controller, setController] = useState<AbortController | null>(null);
-  const { currentProjectId } = useContext(VerifyWiseContext);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null
+  );
+  const [selectedVendorId, setSelectedVendorId] = useState<string>("all");
   const {
     vendorRisksSummary,
     refetchVendorRisks,
     vendorRisks,
     loadingVendorRisks,
   } = useVendorRisks({
-    projectId: currentProjectId?.toString(),
+    projectId: selectedProjectId?.toString(),
+    vendorId: selectedVendorId?.toString(),
   });
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -111,58 +131,57 @@ const Vendors = () => {
     setValue(newValue);
   };
   useEffect(() => {
-    const fetchProject = async () => {
+    const fetchProjects = async () => {
       try {
-        const projectData = await getEntityById({
-          routeUrl: `/projects/${currentProjectId}`,
-        });
-        setProject(projectData.data);
+        const response = await getAllEntities({ routeUrl: "/projects" });
+        if (response?.data && response.data.length > 0) {
+          setProjects(response.data);
+          setSelectedProjectId(response.data[0].id?.toString() ?? null); // Default to first project as string
+        }
       } catch (error) {
-        console.error("Failed to fetch project data:", error);
+        console.error("Failed to fetch projects:", error);
       }
     };
-
-    if (currentProjectId) {
-      fetchProject();
-    }
-  }, [currentProjectId]);
+    fetchProjects();
+  }, []);
 
   const fetchVendors = useCallback(async () => {
     const signal = createAbortController();
     if (signal.aborted) return;
     setIsVendorsLoading(true);
-    if (!currentProjectId) return;
+    if (!selectedProjectId) return;
     try {
+      const routeUrl =
+        selectedProjectId === "all"
+          ? "/vendors"
+          : `/vendors/project-id/${selectedProjectId}`;
       const response = await getAllEntities({
-        routeUrl: `/vendors/project-id/${currentProjectId}`,
+        routeUrl,
         signal,
       });
       if (response?.data) {
-        setDashboardValues((prevValues: any) => ({
-          ...prevValues,
-          vendors: response.data,
-        }));
+        setVendors(response.data);
       }
     } catch (error) {
       console.error("Error fetching vendors:", error);
     } finally {
       setIsVendorsLoading(false);
     }
-  }, [currentProjectId]);
+  }, [selectedProjectId]);
 
   useEffect(() => {
     fetchVendors();
     return () => {
       controller?.abort();
     };
-  }, [currentProjectId]);
+  }, [selectedProjectId]);
 
   useEffect(() => {
     refetchVendorRisks();
     return () => {
       controller?.abort();
     };
-  }, [currentProjectId]);
+  }, [selectedProjectId]);
 
   useEffect(() => {
     if (allVisible) {
@@ -179,12 +198,9 @@ const Vendors = () => {
       });
 
       if (response.status === 202) {
-        setDashboardValues((prevValues: any) => ({
-          ...prevValues,
-          vendors: prevValues.vendors.filter(
-            (vendor: any) => vendor.id !== vendorId
-          ),
-        }));
+        setVendors((prevVendors) =>
+          prevVendors.filter((vendor) => vendor.id !== vendorId)
+        );
         setAlert({
           variant: "success",
           body: "Vendor deleted successfully.",
@@ -289,6 +305,66 @@ const Vendors = () => {
       });
     }
   };
+  const handleProjectChange = (
+    event: SelectChangeEvent<string | number>,
+    _child: React.ReactNode
+  ) => {
+    const selectedId = event.target.value.toString();
+    setSelectedProjectId(selectedId);
+  };
+
+  const handleVendorChange = (
+    event: SelectChangeEvent<string | number>,
+    _child: React.ReactNode
+  ) => {
+    const selectedId = event.target.value.toString();
+    setSelectedVendorId(selectedId);
+  };
+
+  // Get unique vendors from vendor risks data
+  const vendorOptions = useMemo(() => {
+    const uniqueVendors = new Map();
+
+    // Add vendors from vendorRisks
+    vendorRisks.forEach((risk) => {
+      if (!uniqueVendors.has(risk.vendor_id)) {
+        uniqueVendors.set(risk.vendor_id, {
+          id: risk.vendor_id,
+          name: risk.vendor_name,
+          project_id: risk.project_id,
+        });
+      }
+    });
+
+    // Add vendors from local state that don't have risks
+    vendors.forEach((vendor: VendorDetails) => {
+      if (!uniqueVendors.has(vendor.id)) {
+        uniqueVendors.set(vendor.id, {
+          id: vendor.id,
+          name: vendor.vendor_name,
+          project_id: vendor.projects[0], // Assuming first project is the main one
+        });
+      }
+    });
+
+    const vendorList = Array.from(uniqueVendors.values());
+    if (!selectedProjectId || selectedProjectId === "all") {
+      return vendorList;
+    }
+    return vendorList.filter(
+      (vendor) => vendor.project_id.toString() === selectedProjectId
+    );
+  }, [vendorRisks, selectedProjectId, vendors]);
+
+  useEffect(() => {
+    // If the selected vendor is not in the new vendor options, reset to "all"
+    if (
+      selectedVendorId !== "all" &&
+      !vendorOptions.some((vendor) => vendor.id.toString() === selectedVendorId)
+    ) {
+      setSelectedVendorId("all");
+    }
+  }, [selectedProjectId, vendorOptions, selectedVendorId]);
 
   return (
     <div className="vendors-page">
@@ -356,6 +432,7 @@ const Vendors = () => {
                 create and manage all vendor risks here.
               </Typography>
             </Stack>
+
           </>
         )}
         <TabContext value={value}>
@@ -376,7 +453,7 @@ const Vendors = () => {
             (loadingVendorRisks || isVendorsLoading ? (
               <VWSkeleton variant="rectangular" width="50%" height={100} />
             ) : (
-              project && <RisksCard risksSummary={vendorRisksSummary} />
+              <RisksCard risksSummary={vendorRisksSummary} />
             ))}
           {isVendorsLoading && value === "1" ? (
             <VWSkeleton
@@ -387,7 +464,24 @@ const Vendors = () => {
             />
           ) : (
             value === "1" && (
-              <Stack sx={{ alignItems: "flex-end" }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+                <Select
+                  id="projects"
+                  value={selectedProjectId ?? ""}
+                  items={[
+                    { _id: "all", name: "All Projects" },
+                    ...projects.map((project) => ({
+                      _id: project.id.toString(),
+                      name: project.project_title,
+                    })),
+                  ]}
+                  onChange={handleProjectChange}
+                  sx={{
+                    width: "180px",
+                    minHeight: "34px",
+                    borderRadius: theme.shape.borderRadius,
+                  }}
+                />
                 <div data-joyride-id="add-new-vendor" ref={refs[0]}>
                   <VWButton
                     variant="contained"
@@ -417,7 +511,43 @@ const Vendors = () => {
             />
           ) : (
             value !== "1" && (
-              <Stack sx={{ alignItems: "flex-end" }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+                <Stack direction="row" gap={2} alignItems="center">
+                  <Select
+                    id="projects"
+                    value={selectedProjectId ?? ""}
+                    items={[
+                      { _id: "all", name: "All Projects" },
+                      ...projects.map((project) => ({
+                        _id: project.id.toString(),
+                        name: project.project_title,
+                      })),
+                    ]}
+                    onChange={handleProjectChange}
+                    sx={{
+                      width: "180px",
+                      minHeight: "34px",
+                      borderRadius: theme.shape.borderRadius,
+                    }}
+                  />
+                  <Select
+                    id="vendors"
+                    value={selectedVendorId}
+                    items={[
+                      { _id: "all", name: "All Vendors" },
+                      ...vendorOptions.map((vendor) => ({
+                        _id: vendor.id.toString(),
+                        name: vendor.name,
+                      })),
+                    ]}
+                    onChange={handleVendorChange}
+                    sx={{
+                      width: "180px",
+                      minHeight: "34px",
+                      borderRadius: theme.shape.borderRadius,
+                    }}
+                  />
+                </Stack>
                 <VWButton
                   variant="contained"
                   text="Add new Risk"
@@ -448,6 +578,7 @@ const Vendors = () => {
           ) : (
             <TabPanel value="1" sx={tabPanelStyle}>
               <TableWithPlaceholder
+                vendors={vendors}
                 dashboardValues={dashboardValues}
                 onDelete={handleDeleteVendor}
                 onEdit={handleEditVendor}
@@ -467,6 +598,7 @@ const Vendors = () => {
             <TabPanel value="2" sx={tabPanelStyle}>
               <RiskTable
                 dashboardValues={dashboardValues}
+                vendors={vendors}
                 vendorRisks={vendorRisks}
                 onDelete={handleDeleteRisk}
                 onEdit={handleEditRisk}
@@ -489,6 +621,7 @@ const Vendors = () => {
         value={value}
         onSuccess={refetchVendorRisks}
         existingRisk={selectedRisk}
+        vendors={vendors}
       />
       {isSubmitting && (
         <VWToast title="Processing your request. Please wait..." />

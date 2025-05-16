@@ -28,7 +28,6 @@ import { useSearchParams } from "react-router-dom";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import dayjs from "dayjs";
 import useUsers from "../../../application/hooks/useUsers";
-import { RISK_LABELS } from "../RiskLevel/constants";
 import {
   aiLifecyclePhase,
   riskCategoryItems,
@@ -44,9 +43,12 @@ import UpdateIcon from "@mui/icons-material/Update";
 import { AddNewRiskFormProps } from "../../../domain/interfaces/iRiskForm";
 import { ApiResponse } from "../../../domain/interfaces/iResponse";
 import { tabStyle } from "./style";
+import { RiskCalculator } from "../../tools/riskCalculator";
+import { RiskLikelihood, RiskSeverity } from "../RiskLevel/riskValues";
 
 const RiskSection = lazy(() => import("./RisksSection"));
 const MitigationSection = lazy(() => import("./MitigationSection"));
+
 
 const riskInitialState: RiskFormValues = {
   riskName: "",
@@ -195,18 +197,6 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
       setMitigationValues(currentMitigationData);
     }
   }, [popupStatus, users]);
-
-  const getRiskLevel = (score: number): { text: string; color: string } => {
-    if (score <= 3) {
-      return RISK_LABELS.low;
-    } else if (score <= 6) {
-      return RISK_LABELS.medium;
-    } else if (score <= 9) {
-      return RISK_LABELS.high;
-    } else {
-      return RISK_LABELS.critical;
-    }
-  };
 
   const validateForm = useCallback((): {
     isValid: boolean;
@@ -369,12 +359,36 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
 
   const riskFormSubmitHandler = async () => {
     const { isValid, errors } = validateForm();
-
-    const risk_risklevel = getRiskLevel(
-      riskValues.likelihood * riskValues.riskSeverity
+    const selectedRiskLikelihood = likelihoodItems.find(
+      (r) => r._id === riskValues.likelihood
     );
-    const mitigation_risklevel = getRiskLevel(
-      mitigationValues.likelihood * mitigationValues.riskSeverity
+    const selectedRiskSeverity = riskSeverityItems.find(
+      (r) => r._id === riskValues.riskSeverity
+    );
+    if (!selectedRiskLikelihood || !selectedRiskSeverity) {
+      console.error("Could not find selected likelihood or severity");
+      return;
+    }
+
+    const risk_risklevel = RiskCalculator.getRiskLevel(
+      selectedRiskLikelihood.name as RiskLikelihood,
+      selectedRiskSeverity.name as RiskSeverity
+    );
+
+    const selectedMitigationLikelihood = likelihoodItems.find(
+      (r) => r._id === mitigationValues.likelihood
+    );
+    const selectedMitigationSeverity = riskSeverityItems.find(
+      (r) => r._id === mitigationValues.riskSeverity
+    );
+    if (!selectedMitigationLikelihood || !selectedMitigationSeverity) {
+      console.error("Could not find selected likelihood or severity");
+      return;
+    }
+
+    const mitigation_risklevel = RiskCalculator.getRiskLevel(
+      selectedMitigationLikelihood.name as RiskLikelihood,
+      selectedMitigationSeverity.name as RiskSeverity
     );
 
     // check forms validate
@@ -406,7 +420,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         severity:
           riskSeverityItems.find((item) => item._id === riskValues.riskSeverity)
             ?.name || "",
-        risk_level_autocalculated: risk_risklevel.text,
+        risk_level_autocalculated: risk_risklevel.level,
         review_notes: riskValues.reviewNotes,
         mitigation_status:
           mitigationStatusItems.find(
@@ -428,7 +442,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
           riskSeverityItems.find(
             (item) => item._id === mitigationValues.riskSeverity
           )?.name || "",
-        final_risk_level: mitigation_risklevel.text,
+        final_risk_level: mitigation_risklevel.level,
         risk_approval: mitigationValues.approver,
         approval_status:
           approvalStatusItems.find(

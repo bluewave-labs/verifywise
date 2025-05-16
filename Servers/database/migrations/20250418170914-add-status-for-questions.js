@@ -22,10 +22,13 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
-      await queryInterface.sequelize.query(
+      const queries = [
         `ALTER TABLE questions DROP COLUMN status;`,
-        { transaction }
-      );
+        `DROP TYPE enum_status_questions;`
+      ]
+      for (let query of queries) {
+        await queryInterface.sequelize.query(query, { transaction });
+      }
       await transaction.commit();
     } catch (error) {
       await transaction.rollback();

@@ -21,6 +21,7 @@ import bcrypt from "bcrypt";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { generateRefreshToken, generateToken, getRefreshTokenPayload } from "../utils/jwt.util";
 import { UserModel } from "../models/user.model";
+import { sequelize } from "../database/db";
 
 async function getAllUsers(req: Request, res: Response): Promise<any> {
   try {
@@ -72,6 +73,7 @@ async function getUserById(req: Request, res: Response) {
 }
 
 async function createNewUser(req: Request, res: Response) {
+  const transaction = await sequelize.transaction();
   try {
     const { name, surname, email, password, role, created_at, last_login } =
       req.body;
@@ -91,15 +93,17 @@ async function createNewUser(req: Request, res: Response) {
       role,
       created_at,
       last_login,
-    }) as UserModel;
+    }, transaction) as UserModel;
 
     if (user) {
+      await transaction.commit();
       const { password_hash: _, ...safeUser } = user.get({ plain: true });
       return res.status(201).json(STATUS_CODE[201](safeUser));
     }
 
     return res.status(400).json(STATUS_CODE[400](user));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -179,6 +183,7 @@ async function refreshAccessToken(req: Request, res: Response): Promise<any> {
 }
 
 async function resetPassword(req: Request, res: Response) {
+  const transaction = await sequelize.transaction();
   try {
     const { email, newPassword } = req.body;
 
@@ -187,19 +192,22 @@ async function resetPassword(req: Request, res: Response) {
     if (user) {
       const hashedPassword = await bcrypt.hash(newPassword, 10);
       user.dataValues.password_hash = hashedPassword;
-      const updatedUser = await resetPasswordQuery(email, hashedPassword) as UserModel;
+      const updatedUser = await resetPasswordQuery(email, hashedPassword, transaction) as UserModel;
       const { password_hash, ...safeUser } = updatedUser.get({ plain: true });
+      await transaction.commit();
 
       return res.status(202).json(STATUS_CODE[202](safeUser));
     }
 
     return res.status(404).json(STATUS_CODE[404](user));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 async function updateUserById(req: Request, res: Response) {
+  const transaction = await sequelize.transaction();
   try {
     const id = parseInt(req.params.id);
     const { name, surname, email, role, last_login } = req.body;
@@ -213,31 +221,36 @@ async function updateUserById(req: Request, res: Response) {
         email: email ?? user.email,
         role: role ?? user.role,
         last_login: last_login ?? user.last_login,
-      }) as UserModel;
+      }, transaction) as UserModel;
       const { password_hash, ...safeUser } = updatedUser.get({ plain: true });
+      await transaction.commit();
 
       return res.status(202).json(STATUS_CODE[202](safeUser));
     }
 
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 async function deleteUserById(req: Request, res: Response) {
+  const transaction = await sequelize.transaction();
   try {
     const id = parseInt(req.params.id);
     const user = await getUserByIdQuery(id);
 
     if (user) {
-      const deletedUser = await deleteUserByIdQuery(id);
+      const deletedUser = await deleteUserByIdQuery(id, transaction);
+      await transaction.commit();
 
       return res.status(202).json(STATUS_CODE[202](deletedUser));
     }
 
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -346,6 +359,7 @@ async function calculateProgress(
 }
 
 async function ChangePassword(req: Request, res: Response) {
+  const transaction = await sequelize.transaction();
   try {
     const { id, currentPassword, newPassword } = req.body;
 
@@ -385,11 +399,13 @@ async function ChangePassword(req: Request, res: Response) {
     // Hash the new password and update the user's password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password_hash = hashedPassword;
-    const updatedUser = await resetPasswordQuery(user.email, hashedPassword) as UserModel;
+    const updatedUser = await resetPasswordQuery(user.email, hashedPassword, transaction) as UserModel;
     const { password_hash, ...safeUser } = updatedUser.get({ plain: true });
+    await transaction.commit();
 
     return res.status(202).json(STATUS_CODE[202](safeUser));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

@@ -22,6 +22,9 @@ import VWToast from "../../../vw-v2-components/Toast";
 import SaveIcon from "@mui/icons-material/Save";
 import VWButton from "../../../vw-v2-components/Buttons";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import { AlertBox, styles } from "../../../pages/ComplianceTracker/1.0ComplianceTracker/styles";
+import { handleAlert } from "../../../../application/tools/alertUtils";
+import { AlertProps } from "../../../../domain/interfaces/iAlert";
 
 const tabStyle = {
   textTransform: "none",
@@ -43,6 +46,7 @@ const NewControlPane = ({
   OnSave,
   OnError,
   onComplianceUpdate,
+  projectId,
 }: {
   data: Control;
   isOpen: boolean;
@@ -51,15 +55,12 @@ const NewControlPane = ({
   OnSave?: (state: Control) => void;
   OnError?: () => void;
   onComplianceUpdate?: () => void;
+  projectId: number;
 }) => {
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<string>("Overview");
-  const [alert, setAlert] = useState<{
-    type: "success" | "error";
-    message: string;
-    showOverlay?: boolean;
-  } | null>(null);
+  const [alert, setAlert] = useState<AlertProps | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletedFilesIds, setDeletedFilesIds] = useState<number[]>([]);
   const [uploadFiles, setUploadFiles] = useState<{
@@ -113,7 +114,7 @@ const NewControlPane = ({
     due_date: data.due_date,
     control_category_id: data.control_category_id, // Added missing property
 
-    subControls: initialSubControlState,
+    subControls: initialSubControlState || [],
   }));
 
   const handleSelectedTab = (_: React.SyntheticEvent, newValue: number) => {
@@ -190,10 +191,16 @@ const NewControlPane = ({
         [type]: files,
       },
     }));
+    if (deletedFilesIds.length > 0 || files.length > 0) {
+      handleAlert({
+        variant: "info",
+        body: "Please save the changes to save the file changes.",
+        setAlert,
+      })
+    }
   };
 
   const confirmSave = async () => {
-    console.log("state controlToSave : ", state);
     setIsSubmitting(true);
 
     try {
@@ -283,16 +290,13 @@ const NewControlPane = ({
 
       // Add user and project info
       formData.append("user_id", context?.userId?.toString() || "");
-      formData.append(
-        "project_id",
-        context?.currentProjectId?.toString() || ""
-      );
+      formData.append("project_id", projectId.toString());
 
       // Add delete array if needed (you might want to track deleted files)
       formData.append("delete", JSON.stringify(deletedFilesIds));
 
       const response = await updateEntityById({
-        routeUrl: `/controls/saveControls/${state.id}`,
+        routeUrl: `/eu-ai-act/saveControls/${state.id}`,
         body: formData,
         headers: {
           "Content-Type": "multipart/form-data",
@@ -337,43 +341,15 @@ const NewControlPane = ({
   return (
     <>
       {alert && (
-        <>
-          {alert.showOverlay && (
-            <Box
-              sx={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: "rgba(0, 0, 0, 0.3)",
-                zIndex: 9998,
-              }}
-            />
-          )}
-          <Box
-            sx={{
-              position: "fixed",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              zIndex: 9999,
-              width: "100%",
-              maxWidth: "400px",
-              textAlign: "center",
-            }}
-          >
-            <Alert
-              variant={alert.type}
-              body={alert.message}
-              isToast={true}
-              onClick={() => setAlert(null)}
-              sx={{
-                boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.15)",
-              }}
-            />
-          </Box>
-        </>
+        <AlertBox>
+          <Alert
+            variant={alert.variant}
+            body={alert.body}
+            isToast={true}
+            onClick={() => setAlert(null)}
+            sx={styles.alert}
+          />
+        </AlertBox>
       )}
 
       {isSubmitting && <VWToast title="Saving control. Please wait..." />}
@@ -447,6 +423,7 @@ const NewControlPane = ({
             {data.description}
           </Typography>
           <DropDowns
+            projectId={projectId}
             key={`control-${data.id}`}
             isControl={true}
             elementId={`control-${data.id}`}
@@ -540,6 +517,7 @@ const NewControlPane = ({
                   elementId={`sub-control-${data.order_no}.${
                     state.subControls![selectedTab].id
                   }`}
+                  projectId={projectId}
                   state={state.subControls![selectedTab]}
                   setState={(newState) =>
                     handleSubControlStateChange(selectedTab, newState)

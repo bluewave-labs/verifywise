@@ -1,7 +1,7 @@
 import { Control, ControlModel } from "../models/control.model";
 import { sequelize } from "../database/db";
 import { createNewSubControlsQuery } from "./subControl.utils";
-import { Model, QueryTypes } from "sequelize";
+import { Model, QueryTypes, Transaction } from "sequelize";
 
 export const getAllControlsQuery = async (): Promise<Control[]> => {
   const controls = await sequelize.query(
@@ -66,7 +66,8 @@ export const getControlByIdAndControlTitleAndControlDescriptionQuery = async (
 };
 
 export const createNewControlQuery = async (
-  control: Partial<Control>
+  control: Partial<Control>,
+  transaction: Transaction
 ): Promise<Control> => {
   const result = await sequelize.query(
     `INSERT INTO controls (
@@ -94,7 +95,8 @@ export const createNewControlQuery = async (
         control_category_id: control.control_category_id,
       },
       mapToModel: true,
-      model: ControlModel
+      model: ControlModel,
+      transaction,
     }
   );
   return result[0];
@@ -102,7 +104,8 @@ export const createNewControlQuery = async (
 
 export const updateControlByIdQuery = async (
   id: number,
-  control: Partial<Control>
+  control: Partial<Control>,
+  transaction: Transaction
 ): Promise<Control> => {
   const updateControl: Partial<Record<keyof Control, any>> = {};
   const setClause = [
@@ -131,12 +134,14 @@ export const updateControlByIdQuery = async (
     mapToModel: true,
     model: ControlModel,
     // type: QueryTypes.UPDATE,
+    transaction,
   });
   return result[0];
 };
 
 export const deleteControlByIdQuery = async (
-  id: number
+  id: number,
+  transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
     "DELETE FROM controls WHERE id = :id RETURNING *",
@@ -144,7 +149,8 @@ export const deleteControlByIdQuery = async (
       replacements: { id },
       mapToModel: true,
       model: ControlModel,
-      type: QueryTypes.DELETE
+      type: QueryTypes.DELETE,
+      transaction,
     }
   );
   return result.length > 0;
@@ -166,7 +172,8 @@ export const createNewControlsQuery = async (
       feedback_description?: string;
     }[];
   }[],
-  enable_ai_data_insertion: boolean
+  enable_ai_data_insertion: boolean,
+  transaction: Transaction
 ) => {
   const createdControls = [];
   let query = `INSERT INTO controls(
@@ -189,12 +196,14 @@ export const createNewControlsQuery = async (
       mapToModel: true,
       model: ControlModel,
       // type: QueryTypes.INSERT
+      transaction,
     });
     const control_id = result[0].id!;
     const subControls = await createNewSubControlsQuery(
       control_id,
       controlStruct.subControls,
-      enable_ai_data_insertion
+      enable_ai_data_insertion,
+      transaction
     );
     createdControls.push({ ...result[0].dataValues, subControls });
   }

@@ -14,11 +14,13 @@ import {
 } from "./style";
 import { Project } from "../../../../domain/types/Project";
 import { formatDate } from "../../../tools/isoDateToString";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import React from "react";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import { User } from "../../../../domain/types/User";
 import useNavigateSearch from "../../../../application/hooks/useNavigateSearch";
+import { AssessmentProgress, ComplianceProgress } from "../../../../application/interfaces/iprogress";
+import { fetchData } from "../../../../application/hooks/fetchDataHook";
 
 // Error fallback component
 const ErrorFallback = ({ error }: { error: Error }) => (
@@ -63,9 +65,28 @@ const VWProjectCard = React.memo(
     project: Project;
     isLoading?: boolean;
   }) => {
+    const projectFrameworkId = project.framework.filter(
+      (p) => p.framework_id === 1
+    )[0]?.project_framework_id;
     const navigate = useNavigateSearch();
     const { dashboardValues } = useContext(VerifyWiseContext);
     const { users } = dashboardValues;
+    const [complianceProgressData, setComplianceProgressData] = useState<ComplianceProgress>();
+    const [assessmentProgressData, setAssessmentProgressData] = useState<AssessmentProgress>();
+
+    useEffect(() => {
+      const fetchProgressData = async () => {
+        await fetchData(
+          `/eu-ai-act/compliances/progress/${projectFrameworkId}`,
+          setComplianceProgressData
+        );
+        await fetchData(
+          `/eu-ai-act/assessments/progress/${projectFrameworkId}`,
+          setAssessmentProgressData
+        );
+      };
+      fetchProgressData();
+    }, [])
 
     // Improved error handling for owner user
     const ownerUser: User | null =
@@ -97,31 +118,31 @@ const VWProjectCard = React.memo(
           <Stack className="project-card-stats" sx={{ gap: 5 }}>
             <Stack className="project-progress" sx={{ gap: 1 }}>
               <ProgressBar
-                progress={`${project.doneSubcontrols}/${project.totalSubcontrols}`}
+                progress={`${complianceProgressData?.allDonesubControls}/${complianceProgressData?.allsubControls}`}
               />
               <Typography sx={progressStyle}>
                 {`Subcontrols completed: ${
-                  isNaN(project.doneSubcontrols!) ? 0 : project.doneSubcontrols
+                  isNaN(complianceProgressData?.allDonesubControls!) ? 0 : complianceProgressData?.allDonesubControls
                 } out of ${
-                  isNaN(project.totalSubcontrols!)
+                  isNaN(complianceProgressData?.allsubControls!)
                     ? 0
-                    : project.totalSubcontrols
+                    : complianceProgressData?.allsubControls
                 }`}
               </Typography>
             </Stack>
             <Stack className="project-progress" sx={{ gap: 1 }}>
               <ProgressBar
-                progress={`${project.answeredAssessments}/${project.totalAssessments}`}
+                progress={`${assessmentProgressData?.answeredQuestions}/${assessmentProgressData?.totalQuestions}`}
               />
               <Typography sx={progressStyle}>
                 {`Assessments completed: ${
-                  isNaN(project.answeredAssessments!)
+                  isNaN(assessmentProgressData?.answeredQuestions!)
                     ? 0
-                    : project.answeredAssessments
+                    : assessmentProgressData?.answeredQuestions
                 } out of ${
-                  isNaN(project.totalAssessments!)
+                  isNaN(assessmentProgressData?.totalQuestions!)
                     ? 0
-                    : project.totalAssessments
+                    : assessmentProgressData?.totalQuestions
                 }`}
               </Typography>
             </Stack>

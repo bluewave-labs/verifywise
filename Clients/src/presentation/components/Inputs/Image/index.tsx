@@ -14,7 +14,7 @@
  */
 
 import "./index.css";
-import { useState, ChangeEvent } from "react";
+import { useState } from "react";
 import {
   Box,
   IconButton,
@@ -24,19 +24,8 @@ import {
   useTheme,
 } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-
-const checkImage = (url: any) => {
-  const img = new Image();
-  img.src = url;
-  return img.naturalWidth !== 0;
-};
-
-interface ImageFieldProps {
-  id: string;
-  src: string;
-  loading: boolean;
-  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
-}
+import { ImageFieldProps } from "../../../../domain/interfaces/iWidget";
+import { checkImage, IconButtonStack, TextFieldStyles } from "./constants";
 
 const ImageField: React.FC<ImageFieldProps> = ({
   id,
@@ -84,32 +73,13 @@ const ImageField: React.FC<ImageFieldProps> = ({
               id={id}
               type="file"
               onChange={onChange}
-              sx={{
-                width: "100%",
-                "& .MuiInputBase-input[type='file']": {
-                  opacity: 0,
-                  cursor: "pointer",
-                  maxWidth: "500px",
-                  minHeight: "175px",
-                },
-                "& fieldset": {
-                  padding: 0,
-                  border: "none",
-                },
-              }}
+              sx={TextFieldStyles}
             />
             <Stack
               className="custom-file-text"
               alignItems="center"
               gap="4px"
-              sx={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                zIndex: "-1",
-                width: "100%",
-              }}
+              sx={IconButtonStack}
             >
               <IconButton
                 sx={{
@@ -140,10 +110,7 @@ const ImageField: React.FC<ImageFieldProps> = ({
               </Typography>
             </Stack>
           </Box>
-          <Typography
-            color={theme.palette.text.tertiary}
-            sx={{ opacity: 0.6 }}
-          >
+          <Typography color={theme.palette.text.tertiary} sx={{ opacity: 0.6 }}>
             Supported formats: JPG, PNG
           </Typography>
         </>

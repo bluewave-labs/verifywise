@@ -13,8 +13,8 @@
  * @property {boolean} [disabled] - Whether the autocomplete field is disabled.
  * @property {SxProps<Theme>} [sx] - The style properties for the autocomplete field.
  * @property {number | string} [width] - The width of the input field.
- * @property {Option | undefined} autoCompleteValue - The current value of the autocomplete field.
- * @property {(value: Option | undefined) => void} setAutoCompleteValue - The function to set the value of the autocomplete field.
+ * @property {AutoCompleteOption | undefined} autoCompleteValue - The current value of the autocomplete field.
+ * @property {(value: AutoCompleteOption | undefined) => void} setAutoCompleteValue - The function to set the value of the autocomplete field.
  * @property {string} [error] - The error message to display.
  *
  * AutoCompleteField component.
@@ -23,33 +23,9 @@
  * @returns {JSX.Element} The rendered AutoCompleteField component.
  */
 
-import {
-  Autocomplete,
-  TextField,
-  Typography,
-  useTheme,
-  SxProps,
-} from "@mui/material";
-import { Theme } from "@mui/system";
+import { Autocomplete, TextField, Typography, useTheme } from "@mui/material";
 import "./index.css";
-
-interface Option {
-  _id: string;
-  name: string;
-}
-
-interface AutoCompleteFieldProps {
-  id: string;
-  type: string;
-  options?: Option[];
-  placeholder?: string;
-  disabled?: boolean;
-  sx?: SxProps<Theme>;
-  width?: number | string;
-  autoCompleteValue: Option | undefined;
-  setAutoCompleteValue: (value: Option | undefined) => void;
-  error?: string;
-}
+import { AutoCompleteFieldProps } from "../../../../domain/interfaces/iWidget";
 
 const AutoCompleteField: React.FC<AutoCompleteFieldProps> = ({
   id,

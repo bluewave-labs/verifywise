@@ -30,7 +30,7 @@ import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.cont
 import CreateDemoData from "../../components/CreateDemoData";
 import VWButton from "../../vw-v2-components/Buttons";
 import NoProject from "../../components/NoProject/NoProject";
-import { AlertProps } from "../../components/Alert";
+import { AlertProps } from "../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../application/tools/alertUtils";
 
 // Lazy load components
@@ -294,7 +294,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
       : 0,
     allDoneAssessments: projectStatus.assessments.allDoneAssessments,
     allTotalAssessments: projectStatus.assessments.allTotalAssessments,
-    projects: projectStatus.assessments.projects,
+    // projects: projectStatus.assessments.projects,
   };
 
   const controls: Controls = {
@@ -304,7 +304,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
       : 0,
     allDoneSubControls: projectStatus.controls.allDoneSubControls,
     allTotalSubControls: projectStatus.controls.allTotalSubControls,
-    projects: projectStatus.controls.projects,
+    // projects: projectStatus.controls.projects,
   };
 
   return (

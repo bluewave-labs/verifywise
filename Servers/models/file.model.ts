@@ -8,7 +8,7 @@ export interface File {
   project_id: number;
   uploaded_by: number;
   uploaded_time: Date;
-  source: "Assessment tracker group" | "Compliance tracker group";
+  source: "Assessment tracker group" | "Compliance tracker group" | "Report";
 }
 
 export interface FileType {
@@ -18,7 +18,7 @@ export interface FileType {
   uploaded_by: number;
   uploaded_time: Date;
   type: string;
-  source: "Assessment tracker group" | "Compliance tracker group";
+  source: "Assessment tracker group" | "Compliance tracker group" | "Report";
 }
 
 @Table({
@@ -60,9 +60,9 @@ export class FileModel extends Model<File> {
   uploaded_time!: Date;
 
   @Column({
-    type: DataType.ENUM("Assessment tracker group", "Compliance tracker group"),
+    type: DataType.ENUM("Assessment tracker group", "Compliance tracker group", "Report"),
   })
-  source!: "Assessment tracker group" | "Compliance tracker group";
+  source!: "Assessment tracker group" | "Compliance tracker group" | "Report";
 
   @Column({
     type: DataType.STRING

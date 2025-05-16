@@ -2,7 +2,7 @@ import { Project, ProjectModel } from "../models/project.model";
 import { sequelize } from "../database/db";
 import { AssessmentModel } from "../models/assessment.model";
 import { ProjectsMembersModel } from "../models/projectsMembers.model";
-import { QueryTypes } from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 import { VendorsProjectsModel } from "../models/vendorsProjects.model";
 import { VendorModel } from "../models/vendor.model";
 import { VendorRiskModel } from "../models/vendorRisk.model";
@@ -16,6 +16,8 @@ import { ControlModel } from "../models/control.model";
 import { SubtopicModel } from "../models/subtopic.model";
 import { FileModel } from "../models/file.model";
 import { table } from "console";
+import { ProjectFrameworksModel } from "../models/projectFrameworks.model";
+import { createEUFrameworkQuery, deleteProjectFrameworkEUQuery } from "./eu.utils";
 
 export const getAllProjectsQuery = async (): Promise<Project[]> => {
   const projects = await sequelize.query(
@@ -27,15 +29,16 @@ export const getAllProjectsQuery = async (): Promise<Project[]> => {
   );
   if (projects.length) {
     for (let project of projects) {
-      const assessment = await sequelize.query(
-        `SELECT id FROM assessments WHERE project_id = :project_id`,
+      const projectFramework = await sequelize.query(
+        `SELECT id AS project_framework_id, framework_id FROM projects_frameworks WHERE project_id = :project_id`,
         {
-          replacements: { project_id: project.id },
-          mapToModel: true,
-          model: AssessmentModel
+          replacements: { project_id: project.id }
         }
-      );
-      (project.dataValues as any)["assessment_id"] = assessment[0].id
+      ) as [{ project_framework_id: number, framework_id: number }[], number];
+      (project.dataValues as any)["framework"] = []
+      for (let pf of projectFramework[0]) {
+        (project.dataValues as any)["framework"].push(pf)
+      }
 
       const members = await sequelize.query(
         "SELECT user_id FROM projects_members WHERE project_id = :project_id",
@@ -64,15 +67,16 @@ export const getProjectByIdQuery = async (
   );
   if (result.length === 0) return null;
   const project = result[0];
-  const assessment = await sequelize.query(
-    `SELECT id FROM assessments WHERE project_id = :project_id`,
+  const projectFramework = await sequelize.query(
+    `SELECT id AS project_framework_id, framework_id FROM projects_frameworks WHERE project_id = :project_id`,
     {
-      replacements: { project_id: project.id },
-      mapToModel: true,
-      model: AssessmentModel
+      replacements: { project_id: project.id }
     }
-  );
-  (project.dataValues as any)["assessment_id"] = assessment[0].id
+  ) as [{ project_framework_id: number, framework_id: number }[], number];
+  (project.dataValues as any)["framework"] = []
+  for (let pf of projectFramework[0]) {
+    (project.dataValues as any)["framework"].push(pf)
+  }
 
   const members = await sequelize.query(
     "SELECT user_id FROM projects_members WHERE project_id = :project_id",
@@ -115,7 +119,7 @@ export const countAnswersByProjectId = async (
   answeredAssessments: string;
 }> => {
   const result = await sequelize.query(
-    `SELECT COUNT(*) AS "totalAssessments", COUNT(CASE WHEN q.answer <> '' THEN 1 END) AS "answeredAssessments" FROM
+    `SELECT COUNT(*) AS "totalAssessments", COUNT(CASE WHEN q.status = 'Done' THEN 1 END) AS "answeredAssessments" FROM
       assessments a JOIN topics t ON a.id = t.assessment_id
         JOIN subtopics st ON t.id = st.topic_id
           JOIN questions q ON st.id = q.subtopic_id WHERE a.project_id = :project_id`,
@@ -132,15 +136,18 @@ export const countAnswersByProjectId = async (
 
 export const createNewProjectQuery = async (
   project: Partial<Project>,
-  members: number[]
+  members: number[],
+  frameworks: number[],
+  transaction: Transaction,
+  isDemo: boolean = false
 ): Promise<Project> => {
   const result = await sequelize.query(
     `INSERT INTO projects (
       project_title, owner, start_date, ai_risk_classification, 
-      type_of_high_risk_role, goal, last_updated, last_updated_by
+      type_of_high_risk_role, goal, last_updated, last_updated_by, is_demo
     ) VALUES (
       :project_title, :owner, :start_date, :ai_risk_classification, 
-      :type_of_high_risk_role, :goal, :last_updated, :last_updated_by
+      :type_of_high_risk_role, :goal, :last_updated, :last_updated_by, :is_demo
     ) RETURNING *`,
     {
       replacements: {
@@ -152,27 +159,45 @@ export const createNewProjectQuery = async (
         goal: project.goal,
         last_updated: new Date(Date.now()),
         last_updated_by: project.last_updated_by,
+        is_demo: isDemo
       },
       mapToModel: true,
       model: ProjectModel,
       // type: QueryTypes.INSERT
+      transaction
     }
   );
   const createdProject = result[0];
   (createdProject.dataValues as any)["members"] = []
   for (let member of members) {
     await sequelize.query(
-      `INSERT INTO projects_members (project_id, user_id) VALUES (:project_id, :user_id) RETURNING *`,
+      `INSERT INTO projects_members (project_id, user_id, is_demo) VALUES (:project_id, :user_id, :is_demo) RETURNING *`,
       {
         replacements: {
-          project_id: createdProject.id, user_id: member
+          project_id: createdProject.id, user_id: member, is_demo: isDemo
         },
         mapToModel: true,
         model: ProjectsMembersModel,
         // type: QueryTypes.INSERT
+        transaction
       }
     );
     (createdProject.dataValues as any)["members"].push(member)
+  }
+  (createdProject.dataValues as any)["framework"] = []
+  for (let framework of frameworks) {
+    await sequelize.query(
+      `INSERT INTO projects_frameworks (project_id, framework_id, is_demo) VALUES (:project_id, :framework_id, :is_demo) RETURNING *`,
+      {
+        replacements: {
+          project_id: createdProject.id, framework_id: framework, is_demo: isDemo
+        },
+        mapToModel: true,
+        model: ProjectFrameworksModel,
+        transaction
+      }
+    );
+    (createdProject.dataValues as any)["framework"].push(framework)
   }
   return createdProject
 };
@@ -180,6 +205,7 @@ export const createNewProjectQuery = async (
 export const updateProjectUpdatedByIdQuery = async (
   id: number, // this is not the project id,
   byTable: "controls" | "questions" | "projectrisks" | "vendors",
+  transaction: Transaction
 ): Promise<void> => {
   const queryMap = {
     "controls": `SELECT p.id FROM
@@ -199,7 +225,7 @@ export const updateProjectUpdatedByIdQuery = async (
   };
   const query = queryMap[byTable];
   const result = await sequelize.query(query, {
-    replacements: { id },
+    replacements: { id }, transaction
   })
   const projects = result[0] as { id: number }[]
   for (let p of projects) {
@@ -209,7 +235,8 @@ export const updateProjectUpdatedByIdQuery = async (
         replacements: {
           last_updated: new Date(Date.now()),
           project_id: p.id
-        }
+        },
+        transaction
       }
     )
   }
@@ -218,21 +245,22 @@ export const updateProjectUpdatedByIdQuery = async (
 export const updateProjectByIdQuery = async (
   id: number,
   project: Partial<Project>,
-  members: number[]
+  members: number[],
+  frameworks: number[],
+  transaction: Transaction
 ): Promise<Project & { members: number[] } | null> => {
-  const _ = await sequelize.query(
+  const _currentMembers = await sequelize.query(
     `SELECT user_id FROM projects_members WHERE project_id = :project_id`,
     {
       replacements: { project_id: id },
       mapToModel: true,
       model: ProjectsMembersModel,
+      transaction
     }
   )
-  const currentMembers = _.map(m => m.user_id)
+  const currentMembers = _currentMembers.map(m => m.user_id)
   const deletedMembers = currentMembers.filter(m => !members.includes(m))
   const newMembers = members.filter(m => !currentMembers.includes(m))
-
-  console.log(deletedMembers, newMembers);
 
   for (let member of deletedMembers) {
     await sequelize.query(
@@ -241,7 +269,8 @@ export const updateProjectByIdQuery = async (
         replacements: { user_id: member, project_id: id },
         mapToModel: true,
         model: ProjectsMembersModel,
-        type: QueryTypes.DELETE
+        type: QueryTypes.DELETE,
+        transaction
       }
     )
   }
@@ -254,8 +283,52 @@ export const updateProjectByIdQuery = async (
         mapToModel: true,
         model: ProjectsMembersModel,
         // type: QueryTypes.INSERT
+        transaction
       }
     )
+  }
+
+  const _currentFrameworks = await sequelize.query(
+    `SELECT framework_id FROM projects_frameworks WHERE project_id = :project_id`,
+    {
+      replacements: { project_id: id },
+      mapToModel: true,
+      model: ProjectFrameworksModel,
+      transaction
+    }
+  )
+  const currentFrameworks = _currentFrameworks.map(m => m.framework_id)
+  const deletedFrameworks = currentFrameworks.filter(m => !frameworks?.includes(m))
+  const newFrameworks = frameworks?.filter(m => !currentFrameworks.includes(m)) || []
+  for (let framework of deletedFrameworks) {
+    await sequelize.query(
+      `DELETE FROM projects_frameworks WHERE framework_id = :framework_id AND project_id = :project_id`,
+      {
+        replacements: { framework_id: framework, project_id: id },
+        mapToModel: true,
+        model: ProjectFrameworksModel,
+        type: QueryTypes.DELETE,
+        transaction
+      }
+    );
+    // if (framework === 1) {
+    await deleteProjectFrameworkEUQuery(id, transaction)
+    // }
+  }
+  for (let framework of newFrameworks) {
+    await sequelize.query(
+      `INSERT INTO projects_frameworks (project_id, framework_id) VALUES (:project_id, :framework_id);`,
+      {
+        replacements: { framework_id: framework, project_id: id },
+        mapToModel: true,
+        model: ProjectFrameworksModel,
+        // type: QueryTypes.INSERT
+        transaction
+      }
+    )
+    // if (framework === 1) {
+    await createEUFrameworkQuery(id, false, transaction)
+    // }
   }
 
   const updateProject: Partial<Record<keyof Project, any>> = {};
@@ -284,6 +357,7 @@ export const updateProjectByIdQuery = async (
     mapToModel: true,
     model: ProjectModel,
     // type: QueryTypes.UPDATE,
+    transaction
   });
 
   const updatedMembers = await sequelize.query(
@@ -292,6 +366,7 @@ export const updateProjectByIdQuery = async (
       replacements: { project_id: id },
       mapToModel: true,
       model: ProjectsMembersModel,
+      transaction
     }
   )
   return result.length ? {
@@ -300,65 +375,79 @@ export const updateProjectByIdQuery = async (
   } : null;
 };
 
-export const deleteProjectByIdQuery = async (
-  id: number
-): Promise<Boolean> => {
-  const deleteTable = async (
-    entity: string,
-    foreignKey: string,
-    id: number,
-    // model: Object
-  ) => {
-    let tableToDelete = entity;
-    if (entity === "vendors") {
-      tableToDelete = "vendors_projects"
-      // model = VendorsProjectsModel
-    };
-    await sequelize.query(`DELETE FROM ${tableToDelete} WHERE ${foreignKey} = :x;`,
-      {
-        replacements: { x: id },
-        mapToModel: true,
-        // model: model,
-        type: QueryTypes.DELETE
-      }
-    );
+const deleteTable = async (
+  entity: string,
+  foreignKey: string,
+  id: number,
+  // model: Object
+  transaction: Transaction
+) => {
+  let tableToDelete = entity;
+  if (entity === "vendors") {
+    tableToDelete = "vendors_projects"
+    // model = VendorsProjectsModel
   };
-
-  const deleteHelper = async (childObject: Record<string, any>, parent_id: number) => {
-    const childTableName = Object.keys(childObject).filter(k => !["foreignKey", "model"].includes(k))[0]
-    let childIds: any = {}
-    if (childTableName !== "projects_members") {
-      if (childTableName === "vendors") {
-        childIds = await sequelize.query(
-          `SELECT vendor_id FROM vendors_projects WHERE project_id = :project_id`,
-          {
-            replacements: { project_id: parent_id },
-            mapToModel: true,
-            model: VendorsProjectsModel
-          }
-        )
-      } else {
-        childIds = await sequelize.query(`SELECT id FROM ${childTableName} WHERE ${childObject[childTableName].foreignKey} = :x`,
-          {
-            replacements: { x: parent_id },
-            mapToModel: true,
-            model: childObject[childTableName].model
-          }
-        )
-      }
+  await sequelize.query(`DELETE FROM ${tableToDelete} WHERE ${foreignKey} = :x;`,
+    {
+      replacements: { x: id },
+      mapToModel: true,
+      // model: model,
+      type: QueryTypes.DELETE,
+      transaction
     }
-    await Promise.all(Object.keys(childObject[childTableName])
-      .filter(k => !["foreignKey", "model"].includes(k))
-      .map(async k => {
-        for (let ch of childIds) {
-          let childId = ch.id
-          if (childTableName === "vendors") childId = ch.vendor_id
-          await deleteHelper({ [k]: childObject[childTableName][k] }, childId)
-        }
-      }))
-    await deleteTable(childTableName, childObject[childTableName].foreignKey, parent_id)
-  }
+  );
+};
 
+export const deleteHelper = async (childObject: Record<string, any>, parent_id: number, transaction: Transaction) => {
+  const childTableName = Object.keys(childObject).filter(k => !["foreignKey", "model"].includes(k))[0]
+  let childIds: any = {}
+  if (childTableName !== "projects_members" && childTableName !== "projects_frameworks") {
+    if (childTableName === "vendors") {
+      childIds = await sequelize.query(
+        `SELECT vendor_id FROM vendors_projects WHERE project_id = :project_id`,
+        {
+          replacements: { project_id: parent_id },
+          mapToModel: true,
+          model: VendorsProjectsModel,
+          transaction
+        }
+      )
+    } else {
+      childIds = await sequelize.query(`SELECT id FROM ${childTableName} WHERE ${childObject[childTableName].foreignKey} = :x`,
+        {
+          replacements: { x: parent_id },
+          mapToModel: true,
+          model: childObject[childTableName].model,
+          transaction
+        }
+      )
+    }
+  }
+  await Promise.all(Object.keys(childObject[childTableName])
+    .filter(k => !["foreignKey", "model"].includes(k))
+    .map(async k => {
+      for (let ch of childIds) {
+        let childId = ch.id
+        if (childTableName === "vendors") childId = ch.vendor_id
+        await deleteHelper({ [k]: childObject[childTableName][k] }, childId, transaction)
+      }
+    }))
+  await deleteTable(childTableName, childObject[childTableName].foreignKey, parent_id, transaction)
+};
+
+export const deleteProjectByIdQuery = async (
+  id: number,
+  transaction: Transaction
+): Promise<Boolean> => {
+  const frameworks = await sequelize.query(
+    `SELECT framework_id FROM projects_frameworks WHERE project_id = :project_id`,
+    {
+      replacements: { project_id: id },
+      mapToModel: true,
+      model: ProjectFrameworksModel,
+      transaction
+    }
+  )
   const dependantEntities = [
     {
       "vendors": {
@@ -372,46 +461,15 @@ export const deleteProjectByIdQuery = async (
     },
     { "files": { foreignKey: "project_id", model: FileModel } },
     { "projectrisks": { foreignKey: "project_id", model: ProjectRiskModel } },
-    { "projects_members": { foreignKey: "project_id", model: ProjectsMembersModel } },
-    {
-      assessments: {
-        foreignKey: "project_id",
-        model: AssessmentModel,
-        topics: {
-          foreignKey: "assessment_id",
-          model: TopicModel,
-          subtopics: {
-            foreignKey: "topic_id",
-            model: SubtopicModel,
-            questions: {
-              foreignKey: "subtopic_id",
-              model: QuestionModel,
-            },
-          },
-        },
-        projectscopes: {
-          foreignKey: "assessment_id",
-          model: ProjectScopeModel,
-        },
-      },
-    },
-    {
-      controlcategories: {
-        foreignKey: "project_id",
-        model: ControlCategoryModel,
-        controls: {
-          foreignKey: "control_category_id",
-          model: ControlModel,
-          subcontrols: {
-            foreignKey: "control_id",
-            model: SubcontrolModel,
-          },
-        },
-      },
-    },
+    { "projects_members": { foreignKey: "project_id", model: ProjectsMembersModel } }
   ];
   for (let entity of dependantEntities) {
-    await deleteHelper(entity, id);
+    await deleteHelper(entity, id, transaction);
+  }
+  for (let framework of frameworks) {
+    // if (framework.framework_id === 1) {
+    await deleteProjectFrameworkEUQuery(id, transaction);
+    // }
   }
 
   const result = await sequelize.query(
@@ -420,7 +478,8 @@ export const deleteProjectByIdQuery = async (
       replacements: { id },
       mapToModel: true,
       model: ProjectModel,
-      type: QueryTypes.DELETE
+      type: QueryTypes.DELETE,
+      transaction
     }
   );
   return result.length > 0;

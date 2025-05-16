@@ -1,22 +1,37 @@
 import { UploadedFile } from "./question.utils";
 import { sequelize } from "../database/db";
 import { FileModel } from "../models/file.model";
-import { QueryTypes } from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 import { ProjectModel } from "../models/project.model";
 
-const sanitizeFilename = (name: string) => name.replace(/[^a-zA-Z0-9-_\.]/g, '_');
+const sanitizeFilename = (name: string) =>
+  name.replace(/[^a-zA-Z0-9-_\.]/g, "_");
 
 export const uploadFile = async (
   file: UploadedFile,
   user_id: number,
   project_id: number,
-  source: "Assessment tracker group" | "Compliance tracker group"
+  source:
+    | "Assessment tracker group"
+    | "Compliance tracker group"
+    | "Report"
+    | "Project risks report"
+    | "Compliance tracker report"
+    | "Assessment tracker report"
+    | "Vendors and risks report"
+    | "All reports",
+  transaction: Transaction | null = null
 ) => {
   const projectIsDemo = await sequelize.query(
     "SELECT is_demo FROM projects WHERE id = :id",
-    { replacements: { id: project_id }, mapToModel: true, model: ProjectModel },
-  )
-  const is_demo = projectIsDemo[0].is_demo || false
+    {
+      replacements: { id: project_id },
+      mapToModel: true,
+      model: ProjectModel,
+      ...(transaction && { transaction }),
+    }
+  );
+  const is_demo = projectIsDemo[0].is_demo || false;
   const query = `INSERT INTO files
     (
       filename, content, type, project_id, uploaded_by, uploaded_time, is_demo, source
@@ -28,40 +43,42 @@ export const uploadFile = async (
     replacements: {
       filename: sanitizeFilename(file.originalname),
       content: file.buffer,
+      project_id: project_id,
       type: file.mimetype,
-      project_id,
       uploaded_by: user_id,
       uploaded_time: new Date().toISOString(),
       is_demo,
-      source
+      source,
     },
     mapToModel: true,
     model: FileModel,
     // type: QueryTypes.INSERT
+    ...(transaction && { transaction }),
   });
   return result[0];
-}
+};
 
-export const deleteFileById = async (id: number) => {
+export const deleteFileById = async (id: number, transaction: Transaction) => {
   const query = `DELETE FROM files WHERE id = :id`;
   const result = await sequelize.query(query, {
     replacements: { id },
     mapToModel: true,
     model: FileModel,
-    type: QueryTypes.DELETE
+    type: QueryTypes.DELETE,
+    transaction,
   });
-  return result.length > 0
-}
+  return result.length > 0;
+};
 
 export const getFileById = async (id: number) => {
   const query = `SELECT * FROM files WHERE id = :id`;
   const result = await sequelize.query(query, {
     replacements: { id },
     mapToModel: true,
-    model: FileModel
+    model: FileModel,
   });
   return result[0];
-}
+};
 
 export const getFileMetadataByProjectId = async (project_id: number) => {
   const query = `SELECT 
@@ -79,7 +96,7 @@ export const getFileMetadataByProjectId = async (project_id: number) => {
   const result = await sequelize.query(query, {
     replacements: { project_id },
     mapToModel: true,
-    model: FileModel
+    model: FileModel,
   });
   return result;
-}
+};

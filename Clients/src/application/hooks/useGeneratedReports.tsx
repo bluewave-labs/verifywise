@@ -9,30 +9,44 @@
  */
 
 import { useEffect, useState } from "react";
+import { getEntityById } from "../repository/entity.repository";
 
 export interface GeneratedReports {
   id: number;
-  report_name: string,
+  filename: string,
   type: string,
   date: string,
-  generated_by: number
+  generated_by: number,
+  project: string
 }
 
-const useGeneratedReports = ({projectId} : {projectId: string | null}) => {
-  const [generatedReports, _] = useState<GeneratedReports[]>([]);
+interface UseGeneratedReportsParams {
+  projectId: string;
+  refreshKey?: any;
+}
+
+const useGeneratedReports = ({
+  projectId, 
+  refreshKey
+} : UseGeneratedReportsParams) => {
+  const [generatedReports, setGeneratedReports] = useState<GeneratedReports[]>([]);
   const [loadingReports, setLoadingReports] = useState<boolean>(true);
   const [error, setError] = useState<string | boolean>(false);
 
   useEffect(() => {
     const controller = new AbortController();
-
+    const signal = controller.signal;
+    
     const fetchGeneratedReports = async () => {
       setLoadingReports(true);
       try{
-        /** 
-         * send BE API request
-         * set response data: setGeneratedReports(response.data)
-        */        
+        const response = await getEntityById({
+          routeUrl: `/reporting/generate-report`,
+          signal,
+        });
+        if(response){
+          setGeneratedReports(response.data)
+        }
       } catch (err) {
         if (err instanceof Error) {
           setError(`Request failed: ${err.message}`);
@@ -49,7 +63,7 @@ const useGeneratedReports = ({projectId} : {projectId: string | null}) => {
     return () => {
       controller.abort();
     };
-  }, [projectId])
+  }, [projectId, refreshKey])
 
   return{
     generatedReports,

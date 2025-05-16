@@ -11,11 +11,11 @@ import UppyUploadFile from "../../vw-v2-components/Inputs/FileUpload";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import createUppy from "../../../application/tools/createUppy";
 import { updateEntityById } from "../../../application/repository/entity.repository";
-import Alert, { AlertProps } from "../Alert";
+import Alert from "../Alert";
+import { AlertProps } from "../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import { store } from "../../../application/redux/store";
 import { apiServices } from "../../../infrastructure/api/networkServices";
-import { ENV_VARs } from "../../../../env.vars";
 import { FileData } from "../../../domain/types/File";
 import { useSelector } from "react-redux";
 import Button from "../Button";
@@ -24,6 +24,7 @@ import Select from "../Inputs/Select";
 interface QuestionProps {
   question: Question;
   setRefreshKey: () => void;
+  currentProjectId: number;
 }
 
 /**
@@ -41,8 +42,8 @@ interface QuestionProps {
  * Usage:
  * <VWQuestion question={questionObject} />
  */
-const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
-  const { userId, currentProjectId } = useContext(VerifyWiseContext);
+const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps) => {
+  const { userId } = useContext(VerifyWiseContext);
   const [values, setValues] = useState<Question>(question);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
 
@@ -78,16 +79,16 @@ const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
       onChangeFiles: handleChangeEvidenceFiles,
       allowedMetaFields: ["question_id", "user_id", "project_id", "delete"],
       meta: {
-        question_id: question.id,
+        question_id: question.question_id,
         user_id: userId,
-        project_id: currentProjectId,
+        project_id: currentProjectId.toString(),
         delete: "[]",
       },
-      routeUrl: "files",
+      routeUrl: "api/files",
       authToken,
     }),
     [
-      question.id,
+      question.question_id,
       userId,
       currentProjectId,
       handleChangeEvidenceFiles,
@@ -100,13 +101,15 @@ const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
   const handleSave = async () => {
     console.log(
       "VWQuestion: Saving answer for question",
-      question.id,
+      question.question_id,
       "project:",
-      currentProjectId
+      currentProjectId,
+      "values:",
+      values
     );
     try {
       const response = await updateEntityById({
-        routeUrl: `/questions/${question.id}`,
+        routeUrl: `/eu-ai-act/saveAnswer/${question.answer_id}`,
         body: values,
       });
       if (response.status === 202) {
@@ -156,14 +159,14 @@ const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
       return;
     }
     formData.append("delete", JSON.stringify([fileIdNumber]));
-    formData.append("question_id", question.id?.toString() || "");
+    formData.append("question_id", question.question_id?.toString() || "");
     formData.append("user_id", userId);
     if (currentProjectId) {
-      formData.append("project_id", currentProjectId);
+      formData.append("project_id", currentProjectId.toString());
     }
     try {
       const response = await apiServices.post(
-        `${ENV_VARs.URL}/files`,
+        "/files",
         formData,
         {
           headers: {
@@ -204,7 +207,7 @@ const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
   };
 
   return (
-    <Box key={question.id} mt={10}>
+    <Box key={question.question_id} mt={10}>
       <Box
         sx={{
           display: "flex",
@@ -254,7 +257,7 @@ const VWQuestion = ({ question, setRefreshKey }: QuestionProps) => {
         </Stack>
       </Box>
       <RichTextEditor
-        key={question.id}
+        key={question.question_id}
         onContentChange={handleContentChange}
         headerSx={{
           borderRadius: 0,

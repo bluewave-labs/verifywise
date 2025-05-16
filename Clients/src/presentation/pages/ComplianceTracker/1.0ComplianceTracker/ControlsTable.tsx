@@ -34,6 +34,8 @@ interface ControlsTableProps {
   columns: Column[];
   onComplianceUpdate?: () => void;
   flashRow?: number | null;
+  projectId: number;
+  projectFrameworkId: number;
 }
 
 const ControlsTable: React.FC<ControlsTableProps> = ({
@@ -41,10 +43,14 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   controlCategoryIndex,
   columns,
   onComplianceUpdate,
+  projectId,
+  projectFrameworkId,
 }) => {
-  const { currentProjectId, dashboardValues } = useContext(VerifyWiseContext);
+  const { dashboardValues } = useContext(VerifyWiseContext);
   const { users } = dashboardValues;
+  const currentProjectId = projectId;
   const [controls, setControls] = useState<Control[]>([]);
+  const [selectedControl, setSelectedControl] = useState<Control | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<unknown>(null);
   const [selectedRow, setSelectedRow] = useState<number | null>(null);
@@ -67,7 +73,11 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
     setAlert(null);
   }, [currentProjectId]);
 
-  const handleRowClick = (id: number) => {
+  const handleRowClick = async (id: number) => {
+    const subControlsResponse = await getEntityById({
+      routeUrl: `eu-ai-act/controlById?controlId=${id}&projectFrameworkId=${projectFrameworkId}`,
+    });
+    setSelectedControl(subControlsResponse.data);
     setSelectedRow(id);
     setModalOpen(true);
   };
@@ -120,9 +130,9 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
       setLoading(true);
       try {
         const response = await getEntityById({
-          routeUrl: `/controls/all/bycategory/${controlCategoryId}`,
+          routeUrl: `/eu-ai-act/controls/byControlCategoryId/${controlCategoryId}?projectFrameworkId=${projectFrameworkId}`,
         });
-        setControls(response.data);
+        setControls(response);
       } catch (err) {
         setError(err);
       } finally {
@@ -273,13 +283,14 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
       </TableContainer>
       {modalOpen && selectedRow !== null && (
         <NewControlPane
-          data={controls.find((c) => c.id === selectedRow)!}
+          data={selectedControl!}
           isOpen={modalOpen}
           handleClose={handleCloseModal}
           OnSave={handleSaveSuccess}
           OnError={handleSaveError}
           controlCategoryId={controlCategoryIndex?.toString()}
           onComplianceUpdate={onComplianceUpdate}
+          projectId={currentProjectId}
         />
       )}
     </>

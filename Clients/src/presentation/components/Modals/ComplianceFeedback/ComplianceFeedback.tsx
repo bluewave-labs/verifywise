@@ -9,7 +9,8 @@ import {
 import React, { useState } from "react";
 import RichTextEditor from "../../../components/RichTextEditor/index";
 import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
-import Alert, { AlertProps } from "../../../components/Alert";
+import Alert from "../../../components/Alert";
+import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { FileData } from "../../../../domain/types/File";
 import Uppy from "@uppy/core";
@@ -100,11 +101,6 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
       onUploadFilesChange(newUploadFiles);
     }
 
-    handleAlert({
-      variant: "success",
-      body: "File deleted successfully",
-      setAlert,
-    });
   };
 
   const closeFileUploadModal = () => {

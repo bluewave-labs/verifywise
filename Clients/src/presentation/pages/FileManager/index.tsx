@@ -1,7 +1,6 @@
 import React, {
   useState,
   useEffect,
-  useContext,
   useMemo,
   forwardRef,
 } from "react";
@@ -12,11 +11,12 @@ import FileSteps from "./FileSteps";
 import VWSkeleton from "../../vw-v2-components/Skeletons";
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import { useFetchFiles } from "../../../application/hooks/useFetchFiles";
+import { useProjectData } from "../../../application/hooks/useFetchProjects";
 import FileTable from "../../components/Table/FileTable/FileTable";
-import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
+import ProjectFilterDropdown from "../../components/Inputs/Dropdowns/ProjectFilter/ProjectFilterDropdown";
 
-const COLUMN_NAMES = ["File", "Upload Date", "Uploader", "Action"];
+const COLUMN_NAMES = ["File", "Upload Date", "Uploader", "Source", "Action"];
 
 interface Column {
   id: number;
@@ -40,25 +40,32 @@ const COLUMNS: Column[] = COLUMN_NAMES.map((name, index) => ({
  * @returns {JSX.Element} The FileManager component.
  */
 const FileManager: React.FC = (): JSX.Element => {
-  const { dashboardValues } = useContext(VerifyWiseContext);
   const theme = useTheme();
   const [runFileTour, setRunFileTour] = useState(false);
   const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({
     countToTrigger: 1,
   });
 
-  const { selectedProjectId } = dashboardValues;
-  const projectID = selectedProjectId?.toString();
-  const { filesData, loading } = useFetchFiles(projectID);
+  // Fetch projects for the dropdown
+  const {
+    projects,
+    loading: loadingProjects,
+  } = useProjectData();
+
+  // State for selected project
+  const [selectedProject, setSelectedProject] = useState<string | null>(null);
+
+  // Fetch files based on selected project
+  const { filesData, loading: loadingFiles } = useFetchFiles(selectedProject || "");
 
   const boxStyles = useMemo(
     () => ({
       ...filesTableFrame,
       alignItems: filesData.length === 0 ? "center" : "stretch",
-      pointerEvents: loading ? "none" : "auto",
-      opacity: loading ? 0.5 : 1,
+      pointerEvents: loadingFiles ? "none" : "auto",
+      opacity: loadingFiles ? 0.5 : 1,
     }),
-    [filesData.length, loading]
+    [filesData.length, loadingFiles]
   );
 
   useEffect(() => {
@@ -79,7 +86,20 @@ const FileManager: React.FC = (): JSX.Element => {
         tourKey="file-tour"
       />
       <FileManagerHeader theme={theme} ref={refs[0]} />
-      {loading ? (
+      {/* Project filter dropdown */}
+      {loadingProjects ? (
+        <Typography>Loading projects...</Typography>
+      ) : (
+        <ProjectFilterDropdown
+          projects={projects.map((project) => ({
+            id: project.id.toString(),
+            name: project.project_title,
+          }))}
+          selectedProject={selectedProject}
+          onChange={setSelectedProject}
+        />
+      )}
+      {loadingFiles ? (
         <VWSkeleton variant="rectangular" sx={filesTablePlaceholder} />
       ) : (
         <Box sx={boxStyles}>

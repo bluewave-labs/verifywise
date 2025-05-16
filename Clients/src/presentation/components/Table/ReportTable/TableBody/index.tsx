@@ -4,6 +4,7 @@ import IconButton from '../../../IconButton';
 import { formatDate } from '../../../../tools/isoDateToString';
 import singleTheme from '../../../../themes/v1SingleTheme';
 import {styles} from './styles';
+import { handleDownload } from '../../../../../application/tools/fileDownload';
 
 interface TableProps {
   rows: any[];
@@ -24,10 +25,6 @@ const ReportTableBody: React.FC<TableProps> = ({
     onRemoveReport(reportId);
   };
 
-  const handleDownloadReport = async () => {
-    // Call backend API
-  };
-
   // row onclick function
   const handleEditRisk = () => {}
 
@@ -39,16 +36,19 @@ const ReportTableBody: React.FC<TableProps> = ({
           .map((row, index: number) => (
             <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row}>
               <TableCell sx={cellStyle}>
-                {row.report_name ? row.report_name : '-'}
+                {row.filename ? row.filename : '-'}
               </TableCell>
               <TableCell sx={cellStyle}>
-                {row.type ? row.type : '-'}
+                {row.source ? row.source : '-'}
               </TableCell>
               <TableCell sx={cellStyle}>
-                {row.deadline ? formatDate(row.date.toString()) : "NA"}
+                {row.project_title ? row.project_title : '-'}
               </TableCell>
               <TableCell sx={cellStyle}>
-                {row.generated_by ? row.generated_by : '-'}
+                {row.uploaded_time ? formatDate(row.uploaded_time.toString()) : "NA"}
+              </TableCell>
+              <TableCell sx={cellStyle}>
+                {row.uploader_name ? row.uploader_name : '-'} {row.uploader_surname ? row.uploader_surname : '-'}
               </TableCell>
               <TableCell
                 sx={{
@@ -61,9 +61,9 @@ const ReportTableBody: React.FC<TableProps> = ({
                   type="report"
                   onMouseEvent={() => handleEditRisk()}
                   onDelete={() => handleRemoveReport(row.id)}
-                  onEdit={() => handleDownloadReport()}
+                  onEdit={() => handleDownload(row.id, row.filename)}
                   warningTitle="Remove this report?"
-                  warningMessage={`Are you sure you want to remove "${row.report_name}" report. This action is non-recoverable.`}
+                  warningMessage={`Are you sure you want to remove this report. This action is non-recoverable.`}
                 ></IconButton>
               </TableCell>
             </TableRow>

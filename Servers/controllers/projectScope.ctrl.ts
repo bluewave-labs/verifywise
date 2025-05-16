@@ -8,6 +8,8 @@ import {
   getProjectScopeByIdQuery,
   updateProjectScopeByIdQuery,
 } from "../utils/projectScope.utils";
+import { sequelize } from "../database/db";
+import { ProjectScope } from "../models/projectScope.model";
 
 export async function getAllProjectScopes(
   req: Request,
@@ -49,27 +51,20 @@ export async function createProjectScope(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
-    const projectScope = req.body as {
-      assessmentId: number;
-      describeAiEnvironment: string;
-      isNewAiTechnology: boolean;
-      usesPersonalData: boolean;
-      projectScopeDocuments: string;
-      technologyType: string;
-      hasOngoingMonitoring: boolean;
-      unintendedOutcomes: string;
-      technologyDocumentation: string;
-    };
+    const projectScope = req.body as Partial<ProjectScope>;
 
-    const createdProjectScope = await createProjectScopeQuery(projectScope);
+    const createdProjectScope = await createProjectScopeQuery(projectScope, transaction);
 
     if (createdProjectScope) {
+      await transaction.commit();
       return res.status(201).json(STATUS_CODE[201](createdProjectScope));
     }
 
     return res.status(204).json(STATUS_CODE[204](createdProjectScope));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -78,31 +73,25 @@ export async function updateProjectScopeById(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const projectScopeId = parseInt(req.params.id);
-    const projectScope = req.body as {
-      assessmentId: number;
-      describeAiEnvironment: string;
-      isNewAiTechnology: boolean;
-      usesPersonalData: boolean;
-      projectScopeDocuments: string;
-      technologyType: string;
-      hasOngoingMonitoring: boolean;
-      unintendedOutcomes: string;
-      technologyDocumentation: string;
-    };
+    const projectScope = req.body as Partial<ProjectScope>;
 
     const updatedProjectScope = await updateProjectScopeByIdQuery(
       projectScopeId,
-      projectScope
+      projectScope,
+      transaction
     );
 
     if (updatedProjectScope) {
+      await transaction.commit();
       return res.status(200).json(STATUS_CODE[200](updatedProjectScope));
     }
 
     return res.status(204).json(STATUS_CODE[204](updatedProjectScope));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -111,19 +100,22 @@ export async function deleteProjectScopeById(
   req: Request,
   res: Response
 ): Promise<any> {
+  const transaction = await sequelize.transaction();
   try {
     const projectScopeId = parseInt(req.params.id);
 
     const deletedProjectScope = await deleteProjectScopeByIdQuery(
-      projectScopeId
+      projectScopeId, transaction
     );
 
     if (deletedProjectScope) {
+      await transaction.commit();
       return res.status(200).json(STATUS_CODE[200](deletedProjectScope));
     }
 
     return res.status(204).json(STATUS_CODE[204](deletedProjectScope));
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

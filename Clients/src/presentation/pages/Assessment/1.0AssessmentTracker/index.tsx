@@ -19,7 +19,6 @@ import StatsCard from "../../../components/Cards/StatsCard";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import Questions from "./questions";
 import useAssessmentProgress from "../../../../application/hooks/useAssessmentProgress";
-import useAssessmentData from "../../../../application/hooks/useAssessmentData";
 import useAssessmentTopics from "../../../../application/hooks/useAssessmentTopcis";
 import useAssessmentSubtopics from "../../../../application/hooks/useAssessmentSubtopics";
 import PageTour from "../../../components/PageTour";
@@ -31,22 +30,25 @@ const AssessmentTracker = ({ project }: { project: Project }) => {
   const theme = useTheme();
   const [refreshKey, setRefreshKey] = useState(false);
   const currentProjectId = project?.id;
+  const currentProjectFramework = project.framework.filter(
+    (p) => p.framework_id === 1
+  )[0]?.project_framework_id;
   const [activeTab, setActiveTab] = useState<number>(0);
   const [runAssessmentTour, setRunAssessmentTour] = useState(false);
 
   const { assessmentProgress, loading: loadingAssessmentProgress } =
     useAssessmentProgress({
-      selectedProjectId: String(currentProjectId) || "",
+      projectFrameworkId: currentProjectFramework,
       refreshKey,
     });
-  const { assessmentData, loading: loadingAssessmentData } = useAssessmentData({
-    selectedProjectId: String(currentProjectId) || "",
-  });
-  const { assessmentTopics, loading: loadingAssessmentTopics } =
-    useAssessmentTopics({ assessmentId: assessmentData?.id });
+  // const { assessmentData, loading: loadingAssessmentData } = useAssessmentData({
+  //   selectedProjectId: String(currentProjectId) || "",
+  // });
+  const { assessmentTopics, loading: loadingAssessmentTopics } = useAssessmentTopics();
   const { assessmentSubtopics, loading: loadingAssessmentSubtopic } =
     useAssessmentSubtopics({
       activeAssessmentTopicId: assessmentTopics?.[activeTab]?.id,
+      projectFrameworkId: currentProjectFramework,
     });
 
   const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({
@@ -103,14 +105,14 @@ const AssessmentTracker = ({ project }: { project: Project }) => {
     [activeTab, handleListItemClick, theme.palette.text.primary]
   );
 
-  // Show loading state if we're loading the initial assessment data
-  if (loadingAssessmentData) {
-    return (
-      <Stack sx={{ padding: 2 }}>
-        <VWSkeleton height={400} variant="rectangular" />
-      </Stack>
-    );
-  }
+  // // Show loading state if we're loading the initial assessment data
+  // if (loadingAssessmentData) {
+  //   return (
+  //     <Stack sx={{ padding: 2 }}>
+  //       <VWSkeleton height={400} variant="rectangular" />
+  //     </Stack>
+  //   );
+  // }
 
   // Show message if no project is selected
   if (!currentProjectId) {
@@ -217,8 +219,10 @@ const AssessmentTracker = ({ project }: { project: Project }) => {
               assessmentSubtopics.map((subtopic: any, index: number) => (
                 <div key={`subtopic-${subtopic.id || index}`}>
                   <Questions
+                    currentProjectId={currentProjectId}
                     subtopic={subtopic}
                     setRefreshKey={() => setRefreshKey((prev) => !prev)}
+                    questionsData={subtopic.questions}
                   />
                 </div>
               ))

@@ -24,6 +24,15 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { store } from "../../application/redux/store";
 import { ENV_VARs } from "../../../env.vars";
 import { setAuthToken } from "../../application/authentication/authSlice";
+import { AlertProps } from "../../domain/interfaces/iAlert";
+
+// Create a global callback for showing alerts
+let showAlertCallback: ((alert: AlertProps) => void) | null = null;
+
+// Function to set the alert callback
+export const setShowAlertCallback = (callback: (alert: AlertProps) => void) => {
+  showAlertCallback = callback;
+};
 
 // Create an instance of axios with default configurations
 const CustomAxios = axios.create({
@@ -85,14 +94,22 @@ CustomAxios.interceptors.response.use(
   },
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
-
+    if (error.response?.status === 404) {
+      const errorMessage = (error.response.data as { message?: string })?.message || 'Not found';
+      return Promise.reject(new Error(errorMessage));
+    }
     // If error is 406 (Token Expired) and we haven't tried to refresh yet
     if (error.response?.status === 406 && !originalRequest._retry) {
       // If this is the refresh token request itself returning 406
       if (originalRequest.url === '/users/refresh-token') {
-        console.log('Refresh token expired, redirecting to login');
-        store.dispatch(setAuthToken(""));
-        window.location.href = '/login';
+        // Show alert using the callback
+        if (showAlertCallback) {
+          showAlertCallback({
+            variant: "warning",
+            title: "Session Expired",
+            body: "Please login again to continue.",
+          });
+        }
         return Promise.reject(error);
       }
 
@@ -109,7 +126,6 @@ CustomAxios.interceptors.response.use(
             // If refresh token fails, redirect to login
             if (err.response?.status === 406) {
               store.dispatch(setAuthToken(""));
-              window.location.href = '/login';
             }
             return Promise.reject(err);
           });
@@ -137,7 +153,6 @@ CustomAxios.interceptors.response.use(
         // If refresh token request fails with 406, redirect to login
         if (refreshError.response?.status === 406) {
           store.dispatch(setAuthToken(""));
-          window.location.href = '/login';
         }
         return Promise.reject(refreshError);
       } finally {

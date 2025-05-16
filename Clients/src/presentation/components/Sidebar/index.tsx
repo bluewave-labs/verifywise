@@ -33,9 +33,7 @@ import { ReactComponent as FileManager } from "../../assets/icons/file.svg";
 
 import Logo from "../../assets/imgs/logo.png";
 
-import Select from "../Inputs/Select";
 import Avatar from "../Avatar/VWAvatar";
-import { SelectChangeEvent } from "@mui/material";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { Link as RouterLink } from "react-router-dom";
 import { Link as MuiLink } from "@mui/material";
@@ -91,17 +89,16 @@ interface User_Avatar {
   pathToImage: string;
 }
 
-const Sidebar = ({ projects }: { projects: any }) => {
+const Sidebar = () => {  
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
   const [anchorEl, setAnchorEl] = useState(null);
   const [popup, setPopup] = useState();
-  const [selectedProjectId, setSelectedProjectId] = useState("");
   const logout = useLogout();
 
-  const { dashboardValues, setDashboardValues, setCurrentProjectId, userId, changeComponentVisibility} =
+  const { dashboardValues, userId, changeComponentVisibility} =
     useContext(VerifyWiseContext);
   const { users } = dashboardValues;
 
@@ -121,17 +118,6 @@ const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
   };
 
   const collapsed = useSelector((state: any) => state.ui?.sidebar?.collapsed);
-
-  const handleProjectChange = (event: SelectChangeEvent<string | number>) => {
-    const selectedProjectId = event.target.value as string;
-    setSelectedProjectId(selectedProjectId);
-    // Update the dashboardValues in the context
-    setDashboardValues({
-      ...dashboardValues,
-      selectedProjectId,
-    });
-    setCurrentProjectId(selectedProjectId);
-  };
 
   const [open, setOpen] = useState<{ [key: string]: boolean }>({
     Dashboard: false,
@@ -161,20 +147,6 @@ useEffect(() => {
    changeComponentVisibility("sidebar", true);
   }
 }, [allVisible]);
-
-  useEffect(() => {
-    if (projects.length === 0) {
-      setSelectedProjectId("");
-    }
-    const isValidProject = projects.find(
-      (p: any) => p._id === selectedProjectId
-    );
-    if (projects.length > 0 && !isValidProject) {
-      setSelectedProjectId(projects[0]._id);
-    } else {
-      setCurrentProjectId(selectedProjectId);
-    }
-  }, [projects, selectedProjectId]);
 
   return (
     <Stack
@@ -267,44 +239,6 @@ useEffect(() => {
       >
         {collapsed ? <ArrowRight /> : <ArrowLeft />}
       </IconButton>
-      {/* Select */}
-      {!collapsed && (
-        <Stack
-          sx={{
-            padding: theme.spacing(4),
-            justifyContent: "flex-start",
-            width: "fit-content",
-          }}
-          data-joyride-id="select-project"
-          ref={refs[0]}
-        >
-          {projects.length > 0 ? (
-            <Select
-              id="projects"
-              value={selectedProjectId}
-              items={projects.map((project: any) => ({
-                ...project,
-                name:
-                  project.name.length > 18
-                    ? project.name.slice(0, 18) + "..."
-                    : project.name,
-              }))}
-              onChange={handleProjectChange}
-              sx={{ width: "180px", marginLeft: theme.spacing(8) }}
-            />
-          ) : (
-            <Box
-              className="empty-project"
-              sx={{
-                marginLeft: theme.spacing(8),
-                borderColor: theme.palette.border.dark,
-              }}
-            >
-              No Project
-            </Box>
-          )}
-        </Stack>
-      )}
       {/* menu */}
       <List
         component="nav"

@@ -43,7 +43,7 @@ export interface ProjectRisk {
   recommendations?: any;
 }
 
-const useProjectRisks = ({ projectId, refreshKey }: { projectId?: string | null, refreshKey?: any }) => {
+const useProjectRisks = ({ projectId, refreshKey }: { projectId: number, refreshKey?: any }) => {
   const [projectRisks, setProjectRisks] = useState<ProjectRisk[]>([]);
   const [loadingProjectRisks, setLoadingProjectRisks] = useState<boolean>(true);
   const [error, setError] = useState<string | boolean>(false);

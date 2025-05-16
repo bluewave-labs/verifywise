@@ -8,18 +8,14 @@ import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.c
 import useProjectData from "../../../../application/hooks/useProjectData";
 import { User } from "../../../../domain/types/User";
 import { Dayjs } from "dayjs";
-
-interface DropDownsProps {
-  elementId?: string;
-  state?: any;
-  setState?: (newState: any) => void;
-  isControl?: boolean;
-}
+import { DropDownsProps } from "../../../../domain/interfaces/iWidget";
+import { inputStyles } from "./style";
 
 const DropDowns: React.FC<DropDownsProps> = ({
   elementId,
   state,
   setState,
+  projectId,
 }) => {
   const [status, setStatus] = useState("");
   const [approver, setApprover] = useState("");
@@ -29,16 +25,9 @@ const DropDowns: React.FC<DropDownsProps> = ({
   const [date, setDate] = useState<Dayjs | null>(null);
   const [implementationDetails, setImplementationDetails] = useState("");
   const theme = useTheme();
-  const { dashboardValues, currentProjectId } = useContext(VerifyWiseContext);
+  const { dashboardValues } = useContext(VerifyWiseContext);
   const { users } = dashboardValues;
-  const { project } = useProjectData({ projectId: currentProjectId || "0" });
-
-  const inputStyles = {
-    minWidth: 200,
-    maxWidth: 400,
-    flexGrow: 1,
-    height: 34,
-  };
+  const { project } = useProjectData({ projectId: String(projectId) || "0" });
 
   const [projectMembers, setProjectMembers] = useState<User[]>([]);
 

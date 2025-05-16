@@ -12,7 +12,7 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate, useLocation } from "react-router-dom";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { handleAlert } from "../../../../application/tools/alertUtils";
-import { AlertProps } from "../../../components/Alert";
+import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import Alert from "../../../components/Alert";
 
 // Define the shape of form values
@@ -37,9 +37,9 @@ const ForgotPassword: React.FC = () => {
   // Handle changes in input fields
   const handleChange =
     (prop: keyof FormValues) =>
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        setValues({ ...values, [prop]: event.target.value });
-      };
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setValues({ ...values, [prop]: event.target.value });
+    };
 
   // Handle form submission
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {

@@ -141,8 +141,8 @@ export async function insertMockData() {
       )
 
       // create eu framework
-      await createEUFrameworkQuery(project.id!, true, transaction)
-      await createISOFrameworkQuery(project.id!, true, transaction)
+      await createEUFrameworkQuery(project.id!, true, transaction, true)
+      await createISOFrameworkQuery(project.id!, true, transaction, true)
     } else {
       // project already exists, delete it and insert a new one
     }

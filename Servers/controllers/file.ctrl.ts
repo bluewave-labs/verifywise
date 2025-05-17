@@ -50,24 +50,25 @@ export async function getFileMetaByProjectId(
   }
 }
 
-export const getUserFilesMetaData= async (req: Request, res: Response) => {
+export const getUserFilesMetaData = async (req: Request, res: Response) => {
   try {
     const userId = Number(req.userId);
-
-    const page = req.query.page ? Math.max(parseInt(req.query.page as string), 1) : undefined;
-    const pageSize = req.query.pageSize ? Math.max(parseInt(req.query.pageSize as string), 1) : undefined;
-    const offset = page !== undefined && pageSize !== undefined ? (page - 1) * pageSize : undefined;
-
-    const files = await getUserFilesMetaDataQuery(userId, { limit: pageSize, offset });
-
-    if (files === null || files === undefined) {
-      return res.status(404).json(STATUS_CODE[404]({}));
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: "Invalid user ID" });
     }
+
+    const page = Number(req.query.page);
+    const pageSize = Number(req.query.pageSize);
+    const validPage = !isNaN(page) && page > 0 ? page : undefined;
+    const validPageSize = !isNaN(pageSize) && pageSize > 0 ? pageSize : undefined;
+    const offset = validPage !== undefined && validPageSize !== undefined ? (validPage - 1) * validPageSize : undefined;
+
+    const files = await getUserFilesMetaDataQuery(userId, { limit: validPageSize, offset });
 
     return res.status(200).send(files);
   } catch (err) {
-    console.error('Failed to fetch user files:', err);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error(`Failed to fetch user files for user ${req.userId}:`, err);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 

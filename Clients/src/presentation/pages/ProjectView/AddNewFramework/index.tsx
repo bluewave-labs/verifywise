@@ -1,9 +1,16 @@
-import React from 'react';
-import { Modal, Box, Typography, Stack, IconButton, Button } from '@mui/material';
-import CheckIcon from '@mui/icons-material/Check';
-import CloseIcon from '@mui/icons-material/Close';
-import { Project } from '../../../../domain/types/Project';
-import { Framework } from '../../../../domain/types/Framework';
+import React from "react";
+import {
+  Modal,
+  Box,
+  Typography,
+  Stack,
+  IconButton,
+  Button,
+} from "@mui/material";
+import CheckIcon from "@mui/icons-material/Check";
+import CloseIcon from "@mui/icons-material/Close";
+import { Project } from "../../../../domain/types/Project";
+import { Framework } from "../../../../domain/types/Framework";
 import {
   modalContainerStyle,
   modalHeaderStyle,
@@ -14,7 +21,7 @@ import {
   frameworkCardAddedStyle,
   frameworkCardDescriptionStyle,
   modalDoneButtonStyle,
-} from './styles';
+} from "./styles";
 
 interface AddFrameworkModalProps {
   open: boolean;
@@ -23,55 +30,75 @@ interface AddFrameworkModalProps {
   project: Project;
 }
 
-const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({ open, onClose, frameworks, project }) => {
-  frameworks = [...frameworks, {
-    id: '2',
-    framework_id: '2',
-    name: 'ISO 42001',
-    description: 'ISO 42001 is a framework for managing and improving the quality of products and services.',
-    is_demo: false,
-    project_id: '',
-  }];
+const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
+  open,
+  onClose,
+  frameworks,
+  project,
+}) => {
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={modalContainerStyle}>
         {/* Header */}
         <Box sx={modalHeaderStyle}>
-          <Typography sx={{ fontSize: 20, fontWeight: 600, color: '#232B3A' }}>AI Frameworks</Typography>
-          <IconButton aria-label="Close modal" onClick={onClose} sx={modalCloseButtonStyle}>
+          <Typography sx={{ fontSize: 20, fontWeight: 600, color: "#232B3A" }}>
+            AI Frameworks
+          </Typography>
+          <IconButton
+            aria-label="Close modal"
+            onClick={onClose}
+            sx={modalCloseButtonStyle}
+          >
             <CloseIcon fontSize="medium" />
           </IconButton>
         </Box>
         {/* Description */}
         <Box sx={{ p: 2, pt: 0 }}>
           <Typography sx={modalDescriptionStyle}>
-            Add or remove AI frameworks to your platform. Selected frameworks will be integrated into your compliance workflow.
+            Add or remove AI frameworks to your platform. Selected frameworks
+            will be integrated into your compliance workflow.
           </Typography>
           <Stack spacing={6}>
-            {frameworks.map(fw => {
-              const isAdded = project.framework?.some(pf => Number(pf.framework_id) === Number(fw.id));
+            {frameworks.map((fw) => {
+              const isAdded = project.framework?.some(
+                (pf) => Number(pf.framework_id) === Number(fw.id)
+              );
               return (
-                <Box
-                  key={fw.id}
-                  sx={frameworkCardStyle}
-                >
-                  <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={1}>
-                    <Typography sx={frameworkCardTitleStyle}>{fw.name}</Typography>
+                <Box key={fw.id} sx={frameworkCardStyle}>
+                  <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="flex-start"
+                    mb={1}
+                  >
+                    <Typography sx={frameworkCardTitleStyle}>
+                      {fw.name}
+                    </Typography>
                     {isAdded && (
                       <Box sx={frameworkCardAddedStyle}>
-                        <CheckIcon sx={{ color: '#13715B', fontSize: 18 }} />
+                        <CheckIcon sx={{ color: "#13715B", fontSize: 18 }} />
                         <span>Added</span>
                       </Box>
                     )}
                   </Box>
-                  <Typography sx={frameworkCardDescriptionStyle}>{fw.description}</Typography>
+                  <Typography sx={frameworkCardDescriptionStyle}>
+                    {fw.description}
+                  </Typography>
                 </Box>
               );
             })}
           </Stack>
         </Box>
         {/* Done Button */}
-        <Box sx={{ p: 2, pt: 0, display: 'flex', justifyContent: 'flex-end', paddingTop: '20px' }}>
+        <Box
+          sx={{
+            p: 2,
+            pt: 0,
+            display: "flex",
+            justifyContent: "flex-end",
+            paddingTop: "20px",
+          }}
+        >
           <Button
             onClick={onClose}
             color="primary"
@@ -86,4 +113,4 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({ open, onClose, fr
   );
 };
 
-export default AddFrameworkModal; 
+export default AddFrameworkModal;

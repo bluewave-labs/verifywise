@@ -43,7 +43,9 @@ type TrackerTab = (typeof TRACKER_TABS)[number]["value"];
 type ISO42001Tab = (typeof ISO_42001_TABS)[number]["value"];
 
 const ProjectFrameworks = ({ project }: { project: Project }) => {
-  const { frameworks, loading, error, refreshFrameworks } = useFrameworks();
+  const { frameworks, loading, error, refreshFrameworks } = useFrameworks({
+    listOfFrameworks: project.framework,
+  });
   const [selectedFrameworkId, setSelectedFrameworkId] = useState<number | null>(
     null
   );
@@ -176,10 +178,16 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
         {isISO42001 ? (
           <>
             <TabPanel value="clauses" sx={tabPanelStyle}>
-              <ISO42001Clauses />
+              <ISO42001Clauses
+                project={project}
+                framework_id={Number(selectedFrameworkId)}
+              />
             </TabPanel>
             <TabPanel value="annexes" sx={tabPanelStyle}>
-              <ISO42001Annex />
+              <ISO42001Annex
+                project={project}
+                framework_id={Number(selectedFrameworkId)}
+              />
             </TabPanel>
           </>
         ) : (

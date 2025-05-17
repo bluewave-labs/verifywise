@@ -9,8 +9,17 @@ import { ISO42001AnnexList } from "./annex.structure";
 import { useState } from "react";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import VWISO42001AnnexDrawerDialog from "../../../components/Drawer/AnnexDrawerDialog";
+import { Project } from "../../../../domain/types/Project";
 
-const ISO42001Annex = () => {
+const ISO42001Annex = ({
+  project,
+  framework_id,
+}: {
+  project: Project;
+  framework_id: number;
+}) => {
+  console.log("project", project);
+  console.log("framework_id", framework_id);
   const [expanded, setExpanded] = useState<number | false>(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);

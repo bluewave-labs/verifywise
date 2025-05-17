@@ -36,6 +36,7 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
   frameworks,
   project,
 }) => {
+  console.log("frameworks", frameworks);
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={modalContainerStyle}>

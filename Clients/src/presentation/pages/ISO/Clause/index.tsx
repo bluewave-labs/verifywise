@@ -10,8 +10,17 @@ import { accordionStyle } from "../style";
 import { useState } from "react";
 import { ISO42001ClauseList } from "./clause.structure";
 import VWISO42001ClauseDrawerDialog from "../../../components/Drawer/ClauseDrawerDialog";
+import { Project } from "../../../../domain/types/Project";
 
-const ISO42001Clauses = () => {
+const ISO42001Clauses = ({
+  project,
+  framework_id,
+}: {
+  project: Project;
+  framework_id: number;
+}) => {
+  console.log("project", project);
+  console.log("framework_id", framework_id);
   const [expanded, setExpanded] = useState<number | false>(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedSubClause, setSelectedSubClause] = useState<any>(null);

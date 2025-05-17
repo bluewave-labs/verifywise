@@ -18,15 +18,14 @@ const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
       <Select
         id="project-filter"
         value={selectedProject || ""}
-        onChange={(e) => onChange(e.target.value || null)}
+        onChange={(e) => onChange(e.target.value)}
         displayEmpty
         sx={{
           ...inputStyles,
           ...dropdownStyles,
         }}
-      >
-        <MenuItem value="">Select a project</MenuItem>
-        <MenuItem value="all">All Files</MenuItem>
+      >     
+        <MenuItem value="all">All projects</MenuItem>
         {projects.map((project) => (
           <MenuItem key={project.id} value={project.id}>
             {project.name}

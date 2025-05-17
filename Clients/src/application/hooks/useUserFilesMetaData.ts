@@ -9,7 +9,7 @@ import { useState, useEffect } from "react";
 import { getEntityById } from "../repository/entity.repository";
 import { FileData } from "../../domain/types/File";
 
-export const useFetchFiles = (projectID: string) => {
+export const useUserFilesMetaData = () => {
   const [filesData, setFilesData] = useState<FileData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -22,7 +22,7 @@ export const useFetchFiles = (projectID: string) => {
       try {
         setLoading(true);
         setError(null);
-        const routeUrl = projectID ? `/files/by-projid/${projectID}` : "/files";
+        const routeUrl = "/files";
         const filesResponse = await getEntityById({
           routeUrl,
           signal: abortController.signal,
@@ -41,6 +41,8 @@ export const useFetchFiles = (projectID: string) => {
                   file.uploader_surname ?? ""
                 }`.trim() || "N/A",
               source: file.source,
+              projectTitle: file.project_title,
+              projectId: file.project_id.toString(),
             }))
           );
         } else {
@@ -67,7 +69,7 @@ export const useFetchFiles = (projectID: string) => {
     return () => {
       abortController.abort();
     };
-  }, [projectID]);
+  }, []);
 
   return { filesData, loading, error };
 };

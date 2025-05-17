@@ -1,12 +1,8 @@
 "use strict";
 
 function getComplianceTrackerStruct() {
-  const {
-    ControlCategories,
-  } = require("../../dist/structures/compliance-tracker/controlCategories.struct");
-  let controlCategories = [],
-    controls = [],
-    subControls = [];
+  const { ControlCategories } = require("../../dist/structures/EU-AI-Act/compliance-tracker/controlCategories.struct");
+  let controlCategories = [], controls = [], subControls = []
   for (let controlCategory of ControlCategories) {
     controlCategories.push({
       title: controlCategory.title,

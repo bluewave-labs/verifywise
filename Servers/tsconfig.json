@@ -107,7 +107,9 @@
     "./controllers/**/*.ts",
     "./models/**/*.ts",
     "./utils/**/*.ts",
-    "./types/*.d.ts"
+    "./types/*.d.ts",
+    "./structures/**/*.ts",
+    "./types/**/*.d.ts", "types/status.type.ts",
   ],
   "exclude": [
     "node_modules",

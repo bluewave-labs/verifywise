@@ -19,7 +19,8 @@ export const uploadFile = async (
     | "Compliance tracker report"
     | "Assessment tracker report"
     | "Vendors and risks report"
-    | "All reports",
+    | "All reports"
+    | "Management system clauses group" | "Reference controls group",
   transaction: Transaction | null = null
 ) => {
   const projectIsDemo = await sequelize.query(

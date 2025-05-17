@@ -10,10 +10,11 @@ import { SubcontrolEU, SubcontrolEUModel } from "../models/EU/subControlEU.model
 import { SubtopicStructEUModel } from "../models/EU/subTopicStructEU.model";
 import { TopicStructEUModel } from "../models/EU/topicStructEU.model";
 import { ProjectScopeModel } from "../models/projectScope.model";
-import { Topics } from "../structures/assessment-tracker/topics.struct";
-import { ControlCategories } from "../structures/compliance-tracker/controlCategories.struct";
+import { Topics } from "../structures/EU-AI-Act/assessment-tracker/topics.struct";
+import { ControlCategories } from "../structures/EU-AI-Act/compliance-tracker/controlCategories.struct";
 import { deleteHelper } from "./project.utils";
 import { ProjectFrameworksModel } from "../models/projectFrameworks.model";
+import { STATUSES_ANSWERS, STATUSES_COMPLIANCE } from "../types/status.type";
 
 const getDemoAnswers = (): String[] => {
   const answers = [];
@@ -408,7 +409,8 @@ export const getComplianceEUByProjectIdQuery = async (
 export const createNewAssessmentEUQuery = async (
   assessment: AssessmentEU,
   enable_ai_data_insertion: boolean,
-  transaction: Transaction
+  transaction: Transaction,
+  is_mock_data: boolean
 ): Promise<Object> => {
   const projectFrameworkId = await sequelize.query(
     `SELECT id FROM projects_frameworks WHERE project_id = :project_id AND framework_id = 1`,
@@ -431,7 +433,7 @@ export const createNewAssessmentEUQuery = async (
       transaction
     }
   );
-  await createNewAnswersEUQuery(result[0].id!, enable_ai_data_insertion, transaction);
+  await createNewAnswersEUQuery(result[0].id!, enable_ai_data_insertion, transaction, is_mock_data);
   const assessments = await getAssessmentsEUByIdQuery(result[0].id!, transaction);
   return { ...result[0].dataValues, topics: assessments };
 };
@@ -439,12 +441,13 @@ export const createNewAssessmentEUQuery = async (
 export const createNewAnswersEUQuery = async (
   assessmentId: number,
   enable_ai_data_insertion: boolean,
-  transaction: Transaction
+  transaction: Transaction,
+  is_mock_data: boolean
 ) => {
   let demoAnswers: String[] = [];
   if (enable_ai_data_insertion) demoAnswers = getDemoAnswers();
   const questions = await sequelize.query(
-    "SELECT * FROM questions_struct_eu;",
+    "SELECT * FROM questions_struct_eu ORDER BY id;",
     {
       mapToModel: true,
       model: QuestionStructEUModel,
@@ -463,7 +466,7 @@ export const createNewAnswersEUQuery = async (
           assessment_id: assessmentId,
           question_id: question.id!,
           answer: enable_ai_data_insertion ? demoAnswers[ansCtr++] : null,
-          status: 'Not started',
+          status: is_mock_data ? STATUSES_ANSWERS[Math.floor(Math.random() * STATUSES_ANSWERS.length)] : 'Not started',
           is_demo: await findIsDemo("assessments", assessmentId, transaction)
         },
         mapToModel: true,
@@ -479,7 +482,8 @@ export const createNewAnswersEUQuery = async (
 export const createNewControlsQuery = async (
   projectId: number,
   enable_ai_data_insertion: boolean,
-  transaction: Transaction
+  transaction: Transaction,
+  is_mock_data: boolean
 ) => {
   let demoControls: any[] = []
   if (enable_ai_data_insertion) demoControls = getDemoControls();
@@ -524,7 +528,8 @@ export const createNewControlsQuery = async (
       demoControls[controlCtr++]?.subControls || [],
       result[0].id!,
       enable_ai_data_insertion,
-      transaction
+      transaction,
+      is_mock_data
     );
   };
   const compliances = await getCompliancesEUByIdQuery(controlIds, transaction);
@@ -536,7 +541,8 @@ export const createNewSubControlsQuery = async (
   demoSubControls: any[],
   controlId: number,
   enable_ai_data_insertion: boolean,
-  transaction: Transaction
+  transaction: Transaction,
+  is_mock_data: boolean
 ) => {
   const subControlMetaIds = await sequelize.query(
     "SELECT id FROM subcontrols_struct_eu WHERE control_id = :control_id",
@@ -558,7 +564,7 @@ export const createNewSubControlsQuery = async (
           implementation_details: enable_ai_data_insertion ? demoSubControls[ctr].implementation_details : null,
           evidence_description: enable_ai_data_insertion && demoSubControls[ctr].evidence_description ? demoSubControls[ctr].evidence_description : null,
           feedback_description: enable_ai_data_insertion && demoSubControls[ctr].feedback_description ? demoSubControls[ctr].feedback_description : null,
-          status: enable_ai_data_insertion ? 'Waiting' : null,
+          status: is_mock_data ? STATUSES_COMPLIANCE[Math.floor(Math.random() * STATUSES_COMPLIANCE.length)] : 'Waiting',
           is_demo: await findIsDemo("controls_eu", controlId, transaction)
         },
         mapToModel: true,
@@ -575,15 +581,17 @@ export const createNewSubControlsQuery = async (
 export const createEUFrameworkQuery = async (
   projectId: number,
   enable_ai_data_insertion: boolean,
-  transaction: Transaction
+  transaction: Transaction,
+  is_mock_data: boolean = false
 ) => {
   const assessments: Object = await createNewAssessmentEUQuery(
     { project_id: projectId, },
     enable_ai_data_insertion,
-    transaction
+    transaction,
+    is_mock_data
   );
   const controls = await createNewControlsQuery(
-    projectId, enable_ai_data_insertion, transaction
+    projectId, enable_ai_data_insertion, transaction, is_mock_data
   );
   return {
     assessment_tracker: assessments,
@@ -821,7 +829,7 @@ export const deleteAssessmentEUByProjectIdQuery = async (
     }
   ) as [{ id: number }[], number];
   if (assessmentId[0].length === 0) {
-    return;
+    return false;
   }
   await sequelize.query(
     `DELETE FROM answers_eu WHERE assessment_id = :assessment_id`,
@@ -853,7 +861,7 @@ export const deleteComplianeEUByProjectIdQuery = async (
     }
   ) as [{ id: number }[], number];
   if (controlIds[0].length === 0) {
-    return;
+    return false;
   }
   for (let control of controlIds[0]) {
     await sequelize.query(

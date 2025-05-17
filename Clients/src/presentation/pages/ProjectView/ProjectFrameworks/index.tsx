@@ -24,7 +24,6 @@ import {
 import ISO42001Annex from "../../ISO/Annex";
 import ISO42001Clauses from "../../ISO/Clause";
 
-// Constants
 const FRAMEWORK_IDS = {
   EU_AI_ACT: 1,
   ISO_42001: 2,
@@ -43,16 +42,10 @@ const ISO_42001_TABS = [
 type TrackerTab = (typeof TRACKER_TABS)[number]["value"];
 type ISO42001Tab = (typeof ISO_42001_TABS)[number]["value"];
 
-// interface Framework {
-//   id: number;
-//   name: string;
-//   description: string;
-//   is_demo: boolean;
-//   project_id: string;
-// }
-
 const ProjectFrameworks = ({ project }: { project: Project }) => {
-  const { frameworks, loading, error, refreshFrameworks } = useFrameworks();
+  const { frameworks, loading, error, refreshFrameworks } = useFrameworks({
+    listOfFrameworks: project.framework,
+  });
   const [selectedFrameworkId, setSelectedFrameworkId] = useState<number | null>(
     null
   );
@@ -60,7 +53,7 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
     "compliance"
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
-  //joyride
+
   const { changeComponentVisibility } = useContext(VerifyWiseContext);
 
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
@@ -80,23 +73,11 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
     project.framework?.map((f) => f.framework_id) || [];
 
   const projectFrameworks = useMemo(
-    () => [
-      ...frameworks.filter((fw) =>
-        associatedFrameworkIds.includes(Number(fw.id))
-      ),
-      {
-        id: FRAMEWORK_IDS.ISO_42001,
-        name: "ISO 42001",
-        description:
-          "ISO 42001 is a framework for managing and improving the quality of products and services.",
-        is_demo: false,
-        project_id: "",
-      },
-    ],
+    () =>
+      frameworks.filter((fw) => associatedFrameworkIds.includes(Number(fw.id))),
     [frameworks, associatedFrameworkIds]
   );
 
-  // Set initial framework when frameworks are loaded
   useEffect(() => {
     if (!loading && projectFrameworks.length > 0) {
       const validIds = projectFrameworks.map((fw) => Number(fw.id));
@@ -112,44 +93,12 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
     }
   }, [loading, projectFrameworks, selectedFrameworkId]);
 
-  // const currentFramework = useMemo(() =>
-  //   frameworks.find(fw => Number(fw.id) === selectedFrameworkId),
-  //   [frameworks, selectedFrameworkId]
-  // );
-
   const handleFrameworkChange = (frameworkId: number) => {
     setSelectedFrameworkId(frameworkId);
     setTracker(
       frameworkId === FRAMEWORK_IDS.ISO_42001 ? "clauses" : "compliance"
     );
   };
-
-  // const renderFrameworkContent = () => {
-  //   if (!project) {
-  //     return <VWSkeleton variant="rectangular" width="100%" height={400} />;
-  //   }
-
-  //   const isEUAIAct = Number(currentFramework?.id) === FRAMEWORK_IDS.EU_AI_ACT;
-  //   const isISO42001 = Number(currentFramework?.id) === FRAMEWORK_IDS.ISO_42001;
-
-  //   if (isEUAIAct) {
-  //     return tracker === 'compliance' ? (
-  //       <ComplianceTracker project={project} />
-  //     ) : (
-  //       <AssessmentTracker project={project} />
-  //     );
-  //   }
-
-  //   if (isISO42001) {
-  //     return tracker === 'clauses' ? (
-  //       <ISO42001Clauses />
-  //     ) : (
-  //       <ISO42001Annex />
-  //     );
-  //   }
-
-  //   return null;
-  // };
 
   if (error) {
     return (
@@ -220,8 +169,8 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
                 disableRipple
                 data-joyride-id={
                   tab.value === "compliance" ? "compliance-heading" : undefined
-                } // Add Joyride ID here
-                ref={tab.value === "compliance" ? refs[0] : undefined} // Add ref here
+                }
+                ref={tab.value === "compliance" ? refs[0] : undefined}
               />
             ))}
           </TabList>
@@ -229,16 +178,24 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
         {isISO42001 ? (
           <>
             <TabPanel value="clauses" sx={tabPanelStyle}>
-              <ISO42001Clauses />
+              <ISO42001Clauses
+                project={project}
+                framework_id={Number(selectedFrameworkId)}
+                projectFrameworkId={Number(selectedFrameworkId)}
+              />
             </TabPanel>
             <TabPanel value="annexes" sx={tabPanelStyle}>
-              <ISO42001Annex />
+              <ISO42001Annex
+                project={project}
+                framework_id={Number(selectedFrameworkId)}
+                projectFrameworkId={Number(selectedFrameworkId)}
+              />
             </TabPanel>
           </>
         ) : (
           <>
             <TabPanel value="compliance" sx={tabPanelStyle}>
-                <ComplianceTracker project={project} />
+              <ComplianceTracker project={project} />
             </TabPanel>
             <TabPanel value="assessment" sx={tabPanelStyle}>
               <AssessmentTracker project={project} />

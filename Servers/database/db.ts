@@ -31,6 +31,13 @@ import { SubcontrolStructEUModel } from "../models/EU/subControlStructEU.model";
 import { ControlEUModel } from "../models/EU/controlEU.model";
 import { SubcontrolEUModel } from "../models/EU/subControlEU.model";
 import { AssessmentEUModel } from "../models/EU/assessmentEU.model";
+import { AnnexCategoryISOModel } from "../models/ISO-42001/annexCategoryISO.model";
+import { AnnexCategoryISORisksModel } from "../models/ISO-42001/annexCategoryISORIsks.model";
+import { AnnexCategoryStructISOModel } from "../models/ISO-42001/annexCategoryStructISO.model";
+import { AnnexStructISOModel } from "../models/ISO-42001/annexStructISO.model";
+import { ClauseStructISOModel } from "../models/ISO-42001/clauseStructISO.model";
+import { SubClauseISOModel } from "../models/ISO-42001/subClauseISO.model";
+import { SubClauseStructISOModel } from "../models/ISO-42001/subClauseStructISO.model";
 
 dotenv.config();
 
@@ -74,7 +81,14 @@ const sequelize = new Sequelize(
       ControlStructEUModel,
       SubcontrolStructEUModel,
       ControlEUModel,
-      SubcontrolEUModel
+      SubcontrolEUModel,
+      AnnexCategoryISOModel,
+      AnnexCategoryISORisksModel,
+      AnnexCategoryStructISOModel,
+      AnnexStructISOModel,
+      ClauseStructISOModel,
+      SubClauseISOModel,
+      SubClauseStructISOModel
     ]
   }
 ) as Sequelize;

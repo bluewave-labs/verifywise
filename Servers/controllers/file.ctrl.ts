@@ -5,6 +5,7 @@ import { addFileToQuestion, RequestWithFile, UploadedFile } from "../utils/quest
 import { FileType } from "../models/file.model";
 import { addFileToAnswerEU } from "../utils/eu.utils";
 import { sequelize } from "../database/db";
+import getUserFilesMetaDataQuery from "../utils/files/getUserFilesMetaData.utils";
 
 export async function getFileContentById(
   req: Request,
@@ -48,6 +49,28 @@ export async function getFileMetaByProjectId(
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
+
+export const getUserFilesMetaData= async (req: Request, res: Response) => {
+  try {
+    const userId = Number(req.userId);
+
+    const page = req.query.page ? Math.max(parseInt(req.query.page as string), 1) : undefined;
+    const pageSize = req.query.pageSize ? Math.max(parseInt(req.query.pageSize as string), 1) : undefined;
+    const offset = page !== undefined && pageSize !== undefined ? (page - 1) * pageSize : undefined;
+
+    const files = await getUserFilesMetaDataQuery(userId, { limit: pageSize, offset });
+
+    if (files === null || files === undefined) {
+      return res.status(404).json(STATUS_CODE[404]({}));
+    }
+
+    return res.status(200).send(files);
+  } catch (err) {
+    console.error('Failed to fetch user files:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 
 export async function postFileContent(
   req: RequestWithFile,

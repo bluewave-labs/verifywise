@@ -2,19 +2,8 @@ import {
   GetRequestParams,
   RequestParams,
 } from "../../domain/interfaces/iRequestParams";
-import { RootState } from "../../domain/types/RootState";
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { store } from "../redux/store"; // Adjust the import path as necessary
-
-/**
- * Retrieves the authToken from the Redux store.
- *
- * @returns {string} The authToken from the Redux store.
- */
-const getAuthToken = (): string => {
-  const state = store.getState() as RootState;
-  return state.auth.authToken;
-};
+import { getAuthToken } from "../redux/getAuthToken";
 
 /**
  * Creates a new user by sending a POST request to the specified route URL with the provided body.

@@ -181,12 +181,14 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
               <ISO42001Clauses
                 project={project}
                 framework_id={Number(selectedFrameworkId)}
+                projectFrameworkId={Number(selectedFrameworkId)}
               />
             </TabPanel>
             <TabPanel value="annexes" sx={tabPanelStyle}>
               <ISO42001Annex
                 project={project}
                 framework_id={Number(selectedFrameworkId)}
+                projectFrameworkId={Number(selectedFrameworkId)}
               />
             </TabPanel>
           </>

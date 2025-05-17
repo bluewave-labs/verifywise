@@ -14,12 +14,15 @@ import { Project } from "../../../../domain/types/Project";
 const ISO42001Annex = ({
   project,
   framework_id,
+  projectFrameworkId,
 }: {
   project: Project;
   framework_id: number;
+  projectFrameworkId: number;
 }) => {
   console.log("project", project);
   console.log("framework_id", framework_id);
+  console.log("projectFrameworkId", projectFrameworkId);
   const [expanded, setExpanded] = useState<number | false>(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);

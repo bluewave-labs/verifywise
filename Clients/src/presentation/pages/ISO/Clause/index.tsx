@@ -7,15 +7,45 @@ import {
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { accordionStyle } from "../style";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ISO42001ClauseList } from "./clause.structure";
 import VWISO42001ClauseDrawerDialog from "../../../components/Drawer/ClauseDrawerDialog";
+import { Project } from "../../../../domain/types/Project";
+import { GetClausesByProjectFrameworkId } from "../../../../application/repository/clause_struct_iso.repository";
 
-const ISO42001Clauses = () => {
+const ISO42001Clauses = ({
+  project,
+  framework_id,
+  projectFrameworkId,
+}: {
+  project: Project;
+  framework_id: number;
+  projectFrameworkId: number;
+}) => {
+  console.log("project", project);
+  console.log("framework_id", framework_id);
+  console.log("projectFrameworkId", projectFrameworkId);
   const [expanded, setExpanded] = useState<number | false>(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedSubClause, setSelectedSubClause] = useState<any>(null);
   const [selectedClause, setSelectedClause] = useState<any>(null);
+  const [clauses, setClauses] = useState<any>([]);
+
+  useEffect(() => {
+    const fetchClauses = async () => {
+      try {
+        const response = await GetClausesByProjectFrameworkId({
+          routeUrl: `/iso-42001/clauses/byProjectId/${projectFrameworkId}`,
+        });
+        setClauses(response.data);
+        console.log("clauses", clauses);
+      } catch (error) {
+        console.error("Error fetching clauses:", error);
+      }
+    };
+
+    fetchClauses();
+  }, [projectFrameworkId]);
 
   const handleAccordionChange =
     (panel: number) => (_: React.SyntheticEvent, isExpanded: boolean) => {
@@ -53,17 +83,17 @@ const ISO42001Clauses = () => {
 
   return (
     <Stack className="iso-42001-clauses">
-      {ISO42001ClauseList.map((clause) => (
+      {ISO42001ClauseList.map((item) => (
         <>
           <Typography
-            key={clause.id}
+            key={item.id}
             sx={{ color: "#1A1919", fontWeight: 600, mb: "6px", fontSize: 16 }}
           >
-            {clause.title} {" Clauses"}
+            {item.title} {" Clauses"}
           </Typography>
-          {clause.clauses.map((clause) => (
+          {clauses.map((clause: any) => (
             <Stack
-              key={clause.number}
+              key={clause.id}
               sx={{
                 maxWidth: "1400px",
                 marginTop: "14px",
@@ -71,8 +101,8 @@ const ISO42001Clauses = () => {
               }}
             >
               <Accordion
-                key={clause.number}
-                expanded={expanded === clause.number}
+                key={clause.id}
+                expanded={expanded === clause.id}
                 sx={{
                   ...accordionStyle,
                   ".MuiAccordionDetails-root": {
@@ -80,7 +110,7 @@ const ISO42001Clauses = () => {
                     margin: 0,
                   },
                 }}
-                onChange={handleAccordionChange(clause.number ?? 0)}
+                onChange={handleAccordionChange(clause.id ?? 0)}
               >
                 <AccordionSummary
                   sx={{
@@ -91,7 +121,7 @@ const ISO42001Clauses = () => {
                     <ExpandMoreIcon
                       sx={{
                         transform:
-                          expanded === clause.number
+                          expanded === clause.id
                             ? "rotate(180deg)"
                             : "rotate(270deg)",
                         transition: "transform 0.5s ease-in",
@@ -105,13 +135,13 @@ const ISO42001Clauses = () => {
                       fontSize: 13,
                     }}
                   >
-                    {"Clause "} {clause.number} {" : "} {clause.title}
+                    {clause.title}
                   </Typography>
                 </AccordionSummary>
                 <AccordionDetails sx={{ padding: 0 }}>
-                  {clause.subClauses.map((subClause) => (
+                  {clause.subClauses.map((subClause: any, index: number) => (
                     <Stack
-                      key={subClause.number}
+                      key={subClause.id}
                       onClick={() => handleSubClauseClick(clause, subClause)}
                       sx={{
                         display: "flex",
@@ -128,8 +158,7 @@ const ISO42001Clauses = () => {
                       }}
                     >
                       <Typography>
-                        {clause.number + "." + subClause.number}{" "}
-                        {subClause.title}
+                        {clause.clause_no + "." + (index + 1)} {subClause.title}
                       </Typography>
                       <Stack
                         sx={{

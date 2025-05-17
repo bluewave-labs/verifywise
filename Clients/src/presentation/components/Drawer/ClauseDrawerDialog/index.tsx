@@ -23,26 +23,11 @@ export const inputStyles = {
   height: 34,
 };
 
-interface SubClause {
-  number: string;
-  title: string;
-  status: string;
-  summary: string;
-  keyQuestions: string[];
-  evidenceExamples: string[];
-}
-
-interface Clause {
-  number: number;
-  title: string;
-  subClauses: SubClause[];
-}
-
 interface VWISO42001ClauseDrawerDialogProps {
   open: boolean;
   onClose: () => void;
-  subClause: SubClause | null;
-  clause: Clause | null;
+  subClause: any;
+  clause: any;
   evidenceFiles?: FileData[];
   uploadFiles?: FileData[];
 }
@@ -89,7 +74,7 @@ const VWISO42001ClauseDrawerDialog = ({
           }}
         >
           <Typography fontSize={15} fontWeight={700}>
-            {clause?.number + "." + subClause?.number} {subClause?.title}
+            {clause?.clause_no + "." + subClause?.id} {subClause?.title}
           </Typography>
           <CloseIcon onClick={onClose} style={{ cursor: "pointer" }} />
         </Stack>
@@ -117,7 +102,7 @@ const VWISO42001ClauseDrawerDialog = ({
               Key Questions:
             </Typography>
             <ul style={{ paddingLeft: "20px" }}>
-              {subClause?.keyQuestions.map((question, index) => (
+              {subClause?.questions.map((question: any, index: any) => (
                 <li key={index}>
                   <Typography fontSize={13}>{question}</Typography>
                 </li>
@@ -128,7 +113,7 @@ const VWISO42001ClauseDrawerDialog = ({
               Evidence Examples:
             </Typography>
             <ul style={{ paddingLeft: "20px" }}>
-              {subClause?.evidenceExamples.map((example, index) => (
+              {subClause?.evidence_examples.map((example: any, index: any) => (
                 <li key={index}>
                   <Typography fontSize={13}>{example}</Typography>
                 </li>

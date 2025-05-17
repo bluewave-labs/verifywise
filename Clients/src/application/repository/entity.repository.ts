@@ -1,42 +1,9 @@
+import {
+  GetRequestParams,
+  RequestParams,
+} from "../../domain/interfaces/iRequestParams";
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { store } from "../redux/store"; // Adjust the import path as necessary
-
-// Define the RootState type
-type RootState = {
-  auth: {
-    authToken: string;
-    user: string;
-    userExists: boolean;
-    isLoading: boolean;
-    success: boolean | null;
-    message: string | null;
-    expirationDate: number | null;
-  };
-  ui: any; // You should replace 'any' with the actual UI state type
-  files: any; // You should replace 'any' with the actual files state type
-};
-
-interface RequestParams {
-  routeUrl: string;
-  body?: any;
-  signal?: AbortSignal;
-  authToken?: string;
-  headers?: any;
-}
-
-interface GetRequestParams extends RequestParams {
-  responseType?: "json" | "blob";
-}
-
-/**
- * Retrieves the authToken from the Redux store.
- *
- * @returns {string} The authToken from the Redux store.
- */
-const getAuthToken = (): string => {
-  const state = store.getState() as RootState;
-  return state.auth.authToken;
-};
+import { getAuthToken } from "../redux/getAuthToken";
 
 /**
  * Creates a new user by sending a POST request to the specified route URL with the provided body.
@@ -272,13 +239,13 @@ export async function generateReport({
   signal,
   authToken = getAuthToken(),
 }: RequestParams): Promise<any> {
-  try { 
+  try {
     const response = await apiServices.post(routeUrl, body, {
-      headers: { 
+      headers: {
         Authorization: `Bearer ${authToken}`,
       },
       signal,
-      responseType: 'blob'
+      responseType: "blob",
     });
 
     return response;

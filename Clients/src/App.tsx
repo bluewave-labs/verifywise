@@ -27,7 +27,6 @@ function App() {
   const token = useSelector((state: AppState) => state.auth?.authToken);
   const [alert, setAlert] = useState<AlertProps | null>(null);
 
-  
   useEffect(() => {
     setShowAlertCallback((alertProps: AlertProps) => {
       setAlert(alertProps);

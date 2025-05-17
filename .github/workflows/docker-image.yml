@@ -3,8 +3,7 @@ name: Build and Push Images to GitHub Container Registry
 on:
   push:
     branches:
-      # - master
-      - hp-may-16-push-images-to-ghcr
+      - master
 
 jobs:
   build-and-push:

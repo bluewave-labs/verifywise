@@ -5,7 +5,7 @@ const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
 
 import authenticateJWT from "../middleware/auth.middleware";
-import { deleteISO42001, deleteManagementSystemClauses, deleteReferenceControls, getAllAnnexes, getAllClauses, getAnnexCategoriesByAnnexId, getAnnexCategoryById, getAnnexesByProjectId, getClausesByProjectId, getSubClauseById, getSubClausesByClauseId, saveAnnexes, saveClauses } from "../controllers/iso42001.ctrl";
+import { deleteManagementSystemClauses, deleteReferenceControls, getAllAnnexes, getAllClauses, getAnnexCategoriesByAnnexId, getAnnexCategoryById, getAnnexesByProjectId, getClausesByProjectId, getSubClauseById, getSubClausesByClauseId, saveAnnexes, saveClauses } from "../controllers/iso42001.ctrl";
 
 router.get("/clauses", authenticateJWT, getAllClauses);
 router.get("/annexes", authenticateJWT, getAllAnnexes);
@@ -37,6 +37,5 @@ router.patch(
 
 router.delete("/clauses/byProjectId/:id", authenticateJWT, validateId("id"), deleteManagementSystemClauses);
 router.delete("/annexes/byProjectId/:id", authenticateJWT, validateId("id"), deleteReferenceControls);
-router.delete("/:id", authenticateJWT, validateId("id"), deleteISO42001);
 
 export default router;

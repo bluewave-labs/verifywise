@@ -301,24 +301,3 @@ export async function deleteReferenceControls(
   }
 }
 
-export async function deleteISO42001(
-  req: Request,
-  res: Response
-): Promise<any> {
-  const transaction = await sequelize.transaction();
-  try {
-    const projectId = parseInt(req.params.id);
-    const result = await deleteProjectFrameworkISOQuery(projectId, transaction);
-
-    if (result) {
-      await transaction.commit();
-      return res.status(200).json(STATUS_CODE[200](result));
-    }
-
-    await transaction.rollback();
-    return res.status(400).json(STATUS_CODE[400](result));
-  } catch (error) {
-    await transaction.rollback();
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
-  }
-}

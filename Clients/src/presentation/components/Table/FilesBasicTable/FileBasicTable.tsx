@@ -99,6 +99,7 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
                 }}
               >
                 <TableCell>{row.fileName}</TableCell>
+                <TableCell>{row.projectTitle}</TableCell>
                 <TableCell>{row.uploadDate}</TableCell>
                 <TableCell>{row.uploader}</TableCell>
                 <TableCell>{row.source}</TableCell>

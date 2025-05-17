@@ -60,12 +60,11 @@ const VWHome = () => {
     const fetchProgressData = async () => {
       await fetchData("/users", (data) => {
         setDashboardValues({ users: data });
-      });
-      await fetchProjects();
+      }); 
     };
 
     fetchProgressData();
-  }, [setDashboardValues, refreshProjectsFlag, fetchProjects]);
+  }, [setDashboardValues, refreshProjectsFlag]);
 
   const handleProjectFormModalClose = () => {
     setIsProjectFormModalOpen(false);

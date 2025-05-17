@@ -1,8 +1,8 @@
-import { Transaction } from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 import { sequelize } from "../database/db";
 import { FrameworkModel } from "../models/frameworks.model";
 import { ProjectFrameworksModel } from "../models/projectFrameworks.model";
-import { frameworkAdditionMap } from "../types/framework.type";
+import { frameworkAdditionMap, frameworkDeletionMap } from "../types/framework.type";
 
 export const getAllFrameworksQuery = async (
 ): Promise<FrameworkModel[]> => {
@@ -81,3 +81,26 @@ export const addFrameworkToProjectQuery = async (
   await frameworkAdditionFunction(projectId, false, transaction);
   return true;
 };
+
+export const deleteFrameworkFromProjectQuery = async (
+  frameworkId: number,
+  projectId: number,
+  transaction: Transaction
+): Promise<boolean> => {
+  const [[{ exists }]] = await sequelize.query(
+    "SELECT EXISTS (SELECT 1 FROM projects_frameworks WHERE project_id = :projectId AND framework_id = :frameworkId) AS exists;",
+    { replacements: { projectId, frameworkId }, transaction }
+  ) as [[{ exists: boolean }], number];
+  if (!exists) {
+    return false; // Framework not found in the project
+  }
+
+  const frameworkDeletionFunction = frameworkDeletionMap[frameworkId];
+  if (!frameworkDeletionFunction) {
+    return false;
+  }
+
+  // call framework deletion function
+  const result = await frameworkDeletionFunction(projectId, transaction);
+  return result;
+}

@@ -88,7 +88,10 @@ export async function createProject(req: Request, res: Response): Promise<any> {
       members: number[];
       framework: number[];
       enable_ai_data_insertion: boolean;
-    } = req.body;
+    } = {
+      ...req.body,
+      framework: req.body.framework ?? [1],
+    };
 
     if (!newProject.project_title || !newProject.owner) {
       return res

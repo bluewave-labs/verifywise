@@ -119,7 +119,7 @@ export async function generateReports(
     } else {
       return res
         .status(403)
-        .json(STATUS_CODE[500]("Unauthorized user to download the report."));
+        .json(STATUS_CODE[403]("Unauthorized user to download the report."));
     }
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

@@ -69,19 +69,22 @@ const ISO42001Clauses = ({
   };
 
   function getStatusColor(status: string) {
-    switch (status) {
-      case "Not Started":
+    const normalizedStatus = status?.trim() || "Not Started";
+    switch (normalizedStatus.toLowerCase()) {
+      case "not started":
         return "#C63622";
-      case "Draft":
+      case "draft":
         return "#D68B61";
-      case "In Review":
+      case "in review":
         return "#D6B971";
-      case "Approved":
+      case "approved":
         return "#52AB43";
-      case "Implemented":
+      case "implemented":
         return "#B8D39C";
-      case "Needs Rework":
+      case "needs rework":
         return "#800080";
+      default:
+        return "#C63622"; // Default to "Not Started" color
     }
   }
 
@@ -182,7 +185,10 @@ const ISO42001Clauses = ({
                               color: "#fff",
                             }}
                           >
-                            {subClause.status ?? "Not Started"}
+                            {subClause.status
+                              ? subClause.status.charAt(0).toUpperCase() +
+                                subClause.status.slice(1).toLowerCase()
+                              : "Not started"}
                           </Stack>
                         </Stack>
                       )

@@ -11,6 +11,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import VWISO42001AnnexDrawerDialog from "../../../components/Drawer/AnnexDrawerDialog";
 import { Project } from "../../../../domain/types/Project";
 import { GetAnnexesByProjectFrameworkId } from "../../../../application/repository/annex_struct_iso.repository";
+import { AnnexStructISO } from "../../../../domain/types/AnnexStructISO";
 
 const ISO42001Annex = ({
   project,
@@ -29,7 +30,8 @@ const ISO42001Annex = ({
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [selectedControl, setSelectedControl] = useState<any>(null);
   const [selectedAnnex, setSelectedAnnex] = useState<any>(null);
-  const [annexes, setAnnexes] = useState<any>([]);
+  const [annexes, setAnnexes] = useState<AnnexStructISO[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState<number>(0);
 
   useEffect(() => {
     const fetchClauses = async () => {
@@ -38,7 +40,7 @@ const ISO42001Annex = ({
           routeUrl: `/iso-42001/annexes/byProjectId/${projectFrameworkId}`,
         });
         setAnnexes(response.data.data);
-        console.log(" ==>", annexes);
+        console.log("annexes ==>", annexes);
       } catch (error) {
         console.error("Error fetching annexes:", error);
       }
@@ -52,10 +54,16 @@ const ISO42001Annex = ({
       setExpanded(isExpanded ? panel : false);
     };
 
-  const handleControlClick = (order: any, annex: any, control: any) => {
+  const handleControlClick = (
+    order: any,
+    annex: any,
+    control: any,
+    index: number
+  ) => {
     setSelectedOrder(order);
     setSelectedAnnex(annex);
     setSelectedControl(control);
+    setSelectedIndex(index);
     setDrawerOpen(true);
   };
 
@@ -66,23 +74,26 @@ const ISO42001Annex = ({
   };
 
   function getStatusColor(status: string) {
-    switch (status) {
-      case "Not Started":
+    const normalizedStatus = status?.trim() || "Not Started";
+    switch (normalizedStatus.toLowerCase()) {
+      case "not started":
         return "#C63622";
-      case "Draft":
+      case "draft":
         return "#D68B61";
-      case "In Progress":
+      case "in progress":
         return "#D6B971";
-      case "Awaiting Review":
+      case "awaiting review":
         return "#D6B971";
-      case "Awaiting Approval":
+      case "awaiting approval":
         return "#D6B971";
-      case "Implemented":
+      case "implemented":
         return "#B8D39C";
-      case "Audited":
+      case "audited":
         return "#B8D39C";
-      case "Needs Rework":
+      case "needs rework":
         return "#800080";
+      default:
+        return "#C63622"; // Default to "Not Started" color
     }
   }
 
@@ -96,9 +107,9 @@ const ISO42001Annex = ({
           >
             Annex {element.order} : {element.title}
           </Typography>
-          {element.annexes.map((item) => (
+          {annexes.map((annex: AnnexStructISO) => (
             <Stack
-              key={item.id}
+              key={annex.id}
               sx={{
                 maxWidth: "1400px",
                 marginTop: "14px",
@@ -106,9 +117,9 @@ const ISO42001Annex = ({
               }}
             >
               <Accordion
-                key={item.id}
-                expanded={expanded === item.id}
-                onChange={handleAccordionChange(item.id)}
+                key={annex.id}
+                expanded={expanded === annex.id}
+                onChange={handleAccordionChange(Number(annex.id))}
                 sx={{
                   marginTop: "9px",
                   border: "1px solid #eaecf0",
@@ -135,7 +146,7 @@ const ISO42001Annex = ({
                     <ExpandMoreIcon
                       sx={{
                         transform:
-                          expanded === item.id
+                          expanded === annex.id
                             ? "rotate(180deg)"
                             : "rotate(270deg)",
                         transition: "transform 0.5s ease-in",
@@ -149,15 +160,15 @@ const ISO42001Annex = ({
                       fontSize: 13,
                     }}
                   >
-                    {element.order}.{item.order} : {item.title}
+                    {annex.title}
                   </Typography>
                 </AccordionSummary>
                 <AccordionDetails sx={{ padding: 0 }}>
-                  {item.controls.map((control) => (
+                  {annex.subClauses.map((control, index: number) => (
                     <Stack
                       key={control.id}
                       onClick={() =>
-                        handleControlClick(element.order, item, control)
+                        handleControlClick(element.order, annex, control, index)
                       }
                       sx={{
                         display: "flex",
@@ -166,8 +177,8 @@ const ISO42001Annex = ({
                         alignItems: "center",
                         padding: "16px",
                         borderBottom:
-                          element.annexes.length - 1 ===
-                          element.annexes.indexOf(item)
+                          annex.subClauses.length - 1 ===
+                          annex.subClauses.indexOf(control)
                             ? "none"
                             : "1px solid #eaecf0",
                         cursor: "pointer",
@@ -176,29 +187,26 @@ const ISO42001Annex = ({
                     >
                       <Stack>
                         <Typography fontWeight={600}>
-                          {element.order +
-                            "." +
-                            item.order +
-                            "." +
-                            control.control_no +
-                            "." +
-                            control.control_subSection}{" "}
+                          {element.order}.{annex.annex_no}.{index + 1}{" "}
                           {control.title}
                         </Typography>
                         <Typography sx={{ fontSize: 13 }}>
-                          {control.shortDescription}
+                          {control.description}
                         </Typography>
                       </Stack>
                       <Stack
                         sx={{
                           borderRadius: "4px",
                           padding: "5px",
-                          backgroundColor: getStatusColor(control.status),
+                          backgroundColor: getStatusColor(control.status || ""),
                           color: "#fff",
                           height: "fit-content",
                         }}
                       >
-                        {control.status}
+                        {control.status
+                          ? control.status.charAt(0).toUpperCase() +
+                            control.status.slice(1).toLowerCase()
+                          : "Not started"}
                       </Stack>
                     </Stack>
                   ))}
@@ -211,7 +219,9 @@ const ISO42001Annex = ({
       <VWISO42001AnnexDrawerDialog
         open={drawerOpen}
         onClose={handleDrawerClose}
-        title={`${selectedOrder}.${selectedAnnex?.order}.${selectedControl?.control_no}.${selectedControl?.control_subSection}: ${selectedControl?.title}`}
+        title={`${selectedOrder}.${selectedAnnex?.annex_no}.${
+          selectedIndex + 1
+        } ${selectedControl?.title}`}
         control={selectedControl}
         annex={selectedAnnex}
       />

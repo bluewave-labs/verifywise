@@ -6,10 +6,11 @@ import {
   Typography,
 } from "@mui/material";
 import { ISO42001AnnexList } from "./annex.structure";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import VWISO42001AnnexDrawerDialog from "../../../components/Drawer/AnnexDrawerDialog";
 import { Project } from "../../../../domain/types/Project";
+import { GetAnnexesByProjectFrameworkId } from "../../../../application/repository/annex_struct_iso.repository";
 
 const ISO42001Annex = ({
   project,
@@ -28,6 +29,23 @@ const ISO42001Annex = ({
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [selectedControl, setSelectedControl] = useState<any>(null);
   const [selectedAnnex, setSelectedAnnex] = useState<any>(null);
+  const [annexes, setAnnexes] = useState<any>([]);
+
+  useEffect(() => {
+    const fetchClauses = async () => {
+      try {
+        const response = await GetAnnexesByProjectFrameworkId({
+          routeUrl: `/iso-42001/annexes/byProjectId/${projectFrameworkId}`,
+        });
+        setAnnexes(response.data);
+        console.log("annexes", annexes);
+      } catch (error) {
+        console.error("Error fetching annexes:", error);
+      }
+    };
+
+    fetchClauses();
+  }, [projectFrameworkId]);
 
   const handleAccordionChange =
     (panel: number) => (_: React.SyntheticEvent, isExpanded: boolean) => {

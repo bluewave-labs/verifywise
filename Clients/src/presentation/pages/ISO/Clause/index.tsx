@@ -12,6 +12,9 @@ import { ISO42001ClauseList } from "./clause.structure";
 import VWISO42001ClauseDrawerDialog from "../../../components/Drawer/ClauseDrawerDialog";
 import { Project } from "../../../../domain/types/Project";
 import { GetClausesByProjectFrameworkId } from "../../../../application/repository/clause_struct_iso.repository";
+import { ClauseStructISO } from "../../../../domain/types/ClauseStructISO";
+import { SubClauseISO } from "../../../../domain/types/SubClauseISO";
+import { SubClauseStructISO } from "../../../../domain/types/SubClauseStructISO";
 
 const ISO42001Clauses = ({
   project,
@@ -29,7 +32,7 @@ const ISO42001Clauses = ({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedSubClause, setSelectedSubClause] = useState<any>(null);
   const [selectedClause, setSelectedClause] = useState<any>(null);
-  const [clauses, setClauses] = useState<any[]>([]);
+  const [clauses, setClauses] = useState<ClauseStructISO[]>([]);
 
   useEffect(() => {
     const fetchClauses = async () => {
@@ -37,10 +40,11 @@ const ISO42001Clauses = ({
         const response = await GetClausesByProjectFrameworkId({
           routeUrl: `/iso-42001/clauses/byProjectId/${projectFrameworkId}`,
         });
-        setClauses(response);
-        console.log("annexes : ", response);
+        setClauses(Array.isArray(response.data) ? response.data : []);
+        console.log("clauses response:", response.data);
       } catch (error) {
         console.error("Error fetching clauses:", error);
+        setClauses([]);
       }
     };
 
@@ -91,8 +95,8 @@ const ISO42001Clauses = ({
           >
             {item.title} {" Clauses"}
           </Typography>
-          {clauses &&
-            clauses.map((clause: any) => (
+          {Array.isArray(clauses) && clauses.length > 0 ? (
+            clauses.map((clause: ClauseStructISO) => (
               <Stack
                 key={clause.id}
                 sx={{
@@ -140,44 +144,56 @@ const ISO42001Clauses = ({
                     </Typography>
                   </AccordionSummary>
                   <AccordionDetails sx={{ padding: 0 }}>
-                    {clause.subClauses.map((subClause: any, index: number) => (
-                      <Stack
-                        key={subClause.id}
-                        onClick={() => handleSubClauseClick(clause, subClause)}
-                        sx={{
-                          display: "flex",
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                          padding: "16px",
-                          borderBottom:
-                            clause.subClauses.length - 1 ===
-                            clause.subClauses.indexOf(subClause)
-                              ? "none"
-                              : "1px solid #eaecf0",
-                          cursor: "pointer",
-                          fontSize: 13,
-                        }}
-                      >
-                        <Typography>
-                          {clause.clause_no + "." + (index + 1)}{" "}
-                          {subClause.title}
-                        </Typography>
+                    {clause.subClauses.map(
+                      (
+                        subClause: Partial<SubClauseISO & SubClauseStructISO>,
+                        index: number
+                      ) => (
                         <Stack
+                          key={subClause.id}
+                          onClick={() =>
+                            handleSubClauseClick(clause, subClause)
+                          }
                           sx={{
-                            borderRadius: "4px",
-                            padding: "5px",
-                            backgroundColor: getStatusColor(subClause.status),
-                            color: "#fff",
+                            display: "flex",
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            padding: "16px",
+                            borderBottom:
+                              clause.subClauses.length - 1 ===
+                              clause.subClauses.indexOf(subClause)
+                                ? "none"
+                                : "1px solid #eaecf0",
+                            cursor: "pointer",
+                            fontSize: 13,
                           }}
                         >
-                          {subClause.status}
+                          <Typography>
+                            {clause.clause_no + "." + (index + 1)}{" "}
+                            {subClause.title ?? "Untitled"}
+                          </Typography>
+                          <Stack
+                            sx={{
+                              borderRadius: "4px",
+                              padding: "5px",
+                              backgroundColor: getStatusColor(
+                                subClause.status ?? "Not Started"
+                              ),
+                              color: "#fff",
+                            }}
+                          >
+                            {subClause.status ?? "Not Started"}
+                          </Stack>
                         </Stack>
-                      </Stack>
-                    ))}
+                      )
+                    )}
                   </AccordionDetails>
                 </Accordion>
               </Stack>
-            ))}
+            ))
+          ) : (
+            <Typography>No clauses found.</Typography>
+          )}
         </>
       ))}
       <VWISO42001ClauseDrawerDialog

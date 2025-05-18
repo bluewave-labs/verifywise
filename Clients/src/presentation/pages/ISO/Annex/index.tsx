@@ -88,15 +88,15 @@ const ISO42001Annex = ({
 
   return (
     <Stack className="iso-42001-annex">
-      {ISO42001AnnexList.map((annex) => (
+      {ISO42001AnnexList.map((element) => (
         <>
           <Typography
-            key={annex.id}
+            key={element.id}
             sx={{ color: "#1A1919", fontWeight: 600, mb: "6px", fontSize: 16 }}
           >
-            Annext {annex.order} : {annex.title}
+            Annex {element.order} : {element.title}
           </Typography>
-          {annex.annexes.map((item) => (
+          {element.annexes.map((item) => (
             <Stack
               key={item.id}
               sx={{
@@ -149,7 +149,7 @@ const ISO42001Annex = ({
                       fontSize: 13,
                     }}
                   >
-                    {annex.order}.{item.order} : {item.title}
+                    {element.order}.{item.order} : {item.title}
                   </Typography>
                 </AccordionSummary>
                 <AccordionDetails sx={{ padding: 0 }}>
@@ -157,7 +157,7 @@ const ISO42001Annex = ({
                     <Stack
                       key={control.id}
                       onClick={() =>
-                        handleControlClick(annex.order, item, control)
+                        handleControlClick(element.order, item, control)
                       }
                       sx={{
                         display: "flex",
@@ -166,8 +166,8 @@ const ISO42001Annex = ({
                         alignItems: "center",
                         padding: "16px",
                         borderBottom:
-                          annex.annexes.length - 1 ===
-                          annex.annexes.indexOf(item)
+                          element.annexes.length - 1 ===
+                          element.annexes.indexOf(item)
                             ? "none"
                             : "1px solid #eaecf0",
                         cursor: "pointer",
@@ -176,7 +176,7 @@ const ISO42001Annex = ({
                     >
                       <Stack>
                         <Typography fontWeight={600}>
-                          {annex.order +
+                          {element.order +
                             "." +
                             item.order +
                             "." +

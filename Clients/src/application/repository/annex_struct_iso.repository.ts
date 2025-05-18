@@ -13,5 +13,8 @@ export async function GetAnnexesByProjectFrameworkId({
     signal,
     responseType,
   });
-  return { annexes: response };
+  return {
+    status: response.status,
+    data: response.data,
+  };
 }

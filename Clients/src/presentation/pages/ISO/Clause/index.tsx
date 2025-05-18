@@ -17,17 +17,12 @@ import { SubClauseISO } from "../../../../domain/types/SubClauseISO";
 import { SubClauseStructISO } from "../../../../domain/types/SubClauseStructISO";
 
 const ISO42001Clauses = ({
-  project,
-  framework_id,
   projectFrameworkId,
 }: {
   project: Project;
   framework_id: number;
   projectFrameworkId: number;
 }) => {
-  console.log("project", project);
-  console.log("framework_id", framework_id);
-  console.log("projectFrameworkId", projectFrameworkId);
   const [expanded, setExpanded] = useState<number | false>(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedSubClause, setSelectedSubClause] = useState<any>(null);
@@ -41,7 +36,6 @@ const ISO42001Clauses = ({
           routeUrl: `/iso-42001/clauses/byProjectId/${projectFrameworkId}`,
         });
         setClauses(Array.isArray(response.data) ? response.data : []);
-        console.log("clauses response:", response.data);
       } catch (error) {
         console.error("Error fetching clauses:", error);
         setClauses([]);

@@ -27,9 +27,13 @@ const handleError = (error: any) => {
   try {
     if (axios.isAxiosError(error)) {
       console.log("error : ", error);
-      throw new CustomException(error.message);
+      return new CustomException(
+        error.message,
+        error.response?.status,
+        error.response?.data
+      );
     } else {
-      throw new CustomException("An unknown error occurred");
+      throw new CustomException("An unknown error occurred", undefined, undefined);
     }
   } catch (e) {
     console.error("Error in handleError:", e);
@@ -114,8 +118,13 @@ export const apiServices = {
         headers: response.headers as AxiosResponseHeaders,
       };
     } catch (error) {
-      handleError(error);
-      return undefined as unknown as ApiResponse<T>;
+      const requestedAPIError = handleError(error);         
+      return {
+        data: undefined,
+        status: requestedAPIError.status ?? 500,
+        statusText: "Error",
+        headers: {},
+      } as ApiResponse<T>;
     }
   },
 

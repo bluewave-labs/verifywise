@@ -15,3 +15,26 @@ export async function GetSubClausesById({
   });
   return response.data;
 }
+
+// Update subclause by ID (with file upload)
+export async function UpdateSubClauseById({
+  routeUrl,
+  body,
+  authToken = getAuthToken(),
+  headers = {},
+}: {
+  routeUrl: string;
+  body: FormData;
+  authToken?: string;
+  headers?: Record<string, string>;
+}): Promise<any> {
+  try {
+    const response = await apiServices.patch(routeUrl, body, {
+      headers: { Authorization: `Bearer ${authToken}`, ...headers },
+    });
+    return response;
+  } catch (error) {
+    console.error("Error updating subclause by ID:", error);
+    throw error;
+  }
+}

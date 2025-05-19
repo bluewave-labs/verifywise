@@ -142,24 +142,30 @@ const PasswordForm: React.FC = () => {
     setShowToast(true); // Show VWToast
 
     try {
-      const response = await updateEntityById({
+      await updateEntityById({
         routeUrl: `/users/chng-pass/${id}`,
         body: { id, currentPassword, newPassword },
       });
+      // success status
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
 
-      if (response.status === 202) {
-        setCurrentPassword("");
-        setNewPassword("");
-        setConfirmPassword("");
+      setAlert({
+        variant: "success",
+        title: "Success",
+        body: "Password updated successfully.",
+        isToast: true,
+        visible: true,
+      });
+    } catch (error: any) {
+console.error("Full axios error:", error);
+console.error("Error response data:", error?.response?.data);
 
-        setAlert({
-          variant: "success",
-          title: "Success",
-          body: "Password updated successfully.",
-          isToast: true,
-          visible: true,
-        });
-      } else if (response.status === 404) {
+      const status = error?.response?.status;
+      const message =
+        error?.response?.data?.message || "Failed to update password.";
+      if (status === 404) {
         setAlert({
           variant: "error",
           title: "Error",
@@ -167,31 +173,33 @@ const PasswordForm: React.FC = () => {
           isToast: true,
           visible: true,
         });
-      } else if (response.status === 401) {
+      } else if (status === 401) {
         setAlert({
           variant: "error",
           title: "Error",
-          body: "Current password is incorrect.",
+          body: message,
           isToast: true,
           visible: true,
         });
-      } else if (response.status === 400) {
+      } else if (status === 400) {
         setAlert({
           variant: "error",
           title: "Error",
-          body: "New password cannot be the same as the current password.",
+          body:
+            message ||
+            "New password cannot be the same as the current password.",
+          isToast: true,
+          visible: true,
+        });
+      } else {
+        setAlert({
+          variant: "error",
+          title: "Error",
+          body: "Failed to update password. Please try again.",
           isToast: true,
           visible: true,
         });
       }
-    } catch (error) {
-      setAlert({
-        variant: "error",
-        title: "Error",
-        body: "Failed to update password. Please try again.",
-        isToast: true,
-        visible: true,
-      });
     } finally {
       setShowToast(false); // Hide VWToast after response
       setTimeout(() => {

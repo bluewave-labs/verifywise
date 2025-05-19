@@ -18,7 +18,10 @@ import { Dayjs } from "dayjs";
 import { useState, useEffect, useContext, useMemo } from "react";
 import VWButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
-import { GetSubClausesById } from "../../../../application/repository/subClause_iso.repository";
+import {
+  GetSubClausesById,
+  UpdateSubClauseById,
+} from "../../../../application/repository/subClause_iso.repository";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import { User } from "../../../../domain/types/User";
@@ -164,20 +167,46 @@ const VWISO42001ClauseDrawerDialog = ({
 
   // Update handleSave to use evidenceFiles
   const handleSave = async () => {
-    const formDataToSend = new FormData();
-    formDataToSend.append(
-      "implementation_description",
-      formData.implementation_description
-    );
-    formDataToSend.append("status", formData.status);
-    formDataToSend.append("owner", formData.owner);
-    formDataToSend.append("reviewer", formData.reviewer);
-    formDataToSend.append("approver", formData.approver);
-    formDataToSend.append("auditor_feedback", formData.auditor_feedback);
-    if (date) formDataToSend.append("due_date", date.toString());
-    formDataToSend.append("evidence_files", JSON.stringify(evidenceFiles));
-    // TODO: Add your API call here to upload the formDataToSend
-    console.log("Form Data (with files):", formData, evidenceFiles);
+    setIsLoading(true);
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append(
+        "implementation_description",
+        formData.implementation_description
+      );
+      formDataToSend.append("status", formData.status);
+      formDataToSend.append("owner", formData.owner);
+      formDataToSend.append("reviewer", formData.reviewer);
+      formDataToSend.append("approver", formData.approver);
+      formDataToSend.append("auditor_feedback", formData.auditor_feedback);
+      if (date) formDataToSend.append("due_date", date.toString());
+      formDataToSend.append("user_id", userId?.toString() || "");
+      formDataToSend.append(
+        "project_framework_id",
+        projectFrameworkId.toString()
+      );
+      formDataToSend.append("delete", JSON.stringify([])); // Add deleted file IDs if needed
+      // Attach each evidence file (as File objects)
+      evidenceFiles.forEach((file) => {
+        // If file is a File object (new upload), append it
+        if (file instanceof File) {
+          formDataToSend.append("evidence_files", file);
+        }
+        // If file is an existing file object (from backend), skip or handle as needed
+      });
+      // Call the update API
+      await UpdateSubClauseById({
+        routeUrl: `/iso-42001/saveClauses/${subClause.id}`,
+        body: formDataToSend,
+      });
+      // Optionally, show a success message or close the drawer
+      onClose();
+    } catch (error) {
+      console.error("Error saving subclause:", error);
+      // Optionally, show an error message
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const displayData = fetchedSubClause || subClause;

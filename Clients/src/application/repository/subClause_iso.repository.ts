@@ -30,7 +30,11 @@ export async function UpdateSubClauseById({
 }): Promise<any> {
   try {
     const response = await apiServices.patch(routeUrl, body, {
-      headers: { Authorization: `Bearer ${authToken}`, ...headers },
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+        "Content-Type": "multipart/form-data",
+        ...headers,
+      },
     });
     return response;
   } catch (error) {

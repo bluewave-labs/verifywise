@@ -5,6 +5,9 @@ import {
   Paper,
   Stack,
   Typography,
+  CircularProgress,
+  SelectChangeEvent,
+  Dialog,
 } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import Field from "../../Inputs/Field";
@@ -12,9 +15,18 @@ import { FileData } from "../../../../domain/types/File";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
 import { Dayjs } from "dayjs";
-import { useState } from "react";
+import { useState, useEffect, useContext, useMemo } from "react";
 import VWButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
+import {
+  GetSubClausesById,
+  UpdateSubClauseById,
+} from "../../../../application/repository/subClause_iso.repository";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import useProjectData from "../../../../application/hooks/useProjectData";
+import { User } from "../../../../domain/types/User";
+import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
+import createUppy from "../../../../application/tools/createUppy";
 
 export const inputStyles = {
   minWidth: 200,
@@ -30,6 +42,8 @@ interface VWISO42001ClauseDrawerDialogProps {
   clause: any;
   evidenceFiles?: FileData[];
   uploadFiles?: FileData[];
+  projectFrameworkId: number;
+  project_id: number;
 }
 
 const VWISO42001ClauseDrawerDialog = ({
@@ -37,11 +51,197 @@ const VWISO42001ClauseDrawerDialog = ({
   onClose,
   subClause,
   clause,
-  evidenceFiles = [],
-  uploadFiles = [],
+  projectFrameworkId,
+  project_id,
 }: VWISO42001ClauseDrawerDialogProps) => {
   const [date, setDate] = useState<Dayjs | null>(null);
-  console.log("subClause : ", subClause);
+  const [fetchedSubClause, setFetchedSubClause] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [projectMembers, setProjectMembers] = useState<User[]>([]);
+  const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
+  const [evidenceFiles, setEvidenceFiles] = useState<any[]>([]);
+
+  // Get context and project data
+  const { dashboardValues, userId } = useContext(VerifyWiseContext);
+  const { users } = dashboardValues;
+  const { project } = useProjectData({
+    projectId: String(project_id) || "0",
+  });
+
+  // Add state for all form fields
+  const [formData, setFormData] = useState({
+    implementation_description: "",
+    status: "",
+    owner: "",
+    reviewer: "",
+    approver: "",
+    auditor_feedback: "",
+  });
+
+  // Filter users to only show project members
+  useEffect(() => {
+    if (project && users?.length > 0) {
+      const members = users.filter(
+        (user: User) =>
+          typeof user.id === "number" &&
+          project.members.some((memberId) => Number(memberId) === user.id)
+      );
+      setProjectMembers(members);
+    }
+  }, [project, users]);
+
+  // Setup Uppy instance
+  const uppy = useMemo(
+    () =>
+      createUppy({
+        onChangeFiles: setEvidenceFiles,
+        allowedMetaFields: ["subclause_id", "user_id", "project_id", "delete"],
+        meta: {
+          subclause_id: subClause?.id,
+          user_id: userId,
+          project_id: project_id?.toString(),
+          delete: "[]",
+        },
+        routeUrl: "api/files",
+      }),
+    [subClause?.id, userId, project_id]
+  );
+
+  useEffect(() => {
+    const fetchSubClause = async () => {
+      if (open && subClause?.id) {
+        setIsLoading(true);
+        try {
+          const response = await GetSubClausesById({
+            routeUrl: `/iso-42001/subClause/byId/${subClause.id}?projectFrameworkId=${projectFrameworkId}`,
+          });
+          console.log("Fetched SubClause:", response.data);
+          setFetchedSubClause(response.data);
+
+          // Initialize form data with fetched values
+          if (response.data) {
+            setFormData({
+              implementation_description:
+                response.data.implementation_description || "",
+              status: response.data.status || "",
+              owner: response.data.owner?.toString() || "",
+              reviewer: response.data.reviewer?.toString() || "",
+              approver: response.data.approver?.toString() || "",
+              auditor_feedback: response.data.auditor_feedback || "",
+            });
+
+            // Set the date if it exists in the fetched data
+            if (response.data.due_date) {
+              setDate(response.data.due_date);
+            }
+          }
+
+          // On subclause fetch, set evidence files if available
+          if (response.data?.evidence_files) {
+            setEvidenceFiles(response.data.evidence_files);
+          }
+        } catch (error) {
+          console.error("Error fetching subclause:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchSubClause();
+  }, [open, subClause?.id, projectFrameworkId]);
+
+  // Handle form field changes
+  const handleFieldChange = (field: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+    console.log(`Updated ${field}:`, value);
+  };
+
+  const handleSelectChange =
+    (field: string) => (event: SelectChangeEvent<string | number>) => {
+      handleFieldChange(field, event.target.value.toString());
+    };
+
+  // Update handleSave to use evidenceFiles
+  const handleSave = async () => {
+    setIsLoading(true);
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append(
+        "implementation_description",
+        formData.implementation_description
+      );
+      formDataToSend.append("status", formData.status);
+      formDataToSend.append("owner", formData.owner);
+      formDataToSend.append("reviewer", formData.reviewer);
+      formDataToSend.append("approver", formData.approver);
+      formDataToSend.append("auditor_feedback", formData.auditor_feedback);
+      if (date) formDataToSend.append("due_date", date.toString());
+      formDataToSend.append("user_id", userId?.toString() || "");
+      formDataToSend.append(
+        "project_framework_id",
+        projectFrameworkId.toString()
+      );
+      formDataToSend.append("delete", JSON.stringify([])); // Add deleted file IDs if needed
+      // Attach each evidence file (as File objects)
+      evidenceFiles.forEach((file) => {
+        // If file is a File object (new upload), append it
+        if (file instanceof File) {
+          formDataToSend.append("evidence_files", file);
+        }
+        // If file is an existing file object (from backend), skip or handle as needed
+      });
+      // Call the update API
+      await UpdateSubClauseById({
+        routeUrl: `/iso-42001/saveClauses/${subClause.id}`,
+        body: formDataToSend,
+      });
+      // Optionally, show a success message or close the drawer
+      onClose();
+    } catch (error) {
+      console.error("Error saving subclause:", error);
+      // Optionally, show an error message
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const displayData = fetchedSubClause || subClause;
+
+  if (isLoading) {
+    return (
+      <Drawer
+        open={open}
+        onClose={onClose}
+        sx={{
+          width: 600,
+          margin: 0,
+          "& .MuiDrawer-paper": {
+            margin: 0,
+            borderRadius: 0,
+          },
+        }}
+        anchor="right"
+      >
+        <Stack
+          sx={{
+            width: 600,
+            height: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <CircularProgress />
+          <Typography sx={{ mt: 2 }}>Loading subclause data...</Typography>
+        </Stack>
+      </Drawer>
+    );
+  }
+
   return (
     <Drawer
       className="vw-iso-42001-clause-drawer-dialog"
@@ -74,7 +274,7 @@ const VWISO42001ClauseDrawerDialog = ({
           }}
         >
           <Typography fontSize={15} fontWeight={700}>
-            {clause?.clause_no + "." + subClause?.id} {subClause?.title}
+            {clause?.clause_no + "." + displayData?.id} {displayData?.title}
           </Typography>
           <CloseIcon onClick={onClose} style={{ cursor: "pointer" }} />
         </Stack>
@@ -96,13 +296,13 @@ const VWISO42001ClauseDrawerDialog = ({
           >
             <Typography fontSize={13} sx={{ marginBottom: "13px" }}>
               <strong>Requirement Summary: </strong>
-              {subClause?.summary}
+              {displayData?.summary}
             </Typography>
             <Typography fontSize={13} fontWeight={600}>
               Key Questions:
             </Typography>
             <ul style={{ paddingLeft: "20px" }}>
-              {subClause?.questions.map((question: any, index: any) => (
+              {displayData?.questions?.map((question: any, index: any) => (
                 <li key={index}>
                   <Typography fontSize={13}>{question}</Typography>
                 </li>
@@ -113,11 +313,13 @@ const VWISO42001ClauseDrawerDialog = ({
               Evidence Examples:
             </Typography>
             <ul style={{ paddingLeft: "20px" }}>
-              {subClause?.evidence_examples.map((example: any, index: any) => (
-                <li key={index}>
-                  <Typography fontSize={13}>{example}</Typography>
-                </li>
-              ))}
+              {displayData?.evidence_examples?.map(
+                (example: any, index: any) => (
+                  <li key={index}>
+                    <Typography fontSize={13}>{example}</Typography>
+                  </li>
+                )
+              )}
             </ul>
           </Paper>
         </Stack>
@@ -134,6 +336,10 @@ const VWISO42001ClauseDrawerDialog = ({
             </Typography>
             <Field
               type="description"
+              value={formData.implementation_description}
+              onChange={(e) =>
+                handleFieldChange("implementation_description", e.target.value)
+              }
               sx={{
                 cursor: "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
@@ -144,7 +350,7 @@ const VWISO42001ClauseDrawerDialog = ({
               placeholder="Describe how this requirement is implemented"
             />
           </Stack>
-          <Stack direction="row" spacing={2}>
+          <Stack direction="row" spacing={2} alignItems="center">
             <Button
               variant="contained"
               sx={{
@@ -158,46 +364,28 @@ const VWISO42001ClauseDrawerDialog = ({
                 color: "#344054",
               }}
               disableRipple={false}
-              onClick={() => {}}
+              onClick={() => setIsFileUploadOpen(true)}
             >
               Add/Remove evidence
             </Button>
-            <Stack direction="row" spacing={10}>
-              <Typography
-                sx={{
-                  fontSize: 11,
-                  color: "#344054",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  textAlign: "center",
-                  margin: "auto",
-                  textWrap: "wrap",
-                }}
-              >
-                {`${evidenceFiles.length || 0} evidence files attached`}
-              </Typography>
-              {uploadFiles.length > 0 && (
-                <Typography
-                  sx={{
-                    fontSize: 11,
-                    color: "#344054",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    textAlign: "center",
-                    margin: "auto",
-                    textWrap: "wrap",
-                  }}
-                >
-                  {`${uploadFiles.length} ${
-                    uploadFiles.length === 1 ? "file" : "files"
-                  } pending upload`}
-                </Typography>
-              )}
-            </Stack>
+            <Typography sx={{ fontSize: 11, color: "#344054" }}>
+              {`${evidenceFiles?.length || 0} evidence files attached`}
+            </Typography>
           </Stack>
         </Stack>
+        <Dialog
+          open={isFileUploadOpen}
+          onClose={() => setIsFileUploadOpen(false)}
+        >
+          <UppyUploadFile
+            uppy={uppy}
+            files={evidenceFiles}
+            onClose={() => setIsFileUploadOpen(false)}
+            onRemoveFile={(fileId) =>
+              setEvidenceFiles((prev) => prev.filter((f) => f.id !== fileId))
+            }
+          />
+        </Dialog>
         <Divider />
         <Stack
           sx={{
@@ -208,17 +396,17 @@ const VWISO42001ClauseDrawerDialog = ({
           <Select
             id="status"
             label="Status:"
-            value={subClause?.status || ""}
-            onChange={() => {}}
+            value={formData.status}
+            onChange={handleSelectChange("status")}
             items={[
-              { _id: "Not Started", name: "Not Started" },
+              { _id: "Not started", name: "Not started" },
               { _id: "Draft", name: "Draft" },
-              { _id: "In Progress", name: "In Progress" },
-              { _id: "Awaiting Review", name: "Awaiting Review" },
-              { _id: "Awaiting Approval", name: "Awaiting Approval" },
+              { _id: "In progress", name: "In progress" },
+              { _id: "Awaiting review", name: "Awaiting review" },
+              { _id: "Awaiting approval", name: "Awaiting approval" },
               { _id: "Implemented", name: "Implemented" },
               { _id: "Audited", name: "Audited" },
-              { _id: "Needs Rework", name: "Needs Rework" },
+              { _id: "Needs rework", name: "Needs rework" },
             ]}
             sx={inputStyles}
             placeholder={"Select status"}
@@ -227,9 +415,12 @@ const VWISO42001ClauseDrawerDialog = ({
           <Select
             id="Owner"
             label="Owner:"
-            value={""}
-            onChange={() => {}}
-            items={[]}
+            value={formData.owner}
+            onChange={handleSelectChange("owner")}
+            items={projectMembers.map((user) => ({
+              _id: user.id?.toString() || "",
+              name: `${user.name} ${user.surname}`,
+            }))}
             sx={inputStyles}
             placeholder={"Select owner"}
           />
@@ -237,9 +428,12 @@ const VWISO42001ClauseDrawerDialog = ({
           <Select
             id="Reviewer"
             label="Reviewer:"
-            value={""}
-            onChange={() => {}}
-            items={[]}
+            value={formData.reviewer}
+            onChange={handleSelectChange("reviewer")}
+            items={projectMembers.map((user) => ({
+              _id: user.id?.toString() || "",
+              name: `${user.name} ${user.surname}`,
+            }))}
             sx={inputStyles}
             placeholder={"Select reviewer"}
           />
@@ -247,9 +441,12 @@ const VWISO42001ClauseDrawerDialog = ({
           <Select
             id="Approver"
             label="Approver:"
-            value={""}
-            onChange={() => {}}
-            items={[]}
+            value={formData.approver}
+            onChange={handleSelectChange("approver")}
+            items={projectMembers.map((user) => ({
+              _id: user.id?.toString() || "",
+              name: `${user.name} ${user.surname}`,
+            }))}
             sx={inputStyles}
             placeholder={"Select approver"}
           />
@@ -260,14 +457,20 @@ const VWISO42001ClauseDrawerDialog = ({
             date={date}
             handleDateChange={(newDate) => {
               setDate(newDate);
+              console.log("Updated due date:", newDate);
             }}
           />
+
           <Stack>
             <Typography fontSize={13} sx={{ marginBottom: "5px" }}>
               Auditor Feedback:
             </Typography>
             <Field
               type="description"
+              value={formData.auditor_feedback}
+              onChange={(e) =>
+                handleFieldChange("auditor_feedback", e.target.value)
+              }
               sx={{
                 cursor: "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
@@ -297,7 +500,7 @@ const VWISO42001ClauseDrawerDialog = ({
               border: "1px solid #13715B",
               gap: 2,
             }}
-            onClick={() => {}}
+            onClick={handleSave}
             icon={<SaveIcon />}
           />
         </Stack>

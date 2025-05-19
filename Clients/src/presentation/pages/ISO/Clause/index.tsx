@@ -17,6 +17,7 @@ import { SubClauseISO } from "../../../../domain/types/SubClauseISO";
 import { SubClauseStructISO } from "../../../../domain/types/SubClauseStructISO";
 
 const ISO42001Clauses = ({
+  project,
   projectFrameworkId,
 }: {
   project: Project;
@@ -201,6 +202,8 @@ const ISO42001Clauses = ({
         onClose={handleDrawerClose}
         subClause={selectedSubClause}
         clause={selectedClause}
+        projectFrameworkId={projectFrameworkId}
+        project_id={project.id}
       />
     </Stack>
   );

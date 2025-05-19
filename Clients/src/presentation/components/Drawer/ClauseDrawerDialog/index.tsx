@@ -6,6 +6,7 @@ import {
   Stack,
   Typography,
   CircularProgress,
+  SelectChangeEvent,
 } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import Field from "../../Inputs/Field";
@@ -48,6 +49,16 @@ const VWISO42001ClauseDrawerDialog = ({
   const [fetchedSubClause, setFetchedSubClause] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Add state for all form fields
+  const [formData, setFormData] = useState({
+    implementation_description: "",
+    status: "",
+    owner: "",
+    reviewer: "",
+    approver: "",
+    auditor_feedback: "",
+  });
+
   useEffect(() => {
     const fetchSubClause = async () => {
       if (open && subClause?.id) {
@@ -58,9 +69,23 @@ const VWISO42001ClauseDrawerDialog = ({
           });
           console.log("Fetched SubClause:", response.data);
           setFetchedSubClause(response.data);
-          // Set the date if it exists in the fetched data
-          if (response.data?.due_date) {
-            setDate(response.data.due_date);
+
+          // Initialize form data with fetched values
+          if (response.data) {
+            setFormData({
+              implementation_description:
+                response.data.implementation_description || "",
+              status: response.data.status || "",
+              owner: response.data.owner || "",
+              reviewer: response.data.reviewer || "",
+              approver: response.data.approver || "",
+              auditor_feedback: response.data.auditor_feedback || "",
+            });
+
+            // Set the date if it exists in the fetched data
+            if (response.data.due_date) {
+              setDate(response.data.due_date);
+            }
           }
         } catch (error) {
           console.error("Error fetching subclause:", error);
@@ -72,6 +97,27 @@ const VWISO42001ClauseDrawerDialog = ({
 
     fetchSubClause();
   }, [open, subClause?.id, projectFrameworkId]);
+
+  // Handle form field changes
+  const handleFieldChange = (field: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+    console.log(`Updated ${field}:`, value);
+  };
+
+  const handleSelectChange =
+    (field: string) => (event: SelectChangeEvent<string | number>) => {
+      handleFieldChange(field, event.target.value.toString());
+    };
+
+  const handleSave = () => {
+    console.log("Form Data:", {
+      ...formData,
+      due_date: date,
+    });
+  };
 
   const displayData = fetchedSubClause || subClause;
 
@@ -200,7 +246,10 @@ const VWISO42001ClauseDrawerDialog = ({
             </Typography>
             <Field
               type="description"
-              value={displayData?.implementation_description || ""}
+              value={formData.implementation_description}
+              onChange={(e) =>
+                handleFieldChange("implementation_description", e.target.value)
+              }
               sx={{
                 cursor: "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
@@ -277,8 +326,8 @@ const VWISO42001ClauseDrawerDialog = ({
           <Select
             id="status"
             label="Status:"
-            value={displayData?.status || ""}
-            onChange={() => {}}
+            value={formData.status}
+            onChange={handleSelectChange("status")}
             items={[
               { _id: "Not started", name: "Not started" },
               { _id: "Draft", name: "Draft" },
@@ -296,8 +345,8 @@ const VWISO42001ClauseDrawerDialog = ({
           <Select
             id="Owner"
             label="Owner:"
-            value={displayData?.owner || ""}
-            onChange={() => {}}
+            value={formData.owner}
+            onChange={handleSelectChange("owner")}
             items={[]}
             sx={inputStyles}
             placeholder={"Select owner"}
@@ -306,8 +355,8 @@ const VWISO42001ClauseDrawerDialog = ({
           <Select
             id="Reviewer"
             label="Reviewer:"
-            value={displayData?.reviewer || ""}
-            onChange={() => {}}
+            value={formData.reviewer}
+            onChange={handleSelectChange("reviewer")}
             items={[]}
             sx={inputStyles}
             placeholder={"Select reviewer"}
@@ -316,8 +365,8 @@ const VWISO42001ClauseDrawerDialog = ({
           <Select
             id="Approver"
             label="Approver:"
-            value={displayData?.approver || ""}
-            onChange={() => {}}
+            value={formData.approver}
+            onChange={handleSelectChange("approver")}
             items={[]}
             sx={inputStyles}
             placeholder={"Select approver"}
@@ -329,15 +378,20 @@ const VWISO42001ClauseDrawerDialog = ({
             date={date}
             handleDateChange={(newDate) => {
               setDate(newDate);
+              console.log("Updated due date:", newDate);
             }}
           />
+
           <Stack>
             <Typography fontSize={13} sx={{ marginBottom: "5px" }}>
               Auditor Feedback:
             </Typography>
             <Field
               type="description"
-              value={displayData?.auditor_feedback || ""}
+              value={formData.auditor_feedback}
+              onChange={(e) =>
+                handleFieldChange("auditor_feedback", e.target.value)
+              }
               sx={{
                 cursor: "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
@@ -367,7 +421,7 @@ const VWISO42001ClauseDrawerDialog = ({
               border: "1px solid #13715B",
               gap: 2,
             }}
-            onClick={() => {}}
+            onClick={handleSave}
             icon={<SaveIcon />}
           />
         </Stack>

@@ -14,10 +14,13 @@ import { FileData } from "../../../../domain/types/File";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
 import { Dayjs } from "dayjs";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import VWButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import { GetSubClausesById } from "../../../../application/repository/subClause_iso.repository";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import useProjectData from "../../../../application/hooks/useProjectData";
+import { User } from "../../../../domain/types/User";
 
 export const inputStyles = {
   minWidth: 200,
@@ -48,6 +51,14 @@ const VWISO42001ClauseDrawerDialog = ({
   const [date, setDate] = useState<Dayjs | null>(null);
   const [fetchedSubClause, setFetchedSubClause] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [projectMembers, setProjectMembers] = useState<User[]>([]);
+
+  // Get context and project data
+  const { dashboardValues } = useContext(VerifyWiseContext);
+  const { users } = dashboardValues;
+  const { project } = useProjectData({
+    projectId: String(projectFrameworkId) || "0",
+  });
 
   // Add state for all form fields
   const [formData, setFormData] = useState({
@@ -58,6 +69,18 @@ const VWISO42001ClauseDrawerDialog = ({
     approver: "",
     auditor_feedback: "",
   });
+
+  // Filter users to only show project members
+  useEffect(() => {
+    if (project && users?.length > 0) {
+      const members = users.filter(
+        (user: User) =>
+          typeof user.id === "number" &&
+          project.members.some((memberId) => Number(memberId) === user.id)
+      );
+      setProjectMembers(members);
+    }
+  }, [project, users]);
 
   useEffect(() => {
     const fetchSubClause = async () => {
@@ -76,9 +99,9 @@ const VWISO42001ClauseDrawerDialog = ({
               implementation_description:
                 response.data.implementation_description || "",
               status: response.data.status || "",
-              owner: response.data.owner || "",
-              reviewer: response.data.reviewer || "",
-              approver: response.data.approver || "",
+              owner: response.data.owner?.toString() || "",
+              reviewer: response.data.reviewer?.toString() || "",
+              approver: response.data.approver?.toString() || "",
               auditor_feedback: response.data.auditor_feedback || "",
             });
 
@@ -347,7 +370,10 @@ const VWISO42001ClauseDrawerDialog = ({
             label="Owner:"
             value={formData.owner}
             onChange={handleSelectChange("owner")}
-            items={[]}
+            items={projectMembers.map((user) => ({
+              _id: user.id?.toString() || "",
+              name: `${user.name} ${user.surname}`,
+            }))}
             sx={inputStyles}
             placeholder={"Select owner"}
           />
@@ -357,7 +383,10 @@ const VWISO42001ClauseDrawerDialog = ({
             label="Reviewer:"
             value={formData.reviewer}
             onChange={handleSelectChange("reviewer")}
-            items={[]}
+            items={projectMembers.map((user) => ({
+              _id: user.id?.toString() || "",
+              name: `${user.name} ${user.surname}`,
+            }))}
             sx={inputStyles}
             placeholder={"Select reviewer"}
           />
@@ -367,7 +396,10 @@ const VWISO42001ClauseDrawerDialog = ({
             label="Approver:"
             value={formData.approver}
             onChange={handleSelectChange("approver")}
-            items={[]}
+            items={projectMembers.map((user) => ({
+              _id: user.id?.toString() || "",
+              name: `${user.name} ${user.surname}`,
+            }))}
             sx={inputStyles}
             placeholder={"Select approver"}
           />

@@ -68,6 +68,12 @@ const highRiskRoleItems = [
   { _id: 6, name: HighRiskRoleEnum.AuthorizedRepresentative },
 ];
 
+const monitoredRegulationsAndStandardsItems = [
+  { _id: 1, name: "EU AI Act" },
+  { _id: 2, name: "ISO 42001:2023 (coming soon)" },
+  { _id: 3, name: "NIST RMF (coming soon)" },
+];
+
 interface FormValues {
   projectTitle: string;
   goal: string;
@@ -76,6 +82,7 @@ interface FormValues {
   startDate: string;
   riskClassification: number;
   typeOfHighRiskRole: number;
+  monitoredRegulationsAndStandards: { _id: number; name: string; }[];
 }
 
 interface FormErrors {
@@ -86,6 +93,7 @@ interface FormErrors {
   members?: string;
   riskClassification?: string;
   typeOfHighRiskRole?: string;
+  monitoredRegulationsAndStandards?: string;
 }
 
 const initialState: FormValues = {
@@ -96,6 +104,7 @@ const initialState: FormValues = {
   startDate: "",
   riskClassification: 0,
   typeOfHighRiskRole: 0,
+  monitoredRegulationsAndStandards: [{ _id: 1, name: "EU AI Act" }],
 };
 
 const ProjectSettings = React.memo(
@@ -136,7 +145,9 @@ const ProjectSettings = React.memo(
         values.riskClassification !==
           initialValuesRef.current.riskClassification ||
         values.typeOfHighRiskRole !==
-          initialValuesRef.current.typeOfHighRiskRole
+          initialValuesRef.current.typeOfHighRiskRole ||
+        JSON.stringify(values.monitoredRegulationsAndStandards) !==
+          JSON.stringify(initialValuesRef.current.monitoredRegulationsAndStandards)
       );
     }, [values]);
 
@@ -185,6 +196,12 @@ const ProjectSettings = React.memo(
                 item.name.toLowerCase() ===
                 project.type_of_high_risk_role.toLowerCase()
             )?._id || 0,
+          monitoredRegulationsAndStandards: project.monitored_regulations_and_standards 
+            ? project.monitored_regulations_and_standards.map((reg: string) => ({
+                _id: monitoredRegulationsAndStandardsItems.find(item => item.name === reg)?._id || 0,
+                name: reg
+              }))
+            : [{ _id: 1, name: "EU AI Act" }],
         };
         initialValuesRef.current = returnedData;
         setShowVWSkeleton(false);
@@ -290,6 +307,14 @@ const ProjectSettings = React.memo(
         newErrors.typeOfHighRiskRole = typeOfHighRiskRole.message;
       }
 
+      const monitoredRegulationsAndStandards = selectValidation(
+        "Monitored regulations and standards",
+        values.monitoredRegulationsAndStandards.length
+      );
+      if (!monitoredRegulationsAndStandards.accepted) {
+        newErrors.monitoredRegulationsAndStandards = monitoredRegulationsAndStandards.message;
+      }
+
       setErrors(newErrors);
       return Object.keys(newErrors).length === 0;
     }, [values]);
@@ -337,6 +362,7 @@ const ProjectSettings = React.memo(
       const selectedHighRiskRole =
         highRiskRoleItems.find((item) => item._id === values.typeOfHighRiskRole)
           ?.name || "";
+      const selectedRegulations = values.monitoredRegulationsAndStandards.map(reg => reg.name);
 
       await updateEntityById({
         routeUrl: `/projects/${projectId}`,
@@ -349,6 +375,7 @@ const ProjectSettings = React.memo(
           ai_risk_classification: selectedRiskClass,
           type_of_high_risk_role: selectedHighRiskRole,
           goal: values.goal,
+          monitored_regulations_and_standards: selectedRegulations,
           last_updated: new Date().toISOString(),
           last_updated_by: 1,
         },
@@ -480,6 +507,111 @@ const ProjectSettings = React.memo(
               }}
               error={errors.owner}
               isRequired
+            />
+
+            <Stack gap="5px" sx={{ mt: "6px" }}>
+              <Typography
+                sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
+              >
+                Monitored regulations and standards *
+              </Typography>
+              <Typography sx={{ fontSize: theme.typography.fontSize }}>
+                Add all monitored regulations and standards of the project.
+              </Typography>
+            </Stack>
+            <Autocomplete
+              multiple
+              id="monitored-regulations-and-standards-input"
+              size="small"
+              value={values.monitoredRegulationsAndStandards}
+              options={monitoredRegulationsAndStandardsItems}
+              onChange={handleOnMultiSelect("monitoredRegulationsAndStandards")}
+              getOptionLabel={(item) => item.name}
+              noOptionsText={
+                values.monitoredRegulationsAndStandards.length === monitoredRegulationsAndStandardsItems.length
+                  ? "All regulations selected"
+                  : "No options"
+              }
+              renderOption={(props, option) => {
+                const isComingSoon = option.name.includes("coming soon");
+                return (
+                  <Box 
+                    component="li" 
+                    {...props}
+                    sx={{
+                      opacity: isComingSoon ? 0.5 : 1,
+                      cursor: isComingSoon ? "not-allowed" : "pointer",
+                      "&:hover": {
+                        backgroundColor: isComingSoon ? "transparent" : undefined
+                      }
+                    }}
+                  >
+                    <Typography 
+                      sx={{ 
+                        fontSize: "13px",
+                        color: isComingSoon ? "text.secondary" : "text.primary"
+                      }}
+                    >
+                      {option.name}
+                    </Typography>
+                  </Box>
+                );
+              }}
+              isOptionEqualToValue={(option, value) => option._id === value._id}
+              getOptionDisabled={(option) => option.name.includes("coming soon")}
+              filterSelectedOptions
+              popupIcon={<KeyboardArrowDown />}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder="Select regulations and standards"
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      paddingTop: "3.8px !important",
+                      paddingBottom: "3.8px !important",
+                    },
+                    "& ::placeholder": {
+                      fontSize: "13px",
+                    },
+                  }}
+                />
+              )}
+              sx={{
+                width: "458px",
+                backgroundColor: theme.palette.background.main,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "5px",
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#777",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#888",
+                    borderWidth: "1px",
+                  },
+                },
+              }}
+              slotProps={{
+                paper: {
+                  sx: {
+                    "& .MuiAutocomplete-listbox": {
+                      "& .MuiAutocomplete-option": {
+                        fontSize: "13px",
+                        color: "#1c2130",
+                        paddingLeft: "9px",
+                        paddingRight: "9px",
+                      },
+                      "& .MuiAutocomplete-option.Mui-focused": {
+                        background: "#f9fafb",
+                      },
+                    },
+                    "& .MuiAutocomplete-noOptions": {
+                      fontSize: "13px",
+                      paddingLeft: "9px",
+                      paddingRight: "9px",
+                    },
+                  },
+                },
+              }}
             />
 
             <DatePicker

@@ -97,7 +97,8 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
         <Suspense fallback={<div>Loading...</div>}>
           <RadioGroup 
             values={REPORT_TYPES} 
-            defaultValue='Project risks report' />
+            defaultValue='Project risks report'
+            onChange={(event) => setValues({ ...values, report_type: event.target.value })} />
         </Suspense>
       </Stack>
       <Stack sx={{paddingTop: theme.spacing(4)}}>

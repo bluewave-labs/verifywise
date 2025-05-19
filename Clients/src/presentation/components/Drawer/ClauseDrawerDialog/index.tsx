@@ -5,6 +5,7 @@ import {
   Paper,
   Stack,
   Typography,
+  CircularProgress,
 } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import Field from "../../Inputs/Field";
@@ -45,18 +46,26 @@ const VWISO42001ClauseDrawerDialog = ({
 }: VWISO42001ClauseDrawerDialogProps) => {
   const [date, setDate] = useState<Dayjs | null>(null);
   const [fetchedSubClause, setFetchedSubClause] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchSubClause = async () => {
       if (open && subClause?.id) {
+        setIsLoading(true);
         try {
           const response = await GetSubClausesById({
             routeUrl: `/iso-42001/subClause/byId/${subClause.id}?projectFrameworkId=${projectFrameworkId}`,
           });
           console.log("Fetched SubClause:", response.data);
           setFetchedSubClause(response.data);
+          // Set the date if it exists in the fetched data
+          if (response.data?.due_date) {
+            setDate(response.data.due_date);
+          }
         } catch (error) {
           console.error("Error fetching subclause:", error);
+        } finally {
+          setIsLoading(false);
         }
       }
     };
@@ -64,8 +73,38 @@ const VWISO42001ClauseDrawerDialog = ({
     fetchSubClause();
   }, [open, subClause?.id, projectFrameworkId]);
 
-  console.log("subClause : ", subClause);
-  console.log("fetchedSubClause : ", fetchedSubClause);
+  const displayData = fetchedSubClause || subClause;
+
+  if (isLoading) {
+    return (
+      <Drawer
+        open={open}
+        onClose={onClose}
+        sx={{
+          width: 600,
+          margin: 0,
+          "& .MuiDrawer-paper": {
+            margin: 0,
+            borderRadius: 0,
+          },
+        }}
+        anchor="right"
+      >
+        <Stack
+          sx={{
+            width: 600,
+            height: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <CircularProgress />
+          <Typography sx={{ mt: 2 }}>Loading subclause data...</Typography>
+        </Stack>
+      </Drawer>
+    );
+  }
 
   return (
     <Drawer
@@ -99,7 +138,7 @@ const VWISO42001ClauseDrawerDialog = ({
           }}
         >
           <Typography fontSize={15} fontWeight={700}>
-            {clause?.clause_no + "." + subClause?.id} {subClause?.title}
+            {clause?.clause_no + "." + displayData?.id} {displayData?.title}
           </Typography>
           <CloseIcon onClick={onClose} style={{ cursor: "pointer" }} />
         </Stack>
@@ -121,13 +160,13 @@ const VWISO42001ClauseDrawerDialog = ({
           >
             <Typography fontSize={13} sx={{ marginBottom: "13px" }}>
               <strong>Requirement Summary: </strong>
-              {subClause?.summary}
+              {displayData?.summary}
             </Typography>
             <Typography fontSize={13} fontWeight={600}>
               Key Questions:
             </Typography>
             <ul style={{ paddingLeft: "20px" }}>
-              {subClause?.questions.map((question: any, index: any) => (
+              {displayData?.questions?.map((question: any, index: any) => (
                 <li key={index}>
                   <Typography fontSize={13}>{question}</Typography>
                 </li>
@@ -138,11 +177,13 @@ const VWISO42001ClauseDrawerDialog = ({
               Evidence Examples:
             </Typography>
             <ul style={{ paddingLeft: "20px" }}>
-              {subClause?.evidence_examples.map((example: any, index: any) => (
-                <li key={index}>
-                  <Typography fontSize={13}>{example}</Typography>
-                </li>
-              ))}
+              {displayData?.evidence_examples?.map(
+                (example: any, index: any) => (
+                  <li key={index}>
+                    <Typography fontSize={13}>{example}</Typography>
+                  </li>
+                )
+              )}
             </ul>
           </Paper>
         </Stack>
@@ -159,6 +200,7 @@ const VWISO42001ClauseDrawerDialog = ({
             </Typography>
             <Field
               type="description"
+              value={displayData?.implementation_description || ""}
               sx={{
                 cursor: "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
@@ -200,7 +242,9 @@ const VWISO42001ClauseDrawerDialog = ({
                   textWrap: "wrap",
                 }}
               >
-                {`${evidenceFiles.length || 0} evidence files attached`}
+                {`${
+                  displayData?.evidence_links?.length || 0
+                } evidence files attached`}
               </Typography>
               {uploadFiles.length > 0 && (
                 <Typography
@@ -233,17 +277,17 @@ const VWISO42001ClauseDrawerDialog = ({
           <Select
             id="status"
             label="Status:"
-            value={subClause?.status || ""}
+            value={displayData?.status || ""}
             onChange={() => {}}
             items={[
-              { _id: "Not Started", name: "Not Started" },
+              { _id: "Not started", name: "Not started" },
               { _id: "Draft", name: "Draft" },
-              { _id: "In Progress", name: "In Progress" },
-              { _id: "Awaiting Review", name: "Awaiting Review" },
-              { _id: "Awaiting Approval", name: "Awaiting Approval" },
+              { _id: "In progress", name: "In progress" },
+              { _id: "Awaiting review", name: "Awaiting review" },
+              { _id: "Awaiting approval", name: "Awaiting approval" },
               { _id: "Implemented", name: "Implemented" },
               { _id: "Audited", name: "Audited" },
-              { _id: "Needs Rework", name: "Needs Rework" },
+              { _id: "Needs rework", name: "Needs rework" },
             ]}
             sx={inputStyles}
             placeholder={"Select status"}
@@ -252,7 +296,7 @@ const VWISO42001ClauseDrawerDialog = ({
           <Select
             id="Owner"
             label="Owner:"
-            value={""}
+            value={displayData?.owner || ""}
             onChange={() => {}}
             items={[]}
             sx={inputStyles}
@@ -262,7 +306,7 @@ const VWISO42001ClauseDrawerDialog = ({
           <Select
             id="Reviewer"
             label="Reviewer:"
-            value={""}
+            value={displayData?.reviewer || ""}
             onChange={() => {}}
             items={[]}
             sx={inputStyles}
@@ -272,7 +316,7 @@ const VWISO42001ClauseDrawerDialog = ({
           <Select
             id="Approver"
             label="Approver:"
-            value={""}
+            value={displayData?.approver || ""}
             onChange={() => {}}
             items={[]}
             sx={inputStyles}
@@ -293,6 +337,7 @@ const VWISO42001ClauseDrawerDialog = ({
             </Typography>
             <Field
               type="description"
+              value={displayData?.auditor_feedback || ""}
               sx={{
                 cursor: "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":

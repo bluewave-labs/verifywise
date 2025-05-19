@@ -37,6 +37,7 @@ interface VWISO42001ClauseDrawerDialogProps {
   evidenceFiles?: FileData[];
   uploadFiles?: FileData[];
   projectFrameworkId: number;
+  project_id: number;
 }
 
 const VWISO42001ClauseDrawerDialog = ({
@@ -47,6 +48,7 @@ const VWISO42001ClauseDrawerDialog = ({
   evidenceFiles = [],
   uploadFiles = [],
   projectFrameworkId,
+  project_id,
 }: VWISO42001ClauseDrawerDialogProps) => {
   const [date, setDate] = useState<Dayjs | null>(null);
   const [fetchedSubClause, setFetchedSubClause] = useState<any>(null);
@@ -57,7 +59,7 @@ const VWISO42001ClauseDrawerDialog = ({
   const { dashboardValues } = useContext(VerifyWiseContext);
   const { users } = dashboardValues;
   const { project } = useProjectData({
-    projectId: String(projectFrameworkId) || "0",
+    projectId: String(project_id) || "0",
   });
 
   // Add state for all form fields

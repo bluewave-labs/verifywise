@@ -201,6 +201,7 @@ const ISO42001Clauses = ({
         onClose={handleDrawerClose}
         subClause={selectedSubClause}
         clause={selectedClause}
+        projectFrameworkId={projectFrameworkId}
       />
     </Stack>
   );

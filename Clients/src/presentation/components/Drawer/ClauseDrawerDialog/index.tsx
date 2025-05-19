@@ -12,9 +12,10 @@ import { FileData } from "../../../../domain/types/File";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
 import { Dayjs } from "dayjs";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import VWButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
+import { GetSubClausesById } from "../../../../application/repository/subClause_iso.repository";
 
 export const inputStyles = {
   minWidth: 200,
@@ -30,6 +31,7 @@ interface VWISO42001ClauseDrawerDialogProps {
   clause: any;
   evidenceFiles?: FileData[];
   uploadFiles?: FileData[];
+  projectFrameworkId: number;
 }
 
 const VWISO42001ClauseDrawerDialog = ({
@@ -39,9 +41,32 @@ const VWISO42001ClauseDrawerDialog = ({
   clause,
   evidenceFiles = [],
   uploadFiles = [],
+  projectFrameworkId,
 }: VWISO42001ClauseDrawerDialogProps) => {
   const [date, setDate] = useState<Dayjs | null>(null);
+  const [fetchedSubClause, setFetchedSubClause] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchSubClause = async () => {
+      if (open && subClause?.id) {
+        try {
+          const response = await GetSubClausesById({
+            routeUrl: `/iso-42001/subClause/byId/${subClause.id}?projectFrameworkId=${projectFrameworkId}`,
+          });
+          console.log("Fetched SubClause:", response.data);
+          setFetchedSubClause(response.data);
+        } catch (error) {
+          console.error("Error fetching subclause:", error);
+        }
+      }
+    };
+
+    fetchSubClause();
+  }, [open, subClause?.id, projectFrameworkId]);
+
   console.log("subClause : ", subClause);
+  console.log("fetchedSubClause : ", fetchedSubClause);
+
   return (
     <Drawer
       className="vw-iso-42001-clause-drawer-dialog"

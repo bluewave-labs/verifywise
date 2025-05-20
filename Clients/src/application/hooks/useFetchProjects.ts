@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCallback } from "react";
 import { getAllEntities } from "../repository/entity.repository";
 import { Project } from "../../domain/types/Project";
@@ -18,6 +18,13 @@ export const useProjectData = () => {
       setLoading(false);
     }
   }, []);
+
+  // Fetch projects when the component mounts
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
+
+
 
   return { projects, loading, fetchProjects };
 };

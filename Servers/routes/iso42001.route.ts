@@ -1,0 +1,96 @@
+import express from "express";
+import { validateId } from "../validations/id.valid";
+const router = express.Router();
+const multer = require("multer");
+const upload = multer({ storage: multer.memoryStorage() });
+
+import authenticateJWT from "../middleware/auth.middleware";
+import {
+  deleteManagementSystemClauses,
+  deleteReferenceControls,
+  getAllAnnexes,
+  getAllClauses,
+  getAnnexCategoriesByAnnexId,
+  getAnnexCategoryById,
+  getAnnexesByProjectId,
+  getClausesByProjectId,
+  getSubClauseById,
+  getSubClausesByClauseId,
+  saveAnnexes,
+  saveClauses,
+} from "../controllers/iso42001.ctrl";
+
+router.get("/clauses", authenticateJWT, getAllClauses);
+router.get("/annexes", authenticateJWT, getAllAnnexes);
+
+router.get(
+  "/clauses/byProjectId/:id",
+  authenticateJWT,
+  validateId("id"),
+  getClausesByProjectId
+);
+router.get(
+  "/annexes/byProjectId/:id",
+  authenticateJWT,
+  validateId("id"),
+  getAnnexesByProjectId
+);
+
+router.get(
+  "/subClauses/byClauseId/:id",
+  authenticateJWT,
+  validateId("id"),
+  getSubClausesByClauseId
+);
+router.get(
+  "/annexCategories/byAnnexId/:id",
+  authenticateJWT,
+  validateId("id"),
+  getAnnexCategoriesByAnnexId
+);
+
+router.get(
+  "/subClause/byId/:id",
+  authenticateJWT,
+  validateId("id"),
+  validateId("projectFrameworkId"),
+  getSubClauseById
+);
+router.get(
+  "/annexCategory/byId/:id",
+  authenticateJWT,
+  validateId("id"),
+  validateId("projectFrameworkId"),
+  getAnnexCategoryById
+);
+
+router.patch(
+  "/saveClauses/:id",
+  authenticateJWT,
+  validateId("id"),
+  upload.any(),
+  saveClauses
+);
+
+router.patch(
+  "/saveAnnexes/:id",
+  authenticateJWT,
+  validateId("id"),
+  upload.any(),
+  saveAnnexes
+);
+
+router.delete(
+  "/clauses/byProjectId/:id",
+  authenticateJWT,
+  validateId("id"),
+  deleteManagementSystemClauses
+);
+router.delete(
+  "/annexes/byProjectId/:id",
+  authenticateJWT,
+  validateId("id"),
+  deleteReferenceControls
+);
+
+export default router;

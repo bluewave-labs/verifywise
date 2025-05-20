@@ -30,10 +30,6 @@ import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScre
 const VWHome = () => {
   const { setDashboardValues, componentsVisible, changeComponentVisibility } =
     useContext(VerifyWiseContext);
-  // const [complianceProgressData, setComplianceProgressData] =
-  //   useState<ComplianceProgress>();
-  // const [assessmentProgressData, setAssessmentProgressData] =
-  //   useState<AssessmentProgress>();
   const [alertState, setAlertState] = useState<AlertState>();
   const [isProjectFormModalOpen, setIsProjectFormModalOpen] =
     useState<boolean>(false);
@@ -64,20 +60,12 @@ const VWHome = () => {
     const fetchProgressData = async () => {
       await fetchData("/users", (data) => {
         setDashboardValues({ users: data });
-      });
-      // await fetchData(
-      //   "/eu-ai-act/all/compliances/progress",
-      //   setComplianceProgressData
-      // );
-      // await fetchData(
-      //   "/eu-ai-act/all/assessments/progress",
-      //   setAssessmentProgressData
-      // );
+      }); 
       await fetchProjects();
     };
 
     fetchProgressData();
-  }, [setDashboardValues, refreshProjectsFlag, fetchProjects]);
+  }, [setDashboardValues, fetchProjects, refreshProjectsFlag]);
 
   const handleProjectFormModalClose = () => {
     setIsProjectFormModalOpen(false);
@@ -102,14 +90,6 @@ const VWHome = () => {
         }, 100);
 
         await fetchProjects();
-        // await fetchData(
-        //   "/eu-ai-act/all/compliances/progress",
-        //   setComplianceProgressData
-        // );
-        // await fetchData(
-        //   "/eu-ai-act/all/assessments/progress",
-        //   setAssessmentProgressData
-        // );
         setShowToastNotification(false);
         window.location.reload();
       } else {

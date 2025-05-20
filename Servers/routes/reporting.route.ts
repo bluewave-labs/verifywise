@@ -1,11 +1,16 @@
 import express from "express";
 const router = express.Router();
-import { generateReports, getAllGeneratedReports } from "../controllers/reporting.ctrl";
+import { 
+  generateReports, 
+  getAllGeneratedReports,
+  deleteGeneratedReportById
+} from "../controllers/reporting.ctrl";
 
 import authenticateJWT from "../middleware/auth.middleware";
 
-// POST request
+// POST, PUT, DELETE requests
 router.post("/generate-report", authenticateJWT, generateReports);
+router.delete("/:id", authenticateJWT, deleteGeneratedReportById);
 
 // GET request
 router.get("/generate-report", authenticateJWT, getAllGeneratedReports);

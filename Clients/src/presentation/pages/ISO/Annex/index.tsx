@@ -34,7 +34,6 @@ const ISO42001Annex = ({
         const response = await GetAnnexesByProjectFrameworkId({
           routeUrl: `/iso-42001/annexes/byProjectId/${projectFrameworkId}`,
         });
-        console.log(`/iso-42001/annexes/byProjectId/${projectFrameworkId}`);
         setAnnexes(response.data.data);
       } catch (error) {
         console.error("Error fetching annexes:", error);

@@ -39,9 +39,14 @@
  */
 
 class CustomException extends Error {
-  constructor(message: string) {
+  status?: number | undefined;
+  response?: any;
+
+  constructor(message: string, status: number | undefined, response: any) {
     super(message);
     this.name = "CustomException";
+    this.status = status;
+    this.response = response;
   }
 }
 

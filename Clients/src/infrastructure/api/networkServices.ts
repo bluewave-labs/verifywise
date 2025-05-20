@@ -26,11 +26,21 @@ interface ApiResponse<T> {
 const handleError = (error: any) => {
   try {
     if (axios.isAxiosError(error)) {
+      console.log("error : ", error);
       // Use backend message if available, otherwise fallback to generic
       const errorMessage = error.response?.data?.message || error.message;
-      throw new CustomException(errorMessage);
+
+      return new CustomException(
+        errorMessage,
+        error.response?.status,
+        error.response?.data
+      );
     } else {
-      throw new CustomException("An unknown error occurred");
+      throw new CustomException(
+        "An unknown error occurred",
+        undefined,
+        undefined
+      );
     }
   } catch (e) {
     console.error("Error in handleError:", e);
@@ -118,8 +128,13 @@ export const apiServices = {
         headers: response.headers as AxiosResponseHeaders,
       };
     } catch (error) {
-      handleError(error);
-      return undefined as unknown as ApiResponse<T>;
+      const requestedAPIError = handleError(error);
+      return {
+        data: undefined,
+        status: requestedAPIError.status ?? 500,
+        statusText: "Error",
+        headers: {},
+      } as ApiResponse<T>;
     }
   },
 

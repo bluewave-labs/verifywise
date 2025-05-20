@@ -17,7 +17,7 @@ import { SubtopicModel } from "../models/subtopic.model";
 import { FileModel } from "../models/file.model";
 import { table } from "console";
 import { ProjectFrameworksModel } from "../models/projectFrameworks.model";
-import { createEUFrameworkQuery, deleteProjectFrameworkEUQuery } from "./eu.utils";
+import { frameworkDeletionMap } from "../types/framework.type";
 
 export const getAllProjectsQuery = async (): Promise<Project[]> => {
   const projects = await sequelize.query(
@@ -246,7 +246,6 @@ export const updateProjectByIdQuery = async (
   id: number,
   project: Partial<Project>,
   members: number[],
-  frameworks: number[],
   transaction: Transaction
 ): Promise<Project & { members: number[] } | null> => {
   const _currentMembers = await sequelize.query(
@@ -286,49 +285,6 @@ export const updateProjectByIdQuery = async (
         transaction
       }
     )
-  }
-
-  const _currentFrameworks = await sequelize.query(
-    `SELECT framework_id FROM projects_frameworks WHERE project_id = :project_id`,
-    {
-      replacements: { project_id: id },
-      mapToModel: true,
-      model: ProjectFrameworksModel,
-      transaction
-    }
-  )
-  const currentFrameworks = _currentFrameworks.map(m => m.framework_id)
-  const deletedFrameworks = currentFrameworks.filter(m => !frameworks?.includes(m))
-  const newFrameworks = frameworks?.filter(m => !currentFrameworks.includes(m)) || []
-  for (let framework of deletedFrameworks) {
-    await sequelize.query(
-      `DELETE FROM projects_frameworks WHERE framework_id = :framework_id AND project_id = :project_id`,
-      {
-        replacements: { framework_id: framework, project_id: id },
-        mapToModel: true,
-        model: ProjectFrameworksModel,
-        type: QueryTypes.DELETE,
-        transaction
-      }
-    );
-    // if (framework === 1) {
-    await deleteProjectFrameworkEUQuery(id, transaction)
-    // }
-  }
-  for (let framework of newFrameworks) {
-    await sequelize.query(
-      `INSERT INTO projects_frameworks (project_id, framework_id) VALUES (:project_id, :framework_id);`,
-      {
-        replacements: { framework_id: framework, project_id: id },
-        mapToModel: true,
-        model: ProjectFrameworksModel,
-        // type: QueryTypes.INSERT
-        transaction
-      }
-    )
-    // if (framework === 1) {
-    await createEUFrameworkQuery(id, false, transaction)
-    // }
   }
 
   const updateProject: Partial<Record<keyof Project, any>> = {};
@@ -466,11 +422,15 @@ export const deleteProjectByIdQuery = async (
   for (let entity of dependantEntities) {
     await deleteHelper(entity, id, transaction);
   }
-  for (let framework of frameworks) {
-    // if (framework.framework_id === 1) {
-    await deleteProjectFrameworkEUQuery(id, transaction);
-    // }
-  }
+  await Promise.all(
+    frameworks.map(({ framework_id }) => {
+      const deleteFunction = frameworkDeletionMap[framework_id];
+      if (!deleteFunction) {
+        throw new Error(`Unsupported framework_id encountered: ${framework_id}`);
+      }
+      return deleteFunction(id, transaction);
+    })
+  );
 
   const result = await sequelize.query(
     "DELETE FROM projects WHERE id = :id RETURNING *",

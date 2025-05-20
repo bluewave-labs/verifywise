@@ -6,7 +6,7 @@ import light from "./presentation/themes/light";
 import dark from "./presentation/themes/dark";
 import { CssBaseline } from "@mui/material";
 import { VerifyWiseContext } from "./application/contexts/VerifyWise.context";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./application/redux/store";
@@ -18,10 +18,22 @@ import { createRoutes } from "./application/config/routes";
 import { DashboardState } from "./application/interfaces/appStates";
 import { AppState } from "./application/interfaces/appStates";
 import { ComponentVisible } from "./application/interfaces/ComponentVisible";
+import { AlertProps } from "./domain/interfaces/iAlert";
+import { setShowAlertCallback } from "./infrastructure/api/customAxios";
+import Alert from "./presentation/components/Alert";
 
 function App() {
   const mode = useSelector((state: AppState) => state.ui?.mode || "light");
   const token = useSelector((state: AppState) => state.auth?.authToken);
+  const [alert, setAlert] = useState<AlertProps | null>(null);
+
+  useEffect(() => {
+    setShowAlertCallback((alertProps: AlertProps) => {
+      setAlert(alertProps);
+      setTimeout(() => setAlert(null), 5000);
+    });
+    return () => setShowAlertCallback(() => {});
+  }, []);
 
   const [uiValues, setUiValues] = useState<unknown | undefined>({});
   const [authValues, setAuthValues] = useState<unknown | undefined>({});
@@ -47,6 +59,8 @@ function App() {
   const [componentsVisible, setComponentsVisible] = useState<ComponentVisible>({
     home: false,
     sidebar: false,
+    projectFrameworks: false,
+    compliance: false,
   });
   const changeComponentVisibility = useCallback(
     (component: keyof ComponentVisible, value: boolean) => {
@@ -114,6 +128,15 @@ function App() {
           <VerifyWiseContext.Provider value={contextValues}>
             <ThemeProvider theme={mode === "light" ? light : dark}>
               <CssBaseline />
+              {alert && (
+                <Alert
+                  variant={alert.variant}
+                  title={alert.title}
+                  body={alert.body}
+                  isToast={true}
+                  onClick={() => setAlert(null)}
+                />
+              )}
               <Routes>
                 {createRoutes(triggerSidebar, triggerSidebarReload)}
               </Routes>

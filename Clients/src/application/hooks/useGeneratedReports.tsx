@@ -20,7 +20,15 @@ export interface GeneratedReports {
   project: string
 }
 
-const useGeneratedReports = ({projectId} : {projectId: string | null}) => {
+interface UseGeneratedReportsParams {
+  projectId: string;
+  refreshKey?: any;
+}
+
+const useGeneratedReports = ({
+  projectId, 
+  refreshKey
+} : UseGeneratedReportsParams) => {
   const [generatedReports, setGeneratedReports] = useState<GeneratedReports[]>([]);
   const [loadingReports, setLoadingReports] = useState<boolean>(true);
   const [error, setError] = useState<string | boolean>(false);
@@ -55,7 +63,7 @@ const useGeneratedReports = ({projectId} : {projectId: string | null}) => {
     return () => {
       controller.abort();
     };
-  }, [projectId])
+  }, [projectId, refreshKey])
 
   return{
     generatedReports,

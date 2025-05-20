@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Stack, Typography } from "@mui/material";
 import { pageHeadingStyle } from "../../Assessment/1.0AssessmentTracker/index.style";
 import { getEntityById } from "../../../../application/repository/entity.repository";
@@ -9,30 +9,39 @@ import ControlCategoryTile from "./ControlCategory";
 import PageTour from "../../../components/PageTour";
 import ComplianceSteps from "./ComplianceSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import { ComplianceData } from "../../../../domain/interfaces/iCompliance";
 import { Project } from "../../../../domain/types/Project";
 
 const ComplianceTracker = ({ project }: { project: Project }) => {
   const currentProjectId = project?.id;
   const currentProjectFramework = project.framework.filter(
-    p => p.framework_id === 1
-  )[0].project_framework_id;
+    (p) => p.framework_id === 1
+  )[0]?.project_framework_id;
   const [complianceData, setComplianceData] = useState<ComplianceData>();
   const [controlCategories, setControlCategories] =
     useState<ControlCategoryModel[]>();
   const [error, setError] = useState<unknown>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const { componentsVisible, changeComponentVisibility } = useContext(
+    VerifyWiseContext);
   const [runComplianceTour, setRunComplianceTour] = useState(false);
 
   const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({
-    countToTrigger: 3,
+    countToTrigger: 2,
   });
 
   useEffect(() => {
     if (allVisible) {
-      setRunComplianceTour(true);
+      changeComponentVisibility("compliance", true);
     }
   }, [allVisible]);
+
+    useEffect(() => {
+      if (componentsVisible.compliance && componentsVisible.projectFrameworks) {
+        setRunComplianceTour(true);
+      }
+    }, [componentsVisible]);
 
   // Reset state when project changes
   useEffect(() => {
@@ -121,13 +130,6 @@ const ComplianceTracker = ({ project }: { project: Project }) => {
         }}
         tourKey="compliance-tour"
       />
-      <Stack
-        ref={refs[0]}
-        data-joyride-id="compliance-heading"
-        sx={{ position: "relative" }}
-      >
-        {/* <Typography sx={pageHeadingStyle}>Compliance tracker</Typography> */}
-      </Stack>
       {complianceData && (
         <Stack ref={refs[1]} data-joyride-id="compliance-progress-bar">
           <StatsCard

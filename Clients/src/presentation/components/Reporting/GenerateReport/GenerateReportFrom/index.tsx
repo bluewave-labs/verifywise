@@ -144,7 +144,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
       </Stack>
 
       <Stack sx={{paddingTop: theme.spacing(8)}}>
-        <Typography sx={styles.semiTitleText}>Project Type *</Typography>
+        <Typography sx={styles.semiTitleText}>Report Type *</Typography>
         <Suspense fallback={<div>Loading...</div>}>
           <RadioGroup 
             values={values.framework === 1 ? EUAI_REPORT_TYPES : ISO_REPORT_TYPES} 

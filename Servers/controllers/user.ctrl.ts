@@ -19,19 +19,27 @@ import {
 } from "../utils/user.utils";
 import bcrypt from "bcrypt";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import { generateRefreshToken, generateToken, getRefreshTokenPayload } from "../utils/jwt.util";
+import {
+  generateRefreshToken,
+  generateToken,
+  getRefreshTokenPayload,
+} from "../utils/jwt.util";
 import { UserModel } from "../models/user.model";
 import { sequelize } from "../database/db";
 
 async function getAllUsers(req: Request, res: Response): Promise<any> {
   try {
-    const users = await getAllUsersQuery() as UserModel[];
+    const users = (await getAllUsersQuery()) as UserModel[];
 
     if (users) {
-      return res.status(200).json(STATUS_CODE[200](users.map(user => {
-        const { password_hash, ...safeUser } = user.get({ plain: true });
-        return safeUser;
-      })));
+      return res.status(200).json(
+        STATUS_CODE[200](
+          users.map((user) => {
+            const { password_hash, ...safeUser } = user.get({ plain: true });
+            return safeUser;
+          })
+        )
+      );
     }
 
     return res.status(204).json(STATUS_CODE[204](users));
@@ -43,7 +51,7 @@ async function getAllUsers(req: Request, res: Response): Promise<any> {
 async function getUserByEmail(req: Request, res: Response) {
   try {
     const email = req.params.email;
-    const user = await getUserByEmailQuery(email) as UserModel;
+    const user = (await getUserByEmailQuery(email)) as UserModel;
 
     if (user) {
       const { password_hash, ...safeUser } = user.get({ plain: true });
@@ -59,7 +67,7 @@ async function getUserByEmail(req: Request, res: Response) {
 async function getUserById(req: Request, res: Response) {
   try {
     const id = parseInt(req.params.id);
-    const user = await getUserByIdQuery(id) as UserModel;
+    const user = (await getUserByIdQuery(id)) as UserModel;
 
     if (user) {
       const { password_hash, ...safeUser } = user.get({ plain: true });
@@ -85,15 +93,18 @@ async function createNewUser(req: Request, res: Response) {
 
     const password_hash = await bcrypt.hash(password, 10);
 
-    const user = await createNewUserQuery({
-      name,
-      surname,
-      email,
-      password_hash,
-      role,
-      created_at,
-      last_login,
-    }, transaction) as UserModel;
+    const user = (await createNewUserQuery(
+      {
+        name,
+        surname,
+        email,
+        password_hash,
+        role,
+        created_at,
+        last_login,
+      },
+      transaction
+    )) as UserModel;
 
     if (user) {
       await transaction.commit();
@@ -124,9 +135,10 @@ async function loginUser(req: Request, res: Response): Promise<any> {
           id: user!.id,
           email: email,
         });
-        const refreshToken = generateRefreshToken(
-          { id: user!.id, email: email }
-        );
+        const refreshToken = generateRefreshToken({
+          id: user!.id,
+          email: email,
+        });
         res.cookie("refresh_token", refreshToken, {
           httpOnly: true,
           path: "/api/users",
@@ -155,7 +167,9 @@ async function refreshAccessToken(req: Request, res: Response): Promise<any> {
     const refreshToken = req.cookies.refresh_token;
 
     if (!refreshToken) {
-      return res.status(400).json(STATUS_CODE[400]("Refresh token is required"));
+      return res
+        .status(400)
+        .json(STATUS_CODE[400]("Refresh token is required"));
     }
 
     const decoded = getRefreshTokenPayload(refreshToken);
@@ -165,7 +179,9 @@ async function refreshAccessToken(req: Request, res: Response): Promise<any> {
     }
 
     if (decoded.expire < Date.now())
-      return res.status(406).json(STATUS_CODE[406]({ message: "Token expired" }));
+      return res
+        .status(406)
+        .json(STATUS_CODE[406]({ message: "Token expired" }));
 
     const newAccessToken = generateToken({
       id: decoded.id,
@@ -187,12 +203,16 @@ async function resetPassword(req: Request, res: Response) {
   try {
     const { email, newPassword } = req.body;
 
-    const user = await getUserByEmailQuery(email) as UserModel;
+    const user = (await getUserByEmailQuery(email)) as UserModel;
 
     if (user) {
       const hashedPassword = await bcrypt.hash(newPassword, 10);
       user.dataValues.password_hash = hashedPassword;
-      const updatedUser = await resetPasswordQuery(email, hashedPassword, transaction) as UserModel;
+      const updatedUser = (await resetPasswordQuery(
+        email,
+        hashedPassword,
+        transaction
+      )) as UserModel;
       const { password_hash, ...safeUser } = updatedUser.get({ plain: true });
       await transaction.commit();
 
@@ -215,13 +235,17 @@ async function updateUserById(req: Request, res: Response) {
     const user = await getUserByIdQuery(id);
 
     if (user) {
-      const updatedUser = await updateUserByIdQuery(id, {
-        name: name ?? user.name,
-        surname: surname ?? user.surname,
-        email: email ?? user.email,
-        role: role ?? user.role,
-        last_login: last_login ?? user.last_login,
-      }, transaction) as UserModel;
+      const updatedUser = (await updateUserByIdQuery(
+        id,
+        {
+          name: name ?? user.name,
+          surname: surname ?? user.surname,
+          email: email ?? user.email,
+          role: role ?? user.role,
+          last_login: last_login ?? user.last_login,
+        },
+        transaction
+      )) as UserModel;
       const { password_hash, ...safeUser } = updatedUser.get({ plain: true });
       await transaction.commit();
 
@@ -298,7 +322,9 @@ async function calculateProgress(
         userProject.id!
       );
       for (const controlcategory of controlcategories) {
-        const controls = await getControlForControlCategory(controlcategory.id!);
+        const controls = await getControlForControlCategory(
+          controlcategory.id!
+        );
         for (const control of controls) {
           const subControls = await getSubControlForControl(control.id!);
           for (const subControl of subControls) {
@@ -367,9 +393,7 @@ async function ChangePassword(req: Request, res: Response) {
     const user = await getUserByIdQuery(id);
 
     if (!user) {
-      return res
-        .status(404)
-        .json(STATUS_CODE[404]({ message: "User not found" }));
+      return res.status(404).json({ message: "User not found" });
     }
 
     // Check if the current password is correct
@@ -378,9 +402,7 @@ async function ChangePassword(req: Request, res: Response) {
       user.password_hash
     );
     if (!passwordIsMatched) {
-      return res
-        .status(401)
-        .json(STATUS_CODE[401]({ message: "Current password is incorrect" }));
+      return res.status(401).json({ message: "Incorrect current password" });
     }
 
     // Check if the new password is not the same as the current password
@@ -389,24 +411,28 @@ async function ChangePassword(req: Request, res: Response) {
       user.password_hash
     );
     if (newPasswordIsMatched) {
-      return res.status(400).json(
-        STATUS_CODE[400]({
-          message: "New password cannot be the same as the current password",
-        })
-      );
+      return res.status(400).json({
+        message: "New password cannot be the same as the current password",
+      });
     }
 
     // Hash the new password and update the user's password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password_hash = hashedPassword;
-    const updatedUser = await resetPasswordQuery(user.email, hashedPassword, transaction) as UserModel;
+    const updatedUser = (await resetPasswordQuery(
+      user.email,
+      hashedPassword,
+      transaction
+    )) as UserModel;
     const { password_hash, ...safeUser } = updatedUser.get({ plain: true });
     await transaction.commit();
 
-    return res.status(202).json(STATUS_CODE[202](safeUser));
+    return res
+      .status(202)
+      .json({ message: "Password updated", data: safeUser });
   } catch (error) {
     await transaction.rollback();
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+    return res.status(500).json({ message: (error as Error).message });
   }
 }
 
@@ -422,5 +448,5 @@ export {
   checkUserExists,
   calculateProgress,
   ChangePassword,
-  refreshAccessToken
+  refreshAccessToken,
 };

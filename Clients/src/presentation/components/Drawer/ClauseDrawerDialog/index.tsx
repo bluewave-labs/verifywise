@@ -62,8 +62,7 @@ const VWISO42001ClauseDrawerDialog = ({
   const [evidenceFiles, setEvidenceFiles] = useState<any[]>([]);
 
   // Get context and project data
-  const { dashboardValues, userId } = useContext(VerifyWiseContext);
-  const { users } = dashboardValues;
+  const { users, userId } = useContext(VerifyWiseContext);
   const { project } = useProjectData({
     projectId: String(project_id) || "0",
   });
@@ -399,14 +398,14 @@ const VWISO42001ClauseDrawerDialog = ({
             value={formData.status}
             onChange={handleSelectChange("status")}
             items={[
-              { _id: "Not started", name: "Not started" },
-              { _id: "Draft", name: "Draft" },
-              { _id: "In progress", name: "In progress" },
-              { _id: "Awaiting review", name: "Awaiting review" },
-              { _id: "Awaiting approval", name: "Awaiting approval" },
-              { _id: "Implemented", name: "Implemented" },
-              { _id: "Audited", name: "Audited" },
-              { _id: "Needs rework", name: "Needs rework" },
+              { _id: "0", name: "Not started" },
+              { _id: "1", name: "Draft" },
+              { _id: "2", name: "In progress" },
+              { _id: "3", name: "Awaiting review" },
+              { _id: "4", name: "Awaiting approval" },
+              { _id: "5", name: "Implemented" },
+              { _id: "6", name: "Audited" },
+              { _id: "7", name: "Needs rework" },
             ]}
             sx={inputStyles}
             placeholder={"Select status"}
@@ -418,8 +417,10 @@ const VWISO42001ClauseDrawerDialog = ({
             value={formData.owner}
             onChange={handleSelectChange("owner")}
             items={projectMembers.map((user) => ({
-              _id: user.id?.toString() || "",
+              _id: user.id,
               name: `${user.name} ${user.surname}`,
+              email: user.email,
+              surname: user.surname,
             }))}
             sx={inputStyles}
             placeholder={"Select owner"}
@@ -431,7 +432,7 @@ const VWISO42001ClauseDrawerDialog = ({
             value={formData.reviewer}
             onChange={handleSelectChange("reviewer")}
             items={projectMembers.map((user) => ({
-              _id: user.id?.toString() || "",
+              _id: user.id,
               name: `${user.name} ${user.surname}`,
             }))}
             sx={inputStyles}
@@ -444,7 +445,7 @@ const VWISO42001ClauseDrawerDialog = ({
             value={formData.approver}
             onChange={handleSelectChange("approver")}
             items={projectMembers.map((user) => ({
-              _id: user.id?.toString() || "",
+              _id: user.id,
               name: `${user.name} ${user.surname}`,
             }))}
             sx={inputStyles}

@@ -71,7 +71,7 @@ const VWProjectRisksTableBody = ({
   onDeleteRisk: (id: number) => void;
   flashRow: number | null;
 }) => {
-  const { setInputValues, dashboardValues } = useContext(VerifyWiseContext);
+  const { setInputValues, users } = useContext(VerifyWiseContext);
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
   const theme = useTheme();
   const handleEditRisk = (row: any, event?: React.SyntheticEvent) => {
@@ -85,7 +85,7 @@ const VWProjectRisksTableBody = ({
   };
 
   const displayUserFullName = (userId: string) => {
-    const currentUser = dashboardValues.users.find(
+    const currentUser = users.find(
       (user: any) => user.id === parseInt(userId)
     );
     const fullName = currentUser

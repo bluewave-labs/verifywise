@@ -5,13 +5,13 @@ import ProgressBar from "./ProgressBar";
 import { Btn, Card, styles, SubtitleValue, Title } from "./styles";
 import useNavigateSearch from "../../../application/hooks/useNavigateSearch";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import { User } from "../../../application/hooks/useProjectData";
 import getProjectData from "../../../application/tools/getProjectData";
 import {
   Assessments,
   Controls,
 } from "../../../application/hooks/useProjectStatus";
 import { formatDate } from "../../tools/isoDateToString";
+import { User } from "../../../domain/types/User";
 
 export interface ProjectCardProps {
   id: number;
@@ -46,10 +46,8 @@ const ProjectCard: FC<ProjectCardProps> = ({
 }) => {
   const theme = useTheme();
   const navigate = useNavigateSearch();
-  const { dashboardValues } = useContext(VerifyWiseContext);
-  const { users } = dashboardValues;
-
-  const ownerUser: User = users.find((user: User) => user.id === owner) ?? "";
+  const { users } = useContext(VerifyWiseContext);
+  const ownerUser: User = users.find((user: User) => user.id.toString() === owner) ?? ({} as User);
 
   const {
     controlsProgress,

@@ -22,13 +22,12 @@ import { logEngine } from "../../../../application/tools/log.engine";
 import VWProjectForm from "../../../vw-v2-components/Forms/ProjectForm";
 import { useProjectData } from "../../../../application/hooks/useFetchProjects";
 import { AlertState } from "../../../../application/interfaces/appStates";
-import { fetchData } from "../../../../application/hooks/fetchDataHook";
 import PageTour from "../../../components/PageTour";
 import HomeSteps from "./HomeSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
 
 const VWHome = () => {
-  const { setDashboardValues, componentsVisible, changeComponentVisibility } =
+  const { setDashboardValues, componentsVisible, changeComponentVisibility, refreshUsers } =
     useContext(VerifyWiseContext);
   const [alertState, setAlertState] = useState<AlertState>();
   const [isProjectFormModalOpen, setIsProjectFormModalOpen] =
@@ -58,9 +57,8 @@ const VWHome = () => {
 
   useEffect(() => {
     const fetchProgressData = async () => {
-      await fetchData("/users", (data) => {
-        setDashboardValues({ users: data });
-      }); 
+      await refreshUsers()
+
       await fetchProjects();
     };
 

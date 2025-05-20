@@ -27,7 +27,6 @@ import { apiServices } from "../../../infrastructure/api/networkServices";
 import { useSearchParams } from "react-router-dom";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import dayjs from "dayjs";
-import useUsers from "../../../application/hooks/useUsers";
 import {
   aiLifecyclePhase,
   riskCategoryItems,
@@ -128,8 +127,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
 
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId");
-  const { inputValues } = useContext(VerifyWiseContext);
-  const { users } = useUsers();
+  const { inputValues, users } = useContext(VerifyWiseContext);
 
   useEffect(() => {
     if (popupStatus === "edit") {

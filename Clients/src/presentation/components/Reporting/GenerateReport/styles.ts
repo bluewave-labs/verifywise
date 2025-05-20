@@ -2,7 +2,7 @@ export const styles = {
   formContainer: {
     padding: 12,
     width: { xs: "100%", sm: "400px" },
-    height: '520px'
+    height: '595px'
   },
   contentCenter: {
     display: 'flex',

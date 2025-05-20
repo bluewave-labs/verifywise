@@ -216,24 +216,18 @@ export const createNewProjectQuery = async (
 
 export const updateProjectUpdatedByIdQuery = async (
   id: number, // this is not the project id,
-  byTable: "controls" | "questions" | "projectrisks" | "vendors",
+  byTable: "controls" | "answers" | "projectrisks" | "vendors" | "subclauses" | "annexcategories",
   transaction: Transaction
 ): Promise<void> => {
   const queryMap = {
-    "controls": `SELECT p.id FROM
-      projects p JOIN controlcategories cc ON p.id = cc.project_id
-        JOIN controls c ON cc.id = c.control_category_id
-          WHERE c.id = :id;`,
-    "questions": `SELECT p.id FROM
-      projects p JOIN assessments a ON p.id = a.project_id
-        JOIN topics t ON a.id = t.assessment_id
-          JOIN subtopics st ON t.id = st.topic_id
-            JOIN questions q ON st.id = q.subtopic_id
-              WHERE q.id = :id;`,
+    "controls": `SELECT pf.project_id as id FROM controls_eu c JOIN projects_frameworks pf ON pf.id = c.projects_frameworks_id WHERE c.id = :id;`,
+    "answers": `SELECT pf.project_id as id FROM assessments a JOIN answers_eu ans ON ans.assessment_id = a.id JOIN projects_frameworks pf ON pf.id = a.projects_frameworks_id WHERE ans.id = :id;`,
     "projectrisks": `SELECT p.id FROM
       projects p JOIN projectrisks pr ON p.id = pr.project_id
         WHERE pr.id = :id;`,
     "vendors": `SELECT project_id as id FROM vendors_projects WHERE vendor_id = :id;`,
+    "subclauses": `SELECT pf.project_id as id FROM subclauses_iso sc JOIN projects_frameworks pf ON pf.id = sc.projects_frameworks_id WHERE sc.id = :id;`,
+    "annexcategories": `SELECT pf.project_id as id FROM annexcategories_iso a JOIN projects_frameworks pf ON pf.id = a.projects_frameworks_id WHERE a.id = :id;`
   };
   const query = queryMap[byTable];
   const result = await sequelize.query(query, {

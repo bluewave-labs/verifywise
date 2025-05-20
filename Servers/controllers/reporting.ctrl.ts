@@ -58,7 +58,6 @@ export async function generateReports(
     if (typeof userId !== "number" || isNaN(userId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid user ID"));
     }
-    console.log('... req.body ...', req.body)
     const authorizedUser = await isAuthorizedUser(projectId, userId); // check whether the user is authorized to download the report or not
     const reportData = {
       projectTitle: req.body.projectTitle,

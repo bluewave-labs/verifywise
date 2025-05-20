@@ -26,8 +26,9 @@ interface ApiResponse<T> {
 const handleError = (error: any) => {
   try {
     if (axios.isAxiosError(error)) {
-      console.log("error : ", error);
-      throw new CustomException(error.message);
+      // Use backend message if available, otherwise fallback to generic
+      const errorMessage = error.response?.data?.message || error.message;
+      throw new CustomException(errorMessage);
     } else {
       throw new CustomException("An unknown error occurred");
     }
@@ -75,7 +76,10 @@ export const apiServices = {
   ): Promise<ApiResponse<T>> {
     logRequest("get", endpoint, params);
     try {
-      const response = await CustomAxios.get(endpoint, { params, responseType: params.responseType ?? "json" });
+      const response = await CustomAxios.get(endpoint, {
+        params,
+        responseType: params.responseType ?? "json",
+      });
 
       logResponse("get", endpoint, response);
       return {
@@ -148,7 +152,7 @@ export const apiServices = {
     }
   },
 
-   /**
+  /**
    * Makes a PUT request to the specified endpoint with optional data payload.
    *
    * @template T - The type of the response data.

@@ -146,11 +146,9 @@ const PasswordForm: React.FC = () => {
         routeUrl: `/users/chng-pass/${id}`,
         body: { id, currentPassword, newPassword },
       });
-      // success status
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-
       setAlert({
         variant: "success",
         title: "Success",
@@ -159,47 +157,13 @@ const PasswordForm: React.FC = () => {
         visible: true,
       });
     } catch (error: any) {
-console.error("Full axios error:", error);
-console.error("Error response data:", error?.response?.data);
-
-      const status = error?.response?.status;
-      const message =
-        error?.response?.data?.message || "Failed to update password.";
-      if (status === 404) {
-        setAlert({
-          variant: "error",
-          title: "Error",
-          body: "User not found.",
-          isToast: true,
-          visible: true,
-        });
-      } else if (status === 401) {
-        setAlert({
-          variant: "error",
-          title: "Error",
-          body: message,
-          isToast: true,
-          visible: true,
-        });
-      } else if (status === 400) {
-        setAlert({
-          variant: "error",
-          title: "Error",
-          body:
-            message ||
-            "New password cannot be the same as the current password.",
-          isToast: true,
-          visible: true,
-        });
-      } else {
-        setAlert({
-          variant: "error",
-          title: "Error",
-          body: "Failed to update password. Please try again.",
-          isToast: true,
-          visible: true,
-        });
-      }
+      setAlert({
+        variant: "error",
+        title: "Error",
+        body: error.message || "Failed to update password. Please try again.",
+        isToast: true,
+        visible: true,
+      });
     } finally {
       setShowToast(false); // Hide VWToast after response
       setTimeout(() => {

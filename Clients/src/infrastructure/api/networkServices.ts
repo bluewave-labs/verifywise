@@ -27,13 +27,20 @@ const handleError = (error: any) => {
   try {
     if (axios.isAxiosError(error)) {
       console.log("error : ", error);
+      // Use backend message if available, otherwise fallback to generic
+      const errorMessage = error.response?.data?.message || error.message;
+
       return new CustomException(
-        error.message,
+        errorMessage,
         error.response?.status,
         error.response?.data
       );
     } else {
-      throw new CustomException("An unknown error occurred", undefined, undefined);
+      throw new CustomException(
+        "An unknown error occurred",
+        undefined,
+        undefined
+      );
     }
   } catch (e) {
     console.error("Error in handleError:", e);
@@ -79,7 +86,10 @@ export const apiServices = {
   ): Promise<ApiResponse<T>> {
     logRequest("get", endpoint, params);
     try {
-      const response = await CustomAxios.get(endpoint, { params, responseType: params.responseType ?? "json" });
+      const response = await CustomAxios.get(endpoint, {
+        params,
+        responseType: params.responseType ?? "json",
+      });
 
       logResponse("get", endpoint, response);
       return {
@@ -118,7 +128,7 @@ export const apiServices = {
         headers: response.headers as AxiosResponseHeaders,
       };
     } catch (error) {
-      const requestedAPIError = handleError(error);         
+      const requestedAPIError = handleError(error);
       return {
         data: undefined,
         status: requestedAPIError.status ?? 500,
@@ -157,7 +167,7 @@ export const apiServices = {
     }
   },
 
-   /**
+  /**
    * Makes a PUT request to the specified endpoint with optional data payload.
    *
    * @template T - The type of the response data.

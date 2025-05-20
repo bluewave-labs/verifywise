@@ -35,13 +35,13 @@ const initialState: FormValues = {
 /** 
  * Set framework type and initial value 
  */
-interface FramworkValues {
+interface FrameworkValues {
   project_framework_id: number;
   framework_id: number;
   name: string;
 }
 
-const initialFrameworkValue: FramworkValues = {
+const initialFrameworkValue: FrameworkValues = {
   project_framework_id: 1,
   framework_id: 1,
   name: "EU AI Act",
@@ -58,12 +58,14 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
   const [errors, setErrors] = useState<FormErrors>({});
   const theme = useTheme();
   const { dashboardValues } = useContext(VerifyWiseContext);
-  const [projectFrameworks, setProjectFrameworks] = useState<FramworkValues[]>([initialFrameworkValue]);  
+  const [projectFrameworks, setProjectFrameworks] = useState<FrameworkValues[]>([initialFrameworkValue]);  
 
   useEffect(() => {
     const pfw = dashboardValues.projects.find((project: { id: string | number; }) => project.id === values.project)?.framework || '';
     setProjectFrameworks(pfw);
-    setValues({ ...values, framework: 1 });
+    if (pfw.length > 0) {
+      setValues({ ...values, framework: pfw[0].framework_id });
+    }
   }, [values.project])
 
   const handleOnTextFieldChange = useCallback(
@@ -135,7 +137,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
               width: "350px",
               backgroundColor: theme.palette.background.main,
             }}
-            error={errors.project}
+            error={errors.framework}
             isRequired
           />
         </Suspense>

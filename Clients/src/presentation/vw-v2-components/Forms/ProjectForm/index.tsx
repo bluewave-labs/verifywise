@@ -346,13 +346,20 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
                 multiple
                 id="users-input"
                 size="small"
-                value={values.members}
+                value={
+                  values.members.map((user) => ({
+                    _id: Number(user._id),
+                    name: user.name,
+                    surname: user.surname,
+                    email: user.email,
+                  }))
+                }
                 options={
                   users
                     ?.filter(
                       (user) =>
                         !values.members.some(
-                          (selectedUser) => selectedUser._id === user.id
+                          (selectedUser) => selectedUser._id === String(user.id)
                         )
                     )
                     .map((user) => ({

@@ -74,11 +74,17 @@ export const getProjectByIdQuery = async (
   if (result.length === 0) return null;
   const project = result[0];
   const projectFramework = await sequelize.query(
-    `SELECT id AS project_framework_id, framework_id FROM projects_frameworks WHERE project_id = :project_id`,
+    `
+      SELECT 
+        pf.id AS project_framework_id, pf.framework_id,
+        f.name AS name
+      FROM projects_frameworks pf
+      JOIN frameworks f ON pf.framework_id = f.id
+      WHERE project_id = :project_id`,
     {
       replacements: { project_id: project.id }
     }
-  ) as [{ project_framework_id: number, framework_id: number }[], number];
+  ) as [{ project_framework_id: number, framework_id: number, name: string }[], number];
   (project.dataValues as any)["framework"] = []
   for (let pf of projectFramework[0]) {
     (project.dataValues as any)["framework"].push(pf)

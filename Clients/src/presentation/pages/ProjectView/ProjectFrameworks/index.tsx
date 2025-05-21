@@ -81,6 +81,7 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
 
   const projectFrameworks = useMemo(
     () =>
+      // Filter frameworks to only include those associated with this project
       filteredFrameworks.filter((fw: Framework) => 
         associatedFrameworkIds.includes(Number(fw.id))
       ),

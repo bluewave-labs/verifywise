@@ -34,19 +34,12 @@ interface Control {
   status: string;
 }
 
-interface Annex {
-  id: number;
-  order: number;
-  title: string;
-  controls: Control[];
-}
-
 interface VWISO42001ClauseDrawerDialogProps {
   title: string;
   open: boolean;
   onClose: () => void;
   control: Control | null;
-  annex: Annex | null;
+  annex: AnnexCategoryISO;
   evidenceFiles?: FileData[];
   uploadFiles?: FileData[];
   projectFrameworkId: number;
@@ -107,36 +100,47 @@ const VWISO42001AnnexDrawerDialog = ({
       if (open && annex?.id) {
         setIsLoading(true);
         try {
-          const response = await GetAnnexCategoriesById({
+          const response: any = await GetAnnexCategoriesById({
             routeUrl: `/iso-42001/annexCategory/byId/${annex.id}?projectFrameworkId=${projectFrameworkId}`,
           });
-          console.log("Fetched Annex Category:", response.data);
-          setFetchedAnnex(response.data);
+          setFetchedAnnex(response.data.data);
+          console.log("Fetched Annex Category:", fetchedAnnex);
 
           // Initialize form data with fetched values
-          if (response.data) {
+          if (fetchedAnnex) {
             setFormData({
-              is_applicable: response.data.is_applicable ?? false,
+              is_applicable: fetchedAnnex.is_applicable ?? false,
               justification_for_exclusion:
-                response.data.justification_for_exclusion || "",
+                fetchedAnnex.justification_for_exclusion || "",
               implementation_description:
-                response.data.implementation_description || "",
-              status: response.data.status || "",
-              owner: response.data.owner?.toString() || "",
-              reviewer: response.data.reviewer?.toString() || "",
-              approver: response.data.approver?.toString() || "",
-              auditor_feedback: response.data.auditor_feedback || "",
+                fetchedAnnex.implementation_description || "",
+              status: fetchedAnnex.status || "",
+              owner: fetchedAnnex.owner?.toString() || "",
+              reviewer: fetchedAnnex.reviewer?.toString() || "",
+              approver: fetchedAnnex.approver?.toString() || "",
+              auditor_feedback: fetchedAnnex.auditor_feedback || "",
             });
-
+            console.log("formData after fetch:", {
+              is_applicable: fetchedAnnex.is_applicable ?? false,
+              justification_for_exclusion:
+                fetchedAnnex.justification_for_exclusion || "",
+              implementation_description:
+                fetchedAnnex.implementation_description || "",
+              status: fetchedAnnex.status || "",
+              owner: fetchedAnnex.owner?.toString() || "",
+              reviewer: fetchedAnnex.reviewer?.toString() || "",
+              approver: fetchedAnnex.approver?.toString() || "",
+              auditor_feedback: fetchedAnnex.auditor_feedback || "",
+            });
             // Set the date if it exists in the fetched data
-            if (response.data.due_date) {
-              setDate(dayjs(response.data.due_date));
+            if (fetchedAnnex.due_date) {
+              setDate(dayjs(fetchedAnnex.due_date));
             }
           }
 
           // On annex category fetch, set evidence files if available
-          if (response.data?.evidence_links) {
-            setEvidenceFiles(response.data.evidence_links as FileData[]);
+          if (fetchedAnnex?.evidence_links) {
+            setEvidenceFiles(fetchedAnnex.evidence_links as FileData[]);
           }
         } catch (error) {
           console.error("Error fetching annex category:", error);
@@ -193,6 +197,37 @@ const VWISO42001AnnexDrawerDialog = ({
   }
 
   const displayData = fetchedAnnex || annex;
+
+  if (displayData) {
+    return (
+      <Drawer
+        open={open}
+        onClose={onClose}
+        sx={{
+          width: 600,
+          margin: 0,
+          "& .MuiDrawer-paper": {
+            margin: 0,
+            borderRadius: 0,
+          },
+        }}
+        anchor="right"
+      >
+        <Stack
+          sx={{
+            width: 600,
+            height: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <CircularProgress />
+          <Typography sx={{ mt: 2 }}>Loading subclause data...</Typography>
+        </Stack>
+      </Drawer>
+    );
+  }
 
   return (
     <Drawer
@@ -388,7 +423,7 @@ const VWISO42001AnnexDrawerDialog = ({
               { _id: "Draft", name: "Draft" },
               { _id: "In Progress", name: "In Progress" },
               { _id: "Awaiting Review", name: "Awaiting Review" },
-              { _id: "Awaiting Approval", name: "Awaiting Approval" },
+              { _id: "Awaiting approval", name: "Awaiting approval" },
               { _id: "Implemented", name: "Implemented" },
               { _id: "Audited", name: "Audited" },
               { _id: "Needs Rework", name: "Needs Rework" },

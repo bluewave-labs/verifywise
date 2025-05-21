@@ -8,14 +8,14 @@ export async function GetAnnexCategoriesById({
   signal,
   authToken = getAuthToken(),
   responseType = "json",
-}: GetRequestParams): Promise<{ data: AnnexCategoryISO; status: number }> {
+}: GetRequestParams) {
   try {
     const response = await apiServices.get(routeUrl, {
       headers: { Authorization: `Bearer ${authToken}` },
       signal,
       responseType,
     });
-    return { data: response.data as AnnexCategoryISO, status: response.status };
+    return response.data;
   } catch (error) {
     console.error("Error getting annex categories by ID:", error);
     throw error;

@@ -232,19 +232,19 @@ export const updateProjectUpdatedByIdQuery = async (
   const query = queryMap[byTable];
   const result = await sequelize.query(query, {
     replacements: { id }, transaction
-  })
-  const projects = result[0] as { id: number }[]
-  for (let p of projects) {
+  }) as [{ id: number }[], number];
+  if (result.length > 0) {
+    const projectIds = result[0].map(({ id }) => id);
     await sequelize.query(
-      `UPDATE projects SET last_updated = :last_updated WHERE id = :project_id;`,
+      `UPDATE projects SET last_updated = :last_updated WHERE id IN (:project_ids);`,
       {
         replacements: {
-          last_updated: new Date(Date.now()),
-          project_id: p.id
+          last_updated: new Date(),
+          project_ids: projectIds
         },
         transaction
       }
-    )
+    );
   }
 }
 

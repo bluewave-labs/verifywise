@@ -29,6 +29,7 @@ import {
 import { AnnexCategoryISO } from "../../../../domain/types/AnnexCategoryISO";
 import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
 import createUppy from "../../../../application/tools/createUppy";
+import { STATUSES } from "../../../../domain/types/Status";
 
 interface Control {
   id: number;
@@ -467,16 +468,10 @@ const VWISO42001AnnexDrawerDialog = ({
             label="Status:"
             value={formData.status}
             onChange={handleSelectChange("status")}
-            items={[
-              { _id: "Not Started", name: "Not Started" },
-              { _id: "Draft", name: "Draft" },
-              { _id: "In Progress", name: "In Progress" },
-              { _id: "Awaiting Review", name: "Awaiting Review" },
-              { _id: "Awaiting approval", name: "Awaiting approval" },
-              { _id: "Implemented", name: "Implemented" },
-              { _id: "Audited", name: "Audited" },
-              { _id: "Needs Rework", name: "Needs Rework" },
-            ]}
+            items={STATUSES.map((status) => ({
+              _id: status,
+              name: status.charAt(0).toUpperCase() + status.slice(1),
+            }))}
             sx={inputStyles}
             placeholder={"Select status"}
           />

@@ -81,6 +81,27 @@ export const getAllClausesQuery = async (transaction: Transaction | null = null)
   return clauses;
 }
 
+export const getAllClausesWithSubClauseQuery = async (projectFrameworkId: number, transaction: Transaction | null = null) => {
+  const clauses = await sequelize.query(
+    `SELECT * FROM clauses_struct_iso ORDER BY id;`,
+    {
+      mapToModel: true,
+      ...(transaction ? { transaction } : {})
+    }) as [ClauseStructISOModel[], number];
+
+  for (let clause of clauses[0]) {
+    const subClauses = await sequelize.query(
+      `SELECT scs.id, scs.title, scs.order_no, sc.status FROM subclauses_struct_iso scs JOIN subclauses_iso sc ON scs.id = sc.subclause_meta_id WHERE scs.clause_id = :id AND sc.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
+      {
+        replacements: { id: clause.id, projects_frameworks_id: projectFrameworkId },
+        mapToModel: true,
+        ...(transaction ? { transaction } : {})
+      }) as [Partial<SubClauseStructISOModel & SubClauseISOModel>[], number];
+    (clause as (ClauseStructISOModel & { subClauses: Partial<SubClauseStructISOModel & SubClauseISOModel>[] })).subClauses = subClauses[0];
+  }
+  return clauses[0];
+}
+
 export const getClauseById = async (clauseId: number, transaction: Transaction | null = null) => {
   const clause = await sequelize.query(
     `SELECT * FROM clauses_struct_iso WHERE id = :id;`,

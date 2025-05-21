@@ -5,9 +5,10 @@ const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
 
 import authenticateJWT from "../middleware/auth.middleware";
-import { deleteManagementSystemClauses, deleteReferenceControls, getAllAnnexes, getAllClauses, getAllProjectsAnnxesProgress, getAllProjectsClausesProgress, getAnnexCategoriesByAnnexId, getAnnexCategoryById, getAnnexesByProjectId, getClausesByProjectId, getProjectAnnxesProgress, getProjectClausesProgress, getSubClauseById, getSubClausesByClauseId, saveAnnexes, saveClauses } from "../controllers/iso42001.ctrl";
+import { deleteManagementSystemClauses, deleteReferenceControls, getAllAnnexes, getAllClauses, getAllClausesStructForProject, getAllProjectsAnnxesProgress, getAllProjectsClausesProgress, getAnnexCategoriesByAnnexId, getAnnexCategoryById, getAnnexesByProjectId, getClausesByProjectId, getProjectAnnxesProgress, getProjectClausesProgress, getSubClauseById, getSubClausesByClauseId, saveAnnexes, saveClauses } from "../controllers/iso42001.ctrl";
 
 router.get("/clauses", authenticateJWT, getAllClauses);
+router.get("/clauses/struct/byProjectId/:id", authenticateJWT, validateId("id"), getAllClausesStructForProject);
 router.get("/annexes", authenticateJWT, getAllAnnexes);
 
 router.get("/clauses/byProjectId/:id", authenticateJWT, validateId("id"), getClausesByProjectId);

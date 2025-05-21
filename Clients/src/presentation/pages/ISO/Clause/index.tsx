@@ -34,9 +34,10 @@ const ISO42001Clauses = ({
     const fetchClauses = async () => {
       try {
         const response = await GetClausesByProjectFrameworkId({
-          routeUrl: `/iso-42001/clauses/byProjectId/${projectFrameworkId}`,
+          routeUrl: `/iso-42001/clauses/struct/byProjectId/${projectFrameworkId}`,
         });
-        setClauses(Array.isArray(response.data) ? response.data : []);
+        console.log("Fetched clauses:", response);
+        setClauses(response);
       } catch (error) {
         console.error("Error fetching clauses:", error);
         setClauses([]);
@@ -142,7 +143,7 @@ const ISO42001Clauses = ({
               <AccordionDetails sx={{ padding: 0 }}>
                 {clause.subClauses.map(
                   (
-                    subClause: Partial<SubClauseISO & SubClauseStructISO>,
+                    subClause,
                     index: number
                   ) => (
                     <Stack
@@ -164,7 +165,7 @@ const ISO42001Clauses = ({
                         fontSize: 13,
                       }}
                     >
-                      <Typography>
+                      <Typography fontSize={13}>
                         {clause.clause_no + "." + (index + 1)}{" "}
                         {subClause.title ?? "Untitled"}
                       </Typography>

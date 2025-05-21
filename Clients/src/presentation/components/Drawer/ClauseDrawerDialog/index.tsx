@@ -8,6 +8,7 @@ import {
   CircularProgress,
   SelectChangeEvent,
   Dialog,
+  useTheme
 } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import Field from "../../Inputs/Field";
@@ -15,18 +16,21 @@ import { FileData } from "../../../../domain/types/File";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
 import { Dayjs } from "dayjs";
-import { useState, useEffect, useContext, useMemo } from "react";
+import { useState, useEffect, useContext } from "react";
 import VWButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import {
   GetSubClausesById,
-  UpdateSubClauseById,
 } from "../../../../application/repository/subClause_iso.repository";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import { User } from "../../../../domain/types/User";
 import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
-import createUppy from "../../../../application/tools/createUppy";
+import Alert from "../../Alert";
+import { AlertProps } from "../../../../domain/interfaces/iAlert";
+import { handleAlert } from "../../../../application/tools/alertUtils";
+import Uppy from "@uppy/core";
+import { updateEntityById } from "../../../../application/repository/entity.repository";
 
 export const inputStyles = {
   minWidth: 200,
@@ -58,8 +62,12 @@ const VWISO42001ClauseDrawerDialog = ({
   const [fetchedSubClause, setFetchedSubClause] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [projectMembers, setProjectMembers] = useState<User[]>([]);
-  const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
+  const [isFileUploadOpen, setIsFileUploadOpen] = useState<boolean>(false);
   const [evidenceFiles, setEvidenceFiles] = useState<any[]>([]);
+  const theme = useTheme();
+  const [alert, setAlert] = useState<AlertProps | null>(null);
+  const [deletedFilesIds, setDeletedFilesIds] = useState<number[]>([]);
+  const [uploadFiles, setUploadFiles] = useState<FileData[]>([]);
 
   // Get context and project data
   const { users, userId } = useContext(VerifyWiseContext);
@@ -90,21 +98,7 @@ const VWISO42001ClauseDrawerDialog = ({
   }, [project, users]);
 
   // Setup Uppy instance
-  const uppy = useMemo(
-    () =>
-      createUppy({
-        onChangeFiles: setEvidenceFiles,
-        allowedMetaFields: ["subclause_id", "user_id", "project_id", "delete"],
-        meta: {
-          subclause_id: subClause?.id,
-          user_id: userId,
-          project_id: project_id?.toString(),
-          delete: "[]",
-        },
-        routeUrl: "api/files",
-      }),
-    [subClause?.id, userId, project_id]
-  );
+  const [uppy] = useState(() => new Uppy());
 
   useEffect(() => {
     const fetchSubClause = async () => {
@@ -136,8 +130,8 @@ const VWISO42001ClauseDrawerDialog = ({
           }
 
           // On subclause fetch, set evidence files if available
-          if (response.data?.evidence_files) {
-            setEvidenceFiles(response.data.evidence_files);
+          if (response.data?.evidence_links) {
+            setEvidenceFiles(response.data.evidence_links);
           }
         } catch (error) {
           console.error("Error fetching subclause:", error);
@@ -184,19 +178,29 @@ const VWISO42001ClauseDrawerDialog = ({
         "project_framework_id",
         projectFrameworkId.toString()
       );
-      formDataToSend.append("delete", JSON.stringify([])); // Add deleted file IDs if needed
+      formDataToSend.append("delete", JSON.stringify(deletedFilesIds)); // Add deleted file IDs if needed
       // Attach each evidence file (as File objects)
-      evidenceFiles.forEach((file) => {
+      console.log(uploadFiles);
+      uploadFiles.forEach((file) => {
         // If file is a File object (new upload), append it
-        if (file instanceof File) {
-          formDataToSend.append("evidence_files", file);
+        if (file.data instanceof Blob) {
+          const fileToUpload =
+            file.data instanceof File
+              ? file.data
+              : new File([file.data!], file.fileName, {
+                  type: file.type,
+                });
+          formDataToSend.append("files", fileToUpload);
         }
         // If file is an existing file object (from backend), skip or handle as needed
       });
       // Call the update API
-      await UpdateSubClauseById({
-        routeUrl: `/iso-42001/saveClauses/${subClause.id}`,
+      await updateEntityById({
+        routeUrl: `/iso-42001/saveClauses/${fetchedSubClause.id}`,
         body: formDataToSend,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
       // Optionally, show a success message or close the drawer
       onClose();
@@ -240,6 +244,71 @@ const VWISO42001ClauseDrawerDialog = ({
       </Drawer>
     );
   }
+
+  const setUploadFilesForSubcontrol = (
+    files: FileData[]
+  ) => {
+    console.log(uploadFiles);
+    setUploadFiles(files);
+    if (deletedFilesIds.length > 0 || files.length > 0) {
+      handleAlert({
+        variant: "info",
+        body: "Please save the changes to save the file changes.",
+        setAlert,
+      })
+    }
+  };
+
+  function closeFileUploadModal(): void {
+    const uppyFiles = uppy.getFiles();
+    console.log("Uppy files:", uppyFiles);
+    const newUploadFiles = uppyFiles
+      .map((file) => {
+        if (!(file.data instanceof Blob)) {
+          return null;
+        }
+        return {
+          data: file.data, // Keep the actual file for upload
+          id: file.id,
+          fileName: file.name || "unnamed",
+          size: file.size || 0,
+          type: file.type || "application/octet-stream",
+        } as FileData;
+      })
+      .filter((file): file is FileData => file !== null);
+
+    // Only update uploadFiles state, don't combine with evidenceFiles yet
+    setUploadFilesForSubcontrol(newUploadFiles);
+    setIsFileUploadOpen(false);
+  }
+
+  const handleRemoveFile = async (fileId: string) => {
+    const fileIdNumber = parseInt(fileId);
+    if (isNaN(fileIdNumber)) {
+      handleAlert({
+        variant: "error",
+        body: "Invalid file ID",
+        setAlert,
+      });
+      return;
+    }
+
+    // Check if file is in evidenceFiles or uploadFiles
+    const isEvidenceFile = evidenceFiles.some((file) => file.id === fileId);
+
+    if (isEvidenceFile) {
+      const newEvidenceFiles = evidenceFiles.filter(
+        (file) => file.id !== fileId
+      );
+      setEvidenceFiles(newEvidenceFiles);
+      onFilesChange?.(newEvidenceFiles);
+      onDeletedFilesChange([...deletedFilesIds, fileIdNumber]);
+    } else {
+      const newUploadFiles = uploadFiles.filter((file) => file.id !== fileId);
+      onUploadFilesChange(newUploadFiles);
+    }
+
+  };
 
   return (
     <Drawer
@@ -349,7 +418,7 @@ const VWISO42001ClauseDrawerDialog = ({
               placeholder="Describe how this requirement is implemented"
             />
           </Stack>
-          <Stack direction="row" spacing={2} alignItems="center">
+          <Stack direction="row" spacing={2}>
             <Button
               variant="contained"
               sx={{
@@ -362,17 +431,62 @@ const VWISO42001ClauseDrawerDialog = ({
                 backgroundColor: "white",
                 color: "#344054",
               }}
-              disableRipple={false}
+              disableRipple={
+                theme.components?.MuiButton?.defaultProps?.disableRipple
+              }
               onClick={() => setIsFileUploadOpen(true)}
             >
               Add/Remove evidence
             </Button>
-            <Typography sx={{ fontSize: 11, color: "#344054" }}>
-              {`${evidenceFiles?.length || 0} evidence files attached`}
-            </Typography>
+            <Stack direction="row" spacing={10}>
+              <Typography
+                sx={{
+                  fontSize: 11,
+                  color: "#344054",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  textAlign: "center",
+                  margin: "auto",
+                  textWrap: "wrap",
+                }}
+              >
+                {`${evidenceFiles.length || 0} evidence files attached`}
+              </Typography>
+              {uploadFiles.length > 0 && (
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: "#344054",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    textAlign: "center",
+                    margin: "auto",
+                    textWrap: "wrap",
+                  }}
+                >
+                  {`${uploadFiles.length} ${
+                    uploadFiles.length === 1 ? "file" : "files"
+                  } pending upload`}
+                </Typography>
+              )}
+            </Stack>
           </Stack>
+          <Dialog open={isFileUploadOpen} onClose={closeFileUploadModal}>
+            <UppyUploadFile
+              uppy={uppy}
+              files={[...evidenceFiles, ...uploadFiles]}
+              onClose={closeFileUploadModal}
+              onRemoveFile={handleRemoveFile}
+              hideProgressIndicators={true}
+            />
+          </Dialog>
+          {alert && (
+            <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
+          )}
         </Stack>
-        <Dialog
+        {/* <Dialog
           open={isFileUploadOpen}
           onClose={() => setIsFileUploadOpen(false)}
         >
@@ -384,7 +498,7 @@ const VWISO42001ClauseDrawerDialog = ({
               setEvidenceFiles((prev) => prev.filter((f) => f.id !== fileId))
             }
           />
-        </Dialog>
+        </Dialog> */}
         <Divider />
         <Stack
           sx={{

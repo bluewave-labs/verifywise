@@ -188,7 +188,7 @@ async function refreshAccessToken(req: Request, res: Response): Promise<any> {
     const newAccessToken = generateToken({
       id: decoded.id,
       email: decoded.email,
-      roleName: decoded.role_name
+      roleName: decoded.roleName
     });
 
     return res.status(200).json(

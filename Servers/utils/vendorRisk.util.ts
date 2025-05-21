@@ -6,30 +6,11 @@ export const getVendorRisksByProjectIdQuery = async (
   projectId: number
 ): Promise<VendorRisk[]> => {
   const vendorRisks = await sequelize.query(
-    `SELECT 
-        vendorrisks.id AS id,
-        vendorrisks.vendor_id,
-        vendorrisks.order_no,
-        vendorrisks.risk_description,
-        vendorrisks.impact_description,
-        vendorrisks.impact,
-        vendorrisks.likelihood,
-        vendorrisks.risk_severity,
-        vendorrisks.action_plan,
-        vendorrisks.action_owner,
-        vendorrisks.risk_level,
-        vendorrisks.is_demo,
-        vendorrisks.created_at,
-        vendors.vendor_name,
-        vendors_projects.project_id
-     FROM vendorrisks
-     JOIN vendors ON vendorrisks.vendor_id = vendors.id
-     JOIN vendors_projects ON vendors.id = vendors_projects.vendor_id
-     WHERE vendorrisks.vendor_id IN (SELECT vendor_id FROM vendors_projects WHERE project_id = :project_id)
-     ORDER BY vendorrisks.created_at DESC, vendorrisks.id ASC;`,
+    "SELECT * FROM vendorRisks WHERE vendor_id IN (SELECT vendor_id FROM vendors_projects WHERE project_id = :project_id) ORDER BY created_at DESC, id ASC;",
     {
       replacements: { project_id: projectId },
-      type: QueryTypes.SELECT
+      mapToModel: true,
+      model: VendorRiskModel
     }
   );
   return vendorRisks;
@@ -39,38 +20,19 @@ export const getVendorRiskByIdQuery = async (
   id: number
 ): Promise<VendorRisk | null> => {
   const result = await sequelize.query(
-    `SELECT 
-        vendorrisks.id AS id,
-        vendorrisks.vendor_id,
-        vendorrisks.order_no,
-        vendorrisks.risk_description,
-        vendorrisks.impact_description,
-        vendorrisks.impact,
-        vendorrisks.likelihood,
-        vendorrisks.risk_severity,
-        vendorrisks.action_plan,
-        vendorrisks.action_owner,
-        vendorrisks.risk_level,
-        vendorrisks.is_demo,
-        vendorrisks.created_at,
-        vendors.vendor_name,
-        vendors_projects.project_id
-     FROM vendorrisks
-     JOIN vendors ON vendorrisks.vendor_id = vendors.id
-     JOIN vendors_projects ON vendors.id = vendors_projects.vendor_id
-     WHERE vendorrisks.id = :id
-     ORDER BY vendorrisks.created_at DESC, vendorrisks.id ASC`,
+    "SELECT * FROM vendorRisks WHERE id = :id ORDER BY created_at DESC, id ASC",
     {
       replacements: { id },
-      type: QueryTypes.SELECT
+      mapToModel: true,
+      model: VendorRiskModel
     }
   );
-  return result[0] || null;
+  return result[0];
 };
 
 export const createNewVendorRiskQuery = async (vendorRisk: VendorRisk, transaction: Transaction): Promise<VendorRisk> => {
   const result = await sequelize.query(
-    `INSERT INTO vendorrisks (
+    `INSERT INTO vendorRisks (
       vendor_id, order_no, risk_description, impact_description, impact,
       likelihood, risk_severity, action_plan, action_owner, risk_level
     ) VALUES (
@@ -90,11 +52,13 @@ export const createNewVendorRiskQuery = async (vendorRisk: VendorRisk, transacti
         action_owner: vendorRisk.action_owner,
         risk_level: vendorRisk.risk_level,
       },
-      type: QueryTypes.INSERT, // Specify the query type for INSERT
+      mapToModel: true,
+      model: VendorRiskModel,
+      // type: QueryTypes.INSERT
       transaction
     }
   );
-  return result[0][0];
+  return result[0];
 };
 
 export const updateVendorRiskByIdQuery = async (
@@ -128,10 +92,11 @@ export const updateVendorRiskByIdQuery = async (
     replacements: updateVendorRisk,
     mapToModel: true,
     model: VendorRiskModel,
+    // type: QueryTypes.UPDATE,
     transaction
   });
 
-  return result[0][0] || null;
+  return result[0];
 };
 
 export const deleteVendorRiskByIdQuery = async (
@@ -139,7 +104,7 @@ export const deleteVendorRiskByIdQuery = async (
   transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
-    "DELETE FROM vendorrisks WHERE id = :id RETURNING id",
+    "DELETE FROM vendorRisks WHERE id = :id RETURNING id",
     {
       replacements: { id },
       mapToModel: true,
@@ -148,7 +113,7 @@ export const deleteVendorRiskByIdQuery = async (
       transaction,
     }
   );
-  return result[0].length > 0;
+  return result.length > 0;
 };
 
 export const deleteVendorRisksForVendorQuery = async (
@@ -165,31 +130,31 @@ export const deleteVendorRisksForVendorQuery = async (
       transaction,
     }
   )
-  return result[0].length > 0;
+  return result.length > 0;
 }
 
 export const getAllVendorRisksAllProjectsQuery = async () => {
   const risks = await sequelize.query(
     `SELECT
-        vendorrisks.id AS id,
-        vendorrisks.vendor_id,
-        vendorrisks.order_no,
-        vendorrisks.risk_description,
-        vendorrisks.impact_description,
-        vendorrisks.impact,
-        vendorrisks.likelihood,
-        vendorrisks.risk_severity,
-        vendorrisks.action_plan,
-        vendorrisks.action_owner,
-        vendorrisks.risk_level,
-        vendorrisks.is_demo,
-        vendorrisks.created_at,
+        vendorRisks.id AS id,
+        vendorRisks.vendor_id,
+        vendorRisks.order_no,
+        vendorRisks.risk_description,
+        vendorRisks.impact_description,
+        vendorRisks.impact,
+        vendorRisks.likelihood,
+        vendorRisks.risk_severity,
+        vendorRisks.action_plan,
+        vendorRisks.action_owner,
+        vendorRisks.risk_level,
+        vendorRisks.is_demo,
+        vendorRisks.created_at,
         vendors.vendor_name,
         vendors_projects.project_id
-     FROM vendorrisks
-     JOIN vendors ON vendorrisks.vendor_id = vendors.id
+     FROM vendorRisks
+     JOIN vendors ON vendorRisks.vendor_id = vendors.id
      JOIN vendors_projects ON vendors.id = vendors_projects.vendor_id
-     ORDER BY vendors_projects.project_id, vendors.id, vendorrisks.id`,
+     ORDER BY vendors_projects.project_id, vendors.id, vendorRisks.id`,
     {
       type: QueryTypes.SELECT,
     }

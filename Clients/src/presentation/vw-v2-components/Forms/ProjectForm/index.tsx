@@ -191,6 +191,7 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
             last_updated_by: userInfo?.id,
             members: teamMember,
             enable_ai_data_insertion: values.enable_ai_data_insertion,
+            framework: values.monitored_regulations_and_standards.map((fw) => fw._id),
           },
         });
 

@@ -90,8 +90,7 @@ export const createNewVendorRiskQuery = async (vendorRisk: VendorRisk, transacti
         action_owner: vendorRisk.action_owner,
         risk_level: vendorRisk.risk_level,
       },
-      mapToModel: true,
-      model: VendorRiskModel,
+      type: QueryTypes.INSERT, // Specify the query type for INSERT
       transaction
     }
   );

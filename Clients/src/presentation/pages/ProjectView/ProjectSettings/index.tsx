@@ -280,23 +280,65 @@ const ProjectSettings = React.memo(
     );
 
     const handleFrameworkRemoveConfirm = useCallback(async () => {
-      if (frameworkToRemove) {
-        setValues((prevValues) => ({
-          ...prevValues,
-          monitoredRegulationsAndStandards: prevValues.monitoredRegulationsAndStandards.filter(
-            (fw) => fw._id !== frameworkToRemove._id
-          ),
-        }));
+      if (!frameworkToRemove) return;
+      
+      setIsLoading(true);
+      try {
+        const response = await deleteEntityById({
+          routeUrl: `/frameworks/fromProject?frameworkId=${frameworkToRemove._id}&projectId=${projectId}`,
+        });
 
-        //fromProject
-        // await deleteEntityById({
-        //   routeUrl: `/projects/${projectId}/frameworks/${frameworkToRemove._id}`,
-        // });
-       
+        if (response.status === 200) {
+          // Update local state only after successful API call
+          setValues((prevValues) => ({
+            ...prevValues,
+            monitoredRegulationsAndStandards: prevValues.monitoredRegulationsAndStandards.filter(
+              (fw) => fw._id !== frameworkToRemove._id
+            ),
+          }));
+
+          setAlert({
+            variant: "success",
+            body: "Framework removed successfully",
+            isToast: true,
+            visible: true,
+          });
+        } else if (response.status === 404) {
+          setAlert({
+            variant: "error",
+            body: "Framework not found or could not be removed from the project",
+            isToast: true,
+            visible: true,
+          });
+        } else {
+          setAlert({
+            variant: "error",
+            body: "Failed to remove framework. Please try again.",
+            isToast: true,
+            visible: true,
+          });
+        }
+      } catch (error) {
+        logEngine({
+          type: "error",
+          message: "An error occurred while removing the framework.",
+        });
+        setAlert({
+          variant: "error",
+          body: "An unexpected error occurred. Please try again.",
+          isToast: true,
+          visible: true,
+        });
+      } finally {
+        setIsLoading(false);
+        setIsFrameworkRemoveModalOpen(false);
+        setFrameworkToRemove(null);
+        // Clear alert after 3 seconds
+        setTimeout(() => {
+          setAlert(null);
+        }, 3000);
       }
-      setIsFrameworkRemoveModalOpen(false);
-      setFrameworkToRemove(null);
-    }, [frameworkToRemove]);
+    }, [frameworkToRemove, projectId]);
 
     const handleFrameworkRemoveCancel = useCallback(() => {
       setIsFrameworkRemoveModalOpen(false);

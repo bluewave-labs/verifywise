@@ -13,7 +13,10 @@ export async function GetAllAnnexes({
     signal,
     responseType,
   });
-  return response;
+  return {
+    status: response.status,
+    data: response.data,
+  };
 }
 
 export async function GetAnnexesByProjectFrameworkId({
@@ -27,6 +30,7 @@ export async function GetAnnexesByProjectFrameworkId({
     signal,
     responseType,
   });
+  console.log("GetAnnexesByProjectFrameworkId response", response);
   return {
     status: response.status,
     data: response.data,

@@ -1,8 +1,8 @@
-### get all clauses
+### get all annexes
 
 GET http://localhost:3000/api/iso-42001/annexes
 
-### get all annexes by project id
+### get all annex categories by annex id
 
 GET http://localhost:3000/api/iso-42001/annexes/byProjectId/2
 

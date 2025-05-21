@@ -160,7 +160,7 @@ const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps
     }
     formData.append("delete", JSON.stringify([fileIdNumber]));
     formData.append("question_id", question.question_id?.toString() || "");
-    formData.append("user_id", userId);
+    formData.append("user_id", String(userId));
     if (currentProjectId) {
       formData.append("project_id", currentProjectId.toString());
     }

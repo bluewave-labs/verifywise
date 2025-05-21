@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { getEntityById } from "../repository/entity.repository";
 import { VerifyWiseContext } from "../contexts/VerifyWise.context";
 import { Project } from "../../domain/types/Project";
+import { User } from "../../domain/types/User";
 
 interface UseProjectDataParams {
   projectId: string;
@@ -15,11 +16,6 @@ interface UseProjectDataResult {
   projectRisks: any; // Add projectRisks to the return type
   setProject: (project: Project | null) => void; // Add setProject to the return type
 }
-export interface User {
-  id: string;
-  name: string;
-  surname: string;
-}
 
 const useProjectData = ({
   projectId,
@@ -30,8 +26,8 @@ const useProjectData = ({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [projectRisks, setProjectRisks] = useState<any>(null); // Add state for projectRisks
-  const { dashboardValues } = useContext(VerifyWiseContext);
-  const { selectedProjectId, users } = dashboardValues;
+  const { dashboardValues, users } = useContext(VerifyWiseContext);
+  const { selectedProjectId } = dashboardValues;
 
   useEffect(() => {
     console.log("is key refresh", refreshKey);

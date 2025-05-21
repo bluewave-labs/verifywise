@@ -75,7 +75,7 @@ export const defaultProjectStatus: ProjectStatus = {
   },
 };
 
-const useProjectStatus = ({ userId }: { userId: string }) => {
+const useProjectStatus = ({ userId }: { userId: number | null }) => {
   const [projectStatus, setProjectStatus] = useState<ProjectStatus>(defaultProjectStatus);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | boolean>(false);

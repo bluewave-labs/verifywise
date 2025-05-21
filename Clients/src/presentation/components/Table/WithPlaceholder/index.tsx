@@ -18,6 +18,7 @@ import { formatDate } from "../../../tools/isoDateToString";
 import TablePaginationActions from "../../TablePagination";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
 import { VendorDetails } from "../../../pages/Vendors";
+import { User } from "../../../../domain/types/User";
 
 const titleOfTableColumns = [
   "name",
@@ -30,13 +31,13 @@ const titleOfTableColumns = [
 
 interface TableWithPlaceholderProps {
   vendors: VendorDetails[];
-  dashboardValues: any;
+  users: User[];
   onDelete: (vendorId: number) => void;
   onEdit: (vendorId: number) => void;
 }
 
 const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
-  dashboardValues,
+  users,
   vendors,
   onDelete,
   onEdit,
@@ -47,7 +48,7 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
   const [dropdownAnchor, setDropdownAnchor] = useState<HTMLElement | null>(
     null
   );
-  const formattedUsers = dashboardValues?.users?.map((user:any) => ({
+  const formattedUsers = users?.map((user:any) => ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
   }));

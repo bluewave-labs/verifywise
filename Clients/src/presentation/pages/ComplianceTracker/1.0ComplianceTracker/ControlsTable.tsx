@@ -46,8 +46,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   projectId,
   projectFrameworkId,
 }) => {
-  const { dashboardValues } = useContext(VerifyWiseContext);
-  const { users } = dashboardValues;
+  const { users } = useContext(VerifyWiseContext);
   const currentProjectId = projectId;
   const [controls, setControls] = useState<Control[]>([]);
   const [selectedControl, setSelectedControl] = useState<Control | null>(null);

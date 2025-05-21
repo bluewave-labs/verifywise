@@ -71,7 +71,7 @@ const VWProjectRisksTableBody = ({
   onDeleteRisk: (id: number) => void;
   flashRow: number | null;
 }) => {
-  const { setInputValues, dashboardValues } = useContext(VerifyWiseContext);
+  const { setInputValues, users } = useContext(VerifyWiseContext);
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
   const theme = useTheme();
   const handleEditRisk = (row: any, event?: React.SyntheticEvent) => {
@@ -84,9 +84,9 @@ const VWProjectRisksTableBody = ({
     onDeleteRisk(riskId);
   };
 
-  const displayUserFullName = (userId: string) => {
-    const currentUser = dashboardValues.users.find(
-      (user: any) => user.id === parseInt(userId)
+  const displayUserFullName = (userId: number) => {
+    const currentUser = users.find(
+      (user: any) => user.id === userId
     );
     const fullName = currentUser
       ? `${currentUser.name} ${currentUser.surname}`
@@ -123,7 +123,7 @@ const VWProjectRisksTableBody = ({
                   backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
                 }}
               >
-                {row.risk_owner ? displayUserFullName(row.risk_owner) : "-"}
+                {row.risk_owner ? displayUserFullName(Number(row.risk_owner)) : "-"}
               </TableCell>
               <TableCell
                 sx={cellStyle}

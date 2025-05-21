@@ -121,16 +121,16 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
   setIsOpen,
   value,
   existingRisk,
-  onSuccess = () => {},
+  onSuccess = () => { },
   vendors,
 }) => {
   const theme = useTheme();
   const VENDOR_OPTIONS =
     vendors?.length > 0
       ? vendors.map((vendor: any) => ({
-          _id: vendor.id,
-          name: vendor.vendor_name,
-        }))
+        _id: vendor.id,
+        name: vendor.vendor_name,
+      }))
       : [{ _id: "no-vendor", name: "No Vendor Exists" }];
 
   const [values, setValues] = useState({
@@ -174,9 +174,9 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
         impact_description: existingRisk.impact_description,
         impact:
           IMPACT_OPTIONS.find((r) => r.name === existingRisk.impact)?._id || 0,
-        action_owner:
-          formattedUsers?.find((user) => user._id === existingRisk.action_owner)
-            ?._id || "",
+        action_owner: String(
+          formattedUsers?.find((user) => String(user._id) === String(existingRisk.action_owner))?._id || ""
+        ),
         risk_severity:
           riskSeverityItems.find((r) => r.name === existingRisk.risk_severity)
             ?._id || 0,
@@ -297,7 +297,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
       impact:
         IMPACT_OPTIONS.find((r) => r._id === Number(values.impact))?.name || "",
       action_owner: formattedUsers?.find(
-        (user) => user._id === values.action_owner
+        (user) => String(user._id) === String(values.action_owner)
       )?._id,
       action_plan: values.action_plan,
       risk_severity: selectedSeverity.name,
@@ -349,9 +349,8 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
 
       setAlert({
         variant: "error",
-        body: `An error occurred: ${
-          (error as Error).message || "Please try again."
-        }`,
+        body: `An error occurred: ${(error as Error).message || "Please try again."
+          }`,
       });
 
       setTimeout(() => setAlert(null), 3000);
@@ -400,9 +399,8 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
 
       setAlert({
         variant: "error",
-        body: `An error occurred: ${
-          (error as Error).message || "Please try again."
-        }`,
+        body: `An error occurred: ${(error as Error).message || "Please try again."
+          }`,
       });
 
       setTimeout(() => setAlert(null), 3000);

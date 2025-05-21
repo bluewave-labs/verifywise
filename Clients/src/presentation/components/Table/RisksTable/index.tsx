@@ -34,7 +34,7 @@ const titleOfTableColumns = [
 ];
 
 interface RiskTableProps {
-  dashboardValues: any;
+  users: any;
   vendors: VendorDetails[];
   vendorRisks: any;
   onDelete: (riskId: number) => void;
@@ -42,7 +42,7 @@ interface RiskTableProps {
 }
 
 const RiskTable: React.FC<RiskTableProps> = ({
-  dashboardValues,
+  users,
   vendors,
   vendorRisks,
   onDelete,
@@ -55,7 +55,7 @@ const RiskTable: React.FC<RiskTableProps> = ({
     null
   );
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
-  const formattedUsers = dashboardValues?.users?.map((user: any) => ({
+  const formattedUsers = users?.map((user: any) => ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
   }));

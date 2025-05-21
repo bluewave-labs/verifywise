@@ -51,7 +51,7 @@ async function getAllUsers(req: Request, res: Response): Promise<any> {
 async function getUserByEmail(req: Request, res: Response) {
   try {
     const email = req.params.email;
-    const user = (await getUserByEmailQuery(email)) as UserModel;
+    const user = (await getUserByEmailQuery(email)) as UserModel & { role_name: string };
 
     if (user) {
       const { password_hash, ...safeUser } = user.get({ plain: true });
@@ -134,10 +134,12 @@ async function loginUser(req: Request, res: Response): Promise<any> {
         const token = generateToken({
           id: user!.id,
           email: email,
+          roleName: user.role_name
         });
         const refreshToken = generateRefreshToken({
           id: user!.id,
           email: email,
+          roleName: user.role_name
         });
         res.cookie("refresh_token", refreshToken, {
           httpOnly: true,
@@ -186,6 +188,7 @@ async function refreshAccessToken(req: Request, res: Response): Promise<any> {
     const newAccessToken = generateToken({
       id: decoded.id,
       email: decoded.email,
+      roleName: decoded.role_name
     });
 
     return res.status(200).json(
@@ -203,7 +206,7 @@ async function resetPassword(req: Request, res: Response) {
   try {
     const { email, newPassword } = req.body;
 
-    const user = (await getUserByEmailQuery(email)) as UserModel;
+    const user = (await getUserByEmailQuery(email)) as UserModel & { role_name: string };
 
     if (user) {
       const hashedPassword = await bcrypt.hash(newPassword, 10);

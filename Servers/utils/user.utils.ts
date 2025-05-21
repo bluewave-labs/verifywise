@@ -73,13 +73,13 @@ export const getAllUsersQuery = async (): Promise<User[]> => {
  *
  * @throws {Error} If there is an error executing the SQL query.
  */
-export const getUserByEmailQuery = async (email: string): Promise<User & { role_name: string }> => {
+export const getUserByEmailQuery = async (email: string): Promise<(User & { role_name: string | null }) | null> => {
   try {
-    const [user] = await sequelize.query(
+    const [userObj] = await sequelize.query(
       `
       SELECT users.*, roles.name AS role_name
       FROM users
-      JOIN roles ON users.role_id = roles.id
+      LEFT JOIN roles ON users.role_id = roles.id
       WHERE LOWER(users.email) = LOWER(:email)
       LIMIT 1
       `,
@@ -89,7 +89,18 @@ export const getUserByEmailQuery = async (email: string): Promise<User & { role_
       }
     );
 
-    return user as User & { role_name: string };
+     if (!userObj) {
+      // no user found
+      return null;
+    }
+
+    const user = userObj as User & { role_name: string | null };
+
+    if (!user.role_name) {
+      console.warn(`User ${email} has no assigned role`);
+    }
+
+    return user;
   } catch (error) {
     console.error("Error getting user by email:", error);
     throw error;

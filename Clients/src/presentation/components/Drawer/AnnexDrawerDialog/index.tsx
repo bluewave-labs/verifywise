@@ -22,7 +22,10 @@ import SaveIcon from "@mui/icons-material/Save";
 import { User } from "../../../../domain/types/User";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import useProjectData from "../../../../application/hooks/useProjectData";
-import { GetAnnexCategoriesById } from "../../../../application/repository/annexCategory_iso.repository";
+import {
+  GetAnnexCategoriesById,
+  UpdateAnnexCategoryById,
+} from "../../../../application/repository/annexCategory_iso.repository";
 import { AnnexCategoryISO } from "../../../../domain/types/AnnexCategoryISO";
 import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
 import createUppy from "../../../../application/tools/createUppy";
@@ -185,6 +188,57 @@ const VWISO42001AnnexDrawerDialog = ({
       }),
     [annex?.id, userId, project_id]
   );
+
+  // Add handleSave function before the return statement
+  const handleSave = async () => {
+    setIsLoading(true);
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("is_applicable", formData.is_applicable.toString());
+      formDataToSend.append(
+        "justification_for_exclusion",
+        formData.justification_for_exclusion
+      );
+      formDataToSend.append(
+        "implementation_description",
+        formData.implementation_description
+      );
+      formDataToSend.append("status", formData.status);
+      formDataToSend.append("owner", formData.owner);
+      formDataToSend.append("reviewer", formData.reviewer);
+      formDataToSend.append("approver", formData.approver);
+      formDataToSend.append("auditor_feedback", formData.auditor_feedback);
+      if (date) formDataToSend.append("due_date", date.toString());
+      formDataToSend.append("user_id", userId?.toString() || "");
+      formDataToSend.append(
+        "project_framework_id",
+        projectFrameworkId.toString()
+      );
+      formDataToSend.append("delete", JSON.stringify([])); // Add deleted file IDs if needed
+
+      // Attach each evidence file (as File objects)
+      evidenceFiles.forEach((file) => {
+        // If file is a File object (new upload), append it
+        if (file instanceof File) {
+          formDataToSend.append("evidence_files", file);
+        }
+        // If file is an existing file object (from backend), skip or handle as needed
+      });
+
+      // Call the update API
+      await UpdateAnnexCategoryById({
+        routeUrl: `/iso-42001/saveAnnexCategory/${annex.id}`,
+        body: formDataToSend,
+      });
+      // Close the drawer after successful save
+      onClose();
+    } catch (error) {
+      console.error("Error saving annex category:", error);
+      // Optionally, show an error message
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -507,7 +561,7 @@ const VWISO42001AnnexDrawerDialog = ({
               border: "1px solid #13715B",
               gap: 2,
             }}
-            onClick={() => {}}
+            onClick={handleSave}
             icon={<SaveIcon />}
           />
         </Stack>

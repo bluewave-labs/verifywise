@@ -135,14 +135,27 @@ export const deleteVendorRisksForVendorQuery = async (
 
 export const getAllVendorRisksAllProjectsQuery = async () => {
   const risks = await sequelize.query(
-    `SELECT *
-     FROM vendorRisks
-     JOIN vendors ON vendorRisks.vendor_id = vendors.id
+    `SELECT 
+        vendorrisks.id AS id,
+        vendorrisks.vendor_id,
+        vendorrisks.order_no,
+        vendorrisks.risk_description,
+        vendorrisks.impact_description,
+        vendorrisks.impact,
+        vendorrisks.likelihood,
+        vendorrisks.risk_severity,
+        vendorrisks.action_plan,
+        vendorrisks.action_owner,
+        vendorrisks.risk_level,
+        vendorrisks.is_demo,
+        vendorrisks.created_at,
+        vendors.vendor_name,
+        vendors_projects.project_id
+     FROM vendorrisks
+     JOIN vendors ON vendorrisks.vendor_id = vendors.id
      JOIN vendors_projects ON vendors.id = vendors_projects.vendor_id
-     ORDER BY vendors_projects.project_id, vendors.id, vendorRisks.id`,
+     ORDER BY vendors_projects.project_id, vendors.id, vendorrisks.id`,
     {
-      mapToModel: true,
-      model: VendorRiskModel,
       type: QueryTypes.SELECT,
     }
   );

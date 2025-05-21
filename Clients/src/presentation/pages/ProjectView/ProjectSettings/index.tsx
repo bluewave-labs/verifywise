@@ -27,6 +27,7 @@ import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import {
   deleteEntityById,
   updateEntityById,
+  assignFrameworkToProject,
 } from "../../../../application/repository/entity.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -255,7 +256,7 @@ const ProjectSettings = React.memo(
 
     const handleOnMultiSelect = useCallback(
       (prop: keyof FormValues) =>
-        (_event: React.SyntheticEvent, newValue: any[]) => {
+        async (_event: React.SyntheticEvent, newValue: any[]) => {
           if (prop === "monitoredRegulationsAndStandards") {
             // If removing a framework (newValue has fewer items than current value)
             if (newValue.length < values.monitoredRegulationsAndStandards.length) {
@@ -268,11 +269,71 @@ const ProjectSettings = React.memo(
                 return;
               }
             }
-            // If adding a framework or confirming removal
-            setValues((prevValues) => ({
-              ...prevValues,
-              [prop]: newValue,
-            }));
+            // If adding a framework
+            else if (newValue.length > values.monitoredRegulationsAndStandards.length) {
+              const addedFramework = newValue.find(
+                (nv) => !values.monitoredRegulationsAndStandards.some((fw) => fw._id === nv._id)
+              );
+              
+              if (addedFramework) {
+                setIsLoading(true);
+                try {
+                  const response = await assignFrameworkToProject({
+                    frameworkId: addedFramework._id,
+                    projectId: projectId
+                  });
+
+                  if (response.status === 200 || response.status === 201) {
+                    // Update local state only after successful API call
+                    setValues((prevValues) => ({
+                      ...prevValues,
+                      [prop]: newValue,
+                    }));
+
+                    setAlert({
+                      variant: "success",
+                      body: "Framework added successfully",
+                      isToast: true,
+                      visible: true,
+                    });
+                  } else {
+                    setAlert({
+                      variant: "error",
+                      body: "Failed to add framework. Please try again.",
+                      isToast: true,
+                      visible: true,
+                    });
+                    return;
+                  }
+                } catch (error) {
+                  logEngine({
+                    type: "error",
+                    message: "An error occurred while adding the framework.",
+                  });
+                  setAlert({
+                    variant: "error",
+                    body: "An unexpected error occurred. Please try again.",
+                    isToast: true,
+                    visible: true,
+                  });
+                  // Revert the selection since the API call failed
+                  return;
+                } finally {
+                  setIsLoading(false);
+                  // Clear alert after 3 seconds
+                  setTimeout(() => {
+                    setAlert(null);
+                  }, 3000);
+                }
+              }
+            }
+            // If no change in length (e.g., reordering), just update the state
+            else {
+              setValues((prevValues) => ({
+                ...prevValues,
+                [prop]: newValue,
+              }));
+            }
           } else {
             setValues((prevValues) => ({
               ...prevValues,
@@ -281,7 +342,7 @@ const ProjectSettings = React.memo(
             setMemberRequired(false);
           }
         },
-      [values.monitoredRegulationsAndStandards]
+      [values.monitoredRegulationsAndStandards, projectId]
     );
 
     const handleFrameworkRemoveConfirm = useCallback(async () => {

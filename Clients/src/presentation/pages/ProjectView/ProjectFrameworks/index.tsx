@@ -48,7 +48,8 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
     filteredFrameworks, 
     loading, 
     error, 
-    refreshFilteredFrameworks 
+    refreshFilteredFrameworks,
+    allFrameworks
   } = useFrameworks({
     listOfFrameworks: project.framework,
   });
@@ -157,7 +158,7 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
       <AddFrameworkModal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        frameworks={filteredFrameworks}
+        frameworks={allFrameworks}
         project={project}
       />
 

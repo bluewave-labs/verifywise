@@ -5,6 +5,7 @@ import {
   Stack,
   Typography,
   CircularProgress,
+  Dialog,
 } from "@mui/material";
 import { FileData } from "../../../../domain/types/File";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
@@ -13,7 +14,7 @@ import Field from "../../Inputs/Field";
 import { inputStyles } from "../ClauseDrawerDialog";
 import DatePicker from "../../Inputs/Datepicker";
 import Select from "../../Inputs/Select";
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect, useMemo } from "react";
 import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import VWButton from "../../../vw-v2-components/Buttons";
@@ -23,6 +24,8 @@ import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.c
 import useProjectData from "../../../../application/hooks/useProjectData";
 import { GetAnnexCategoriesById } from "../../../../application/repository/annexCategory_iso.repository";
 import { AnnexCategoryISO } from "../../../../domain/types/AnnexCategoryISO";
+import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
+import createUppy from "../../../../application/tools/createUppy";
 
 interface Control {
   id: number;
@@ -165,6 +168,23 @@ const VWISO42001AnnexDrawerDialog = ({
   const handleSelectChange = (field: string) => (event: any) => {
     handleFieldChange(field, event.target.value.toString());
   };
+
+  // Setup Uppy instance
+  const uppy = useMemo(
+    () =>
+      createUppy({
+        onChangeFiles: setEvidenceFiles,
+        allowedMetaFields: ["annex_id", "user_id", "project_id", "delete"],
+        meta: {
+          annex_id: annex?.id,
+          user_id: userId,
+          project_id: project_id?.toString(),
+          delete: "[]",
+        },
+        routeUrl: "api/files",
+      }),
+    [annex?.id, userId, project_id]
+  );
 
   if (isLoading) {
     return (
@@ -352,7 +372,7 @@ const VWISO42001AnnexDrawerDialog = ({
                 color: "#344054",
               }}
               disableRipple={false}
-              onClick={() => {}}
+              onClick={() => setIsFileUploadOpen(true)}
             >
               Add/Remove evidence
             </Button>
@@ -492,6 +512,19 @@ const VWISO42001AnnexDrawerDialog = ({
           />
         </Stack>
       </Stack>
+      <Dialog
+        open={isFileUploadOpen}
+        onClose={() => setIsFileUploadOpen(false)}
+      >
+        <UppyUploadFile
+          uppy={uppy}
+          files={evidenceFiles}
+          onClose={() => setIsFileUploadOpen(false)}
+          onRemoveFile={(fileId) =>
+            setEvidenceFiles((prev) => prev.filter((f) => f.id !== fileId))
+          }
+        />
+      </Dialog>
     </Drawer>
   );
 };

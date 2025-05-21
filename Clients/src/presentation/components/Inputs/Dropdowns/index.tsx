@@ -25,8 +25,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
   const [date, setDate] = useState<Dayjs | null>(null);
   const [implementationDetails, setImplementationDetails] = useState("");
   const theme = useTheme();
-  const { dashboardValues } = useContext(VerifyWiseContext);
-  const { users } = dashboardValues;
+  const { users } = useContext(VerifyWiseContext); 
   const { project } = useProjectData({ projectId: String(projectId) || "0" });
 
   const [projectMembers, setProjectMembers] = useState<User[]>([]);

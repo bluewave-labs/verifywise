@@ -339,8 +339,8 @@ export async function getAllProjectsAssessmentProgress(
             return;
           }
           const { totalAssessments, answeredAssessments } = await countAnswersEUByProjectId(projectFrameworkId);
-          totalNumberOfQuestions = parseInt(totalAssessments);
-          totalNumberOfAnsweredQuestions = parseInt(answeredAssessments);
+          totalNumberOfQuestions += parseInt(totalAssessments);
+          totalNumberOfAnsweredQuestions += parseInt(answeredAssessments);
         })
       );
       return res.status(200).json(

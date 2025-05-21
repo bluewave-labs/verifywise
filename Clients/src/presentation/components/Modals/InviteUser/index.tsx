@@ -40,19 +40,19 @@ interface InviteUserModalProps {
 interface FormValues {
   name: string;
   email: string;
-  role: string;
+  roleId: string;
 }
 
 interface FormErrors {
   name?: string;
   email?: string;
-  role?: string;
+  roleId?: string;
 }
 
 const initialState: FormValues = {
   name: "",
   email: "",
-  role: "1",
+  roleId: "1",
 };
 
 const InviteUserModal: React.FC<InviteUserModalProps> = ({
@@ -79,7 +79,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
     if (isOpen && roles.length > 0) {
       setValues({
         ...initialState,
-        role: roles[0].id.toString()
+        roleId: roles[0].id.toString()
       });
       setErrors({});
     }
@@ -111,9 +111,9 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
       newErrors.email = email.message;
     }
 
-    const role = checkStringValidation("Role", values.role, 1, 64);
-    if (!role.accepted) {
-      newErrors.role = role.message;
+    const roleId = checkStringValidation("Role", values.roleId, 1, 64);
+    if (!roleId.accepted) {
+      newErrors.roleId = roleId.message;
     }
 
     setErrors(newErrors);
@@ -126,7 +126,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
         to: values.email,
         email: values.email,
         name: values.name,
-        role: values.role,
+        roleId: values.roleId,
       };
 
       try {
@@ -202,10 +202,10 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
             <Box flexGrow={1}>
               <Select
                 id="role-select"
-                value={values.role}
-                onChange={handleOnSelectChange("role")}
+                value={values.roleId}
+                onChange={handleOnSelectChange("roleId")}
                 items={roleItems}
-                error={errors.role}
+                error={errors.roleId}
                 isRequired
               />
             </Box>

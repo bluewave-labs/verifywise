@@ -113,7 +113,7 @@ export interface SelectProps {
   isHidden?: boolean;
   value: string | number;
   items: {
-    _id: string | number;
+    _id: number | string;
     name: string;
     email?: string;
     surname?: string;

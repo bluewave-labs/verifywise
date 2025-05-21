@@ -40,6 +40,36 @@ const getDemoAnnexCategories = (): Object[] => {
   return annexCategories;
 }
 
+export const countSubClausesISOByProjectId = async (
+  projectFrameworkId: number
+): Promise<{
+  totalSubclauses: string,
+  doneSubclauses: string
+}> => {
+  const result = await sequelize.query(
+    `SELECT COUNT(*) AS "totalSubclauses", SUM(CASE WHEN status = 'Implemented' THEN 1 ELSE 0 END) AS "doneSubclauses" FROM subclauses_iso WHERE projects_frameworks_id = :projects_frameworks_id;`,
+    {
+      replacements: { projects_frameworks_id: projectFrameworkId },
+    }
+  ) as [{ totalSubclauses: string, doneSubclauses: string }[], number];
+  return result[0][0];
+}
+
+export const countAnnexCategoriesISOByProjectId = async (
+  projectFrameworkId: number
+): Promise<{
+  totalAnnexcategories: string,
+  doneAnnexcategories: string
+}> => {
+  const result = await sequelize.query(
+    `SELECT COUNT(*) AS "totalAnnexcategories", SUM(CASE WHEN status = 'Implemented' THEN 1 ELSE 0 END) AS "doneAnnexcategories" FROM annexcategories_iso WHERE projects_frameworks_id = :projects_frameworks_id;`,
+    {
+      replacements: { projects_frameworks_id: projectFrameworkId },
+    }
+  ) as [{ totalAnnexcategories: string, doneAnnexcategories: string }[], number];
+  return result[0][0];
+}
+
 export const getAllClausesQuery = async (transaction: Transaction | null = null) => {
   const clauses = await sequelize.query(
     `SELECT * FROM clauses_struct_iso ORDER BY id;`,

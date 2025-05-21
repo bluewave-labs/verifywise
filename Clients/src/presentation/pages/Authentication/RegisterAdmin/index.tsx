@@ -31,14 +31,13 @@ const initialState: FormValues = {
   email: "",
   password: "",
   confirmPassword: "",
-  role: 1,
+  roleId: 1,
 };
 
 const RegisterAdmin: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { dashboardValues } = useContext(VerifyWiseContext);
-  const users = dashboardValues?.users || [];
+  const { users } = useContext(VerifyWiseContext); 
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
   // State for form errors

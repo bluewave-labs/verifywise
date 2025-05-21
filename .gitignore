@@ -3,3 +3,4 @@
 .db_initialized
 .history
 .env.dev
+.env.prod

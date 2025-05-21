@@ -115,6 +115,8 @@ const ProjectSettings = React.memo(
     const { project } = useProjectData({ projectId });
     const navigate = useNavigate();
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isFrameworkRemoveModalOpen, setIsFrameworkRemoveModalOpen] = useState(false);
+    const [frameworkToRemove, setFrameworkToRemove] = useState<{ _id: number; name: string } | null>(null);
     const [values, setValues] = useState<FormValues>(initialState);
     const [errors, setErrors] = useState<FormErrors>({});
     const [alert, setAlert] = useState<{
@@ -249,17 +251,57 @@ const ProjectSettings = React.memo(
     const handleOnMultiSelect = useCallback(
       (prop: keyof FormValues) =>
         (_event: React.SyntheticEvent, newValue: any[]) => {
-          setValues((prevValues) => ({
-            ...prevValues,
-            [prop]:
-              prop === "monitoredRegulationsAndStandards"
-                ? newValue
-                : newValue.map((user) => user.id),
-          }));
-          setMemberRequired(false);
+          if (prop === "monitoredRegulationsAndStandards") {
+            // If removing a framework (newValue has fewer items than current value)
+            if (newValue.length < values.monitoredRegulationsAndStandards.length) {
+              const removedFramework = values.monitoredRegulationsAndStandards.find(
+                (fw) => !newValue.some((nv) => nv._id === fw._id)
+              );
+              if (removedFramework) {
+                setFrameworkToRemove(removedFramework);
+                setIsFrameworkRemoveModalOpen(true);
+                return;
+              }
+            }
+            // If adding a framework or confirming removal
+            setValues((prevValues) => ({
+              ...prevValues,
+              [prop]: newValue,
+            }));
+          } else {
+            setValues((prevValues) => ({
+              ...prevValues,
+              [prop]: newValue.map((user) => user.id),
+            }));
+            setMemberRequired(false);
+          }
         },
-      []
+      [values.monitoredRegulationsAndStandards]
     );
+
+    const handleFrameworkRemoveConfirm = useCallback(async () => {
+      if (frameworkToRemove) {
+        setValues((prevValues) => ({
+          ...prevValues,
+          monitoredRegulationsAndStandards: prevValues.monitoredRegulationsAndStandards.filter(
+            (fw) => fw._id !== frameworkToRemove._id
+          ),
+        }));
+
+        //fromProject
+        // await deleteEntityById({
+        //   routeUrl: `/projects/${projectId}/frameworks/${frameworkToRemove._id}`,
+        // });
+       
+      }
+      setIsFrameworkRemoveModalOpen(false);
+      setFrameworkToRemove(null);
+    }, [frameworkToRemove]);
+
+    const handleFrameworkRemoveCancel = useCallback(() => {
+      setIsFrameworkRemoveModalOpen(false);
+      setFrameworkToRemove(null);
+    }, []);
 
     const validateForm = useCallback((): boolean => {
       const newErrors: FormErrors = {};
@@ -604,6 +646,11 @@ const ProjectSettings = React.memo(
                         borderWidth: "1px",
                       },
                     },
+                    "& .MuiChip-root": {
+                      "& .MuiChip-deleteIcon": {
+                        display: values.monitoredRegulationsAndStandards.length === 1 ? "none" : "flex",
+                      },
+                    },
                   }}
                   slotProps={{
                     paper: {
@@ -896,6 +943,24 @@ const ProjectSettings = React.memo(
             proceedText="Delete"
             onCancel={handleCloseDeleteDialog}
             onProceed={handleConfirmDelete}
+            proceedButtonColor="error"
+            proceedButtonVariant="contained"
+            TitleFontSize={0}
+          />
+        )}
+
+        {isFrameworkRemoveModalOpen && (
+          <DualButtonModal
+            title="Confirm Framework Removal"
+            body={
+              <Typography fontSize={13}>
+                Are you sure you want to remove {frameworkToRemove?.name} from the project?
+              </Typography>
+            }
+            cancelText="Cancel"
+            proceedText="Remove"
+            onCancel={handleFrameworkRemoveCancel}
+            onProceed={handleFrameworkRemoveConfirm}
             proceedButtonColor="error"
             proceedButtonVariant="contained"
             TitleFontSize={0}

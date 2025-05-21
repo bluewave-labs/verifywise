@@ -55,6 +55,7 @@ const VWISO42001AnnexDrawerDialog = ({
   projectFrameworkId,
   project_id,
 }: VWISO42001ClauseDrawerDialogProps) => {
+  console.log("VWISO42001AnnexDrawerDialog -- project_id : ", project_id);
   const [date, setDate] = useState<Dayjs | null>(null);
   const [fetchedAnnex, setFetchedAnnex] = useState<AnnexCategoryISO | null>(
     null
@@ -103,8 +104,8 @@ const VWISO42001AnnexDrawerDialog = ({
           const response: any = await GetAnnexCategoriesById({
             routeUrl: `/iso-42001/annexCategory/byId/${annex.id}?projectFrameworkId=${projectFrameworkId}`,
           });
-          setFetchedAnnex(response.data.data);
-          console.log("Fetched Annex Category:", fetchedAnnex);
+          console.log("Fetched Annex Category:", response);
+          setFetchedAnnex(response.data);
 
           // Initialize form data with fetched values
           if (fetchedAnnex) {
@@ -196,39 +197,6 @@ const VWISO42001AnnexDrawerDialog = ({
     );
   }
 
-  const displayData = fetchedAnnex || annex;
-
-  if (displayData) {
-    return (
-      <Drawer
-        open={open}
-        onClose={onClose}
-        sx={{
-          width: 600,
-          margin: 0,
-          "& .MuiDrawer-paper": {
-            margin: 0,
-            borderRadius: 0,
-          },
-        }}
-        anchor="right"
-      >
-        <Stack
-          sx={{
-            width: 600,
-            height: "100%",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <CircularProgress />
-          <Typography sx={{ mt: 2 }}>Loading subclause data...</Typography>
-        </Stack>
-      </Drawer>
-    );
-  }
-
   return (
     <Drawer
       className="vw-iso-42001-annex-drawer-dialog"
@@ -294,7 +262,7 @@ const VWISO42001AnnexDrawerDialog = ({
             <Typography fontSize={13}>Applicability:</Typography>
             <Stack sx={{ display: "flex", flexDirection: "row", gap: 10 }}>
               <Checkbox
-                id={`${control?.id}-${annex?.id}-iso-42001-applicable`}
+                id={`${control?.id}-iso-42001-applicable`}
                 label="Applicable"
                 isChecked={formData.is_applicable}
                 value={"Applicable"}
@@ -308,7 +276,7 @@ const VWISO42001AnnexDrawerDialog = ({
                 size="small"
               />
               <Checkbox
-                id={`${control?.id}-${annex?.id}-iso-42001-not-applicable`}
+                id={`${control?.id}-iso-42001-not-applicable`}
                 label="Not Applicable"
                 isChecked={!formData.is_applicable}
                 value={"Not Applicable"}

@@ -43,8 +43,18 @@ export async function UpdateAnnexCategoryById({
       },
     });
     return { data: response.data as AnnexCategoryISO, status: response.status };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error updating annex category by ID:", error);
-    throw error;
+    if (error instanceof Error && "response" in error && error.response) {
+      // Handle specific HTTP error responses
+      throw error;
+    } else if (error instanceof Error && "request" in error) {
+      // Handle network errors
+      console.error("Network error - no response received");
+      throw new Error("Network error - unable to reach the server");
+    } else {
+      // Handle other errors
+      throw error;
+    }
   }
 }

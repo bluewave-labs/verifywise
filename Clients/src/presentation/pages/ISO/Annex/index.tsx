@@ -218,6 +218,8 @@ const ISO42001Annex = ({
         } ${selectedControl?.title}`}
         control={selectedControl}
         annex={selectedAnnex}
+        projectFrameworkId={projectFrameworkId}
+        project_id={selectedAnnex?.project_id}
       />
     </Stack>
   );

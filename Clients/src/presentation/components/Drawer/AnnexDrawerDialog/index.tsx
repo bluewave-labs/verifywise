@@ -1,4 +1,11 @@
-import { Button, Divider, Drawer, Stack, Typography } from "@mui/material";
+import {
+  Button,
+  Divider,
+  Drawer,
+  Stack,
+  Typography,
+  CircularProgress,
+} from "@mui/material";
 import { FileData } from "../../../../domain/types/File";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import Checkbox from "../../Inputs/Checkbox";
@@ -6,10 +13,16 @@ import Field from "../../Inputs/Field";
 import { inputStyles } from "../ClauseDrawerDialog";
 import DatePicker from "../../Inputs/Datepicker";
 import Select from "../../Inputs/Select";
-import { useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 import VWButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
+import { User } from "../../../../domain/types/User";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import useProjectData from "../../../../application/hooks/useProjectData";
+import { GetAnnexCategoriesById } from "../../../../application/repository/annexCategory_iso.repository";
+import { AnnexCategoryISO } from "../../../../domain/types/AnnexCategoryISO";
 
 interface Control {
   id: number;
@@ -36,6 +49,8 @@ interface VWISO42001ClauseDrawerDialogProps {
   annex: Annex | null;
   evidenceFiles?: FileData[];
   uploadFiles?: FileData[];
+  projectFrameworkId: number;
+  project_id: number;
 }
 
 const VWISO42001AnnexDrawerDialog = ({
@@ -44,10 +59,140 @@ const VWISO42001AnnexDrawerDialog = ({
   onClose,
   control,
   annex,
-  evidenceFiles = [],
-  uploadFiles = [],
+  projectFrameworkId,
+  project_id,
 }: VWISO42001ClauseDrawerDialogProps) => {
   const [date, setDate] = useState<Dayjs | null>(null);
+  const [fetchedAnnex, setFetchedAnnex] = useState<AnnexCategoryISO | null>(
+    null
+  );
+  const [isLoading, setIsLoading] = useState(false);
+  const [projectMembers, setProjectMembers] = useState<User[]>([]);
+  const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
+  const [evidenceFiles, setEvidenceFiles] = useState<FileData[]>([]);
+
+  // Get context and project data
+  const { dashboardValues, userId } = useContext(VerifyWiseContext);
+  const { users } = dashboardValues;
+  const { project } = useProjectData({
+    projectId: String(project_id) || "0",
+  });
+
+  // Add state for all form fields
+  const [formData, setFormData] = useState({
+    is_applicable: false,
+    justification_for_exclusion: "",
+    implementation_description: "",
+    status: "",
+    owner: "",
+    reviewer: "",
+    approver: "",
+    auditor_feedback: "",
+  });
+
+  // Filter users to only show project members
+  useEffect(() => {
+    if (project && users?.length > 0) {
+      const members = users.filter(
+        (user: User) =>
+          typeof user.id === "number" &&
+          project.members.some((memberId) => Number(memberId) === user.id)
+      );
+      setProjectMembers(members);
+    }
+  }, [project, users]);
+
+  useEffect(() => {
+    const fetchAnnexCategory = async () => {
+      if (open && annex?.id) {
+        setIsLoading(true);
+        try {
+          const response = await GetAnnexCategoriesById({
+            routeUrl: `/iso-42001/annexCategory/byId/${annex.id}?projectFrameworkId=${projectFrameworkId}`,
+          });
+          console.log("Fetched Annex Category:", response.data);
+          setFetchedAnnex(response.data);
+
+          // Initialize form data with fetched values
+          if (response.data) {
+            setFormData({
+              is_applicable: response.data.is_applicable ?? false,
+              justification_for_exclusion:
+                response.data.justification_for_exclusion || "",
+              implementation_description:
+                response.data.implementation_description || "",
+              status: response.data.status || "",
+              owner: response.data.owner?.toString() || "",
+              reviewer: response.data.reviewer?.toString() || "",
+              approver: response.data.approver?.toString() || "",
+              auditor_feedback: response.data.auditor_feedback || "",
+            });
+
+            // Set the date if it exists in the fetched data
+            if (response.data.due_date) {
+              setDate(dayjs(response.data.due_date));
+            }
+          }
+
+          // On annex category fetch, set evidence files if available
+          if (response.data?.evidence_links) {
+            setEvidenceFiles(response.data.evidence_links as FileData[]);
+          }
+        } catch (error) {
+          console.error("Error fetching annex category:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchAnnexCategory();
+  }, [open, annex?.id, projectFrameworkId]);
+
+  // Handle form field changes
+  const handleFieldChange = (field: string, value: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleSelectChange = (field: string) => (event: any) => {
+    handleFieldChange(field, event.target.value.toString());
+  };
+
+  if (isLoading) {
+    return (
+      <Drawer
+        open={open}
+        onClose={onClose}
+        sx={{
+          width: 600,
+          margin: 0,
+          "& .MuiDrawer-paper": {
+            margin: 0,
+            borderRadius: 0,
+          },
+        }}
+        anchor="right"
+      >
+        <Stack
+          sx={{
+            width: 600,
+            height: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <CircularProgress />
+          <Typography sx={{ mt: 2 }}>Loading annex category data...</Typography>
+        </Stack>
+      </Drawer>
+    );
+  }
+
+  const displayData = fetchedAnnex || annex;
 
   return (
     <Drawer
@@ -114,19 +259,30 @@ const VWISO42001AnnexDrawerDialog = ({
             <Typography fontSize={13}>Applicability:</Typography>
             <Stack sx={{ display: "flex", flexDirection: "row", gap: 10 }}>
               <Checkbox
-                id={`${control?.id}-${annex?.id}-iso-42001`}
+                id={`${control?.id}-${annex?.id}-iso-42001-applicable`}
                 label="Applicable"
-                isChecked={false}
+                isChecked={formData.is_applicable}
                 value={"Applicable"}
-                onChange={() => {}}
+                onChange={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    is_applicable: true,
+                    justification_for_exclusion: "",
+                  }))
+                }
                 size="small"
               />
               <Checkbox
-                id={`${control?.id}-${annex?.id}-iso-42001`}
+                id={`${control?.id}-${annex?.id}-iso-42001-not-applicable`}
                 label="Not Applicable"
-                isChecked={false}
+                isChecked={!formData.is_applicable}
                 value={"Not Applicable"}
-                onChange={() => {}}
+                onChange={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    is_applicable: false,
+                  }))
+                }
                 size="small"
               />
             </Stack>
@@ -137,6 +293,10 @@ const VWISO42001AnnexDrawerDialog = ({
             </Typography>
             <Field
               type="description"
+              value={formData.justification_for_exclusion}
+              onChange={(e) =>
+                handleFieldChange("justification_for_exclusion", e.target.value)
+              }
               sx={{
                 cursor: "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
@@ -161,6 +321,10 @@ const VWISO42001AnnexDrawerDialog = ({
             </Typography>
             <Field
               type="description"
+              value={formData.implementation_description}
+              onChange={(e) =>
+                handleFieldChange("implementation_description", e.target.value)
+              }
               sx={{
                 cursor: "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
@@ -204,24 +368,6 @@ const VWISO42001AnnexDrawerDialog = ({
               >
                 {`${evidenceFiles.length || 0} evidence files attached`}
               </Typography>
-              {uploadFiles.length > 0 && (
-                <Typography
-                  sx={{
-                    fontSize: 11,
-                    color: "#344054",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    textAlign: "center",
-                    margin: "auto",
-                    textWrap: "wrap",
-                  }}
-                >
-                  {`${uploadFiles.length} ${
-                    uploadFiles.length === 1 ? "file" : "files"
-                  } pending upload`}
-                </Typography>
-              )}
             </Stack>
           </Stack>
         </Stack>
@@ -235,8 +381,8 @@ const VWISO42001AnnexDrawerDialog = ({
           <Select
             id="status"
             label="Status:"
-            value={control?.status || ""}
-            onChange={() => {}}
+            value={formData.status}
+            onChange={handleSelectChange("status")}
             items={[
               { _id: "Not Started", name: "Not Started" },
               { _id: "Draft", name: "Draft" },
@@ -254,9 +400,12 @@ const VWISO42001AnnexDrawerDialog = ({
           <Select
             id="Owner"
             label="Owner:"
-            value={""}
-            onChange={() => {}}
-            items={[]}
+            value={formData.owner}
+            onChange={handleSelectChange("owner")}
+            items={projectMembers.map((user) => ({
+              _id: user.id?.toString() || "",
+              name: `${user.name} ${user.surname}`,
+            }))}
             sx={inputStyles}
             placeholder={"Select owner"}
           />
@@ -264,9 +413,12 @@ const VWISO42001AnnexDrawerDialog = ({
           <Select
             id="Reviewer"
             label="Reviewer:"
-            value={""}
-            onChange={() => {}}
-            items={[]}
+            value={formData.reviewer}
+            onChange={handleSelectChange("reviewer")}
+            items={projectMembers.map((user) => ({
+              _id: user.id?.toString() || "",
+              name: `${user.name} ${user.surname}`,
+            }))}
             sx={inputStyles}
             placeholder={"Select reviewer"}
           />
@@ -274,9 +426,12 @@ const VWISO42001AnnexDrawerDialog = ({
           <Select
             id="Approver"
             label="Approver:"
-            value={""}
-            onChange={() => {}}
-            items={[]}
+            value={formData.approver}
+            onChange={handleSelectChange("approver")}
+            items={projectMembers.map((user) => ({
+              _id: user.id?.toString() || "",
+              name: `${user.name} ${user.surname}`,
+            }))}
             sx={inputStyles}
             placeholder={"Select approver"}
           />
@@ -295,6 +450,10 @@ const VWISO42001AnnexDrawerDialog = ({
             </Typography>
             <Field
               type="description"
+              value={formData.auditor_feedback}
+              onChange={(e) =>
+                handleFieldChange("auditor_feedback", e.target.value)
+              }
               sx={{
                 cursor: "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":

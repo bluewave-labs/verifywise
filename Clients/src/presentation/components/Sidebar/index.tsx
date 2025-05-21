@@ -37,11 +37,11 @@ import Avatar from "../Avatar/VWAvatar";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { Link as RouterLink } from "react-router-dom";
 import { Link as MuiLink } from "@mui/material";
-import { User } from "../../../application/hooks/useUsers";
 import { ROLES } from "../../../application/constants/roles";
 import useLogout from "../../../application/hooks/useLogout";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import ReadyToSubscribeBox from "../ReadyToSubscribeBox/ReadyToSubscribeBox";
+import { User } from "../../../domain/types/User";
 
 const menu = [
   {
@@ -75,11 +75,11 @@ const other = [
 ];
 
 const DEFAULT_USER: User = {
-  id: "1",
+  id: 1,
   name: "",
   surname: "",
   email: "",
-  role: 1,
+  roleId: 1,
 };
 
 interface User_Avatar {
@@ -98,16 +98,15 @@ const Sidebar = () => {
   const [popup, setPopup] = useState();
   const logout = useLogout();
 
-  const { dashboardValues, userId, changeComponentVisibility} =
-    useContext(VerifyWiseContext);
-  const { users } = dashboardValues;
+  const { userId, changeComponentVisibility, users} =
+    useContext(VerifyWiseContext); 
 
 const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
   countToTrigger: 1,
 });
 
   const user: User = users
-    ? users.find((user: User) => user.id === userId)
+    ? users.find((user: User) => user.id === userId) || DEFAULT_USER
     : DEFAULT_USER;
 
   const userAvator: User_Avatar = {
@@ -529,7 +528,7 @@ useEffect(() => {
                 {user.name} {user.surname}
               </Typography>
               <Typography sx={{ textTransform: "capitalize" }}>
-                {ROLES[user.role as keyof typeof ROLES]}
+                {ROLES[user.roleId as keyof typeof ROLES]}  
               </Typography>
             </Box>
             <Tooltip title="Controls" disableInteractive>
@@ -596,7 +595,7 @@ useEffect(() => {
                   {user.name} {user.surname}
                 </Typography>
                 <Typography sx={{ textTransform: "capitalize", fontSize: 12 }}>
-                  {ROLES[user.role as keyof typeof ROLES]}
+                  {ROLES[user.roleId as keyof typeof ROLES]}
                 </Typography>
               </Box>
             </MenuItem>

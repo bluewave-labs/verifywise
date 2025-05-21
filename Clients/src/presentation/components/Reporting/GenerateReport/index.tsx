@@ -25,7 +25,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
 }) => {
   const [isReportRequest, setIsReportRequest] = useState<boolean>(false);
   const [responseStatusCode, setResponseStatusCode] = useState<number>(200);  
-  const { dashboardValues } = useContext(VerifyWiseContext);
+  const { dashboardValues, users } = useContext(VerifyWiseContext);
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
@@ -52,7 +52,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
       return;
     }
     setIsReportRequest(true);
-    const owner = dashboardValues.users.find(
+    const owner = users.find(
       (user: any) => user.id === parseInt(currentProject.owner)
     );
     const currentProjectOwner = owner ? `${owner.name} ${owner.surname}`: "";          

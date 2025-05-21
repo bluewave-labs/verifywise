@@ -37,6 +37,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VWToast from "../../../vw-v2-components/Toast";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
+import useFrameworks from '../../../../application/hooks/useFrameworks';
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -66,12 +67,6 @@ const highRiskRoleItems = [
   { _id: 4, name: HighRiskRoleEnum.Importer },
   { _id: 5, name: HighRiskRoleEnum.ProductManufacturer },
   { _id: 6, name: HighRiskRoleEnum.AuthorizedRepresentative },
-];
-
-const monitoredRegulationsAndStandardsItems = [
-  { _id: 1, name: "EU AI Act" },
-  { _id: 2, name: "ISO 42001:2023 (coming soon)" },
-  { _id: 3, name: "NIST RMF (coming soon)" },
 ];
 
 interface FormValues {
@@ -172,9 +167,23 @@ const ProjectSettings = React.memo(
 
     const { users } = useUsers();
 
+    const { frameworks: monitoredFrameworks, loading: frameworksLoading } = useFrameworks({
+      listOfFrameworks: project?.framework || [],
+    });
+
     useEffect(() => {
       setShowVWSkeleton(true);
-      if (project) {
+      if (project && monitoredFrameworks.length > 0) {
+        const frameworksForProject = monitoredFrameworks.map(fw => {
+          const projectFramework = project.framework?.find(pf => Number(pf.framework_id) === Number(fw.id));
+          return {
+            _id: Number(fw.id),
+            name: fw.name,
+            project_framework_id: projectFramework?.project_framework_id || Number(fw.id),
+            framework_id: Number(fw.id),
+          };
+        });
+
         const returnedData: FormValues = {
           ...initialState,
           projectTitle: project.project_title ?? "",
@@ -196,18 +205,13 @@ const ProjectSettings = React.memo(
                 item.name.toLowerCase() ===
                 project.type_of_high_risk_role.toLowerCase()
             )?._id || 0,
-          monitoredRegulationsAndStandards: project.monitored_regulations_and_standards 
-            ? project.monitored_regulations_and_standards.map((reg: string) => ({
-                _id: monitoredRegulationsAndStandardsItems.find(item => item.name === reg)?._id || 0,
-                name: reg
-              }))
-            : [{ _id: 1, name: "EU AI Act" }],
+          monitoredRegulationsAndStandards: frameworksForProject,
         };
         initialValuesRef.current = returnedData;
         setShowVWSkeleton(false);
         setValues(returnedData);
       }
-    }, [project]);
+    }, [project, monitoredFrameworks]);
 
     const handleDateChange = useCallback((newDate: Dayjs | null) => {
       if (newDate?.isValid()) {
@@ -247,7 +251,10 @@ const ProjectSettings = React.memo(
         (_event: React.SyntheticEvent, newValue: any[]) => {
           setValues((prevValues) => ({
             ...prevValues,
-            [prop]: newValue.map((user) => user.id),
+            [prop]:
+              prop === "monitoredRegulationsAndStandards"
+                ? newValue
+                : newValue.map((user) => user.id),
           }));
           setMemberRequired(false);
         },
@@ -378,6 +385,10 @@ const ProjectSettings = React.memo(
           monitored_regulations_and_standards: selectedRegulations,
           last_updated: new Date().toISOString(),
           last_updated_by: 1,
+          framework: values.monitoredRegulationsAndStandards.map(fw => ({
+            project_framework_id: fw._id,
+            framework_id: fw._id
+          })),
         },
       }).then((response) => {
         if (response.status === 202) {
@@ -509,110 +520,116 @@ const ProjectSettings = React.memo(
               isRequired
             />
 
-            <Stack gap="5px" sx={{ mt: "6px" }}>
-              <Typography
-                sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
-              >
-                Monitored regulations and standards *
-              </Typography>
-              <Typography sx={{ fontSize: theme.typography.fontSize }}>
-                Add all monitored regulations and standards of the project.
-              </Typography>
-            </Stack>
-            <Autocomplete
-              multiple
-              id="monitored-regulations-and-standards-input"
-              size="small"
-              value={values.monitoredRegulationsAndStandards}
-              options={monitoredRegulationsAndStandardsItems}
-              onChange={handleOnMultiSelect("monitoredRegulationsAndStandards")}
-              getOptionLabel={(item) => item.name}
-              noOptionsText={
-                values.monitoredRegulationsAndStandards.length === monitoredRegulationsAndStandardsItems.length
-                  ? "All regulations selected"
-                  : "No options"
-              }
-              renderOption={(props, option) => {
-                const isComingSoon = option.name.includes("coming soon");
-                return (
-                  <Box 
-                    component="li" 
-                    {...props}
-                    sx={{
-                      opacity: isComingSoon ? 0.5 : 1,
-                      cursor: isComingSoon ? "not-allowed" : "pointer",
-                      "&:hover": {
-                        backgroundColor: isComingSoon ? "transparent" : undefined
-                      }
-                    }}
-                  >
-                    <Typography 
-                      sx={{ 
-                        fontSize: "13px",
-                        color: isComingSoon ? "text.secondary" : "text.primary"
+            {/* Only render the monitored regulations and standards section if frameworks are loaded */}
+            {monitoredFrameworks.length > 0 && (
+              <Stack gap="5px" sx={{ mt: "6px" }}>
+                <Typography
+                  sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
+                >
+                  Monitored regulations and standards *
+                </Typography>
+                <Typography sx={{ fontSize: theme.typography.fontSize }}>
+                  Add all monitored regulations and standards of the project.
+                </Typography>
+                <Autocomplete
+                  multiple
+                  id="monitored-regulations-and-standards-input"
+                  size="small"
+                  value={values.monitoredRegulationsAndStandards}
+                  options={monitoredFrameworks.map((fw) => ({
+                    _id: Number(fw.id),
+                    name: fw.name,
+                  }))}
+                  onChange={handleOnMultiSelect("monitoredRegulationsAndStandards")}
+                  getOptionLabel={(item: { _id: number; name: string }) => item.name}
+                  noOptionsText={
+                    values.monitoredRegulationsAndStandards.length === monitoredFrameworks.length
+                      ? "All regulations selected"
+                      : "No options"
+                  }
+                  renderOption={(props: any, option: { _id: number; name: string }) => {
+                    const isComingSoon = option.name.includes("coming soon");
+                    return (
+                      <Box 
+                        component="li" 
+                        {...props}
+                        sx={{
+                          opacity: isComingSoon ? 0.5 : 1,
+                          cursor: isComingSoon ? "not-allowed" : "pointer",
+                          "&:hover": {
+                            backgroundColor: isComingSoon ? "transparent" : undefined
+                          }
+                        }}
+                      >
+                        <Typography 
+                          sx={{ 
+                            fontSize: "13px",
+                            color: isComingSoon ? "text.secondary" : "text.primary"
+                          }}
+                        >
+                          {option.name}
+                        </Typography>
+                      </Box>
+                    );
+                  }}
+                  isOptionEqualToValue={(option: { _id: number }, value: { _id: number }) => option._id === value._id}
+                  getOptionDisabled={(option: { name: string }) => option.name.includes("coming soon")}
+                  filterSelectedOptions
+                  popupIcon={<KeyboardArrowDown />}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      placeholder="Select regulations and standards"
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          paddingTop: "3.8px !important",
+                          paddingBottom: "3.8px !important",
+                        },
+                        "& ::placeholder": {
+                          fontSize: "13px",
+                        },
                       }}
-                    >
-                      {option.name}
-                    </Typography>
-                  </Box>
-                );
-              }}
-              isOptionEqualToValue={(option, value) => option._id === value._id}
-              getOptionDisabled={(option) => option.name.includes("coming soon")}
-              filterSelectedOptions
-              popupIcon={<KeyboardArrowDown />}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  placeholder="Select regulations and standards"
+                    />
+                  )}
                   sx={{
+                    width: "458px",
+                    backgroundColor: theme.palette.background.main,
                     "& .MuiOutlinedInput-root": {
-                      paddingTop: "3.8px !important",
-                      paddingBottom: "3.8px !important",
+                      borderRadius: "5px",
+                      "&:hover .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#777",
+                      },
+                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#888",
+                        borderWidth: "1px",
+                      },
                     },
-                    "& ::placeholder": {
-                      fontSize: "13px",
+                  }}
+                  slotProps={{
+                    paper: {
+                      sx: {
+                        "& .MuiAutocomplete-listbox": {
+                          "& .MuiAutocomplete-option": {
+                            fontSize: "13px",
+                            color: "#1c2130",
+                            paddingLeft: "9px",
+                            paddingRight: "9px",
+                          },
+                          "& .MuiAutocomplete-option.Mui-focused": {
+                            background: "#f9fafb",
+                          },
+                        },
+                        "& .MuiAutocomplete-noOptions": {
+                          fontSize: "13px",
+                          paddingLeft: "9px",
+                          paddingRight: "9px",
+                        },
+                      },
                     },
                   }}
                 />
-              )}
-              sx={{
-                width: "458px",
-                backgroundColor: theme.palette.background.main,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "5px",
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#777",
-                  },
-                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#888",
-                    borderWidth: "1px",
-                  },
-                },
-              }}
-              slotProps={{
-                paper: {
-                  sx: {
-                    "& .MuiAutocomplete-listbox": {
-                      "& .MuiAutocomplete-option": {
-                        fontSize: "13px",
-                        color: "#1c2130",
-                        paddingLeft: "9px",
-                        paddingRight: "9px",
-                      },
-                      "& .MuiAutocomplete-option.Mui-focused": {
-                        background: "#f9fafb",
-                      },
-                    },
-                    "& .MuiAutocomplete-noOptions": {
-                      fontSize: "13px",
-                      paddingLeft: "9px",
-                      paddingRight: "9px",
-                    },
-                  },
-                },
-              }}
-            />
+              </Stack>
+            )}
 
             <DatePicker
               label="Start date"

@@ -85,118 +85,112 @@ const ISO42001Clauses = ({
 
   return (
     <Stack className="iso-42001-clauses">
-      {ISO42001ClauseList.map((item) => (
-        <>
-          <Typography
-            key={item.id}
-            sx={{ color: "#1A1919", fontWeight: 600, mb: "6px", fontSize: 16 }}
+      <Typography
+        key="Management-System-Clauses"
+        sx={{ color: "#1A1919", fontWeight: 600, mb: "6px", fontSize: 16 }}
+      >
+        { "Management System Clauses" }
+      </Typography>
+      { clauses &&
+        clauses.map((clause: ClauseStructISO) => (
+          <Stack
+            key={clause.id}
+            sx={{
+              maxWidth: "1400px",
+              marginTop: "14px",
+              gap: "20px",
+            }}
           >
-            {item.title} {" Clauses"}
-          </Typography>
-          {Array.isArray(clauses) && clauses.length > 0 ? (
-            clauses.map((clause: ClauseStructISO) => (
-              <Stack
-                key={clause.id}
+            <Accordion
+              key={clause.id}
+              expanded={expanded === clause.id}
+              sx={{
+                ...accordionStyle,
+                ".MuiAccordionDetails-root": {
+                  padding: 0,
+                  margin: 0,
+                },
+              }}
+              onChange={handleAccordionChange(clause.id ?? 0)}
+            >
+              <AccordionSummary
                 sx={{
-                  maxWidth: "1400px",
-                  marginTop: "14px",
-                  gap: "20px",
+                  backgroundColor: "#fafafa",
+                  flexDirection: "row-reverse",
                 }}
-              >
-                <Accordion
-                  key={clause.id}
-                  expanded={expanded === clause.id}
-                  sx={{
-                    ...accordionStyle,
-                    ".MuiAccordionDetails-root": {
-                      padding: 0,
-                      margin: 0,
-                    },
-                  }}
-                  onChange={handleAccordionChange(clause.id ?? 0)}
-                >
-                  <AccordionSummary
+                expandIcon={
+                  <ExpandMoreIcon
                     sx={{
-                      backgroundColor: "#fafafa",
-                      flexDirection: "row-reverse",
+                      transform:
+                        expanded === clause.id
+                          ? "rotate(180deg)"
+                          : "rotate(270deg)",
+                      transition: "transform 0.5s ease-in",
                     }}
-                    expandIcon={
-                      <ExpandMoreIcon
-                        sx={{
-                          transform:
-                            expanded === clause.id
-                              ? "rotate(180deg)"
-                              : "rotate(270deg)",
-                          transition: "transform 0.5s ease-in",
-                        }}
-                      />
-                    }
-                  >
-                    <Typography
+                  />
+                }
+              >
+                <Typography
+                  sx={{
+                    paddingLeft: "2.5px",
+                    fontSize: 13,
+                  }}
+                >
+                  {clause.title}
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails sx={{ padding: 0 }}>
+                {clause.subClauses.map(
+                  (
+                    subClause: Partial<SubClauseISO & SubClauseStructISO>,
+                    index: number
+                  ) => (
+                    <Stack
+                      key={subClause.id}
+                      onClick={() =>
+                        handleSubClauseClick(clause, subClause)
+                      }
                       sx={{
-                        paddingLeft: "2.5px",
+                        display: "flex",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        padding: "16px",
+                        borderBottom:
+                          clause.subClauses.length - 1 ===
+                          clause.subClauses.indexOf(subClause)
+                            ? "none"
+                            : "1px solid #eaecf0",
+                        cursor: "pointer",
                         fontSize: 13,
                       }}
                     >
-                      {clause.title}
-                    </Typography>
-                  </AccordionSummary>
-                  <AccordionDetails sx={{ padding: 0 }}>
-                    {clause.subClauses.map(
-                      (
-                        subClause: Partial<SubClauseISO & SubClauseStructISO>,
-                        index: number
-                      ) => (
-                        <Stack
-                          key={subClause.id}
-                          onClick={() =>
-                            handleSubClauseClick(clause, subClause)
-                          }
-                          sx={{
-                            display: "flex",
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            padding: "16px",
-                            borderBottom:
-                              clause.subClauses.length - 1 ===
-                              clause.subClauses.indexOf(subClause)
-                                ? "none"
-                                : "1px solid #eaecf0",
-                            cursor: "pointer",
-                            fontSize: 13,
-                          }}
-                        >
-                          <Typography>
-                            {clause.clause_no + "." + (index + 1)}{" "}
-                            {subClause.title ?? "Untitled"}
-                          </Typography>
-                          <Stack
-                            sx={{
-                              borderRadius: "4px",
-                              padding: "5px",
-                              backgroundColor: getStatusColor(
-                                subClause.status ?? "Not Started"
-                              ),
-                              color: "#fff",
-                            }}
-                          >
-                            {subClause.status
-                              ? subClause.status.charAt(0).toUpperCase() +
-                                subClause.status.slice(1).toLowerCase()
-                              : "Not started"}
-                          </Stack>
-                        </Stack>
-                      )
-                    )}
-                  </AccordionDetails>
-                </Accordion>
-              </Stack>
-            ))
-          ) : (
-            <Typography>No clauses found.</Typography>
-          )}
-        </>
-      ))}
+                      <Typography>
+                        {clause.clause_no + "." + (index + 1)}{" "}
+                        {subClause.title ?? "Untitled"}
+                      </Typography>
+                      <Stack
+                        sx={{
+                          borderRadius: "4px",
+                          padding: "5px",
+                          backgroundColor: getStatusColor(
+                            subClause.status ?? "Not Started"
+                          ),
+                          color: "#fff",
+                        }}
+                      >
+                        {subClause.status
+                          ? subClause.status.charAt(0).toUpperCase() +
+                            subClause.status.slice(1).toLowerCase()
+                          : "Not started"}
+                      </Stack>
+                    </Stack>
+                  )
+                )}
+              </AccordionDetails>
+            </Accordion>
+          </Stack>
+        ))
+      }
       <VWISO42001ClauseDrawerDialog
         open={drawerOpen}
         onClose={handleDrawerClose}

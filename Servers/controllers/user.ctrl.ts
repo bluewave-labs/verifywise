@@ -83,7 +83,7 @@ async function getUserById(req: Request, res: Response) {
 async function createNewUser(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
   try {
-    const { name, surname, email, password, role_id, created_at, last_login } =
+    const { name, surname, email, password, roleId, created_at, last_login } =
       req.body;
     const existingUser = await getUserByEmailQuery(email);
 
@@ -99,7 +99,7 @@ async function createNewUser(req: Request, res: Response) {
         surname,
         email,
         password_hash,
-        role_id,
+        role_id: roleId,
         created_at,
         last_login,
       },
@@ -233,7 +233,7 @@ async function updateUserById(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
   try {
     const id = parseInt(req.params.id);
-    const { name, surname, email, role_id, last_login } = req.body;
+    const { name, surname, email, roleId, last_login } = req.body;
 
     const user = await getUserByIdQuery(id);
 
@@ -244,7 +244,7 @@ async function updateUserById(req: Request, res: Response) {
           name: name ?? user.name,
           surname: surname ?? user.surname,
           email: email ?? user.email,
-          role_id: role_id ?? user.role_id,
+          role_id: roleId ?? user.role_id,
           last_login: last_login ?? user.last_login,
         },
         transaction

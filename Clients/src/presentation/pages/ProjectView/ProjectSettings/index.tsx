@@ -173,8 +173,7 @@ const ProjectSettings = React.memo(
 
     const { 
       filteredFrameworks: monitoredFrameworks, 
-      allFrameworks,
-      loading: frameworksLoading 
+      allFrameworks
     } = useFrameworks({
       listOfFrameworks: project?.framework || [],
     });

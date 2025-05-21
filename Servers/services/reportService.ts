@@ -73,10 +73,10 @@ export async function isAuthorizedUser(
 */
 export async function getReportData(
     projectId: number,
+    frameworkId: number,
     reportType: string,
     reportBody: reportBodyData
   ) : Promise<any> {
-    
   let markdownFormattedData;
   switch(reportType) {
     case ReportType.PROJECTRISK_REPORT:

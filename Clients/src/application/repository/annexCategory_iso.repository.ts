@@ -1,7 +1,6 @@
 import { GetRequestParams } from "../../domain/interfaces/iRequestParams";
 import { apiServices } from "../../infrastructure/api/networkServices";
 import { getAuthToken } from "../redux/getAuthToken";
-import { AnnexCategoryISO } from "../../domain/types/AnnexCategoryISO";
 
 export async function GetAnnexCategoriesById({
   routeUrl,
@@ -33,7 +32,7 @@ export async function UpdateAnnexCategoryById({
   body: FormData;
   authToken?: string;
   headers?: Record<string, string>;
-}): Promise<{ data: AnnexCategoryISO; status: number }> {
+}) {
   try {
     const response = await apiServices.patch(routeUrl, body, {
       headers: {
@@ -42,7 +41,8 @@ export async function UpdateAnnexCategoryById({
         ...headers,
       },
     });
-    return { data: response.data as AnnexCategoryISO, status: response.status };
+    console.log("Update Annex Category Response:", response);
+    return response;
   } catch (error: any) {
     console.error("Error updating annex category by ID:", error);
     if (error instanceof Error && "response" in error && error.response) {

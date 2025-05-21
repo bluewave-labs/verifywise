@@ -63,9 +63,7 @@ const VWISO42001AnnexDrawerDialog = ({
 }: VWISO42001ClauseDrawerDialogProps) => {
   console.log("VWISO42001AnnexDrawerDialog -- project_id : ", project_id);
   const [date, setDate] = useState<Dayjs | null>(null);
-  const [fetchedAnnex, setFetchedAnnex] = useState<AnnexCategoryISO | null>(
-    null
-  );
+  const [fetchedAnnex, setFetchedAnnex] = useState<AnnexCategoryISO>();
   const [isLoading, setIsLoading] = useState(false);
   const [projectMembers, setProjectMembers] = useState<User[]>([]);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
@@ -225,9 +223,18 @@ const VWISO42001AnnexDrawerDialog = ({
         // If file is an existing file object (from backend), skip or handle as needed
       });
 
+      if (!fetchedAnnex) {
+        console.error("Fetched annex is undefined");
+        return;
+      }
+
+      console.log(
+        `Updating Annex Category: /iso-42001/saveAnnexes/${fetchedAnnex.id}`
+      );
+
       // Call the update API
       await UpdateAnnexCategoryById({
-        routeUrl: `/iso-42001/saveAnnexCategory/${annex.id}`,
+        routeUrl: `/iso-42001/saveAnnexes/${fetchedAnnex.id}`,
         body: formDataToSend,
       });
       // Close the drawer after successful save

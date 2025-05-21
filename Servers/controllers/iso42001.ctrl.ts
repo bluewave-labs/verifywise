@@ -7,7 +7,7 @@ import { STATUS_CODE } from "../utils/statusCode.utils";
 import { countAnnexCategoriesISOByProjectId, countSubClausesISOByProjectId, deleteAnnexCategoriesISOByProjectIdQuery, deleteSubClausesISOByProjectIdQuery, getAllAnnexesQuery, getAllClausesQuery, getAllClausesWithSubClauseQuery, getAnnexCategoriesByAnnexIdQuery, getAnnexCategoryByIdForProjectQuery, getAnnexesByProjectIdQuery, getClausesByProjectIdQuery, getSubClauseByIdForProjectQuery, getSubClausesByClauseIdQuery, updateAnnexCategoryQuery, updateSubClauseQuery } from "../utils/iso42001.utils";
 import { FileType } from "../models/file.model";
 import { AnnexCategoryISO } from "../models/ISO-42001/annexCategoryISO.model";
-import { getAllProjectsQuery } from "../utils/project.utils";
+import { getAllProjectsQuery, updateProjectUpdatedByIdQuery } from "../utils/project.utils";
 import { Project } from "../models/project.model";
 
 export async function getAllClauses(req: Request, res: Response): Promise<any> {
@@ -190,7 +190,7 @@ export async function saveClauses(
     const subClauseId = parseInt(req.params.id);
     const subClause = req.body as SubClauseISO & {
       user_id: number;
-      project_framework_id: number;
+      project_id: number;
       delete: string;
     };
 
@@ -200,7 +200,7 @@ export async function saveClauses(
     let uploadedFiles = await uploadFiles(
       req.files! as UploadedFile[],
       subClause.user_id,
-      subClause.project_framework_id,
+      subClause.project_id,
       "Management system clauses group",
       transaction
     );
@@ -214,7 +214,7 @@ export async function saveClauses(
     )
 
     // Update the project's last updated date
-    // await updateProjectUpdatedByIdQuery
+    await updateProjectUpdatedByIdQuery(subClauseId, "subclauses", transaction);
     await transaction.commit();
 
     return res.status(200).json(STATUS_CODE[200](updatedSubClause));
@@ -233,7 +233,7 @@ export async function saveAnnexes(
     const annexCategoryId = parseInt(req.params.id);
     const annexCategory = req.body as AnnexCategoryISO & {
       user_id: number;
-      project_framework_id: number;
+      project_id: number;
       delete: string;
       risksDelete: string;
       risksMitigated: string;
@@ -245,7 +245,7 @@ export async function saveAnnexes(
     let uploadedFiles = await uploadFiles(
       req.files! as UploadedFile[],
       annexCategory.user_id,
-      annexCategory.project_framework_id,
+      annexCategory.project_id,
       "Reference controls group",
       transaction
     );
@@ -259,7 +259,7 @@ export async function saveAnnexes(
     )
 
     // Update the project's last updated date
-    // await updateProjectUpdatedByIdQuery
+    await updateProjectUpdatedByIdQuery(annexCategoryId, "annexcategories", transaction)
     await transaction.commit();
 
     return res.status(200).json(STATUS_CODE[200](updatedAnnexCategory));

@@ -7,6 +7,7 @@ import { tabStyle, tabPanelStyle } from "../V1.0ProjectView/style";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import ComplianceTracker from "../../../pages/ComplianceTracker/1.0ComplianceTracker";
 import { Project } from "../../../../domain/types/Project";
+import { Framework } from "../../../../domain/types/Framework";
 import AssessmentTracker from "../../Assessment/1.0AssessmentTracker";
 import useFrameworks from "../../../../application/hooks/useFrameworks";
 import AddFrameworkModal from "../AddNewFramework";
@@ -43,7 +44,12 @@ type TrackerTab = (typeof TRACKER_TABS)[number]["value"];
 type ISO42001Tab = (typeof ISO_42001_TABS)[number]["value"];
 
 const ProjectFrameworks = ({ project }: { project: Project }) => {
-  const { frameworks, loading, error, refreshFrameworks } = useFrameworks({
+  const { 
+    filteredFrameworks, 
+    loading, 
+    error, 
+    refreshFilteredFrameworks 
+  } = useFrameworks({
     listOfFrameworks: project.framework,
   });
   const [selectedFrameworkId, setSelectedFrameworkId] = useState<number | null>(
@@ -74,13 +80,15 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
 
   const projectFrameworks = useMemo(
     () =>
-      frameworks.filter((fw) => associatedFrameworkIds.includes(Number(fw.id))),
-    [frameworks, associatedFrameworkIds]
+      filteredFrameworks.filter((fw: Framework) => 
+        associatedFrameworkIds.includes(Number(fw.id))
+      ),
+    [filteredFrameworks, associatedFrameworkIds]
   );
 
   useEffect(() => {
     if (!loading && projectFrameworks.length > 0) {
-      const validIds = projectFrameworks.map((fw) => Number(fw.id));
+      const validIds = projectFrameworks.map((fw: Framework) => Number(fw.id));
       if (!selectedFrameworkId || !validIds.includes(selectedFrameworkId)) {
         const initialFramework = projectFrameworks[0];
         setSelectedFrameworkId(Number(initialFramework.id));
@@ -106,7 +114,7 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
-        <Button onClick={refreshFrameworks} variant="contained">
+        <Button onClick={refreshFilteredFrameworks} variant="contained">
           Retry
         </Button>
       </Box>
@@ -123,7 +131,7 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
           {loading ? (
             <VWSkeleton variant="rectangular" width={200} height={40} />
           ) : (
-            projectFrameworks.map((fw, idx) => (
+            projectFrameworks.map((fw: Framework, idx: number) => (
               <Box
                 key={fw.id}
                 onClick={() => handleFrameworkChange(Number(fw.id))}
@@ -149,7 +157,7 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
       <AddFrameworkModal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        frameworks={frameworks}
+        frameworks={filteredFrameworks}
         project={project}
       />
 

@@ -38,6 +38,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import VWToast from "../../../vw-v2-components/Toast";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import useFrameworks from '../../../../application/hooks/useFrameworks';
+import { Framework } from "../../../../domain/types/Framework";
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -77,7 +78,7 @@ interface FormValues {
   startDate: string;
   riskClassification: number;
   typeOfHighRiskRole: number;
-  monitoredRegulationsAndStandards: { _id: number; name: string; }[];
+  monitoredRegulationsAndStandards: { _id: number; name: string; project_framework_id?: number; framework_id?: number; }[];
 }
 
 interface FormErrors {
@@ -169,14 +170,18 @@ const ProjectSettings = React.memo(
 
     const { users } = useUsers();
 
-    const { frameworks: monitoredFrameworks, loading: frameworksLoading } = useFrameworks({
+    const { 
+      filteredFrameworks: monitoredFrameworks, 
+      allFrameworks,
+      loading: frameworksLoading 
+    } = useFrameworks({
       listOfFrameworks: project?.framework || [],
     });
 
     useEffect(() => {
       setShowVWSkeleton(true);
       if (project && monitoredFrameworks.length > 0) {
-        const frameworksForProject = monitoredFrameworks.map(fw => {
+        const frameworksForProject = monitoredFrameworks.map((fw: Framework) => {
           const projectFramework = project.framework?.find(pf => Number(pf.framework_id) === Number(fw.id));
           return {
             _id: Number(fw.id),
@@ -620,14 +625,14 @@ const ProjectSettings = React.memo(
                   id="monitored-regulations-and-standards-input"
                   size="small"
                   value={values.monitoredRegulationsAndStandards}
-                  options={monitoredFrameworks.map((fw) => ({
+                  options={allFrameworks.map((fw: Framework) => ({
                     _id: Number(fw.id),
                     name: fw.name,
                   }))}
                   onChange={handleOnMultiSelect("monitoredRegulationsAndStandards")}
                   getOptionLabel={(item: { _id: number; name: string }) => item.name}
                   noOptionsText={
-                    values.monitoredRegulationsAndStandards.length === monitoredFrameworks.length
+                    values.monitoredRegulationsAndStandards.length === allFrameworks.length
                       ? "All regulations selected"
                       : "No options"
                   }

@@ -3,10 +3,12 @@ import { Framework } from "../../domain/types/Framework";
 import { getAllFrameworks } from "../repository/entity.repository";
 
 interface UseFrameworksResult {
-  frameworks: Framework[];
+  allFrameworks: Framework[];
+  filteredFrameworks: Framework[];
   loading: boolean;
   error: string | null;
-  refreshFrameworks: () => Promise<void>;
+  refreshAllFrameworks: () => Promise<void>;
+  refreshFilteredFrameworks: () => Promise<void>;
 }
 
 const useFrameworks = ({
@@ -14,22 +16,17 @@ const useFrameworks = ({
 }: {
   listOfFrameworks: any[];
 }): UseFrameworksResult => {
-  const [frameworks, setFrameworks] = useState<Framework[]>([]);
+  const [allFrameworks, setAllFrameworks] = useState<Framework[]>([]);
+  const [filteredFrameworks, setFilteredFrameworks] = useState<Framework[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchFrameworks = useCallback(async () => {
+  const fetchAllFrameworks = useCallback(async () => {
     try {
       setLoading(true);
       const response = await getAllFrameworks({ routeUrl: "/frameworks" });
       if (response?.data) {
-        const frameworkIds = listOfFrameworks.map((f: any) =>
-          Number(f.framework_id)
-        );
-        const filteredFrameworks = response.data.filter((fw: Framework) =>
-          frameworkIds.includes(Number(fw.id))
-        );
-        setFrameworks(filteredFrameworks);
+        setAllFrameworks(response.data);
         setError(null);
       } else {
         throw new Error("Invalid response format");
@@ -38,21 +35,50 @@ const useFrameworks = ({
       const errorMessage =
         err instanceof Error ? err.message : "Failed to fetch frameworks";
       setError(errorMessage);
-      console.error("Error fetching frameworks:", errorMessage);
+      console.error("Error fetching all frameworks:", errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchFilteredFrameworks = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await getAllFrameworks({ routeUrl: "/frameworks" });
+      if (response?.data) {
+        const frameworkIds = listOfFrameworks.map((f: any) =>
+          Number(f.framework_id)
+        );
+        const filtered = response.data.filter((fw: Framework) =>
+          frameworkIds.includes(Number(fw.id))
+        );
+        setFilteredFrameworks(filtered);
+        setError(null);
+      } else {
+        throw new Error("Invalid response format");
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to fetch filtered frameworks";
+      setError(errorMessage);
+      console.error("Error fetching filtered frameworks:", errorMessage);
     } finally {
       setLoading(false);
     }
   }, [listOfFrameworks]);
 
   useEffect(() => {
-    fetchFrameworks();
-  }, [fetchFrameworks]);
+    fetchAllFrameworks();
+    fetchFilteredFrameworks();
+  }, [fetchAllFrameworks, fetchFilteredFrameworks]);
 
   return {
-    frameworks,
+    allFrameworks,
+    filteredFrameworks,
     loading,
     error,
-    refreshFrameworks: fetchFrameworks,
+    refreshAllFrameworks: fetchAllFrameworks,
+    refreshFilteredFrameworks: fetchFilteredFrameworks,
   };
 };
 

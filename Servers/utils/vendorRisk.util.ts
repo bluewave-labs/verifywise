@@ -149,8 +149,17 @@ export const getAllVendorRisksAllProjectsQuery = async () => {
         vendorRisks.risk_level,
         vendorRisks.is_demo,
         vendorRisks.created_at,
+        vendorRisks.project_id,
         vendors.vendor_name,
-        vendors_projects.project_id
+        vendors.vendor_provides,
+        vendors.assignee,
+        vendors.website,
+        vendors.vendor_contact_person,
+        vendors.review_result,
+        vendors.review_status,
+        vendors.reviewer,
+        vendors.risk_status,
+        vendors.review_date
      FROM vendorRisks
      JOIN vendors ON vendorRisks.vendor_id = vendors.id
      JOIN vendors_projects ON vendors.id = vendors_projects.vendor_id

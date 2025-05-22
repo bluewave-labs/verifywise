@@ -54,7 +54,7 @@ export const initialState: FormValues = {
   type_of_high_risk_role: 0,
   goal: "",
   enable_ai_data_insertion: false,
-  monitored_regulations_and_standards: [{ _id: 1, name: "EU AI Act" }],
+  monitored_regulations_and_standards: [],
 };
 
 export interface VWProjectFormProps {

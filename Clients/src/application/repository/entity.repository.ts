@@ -267,3 +267,29 @@ export async function getAllFrameworks({
     throw error;
   }
 }
+
+export const assignFrameworkToProject = async ({
+  frameworkId,
+  projectId,
+  authToken = getAuthToken(),
+}: {
+  frameworkId: number;
+  projectId: string;
+  authToken?: string;
+}) => {
+  try {
+    const response = await apiServices.post(`/frameworks/toProject?frameworkId=${frameworkId}&projectId=${projectId}`, {}, {
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      }
+    });
+
+    return {
+      status: response.status,
+      data: response.data
+    };
+  } catch (error) {
+    console.error('Error assigning framework to project:', error);
+    throw error;
+  }
+};

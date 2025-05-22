@@ -22,6 +22,7 @@ import {
 } from "./style";
 import Select from "../../../components/Inputs/Select";
 import useUsers from "../../../../application/hooks/useUsers";
+import useFrameworks from '../../../../application/hooks/useFrameworks';
 import DatePicker from "../../../components/Inputs/Datepicker";
 import dayjs, { Dayjs } from "dayjs";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
@@ -49,6 +50,7 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
   const [values, setValues] = useState<FormValues>(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
   const { users } = useUsers();
+  const { allFrameworks } = useFrameworks({ listOfFrameworks: [] });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [memberRequired, setMemberRequired] = useState<boolean>(false);
   const authState = useSelector(
@@ -64,14 +66,6 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
     []
   );
 
-  const monitoredRegulationsAndStandardsItems = useMemo(
-    () => [
-      { _id: 1, name: "EU AI Act" },
-      { _id: 2, name: "ISO 42001:2023 (coming soon)" },
-      { _id: 3, name: "NIST RMF (coming soon)" },
-    ],
-    []
-  );
   const highRiskRoleItems = useMemo(
     () => [
       { _id: 1, name: HighRiskRoleEnum.Deployer },
@@ -197,6 +191,7 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
             last_updated_by: userInfo?.id,
             members: teamMember,
             enable_ai_data_insertion: values.enable_ai_data_insertion,
+            framework: values.monitored_regulations_and_standards.map((fw) => fw._id),
           },
         });
 
@@ -448,11 +443,14 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
                 id="monitored-regulations-and-standards-input"
                 size="small"
                 value={values.monitored_regulations_and_standards}
-                options={monitoredRegulationsAndStandardsItems}
+                options={allFrameworks.map((fw) => ({
+                  _id: Number(fw.id),
+                  name: fw.name,
+                }))}
                 onChange={handleOnMultiSelect("monitored_regulations_and_standards")}
                 getOptionLabel={(item) => item.name}
                 noOptionsText={
-                  values.monitored_regulations_and_standards.length === monitoredRegulationsAndStandardsItems.length
+                  values.monitored_regulations_and_standards.length === allFrameworks.length
                     ? "All regulations selected"
                     : "No options"
                 }

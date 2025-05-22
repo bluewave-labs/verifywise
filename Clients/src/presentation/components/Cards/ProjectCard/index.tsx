@@ -69,8 +69,7 @@ const VWProjectCard = React.memo(
       (p) => p.framework_id === 1
     )[0]?.project_framework_id;
     const navigate = useNavigateSearch();
-    const { dashboardValues } = useContext(VerifyWiseContext);
-    const { users } = dashboardValues;
+    const { users } = useContext(VerifyWiseContext);
     const [complianceProgressData, setComplianceProgressData] = useState<ComplianceProgress>();
     const [assessmentProgressData, setAssessmentProgressData] = useState<AssessmentProgress>();
 
@@ -90,7 +89,7 @@ const VWProjectCard = React.memo(
 
     // Improved error handling for owner user
     const ownerUser: User | null =
-      users.find((user: User) => user.id === project.owner) || null;
+      users ? users.find((user: User) => user.id === project.owner) ?? null : null;
 
     try {
       if (isLoading) {

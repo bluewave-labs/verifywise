@@ -82,7 +82,7 @@ const Vendors = () => {
   const [value, setValue] = useState("1");
   const [projects, setProjects] = useState<Project[]>([]);
   const [vendors, setVendors] = useState<VendorDetails[]>([]);
-  const { dashboardValues } = useContext(VerifyWiseContext);
+  const { users } = useContext(VerifyWiseContext);
   const [selectedVendor, setSelectedVendor] = useState<VendorDetails | null>(
     null
   );
@@ -579,7 +579,7 @@ const Vendors = () => {
             <TabPanel value="1" sx={tabPanelStyle}>
               <TableWithPlaceholder
                 vendors={vendors}
-                dashboardValues={dashboardValues}
+                users={users}
                 onDelete={handleDeleteVendor}
                 onEdit={handleEditVendor}
               />
@@ -597,7 +597,7 @@ const Vendors = () => {
           ) : (
             <TabPanel value="2" sx={tabPanelStyle}>
               <RiskTable
-                dashboardValues={dashboardValues}
+                users={users}
                 vendors={vendors}
                 vendorRisks={vendorRisks}
                 onDelete={handleDeleteRisk}

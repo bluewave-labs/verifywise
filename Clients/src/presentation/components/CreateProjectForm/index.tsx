@@ -1,4 +1,4 @@
-import { FC, useState, useMemo, useCallback, useEffect } from "react";
+import { FC, useState, useMemo, useCallback } from "react";
 import {
   Button,
   SelectChangeEvent,
@@ -68,12 +68,6 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
     (state: { auth: { authToken: string; userExists: boolean } }) => state.auth
   );
   const [memberRequired, setMemberRequired] = useState<boolean>(false);
-
-  useEffect(() => {
-    const fetchUsers = async () => {};
-    fetchUsers();
-  }, []);
-
   const handleDateChange = useCallback((newDate: Dayjs | null) => {
     if (newDate?.isValid()) {
       setValues((prevValues) => ({

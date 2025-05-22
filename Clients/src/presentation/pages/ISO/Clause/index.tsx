@@ -166,7 +166,7 @@ const ISO42001Clauses = ({
                             fontSize: 13,
                           }}
                         >
-                          <Typography>
+                          <Typography fontSize={13}>
                             {clause.clause_no + "." + (index + 1)}{" "}
                             {subClause.title ?? "Untitled"}
                           </Typography>

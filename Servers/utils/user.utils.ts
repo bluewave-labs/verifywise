@@ -135,7 +135,7 @@ export const getUserByIdQuery = async (id: number): Promise<User> => {
  *   name: "John Doe",
  *   email: "john.doe@example.com",
  *   password_hash: "hashed_password",
- *   role: "user",
+ *   role_id: 2,
  *   created_at: new Date(),
  *   last_login: new Date()
  * });
@@ -149,17 +149,17 @@ export const createNewUserQuery = async (
   transaction: Transaction,
   is_demo: boolean = false
 ): Promise<User> => {
-  const { name, surname, email, password_hash, role } = user;
+  const { name, surname, email, password_hash, role_id } = user;
   const created_at = new Date();
   const last_login = new Date();
 
   try {
     const result = await sequelize.query(
-      `INSERT INTO users (name, surname, email, password_hash, role, created_at, last_login, is_demo)
-        VALUES (:name, :surname, :email, :password_hash, :role, :created_at, :last_login, :is_demo) RETURNING *`,
+      `INSERT INTO users (name, surname, email, password_hash, role_id, created_at, last_login, is_demo)
+        VALUES (:name, :surname, :email, :password_hash, :role_id, :created_at, :last_login, :is_demo) RETURNING *`,
       {
         replacements: {
-          name, surname, email, password_hash, role, created_at, last_login, is_demo
+          name, surname, email, password_hash, role_id, created_at, last_login, is_demo
         },
         mapToModel: true,
         model: UserModel,
@@ -218,7 +218,7 @@ export const resetPasswordQuery = async (
  *   name: 'John Doe',
  *   email: 'john.doe@example.com',
  *   password_hash: 'newhashedpassword',
- *   role: 'admin',
+ *   role_id: 1,
  *   last_login: new Date()
  * });
  * console.log(updatedUser);
@@ -233,7 +233,7 @@ export const updateUserByIdQuery = async (
     "name",
     "surname",
     "email",
-    "role",
+    "role_id",
     "last_login",
   ].filter(f => {
     if (user[f as keyof User] !== undefined && user[f as keyof User]) {

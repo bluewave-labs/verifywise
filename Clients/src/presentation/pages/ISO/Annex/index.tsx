@@ -14,6 +14,7 @@ import { GetAnnexesByProjectFrameworkId } from "../../../../application/reposito
 import { AnnexStructISO } from "../../../../domain/types/AnnexStructISO";
 
 const ISO42001Annex = ({
+  project,
   projectFrameworkId,
 }: {
   project: Project;
@@ -218,6 +219,8 @@ const ISO42001Annex = ({
         } ${selectedControl?.title}`}
         control={selectedControl}
         annex={selectedAnnex}
+        projectFrameworkId={projectFrameworkId}
+        project_id={project.id}
       />
     </Stack>
   );

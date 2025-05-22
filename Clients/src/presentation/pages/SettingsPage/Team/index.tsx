@@ -4,7 +4,7 @@ import React, {
   useMemo,
   useContext,
   lazy,
-  Suspense,  
+  Suspense,
 } from "react";
 import {
   Box,
@@ -38,7 +38,6 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import { useRoles } from "../../../../application/hooks/useRoles";
 import { deleteEntityById } from "../../../../application/repository/entity.repository";
 import {
-  getAllEntities,
   updateEntityById,
 } from "../../../../application/repository/entity.repository";
 const Alert = lazy(() => import("../../../components/Alert"));
@@ -48,7 +47,7 @@ type TeamMember = {
   id: string;
   name: string;
   email: string;
-  role: string;  // Keep as string since it comes from API
+  roleId: string;  // Keep as string since it comes from API
 };
 
 // Constants for roles
@@ -87,43 +86,18 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const [filter, setFilter] = useState(0);
 
   const [page, setPage] = useState(0); // Current page
-  const { dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);
+  const { dashboardValues, refreshUsers } = useContext(VerifyWiseContext);
   const [teamUsers, setTeamUsers] = useState<TeamMember[]>(
     dashboardValues.users || []
   );
   const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
   const [inviteUserModalOpen, setInviteUserModalOpen] = useState(false);
 
-    // Add debug log for team users
-  // useEffect(() => {
-  //   console.log('Team Users:', teamUsers);
-  //   console.log('Dashboard Values:', dashboardValues);
-  // }, [teamUsers, dashboardValues]);
-
-  // Handle saving organization name
-  // const handleSaveOrgName = useCallback(() => {
-  //   console.log("Saving organization name:", orgName);
-  // }, [orgName]);
-
-  const fetchUsers = async () => {
-    try {
-      const response = await getAllEntities({ routeUrl: "/users" });
-      if (!response?.data) return;
-      setDashboardValues((prevValues: any) => ({
-        ...prevValues,
-        users: response.data,
-      }));
-      setTeamUsers(response?.data)
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
-  };
-
   const handleUpdateRole = async (memberId: string, newRole: string) => {
     try {
       const response = await updateEntityById({
         routeUrl: `/users/${memberId}`,
-        body: { role: newRole },
+        body: { role_id: newRole },
       });
 
       if (response.status === 202) {
@@ -132,7 +106,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
           body: "User's role updated successfully",
         });
         setTimeout(() => setAlert(null), 3000);
-        await fetchUsers();
+        await refreshUsers();
       } else {
         setAlert({
           variant: "error",
@@ -144,9 +118,8 @@ const TeamManagement: React.FC = (): JSX.Element => {
       console.error("API Error:", error);
       setAlert({
         variant: "error",
-        body: `An error occurred: ${
-          (error as Error).message || "Please try again."
-        }`,
+        body: `An error occurred: ${(error as Error).message || "Please try again."
+          }`,
       });
 
       setTimeout(() => setAlert(null), 3000);
@@ -159,14 +132,14 @@ const TeamManagement: React.FC = (): JSX.Element => {
   };
 
   const confirmDelete = async () => {
-    if(!memberToDelete) return;
+    if (!memberToDelete) return;
 
     const memberId = Number(memberToDelete);
 
     const response = await deleteEntityById({
       routeUrl: `/users/${memberId}`,
     });
-    if(response.status === 202) {
+    if (response.status === 202) {
       handleAlert({
         variant: "success",
         body: "User deleted successfully",
@@ -222,7 +195,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const filteredMembers = useMemo(() => {
     return filter === 0
       ? teamUsers
-      : teamUsers.filter((member) => parseInt(member.role) === filter);
+      : teamUsers.filter((member) => parseInt(member.roleId) === filter);
   }, [filter, teamUsers]);
 
   const handleDeleteClick = (memberId: string) => {
@@ -240,11 +213,6 @@ const TeamManagement: React.FC = (): JSX.Element => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
-
-  // const paginatedMembers = useMemo(() => {
-  //   const startIndex = page * rowsPerPage;
-  //   return filteredMembers.slice(startIndex, startIndex + rowsPerPage);
-  // }, [filteredMembers, page, rowsPerPage]);
 
   const inviteTeamMember = () => {
     console.log("Inviting team member");
@@ -406,7 +374,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                               sx={singleTheme.tableStyles.primary.body.cell}
                             >
                               <Select
-                                value={member.role || ""}
+                                value={member.roleId || ""}
                                 onChange={(e) => handleRoleChange(e, member.id)}
                                 size="small"
                                 displayEmpty

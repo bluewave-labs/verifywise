@@ -307,6 +307,9 @@ const ProjectSettings = React.memo(
                       isToast: true,
                       visible: true,
                     });
+                    
+                    // Trigger refresh after successful framework addition
+                    triggerRefresh(true);
                   } else {
                     setAlert({
                       variant: "error",
@@ -357,7 +360,7 @@ const ProjectSettings = React.memo(
             setMemberRequired(false);
           }
         },
-      [values.monitoredRegulationsAndStandards, projectId]
+      [values.monitoredRegulationsAndStandards, projectId, triggerRefresh]
     );
 
     const handleFrameworkRemoveConfirm = useCallback(async () => {
@@ -390,6 +393,9 @@ const ProjectSettings = React.memo(
             isToast: true,
             visible: true,
           });
+
+          // Trigger refresh after successful framework removal
+          triggerRefresh(true);
         } else if (response.status === 404) {
           setAlert({
             variant: "error",
@@ -425,7 +431,7 @@ const ProjectSettings = React.memo(
           setAlert(null);
         }, 3000);
       }
-    }, [frameworkToRemove, projectId, values.monitoredRegulationsAndStandards]);
+    }, [frameworkToRemove, projectId, values.monitoredRegulationsAndStandards, triggerRefresh]);
 
     const handleFrameworkRemoveCancel = useCallback(() => {
       setIsFrameworkRemoveModalOpen(false);

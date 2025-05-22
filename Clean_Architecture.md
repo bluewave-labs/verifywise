@@ -10,7 +10,7 @@
 
 ---
 
-#### What does PERN stands for?
+#### What does PERN stand for?
 
 PERN: PostgreSQL + Express.js + React.js + Node.js
 
@@ -21,7 +21,7 @@ PERN: PostgreSQL + Express.js + React.js + Node.js
 
 ---
 
-### Different parts of our Stacks
+### Different Parts of Our Stack
 
 #### React (TypeScript + SWC) + MUI
 
@@ -33,7 +33,7 @@ PERN: PostgreSQL + Express.js + React.js + Node.js
 [TypeScript Full Course for Beginners](https://youtu.be/gieEQFIfgYc?si=7bemq5IcwwzjYEW1)
 [Learn TS](https://youtu.be/30LWjhZzg50?si=IrcWeYfWD-YRswjn)
 
-**React with TypeScript:** Using TypeScript with React enhances the development experience by providing type safety, which helps prevent bugs and makes the code easier to understand and maintain. _Here are some links to dive deeper, also feel free to search for more:_
+**React with TypeScript:** Using TypeScript with React enhances the development experience by providing type safety, which helps prevent bugs and makes the code easier to understand and maintain. _Here are some links to dive deeper; feel free to search for more:_
 [React TypeScript Tutorial Playlist](https://react-typescript-cheatsheet.netlify.app/https://youtube.com/playlist?list=PLC3y8-rFHvwi1AXijGTKM0BKtHzVC-LSK&si=Omx5y4IqrZodOFpi)
 [React.js & TypeScript](https://youtu.be/FJDVKeh7RJI?si=PL1D5c1dpv1xzSIw)
 
@@ -46,7 +46,7 @@ PERN: PostgreSQL + Express.js + React.js + Node.js
 
 #### Node.js
 
-Node.js continues to be a cornerstone in backend development, and its relevance and demand are only increasing.
+Node.js continues to be a cornerstone in backend development, with its relevance and demand constantly increasing.
 
 **_Links to learn Node.js:_**
 [Node.js Website](https://nodejs.org/en)
@@ -82,7 +82,7 @@ Git is a free and open-source distributed version control system designed to han
 
 ---
 
-### Concepts and Skills that we will use
+### Concepts and Skills We Will Use
 
 #### Clean Architecture
 
@@ -92,7 +92,7 @@ Clean Architecture organizes code into distinct layers, each with a specific res
 
 Each layer is independent of the others, allowing for changes in one layer without affecting the others. This makes the system more maintainable and adaptable.
 
-In our project, **VerifyWise**, we will focus on having following layers:
+In our project, **VerifyWise**, we will focus on having the following layers:
 
 - **Presentation Layer:** This layer is responsible for handling the user interface and user interactions. It includes components like views, controllers, and presenters.
 - **Application Layer:** This layer contains the business logic and application-specific rules. It orchestrates the flow of data between the presentation layer and the infrastructure layer.

@@ -1,24 +1,24 @@
-**This file may be out of date as the installation method might be changing over time. Please open an issue on GitHub if you hit any problems**
+**This file may be outdated as the installation method might change over time. Please open an issue on GitHub if you encounter any problems.**
 
 # Installing VerifyWise
 
-Currently, the recommended method of installing VerifyWise is via Docker. A development environment can also be set up via `npm`. Both options are described below.
+Currently, the recommended method for installing VerifyWise is via Docker. A development environment can also be set up via `npm`. Both options are described below.
 
 ## Installing VerifyWise via Docker
 
-In order to use VerifyWise via Docker, you will need a `.env` file and a `docker-compose.yml` file.
+To use VerifyWise via Docker, you will need a `.env` file and a `docker-compose.yml` file.
 
 ### Docker setup
 
 To set up VerifyWise in Docker, do the following:
 
-1. From the root of our [GitHub repository,](https://github.com/bluewave-labs/verifywise) download `.env`, `docker-compose.yml` and `SQL_Commands.sql`.
+1. From the root of our [GitHub repository](https://github.com/bluewave-labs/verifywise), download `.env`, `docker-compose.yml`, and `SQL_Commands.sql`.
 2. Move all the downloaded files to the directory where your VerifyWise container will be running. This directory will be referred to as your working directory from now on.
 3. Start your local Docker instance.
-4. In your working directory, open bash terminal.
+4. In your working directory, open a bash terminal.
 5. Run `chmod +x ./install.sh` followed by `./install.sh`.
 
-#### NOTE: The `.env` file is configured as per the default settings. Alternatively, you can supply your own `.env` file.
+#### Note: The `.env` file is configured with default settings. Alternatively, you can provide your own `.env` file.
 
 ## Developer Setup for VerifyWise via `npm`
 
@@ -33,4 +33,4 @@ To run VerifyWise's server and client via `npm`, follow these steps:
 4. From the root directory of the repository, go to `./Servers` and run `npm i; npm run watch`.
    The VerifyWise server will start.
 
-You can now access the VerifyWise frontend by navigating to `https://localhost/5173` on a local web browser.
+You can now access the VerifyWise frontend by navigating to `http://localhost:5173` in a local web browser.

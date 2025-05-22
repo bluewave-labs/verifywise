@@ -64,6 +64,14 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
     []
   );
 
+  const monitoredRegulationsAndStandardsItems = useMemo(
+    () => [
+      { _id: 1, name: "EU AI Act" },
+      { _id: 2, name: "ISO 42001:2023 (coming soon)" },
+      { _id: 3, name: "NIST RMF (coming soon)" },
+    ],
+    []
+  );
   const highRiskRoleItems = useMemo(
     () => [
       { _id: 1, name: HighRiskRoleEnum.Deployer },
@@ -407,6 +415,80 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
                     {...params}
                     placeholder="Select Users"
                     error={memberRequired}
+                    sx={teamMembersRenderInputStyle}
+                  />
+                )}
+                sx={{
+                  backgroundColor: theme.palette.background.main,
+                  ...teamMembersSxStyle,
+                }}
+                slotProps={teamMembersSlotProps}
+              />
+              {memberRequired && (
+                <Typography
+                  variant="caption"
+                  sx={{ mt: 4, color: "#f04438", fontWeight: 300 }}
+                >
+                  {errors.members}
+                </Typography>
+              )}
+            </Stack>
+            <Stack>
+              <Typography
+                sx={{
+                  fontSize: theme.typography.fontSize,
+                  fontWeight: 500,
+                  mb: 2,
+                }}
+              >
+                Monitored regulations and standards *
+              </Typography>
+              <Autocomplete
+                multiple
+                id="monitored-regulations-and-standards-input"
+                size="small"
+                value={values.monitored_regulations_and_standards}
+                options={monitoredRegulationsAndStandardsItems}
+                onChange={handleOnMultiSelect("monitored_regulations_and_standards")}
+                getOptionLabel={(item) => item.name}
+                noOptionsText={
+                  values.monitored_regulations_and_standards.length === monitoredRegulationsAndStandardsItems.length
+                    ? "All regulations selected"
+                    : "No options"
+                }
+                renderOption={(props, option) => {
+                  const isComingSoon = option.name.includes("coming soon");
+                  return (
+                    <Box 
+                      component="li" 
+                      {...props}
+                      sx={{
+                        opacity: isComingSoon ? 0.5 : 1,
+                        cursor: isComingSoon ? "not-allowed" : "pointer",
+                        "&:hover": {
+                          backgroundColor: isComingSoon ? "transparent" : undefined
+                        }
+                      }}
+                    >
+                      <Typography 
+                        sx={{ 
+                          fontSize: "13px",
+                          color: isComingSoon ? "text.secondary" : "text.primary"
+                        }}
+                      >
+                        {option.name}
+                      </Typography>
+                    </Box>
+                  );
+                }}
+                isOptionEqualToValue={(option, value) => option._id === value._id}
+                getOptionDisabled={(option) => option.name.includes("coming soon")}
+                filterSelectedOptions
+                popupIcon={<KeyboardArrowDown />}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Select regulations and standards"
                     sx={teamMembersRenderInputStyle}
                   />
                 )}

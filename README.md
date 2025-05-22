@@ -10,7 +10,7 @@
 <img src="https://github.com/user-attachments/assets/27640e05-0180-4b3d-ad80-3914d00d0eb2">
 
 
-[VerifyWise](https://verifywise.ai) is an open-source AI governance platform designed to help businesses use the power of AI safely and responsibly. Our platform ensures compliance and robust AI management without compromising on security.
+[VerifyWise](https://verifywise.ai) is an open-source AI governance platform designed to help businesses harness the power of AI safely and responsibly. Our platform ensures compliance and robust AI management without compromising on security.
 
 We are democratizing AI best practices with an open-source solution that can be hosted on-premises, giving you complete control over your AI governance. 
 
@@ -20,22 +20,22 @@ Please [get in touch](https://tidycal.com/verifywise/info-session) with us to se
 
 ## Who is it for?
 
-The platform makes AI governance easier for organizations. It helps them manage risks, ensure they follow rules, and promote responsible AI practices throughout their operations.
+The platform simplifies AI governance for organizations, helping them manage risks, ensure regulatory compliance, and promote responsible AI practices throughout their operations.
 
 VerifyWise is designed for:
 
 - **Businesses**: From those considering AI adoption to organizations developing proprietary AI at scale.
-- **Compliance officers**: Professionals ensuring compliance to EU AI Act regulations and internal policies.
+- **Compliance officers**: Professionals ensuring adherence to EU AI Act regulations and internal policies.
 - **Risk management teams**: Groups tasked with identifying and mitigating AI-related risks.
 - **Legal and privacy teams**: Professionals addressing the legal and ethical implications of AI use.
 - **AI developers**: Teams working on AI projects who need to ensure compliance and responsible development.
 
 ## Why now? 
 
-- **There is an urgent need for regulatory compliance:** Regulations set clear rules for AI applications and create a need for organizations to comply with legal requirements.
-- **Complexity of compliance:** Companies will need governance tools that can help them manage a changing regulatory landscape. 
-- **Growing concerns for Ethical AI:** There’s a strong push from governments, businesses, and consumers for more ethical and transparent AI systems.
-- **Good timing with global AI expansion:** Starting an open source AI governance app now aligns with the AI adoption trend across industries (healthcare, finance etc), leading the need for a quickly deployable governance solution.
+- **Urgent Need for Regulatory Compliance:** Regulations establish clear rules for AI applications, creating a need for organizations to comply with legal requirements.
+- **Complexity of Compliance:** Companies will require governance tools to help them navigate a changing regulatory landscape. 
+- **Growing Concerns for Ethical AI:** There is a strong push from governments, businesses, and consumers for more ethical and transparent AI systems.
+- **Good Timing with Global AI Expansion:** Launching an open-source AI governance application now aligns with the AI adoption trend across industries (e.g., healthcare, finance), addressing the need for a rapidly deployable governance solution.
 
 ## Features
 
@@ -47,7 +47,7 @@ VerifyWise is designed for:
 - Faster audits using AI-generated answers for compliance and assessment questions.
 - Full access to the source code for transparency, security audits, and customization
 - Docker deployment (deployable on render.com and similar platforms)
-- User registration, authentication and role-based access control (RBAC) support.
+- User registration, authentication, and role-based access control (RBAC) support.
 - Key metrics, visualizations, and real-time reporting capabilities.
 - Major features:
   - Multiple projects *(complete)*
@@ -61,19 +61,19 @@ VerifyWise is designed for:
 
 ## Developer setup
 
-The VerifyWise application has two components: a frontend in Reactjs and backend in Nodejs. At present, you can use Docker (recommended) or `npm` to run VerifyWise. 
+The VerifyWise application has two components: a frontend built with React.js and a backend built with Node.js. At present, you can use Docker (recommended) or `npm` to run VerifyWise. 
 
-A PostGreSQL database is required.
+A PostgreSQL database is required.
 
 To run a development instance of VerifyWise via `npm`, follow these steps:
 
-1. Crate "verifywise" database in your local PostgreSQL server.
-2. Fork and clone the repository. Go to the Clients directory.
+1. Create the "verifywise" database in your local PostgreSQL server.
+2. Fork and clone the repository. Navigate to the `Clients` directory.
 3. Run `npm i; npm run dev`
-4. Go to ../Servers directory.
-5. cp the `.env.dev` [file](https://github.com/bluewave-labs/verifywise/blob/develop/.env.dev) to this directory using name `.env` and modify the contents to match your environment.
+4. Navigate to the `../Servers` directory.
+5. Copy the `.env.dev` [file](https://github.com/bluewave-labs/verifywise/blob/develop/.env.dev) to this directory, name it `.env`, and modify its contents to match your environment.
 6. Run `npm i; npm run watch`
-7. Now the application is up and running on `https://localhost:5173` 
+7. The application will now be up and running at `http://localhost:5173`. 
 
 Currently the application is in rapid development, so check back here often.
 

@@ -1,6 +1,6 @@
 # Backend Docs Homepage
 
-This serves as the first page in the backend documentation of VerifyWise, a BlueWave Labs project. Welcome! Our repository is structured as follows:
+Welcome to the backend documentation for VerifyWise, a BlueWave Labs project! This document serves as the main page for our backend information. Our repository is structured as follows:
 
 TODO: Add directory tree with explanations
 

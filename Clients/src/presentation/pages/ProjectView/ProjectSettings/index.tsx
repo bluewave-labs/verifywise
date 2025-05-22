@@ -130,29 +130,33 @@ const ProjectSettings = React.memo(
     } | null>(null);
     const [memberRequired, setMemberRequired] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isFrameworkOperationInProgress, setIsFrameworkOperationInProgress] = useState(false);
     const [showVWSkeleton, setShowVWSkeleton] = useState<boolean>(false);
     const initialValuesRef = useRef<FormValues>({ ...initialState });
     const isModified = useMemo(() => {
       if (!initialValuesRef.current.projectTitle) return false;
-      return (
+      
+      // Check all fields except monitoredRegulationsAndStandards
+      const basicFieldsModified = 
         values.projectTitle !== initialValuesRef.current.projectTitle ||
         values.goal !== initialValuesRef.current.goal ||
         values.owner !== initialValuesRef.current.owner ||
-        JSON.stringify(values.members) !==
-          JSON.stringify(initialValuesRef.current.members) ||
+        JSON.stringify(values.members) !== JSON.stringify(initialValuesRef.current.members) ||
         values.startDate !== initialValuesRef.current.startDate ||
-        values.riskClassification !==
-          initialValuesRef.current.riskClassification ||
-        values.typeOfHighRiskRole !==
-          initialValuesRef.current.typeOfHighRiskRole ||
-        JSON.stringify(values.monitoredRegulationsAndStandards) !==
-          JSON.stringify(initialValuesRef.current.monitoredRegulationsAndStandards)
-      );
-    }, [values]);
+        values.riskClassification !== initialValuesRef.current.riskClassification ||
+        values.typeOfHighRiskRole !== initialValuesRef.current.typeOfHighRiskRole;
+
+      // Only consider framework changes if we're not in the middle of a framework operation
+      const frameworksModified = !isFrameworkOperationInProgress && 
+        JSON.stringify(values.monitoredRegulationsAndStandards) !== 
+        JSON.stringify(initialValuesRef.current.monitoredRegulationsAndStandards);
+
+      return basicFieldsModified || frameworksModified;
+    }, [values, isFrameworkOperationInProgress]);
 
     const isSaveDisabled = useMemo(() => {
       if (showVWSkeleton) return true;
-
+      if (isFrameworkOperationInProgress) return true;
       if (!isModified) return true;
 
       const hasErrors = Object.values(errors).some(
@@ -160,7 +164,7 @@ const ProjectSettings = React.memo(
       );
 
       return hasErrors;
-    }, [isModified, errors, showVWSkeleton]);
+    }, [isModified, errors, showVWSkeleton, isFrameworkOperationInProgress]);
 
     useEffect(() => {
       if (project) {
@@ -263,8 +267,10 @@ const ProjectSettings = React.memo(
                 (fw) => !newValue.some((nv) => nv._id === fw._id)
               );
               if (removedFramework) {
+                setIsFrameworkOperationInProgress(true);
                 setFrameworkToRemove(removedFramework);
                 setIsFrameworkRemoveModalOpen(true);
+                // Don't update values state yet
                 return;
               }
             }
@@ -275,6 +281,7 @@ const ProjectSettings = React.memo(
               );
               
               if (addedFramework) {
+                setIsFrameworkOperationInProgress(true);
                 setIsLoading(true);
                 try {
                   const response = await assignFrameworkToProject({
@@ -288,6 +295,11 @@ const ProjectSettings = React.memo(
                       ...prevValues,
                       [prop]: newValue,
                     }));
+                    // Update initialValuesRef to prevent isModified from becoming true
+                    initialValuesRef.current = {
+                      ...initialValuesRef.current,
+                      [prop]: newValue,
+                    };
 
                     setAlert({
                       variant: "success",
@@ -315,11 +327,10 @@ const ProjectSettings = React.memo(
                     isToast: true,
                     visible: true,
                   });
-                  // Revert the selection since the API call failed
                   return;
                 } finally {
                   setIsLoading(false);
-                  // Clear alert after 3 seconds
+                  setIsFrameworkOperationInProgress(false);
                   setTimeout(() => {
                     setAlert(null);
                   }, 3000);
@@ -332,6 +343,11 @@ const ProjectSettings = React.memo(
                 ...prevValues,
                 [prop]: newValue,
               }));
+              // Update initialValuesRef to prevent isModified from becoming true
+              initialValuesRef.current = {
+                ...initialValuesRef.current,
+                [prop]: newValue,
+              };
             }
           } else {
             setValues((prevValues) => ({
@@ -354,13 +370,19 @@ const ProjectSettings = React.memo(
         });
 
         if (response.status === 200) {
-          // Update local state only after successful API call
+          const newFrameworks = values.monitoredRegulationsAndStandards.filter(
+            (fw) => fw._id !== frameworkToRemove._id
+          );
+          
+          // Update both values and initialValuesRef
           setValues((prevValues) => ({
             ...prevValues,
-            monitoredRegulationsAndStandards: prevValues.monitoredRegulationsAndStandards.filter(
-              (fw) => fw._id !== frameworkToRemove._id
-            ),
+            monitoredRegulationsAndStandards: newFrameworks,
           }));
+          initialValuesRef.current = {
+            ...initialValuesRef.current,
+            monitoredRegulationsAndStandards: newFrameworks,
+          };
 
           setAlert({
             variant: "success",
@@ -396,18 +418,19 @@ const ProjectSettings = React.memo(
         });
       } finally {
         setIsLoading(false);
+        setIsFrameworkOperationInProgress(false);
         setIsFrameworkRemoveModalOpen(false);
         setFrameworkToRemove(null);
-        // Clear alert after 3 seconds
         setTimeout(() => {
           setAlert(null);
         }, 3000);
       }
-    }, [frameworkToRemove, projectId]);
+    }, [frameworkToRemove, projectId, values.monitoredRegulationsAndStandards]);
 
     const handleFrameworkRemoveCancel = useCallback(() => {
       setIsFrameworkRemoveModalOpen(false);
       setFrameworkToRemove(null);
+      setIsFrameworkOperationInProgress(false);
     }, []);
 
     const validateForm = useCallback((): boolean => {

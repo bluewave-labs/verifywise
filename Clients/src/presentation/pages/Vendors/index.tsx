@@ -170,18 +170,14 @@ const Vendors = () => {
   }, [selectedProjectId]);
 
   useEffect(() => {
-    fetchVendors();
-    return () => {
-      controller?.abort();
-    };
-  }, [selectedProjectId]);
-
-  useEffect(() => {
-    refetchVendorRisks();
-    return () => {
-      controller?.abort();
-    };
-  }, [selectedProjectId]);
+    if (value === "1") {
+      fetchVendors();
+      return () => {
+        controller?.abort();
+      };
+    }
+    // No fetch on Risks tab
+  }, [selectedProjectId, value]);
 
   useEffect(() => {
     if (allVisible) {

@@ -143,7 +143,7 @@ const RiskTable: React.FC<RiskTableProps> = ({
                   {
                     formattedVendors?.find(
                       (vendor: any) => vendor._id === row.vendor_id
-                    )?.name
+                    )?.name || row.vendor_name
                   }
                 </TableCell>
                 <TableCell sx={cellStyle}>{row.impact}</TableCell>

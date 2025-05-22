@@ -8,13 +8,10 @@ import {
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { accordionStyle } from "../style";
 import { useState, useEffect } from "react";
-import { ISO42001ClauseList } from "./clause.structure";
 import VWISO42001ClauseDrawerDialog from "../../../components/Drawer/ClauseDrawerDialog";
 import { Project } from "../../../../domain/types/Project";
 import { GetClausesByProjectFrameworkId } from "../../../../application/repository/clause_struct_iso.repository";
 import { ClauseStructISO } from "../../../../domain/types/ClauseStructISO";
-import { SubClauseISO } from "../../../../domain/types/SubClauseISO";
-import { SubClauseStructISO } from "../../../../domain/types/SubClauseStructISO";
 
 const ISO42001Clauses = ({
   project,
@@ -192,14 +189,16 @@ const ISO42001Clauses = ({
           </Stack>
         ))
       }
-      <VWISO42001ClauseDrawerDialog
-        open={drawerOpen}
-        onClose={handleDrawerClose}
-        subClause={selectedSubClause}
-        clause={selectedClause}
-        projectFrameworkId={projectFrameworkId}
-        project_id={project.id}
-      />
+      { drawerOpen && (
+        <VWISO42001ClauseDrawerDialog
+          open={drawerOpen}
+          onClose={handleDrawerClose}
+          subClause={selectedSubClause}
+          clause={selectedClause}
+          projectFrameworkId={projectFrameworkId}
+          project_id={project.id}
+        />
+      )}
     </Stack>
   );
 };

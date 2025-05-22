@@ -30,7 +30,7 @@ import Alert from "../../Alert";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import Uppy from "@uppy/core";
-import { updateEntityById } from "../../../../application/repository/entity.repository";
+import { getEntityById, updateEntityById } from "../../../../application/repository/entity.repository";
 
 export const inputStyles = {
   minWidth: 200,
@@ -68,6 +68,17 @@ const VWISO42001ClauseDrawerDialog = ({
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [deletedFilesIds, setDeletedFilesIds] = useState<number[]>([]);
   const [uploadFiles, setUploadFiles] = useState<FileData[]>([]);
+  const [evidenceFilesDeleteCount, setEvidenceFilesDeleteCount] = useState(0);
+  const statusIdMap = new Map([
+    ["Not started", "0"],
+    ["Draft", "1"],
+    ["In progress", "2"],
+    ["Awaiting review", "3"],
+    ["Awaiting approval", "4"],
+    ["Implemented", "5"],
+    ["Audited", "6"],
+    ["Needs rework", "7"],
+  ]);
 
   // Get context and project data
   const { users, userId } = useContext(VerifyWiseContext);
@@ -105,10 +116,9 @@ const VWISO42001ClauseDrawerDialog = ({
       if (open && subClause?.id) {
         setIsLoading(true);
         try {
-          const response = await GetSubClausesById({
+          const response = await getEntityById({
             routeUrl: `/iso-42001/subClause/byId/${subClause.id}?projectFrameworkId=${projectFrameworkId}`,
           });
-          console.log("Fetched SubClause:", response.data);
           setFetchedSubClause(response.data);
 
           // Initialize form data with fetched values
@@ -116,7 +126,7 @@ const VWISO42001ClauseDrawerDialog = ({
             setFormData({
               implementation_description:
                 response.data.implementation_description || "",
-              status: response.data.status || "",
+              status: statusIdMap.get(response.data.status) || "",
               owner: response.data.owner?.toString() || "",
               reviewer: response.data.reviewer?.toString() || "",
               approver: response.data.approver?.toString() || "",
@@ -175,12 +185,11 @@ const VWISO42001ClauseDrawerDialog = ({
       if (date) formDataToSend.append("due_date", date.toString());
       formDataToSend.append("user_id", userId?.toString() || "");
       formDataToSend.append(
-        "project_framework_id",
-        projectFrameworkId.toString()
+        "project_id",
+        project_id.toString()
       );
       formDataToSend.append("delete", JSON.stringify(deletedFilesIds)); // Add deleted file IDs if needed
       // Attach each evidence file (as File objects)
-      console.log(uploadFiles);
       uploadFiles.forEach((file) => {
         // If file is a File object (new upload), append it
         if (file.data instanceof Blob) {
@@ -195,15 +204,24 @@ const VWISO42001ClauseDrawerDialog = ({
         // If file is an existing file object (from backend), skip or handle as needed
       });
       // Call the update API
-      await updateEntityById({
+      const response = await updateEntityById({
         routeUrl: `/iso-42001/saveClauses/${fetchedSubClause.id}`,
         body: formDataToSend,
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-      // Optionally, show a success message or close the drawer
-      onClose();
+      // // Optionally, show a success message or close the drawer
+      // onClose();
+      if (response.status === 200) {
+        // Clear upload files after successful save
+        setUploadFiles([]);
+        // Close the modal
+        onClose();
+      } else {
+        // Close the modal
+        onClose();
+      }
     } catch (error) {
       console.error("Error saving subclause:", error);
       // Optionally, show an error message
@@ -248,7 +266,6 @@ const VWISO42001ClauseDrawerDialog = ({
   const setUploadFilesForSubcontrol = (
     files: FileData[]
   ) => {
-    console.log(uploadFiles);
     setUploadFiles(files);
     if (deletedFilesIds.length > 0 || files.length > 0) {
       handleAlert({
@@ -261,7 +278,6 @@ const VWISO42001ClauseDrawerDialog = ({
 
   function closeFileUploadModal(): void {
     const uppyFiles = uppy.getFiles();
-    console.log("Uppy files:", uppyFiles);
     const newUploadFiles = uppyFiles
       .map((file) => {
         if (!(file.data instanceof Blob)) {
@@ -301,13 +317,11 @@ const VWISO42001ClauseDrawerDialog = ({
         (file) => file.id !== fileId
       );
       setEvidenceFiles(newEvidenceFiles);
-      onFilesChange?.(newEvidenceFiles);
-      onDeletedFilesChange([...deletedFilesIds, fileIdNumber]);
+      setEvidenceFilesDeleteCount((prev) => prev + 1);
+      setDeletedFilesIds([...deletedFilesIds, fileIdNumber]);
     } else {
-      const newUploadFiles = uploadFiles.filter((file) => file.id !== fileId);
-      onUploadFilesChange(newUploadFiles);
+      setUploadFiles((prev) => prev.filter((f) => f.id !== fileId))
     }
-
   };
 
   return (
@@ -471,6 +485,24 @@ const VWISO42001ClauseDrawerDialog = ({
                   } pending upload`}
                 </Typography>
               )}
+              {evidenceFilesDeleteCount > 0 && (
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: "#344054",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    textAlign: "center",
+                    margin: "auto",
+                    textWrap: "wrap",
+                  }}
+                >
+                  {`${evidenceFilesDeleteCount} ${
+                    evidenceFilesDeleteCount === 1 ? "file" : "files"
+                  } pending delete`}
+                </Typography>
+              )}
             </Stack>
           </Stack>
           <Dialog open={isFileUploadOpen} onClose={closeFileUploadModal}>
@@ -528,7 +560,7 @@ const VWISO42001ClauseDrawerDialog = ({
           <Select
             id="Owner"
             label="Owner:"
-            value={formData.owner}
+            value={parseInt(formData.owner)}
             onChange={handleSelectChange("owner")}
             items={projectMembers.map((user) => ({
               _id: user.id,
@@ -543,7 +575,7 @@ const VWISO42001ClauseDrawerDialog = ({
           <Select
             id="Reviewer"
             label="Reviewer:"
-            value={formData.reviewer}
+            value={parseInt(formData.reviewer)}
             onChange={handleSelectChange("reviewer")}
             items={projectMembers.map((user) => ({
               _id: user.id,
@@ -556,7 +588,7 @@ const VWISO42001ClauseDrawerDialog = ({
           <Select
             id="Approver"
             label="Approver:"
-            value={formData.approver}
+            value={parseInt(formData.approver)}
             onChange={handleSelectChange("approver")}
             items={projectMembers.map((user) => ({
               _id: user.id,

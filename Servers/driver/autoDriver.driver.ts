@@ -14,6 +14,7 @@ import { createNewUserQuery } from "../utils/user.utils";
 import { User } from "../models/user.model";
 import { Vendor } from "../models/vendor.model";
 import { createISOFrameworkQuery } from "../utils/iso42001.utils";
+import { addVendorProjects } from "../utils/vendor.utils";
 
 export async function insertMockData() {
   const transaction = await sequelize.transaction();
@@ -122,6 +123,10 @@ export async function insertMockData() {
           true // is demo
         )
       }
+
+      // create association vendors and projects
+      let vendor_project = await addVendorProjects(vendor.id!,projects,transaction);
+
 
       // ---- no need of is demo
       // create vendor risks

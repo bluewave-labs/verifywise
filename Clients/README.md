@@ -9,7 +9,7 @@ Currently, two official plugins are available:
 
 ## Expanding the ESLint configuration
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+If you are developing a production application, we recommend updating the configuration to enable type-aware linting rules:
 
 - Configure the top-level `parserOptions` property like this:
 
@@ -25,9 +25,9 @@ export default tseslint.config({
 });
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
+- Replace `tseslint.configs.recommended` with `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
 - Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the configuration:
 
 ```js
 // eslint.config.js

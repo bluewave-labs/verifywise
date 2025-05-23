@@ -33,7 +33,6 @@ const ISO42001Clauses = ({
         const response = await GetClausesByProjectFrameworkId({
           routeUrl: `/iso-42001/clauses/struct/byProjectId/${projectFrameworkId}`,
         });
-        console.log("Fetched clauses:", response);
         setClauses(response);
       } catch (error) {
         console.error("Error fetching clauses:", error);

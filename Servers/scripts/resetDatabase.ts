@@ -58,7 +58,7 @@ async function resetDatabase() {
       email: "verifywise@email.com",
       password: "Verifywise#1",
       confirmPassword: "Verifywise#1",
-      role: 1,
+      role_id: 1,
       created_at: new Date(),
       last_login: new Date(),
       password_hash

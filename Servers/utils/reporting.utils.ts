@@ -6,6 +6,8 @@ import {
 } from "../models/projectsMembers.model";
 import { FileModel } from "../models/file.model";
 import { QueryTypes, Transaction } from "sequelize";
+import { getAllTopicsQuery, getAllSubTopicsQuery, getAllQuestionsQuery } from "./eu.utils";
+import { TopicStructEUModel } from "../models/EU/topicStructEU.model";
 
 export const getProjectRisksReportQuery = async (
   projectId: number
@@ -92,3 +94,35 @@ export const getReportByIdQuery = async (id: number) => {
   });
   return result[0];
 };
+
+export const getAssessmentReportQuery = async (
+  projectFrameworkId: number
+  ) => {
+    const allTopics: TopicStructEUModel[] = await getAllTopicsQuery();
+    const assessmentId = await sequelize.query(
+      `SELECT id FROM assessments WHERE projects_frameworks_id = :projects_frameworks_id`,
+      {
+        replacements: { projects_frameworks_id: projectFrameworkId }
+      }
+    ) as [{ id: number }[], number];
+
+    for (const topic of allTopics) {
+      if(topic.id) {
+        const subtopicStruct = await getAllSubTopicsQuery(topic.id); 
+           
+        for (const subtopic of subtopicStruct) {
+          if (subtopic.id && assessmentId) {
+            const questionAnswers = await getAllQuestionsQuery(subtopic.id!, assessmentId[0][0].id);
+            (subtopic.dataValues as any).questions = [];
+            for (let question of questionAnswers) {
+              (subtopic.dataValues as any).questions.push({ ...question });
+            }
+          }
+        }
+        (topic.dataValues as any).subtopics = [];
+        (topic.dataValues as any).subtopics = subtopicStruct.map(s => s.get({ plain: true }));;
+      }
+    }
+    const allAssessments = allTopics.map((topic) => topic.get({ plain: true }));
+    return allAssessments;
+}

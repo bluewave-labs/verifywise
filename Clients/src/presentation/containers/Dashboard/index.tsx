@@ -6,7 +6,6 @@ import { useContext, useEffect, FC } from "react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import {
   getEntityById,
-  getAllEntities,
 } from "../../../application/repository/entity.repository";
 import DemoAppBanner from "../../components/DemoBanner/DemoAppBanner";
 
@@ -38,21 +37,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
       }
     };
 
-    const fetchUsers = async () => {
-      try {
-        const response = await getAllEntities({ routeUrl: "/users" });
-        if (!response?.data) return;
-        setDashboardValues((prevValues: any) => ({
-          ...prevValues,
-          users: response.data,
-        }));
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      }
-    };
-
     fetchProjects();
-    fetchUsers();
   }, [setDashboardValues, reloadTrigger, location.pathname]);
 
   console.log("This is the token in the dashboard :", token);
@@ -66,8 +51,8 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
       sx={{ backgroundColor: "#FCFCFD" }}
     >
       <Sidebar />
-      <Stack spacing={3}>      
-        <DemoAppBanner />                      
+      <Stack spacing={3}>
+        <DemoAppBanner />
         <Outlet />
       </Stack>
     </Stack>

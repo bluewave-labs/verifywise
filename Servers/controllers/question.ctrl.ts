@@ -111,7 +111,7 @@ export async function updateQuestionById(
     }
 
     // Update the project's last updated date
-    await updateProjectUpdatedByIdQuery(questionId, "questions", transaction);
+    await updateProjectUpdatedByIdQuery(questionId, "answers", transaction);
     await transaction.commit();
 
     return res.status(202).json(STATUS_CODE[202](question));

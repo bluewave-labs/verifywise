@@ -17,7 +17,7 @@ import { SubtopicModel } from "../models/subtopic.model";
 import { FileModel } from "../models/file.model";
 import { table } from "console";
 import { ProjectFrameworksModel } from "../models/projectFrameworks.model";
-import { createEUFrameworkQuery, deleteProjectFrameworkEUQuery } from "./eu.utils";
+import { frameworkDeletionMap } from "../types/framework.type";
 
 export const getAllProjectsQuery = async (): Promise<Project[]> => {
   const projects = await sequelize.query(
@@ -30,11 +30,17 @@ export const getAllProjectsQuery = async (): Promise<Project[]> => {
   if (projects.length) {
     for (let project of projects) {
       const projectFramework = await sequelize.query(
-        `SELECT id AS project_framework_id, framework_id FROM projects_frameworks WHERE project_id = :project_id`,
+        `
+          SELECT 
+            pf.id AS project_framework_id, pf.framework_id,
+            f.name AS name
+          FROM projects_frameworks pf
+          JOIN frameworks f ON pf.framework_id = f.id
+          WHERE project_id = :project_id`,
         {
           replacements: { project_id: project.id }
         }
-      ) as [{ project_framework_id: number, framework_id: number }[], number];
+      ) as [{ project_framework_id: number, framework_id: number, name: string }[], number];
       (project.dataValues as any)["framework"] = []
       for (let pf of projectFramework[0]) {
         (project.dataValues as any)["framework"].push(pf)
@@ -68,11 +74,17 @@ export const getProjectByIdQuery = async (
   if (result.length === 0) return null;
   const project = result[0];
   const projectFramework = await sequelize.query(
-    `SELECT id AS project_framework_id, framework_id FROM projects_frameworks WHERE project_id = :project_id`,
+    `
+      SELECT 
+        pf.id AS project_framework_id, pf.framework_id,
+        f.name AS name
+      FROM projects_frameworks pf
+      JOIN frameworks f ON pf.framework_id = f.id
+      WHERE project_id = :project_id`,
     {
       replacements: { project_id: project.id }
     }
-  ) as [{ project_framework_id: number, framework_id: number }[], number];
+  ) as [{ project_framework_id: number, framework_id: number, name: string }[], number];
   (project.dataValues as any)["framework"] = []
   for (let pf of projectFramework[0]) {
     (project.dataValues as any)["framework"].push(pf)
@@ -204,41 +216,35 @@ export const createNewProjectQuery = async (
 
 export const updateProjectUpdatedByIdQuery = async (
   id: number, // this is not the project id,
-  byTable: "controls" | "questions" | "projectrisks" | "vendors",
+  byTable: "controls" | "answers" | "projectrisks" | "vendors" | "subclauses" | "annexcategories",
   transaction: Transaction
 ): Promise<void> => {
   const queryMap = {
-    "controls": `SELECT p.id FROM
-      projects p JOIN controlcategories cc ON p.id = cc.project_id
-        JOIN controls c ON cc.id = c.control_category_id
-          WHERE c.id = :id;`,
-    "questions": `SELECT p.id FROM
-      projects p JOIN assessments a ON p.id = a.project_id
-        JOIN topics t ON a.id = t.assessment_id
-          JOIN subtopics st ON t.id = st.topic_id
-            JOIN questions q ON st.id = q.subtopic_id
-              WHERE q.id = :id;`,
+    "controls": `SELECT pf.project_id as id FROM controls_eu c JOIN projects_frameworks pf ON pf.id = c.projects_frameworks_id WHERE c.id = :id;`,
+    "answers": `SELECT pf.project_id as id FROM assessments a JOIN answers_eu ans ON ans.assessment_id = a.id JOIN projects_frameworks pf ON pf.id = a.projects_frameworks_id WHERE ans.id = :id;`,
     "projectrisks": `SELECT p.id FROM
       projects p JOIN projectrisks pr ON p.id = pr.project_id
         WHERE pr.id = :id;`,
     "vendors": `SELECT project_id as id FROM vendors_projects WHERE vendor_id = :id;`,
+    "subclauses": `SELECT pf.project_id as id FROM subclauses_iso sc JOIN projects_frameworks pf ON pf.id = sc.projects_frameworks_id WHERE sc.id = :id;`,
+    "annexcategories": `SELECT pf.project_id as id FROM annexcategories_iso a JOIN projects_frameworks pf ON pf.id = a.projects_frameworks_id WHERE a.id = :id;`
   };
   const query = queryMap[byTable];
   const result = await sequelize.query(query, {
     replacements: { id }, transaction
-  })
-  const projects = result[0] as { id: number }[]
-  for (let p of projects) {
+  }) as [{ id: number }[], number];
+  if (result.length > 0) {
+    const projectIds = result[0].map(({ id }) => id);
     await sequelize.query(
-      `UPDATE projects SET last_updated = :last_updated WHERE id = :project_id;`,
+      `UPDATE projects SET last_updated = :last_updated WHERE id IN (:project_ids);`,
       {
         replacements: {
-          last_updated: new Date(Date.now()),
-          project_id: p.id
+          last_updated: new Date(),
+          project_ids: projectIds
         },
         transaction
       }
-    )
+    );
   }
 }
 
@@ -246,7 +252,6 @@ export const updateProjectByIdQuery = async (
   id: number,
   project: Partial<Project>,
   members: number[],
-  frameworks: number[],
   transaction: Transaction
 ): Promise<Project & { members: number[] } | null> => {
   const _currentMembers = await sequelize.query(
@@ -286,49 +291,6 @@ export const updateProjectByIdQuery = async (
         transaction
       }
     )
-  }
-
-  const _currentFrameworks = await sequelize.query(
-    `SELECT framework_id FROM projects_frameworks WHERE project_id = :project_id`,
-    {
-      replacements: { project_id: id },
-      mapToModel: true,
-      model: ProjectFrameworksModel,
-      transaction
-    }
-  )
-  const currentFrameworks = _currentFrameworks.map(m => m.framework_id)
-  const deletedFrameworks = currentFrameworks.filter(m => !frameworks?.includes(m))
-  const newFrameworks = frameworks?.filter(m => !currentFrameworks.includes(m)) || []
-  for (let framework of deletedFrameworks) {
-    await sequelize.query(
-      `DELETE FROM projects_frameworks WHERE framework_id = :framework_id AND project_id = :project_id`,
-      {
-        replacements: { framework_id: framework, project_id: id },
-        mapToModel: true,
-        model: ProjectFrameworksModel,
-        type: QueryTypes.DELETE,
-        transaction
-      }
-    );
-    // if (framework === 1) {
-    await deleteProjectFrameworkEUQuery(id, transaction)
-    // }
-  }
-  for (let framework of newFrameworks) {
-    await sequelize.query(
-      `INSERT INTO projects_frameworks (project_id, framework_id) VALUES (:project_id, :framework_id);`,
-      {
-        replacements: { framework_id: framework, project_id: id },
-        mapToModel: true,
-        model: ProjectFrameworksModel,
-        // type: QueryTypes.INSERT
-        transaction
-      }
-    )
-    // if (framework === 1) {
-    await createEUFrameworkQuery(id, false, transaction)
-    // }
   }
 
   const updateProject: Partial<Record<keyof Project, any>> = {};
@@ -466,11 +428,15 @@ export const deleteProjectByIdQuery = async (
   for (let entity of dependantEntities) {
     await deleteHelper(entity, id, transaction);
   }
-  for (let framework of frameworks) {
-    // if (framework.framework_id === 1) {
-    await deleteProjectFrameworkEUQuery(id, transaction);
-    // }
-  }
+  await Promise.all(
+    frameworks.map(({ framework_id }) => {
+      const deleteFunction = frameworkDeletionMap[framework_id];
+      if (!deleteFunction) {
+        throw new Error(`Unsupported framework_id encountered: ${framework_id}`);
+      }
+      return deleteFunction(id, transaction);
+    })
+  );
 
   const result = await sequelize.query(
     "DELETE FROM projects WHERE id = :id RETURNING *",

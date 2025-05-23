@@ -2,6 +2,7 @@ import React, { createContext } from "react";
 import { defaultProjectStatus, ProjectStatus } from "../hooks/useProjectStatus";
 import { Project } from "../../domain/types/Project";
 import { ComponentVisible } from "../../application/interfaces/ComponentVisible";
+import { User } from "../../domain/types/User";
 
 interface VerifyWiseContextProps {
   uiValues: any;
@@ -18,7 +19,7 @@ interface VerifyWiseContextProps {
   errorFetchingProjectStatus: string | boolean;
   currentProjectId: string | null;
   setCurrentProjectId: (id: string) => void;
-  userId: string;
+  userId: number | null;
   projects: Project[];
   setProjects: React.Dispatch<React.SetStateAction<Project[]>>;
   componentsVisible: ComponentVisible;
@@ -26,6 +27,8 @@ interface VerifyWiseContextProps {
     component: keyof ComponentVisible,
     value: boolean
   ) => void;
+  users: User[];
+  refreshUsers: () => void;
 }
 
 const VerifyWiseContext = createContext<VerifyWiseContextProps>({
@@ -43,11 +46,13 @@ const VerifyWiseContext = createContext<VerifyWiseContextProps>({
   errorFetchingProjectStatus: false,
   currentProjectId: "",
   setCurrentProjectId: () => {},
-  userId: "",
+  userId: null,
   projects: [],
   setProjects: () => {},
-  componentsVisible: { home: false, sidebar: false },
+  componentsVisible: { home: false, sidebar: false, projectFrameworks: false, compliance: false },
   changeComponentVisibility: () => {},
+  users: [],
+  refreshUsers: () => {},
 });
 
 export { VerifyWiseContext };

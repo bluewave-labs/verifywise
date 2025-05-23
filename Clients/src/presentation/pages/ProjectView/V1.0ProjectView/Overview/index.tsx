@@ -20,9 +20,8 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
   const projectId = project!.id;
   const projectFrameworkId = project?.framework.filter(
     (p) => p.framework_id === 1
-  )[0].project_framework_id;
-  const { dashboardValues } = useContext(VerifyWiseContext);
-  const { users } = dashboardValues;
+  )[0]?.project_framework_id;
+  const { users } = useContext(VerifyWiseContext); 
 
   const { projectRisksSummary } = useProjectRisks({ projectId });
 

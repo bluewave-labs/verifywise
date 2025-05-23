@@ -1,15 +1,27 @@
 import { Request, Response } from "express";
-
+import { sequelize } from "../database/db";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
   createNewVendorRiskQuery,
   deleteVendorRiskByIdQuery,
+  getAllVendorRisksAllProjectsQuery,
   getVendorRiskByIdQuery,
   getVendorRisksByProjectIdQuery,
   updateVendorRiskByIdQuery,
 } from "../utils/vendorRisk.util";
 import { VendorRisk } from "../models/vendorRisk.model";
-import { sequelize } from "../database/db";
+
+export async function getAllVendorRisksAllProjects(
+  req: Request,
+  res: Response
+): Promise<any> {
+  try {
+    const risks = await getAllVendorRisksAllProjectsQuery();
+    return res.status(200).json(STATUS_CODE[200](risks));
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
 
 export async function getAllVendorRisks(
   req: Request,
@@ -56,7 +68,10 @@ export async function createVendorRisk(
   try {
     const newVendorRisk: VendorRisk = req.body;
 
-    const createdVendorRisk = await createNewVendorRiskQuery(newVendorRisk, transaction);
+    const createdVendorRisk = await createNewVendorRiskQuery(
+      newVendorRisk,
+      transaction
+    );
 
     if (createdVendorRisk) {
       await transaction.commit();
@@ -105,7 +120,10 @@ export async function deleteVendorRiskById(
   try {
     const vendorRiskId = parseInt(req.params.id);
 
-    const deletedVendorRisk = await deleteVendorRiskByIdQuery(vendorRiskId, transaction);
+    const deletedVendorRisk = await deleteVendorRiskByIdQuery(
+      vendorRiskId,
+      transaction
+    );
 
     if (deletedVendorRisk) {
       await transaction.commit();

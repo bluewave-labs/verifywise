@@ -71,10 +71,10 @@ const VWProjectRisksTableBody = ({
   onDeleteRisk: (id: number) => void;
   flashRow: number | null;
 }) => {
-  const { setInputValues, dashboardValues } = useContext(VerifyWiseContext);
+  const { setInputValues, users } = useContext(VerifyWiseContext);
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
   const theme = useTheme();
-  const handelEditRisk = (row: any, event?: React.SyntheticEvent) => {
+  const handleEditRisk = (row: any, event?: React.SyntheticEvent) => {
     setSelectedRow(row);
     setInputValues(row);
     setAnchor(event?.currentTarget);
@@ -84,9 +84,9 @@ const VWProjectRisksTableBody = ({
     onDeleteRisk(riskId);
   };
 
-  const displayUserFullName = (userId: string) => {
-    const currentUser = dashboardValues.users.find(
-      (user: any) => user.id === parseInt(userId)
+  const displayUserFullName = (userId: number) => {
+    const currentUser = users.find(
+      (user: any) => user.id === userId
     );
     const fullName = currentUser
       ? `${currentUser.name} ${currentUser.surname}`
@@ -103,7 +103,7 @@ const VWProjectRisksTableBody = ({
             <TableRow
               key={index}
               sx={singleTheme.tableStyles.primary.body.row}
-              onClick={(e) => handelEditRisk(row, e)}
+              onClick={(e) => handleEditRisk(row, e)}
             >
               <TableCell
                 sx={cellStyle}
@@ -123,7 +123,7 @@ const VWProjectRisksTableBody = ({
                   backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
                 }}
               >
-                {row.risk_owner ? displayUserFullName(row.risk_owner) : "-"}
+                {row.risk_owner ? displayUserFullName(Number(row.risk_owner)) : "-"}
               </TableCell>
               <TableCell
                 sx={cellStyle}
@@ -207,9 +207,9 @@ const VWProjectRisksTableBody = ({
                 <IconButton
                   id={row.id}
                   type="risk"
-                  onMouseEvent={(e) => handelEditRisk(row, e)}
+                  onMouseEvent={(e) => handleEditRisk(row, e)}
                   onDelete={() => handleDeleteRisk(row.id)}
-                  onEdit={() => handelEditRisk(row)}
+                  onEdit={() => handleEditRisk(row)}
                   warningTitle="Delete this project risk?"
                   warningMessage="Are you sure you want to delete this project risk. This action is non-recoverable."
                 ></IconButton>

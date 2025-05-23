@@ -32,7 +32,7 @@ const AssessmentTracker = ({ project }: { project: Project }) => {
   const currentProjectId = project?.id;
   const currentProjectFramework = project.framework.filter(
     (p) => p.framework_id === 1
-  )[0].project_framework_id;
+  )[0]?.project_framework_id;
   const [activeTab, setActiveTab] = useState<number>(0);
   const [runAssessmentTour, setRunAssessmentTour] = useState(false);
 

@@ -1,8 +1,13 @@
 import { ProjectRisk, ProjectRiskModel } from "../models/projectRisk.model";
 import { sequelize } from "../database/db";
-import { ProjectsMembers, ProjectsMembersModel } from "../models/projectsMembers.model";
+import {
+  ProjectsMembers,
+  ProjectsMembersModel,
+} from "../models/projectsMembers.model";
 import { FileModel } from "../models/file.model";
-import { ProjectModel } from "../models/project.model";
+import { QueryTypes, Transaction } from "sequelize";
+import { getAllTopicsQuery, getAllSubTopicsQuery, getAllQuestionsQuery } from "./eu.utils";
+import { TopicStructEUModel } from "../models/EU/topicStructEU.model";
 
 export const getProjectRisksReportQuery = async (
   projectId: number
@@ -12,7 +17,7 @@ export const getProjectRisksReportQuery = async (
     {
       replacements: { project_id: projectId },
       mapToModel: true,
-      model: ProjectRiskModel
+      model: ProjectRiskModel,
     }
   );
   return projectRisks;
@@ -26,13 +31,20 @@ export const getMembersByProjectIdQuery = async (
     {
       replacements: { project_id: projectId },
       mapToModel: true,
-      model: ProjectsMembersModel
+      model: ProjectsMembersModel,
     }
   );
   return members;
 };
 
 export const getGeneratedReportsQuery = async () => {
+  const validSources = [
+    "Project risks report",
+    "Compliance tracker report",
+    "Assessment tracker report",
+    "Vendors and risks report",
+    "All reports",
+  ];
   const query = `
     SELECT 
       report.id, 
@@ -40,22 +52,77 @@ export const getGeneratedReportsQuery = async () => {
       report.project_id,  
       report.uploaded_time,
       report.source, 
-      p.id AS project_id, 
       p.project_title AS project_title,
       u.name AS uploader_name,
       u.surname AS uploader_surname
     FROM files report
     JOIN projects p ON report.project_id = p.id
     JOIN users u ON report.uploaded_by = u.id
-    WHERE report.source = 'Report'
-    ORDER BY uploaded_time DESC, id ASC
+    WHERE report.source IN (:sources)
+    ORDER BY uploaded_time DESC, report.id ASC
   `;
-  const reports = await sequelize.query(query,
+  const reports = await sequelize.query(query, {
+    replacements: { sources: validSources },
+    type: QueryTypes.SELECT,
+  });
+  return reports;
+};
+
+export const deleteReportByIdQuery = async (
+  id: number,
+  transaction: Transaction
+) => {
+  const result = await sequelize.query(
+    "DELETE FROM files WHERE id = :id RETURNING *",
     {
+      replacements: { id },
       mapToModel: true,
-      model: FileModel
+      model: FileModel,
+      type: QueryTypes.DELETE,
+      transaction,
     }
   );
 
-  return reports;
+  return result.length > 0;
+};
+
+export const getReportByIdQuery = async (id: number) => {
+  const result = await sequelize.query(`SELECT * FROM files WHERE id = :id`, {
+    replacements: { id },
+    mapToModel: true,
+    model: FileModel,
+  });
+  return result[0];
+};
+
+export const getAssessmentReportQuery = async (
+  projectFrameworkId: number
+  ) => {
+    const allTopics: TopicStructEUModel[] = await getAllTopicsQuery();
+    const assessmentId = await sequelize.query(
+      `SELECT id FROM assessments WHERE projects_frameworks_id = :projects_frameworks_id`,
+      {
+        replacements: { projects_frameworks_id: projectFrameworkId }
+      }
+    ) as [{ id: number }[], number];
+
+    for (const topic of allTopics) {
+      if(topic.id) {
+        const subtopicStruct = await getAllSubTopicsQuery(topic.id); 
+           
+        for (const subtopic of subtopicStruct) {
+          if (subtopic.id && assessmentId) {
+            const questionAnswers = await getAllQuestionsQuery(subtopic.id!, assessmentId[0][0].id);
+            (subtopic.dataValues as any).questions = [];
+            for (let question of questionAnswers) {
+              (subtopic.dataValues as any).questions.push({ ...question });
+            }
+          }
+        }
+        (topic.dataValues as any).subtopics = [];
+        (topic.dataValues as any).subtopics = subtopicStruct.map(s => s.get({ plain: true }));;
+      }
+    }
+    const allAssessments = allTopics.map((topic) => topic.get({ plain: true }));
+    return allAssessments;
 }

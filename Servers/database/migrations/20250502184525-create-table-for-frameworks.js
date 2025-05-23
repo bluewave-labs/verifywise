@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
@@ -20,8 +20,8 @@ module.exports = {
           FOREIGN KEY (framework_id) REFERENCES frameworks(id) ON DELETE CASCADE,
           PRIMARY KEY (project_id, framework_id),
           is_demo BOOLEAN DEFAULT FALSE
-        );`
-      ]
+        );`,
+      ];
       for (const query of frameworkQueries) {
         await queryInterface.sequelize.query(query, { transaction });
       }
@@ -30,23 +30,27 @@ module.exports = {
           INSERT INTO frameworks (name, description) VALUES
           (
             'EU AI Act',
-            'The EU AI Act is a proposed regulation by the European Commission to establish a legal framework for artificial intelligence (AI) in the European Union. It aims to ensure that AI systems are safe, transparent, and respect fundamental rights while promoting innovation and competitiveness in the AI sector.'
+            'The EU AI Act is a proposed regulation by the European Commission to create a legal framework for artificial intelligence in the EU. It aims to ensure AI systems are safe, transparent, and respect fundamental rights while fostering innovation and competitiveness.'
           ) RETURNING id;
-        `, { transaction }
+        `,
+        { transaction }
       );
       const framework_id = frameworksQuery[0][0].id;
       const projectsQuery = await queryInterface.sequelize.query(
         `
           SELECT id FROM projects;
-        `, { transaction }
+        `,
+        { transaction }
       );
       const prjectsFrameworksInsert = projectsQuery[0].map((project) => {
-        return `(${project.id}, ${framework_id})`
+        return `(${project.id}, ${framework_id})`;
       });
       if (prjectsFrameworksInsert.length > 0) {
-        const projectsFrameworksInsertString = prjectsFrameworksInsert.join(', ')
+        const projectsFrameworksInsertString =
+          prjectsFrameworksInsert.join(", ");
         await queryInterface.sequelize.query(
-          `INSERT INTO projects_frameworks (project_id, framework_id) VALUES ${projectsFrameworksInsertString};`, { transaction }
+          `INSERT INTO projects_frameworks (project_id, framework_id) VALUES ${projectsFrameworksInsertString};`,
+          { transaction }
         );
       }
       await transaction.commit();
@@ -60,8 +64,8 @@ module.exports = {
     const transaction = await queryInterface.sequelize.transaction();
     try {
       const queries = [
-        'DROP TABLE IF EXISTS projects_frameworks CASCADE;',
-        'DROP TABLE IF EXISTS frameworks CASCADE;',
+        "DROP TABLE IF EXISTS projects_frameworks CASCADE;",
+        "DROP TABLE IF EXISTS frameworks CASCADE;",
       ];
       for (const query of queries) {
         await queryInterface.sequelize.query(query, { transaction });
@@ -71,5 +75,5 @@ module.exports = {
       await transaction.rollback();
       throw error;
     }
-  }
+  },
 };

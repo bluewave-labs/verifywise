@@ -131,10 +131,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   const [projectOptions, setProjectOptions] = useState<
     { _id: number; name: string }[]
   >([]);
-  const { dashboardValues } = useContext(VerifyWiseContext);
+  const { dashboardValues, users } = useContext(VerifyWiseContext);
   const { projects } = dashboardValues;
 
-  const formattedUsers = dashboardValues?.users?.map((user: any) => ({
+  const formattedUsers = users?.map((user: any) => ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
   }));

@@ -13,6 +13,8 @@ import { createNewVendorRiskQuery } from "../utils/vendorRisk.util";
 import { createNewUserQuery } from "../utils/user.utils";
 import { User } from "../models/user.model";
 import { Vendor } from "../models/vendor.model";
+
+import { createISOFrameworkQuery } from "../utils/iso42001.utils";
 import { addVendorProjects } from "../utils/vendor.utils";
 
 export async function insertMockData() {
@@ -26,7 +28,7 @@ export async function insertMockData() {
           surname: "Doe",
           email: `john.doe.${Date.now()}@example.com`,
           password_hash: "hashed_password",
-          role: 1,
+          role_id: 1,
           created_at: new Date(Date.now()),
           last_login: new Date(Date.now()),
         },
@@ -38,7 +40,7 @@ export async function insertMockData() {
           surname: "Smith",
           email: `alice.smith.${Date.now()}@example.com`,
           password_hash: "hashed_password",
-          role: 2,
+          role_id: 2,
           created_at: new Date(Date.now()),
           last_login: new Date(Date.now()),
         },
@@ -62,7 +64,7 @@ export async function insertMockData() {
           last_updated_by: users[0].id!,
         },
         users.map((user) => user.id!),
-        [1], // frameworks
+        [1, 2], // frameworks
         transaction,
         true // is demo
       )
@@ -146,7 +148,8 @@ export async function insertMockData() {
       )
 
       // create eu framework
-      await createEUFrameworkQuery(project.id!, true, transaction)
+      await createEUFrameworkQuery(project.id!, true, transaction, true)
+      await createISOFrameworkQuery(project.id!, true, transaction, true)
     } else {
       // project already exists, delete it and insert a new one
     }

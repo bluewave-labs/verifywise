@@ -64,27 +64,43 @@ export const getAllUsersQuery = async (): Promise<User[]> => {
 /**
  * Retrieves a user from the database by their email address.
  *
+ * This function executes a SQL query to select a user from the `users` table
+ * based on the provided email address. It returns a promise that resolves to
+ * the user object or null if no user is found.
+ *
  * @param {string} email - The email address of the user to retrieve.
- * @returns {Promise<User>} A promise that resolves to the user object.
+ * @returns {Promise<User | null>} A promise that resolves to the user object or null.
  *
- * @example
- * const user = await getUserByEmailQuery('example@example.com');
- * console.log(user);
- *
- * @throws {Error} If there is an issue with the database query.
+ * @throws {Error} If there is an error executing the SQL query.
  */
-export const getUserByEmailQuery = async (email: string): Promise<User> => {
-  console.log("getUserByEmail");
+export const getUserByEmailQuery = async (email: string): Promise<(User & { role_name: string | null }) | null> => {
   try {
-    const user = await sequelize.query(
-      "SELECT * FROM users WHERE email = :email",
+    const [userObj] = await sequelize.query(
+      `
+      SELECT users.*, roles.name AS role_name
+      FROM users
+      LEFT JOIN roles ON users.role_id = roles.id
+      WHERE LOWER(users.email) = LOWER(:email)
+      LIMIT 1
+      `,
       {
         replacements: { email },
-        mapToModel: true,
-        model: UserModel,
+        type: QueryTypes.SELECT,
       }
     );
-    return user[0];
+
+     if (!userObj) {
+      // no user found
+      return null;
+    }
+
+    const user = userObj as User & { role_name: string | null };
+
+    if (!user.role_name) {
+      console.warn(`User ${email} has no assigned role`);
+    }
+
+    return user;
   } catch (error) {
     console.error("Error getting user by email:", error);
     throw error;
@@ -135,7 +151,7 @@ export const getUserByIdQuery = async (id: number): Promise<User> => {
  *   name: "John Doe",
  *   email: "john.doe@example.com",
  *   password_hash: "hashed_password",
- *   role: "user",
+ *   role_id: 2,
  *   created_at: new Date(),
  *   last_login: new Date()
  * });
@@ -149,17 +165,17 @@ export const createNewUserQuery = async (
   transaction: Transaction,
   is_demo: boolean = false
 ): Promise<User> => {
-  const { name, surname, email, password_hash, role } = user;
+  const { name, surname, email, password_hash, role_id } = user;
   const created_at = new Date();
   const last_login = new Date();
 
   try {
     const result = await sequelize.query(
-      `INSERT INTO users (name, surname, email, password_hash, role, created_at, last_login, is_demo)
-        VALUES (:name, :surname, :email, :password_hash, :role, :created_at, :last_login, :is_demo) RETURNING *`,
+      `INSERT INTO users (name, surname, email, password_hash, role_id, created_at, last_login, is_demo)
+        VALUES (:name, :surname, :email, :password_hash, :role_id, :created_at, :last_login, :is_demo) RETURNING *`,
       {
         replacements: {
-          name, surname, email, password_hash, role, created_at, last_login, is_demo
+          name, surname, email, password_hash, role_id, created_at, last_login, is_demo
         },
         mapToModel: true,
         model: UserModel,
@@ -218,7 +234,7 @@ export const resetPasswordQuery = async (
  *   name: 'John Doe',
  *   email: 'john.doe@example.com',
  *   password_hash: 'newhashedpassword',
- *   role: 'admin',
+ *   role_id: 1,
  *   last_login: new Date()
  * });
  * console.log(updatedUser);
@@ -233,7 +249,7 @@ export const updateUserByIdQuery = async (
     "name",
     "surname",
     "email",
-    "role",
+    "role_id",
     "last_login",
   ].filter(f => {
     if (user[f as keyof User] !== undefined && user[f as keyof User]) {

@@ -5,6 +5,7 @@ import {
   createProjectRiskQuery,
   deleteProjectRiskByIdQuery,
   getAllProjectRisksQuery,
+  getNonMitigatedProjectRisksQuery,
   getProjectRiskByIdQuery,
   updateProjectRiskByIdQuery,
 } from "../utils/projectRisk.utils";
@@ -43,6 +44,19 @@ export async function getProjectRiskById(
     }
 
     return res.status(204).json(STATUS_CODE[204](projectRisk));
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getNonMitigatedProjectRisks(
+  req: Request,
+  res: Response
+): Promise<any> {
+  try {
+    const projectId = parseInt(req.params.id);
+    const projectRisks = await getNonMitigatedProjectRisksQuery(projectId);
+    return res.status(204).json(STATUS_CODE[200](projectRisks));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

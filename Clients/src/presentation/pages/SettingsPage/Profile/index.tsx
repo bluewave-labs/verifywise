@@ -105,8 +105,7 @@ const ProfileForm: React.FC = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       setLoading(true);
-      try {
-        // const userId = localStorage.getItem("userId") || 1;
+      try {       
         const response = await getEntityById({ routeUrl: `/users/${id}` });
         console.log("response : ", response);
         setFirstname(response.data.name || "");
@@ -164,7 +163,7 @@ const ProfileForm: React.FC = () => {
         }, 3000); // Alert will disappear after 3 seconds
         return;
       }
-      // const userId = localStorage.getItem("userId") || "1";
+   
       const updatedUser = {
         name: firstname,
         surname: lastname,
@@ -347,8 +346,7 @@ const ProfileForm: React.FC = () => {
 
   const handleDeleteAccount = useCallback(async () => {
     setShowToast(true); // Show toast when request is sent
-    try {
-      // const userId = localStorage.getItem("userId") || "1";
+    try {    
       await deleteEntityById({ routeUrl: `/users/${Number(id)}` });
       //clear all storage
       await localStorage.removeItem("userId");

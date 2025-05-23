@@ -6,7 +6,7 @@ import {
 } from "../models/projectsMembers.model";
 import { FileModel } from "../models/file.model";
 import { QueryTypes, Transaction } from "sequelize";
-import { getTopicByIdForProjectQuery, getAllTopicsQuery, getAllSubTopicsQuery, getAllQuestionsQuery } from "./eu.utils";
+import { getAllTopicsQuery, getAllSubTopicsQuery, getAllQuestionsQuery } from "./eu.utils";
 import { TopicStructEU, TopicStructEUModel } from "../models/EU/topicStructEU.model";
 import { QuestionStructEU } from "../models/EU/questionStructEU.model";
 import { SubtopicStructEU } from "../models/EU/subTopicStructEU.model";
@@ -119,7 +119,7 @@ export const getAssessmentReportQuery = async (
         replacements: { projects_frameworks_id: projectFrameworkId }
       }
     ) as [{ id: number }[], number];
-    
+
     for (const topic of allTopics) {
       if(topic.id !== undefined) {
         const subtopicStruct = await getAllSubTopicsQuery(topic.id!); 

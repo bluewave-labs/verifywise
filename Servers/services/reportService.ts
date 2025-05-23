@@ -30,6 +30,12 @@ export function getFormattedReportName(name: string, type: string) {
     case ReportType.COMPLIANCE_REPORT:
       reportType = DefaultReportName.COMPLIANCE_REPORT;
       break;
+    case ReportType.CLAUSES_REPORT:
+      reportType = DefaultReportName.CLAUSES_REPORT;
+      break;
+    case ReportType.ANNEXES_REPORT:
+      reportType = DefaultReportName.ANNEXES_REPORT;
+      break;
     default:
       reportType = DefaultReportName.ALL_REPORT;
   }

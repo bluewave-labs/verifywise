@@ -4,7 +4,7 @@ import { getProjectRiskMarkdown } from "./markdowns/projectRiskMarkdown";
 import { getVendorReportMarkdown } from "./markdowns/vendorAndRisksMarkdown";
 import { getAssessmentTrackerMarkdown } from './markdowns/assessmentTrackerMarkdown';
 
-export interface reportBodyData {
+export interface ReportBodyData {
   projectTitle: string,
   projectOwner: string
 }
@@ -81,7 +81,7 @@ export async function getReportData(
     projectId: number,
     frameworkId: number,
     reportType: string,
-    reportBody: reportBodyData
+    reportBody: ReportBodyData
   ) : Promise<any> {
   let markdownFormattedData;
   switch(reportType) {

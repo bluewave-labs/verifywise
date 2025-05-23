@@ -6,11 +6,11 @@
  */
 
 import { getProjectRisksReportQuery } from "../../utils/reporting.utils";
-import {reportBodyData} from '../reportService';
+import { ReportBodyData } from '../reportService';
 
 export async function getProjectRiskMarkdown (
     projectId: number,
-    data: reportBodyData
+    data: ReportBodyData
   ) : Promise<any> {
   let rows: string;
   const reportData = await getProjectRisksReportQuery(projectId);

@@ -8,11 +8,11 @@
 import { getUserByIdQuery } from "../../utils/user.utils";
 import { getVendorByProjectIdQuery } from "../../utils/vendor.utils";
 import { getVendorRisksByProjectIdQuery } from "../../utils/vendorRisk.util";
-import { reportBodyData } from "../reportService";
+import { ReportBodyData } from "../reportService";
 
 export async function getVendorReportMarkdown(
     projectId: number,
-    data: reportBodyData
+    data: ReportBodyData
   ): Promise<any> {
     const vendorData = await getVendorByProjectIdQuery(projectId);
     const riskData = await getVendorRisksByProjectIdQuery(projectId);

@@ -9,7 +9,7 @@ import { TopicStructEU } from "../../models/EU/topicStructEU.model";
 import { SubtopicStructEU } from "../../models/EU/subTopicStructEU.model";
 import { QuestionStructEU } from "../../models/EU/questionStructEU.model";
 import { getAssessmentReportQuery } from "../../utils/reporting.utils";
-import {reportBodyData} from '../reportService';
+import { ReportBodyData } from '../reportService';
 
 type Question = QuestionStructEU & {
   answer: string;
@@ -25,7 +25,7 @@ type UserWithSubjects = TopicStructEU & {
 
 export async function getAssessmentTrackerMarkdown (
   frameworkId: number,
-  data: reportBodyData
+  data: ReportBodyData
 ) : Promise<any> {
 let rows: string;
 const reportData = await getAssessmentReportQuery(frameworkId) as UserWithSubjects[];

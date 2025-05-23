@@ -107,14 +107,16 @@ export const getAssessmentReportQuery = async (
     ) as [{ id: number }[], number];
 
     for (const topic of allTopics) {
-      if(topic.id !== undefined) {
-        const subtopicStruct = await getAllSubTopicsQuery(topic.id!); 
+      if(topic.id) {
+        const subtopicStruct = await getAllSubTopicsQuery(topic.id); 
            
         for (const subtopic of subtopicStruct) {
-          const questionAnswers = await getAllQuestionsQuery(subtopic.id!, assessmentId[0][0].id);
-          (subtopic.dataValues as any).questions = [];
-          for (let question of questionAnswers) {
-            (subtopic.dataValues as any).questions.push({ ...question });
+          if (subtopic.id && assessmentId) {
+            const questionAnswers = await getAllQuestionsQuery(subtopic.id!, assessmentId[0][0].id);
+            (subtopic.dataValues as any).questions = [];
+            for (let question of questionAnswers) {
+              (subtopic.dataValues as any).questions.push({ ...question });
+            }
           }
         }
         (topic.dataValues as any).subtopics = [];

@@ -19,9 +19,6 @@ import { Dayjs } from "dayjs";
 import { useState, useEffect, useContext } from "react";
 import VWButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
-import {
-  GetSubClausesById,
-} from "../../../../application/repository/subClause_iso.repository";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import { User } from "../../../../domain/types/User";

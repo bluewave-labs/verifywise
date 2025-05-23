@@ -76,6 +76,11 @@ const VWISO42001ClauseDrawerDialog = ({
     ["Audited", "6"],
     ["Needs rework", "7"],
   ]);
+  // Create the reverse map
+  const idStatusMap = new Map();
+  for (const [status, id] of statusIdMap.entries()) {
+    idStatusMap.set(id, status);
+  }
 
   // Get context and project data
   const { users, userId } = useContext(VerifyWiseContext);
@@ -174,7 +179,7 @@ const VWISO42001ClauseDrawerDialog = ({
         "implementation_description",
         formData.implementation_description
       );
-      formDataToSend.append("status", formData.status);
+      formDataToSend.append("status", idStatusMap.get(formData.status)!);
       formDataToSend.append("owner", formData.owner);
       formDataToSend.append("reviewer", formData.reviewer);
       formDataToSend.append("approver", formData.approver);
@@ -561,7 +566,7 @@ const VWISO42001ClauseDrawerDialog = ({
             onChange={handleSelectChange("owner")}
             items={projectMembers.map((user) => ({
               _id: user.id,
-              name: `${user.name} ${user.surname}`,
+              name: `${user.name}`,
               email: user.email,
               surname: user.surname,
             }))}
@@ -576,7 +581,9 @@ const VWISO42001ClauseDrawerDialog = ({
             onChange={handleSelectChange("reviewer")}
             items={projectMembers.map((user) => ({
               _id: user.id,
-              name: `${user.name} ${user.surname}`,
+              name: `${user.name}`,
+              email: user.email,
+              surname: user.surname,
             }))}
             sx={inputStyles}
             placeholder={"Select reviewer"}
@@ -589,7 +596,9 @@ const VWISO42001ClauseDrawerDialog = ({
             onChange={handleSelectChange("approver")}
             items={projectMembers.map((user) => ({
               _id: user.id,
-              name: `${user.name} ${user.surname}`,
+              name: `${user.name}`,
+              email: user.email,
+              surname: user.surname,
             }))}
             sx={inputStyles}
             placeholder={"Select approver"}

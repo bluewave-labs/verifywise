@@ -1,6 +1,7 @@
-import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
+import { Column, DataType, ForeignKey, Model, Table, BelongsToMany } from "sequelize-typescript";
 import { UserModel } from "./user.model";
-
+import { ProjectModel } from "./project.model";
+import { VendorsProjectsModel } from "./vendorsProjects.model";
 /*
 
 This is the new Vendor model(Schema) and will be replaced with the new one.
@@ -112,4 +113,7 @@ export class VendorModel extends Model<Vendor> {
     type: DataType.DATE
   })
   created_at?: Date;
+
+  @BelongsToMany(() => ProjectModel, () => VendorsProjectsModel)
+  projects?: ProjectModel[];
 }

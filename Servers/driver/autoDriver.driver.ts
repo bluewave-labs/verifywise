@@ -13,6 +13,7 @@ import { createNewVendorRiskQuery } from "../utils/vendorRisk.util";
 import { createNewUserQuery } from "../utils/user.utils";
 import { User } from "../models/user.model";
 import { Vendor } from "../models/vendor.model";
+import { VendorsProjectsModel } from "../models/vendorsProjects.model";
 
 export async function insertMockData() {
   const transaction = await sequelize.transaction();
@@ -121,6 +122,14 @@ export async function insertMockData() {
           true // is demo
         )
       }
+
+      await VendorsProjectsModel.create(
+        {
+          vendor_id: vendor.id!,
+          project_id: project.id!,
+        },
+        { transaction }
+      );
 
       // ---- no need of is demo
       // create vendor risks

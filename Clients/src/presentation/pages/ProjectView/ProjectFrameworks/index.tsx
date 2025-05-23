@@ -43,7 +43,7 @@ const ISO_42001_TABS = [
 type TrackerTab = (typeof TRACKER_TABS)[number]["value"];
 type ISO42001Tab = (typeof ISO_42001_TABS)[number]["value"];
 
-const ProjectFrameworks = ({ project }: { project: Project }) => {
+const ProjectFrameworks = ({ project, triggerRefresh }: { project: Project; triggerRefresh?: (isTrigger: boolean, toastMessage?: string) => void }) => {
   const { 
     filteredFrameworks, 
     projectFrameworksMap,
@@ -153,7 +153,7 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
           sx={addButtonStyle}
           onClick={() => setIsModalOpen(true)}
         >
-          Add new framework
+          Manage frameworks
         </Button>
       </Box>
 
@@ -162,6 +162,14 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
         onClose={() => setIsModalOpen(false)}
         frameworks={allFrameworks}
         project={project}
+        onFrameworksChanged={(action) => {
+          if (triggerRefresh) {
+            if (action === 'add') triggerRefresh(true, 'Framework added successfully');
+            else if (action === 'remove') triggerRefresh(true, 'Framework removed successfully');
+            else triggerRefresh(true);
+          }
+          refreshFilteredFrameworks();
+        }}
       />
 
       <TabContext value={tracker}>

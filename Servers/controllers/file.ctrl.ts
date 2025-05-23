@@ -5,6 +5,7 @@ import { addFileToQuestion, RequestWithFile, UploadedFile } from "../utils/quest
 import { FileType } from "../models/file.model";
 import { addFileToAnswerEU } from "../utils/eu.utils";
 import { sequelize } from "../database/db";
+import getUserFilesMetaDataQuery from "../utils/files/getUserFilesMetaData.utils";
 
 export async function getFileContentById(
   req: Request,
@@ -49,6 +50,29 @@ export async function getFileMetaByProjectId(
   }
 }
 
+export const getUserFilesMetaData = async (req: Request, res: Response) => {
+  try {
+    const userId = Number(req.userId);
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: "Invalid user ID" });
+    }
+
+    const page = Number(req.query.page);
+    const pageSize = Number(req.query.pageSize);
+    const validPage = !isNaN(page) && page > 0 ? page : undefined;
+    const validPageSize = !isNaN(pageSize) && pageSize > 0 ? pageSize : undefined;
+    const offset = validPage !== undefined && validPageSize !== undefined ? (validPage - 1) * validPageSize : undefined;
+
+    const files = await getUserFilesMetaDataQuery(userId, { limit: validPageSize, offset });
+
+    return res.status(200).send(files);
+  } catch (err) {
+    console.error(`Failed to fetch user files for user ${req.userId}:`, err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
 export async function postFileContent(
   req: RequestWithFile,
   res: Response
@@ -57,7 +81,7 @@ export async function postFileContent(
   try {
     const body = req.body as {
       question_id: string,
-      project_framework_id: number,
+      project_id: number,
       user_id: number,
       delete: string
     }
@@ -70,7 +94,7 @@ export async function postFileContent(
     const questionId = parseInt(body.question_id)
     let uploadedFiles: FileType[] = [];
     for (let file of req.files! as UploadedFile[]) {
-      const uploadedFile = await uploadFile(file, body.user_id, body.project_framework_id, "Assessment tracker group", transaction);
+      const uploadedFile = await uploadFile(file, body.user_id, body.project_id, "Assessment tracker group", transaction);
       uploadedFiles.push({
         id: uploadedFile.id!.toString(),
         fileName: uploadedFile.filename,
@@ -82,7 +106,7 @@ export async function postFileContent(
       });
     }
 
-    const question = await addFileToAnswerEU(questionId, body.project_framework_id, uploadedFiles, filesToDelete, transaction);
+    const question = await addFileToAnswerEU(questionId, body.project_id, uploadedFiles, filesToDelete, transaction);
     await transaction.commit();
     return res.status(201).json(STATUS_CODE[201](question.evidence_files))
   } catch (error) {

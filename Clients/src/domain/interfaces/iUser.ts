@@ -1,5 +1,5 @@
 export interface CreateProjectFormUser {
-  _id: string;
+  _id: number;
   name: string;
   surname: string;
   email: string;

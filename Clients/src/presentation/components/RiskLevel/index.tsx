@@ -1,8 +1,10 @@
 import { SelectChangeEvent, Stack, Typography, useTheme } from "@mui/material";
 import { FC } from "react";
 import Select from "../Inputs/Select";
-import { Likelihood, RISK_LABELS, Severity } from "./constants";
+import { Likelihood, Severity } from "./constants";
 import { riskSeverityItems, likelihoodItems } from "../AddNewRiskForm/projectRiskValue";
+import { RiskCalculator } from "../../tools/riskCalculator";
+import { RiskLikelihood, RiskSeverity } from "./riskValues";
 
 interface RiskLevelFormValues {
   likelihood: Likelihood;
@@ -10,16 +12,14 @@ interface RiskLevelFormValues {
 }
 
 interface RiskLevelProps {
-  likelihood: Likelihood;
-  riskSeverity: Severity;
-  handleOnSelectChange: (
-    prop: keyof RiskLevelFormValues
-  ) => (event: SelectChangeEvent<string | number>) => void;
+  likelihood: number;
+  riskSeverity: number;
+  handleOnSelectChange: (field: keyof RiskLevelFormValues) => (event: SelectChangeEvent<string | number>) => void;
 }
 
 /**
  * RiskLevel component displays a form to select the likelihood and severity of a risk,
- * and calculates and displays the corresponding risk level.
+ * and calculates and displays the corresponding risk level using the RiskCalculator.
  *
  * @component
  * @param {RiskLevelProps} props - The props for the RiskLevel component.
@@ -35,20 +35,17 @@ const RiskLevel: FC<RiskLevelProps> = ({
 }) => {
   const theme = useTheme();
 
-  // Define thresholds for risk levels based on the calculated score
-  const getRiskLevel = (score: number): { text: string; color: string } => {
-    if (score <= 3) {
-      return RISK_LABELS.low;
-    } else if (score <= 6) {
-      return RISK_LABELS.medium;
-    } else if (score <= 9) {
-      return RISK_LABELS.high;
-    } else {
-      return RISK_LABELS.critical;
-    }
-  };
+  // Get the selected likelihood and severity names from the items
+  const selectedLikelihood = likelihoodItems.find(item => item._id === likelihood);
+  const selectedSeverity = riskSeverityItems.find(item => item._id === riskSeverity);
 
-  const renderRiskLabel = getRiskLevel(likelihood * riskSeverity);
+  // Calculate risk level using RiskCalculator
+  const riskLevel = selectedLikelihood && selectedSeverity 
+    ? RiskCalculator.getRiskLevel(
+        selectedLikelihood.name as RiskLikelihood,
+        selectedSeverity.name as RiskSeverity
+      )
+    : { level: "", color: "" };
 
   return (
     <Stack sx={{ flexDirection: "row", columnGap: 12.5, mb: 12.5 }}>
@@ -78,7 +75,7 @@ const RiskLevel: FC<RiskLevelProps> = ({
         </Typography>
         <Stack
           sx={{
-            backgroundColor: renderRiskLabel.color,
+            backgroundColor: riskLevel.color,
             color: theme.palette.background.main,
             p: "0 8px",
             height: 34,
@@ -86,7 +83,7 @@ const RiskLevel: FC<RiskLevelProps> = ({
             justifyContent: "center",
           }}
         >
-          {renderRiskLabel.text}
+          {riskLevel.level}
         </Stack>
       </Stack>
     </Stack>

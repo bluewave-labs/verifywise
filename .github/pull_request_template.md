@@ -1,10 +1,10 @@
 ## Describe your changes
 
-Briefly describe the changes you made and their purpose.
+Provide a concise description of the changes made and their intended purpose.
 
 ## Write your issue number after "Fixes "
 
-Fixes #123 
+Enter the corresponding issue number after "Fixes #" 
 
 ## Please ensure all items are checked off before requesting a review:
 
@@ -13,7 +13,7 @@ Fixes #123
 - [ ] I have included the issue # in the PR.
 - [ ] I have labelled the PR correctly.
 - [ ] The issue I am working on is assigned to me.
-- [ ] I didn't use any hardcoded values (otherwise it will not scale, and will make it difficult to maintain consistency across the application).
-- [ ] I made sure font sizes, color choices etc are all referenced from the theme.
-- [ ] My PR is granular and targeted to one specific feature.
-- [ ] I took a screenshot or a video and attached to this PR if there is a UI change.
+- [ ] I have avoided using hardcoded values to ensure scalability and maintain consistency across the application.
+- [ ] I have ensured that font sizes, color choices, and other UI elements are referenced from the theme.
+- [ ] My pull request is focused and addresses a single, specific feature.
+- [ ] If there are UI changes, I have attached a screenshot or video to this PR.

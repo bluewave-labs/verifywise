@@ -1,7 +1,7 @@
 import { FileData } from "./File";
 
 export type Question = {
-  id?: number;
+  question_id?: number;
   order_no?: number;
   question: string;
   hint: string;

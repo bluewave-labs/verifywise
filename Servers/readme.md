@@ -1,9 +1,9 @@
-### How to run the Server
+### How to Run the Server
 
-In order **to run** our Node.js **server**, you need to take **three simple steps**:
+To run our Node.js server, follow these three simple steps:
 
-1. Go inside the root directory, inside **Servers** folder
-2. Simple run `npm i` to install packages and modules
+1. Navigate to the **Servers** folder in the root directory.
+2. Run `npm i` to install packages and modules.
 3. Run `npm start`
 
-Now, server starts.
+The server will now start.

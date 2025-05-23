@@ -7,21 +7,7 @@ import {
 import { FileModel } from "../models/file.model";
 import { QueryTypes, Transaction } from "sequelize";
 import { getAllTopicsQuery, getAllSubTopicsQuery, getAllQuestionsQuery } from "./eu.utils";
-import { TopicStructEU, TopicStructEUModel } from "../models/EU/topicStructEU.model";
-import { QuestionStructEU } from "../models/EU/questionStructEU.model";
-import { SubtopicStructEU } from "../models/EU/subTopicStructEU.model";
-
-type Question = QuestionStructEU & {
-  answer: string;
-};
-
-type SubTopic = SubtopicStructEU & {
-  questions: Question[];
-};
-
-type AllTopicData = TopicStructEU & {
-  subtopics: SubTopic[];
-};
+import { TopicStructEUModel } from "../models/EU/topicStructEU.model";
 
 export const getProjectRisksReportQuery = async (
   projectId: number

@@ -1,6 +1,6 @@
 /**
  * Generates a markdown report for assessment tracker
- * @param projectId - The ID of the framework
+ * @param frameworkId - The ID of the framework
  * @param data - Project metadata including title and owner
  * @returns Promise<string> - Markdown formatted assessment tracker report
  */
@@ -38,12 +38,12 @@ if (reportData.length > 0) {
         ? assessment.subtopics.map((subtopic) => {
           const questionList = subtopic.questions?.length > 0
             ? subtopic.questions.map((q, i) =>
-                `${i + 1}. __${q.question}__<br>${q.answer || '(no answer)'}`).join('\n')
-            : `- No questions`;
+                `${i + 1}. __${q.question}__<br>${q.answer || '(No answer for this question.)'}`).join('\n')
+            : `No question for this topic.`;
           return `  - ${subtopic.title}\n${questionList}\n`;
         }).join('\n')
         
-        : `- No data`;
+        : `No data`;
       }
       return `__${assessment?.title}__\n${subTopic}\n`;
     }).join('\n');

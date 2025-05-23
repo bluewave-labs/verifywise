@@ -19,7 +19,7 @@ type SubTopic = SubtopicStructEU & {
   questions: Question[];
 };
 
-type UserWithSubjects = TopicStructEU & {
+type AllTopics = TopicStructEU & {
   subtopics: SubTopic[];
 };
 
@@ -28,7 +28,7 @@ export async function getAssessmentTrackerMarkdown (
   data: ReportBodyData
 ) : Promise<any> {
   let rows: string;
-  const reportData = await getAssessmentReportQuery(frameworkId) as UserWithSubjects[];
+  const reportData = await getAssessmentReportQuery(frameworkId) as AllTopics[];
 
   if (reportData.length > 0) {
       rows = reportData.map(assessment =>{

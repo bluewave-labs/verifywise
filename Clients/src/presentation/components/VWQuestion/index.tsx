@@ -85,7 +85,7 @@ const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps
         project_id: currentProjectId.toString(),
         delete: "[]",
       },
-      routeUrl: "api/files",
+      routeUrl: "files",
       authToken,
     }),
     [

@@ -86,7 +86,7 @@ export const getVendorByProjectIdQuery = async (
   return vendors
 };
 
-const addVendorProjects = async (vendorId: number, projects: number[], transaction: Transaction) => {
+export const addVendorProjects = async (vendorId: number, projects: number[], transaction: Transaction) => {
   let vendorsProjectFlat = []
   let placeholdersArray = []
   for (let project of projects) {

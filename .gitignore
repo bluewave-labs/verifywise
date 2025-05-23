@@ -4,3 +4,5 @@
 .history
 .env.dev
 .env.prod
+
+.vscode/settings.json

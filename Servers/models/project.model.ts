@@ -3,7 +3,6 @@
 import { Column, DataType, ForeignKey, Model, Table, BelongsToMany } from "sequelize-typescript";
 import { UserModel } from "./user.model";
 import { VendorModel } from "./vendor.model";
-import { VendorsProjectsModel } from "./vendorsProjects.model";
 export type Project = {
   id?: number;
   project_title: string;
@@ -103,7 +102,4 @@ export class ProjectModel extends Model<Project> {
     type: DataType.DATE
   })
   created_at?: Date;
-
-  @BelongsToMany(() => VendorModel, () => VendorsProjectsModel)
-vendors?: VendorModel[];
 }

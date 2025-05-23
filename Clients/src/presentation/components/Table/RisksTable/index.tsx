@@ -18,6 +18,7 @@ import IconButton from "../../IconButton";
 import TablePaginationActions from "../../TablePagination";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
 import { RISK_LABELS} from "../../RiskLevel/constants";
+import { VendorDetails } from '../../../pages/Vendors';
 
 const titleOfTableColumns = [
   "vendor",
@@ -33,14 +34,16 @@ const titleOfTableColumns = [
 ];
 
 interface RiskTableProps {
-  dashboardValues: any;
+  users: any;
+  vendors: VendorDetails[];
   vendorRisks: any;
   onDelete: (riskId: number) => void;
   onEdit: (riskId: number) => void;
 }
 
 const RiskTable: React.FC<RiskTableProps> = ({
-  dashboardValues,
+  users,
+  vendors,
   vendorRisks,
   onDelete,
   onEdit,
@@ -52,18 +55,17 @@ const RiskTable: React.FC<RiskTableProps> = ({
     null
   );
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
-  const formattedUsers = dashboardValues?.users?.map((user: any) => ({
+  const formattedUsers = users?.map((user: any) => ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
   }));
 
   const formattedVendors = useMemo(() => {
-    if (!dashboardValues?.vendors) return []
-    return dashboardValues.vendors.map((vendor: any) => ({
-      _id: vendor.id, 
+    return vendors.map((vendor: VendorDetails) => ({
+      _id: vendor.id,
       name: vendor.vendor_name,
     }));
-  }, [dashboardValues?.vendors]);
+  }, [vendors]);
 
   const handleChangePage = useCallback((_: unknown, newPage: number) => {
     setPage(newPage);
@@ -141,7 +143,7 @@ const RiskTable: React.FC<RiskTableProps> = ({
                   {
                     formattedVendors?.find(
                       (vendor: any) => vendor._id === row.vendor_id
-                    )?.name
+                    )?.name || row.vendor_name
                   }
                 </TableCell>
                 <TableCell sx={cellStyle}>{row.impact}</TableCell>

@@ -13,10 +13,11 @@ export const projectViewHeaderDesc = {
 export const tabStyle = {
   textTransform: "none",
   fontWeight: 400,
-  alignItems: "flex-start",
+  alignItems: "center",
   justifyContent: "flex-end",
   padding: "16px 0 7px",
   minHeight: "20px",
+  minWidth: "auto",
   "&.Mui-selected": {
     color: "#13715B",
   },

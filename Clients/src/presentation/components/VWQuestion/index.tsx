@@ -16,7 +16,6 @@ import { AlertProps } from "../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import { store } from "../../../application/redux/store";
 import { apiServices } from "../../../infrastructure/api/networkServices";
-import { ENV_VARs } from "../../../../env.vars";
 import { FileData } from "../../../domain/types/File";
 import { useSelector } from "react-redux";
 import Button from "../Button";
@@ -80,7 +79,7 @@ const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps
       onChangeFiles: handleChangeEvidenceFiles,
       allowedMetaFields: ["question_id", "user_id", "project_id", "delete"],
       meta: {
-        question_id: question.id,
+        question_id: question.question_id,
         user_id: userId,
         project_id: currentProjectId.toString(),
         delete: "[]",
@@ -89,7 +88,7 @@ const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps
       authToken,
     }),
     [
-      question.id,
+      question.question_id,
       userId,
       currentProjectId,
       handleChangeEvidenceFiles,
@@ -102,7 +101,7 @@ const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps
   const handleSave = async () => {
     console.log(
       "VWQuestion: Saving answer for question",
-      question.id,
+      question.question_id,
       "project:",
       currentProjectId,
       "values:",
@@ -160,14 +159,14 @@ const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps
       return;
     }
     formData.append("delete", JSON.stringify([fileIdNumber]));
-    formData.append("question_id", question.id?.toString() || "");
-    formData.append("user_id", userId);
+    formData.append("question_id", question.question_id?.toString() || "");
+    formData.append("user_id", String(userId));
     if (currentProjectId) {
       formData.append("project_id", currentProjectId.toString());
     }
     try {
       const response = await apiServices.post(
-        `${ENV_VARs.URL}/files`,
+        "/files",
         formData,
         {
           headers: {
@@ -208,7 +207,7 @@ const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps
   };
 
   return (
-    <Box key={question.id} mt={10}>
+    <Box key={question.question_id} mt={10}>
       <Box
         sx={{
           display: "flex",
@@ -258,7 +257,7 @@ const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps
         </Stack>
       </Box>
       <RichTextEditor
-        key={question.id}
+        key={question.question_id}
         onContentChange={handleContentChange}
         headerSx={{
           borderRadius: 0,

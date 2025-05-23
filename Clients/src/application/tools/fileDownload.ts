@@ -54,11 +54,11 @@ export const handleAutoDownload = async (requestBody: GenerateReportProps) => {
       URL.revokeObjectURL(url);
       return response.status;
     } else {
-      console.error("Error downloading report");
+      console.error("--- Error downloading report");
       return response.status;
     }
   } catch (error) {
-    console.error("Error generating report", error);
+    console.error("*** Error generating report", error);
     return 500;
   }
 };

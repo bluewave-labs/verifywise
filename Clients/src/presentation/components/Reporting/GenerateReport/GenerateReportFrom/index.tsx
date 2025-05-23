@@ -1,9 +1,9 @@
-import React, {useState, lazy, Suspense, useCallback, useContext} from 'react';
+import React, {useState, lazy, Suspense, useCallback, useContext, useEffect} from 'react';
 import { Stack, Typography, useTheme, SelectChangeEvent} from '@mui/material';
 import VWButton from '../../../../vw-v2-components/Buttons';
 const Field = lazy(() => import('../../../Inputs/Field'));
 import {styles, fieldStyle} from './styles';
-import { REPORT_TYPES } from '../constants';
+import { EUAI_REPORT_TYPES, ISO_REPORT_TYPES } from '../constants';
 const RadioGroup = lazy(() => import('../../../RadioGroup'));
 const Select = lazy(() => import('../../../../components/Inputs/Select'));
 import { VerifyWiseContext } from '../../../../../application/contexts/VerifyWise.context';
@@ -15,18 +15,36 @@ interface FormValues {
   report_type: string;
   report_name: string;
   project: number;
+  framework: number;
 }
 
 interface FormErrors {
   report_type?: string;
   report_name?: string;
   project?: string;
+  framework?: string;
 }
 
 const initialState: FormValues = {
   report_type: "Project risks report",
   report_name: "",
-  project: 1
+  project: 1,
+  framework: 1,
+}
+
+/** 
+ * Set framework type and initial value 
+ */
+interface FrameworkValues {
+  project_framework_id: number;
+  framework_id: number;
+  name: string;
+}
+
+const initialFrameworkValue: FrameworkValues = {
+  project_framework_id: 1,
+  framework_id: 1,
+  name: "EU AI Act",
 }
 
 interface ReportProps {
@@ -40,6 +58,15 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
   const [errors, setErrors] = useState<FormErrors>({});
   const theme = useTheme();
   const { dashboardValues } = useContext(VerifyWiseContext);
+  const [projectFrameworks, setProjectFrameworks] = useState<FrameworkValues[]>([initialFrameworkValue]);  
+
+  useEffect(() => {
+    const pfw = dashboardValues.projects.find((project: { id: string | number; }) => project.id === values.project)?.framework || '';
+    setProjectFrameworks(pfw);
+    if (pfw.length > 0) {
+      setValues({ ...values, framework: pfw[0].framework_id });
+    }
+  }, [values.project])
 
   const handleOnTextFieldChange = useCallback(
     (prop: keyof FormValues) =>
@@ -93,11 +120,36 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
         </Suspense>
       </Stack>
       <Stack sx={{paddingTop: theme.spacing(8)}}>
-        <Typography sx={styles.semiTitleText}>Project Type *</Typography>
+        <Suspense fallback={<div>Loading...</div>}>
+          <Select
+            id="framework-input"
+            label="Framework"
+            placeholder="Select framework"
+            value={values.framework}
+            onChange={handleOnSelectChange("framework")}
+            items={
+              projectFrameworks?.map((framework) => ({
+                _id: framework.framework_id,
+                name: framework.name,
+              })) || []
+            }
+            sx={{
+              width: "350px",
+              backgroundColor: theme.palette.background.main,
+            }}
+            error={errors.framework}
+            isRequired
+          />
+        </Suspense>
+      </Stack>
+
+      <Stack sx={{paddingTop: theme.spacing(8)}}>
+        <Typography sx={styles.semiTitleText}>Report Type *</Typography>
         <Suspense fallback={<div>Loading...</div>}>
           <RadioGroup 
-            values={REPORT_TYPES} 
-            defaultValue='Project risks report' />
+            values={values.framework === 1 ? EUAI_REPORT_TYPES : ISO_REPORT_TYPES} 
+            defaultValue='Project risks report'
+            onChange={(event) => setValues({ ...values, report_type: event.target.value })} />
         </Suspense>
       </Stack>
       <Stack sx={{paddingTop: theme.spacing(4)}}>

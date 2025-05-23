@@ -22,7 +22,7 @@ const Questions = ({ subtopic, setRefreshKey, currentProjectId, questionsData }:
             (a: Question, b: Question) => (a.order_no ?? 0) - (b.order_no ?? 0)
           )
           .map((question: Question) => (
-            <div key={question.id}>
+            <div key={question.question_id}>
               <VWQuestion question={question} setRefreshKey={setRefreshKey} currentProjectId={currentProjectId} />
             </div>
           ))}

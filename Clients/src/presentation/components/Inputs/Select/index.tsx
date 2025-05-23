@@ -51,10 +51,23 @@ const Select: React.FC<SelectProps> = ({
     const selectedItem = items.find(
       (item) => (getOptionValue ? getOptionValue(item) : item._id) === selected
     );
-    return selectedItem
-      ? selectedItem.name +
-          (selectedItem.surname ? " " + selectedItem.surname : "")
+    const displayText = selectedItem
+      ? selectedItem.name + (selectedItem.surname ? " " + selectedItem.surname : "")
       : placeholder;
+    return (
+      <span
+        style={{
+          display: "block",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          minWidth: 0,
+          maxWidth: "100%",
+        }}
+      >
+        {displayText}
+      </span>
+    );
   };
 
   return (

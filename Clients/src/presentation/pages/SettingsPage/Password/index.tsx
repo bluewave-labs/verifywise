@@ -142,53 +142,25 @@ const PasswordForm: React.FC = () => {
     setShowToast(true); // Show VWToast
 
     try {
-      const response = await updateEntityById({
+      await updateEntityById({
         routeUrl: `/users/chng-pass/${id}`,
         body: { id, currentPassword, newPassword },
       });
-
-      if (response.status === 202) {
-        setCurrentPassword("");
-        setNewPassword("");
-        setConfirmPassword("");
-
-        setAlert({
-          variant: "success",
-          title: "Success",
-          body: "Password updated successfully.",
-          isToast: true,
-          visible: true,
-        });
-      } else if (response.status === 404) {
-        setAlert({
-          variant: "error",
-          title: "Error",
-          body: "User not found.",
-          isToast: true,
-          visible: true,
-        });
-      } else if (response.status === 401) {
-        setAlert({
-          variant: "error",
-          title: "Error",
-          body: "Current password is incorrect.",
-          isToast: true,
-          visible: true,
-        });
-      } else if (response.status === 400) {
-        setAlert({
-          variant: "error",
-          title: "Error",
-          body: "New password cannot be the same as the current password.",
-          isToast: true,
-          visible: true,
-        });
-      }
-    } catch (error) {
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setAlert({
+        variant: "success",
+        title: "Success",
+        body: "Password updated successfully.",
+        isToast: true,
+        visible: true,
+      });
+    } catch (error: any) {
       setAlert({
         variant: "error",
         title: "Error",
-        body: "Failed to update password. Please try again.",
+        body: error.message || "Failed to update password. Please try again.",
         isToast: true,
         visible: true,
       });

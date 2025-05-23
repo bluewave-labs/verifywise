@@ -91,7 +91,7 @@ export async function saveControls(
     const Control = req.body as ControlEU & {
       subControls: string;
       user_id: number;
-      project_framework_id: number;
+      project_id: number;
       delete: string;
     };
 
@@ -127,7 +127,7 @@ export async function saveControls(
           const evidenceUploadedFile = await uploadFile(
             f,
             Control.user_id,
-            Control.project_framework_id,
+            Control.project_id,
             "Compliance tracker group",
             transaction
           );
@@ -147,7 +147,7 @@ export async function saveControls(
           const feedbackUploadedFile = await uploadFile(
             f,
             Control.user_id,
-            Control.project_framework_id,
+            Control.project_id,
             "Compliance tracker group",
             transaction
           );
@@ -228,7 +228,7 @@ export async function updateQuestionById(
     }
 
     // Update the project's last updated date
-    await updateProjectUpdatedByIdQuery(questionId, "questions", transaction);
+    await updateProjectUpdatedByIdQuery(questionId, "answers", transaction);
     await transaction.commit();
 
     return res.status(202).json(STATUS_CODE[202](question));
@@ -339,8 +339,8 @@ export async function getAllProjectsAssessmentProgress(
             return;
           }
           const { totalAssessments, answeredAssessments } = await countAnswersEUByProjectId(projectFrameworkId);
-          totalNumberOfQuestions = parseInt(totalAssessments);
-          totalNumberOfAnsweredQuestions = parseInt(answeredAssessments);
+          totalNumberOfQuestions += parseInt(totalAssessments);
+          totalNumberOfAnsweredQuestions += parseInt(answeredAssessments);
         })
       );
       return res.status(200).json(

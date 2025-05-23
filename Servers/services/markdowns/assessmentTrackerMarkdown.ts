@@ -1,12 +1,15 @@
+/**
+ * Generates a markdown report for assessment tracker
+ * @param projectId - The ID of the framework
+ * @param data - Project metadata including title and owner
+ * @returns Promise<string> - Markdown formatted assessment tracker report
+ */
+
 import { TopicStructEU } from "../../models/EU/topicStructEU.model";
 import { SubtopicStructEU } from "../../models/EU/subTopicStructEU.model";
 import { QuestionStructEU } from "../../models/EU/questionStructEU.model";
 import { getAssessmentReportQuery } from "../../utils/reporting.utils";
-
-interface reportBodyData {
-  projectTitle: string,
-  projectOwner: string
-}
+import {reportBodyData} from '../reportService';
 
 type Question = QuestionStructEU & {
   answer: string;
@@ -21,7 +24,6 @@ type UserWithSubjects = TopicStructEU & {
 };
 
 export async function getAssessmentTrackerMarkdown (
-  projectId: number,
   frameworkId: number,
   data: reportBodyData
 ) : Promise<any> {

@@ -2,7 +2,7 @@
  * Generates a markdown report for project risks
  * @param projectId - The ID of the project
  * @param data - Project metadata including title and owner
- * @returns Promise<string> - Markdown formatted vendor risk report
+ * @returns Promise<string> - Markdown formatted project risk report
  */
 
 import { getProjectRisksReportQuery } from "../../utils/reporting.utils";

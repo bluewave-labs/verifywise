@@ -46,6 +46,7 @@ type ISO42001Tab = (typeof ISO_42001_TABS)[number]["value"];
 const ProjectFrameworks = ({ project }: { project: Project }) => {
   const { 
     filteredFrameworks, 
+    projectFrameworksMap,
     loading, 
     error, 
     refreshFilteredFrameworks,
@@ -191,14 +192,14 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
               <ISO42001Clauses
                 project={project}
                 framework_id={Number(selectedFrameworkId)}
-                projectFrameworkId={Number(selectedFrameworkId)}
+                projectFrameworkId={projectFrameworksMap.get(Number(selectedFrameworkId))!}
               />
             </TabPanel>
             <TabPanel value="annexes" sx={tabPanelStyle}>
               <ISO42001Annex
                 project={project}
                 framework_id={Number(selectedFrameworkId)}
-                projectFrameworkId={Number(selectedFrameworkId)}
+                projectFrameworkId={projectFrameworksMap.get(Number(selectedFrameworkId))!}
               />
             </TabPanel>
           </>

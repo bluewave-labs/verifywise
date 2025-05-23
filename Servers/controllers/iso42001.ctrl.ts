@@ -4,7 +4,7 @@ import { SubClauseISO } from "../models/ISO-42001/subClauseISO.model";
 import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import { countAnnexCategoriesISOByProjectId, countSubClausesISOByProjectId, deleteAnnexCategoriesISOByProjectIdQuery, deleteProjectFrameworkISOQuery, deleteSubClausesISOByProjectIdQuery, getAllAnnexesQuery, getAllClausesQuery, getAnnexCategoriesByAnnexIdQuery, getAnnexCategoryByIdForProjectQuery, getAnnexesByProjectIdQuery, getClausesByProjectIdQuery, getSubClauseByIdForProjectQuery, getSubClausesByClauseIdQuery, updateAnnexCategoryQuery, updateSubClauseQuery } from "../utils/iso42001.utils";
+import { countAnnexCategoriesISOByProjectId, countSubClausesISOByProjectId, deleteAnnexCategoriesISOByProjectIdQuery, deleteSubClausesISOByProjectIdQuery, getAllAnnexesQuery, getAllClausesQuery, getAllClausesWithSubClauseQuery, getAnnexCategoriesByAnnexIdQuery, getAnnexCategoryByIdForProjectQuery, getAnnexesByProjectIdQuery, getClausesByProjectIdQuery, getSubClauseByIdForProjectQuery, getSubClausesByClauseIdQuery, updateAnnexCategoryQuery, updateSubClauseQuery } from "../utils/iso42001.utils";
 import { FileType } from "../models/file.model";
 import { AnnexCategoryISO } from "../models/ISO-42001/annexCategoryISO.model";
 import { getAllProjectsQuery, updateProjectUpdatedByIdQuery } from "../utils/project.utils";
@@ -13,6 +13,16 @@ import { Project } from "../models/project.model";
 export async function getAllClauses(req: Request, res: Response): Promise<any> {
   try {
     const clauses = await getAllClausesQuery();
+    return res.status(200).json(clauses);
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getAllClausesStructForProject(req: Request, res: Response): Promise<any> {
+  const projectFrameworkId = parseInt(req.params.id);
+  try {
+    const clauses = await getAllClausesWithSubClauseQuery(projectFrameworkId);
     return res.status(200).json(clauses);
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

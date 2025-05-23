@@ -3,6 +3,7 @@ import { DefaultReportName, ReportType } from "../models/reporting.model";
 import { getVendorRisksByProjectIdQuery } from "../utils/vendorRisk.util";
 import { getVendorByProjectIdQuery } from "../utils/vendor.utils";
 import { getUserByIdQuery } from "../utils/user.utils";
+import {getAssessmentTrackerMarkdown} from './markdowns/assessmentTrackerMarkdown';
 
 interface reportBodyData {
   projectTitle: string,
@@ -81,6 +82,9 @@ export async function getReportData(
   switch(reportType) {
     case ReportType.PROJECTRISK_REPORT:
       markdownFormattedData = getProjectRiskMarkdown(projectId, reportBody)
+      break;
+    case ReportType.ASSESSMENT_REPORT:
+      markdownFormattedData = await getAssessmentTrackerMarkdown(projectId, frameworkId, reportBody)
       break;
     case ReportType.VENDOR_REPORT:
       markdownFormattedData = await getVendorReportMarkdown(projectId, reportBody)

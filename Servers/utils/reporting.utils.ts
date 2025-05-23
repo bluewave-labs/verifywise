@@ -6,6 +6,22 @@ import {
 } from "../models/projectsMembers.model";
 import { FileModel } from "../models/file.model";
 import { QueryTypes, Transaction } from "sequelize";
+import { getTopicByIdForProjectQuery, getAllTopicsQuery, getAllSubTopicsQuery, getAllQuestionsQuery } from "./eu.utils";
+import { TopicStructEU, TopicStructEUModel } from "../models/EU/topicStructEU.model";
+import { QuestionStructEU } from "../models/EU/questionStructEU.model";
+import { SubtopicStructEU } from "../models/EU/subTopicStructEU.model";
+
+type Question = QuestionStructEU & {
+  answer: string;
+};
+
+type SubTopic = SubtopicStructEU & {
+  questions: Question[];
+};
+
+type AllTopicData = TopicStructEU & {
+  subtopics: SubTopic[];
+};
 
 export const getProjectRisksReportQuery = async (
   projectId: number
@@ -92,3 +108,33 @@ export const getReportByIdQuery = async (id: number) => {
   });
   return result[0];
 };
+
+export const getAssessmentReportQuery = async (
+  projectFrameworkId: number
+  ) => {
+    const allTopics: TopicStructEUModel[] = await getAllTopicsQuery();
+    const assessmentId = await sequelize.query(
+      `SELECT id FROM assessments WHERE projects_frameworks_id = :projects_frameworks_id`,
+      {
+        replacements: { projects_frameworks_id: projectFrameworkId }
+      }
+    ) as [{ id: number }[], number];
+    
+    for (const topic of allTopics) {
+      if(topic.id !== undefined) {
+        const subtopicStruct = await getAllSubTopicsQuery(topic.id!); 
+           
+        for (const subtopic of subtopicStruct) {
+          const questionAnswers = await getAllQuestionsQuery(subtopic.id!, assessmentId[0][0].id);
+          (subtopic.dataValues as any).questions = [];
+          for (let question of questionAnswers) {
+            (subtopic.dataValues as any).questions.push({ ...question });
+          }
+        }
+        (topic.dataValues as any).subtopics = [];
+        (topic.dataValues as any).subtopics = subtopicStruct.map(s => s.get({ plain: true }));;
+      }
+    }
+    const allAssessments = allTopics.map((topic) => topic.get({ plain: true }));
+    return allAssessments;
+}

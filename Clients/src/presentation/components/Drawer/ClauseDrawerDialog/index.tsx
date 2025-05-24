@@ -8,7 +8,7 @@ import {
   CircularProgress,
   SelectChangeEvent,
   Dialog,
-  useTheme
+  useTheme,
 } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import Field from "../../Inputs/Field";
@@ -27,7 +27,10 @@ import Alert from "../../Alert";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import Uppy from "@uppy/core";
-import { getEntityById, updateEntityById } from "../../../../application/repository/entity.repository";
+import {
+  getEntityById,
+  updateEntityById,
+} from "../../../../application/repository/entity.repository";
 
 export const inputStyles = {
   minWidth: 200,
@@ -45,6 +48,7 @@ interface VWISO42001ClauseDrawerDialogProps {
   uploadFiles?: FileData[];
   projectFrameworkId: number;
   project_id: number;
+  onSaveSuccess?: () => void;
 }
 
 const VWISO42001ClauseDrawerDialog = ({
@@ -54,6 +58,7 @@ const VWISO42001ClauseDrawerDialog = ({
   clause,
   projectFrameworkId,
   project_id,
+  onSaveSuccess,
 }: VWISO42001ClauseDrawerDialogProps) => {
   const [date, setDate] = useState<Dayjs | null>(null);
   const [fetchedSubClause, setFetchedSubClause] = useState<any>(null);
@@ -125,10 +130,11 @@ const VWISO42001ClauseDrawerDialog = ({
 
           // Initialize form data with fetched values
           if (response.data) {
+            const statusId = statusIdMap.get(response.data.status) || "0";
             setFormData({
               implementation_description:
                 response.data.implementation_description || "",
-              status: statusIdMap.get(response.data.status) || "",
+              status: statusId,
               owner: response.data.owner?.toString() || "",
               reviewer: response.data.reviewer?.toString() || "",
               approver: response.data.approver?.toString() || "",
@@ -162,7 +168,6 @@ const VWISO42001ClauseDrawerDialog = ({
       ...prev,
       [field]: value,
     }));
-    console.log(`Updated ${field}:`, value);
   };
 
   const handleSelectChange =
@@ -179,21 +184,19 @@ const VWISO42001ClauseDrawerDialog = ({
         "implementation_description",
         formData.implementation_description
       );
-      formDataToSend.append("status", idStatusMap.get(formData.status)!);
+      formDataToSend.append(
+        "status",
+        idStatusMap.get(formData.status) || "Not started"
+      );
       formDataToSend.append("owner", formData.owner);
       formDataToSend.append("reviewer", formData.reviewer);
       formDataToSend.append("approver", formData.approver);
       formDataToSend.append("auditor_feedback", formData.auditor_feedback);
       if (date) formDataToSend.append("due_date", date.toString());
       formDataToSend.append("user_id", userId?.toString() || "");
-      formDataToSend.append(
-        "project_id",
-        project_id.toString()
-      );
-      formDataToSend.append("delete", JSON.stringify(deletedFilesIds)); // Add deleted file IDs if needed
-      // Attach each evidence file (as File objects)
+      formDataToSend.append("project_id", project_id.toString());
+      formDataToSend.append("delete", JSON.stringify(deletedFilesIds));
       uploadFiles.forEach((file) => {
-        // If file is a File object (new upload), append it
         if (file.data instanceof Blob) {
           const fileToUpload =
             file.data instanceof File
@@ -203,9 +206,7 @@ const VWISO42001ClauseDrawerDialog = ({
                 });
           formDataToSend.append("files", fileToUpload);
         }
-        // If file is an existing file object (from backend), skip or handle as needed
       });
-      // Call the update API
       const response = await updateEntityById({
         routeUrl: `/iso-42001/saveClauses/${fetchedSubClause.id}`,
         body: formDataToSend,
@@ -213,20 +214,16 @@ const VWISO42001ClauseDrawerDialog = ({
           "Content-Type": "multipart/form-data",
         },
       });
-      // // Optionally, show a success message or close the drawer
-      // onClose();
       if (response.status === 200) {
-        // Clear upload files after successful save
         setUploadFiles([]);
-        // Close the modal
         onClose();
+        // Call onSaveSuccess after successful save
+        onSaveSuccess?.();
       } else {
-        // Close the modal
         onClose();
       }
     } catch (error) {
       console.error("Error saving subclause:", error);
-      // Optionally, show an error message
     } finally {
       setIsLoading(false);
     }
@@ -265,16 +262,14 @@ const VWISO42001ClauseDrawerDialog = ({
     );
   }
 
-  const setUploadFilesForSubcontrol = (
-    files: FileData[]
-  ) => {
+  const setUploadFilesForSubcontrol = (files: FileData[]) => {
     setUploadFiles(files);
     if (deletedFilesIds.length > 0 || files.length > 0) {
       handleAlert({
         variant: "info",
         body: "Please save the changes to save the file changes.",
         setAlert,
-      })
+      });
     }
   };
 
@@ -322,7 +317,7 @@ const VWISO42001ClauseDrawerDialog = ({
       setEvidenceFilesDeleteCount((prev) => prev + 1);
       setDeletedFilesIds([...deletedFilesIds, fileIdNumber]);
     } else {
-      setUploadFiles((prev) => prev.filter((f) => f.id !== fileId))
+      setUploadFiles((prev) => prev.filter((f) => f.id !== fileId));
     }
   };
 
@@ -520,19 +515,6 @@ const VWISO42001ClauseDrawerDialog = ({
             <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
           )}
         </Stack>
-        {/* <Dialog
-          open={isFileUploadOpen}
-          onClose={() => setIsFileUploadOpen(false)}
-        >
-          <UppyUploadFile
-            uppy={uppy}
-            files={evidenceFiles}
-            onClose={() => setIsFileUploadOpen(false)}
-            onRemoveFile={(fileId) =>
-              setEvidenceFiles((prev) => prev.filter((f) => f.id !== fileId))
-            }
-          />
-        </Dialog> */}
         <Divider />
         <Stack
           sx={{

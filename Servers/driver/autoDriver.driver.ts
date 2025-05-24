@@ -127,12 +127,7 @@ export async function insertMockData() {
         )
       } else {
         await addVendorProjects(vendor.id!, [project.id!], transaction);
-      }
-      
-      // create association between the vendor and the project
-      // calling the addVendorProject function to make the changes
-      let vendor_projects = await addVendorProjects(vendor.id!,projects, transaction);
-      
+      }      
 
       // ---- no need of is demo
       // create vendor risks

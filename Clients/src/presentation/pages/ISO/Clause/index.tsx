@@ -86,9 +86,9 @@ const ISO42001Clauses = ({
         key="Management-System-Clauses"
         sx={{ color: "#1A1919", fontWeight: 600, mb: "6px", fontSize: 16 }}
       >
-        { "Management System Clauses" }
+        {"Management System Clauses"}
       </Typography>
-      { clauses &&
+      {clauses &&
         clauses.map((clause: ClauseStructISO) => (
           <Stack
             key={clause.id}
@@ -137,58 +137,50 @@ const ISO42001Clauses = ({
                 </Typography>
               </AccordionSummary>
               <AccordionDetails sx={{ padding: 0 }}>
-                {clause.subClauses.map(
-                  (
-                    subClause,
-                    index: number
-                  ) => (
+                {clause.subClauses.map((subClause, index: number) => (
+                  <Stack
+                    key={subClause.id}
+                    onClick={() => handleSubClauseClick(clause, subClause)}
+                    sx={{
+                      display: "flex",
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      padding: "16px",
+                      borderBottom:
+                        clause.subClauses.length - 1 ===
+                        clause.subClauses.indexOf(subClause)
+                          ? "none"
+                          : "1px solid #eaecf0",
+                      cursor: "pointer",
+                      fontSize: 13,
+                    }}
+                  >
+                    <Typography fontSize={13}>
+                      {clause.clause_no + "." + (index + 1)}{" "}
+                      {subClause.title ?? "Untitled"}
+                    </Typography>
                     <Stack
-                      key={subClause.id}
-                      onClick={() =>
-                        handleSubClauseClick(clause, subClause)
-                      }
                       sx={{
-                        display: "flex",
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        padding: "16px",
-                        borderBottom:
-                          clause.subClauses.length - 1 ===
-                          clause.subClauses.indexOf(subClause)
-                            ? "none"
-                            : "1px solid #eaecf0",
-                        cursor: "pointer",
-                        fontSize: 13,
+                        borderRadius: "4px",
+                        padding: "5px",
+                        backgroundColor: getStatusColor(
+                          subClause.status ?? "Not Started"
+                        ),
+                        color: "#fff",
                       }}
                     >
-                      <Typography fontSize={13}>
-                        {clause.clause_no + "." + (index + 1)}{" "}
-                        {subClause.title ?? "Untitled"}
-                      </Typography>
-                      <Stack
-                        sx={{
-                          borderRadius: "4px",
-                          padding: "5px",
-                          backgroundColor: getStatusColor(
-                            subClause.status ?? "Not Started"
-                          ),
-                          color: "#fff",
-                        }}
-                      >
-                        {subClause.status
-                          ? subClause.status.charAt(0).toUpperCase() +
-                            subClause.status.slice(1).toLowerCase()
-                          : "Not started"}
-                      </Stack>
+                      {subClause.status
+                        ? subClause.status.charAt(0).toUpperCase() +
+                          subClause.status.slice(1).toLowerCase()
+                        : "Not started"}
                     </Stack>
-                  )
-                )}
+                  </Stack>
+                ))}
               </AccordionDetails>
             </Accordion>
           </Stack>
-        ))
-      }
-      { drawerOpen && (
+        ))}
+      {drawerOpen && (
         <VWISO42001ClauseDrawerDialog
           open={drawerOpen}
           onClose={handleDrawerClose}

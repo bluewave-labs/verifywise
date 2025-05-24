@@ -15,3 +15,9 @@ GET http://localhost:3000/api/iso-42001/annexCategories/byAnnexId/1
 GET http://localhost:3000/api/iso-42001/annexCategory/byId/1?projectFrameworkId=2
 
 
+###### CLAUSES
+
+### get all clauses
+
+GET http://localhost:3000/api/iso-42001/clauses/struct/byProjectId/2
+

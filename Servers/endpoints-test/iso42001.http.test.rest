@@ -21,3 +21,11 @@ GET http://localhost:3000/api/iso-42001/annexCategory/byId/1?projectFrameworkId=
 
 GET http://localhost:3000/api/iso-42001/clauses/struct/byProjectId/2
 
+### get subclause by id
+
+GET http://localhost:3000/api/iso-42001/subClause/byId/1?projectFrameworkId=2
+
+### get subclauses by clause id
+
+GET http://localhost:3000/api/iso-42001/subClauses/byClauseId/1
+

@@ -49,7 +49,7 @@ router.get(
 
 router.get(
   "/subClauses/byClauseId/:id",
-  authenticateJWT,
+  /*authenticateJWT,*/
   validateId("id"),
   getSubClausesByClauseId
 );
@@ -62,7 +62,7 @@ router.get(
 
 router.get(
   "/subClause/byId/:id",
-  authenticateJWT,
+  /*authenticateJWT,*/
   validateId("id"),
   validateId("projectFrameworkId"),
   getSubClauseById

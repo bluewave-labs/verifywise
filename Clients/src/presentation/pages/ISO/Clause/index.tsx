@@ -136,47 +136,7 @@ const ISO42001Clauses = ({
                   {clause.title}
                 </Typography>
               </AccordionSummary>
-              <AccordionDetails sx={{ padding: 0 }}>
-                {clause.subClauses.map((subClause, index: number) => (
-                  <Stack
-                    key={subClause.id}
-                    onClick={() => handleSubClauseClick(clause, subClause)}
-                    sx={{
-                      display: "flex",
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      padding: "16px",
-                      borderBottom:
-                        clause.subClauses.length - 1 ===
-                        clause.subClauses.indexOf(subClause)
-                          ? "none"
-                          : "1px solid #eaecf0",
-                      cursor: "pointer",
-                      fontSize: 13,
-                    }}
-                  >
-                    <Typography fontSize={13}>
-                      {clause.clause_no + "." + (index + 1)}{" "}
-                      {subClause.title ?? "Untitled"}
-                    </Typography>
-                    <Stack
-                      sx={{
-                        borderRadius: "4px",
-                        padding: "5px",
-                        backgroundColor: getStatusColor(
-                          subClause.status ?? "Not Started"
-                        ),
-                        color: "#fff",
-                      }}
-                    >
-                      {subClause.status
-                        ? subClause.status.charAt(0).toUpperCase() +
-                          subClause.status.slice(1).toLowerCase()
-                        : "Not started"}
-                    </Stack>
-                  </Stack>
-                ))}
-              </AccordionDetails>
+              {dynamicSubClauses(clause)}
             </Accordion>
           </Stack>
         ))}
@@ -192,6 +152,52 @@ const ISO42001Clauses = ({
       )}
     </Stack>
   );
+
+  function dynamicSubClauses(clause: ClauseStructISO) {
+    return (
+      <AccordionDetails sx={{ padding: 0 }}>
+        {clause.subClauses.map((subClause, index: number) => (
+          <Stack
+            key={subClause.id}
+            onClick={() => handleSubClauseClick(clause, subClause)}
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              padding: "16px",
+              borderBottom:
+                clause.subClauses.length - 1 ===
+                clause.subClauses.indexOf(subClause)
+                  ? "none"
+                  : "1px solid #eaecf0",
+              cursor: "pointer",
+              fontSize: 13,
+            }}
+          >
+            <Typography fontSize={13}>
+              {clause.clause_no + "." + (index + 1)}{" "}
+              {subClause.title ?? "Untitled"}
+            </Typography>
+            <Stack
+              sx={{
+                borderRadius: "4px",
+                padding: "5px",
+                backgroundColor: getStatusColor(
+                  subClause.status ?? "Not Started"
+                ),
+                color: "#fff",
+              }}
+            >
+              {subClause.status
+                ? subClause.status.charAt(0).toUpperCase() +
+                  subClause.status.slice(1).toLowerCase()
+                : "Not started"}
+            </Stack>
+          </Stack>
+        ))}
+      </AccordionDetails>
+    );
+  }
 };
 
 export default ISO42001Clauses;

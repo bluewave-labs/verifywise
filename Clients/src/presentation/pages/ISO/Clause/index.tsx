@@ -4,6 +4,7 @@ import {
   AccordionSummary,
   Stack,
   Typography,
+  CircularProgress,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { accordionStyle } from "../style";
@@ -11,6 +12,7 @@ import { useState, useEffect } from "react";
 import VWISO42001ClauseDrawerDialog from "../../../components/Drawer/ClauseDrawerDialog";
 import { Project } from "../../../../domain/types/Project";
 import { GetClausesByProjectFrameworkId } from "../../../../application/repository/clause_struct_iso.repository";
+import { GetSubClausesById } from "../../../../application/repository/subClause_iso.repository";
 import { ClauseStructISO } from "../../../../domain/types/ClauseStructISO";
 
 const ISO42001Clauses = ({
@@ -26,6 +28,12 @@ const ISO42001Clauses = ({
   const [selectedSubClause, setSelectedSubClause] = useState<any>(null);
   const [selectedClause, setSelectedClause] = useState<any>(null);
   const [clauses, setClauses] = useState<ClauseStructISO[]>([]);
+  const [loadingSubClauses, setLoadingSubClauses] = useState<{
+    [key: number]: boolean;
+  }>({});
+  const [subClausesMap, setSubClausesMap] = useState<{ [key: number]: any[] }>(
+    {}
+  );
 
   useEffect(() => {
     const fetchClauses = async () => {
@@ -44,8 +52,23 @@ const ISO42001Clauses = ({
   }, [projectFrameworkId]);
 
   const handleAccordionChange =
-    (panel: number) => (_: React.SyntheticEvent, isExpanded: boolean) => {
+    (panel: number) => async (_: React.SyntheticEvent, isExpanded: boolean) => {
       setExpanded(isExpanded ? panel : false);
+
+      if (isExpanded && !subClausesMap[panel]) {
+        setLoadingSubClauses((prev) => ({ ...prev, [panel]: true }));
+        try {
+          const response = await GetSubClausesById({
+            routeUrl: `/iso-42001/subClauses/byClauseId/${panel}`,
+          });
+          setSubClausesMap((prev) => ({ ...prev, [panel]: response.data }));
+        } catch (error) {
+          console.error("Error fetching subclauses:", error);
+          setSubClausesMap((prev) => ({ ...prev, [panel]: [] }));
+        } finally {
+          setLoadingSubClauses((prev) => ({ ...prev, [panel]: false }));
+        }
+      }
     };
 
   const handleSubClauseClick = (clause: any, subClause: any) => {
@@ -154,47 +177,74 @@ const ISO42001Clauses = ({
   );
 
   function dynamicSubClauses(clause: ClauseStructISO) {
+    const subClauses = subClausesMap[clause.id ?? 0] || [];
+    const isLoading = loadingSubClauses[clause.id ?? 0];
+
     return (
       <AccordionDetails sx={{ padding: 0 }}>
-        {clause.subClauses.map((subClause, index: number) => (
+        {isLoading ? (
           <Stack
-            key={subClause.id}
-            onClick={() => handleSubClauseClick(clause, subClause)}
             sx={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
               padding: "16px",
-              borderBottom:
-                clause.subClauses.length - 1 ===
-                clause.subClauses.indexOf(subClause)
-                  ? "none"
-                  : "1px solid #eaecf0",
-              cursor: "pointer",
-              fontSize: 13,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            <Typography fontSize={13}>
-              {clause.clause_no + "." + (index + 1)}{" "}
-              {subClause.title ?? "Untitled"}
-            </Typography>
+            <CircularProgress size={24} />
+          </Stack>
+        ) : subClauses.length > 0 ? (
+          subClauses.map((subClause, index: number) => (
             <Stack
+              key={subClause.id}
+              onClick={() => handleSubClauseClick(clause, subClause)}
               sx={{
-                borderRadius: "4px",
-                padding: "5px",
-                backgroundColor: getStatusColor(
-                  subClause.status ?? "Not Started"
-                ),
-                color: "#fff",
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-between",
+                padding: "16px",
+                borderBottom:
+                  subClauses.length - 1 === index
+                    ? "none"
+                    : "1px solid #eaecf0",
+                cursor: "pointer",
+                fontSize: 13,
               }}
             >
-              {subClause.status
-                ? subClause.status.charAt(0).toUpperCase() +
-                  subClause.status.slice(1).toLowerCase()
-                : "Not started"}
+              <Typography fontSize={13}>
+                {clause.clause_no + "." + (index + 1)}{" "}
+                {subClause.title ?? "Untitled"}
+              </Typography>
+              <Stack
+                sx={{
+                  borderRadius: "4px",
+                  padding: "5px",
+                  backgroundColor: getStatusColor(
+                    subClause.status ?? "Not Started"
+                  ),
+                  color: "#fff",
+                }}
+              >
+                {subClause.status
+                  ? subClause.status.charAt(0).toUpperCase() +
+                    subClause.status.slice(1).toLowerCase()
+                  : "Not started"}
+              </Stack>
             </Stack>
+          ))
+        ) : (
+          <Stack
+            sx={{
+              padding: "16px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#666",
+            }}
+          >
+            No subclauses found
           </Stack>
-        ))}
+        )}
       </AccordionDetails>
     );
   }

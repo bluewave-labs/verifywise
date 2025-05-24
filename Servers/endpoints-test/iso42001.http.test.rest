@@ -29,3 +29,8 @@ GET http://localhost:3000/api/iso-42001/subClause/byId/1?projectFrameworkId=2
 
 GET http://localhost:3000/api/iso-42001/subClauses/byClauseId/1
 
+### get subclause by id
+
+GET http://localhost:3000/api/iso-42001/subClause/byId/1?projectFrameworkId=2
+
+

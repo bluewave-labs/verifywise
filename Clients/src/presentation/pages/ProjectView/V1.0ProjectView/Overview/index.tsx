@@ -1,6 +1,6 @@
 import { Divider, Stack, Typography } from "@mui/material";
-import { rowStyle } from "./style";
-import StatsCard from "../../../../components/Cards/StatsCard";
+import { columnStyle, rowStyle } from "./style";
+import GroupStatsCard from "../../../../components/Cards/GroupStatsCard";
 import { projectRiskSection } from "../style";
 import RisksCard from "../../../../components/Cards/RisksCard";
 import InfoCard from "../../../../components/Cards/InfoCard";
@@ -87,6 +87,21 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
         .map((user: User) => `${user.name} ${user.surname}`)
     : [];
 
+  const completedEuActNumbers = [
+    complianceProgress?.allDonesubControls ?? 0,
+    assessmentProgress?.answeredQuestions ?? 0,
+  ];
+
+  const totalEuActNumbers = [
+    complianceProgress?.allsubControls ?? 0,
+    assessmentProgress?.totalQuestions ?? 0,
+  ];
+
+  const titleEuAct = [
+    "Subcontrols",
+    "Assessments",
+  ];
+
   return (
     <Stack className="vw-project-overview">
       <Stack className="vw-project-overview-row" sx={rowStyle}>
@@ -131,21 +146,16 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
           </>
         )}
       </Stack>
-      <Stack className="vw-project-overview-row" sx={rowStyle}>
+      <Stack className="vw-project-overview-row" sx={columnStyle}>
         {project ? (
           <>
-            <StatsCard
-              completed={complianceProgress?.allDonesubControls ?? 0}
-              total={complianceProgress?.allsubControls ?? 0}
-              title="Subcontrols"
-              progressbarColor="#13715B"
-            />
-            <StatsCard
-              completed={assessmentProgress?.answeredQuestions ?? 0}
-              total={assessmentProgress?.totalQuestions ?? 0}
-              title="Assessments"
-              progressbarColor="#13715B"
-            />
+          <Typography sx={projectRiskSection}>EU AI Act Completion Status</Typography>
+          <GroupStatsCard
+            completed={completedEuActNumbers}
+            total={totalEuActNumbers}
+            title={titleEuAct}
+            progressbarColor="#13715B"
+          />
           </>
         ) : (
           <>

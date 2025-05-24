@@ -102,6 +102,21 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
     "Assessments",
   ];
 
+  const completedIso42001Numbers = [
+    annexesProgress?.doneAnnexcategories ?? 0,
+    clausesProgress?.doneSubclauses ?? 0,
+  ];
+
+  const totalIso42001Numbers = [
+    annexesProgress?.totalAnnexcategories ?? 0,
+    clausesProgress?.totalSubclauses ?? 0,
+  ];
+
+  const titleIso42001 = [
+    "Annexes",
+    "Subclauses",
+  ];
+
   return (
     <Stack className="vw-project-overview">
       <Stack className="vw-project-overview-row" sx={rowStyle}>
@@ -146,16 +161,35 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
           </>
         )}
       </Stack>
-      <Stack className="vw-project-overview-row" sx={columnStyle}>
+      <Stack className="vw-project-overview-row" sx={rowStyle}>
         {project ? (
           <>
-          <Typography sx={projectRiskSection}>EU AI Act Completion Status</Typography>
-          <GroupStatsCard
-            completed={completedEuActNumbers}
-            total={totalEuActNumbers}
-            title={titleEuAct}
-            progressbarColor="#13715B"
-          />
+            {projectFrameworkId && (
+              <Stack sx={columnStyle}>
+                <Typography sx={projectRiskSection}>
+                  EU AI Act Completion Status
+                </Typography>
+                <GroupStatsCard
+                  completed={completedEuActNumbers}
+                  total={totalEuActNumbers}
+                  title={titleEuAct}
+                  progressbarColor="#13715B"
+                />
+              </Stack>
+            )}
+            {projectFrameworkId2 && (
+              <Stack sx={columnStyle}>
+                <Typography sx={projectRiskSection}>
+                  ISO 42001 Completion Status
+                </Typography>
+                <GroupStatsCard
+                  completed={completedIso42001Numbers}
+                  total={totalIso42001Numbers}
+                  title={titleIso42001}
+                  progressbarColor="#13715B"
+                />
+              </Stack>
+            )}
           </>
         ) : (
           <>

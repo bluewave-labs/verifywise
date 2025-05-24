@@ -18,9 +18,8 @@ import useProjectRisks from "../../../../../application/hooks/useProjectRisks";
 
 const VWProjectOverview = ({ project }: { project?: Project }) => {
   const projectId = project!.id;
-  const projectFrameworkId = project?.framework.filter(
-    (p) => p.framework_id === 1
-  )[0]?.project_framework_id;
+  const projectFrameworkId = project?.framework.find((p) => p.framework_id === 1)?.project_framework_id;
+  const projectFrameworkId2 = project?.framework.find((p) => p.framework_id === 2)?.project_framework_id;
   const { users } = useContext(VerifyWiseContext); 
 
   const { projectRisksSummary } = useProjectRisks({ projectId });
@@ -32,6 +31,15 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
   const [assessmentProgress, setAssessmentProgress] = useState<{
     answeredQuestions: number;
     totalQuestions: number;
+  }>();
+
+  const [annexesProgress, setAnnexesProgress] = useState<{
+    totalAnnexcategories: number;
+    doneAnnexcategories: number;
+  }>();
+  const [clausesProgress, setClausesProgress] = useState<{
+    totalSubclauses: number;
+    doneSubclauses: number;
   }>();
 
   useEffect(() => {
@@ -46,16 +54,23 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
           routeUrl: `/eu-ai-act/assessments/progress/${projectFrameworkId}`,
         });
         setAssessmentProgress(assessmentData.data);
+
+        const annexesData = await getEntityById({
+          routeUrl: `/iso-42001/annexes/progress/${projectFrameworkId2}`,
+        });
+        setAnnexesProgress(annexesData.data);
+
+        const clausesData = await getEntityById({
+          routeUrl: `/iso-42001/clauses/progress/${projectFrameworkId2}`,
+        });
+        setClausesProgress(clausesData.data);
       } catch (error) {
         console.error("Error fetching progress data:", error);
       }
     };
 
     fetchProgressData();
-  }, [projectFrameworkId]);
-
-  console.log("complianceProgress: ", complianceProgress);
-  console.log("assessmentProgress: ", assessmentProgress);
+  }, [projectFrameworkId, projectFrameworkId2]);
 
   const user: User = project
     ? users.find((user: User) => user.id === project.last_updated_by) ??

@@ -1,8 +1,7 @@
 // this model will be replaced by the one inside structures/new-mock-data/projects.mock.ts directory
 
-import { Column, DataType, ForeignKey, Model, Table, BelongsToMany } from "sequelize-typescript";
+import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
 import { UserModel } from "./user.model";
-import { VendorModel } from "./vendor.model";
 export type Project = {
   id?: number;
   project_title: string;

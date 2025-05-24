@@ -141,20 +141,6 @@ export const createNewVendorQuery = async (vendor: Vendor, transaction: Transact
   createdVendor.dataValues["projects"] = []
 
   if (vendor.projects && vendor.projects.length > 0) {
-    // let vendorsProjectFlat = []
-    // let placeholdersArray = []
-    // for (let project of vendor.projects) {
-    //   vendorsProjectFlat.push(vendorId, project)
-    //   placeholdersArray.push("(?, ?)")
-    // }
-    // let placeholders = placeholdersArray.join(", ")
-    // const query = `INSERT INTO vendors_projects (vendor_id, project_id) VALUES ${placeholders} RETURNING *`;
-    // const vendors_projects = await sequelize.query(query, {
-    //   replacements: vendorsProjectFlat,
-    //   mapToModel: true,
-    //   model: VendorsProjectsModel,
-    //   transaction
-    // });
     const vendors_projects = await addVendorProjects(vendorId, vendor.projects, transaction)
     createdVendor.dataValues["projects"] = vendors_projects.map(p => p.project_id)
   }

@@ -14,6 +14,8 @@ import { Project } from "../../../../domain/types/Project";
 import { GetClausesByProjectFrameworkId } from "../../../../application/repository/clause_struct_iso.repository";
 import { GetSubClausesById } from "../../../../application/repository/subClause_iso.repository";
 import { ClauseStructISO } from "../../../../domain/types/ClauseStructISO";
+import { SubClauseISO } from "../../../../domain/types/SubClauseISO";
+import { SubClauseStructISO } from "../../../../domain/types/SubClauseStructISO";
 
 const ISO42001Clauses = ({
   project,
@@ -100,22 +102,25 @@ const ISO42001Clauses = ({
 
   function getStatusColor(status: string) {
     const normalizedStatus = status?.trim() || "Not Started";
-    switch (normalizedStatus.toLowerCase()) {
-      case "not started":
+    switch (
+      normalizedStatus.charAt(0).toUpperCase() +
+      normalizedStatus.slice(1).toLowerCase()
+    ) {
+      case "Not Started":
         return "#C63622";
-      case "draft":
+      case "Draft":
         return "#D68B61";
-      case "in progress":
+      case "In Progress":
         return "#D6B971";
-      case "awaiting review":
+      case "Awaiting Review":
         return "#D6B971";
-      case "awaiting approval":
+      case "Awaiting Approval":
         return "#D6B971";
-      case "implemented":
+      case "Implemented":
         return "#52AB43";
-      case "audited":
+      case "Audited":
         return "#B8D39C";
-      case "needs rework":
+      case "Needs Rework":
         return "#800080";
       default:
         return "#C63622"; // Default to "Not Started" color
@@ -139,43 +144,48 @@ const ISO42001Clauses = ({
           >
             <CircularProgress size={24} />
           </Stack>
-        ) : subClauses.length > 0 ? (
-          subClauses.map((subClause, index: number) => (
-            <Stack
-              key={subClause.id}
-              onClick={() => handleSubClauseClick(clause, subClause)}
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                justifyContent: "space-between",
-                padding: "16px",
-                borderBottom:
-                  subClauses.length - 1 === index
-                    ? "none"
-                    : "1px solid #eaecf0",
-                cursor: "pointer",
-                fontSize: 13,
-              }}
-            >
-              <Typography fontSize={13}>
-                {clause.clause_no + "." + (index + 1)}{" "}
-                {subClause.title ?? "Untitled"}
-              </Typography>
+        ) : clause.subClauses.length > 0 ? (
+          clause.subClauses.map(
+            (
+              subClause: Partial<SubClauseISO & SubClauseStructISO>,
+              index: number
+            ) => (
               <Stack
+                key={subClause.id}
+                onClick={() => handleSubClauseClick(clause, subClause)}
                 sx={{
-                  borderRadius: "4px",
-                  padding: "5px",
-                  backgroundColor: getStatusColor(subClause.status),
-                  color: "#fff",
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  padding: "16px",
+                  borderBottom:
+                    subClauses.length - 1 === index
+                      ? "none"
+                      : "1px solid #eaecf0",
+                  cursor: "pointer",
+                  fontSize: 13,
                 }}
               >
-                {subClause.status
-                  ? subClause.status.charAt(0).toUpperCase() +
-                    subClause.status.slice(1).toLowerCase()
-                  : "Not started"}
+                <Typography fontSize={13}>
+                  {clause.clause_no + "." + (index + 1)}{" "}
+                  {subClause.title ?? "Untitled"}
+                </Typography>
+                <Stack
+                  sx={{
+                    borderRadius: "4px",
+                    padding: "5px",
+                    backgroundColor: getStatusColor(subClause.status ?? ""),
+                    color: "#fff",
+                  }}
+                >
+                  {subClause.status
+                    ? subClause.status.charAt(0).toUpperCase() +
+                      subClause.status.slice(1).toLowerCase()
+                    : "Not started"}
+                </Stack>
               </Stack>
-            </Stack>
-          ))
+            )
+          )
         ) : (
           <Stack
             sx={{

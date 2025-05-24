@@ -2,6 +2,7 @@
 
 import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
 import { UserModel } from "./user.model";
+
 export type Project = {
   id?: number;
   project_title: string;

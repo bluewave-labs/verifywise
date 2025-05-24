@@ -1,5 +1,6 @@
 import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
 import { UserModel } from "./user.model";
+
 /*
 
 This is the new Vendor model(Schema) and will be replaced with the new one.

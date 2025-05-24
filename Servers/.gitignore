@@ -26,6 +26,3 @@ dist-ssr
 .env
 # *.dev
 *.prod
-.env.dev
-.env.prod
-.vscode/settings.json

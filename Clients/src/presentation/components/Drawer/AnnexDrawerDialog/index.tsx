@@ -111,44 +111,31 @@ const VWISO42001AnnexDrawerDialog = ({
           const response: any = await GetAnnexCategoriesById({
             routeUrl: `/iso-42001/annexCategory/byId/${annex.id}?projectFrameworkId=${projectFrameworkId}`,
           });
-          console.log("Fetched Annex Category:", response);
-          setFetchedAnnex(response.data);
+          const fetchedData = response.data.data;
+          setFetchedAnnex(fetchedData);
 
           // Initialize form data with fetched values
-          if (fetchedAnnex) {
-            setFormData({
-              is_applicable: fetchedAnnex.is_applicable ?? false,
-              justification_for_exclusion:
-                fetchedAnnex.justification_for_exclusion || "",
-              implementation_description:
-                fetchedAnnex.implementation_description || "",
-              status: fetchedAnnex.status || "",
-              owner: fetchedAnnex.owner?.toString() || "",
-              reviewer: fetchedAnnex.reviewer?.toString() || "",
-              approver: fetchedAnnex.approver?.toString() || "",
-              auditor_feedback: fetchedAnnex.auditor_feedback || "",
-            });
-            console.log("formData after fetch:", {
-              is_applicable: fetchedAnnex.is_applicable ?? false,
-              justification_for_exclusion:
-                fetchedAnnex.justification_for_exclusion || "",
-              implementation_description:
-                fetchedAnnex.implementation_description || "",
-              status: fetchedAnnex.status || "",
-              owner: fetchedAnnex.owner?.toString() || "",
-              reviewer: fetchedAnnex.reviewer?.toString() || "",
-              approver: fetchedAnnex.approver?.toString() || "",
-              auditor_feedback: fetchedAnnex.auditor_feedback || "",
-            });
-            // Set the date if it exists in the fetched data
-            if (fetchedAnnex.due_date) {
-              setDate(dayjs(fetchedAnnex.due_date));
-            }
+          setFormData({
+            is_applicable: fetchedData.is_applicable ?? false,
+            justification_for_exclusion:
+              fetchedData.justification_for_exclusion || "",
+            implementation_description:
+              fetchedData.implementation_description || "",
+            status: fetchedData.status || "",
+            owner: fetchedData.owner?.toString() || "",
+            reviewer: fetchedData.reviewer?.toString() || "",
+            approver: fetchedData.approver?.toString() || "",
+            auditor_feedback: fetchedData.auditor_feedback || "",
+          });
+
+          // Set the date if it exists in the fetched data
+          if (fetchedData.due_date) {
+            setDate(dayjs(fetchedData.due_date));
           }
 
-          // On annex category fetch, set evidence files if available
-          if (fetchedAnnex?.evidence_links) {
-            setEvidenceFiles(fetchedAnnex.evidence_links as FileData[]);
+          // Set evidence files if available
+          if (fetchedData.evidence_links) {
+            setEvidenceFiles(fetchedData.evidence_links as FileData[]);
           }
         } catch (error) {
           console.error("Error fetching annex category:", error);
@@ -158,8 +145,42 @@ const VWISO42001AnnexDrawerDialog = ({
       }
     };
 
-    fetchAnnexCategory();
+    // Reset states when drawer opens with a new control
+    if (open) {
+      setFormData({
+        is_applicable: false,
+        justification_for_exclusion: "",
+        implementation_description: "",
+        status: "",
+        owner: "",
+        reviewer: "",
+        approver: "",
+        auditor_feedback: "",
+      });
+      setDate(null);
+      setEvidenceFiles([]);
+      fetchAnnexCategory();
+    }
   }, [open, annex?.id, projectFrameworkId]);
+
+  // Reset states when drawer closes
+  useEffect(() => {
+    if (!open) {
+      setFetchedAnnex(undefined);
+      setFormData({
+        is_applicable: false,
+        justification_for_exclusion: "",
+        implementation_description: "",
+        status: "",
+        owner: "",
+        reviewer: "",
+        approver: "",
+        auditor_feedback: "",
+      });
+      setDate(null);
+      setEvidenceFiles([]);
+    }
+  }, [open]);
 
   // Handle form field changes
   const handleFieldChange = (field: string, value: any) => {
@@ -288,6 +309,7 @@ const VWISO42001AnnexDrawerDialog = ({
 
   return (
     <Drawer
+      id={`vw-iso-42001-annex-drawer-dialog-${annex?.id}`}
       className="vw-iso-42001-annex-drawer-dialog"
       open={open}
       onClose={onClose}

@@ -158,7 +158,9 @@ const ISO42001Annex = ({
       }[];
     }
   ) {
-    const controls = controlsMap[annex.id ?? 0] || [];
+    const controls = Array.isArray(controlsMap[annex.id ?? 0])
+      ? controlsMap[annex.id ?? 0]
+      : [];
     const isLoading = loadingControls[annex.id ?? 0];
 
     return (
@@ -175,50 +177,59 @@ const ISO42001Annex = ({
             <CircularProgress size={24} />
           </Stack>
         ) : annex.subClauses.length > 0 ? (
-          annex.subClauses.map((control, index: number) => (
-            <Stack
-              key={control.id}
-              onClick={() =>
-                handleControlClick(element.order, annex, control, index)
-              }
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "16px",
-                borderBottom:
-                  controls.length - 1 === controls.indexOf(control)
-                    ? "none"
-                    : "1px solid #eaecf0",
-                cursor: "pointer",
-                fontSize: 13,
-              }}
-            >
-              <Stack>
-                <Typography fontWeight={600}>
-                  {element.order}.{annex.annex_no}.{index + 1} {control.title}
-                </Typography>
-                <Typography sx={{ fontSize: 13 }}>
-                  {control.description}
-                </Typography>
-              </Stack>
+          annex.subClauses.map((control, index: number) => {
+            const controlIndex = controls.findIndex((c) => c.id === control.id);
+            const isLastControl = index === annex.subClauses.length - 1;
+
+            return (
               <Stack
+                key={control.id}
+                onClick={() =>
+                  handleControlClick(element.order, annex, control, index)
+                }
                 sx={{
-                  borderRadius: "4px",
-                  padding: "5px",
-                  backgroundColor: getStatusColor(control.status ?? ""),
-                  color: "#fff",
-                  height: "fit-content",
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "16px",
+                  borderBottom: isLastControl ? "none" : "1px solid #eaecf0",
+                  cursor: "pointer",
+                  fontSize: 13,
+                  "&:hover": {
+                    backgroundColor: "#f8f9fa",
+                  },
                 }}
               >
-                {control.status
-                  ? control.status.charAt(0).toUpperCase() +
-                    control.status.slice(1).toLowerCase()
-                  : "Not started"}
+                <Stack sx={{ gap: "4px" }}>
+                  <Typography fontWeight={600}>
+                    {element.order}.{annex.annex_no}.{index + 1} {control.title}
+                  </Typography>
+                  <Typography sx={{ fontSize: 13, color: "#666" }}>
+                    {control.description}
+                  </Typography>
+                </Stack>
+                <Stack
+                  sx={{
+                    borderRadius: "4px",
+                    padding: "5px 10px",
+                    backgroundColor: getStatusColor(control.status ?? ""),
+                    color: "#fff",
+                    height: "fit-content",
+                    minWidth: "100px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {control.status
+                    ? control.status.charAt(0).toUpperCase() +
+                      control.status.slice(1).toLowerCase()
+                    : "Not started"}
+                </Stack>
               </Stack>
-            </Stack>
-          ))
+            );
+          })
         ) : (
           <Stack
             sx={{

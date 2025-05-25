@@ -141,27 +141,28 @@ export const getAllAnnexesWithSubAnnexQuery = async (
   )) as [AnnexStructISOModel[], number];
 
   for (let annex of annexes[0]) {
-    const subAnnexes = (await sequelize.query(
-      `SELECT sas.id, sas.title, sas.order_no, sa.status FROM annexcategories_struct_iso sas JOIN annexcategories_iso sa ON sas.id = sa.subannex_meta_id WHERE sas.annex_id = :id AND sa.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
+    const annexCategories = (await sequelize.query(
+      `SELECT acs.id, acs.title, acs.description, acs.guidance, acs.sub_id, acs.order_no, acs.annex_id,
+              ac.id as instance_id, ac.is_applicable, ac.justification_for_exclusion, ac.implementation_description,
+              ac.evidence_links, ac.status, ac.owner, ac.reviewer, ac.approver, ac.due_date, ac.auditor_feedback,
+              ac.projects_frameworks_id, ac.created_at, ac.is_demo
+         FROM annexcategories_struct_iso acs
+         LEFT JOIN annexcategories_iso ac
+           ON acs.id = ac.annexcategory_meta_id
+          AND ac.projects_frameworks_id = :projects_frameworks_id
+        WHERE acs.annex_id = :annex_id
+        ORDER BY acs.order_no, acs.id;`,
       {
         replacements: {
-          id: annex.id,
+          annex_id: annex.id,
           projects_frameworks_id: projectFrameworkId,
         },
-        mapToModel: true,
+        mapToModel: false, // This is a mixed result, not a single model
         ...(transaction ? { transaction } : {}),
       }
-    )) as [
-      Partial<AnnexCategoryStructISOModel & AnnexCategoryISOModel>[],
-      number
-    ];
-    (
-      annex as AnnexStructISOModel & {
-        subAnnexes: Partial<
-          AnnexCategoryStructISOModel & AnnexCategoryISOModel
-        >[];
-      }
-    ).subAnnexes = subAnnexes[0];
+    )) as [any[], number];
+
+    (annex as any).annexcategories = annexCategories[0];
   }
   return annexes[0];
 };

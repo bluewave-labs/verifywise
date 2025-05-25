@@ -72,8 +72,7 @@ const VWISO42001AnnexDrawerDialog = ({
   const [evidenceFiles, setEvidenceFiles] = useState<FileData[]>([]);
 
   // Get context and project data
-  const { dashboardValues, userId } = useContext(VerifyWiseContext);
-  const { users } = dashboardValues;
+  const { users, userId } = useContext(VerifyWiseContext);
   const { project } = useProjectData({
     projectId: String(project_id) || "0",
   });

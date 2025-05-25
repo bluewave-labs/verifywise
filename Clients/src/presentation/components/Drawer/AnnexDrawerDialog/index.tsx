@@ -64,7 +64,6 @@ const VWISO42001AnnexDrawerDialog = ({
   project_id,
   onSaveSuccess,
 }: VWISO42001ClauseDrawerDialogProps) => {
-  console.log("VWISO42001AnnexDrawerDialog -- project_id : ", project_id);
   const [date, setDate] = useState<Dayjs | null>(null);
   const [fetchedAnnex, setFetchedAnnex] = useState<AnnexCategoryISO>();
   const [isLoading, setIsLoading] = useState(false);
@@ -251,10 +250,6 @@ const VWISO42001AnnexDrawerDialog = ({
         console.error("Fetched annex is undefined");
         return;
       }
-
-      console.log(
-        `Updating Annex Category: /iso-42001/saveAnnexes/${fetchedAnnex.id}`
-      );
 
       // Call the update API
       const response = await UpdateAnnexCategoryById({

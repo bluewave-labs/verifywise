@@ -85,9 +85,7 @@ const ISO42001Annex = ({
   ) => {
     setSelectedOrder(order);
     setSelectedAnnex(annex);
-    console.log("annex ===> ", annex);
     setSelectedControl(control);
-    console.log("control ===> ", control);
     setSelectedIndex(index);
     setDrawerOpen(true);
   };

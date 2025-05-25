@@ -32,7 +32,7 @@ router.get(
   validateId("id"),
   getAllClausesStructForProject
 );
-router.get("/annexes", authenticateJWT, getAllAnnexes);
+router.get("/annexes", /*authenticateJWT,*/ getAllAnnexes);
 
 router.get(
   "/clauses/byProjectId/:id",
@@ -42,7 +42,7 @@ router.get(
 );
 router.get(
   "/annexes/byProjectId/:id",
-  authenticateJWT,
+  /*authenticateJWT,*/
   validateId("id"),
   getAnnexesByProjectId
 );
@@ -55,7 +55,7 @@ router.get(
 );
 router.get(
   "/annexCategories/byAnnexId/:id",
-  authenticateJWT,
+  /*authenticateJWT,*/
   validateId("id"),
   getAnnexCategoriesByAnnexId
 );
@@ -69,7 +69,7 @@ router.get(
 );
 router.get(
   "/annexCategory/byId/:id",
-  authenticateJWT,
+  /*authenticateJWT,*/
   validateId("id"),
   validateId("projectFrameworkId"),
   getAnnexCategoryById

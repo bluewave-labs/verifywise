@@ -51,6 +51,7 @@ interface VWISO42001ClauseDrawerDialogProps {
   uploadFiles?: FileData[];
   projectFrameworkId: number;
   project_id: number;
+  onSaveSuccess?: () => void;
 }
 
 const VWISO42001AnnexDrawerDialog = ({
@@ -61,6 +62,7 @@ const VWISO42001AnnexDrawerDialog = ({
   annex,
   projectFrameworkId,
   project_id,
+  onSaveSuccess,
 }: VWISO42001ClauseDrawerDialogProps) => {
   console.log("VWISO42001AnnexDrawerDialog -- project_id : ", project_id);
   const [date, setDate] = useState<Dayjs | null>(null);
@@ -234,12 +236,17 @@ const VWISO42001AnnexDrawerDialog = ({
       );
 
       // Call the update API
-      await UpdateAnnexCategoryById({
+      const response = await UpdateAnnexCategoryById({
         routeUrl: `/iso-42001/saveAnnexes/${fetchedAnnex.id}`,
         body: formDataToSend,
       });
-      // Close the drawer after successful save
-      onClose();
+
+      if (response.status === 200) {
+        // Call onSaveSuccess after successful save
+        onSaveSuccess?.();
+        // Close the drawer after successful save
+        onClose();
+      }
     } catch (error) {
       console.error("Error saving annex category:", error);
       // Optionally, show an error message

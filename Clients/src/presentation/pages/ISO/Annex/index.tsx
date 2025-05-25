@@ -36,6 +36,8 @@ const ISO42001Annex = ({
   const [loadingControls, setLoadingControls] = useState<{
     [key: number]: boolean;
   }>({});
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
   useEffect(() => {
     const fetchClauses = async () => {
       try {
@@ -49,7 +51,7 @@ const ISO42001Annex = ({
     };
 
     fetchClauses();
-  }, [projectFrameworkId]);
+  }, [projectFrameworkId, refreshTrigger]);
 
   const fetchControls = useCallback(async (annexId: number) => {
     setLoadingControls((prev) => ({ ...prev, [annexId]: true }));
@@ -57,6 +59,7 @@ const ISO42001Annex = ({
       const response = (await GetAnnexCategoriesById({
         routeUrl: `/iso-42001/annexCategories/byAnnexId/${annexId}`,
       })) as { data: Partial<AnnexCategoryISO & AnnexCategoryStructISO>[] };
+      console.log("fetchControls -> response -> ", response);
       setControlsMap((prev) => ({ ...prev, [annexId]: response.data }));
     } catch (error) {
       console.error("Error fetching controls:", error);
@@ -68,9 +71,15 @@ const ISO42001Annex = ({
 
   const handleAccordionChange =
     (panel: number) => async (_: React.SyntheticEvent, isExpanded: boolean) => {
+      console.log("Accordion change:", {
+        panel,
+        isExpanded,
+        controlsMapExists: !!controlsMap[panel],
+      });
       setExpanded(isExpanded ? panel : false);
 
       if (isExpanded && !controlsMap[panel]) {
+        console.log("Calling fetchControls for panel:", panel);
         await fetchControls(panel);
       }
     };
@@ -92,6 +101,15 @@ const ISO42001Annex = ({
     setDrawerOpen(false);
     setSelectedControl(null);
     setSelectedAnnex(null);
+  };
+
+  const handleSaveSuccess = async () => {
+    // If there's an expanded annex, refresh its controls
+    if (expanded !== false) {
+      await fetchControls(expanded);
+    }
+    // Trigger a refresh of the annexes
+    setRefreshTrigger((prev) => prev + 1);
   };
 
   function getStatusColor(status: string) {
@@ -142,8 +160,6 @@ const ISO42001Annex = ({
   ) {
     const controls = controlsMap[annex.id ?? 0] || [];
     const isLoading = loadingControls[annex.id ?? 0];
-
-    console.log("dynamicAnnexes -> annex -> ", annex);
 
     return (
       <AccordionDetails sx={{ padding: 0 }}>
@@ -242,7 +258,7 @@ const ISO42001Annex = ({
               <Accordion
                 key={annex.id}
                 expanded={expanded === annex.id}
-                onChange={handleAccordionChange(Number(annex.id))}
+                onChange={handleAccordionChange(annex.id ?? 0)}
                 sx={{
                   marginTop: "9px",
                   border: "1px solid #eaecf0",
@@ -302,6 +318,7 @@ const ISO42001Annex = ({
         annex={selectedAnnex}
         projectFrameworkId={projectFrameworkId}
         project_id={project.id}
+        onSaveSuccess={handleSaveSuccess}
       />
     </Stack>
   );

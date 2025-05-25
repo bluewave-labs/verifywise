@@ -45,12 +45,13 @@ interface VWISO42001ClauseDrawerDialogProps {
   title: string;
   open: boolean;
   onClose: () => void;
-  control: Control | null;
+  control: Control;
   annex: AnnexCategoryISO;
   evidenceFiles?: FileData[];
   uploadFiles?: FileData[];
   projectFrameworkId: number;
   project_id: number;
+  onSaveSuccess?: () => void;
 }
 
 const VWISO42001AnnexDrawerDialog = ({
@@ -61,8 +62,8 @@ const VWISO42001AnnexDrawerDialog = ({
   annex,
   projectFrameworkId,
   project_id,
+  onSaveSuccess,
 }: VWISO42001ClauseDrawerDialogProps) => {
-  console.log("VWISO42001AnnexDrawerDialog -- project_id : ", project_id);
   const [date, setDate] = useState<Dayjs | null>(null);
   const [fetchedAnnex, setFetchedAnnex] = useState<AnnexCategoryISO>();
   const [isLoading, setIsLoading] = useState(false);
@@ -71,8 +72,7 @@ const VWISO42001AnnexDrawerDialog = ({
   const [evidenceFiles, setEvidenceFiles] = useState<FileData[]>([]);
 
   // Get context and project data
-  const { dashboardValues, userId } = useContext(VerifyWiseContext);
-  const { users } = dashboardValues;
+  const { users, userId } = useContext(VerifyWiseContext);
   const { project } = useProjectData({
     projectId: String(project_id) || "0",
   });
@@ -107,46 +107,33 @@ const VWISO42001AnnexDrawerDialog = ({
         setIsLoading(true);
         try {
           const response: any = await GetAnnexCategoriesById({
-            routeUrl: `/iso-42001/annexCategory/byId/${annex.id}?projectFrameworkId=${projectFrameworkId}`,
+            routeUrl: `/iso-42001/annexCategory/byId/${control.id}?projectFrameworkId=${projectFrameworkId}`,
           });
-          console.log("Fetched Annex Category:", response);
-          setFetchedAnnex(response.data);
+          const fetchedData = response.data.data;
+          setFetchedAnnex(fetchedData);
 
           // Initialize form data with fetched values
-          if (fetchedAnnex) {
-            setFormData({
-              is_applicable: fetchedAnnex.is_applicable ?? false,
-              justification_for_exclusion:
-                fetchedAnnex.justification_for_exclusion || "",
-              implementation_description:
-                fetchedAnnex.implementation_description || "",
-              status: fetchedAnnex.status || "",
-              owner: fetchedAnnex.owner?.toString() || "",
-              reviewer: fetchedAnnex.reviewer?.toString() || "",
-              approver: fetchedAnnex.approver?.toString() || "",
-              auditor_feedback: fetchedAnnex.auditor_feedback || "",
-            });
-            console.log("formData after fetch:", {
-              is_applicable: fetchedAnnex.is_applicable ?? false,
-              justification_for_exclusion:
-                fetchedAnnex.justification_for_exclusion || "",
-              implementation_description:
-                fetchedAnnex.implementation_description || "",
-              status: fetchedAnnex.status || "",
-              owner: fetchedAnnex.owner?.toString() || "",
-              reviewer: fetchedAnnex.reviewer?.toString() || "",
-              approver: fetchedAnnex.approver?.toString() || "",
-              auditor_feedback: fetchedAnnex.auditor_feedback || "",
-            });
-            // Set the date if it exists in the fetched data
-            if (fetchedAnnex.due_date) {
-              setDate(dayjs(fetchedAnnex.due_date));
-            }
+          setFormData({
+            is_applicable: fetchedData.is_applicable ?? false,
+            justification_for_exclusion:
+              fetchedData.justification_for_exclusion || "",
+            implementation_description:
+              fetchedData.implementation_description || "",
+            status: fetchedData.status || "",
+            owner: fetchedData.owner?.toString() || "",
+            reviewer: fetchedData.reviewer?.toString() || "",
+            approver: fetchedData.approver?.toString() || "",
+            auditor_feedback: fetchedData.auditor_feedback || "",
+          });
+
+          // Set the date if it exists in the fetched data
+          if (fetchedData.due_date) {
+            setDate(dayjs(fetchedData.due_date));
           }
 
-          // On annex category fetch, set evidence files if available
-          if (fetchedAnnex?.evidence_links) {
-            setEvidenceFiles(fetchedAnnex.evidence_links as FileData[]);
+          // Set evidence files if available
+          if (fetchedData.evidence_links) {
+            setEvidenceFiles(fetchedData.evidence_links as FileData[]);
           }
         } catch (error) {
           console.error("Error fetching annex category:", error);
@@ -156,8 +143,42 @@ const VWISO42001AnnexDrawerDialog = ({
       }
     };
 
-    fetchAnnexCategory();
+    // Reset states when drawer opens with a new control
+    if (open) {
+      setFormData({
+        is_applicable: false,
+        justification_for_exclusion: "",
+        implementation_description: "",
+        status: "",
+        owner: "",
+        reviewer: "",
+        approver: "",
+        auditor_feedback: "",
+      });
+      setDate(null);
+      setEvidenceFiles([]);
+      fetchAnnexCategory();
+    }
   }, [open, annex?.id, projectFrameworkId]);
+
+  // Reset states when drawer closes
+  useEffect(() => {
+    if (!open) {
+      setFetchedAnnex(undefined);
+      setFormData({
+        is_applicable: false,
+        justification_for_exclusion: "",
+        implementation_description: "",
+        status: "",
+        owner: "",
+        reviewer: "",
+        approver: "",
+        auditor_feedback: "",
+      });
+      setDate(null);
+      setEvidenceFiles([]);
+    }
+  }, [open]);
 
   // Handle form field changes
   const handleFieldChange = (field: string, value: any) => {
@@ -229,17 +250,18 @@ const VWISO42001AnnexDrawerDialog = ({
         return;
       }
 
-      console.log(
-        `Updating Annex Category: /iso-42001/saveAnnexes/${fetchedAnnex.id}`
-      );
-
       // Call the update API
-      await UpdateAnnexCategoryById({
+      const response = await UpdateAnnexCategoryById({
         routeUrl: `/iso-42001/saveAnnexes/${fetchedAnnex.id}`,
         body: formDataToSend,
       });
-      // Close the drawer after successful save
-      onClose();
+
+      if (response.status === 200) {
+        // Call onSaveSuccess after successful save
+        onSaveSuccess?.();
+        // Close the drawer after successful save
+        onClose();
+      }
     } catch (error) {
       console.error("Error saving annex category:", error);
       // Optionally, show an error message
@@ -281,6 +303,7 @@ const VWISO42001AnnexDrawerDialog = ({
 
   return (
     <Drawer
+      id={`vw-iso-42001-annex-drawer-dialog-${annex?.id}`}
       className="vw-iso-42001-annex-drawer-dialog"
       open={open}
       onClose={onClose}
@@ -382,8 +405,9 @@ const VWISO42001AnnexDrawerDialog = ({
               onChange={(e) =>
                 handleFieldChange("justification_for_exclusion", e.target.value)
               }
+              disabled={formData.is_applicable}
               sx={{
-                cursor: "text",
+                cursor: formData.is_applicable ? "not-allowed" : "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
                   {
                     height: "73px",
@@ -410,8 +434,9 @@ const VWISO42001AnnexDrawerDialog = ({
               onChange={(e) =>
                 handleFieldChange("implementation_description", e.target.value)
               }
+              disabled={!formData.is_applicable}
               sx={{
-                cursor: "text",
+                cursor: !formData.is_applicable ? "not-allowed" : "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
                   {
                     height: "73px",
@@ -433,7 +458,8 @@ const VWISO42001AnnexDrawerDialog = ({
                 backgroundColor: "white",
                 color: "#344054",
               }}
-              disableRipple={false}
+              disabled={!formData.is_applicable}
+              disableRipple={!formData.is_applicable}
               onClick={() => setIsFileUploadOpen(true)}
             >
               Add/Remove evidence
@@ -472,6 +498,7 @@ const VWISO42001AnnexDrawerDialog = ({
               _id: status,
               name: status.charAt(0).toUpperCase() + status.slice(1),
             }))}
+            disabled={!formData.is_applicable}
             sx={inputStyles}
             placeholder={"Select status"}
           />
@@ -485,6 +512,7 @@ const VWISO42001AnnexDrawerDialog = ({
               _id: user.id?.toString() || "",
               name: `${user.name} ${user.surname}`,
             }))}
+            disabled={!formData.is_applicable}
             sx={inputStyles}
             placeholder={"Select owner"}
           />
@@ -498,6 +526,7 @@ const VWISO42001AnnexDrawerDialog = ({
               _id: user.id?.toString() || "",
               name: `${user.name} ${user.surname}`,
             }))}
+            disabled={!formData.is_applicable}
             sx={inputStyles}
             placeholder={"Select reviewer"}
           />
@@ -511,6 +540,7 @@ const VWISO42001AnnexDrawerDialog = ({
               _id: user.id?.toString() || "",
               name: `${user.name} ${user.surname}`,
             }))}
+            disabled={!formData.is_applicable}
             sx={inputStyles}
             placeholder={"Select approver"}
           />
@@ -519,6 +549,7 @@ const VWISO42001AnnexDrawerDialog = ({
             label="Due date:"
             sx={inputStyles}
             date={date}
+            disabled={!formData.is_applicable}
             handleDateChange={(newDate) => {
               setDate(newDate);
             }}
@@ -533,8 +564,9 @@ const VWISO42001AnnexDrawerDialog = ({
               onChange={(e) =>
                 handleFieldChange("auditor_feedback", e.target.value)
               }
+              disabled={!formData.is_applicable}
               sx={{
-                cursor: "text",
+                cursor: !formData.is_applicable ? "not-allowed" : "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
                   {
                     height: "73px",

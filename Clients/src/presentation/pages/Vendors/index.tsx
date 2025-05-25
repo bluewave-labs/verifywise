@@ -220,6 +220,11 @@ const Vendors = () => {
           type: "error",
           message: "Unexpected response. Please try again.",
         });
+        setAlert({
+          variant: "error",
+          body: "Unexpected error. Please try again.",
+        });
+        setTimeout(() => setAlert(null), 3000);
       }
     } catch (error) {
       console.error("Error deleting vendor:", error);
@@ -227,11 +232,24 @@ const Vendors = () => {
         type: "error",
         message: `An error occurred: ${error}`,
       });
+      setAlert({
+        variant: "error",
+        body: "Failed to delete vendor. It may have already been deleted or there was a network error.",
+      });
+      setTimeout(() => setAlert(null), 3000);
     } finally {
       setIsSubmitting(false);
     }
   };
-  const handleDeleteRisk = async (vendorId: number) => {
+  const handleDeleteRisk = async (vendorId: number | undefined) => {
+    if (!vendorId) {
+      setAlert({
+        variant: "error",
+        body: "Invalid risk ID. Please refresh the page.",
+      });
+      setTimeout(() => setAlert(null), 3000);
+      return;
+    }
     const signal = createAbortController();
     setIsSubmitting(true);
 
@@ -249,19 +267,24 @@ const Vendors = () => {
         setTimeout(() => {
           setAlert(null);
         }, 3000);
-
         await refetchVendorRisks();
       } else if (response.status === 404) {
         setAlert({
           variant: "error",
           body: "Risk not found.",
         });
+        setTimeout(() => setAlert(null), 3000);
       } else {
         console.error("Unexpected response. Please try again.");
         logEngine({
           type: "error",
           message: "Unexpected response. Please try again.",
         });
+        setAlert({
+          variant: "error",
+          body: "Unexpected error. Please try again.",
+        });
+        setTimeout(() => setAlert(null), 3000);
       }
     } catch (error) {
       console.error("Error deleting Risk:", error);
@@ -269,11 +292,24 @@ const Vendors = () => {
         type: "error",
         message: `An error occurred: ${error}`,
       });
+      setAlert({
+        variant: "error",
+        body: "Failed to delete risk. It may have already been deleted or there was a network error.",
+      });
+      setTimeout(() => setAlert(null), 3000);
     } finally {
       setIsSubmitting(false);
     }
   };
-  const handleEditRisk = async (id: number) => {
+  const handleEditRisk = async (id: number | undefined) => {
+    if (!id) {
+      setAlert({
+        variant: "error",
+        body: "Invalid risk ID. Please refresh the page.",
+      });
+      setTimeout(() => setAlert(null), 3000);
+      return;
+    }
     try {
       const response = await getEntityById({
         routeUrl: `/vendorRisks/${id}`,
@@ -285,6 +321,11 @@ const Vendors = () => {
         type: "error",
         message: "Failed to update risk data.",
       });
+      setAlert({
+        variant: "error",
+        body: "Could not fetch risk data.",
+      });
+      setTimeout(() => setAlert(null), 3000);
     }
   };
   const handleEditVendor = async (id: number) => {
@@ -299,6 +340,11 @@ const Vendors = () => {
         type: "error",
         message: "Failed to fetch vendor data.",
       });
+      setAlert({
+        variant: "error",
+        body: "Could not fetch vendor data.",
+      });
+      setTimeout(() => setAlert(null), 3000);
     }
   };
   const handleProjectChange = (

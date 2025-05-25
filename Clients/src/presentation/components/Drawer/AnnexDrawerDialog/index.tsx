@@ -109,7 +109,7 @@ const VWISO42001AnnexDrawerDialog = ({
     }
   }, [project, users]);
 
-  const setUploadFilesForSubcontrol = (files: FileData[]) => {
+  const setUploadFilesAnnexCategories = (files: FileData[]) => {
     setUploadFiles(files);
     if (deletedFilesIds.length > 0 || files.length > 0) {
       handleAlert({
@@ -138,7 +138,7 @@ const VWISO42001AnnexDrawerDialog = ({
       .filter((file): file is FileData => file !== null);
 
     // Only update uploadFiles state, don't combine with evidenceFiles yet
-    setUploadFilesForSubcontrol(newUploadFiles);
+    setUploadFilesAnnexCategories(newUploadFiles);
     setIsFileUploadOpen(false);
   }
 

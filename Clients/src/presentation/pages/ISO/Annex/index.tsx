@@ -85,7 +85,9 @@ const ISO42001Annex = ({
   ) => {
     setSelectedOrder(order);
     setSelectedAnnex(annex);
+    console.log("annex ===> ", annex);
     setSelectedControl(control);
+    console.log("control ===> ", control);
     setSelectedIndex(index);
     setDrawerOpen(true);
   };
@@ -107,7 +109,10 @@ const ISO42001Annex = ({
 
   function getStatusColor(status: string) {
     const normalizedStatus = status?.trim() || "Not Started";
-    switch (normalizedStatus.toLowerCase()) {
+    switch (
+      normalizedStatus.charAt(0).toUpperCase() +
+      normalizedStatus.slice(1).toLowerCase()
+    ) {
       case "Not Started":
         return "#C63622";
       case "Draft":

@@ -45,7 +45,7 @@ interface VWISO42001ClauseDrawerDialogProps {
   title: string;
   open: boolean;
   onClose: () => void;
-  control: Control | null;
+  control: Control;
   annex: AnnexCategoryISO;
   evidenceFiles?: FileData[];
   uploadFiles?: FileData[];
@@ -109,7 +109,7 @@ const VWISO42001AnnexDrawerDialog = ({
         setIsLoading(true);
         try {
           const response: any = await GetAnnexCategoriesById({
-            routeUrl: `/iso-42001/annexCategory/byId/${annex.id}?projectFrameworkId=${projectFrameworkId}`,
+            routeUrl: `/iso-42001/annexCategory/byId/${control.id}?projectFrameworkId=${projectFrameworkId}`,
           });
           const fetchedData = response.data.data;
           setFetchedAnnex(fetchedData);

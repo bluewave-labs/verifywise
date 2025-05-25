@@ -4,10 +4,30 @@ import { SubClauseISO } from "../models/ISO-42001/subClauseISO.model";
 import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import { countAnnexCategoriesISOByProjectId, countSubClausesISOByProjectId, deleteAnnexCategoriesISOByProjectIdQuery, deleteSubClausesISOByProjectIdQuery, getAllAnnexesQuery, getAllClausesQuery, getAllClausesWithSubClauseQuery, getAnnexCategoriesByAnnexIdQuery, getAnnexCategoryByIdForProjectQuery, getAnnexesByProjectIdQuery, getClausesByProjectIdQuery, getSubClauseByIdForProjectQuery, getSubClausesByClauseIdQuery, updateAnnexCategoryQuery, updateSubClauseQuery } from "../utils/iso42001.utils";
+import {
+  countAnnexCategoriesISOByProjectId,
+  countSubClausesISOByProjectId,
+  deleteAnnexCategoriesISOByProjectIdQuery,
+  deleteSubClausesISOByProjectIdQuery,
+  getAllAnnexesQuery,
+  getAllAnnexesWithSubAnnexQuery,
+  getAllClausesQuery,
+  getAllClausesWithSubClauseQuery,
+  getAnnexCategoriesByAnnexIdQuery,
+  getAnnexCategoryByIdForProjectQuery,
+  getAnnexesByProjectIdQuery,
+  getClausesByProjectIdQuery,
+  getSubClauseByIdForProjectQuery,
+  getSubClausesByClauseIdQuery,
+  updateAnnexCategoryQuery,
+  updateSubClauseQuery,
+} from "../utils/iso42001.utils";
 import { FileType } from "../models/file.model";
 import { AnnexCategoryISO } from "../models/ISO-42001/annexCategoryISO.model";
-import { getAllProjectsQuery, updateProjectUpdatedByIdQuery } from "../utils/project.utils";
+import {
+  getAllProjectsQuery,
+  updateProjectUpdatedByIdQuery,
+} from "../utils/project.utils";
 import { Project } from "../models/project.model";
 
 export async function getAllClauses(req: Request, res: Response): Promise<any> {
@@ -19,11 +39,27 @@ export async function getAllClauses(req: Request, res: Response): Promise<any> {
   }
 }
 
-export async function getAllClausesStructForProject(req: Request, res: Response): Promise<any> {
+export async function getAllClausesStructForProject(
+  req: Request,
+  res: Response
+): Promise<any> {
   const projectFrameworkId = parseInt(req.params.id);
   try {
     const clauses = await getAllClausesWithSubClauseQuery(projectFrameworkId);
     return res.status(200).json(clauses);
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getAllAnnexesStructForProject(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const projectFrameworkId = parseInt(req.params.id);
+  try {
+    const annexes = await getAllAnnexesWithSubAnnexQuery(projectFrameworkId);
+    return res.status(200).json(annexes);
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -77,7 +113,10 @@ export async function getSubClauseById(
   try {
     const subClauseId = parseInt(req.params.id);
     const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
-    const subClause = await getSubClauseByIdForProjectQuery(subClauseId, projectFrameworkId);
+    const subClause = await getSubClauseByIdForProjectQuery(
+      subClauseId,
+      projectFrameworkId
+    );
     if (subClause) {
       return res.status(200).json(STATUS_CODE[200](subClause));
     }
@@ -94,7 +133,10 @@ export async function getAnnexCategoryById(
   try {
     const annexCategoryId = parseInt(req.params.id);
     const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
-    const annexCategory = await getAnnexCategoryByIdForProjectQuery(annexCategoryId, projectFrameworkId);
+    const annexCategory = await getAnnexCategoryByIdForProjectQuery(
+      annexCategoryId,
+      projectFrameworkId
+    );
     if (annexCategory) {
       return res.status(200).json(STATUS_CODE[200](annexCategory));
     }
@@ -126,7 +168,9 @@ export async function getAnnexesByProjectId(
 ): Promise<any> {
   try {
     const projectFrameworkId = parseInt(req.params.id);
-    const annexCategories = await getAnnexesByProjectIdQuery(projectFrameworkId);
+    const annexCategories = await getAnnexesByProjectIdQuery(
+      projectFrameworkId
+    );
     if (annexCategories) {
       return res.status(200).json(STATUS_CODE[200](annexCategories));
     }
@@ -144,9 +188,9 @@ async function deleteFiles(
   await Promise.all(
     filesToDelete.map(async (fileId) => {
       await deleteFileById(fileId, transaction);
-    }
-    ));
-};
+    })
+  );
+}
 
 // helper function to upload files
 async function uploadFiles(
@@ -179,7 +223,7 @@ async function uploadFiles(
     })
   );
   return uploadedFiles;
-};
+}
 
 export async function saveClauses(
   req: RequestWithFile,
@@ -211,7 +255,7 @@ export async function saveClauses(
       uploadedFiles,
       filesToDelete,
       transaction
-    )
+    );
 
     // Update the project's last updated date
     await updateProjectUpdatedByIdQuery(subClauseId, "subclauses", transaction);
@@ -256,10 +300,14 @@ export async function saveAnnexes(
       uploadedFiles,
       filesToDelete,
       transaction
-    )
+    );
 
     // Update the project's last updated date
-    await updateProjectUpdatedByIdQuery(annexCategoryId, "annexcategories", transaction)
+    await updateProjectUpdatedByIdQuery(
+      annexCategoryId,
+      "annexcategories",
+      transaction
+    );
     await transaction.commit();
 
     return res.status(200).json(STATUS_CODE[200](updatedAnnexCategory));
@@ -276,7 +324,10 @@ export async function deleteManagementSystemClauses(
   const transaction = await sequelize.transaction();
   try {
     const projectFrameworkId = parseInt(req.params.id);
-    const result = await deleteSubClausesISOByProjectIdQuery(projectFrameworkId, transaction);
+    const result = await deleteSubClausesISOByProjectIdQuery(
+      projectFrameworkId,
+      transaction
+    );
 
     if (result) {
       await transaction.commit();
@@ -298,7 +349,10 @@ export async function deleteReferenceControls(
   const transaction = await sequelize.transaction();
   try {
     const projectFrameworkId = parseInt(req.params.id);
-    const result = await deleteAnnexCategoriesISOByProjectIdQuery(projectFrameworkId, transaction);
+    const result = await deleteAnnexCategoriesISOByProjectIdQuery(
+      projectFrameworkId,
+      transaction
+    );
 
     if (result) {
       await transaction.commit();
@@ -319,11 +373,12 @@ export async function getProjectClausesProgress(
 ): Promise<any> {
   const projectFrameworkId = parseInt(req.params.id);
   try {
-    const { totalSubclauses, doneSubclauses } = await countSubClausesISOByProjectId(projectFrameworkId);
+    const { totalSubclauses, doneSubclauses } =
+      await countSubClausesISOByProjectId(projectFrameworkId);
     return res.status(200).json(
       STATUS_CODE[200]({
         totalSubclauses: parseInt(totalSubclauses),
-        doneSubclauses: parseInt(doneSubclauses)
+        doneSubclauses: parseInt(doneSubclauses),
       })
     );
   } catch (error) {
@@ -337,11 +392,12 @@ export async function getProjectAnnxesProgress(
 ): Promise<any> {
   const projectFrameworkId = parseInt(req.params.id);
   try {
-    const { totalAnnexcategories, doneAnnexcategories } = await countAnnexCategoriesISOByProjectId(projectFrameworkId);
+    const { totalAnnexcategories, doneAnnexcategories } =
+      await countAnnexCategoriesISOByProjectId(projectFrameworkId);
     return res.status(200).json(
       STATUS_CODE[200]({
         totalAnnexcategories: parseInt(totalAnnexcategories),
-        doneAnnexcategories: parseInt(doneAnnexcategories)
+        doneAnnexcategories: parseInt(doneAnnexcategories),
       })
     );
   } catch (error) {
@@ -361,18 +417,23 @@ export async function getAllProjectsClausesProgress(
       await Promise.all(
         projects.map(async (project) => {
           console.log("project", project);
-          const projectFrameworkId = (project as unknown as { dataValues: Project }).dataValues.framework?.filter((f) => f.framework_id === 2).map((f) => f.project_framework_id)[0];
+          const projectFrameworkId = (
+            project as unknown as { dataValues: Project }
+          ).dataValues.framework
+            ?.filter((f) => f.framework_id === 2)
+            .map((f) => f.project_framework_id)[0];
           if (!projectFrameworkId) {
             return;
           }
-          const { totalSubclauses, doneSubclauses } = await countSubClausesISOByProjectId(projectFrameworkId);
+          const { totalSubclauses, doneSubclauses } =
+            await countSubClausesISOByProjectId(projectFrameworkId);
           allSubclauses += parseInt(totalSubclauses);
           allDoneSubclauses += parseInt(doneSubclauses);
         })
       );
-      return res.status(200).json(
-        STATUS_CODE[200]({ allSubclauses, allDoneSubclauses })
-      );
+      return res
+        .status(200)
+        .json(STATUS_CODE[200]({ allSubclauses, allDoneSubclauses }));
     } else {
       return res.status(404).json(STATUS_CODE[404](projects));
     }
@@ -392,18 +453,23 @@ export async function getAllProjectsAnnxesProgress(
     if (projects && projects.length > 0) {
       await Promise.all(
         projects.map(async (project) => {
-          const projectFrameworkId = (project as unknown as { dataValues: Project }).dataValues.framework?.filter((f) => f.framework_id === 2).map((f) => f.project_framework_id)[0];
+          const projectFrameworkId = (
+            project as unknown as { dataValues: Project }
+          ).dataValues.framework
+            ?.filter((f) => f.framework_id === 2)
+            .map((f) => f.project_framework_id)[0];
           if (!projectFrameworkId) {
             return;
           }
-          const { totalAnnexcategories, doneAnnexcategories } = await countAnnexCategoriesISOByProjectId(projectFrameworkId);
+          const { totalAnnexcategories, doneAnnexcategories } =
+            await countAnnexCategoriesISOByProjectId(projectFrameworkId);
           allAnnexcategories += parseInt(totalAnnexcategories);
           allDoneAnnexcategories += parseInt(doneAnnexcategories);
         })
       );
-      return res.status(200).json(
-        STATUS_CODE[200]({ allAnnexcategories, allDoneAnnexcategories })
-      );
+      return res
+        .status(200)
+        .json(STATUS_CODE[200]({ allAnnexcategories, allDoneAnnexcategories }));
     } else {
       return res.status(404).json(STATUS_CODE[404](projects));
     }

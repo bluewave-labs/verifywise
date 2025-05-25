@@ -1,5 +1,9 @@
 ### get all annexes
 
+GET http://localhost:3000/api/iso-42001/annexes/struct/byProjectId/2
+
+### get all annexes
+
 GET http://localhost:3000/api/iso-42001/annexes
 
 ### get all annex categories by annex id

@@ -158,9 +158,6 @@ const ISO42001Annex = ({
       }[];
     }
   ) {
-    const controls = Array.isArray(controlsMap[annex.id ?? 0])
-      ? controlsMap[annex.id ?? 0]
-      : [];
     const isLoading = loadingControls[annex.id ?? 0];
 
     return (
@@ -178,7 +175,6 @@ const ISO42001Annex = ({
           </Stack>
         ) : annex.subClauses.length > 0 ? (
           annex.subClauses.map((control, index: number) => {
-            const controlIndex = controls.findIndex((c) => c.id === control.id);
             const isLastControl = index === annex.subClauses.length - 1;
 
             return (

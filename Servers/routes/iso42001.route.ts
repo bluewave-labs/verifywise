@@ -9,6 +9,7 @@ import {
   deleteManagementSystemClauses,
   deleteReferenceControls,
   getAllAnnexes,
+  getAllAnnexesStructForProject,
   getAllClauses,
   getAllClausesStructForProject,
   getAllProjectsAnnxesProgress,
@@ -33,6 +34,11 @@ router.get(
   getAllClausesStructForProject
 );
 router.get("/annexes", /*authenticateJWT,*/ getAllAnnexes);
+router.get(
+  "/annexes/struct/byProjectId/:id",
+  /*authenticateJWT,*/ validateId("id"),
+  getAllAnnexesStructForProject
+);
 
 router.get(
   "/clauses/byProjectId/:id",

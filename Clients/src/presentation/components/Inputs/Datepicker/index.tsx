@@ -16,6 +16,7 @@ const DatePicker = ({
   date,
   error,
   handleDateChange,
+  disabled,
 }: DatePickerProps) => {
   const theme = useTheme();
 
@@ -84,6 +85,7 @@ const DatePicker = ({
           value={date ? dayjs(date) : null}
           onChange={(value) => handleDateChange(value)}
           format="MM/DD/YYYY"
+          disabled={disabled}
         />
       </LocalizationProvider>
       {error && (

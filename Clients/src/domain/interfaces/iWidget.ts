@@ -60,6 +60,7 @@ export interface DatePickerProps {
   date: Dayjs | null;
   error?: string;
   handleDateChange: (date: Dayjs | null) => void;
+  disabled?: boolean;
 }
 
 export interface DropDownsProps {
@@ -126,6 +127,7 @@ export interface SelectProps {
   ) => void;
   sx?: object;
   getOptionValue?: (item: any) => any;
+  disabled?: boolean;
 }
 
 export interface IBannerProps {

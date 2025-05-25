@@ -405,8 +405,9 @@ const VWISO42001AnnexDrawerDialog = ({
               onChange={(e) =>
                 handleFieldChange("justification_for_exclusion", e.target.value)
               }
+              disabled={formData.is_applicable}
               sx={{
-                cursor: "text",
+                cursor: formData.is_applicable ? "not-allowed" : "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
                   {
                     height: "73px",
@@ -433,8 +434,9 @@ const VWISO42001AnnexDrawerDialog = ({
               onChange={(e) =>
                 handleFieldChange("implementation_description", e.target.value)
               }
+              disabled={!formData.is_applicable}
               sx={{
-                cursor: "text",
+                cursor: !formData.is_applicable ? "not-allowed" : "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
                   {
                     height: "73px",
@@ -456,7 +458,8 @@ const VWISO42001AnnexDrawerDialog = ({
                 backgroundColor: "white",
                 color: "#344054",
               }}
-              disableRipple={false}
+              disabled={!formData.is_applicable}
+              disableRipple={!formData.is_applicable}
               onClick={() => setIsFileUploadOpen(true)}
             >
               Add/Remove evidence
@@ -495,6 +498,7 @@ const VWISO42001AnnexDrawerDialog = ({
               _id: status,
               name: status.charAt(0).toUpperCase() + status.slice(1),
             }))}
+            disabled={!formData.is_applicable}
             sx={inputStyles}
             placeholder={"Select status"}
           />
@@ -508,6 +512,7 @@ const VWISO42001AnnexDrawerDialog = ({
               _id: user.id?.toString() || "",
               name: `${user.name} ${user.surname}`,
             }))}
+            disabled={!formData.is_applicable}
             sx={inputStyles}
             placeholder={"Select owner"}
           />
@@ -521,6 +526,7 @@ const VWISO42001AnnexDrawerDialog = ({
               _id: user.id?.toString() || "",
               name: `${user.name} ${user.surname}`,
             }))}
+            disabled={!formData.is_applicable}
             sx={inputStyles}
             placeholder={"Select reviewer"}
           />
@@ -534,6 +540,7 @@ const VWISO42001AnnexDrawerDialog = ({
               _id: user.id?.toString() || "",
               name: `${user.name} ${user.surname}`,
             }))}
+            disabled={!formData.is_applicable}
             sx={inputStyles}
             placeholder={"Select approver"}
           />
@@ -542,6 +549,7 @@ const VWISO42001AnnexDrawerDialog = ({
             label="Due date:"
             sx={inputStyles}
             date={date}
+            disabled={!formData.is_applicable}
             handleDateChange={(newDate) => {
               setDate(newDate);
             }}
@@ -556,8 +564,9 @@ const VWISO42001AnnexDrawerDialog = ({
               onChange={(e) =>
                 handleFieldChange("auditor_feedback", e.target.value)
               }
+              disabled={!formData.is_applicable}
               sx={{
-                cursor: "text",
+                cursor: !formData.is_applicable ? "not-allowed" : "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
                   {
                     height: "73px",

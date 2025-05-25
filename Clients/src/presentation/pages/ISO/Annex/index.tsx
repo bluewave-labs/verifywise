@@ -143,6 +143,8 @@ const ISO42001Annex = ({
     const controls = controlsMap[annex.id ?? 0] || [];
     const isLoading = loadingControls[annex.id ?? 0];
 
+    console.log("dynamicAnnexes -> annex -> ", annex);
+
     return (
       <AccordionDetails sx={{ padding: 0 }}>
         {isLoading ? (
@@ -156,7 +158,7 @@ const ISO42001Annex = ({
           >
             <CircularProgress size={24} />
           </Stack>
-        ) : (
+        ) : annex.subClauses.length > 0 ? (
           annex.subClauses.map((control, index: number) => (
             <Stack
               key={control.id}
@@ -201,6 +203,18 @@ const ISO42001Annex = ({
               </Stack>
             </Stack>
           ))
+        ) : (
+          <Stack
+            sx={{
+              padding: "16px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#666",
+            }}
+          >
+            No subclauses found
+          </Stack>
         )}
       </AccordionDetails>
     );

@@ -4,24 +4,7 @@ import { SubClauseISO } from "../models/ISO-42001/subClauseISO.model";
 import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import {
-  countAnnexCategoriesISOByProjectId,
-  countSubClausesISOByProjectId,
-  deleteAnnexCategoriesISOByProjectIdQuery,
-  deleteSubClausesISOByProjectIdQuery,
-  getAllAnnexesQuery,
-  getAllAnnexesWithSubAnnexQuery,
-  getAllClausesQuery,
-  getAllClausesWithSubClauseQuery,
-  getAnnexCategoriesByAnnexIdQuery,
-  getAnnexCategoryByIdForProjectQuery,
-  getAnnexesByProjectIdQuery,
-  getClausesByProjectIdQuery,
-  getSubClauseByIdForProjectQuery,
-  getSubClausesByClauseIdQuery,
-  updateAnnexCategoryQuery,
-  updateSubClauseQuery,
-} from "../utils/iso42001.utils";
+import { countAnnexCategoriesISOByProjectId, countSubClausesISOByProjectId, deleteAnnexCategoriesISOByProjectIdQuery, deleteSubClausesISOByProjectIdQuery, getAllAnnexesQuery, getAllAnnexesWithCategoriesQuery, getAllClausesQuery, getAllClausesWithSubClauseQuery, getAnnexCategoriesByAnnexIdQuery, getAnnexCategoryByIdForProjectQuery, getAnnexesByProjectIdQuery, getClausesByProjectIdQuery, getSubClauseByIdForProjectQuery, getSubClausesByClauseIdQuery, updateAnnexCategoryQuery, updateSubClauseQuery } from "../utils/iso42001.utils";
 import { FileType } from "../models/file.model";
 import { AnnexCategoryISO } from "../models/ISO-42001/annexCategoryISO.model";
 import {
@@ -52,13 +35,10 @@ export async function getAllClausesStructForProject(
   }
 }
 
-export async function getAllAnnexesStructForProject(
-  req: Request,
-  res: Response
-): Promise<any> {
+export async function getAllAnnexesStructForProject(req: Request, res: Response): Promise<any> {
   const projectFrameworkId = parseInt(req.params.id);
   try {
-    const annexes = await getAllAnnexesWithSubAnnexQuery(projectFrameworkId);
+    const annexes = await getAllAnnexesWithCategoriesQuery(projectFrameworkId);
     return res.status(200).json(annexes);
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

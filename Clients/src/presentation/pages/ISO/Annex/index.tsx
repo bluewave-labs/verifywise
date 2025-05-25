@@ -2,11 +2,9 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
-  CircularProgress,
   Stack,
   Typography,
 } from "@mui/material";
-import { ISO42001AnnexList } from "./annex.structure";
 import { useCallback, useEffect, useState } from "react";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import VWISO42001AnnexDrawerDialog from "../../../components/Drawer/AnnexDrawerDialog";
@@ -96,15 +94,6 @@ const ISO42001Annex = ({
     setSelectedAnnex(null);
   };
 
-  const handleSaveSuccess = async () => {
-    // If there's an expanded annex, refresh its controls
-    if (expanded !== false) {
-      await fetchControls(expanded);
-    }
-    // Trigger a refresh of the annexes
-    setRefreshTrigger((prev) => prev + 1);
-  };
-
   function getStatusColor(status: string) {
     const normalizedStatus = status?.trim() || "Not Started";
     switch (
@@ -132,128 +121,15 @@ const ISO42001Annex = ({
     }
   }
 
-  function dynamicAnnexes(
-    annex: AnnexStructISO,
-    element: {
-      id: number;
-      order: string;
-      title: string;
-      annexes: {
-        id: number;
-        order: number;
-        title: string;
-        controls: {
-          id: number;
-          control_no: number;
-          control_subSection: number;
-          title: string;
-          shortDescription: string;
-          guidance: string;
-          status: string;
-        }[];
-      }[];
-    }
-  ) {
-    const isLoading = loadingControls[annex.id ?? 0];
-
-    return (
-      <AccordionDetails sx={{ padding: 0 }}>
-        {isLoading ? (
-          <Stack
-            sx={{
-              padding: "16px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <CircularProgress size={24} />
-          </Stack>
-        ) : annex.annexcategories.length > 0 ? (
-          annex.annexcategories.map(
-            (
-              control: Partial<AnnexCategoryISO & AnnexCategoryStructISO>,
-              index: number
-            ) => {
-              const isLastControl = index === annex.annexcategories.length - 1;
-
-              return (
-                <Stack
-                  key={control.id}
-                  onClick={() =>
-                    handleControlClick(element.order, annex, control, index)
-                  }
-                  sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "16px",
-                    borderBottom: isLastControl ? "none" : "1px solid #eaecf0",
-                    cursor: "pointer",
-                    fontSize: 13,
-                    "&:hover": {
-                      backgroundColor: "#f8f9fa",
-                    },
-                  }}
-                >
-                  <Stack sx={{ gap: "4px" }}>
-                    <Typography fontWeight={600}>
-                      {element.order}.{annex.annex_no}.{index + 1}{" "}
-                      {control.title}
-                    </Typography>
-                    <Typography sx={{ fontSize: 13, color: "#666" }}>
-                      {control.description}
-                    </Typography>
-                  </Stack>
-                  <Stack
-                    sx={{
-                      borderRadius: "4px",
-                      padding: "5px 10px",
-                      backgroundColor: getStatusColor(control.status ?? ""),
-                      color: "#fff",
-                      height: "fit-content",
-                      minWidth: "100px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {control.status
-                      ? control.status.charAt(0).toUpperCase() +
-                        control.status.slice(1).toLowerCase()
-                      : "Not started"}
-                  </Stack>
-                </Stack>
-              );
-            }
-          )
-        ) : (
-          <Stack
-            sx={{
-              padding: "16px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#666",
-            }}
-          >
-            No subclauses found
-          </Stack>
-        )}
-      </AccordionDetails>
-    );
-  }
-
   return (
     <Stack className="iso-42001-annex">
-      {ISO42001AnnexList.map((element) => (
+      {
         <>
           <Typography
-            key={element.id}
+            key={"Reference-Controls"}
             sx={{ color: "#1A1919", fontWeight: 600, mb: "6px", fontSize: 16 }}
           >
-            Annex {element.order} : {element.title}
+            Annex A : Reference Controls (Statement of Applicability)
           </Typography>
           {annexes &&
             annexes.map((annex: AnnexStructISO) => (
@@ -303,22 +179,63 @@ const ISO42001Annex = ({
                       />
                     }
                   >
-                    <Typography
+                    {annex.title}
+                </AccordionSummary>
+                <AccordionDetails sx={{ padding: 0 }}>
+                  {annex.annexCategories.map((control, index: number) => (
+                    <Stack
+                      key={control.id}
+                      onClick={() =>
+                        handleControlClick("A", annex, control, index)
+                      }
                       sx={{
-                        paddingLeft: "2.5px",
+                        display: "flex",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        padding: "16px",
+                        borderBottom:
+                          annex.annexCategories.length - 1 ===
+                          annex.annexCategories.indexOf(control)
+                            ? "none"
+                            : "1px solid #eaecf0",
+                        cursor: "pointer",
                         fontSize: 13,
                       }}
                     >
-                      {annex.title}
-                    </Typography>
-                  </AccordionSummary>
-                  {dynamicAnnexes(annex, element)}
-                </Accordion>
-              </Stack>
-            ))}
+                      <Stack>
+                        <Typography fontWeight={600}>
+                          {"A"}.{annex.annex_no}.{index + 1}{" "}
+                          {control.title}
+                        </Typography>
+                        <Typography sx={{ fontSize: 13 }}>
+                          {control.description}
+                        </Typography>
+                      </Stack>
+                      <Stack
+                        sx={{
+                          borderRadius: "4px",
+                          padding: "5px",
+                          backgroundColor: getStatusColor(control.status || ""),
+                          color: "#fff",
+                          height: "fit-content",
+                        }}
+                      >
+                        {control.status
+                          ? control.status.charAt(0).toUpperCase() +
+                            control.status.slice(1).toLowerCase()
+                          : "Not started"}
+                      </Stack>
+                    </Stack>
+                  ))}
+                </AccordionDetails>
+              </Accordion>
+            </Stack>
+          ))}
         </>
-      ))}
-      <VWISO42001AnnexDrawerDialog
+    }
+      {drawerOpen &&
+        (<VWISO42001AnnexDrawerDialog
         open={drawerOpen}
         onClose={handleDrawerClose}
         title={`${selectedOrder}.${selectedAnnex?.annex_no}.${
@@ -328,8 +245,7 @@ const ISO42001Annex = ({
         annex={selectedAnnex}
         projectFrameworkId={projectFrameworkId}
         project_id={project.id}
-        onSaveSuccess={handleSaveSuccess}
-      />
+      />)}
     </Stack>
   );
 };

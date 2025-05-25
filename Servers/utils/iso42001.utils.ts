@@ -298,10 +298,28 @@ export const getAllAnnexesQuery = async (
   return annexes;
 };
 
-export const getAnnexByIdQuery = async (
-  annexId: number,
-  transaction: Transaction | null = null
-) => {
+export const getAllAnnexesWithCategoriesQuery = async (projectFrameworkId: number, transaction: Transaction | null = null) => {
+  const annexes = await sequelize.query(
+    `SELECT * FROM annex_struct_iso ORDER BY id;`,
+    {
+      mapToModel: true,
+      ...(transaction ? { transaction } : {})
+    }) as [AnnexStructISOModel[], number];
+
+  for (let annex of annexes[0]) {
+    const annexCategories = await sequelize.query(
+      `SELECT acs.id, acs.title, acs.description, acs.order_no, ac.status FROM annexcategories_struct_iso acs JOIN annexcategories_iso ac ON acs.id = ac.annexcategory_meta_id WHERE acs.annex_id = :id AND ac.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
+      {
+        replacements: { id: annex.id, projects_frameworks_id: projectFrameworkId },
+        mapToModel: true,
+        ...(transaction ? { transaction } : {})
+      }) as [Partial<AnnexCategoryStructISOModel & AnnexCategoryISOModel>[], number];
+    (annex as (AnnexStructISOModel & { annexCategories: Partial<AnnexCategoryStructISOModel & AnnexCategoryISOModel>[] })).annexCategories = annexCategories[0];
+  }
+  return annexes[0];
+}
+
+export const getAnnexByIdQuery = async (annexId: number, transaction: Transaction | null = null) => {
   const annex = await sequelize.query(
     `SELECT * FROM annex_struct_iso WHERE id = :id;`,
     {

@@ -80,7 +80,7 @@ const initialState = {
     reviewStatus: "",
     reviewer: "",
     reviewResult: "",
-    riskStatus: 0,
+    riskStatus: "",
     assignee: "",
     reviewDate: new Date().toISOString(),
   },
@@ -103,6 +103,7 @@ const REVIEW_STATUS_OPTIONS = [
 ];
 
 const RISK_LEVEL_OPTIONS = [
+  { _id: '', name: "Select risk status" },
   { _id: 1, name: "Very high risk" },
   { _id: 2, name: "High risk" },
   { _id: 3, name: "Medium risk" },
@@ -186,9 +187,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             )?._id || "",
           reviewResult: existingVendor.review_result,
           riskStatus:
-            RISK_LEVEL_OPTIONS?.find(
+            String(RISK_LEVEL_OPTIONS?.find(
               (s) => s.name === existingVendor.risk_status
-            )?._id || 0,
+            )?._id ?? ''),
           assignee:
             formattedUsers?.find(
               (user: any) => user._id === existingVendor.assignee
@@ -695,7 +696,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           isHidden={false}
           id=""
           onChange={(e) => handleOnChange("riskStatus", e.target.value)}
-          value={values.vendorDetails.riskStatus}
+          value={values.vendorDetails.riskStatus || ''}
           error={errors.riskStatus}
           sx={{
             width: 220,

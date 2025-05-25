@@ -42,9 +42,13 @@ const ISO42001Annex = ({
     const fetchClauses = async () => {
       try {
         const response = await GetAnnexesByProjectFrameworkId({
-          routeUrl: `/iso-42001/annexes/byProjectId/${projectFrameworkId}`,
+          routeUrl: `/iso-42001/annexes/struct/byProjectId/${projectFrameworkId}`,
         });
-        setAnnexes(response.data.data);
+        console.log(
+          `/iso-42001/annexes/struct/byProjectId/${projectFrameworkId} ===> response ===> `,
+          response
+        );
+        setAnnexes(response.data);
       } catch (error) {
         console.error("Error fetching annexes:", error);
       }
@@ -158,6 +162,7 @@ const ISO42001Annex = ({
       }[];
     }
   ) {
+    console.log("annex ===> ", annex);
     const isLoading = loadingControls[annex.id ?? 0];
 
     return (
@@ -173,9 +178,9 @@ const ISO42001Annex = ({
           >
             <CircularProgress size={24} />
           </Stack>
-        ) : annex.subClauses.length > 0 ? (
-          annex.subClauses.map((control, index: number) => {
-            const isLastControl = index === annex.subClauses.length - 1;
+        ) : annex.annexcategories.length > 0 ? (
+          annex.annexcategories.map((control, index: number) => {
+            const isLastControl = index === annex.annexcategories.length - 1;
 
             return (
               <Stack

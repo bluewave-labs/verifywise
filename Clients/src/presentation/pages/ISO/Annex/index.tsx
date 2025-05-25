@@ -31,9 +31,6 @@ const ISO42001Annex = ({
   const [annexes, setAnnexes] = useState<AnnexStructISO[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [controlsMap, setControlsMap] = useState<{ [key: number]: any[] }>({});
-  const [loadingControls, setLoadingControls] = useState<{
-    [key: number]: boolean;
-  }>({});
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
@@ -52,7 +49,6 @@ const ISO42001Annex = ({
   }, [projectFrameworkId, refreshTrigger]);
 
   const fetchControls = useCallback(async (annexId: number) => {
-    setLoadingControls((prev) => ({ ...prev, [annexId]: true }));
     try {
       const response = (await GetAnnexCategoriesById({
         routeUrl: `/iso-42001/annexCategories/byAnnexId/${annexId}`,
@@ -62,7 +58,6 @@ const ISO42001Annex = ({
       console.error("Error fetching controls:", error);
       setControlsMap((prev) => ({ ...prev, [annexId]: [] }));
     } finally {
-      setLoadingControls((prev) => ({ ...prev, [annexId]: false }));
     }
   }, []);
 
@@ -92,6 +87,15 @@ const ISO42001Annex = ({
     setDrawerOpen(false);
     setSelectedControl(null);
     setSelectedAnnex(null);
+  };
+
+  const handleSaveSuccess = async () => {
+    // If there's an expanded annex, refresh its controls
+    if (expanded !== false) {
+      await fetchControls(expanded);
+    }
+    // Trigger a refresh of the annexes
+    setRefreshTrigger((prev) => prev + 1);
   };
 
   function getStatusColor(status: string) {
@@ -245,6 +249,7 @@ const ISO42001Annex = ({
         annex={selectedAnnex}
         projectFrameworkId={projectFrameworkId}
         project_id={project.id}
+        onSaveSuccess={handleSaveSuccess}
       />)}
     </Stack>
   );

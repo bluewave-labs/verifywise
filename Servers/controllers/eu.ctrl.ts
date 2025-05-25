@@ -369,7 +369,6 @@ export async function getAllProjectsComplianceProgress(
     if (projects && projects.length > 0) {
       await Promise.all(
         projects.map(async (project) => {
-          console.log("project", project);
           // [0] assuming that the project has only one EU framework (if it has))
           const projectFrameworkId = (project as unknown as { dataValues: Project }).dataValues.framework?.filter((f) => f.framework_id === 1).map((f) => f.project_framework_id)[0];
           if (!projectFrameworkId) {

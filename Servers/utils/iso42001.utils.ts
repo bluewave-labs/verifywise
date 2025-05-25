@@ -696,7 +696,7 @@ export const updateSubClauseQuery = async (
     "auditor_feedback",
   ]
     .reduce((acc: string[], field) => {
-      if (field === "evidence_links" && currentFiles.length) {
+      if (field === "evidence_links") {
         updateSubClause["evidence_links"] = JSON.stringify(currentFiles);
         acc.push(`${field} = :${field}`);
       } else if (
@@ -784,7 +784,7 @@ export const updateAnnexCategoryQuery = async (
     "auditor_feedback",
   ]
     .reduce((acc: string[], field) => {
-      if (field === "evidence_links" && currentFiles.length) {
+      if (field === "evidence_links") {
         updateAnnexCategory["evidence_links"] = JSON.stringify(currentFiles);
         acc.push(`${field} = :${field}`);
       } else if (

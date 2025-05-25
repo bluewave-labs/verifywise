@@ -396,7 +396,6 @@ export async function getAllProjectsClausesProgress(
     if (projects && projects.length > 0) {
       await Promise.all(
         projects.map(async (project) => {
-          console.log("project", project);
           const projectFrameworkId = (
             project as unknown as { dataValues: Project }
           ).dataValues.framework

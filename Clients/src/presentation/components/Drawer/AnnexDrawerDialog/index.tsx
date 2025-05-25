@@ -448,6 +448,8 @@ const VWISO42001AnnexDrawerDialog = ({
           sx={{
             padding: "15px 20px",
             gap: "15px",
+            opacity: formData.is_applicable ? 1: 0.5,
+            pointerEvents: formData.is_applicable ? "auto" : "none",
           }}
         >
           <Stack>
@@ -561,6 +563,8 @@ const VWISO42001AnnexDrawerDialog = ({
         <Stack
           sx={{
             padding: "15px 20px",
+            opacity: formData.is_applicable ? 1: 0.5,
+            pointerEvents: formData.is_applicable ? "auto" : "none",
           }}
           gap={"20px"}
         >

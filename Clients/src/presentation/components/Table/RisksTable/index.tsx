@@ -10,6 +10,7 @@ import {
   Stack,
   Typography,
   Box,
+  Tooltip,
 } from "@mui/material";
 import { useCallback,useMemo, useState } from "react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
@@ -19,17 +20,16 @@ import TablePaginationActions from "../../TablePagination";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
 import { RISK_LABELS} from "../../RiskLevel/constants";
 import { VendorDetails } from '../../../pages/Vendors';
+import { VendorRisk } from "../../../../domain/types/VendorRisk";
 
 const titleOfTableColumns = [
-  "vendor",
-  "impact",
-  "likelihood",
-  "risk severity",
-  "action owner",
-  "risk level",
   "risk description",
-  "impact description",
-  "action plan",
+  "vendor",
+  "project",
+  "action owner",
+  "risk severity",
+  "likelihood",
+  "risk level",
   " ",
 ];
 
@@ -92,6 +92,24 @@ const RiskTable: React.FC<RiskTableProps> = ({
     return `${start} - ${end}`;
   }, [page, rowsPerPage, vendorRisks?.length ?? 0]);
 
+  // Group risks by id so each risk appears only once, and collect all project titles
+  const groupedRisks: Record<number, VendorRisk & { project_titles: string[] }> = {}
+  vendorRisks?.forEach((row: VendorRisk & { project_title?: string }) => {
+    const key = row.risk_id!;
+    if (!groupedRisks[key]) {
+      groupedRisks[key] = {
+        ...row,
+        project_titles: row.project_title ? [row.project_title] : [],
+      };
+    } else if (row.project_title) {
+      groupedRisks[key].project_titles.push(row.project_title);
+    }
+  });
+  const uniqueRisks = Object.values(groupedRisks).map((risk) => ({
+    ...risk,
+    project_titles: Array.from(new Set(risk.project_titles)).join(", "),
+  }));
+
   const tableHeader = useMemo(
     () => (
       <TableHead
@@ -130,31 +148,72 @@ const RiskTable: React.FC<RiskTableProps> = ({
   const tableBody = useMemo(
     () => (
       <TableBody>
-        {vendorRisks &&
-          vendorRisks
+        {uniqueRisks &&
+          uniqueRisks
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((row: any, index: number) => (
+            .map((row: VendorRisk & { project_titles: string }) => (
               <TableRow
-                key={index}
+                key={row.risk_id}
                 sx={singleTheme.tableStyles.primary.body.row}
-                onClick={() => onEdit(row.id)}
+                onClick={() => onEdit(row.risk_id!)}
               >
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                  {
-                    formattedVendors?.find(
-                      (vendor: any) => vendor._id === row.vendor_id
-                    )?.name || row.vendor_name
-                  }
+                <TableCell sx={cellStyle}>{row.risk_description}</TableCell>
+                <TableCell sx={cellStyle}>{
+                  formattedVendors?.find(
+                    (vendor: any) => vendor._id === row.vendor_id
+                  )?.name
+                }</TableCell>
+                <TableCell sx={{ ...cellStyle, maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {(() => {
+                    const projects = (row.project_titles as string).split(',').map(p => p.trim());
+                    const displayCount = 1;
+                    const showMore = projects.length > displayCount;
+                    const displayed = projects.slice(0, displayCount).join(', ');
+                    const moreCount = projects.length - displayCount;
+                    return (
+                      <Tooltip
+                        title={
+                          <>
+                            {projects.map((title, idx) => (
+                              <div key={idx}>{title}</div>
+                            ))}
+                          </>
+                        }
+                        arrow
+                        placement="top"
+                      >
+                        <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer', width: '100%' }}>
+                          <span style={{
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            maxWidth: 150,
+                            display: 'inline-block',
+                            verticalAlign: 'middle',
+                          }}>
+                            {displayed}
+                          </span>
+                          {showMore && (
+                            <span style={{ color: '#888', marginLeft: 4, fontWeight: 500 }}>+{moreCount}</span>
+                          )}
+                        </Box>
+                      </Tooltip>
+                    );
+                  })()}
                 </TableCell>
-                <TableCell sx={cellStyle}>{row.impact}</TableCell>
+                <TableCell sx={cellStyle}>{
+                  formattedUsers?.find(
+                    (user: any) => user._id === row.action_owner
+                  )?.name
+                }</TableCell>
+                <TableCell sx={cellStyle}>{row.risk_severity}</TableCell>
                 <TableCell sx={cellStyle}>{row.likelihood}</TableCell>
                 <TableCell sx={cellStyle}>
-                  {" "}
                   <Box
                     sx={{
                       backgroundColor:
                         Object.values(RISK_LABELS).find(
-                          (risk) => risk.text === row.risk_severity
+                          (risk) => risk.text === row.risk_level
                         )?.color || "transparent",
                       borderRadius: theme.shape.borderRadius,
                       padding: "8px",
@@ -163,20 +222,9 @@ const RiskTable: React.FC<RiskTableProps> = ({
                       color: "white",
                     }}
                   >
-                    {row.risk_severity}
+                    {row.risk_level}
                   </Box>
                 </TableCell>
-                <TableCell sx={cellStyle}>
-                  {
-                    formattedUsers?.find(
-                      (user: any) => user._id === row.action_owner
-                    )?.name
-                  }
-                </TableCell>
-                <TableCell sx={cellStyle}>{row.risk_level}</TableCell>
-                <TableCell sx={cellStyle}>{row.risk_description}</TableCell>
-                <TableCell sx={cellStyle}>{row.impact_description}</TableCell>
-                <TableCell sx={cellStyle}>{row.action_plan}</TableCell>
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
@@ -187,9 +235,9 @@ const RiskTable: React.FC<RiskTableProps> = ({
                   }}
                 >
                   <IconButton
-                    id={row.id}
-                    onDelete={() => onDelete(row.id)}
-                    onEdit={() => onEdit(row.id)}
+                    id={row.risk_id!}
+                    onDelete={() => onDelete(row.risk_id!)}
+                    onEdit={() => onEdit(row.risk_id!)}
                     onMouseEvent={() => {}}
                     warningTitle="Delete this risk?"
                     warningMessage="This action is non-recoverable."
@@ -201,7 +249,7 @@ const RiskTable: React.FC<RiskTableProps> = ({
       </TableBody>
     ),
     [
-     vendorRisks,
+     uniqueRisks,
       page,
       rowsPerPage,
       cellStyle,

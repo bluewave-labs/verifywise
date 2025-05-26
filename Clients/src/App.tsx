@@ -26,6 +26,8 @@ import useUsers from "./application/hooks/useUsers";
 function App() {
   const mode = useSelector((state: AppState) => state.ui?.mode || "light");
   const token = useSelector((state: AppState) => state.auth?.authToken);
+  const userToken = token ? extractUserToken(token) : null;
+  const userRoleName = userToken?.roleName || "";
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const { users, refreshUsers } = useUsers();
 
@@ -96,7 +98,8 @@ function App() {
       componentsVisible,
       changeComponentVisibility,
       users,
-      refreshUsers
+      refreshUsers,
+      userRoleName
     }),
     [
       uiValues,
@@ -119,7 +122,8 @@ function App() {
       componentsVisible,
       changeComponentVisibility,
       users,
-      refreshUsers
+      refreshUsers,
+      userRoleName
     ]
   );
 

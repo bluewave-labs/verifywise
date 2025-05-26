@@ -151,7 +151,7 @@ const RiskTable: React.FC<RiskTableProps> = ({
         {uniqueRisks &&
           uniqueRisks
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((row: VendorRisk & { project_titles: string }, index: number) => (
+            .map((row: VendorRisk & { project_titles: string }) => (
               <TableRow
                 key={row.risk_id}
                 sx={singleTheme.tableStyles.primary.body.row}

@@ -65,7 +65,7 @@ async function resetDatabase() {
       password_hash
     };
 
-    const admin = await createNewUserQuery(adminData, transaction);
+    const admin = await createNewUserQuery(adminData, transaction, true);
     await transaction.commit();
     console.log('Default admin user created.');
 

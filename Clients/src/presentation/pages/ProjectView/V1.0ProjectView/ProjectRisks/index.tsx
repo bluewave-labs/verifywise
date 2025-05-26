@@ -242,7 +242,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
             }}
             onClick={handleOpenOrClose}
             icon={<AddCircleOutlineIcon />}
-            isDisabled={!allowedRoles.projecrRisks.create.includes(userRoleName)}
+            isDisabled={!allowedRoles.projectRisks.create.includes(userRoleName)}
           />
         </Stack>
 

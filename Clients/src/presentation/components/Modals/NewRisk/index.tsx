@@ -154,7 +154,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
 
   const { users } = useUsers();
   const formattedUsers = users?.map((user) => ({
-    _id: user.id,
+    _id: String(user.id),
     name: `${user.name} ${user.surname}`,
   }));
   useEffect(() => {

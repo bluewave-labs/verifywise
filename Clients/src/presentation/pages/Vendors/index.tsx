@@ -194,9 +194,6 @@ const Vendors = () => {
       });
 
       if (response.status === 202) {
-        setVendors((prevVendors) =>
-          prevVendors.filter((vendor) => vendor.id !== vendorId)
-        );
         setAlert({
           variant: "success",
           body: "Vendor deleted successfully.",
@@ -231,13 +228,13 @@ const Vendors = () => {
       setIsSubmitting(false);
     }
   };
-  const handleDeleteRisk = async (vendorId: number) => {
+  const handleDeleteRisk = async (riskId: number) => {
     const signal = createAbortController();
     setIsSubmitting(true);
 
     try {
       const response = await deleteEntityById({
-        routeUrl: `/vendorRisks/${vendorId}`,
+        routeUrl: `/vendorRisks/${riskId}`,
         signal,
       });
 
@@ -273,10 +270,10 @@ const Vendors = () => {
       setIsSubmitting(false);
     }
   };
-  const handleEditRisk = async (id: number) => {
+  const handleEditRisk = async (riskId: number) => {
     try {
       const response = await getEntityById({
-        routeUrl: `/vendorRisks/${id}`,
+        routeUrl: `/vendorRisks/${riskId}`,
       });
       setSelectedRisk(response.data);
       setIsRiskModalOpen(true);
@@ -607,7 +604,10 @@ const Vendors = () => {
         isOpen={isOpen}
         setIsOpen={() => setIsOpen(false)}
         value={value}
-        onSuccess={fetchVendors}
+        onSuccess={() => {
+          fetchVendors();
+          refetchVendorRisks();
+        }}
         existingVendor={selectedVendor}
       />
       <AddNewRisk

@@ -3,7 +3,7 @@ const allowedRoles = {
         view: ['Admin', 'Editor', 'Auditor'],
         create: ['Admin', 'Editor', 'Auditor'],
         edit: ['Admin', 'Editor'],
-        delete: ['Admin'],
+        delete: ['Admin', 'Editor'],
         editTeamMembers: ['Admin'],
     },
     projectRisks: {
@@ -11,6 +11,13 @@ const allowedRoles = {
         create: ['Admin', 'Editor'],
         edit: ['Admin', 'Editor'],
         delete: ['Admin', 'Editor']      
+    },
+    vendors: {
+        view: ['Admin', 'Editor', 'Auditor'],
+        create: ['Admin', 'Editor'],
+        edit: ['Admin', 'Editor'],
+        delete: ['Admin', 'Editor'],
+        viewVendorsRisks: ['Admin', 'Editor'],
     },
 }
 

@@ -44,6 +44,7 @@ import RisksCard from "../../components/Cards/RisksCard";
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import useVendorRisks from "../../../application/hooks/useVendorRisks";
 import Select from "../../components/Inputs/Select";
+import allowedRoles from "../../../application/constants/permissions";
 
 interface ExistingRisk {
   id?: number;
@@ -82,7 +83,7 @@ const Vendors = () => {
   const [value, setValue] = useState("1");
   const [projects, setProjects] = useState<Project[]>([]);
   const [vendors, setVendors] = useState<VendorDetails[]>([]);
-  const { users } = useContext(VerifyWiseContext);
+  const { users, userRoleName } = useContext(VerifyWiseContext);
   const [selectedVendor, setSelectedVendor] = useState<VendorDetails | null>(
     null
   );
@@ -326,22 +327,24 @@ const Vendors = () => {
     }
   };
   const handleEditVendor = async (id: number) => {
-    try {
-      const response = await getEntityById({
-        routeUrl: `/vendors/${id}`,
-      });
-      setSelectedVendor(response.data);
-      setIsOpen(true);
-    } catch (e) {
-      logEngine({
-        type: "error",
-        message: "Failed to fetch vendor data.",
-      });
-      setAlert({
-        variant: "error",
-        body: "Could not fetch vendor data.",
-      });
-      setTimeout(() => setAlert(null), 3000);
+    if (allowedRoles.vendors.edit.includes(userRoleName)) {
+      try {
+        const response = await getEntityById({
+          routeUrl: `/vendors/${id}`,
+        });
+        setSelectedVendor(response.data);
+        setIsOpen(true);
+      } catch (e) {
+        logEngine({
+          type: "error",
+          message: "Failed to fetch vendor data.",
+        });
+        setAlert({
+          variant: "error",
+          body: "Could not fetch vendor data.",
+        });
+        setTimeout(() => setAlert(null), 3000);
+      }
     }
   };
   const handleProjectChange = (
@@ -485,7 +488,7 @@ const Vendors = () => {
               }}
             >
               <Tab label="Vendors" value="1" sx={tabStyle} disableRipple />
-              <Tab label="Risks" value="2" sx={tabStyle} disableRipple />
+              <Tab label="Risks" value="2" sx={tabStyle} disableRipple disabled={!allowedRoles.vendors.viewVendorsRisks.includes(userRoleName)} />
             </TabList>
           </Box>
           {value !== "1" &&
@@ -535,6 +538,7 @@ const Vendors = () => {
                       openAddNewVendor();
                       setSelectedVendor(null);
                     }}
+                    isDisabled={!allowedRoles.vendors.create.includes(userRoleName)}
                   />
                 </div>
               </Stack>

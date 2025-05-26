@@ -15,6 +15,7 @@ import React, {
   useMemo,
   useEffect,
   useRef,
+  useContext,
 } from "react";
 import Field from "../../../components/Inputs/Field";
 import DatePicker from "../../../components/Inputs/Datepicker";
@@ -40,6 +41,8 @@ import VWToast from "../../../vw-v2-components/Toast";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import useFrameworks from '../../../../application/hooks/useFrameworks';
 import { Framework } from "../../../../domain/types/Framework";
+import allowedRoles from "../../../../application/constants/permissions";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -110,6 +113,7 @@ const ProjectSettings = React.memo(
   }: {
     triggerRefresh?: (isUpdate: boolean) => void;
   }) => {
+    const { userRoleName } = useContext(VerifyWiseContext);
     const [searchParams] = useSearchParams();
     const projectId = searchParams.get("projectId") ?? "1"; // default project ID is 2
     const theme = useTheme();
@@ -839,6 +843,7 @@ const ProjectSettings = React.memo(
 
             <Autocomplete
               multiple
+              readOnly={!allowedRoles.projects.editTeamMembers.includes(userRoleName)}
               id="users-input"
               size="small"
               value={users.filter((user) =>
@@ -1062,6 +1067,7 @@ const ProjectSettings = React.memo(
                 variant="contained"
                 onClick={handleOpenDeleteDialog}
                 text="Delete project"
+                isDisabled={!allowedRoles.projects.delete.includes(userRoleName)}
               />
             </Stack>
           </Stack>

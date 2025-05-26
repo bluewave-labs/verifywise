@@ -76,7 +76,7 @@ const VWProjectRisksTableBody = ({
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
   const theme = useTheme();
   const handleEditRisk = (row: any, event?: React.SyntheticEvent) => {
-    if (allowedRoles.projecrRisks.edit.includes(userRoleName)) {
+    if (allowedRoles.projectRisks.edit.includes(userRoleName)) {
       setSelectedRow(row);
       setInputValues(row);
       setAnchor(event?.currentTarget);
@@ -207,7 +207,7 @@ const VWProjectRisksTableBody = ({
                   backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
                 }}
               >
-                {allowedRoles.projecrRisks.edit.includes(userRoleName) &&
+                {allowedRoles.projectRisks.edit.includes(userRoleName) &&
                   <IconButton
                     id={row.id}
                     type="risk"

@@ -6,7 +6,7 @@ const allowedRoles = {
         delete: ['Admin'],
         editTeamMembers: ['Admin'],
     },
-    projecrRisks: {
+    projectRisks: {
         view: ['Admin', 'Editor', 'Auditor'],
         create: ['Admin', 'Editor'],
         edit: ['Admin', 'Editor'],

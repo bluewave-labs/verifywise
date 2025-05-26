@@ -7,7 +7,7 @@ import {
 } from "./style";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
-import { SyntheticEvent, useState } from "react";
+import { SyntheticEvent, useContext, useState } from "react";
 import TabContext from "@mui/lab/TabContext";
 import VWProjectOverview from "./Overview";
 import { useSearchParams } from "react-router-dom";
@@ -17,8 +17,11 @@ import ProjectSettings from "../ProjectSettings";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import ProjectFrameworks from "../ProjectFrameworks";
 import VWToast from '../../../vw-v2-components/Toast';
+import allowedRoles from "../../../../application/constants/permissions";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 const VWProjectView = () => {
+  const { userRoleName } = useContext(VerifyWiseContext);
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") ?? "1";
   const [refreshKey, setRefreshKey] = useState(0);
@@ -96,6 +99,7 @@ const VWProjectView = () => {
                 label="Settings"
                 value="settings"
                 disableRipple
+                disabled={!allowedRoles.projects.edit.includes(userRoleName)}
               />
             </TabList>
           </Box>

@@ -25,9 +25,10 @@ import { AlertState } from "../../../../application/interfaces/appStates";
 import PageTour from "../../../components/PageTour";
 import HomeSteps from "./HomeSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
+import allowedRoles from "../../../../application/constants/permissions";
 
 const VWHome = () => {
-  const { setDashboardValues, componentsVisible, changeComponentVisibility, refreshUsers } =
+  const { setDashboardValues, componentsVisible, changeComponentVisibility, refreshUsers, userRoleName } =
     useContext(VerifyWiseContext);
   const [alertState, setAlertState] = useState<AlertState>();
   const [isProjectFormModalOpen, setIsProjectFormModalOpen] =
@@ -135,7 +136,7 @@ const VWHome = () => {
         />
       )}
       {showToastNotification && (
-        <VWToast title="Generating demo data. Please wait..." />
+        <VWToast title="Generating demo data. Please wait, this process may take some time..." />
       )}
       <Stack className="vwhome-body">
         <Stack sx={vwhomeBody}>
@@ -152,6 +153,7 @@ const VWHome = () => {
                 }}
                 icon={<CloudDownloadIcon />}
                 onClick={() => handleGenerateDemoDataClick()}
+                isDisabled={!allowedRoles.projects.create.includes(userRoleName)}
               />
             )}
             <div data-joyride-id="new-project-button" ref={refs[0]}>
@@ -165,6 +167,7 @@ const VWHome = () => {
                 }}
                 icon={<AddCircleOutlineIcon />}
                 onClick={() => setIsProjectFormModalOpen(true)}
+                isDisabled={!allowedRoles.projects.create.includes(userRoleName)}
               />
             </div>
           </Stack>

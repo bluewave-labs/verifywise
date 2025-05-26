@@ -29,6 +29,7 @@ interface VerifyWiseContextProps {
   ) => void;
   users: User[];
   refreshUsers: () => void;
+  userRoleName: string;
 }
 
 const VerifyWiseContext = createContext<VerifyWiseContextProps>({
@@ -53,6 +54,7 @@ const VerifyWiseContext = createContext<VerifyWiseContextProps>({
   changeComponentVisibility: () => {},
   users: [],
   refreshUsers: () => {},
+  userRoleName: "",
 });
 
 export { VerifyWiseContext };

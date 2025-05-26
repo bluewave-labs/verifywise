@@ -107,6 +107,11 @@ const VWProjectRisksTableBody = ({
               key={index}
               sx={singleTheme.tableStyles.primary.body.row}
               onClick={(e) => handleEditRisk(row, e)}
+              style={{
+                cursor: allowedRoles.projectRisks.edit.includes(userRoleName)
+                  ? "pointer"
+                  : "default",
+              }}
             >
               <TableCell
                 sx={cellStyle}

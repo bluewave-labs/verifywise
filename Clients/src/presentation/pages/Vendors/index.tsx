@@ -239,7 +239,7 @@ const Vendors = () => {
     }
   };
   const handleDeleteRisk = async (riskId: number | undefined) => {
-    if (!vendorId) {
+    if (!riskId) {
       setAlert({
         variant: "error",
         body: "Invalid risk ID. Please refresh the page.",
@@ -299,7 +299,7 @@ const Vendors = () => {
     }
   };
   const handleEditRisk = async (riskId: number | undefined) => {
-    if (!id) {
+    if (!riskId) {
       setAlert({
         variant: "error",
         body: "Invalid risk ID. Please refresh the page.",

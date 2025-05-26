@@ -21,6 +21,7 @@ import { RISK_LABELS } from "../../components/RiskLevel/constants";
 import IconButton from "../../components/IconButton";
 import placeholderImage from "../../assets/imgs/empty-state.svg";
 import { formatDate } from "../../tools/isoDateToString";
+import allowedRoles from "../../../application/constants/permissions";
 
 const VWProjectRisksTableHead = ({ columns }: { columns: any[] }) => {
   return (
@@ -38,11 +39,11 @@ const VWProjectRisksTableHead = ({ columns }: { columns: any[] }) => {
               ...singleTheme.tableStyles.primary.header.cell,
               ...(index === columns.length - 1
                 ? {
-                    position: "sticky",
-                    right: 0,
-                    backgroundColor:
-                      singleTheme.tableStyles.primary.header.backgroundColors,
-                  }
+                  position: "sticky",
+                  right: 0,
+                  backgroundColor:
+                    singleTheme.tableStyles.primary.header.backgroundColors,
+                }
                 : {}),
             }}
           >
@@ -71,13 +72,15 @@ const VWProjectRisksTableBody = ({
   onDeleteRisk: (id: number) => void;
   flashRow: number | null;
 }) => {
-  const { setInputValues, users } = useContext(VerifyWiseContext);
+  const { setInputValues, users, userRoleName } = useContext(VerifyWiseContext);
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
   const theme = useTheme();
   const handleEditRisk = (row: any, event?: React.SyntheticEvent) => {
-    setSelectedRow(row);
-    setInputValues(row);
-    setAnchor(event?.currentTarget);
+    if (allowedRoles.projecrRisks.edit.includes(userRoleName)) {
+      setSelectedRow(row);
+      setInputValues(row);
+      setAnchor(event?.currentTarget);
+    }
   };
 
   const handleDeleteRisk = async (riskId: number) => {
@@ -204,15 +207,17 @@ const VWProjectRisksTableBody = ({
                   backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
                 }}
               >
-                <IconButton
-                  id={row.id}
-                  type="risk"
-                  onMouseEvent={(e) => handleEditRisk(row, e)}
-                  onDelete={() => handleDeleteRisk(row.id)}
-                  onEdit={() => handleEditRisk(row)}
-                  warningTitle="Delete this project risk?"
-                  warningMessage="Are you sure you want to delete this project risk. This action is non-recoverable."
-                ></IconButton>
+                {allowedRoles.projecrRisks.edit.includes(userRoleName) &&
+                  <IconButton
+                    id={row.id}
+                    type="risk"
+                    onMouseEvent={(e) => handleEditRisk(row, e)}
+                    onDelete={() => handleDeleteRisk(row.id)}
+                    onEdit={() => handleEditRisk(row)}
+                    warningTitle="Delete this project risk?"
+                    warningMessage="Are you sure you want to delete this project risk. This action is non-recoverable."                  
+                  />
+                }
               </TableCell>
             </TableRow>
           ))}

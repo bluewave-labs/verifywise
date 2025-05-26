@@ -211,7 +211,7 @@ const VWISO42001AnnexDrawerDialog = ({
       }
     };
     fetchAnnexCategory();
-  }, [open]);
+  }, [open, annex?.id, projectFrameworkId]);
 
   // Handle form field changes
   const handleFieldChange = (field: string, value: any) => {
@@ -585,7 +585,7 @@ const VWISO42001AnnexDrawerDialog = ({
           <Select
             id="Owner"
             label="Owner:"
-            value={formData.owner}
+            value={parseInt(formData.owner)}
             onChange={handleSelectChange("owner")}
             items={projectMembers.map((user) => ({
               _id: user.id,
@@ -601,7 +601,7 @@ const VWISO42001AnnexDrawerDialog = ({
           <Select
             id="Reviewer"
             label="Reviewer:"
-            value={formData.reviewer}
+            value={parseInt(formData.reviewer)}
             onChange={handleSelectChange("reviewer")}
             items={projectMembers.map((user) => ({
               _id: user.id,
@@ -617,7 +617,7 @@ const VWISO42001AnnexDrawerDialog = ({
           <Select
             id="Approver"
             label="Approver:"
-            value={formData.approver}
+            value={parseInt(formData.approver)}
             onChange={handleSelectChange("approver")}
             items={projectMembers.map((user) => ({
               _id: user.id,

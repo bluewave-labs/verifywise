@@ -6,5 +6,5 @@ export type AnnexStructISO = {
   title: string; // gets assigned from the structure
   annex_no?: number; // gets assigned from the structure
   framework_id?: number; // gets assigned from the structure
-  annexcategories: Partial<AnnexCategoryISO & AnnexCategoryStructISO>[];
+  annexCategories: Partial<AnnexCategoryISO & AnnexCategoryStructISO>[];
 };

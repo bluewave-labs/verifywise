@@ -556,7 +556,7 @@ const Vendors = () => {
           ) : (
             value !== "1" && (
               <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-                <Stack direction="row" gap={2} alignItems="center">
+                <Stack direction="row" gap={8} alignItems="center">
                   <Select
                     id="projects"
                     value={selectedProjectId ?? ""}

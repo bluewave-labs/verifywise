@@ -16,6 +16,9 @@ import { GetSubClausesById } from "../../../../application/repository/subClause_
 import { ClauseStructISO } from "../../../../domain/types/ClauseStructISO";
 import { SubClauseISO } from "../../../../domain/types/SubClauseISO";
 import { SubClauseStructISO } from "../../../../domain/types/SubClauseStructISO";
+import Alert from "../../../components/Alert";
+import { AlertProps } from "../../../../domain/interfaces/iAlert";
+import { handleAlert } from "../../../../application/tools/alertUtils";
 
 const ISO42001Clauses = ({
   project,
@@ -37,6 +40,7 @@ const ISO42001Clauses = ({
     {}
   );
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [alert, setAlert] = useState<AlertProps | null>(null);
 
   const fetchClauses = useCallback(async () => {
     try {
@@ -91,13 +95,23 @@ const ISO42001Clauses = ({
     setSelectedClause(null);
   };
 
-  const handleSaveSuccess = async () => {
-    // If there's an expanded clause, refresh its subclauses
-    if (expanded !== false) {
-      await fetchSubClauses(expanded);
+  const handleSaveSuccess = async (success: boolean, message?: string) => {
+    // Show appropriate toast message
+    handleAlert({
+      variant: success ? "success" : "error",
+      body: message || (success ? "Changes saved successfully" : "Failed to save changes"),
+      setAlert,
+    });
+
+    // If save was successful, refresh the data
+    if (success) {
+      // If there's an expanded clause, refresh its subclauses
+      if (expanded !== false) {
+        await fetchSubClauses(expanded);
+      }
+      // Trigger a refresh of the clauses
+      setRefreshTrigger((prev) => prev + 1);
     }
-    // Trigger a refresh of the clauses
-    setRefreshTrigger((prev) => prev + 1);
   };
 
   function getStatusColor(status: string) {
@@ -205,6 +219,7 @@ const ISO42001Clauses = ({
 
   return (
     <Stack className="iso-42001-clauses">
+      {alert && <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />}
       <Typography
         key="Management-System-Clauses"
         sx={{ color: "#1A1919", fontWeight: 600, mb: "6px", fontSize: 16 }}

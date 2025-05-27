@@ -48,7 +48,7 @@ interface VWISO42001ClauseDrawerDialogProps {
   uploadFiles?: FileData[];
   projectFrameworkId: number;
   project_id: number;
-  onSaveSuccess?: () => void;
+  onSaveSuccess?: (success: boolean, message?: string) => void;
 }
 
 const VWISO42001ClauseDrawerDialog = ({
@@ -179,6 +179,17 @@ const VWISO42001ClauseDrawerDialog = ({
   const handleSave = async () => {
     setIsLoading(true);
     try {
+      if (!fetchedSubClause) {
+        console.error("Fetched subclause is undefined");
+        handleAlert({
+          variant: "error",
+          body: "Error: Subclause data not found",
+          setAlert,
+        });
+        onSaveSuccess?.(false, "Error: Subclause data not found");
+        return;
+      }
+
       const formDataToSend = new FormData();
       formDataToSend.append(
         "implementation_description",
@@ -214,16 +225,28 @@ const VWISO42001ClauseDrawerDialog = ({
           "Content-Type": "multipart/form-data",
         },
       });
+
       if (response.status === 200) {
+        handleAlert({
+          variant: "success",
+          body: "Subclause saved successfully",
+          setAlert,
+        });
         setUploadFiles([]);
+        onSaveSuccess?.(true, "Subclause saved successfully");
         onClose();
-        // Call onSaveSuccess after successful save
-        onSaveSuccess?.();
       } else {
-        onClose();
+        throw new Error("Failed to save subclause");
       }
     } catch (error) {
       console.error("Error saving subclause:", error);
+      const errorMessage = error instanceof Error ? error.message : "An error occurred while saving changes";
+      handleAlert({
+        variant: "error",
+        body: errorMessage,
+        setAlert,
+      });
+      onSaveSuccess?.(false, errorMessage);
     } finally {
       setIsLoading(false);
     }

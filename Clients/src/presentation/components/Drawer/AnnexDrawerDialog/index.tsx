@@ -55,7 +55,7 @@ interface VWISO42001ClauseDrawerDialogProps {
   uploadFiles?: FileData[];
   projectFrameworkId: number;
   project_id: number;
-  onSaveSuccess?: () => void;
+  onSaveSuccess?: (success: boolean, message?: string) => void;
 }
 
 const VWISO42001AnnexDrawerDialog = ({
@@ -268,6 +268,12 @@ const VWISO42001AnnexDrawerDialog = ({
 
       if (!fetchedAnnex) {
         console.error("Fetched annex is undefined");
+        handleAlert({
+          variant: "error",
+          body: "Error: Annex data not found",
+          setAlert,
+        });
+        onSaveSuccess?.(false, "Error: Annex data not found");
         return;
       }
 
@@ -278,14 +284,25 @@ const VWISO42001AnnexDrawerDialog = ({
       });
 
       if (response.status === 200) {
-        // Call onSaveSuccess after successful save
-        onSaveSuccess?.();
-        // Close the drawer after successful save
+        handleAlert({
+          variant: "success",
+          body: "Annex category saved successfully",
+          setAlert,
+        });
+        onSaveSuccess?.(true, "Annex category saved successfully");
         onClose();
+      } else {
+        throw new Error("Failed to save annex category");
       }
     } catch (error) {
       console.error("Error saving annex category:", error);
-      // Optionally, show an error message
+      const errorMessage = error instanceof Error ? error.message : "An error occurred while saving changes";
+      handleAlert({
+        variant: "error",
+        body: errorMessage,
+        setAlert,
+      });
+      onSaveSuccess?.(false, errorMessage);
     } finally {
       setIsLoading(false);
     }

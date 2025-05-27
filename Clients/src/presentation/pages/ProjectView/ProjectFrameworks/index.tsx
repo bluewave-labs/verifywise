@@ -24,6 +24,7 @@ import {
 } from "./styles";
 import ISO42001Annex from "../../ISO/Annex";
 import ISO42001Clauses from "../../ISO/Clause";
+import allowedRoles from "../../../../application/constants/permissions";
 
 const FRAMEWORK_IDS = {
   EU_AI_ACT: 1,
@@ -62,11 +63,13 @@ const ProjectFrameworks = ({ project, triggerRefresh }: { project: Project; trig
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { changeComponentVisibility } = useContext(VerifyWiseContext);
+  const { changeComponentVisibility, userRoleName } = useContext(VerifyWiseContext);  
 
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
     countToTrigger: 1,
   });
+
+  const isManagingFrameworksDisabled = !allowedRoles.frameworks.manage.includes(userRoleName);
 
   useEffect(() => {
     changeComponentVisibility("projectFrameworks", allVisible);
@@ -152,6 +155,7 @@ const ProjectFrameworks = ({ project, triggerRefresh }: { project: Project; trig
           variant="contained"
           sx={addButtonStyle}
           onClick={() => setIsModalOpen(true)}
+          disabled={isManagingFrameworksDisabled}
         >
           Manage frameworks
         </Button>

@@ -34,6 +34,7 @@ import Alert from "../../Alert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import Uppy from "@uppy/core";
+import allowedRoles from "../../../../application/constants/permissions";
 
 interface Control {
   id: number;
@@ -81,8 +82,11 @@ const VWISO42001AnnexDrawerDialog = ({
   const [uploadFiles, setUploadFiles] = useState<FileData[]>([]);
 
   // Get context and project data
-  const { users, userId } = useContext(VerifyWiseContext);
+  const { users, userId, userRoleName } = useContext(VerifyWiseContext);
   const { project } = useProjectData({projectId: String(project_id)});
+
+  const isEditingDisabled = !allowedRoles.frameworks.edit.includes(userRoleName);
+  const isAuditingDisabled = !allowedRoles.frameworks.audit.includes(userRoleName);
 
   // Add state for all form fields
   const [formData, setFormData] = useState({
@@ -400,6 +404,7 @@ const VWISO42001AnnexDrawerDialog = ({
                   }))
                 }
                 size="small"
+                isDisabled={isEditingDisabled}
               />
               <Checkbox
                 id={`${control?.id}-iso-42001-not-applicable`}
@@ -413,6 +418,7 @@ const VWISO42001AnnexDrawerDialog = ({
                   }))
                 }
                 size="small"
+                isDisabled={isEditingDisabled}
               />
             </Stack>
           </Stack>
@@ -431,7 +437,7 @@ const VWISO42001AnnexDrawerDialog = ({
               onChange={(e) =>
                 handleFieldChange("justification_for_exclusion", e.target.value)
               }
-              disabled={formData.is_applicable}
+              disabled={formData.is_applicable || isEditingDisabled}
               sx={{
                 cursor: formData.is_applicable ? "not-allowed" : "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
@@ -439,7 +445,7 @@ const VWISO42001AnnexDrawerDialog = ({
                     height: "73px",
                   },
               }}
-              placeholder="Required if control is not applicable..."
+              placeholder="Required if control is not applicable..."           
             />
           </Stack>
         </Stack>
@@ -462,7 +468,7 @@ const VWISO42001AnnexDrawerDialog = ({
               onChange={(e) =>
                 handleFieldChange("implementation_description", e.target.value)
               }
-              disabled={!formData.is_applicable}
+              disabled={!formData.is_applicable || isEditingDisabled}
               sx={{
                 cursor: !formData.is_applicable ? "not-allowed" : "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
@@ -490,6 +496,7 @@ const VWISO42001AnnexDrawerDialog = ({
                 theme.components?.MuiButton?.defaultProps?.disableRipple
               }
               onClick={() => setIsFileUploadOpen(true)}
+              disabled={isEditingDisabled}
             >
               Add/Remove evidence
             </Button>
@@ -577,9 +584,9 @@ const VWISO42001AnnexDrawerDialog = ({
               _id: status,
               name: status.charAt(0).toUpperCase() + status.slice(1),
             }))}
-            disabled={!formData.is_applicable}
+            disabled={!formData.is_applicable || isEditingDisabled}
             sx={inputStyles}
-            placeholder={"Select status"}
+            placeholder={"Select status"}      
           />
 
           <Select
@@ -593,7 +600,7 @@ const VWISO42001AnnexDrawerDialog = ({
               email: user.email,
               surname: user.surname,
             }))}
-            disabled={!formData.is_applicable}
+            disabled={!formData.is_applicable || isEditingDisabled}
             sx={inputStyles}
             placeholder={"Select owner"}
           />
@@ -609,7 +616,7 @@ const VWISO42001AnnexDrawerDialog = ({
               email: user.email,
               surname: user.surname,
             }))}
-            disabled={!formData.is_applicable}
+            disabled={!formData.is_applicable || isEditingDisabled}
             sx={inputStyles}
             placeholder={"Select reviewer"}
           />
@@ -625,7 +632,7 @@ const VWISO42001AnnexDrawerDialog = ({
               email: user.email,
               surname: user.surname,
             }))}
-            disabled={!formData.is_applicable}
+            disabled={!formData.is_applicable || isEditingDisabled}
             sx={inputStyles}
             placeholder={"Select approver"}
           />
@@ -634,7 +641,7 @@ const VWISO42001AnnexDrawerDialog = ({
             label="Due date:"
             sx={inputStyles}
             date={date}
-            disabled={!formData.is_applicable}
+            disabled={!formData.is_applicable || isEditingDisabled}
             handleDateChange={(newDate) => {
               setDate(newDate);
             }}
@@ -649,7 +656,7 @@ const VWISO42001AnnexDrawerDialog = ({
               onChange={(e) =>
                 handleFieldChange("auditor_feedback", e.target.value)
               }
-              disabled={!formData.is_applicable}
+              disabled={!formData.is_applicable || isAuditingDisabled}
               sx={{
                 cursor: !formData.is_applicable ? "not-allowed" : "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":

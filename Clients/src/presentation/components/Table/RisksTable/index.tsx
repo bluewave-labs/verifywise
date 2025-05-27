@@ -12,15 +12,17 @@ import {
   Box,
   Tooltip,
 } from "@mui/material";
-import { useCallback,useMemo, useState } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
 import singleTheme from "../../../themes/v1SingleTheme";
 import IconButton from "../../IconButton";
 import TablePaginationActions from "../../TablePagination";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
-import { RISK_LABELS} from "../../RiskLevel/constants";
+import { RISK_LABELS } from "../../RiskLevel/constants";
 import { VendorDetails } from '../../../pages/Vendors';
 import { VendorRisk } from "../../../../domain/types/VendorRisk";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import allowedRoles from "../../../../application/constants/permissions";
 
 const titleOfTableColumns = [
   "risk description",
@@ -49,6 +51,8 @@ const RiskTable: React.FC<RiskTableProps> = ({
   onEdit,
 }) => {
   const theme = useTheme();
+  const { userRoleName } = useContext(VerifyWiseContext)
+  const isDeletingAllowed = allowedRoles.vendors.delete.includes(userRoleName);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [dropdownAnchor, setDropdownAnchor] = useState<HTMLElement | null>(
@@ -87,7 +91,7 @@ const RiskTable: React.FC<RiskTableProps> = ({
     const start = page * rowsPerPage + 1;
     const end = Math.min(
       page * rowsPerPage + rowsPerPage,
-    vendorRisks?.length ?? 0
+      vendorRisks?.length ?? 0
     );
     return `${start} - ${end}`;
   }, [page, rowsPerPage, vendorRisks?.length ?? 0]);
@@ -127,12 +131,12 @@ const RiskTable: React.FC<RiskTableProps> = ({
                 ...(cell === "risk level" ? {} : {}),
                 ...(index === titleOfTableColumns.length - 1
                   ? {
-                      position: "sticky",
-                      right: 0,
-                      zIndex: 10,
-                      backgroundColor:
-                        singleTheme.tableStyles.primary.header.backgroundColors,
-                    }
+                    position: "sticky",
+                    right: 0,
+                    zIndex: 10,
+                    backgroundColor:
+                      singleTheme.tableStyles.primary.header.backgroundColors,
+                  }
                   : {}),
               }}
             >
@@ -234,22 +238,24 @@ const RiskTable: React.FC<RiskTableProps> = ({
                     minWidth: "50px",
                   }}
                 >
-                  <IconButton
-                    id={row.risk_id!}
-                    onDelete={() => onDelete(row.risk_id!)}
-                    onEdit={() => onEdit(row.risk_id!)}
-                    onMouseEvent={() => {}}
-                    warningTitle="Delete this risk?"
-                    warningMessage="This action is non-recoverable."
-                    type="Risk"
-                  ></IconButton>
+                  { isDeletingAllowed &&
+                    <IconButton
+                      id={row.risk_id!}
+                      onDelete={() => onDelete(row.risk_id!)}
+                      onEdit={() => onEdit(row.risk_id!)}
+                      onMouseEvent={() => { }}
+                      warningTitle="Delete this risk?"
+                      warningMessage="This action is non-recoverable."
+                      type="Risk"
+                    />
+                  }
                 </TableCell>
               </TableRow>
             ))}
       </TableBody>
     ),
     [
-     uniqueRisks,
+      uniqueRisks,
       page,
       rowsPerPage,
       cellStyle,

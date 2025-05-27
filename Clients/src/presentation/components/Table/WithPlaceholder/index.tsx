@@ -58,6 +58,8 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
 
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
+  const isDeletingAllowed = allowedRoles.vendors.delete.includes(userRoleName)
+
   const handleChangePage = useCallback((_: unknown, newPage: number) => {
     setPage(newPage);
   }, []);
@@ -127,12 +129,7 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
               <TableRow
                 key={index}
                 sx={singleTheme.tableStyles.primary.body.row}
-                onClick={() => onEdit(row.id)}
-                style={{
-                  cursor: allowedRoles.vendors.edit.includes(userRoleName)
-                    ? "pointer"
-                    : "default",
-                }}
+                onClick={() => onEdit(row.id)}      
               >
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   {row.vendor_name}
@@ -159,7 +156,7 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
                     zIndex: 10,
                   }}
                 >
-                  {allowedRoles.vendors.delete.includes(userRoleName) &&
+                  { isDeletingAllowed &&
                     <IconButton
                       id={row.id}
                       onDelete={() => onDelete(row.id)}

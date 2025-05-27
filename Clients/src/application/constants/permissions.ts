@@ -16,8 +16,7 @@ const allowedRoles = {
         view: ['Admin', 'Editor', 'Auditor'],
         create: ['Admin', 'Editor'],
         edit: ['Admin', 'Editor'],
-        delete: ['Admin', 'Editor'],
-        viewVendorsRisks: ['Admin', 'Editor'],
+        delete: ['Admin', 'Editor']     
     },
 }
 

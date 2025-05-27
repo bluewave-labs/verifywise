@@ -41,6 +41,7 @@ import { logEngine } from "../../../../application/tools/log.engine";
 import VWButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import { KeyboardArrowDown } from "@mui/icons-material";
+import allowedRoles from "../../../../application/constants/permissions";
 
 export interface VendorDetails {
   id?: number;
@@ -132,8 +133,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   const [projectOptions, setProjectOptions] = useState<
     { _id: number; name: string }[]
   >([]);
-  const { dashboardValues, users } = useContext(VerifyWiseContext);
+  const { dashboardValues, users, userRoleName } = useContext(VerifyWiseContext);
   const { projects } = dashboardValues;
+
+  const isEditingDisabled = !allowedRoles.vendors.edit.includes(userRoleName)
 
   const formattedUsers = users?.map((user: any) => ({
     _id: user.id,
@@ -481,6 +484,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             onChange={(e) => handleOnChange("vendorName", e.target.value)}
             error={errors.vendorName}
             isRequired
+            disabled={isEditingDisabled}
           />
           <Box mt={theme.spacing(8)}>
             <Field // website
@@ -490,6 +494,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               onChange={(e) => handleOnChange("website", e.target.value)}
               error={errors.website}
               isRequired
+               disabled={isEditingDisabled}
             />
           </Box>
         </Stack>
@@ -507,6 +512,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             multiple
             id="projects-input"
             size="small"
+            disabled={isEditingDisabled}
             value={projectOptions?.filter(project => 
               values.vendorDetails.projectIds?.includes(project._id)
             ) || []}
@@ -621,6 +627,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           onChange={(e) => handleOnChange("vendorProvides", e.target.value)}
           error={errors.vendorProvides}
           isRequired
+          disabled={isEditingDisabled}
         />
       </Stack>
       <Stack
@@ -637,6 +644,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           }
           error={errors.vendorContactPerson}
           isRequired
+          disabled={isEditingDisabled}
         />
         <Select // reviewStatus
           items={REVIEW_STATUS_OPTIONS}
@@ -651,6 +659,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           }}
           error={errors.reviewStatus}
           isRequired
+          disabled={isEditingDisabled}
         />
         <Select // reviewer
           items={formattedUsers}
@@ -665,6 +674,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             width: 220,
           }}
           isRequired
+          disabled={isEditingDisabled}
         />
       </Stack>
       <Stack
@@ -681,6 +691,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           error={errors.reviewResult}
           onChange={(e) => handleOnChange("reviewResult", e.target.value)}
           isRequired
+          disabled={isEditingDisabled}
         />
       </Stack>
       <Stack
@@ -702,6 +713,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             width: 220,
           }}
           isRequired
+          disabled={isEditingDisabled}
         />
         <Select // assignee (not in the server model!)
           items={formattedUsers}
@@ -716,6 +728,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           }}
           error={errors.assignee}
           isRequired
+          disabled={isEditingDisabled}
         />
         <DatePicker // reviewDate
           label="Review date"
@@ -729,6 +742,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           }
           handleDateChange={handleDateChange}
           isRequired
+          disabled={isEditingDisabled}
         />
       </Stack>
     </TabPanel>
@@ -821,6 +835,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               }}
               onClick={handleSave}
               icon={<SaveIcon />}
+              isDisabled={isEditingDisabled}
             />
           </Stack>
         </Stack>

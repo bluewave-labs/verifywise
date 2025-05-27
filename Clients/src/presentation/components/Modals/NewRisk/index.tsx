@@ -17,7 +17,7 @@ import { Box, Modal, Stack, Typography, useTheme } from "@mui/material";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import { ReactComponent as Close } from "../../../assets/icons/close.svg";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useContext, useEffect, useState } from "react";
 import {
   createNewUser,
   updateEntityById,
@@ -37,6 +37,8 @@ import {
 import { RiskCalculator } from "../../../tools/riskCalculator";
 
 import { RiskLikelihood, RiskSeverity } from "../../RiskLevel/riskValues";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import allowedRoles from "../../../../application/constants/permissions";
 
 interface ExistingRisk {
   id?: number;
@@ -129,6 +131,8 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
   vendors,
 }) => {
   const theme = useTheme();
+  const { userRoleName } = useContext(VerifyWiseContext)
+  const isEditingDisabled = !allowedRoles.vendors.edit.includes(userRoleName);
   const VENDOR_OPTIONS =
     vendors?.length > 0
       ? vendors.map((vendor: any) => ({
@@ -437,6 +441,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             width: 350,
           }}
           isRequired
+          disabled={isEditingDisabled}
         />
         <Field
           label="Risk description"
@@ -445,6 +450,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           onChange={(e) => handleOnChange("risk_description", e.target.value)}
           error={errors.risk_description}
           isRequired
+          disabled={isEditingDisabled}
         />
       </Stack>
       <Stack
@@ -465,6 +471,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             width: 350,
           }}
           isRequired
+          disabled={isEditingDisabled}
         />
         <Select
           items={likelihoodItems}
@@ -479,6 +486,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             width: 350,
           }}
           isRequired
+          disabled={isEditingDisabled}
         />
       </Stack>
       <Stack
@@ -505,6 +513,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
               width: 350,
             }}
             isRequired
+            disabled={isEditingDisabled}
           />
 
           <Select
@@ -520,6 +529,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
               width: 350,
             }}
             isRequired
+            disabled={isEditingDisabled}
           />
           <Field
             label="Impact description"
@@ -530,6 +540,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             }
             error={errors.impact_description}
             isRequired
+            disabled={isEditingDisabled}
           />
         </Box>
 
@@ -541,6 +552,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           error={errors.action_plan}
           onChange={(e) => handleOnChange("action_plan", e.target.value)}
           isRequired
+          disabled={isEditingDisabled}
         />
       </Stack>
       <Stack
@@ -633,6 +645,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
                 }}
                 onClick={handleSave}
                 icon={<SaveIcon />}
+                isDisabled={isEditingDisabled}
               />
             </Stack>
           </TabContext>

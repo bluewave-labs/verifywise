@@ -113,6 +113,8 @@ const Vendors = () => {
     countToTrigger: 1,
   });
 
+  const isCreatingDisabled = !allowedRoles.vendors.create.includes(userRoleName)
+
   const createAbortController = () => {
     if (controller) {
       controller.abort();
@@ -327,24 +329,22 @@ const Vendors = () => {
     }
   };
   const handleEditVendor = async (id: number) => {
-    if (allowedRoles.vendors.edit.includes(userRoleName)) {
-      try {
-        const response = await getEntityById({
-          routeUrl: `/vendors/${id}`,
-        });
-        setSelectedVendor(response.data);
-        setIsOpen(true);
-      } catch (e) {
-        logEngine({
-          type: "error",
-          message: "Failed to fetch vendor data.",
-        });
-        setAlert({
-          variant: "error",
-          body: "Could not fetch vendor data.",
-        });
-        setTimeout(() => setAlert(null), 3000);
-      }
+    try {
+      const response = await getEntityById({
+        routeUrl: `/vendors/${id}`,
+      });
+      setSelectedVendor(response.data);
+      setIsOpen(true);
+    } catch (e) {
+      logEngine({
+        type: "error",
+        message: "Failed to fetch vendor data.",
+      });
+      setAlert({
+        variant: "error",
+        body: "Could not fetch vendor data.",
+      });
+      setTimeout(() => setAlert(null), 3000);
     }
   };
   const handleProjectChange = (
@@ -488,7 +488,7 @@ const Vendors = () => {
               }}
             >
               <Tab label="Vendors" value="1" sx={tabStyle} disableRipple />
-              <Tab label="Risks" value="2" sx={tabStyle} disableRipple disabled={!allowedRoles.vendors.viewVendorsRisks.includes(userRoleName)} />
+              <Tab label="Risks" value="2" sx={tabStyle} disableRipple />
             </TabList>
           </Box>
           {value !== "1" &&
@@ -538,7 +538,7 @@ const Vendors = () => {
                       openAddNewVendor();
                       setSelectedVendor(null);
                     }}
-                    isDisabled={!allowedRoles.vendors.create.includes(userRoleName)}
+                    isDisabled={isCreatingDisabled}
                   />
                 </div>
               </Stack>
@@ -604,6 +604,7 @@ const Vendors = () => {
                     setSelectedRisk(null);
                     handleRiskModal();
                   }}
+                  isDisabled={isCreatingDisabled}
                 />
               </Stack>
             )

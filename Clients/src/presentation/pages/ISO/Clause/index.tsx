@@ -56,6 +56,7 @@ const ISO42001Clauses = ({
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number>(0);
 
   const fetchClauses = useCallback(async () => {
     try {
@@ -98,9 +99,10 @@ const ISO42001Clauses = ({
       }
     };
 
-  const handleSubClauseClick = (clause: any, subClause: any) => {
+  const handleSubClauseClick = (clause: any, subClause: any, index: number) => {
     setSelectedClause(clause);
     setSelectedSubClause(subClause);
+    setSelectedIndex(index);
     setDrawerOpen(true);
   };
 
@@ -188,7 +190,7 @@ const ISO42001Clauses = ({
             ) => (
               <Stack
                 key={subClause.id}
-                onClick={() => handleSubClauseClick(clause, subClause)}
+                onClick={() => handleSubClauseClick(clause, subClause, index)}
                 sx={{
                   display: "flex",
                   flexDirection: "row",
@@ -313,6 +315,7 @@ const ISO42001Clauses = ({
           projectFrameworkId={projectFrameworkId}
           project_id={project.id}
           onSaveSuccess={(success, message) => handleSaveSuccess(success, message, selectedSubClause?.id)}
+          index={selectedIndex}
         />
       )}
     </Stack>

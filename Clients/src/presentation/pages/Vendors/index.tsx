@@ -44,6 +44,7 @@ import RisksCard from "../../components/Cards/RisksCard";
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import useVendorRisks from "../../../application/hooks/useVendorRisks";
 import Select from "../../components/Inputs/Select";
+import allowedRoles from "../../../application/constants/permissions";
 
 interface ExistingRisk {
   id?: number;
@@ -82,7 +83,7 @@ const Vendors = () => {
   const [value, setValue] = useState("1");
   const [projects, setProjects] = useState<Project[]>([]);
   const [vendors, setVendors] = useState<VendorDetails[]>([]);
-  const { users } = useContext(VerifyWiseContext);
+  const { users, userRoleName } = useContext(VerifyWiseContext);
   const [selectedVendor, setSelectedVendor] = useState<VendorDetails | null>(
     null
   );
@@ -111,6 +112,9 @@ const Vendors = () => {
   const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({
     countToTrigger: 1,
   });
+
+  const isCreatingDisabled = !allowedRoles.vendors.create.includes(userRoleName)
+  const isDeletingAllowed = allowedRoles.vendors.delete.includes(userRoleName)
 
   const createAbortController = () => {
     if (controller) {
@@ -535,6 +539,7 @@ const Vendors = () => {
                       openAddNewVendor();
                       setSelectedVendor(null);
                     }}
+                    isDisabled={isCreatingDisabled}
                   />
                 </div>
               </Stack>
@@ -600,6 +605,7 @@ const Vendors = () => {
                     setSelectedRisk(null);
                     handleRiskModal();
                   }}
+                  isDisabled={isCreatingDisabled}
                 />
               </Stack>
             )
@@ -641,6 +647,7 @@ const Vendors = () => {
                 vendorRisks={vendorRisks}
                 onDelete={handleDeleteRisk}
                 onEdit={handleEditRisk}
+                isDeletingAllowed={isDeletingAllowed}
               />
             </TabPanel>
           )}

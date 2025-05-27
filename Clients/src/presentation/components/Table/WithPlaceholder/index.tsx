@@ -10,7 +10,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
 import IconButton from "../../IconButton";
 import singleTheme from "../../../themes/v1SingleTheme";
@@ -19,6 +19,8 @@ import TablePaginationActions from "../../TablePagination";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
 import { VendorDetails } from "../../../pages/Vendors";
 import { User } from "../../../../domain/types/User";
+import allowedRoles from "../../../../application/constants/permissions";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 const titleOfTableColumns = [
   "name",
@@ -43,6 +45,7 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
   onEdit,
 }) => {
   const theme = useTheme();
+  const { userRoleName } = useContext(VerifyWiseContext);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [dropdownAnchor, setDropdownAnchor] = useState<HTMLElement | null>(
@@ -54,6 +57,8 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
   }));
 
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
+
+  const isDeletingAllowed = allowedRoles.vendors.delete.includes(userRoleName)
 
   const handleChangePage = useCallback((_: unknown, newPage: number) => {
     setPage(newPage);
@@ -95,12 +100,12 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
                 ...singleTheme.tableStyles.primary.header.cell,
                 ...(index === titleOfTableColumns.length - 1
                   ? {
-                      position: "sticky",
-                      right: 0,
-                      zIndex: 10,
-                      backgroundColor:
-                        singleTheme.tableStyles.primary.header.backgroundColors,
-                    }
+                    position: "sticky",
+                    right: 0,
+                    zIndex: 10,
+                    backgroundColor:
+                      singleTheme.tableStyles.primary.header.backgroundColors,
+                  }
                   : {}),
               }}
               key={index}
@@ -124,7 +129,7 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
               <TableRow
                 key={index}
                 sx={singleTheme.tableStyles.primary.body.row}
-                onClick={() => onEdit(row.id)}
+                onClick={() => onEdit(row.id)}      
               >
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   {row.vendor_name}
@@ -151,15 +156,17 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
                     zIndex: 10,
                   }}
                 >
-                  <IconButton
-                    id={row.id}
-                    onDelete={() => onDelete(row.id)}
-                    onEdit={() => onEdit(row.id)}
-                    onMouseEvent={() => {}}
-                    warningTitle="Delete this vendor?"
-                    warningMessage="When you delete this vendor, all data related to this vendor will be removed. This action is non-recoverable."
-                    type="Vendor"
-                  ></IconButton>
+                  { isDeletingAllowed &&
+                    <IconButton
+                      id={row.id}
+                      onDelete={() => onDelete(row.id)}
+                      onEdit={() => onEdit(row.id)}
+                      onMouseEvent={() => { }}
+                      warningTitle="Delete this vendor?"
+                      warningMessage="When you delete this vendor, all data related to this vendor will be removed. This action is non-recoverable."
+                      type="Vendor"
+                    />
+                  }
                 </TableCell>
               </TableRow>
             ))}

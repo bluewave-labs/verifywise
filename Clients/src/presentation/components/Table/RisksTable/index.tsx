@@ -12,7 +12,7 @@ import {
   Box,
   Tooltip,
 } from "@mui/material";
-import { useCallback, useContext, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
 import singleTheme from "../../../themes/v1SingleTheme";
 import IconButton from "../../IconButton";
@@ -21,8 +21,6 @@ import { ReactComponent as SelectorVertical } from "../../../assets/icons/select
 import { RISK_LABELS } from "../../RiskLevel/constants";
 import { VendorDetails } from '../../../pages/Vendors';
 import { VendorRisk } from "../../../../domain/types/VendorRisk";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import allowedRoles from "../../../../application/constants/permissions";
 
 const titleOfTableColumns = [
   "risk description",

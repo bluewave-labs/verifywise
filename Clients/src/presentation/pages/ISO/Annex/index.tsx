@@ -121,33 +121,6 @@ const ISO42001Annex = ({
     }
   };
 
-  function getStatusColor(status: string) {
-    const normalizedStatus = status?.trim() || "Not Started";
-    switch (
-      normalizedStatus.charAt(0).toUpperCase() +
-      normalizedStatus.slice(1).toLowerCase()
-    ) {
-      case "Not Started":
-        return "#C63622";
-      case "Draft":
-        return "#D68B61";
-      case "In Progress":
-        return "#D6B971";
-      case "Awaiting Review":
-        return "#D6B971";
-      case "Awaiting Approval":
-        return "#D6B971";
-      case "Implemented":
-        return "#52AB43";
-      case "Audited":
-        return "#B8D39C";
-      case "Needs Rework":
-        return "#800080";
-      default:
-        return "#C63622"; // Default to "Not Started" color
-    }
-  }
-
   return (
     <Stack className="iso-42001-annex">
       {alert && <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />}

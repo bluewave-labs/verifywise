@@ -5,6 +5,7 @@ import {
   Stack,
   Typography,
   CircularProgress,
+  keyframes,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { accordionStyle } from "../style";
@@ -19,6 +20,19 @@ import { SubClauseStructISO } from "../../../../domain/types/SubClauseStructISO"
 import Alert from "../../../components/Alert";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
+
+// Define the flash animation
+const flashAnimation = keyframes`
+  0% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(82, 171, 67, 0.2); // Light green color
+  }
+  100% {
+    background-color: transparent;
+  }
+`;
 
 const ISO42001Clauses = ({
   project,
@@ -41,6 +55,7 @@ const ISO42001Clauses = ({
   );
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [alert, setAlert] = useState<AlertProps | null>(null);
+  const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
 
   const fetchClauses = useCallback(async () => {
     try {
@@ -95,7 +110,7 @@ const ISO42001Clauses = ({
     setSelectedClause(null);
   };
 
-  const handleSaveSuccess = async (success: boolean, message?: string) => {
+  const handleSaveSuccess = async (success: boolean, message?: string, savedSubClauseId?: number) => {
     // Show appropriate toast message
     handleAlert({
       variant: success ? "success" : "error",
@@ -103,8 +118,15 @@ const ISO42001Clauses = ({
       setAlert,
     });
 
-    // If save was successful, refresh the data
-    if (success) {
+    // If save was successful, refresh the data and trigger flash animation
+    if (success && savedSubClauseId) {
+      // Set the flashing row ID
+      setFlashingRowId(savedSubClauseId);
+      // Clear the flashing state after animation
+      setTimeout(() => {
+        setFlashingRowId(null);
+      }, 2000); // 2 seconds animation
+
       // If there's an expanded clause, refresh its subclauses
       if (expanded !== false) {
         await fetchSubClauses(expanded);
@@ -178,6 +200,10 @@ const ISO42001Clauses = ({
                       : "1px solid #eaecf0",
                   cursor: "pointer",
                   fontSize: 13,
+                  animation: flashingRowId === subClause.id ? `${flashAnimation} 2s ease-in-out` : 'none',
+                  '&:hover': {
+                    backgroundColor: flashingRowId === subClause.id ? 'transparent' : '#f5f5f5',
+                  },
                 }}
               >
                 <Typography fontSize={13}>
@@ -286,7 +312,7 @@ const ISO42001Clauses = ({
           clause={selectedClause}
           projectFrameworkId={projectFrameworkId}
           project_id={project.id}
-          onSaveSuccess={handleSaveSuccess}
+          onSaveSuccess={(success, message) => handleSaveSuccess(success, message, selectedSubClause?.id)}
         />
       )}
     </Stack>

@@ -44,6 +44,7 @@ import { ApiResponse } from "../../../domain/interfaces/iResponse";
 import { tabStyle } from "./style";
 import { RiskCalculator } from "../../tools/riskCalculator";
 import { RiskLikelihood, RiskSeverity } from "../RiskLevel/riskValues";
+import allowedRoles from "../../../application/constants/permissions";
 
 const RiskSection = lazy(() => import("./RisksSection"));
 const MitigationSection = lazy(() => import("./MitigationSection"));
@@ -127,7 +128,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
 
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId");
-  const { inputValues, users } = useContext(VerifyWiseContext);
+  const { inputValues, users, userRoleName } = useContext(VerifyWiseContext);
 
   useEffect(() => {
     if (popupStatus === "edit") {
@@ -514,7 +515,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
             <RiskSection
               riskValues={riskValues}
               setRiskValues={setRiskValues}
-              riskErrors={riskErrors}
+              riskErrors={riskErrors}          
             />
           </TabPanel>
           <TabPanel value="mitigation" sx={{ p: "24px 0 0" }}>
@@ -546,6 +547,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
             variant="contained"
             onClick={riskFormSubmitHandler}
             text={popupStatus === "new" ? "Save" : "Update"}
+            isDisabled={!allowedRoles.projectRisks.delete.includes(userRoleName)}
           />
         </Box>
       </TabContext>

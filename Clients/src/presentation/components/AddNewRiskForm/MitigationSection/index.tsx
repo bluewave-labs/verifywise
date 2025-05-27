@@ -6,6 +6,7 @@ import {
   Suspense,
   Dispatch,
   SetStateAction,
+  useContext,
 } from "react";
 import {
   Divider,
@@ -24,6 +25,8 @@ import {
   approvalStatusItems,
 } from "../projectRiskValue";
 import { alertState } from "../../../../domain/interfaces/iAlert";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import allowedRoles from "../../../../application/constants/permissions";
 
 // Lazy load components
 const Select = lazy(() => import("../../Inputs/Select"));
@@ -90,7 +93,10 @@ const MitigationSection: FC<MitigationSectionProps> = ({
   migitateErrors,
 }) => {
   const theme = useTheme();
-  // const [values, setValues] = useState<MitigationFormValues>(initialState);
+  const { userRoleName } = useContext(VerifyWiseContext);
+  const disabled = !allowedRoles.projectRisks.edit.includes(userRoleName)
+
+ 
   const [_, setErrors] = useState<MitigationFormErrors>({});
   const [alert, setAlert] = useState<alertState | null>(null);
 
@@ -166,6 +172,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                 }}
                 isRequired
                 error={migitateErrors.mitigationStatus}
+                disabled={disabled}
               />
             </Suspense>
             <Suspense fallback={<div>Loading...</div>}>
@@ -178,6 +185,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                 sx={{ backgroundColor: theme.palette.background.main }}
                 isRequired
                 error={migitateErrors.mitigationPlan}
+                disabled={disabled}
               />
             </Suspense>
           </Stack>
@@ -200,6 +208,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                 }}
                 isRequired
                 error={migitateErrors.currentRiskLevel}
+                disabled={disabled}
               />
             </Suspense>
             <Suspense fallback={<div>Loading...</div>}>
@@ -212,6 +221,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                 sx={{ backgroundColor: theme.palette.background.main }}
                 isRequired
                 error={migitateErrors.implementationStrategy}
+                disabled={disabled}
               />
             </Suspense>
           </Stack>
@@ -232,6 +242,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                   }}
                   isRequired
                   error={migitateErrors.deadline}
+                  disabled={disabled}
                 />
               </Stack>
             </Suspense>
@@ -251,6 +262,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
             likelihood={mitigationValues.likelihood}
             riskSeverity={mitigationValues.riskSeverity}
             handleOnSelectChange={handleOnSelectChange}
+            disabled={disabled}
           />
         </Suspense>
         <Divider />
@@ -279,6 +291,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
               }}
               isRequired
               error={migitateErrors.approver}
+              disabled={disabled}
             />
           </Suspense>
           <Suspense fallback={<div>Loading...</div>}>
@@ -299,6 +312,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
               }}
               isRequired
               error={migitateErrors.approvalStatus}
+              disabled={disabled}
             />
           </Suspense>
           <Suspense fallback={<div>Loading...</div>}>
@@ -316,6 +330,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
               }}
               isRequired
               error={migitateErrors.dateOfAssessment}
+              disabled={disabled}
             />
           </Suspense>
         </Stack>
@@ -328,6 +343,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
             onChange={handleOnTextFieldChange("recommendations")}
             sx={{ backgroundColor: theme.palette.background.main }}
             isOptional
+            disabled={disabled}
           />
         </Suspense>
       </Stack>

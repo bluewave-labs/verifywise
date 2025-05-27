@@ -12,6 +12,7 @@ import {
   Suspense,
   Dispatch,
   SetStateAction,
+  useContext,
 } from "react";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
@@ -22,6 +23,8 @@ import styles from "../styles.module.css";
 import useUsers from "../../../../application/hooks/useUsers";
 import { aiLifecyclePhase, riskCategoryItems } from "../projectRiskValue";
 import { alertState } from "../../../../domain/interfaces/iAlert";
+import allowedRoles from "../../../../application/constants/permissions";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 const RiskLevel = React.lazy(() => import("../../RiskLevel"));
 
@@ -61,12 +64,14 @@ interface RiskSectionProps {
  * <RiskSection closePopup={closePopupFunction} status="new" />
  */
 const RiskSection: FC<RiskSectionProps> = ({
-  riskValues,
+  riskValues, 
   setRiskValues,
   riskErrors,
 }) => {
   const theme = useTheme();
-  // const [values, setValues] = useState<RiskFormValues>(initialState);
+  const { userRoleName } = useContext(VerifyWiseContext);
+  const disabled = !allowedRoles.projectRisks.edit.includes(userRoleName)
+
   const [_, setErrors] = useState<RiskFormErrors>({});
   const [alert, setAlert] = useState<alertState | null>(null);
   const { users } = useUsers();
@@ -130,6 +135,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                 sx={{
                   width: "325px",
                 }}
+                disabled={disabled}
               />
               <Select
                 id="action-owner-input"
@@ -150,6 +156,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                 sx={{
                   width: "325px",
                 }}
+                disabled={disabled}
               />
               <Select
                 id="ai-lifecycle-phase-input"
@@ -167,6 +174,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                 sx={{
                   width: "325px",
                 }}
+                disabled={disabled}
               />
             </Stack>
 
@@ -194,6 +202,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                       width: "325px",
                       mb: 4,
                     }}
+                    disabled={disabled}
                   />
                 </Stack>
                 <Select
@@ -210,6 +219,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                   sx={{
                     width: "325px",
                   }}
+                  disabled={disabled}
                 />
               </Stack>
               <Field
@@ -227,6 +237,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                     maxHeight: "120px",
                   },
                 }}
+                disabled={disabled}
               />
             </Stack>
           </Stack>
@@ -246,6 +257,7 @@ const RiskSection: FC<RiskSectionProps> = ({
             likelihood={riskValues.likelihood}
             riskSeverity={riskValues.riskSeverity}
             handleOnSelectChange={handleOnSelectChange}
+            disabled={disabled}
           />
         </Suspense>
         <Divider />
@@ -264,6 +276,7 @@ const RiskSection: FC<RiskSectionProps> = ({
             }}
             isOptional
             error={riskErrors.reviewNotes}
+            disabled={disabled}
           />
         </Stack>
       </Stack>

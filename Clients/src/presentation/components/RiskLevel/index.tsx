@@ -15,6 +15,7 @@ interface RiskLevelProps {
   likelihood: number;
   riskSeverity: number;
   handleOnSelectChange: (field: keyof RiskLevelFormValues) => (event: SelectChangeEvent<string | number>) => void;
+  disabled?: boolean;
 }
 
 /**
@@ -32,6 +33,7 @@ const RiskLevel: FC<RiskLevelProps> = ({
   likelihood,
   riskSeverity,
   handleOnSelectChange,
+  disabled = false,
 }) => {
   const theme = useTheme();
 
@@ -57,6 +59,7 @@ const RiskLevel: FC<RiskLevelProps> = ({
         onChange={handleOnSelectChange("likelihood")}
         items={likelihoodItems}
         sx={{ width: 324, backgroundColor: theme.palette.background.main }}
+        disabled={disabled}
       />
       <Select
         id="risk-severity-input"
@@ -66,6 +69,7 @@ const RiskLevel: FC<RiskLevelProps> = ({
         onChange={handleOnSelectChange("riskSeverity")}
         items={riskSeverityItems}
         sx={{ width: 324, backgroundColor: theme.palette.background.main }}
+        disabled={disabled}
       />
       <Stack rowGap={2}>
         <Typography

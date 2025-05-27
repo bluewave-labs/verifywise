@@ -41,6 +41,7 @@ interface RiskTableProps {
   vendorRisks: any;
   onDelete: (riskId: number) => void;
   onEdit: (riskId: number) => void;
+  isDeletingAllowed?: boolean;
 }
 
 const RiskTable: React.FC<RiskTableProps> = ({
@@ -49,10 +50,9 @@ const RiskTable: React.FC<RiskTableProps> = ({
   vendorRisks,
   onDelete,
   onEdit,
+  isDeletingAllowed = true,
 }) => {
   const theme = useTheme();
-  const { userRoleName } = useContext(VerifyWiseContext)
-  const isDeletingAllowed = allowedRoles.vendors.delete.includes(userRoleName);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [dropdownAnchor, setDropdownAnchor] = useState<HTMLElement | null>(

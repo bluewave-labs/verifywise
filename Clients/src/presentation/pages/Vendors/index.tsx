@@ -114,6 +114,7 @@ const Vendors = () => {
   });
 
   const isCreatingDisabled = !allowedRoles.vendors.create.includes(userRoleName)
+  const isDeletingAllowed = allowedRoles.vendors.delete.includes(userRoleName)
 
   const createAbortController = () => {
     if (controller) {
@@ -646,6 +647,7 @@ const Vendors = () => {
                 vendorRisks={vendorRisks}
                 onDelete={handleDeleteRisk}
                 onEdit={handleEditRisk}
+                isDeletingAllowed={isDeletingAllowed}
               />
             </TabPanel>
           )}

@@ -13,7 +13,7 @@ interface OrganizationData {
 }
 
 const Organization = () => {
-  const [isSaveDisabled, setIsSaveDisabled] = useState(false);
+  const [isSaveDisabled, _] = useState(false);
   const [organizationName, setOrganizationName] = useState("");
   const [organizationLogo, setOrganizationLogo] = useState<string>(
     "/placeholder.svg?height=80&width=80"

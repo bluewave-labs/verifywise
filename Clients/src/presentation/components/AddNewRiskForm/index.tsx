@@ -99,8 +99,8 @@ const mitigationInitialState: MitigationFormValues = {
 const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   closePopup,
   onSuccess,
-  onError = () => {},
-  onLoading = () => {},
+  onError = () => { },
+  onLoading = () => { },
   popupStatus,
   initialRiskValues = riskInitialState, // Default to initial state if not provided
   initialMitigationValues = mitigationInitialState,
@@ -129,6 +129,8 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId");
   const { inputValues, users, userRoleName } = useContext(VerifyWiseContext);
+  const isEditingDisabled = !allowedRoles.projectRisks.edit.includes(userRoleName)
+  const isCreatingDisabled = !allowedRoles.projectRisks.create.includes(userRoleName);
 
   useEffect(() => {
     if (popupStatus === "edit") {
@@ -342,11 +344,6 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     setMigitateErrors(newMitigationErrors);
     setRiskErrors(newErrors);
 
-    // return (
-    //   Object.keys(newErrors).length === 0 &&
-    //   Object.keys(newMitigationErrors).length === 0,
-    // ); // Return true if no errors exist
-
     return {
       isValid:
         Object.keys(newErrors).length === 0 &&
@@ -515,7 +512,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
             <RiskSection
               riskValues={riskValues}
               setRiskValues={setRiskValues}
-              riskErrors={riskErrors}          
+              riskErrors={riskErrors}
             />
           </TabPanel>
           <TabPanel value="mitigation" sx={{ p: "24px 0 0" }}>
@@ -547,7 +544,9 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
             variant="contained"
             onClick={riskFormSubmitHandler}
             text={popupStatus === "new" ? "Save" : "Update"}
-            isDisabled={!allowedRoles.projectRisks.delete.includes(userRoleName)}
+            isDisabled={popupStatus === "new"
+              ? isCreatingDisabled
+              : isEditingDisabled}
           />
         </Box>
       </TabContext>

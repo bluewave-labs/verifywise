@@ -70,7 +70,7 @@ const RiskSection: FC<RiskSectionProps> = ({
 }) => {
   const theme = useTheme();
   const { userRoleName } = useContext(VerifyWiseContext);
-  const disabled = !allowedRoles.projectRisks.edit.includes(userRoleName)
+  const isEditingDisabled = !allowedRoles.projectRisks.edit.includes(userRoleName)
 
   const [_, setErrors] = useState<RiskFormErrors>({});
   const [alert, setAlert] = useState<alertState | null>(null);
@@ -135,7 +135,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                 sx={{
                   width: "325px",
                 }}
-                disabled={disabled}
+                disabled={isEditingDisabled}
               />
               <Select
                 id="action-owner-input"
@@ -156,7 +156,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                 sx={{
                   width: "325px",
                 }}
-                disabled={disabled}
+                disabled={isEditingDisabled}
               />
               <Select
                 id="ai-lifecycle-phase-input"
@@ -174,7 +174,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                 sx={{
                   width: "325px",
                 }}
-                disabled={disabled}
+                disabled={isEditingDisabled}
               />
             </Stack>
 
@@ -202,7 +202,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                       width: "325px",
                       mb: 4,
                     }}
-                    disabled={disabled}
+                    disabled={isEditingDisabled}
                   />
                 </Stack>
                 <Select
@@ -219,7 +219,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                   sx={{
                     width: "325px",
                   }}
-                  disabled={disabled}
+                  disabled={isEditingDisabled}
                 />
               </Stack>
               <Field
@@ -237,7 +237,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                     maxHeight: "120px",
                   },
                 }}
-                disabled={disabled}
+                disabled={isEditingDisabled}
               />
             </Stack>
           </Stack>
@@ -257,7 +257,7 @@ const RiskSection: FC<RiskSectionProps> = ({
             likelihood={riskValues.likelihood}
             riskSeverity={riskValues.riskSeverity}
             handleOnSelectChange={handleOnSelectChange}
-            disabled={disabled}
+            disabled={isEditingDisabled}
           />
         </Suspense>
         <Divider />
@@ -276,7 +276,7 @@ const RiskSection: FC<RiskSectionProps> = ({
             }}
             isOptional
             error={riskErrors.reviewNotes}
-            disabled={disabled}
+            disabled={isEditingDisabled}
           />
         </Stack>
       </Stack>

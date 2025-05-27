@@ -33,6 +33,7 @@ const VWProjectRisksTableBody = ({
   flashRow: number | null;
 }) => {
   const { setInputValues, users, userRoleName } = useContext(VerifyWiseContext);
+  const isDeletingAllowed = allowedRoles.projectRisks.delete.includes(userRoleName);
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
   const theme = useTheme();
   const handleEditRisk = (row: any, event?: React.SyntheticEvent) => {
@@ -165,7 +166,7 @@ const VWProjectRisksTableBody = ({
                   backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
                 }}
               >
-                {allowedRoles.projectRisks.delete.includes(userRoleName) &&
+                {isDeletingAllowed &&
                   <IconButton
                     id={row.id}
                     type="risk"

@@ -94,8 +94,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
 }) => {
   const theme = useTheme();
   const { userRoleName } = useContext(VerifyWiseContext);
-  const disabled = !allowedRoles.projectRisks.edit.includes(userRoleName)
-
+  const isEditingDisabled = !allowedRoles.projectRisks.edit.includes(userRoleName)
  
   const [_, setErrors] = useState<MitigationFormErrors>({});
   const [alert, setAlert] = useState<alertState | null>(null);
@@ -172,7 +171,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                 }}
                 isRequired
                 error={migitateErrors.mitigationStatus}
-                disabled={disabled}
+                disabled={isEditingDisabled}
               />
             </Suspense>
             <Suspense fallback={<div>Loading...</div>}>
@@ -185,7 +184,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                 sx={{ backgroundColor: theme.palette.background.main }}
                 isRequired
                 error={migitateErrors.mitigationPlan}
-                disabled={disabled}
+                disabled={isEditingDisabled}
               />
             </Suspense>
           </Stack>
@@ -208,7 +207,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                 }}
                 isRequired
                 error={migitateErrors.currentRiskLevel}
-                disabled={disabled}
+                disabled={isEditingDisabled}
               />
             </Suspense>
             <Suspense fallback={<div>Loading...</div>}>
@@ -221,7 +220,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                 sx={{ backgroundColor: theme.palette.background.main }}
                 isRequired
                 error={migitateErrors.implementationStrategy}
-                disabled={disabled}
+                disabled={isEditingDisabled}
               />
             </Suspense>
           </Stack>
@@ -242,7 +241,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                   }}
                   isRequired
                   error={migitateErrors.deadline}
-                  disabled={disabled}
+                  disabled={isEditingDisabled}
                 />
               </Stack>
             </Suspense>
@@ -262,7 +261,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
             likelihood={mitigationValues.likelihood}
             riskSeverity={mitigationValues.riskSeverity}
             handleOnSelectChange={handleOnSelectChange}
-            disabled={disabled}
+            disabled={isEditingDisabled}
           />
         </Suspense>
         <Divider />
@@ -291,7 +290,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
               }}
               isRequired
               error={migitateErrors.approver}
-              disabled={disabled}
+              disabled={isEditingDisabled}
             />
           </Suspense>
           <Suspense fallback={<div>Loading...</div>}>
@@ -312,7 +311,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
               }}
               isRequired
               error={migitateErrors.approvalStatus}
-              disabled={disabled}
+              disabled={isEditingDisabled}
             />
           </Suspense>
           <Suspense fallback={<div>Loading...</div>}>
@@ -330,7 +329,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
               }}
               isRequired
               error={migitateErrors.dateOfAssessment}
-              disabled={disabled}
+              disabled={isEditingDisabled}
             />
           </Suspense>
         </Stack>
@@ -343,7 +342,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
             onChange={handleOnTextFieldChange("recommendations")}
             sx={{ backgroundColor: theme.palette.background.main }}
             isOptional
-            disabled={disabled}
+            disabled={isEditingDisabled}
           />
         </Suspense>
       </Stack>

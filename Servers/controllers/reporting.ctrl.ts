@@ -50,7 +50,16 @@ export async function generateReports(
 ): Promise<any> {
   // const transaction = await sequelize.transaction();
   try {
-    const projectId = parseInt(req.body.projectId);
+    const {
+      projectId: projectIdRaw,
+      reportType,
+      projectTitle,
+      projectOwner,
+      frameworkId: frameworkIdRaw,
+      reportName
+    } = req.body;
+    const projectId = parseInt(projectIdRaw, 10);
+    const frameworkId = parseInt(frameworkIdRaw, 10);
     const userId = req.userId;
     if (isNaN(projectId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid project ID"));
@@ -60,23 +69,19 @@ export async function generateReports(
     }
     const authorizedUser = await isAuthorizedUser(projectId, userId); // check whether the user is authorized to download the report or not
     const reportData = {
-      projectTitle: req.body.projectTitle,
-      projectOwner: req.body.projectOwner,
+      projectTitle, projectOwner
     };
     if (authorizedUser) {
       const markdownData = getReportData(
         projectId,
-        req.body.frameworkId,
-        req.body.reportType,
+        frameworkId,
+        reportType,
         reportData
       );
       const markdownDoc = await marked.parse(await markdownData); // markdown file
       const generatedDoc = await htmlDocx(markdownDoc); // convert markdown to docx
 
-      let defaultFileName = getFormattedReportName(
-        req.body.reportName,
-        req.body.reportType
-      );
+      let defaultFileName = getFormattedReportName(reportName, reportType);
       const docFile = {
         originalname: `${defaultFileName}.docx`,
         buffer: generatedDoc,
@@ -91,7 +96,7 @@ export async function generateReports(
           docFile,
           userId,
           projectId,
-          mapReportTypeToFileSource(req.body.reportType)
+          mapReportTypeToFileSource(reportType)
         );
       } catch (error) {
         console.error("File upload error:", error);

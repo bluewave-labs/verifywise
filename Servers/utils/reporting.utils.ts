@@ -96,9 +96,17 @@ export const getReportByIdQuery = async (id: number) => {
 };
 
 export const getAssessmentReportQuery = async (
-  projectFrameworkId: number
+  projectId: number,
+  frameworkId: number,
   ) => {
     const allTopics: TopicStructEUModel[] = await getAllTopicsQuery();
+    const projectFrameworkIdQuery = await sequelize.query(
+      `SELECT id FROM projects_frameworks WHERE project_id = :project_id AND framework_id = :framework_id`,
+      {
+        replacements: { project_id: projectId, framework_id: frameworkId }
+      }
+    ) as [{ id: number }[], number];
+    const projectFrameworkId = projectFrameworkIdQuery[0][0].id;
     const assessmentId = await sequelize.query(
       `SELECT id FROM assessments WHERE projects_frameworks_id = :projects_frameworks_id`,
       {

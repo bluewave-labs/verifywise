@@ -113,7 +113,7 @@ const ProjectSettings = React.memo(
   }: {
     triggerRefresh?: (isUpdate: boolean) => void;
   }) => {
-    const { userRoleName } = useContext(VerifyWiseContext);
+    const { userRoleName, userId } = useContext(VerifyWiseContext);
     const [searchParams] = useSearchParams();
     const projectId = searchParams.get("projectId") ?? "1"; // default project ID is 2
     const theme = useTheme();
@@ -566,7 +566,7 @@ const ProjectSettings = React.memo(
           goal: values.goal,
           monitored_regulations_and_standards: selectedRegulations,
           last_updated: new Date().toISOString(),
-          last_updated_by: 1,
+          last_updated_by: userId,
           framework: values.monitoredRegulationsAndStandards.map(fw => ({
             project_framework_id: fw._id,
             framework_id: fw._id

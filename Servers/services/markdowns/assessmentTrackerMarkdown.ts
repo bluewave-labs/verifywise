@@ -24,11 +24,12 @@ type AllTopics = TopicStructEU & {
 };
 
 export async function getAssessmentTrackerMarkdown (
+  projectId: number,
   frameworkId: number,
   data: ReportBodyData
 ) : Promise<any> {
   let rows: string;
-  const reportData = await getAssessmentReportQuery(frameworkId) as AllTopics[];
+  const reportData = await getAssessmentReportQuery(projectId, frameworkId) as AllTopics[];
 
   if (reportData.length > 0) {
       rows = reportData.map(assessment =>{

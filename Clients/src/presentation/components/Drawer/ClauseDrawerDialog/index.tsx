@@ -31,6 +31,7 @@ import {
   getEntityById,
   updateEntityById,
 } from "../../../../application/repository/entity.repository";
+import allowedRoles from "../../../../application/constants/permissions";
 
 export const inputStyles = {
   minWidth: 200,
@@ -90,10 +91,13 @@ const VWISO42001ClauseDrawerDialog = ({
   }
 
   // Get context and project data
-  const { users, userId } = useContext(VerifyWiseContext);
+  const { users, userId, userRoleName } = useContext(VerifyWiseContext);
   const { project } = useProjectData({
     projectId: String(project_id) || "0",
   });
+
+  const isEditingDisabled = !allowedRoles.frameworks.edit.includes(userRoleName);
+  const isAuditingDisabled = !allowedRoles.frameworks.audit.includes(userRoleName);
 
   // Add state for all form fields
   const [formData, setFormData] = useState({
@@ -452,6 +456,7 @@ const VWISO42001ClauseDrawerDialog = ({
                   },
               }}
               placeholder="Describe how this requirement is implemented"
+              disabled={isEditingDisabled}
             />
           </Stack>
           <Stack direction="row" spacing={2}>
@@ -471,6 +476,7 @@ const VWISO42001ClauseDrawerDialog = ({
                 theme.components?.MuiButton?.defaultProps?.disableRipple
               }
               onClick={() => setIsFileUploadOpen(true)}
+              disabled={isEditingDisabled}
             >
               Add/Remove evidence
             </Button>
@@ -564,6 +570,7 @@ const VWISO42001ClauseDrawerDialog = ({
             ]}
             sx={inputStyles}
             placeholder={"Select status"}
+            disabled={isEditingDisabled}
           />
 
           <Select
@@ -579,6 +586,7 @@ const VWISO42001ClauseDrawerDialog = ({
             }))}
             sx={inputStyles}
             placeholder={"Select owner"}
+            disabled={isEditingDisabled}
           />
 
           <Select
@@ -594,6 +602,7 @@ const VWISO42001ClauseDrawerDialog = ({
             }))}
             sx={inputStyles}
             placeholder={"Select reviewer"}
+            disabled={isEditingDisabled}
           />
 
           <Select
@@ -609,6 +618,7 @@ const VWISO42001ClauseDrawerDialog = ({
             }))}
             sx={inputStyles}
             placeholder={"Select approver"}
+            disabled={isEditingDisabled}
           />
 
           <DatePicker
@@ -619,6 +629,7 @@ const VWISO42001ClauseDrawerDialog = ({
               setDate(newDate);
               console.log("Updated due date:", newDate);
             }}
+            disabled={isEditingDisabled}
           />
 
           <Stack>
@@ -639,6 +650,7 @@ const VWISO42001ClauseDrawerDialog = ({
                   },
               }}
               placeholder="Enter any feedback from the internal or external audits..."
+              disabled={isAuditingDisabled}
             />
           </Stack>
         </Stack>
@@ -661,7 +673,7 @@ const VWISO42001ClauseDrawerDialog = ({
               gap: 2,
             }}
             onClick={handleSave}
-            icon={<SaveIcon />}
+            icon={<SaveIcon />}          
           />
         </Stack>
       </Stack>

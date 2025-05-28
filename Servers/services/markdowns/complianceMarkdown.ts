@@ -5,6 +5,7 @@
  * @returns Promise<string> - Markdown formatted assessment tracker report
  */
 
+import { getComplianceReportQuery } from '../../utils/reporting.utils';
 import { ReportBodyData } from '../reportService';
 
 export async function getComplianceMarkdown (
@@ -12,6 +13,7 @@ export async function getComplianceMarkdown (
     data: ReportBodyData
   ) : Promise<any> {
     let rows: string;
+    const reportData = await getComplianceReportQuery(frameworkId);
     
     const complianceMD = `
 VerifyWise compliance tracker report

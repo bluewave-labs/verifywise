@@ -6,8 +6,10 @@ import {
 } from "../models/projectsMembers.model";
 import { FileModel } from "../models/file.model";
 import { QueryTypes, Transaction } from "sequelize";
-import { getAllTopicsQuery, getAllSubTopicsQuery, getAllQuestionsQuery } from "./eu.utils";
+import { getAllTopicsQuery, getAllSubTopicsQuery, getAllQuestionsQuery, getControlStructByControlCategoryIdForAProjectQuery, getAllControlCategoriesQuery, getControlByIdForProjectQuery, getControlByIdQuery, getSubControlsByIdQuery } from "./eu.utils";
 import { TopicStructEUModel } from "../models/EU/topicStructEU.model";
+import { ControlEUModel } from "../models/EU/controlEU.model";
+import { ControlStructEUModel } from "../models/EU/controlStructEU.model";
 
 export const getProjectRisksReportQuery = async (
   projectId: number
@@ -120,9 +122,36 @@ export const getAssessmentReportQuery = async (
           }
         }
         (topic.dataValues as any).subtopics = [];
-        (topic.dataValues as any).subtopics = subtopicStruct.map(s => s.get({ plain: true }));;
+        (topic.dataValues as any).subtopics = subtopicStruct.map(s => s.get({ plain: true }));
       }
     }
     const allAssessments = allTopics.map((topic) => topic.get({ plain: true }));
     return allAssessments;
+}
+
+export const getComplianceReportQuery = async (
+  projectFrameworkId: number
+) => {
+  const compliances = await getAllControlCategoriesQuery();
+  for(let cc of compliances){
+    if(cc.id && cc.framework_id){
+      const subCategorieStructs = await getControlStructByControlCategoryIdForAProjectQuery(cc.id, cc.framework_id);                              
+      for(const subcc of subCategorieStructs) {
+        if (subcc.id) {
+          const controls = await getControlByIdQuery(subcc.id);
+          const control = controls[0];
+          const subControls = await getSubControlsByIdQuery(control.id!);
+          (control as any).subControls = [];
+          for (let subControl of subControls) {
+            (control as any).subControls.push({ ...subControl });
+          }
+          (subcc as any).data = [];
+          (subcc as any).data.push({...control})
+        }
+        (cc.dataValues as any).subCategory = [];
+        (cc.dataValues as any).subCategory.push({...subcc})
+      }
+    }
+  }
+  return compliances;
 }

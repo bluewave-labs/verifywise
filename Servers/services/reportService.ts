@@ -96,7 +96,7 @@ export async function getReportData(
       markdownFormattedData = await getVendorReportMarkdown(projectId, reportBody)
       break;
       case ReportType.COMPLIANCE_REPORT:
-        markdownFormattedData = await getVendorReportMarkdown(projectId, reportBody)
+        markdownFormattedData = await getComplianceMarkdown(frameworkId, reportBody)
         break;
     default:
       throw new Error(`Report type "${reportType}" is not supported`);

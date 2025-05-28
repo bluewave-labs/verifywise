@@ -5,10 +5,8 @@ import {
   Stack,
   Typography,
   CircularProgress,
-  keyframes,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { accordionStyle } from "../style";
 import { useState, useEffect, useCallback } from "react";
 import VWISO42001ClauseDrawerDialog from "../../../components/Drawer/ClauseDrawerDialog";
 import { Project } from "../../../../domain/types/Project";
@@ -20,19 +18,7 @@ import { SubClauseStructISO } from "../../../../domain/types/SubClauseStructISO"
 import Alert from "../../../components/Alert";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
-
-// Define the flash animation
-const flashAnimation = keyframes`
-  0% {
-    background-color: transparent;
-  }
-  50% {
-    background-color: rgba(82, 171, 67, 0.2); // Light green color
-  }
-  100% {
-    background-color: transparent;
-  }
-`;
+import { styles } from "./styles";
 
 const ISO42001Clauses = ({
   project,
@@ -56,6 +42,7 @@ const ISO42001Clauses = ({
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number>(0);
 
   const fetchClauses = useCallback(async () => {
     try {
@@ -98,9 +85,10 @@ const ISO42001Clauses = ({
       }
     };
 
-  const handleSubClauseClick = (clause: any, subClause: any) => {
+  const handleSubClauseClick = (clause: any, subClause: any, index: number) => {
     setSelectedClause(clause);
     setSelectedSubClause(subClause);
+    setSelectedIndex(index);
     setDrawerOpen(true);
   };
 
@@ -136,33 +124,6 @@ const ISO42001Clauses = ({
     }
   };
 
-  function getStatusColor(status: string) {
-    const normalizedStatus = status?.trim() || "Not Started";
-    switch (
-      normalizedStatus.charAt(0).toUpperCase() +
-      normalizedStatus.slice(1).toLowerCase()
-    ) {
-      case "Not Started":
-        return "#C63622";
-      case "Draft":
-        return "#D68B61";
-      case "In Progress":
-        return "#D6B971";
-      case "Awaiting Review":
-        return "#D6B971";
-      case "Awaiting Approval":
-        return "#D6B971";
-      case "Implemented":
-        return "#52AB43";
-      case "Audited":
-        return "#B8D39C";
-      case "Needs Rework":
-        return "#800080";
-      default:
-        return "#C63622"; // Default to "Not Started" color
-    }
-  }
-
   function dynamicSubClauses(clause: ClauseStructISO) {
     const subClauses = subClausesMap[clause.id ?? 0] || [];
     const isLoading = loadingSubClauses[clause.id ?? 0];
@@ -170,14 +131,7 @@ const ISO42001Clauses = ({
     return (
       <AccordionDetails sx={{ padding: 0 }}>
         {isLoading ? (
-          <Stack
-            sx={{
-              padding: "16px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
+          <Stack sx={styles.loadingContainer}>
             <CircularProgress size={24} />
           </Stack>
         ) : clause.subClauses.length > 0 ? (
@@ -188,36 +142,17 @@ const ISO42001Clauses = ({
             ) => (
               <Stack
                 key={subClause.id}
-                onClick={() => handleSubClauseClick(clause, subClause)}
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  padding: "16px",
-                  borderBottom:
-                    subClauses.length - 1 === index
-                      ? "none"
-                      : "1px solid #eaecf0",
-                  cursor: "pointer",
-                  fontSize: 13,
-                  animation: flashingRowId === subClause.id ? `${flashAnimation} 2s ease-in-out` : 'none',
-                  '&:hover': {
-                    backgroundColor: flashingRowId === subClause.id ? 'transparent' : '#f5f5f5',
-                  },
-                }}
+                onClick={() => handleSubClauseClick(clause, subClause, index)}
+                sx={styles.subClauseRow(
+                  subClauses.length - 1 === index,
+                  flashingRowId === subClause.id
+                )}
               >
                 <Typography fontSize={13}>
                   {clause.clause_no + "." + (index + 1)}{" "}
                   {subClause.title ?? "Untitled"}
                 </Typography>
-                <Stack
-                  sx={{
-                    borderRadius: "4px",
-                    padding: "5px",
-                    backgroundColor: getStatusColor(subClause.status ?? ""),
-                    color: "#fff",
-                  }}
-                >
+                <Stack sx={styles.statusBadge(subClause.status ?? "")}>
                   {subClause.status
                     ? subClause.status.charAt(0).toUpperCase() +
                       subClause.status.slice(1).toLowerCase()
@@ -227,15 +162,7 @@ const ISO42001Clauses = ({
             )
           )
         ) : (
-          <Stack
-            sx={{
-              padding: "16px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#666",
-            }}
-          >
+          <Stack sx={styles.noSubClausesContainer}>
             No subclauses found
           </Stack>
         )}
@@ -246,57 +173,21 @@ const ISO42001Clauses = ({
   return (
     <Stack className="iso-42001-clauses">
       {alert && <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />}
-      <Typography
-        key="Management-System-Clauses"
-        sx={{ color: "#1A1919", fontWeight: 600, mb: "6px", fontSize: 16 }}
-      >
+      <Typography sx={styles.title}>
         {"Management System Clauses"}
       </Typography>
       {clauses &&
         clauses.map((clause: ClauseStructISO) => (
-          <Stack
-            key={clause.id}
-            sx={{
-              maxWidth: "1400px",
-              marginTop: "14px",
-              gap: "20px",
-            }}
-          >
+          <Stack key={clause.id} sx={styles.container}>
             <Accordion
               key={clause.id}
               expanded={expanded === clause.id}
-              sx={{
-                ...accordionStyle,
-                ".MuiAccordionDetails-root": {
-                  padding: 0,
-                  margin: 0,
-                },
-              }}
+              sx={styles.accordion}
               onChange={handleAccordionChange(clause.id ?? 0)}
             >
-              <AccordionSummary
-                sx={{
-                  backgroundColor: "#fafafa",
-                  flexDirection: "row-reverse",
-                }}
-                expandIcon={
-                  <ExpandMoreIcon
-                    sx={{
-                      transform:
-                        expanded === clause.id
-                          ? "rotate(180deg)"
-                          : "rotate(270deg)",
-                      transition: "transform 0.5s ease-in",
-                    }}
-                  />
-                }
-              >
-                <Typography
-                  sx={{
-                    paddingLeft: "2.5px",
-                    fontSize: 13,
-                  }}
-                >
+              <AccordionSummary sx={styles.accordionSummary}>
+                <ExpandMoreIcon sx={styles.expandIcon(expanded === clause.id)} />
+                <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>
                   {clause.title}
                 </Typography>
               </AccordionSummary>
@@ -313,6 +204,7 @@ const ISO42001Clauses = ({
           projectFrameworkId={projectFrameworkId}
           project_id={project.id}
           onSaveSuccess={(success, message) => handleSaveSuccess(success, message, selectedSubClause?.id)}
+          index={selectedIndex}
         />
       )}
     </Stack>

@@ -4,7 +4,6 @@ import {
   AccordionSummary,
   Stack,
   Typography,
-  keyframes,
 } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -18,19 +17,7 @@ import { AnnexCategoryISO } from "../../../../domain/types/AnnexCategoryISO";
 import Alert from "../../../components/Alert";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
-
-// Define the flash animation
-const flashAnimation = keyframes`
-  0% {
-    background-color: transparent;
-  }
-  50% {
-    background-color: rgba(82, 171, 67, 0.2); // Light green color
-  }
-  100% {
-    background-color: transparent;
-  }
-`;
+import { styles } from "./styles";
 
 const ISO42001Annex = ({
   project,
@@ -134,92 +121,25 @@ const ISO42001Annex = ({
     }
   };
 
-  function getStatusColor(status: string) {
-    const normalizedStatus = status?.trim() || "Not Started";
-    switch (
-      normalizedStatus.charAt(0).toUpperCase() +
-      normalizedStatus.slice(1).toLowerCase()
-    ) {
-      case "Not Started":
-        return "#C63622";
-      case "Draft":
-        return "#D68B61";
-      case "In Progress":
-        return "#D6B971";
-      case "Awaiting Review":
-        return "#D6B971";
-      case "Awaiting Approval":
-        return "#D6B971";
-      case "Implemented":
-        return "#52AB43";
-      case "Audited":
-        return "#B8D39C";
-      case "Needs Rework":
-        return "#800080";
-      default:
-        return "#C63622"; // Default to "Not Started" color
-    }
-  }
-
   return (
     <Stack className="iso-42001-annex">
       {alert && <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />}
       {
         <>
-          <Typography
-            key={"Reference-Controls"}
-            sx={{ color: "#1A1919", fontWeight: 600, mb: "6px", fontSize: 16 }}
-          >
+          <Typography sx={styles.title}>
             Annex A : Reference Controls (Statement of Applicability)
           </Typography>
           {annexes &&
             annexes.map((annex: AnnexStructISO) => (
-              <Stack
-                key={annex.id}
-                sx={{
-                  maxWidth: "1400px",
-                  marginTop: "14px",
-                  gap: "20px",
-                }}
-              >
+              <Stack key={annex.id} sx={styles.container}>
                 <Accordion
                   key={annex.id}
                   expanded={expanded === annex.id}
                   onChange={handleAccordionChange(annex.id ?? 0)}
-                  sx={{
-                    marginTop: "9px",
-                    border: "1px solid #eaecf0",
-                    width: "100%",
-                    marginLeft: "1.5px",
-                    borderRadius: "4px",
-                    overflow: "hidden",
-                    position: "relative",
-                    margin: 0,
-                    padding: 0,
-                    boxShadow: "none",
-                    ".MuiAccordionDetails-root": {
-                      padding: 0,
-                      margin: 0,
-                    },
-                  }}
+                  sx={styles.accordion}
                 >
-                  <AccordionSummary
-                    sx={{
-                      backgroundColor: "#fafafa",
-                      flexDirection: "row-reverse",
-                    }}
-                    expandIcon={
-                      <ExpandMoreIcon
-                        sx={{
-                          transform:
-                            expanded === annex.id
-                              ? "rotate(180deg)"
-                              : "rotate(270deg)",
-                          transition: "transform 0.5s ease-in",
-                        }}
-                      />
-                    }
-                  >
+                  <AccordionSummary sx={styles.accordionSummary}>
+                    <ExpandMoreIcon sx={styles.expandIcon(expanded === annex.id)} />
                     {annex.title}
                   </AccordionSummary>
                   <AccordionDetails sx={{ padding: 0 }}>
@@ -229,43 +149,21 @@ const ISO42001Annex = ({
                         onClick={() =>
                           handleControlClick("A", annex, control, index)
                         }
-                        sx={{
-                          display: "flex",
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          padding: "16px",
-                          borderBottom:
-                            annex.annexCategories.length - 1 ===
-                            annex.annexCategories.indexOf(control)
-                              ? "none"
-                              : "1px solid #eaecf0",
-                          cursor: "pointer",
-                          fontSize: 13,
-                          animation: flashingRowId === control.id ? `${flashAnimation} 2s ease-in-out` : 'none',
-                          '&:hover': {
-                            backgroundColor: flashingRowId === control.id ? 'transparent' : '#f5f5f5',
-                          },
-                        }}
+                        sx={styles.controlRow(
+                          annex.annexCategories.length - 1 === index,
+                          flashingRowId === control.id
+                        )}
                       >
                         <Stack>
-                          <Typography fontWeight={600}>
+                          <Typography sx={styles.controlTitle}>
                             {"A"}.{annex.annex_no}.{index + 1}{" "}
                             {control.title}
                           </Typography>
-                          <Typography sx={{ fontSize: 13 }}>
+                          <Typography sx={styles.controlDescription}>
                             {control.description}
                           </Typography>
                         </Stack>
-                        <Stack
-                          sx={{
-                            borderRadius: "4px",
-                            padding: "5px",
-                            backgroundColor: getStatusColor(control.status || ""),
-                            color: "#fff",
-                            height: "fit-content",
-                          }}
-                        >
+                        <Stack sx={styles.statusBadge(control.status || "")}>
                           {control.status
                             ? control.status.charAt(0).toUpperCase() +
                               control.status.slice(1).toLowerCase()

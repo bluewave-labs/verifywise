@@ -49,6 +49,7 @@ interface VWISO42001ClauseDrawerDialogProps {
   projectFrameworkId: number;
   project_id: number;
   onSaveSuccess?: (success: boolean, message?: string) => void;
+  index: number;
 }
 
 const VWISO42001ClauseDrawerDialog = ({
@@ -59,6 +60,7 @@ const VWISO42001ClauseDrawerDialog = ({
   projectFrameworkId,
   project_id,
   onSaveSuccess,
+  index,
 }: VWISO42001ClauseDrawerDialogProps) => {
   const [date, setDate] = useState<Dayjs | null>(null);
   const [fetchedSubClause, setFetchedSubClause] = useState<any>(null);
@@ -376,7 +378,7 @@ const VWISO42001ClauseDrawerDialog = ({
           }}
         >
           <Typography fontSize={15} fontWeight={700}>
-            {clause?.clause_no + "." + displayData?.id} {displayData?.title}
+            {clause?.clause_no + "." + (index + 1)} {displayData?.title}
           </Typography>
           <CloseIcon onClick={onClose} style={{ cursor: "pointer" }} />
         </Stack>

@@ -13,6 +13,7 @@ import { createNewVendorRiskQuery } from "../utils/vendorRisk.util";
 import { createNewUserQuery } from "../utils/user.utils";
 import { User } from "../models/user.model";
 import { Vendor } from "../models/vendor.model";
+
 import { createISOFrameworkQuery } from "../utils/iso42001.utils";
 import { addVendorProjects } from "../utils/vendor.utils";
 
@@ -31,7 +32,8 @@ export async function insertMockData() {
           created_at: new Date(Date.now()),
           last_login: new Date(Date.now()),
         },
-        transaction
+        transaction,
+        true // is demo
       )
       let u2 = await createNewUserQuery(
         {
@@ -43,7 +45,8 @@ export async function insertMockData() {
           created_at: new Date(Date.now()),
           last_login: new Date(Date.now()),
         },
-        transaction
+        transaction,
+        true // is demo
       )
       users.push(u1, u2);
     }
@@ -122,7 +125,9 @@ export async function insertMockData() {
           transaction,
           true // is demo
         )
-      }
+      } else {
+        await addVendorProjects(vendor.id!, [project.id!], transaction);
+      }      
 
       // create association vendors and projects
       let vendor_project = await addVendorProjects(vendor.id!,projects,transaction);

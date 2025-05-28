@@ -1,6 +1,6 @@
 import { Divider, Stack, Typography } from "@mui/material";
-import { rowStyle } from "./style";
-import StatsCard from "../../../../components/Cards/StatsCard";
+import { columnStyle, rowStyle } from "./style";
+import GroupStatsCard from "../../../../components/Cards/GroupStatsCard";
 import { projectRiskSection } from "../style";
 import RisksCard from "../../../../components/Cards/RisksCard";
 import InfoCard from "../../../../components/Cards/InfoCard";
@@ -18,9 +18,8 @@ import useProjectRisks from "../../../../../application/hooks/useProjectRisks";
 
 const VWProjectOverview = ({ project }: { project?: Project }) => {
   const projectId = project!.id;
-  const projectFrameworkId = project?.framework.filter(
-    (p) => p.framework_id === 1
-  )[0]?.project_framework_id;
+  const projectFrameworkId = project?.framework.find((p) => p.framework_id === 1)?.project_framework_id;
+  const projectFrameworkId2 = project?.framework.find((p) => p.framework_id === 2)?.project_framework_id;
   const { users } = useContext(VerifyWiseContext); 
 
   const { projectRisksSummary } = useProjectRisks({ projectId });
@@ -32,6 +31,15 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
   const [assessmentProgress, setAssessmentProgress] = useState<{
     answeredQuestions: number;
     totalQuestions: number;
+  }>();
+
+  const [annexesProgress, setAnnexesProgress] = useState<{
+    totalAnnexcategories: number;
+    doneAnnexcategories: number;
+  }>();
+  const [clausesProgress, setClausesProgress] = useState<{
+    totalSubclauses: number;
+    doneSubclauses: number;
   }>();
 
   useEffect(() => {
@@ -46,16 +54,23 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
           routeUrl: `/eu-ai-act/assessments/progress/${projectFrameworkId}`,
         });
         setAssessmentProgress(assessmentData.data);
+
+        const annexesData = await getEntityById({
+          routeUrl: `/iso-42001/annexes/progress/${projectFrameworkId2}`,
+        });
+        setAnnexesProgress(annexesData.data);
+
+        const clausesData = await getEntityById({
+          routeUrl: `/iso-42001/clauses/progress/${projectFrameworkId2}`,
+        });
+        setClausesProgress(clausesData.data);
       } catch (error) {
         console.error("Error fetching progress data:", error);
       }
     };
 
     fetchProgressData();
-  }, [projectFrameworkId]);
-
-  console.log("complianceProgress: ", complianceProgress);
-  console.log("assessmentProgress: ", assessmentProgress);
+  }, [projectFrameworkId, projectFrameworkId2]);
 
   const user: User = project
     ? users.find((user: User) => user.id === project.last_updated_by) ??
@@ -71,6 +86,36 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
         .filter((user: { id: any }) => project.members.includes(user.id || ""))
         .map((user: User) => `${user.name} ${user.surname}`)
     : [];
+
+  const completedEuActNumbers = [
+    complianceProgress?.allDonesubControls ?? 0,
+    assessmentProgress?.answeredQuestions ?? 0,
+  ];
+
+  const totalEuActNumbers = [
+    complianceProgress?.allsubControls ?? 0,
+    assessmentProgress?.totalQuestions ?? 0,
+  ];
+
+  const titleEuAct = [
+    "Subcontrols",
+    "Assessments",
+  ];
+
+  const completedIso42001Numbers = [
+    annexesProgress?.doneAnnexcategories ?? 0,
+    clausesProgress?.doneSubclauses ?? 0,
+  ];
+
+  const totalIso42001Numbers = [
+    annexesProgress?.totalAnnexcategories ?? 0,
+    clausesProgress?.totalSubclauses ?? 0,
+  ];
+
+  const titleIso42001 = [
+    "Annexes",
+    "Subclauses",
+  ];
 
   return (
     <Stack className="vw-project-overview">
@@ -119,18 +164,32 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
       <Stack className="vw-project-overview-row" sx={rowStyle}>
         {project ? (
           <>
-            <StatsCard
-              completed={complianceProgress?.allDonesubControls ?? 0}
-              total={complianceProgress?.allsubControls ?? 0}
-              title="Subcontrols"
-              progressbarColor="#13715B"
-            />
-            <StatsCard
-              completed={assessmentProgress?.answeredQuestions ?? 0}
-              total={assessmentProgress?.totalQuestions ?? 0}
-              title="Assessments"
-              progressbarColor="#13715B"
-            />
+            {projectFrameworkId && (
+              <Stack sx={columnStyle}>
+                <Typography sx={projectRiskSection}>
+                  EU AI Act Completion Status
+                </Typography>
+                <GroupStatsCard
+                  completed={completedEuActNumbers}
+                  total={totalEuActNumbers}
+                  title={titleEuAct}
+                  progressbarColor="#13715B"
+                />
+              </Stack>
+            )}
+            {projectFrameworkId2 && (
+              <Stack sx={columnStyle}>
+                <Typography sx={projectRiskSection}>
+                  ISO 42001 Completion Status
+                </Typography>
+                <GroupStatsCard
+                  completed={completedIso42001Numbers}
+                  total={totalIso42001Numbers}
+                  title={titleIso42001}
+                  progressbarColor="#13715B"
+                />
+              </Stack>
+            )}
           </>
         ) : (
           <>

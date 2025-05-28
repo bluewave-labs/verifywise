@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useContext, useEffect, useState } from "react";
 import { Box, Stack, Typography } from "@mui/material";
 import { Project } from "../../../../../domain/types/Project";
 import { useSearchParams } from "react-router-dom";
@@ -17,6 +17,8 @@ import Alert from "../../../../components/Alert";
 import { deleteEntityById } from "../../../../../application/repository/entity.repository";
 import VWToast from "../../../../vw-v2-components/Toast";
 import VWSkeleton from "../../../../vw-v2-components/Skeletons";
+import allowedRoles from "../../../../../application/constants/permissions";
+import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
 
 const TITLE_OF_COLUMNS = [
   "RISK NAME", // value from risk tab
@@ -44,6 +46,7 @@ const initialLoadingState: LoadingStatus = {
 };
 
 const VWProjectRisks = ({ project }: { project?: Project }) => {
+  const { userRoleName } = useContext(VerifyWiseContext);
   const [searchParams] = useSearchParams();
   const projectId = parseInt(searchParams.get("projectId") ?? "0") || project!.id;
   const [refreshKey, setRefreshKey] = useState(0); // Add refreshKey state
@@ -239,6 +242,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
             }}
             onClick={handleOpenOrClose}
             icon={<AddCircleOutlineIcon />}
+            isDisabled={!allowedRoles.projectRisks.create.includes(userRoleName)}
           />
         </Stack>
 

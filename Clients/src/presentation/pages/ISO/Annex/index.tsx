@@ -14,6 +14,9 @@ import { AnnexStructISO } from "../../../../domain/types/AnnexStructISO";
 import { GetAnnexCategoriesById } from "../../../../application/repository/annexCategory_iso.repository";
 import { AnnexCategoryStructISO } from "../../../../domain/types/AnnexCategoryStructISO";
 import { AnnexCategoryISO } from "../../../../domain/types/AnnexCategoryISO";
+import Alert from "../../../components/Alert";
+import { AlertProps } from "../../../../domain/interfaces/iAlert";
+import { handleAlert } from "../../../../application/tools/alertUtils";
 
 const ISO42001Annex = ({
   project,
@@ -32,6 +35,7 @@ const ISO42001Annex = ({
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [controlsMap, setControlsMap] = useState<{ [key: number]: any[] }>({});
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [alert, setAlert] = useState<AlertProps | null>(null);
 
   useEffect(() => {
     const fetchClauses = async () => {
@@ -89,13 +93,23 @@ const ISO42001Annex = ({
     setSelectedAnnex(null);
   };
 
-  const handleSaveSuccess = async () => {
-    // If there's an expanded annex, refresh its controls
-    if (expanded !== false) {
-      await fetchControls(expanded);
+  const handleSaveSuccess = async (success: boolean, message?: string) => {
+    // Show appropriate toast message
+    handleAlert({
+      variant: success ? "success" : "error",
+      body: message || (success ? "Changes saved successfully" : "Failed to save changes"),
+      setAlert,
+    });
+
+    // If save was successful, refresh the data
+    if (success) {
+      // If there's an expanded annex, refresh its controls
+      if (expanded !== false) {
+        await fetchControls(expanded);
+      }
+      // Trigger a refresh of the annexes
+      setRefreshTrigger((prev) => prev + 1);
     }
-    // Trigger a refresh of the annexes
-    setRefreshTrigger((prev) => prev + 1);
   };
 
   function getStatusColor(status: string) {
@@ -127,6 +141,7 @@ const ISO42001Annex = ({
 
   return (
     <Stack className="iso-42001-annex">
+      {alert && <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />}
       {
         <>
           <Typography

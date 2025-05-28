@@ -18,6 +18,12 @@ const allowedRoles = {
         edit: ['Admin', 'Editor'],
         delete: ['Admin', 'Editor']     
     },
+    frameworks: {
+        view: ['Admin', 'Editor', 'Auditor'],    
+        edit: ['Admin', 'Editor'],    
+        manage: ['Admin', 'Editor'],
+        audit: [ 'Auditor']
+    },
 }
 
 export default allowedRoles;

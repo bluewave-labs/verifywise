@@ -40,15 +40,8 @@ import { deleteEntityById } from "../../../../application/repository/entity.repo
 import {
   updateEntityById,
 } from "../../../../application/repository/entity.repository";
+import { User } from "../../../../domain/types/User";
 const Alert = lazy(() => import("../../../components/Alert"));
-
-// Type definition for team member
-type TeamMember = {
-  id: string;
-  name: string;
-  email: string;
-  roleId: string;  // Keep as string since it comes from API
-};
 
 // Constants for roles
 
@@ -82,13 +75,13 @@ const TeamManagement: React.FC = (): JSX.Element => {
 
   // State management
   const [open, setOpen] = useState(false);
-  const [memberToDelete, setMemberToDelete] = useState<string | null>(null);
+  const [memberToDelete, setMemberToDelete] = useState<number | null>(null);
   const [filter, setFilter] = useState(0);
 
   const [page, setPage] = useState(0); // Current page
-  const { dashboardValues, refreshUsers } = useContext(VerifyWiseContext);
-  const [teamUsers, setTeamUsers] = useState<TeamMember[]>(
-    dashboardValues.users || []
+  const { dashboardValues, users } = useContext(VerifyWiseContext);
+  const [teamUsers, setTeamUsers] = useState<User[]>(
+    users || []
   );
   const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
   const [inviteUserModalOpen, setInviteUserModalOpen] = useState(false);
@@ -97,16 +90,35 @@ const TeamManagement: React.FC = (): JSX.Element => {
     try {
       const response = await updateEntityById({
         routeUrl: `/users/${memberId}`,
-        body: { role_id: newRole },
+        body: { roleId: newRole },
       });
 
       if (response.status === 202) {
-        setAlert({
+        handleAlert({
           variant: "success",
-          body: "User's role updated successfully",
+          body: "User role updated successfully.",
+          setAlert,
         });
-        setTimeout(() => setAlert(null), 3000);
-        await refreshUsers();
+        setTimeout(() => setAlert(null), 2500);        
+        // Update the local state with the new role
+        const updatedMember = response.data?.data;
+        if (!updatedMember) {
+          handleAlert({
+            variant: "error",
+            body: "Failed to update user role.",
+            setAlert,
+          });
+          return;
+        }
+        const memberId = Number(updatedMember.id);
+        const newRoleId = Number(updatedMember.role_id);
+        setTeamUsers((members) =>
+          members.map((member) =>
+            member.id === memberId
+              ? { ...member, roleId: newRoleId }
+              : member
+          )
+        );       
       } else {
         setAlert({
           variant: "error",
@@ -195,10 +207,10 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const filteredMembers = useMemo(() => {
     return filter === 0
       ? teamUsers
-      : teamUsers.filter((member) => parseInt(member.roleId) === filter);
+      : teamUsers.filter((member) => member.roleId === filter);
   }, [filter, teamUsers]);
 
-  const handleDeleteClick = (memberId: string) => {
+  const handleDeleteClick = (memberId: number) => {
     setMemberToDelete(memberId);
     setOpen(true);
   };
@@ -219,12 +231,12 @@ const TeamManagement: React.FC = (): JSX.Element => {
     setInviteUserModalOpen(true);
   };
 
-  const handleInvitation = (email: string, status: number | string) => {
+  const handleInvitation = (email: string, status: number | string, link: string) => {
     console.log("Invitation to ", email, "is ", status);
-    handleAlert({
-      variant: status === 200 ? "success" : "error",
-      body: status === 200 ? "Invitation is sent" : "Invitation failed",
-      setAlert,
+    
+    setAlert({
+      variant: "info",
+      body: `The link is: ${link}`,
     });
 
     setInviteUserModalOpen(false);
@@ -374,8 +386,8 @@ const TeamManagement: React.FC = (): JSX.Element => {
                               sx={singleTheme.tableStyles.primary.body.cell}
                             >
                               <Select
-                                value={member.roleId || ""}
-                                onChange={(e) => handleRoleChange(e, member.id)}
+                                value={member.roleId?.toString() || "1"}
+                                onChange={(e) => handleRoleChange(e, member.id.toString())}
                                 size="small"
                                 displayEmpty
                                 renderValue={renderRoleValue}

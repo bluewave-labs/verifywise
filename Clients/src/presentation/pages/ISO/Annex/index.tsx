@@ -4,6 +4,7 @@ import {
   AccordionSummary,
   Stack,
   Typography,
+  keyframes,
 } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -17,6 +18,19 @@ import { AnnexCategoryISO } from "../../../../domain/types/AnnexCategoryISO";
 import Alert from "../../../components/Alert";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
+
+// Define the flash animation
+const flashAnimation = keyframes`
+  0% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(82, 171, 67, 0.2); // Light green color
+  }
+  100% {
+    background-color: transparent;
+  }
+`;
 
 const ISO42001Annex = ({
   project,
@@ -36,6 +50,7 @@ const ISO42001Annex = ({
   const [controlsMap, setControlsMap] = useState<{ [key: number]: any[] }>({});
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [alert, setAlert] = useState<AlertProps | null>(null);
+  const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchClauses = async () => {
@@ -93,7 +108,7 @@ const ISO42001Annex = ({
     setSelectedAnnex(null);
   };
 
-  const handleSaveSuccess = async (success: boolean, message?: string) => {
+  const handleSaveSuccess = async (success: boolean, message?: string, savedControlId?: number) => {
     // Show appropriate toast message
     handleAlert({
       variant: success ? "success" : "error",
@@ -101,8 +116,15 @@ const ISO42001Annex = ({
       setAlert,
     });
 
-    // If save was successful, refresh the data
-    if (success) {
+    // If save was successful, refresh the data and trigger flash animation
+    if (success && savedControlId) {
+      // Set the flashing row ID
+      setFlashingRowId(savedControlId);
+      // Clear the flashing state after animation
+      setTimeout(() => {
+        setFlashingRowId(null);
+      }, 2000); // 2 seconds animation
+
       // If there's an expanded annex, refresh its controls
       if (expanded !== false) {
         await fetchControls(expanded);
@@ -199,73 +221,78 @@ const ISO42001Annex = ({
                     }
                   >
                     {annex.title}
-                </AccordionSummary>
-                <AccordionDetails sx={{ padding: 0 }}>
-                  {annex.annexCategories.map((control, index: number) => (
-                    <Stack
-                      key={control.id}
-                      onClick={() =>
-                        handleControlClick("A", annex, control, index)
-                      }
-                      sx={{
-                        display: "flex",
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        padding: "16px",
-                        borderBottom:
-                          annex.annexCategories.length - 1 ===
-                          annex.annexCategories.indexOf(control)
-                            ? "none"
-                            : "1px solid #eaecf0",
-                        cursor: "pointer",
-                        fontSize: 13,
-                      }}
-                    >
-                      <Stack>
-                        <Typography fontWeight={600}>
-                          {"A"}.{annex.annex_no}.{index + 1}{" "}
-                          {control.title}
-                        </Typography>
-                        <Typography sx={{ fontSize: 13 }}>
-                          {control.description}
-                        </Typography>
-                      </Stack>
+                  </AccordionSummary>
+                  <AccordionDetails sx={{ padding: 0 }}>
+                    {annex.annexCategories.map((control, index: number) => (
                       <Stack
+                        key={control.id}
+                        onClick={() =>
+                          handleControlClick("A", annex, control, index)
+                        }
                         sx={{
-                          borderRadius: "4px",
-                          padding: "5px",
-                          backgroundColor: getStatusColor(control.status || ""),
-                          color: "#fff",
-                          height: "fit-content",
+                          display: "flex",
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: "16px",
+                          borderBottom:
+                            annex.annexCategories.length - 1 ===
+                            annex.annexCategories.indexOf(control)
+                              ? "none"
+                              : "1px solid #eaecf0",
+                          cursor: "pointer",
+                          fontSize: 13,
+                          animation: flashingRowId === control.id ? `${flashAnimation} 2s ease-in-out` : 'none',
+                          '&:hover': {
+                            backgroundColor: flashingRowId === control.id ? 'transparent' : '#f5f5f5',
+                          },
                         }}
                       >
-                        {control.status
-                          ? control.status.charAt(0).toUpperCase() +
-                            control.status.slice(1).toLowerCase()
-                          : "Not started"}
+                        <Stack>
+                          <Typography fontWeight={600}>
+                            {"A"}.{annex.annex_no}.{index + 1}{" "}
+                            {control.title}
+                          </Typography>
+                          <Typography sx={{ fontSize: 13 }}>
+                            {control.description}
+                          </Typography>
+                        </Stack>
+                        <Stack
+                          sx={{
+                            borderRadius: "4px",
+                            padding: "5px",
+                            backgroundColor: getStatusColor(control.status || ""),
+                            color: "#fff",
+                            height: "fit-content",
+                          }}
+                        >
+                          {control.status
+                            ? control.status.charAt(0).toUpperCase() +
+                              control.status.slice(1).toLowerCase()
+                            : "Not started"}
+                        </Stack>
                       </Stack>
-                    </Stack>
-                  ))}
-                </AccordionDetails>
-              </Accordion>
-            </Stack>
-          ))}
+                    ))}
+                  </AccordionDetails>
+                </Accordion>
+              </Stack>
+            ))}
         </>
-    }
-      {drawerOpen &&
-        (<VWISO42001AnnexDrawerDialog
-        open={drawerOpen}
-        onClose={handleDrawerClose}
-        title={`${selectedOrder}.${selectedAnnex?.annex_no}.${
-          selectedIndex + 1
-        } ${selectedControl?.title}`}
-        control={selectedControl}
-        annex={selectedAnnex}
-        projectFrameworkId={projectFrameworkId}
-        project_id={project.id}
-        onSaveSuccess={handleSaveSuccess}
-      />)}
+      }
+      {drawerOpen && (
+        <VWISO42001AnnexDrawerDialog
+          open={drawerOpen}
+          onClose={handleDrawerClose}
+          title={`${selectedOrder}.${selectedAnnex?.annex_no}.${
+            selectedIndex + 1
+          } ${selectedControl?.title}`}
+          control={selectedControl}
+          annex={selectedAnnex}
+          projectFrameworkId={projectFrameworkId}
+          project_id={project.id}
+          onSaveSuccess={(success, message) => handleSaveSuccess(success, message, selectedControl?.id)}
+        />
+      )}
     </Stack>
   );
 };

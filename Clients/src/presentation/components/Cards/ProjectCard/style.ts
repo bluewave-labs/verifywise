@@ -45,3 +45,23 @@ export const viewProjectButtonStyle = {
     backgroundColor: "transparent",
   },
 };
+
+export const euAiActChipStyle = {
+  backgroundColor: '#003399',
+  color: '#fff',
+  fontWeight: 600,
+  fontSize: 14,
+  height: 28,
+  borderRadius: 2,
+  mb: 1,
+};
+
+export const iso42001ChipStyle = {
+  backgroundColor: '#E30613',
+  color: '#fff',
+  fontWeight: 600,
+  fontSize: 14,
+  height: 28,
+  borderRadius: 2,
+  mb: 1,
+};

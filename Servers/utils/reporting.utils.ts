@@ -133,24 +133,25 @@ export const getComplianceReportQuery = async (
   projectFrameworkId: number
 ) => {
   const compliances = await getAllControlCategoriesQuery();
-  for(let cc of compliances){
-    if(cc.id && cc.framework_id){
-      const subCategorieStructs = await getControlStructByControlCategoryIdForAProjectQuery(cc.id, cc.framework_id);                              
-      for(const subcc of subCategorieStructs) {
-        if (subcc.id) {
-          const controls = await getControlByIdQuery(subcc.id);
-          const control = controls[0];
-          const subControls = await getSubControlsByIdQuery(control.id!);
-          (control as any).subControls = [];
-          for (let subControl of subControls) {
-            (control as any).subControls.push({ ...subControl });
+  for(let controlCategory of compliances){
+    if(controlCategory.id && controlCategory.framework_id){
+      const subCategorieStructs = await getControlStructByControlCategoryIdForAProjectQuery(controlCategory.id, controlCategory.framework_id);                              
+      for(const subControlCategory of subCategorieStructs) {
+        if (subControlCategory.id) {
+          const controls = await getControlByIdQuery(subControlCategory.id);
+          if (controls && controls.length > 0) {
+            const control = controls[0];
+            const subControls = await getSubControlsByIdQuery(control.id!);
+            (control as any).subControls = [];
+            for (let subControl of subControls) {
+              (control as any).subControls.push({ ...subControl });
+            }
+            (subControlCategory as any).data = {};
+            (subControlCategory as any).data= control;
           }
-          (subcc as any).data = {};
-          (subcc as any).data= control;
         }
-      }
-      (cc.dataValues as any).subControlCategories = [];
-      (cc.dataValues as any).subControlCategories = subCategorieStructs;
+      }      
+      (controlCategory.dataValues as any).subControlCategories = subCategorieStructs || []; 
     }
   }
 

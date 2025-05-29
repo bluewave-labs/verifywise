@@ -96,7 +96,7 @@ export async function getReportData(
       markdownFormattedData = await getVendorReportMarkdown(projectId, reportBody)
       break;
     case ReportType.ANNEXES_REPORT:
-      markdownFormattedData = await getAnnexesMarkdown(projectId, frameworkId, reportBody)
+      markdownFormattedData = await getAnnexesMarkdown(frameworkId, reportBody)
       break;
     default:
       throw new Error(`Report type "${reportType}" is not supported`);

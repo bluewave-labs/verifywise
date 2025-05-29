@@ -22,7 +22,6 @@ type AllAnnexes = AnnexStructISOModel & {
 };
 
 export async function getAnnexesMarkdown (
-  projectId: number,
   frameworkId: number,
   data: ReportBodyData
 ) : Promise<any> {

@@ -41,9 +41,7 @@ const AssessmentTracker = ({ project }: { project: Project }) => {
       projectFrameworkId: currentProjectFramework,
       refreshKey,
     });
-  // const { assessmentData, loading: loadingAssessmentData } = useAssessmentData({
-  //   selectedProjectId: String(currentProjectId) || "",
-  // });
+
   const { assessmentTopics, loading: loadingAssessmentTopics } = useAssessmentTopics();
   const { assessmentSubtopics, loading: loadingAssessmentSubtopic } =
     useAssessmentSubtopics({
@@ -104,15 +102,6 @@ const AssessmentTracker = ({ project }: { project: Project }) => {
     ),
     [activeTab, handleListItemClick, theme.palette.text.primary]
   );
-
-  // // Show loading state if we're loading the initial assessment data
-  // if (loadingAssessmentData) {
-  //   return (
-  //     <Stack sx={{ padding: 2 }}>
-  //       <VWSkeleton height={400} variant="rectangular" />
-  //     </Stack>
-  //   );
-  // }
 
   // Show message if no project is selected
   if (!currentProjectId) {

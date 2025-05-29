@@ -25,6 +25,7 @@ interface AuditorFeedbackProps {
   onDeletedFilesChange: (ids: number[]) => void;
   uploadFiles: FileData[];
   onUploadFilesChange: (files: FileData[]) => void;
+  readyOnly?: boolean;
 }
 
 const parseFileData = (file: FileData | string): FileData => {
@@ -53,6 +54,7 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
   onDeletedFilesChange,
   uploadFiles = [],
   onUploadFilesChange = () => {},
+  readyOnly = false,
 }) => {
   const theme = useTheme();
   const [isFileUploadOpen, setIsFileUploadOpen] = useState<boolean>(false);
@@ -136,6 +138,7 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
           <RichTextEditor
             initialContent={feedback}
             onContentChange={handleContentChange}
+            isEditable={!readyOnly}
           />
         </>
       )}
@@ -157,6 +160,7 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
             theme.components?.MuiButton?.defaultProps?.disableRipple
           }
           onClick={() => setIsFileUploadOpen(true)}
+          disabled={readyOnly}
         >
           Add/Remove evidence
         </Button>

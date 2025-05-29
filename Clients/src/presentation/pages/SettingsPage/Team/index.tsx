@@ -79,10 +79,11 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const [filter, setFilter] = useState(0);
 
   const [page, setPage] = useState(0); // Current page
-  const { dashboardValues, users } = useContext(VerifyWiseContext);
-  const [teamUsers, setTeamUsers] = useState<User[]>(
-    users || []
-  );
+  const { dashboardValues, users, userId, refreshUsers } = useContext(VerifyWiseContext);
+
+  // Exclude the current user from the team users list
+  const teamUsers = users.filter((user: User) => user.id !== userId);
+  
   const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
   const [inviteUserModalOpen, setInviteUserModalOpen] = useState(false);
 
@@ -99,26 +100,8 @@ const TeamManagement: React.FC = (): JSX.Element => {
           body: "User role updated successfully.",
           setAlert,
         });
-        setTimeout(() => setAlert(null), 2500);        
-        // Update the local state with the new role
-        const updatedMember = response.data?.data;
-        if (!updatedMember) {
-          handleAlert({
-            variant: "error",
-            body: "Failed to update user role.",
-            setAlert,
-          });
-          return;
-        }
-        const memberId = Number(updatedMember.id);
-        const newRoleId = Number(updatedMember.role_id);
-        setTeamUsers((members) =>
-          members.map((member) =>
-            member.id === memberId
-              ? { ...member, roleId: newRoleId }
-              : member
-          )
-        );       
+            
+        refreshUsers();
       } else {
         setAlert({
           variant: "error",
@@ -157,11 +140,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
         body: "User deleted successfully",
         setAlert,
       });
-      if (memberToDelete) {
-        setTeamUsers((members) =>
-          members.filter((member) => Number(member.id) !== memberId)
-        );
-      }
+      refreshUsers()
     } else {
       handleAlert({
         variant: "error",

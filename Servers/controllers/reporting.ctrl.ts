@@ -25,8 +25,8 @@ function mapReportTypeToFileSource(
   | "Compliance tracker report"
   | "Assessment tracker report"
   | "Vendors and risks report"
-  | "Annexes report"
-  | "Clauses report"
+  | "Reference controls group"
+  | "Management system clauses group"
   | "All reports" {
   // These values must match the enum_files_source in the database
   switch (reportType) {
@@ -40,10 +40,10 @@ function mapReportTypeToFileSource(
       return "Vendors and risks report";
     case "All reports":
       return "All reports";
-    case "Annexes report":
-      return "Annexes report";
-    case "Clauses report":
-      return "Clauses report";
+    case "Reference controls group":
+      return "Reference controls group";
+    case "Management system clauses group":
+      return "Management system clauses group";
     default:
       // fallback or throw error
       throw new Error(`Invalid report type for file source: ${reportType}`);

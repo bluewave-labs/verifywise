@@ -29,6 +29,7 @@
  * @property {SxProps} [sx] - The system prop that allows defining system overrides as well as additional CSS styles.
  */
 
+import React from "react";
 import { Button } from "@mui/material";
 import PropTypes from "prop-types";
 import { ButtonProps } from "@mui/material/Button";
@@ -46,7 +47,7 @@ interface VWButtonProps {
   icon?: any;
 }
 
-const VWButton: React.FC< VWButtonProps> = (
+const VWButton = React.forwardRef<HTMLButtonElement, VWButtonProps>(
   (
     {
       variant = "contained",
@@ -58,11 +59,15 @@ const VWButton: React.FC< VWButtonProps> = (
       sx,
       text = "VWButton",
       icon,
-    }) => {
+      ...rest
+    },
+    ref
+  ) => {
     const appearance = singleTheme.buttons[color][variant];
 
     return (
       <Button
+        ref={ref}
         disableRipple
         variant={variant as ButtonProps["variant"]}
         size={size as ButtonProps["size"]}
@@ -71,6 +76,7 @@ const VWButton: React.FC< VWButtonProps> = (
         onClick={onClick}
         sx={{ ...appearance, ...sx }}
         disableElevation={variant === "contained" && !isLink}
+        {...rest}
       >
         {icon}
         {text}

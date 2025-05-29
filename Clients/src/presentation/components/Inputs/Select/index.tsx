@@ -12,6 +12,7 @@
  * @param {function} props.onChange - The callback function to handle changes in the select input.
  * @param {object} [props.sx] - Additional styles to apply to the select component.
  * @param {function} props.getOptionValue - The function to get the value of an option.
+ * @param {boolean} [props.disabled] - Flag to determine if the select input is disabled.
  * @returns {JSX.Element} The rendered select component.
  */
 
@@ -37,6 +38,7 @@ const Select: React.FC<SelectProps> = ({
   onChange,
   sx,
   getOptionValue,
+  disabled,
 }) => {
   const theme = useTheme();
   const itemStyles = {
@@ -52,7 +54,8 @@ const Select: React.FC<SelectProps> = ({
       (item) => (getOptionValue ? getOptionValue(item) : item._id) === selected
     );
     const displayText = selectedItem
-      ? selectedItem.name + (selectedItem.surname ? " " + selectedItem.surname : "")
+      ? selectedItem.name +
+        (selectedItem.surname ? " " + selectedItem.surname : "")
       : placeholder;
     return (
       <span
@@ -117,6 +120,7 @@ const Select: React.FC<SelectProps> = ({
         inputProps={{ id: id }}
         renderValue={renderValue}
         IconComponent={KeyboardArrowDownIcon}
+        disabled={disabled}
         MenuProps={{
           disableScrollLock: true,
           PaperProps: {

@@ -41,6 +41,7 @@ import { logEngine } from "../../../../application/tools/log.engine";
 import VWButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import { KeyboardArrowDown } from "@mui/icons-material";
+import allowedRoles from "../../../../application/constants/permissions";
 
 export interface VendorDetails {
   id?: number;
@@ -80,7 +81,7 @@ const initialState = {
     reviewStatus: "",
     reviewer: "",
     reviewResult: "",
-    riskStatus: 0,
+    riskStatus: "",
     assignee: "",
     reviewDate: new Date().toISOString(),
   },
@@ -103,6 +104,7 @@ const REVIEW_STATUS_OPTIONS = [
 ];
 
 const RISK_LEVEL_OPTIONS = [
+  { _id: '', name: "Select risk status" },
   { _id: 1, name: "Very high risk" },
   { _id: 2, name: "High risk" },
   { _id: 3, name: "Medium risk" },
@@ -131,8 +133,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   const [projectOptions, setProjectOptions] = useState<
     { _id: number; name: string }[]
   >([]);
-  const { dashboardValues, users } = useContext(VerifyWiseContext);
+  const { dashboardValues, users, userRoleName } = useContext(VerifyWiseContext);
   const { projects } = dashboardValues;
+
+  const isEditingDisabled = !allowedRoles.vendors.edit.includes(userRoleName)
 
   const formattedUsers = users?.map((user: any) => ({
     _id: user.id,
@@ -186,9 +190,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             )?._id || "",
           reviewResult: existingVendor.review_result,
           riskStatus:
-            RISK_LEVEL_OPTIONS?.find(
+            String(RISK_LEVEL_OPTIONS?.find(
               (s) => s.name === existingVendor.risk_status
-            )?._id || 0,
+            )?._id ?? ''),
           assignee:
             formattedUsers?.find(
               (user: any) => user._id === existingVendor.assignee
@@ -480,6 +484,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             onChange={(e) => handleOnChange("vendorName", e.target.value)}
             error={errors.vendorName}
             isRequired
+            disabled={isEditingDisabled}
           />
           <Box mt={theme.spacing(8)}>
             <Field // website
@@ -489,6 +494,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               onChange={(e) => handleOnChange("website", e.target.value)}
               error={errors.website}
               isRequired
+               disabled={isEditingDisabled}
             />
           </Box>
         </Stack>
@@ -506,6 +512,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             multiple
             id="projects-input"
             size="small"
+            disabled={isEditingDisabled}
             value={projectOptions?.filter(project => 
               values.vendorDetails.projectIds?.includes(project._id)
             ) || []}
@@ -620,6 +627,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           onChange={(e) => handleOnChange("vendorProvides", e.target.value)}
           error={errors.vendorProvides}
           isRequired
+          disabled={isEditingDisabled}
         />
       </Stack>
       <Stack
@@ -636,6 +644,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           }
           error={errors.vendorContactPerson}
           isRequired
+          disabled={isEditingDisabled}
         />
         <Select // reviewStatus
           items={REVIEW_STATUS_OPTIONS}
@@ -650,6 +659,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           }}
           error={errors.reviewStatus}
           isRequired
+          disabled={isEditingDisabled}
         />
         <Select // reviewer
           items={formattedUsers}
@@ -664,6 +674,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             width: 220,
           }}
           isRequired
+          disabled={isEditingDisabled}
         />
       </Stack>
       <Stack
@@ -680,6 +691,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           error={errors.reviewResult}
           onChange={(e) => handleOnChange("reviewResult", e.target.value)}
           isRequired
+          disabled={isEditingDisabled}
         />
       </Stack>
       <Stack
@@ -695,12 +707,13 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           isHidden={false}
           id=""
           onChange={(e) => handleOnChange("riskStatus", e.target.value)}
-          value={values.vendorDetails.riskStatus}
+          value={values.vendorDetails.riskStatus || ''}
           error={errors.riskStatus}
           sx={{
             width: 220,
           }}
           isRequired
+          disabled={isEditingDisabled}
         />
         <Select // assignee (not in the server model!)
           items={formattedUsers}
@@ -715,6 +728,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           }}
           error={errors.assignee}
           isRequired
+          disabled={isEditingDisabled}
         />
         <DatePicker // reviewDate
           label="Review date"
@@ -728,6 +742,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           }
           handleDateChange={handleDateChange}
           isRequired
+          disabled={isEditingDisabled}
         />
       </Stack>
     </TabPanel>
@@ -820,6 +835,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               }}
               onClick={handleSave}
               icon={<SaveIcon />}
+              isDisabled={isEditingDisabled}
             />
           </Stack>
         </Stack>

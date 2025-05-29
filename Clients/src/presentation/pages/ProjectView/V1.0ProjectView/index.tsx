@@ -7,7 +7,7 @@ import {
 } from "./style";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
-import { SyntheticEvent, useState } from "react";
+import { SyntheticEvent, useContext, useState } from "react";
 import TabContext from "@mui/lab/TabContext";
 import VWProjectOverview from "./Overview";
 import { useSearchParams } from "react-router-dom";
@@ -16,26 +16,37 @@ import VWProjectRisks from "./ProjectRisks";
 import ProjectSettings from "../ProjectSettings";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import ProjectFrameworks from "../ProjectFrameworks";
+import VWToast from '../../../vw-v2-components/Toast';
+import allowedRoles from "../../../../application/constants/permissions";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 const VWProjectView = () => {
+  const { userRoleName } = useContext(VerifyWiseContext);
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") ?? "1";
   const [refreshKey, setRefreshKey] = useState(0);
   const { project } = useProjectData({ projectId, refreshKey });
 
   const [value, setValue] = useState("overview");
+  const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: '', visible: false });
+
   const handleChange = (_: SyntheticEvent, newValue: string) => {
     setValue(newValue);
   };
 
-  const handleRefresh = (isTrigger: boolean) => {
+  const handleRefresh = (isTrigger: boolean, toastMessage?: string) => {
     if (isTrigger) {
       setRefreshKey((prevKey) => prevKey + 1); // send refresh trigger to projectdata hook
+      if (toastMessage) {
+        setToast({ message: toastMessage, visible: true });
+        setTimeout(() => setToast({ message: '', visible: false }), 3000);
+      }
     }
   };
 
   return (
     <Stack className="vw-project-view" overflow={"hidden"}>
+      {toast.visible && <VWToast title={toast.message} />}
       <Stack className="vw-project-view-header" sx={{ mb: 10 }}>
         {project ? (
           <>
@@ -88,6 +99,7 @@ const VWProjectView = () => {
                 label="Settings"
                 value="settings"
                 disableRipple
+                disabled={!allowedRoles.projects.edit.includes(userRoleName)}
               />
             </TabList>
           </Box>
@@ -110,7 +122,7 @@ const VWProjectView = () => {
           <TabPanel value="frameworks" sx={tabPanelStyle}>
             {project ? (
               // Render frameworks content here
-              <ProjectFrameworks project={project} />
+              <ProjectFrameworks project={project} triggerRefresh={handleRefresh} />
             ) : (
               <VWSkeleton variant="rectangular" width="100%" height={400} />
             )}

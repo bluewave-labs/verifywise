@@ -24,6 +24,7 @@ import {
 } from "./styles";
 import ISO42001Annex from "../../ISO/Annex";
 import ISO42001Clauses from "../../ISO/Clause";
+import allowedRoles from "../../../../application/constants/permissions";
 
 const FRAMEWORK_IDS = {
   EU_AI_ACT: 1,
@@ -43,9 +44,10 @@ const ISO_42001_TABS = [
 type TrackerTab = (typeof TRACKER_TABS)[number]["value"];
 type ISO42001Tab = (typeof ISO_42001_TABS)[number]["value"];
 
-const ProjectFrameworks = ({ project }: { project: Project }) => {
+const ProjectFrameworks = ({ project, triggerRefresh }: { project: Project; triggerRefresh?: (isTrigger: boolean, toastMessage?: string) => void }) => {
   const { 
     filteredFrameworks, 
+    projectFrameworksMap,
     loading, 
     error, 
     refreshFilteredFrameworks,
@@ -61,11 +63,13 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { changeComponentVisibility } = useContext(VerifyWiseContext);
+  const { changeComponentVisibility, userRoleName } = useContext(VerifyWiseContext);  
 
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
     countToTrigger: 1,
   });
+
+  const isManagingFrameworksDisabled = !allowedRoles.frameworks.manage.includes(userRoleName);
 
   useEffect(() => {
     changeComponentVisibility("projectFrameworks", allVisible);
@@ -151,8 +155,9 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
           variant="contained"
           sx={addButtonStyle}
           onClick={() => setIsModalOpen(true)}
+          disabled={isManagingFrameworksDisabled}
         >
-          Add new framework
+          Manage frameworks
         </Button>
       </Box>
 
@@ -161,6 +166,14 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
         onClose={() => setIsModalOpen(false)}
         frameworks={allFrameworks}
         project={project}
+        onFrameworksChanged={(action) => {
+          if (triggerRefresh) {
+            if (action === 'add') triggerRefresh(true, 'Framework added successfully');
+            else if (action === 'remove') triggerRefresh(true, 'Framework removed successfully');
+            else triggerRefresh(true);
+          }
+          refreshFilteredFrameworks();
+        }}
       />
 
       <TabContext value={tracker}>
@@ -191,14 +204,14 @@ const ProjectFrameworks = ({ project }: { project: Project }) => {
               <ISO42001Clauses
                 project={project}
                 framework_id={Number(selectedFrameworkId)}
-                projectFrameworkId={Number(selectedFrameworkId)}
+                projectFrameworkId={projectFrameworksMap.get(Number(selectedFrameworkId))!}
               />
             </TabPanel>
             <TabPanel value="annexes" sx={tabPanelStyle}>
               <ISO42001Annex
                 project={project}
                 framework_id={Number(selectedFrameworkId)}
-                projectFrameworkId={Number(selectedFrameworkId)}
+                projectFrameworkId={projectFrameworksMap.get(Number(selectedFrameworkId))!}
               />
             </TabPanel>
           </>

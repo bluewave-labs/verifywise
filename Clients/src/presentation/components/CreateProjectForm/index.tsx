@@ -1,4 +1,4 @@
-import { FC, useState, useMemo, useCallback } from "react";
+import { FC, useState, useMemo, useCallback, useContext } from "react";
 import {
   Button,
   SelectChangeEvent,
@@ -30,6 +30,8 @@ import {
   CreateProjectFormErrors,
   CreateProjectFormValues,
 } from "../../../domain/interfaces/iForm";
+import allowedRoles from "../../../application/constants/permissions";
+import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 
 const initialState: CreateProjectFormValues = {
   project_title: "",
@@ -61,6 +63,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
   onNewProject,
 }) => {
   const theme = useTheme();
+  const { userRoleName } = useContext(VerifyWiseContext);
   const [values, setValues] = useState<CreateProjectFormValues>(initialState);
   const [errors, setErrors] = useState<CreateProjectFormErrors>({});
   const { users } = useUsers();
@@ -334,6 +337,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
               </Typography>
               <Autocomplete
                 multiple
+                readOnly={!allowedRoles.projects.editTeamMembers.includes(userRoleName)}
                 id="users-input"
                 size="small"
                 value={values.members}

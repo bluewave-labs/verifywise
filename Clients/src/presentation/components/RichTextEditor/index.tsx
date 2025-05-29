@@ -15,12 +15,14 @@ interface RichTextEditorProps {
   headerSx?: object;
   bodySx?: object;
   initialContent?: string;
+  isEditable?: boolean;
 }
 
 const RichTextEditor: React.FC<RichTextEditorProps> = ({
   onContentChange,
   headerSx,
   initialContent = "",
+  isEditable = true,
 }) => {
   const [activeList, setActiveList] = useState<"bulleted" | "numbered" | null>(
     null
@@ -31,6 +33,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     content: initialContent,
     autofocus: false,
     immediatelyRender: true,
+    editable: isEditable,
     onUpdate: ({ editor }) => {
       onContentChange?.(editor.getHTML());
     },
@@ -94,6 +97,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
                   ? "primary"
                   : "default"
               }
+              disabled={!isEditable}
             >
               {icon}
             </IconButton>
@@ -118,6 +122,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             display: "flex", // Allow flex behavior
             alignItems: "flex-start", // Align content at the top
           }}
+          disabled={!isEditable} // Disable editing
         />
       </Stack>
 

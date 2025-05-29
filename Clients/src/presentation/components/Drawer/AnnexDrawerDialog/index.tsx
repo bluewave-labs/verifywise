@@ -6,6 +6,7 @@ import {
   Typography,
   CircularProgress,
   Dialog,
+  useTheme,
 } from "@mui/material";
 import { FileData } from "../../../../domain/types/File";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
@@ -14,7 +15,7 @@ import Field from "../../Inputs/Field";
 import { inputStyles } from "../ClauseDrawerDialog";
 import DatePicker from "../../Inputs/Datepicker";
 import Select from "../../Inputs/Select";
-import { useContext, useState, useEffect, useMemo } from "react";
+import { useContext, useState, useEffect } from "react";
 import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import VWButton from "../../../vw-v2-components/Buttons";
@@ -28,8 +29,12 @@ import {
 } from "../../../../application/repository/annexCategory_iso.repository";
 import { AnnexCategoryISO } from "../../../../domain/types/AnnexCategoryISO";
 import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
-import createUppy from "../../../../application/tools/createUppy";
 import { STATUSES } from "../../../../domain/types/Status";
+import Alert from "../../Alert";
+import { handleAlert } from "../../../../application/tools/alertUtils";
+import { AlertProps } from "../../../../domain/interfaces/iAlert";
+import Uppy from "@uppy/core";
+import allowedRoles from "../../../../application/constants/permissions";
 
 interface Control {
   id: number;
@@ -45,12 +50,13 @@ interface VWISO42001ClauseDrawerDialogProps {
   title: string;
   open: boolean;
   onClose: () => void;
-  control: Control | null;
+  control: Control;
   annex: AnnexCategoryISO;
   evidenceFiles?: FileData[];
   uploadFiles?: FileData[];
   projectFrameworkId: number;
   project_id: number;
+  onSaveSuccess?: (success: boolean, message?: string) => void;
 }
 
 const VWISO42001AnnexDrawerDialog = ({
@@ -61,24 +67,30 @@ const VWISO42001AnnexDrawerDialog = ({
   annex,
   projectFrameworkId,
   project_id,
+  onSaveSuccess,
 }: VWISO42001ClauseDrawerDialogProps) => {
-  console.log("VWISO42001AnnexDrawerDialog -- project_id : ", project_id);
   const [date, setDate] = useState<Dayjs | null>(null);
   const [fetchedAnnex, setFetchedAnnex] = useState<AnnexCategoryISO>();
   const [isLoading, setIsLoading] = useState(false);
   const [projectMembers, setProjectMembers] = useState<User[]>([]);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
   const [evidenceFiles, setEvidenceFiles] = useState<FileData[]>([]);
+  const [evidenceFilesDeleteCount, setEvidenceFilesDeleteCount] = useState(0);
+  const theme = useTheme();
+  const [alert, setAlert] = useState<AlertProps | null>(null);
+  const [deletedFilesIds, setDeletedFilesIds] = useState<number[]>([]);
+  const [uploadFiles, setUploadFiles] = useState<FileData[]>([]);
 
   // Get context and project data
-  const { dashboardValues, userId } = useContext(VerifyWiseContext);
-  const { users } = dashboardValues;
-  const { project } = useProjectData({
-    projectId: String(project_id) || "0",
-  });
+  const { users, userId, userRoleName } = useContext(VerifyWiseContext);
+  const { project } = useProjectData({projectId: String(project_id)});
+
+  const isEditingDisabled = !allowedRoles.frameworks.edit.includes(userRoleName);
+  const isAuditingDisabled = !allowedRoles.frameworks.audit.includes(userRoleName);
 
   // Add state for all form fields
   const [formData, setFormData] = useState({
+    guidance: "",
     is_applicable: false,
     justification_for_exclusion: "",
     implementation_description: "",
@@ -101,52 +113,99 @@ const VWISO42001AnnexDrawerDialog = ({
     }
   }, [project, users]);
 
+  const setUploadFilesAnnexCategories = (files: FileData[]) => {
+    setUploadFiles(files);
+    if (deletedFilesIds.length > 0 || files.length > 0) {
+      handleAlert({
+        variant: "info",
+        body: "Please save the changes to save the file changes.",
+        setAlert,
+      });
+    }
+  };
+
+  function closeFileUploadModal(): void {
+    const uppyFiles = uppy.getFiles();
+    const newUploadFiles = uppyFiles
+      .map((file) => {
+        if (!(file.data instanceof Blob)) {
+          return null;
+        }
+        return {
+          data: file.data, // Keep the actual file for upload
+          id: file.id,
+          fileName: file.name || "unnamed",
+          size: file.size || 0,
+          type: file.type || "application/octet-stream",
+        } as FileData;
+      })
+      .filter((file): file is FileData => file !== null);
+
+    // Only update uploadFiles state, don't combine with evidenceFiles yet
+    setUploadFilesAnnexCategories(newUploadFiles);
+    setIsFileUploadOpen(false);
+  }
+
+  const handleRemoveFile = async (fileId: string) => {
+    const fileIdNumber = parseInt(fileId);
+    if (isNaN(fileIdNumber)) {
+      handleAlert({
+        variant: "error",
+        body: "Invalid file ID",
+        setAlert,
+      });
+      return;
+    }
+
+    // Check if file is in evidenceFiles or uploadFiles
+    const isEvidenceFile = evidenceFiles.some((file) => file.id === fileId);
+
+    if (isEvidenceFile) {
+      const newEvidenceFiles = evidenceFiles.filter(
+        (file) => file.id !== fileId
+      );
+      setEvidenceFiles(newEvidenceFiles);
+      setEvidenceFilesDeleteCount((prev) => prev + 1);
+      setDeletedFilesIds([...deletedFilesIds, fileIdNumber]);
+    } else {
+      setUploadFiles((prev) => prev.filter((f) => f.id !== fileId));
+    }
+  };
+
   useEffect(() => {
     const fetchAnnexCategory = async () => {
       if (open && annex?.id) {
         setIsLoading(true);
         try {
           const response: any = await GetAnnexCategoriesById({
-            routeUrl: `/iso-42001/annexCategory/byId/${annex.id}?projectFrameworkId=${projectFrameworkId}`,
+            routeUrl: `/iso-42001/annexCategory/byId/${control.id}?projectFrameworkId=${projectFrameworkId}`,
           });
-          console.log("Fetched Annex Category:", response);
           setFetchedAnnex(response.data);
 
           // Initialize form data with fetched values
-          if (fetchedAnnex) {
+          if (response.data) {
             setFormData({
-              is_applicable: fetchedAnnex.is_applicable ?? false,
+              guidance: response.data.guidance || "",
+              is_applicable: response.data.is_applicable ?? false,
               justification_for_exclusion:
-                fetchedAnnex.justification_for_exclusion || "",
+                response.data.justification_for_exclusion || "",
               implementation_description:
-                fetchedAnnex.implementation_description || "",
-              status: fetchedAnnex.status || "",
-              owner: fetchedAnnex.owner?.toString() || "",
-              reviewer: fetchedAnnex.reviewer?.toString() || "",
-              approver: fetchedAnnex.approver?.toString() || "",
-              auditor_feedback: fetchedAnnex.auditor_feedback || "",
-            });
-            console.log("formData after fetch:", {
-              is_applicable: fetchedAnnex.is_applicable ?? false,
-              justification_for_exclusion:
-                fetchedAnnex.justification_for_exclusion || "",
-              implementation_description:
-                fetchedAnnex.implementation_description || "",
-              status: fetchedAnnex.status || "",
-              owner: fetchedAnnex.owner?.toString() || "",
-              reviewer: fetchedAnnex.reviewer?.toString() || "",
-              approver: fetchedAnnex.approver?.toString() || "",
-              auditor_feedback: fetchedAnnex.auditor_feedback || "",
+                response.data.implementation_description || "",
+              status: response.data.status || "",
+              owner: response.data.owner?.toString() || "",
+              reviewer: response.data.reviewer?.toString() || "",
+              approver: response.data.approver?.toString() || "",
+              auditor_feedback: response.data.auditor_feedback || "",
             });
             // Set the date if it exists in the fetched data
-            if (fetchedAnnex.due_date) {
-              setDate(dayjs(fetchedAnnex.due_date));
+            if (response.data.due_date) {
+              setDate(dayjs(response.data.due_date));
             }
           }
 
           // On annex category fetch, set evidence files if available
-          if (fetchedAnnex?.evidence_links) {
-            setEvidenceFiles(fetchedAnnex.evidence_links as FileData[]);
+          if (response.data.evidence_links) {
+            setEvidenceFiles(response.data.evidence_links as FileData[]);
           }
         } catch (error) {
           console.error("Error fetching annex category:", error);
@@ -155,7 +214,6 @@ const VWISO42001AnnexDrawerDialog = ({
         }
       }
     };
-
     fetchAnnexCategory();
   }, [open, annex?.id, projectFrameworkId]);
 
@@ -172,21 +230,7 @@ const VWISO42001AnnexDrawerDialog = ({
   };
 
   // Setup Uppy instance
-  const uppy = useMemo(
-    () =>
-      createUppy({
-        onChangeFiles: setEvidenceFiles,
-        allowedMetaFields: ["annex_id", "user_id", "project_id", "delete"],
-        meta: {
-          annex_id: annex?.id,
-          user_id: userId,
-          project_id: project_id?.toString(),
-          delete: "[]",
-        },
-        routeUrl: "api/files",
-      }),
-    [annex?.id, userId, project_id]
-  );
+    const [uppy] = useState(() => new Uppy());
 
   // Add handleSave function before the return statement
   const handleSave = async () => {
@@ -210,39 +254,59 @@ const VWISO42001AnnexDrawerDialog = ({
       if (date) formDataToSend.append("due_date", date.toString());
       formDataToSend.append("user_id", userId?.toString() || "");
       formDataToSend.append(
-        "project_framework_id",
-        projectFrameworkId.toString()
+        "project_id",
+        project_id.toString()
       );
-      formDataToSend.append("delete", JSON.stringify([])); // Add deleted file IDs if needed
-
-      // Attach each evidence file (as File objects)
-      evidenceFiles.forEach((file) => {
-        // If file is a File object (new upload), append it
-        if (file instanceof File) {
-          formDataToSend.append("evidence_files", file);
+      formDataToSend.append("delete", JSON.stringify(deletedFilesIds));
+      uploadFiles.forEach((file) => {
+        if (file.data instanceof Blob) {
+          const fileToUpload =
+            file.data instanceof File
+              ? file.data
+              : new File([file.data!], file.fileName, {
+                  type: file.type,
+                });
+          formDataToSend.append("files", fileToUpload);
         }
-        // If file is an existing file object (from backend), skip or handle as needed
       });
 
       if (!fetchedAnnex) {
         console.error("Fetched annex is undefined");
+        handleAlert({
+          variant: "error",
+          body: "Error: Annex data not found",
+          setAlert,
+        });
+        onSaveSuccess?.(false, "Error: Annex data not found");
         return;
       }
 
-      console.log(
-        `Updating Annex Category: /iso-42001/saveAnnexes/${fetchedAnnex.id}`
-      );
-
       // Call the update API
-      await UpdateAnnexCategoryById({
+      const response = await UpdateAnnexCategoryById({
         routeUrl: `/iso-42001/saveAnnexes/${fetchedAnnex.id}`,
         body: formDataToSend,
       });
-      // Close the drawer after successful save
-      onClose();
+
+      if (response.status === 200) {
+        handleAlert({
+          variant: "success",
+          body: "Annex category saved successfully",
+          setAlert,
+        });
+        onSaveSuccess?.(true, "Annex category saved successfully");
+        onClose();
+      } else {
+        throw new Error("Failed to save annex category");
+      }
     } catch (error) {
       console.error("Error saving annex category:", error);
-      // Optionally, show an error message
+      const errorMessage = error instanceof Error ? error.message : "An error occurred while saving changes";
+      handleAlert({
+        variant: "error",
+        body: errorMessage,
+        setAlert,
+      });
+      onSaveSuccess?.(false, errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -281,6 +345,7 @@ const VWISO42001AnnexDrawerDialog = ({
 
   return (
     <Drawer
+      id={`vw-iso-42001-annex-drawer-dialog-${annex?.id}`}
       className="vw-iso-42001-annex-drawer-dialog"
       open={open}
       onClose={onClose}
@@ -332,7 +397,7 @@ const VWISO42001AnnexDrawerDialog = ({
             }}
           >
             <Typography fontSize={13}>
-              <strong>Guidance:</strong> {control?.guidance}
+              <strong>Guidance:</strong> {formData.guidance}
             </Typography>
           </Stack>
           <Stack
@@ -356,6 +421,7 @@ const VWISO42001AnnexDrawerDialog = ({
                   }))
                 }
                 size="small"
+                isDisabled={isEditingDisabled}
               />
               <Checkbox
                 id={`${control?.id}-iso-42001-not-applicable`}
@@ -369,10 +435,16 @@ const VWISO42001AnnexDrawerDialog = ({
                   }))
                 }
                 size="small"
+                isDisabled={isEditingDisabled}
               />
             </Stack>
           </Stack>
-          <Stack>
+          <Stack
+            sx={{
+              opacity: formData.is_applicable ? 0.5 : 1,
+              pointerEvents: formData.is_applicable ? "none" : "auto",
+            }}
+          >
             <Typography fontSize={13} sx={{ marginBottom: "5px" }}>
               {"Justification for Exclusion (if Not Applicable)"}:
             </Typography>
@@ -382,14 +454,15 @@ const VWISO42001AnnexDrawerDialog = ({
               onChange={(e) =>
                 handleFieldChange("justification_for_exclusion", e.target.value)
               }
+              disabled={formData.is_applicable || isEditingDisabled}
               sx={{
-                cursor: "text",
+                cursor: formData.is_applicable ? "not-allowed" : "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
                   {
                     height: "73px",
                   },
               }}
-              placeholder="Required if control is not applicable..."
+              placeholder="Required if control is not applicable..."           
             />
           </Stack>
         </Stack>
@@ -398,6 +471,8 @@ const VWISO42001AnnexDrawerDialog = ({
           sx={{
             padding: "15px 20px",
             gap: "15px",
+            opacity: formData.is_applicable ? 1: 0.5,
+            pointerEvents: formData.is_applicable ? "auto" : "none",
           }}
         >
           <Stack>
@@ -410,8 +485,9 @@ const VWISO42001AnnexDrawerDialog = ({
               onChange={(e) =>
                 handleFieldChange("implementation_description", e.target.value)
               }
+              disabled={!formData.is_applicable || isEditingDisabled}
               sx={{
-                cursor: "text",
+                cursor: !formData.is_applicable ? "not-allowed" : "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
                   {
                     height: "73px",
@@ -433,8 +509,11 @@ const VWISO42001AnnexDrawerDialog = ({
                 backgroundColor: "white",
                 color: "#344054",
               }}
-              disableRipple={false}
+              disableRipple={
+                theme.components?.MuiButton?.defaultProps?.disableRipple
+              }
               onClick={() => setIsFileUploadOpen(true)}
+              disabled={isEditingDisabled}
             >
               Add/Remove evidence
             </Button>
@@ -453,13 +532,63 @@ const VWISO42001AnnexDrawerDialog = ({
               >
                 {`${evidenceFiles.length || 0} evidence files attached`}
               </Typography>
+              {uploadFiles.length > 0 && (
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: "#344054",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    textAlign: "center",
+                    margin: "auto",
+                    textWrap: "wrap",
+                  }}
+                >
+                  {`${uploadFiles.length} ${
+                    uploadFiles.length === 1 ? "file" : "files"
+                  } pending upload`}
+                </Typography>
+              )}
+              {evidenceFilesDeleteCount > 0 && (
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: "#344054",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    textAlign: "center",
+                    margin: "auto",
+                    textWrap: "wrap",
+                  }}
+                >
+                  {`${evidenceFilesDeleteCount} ${
+                    evidenceFilesDeleteCount === 1 ? "file" : "files"
+                  } pending delete`}
+                </Typography>
+              )}
             </Stack>
           </Stack>
+          <Dialog open={isFileUploadOpen} onClose={closeFileUploadModal}>
+            <UppyUploadFile
+              uppy={uppy}
+              files={[...evidenceFiles, ...uploadFiles]}
+              onClose={closeFileUploadModal}
+              onRemoveFile={handleRemoveFile}
+              hideProgressIndicators={true}
+            />
+          </Dialog>
+          {alert && (
+            <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
+          )}
         </Stack>
         <Divider />
         <Stack
           sx={{
             padding: "15px 20px",
+            opacity: formData.is_applicable ? 1: 0.5,
+            pointerEvents: formData.is_applicable ? "auto" : "none",
           }}
           gap={"20px"}
         >
@@ -472,19 +601,23 @@ const VWISO42001AnnexDrawerDialog = ({
               _id: status,
               name: status.charAt(0).toUpperCase() + status.slice(1),
             }))}
+            disabled={!formData.is_applicable || isEditingDisabled}
             sx={inputStyles}
-            placeholder={"Select status"}
+            placeholder={"Select status"}      
           />
 
           <Select
             id="Owner"
             label="Owner:"
-            value={formData.owner}
+            value={parseInt(formData.owner)}
             onChange={handleSelectChange("owner")}
             items={projectMembers.map((user) => ({
-              _id: user.id?.toString() || "",
-              name: `${user.name} ${user.surname}`,
+              _id: user.id,
+              name: `${user.name}`,
+              email: user.email,
+              surname: user.surname,
             }))}
+            disabled={!formData.is_applicable || isEditingDisabled}
             sx={inputStyles}
             placeholder={"Select owner"}
           />
@@ -492,12 +625,15 @@ const VWISO42001AnnexDrawerDialog = ({
           <Select
             id="Reviewer"
             label="Reviewer:"
-            value={formData.reviewer}
+            value={parseInt(formData.reviewer)}
             onChange={handleSelectChange("reviewer")}
             items={projectMembers.map((user) => ({
-              _id: user.id?.toString() || "",
-              name: `${user.name} ${user.surname}`,
+              _id: user.id,
+              name: `${user.name}`,
+              email: user.email,
+              surname: user.surname,
             }))}
+            disabled={!formData.is_applicable || isEditingDisabled}
             sx={inputStyles}
             placeholder={"Select reviewer"}
           />
@@ -505,12 +641,15 @@ const VWISO42001AnnexDrawerDialog = ({
           <Select
             id="Approver"
             label="Approver:"
-            value={formData.approver}
+            value={parseInt(formData.approver)}
             onChange={handleSelectChange("approver")}
             items={projectMembers.map((user) => ({
-              _id: user.id?.toString() || "",
-              name: `${user.name} ${user.surname}`,
+              _id: user.id,
+              name: `${user.name}`,
+              email: user.email,
+              surname: user.surname,
             }))}
+            disabled={!formData.is_applicable || isEditingDisabled}
             sx={inputStyles}
             placeholder={"Select approver"}
           />
@@ -519,6 +658,7 @@ const VWISO42001AnnexDrawerDialog = ({
             label="Due date:"
             sx={inputStyles}
             date={date}
+            disabled={!formData.is_applicable || isEditingDisabled}
             handleDateChange={(newDate) => {
               setDate(newDate);
             }}
@@ -533,8 +673,9 @@ const VWISO42001AnnexDrawerDialog = ({
               onChange={(e) =>
                 handleFieldChange("auditor_feedback", e.target.value)
               }
+              disabled={!formData.is_applicable || isAuditingDisabled}
               sx={{
-                cursor: "text",
+                cursor: !formData.is_applicable ? "not-allowed" : "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
                   {
                     height: "73px",
@@ -568,19 +709,6 @@ const VWISO42001AnnexDrawerDialog = ({
           />
         </Stack>
       </Stack>
-      <Dialog
-        open={isFileUploadOpen}
-        onClose={() => setIsFileUploadOpen(false)}
-      >
-        <UppyUploadFile
-          uppy={uppy}
-          files={evidenceFiles}
-          onClose={() => setIsFileUploadOpen(false)}
-          onRemoveFile={(fileId) =>
-            setEvidenceFiles((prev) => prev.filter((f) => f.id !== fileId))
-          }
-        />
-      </Dialog>
     </Drawer>
   );
 };

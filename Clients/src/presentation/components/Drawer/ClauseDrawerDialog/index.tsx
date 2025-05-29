@@ -8,6 +8,7 @@ import {
   CircularProgress,
   SelectChangeEvent,
   Dialog,
+  useTheme,
 } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import Field from "../../Inputs/Field";
@@ -15,18 +16,22 @@ import { FileData } from "../../../../domain/types/File";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
 import { Dayjs } from "dayjs";
-import { useState, useEffect, useContext, useMemo } from "react";
+import { useState, useEffect, useContext } from "react";
 import VWButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
-import {
-  GetSubClausesById,
-  UpdateSubClauseById,
-} from "../../../../application/repository/subClause_iso.repository";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import { User } from "../../../../domain/types/User";
 import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
-import createUppy from "../../../../application/tools/createUppy";
+import Alert from "../../Alert";
+import { AlertProps } from "../../../../domain/interfaces/iAlert";
+import { handleAlert } from "../../../../application/tools/alertUtils";
+import Uppy from "@uppy/core";
+import {
+  getEntityById,
+  updateEntityById,
+} from "../../../../application/repository/entity.repository";
+import allowedRoles from "../../../../application/constants/permissions";
 
 export const inputStyles = {
   minWidth: 200,
@@ -44,6 +49,8 @@ interface VWISO42001ClauseDrawerDialogProps {
   uploadFiles?: FileData[];
   projectFrameworkId: number;
   project_id: number;
+  onSaveSuccess?: (success: boolean, message?: string) => void;
+  index: number;
 }
 
 const VWISO42001ClauseDrawerDialog = ({
@@ -53,19 +60,44 @@ const VWISO42001ClauseDrawerDialog = ({
   clause,
   projectFrameworkId,
   project_id,
+  onSaveSuccess,
+  index,
 }: VWISO42001ClauseDrawerDialogProps) => {
   const [date, setDate] = useState<Dayjs | null>(null);
   const [fetchedSubClause, setFetchedSubClause] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [projectMembers, setProjectMembers] = useState<User[]>([]);
-  const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
+  const [isFileUploadOpen, setIsFileUploadOpen] = useState<boolean>(false);
   const [evidenceFiles, setEvidenceFiles] = useState<any[]>([]);
+  const theme = useTheme();
+  const [alert, setAlert] = useState<AlertProps | null>(null);
+  const [deletedFilesIds, setDeletedFilesIds] = useState<number[]>([]);
+  const [uploadFiles, setUploadFiles] = useState<FileData[]>([]);
+  const [evidenceFilesDeleteCount, setEvidenceFilesDeleteCount] = useState(0);
+  const statusIdMap = new Map([
+    ["Not started", "0"],
+    ["Draft", "1"],
+    ["In progress", "2"],
+    ["Awaiting review", "3"],
+    ["Awaiting approval", "4"],
+    ["Implemented", "5"],
+    ["Audited", "6"],
+    ["Needs rework", "7"],
+  ]);
+  // Create the reverse map
+  const idStatusMap = new Map();
+  for (const [status, id] of statusIdMap.entries()) {
+    idStatusMap.set(id, status);
+  }
 
   // Get context and project data
-  const { users, userId } = useContext(VerifyWiseContext);
+  const { users, userId, userRoleName } = useContext(VerifyWiseContext);
   const { project } = useProjectData({
     projectId: String(project_id) || "0",
   });
+
+  const isEditingDisabled = !allowedRoles.frameworks.edit.includes(userRoleName);
+  const isAuditingDisabled = !allowedRoles.frameworks.audit.includes(userRoleName);
 
   // Add state for all form fields
   const [formData, setFormData] = useState({
@@ -90,39 +122,25 @@ const VWISO42001ClauseDrawerDialog = ({
   }, [project, users]);
 
   // Setup Uppy instance
-  const uppy = useMemo(
-    () =>
-      createUppy({
-        onChangeFiles: setEvidenceFiles,
-        allowedMetaFields: ["subclause_id", "user_id", "project_id", "delete"],
-        meta: {
-          subclause_id: subClause?.id,
-          user_id: userId,
-          project_id: project_id?.toString(),
-          delete: "[]",
-        },
-        routeUrl: "api/files",
-      }),
-    [subClause?.id, userId, project_id]
-  );
+  const [uppy] = useState(() => new Uppy());
 
   useEffect(() => {
     const fetchSubClause = async () => {
       if (open && subClause?.id) {
         setIsLoading(true);
         try {
-          const response = await GetSubClausesById({
+          const response = await getEntityById({
             routeUrl: `/iso-42001/subClause/byId/${subClause.id}?projectFrameworkId=${projectFrameworkId}`,
           });
-          console.log("Fetched SubClause:", response.data);
           setFetchedSubClause(response.data);
 
           // Initialize form data with fetched values
           if (response.data) {
+            const statusId = statusIdMap.get(response.data.status) || "0";
             setFormData({
               implementation_description:
                 response.data.implementation_description || "",
-              status: response.data.status || "",
+              status: statusId,
               owner: response.data.owner?.toString() || "",
               reviewer: response.data.reviewer?.toString() || "",
               approver: response.data.approver?.toString() || "",
@@ -136,8 +154,8 @@ const VWISO42001ClauseDrawerDialog = ({
           }
 
           // On subclause fetch, set evidence files if available
-          if (response.data?.evidence_files) {
-            setEvidenceFiles(response.data.evidence_files);
+          if (response.data?.evidence_links) {
+            setEvidenceFiles(response.data.evidence_links);
           }
         } catch (error) {
           console.error("Error fetching subclause:", error);
@@ -156,7 +174,6 @@ const VWISO42001ClauseDrawerDialog = ({
       ...prev,
       [field]: value,
     }));
-    console.log(`Updated ${field}:`, value);
   };
 
   const handleSelectChange =
@@ -168,41 +185,74 @@ const VWISO42001ClauseDrawerDialog = ({
   const handleSave = async () => {
     setIsLoading(true);
     try {
+      if (!fetchedSubClause) {
+        console.error("Fetched subclause is undefined");
+        handleAlert({
+          variant: "error",
+          body: "Error: Subclause data not found",
+          setAlert,
+        });
+        onSaveSuccess?.(false, "Error: Subclause data not found");
+        return;
+      }
+
       const formDataToSend = new FormData();
       formDataToSend.append(
         "implementation_description",
         formData.implementation_description
       );
-      formDataToSend.append("status", formData.status);
+      formDataToSend.append(
+        "status",
+        idStatusMap.get(formData.status) || "Not started"
+      );
       formDataToSend.append("owner", formData.owner);
       formDataToSend.append("reviewer", formData.reviewer);
       formDataToSend.append("approver", formData.approver);
       formDataToSend.append("auditor_feedback", formData.auditor_feedback);
       if (date) formDataToSend.append("due_date", date.toString());
       formDataToSend.append("user_id", userId?.toString() || "");
-      formDataToSend.append(
-        "project_framework_id",
-        projectFrameworkId.toString()
-      );
-      formDataToSend.append("delete", JSON.stringify([])); // Add deleted file IDs if needed
-      // Attach each evidence file (as File objects)
-      evidenceFiles.forEach((file) => {
-        // If file is a File object (new upload), append it
-        if (file instanceof File) {
-          formDataToSend.append("evidence_files", file);
+      formDataToSend.append("project_id", project_id.toString());
+      formDataToSend.append("delete", JSON.stringify(deletedFilesIds));
+      uploadFiles.forEach((file) => {
+        if (file.data instanceof Blob) {
+          const fileToUpload =
+            file.data instanceof File
+              ? file.data
+              : new File([file.data!], file.fileName, {
+                  type: file.type,
+                });
+          formDataToSend.append("files", fileToUpload);
         }
-        // If file is an existing file object (from backend), skip or handle as needed
       });
-      // Call the update API
-      await UpdateSubClauseById({
-        routeUrl: `/iso-42001/saveClauses/${subClause.id}`,
+      const response = await updateEntityById({
+        routeUrl: `/iso-42001/saveClauses/${fetchedSubClause.id}`,
         body: formDataToSend,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
-      // Optionally, show a success message or close the drawer
-      onClose();
+
+      if (response.status === 200) {
+        handleAlert({
+          variant: "success",
+          body: "Subclause saved successfully",
+          setAlert,
+        });
+        setUploadFiles([]);
+        onSaveSuccess?.(true, "Subclause saved successfully");
+        onClose();
+      } else {
+        throw new Error("Failed to save subclause");
+      }
     } catch (error) {
       console.error("Error saving subclause:", error);
-      // Optionally, show an error message
+      const errorMessage = error instanceof Error ? error.message : "An error occurred while saving changes";
+      handleAlert({
+        variant: "error",
+        body: errorMessage,
+        setAlert,
+      });
+      onSaveSuccess?.(false, errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -241,6 +291,65 @@ const VWISO42001ClauseDrawerDialog = ({
     );
   }
 
+  const setUploadFilesForSubcontrol = (files: FileData[]) => {
+    setUploadFiles(files);
+    if (deletedFilesIds.length > 0 || files.length > 0) {
+      handleAlert({
+        variant: "info",
+        body: "Please save the changes to save the file changes.",
+        setAlert,
+      });
+    }
+  };
+
+  function closeFileUploadModal(): void {
+    const uppyFiles = uppy.getFiles();
+    const newUploadFiles = uppyFiles
+      .map((file) => {
+        if (!(file.data instanceof Blob)) {
+          return null;
+        }
+        return {
+          data: file.data, // Keep the actual file for upload
+          id: file.id,
+          fileName: file.name || "unnamed",
+          size: file.size || 0,
+          type: file.type || "application/octet-stream",
+        } as FileData;
+      })
+      .filter((file): file is FileData => file !== null);
+
+    // Only update uploadFiles state, don't combine with evidenceFiles yet
+    setUploadFilesForSubcontrol(newUploadFiles);
+    setIsFileUploadOpen(false);
+  }
+
+  const handleRemoveFile = async (fileId: string) => {
+    const fileIdNumber = parseInt(fileId);
+    if (isNaN(fileIdNumber)) {
+      handleAlert({
+        variant: "error",
+        body: "Invalid file ID",
+        setAlert,
+      });
+      return;
+    }
+
+    // Check if file is in evidenceFiles or uploadFiles
+    const isEvidenceFile = evidenceFiles.some((file) => file.id === fileId);
+
+    if (isEvidenceFile) {
+      const newEvidenceFiles = evidenceFiles.filter(
+        (file) => file.id !== fileId
+      );
+      setEvidenceFiles(newEvidenceFiles);
+      setEvidenceFilesDeleteCount((prev) => prev + 1);
+      setDeletedFilesIds([...deletedFilesIds, fileIdNumber]);
+    } else {
+      setUploadFiles((prev) => prev.filter((f) => f.id !== fileId));
+    }
+  };
+
   return (
     <Drawer
       className="vw-iso-42001-clause-drawer-dialog"
@@ -273,7 +382,7 @@ const VWISO42001ClauseDrawerDialog = ({
           }}
         >
           <Typography fontSize={15} fontWeight={700}>
-            {clause?.clause_no + "." + displayData?.id} {displayData?.title}
+            {clause?.clause_no + "." + (index + 1)} {displayData?.title}
           </Typography>
           <CloseIcon onClick={onClose} style={{ cursor: "pointer" }} />
         </Stack>
@@ -347,9 +456,10 @@ const VWISO42001ClauseDrawerDialog = ({
                   },
               }}
               placeholder="Describe how this requirement is implemented"
+              disabled={isEditingDisabled}
             />
           </Stack>
-          <Stack direction="row" spacing={2} alignItems="center">
+          <Stack direction="row" spacing={2}>
             <Button
               variant="contained"
               sx={{
@@ -362,29 +472,80 @@ const VWISO42001ClauseDrawerDialog = ({
                 backgroundColor: "white",
                 color: "#344054",
               }}
-              disableRipple={false}
+              disableRipple={
+                theme.components?.MuiButton?.defaultProps?.disableRipple
+              }
               onClick={() => setIsFileUploadOpen(true)}
+              disabled={isEditingDisabled}
             >
               Add/Remove evidence
             </Button>
-            <Typography sx={{ fontSize: 11, color: "#344054" }}>
-              {`${evidenceFiles?.length || 0} evidence files attached`}
-            </Typography>
+            <Stack direction="row" spacing={10}>
+              <Typography
+                sx={{
+                  fontSize: 11,
+                  color: "#344054",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  textAlign: "center",
+                  margin: "auto",
+                  textWrap: "wrap",
+                }}
+              >
+                {`${evidenceFiles.length || 0} evidence files attached`}
+              </Typography>
+              {uploadFiles.length > 0 && (
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: "#344054",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    textAlign: "center",
+                    margin: "auto",
+                    textWrap: "wrap",
+                  }}
+                >
+                  {`${uploadFiles.length} ${
+                    uploadFiles.length === 1 ? "file" : "files"
+                  } pending upload`}
+                </Typography>
+              )}
+              {evidenceFilesDeleteCount > 0 && (
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: "#344054",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    textAlign: "center",
+                    margin: "auto",
+                    textWrap: "wrap",
+                  }}
+                >
+                  {`${evidenceFilesDeleteCount} ${
+                    evidenceFilesDeleteCount === 1 ? "file" : "files"
+                  } pending delete`}
+                </Typography>
+              )}
+            </Stack>
           </Stack>
+          <Dialog open={isFileUploadOpen} onClose={closeFileUploadModal}>
+            <UppyUploadFile
+              uppy={uppy}
+              files={[...evidenceFiles, ...uploadFiles]}
+              onClose={closeFileUploadModal}
+              onRemoveFile={handleRemoveFile}
+              hideProgressIndicators={true}
+            />
+          </Dialog>
+          {alert && (
+            <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
+          )}
         </Stack>
-        <Dialog
-          open={isFileUploadOpen}
-          onClose={() => setIsFileUploadOpen(false)}
-        >
-          <UppyUploadFile
-            uppy={uppy}
-            files={evidenceFiles}
-            onClose={() => setIsFileUploadOpen(false)}
-            onRemoveFile={(fileId) =>
-              setEvidenceFiles((prev) => prev.filter((f) => f.id !== fileId))
-            }
-          />
-        </Dialog>
         <Divider />
         <Stack
           sx={{
@@ -409,47 +570,55 @@ const VWISO42001ClauseDrawerDialog = ({
             ]}
             sx={inputStyles}
             placeholder={"Select status"}
+            disabled={isEditingDisabled}
           />
 
           <Select
             id="Owner"
             label="Owner:"
-            value={formData.owner}
+            value={parseInt(formData.owner)}
             onChange={handleSelectChange("owner")}
             items={projectMembers.map((user) => ({
               _id: user.id,
-              name: `${user.name} ${user.surname}`,
+              name: `${user.name}`,
               email: user.email,
               surname: user.surname,
             }))}
             sx={inputStyles}
             placeholder={"Select owner"}
+            disabled={isEditingDisabled}
           />
 
           <Select
             id="Reviewer"
             label="Reviewer:"
-            value={formData.reviewer}
+            value={parseInt(formData.reviewer)}
             onChange={handleSelectChange("reviewer")}
             items={projectMembers.map((user) => ({
               _id: user.id,
-              name: `${user.name} ${user.surname}`,
+              name: `${user.name}`,
+              email: user.email,
+              surname: user.surname,
             }))}
             sx={inputStyles}
             placeholder={"Select reviewer"}
+            disabled={isEditingDisabled}
           />
 
           <Select
             id="Approver"
             label="Approver:"
-            value={formData.approver}
+            value={parseInt(formData.approver)}
             onChange={handleSelectChange("approver")}
             items={projectMembers.map((user) => ({
               _id: user.id,
-              name: `${user.name} ${user.surname}`,
+              name: `${user.name}`,
+              email: user.email,
+              surname: user.surname,
             }))}
             sx={inputStyles}
             placeholder={"Select approver"}
+            disabled={isEditingDisabled}
           />
 
           <DatePicker
@@ -460,6 +629,7 @@ const VWISO42001ClauseDrawerDialog = ({
               setDate(newDate);
               console.log("Updated due date:", newDate);
             }}
+            disabled={isEditingDisabled}
           />
 
           <Stack>
@@ -480,6 +650,7 @@ const VWISO42001ClauseDrawerDialog = ({
                   },
               }}
               placeholder="Enter any feedback from the internal or external audits..."
+              disabled={isAuditingDisabled}
             />
           </Stack>
         </Stack>
@@ -502,7 +673,7 @@ const VWISO42001ClauseDrawerDialog = ({
               gap: 2,
             }}
             onClick={handleSave}
-            icon={<SaveIcon />}
+            icon={<SaveIcon />}          
           />
         </Stack>
       </Stack>

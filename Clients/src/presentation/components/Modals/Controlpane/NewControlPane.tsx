@@ -25,6 +25,7 @@ import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.c
 import { AlertBox, styles } from "../../../pages/ComplianceTracker/1.0ComplianceTracker/styles";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
+import allowedRoles from "../../../../application/constants/permissions";
 
 const tabStyle = {
   textTransform: "none",
@@ -70,6 +71,9 @@ const NewControlPane = ({
     };
   }>({});
   const context = useContext(VerifyWiseContext);
+  const userRoleName = context?.userRoleName;
+  const isEditingDisabled = !allowedRoles.frameworks.edit.includes(userRoleName)
+  const isAuditingDisabled = !allowedRoles.frameworks.audit.includes(userRoleName);
 
   const sanitizeField = (value: string | undefined | null): string => {
     if (!value || value === "undefined") {
@@ -434,6 +438,7 @@ const NewControlPane = ({
                 ...newState,
               }))
             }
+            readOnly={isEditingDisabled}
           />
 
           {/* this is working fine */}
@@ -522,6 +527,7 @@ const NewControlPane = ({
                   setState={(newState) =>
                     handleSubControlStateChange(selectedTab, newState)
                   }
+                  readOnly={isEditingDisabled}
                 />
               </Typography>
             )}
@@ -561,6 +567,7 @@ const NewControlPane = ({
                     files
                   )
                 }
+                readOnly={isEditingDisabled}
               />
             )}
             {activeSection === "Auditor Feedback" && (
@@ -599,6 +606,7 @@ const NewControlPane = ({
                     files
                   )
                 }
+                readOnly={isAuditingDisabled}
               />
             )}
           </Box>

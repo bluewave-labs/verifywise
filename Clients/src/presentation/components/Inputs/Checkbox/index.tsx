@@ -47,7 +47,7 @@ const Checkbox: FC<CheckboxProps> = ({
       control={
         <MuiCheckbox
           disableRipple
-          checked={isDisabled ? false : isChecked}
+          checked={isChecked}
           checkedIcon={<CheckboxFilled />}
           icon={<CheckboxOutline />}
           value={value}

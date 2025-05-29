@@ -150,7 +150,7 @@ const VWProjectCard: FC<VWProjectCardProps> = React.memo(({ project, isLoading =
   return (
     <Stack
       className="project-card"
-      sx={{ ...projectCardStyle, minHeight: 320, display: 'flex', flexDirection: 'column' }}
+      sx={{ ...projectCardStyle, display: 'flex', flexDirection: 'column' }}
       role="article"
       aria-label={`Project card for ${project.project_title}`}
     >
@@ -160,16 +160,12 @@ const VWProjectCard: FC<VWProjectCardProps> = React.memo(({ project, isLoading =
           {project.project_title}
         </Typography>
         <Stack direction="row" spacing={5} className="project-card-frameworks">
-          {/* EU AI Act Chip */}
           {projectFrameworkId && <FrameworkChip label="EU AI Act" type="eu" />}
-          {/* ISO 42001 Chip */}
           {projectFrameworkId2 && <FrameworkChip label="ISO 42001" type="iso" />}
         </Stack>
       </Stack>
-      {/* Progress Stats */}
       {projectFrameworkId && projectFrameworkId2 ? (
-        <Stack direction="row" spacing={15} className="project-card-stats" sx={{ flexGrow: 1 }}>
-          {/* EU AI Act Column */}
+        <Stack direction="row" spacing={10} className="project-card-stats" sx={{  }}>
           <Stack sx={{ flex: 1, gap: 1 }}>
             <Stack className="project-progress" sx={{ gap: 1 }}>
               <ProgressBar
@@ -188,7 +184,6 @@ const VWProjectCard: FC<VWProjectCardProps> = React.memo(({ project, isLoading =
               </Typography>
             </Stack>
           </Stack>
-          {/* ISO 42001 Column */}
           <Stack sx={{ flex: 1, gap: 1 }}>
             <Stack className="project-progress" sx={{ gap: 1 }}>
               <ProgressBar
@@ -209,7 +204,7 @@ const VWProjectCard: FC<VWProjectCardProps> = React.memo(({ project, isLoading =
           </Stack>
         </Stack>
       ) : (
-        <Stack className="project-card-stats" sx={{ gap: 2, flexGrow: 1 }}>
+        <Stack className="project-card-stats" sx={{ gap: 2 }}>
           {projectFrameworkId && (
             <>
               <Stack className="project-progress" sx={{ gap: 1 }}>

@@ -55,12 +55,8 @@ const ProjectFrameworks = ({ project, triggerRefresh }: { project: Project; trig
   } = useFrameworks({
     listOfFrameworks: project.framework,
   });
-  const [selectedFrameworkId, setSelectedFrameworkId] = useState<number | null>(
-    null
-  );
-  const [tracker, setTracker] = useState<TrackerTab | ISO42001Tab>(
-    "compliance"
-  );
+  const [selectedFrameworkId, setSelectedFrameworkId] = useState<number | null>(null);
+  const [tracker, setTracker] = useState<TrackerTab | ISO42001Tab>("compliance");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { changeComponentVisibility, userRoleName } = useContext(VerifyWiseContext);  
@@ -73,19 +69,16 @@ const ProjectFrameworks = ({ project, triggerRefresh }: { project: Project; trig
 
   useEffect(() => {
     changeComponentVisibility("projectFrameworks", allVisible);
-    changeComponentVisibility(
-      "compliance",
-      tracker === "compliance" && allVisible
-    );
-    console.log("allVisible", allVisible);
-  }, [allVisible, tracker, changeComponentVisibility]);
+    // Only change compliance visibility if EU AI Act is selected
+    if (selectedFrameworkId === FRAMEWORK_IDS.EU_AI_ACT) {
+      changeComponentVisibility("compliance", tracker === "compliance" && allVisible);
+    }
+  }, [allVisible, tracker, changeComponentVisibility, selectedFrameworkId]);
 
-  const associatedFrameworkIds =
-    project.framework?.map((f) => f.framework_id) || [];
+  const associatedFrameworkIds = project.framework?.map((f) => f.framework_id) || [];
 
   const projectFrameworks = useMemo(
     () =>
-      // Filter frameworks to only include those associated with this project
       filteredFrameworks.filter((fw: Framework) => 
         associatedFrameworkIds.includes(Number(fw.id))
       ),
@@ -128,6 +121,7 @@ const ProjectFrameworks = ({ project, triggerRefresh }: { project: Project; trig
   }
 
   const isISO42001 = Number(selectedFrameworkId) === FRAMEWORK_IDS.ISO_42001;
+  const isEUAIAct = Number(selectedFrameworkId) === FRAMEWORK_IDS.EU_AI_ACT;
   const tabs = isISO42001 ? ISO_42001_TABS : TRACKER_TABS;
 
   return (
@@ -215,7 +209,7 @@ const ProjectFrameworks = ({ project, triggerRefresh }: { project: Project; trig
               />
             </TabPanel>
           </>
-        ) : (
+        ) : isEUAIAct ? (
           <>
             <TabPanel value="compliance" sx={tabPanelStyle}>
               <ComplianceTracker project={project} />
@@ -224,7 +218,7 @@ const ProjectFrameworks = ({ project, triggerRefresh }: { project: Project; trig
               <AssessmentTracker project={project} />
             </TabPanel>
           </>
-        )}
+        ) : null}
       </TabContext>
     </Box>
   );

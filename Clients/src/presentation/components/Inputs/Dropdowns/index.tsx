@@ -16,6 +16,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
   state,
   setState,
   projectId,
+  readOnly = false,
 }) => {
   const [status, setStatus] = useState("");
   const [approver, setApprover] = useState("");
@@ -139,6 +140,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
           ]}
           sx={inputStyles}
           placeholder={"Select status"}
+          disabled={readOnly}
         />
 
         <Select
@@ -152,6 +154,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
           }))}
           sx={inputStyles}
           placeholder={"Select approver"}
+          disabled={readOnly}
         />
 
         <Select
@@ -166,6 +169,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
           ]}
           sx={inputStyles}
           placeholder={"Select risk review"}
+          disabled={readOnly}
         />
       </Stack>
 
@@ -188,6 +192,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
           }))}
           sx={inputStyles}
           placeholder={"Select owner"}
+          disabled={readOnly}
         />
 
         <Select
@@ -201,6 +206,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
           }))}
           sx={inputStyles}
           placeholder={"Select reviewer"}
+          disabled={readOnly}
         />
 
         <DatePicker
@@ -216,6 +222,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
               });
             }
           }}
+          disabled={readOnly}
         />
       </Stack>
 
@@ -252,6 +259,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
               setState({ ...state, implementation_details: e.target.value });
             }
           }}
+          disabled={readOnly}
         />
       </Stack>
     </Stack>

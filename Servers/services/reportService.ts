@@ -98,6 +98,7 @@ export async function getReportData(
       break;
     case ReportType.ANNEXES_REPORT:
       markdownFormattedData = await getAnnexesMarkdown(frameworkId, reportBody)
+      break;
     case ReportType.COMPLIANCE_REPORT:
       markdownFormattedData = await getComplianceMarkdown(frameworkId, reportBody)
       break;

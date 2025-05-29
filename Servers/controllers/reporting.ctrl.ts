@@ -58,8 +58,8 @@ export async function generateReports(
       frameworkId: frameworkIdRaw,
       reportName
     } = req.body;
-    const projectId = parseInt(projectIdRaw, 10);
-    const frameworkId = parseInt(frameworkIdRaw, 10);
+    const projectId = parseInt(projectIdRaw);
+    const frameworkId = parseInt(frameworkIdRaw);
     const userId = req.userId;
     if (isNaN(projectId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid project ID"));

@@ -145,13 +145,15 @@ export const getComplianceReportQuery = async (
           for (let subControl of subControls) {
             (control as any).subControls.push({ ...subControl });
           }
-          (subcc as any).data = [];
-          (subcc as any).data.push({...control})
+          (subcc as any).data = {};
+          (subcc as any).data= control;
         }
-        (cc.dataValues as any).subCategory = [];
-        (cc.dataValues as any).subCategory.push({...subcc})
       }
+      (cc.dataValues as any).subControlCategories = [];
+      (cc.dataValues as any).subControlCategories = subCategorieStructs;
     }
   }
-  return compliances;
+
+  const AllCompliances = compliances.map((topic) => topic.get({ plain: true }));
+  return AllCompliances;
 }

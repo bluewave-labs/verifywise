@@ -31,6 +31,7 @@ import {
   getEntityById,
   updateEntityById,
 } from "../../../../application/repository/entity.repository";
+import allowedRoles from "../../../../application/constants/permissions";
 
 export const inputStyles = {
   minWidth: 200,
@@ -48,7 +49,8 @@ interface VWISO42001ClauseDrawerDialogProps {
   uploadFiles?: FileData[];
   projectFrameworkId: number;
   project_id: number;
-  onSaveSuccess?: () => void;
+  onSaveSuccess?: (success: boolean, message?: string) => void;
+  index: number;
 }
 
 const VWISO42001ClauseDrawerDialog = ({
@@ -59,6 +61,7 @@ const VWISO42001ClauseDrawerDialog = ({
   projectFrameworkId,
   project_id,
   onSaveSuccess,
+  index,
 }: VWISO42001ClauseDrawerDialogProps) => {
   const [date, setDate] = useState<Dayjs | null>(null);
   const [fetchedSubClause, setFetchedSubClause] = useState<any>(null);
@@ -88,10 +91,13 @@ const VWISO42001ClauseDrawerDialog = ({
   }
 
   // Get context and project data
-  const { users, userId } = useContext(VerifyWiseContext);
+  const { users, userId, userRoleName } = useContext(VerifyWiseContext);
   const { project } = useProjectData({
     projectId: String(project_id) || "0",
   });
+
+  const isEditingDisabled = !allowedRoles.frameworks.edit.includes(userRoleName);
+  const isAuditingDisabled = !allowedRoles.frameworks.audit.includes(userRoleName);
 
   // Add state for all form fields
   const [formData, setFormData] = useState({
@@ -179,6 +185,17 @@ const VWISO42001ClauseDrawerDialog = ({
   const handleSave = async () => {
     setIsLoading(true);
     try {
+      if (!fetchedSubClause) {
+        console.error("Fetched subclause is undefined");
+        handleAlert({
+          variant: "error",
+          body: "Error: Subclause data not found",
+          setAlert,
+        });
+        onSaveSuccess?.(false, "Error: Subclause data not found");
+        return;
+      }
+
       const formDataToSend = new FormData();
       formDataToSend.append(
         "implementation_description",
@@ -214,16 +231,28 @@ const VWISO42001ClauseDrawerDialog = ({
           "Content-Type": "multipart/form-data",
         },
       });
+
       if (response.status === 200) {
+        handleAlert({
+          variant: "success",
+          body: "Subclause saved successfully",
+          setAlert,
+        });
         setUploadFiles([]);
+        onSaveSuccess?.(true, "Subclause saved successfully");
         onClose();
-        // Call onSaveSuccess after successful save
-        onSaveSuccess?.();
       } else {
-        onClose();
+        throw new Error("Failed to save subclause");
       }
     } catch (error) {
       console.error("Error saving subclause:", error);
+      const errorMessage = error instanceof Error ? error.message : "An error occurred while saving changes";
+      handleAlert({
+        variant: "error",
+        body: errorMessage,
+        setAlert,
+      });
+      onSaveSuccess?.(false, errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -353,7 +382,7 @@ const VWISO42001ClauseDrawerDialog = ({
           }}
         >
           <Typography fontSize={15} fontWeight={700}>
-            {clause?.clause_no + "." + displayData?.id} {displayData?.title}
+            {clause?.clause_no + "." + (index + 1)} {displayData?.title}
           </Typography>
           <CloseIcon onClick={onClose} style={{ cursor: "pointer" }} />
         </Stack>
@@ -427,6 +456,7 @@ const VWISO42001ClauseDrawerDialog = ({
                   },
               }}
               placeholder="Describe how this requirement is implemented"
+              disabled={isEditingDisabled}
             />
           </Stack>
           <Stack direction="row" spacing={2}>
@@ -446,6 +476,7 @@ const VWISO42001ClauseDrawerDialog = ({
                 theme.components?.MuiButton?.defaultProps?.disableRipple
               }
               onClick={() => setIsFileUploadOpen(true)}
+              disabled={isEditingDisabled}
             >
               Add/Remove evidence
             </Button>
@@ -539,6 +570,7 @@ const VWISO42001ClauseDrawerDialog = ({
             ]}
             sx={inputStyles}
             placeholder={"Select status"}
+            disabled={isEditingDisabled}
           />
 
           <Select
@@ -554,6 +586,7 @@ const VWISO42001ClauseDrawerDialog = ({
             }))}
             sx={inputStyles}
             placeholder={"Select owner"}
+            disabled={isEditingDisabled}
           />
 
           <Select
@@ -569,6 +602,7 @@ const VWISO42001ClauseDrawerDialog = ({
             }))}
             sx={inputStyles}
             placeholder={"Select reviewer"}
+            disabled={isEditingDisabled}
           />
 
           <Select
@@ -584,6 +618,7 @@ const VWISO42001ClauseDrawerDialog = ({
             }))}
             sx={inputStyles}
             placeholder={"Select approver"}
+            disabled={isEditingDisabled}
           />
 
           <DatePicker
@@ -594,6 +629,7 @@ const VWISO42001ClauseDrawerDialog = ({
               setDate(newDate);
               console.log("Updated due date:", newDate);
             }}
+            disabled={isEditingDisabled}
           />
 
           <Stack>
@@ -614,6 +650,7 @@ const VWISO42001ClauseDrawerDialog = ({
                   },
               }}
               placeholder="Enter any feedback from the internal or external audits..."
+              disabled={isAuditingDisabled}
             />
           </Stack>
         </Stack>
@@ -636,7 +673,7 @@ const VWISO42001ClauseDrawerDialog = ({
               gap: 2,
             }}
             onClick={handleSave}
-            icon={<SaveIcon />}
+            icon={<SaveIcon />}          
           />
         </Stack>
       </Stack>

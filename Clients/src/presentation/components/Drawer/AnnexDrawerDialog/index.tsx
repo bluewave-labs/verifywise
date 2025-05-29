@@ -34,6 +34,7 @@ import Alert from "../../Alert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import Uppy from "@uppy/core";
+import allowedRoles from "../../../../application/constants/permissions";
 
 interface Control {
   id: number;
@@ -55,7 +56,7 @@ interface VWISO42001ClauseDrawerDialogProps {
   uploadFiles?: FileData[];
   projectFrameworkId: number;
   project_id: number;
-  onSaveSuccess?: () => void;
+  onSaveSuccess?: (success: boolean, message?: string) => void;
 }
 
 const VWISO42001AnnexDrawerDialog = ({
@@ -81,8 +82,11 @@ const VWISO42001AnnexDrawerDialog = ({
   const [uploadFiles, setUploadFiles] = useState<FileData[]>([]);
 
   // Get context and project data
-  const { users, userId } = useContext(VerifyWiseContext);
+  const { users, userId, userRoleName } = useContext(VerifyWiseContext);
   const { project } = useProjectData({projectId: String(project_id)});
+
+  const isEditingDisabled = !allowedRoles.frameworks.edit.includes(userRoleName);
+  const isAuditingDisabled = !allowedRoles.frameworks.audit.includes(userRoleName);
 
   // Add state for all form fields
   const [formData, setFormData] = useState({
@@ -268,6 +272,12 @@ const VWISO42001AnnexDrawerDialog = ({
 
       if (!fetchedAnnex) {
         console.error("Fetched annex is undefined");
+        handleAlert({
+          variant: "error",
+          body: "Error: Annex data not found",
+          setAlert,
+        });
+        onSaveSuccess?.(false, "Error: Annex data not found");
         return;
       }
 
@@ -278,14 +288,25 @@ const VWISO42001AnnexDrawerDialog = ({
       });
 
       if (response.status === 200) {
-        // Call onSaveSuccess after successful save
-        onSaveSuccess?.();
-        // Close the drawer after successful save
+        handleAlert({
+          variant: "success",
+          body: "Annex category saved successfully",
+          setAlert,
+        });
+        onSaveSuccess?.(true, "Annex category saved successfully");
         onClose();
+      } else {
+        throw new Error("Failed to save annex category");
       }
     } catch (error) {
       console.error("Error saving annex category:", error);
-      // Optionally, show an error message
+      const errorMessage = error instanceof Error ? error.message : "An error occurred while saving changes";
+      handleAlert({
+        variant: "error",
+        body: errorMessage,
+        setAlert,
+      });
+      onSaveSuccess?.(false, errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -400,6 +421,7 @@ const VWISO42001AnnexDrawerDialog = ({
                   }))
                 }
                 size="small"
+                isDisabled={isEditingDisabled}
               />
               <Checkbox
                 id={`${control?.id}-iso-42001-not-applicable`}
@@ -413,6 +435,7 @@ const VWISO42001AnnexDrawerDialog = ({
                   }))
                 }
                 size="small"
+                isDisabled={isEditingDisabled}
               />
             </Stack>
           </Stack>
@@ -431,7 +454,7 @@ const VWISO42001AnnexDrawerDialog = ({
               onChange={(e) =>
                 handleFieldChange("justification_for_exclusion", e.target.value)
               }
-              disabled={formData.is_applicable}
+              disabled={formData.is_applicable || isEditingDisabled}
               sx={{
                 cursor: formData.is_applicable ? "not-allowed" : "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
@@ -439,7 +462,7 @@ const VWISO42001AnnexDrawerDialog = ({
                     height: "73px",
                   },
               }}
-              placeholder="Required if control is not applicable..."
+              placeholder="Required if control is not applicable..."           
             />
           </Stack>
         </Stack>
@@ -462,7 +485,7 @@ const VWISO42001AnnexDrawerDialog = ({
               onChange={(e) =>
                 handleFieldChange("implementation_description", e.target.value)
               }
-              disabled={!formData.is_applicable}
+              disabled={!formData.is_applicable || isEditingDisabled}
               sx={{
                 cursor: !formData.is_applicable ? "not-allowed" : "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
@@ -490,6 +513,7 @@ const VWISO42001AnnexDrawerDialog = ({
                 theme.components?.MuiButton?.defaultProps?.disableRipple
               }
               onClick={() => setIsFileUploadOpen(true)}
+              disabled={isEditingDisabled}
             >
               Add/Remove evidence
             </Button>
@@ -577,9 +601,9 @@ const VWISO42001AnnexDrawerDialog = ({
               _id: status,
               name: status.charAt(0).toUpperCase() + status.slice(1),
             }))}
-            disabled={!formData.is_applicable}
+            disabled={!formData.is_applicable || isEditingDisabled}
             sx={inputStyles}
-            placeholder={"Select status"}
+            placeholder={"Select status"}      
           />
 
           <Select
@@ -593,7 +617,7 @@ const VWISO42001AnnexDrawerDialog = ({
               email: user.email,
               surname: user.surname,
             }))}
-            disabled={!formData.is_applicable}
+            disabled={!formData.is_applicable || isEditingDisabled}
             sx={inputStyles}
             placeholder={"Select owner"}
           />
@@ -609,7 +633,7 @@ const VWISO42001AnnexDrawerDialog = ({
               email: user.email,
               surname: user.surname,
             }))}
-            disabled={!formData.is_applicable}
+            disabled={!formData.is_applicable || isEditingDisabled}
             sx={inputStyles}
             placeholder={"Select reviewer"}
           />
@@ -625,7 +649,7 @@ const VWISO42001AnnexDrawerDialog = ({
               email: user.email,
               surname: user.surname,
             }))}
-            disabled={!formData.is_applicable}
+            disabled={!formData.is_applicable || isEditingDisabled}
             sx={inputStyles}
             placeholder={"Select approver"}
           />
@@ -634,7 +658,7 @@ const VWISO42001AnnexDrawerDialog = ({
             label="Due date:"
             sx={inputStyles}
             date={date}
-            disabled={!formData.is_applicable}
+            disabled={!formData.is_applicable || isEditingDisabled}
             handleDateChange={(newDate) => {
               setDate(newDate);
             }}
@@ -649,7 +673,7 @@ const VWISO42001AnnexDrawerDialog = ({
               onChange={(e) =>
                 handleFieldChange("auditor_feedback", e.target.value)
               }
-              disabled={!formData.is_applicable}
+              disabled={!formData.is_applicable || isAuditingDisabled}
               sx={{
                 cursor: !formData.is_applicable ? "not-allowed" : "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":

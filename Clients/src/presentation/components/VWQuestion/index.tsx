@@ -20,6 +20,7 @@ import { FileData } from "../../../domain/types/File";
 import { useSelector } from "react-redux";
 import Button from "../Button";
 import Select from "../Inputs/Select";
+import allowedRoles from "../../../application/constants/permissions";
 
 interface QuestionProps {
   question: Question;
@@ -43,12 +44,14 @@ interface QuestionProps {
  * <VWQuestion question={questionObject} />
  */
 const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps) => {
-  const { userId } = useContext(VerifyWiseContext);
+  const { userId, userRoleName } = useContext(VerifyWiseContext);
   const [values, setValues] = useState<Question>(question);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
 
   const authToken = useSelector((state: any) => state.auth.authToken);
   const [alert, setAlert] = useState<AlertProps | null>(null);
+
+  const isEditingDisabled = !(allowedRoles?.frameworks?.edit || []).includes(userRoleName);
 
   const STATUS_OPTIONS = [
     { _id: "notStarted", name: "Not started" },
@@ -243,6 +246,7 @@ const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps
               width: 175,
               height: 24,
             }}
+            disabled={isEditingDisabled}
           />
           <Chip
             label={question.priority_level}
@@ -272,6 +276,7 @@ const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps
           },
         }}
         initialContent={question.answer}
+        isEditable={!isEditingDisabled}
       />
       <Stack
         sx={{
@@ -289,7 +294,7 @@ const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps
             gap: 4,
           }}
         >
-          <Button variant="contained" disableRipple onClick={handleSave}>
+          <Button variant="contained" disableRipple onClick={handleSave} disabled={isEditingDisabled}>
             Save
           </Button>
           <Button
@@ -302,6 +307,7 @@ const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps
             }}
             disableRipple
             onClick={() => setIsFileUploadOpen(true)}
+            disabled={isEditingDisabled}
           >
             Add/Remove evidence
           </Button>

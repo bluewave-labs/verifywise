@@ -24,14 +24,6 @@ import useNavigateSearch from "../../../../application/hooks/useNavigateSearch";
 import { AssessmentProgress, ComplianceProgress } from "../../../../application/interfaces/iprogress";
 import { fetchData } from "../../../../application/hooks/fetchDataHook";
 
-// Error fallback component
-const ErrorFallback: FC<{ error: Error }> = ({ error }) => (
-  <Stack sx={{ p: 2, color: "error.main" }}>
-    <Typography variant="h6">Something went wrong</Typography>
-    <Typography variant="body2">{error.message}</Typography>
-  </Stack>
-);
-
 // Loading skeleton component
 const ProjectCardSkeleton: FC = () => (
   <Stack className="project-card" sx={projectCardStyle}>

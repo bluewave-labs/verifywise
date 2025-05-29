@@ -42,8 +42,8 @@ function mapReportTypeToFileSource(
       return "All reports";
     case "Annexes report":
       return "Annexes report";
-    case "All reports":
-      return "All reports";
+    case "Clauses report":
+      return "Clauses report";
     default:
       // fallback or throw error
       throw new Error(`Invalid report type for file source: ${reportType}`);

@@ -35,7 +35,7 @@ export async function getAnnexesMarkdown (
       rows = reportData.map(annexes =>{
         const  subTopic = annexes.annexCategories?.length > 0
           ? annexes.annexCategories.map((annexCategory, i) => {
-            const status = annexCategory.is_applicable ? `Implementation Description: ${annexCategory.implementation_description || '(-)'}` : `Justification for Exclusion: ${annexCategory.justification_for_exclusion} || '(-)'`
+            const status = annexCategory.is_applicable ? `Implementation Description: ${annexCategory.implementation_description || '(-)'}` : `Justification for Exclusion: ${annexCategory.justification_for_exclusion} || ''(-)'}`
             
             const res = `__A${annexes.annex_no}${i+1}. ${annexCategory.title}__ <br> Applicability: ${annexCategory.is_applicable}<br> ${status}`
             return `  - ${res}\n`;

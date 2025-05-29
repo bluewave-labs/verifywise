@@ -13,18 +13,35 @@ import {
   Paper,
   Popover,
   Backdrop,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  TextField,
+  InputLabel,
+  MenuItem,
+  Select,
+  IconButton
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import CloseIcon from "@mui/icons-material/Close";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 import Tab from "@mui/material/Tab";
 import { styles } from "./styles";
+import { useNavigate } from "react-router-dom";
 
 export default function FairnessDashboard() {
   const [tab, setTab] = useState("uploads");
   const [anchorEl, setAnchorEl] = useState(null);
   const [showBackdrop, setShowBackdrop] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [modelFile, setModelFile] = useState(null);
+  const [datasetFile, setDatasetFile] = useState(null);
+  const [targetColumn, setTargetColumn] = useState("");
+  const [sensitiveColumn, setSensitiveColumn] = useState("");
+  const [columnOptions, setColumnOptions] = useState([]);
   const buttonRef = useRef(null);
+  const navigate = useNavigate();
 
   const handleDotClick = () => {
     if (hasInteracted) return;
@@ -38,8 +55,37 @@ export default function FairnessDashboard() {
     setShowBackdrop(false);
   };
 
-  const open = Boolean(anchorEl);
-  const id = open ? "info-popover" : undefined;
+  const handleOpenDialog = () => setDialogOpen(true);
+  const handleCloseDialog = () => setDialogOpen(false);
+
+  const handleModelUpload = (e) => {
+    setModelFile(e.target.files[0]);
+  };
+
+  const handleDatasetUpload = (e) => {
+    const file = e.target.files[0];
+    setDatasetFile(file);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target.result;
+      const firstLine = text.split("\n")[0];
+      const columns = firstLine.split(",").map((col) => col.trim());
+      setColumnOptions(columns);
+    };
+    reader.readAsText(file);
+  };
+
+  const handleSaveModel = () => {
+    if (!modelFile || !datasetFile || !targetColumn || !sensitiveColumn) return;
+    console.log("Model saved:", {
+      modelFile,
+      datasetFile,
+      targetColumn,
+      sensitiveColumn,
+    });
+    setDialogOpen(false);
+  };
 
   const modelEntries = [
     { name: "InsuranceTracker", date: "5 May 2025", status: "Pending" },
@@ -60,15 +106,21 @@ export default function FairnessDashboard() {
           <TabList
             onChange={(e, newVal) => setTab(newVal)}
             aria-label="Fairness Tabs"
-            TabIndicatorProps={{
-              style: {
-                backgroundColor: "#13715B",
-              },
-            }}
+            TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
           >
-            <Tab 
-              label={<Typography sx={{ textTransform: "none", color: tab === "uploads" ? "#13715B" : "#000", fontWeight: tab === "uploads" ? 600 : 500 }}>Uploads</Typography>} 
-              value="uploads" 
+            <Tab
+              label={
+                <Typography
+                  sx={{
+                    textTransform: "none",
+                    color: tab === "uploads" ? "#13715B" : "#000",
+                    fontWeight: tab === "uploads" ? 600 : 500,
+                  }}
+                >
+                  Uploads
+                </Typography>
+              }
+              value="uploads"
             />
           </TabList>
         </Box>
@@ -80,6 +132,7 @@ export default function FairnessDashboard() {
               variant="contained"
               size="medium"
               startIcon={<AddCircleOutlineIcon />}
+              onClick={handleOpenDialog}
               sx={{
                 backgroundColor: "#13715B",
                 color: "white",
@@ -122,8 +175,7 @@ export default function FairnessDashboard() {
               />
             )}
             <Popover
-              id={id}
-              open={open}
+              open={Boolean(anchorEl)}
               anchorEl={anchorEl}
               onClose={handlePopoverClose}
               anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
@@ -132,7 +184,7 @@ export default function FairnessDashboard() {
             >
               <Box sx={{ p: 2, maxWidth: 300 }}>
                 <Typography variant="body2">
-                  Click "Add Model" to start a new fairness validation.
+                  Click " Model" to start a new fairness validation.
                 </Typography>
               </Box>
             </Popover>
@@ -160,22 +212,107 @@ export default function FairnessDashboard() {
                     <TableCell>{entry.date}</TableCell>
                     <TableCell>{entry.status}</TableCell>
                     <TableCell align="right">
-                      <Button
+                        <Button
                         variant="outlined"
+                        onClick={() => navigate(`/fairness-dashboard/${entry.name}`)}
                         sx={{
-                          textTransform: "none",
-                          fontWeight: 500,
-                          fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
+                            textTransform: "none",
+                            fontWeight: 500,
+                            fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
                         }}
-                      >
-                        View Details
-                      </Button>
+                        >
+                        Show Details
+                        </Button>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </TableContainer>
+
+          <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+            <DialogTitle>
+              <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Typography sx={{ fontWeight: 600 }}>Validate Fairness</Typography>
+                <IconButton onClick={handleCloseDialog}>
+                  <CloseIcon />
+                </IconButton>
+              </Box>
+            </DialogTitle>
+            <DialogContent>
+              <Stack spacing={2}>
+                <Box>
+                  <InputLabel sx={{ color: "black" }}>Upload Model (.pkl)</InputLabel>
+                  <TextField
+                    type="file"
+                    fullWidth
+                    variant="outlined"
+                    slotProps={{
+                      htmlInput: {
+                        accept: ".pkl",
+                        onChange: handleModelUpload,
+                      },
+                    }}
+                  />
+                </Box>
+
+                <Box>
+                  <InputLabel sx={{ color: "black" }}>Upload Dataset (.csv)</InputLabel>
+                  <TextField
+                    type="file"
+                    fullWidth
+                    variant="outlined"
+                    slotProps={{
+                      htmlInput: {
+                        accept: ".csv",
+                        onChange: handleDatasetUpload,
+                      },
+                    }}
+                  />
+                </Box>
+
+                <Box>
+                  <InputLabel sx={{ color: "black" }}>Target Column</InputLabel>
+                  <Select
+                    fullWidth
+                    value={targetColumn}
+                    onChange={(e) => setTargetColumn(e.target.value)}
+                    displayEmpty
+                  >
+                    <MenuItem value="">-- Select --</MenuItem>
+                    {columnOptions.map((col, idx) => (
+                      <MenuItem key={idx} value={col}>{col}</MenuItem>
+                    ))}
+                  </Select>
+                </Box>
+
+                <Box>
+                  <InputLabel sx={{ color: "black" }}>Sensitive Column</InputLabel>
+                  <Select
+                    fullWidth
+                    value={sensitiveColumn}
+                    onChange={(e) => setSensitiveColumn(e.target.value)}
+                    displayEmpty
+                  >
+                    <MenuItem value="">-- Select --</MenuItem>
+                    {columnOptions.map((col, idx) => (
+                      <MenuItem key={idx} value={col}>{col}</MenuItem>
+                    ))}
+                  </Select>
+                </Box>
+
+                <Box display="flex" justifyContent="flex-end">
+                  <Button
+                    variant="contained"
+                    sx={{ backgroundColor: "#13715B", color: "white", textTransform: "none" }}
+                    onClick={handleSaveModel}
+                  >
+                    Upload
+                  </Button>
+                </Box>
+              </Stack>
+            </DialogContent>
+          </Dialog>
         </TabPanel>
       </TabContext>
     </Stack>

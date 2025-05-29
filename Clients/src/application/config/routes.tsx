@@ -20,6 +20,7 @@ import VWProjectView from "../../presentation/pages/ProjectView/V1.0ProjectView"
 import PageNotFound from "../../presentation/pages/PageNotFound";
 import ProtectedRoute from "../../presentation/components/ProtectedRoute";
 import FairnessDashboard from "../../presentation/pages/FairnessDashboard/FairnessDashboard";
+import FairnessResultsPage from "../../presentation/pages/FairnessDashboard/FairnessResultsPage";
 
 
 export const createRoutes = (
@@ -46,6 +47,7 @@ export const createRoutes = (
     <Route path="/" element={<VWHome />} />
     <Route path="/project-view" element={<VWProjectView />} />
     <Route path="/fairness-dashboard" element={<FairnessDashboard />} />
+    <Route path="/fairness-dashboard/:modelId" element={<FairnessResultsPage />} />
   </Route>,
   <Route
     key="admin-reg"

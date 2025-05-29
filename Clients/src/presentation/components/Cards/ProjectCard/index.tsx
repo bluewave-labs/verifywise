@@ -1,9 +1,7 @@
 import { Stack, Typography, Tooltip, Chip } from "@mui/material";
-import euimg from "../../../assets/imgs/eu-ai-act.jpg";
 import ProgressBar from "../../ProjectCard/ProgressBar";
 import VWButton from "../../../vw-v2-components/Buttons";
 import {
-  frameworkLogo,
   progressStyle,
   projectCardSpecKeyStyle,
   projectCardSpecsStyle,

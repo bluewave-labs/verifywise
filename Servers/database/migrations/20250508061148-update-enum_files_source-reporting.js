@@ -11,6 +11,8 @@ module.exports = {
         `ALTER TYPE enum_files_source ADD VALUE 'Assessment tracker report';`,
         `ALTER TYPE enum_files_source ADD VALUE 'Vendors and risks report';`,
         `ALTER TYPE enum_files_source ADD VALUE 'All reports';`,
+        `ALTER TYPE enum_files_source ADD VALUE 'Annexes report';`,
+        `ALTER TYPE enum_files_source ADD VALUE 'Clause report';`,
       ]) {
         await queryInterface.sequelize.query(query, { transaction });
       }

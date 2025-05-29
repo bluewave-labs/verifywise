@@ -25,6 +25,8 @@ function mapReportTypeToFileSource(
   | "Compliance tracker report"
   | "Assessment tracker report"
   | "Vendors and risks report"
+  | "Annexes report"
+  | "Clauses report"
   | "All reports" {
   // These values must match the enum_files_source in the database
   switch (reportType) {
@@ -36,6 +38,10 @@ function mapReportTypeToFileSource(
       return "Assessment tracker report";
     case "Vendors and risks report":
       return "Vendors and risks report";
+    case "All reports":
+      return "All reports";
+    case "Annexes report":
+      return "Annexes report";
     case "All reports":
       return "All reports";
     default:

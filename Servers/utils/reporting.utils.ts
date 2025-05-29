@@ -8,6 +8,11 @@ import { FileModel } from "../models/file.model";
 import { QueryTypes, Transaction } from "sequelize";
 import { getAllTopicsQuery, getAllSubTopicsQuery, getAllQuestionsQuery } from "./eu.utils";
 import { TopicStructEUModel } from "../models/EU/topicStructEU.model";
+import { getAllAnnexesWithCategoriesQuery, getAnnexCategoriesByIdQuery } from "./iso42001.utils";
+import transaction from "sequelize/types/transaction";
+import { AnnexStructISOModel } from "../models/ISO-42001/annexStructISO.model";
+import { AnnexCategoryStructISOModel } from "../models/ISO-42001/annexCategoryStructISO.model";
+import { AnnexCategoryISOModel } from "../models/ISO-42001/annexCategoryISO.model";
 
 export const getProjectRisksReportQuery = async (
   projectId: number
@@ -125,4 +130,45 @@ export const getAssessmentReportQuery = async (
     }
     const allAssessments = allTopics.map((topic) => topic.get({ plain: true }));
     return allAssessments;
+}
+
+export const getAnnexesReportQuery =async (
+  projectFrameworkId: number,
+  transaction: Transaction | null = null
+  ) => {    
+    const annexes = await sequelize.query(
+      `SELECT * FROM annex_struct_iso ORDER BY id;`,
+      {
+        mapToModel: true,
+        ...(transaction ? { transaction } : {})
+      }) as [AnnexStructISOModel[], number];
+    
+    for (const annex of annexes[0]) {
+      const annexCategories = await annexCategoriesQuery(projectFrameworkId, annex.id, transaction);
+      (annex as any).annexCategories = annexCategories;
+    }
+    return annexes[0];
+}
+
+export const annexCategoriesQuery =async (
+  projectFrameworkId: number,
+  annexId: number,
+  transaction: Transaction | null = null
+  ) => {
+    const annexCategories = await sequelize.query(
+      `SELECT acs.id, acs.title, acs.description, acs.order_no, ac.status, ac.is_applicable, ac.justification_for_exclusion, ac.implementation_description 
+       FROM annexcategories_struct_iso acs 
+       JOIN annexcategories_iso ac ON acs.id = ac.annexcategory_meta_id 
+       WHERE acs.annex_id = :id AND ac.projects_frameworks_id = :projects_frameworks_id 
+       ORDER BY acs.id;`,
+       {
+        replacements: {
+          id: annexId,
+          projects_frameworks_id: projectFrameworkId,
+        },
+        type: QueryTypes.SELECT,
+        ...(transaction ? { transaction } : {})
+      });
+    
+    return annexCategories;
 }

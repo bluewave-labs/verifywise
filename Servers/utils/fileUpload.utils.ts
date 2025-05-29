@@ -20,6 +20,8 @@ export const uploadFile = async (
     | "Assessment tracker report"
     | "Vendors and risks report"
     | "All reports"
+    | "Annexes report"
+    | "Clauses report"
     | "Management system clauses group" | "Reference controls group",
   transaction: Transaction | null = null
 ) => {

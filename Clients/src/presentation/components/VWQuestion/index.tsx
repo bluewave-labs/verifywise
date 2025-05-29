@@ -51,7 +51,7 @@ const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps
   const authToken = useSelector((state: any) => state.auth.authToken);
   const [alert, setAlert] = useState<AlertProps | null>(null);
 
-  const isEditingDisabled = !allowedRoles.frameworks.edit.includes(userRoleName);
+  const isEditingDisabled = !(allowedRoles?.frameworks?.edit || []).includes(userRoleName);
 
   const STATUS_OPTIONS = [
     { _id: "notStarted", name: "Not started" },

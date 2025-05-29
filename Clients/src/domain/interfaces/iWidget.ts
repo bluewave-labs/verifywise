@@ -69,7 +69,7 @@ export interface DropDownsProps {
   setState?: (newState: any) => void;
   isControl?: boolean;
   projectId?: number;
-  readyOnly?: boolean;
+  readOnly?: boolean;
 }
 
 export interface FieldProps {

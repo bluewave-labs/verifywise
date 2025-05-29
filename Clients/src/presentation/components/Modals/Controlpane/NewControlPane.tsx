@@ -438,7 +438,7 @@ const NewControlPane = ({
                 ...newState,
               }))
             }
-            readyOnly={isEditingDisabled}
+            readOnly={isEditingDisabled}
           />
 
           {/* this is working fine */}
@@ -527,7 +527,7 @@ const NewControlPane = ({
                   setState={(newState) =>
                     handleSubControlStateChange(selectedTab, newState)
                   }
-                  readyOnly={isEditingDisabled}
+                  readOnly={isEditingDisabled}
                 />
               </Typography>
             )}
@@ -567,7 +567,7 @@ const NewControlPane = ({
                     files
                   )
                 }
-                readyOnly={isEditingDisabled}
+                readOnly={isEditingDisabled}
               />
             )}
             {activeSection === "Auditor Feedback" && (
@@ -606,7 +606,7 @@ const NewControlPane = ({
                     files
                   )
                 }
-                readyOnly={isAuditingDisabled}
+                readOnly={isAuditingDisabled}
               />
             )}
           </Box>

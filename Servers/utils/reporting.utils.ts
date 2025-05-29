@@ -6,13 +6,16 @@ import {
 } from "../models/projectsMembers.model";
 import { FileModel } from "../models/file.model";
 import { QueryTypes, Transaction } from "sequelize";
-import { getAllTopicsQuery, getAllSubTopicsQuery, getAllQuestionsQuery } from "./eu.utils";
+import { getAllTopicsQuery, getAllSubTopicsQuery, getAllQuestionsQuery, getControlStructByControlCategoryIdForAProjectQuery, getAllControlCategoriesQuery, getControlByIdForProjectQuery, getControlByIdQuery, getSubControlsByIdQuery } from "./eu.utils";
 import { TopicStructEUModel } from "../models/EU/topicStructEU.model";
 import { getAllAnnexesWithCategoriesQuery, getAnnexCategoriesByIdQuery } from "./iso42001.utils";
 import transaction from "sequelize/types/transaction";
 import { AnnexStructISOModel } from "../models/ISO-42001/annexStructISO.model";
 import { AnnexCategoryStructISOModel } from "../models/ISO-42001/annexCategoryStructISO.model";
 import { AnnexCategoryISOModel } from "../models/ISO-42001/annexCategoryISO.model";
+import { ControlEUModel } from "../models/EU/controlEU.model";
+import { ControlStructEUModel } from "../models/EU/controlStructEU.model";
+
 
 export const getProjectRisksReportQuery = async (
   projectId: number
@@ -125,7 +128,7 @@ export const getAssessmentReportQuery = async (
           }
         }
         (topic.dataValues as any).subtopics = [];
-        (topic.dataValues as any).subtopics = subtopicStruct.map(s => s.get({ plain: true }));;
+        (topic.dataValues as any).subtopics = subtopicStruct.map(s => s.get({ plain: true }));
       }
     }
     const allAssessments = allTopics.map((topic) => topic.get({ plain: true }));
@@ -171,4 +174,34 @@ export const annexCategoriesQuery =async (
       });
     
     return annexCategories;
+}
+
+export const getComplianceReportQuery = async (
+  projectFrameworkId: number
+) => {
+  const compliances = await getAllControlCategoriesQuery();
+  for(let controlCategory of compliances){
+    if(controlCategory.id && controlCategory.framework_id){
+      const subCategorieStructs = await getControlStructByControlCategoryIdForAProjectQuery(controlCategory.id, controlCategory.framework_id);                              
+      for(const subControlCategory of subCategorieStructs) {
+        if (subControlCategory.id) {
+          const controls = await getControlByIdQuery(subControlCategory.id);
+          if (controls && controls.length > 0) {
+            const control = controls[0];
+            const subControls = await getSubControlsByIdQuery(control.id!);
+            (control as any).subControls = [];
+            for (let subControl of subControls) {
+              (control as any).subControls.push({ ...subControl });
+            }
+            (subControlCategory as any).data = {};
+            (subControlCategory as any).data= control;
+          }
+        }
+      }      
+      (controlCategory.dataValues as any).subControlCategories = subCategorieStructs || []; 
+    }
+  }
+
+  const AllCompliances = compliances.map((topic) => topic.get({ plain: true }));
+  return AllCompliances;
 }

@@ -4,6 +4,7 @@ import { getProjectRiskMarkdown } from "./markdowns/projectRiskMarkdown";
 import { getVendorReportMarkdown } from "./markdowns/vendorAndRisksMarkdown";
 import { getAssessmentTrackerMarkdown } from './markdowns/assessmentTrackerMarkdown';
 import { getAnnexesMarkdown } from './markdowns/annexesMarkdown';
+import { getComplianceMarkdown } from './markdowns/complianceMarkdown';
 
 export interface ReportBodyData {
   projectTitle: string,
@@ -97,6 +98,8 @@ export async function getReportData(
       break;
     case ReportType.ANNEXES_REPORT:
       markdownFormattedData = await getAnnexesMarkdown(frameworkId, reportBody)
+    case ReportType.COMPLIANCE_REPORT:
+      markdownFormattedData = await getComplianceMarkdown(frameworkId, reportBody)
       break;
     default:
       throw new Error(`Report type "${reportType}" is not supported`);

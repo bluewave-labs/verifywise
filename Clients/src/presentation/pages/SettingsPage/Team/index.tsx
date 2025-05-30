@@ -82,7 +82,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const { dashboardValues, users, userId, refreshUsers } = useContext(VerifyWiseContext);
 
   // Exclude the current user from the team users list
-  const teamUsers = users.filter((user: User) => user.id !== userId);
+  const teamUsers = users;
   
   const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
   const [inviteUserModalOpen, setInviteUserModalOpen] = useState(false);
@@ -212,10 +212,15 @@ const TeamManagement: React.FC = (): JSX.Element => {
 
   const handleInvitation = (email: string, status: number | string, link: string) => {
     console.log("Invitation to ", email, "is ", status);
+
+    // Limit link to 35 characters
+    if (link.length > 35) {
+      link = link.substring(0, 35) + "...";
+    }
     
     setAlert({
       variant: "info",
-      body: `The link is: ${link}`,
+      body: `You can also copy and use this link to invite a member: ${link}`,      
     });
 
     setInviteUserModalOpen(false);
@@ -384,6 +389,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                                     padding: "4px 8px",
                                   },
                                 }}
+                                disabled={member.id === userId}
                               >
                                 {roles.map((role) => (
                                   <MenuItem
@@ -410,6 +416,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                               <IconButton
                                 onClick={() => handleDeleteClick(member.id)}
                                 disableRipple
+                                disabled={member.id === userId}
                               >
                                 <DeleteOutlineOutlinedIcon />
                               </IconButton>

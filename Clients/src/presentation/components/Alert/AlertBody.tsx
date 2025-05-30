@@ -41,7 +41,7 @@ const AlertBody: React.FC<AlertBodyProps> = ({ body, textColor }) => {
                 e.stopPropagation();
                 handleCopy();
               }}
-              sx={{ padding: 0.5 }}
+              sx={{ paddingLeft: 3 }}
             >
               {copied ? (
                 <Typography variant="caption" sx={{ color: textColor }}>

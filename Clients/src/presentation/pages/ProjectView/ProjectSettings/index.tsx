@@ -113,7 +113,7 @@ const ProjectSettings = React.memo(
   }: {
     triggerRefresh?: (isUpdate: boolean) => void;
   }) => {
-    const { userRoleName, userId } = useContext(VerifyWiseContext);
+    const { userRoleName, userId, setProjects } = useContext(VerifyWiseContext);
     const [searchParams] = useSearchParams();
     const projectId = searchParams.get("projectId") ?? "1"; // default project ID is 2
     const theme = useTheme();
@@ -616,6 +616,9 @@ const ProjectSettings = React.memo(
           visible: true,
         });
         if (!isError) {
+          setProjects((prevProjects) =>
+            prevProjects.filter((project) => project.id !== Number(projectId))
+          );
           navigate("/");
           setTimeout(() => {
             setAlert(null);

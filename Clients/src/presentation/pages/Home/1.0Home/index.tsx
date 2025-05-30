@@ -20,7 +20,7 @@ import VWToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 import { logEngine } from "../../../../application/tools/log.engine";
 import VWProjectForm from "../../../vw-v2-components/Forms/ProjectForm";
-import { useProjectData } from "../../../../application/hooks/useFetchProjects";
+import { useProjectData } from "../../../../application/hooks/useProjects";
 import { AlertState } from "../../../../application/interfaces/appStates";
 import PageTour from "../../../components/PageTour";
 import HomeSteps from "./HomeSteps";

@@ -11,7 +11,7 @@ import FileSteps from "./FileSteps";
 import VWSkeleton from "../../vw-v2-components/Skeletons";
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import { useUserFilesMetaData } from "../../../application/hooks/useUserFilesMetaData";
-import { useProjectData } from "../../../application/hooks/useFetchProjects";
+import { useProjectData } from "../../../application/hooks/useProjects";
 import FileTable from "../../components/Table/FileTable/FileTable";
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
 import ProjectFilterDropdown from "../../components/Inputs/Dropdowns/ProjectFilter/ProjectFilterDropdown";

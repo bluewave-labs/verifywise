@@ -8,9 +8,8 @@ import { styles } from './styles';
 
 const GenerateReport = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);  
-  const {dashboardValues} = useContext(VerifyWiseContext);
-  const { selectedProjectId } = dashboardValues;
-  const isDisabled = selectedProjectId ? false : true;
+  const { projects } = useContext(VerifyWiseContext);
+  const isDisabled = projects.length > 0 ? false : true;
 
   return (
     <>

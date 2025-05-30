@@ -40,7 +40,6 @@ import { deleteEntityById } from "../../../../application/repository/entity.repo
 import {
   updateEntityById,
 } from "../../../../application/repository/entity.repository";
-import { User } from "../../../../domain/types/User";
 const Alert = lazy(() => import("../../../components/Alert"));
 
 // Constants for roles

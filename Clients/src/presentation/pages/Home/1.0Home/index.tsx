@@ -27,9 +27,14 @@ import HomeSteps from "./HomeSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
 import allowedRoles from "../../../../application/constants/permissions";
 
-const VWHome = () => {
-  const { setDashboardValues, componentsVisible, changeComponentVisibility, refreshUsers, userRoleName } =
-    useContext(VerifyWiseContext);
+const Home = () => {
+  const {
+    setDashboardValues,
+    componentsVisible,
+    changeComponentVisibility,
+    refreshUsers,
+    userRoleName,
+  } = useContext(VerifyWiseContext);
   const [alertState, setAlertState] = useState<AlertState>();
   const [isProjectFormModalOpen, setIsProjectFormModalOpen] =
     useState<boolean>(false);
@@ -58,7 +63,7 @@ const VWHome = () => {
 
   useEffect(() => {
     const fetchProgressData = async () => {
-      await refreshUsers()
+      await refreshUsers();
 
       await fetchProjects();
     };
@@ -153,7 +158,9 @@ const VWHome = () => {
                 }}
                 icon={<CloudDownloadIcon />}
                 onClick={() => handleGenerateDemoDataClick()}
-                isDisabled={!allowedRoles.projects.create.includes(userRoleName)}
+                isDisabled={
+                  !allowedRoles.projects.create.includes(userRoleName)
+                }
               />
             )}
             <div data-joyride-id="new-project-button" ref={refs[0]}>
@@ -167,7 +174,9 @@ const VWHome = () => {
                 }}
                 icon={<AddCircleOutlineIcon />}
                 onClick={() => setIsProjectFormModalOpen(true)}
-                isDisabled={!allowedRoles.projects.create.includes(userRoleName)}
+                isDisabled={
+                  !allowedRoles.projects.create.includes(userRoleName)
+                }
               />
             </div>
           </Stack>
@@ -229,4 +238,4 @@ const VWHome = () => {
   );
 };
 
-export default VWHome;
+export default Home;

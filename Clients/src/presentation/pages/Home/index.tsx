@@ -24,7 +24,7 @@ import {
   Assessments,
   Controls,
 } from "../../../application/hooks/useProjectStatus";
-import VWSkeleton from "../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../vw-v2-components/Skeletons";
 import { Card } from "../../components/ProjectCard/styles";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import CreateDemoData from "../../components/CreateDemoData";
@@ -264,7 +264,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
 
   if (loadingProjectStatus)
     return (
-      <VWSkeleton
+      <CustomizableSkeleton
         variant="rectangular"
         minWidth="200"
         width={"100%"}
@@ -276,7 +276,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
     );
   if (errorFetchingProjectStatus)
     return (
-      <VWSkeleton
+      <CustomizableSkeleton
         variant="rectangular"
         minWidth="200"
         width={"100%"}
@@ -332,7 +332,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
               <Suspense
                 key={metricType}
                 fallback={
-                  <VWSkeleton
+                  <CustomizableSkeleton
                     variant="rectangular"
                     minWidth="200"
                     width={"100%"}
@@ -378,7 +378,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
             <Suspense
               fallback={
                 <Card>
-                  <VWSkeleton
+                  <CustomizableSkeleton
                     variant="rectangular"
                     minWidth="200"
                     width={"100%"}

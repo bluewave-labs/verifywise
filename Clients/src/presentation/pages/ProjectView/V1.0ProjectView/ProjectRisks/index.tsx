@@ -16,7 +16,7 @@ import { handleAlert } from "../../../../../application/tools/alertUtils";
 import Alert from "../../../../components/Alert";
 import { deleteEntityById } from "../../../../../application/repository/entity.repository";
 import CustomizableToast from "../../../../vw-v2-components/Toast";
-import VWSkeleton from "../../../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../../../vw-v2-components/Skeletons";
 import allowedRoles from "../../../../../application/constants/permissions";
 import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
 
@@ -65,7 +65,8 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [isLoading, setIsLoading] =
     useState<LoadingStatus>(initialLoadingState);
-  const [showVWSkeleton, setShowVWSkeleton] = useState<boolean>(false);
+  const [showCustomizableSkeleton, setShowCustomizableSkeleton] =
+    useState<boolean>(false);
   const [currentRow, setCurrentRow] = useState<number | null>(null);
 
   const fetchProjectRisks = useCallback(async () => {
@@ -73,7 +74,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
       const response = await getEntityById({
         routeUrl: `/projectRisks/by-projid/${projectId}`,
       });
-      setShowVWSkeleton(false);
+      setShowCustomizableSkeleton(false);
       setProjectRisks(response.data);
     } catch (error) {
       console.error("Error fetching project risks:", error);
@@ -86,7 +87,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
 
   useEffect(() => {
     if (projectId) {
-      setShowVWSkeleton(true);
+      setShowCustomizableSkeleton(true);
       fetchProjectRisks();
     }
   }, [projectId, fetchProjectRisks, refreshKey]); // Add refreshKey to dependencies
@@ -285,8 +286,12 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
             anchor={anchor}
           />
         )}
-        {showVWSkeleton ? (
-          <VWSkeleton variant="rectangular" width="100%" height={200} />
+        {showCustomizableSkeleton ? (
+          <CustomizableSkeleton
+            variant="rectangular"
+            width="100%"
+            height={200}
+          />
         ) : (
           <VWProjectRisksTable
             columns={TITLE_OF_COLUMNS}

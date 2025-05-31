@@ -26,7 +26,7 @@ import { extractUserToken } from "../../../../application/tools/extractToken";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
-import VWSkeleton from "../../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 import CustomizableToast from "../../../vw-v2-components/Toast"; // Import CustomizableToast component
 import useLogout from "../../../../application/hooks/useLogout";
 
@@ -400,7 +400,7 @@ const ProfileForm: React.FC = () => {
       {showToast && <CustomizableToast />}{" "}
       {/* Show CustomizableToast when showToast is true */}
       {loading && (
-        <VWSkeleton
+        <CustomizableSkeleton
           variant="rectangular"
           width="100%"
           height="300px"
@@ -573,7 +573,7 @@ const ProfileForm: React.FC = () => {
       )}
       <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
       {loading && (
-        <VWSkeleton
+        <CustomizableSkeleton
           variant="rectangular"
           width="100%"
           height="200px"

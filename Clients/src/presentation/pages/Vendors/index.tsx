@@ -37,7 +37,7 @@ import TabPanel from "@mui/lab/TabPanel";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import AddNewRisk from "../../components/Modals/NewRisk";
 import CustomizableButton from "../../vw-v2-components/Buttons";
-import VWSkeleton from "../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../vw-v2-components/Skeletons";
 import CustomizableToast from "../../vw-v2-components/Toast";
 import { Project } from "../../../domain/types/Project";
 import RisksCard from "../../components/Cards/RisksCard";
@@ -494,12 +494,16 @@ const Vendors = () => {
           </Box>
           {value !== "1" &&
             (loadingVendorRisks || isVendorsLoading ? (
-              <VWSkeleton variant="rectangular" width="50%" height={100} />
+              <CustomizableSkeleton
+                variant="rectangular"
+                width="50%"
+                height={100}
+              />
             ) : (
               <RisksCard risksSummary={vendorRisksSummary} />
             ))}
           {isVendorsLoading && value === "1" ? (
-            <VWSkeleton
+            <CustomizableSkeleton
               variant="rectangular"
               width={"15%"}
               height={35}
@@ -552,7 +556,7 @@ const Vendors = () => {
           )}
 
           {(loadingVendorRisks || isVendorsLoading) && value !== "1" ? (
-            <VWSkeleton
+            <CustomizableSkeleton
               variant="rectangular"
               width={"15%"}
               height={35}
@@ -622,7 +626,7 @@ const Vendors = () => {
           )}
 
           {isVendorsLoading && value === "1" ? (
-            <VWSkeleton
+            <CustomizableSkeleton
               height={"20vh"}
               minHeight={"20vh"}
               minWidth={260}
@@ -641,7 +645,7 @@ const Vendors = () => {
             </TabPanel>
           )}
           {(loadingVendorRisks || isVendorsLoading) && value !== "1" ? (
-            <VWSkeleton
+            <CustomizableSkeleton
               height={"20vh"}
               minHeight={"20vh"}
               minWidth={260}

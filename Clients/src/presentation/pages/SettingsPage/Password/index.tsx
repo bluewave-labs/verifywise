@@ -15,7 +15,7 @@ import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
-import VWSkeleton from "../../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 import CustomizableToast from "../../../vw-v2-components/Toast"; // Import CustomizableToast
 
 const PasswordForm: React.FC = () => {
@@ -195,7 +195,7 @@ const PasswordForm: React.FC = () => {
   return (
     <Box sx={{ mt: 3, width: { xs: "90%", md: "70%" }, position: "relative" }}>
       {loading && (
-        <VWSkeleton
+        <CustomizableSkeleton
           variant="rectangular"
           width="100%"
           height="300px"

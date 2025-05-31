@@ -38,7 +38,7 @@ import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CustomizableToast from "../../../vw-v2-components/Toast";
-import VWSkeleton from "../../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 import useFrameworks from "../../../../application/hooks/useFrameworks";
 import { Framework } from "../../../../domain/types/Framework";
 import allowedRoles from "../../../../application/constants/permissions";
@@ -145,7 +145,8 @@ const ProjectSettings = React.memo(
     const [isLoading, setIsLoading] = useState(false);
     const [isFrameworkOperationInProgress, setIsFrameworkOperationInProgress] =
       useState(false);
-    const [showVWSkeleton, setShowVWSkeleton] = useState<boolean>(false);
+    const [showCustomizableSkeleton, setShowCustomizableSkeleton] =
+      useState<boolean>(false);
     const initialValuesRef = useRef<FormValues>({ ...initialState });
     const isModified = useMemo(() => {
       if (!initialValuesRef.current.projectTitle) return false;
@@ -175,7 +176,7 @@ const ProjectSettings = React.memo(
     }, [values, isFrameworkOperationInProgress]);
 
     const isSaveDisabled = useMemo(() => {
-      if (showVWSkeleton) return true;
+      if (showCustomizableSkeleton) return true;
       if (isFrameworkOperationInProgress) return true;
       if (!isModified) return true;
 
@@ -184,7 +185,12 @@ const ProjectSettings = React.memo(
       );
 
       return hasErrors;
-    }, [isModified, errors, showVWSkeleton, isFrameworkOperationInProgress]);
+    }, [
+      isModified,
+      errors,
+      showCustomizableSkeleton,
+      isFrameworkOperationInProgress,
+    ]);
 
     useEffect(() => {
       if (project) {
@@ -201,7 +207,7 @@ const ProjectSettings = React.memo(
       });
 
     useEffect(() => {
-      setShowVWSkeleton(true);
+      setShowCustomizableSkeleton(true);
       if (project && monitoredFrameworks.length > 0) {
         const frameworksForProject = monitoredFrameworks.map(
           (fw: Framework) => {
@@ -242,7 +248,7 @@ const ProjectSettings = React.memo(
           monitoredRegulationsAndStandards: frameworksForProject,
         };
         initialValuesRef.current = returnedData;
-        setShowVWSkeleton(false);
+        setShowCustomizableSkeleton(false);
         setValues(returnedData);
       }
     }, [project, monitoredFrameworks]);
@@ -690,8 +696,12 @@ const ProjectSettings = React.memo(
             onClick={() => setAlert(null)}
           />
         )}
-        {showVWSkeleton ? (
-          <VWSkeleton variant="rectangular" width="50%" height={200} />
+        {showCustomizableSkeleton ? (
+          <CustomizableSkeleton
+            variant="rectangular"
+            width="50%"
+            height={200}
+          />
         ) : (
           <Stack component="form" onSubmit={handleSubmit} rowGap="15px">
             <Field

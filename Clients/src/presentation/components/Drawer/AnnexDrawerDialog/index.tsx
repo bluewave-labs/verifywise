@@ -609,7 +609,7 @@ const VWISO42001AnnexDrawerDialog = ({
           <Select
             id="Owner"
             label="Owner:"
-            value={parseInt(formData.owner)}
+            value={formData.owner ? parseInt(formData.owner) : ""}
             onChange={handleSelectChange("owner")}
             items={projectMembers.map((user) => ({
               _id: user.id,
@@ -625,7 +625,7 @@ const VWISO42001AnnexDrawerDialog = ({
           <Select
             id="Reviewer"
             label="Reviewer:"
-            value={parseInt(formData.reviewer)}
+            value={formData.reviewer ? parseInt(formData.reviewer) : ""}
             onChange={handleSelectChange("reviewer")}
             items={projectMembers.map((user) => ({
               _id: user.id,
@@ -641,7 +641,7 @@ const VWISO42001AnnexDrawerDialog = ({
           <Select
             id="Approver"
             label="Approver:"
-            value={parseInt(formData.approver)}
+            value={formData.approver ? parseInt(formData.approver) : ""}
             onChange={handleSelectChange("approver")}
             items={projectMembers.map((user) => ({
               _id: user.id,

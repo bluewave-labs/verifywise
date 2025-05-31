@@ -7,6 +7,7 @@ export const projectCardStyle = {
   width: "100%",
   maxWidth: "100&",
   gap: 10,
+  minHeight: "275px",
 };
 
 export const projectCardTitleStyle = {
@@ -44,4 +45,24 @@ export const viewProjectButtonStyle = {
   "&:hover": {
     backgroundColor: "transparent",
   },
+};
+
+export const euAiActChipStyle = {
+  backgroundColor: '#003399',
+  color: '#fff',
+  fontWeight: 600,
+  fontSize: 11,
+  height: 28,
+  borderRadius: 2,
+  mb: 1,
+};
+
+export const iso42001ChipStyle = {
+  backgroundColor: '#E30613',
+  color: '#fff',
+  fontWeight: 600,
+  fontSize: 11,
+  height: 28,
+  borderRadius: 2,
+  mb: 1,
 };

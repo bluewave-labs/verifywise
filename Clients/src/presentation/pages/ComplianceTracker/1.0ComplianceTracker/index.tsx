@@ -19,12 +19,10 @@ const ComplianceTracker = ({ project }: { project: Project }) => {
     (p) => p.framework_id === 1
   )[0]?.project_framework_id;
   const [complianceData, setComplianceData] = useState<ComplianceData>();
-  const [controlCategories, setControlCategories] =
-    useState<ControlCategoryModel[]>();
+  const [controlCategories, setControlCategories] = useState<ControlCategoryModel[]>();
   const [error, setError] = useState<unknown>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const { componentsVisible, changeComponentVisibility } = useContext(
-    VerifyWiseContext);
+  const { componentsVisible, changeComponentVisibility } = useContext(VerifyWiseContext);
   const [runComplianceTour, setRunComplianceTour] = useState(false);
 
   const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({
@@ -37,11 +35,11 @@ const ComplianceTracker = ({ project }: { project: Project }) => {
     }
   }, [allVisible]);
 
-    useEffect(() => {
-      if (componentsVisible.compliance && componentsVisible.projectFrameworks) {
-        setRunComplianceTour(true);
-      }
-    }, [componentsVisible]);
+  useEffect(() => {
+    if (componentsVisible.compliance && componentsVisible.projectFrameworks) {
+      setRunComplianceTour(true);
+    }
+  }, [componentsVisible]);
 
   // Reset state when project changes
   useEffect(() => {
@@ -52,7 +50,7 @@ const ComplianceTracker = ({ project }: { project: Project }) => {
   }, [currentProjectId]);
 
   const fetchComplianceData = async () => {
-    if (!currentProjectId) return;
+    if (!currentProjectId || !currentProjectFramework) return;
 
     try {
       const response = await getEntityById({
@@ -76,10 +74,7 @@ const ComplianceTracker = ({ project }: { project: Project }) => {
       });
       setControlCategories(response);
     } catch (err) {
-      console.error(
-        "ComplianceTracker: Error fetching control categories:",
-        err
-      );
+      console.error("ComplianceTracker: Error fetching control categories:", err);
       setError(err);
     }
   };

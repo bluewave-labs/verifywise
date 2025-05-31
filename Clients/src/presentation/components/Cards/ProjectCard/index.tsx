@@ -1,9 +1,7 @@
-import { Stack, Typography, Tooltip } from "@mui/material";
-import euimg from "../../../assets/imgs/eu-ai-act.jpg";
+import { Stack, Typography, Tooltip, Chip } from "@mui/material";
 import ProgressBar from "../../ProjectCard/ProgressBar";
 import VWButton from "../../../vw-v2-components/Buttons";
 import {
-  frameworkLogo,
   progressStyle,
   projectCardSpecKeyStyle,
   projectCardSpecsStyle,
@@ -11,6 +9,8 @@ import {
   projectCardStyle,
   projectCardTitleStyle,
   viewProjectButtonStyle,
+  euAiActChipStyle,
+  iso42001ChipStyle,
 } from "./style";
 import { Project } from "../../../../domain/types/Project";
 import { formatDate } from "../../../tools/isoDateToString";
@@ -103,6 +103,15 @@ const useProjectProgress = (projectFrameworkId?: number, projectFrameworkId2?: n
   };
 };
 
+// Reusable FrameworkChip component
+const FrameworkChip = ({ label, type }: { label: string; type: 'eu' | 'iso' }) => (
+  <Chip
+    label={label}
+    sx={type === 'eu' ? euAiActChipStyle : iso42001ChipStyle}
+    size="small"
+  />
+);
+
 /**
  * ProjectCard component displays project information in a card format
  */
@@ -141,7 +150,7 @@ const VWProjectCard: FC<VWProjectCardProps> = React.memo(({ project, isLoading =
   return (
     <Stack
       className="project-card"
-      sx={{ ...projectCardStyle, minHeight: 320, display: 'flex', flexDirection: 'column' }}
+      sx={{ ...projectCardStyle, display: 'flex', flexDirection: 'column' }}
       role="article"
       aria-label={`Project card for ${project.project_title}`}
     >
@@ -150,20 +159,20 @@ const VWProjectCard: FC<VWProjectCardProps> = React.memo(({ project, isLoading =
         <Typography className="project-card-title" sx={projectCardTitleStyle}>
           {project.project_title}
         </Typography>
-        <Stack className="project-card-frameworks">
-          <img src={euimg} alt="EU-AI-ACT" style={frameworkLogo} />
+        <Stack direction="row" spacing={5} className="project-card-frameworks">
+          {projectFrameworkId && <FrameworkChip label="EU AI Act" type="eu" />}
+          {projectFrameworkId2 && <FrameworkChip label="ISO 42001" type="iso" />}
         </Stack>
       </Stack>
-      {/* Progress Stats */}
-      <Stack className="project-card-stats" sx={{ gap: 2, flexGrow: 1 }}>
-        {projectFrameworkId && (
-          <>
+      {projectFrameworkId && projectFrameworkId2 ? (
+        <Stack direction="row" spacing={10} className="project-card-stats" sx={{  }}>
+          <Stack sx={{ flex: 1, gap: 1 }}>
             <Stack className="project-progress" sx={{ gap: 1 }}>
               <ProgressBar
                 progress={`${complianceProgressData?.allDonesubControls ?? 0}/${complianceProgressData?.allsubControls ?? 0}`}
               />
               <Typography sx={progressStyle}>
-                {`Subcontrols completed: ${complianceProgressData?.allDonesubControls ?? 0} out of ${complianceProgressData?.allsubControls ?? 0}`}
+                {`Subcontrols: ${complianceProgressData?.allDonesubControls ?? 0} out of ${complianceProgressData?.allsubControls ?? 0}`}
               </Typography>
             </Stack>
             <Stack className="project-progress" sx={{ gap: 1 }}>
@@ -171,32 +180,73 @@ const VWProjectCard: FC<VWProjectCardProps> = React.memo(({ project, isLoading =
                 progress={`${assessmentProgressData?.answeredQuestions ?? 0}/${assessmentProgressData?.totalQuestions ?? 0}`}
               />
               <Typography sx={progressStyle}>
-                {`Assessments completed: ${assessmentProgressData?.answeredQuestions ?? 0} out of ${assessmentProgressData?.totalQuestions ?? 0}`}
+                {`Assessments: ${assessmentProgressData?.answeredQuestions ?? 0} out of ${assessmentProgressData?.totalQuestions ?? 0}`}
               </Typography>
             </Stack>
-          </>
-        )}
-        {projectFrameworkId2 && (
-          <>
-            <Stack className="project-progress" sx={{ gap: 1 }}>
-              <ProgressBar
-                progress={`${annexesProgressData?.doneAnnexcategories ?? 0}/${annexesProgressData?.totalAnnexcategories ?? 0}`}
-              />
-              <Typography sx={progressStyle}>
-                {`Annexes completed: ${annexesProgressData?.doneAnnexcategories ?? 0} out of ${annexesProgressData?.totalAnnexcategories ?? 0}`}
-              </Typography>
-            </Stack>
+          </Stack>
+          <Stack sx={{ flex: 1, gap: 1 }}>
             <Stack className="project-progress" sx={{ gap: 1 }}>
               <ProgressBar
                 progress={`${clausesProgressData?.doneSubclauses ?? 0}/${clausesProgressData?.totalSubclauses ?? 0}`}
               />
               <Typography sx={progressStyle}>
-                {`Subclauses completed: ${clausesProgressData?.doneSubclauses ?? 0} out of ${clausesProgressData?.totalSubclauses ?? 0}`}
+                {`Clauses: ${clausesProgressData?.doneSubclauses ?? 0} out of ${clausesProgressData?.totalSubclauses ?? 0}`}
               </Typography>
             </Stack>
-          </>
-        )}
-      </Stack>
+            <Stack className="project-progress" sx={{ gap: 1 }}>
+              <ProgressBar
+                progress={`${annexesProgressData?.doneAnnexcategories ?? 0}/${annexesProgressData?.totalAnnexcategories ?? 0}`}
+              />
+              <Typography sx={progressStyle}>
+                {`Annexes: ${annexesProgressData?.doneAnnexcategories ?? 0} out of ${annexesProgressData?.totalAnnexcategories ?? 0}`}
+              </Typography>
+            </Stack>
+          </Stack>
+        </Stack>
+      ) : (
+        <Stack className="project-card-stats" sx={{ gap: 2 }}>
+          {projectFrameworkId && (
+            <>
+              <Stack className="project-progress" sx={{ gap: 1 }}>
+                <ProgressBar
+                  progress={`${complianceProgressData?.allDonesubControls ?? 0}/${complianceProgressData?.allsubControls ?? 0}`}
+                />
+                <Typography sx={progressStyle}>
+                  {`Subcontrols: ${complianceProgressData?.allDonesubControls ?? 0} out of ${complianceProgressData?.allsubControls ?? 0}`}
+                </Typography>
+              </Stack>
+              <Stack className="project-progress" sx={{ gap: 1 }}>
+                <ProgressBar
+                  progress={`${assessmentProgressData?.answeredQuestions ?? 0}/${assessmentProgressData?.totalQuestions ?? 0}`}
+                />
+                <Typography sx={progressStyle}>
+                  {`Assessments: ${assessmentProgressData?.answeredQuestions ?? 0} out of ${assessmentProgressData?.totalQuestions ?? 0}`}
+                </Typography>
+              </Stack>
+            </>
+          )}
+          {projectFrameworkId2 && (
+            <>
+              <Stack className="project-progress" sx={{ gap: 1 }}>
+                <ProgressBar
+                  progress={`${clausesProgressData?.doneSubclauses ?? 0}/${clausesProgressData?.totalSubclauses ?? 0}`}
+                />
+                <Typography sx={progressStyle}>
+                  {`Clauses: ${clausesProgressData?.doneSubclauses ?? 0} out of ${clausesProgressData?.totalSubclauses ?? 0}`}
+                </Typography>
+              </Stack>
+              <Stack className="project-progress" sx={{ gap: 1 }}>
+                <ProgressBar
+                  progress={`${annexesProgressData?.doneAnnexcategories ?? 0}/${annexesProgressData?.totalAnnexcategories ?? 0}`}
+                />
+                <Typography sx={progressStyle}>
+                  {`Annexes: ${annexesProgressData?.doneAnnexcategories ?? 0} out of ${annexesProgressData?.totalAnnexcategories ?? 0}`}
+                </Typography>
+              </Stack>
+            </>
+          )}
+        </Stack>
+      )}
       {/* Project Specs */}
       <Stack className="project-card-spec" sx={projectCardSpecsStyle}>
         <Stack className="project-card-spec-tile">

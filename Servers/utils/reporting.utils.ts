@@ -11,6 +11,7 @@ import { TopicStructEUModel } from "../models/EU/topicStructEU.model";
 import { getAllAnnexesWithCategoriesQuery, getAnnexCategoriesByIdQuery } from "./iso42001.utils";
 import transaction from "sequelize/types/transaction";
 import { AnnexStructISOModel } from "../models/ISO-42001/annexStructISO.model";
+import { ClauseStructISOModel } from "../models/ISO-42001/clauseStructISO.model";
 import { AnnexCategoryStructISOModel } from "../models/ISO-42001/annexCategoryStructISO.model";
 import { AnnexCategoryISOModel } from "../models/ISO-42001/annexCategoryISO.model";
 import { ControlEUModel } from "../models/EU/controlEU.model";
@@ -213,3 +214,22 @@ export const getComplianceReportQuery = async (
   const AllCompliances = compliances.map((topic) => topic.get({ plain: true }));
   return AllCompliances;
 }
+
+export const getClausesReportQuery = async (
+  projectFrameworkId: number,
+  Transaction: Transaction | null = null
+) => {
+  const clauses = (await sequelize.query(
+    `SELECT * FROM clause_struct_iso ORDER BY id;`,
+    {
+      mapToModel: true,
+      ...(transaction ? { transaction } : {}),
+    }
+  )) as [ClauseStructISOModel[], number];
+
+  for (const clause of clauses[0]) {
+    const subClauses = await subClausesQuery(projectFrameworkId, clause.id, transaction);
+    (clause as any).subClauses = subClauses;
+  }
+  return clauses[0];
+};

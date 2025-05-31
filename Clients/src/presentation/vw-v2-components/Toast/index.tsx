@@ -1,6 +1,8 @@
 import { Stack } from "@mui/material";
 import { useTheme } from "@mui/material";
-const VWToast = ({ title = "Request is in the process. Please wait..." }) => {
+const CustomizableToast = ({
+  title = "Request is in the process. Please wait...",
+}) => {
   const theme = useTheme();
   return (
     <Stack
@@ -44,4 +46,4 @@ const VWToast = ({ title = "Request is in the process. Please wait..." }) => {
   );
 };
 
-export default VWToast;
+export default CustomizableToast;

@@ -11,7 +11,7 @@ import {
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
-import VWProjectCard from "../../../components/Cards/ProjectCard";
+import ProjectCard from "../../../components/Cards/ProjectCard";
 
 import { postAutoDrivers } from "../../../../application/repository/entity.repository";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
@@ -198,7 +198,7 @@ const Home = () => {
                 }}
               >
                 {projects.map((project) => (
-                  <VWProjectCard key={project.id} project={project} />
+                  <ProjectCard key={project.id} project={project} />
                 ))}
               </Box>
             </>
@@ -208,7 +208,7 @@ const Home = () => {
                 {projects &&
                   projects.map((project) => (
                     <Box key={project.id} sx={{ gridColumn: "span 1" }}>
-                      <VWProjectCard key={project.id} project={project} />
+                      <ProjectCard key={project.id} project={project} />
                     </Box>
                   ))}
               </Box>

@@ -3,13 +3,13 @@
  */
 
 /**
- * VWButton component
+ * CustomizableButton component
  *
  * This component renders a button with various styles and properties.
  *
  * @component
  * @example
- * <VWButton
+ * <CustomizableButton
  *   variant="contained"
  *   size="medium"
  *   isDisabled={false}
@@ -19,7 +19,7 @@
  *   sx={{ margin: 1 }}
  * />
  *
- * @typedef {Object} VWButtonProps
+ * @typedef {Object} CustomizableButtonProps
  * @property {"contained" | "outlined" | "text"} [variant="contained"] - The variant of the button.
  * @property {"small" | "medium" | "large"} [size="medium"] - The size of the button.
  * @property {boolean} [isDisabled=false] - If true, the button will be disabled.
@@ -35,7 +35,7 @@ import PropTypes from "prop-types";
 import { ButtonProps } from "@mui/material/Button";
 import singleTheme from "../../themes/v1SingleTheme";
 
-interface VWButtonProps {
+interface CustomizableButtonProps {
   variant?: "contained" | "outlined" | "text";
   size?: "small" | "medium" | "large";
   isDisabled?: boolean;
@@ -47,7 +47,10 @@ interface VWButtonProps {
   icon?: any;
 }
 
-const VWButton = React.forwardRef<HTMLButtonElement, VWButtonProps>(
+const CustomizableButton = React.forwardRef<
+  HTMLButtonElement,
+  CustomizableButtonProps
+>(
   (
     {
       variant = "contained",
@@ -57,7 +60,7 @@ const VWButton = React.forwardRef<HTMLButtonElement, VWButtonProps>(
       color = "primary",
       onClick,
       sx,
-      text = "VWButton",
+      text = "CustomizableButton",
       icon,
       ...rest
     },
@@ -85,7 +88,7 @@ const VWButton = React.forwardRef<HTMLButtonElement, VWButtonProps>(
   }
 );
 
-VWButton.propTypes = {
+CustomizableButton.propTypes = {
   variant: PropTypes.oneOf(["contained", "outlined", "text"]),
   size: PropTypes.oneOf(["small", "medium", "large"]),
   isDisabled: PropTypes.bool,
@@ -104,4 +107,4 @@ VWButton.propTypes = {
   icon: PropTypes.node,
 };
 
-export default VWButton;
+export default CustomizableButton;

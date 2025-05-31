@@ -5,7 +5,7 @@ import { useSearchParams } from "react-router-dom";
 import useProjectRisks from "../../../../../application/hooks/useProjectRisks";
 import RisksCard from "../../../../components/Cards/RisksCard";
 import { rowStyle } from "./style";
-import VWButton from "../../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../../vw-v2-components/Buttons";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
 import VWProjectRisksTable from "../../../../vw-v2-components/Table";
@@ -48,7 +48,8 @@ const initialLoadingState: LoadingStatus = {
 const VWProjectRisks = ({ project }: { project?: Project }) => {
   const { userRoleName } = useContext(VerifyWiseContext);
   const [searchParams] = useSearchParams();
-  const projectId = parseInt(searchParams.get("projectId") ?? "0") || project!.id;
+  const projectId =
+    parseInt(searchParams.get("projectId") ?? "0") || project!.id;
   const [refreshKey, setRefreshKey] = useState(0); // Add refreshKey state
   const { projectRisksSummary } = useProjectRisks({
     projectId,
@@ -232,7 +233,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
             Project risks
           </Typography>
 
-          <VWButton
+          <CustomizableButton
             variant="contained"
             text="Add new risk"
             sx={{
@@ -242,7 +243,9 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
             }}
             onClick={handleOpenOrClose}
             icon={<AddCircleOutlineIcon />}
-            isDisabled={!allowedRoles.projectRisks.create.includes(userRoleName)}
+            isDisabled={
+              !allowedRoles.projectRisks.create.includes(userRoleName)
+            }
           />
         </Stack>
 

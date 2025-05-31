@@ -28,7 +28,7 @@ import VWSkeleton from "../../vw-v2-components/Skeletons";
 import { Card } from "../../components/ProjectCard/styles";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import CreateDemoData from "../../components/CreateDemoData";
-import VWButton from "../../vw-v2-components/Buttons";
+import CustomizableButton from "../../vw-v2-components/Buttons";
 import NoProject from "../../components/NoProject/NoProject";
 import { AlertProps } from "../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../application/tools/alertUtils";
@@ -153,7 +153,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
   }, []);
 
   // Later in the component's render/return block:
-  <VWButton
+  <CustomizableButton
     text="Create Demo Data"
     isDisabled={isCreatingDemoData}
     onClick={handleOpenOrCloseDemoDataModal}
@@ -196,7 +196,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
             paddingBottom: theme.spacing(10),
           }}
         >
-          <VWButton
+          <CustomizableButton
             text="Create Demo Data"
             onClick={handleOpenOrCloseDemoDataModal}
           />

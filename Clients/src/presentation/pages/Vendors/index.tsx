@@ -36,7 +36,7 @@ import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import AddNewRisk from "../../components/Modals/NewRisk";
-import VWButton from "../../vw-v2-components/Buttons";
+import CustomizableButton from "../../vw-v2-components/Buttons";
 import VWSkeleton from "../../vw-v2-components/Skeletons";
 import VWToast from "../../vw-v2-components/Toast";
 import { Project } from "../../../domain/types/Project";
@@ -113,8 +113,9 @@ const Vendors = () => {
     countToTrigger: 1,
   });
 
-  const isCreatingDisabled = !allowedRoles.vendors.create.includes(userRoleName)
-  const isDeletingAllowed = allowedRoles.vendors.delete.includes(userRoleName)
+  const isCreatingDisabled =
+    !allowedRoles.vendors.create.includes(userRoleName);
+  const isDeletingAllowed = allowedRoles.vendors.delete.includes(userRoleName);
 
   const createAbortController = () => {
     if (controller) {
@@ -475,7 +476,6 @@ const Vendors = () => {
                 create and manage all vendor risks here.
               </Typography>
             </Stack>
-
           </>
         )}
         <TabContext value={value}>
@@ -507,7 +507,12 @@ const Vendors = () => {
             />
           ) : (
             value === "1" && (
-              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
+              >
                 <Select
                   id="projects"
                   value={selectedProjectId ?? ""}
@@ -526,7 +531,7 @@ const Vendors = () => {
                   }}
                 />
                 <div data-joyride-id="add-new-vendor" ref={refs[0]}>
-                  <VWButton
+                  <CustomizableButton
                     variant="contained"
                     text="Add new vendor"
                     sx={{
@@ -555,7 +560,12 @@ const Vendors = () => {
             />
           ) : (
             value !== "1" && (
-              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
+              >
                 <Stack direction="row" gap={8} alignItems="center">
                   <Select
                     id="projects"
@@ -592,7 +602,7 @@ const Vendors = () => {
                     }}
                   />
                 </Stack>
-                <VWButton
+                <CustomizableButton
                   variant="contained"
                   text="Add new Risk"
                   sx={{

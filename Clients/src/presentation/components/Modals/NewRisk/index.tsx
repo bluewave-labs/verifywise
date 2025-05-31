@@ -27,7 +27,7 @@ import { checkStringValidation } from "../../../../application/validations/strin
 import useUsers from "../../../../application/hooks/useUsers";
 import VWToast from "../../../vw-v2-components/Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
-import VWButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import {
   riskSeverityItems,
@@ -77,11 +77,11 @@ interface AddNewRiskProps {
 const initialState = {
   risk_description: "",
   impact_description: "",
-  impact:'',
+  impact: "",
   action_owner: "",
-  risk_severity: '',
-  likelihood: '',
-  risk_level: '',
+  risk_severity: "",
+  likelihood: "",
+  risk_level: "",
   action_plan: "",
   vendor_id: "",
 };
@@ -127,18 +127,18 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
   setIsOpen,
   value,
   existingRisk,
-  onSuccess = () => { },
+  onSuccess = () => {},
   vendors,
 }) => {
   const theme = useTheme();
-  const { userRoleName } = useContext(VerifyWiseContext)
+  const { userRoleName } = useContext(VerifyWiseContext);
   const isEditingDisabled = !allowedRoles.vendors.edit.includes(userRoleName);
   const VENDOR_OPTIONS =
     vendors?.length > 0
       ? vendors.map((vendor: any) => ({
-        _id: vendor.id,
-        name: vendor.vendor_name,
-      }))
+          _id: vendor.id,
+          name: vendor.vendor_name,
+        }))
       : [{ _id: "no-vendor", name: "No Vendor Exists" }];
 
   const [values, setValues] = useState(initialState);
@@ -360,8 +360,9 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
 
       setAlert({
         variant: "error",
-        body: `An error occurred: ${(error as Error).message || "Please try again."
-          }`,
+        body: `An error occurred: ${
+          (error as Error).message || "Please try again."
+        }`,
       });
 
       setTimeout(() => setAlert(null), 3000);
@@ -410,8 +411,9 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
 
       setAlert({
         variant: "error",
-        body: `An error occurred: ${(error as Error).message || "Please try again."
-          }`,
+        body: `An error occurred: ${
+          (error as Error).message || "Please try again."
+        }`,
       });
 
       setTimeout(() => setAlert(null), 3000);
@@ -635,7 +637,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
                 alignItems: "flex-end",
               }}
             >
-              <VWButton
+              <CustomizableButton
                 variant="contained"
                 text="Save"
                 sx={{

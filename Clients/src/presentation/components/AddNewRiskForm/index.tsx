@@ -36,7 +36,7 @@ import {
   likelihoodItems,
   riskSeverityItems,
 } from "./projectRiskValue";
-import VWButton from "../../vw-v2-components/Buttons";
+import CustomizableButton from "../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import UpdateIcon from "@mui/icons-material/Update";
 import { AddNewRiskFormProps } from "../../../domain/interfaces/iRiskForm";
@@ -48,7 +48,6 @@ import allowedRoles from "../../../application/constants/permissions";
 
 const RiskSection = lazy(() => import("./RisksSection"));
 const MitigationSection = lazy(() => import("./MitigationSection"));
-
 
 const riskInitialState: RiskFormValues = {
   riskName: "",
@@ -99,8 +98,8 @@ const mitigationInitialState: MitigationFormValues = {
 const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   closePopup,
   onSuccess,
-  onError = () => { },
-  onLoading = () => { },
+  onError = () => {},
+  onLoading = () => {},
   popupStatus,
   initialRiskValues = riskInitialState, // Default to initial state if not provided
   initialMitigationValues = mitigationInitialState,
@@ -129,8 +128,10 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId");
   const { inputValues, users, userRoleName } = useContext(VerifyWiseContext);
-  const isEditingDisabled = !allowedRoles.projectRisks.edit.includes(userRoleName)
-  const isCreatingDisabled = !allowedRoles.projectRisks.create.includes(userRoleName);
+  const isEditingDisabled =
+    !allowedRoles.projectRisks.edit.includes(userRoleName);
+  const isCreatingDisabled =
+    !allowedRoles.projectRisks.create.includes(userRoleName);
 
   useEffect(() => {
     if (popupStatus === "edit") {
@@ -524,7 +525,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
           </TabPanel>
         </Suspense>
         <Box sx={{ display: "flex" }}>
-          <VWButton
+          <CustomizableButton
             sx={{
               alignSelf: "flex-end",
               width: "fit-content",
@@ -544,9 +545,9 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
             variant="contained"
             onClick={riskFormSubmitHandler}
             text={popupStatus === "new" ? "Save" : "Update"}
-            isDisabled={popupStatus === "new"
-              ? isCreatingDisabled
-              : isEditingDisabled}
+            isDisabled={
+              popupStatus === "new" ? isCreatingDisabled : isEditingDisabled
+            }
           />
         </Box>
       </TabContext>

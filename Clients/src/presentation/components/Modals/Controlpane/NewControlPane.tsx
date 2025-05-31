@@ -20,9 +20,12 @@ import { FileData } from "../../../../domain/types/File";
 import Alert from "../../Alert";
 import VWToast from "../../../vw-v2-components/Toast";
 import SaveIcon from "@mui/icons-material/Save";
-import VWButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../vw-v2-components/Buttons";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import { AlertBox, styles } from "../../../pages/ComplianceTracker/1.0ComplianceTracker/styles";
+import {
+  AlertBox,
+  styles,
+} from "../../../pages/ComplianceTracker/1.0ComplianceTracker/styles";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import allowedRoles from "../../../../application/constants/permissions";
@@ -72,8 +75,10 @@ const NewControlPane = ({
   }>({});
   const context = useContext(VerifyWiseContext);
   const userRoleName = context?.userRoleName;
-  const isEditingDisabled = !allowedRoles.frameworks.edit.includes(userRoleName)
-  const isAuditingDisabled = !allowedRoles.frameworks.audit.includes(userRoleName);
+  const isEditingDisabled =
+    !allowedRoles.frameworks.edit.includes(userRoleName);
+  const isAuditingDisabled =
+    !allowedRoles.frameworks.audit.includes(userRoleName);
 
   const sanitizeField = (value: string | undefined | null): string => {
     if (!value || value === "undefined") {
@@ -200,7 +205,7 @@ const NewControlPane = ({
         variant: "info",
         body: "Please save the changes to save the file changes.",
         setAlert,
-      })
+      });
     }
   };
 
@@ -618,7 +623,7 @@ const NewControlPane = ({
               mt: 2,
             }}
           >
-            <VWButton
+            <CustomizableButton
               variant="contained"
               text="Save"
               sx={{

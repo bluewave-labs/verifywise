@@ -27,8 +27,8 @@ import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
-import ForwardToInboxIcon from '@mui/icons-material/ForwardToInbox';
-import VWButton from "../../../vw-v2-components/Buttons";
+import ForwardToInboxIcon from "@mui/icons-material/ForwardToInbox";
+import CustomizableButton from "../../../vw-v2-components/Buttons";
 import { useRoles } from "../../../../application/hooks/useRoles";
 
 interface InviteUserModalProps {
@@ -64,10 +64,11 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
   const { roles } = useRoles();
 
   const roleItems = useMemo(
-    () => roles.map(role => ({ 
-      _id: role.id.toString(),
-      name: role.name 
-    })),
+    () =>
+      roles.map((role) => ({
+        _id: role.id.toString(),
+        name: role.name,
+      })),
     [roles]
   );
 
@@ -79,7 +80,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
     if (isOpen && roles.length > 0) {
       setValues({
         ...initialState,
-        roleId: roles[0].id.toString()
+        roleId: roles[0].id.toString(),
       });
       setErrors({});
     }
@@ -134,7 +135,11 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
         const data = response.data as { link: string };
         onSendInvite(values.email, response.status, data.link);
       } catch (error) {
-        onSendInvite(values.email, "error", (error as Error).message || "Failed to send invite");
+        onSendInvite(
+          values.email,
+          "error",
+          (error as Error).message || "Failed to send invite"
+        );
       } finally {
         setIsOpen(false);
       }
@@ -240,8 +245,8 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
           >
             Cancel
           </Button>
-         
-          <VWButton
+
+          <CustomizableButton
             variant="contained"
             text="Send Invite"
             sx={{

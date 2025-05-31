@@ -8,7 +8,7 @@ import {
   vwhomeCreateModalFrame,
   vwhomeHeading,
 } from "./style";
-import VWButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../vw-v2-components/Buttons";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import VWProjectCard from "../../../components/Cards/ProjectCard";
@@ -148,7 +148,7 @@ const Home = () => {
           <Typography sx={vwhomeHeading}>Projects overview</Typography>
           <Stack sx={vwhomeBodyControls}>
             {projects.length === 0 && (
-              <VWButton
+              <CustomizableButton
                 variant="contained"
                 text="Insert demo data"
                 sx={{
@@ -164,7 +164,7 @@ const Home = () => {
               />
             )}
             <div data-joyride-id="new-project-button" ref={refs[0]}>
-              <VWButton
+              <CustomizableButton
                 variant="contained"
                 text="New project"
                 sx={{

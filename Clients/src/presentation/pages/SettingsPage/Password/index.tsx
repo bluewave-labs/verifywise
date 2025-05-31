@@ -13,7 +13,7 @@ import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
-import VWButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import VWToast from "../../../vw-v2-components/Toast"; // Import VWToast
@@ -273,7 +273,7 @@ const PasswordForm: React.FC = () => {
                 paddingTop: theme.spacing(5),
               }}
             >
-              <VWButton
+              <CustomizableButton
                 variant="contained"
                 text="Save"
                 sx={{

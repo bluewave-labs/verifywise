@@ -1,6 +1,6 @@
 import { Stack, Typography, Tooltip, Chip } from "@mui/material";
 import ProgressBar from "../../ProjectCard/ProgressBar";
-import VWButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../vw-v2-components/Buttons";
 import {
   progressStyle,
   projectCardSpecKeyStyle,
@@ -333,7 +333,7 @@ const ProjectCard: FC<ProjectCardProps> = React.memo(
         {/* View Project Button */}
         <Stack sx={{ mt: "auto" }}>
           <Tooltip title="View project details">
-            <VWButton
+            <CustomizableButton
               variant="outlined"
               onClick={() =>
                 navigate("/project-view", {

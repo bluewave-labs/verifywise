@@ -18,7 +18,7 @@ import Select from "../../Inputs/Select";
 import { useContext, useState, useEffect } from "react";
 import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
-import VWButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import { User } from "../../../../domain/types/User";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
@@ -83,10 +83,12 @@ const VWISO42001AnnexDrawerDialog = ({
 
   // Get context and project data
   const { users, userId, userRoleName } = useContext(VerifyWiseContext);
-  const { project } = useProjectData({projectId: String(project_id)});
+  const { project } = useProjectData({ projectId: String(project_id) });
 
-  const isEditingDisabled = !allowedRoles.frameworks.edit.includes(userRoleName);
-  const isAuditingDisabled = !allowedRoles.frameworks.audit.includes(userRoleName);
+  const isEditingDisabled =
+    !allowedRoles.frameworks.edit.includes(userRoleName);
+  const isAuditingDisabled =
+    !allowedRoles.frameworks.audit.includes(userRoleName);
 
   // Add state for all form fields
   const [formData, setFormData] = useState({
@@ -230,7 +232,7 @@ const VWISO42001AnnexDrawerDialog = ({
   };
 
   // Setup Uppy instance
-    const [uppy] = useState(() => new Uppy());
+  const [uppy] = useState(() => new Uppy());
 
   // Add handleSave function before the return statement
   const handleSave = async () => {
@@ -253,10 +255,7 @@ const VWISO42001AnnexDrawerDialog = ({
       formDataToSend.append("auditor_feedback", formData.auditor_feedback);
       if (date) formDataToSend.append("due_date", date.toString());
       formDataToSend.append("user_id", userId?.toString() || "");
-      formDataToSend.append(
-        "project_id",
-        project_id.toString()
-      );
+      formDataToSend.append("project_id", project_id.toString());
       formDataToSend.append("delete", JSON.stringify(deletedFilesIds));
       uploadFiles.forEach((file) => {
         if (file.data instanceof Blob) {
@@ -300,7 +299,10 @@ const VWISO42001AnnexDrawerDialog = ({
       }
     } catch (error) {
       console.error("Error saving annex category:", error);
-      const errorMessage = error instanceof Error ? error.message : "An error occurred while saving changes";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "An error occurred while saving changes";
       handleAlert({
         variant: "error",
         body: errorMessage,
@@ -462,7 +464,7 @@ const VWISO42001AnnexDrawerDialog = ({
                     height: "73px",
                   },
               }}
-              placeholder="Required if control is not applicable..."           
+              placeholder="Required if control is not applicable..."
             />
           </Stack>
         </Stack>
@@ -471,7 +473,7 @@ const VWISO42001AnnexDrawerDialog = ({
           sx={{
             padding: "15px 20px",
             gap: "15px",
-            opacity: formData.is_applicable ? 1: 0.5,
+            opacity: formData.is_applicable ? 1 : 0.5,
             pointerEvents: formData.is_applicable ? "auto" : "none",
           }}
         >
@@ -587,7 +589,7 @@ const VWISO42001AnnexDrawerDialog = ({
         <Stack
           sx={{
             padding: "15px 20px",
-            opacity: formData.is_applicable ? 1: 0.5,
+            opacity: formData.is_applicable ? 1 : 0.5,
             pointerEvents: formData.is_applicable ? "auto" : "none",
           }}
           gap={"20px"}
@@ -603,7 +605,7 @@ const VWISO42001AnnexDrawerDialog = ({
             }))}
             disabled={!formData.is_applicable || isEditingDisabled}
             sx={inputStyles}
-            placeholder={"Select status"}      
+            placeholder={"Select status"}
           />
 
           <Select
@@ -696,7 +698,7 @@ const VWISO42001AnnexDrawerDialog = ({
             padding: "15px 20px",
           }}
         >
-          <VWButton
+          <CustomizableButton
             variant="contained"
             text="Save"
             sx={{

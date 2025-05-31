@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import { ClearIcon } from "@mui/x-date-pickers/icons";
 import { Suspense, useCallback, useContext, useMemo, useState } from "react";
-import VWButton from "../../Buttons";
+import CustomizableButton from "../../Buttons";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import Field from "../../../components/Inputs/Field";
 import {
@@ -558,7 +558,7 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
           justifyContent: "flex-end",
         }}
       >
-        <VWButton
+        <CustomizableButton
           text="Create project"
           sx={createProjectButtonStyle}
           icon={<AddCircleOutlineIcon />}

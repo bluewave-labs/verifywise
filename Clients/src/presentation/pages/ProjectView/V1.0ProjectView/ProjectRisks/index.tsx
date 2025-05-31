@@ -5,7 +5,7 @@ import { useSearchParams } from "react-router-dom";
 import useProjectRisks from "../../../../../application/hooks/useProjectRisks";
 import RisksCard from "../../../../components/Cards/RisksCard";
 import { rowStyle } from "./style";
-import VWButton from "../../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../../vw-v2-components/Buttons";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
 import VWProjectRisksTable from "../../../../vw-v2-components/Table";
@@ -15,8 +15,8 @@ import Popup from "../../../../components/Popup";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import Alert from "../../../../components/Alert";
 import { deleteEntityById } from "../../../../../application/repository/entity.repository";
-import VWToast from "../../../../vw-v2-components/Toast";
-import VWSkeleton from "../../../../vw-v2-components/Skeletons";
+import CustomizableToast from "../../../../vw-v2-components/Toast";
+import CustomizableSkeleton from "../../../../vw-v2-components/Skeletons";
 import allowedRoles from "../../../../../application/constants/permissions";
 import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
 
@@ -48,7 +48,8 @@ const initialLoadingState: LoadingStatus = {
 const VWProjectRisks = ({ project }: { project?: Project }) => {
   const { userRoleName } = useContext(VerifyWiseContext);
   const [searchParams] = useSearchParams();
-  const projectId = parseInt(searchParams.get("projectId") ?? "0") || project!.id;
+  const projectId =
+    parseInt(searchParams.get("projectId") ?? "0") || project!.id;
   const [refreshKey, setRefreshKey] = useState(0); // Add refreshKey state
   const { projectRisksSummary } = useProjectRisks({
     projectId,
@@ -64,7 +65,8 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [isLoading, setIsLoading] =
     useState<LoadingStatus>(initialLoadingState);
-  const [showVWSkeleton, setShowVWSkeleton] = useState<boolean>(false);
+  const [showCustomizableSkeleton, setShowCustomizableSkeleton] =
+    useState<boolean>(false);
   const [currentRow, setCurrentRow] = useState<number | null>(null);
 
   const fetchProjectRisks = useCallback(async () => {
@@ -72,7 +74,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
       const response = await getEntityById({
         routeUrl: `/projectRisks/by-projid/${projectId}`,
       });
-      setShowVWSkeleton(false);
+      setShowCustomizableSkeleton(false);
       setProjectRisks(response.data);
     } catch (error) {
       console.error("Error fetching project risks:", error);
@@ -85,7 +87,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
 
   useEffect(() => {
     if (projectId) {
-      setShowVWSkeleton(true);
+      setShowCustomizableSkeleton(true);
       fetchProjectRisks();
     }
   }, [projectId, fetchProjectRisks, refreshKey]); // Add refreshKey to dependencies
@@ -207,7 +209,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
           </Box>
         </Suspense>
       )}
-      {isLoading.loading && <VWToast title={isLoading.message} />}
+      {isLoading.loading && <CustomizableToast title={isLoading.message} />}
       <Stack className="vw-project-risks-row" sx={rowStyle}>
         <RisksCard risksSummary={projectRisksSummary} />
       </Stack>
@@ -232,7 +234,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
             Project risks
           </Typography>
 
-          <VWButton
+          <CustomizableButton
             variant="contained"
             text="Add new risk"
             sx={{
@@ -242,7 +244,9 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
             }}
             onClick={handleOpenOrClose}
             icon={<AddCircleOutlineIcon />}
-            isDisabled={!allowedRoles.projectRisks.create.includes(userRoleName)}
+            isDisabled={
+              !allowedRoles.projectRisks.create.includes(userRoleName)
+            }
           />
         </Stack>
 
@@ -282,8 +286,12 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
             anchor={anchor}
           />
         )}
-        {showVWSkeleton ? (
-          <VWSkeleton variant="rectangular" width="100%" height={200} />
+        {showCustomizableSkeleton ? (
+          <CustomizableSkeleton
+            variant="rectangular"
+            width="100%"
+            height={200}
+          />
         ) : (
           <VWProjectRisksTable
             columns={TITLE_OF_COLUMNS}

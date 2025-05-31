@@ -23,11 +23,11 @@ import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import Alert from "../../../components/Alert"; // Import Alert component
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
-import VWButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
-import VWSkeleton from "../../../vw-v2-components/Skeletons";
-import VWToast from "../../../vw-v2-components/Toast"; // Import VWToast component
+import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
+import CustomizableToast from "../../../vw-v2-components/Toast"; // Import CustomizableToast component
 import useLogout from "../../../../application/hooks/useLogout";
 
 /**
@@ -105,7 +105,7 @@ const ProfileForm: React.FC = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       setLoading(true);
-      try {       
+      try {
         const response = await getEntityById({ routeUrl: `/users/${id}` });
         console.log("response : ", response);
         setFirstname(response.data.name || "");
@@ -163,7 +163,7 @@ const ProfileForm: React.FC = () => {
         }, 3000); // Alert will disappear after 3 seconds
         return;
       }
-   
+
       const updatedUser = {
         name: firstname,
         surname: lastname,
@@ -346,7 +346,7 @@ const ProfileForm: React.FC = () => {
 
   const handleDeleteAccount = useCallback(async () => {
     setShowToast(true); // Show toast when request is sent
-    try {    
+    try {
       await deleteEntityById({ routeUrl: `/users/${Number(id)}` });
       //clear all storage
       await localStorage.removeItem("userId");
@@ -397,9 +397,10 @@ const ProfileForm: React.FC = () => {
 
   return (
     <Box sx={{ position: "relative", mt: 3, width: { xs: "90%", md: "70%" } }}>
-      {showToast && <VWToast />} {/* Show VWToast when showToast is true */}
+      {showToast && <CustomizableToast />}{" "}
+      {/* Show CustomizableToast when showToast is true */}
       {loading && (
-        <VWSkeleton
+        <CustomizableSkeleton
           variant="rectangular"
           width="100%"
           height="300px"
@@ -468,17 +469,27 @@ const ProfileForm: React.FC = () => {
             )}
             <Typography
               variant="caption"
-              sx={{ mt: 1, 
-                mb:{ xs: 5, md: 0 },
-                display: "block", color: "#667085" }}
+              sx={{
+                mt: 1,
+                mb: { xs: 5, md: 0 },
+                display: "block",
+                color: "#667085",
+              }}
             >
               This is your current email address — it cannot be changed.
             </Typography>
           </Box>
-          <Box sx={{ width: { xs: "100%", md: "40%" }, 
-          textAlign: { xs: "left", md: "center" },
-          }}>
-            <Stack direction="column" alignItems={{xs: "flex-start", md: "center"}} spacing={2}>
+          <Box
+            sx={{
+              width: { xs: "100%", md: "40%" },
+              textAlign: { xs: "left", md: "center" },
+            }}
+          >
+            <Stack
+              direction="column"
+              alignItems={{ xs: "flex-start", md: "center" }}
+              spacing={2}
+            >
               <Typography
                 fontWeight="600"
                 variant="subtitle1"
@@ -544,7 +555,7 @@ const ProfileForm: React.FC = () => {
             alignItems: "center",
           }}
         >
-          <VWButton
+          <CustomizableButton
             variant="contained"
             text="Save"
             sx={{
@@ -562,7 +573,7 @@ const ProfileForm: React.FC = () => {
       )}
       <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
       {loading && (
-        <VWSkeleton
+        <CustomizableSkeleton
           variant="rectangular"
           width="100%"
           height="200px"
@@ -593,7 +604,7 @@ const ProfileForm: React.FC = () => {
                 alignItems: "center",
               }}
             >
-              <VWButton
+              <CustomizableButton
                 sx={{
                   width: { xs: "100%", sm: theme.spacing(80) },
                   mb: theme.spacing(4),

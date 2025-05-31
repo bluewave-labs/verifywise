@@ -33,22 +33,20 @@ import InviteUserModal from "../../../components/Modals/InviteUser";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import { handleAlert } from "../../../../application/tools/alertUtils";
-import VWButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../vw-v2-components/Buttons";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useRoles } from "../../../../application/hooks/useRoles";
 import { deleteEntityById } from "../../../../application/repository/entity.repository";
-import {
-  updateEntityById,
-} from "../../../../application/repository/entity.repository";
+import { updateEntityById } from "../../../../application/repository/entity.repository";
 const Alert = lazy(() => import("../../../components/Alert"));
 
 // Constants for roles
 
 const TABLE_COLUMNS = [
-  { id: 'name', label: 'NAME' },
-  { id: 'email', label: 'EMAIL' },
-  { id: 'role', label: 'ROLE' },
-  { id: 'action', label: 'ACTION' },
+  { id: "name", label: "NAME" },
+  { id: "email", label: "EMAIL" },
+  { id: "role", label: "ROLE" },
+  { id: "action", label: "ACTION" },
 ];
 
 /**
@@ -68,7 +66,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
   } | null>(null);
 
   const roleItems = useMemo(
-    () => roles.map(role => ({ _id: role.id, name: role.name })),
+    () => roles.map((role) => ({ _id: role.id, name: role.name })),
     [roles]
   );
 
@@ -78,11 +76,12 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const [filter, setFilter] = useState(0);
 
   const [page, setPage] = useState(0); // Current page
-  const { dashboardValues, users, userId, refreshUsers } = useContext(VerifyWiseContext);
+  const { dashboardValues, users, userId, refreshUsers } =
+    useContext(VerifyWiseContext);
 
   // Exclude the current user from the team users list
   const teamUsers = users;
-  
+
   const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
   const [inviteUserModalOpen, setInviteUserModalOpen] = useState(false);
 
@@ -99,7 +98,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
           body: "User role updated successfully.",
           setAlert,
         });
-            
+
         refreshUsers();
       } else {
         setAlert({
@@ -112,8 +111,9 @@ const TeamManagement: React.FC = (): JSX.Element => {
       console.error("API Error:", error);
       setAlert({
         variant: "error",
-        body: `An error occurred: ${(error as Error).message || "Please try again."
-          }`,
+        body: `An error occurred: ${
+          (error as Error).message || "Please try again."
+        }`,
       });
 
       setTimeout(() => setAlert(null), 3000);
@@ -139,7 +139,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
         body: "User deleted successfully",
         setAlert,
       });
-      refreshUsers()
+      refreshUsers();
     } else {
       handleAlert({
         variant: "error",
@@ -164,9 +164,9 @@ const TeamManagement: React.FC = (): JSX.Element => {
     return ({ children }: { children: React.ReactNode }) => (
       <Typography
         sx={{
-          fontSize: '13px',
-          fontFamily: 'Inter, sans-serif',
-          color: '#344054'
+          fontSize: "13px",
+          fontFamily: "Inter, sans-serif",
+          color: "#344054",
         }}
       >
         {children}
@@ -175,11 +175,14 @@ const TeamManagement: React.FC = (): JSX.Element => {
   }, []);
 
   // Role value renderer
-  const renderRoleValue = useCallback((value: string) => {
-    const roleId = value?.toString() || '1';
-    const selectedRole = roles.find(r => r.id.toString() === roleId);
-    return <RoleTypography>{selectedRole?.name || 'Admin'}</RoleTypography>;
-  }, [roles, RoleTypography]);
+  const renderRoleValue = useCallback(
+    (value: string) => {
+      const roleId = value?.toString() || "1";
+      const selectedRole = roles.find((r) => r.id.toString() === roleId);
+      return <RoleTypography>{selectedRole?.name || "Admin"}</RoleTypography>;
+    },
+    [roles, RoleTypography]
+  );
 
   // Filtered team members based on selected role
   const filteredMembers = useMemo(() => {
@@ -209,17 +212,21 @@ const TeamManagement: React.FC = (): JSX.Element => {
     setInviteUserModalOpen(true);
   };
 
-  const handleInvitation = (email: string, status: number | string, link: string) => {
+  const handleInvitation = (
+    email: string,
+    status: number | string,
+    link: string
+  ) => {
     console.log("Invitation to ", email, "is ", status);
 
     // Limit link to 35 characters
     if (link.length > 35) {
       link = link.substring(0, 35) + "...";
     }
-    
+
     setAlert({
       variant: "info",
-      body: `You can also copy and use this link to invite a member: ${link}`,      
+      body: `You can also copy and use this link to invite a member: ${link}`,
     });
 
     setInviteUserModalOpen(false);
@@ -295,7 +302,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
             </Box>
 
             <Box>
-              <VWButton
+              <CustomizableButton
                 variant="contained"
                 text="Invite team member"
                 sx={{
@@ -370,7 +377,9 @@ const TeamManagement: React.FC = (): JSX.Element => {
                             >
                               <Select
                                 value={member.roleId?.toString() || "1"}
-                                onChange={(e) => handleRoleChange(e, member.id.toString())}
+                                onChange={(e) =>
+                                  handleRoleChange(e, member.id.toString())
+                                }
                                 size="small"
                                 displayEmpty
                                 renderValue={renderRoleValue}

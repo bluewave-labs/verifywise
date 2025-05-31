@@ -4,7 +4,7 @@ import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import TabContext from "@mui/lab/TabContext";
 import { tabStyle, tabPanelStyle } from "../V1.0ProjectView/style";
-import VWSkeleton from "../../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 import ComplianceTracker from "../../../pages/ComplianceTracker/1.0ComplianceTracker";
 import { Project } from "../../../../domain/types/Project";
 import { Framework } from "../../../../domain/types/Framework";
@@ -44,42 +44,58 @@ const ISO_42001_TABS = [
 type TrackerTab = (typeof TRACKER_TABS)[number]["value"];
 type ISO42001Tab = (typeof ISO_42001_TABS)[number]["value"];
 
-const ProjectFrameworks = ({ project, triggerRefresh }: { project: Project; triggerRefresh?: (isTrigger: boolean, toastMessage?: string) => void }) => {
-  const { 
-    filteredFrameworks, 
+const ProjectFrameworks = ({
+  project,
+  triggerRefresh,
+}: {
+  project: Project;
+  triggerRefresh?: (isTrigger: boolean, toastMessage?: string) => void;
+}) => {
+  const {
+    filteredFrameworks,
     projectFrameworksMap,
-    loading, 
-    error, 
+    loading,
+    error,
     refreshFilteredFrameworks,
-    allFrameworks
+    allFrameworks,
   } = useFrameworks({
     listOfFrameworks: project.framework,
   });
-  const [selectedFrameworkId, setSelectedFrameworkId] = useState<number | null>(null);
-  const [tracker, setTracker] = useState<TrackerTab | ISO42001Tab>("compliance");
+  const [selectedFrameworkId, setSelectedFrameworkId] = useState<number | null>(
+    null
+  );
+  const [tracker, setTracker] = useState<TrackerTab | ISO42001Tab>(
+    "compliance"
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { changeComponentVisibility, userRoleName } = useContext(VerifyWiseContext);  
+  const { changeComponentVisibility, userRoleName } =
+    useContext(VerifyWiseContext);
 
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
     countToTrigger: 1,
   });
 
-  const isManagingFrameworksDisabled = !allowedRoles.frameworks.manage.includes(userRoleName);
+  const isManagingFrameworksDisabled =
+    !allowedRoles.frameworks.manage.includes(userRoleName);
 
   useEffect(() => {
     changeComponentVisibility("projectFrameworks", allVisible);
     // Only change compliance visibility if EU AI Act is selected
     if (selectedFrameworkId === FRAMEWORK_IDS.EU_AI_ACT) {
-      changeComponentVisibility("compliance", tracker === "compliance" && allVisible);
+      changeComponentVisibility(
+        "compliance",
+        tracker === "compliance" && allVisible
+      );
     }
   }, [allVisible, tracker, changeComponentVisibility, selectedFrameworkId]);
 
-  const associatedFrameworkIds = project.framework?.map((f) => f.framework_id) || [];
+  const associatedFrameworkIds =
+    project.framework?.map((f) => f.framework_id) || [];
 
   const projectFrameworks = useMemo(
     () =>
-      filteredFrameworks.filter((fw: Framework) => 
+      filteredFrameworks.filter((fw: Framework) =>
         associatedFrameworkIds.includes(Number(fw.id))
       ),
     [filteredFrameworks, associatedFrameworkIds]
@@ -129,7 +145,11 @@ const ProjectFrameworks = ({ project, triggerRefresh }: { project: Project; trig
       <Box sx={headerContainerStyle}>
         <Box sx={frameworkTabsContainerStyle}>
           {loading ? (
-            <VWSkeleton variant="rectangular" width={200} height={40} />
+            <CustomizableSkeleton
+              variant="rectangular"
+              width={200}
+              height={40}
+            />
           ) : (
             projectFrameworks.map((fw: Framework, idx: number) => (
               <Box
@@ -162,8 +182,10 @@ const ProjectFrameworks = ({ project, triggerRefresh }: { project: Project; trig
         project={project}
         onFrameworksChanged={(action) => {
           if (triggerRefresh) {
-            if (action === 'add') triggerRefresh(true, 'Framework added successfully');
-            else if (action === 'remove') triggerRefresh(true, 'Framework removed successfully');
+            if (action === "add")
+              triggerRefresh(true, "Framework added successfully");
+            else if (action === "remove")
+              triggerRefresh(true, "Framework removed successfully");
             else triggerRefresh(true);
           }
           refreshFilteredFrameworks();
@@ -198,14 +220,18 @@ const ProjectFrameworks = ({ project, triggerRefresh }: { project: Project; trig
               <ISO42001Clauses
                 project={project}
                 framework_id={Number(selectedFrameworkId)}
-                projectFrameworkId={projectFrameworksMap.get(Number(selectedFrameworkId))!}
+                projectFrameworkId={
+                  projectFrameworksMap.get(Number(selectedFrameworkId))!
+                }
               />
             </TabPanel>
             <TabPanel value="annexes" sx={tabPanelStyle}>
               <ISO42001Annex
                 project={project}
                 framework_id={Number(selectedFrameworkId)}
-                projectFrameworkId={projectFrameworksMap.get(Number(selectedFrameworkId))!}
+                projectFrameworkId={
+                  projectFrameworksMap.get(Number(selectedFrameworkId))!
+                }
               />
             </TabPanel>
           </>

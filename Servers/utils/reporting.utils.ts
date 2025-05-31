@@ -217,7 +217,7 @@ export const getComplianceReportQuery = async (
 
 export const getClausesReportQuery = async (
   projectFrameworkId: number,
-  Transaction: Transaction | null = null
+  transaction: Transaction | null = null
 ) => {
   const clauses = (await sequelize.query(
     `SELECT * FROM clause_struct_iso ORDER BY id;`,
@@ -233,3 +233,26 @@ export const getClausesReportQuery = async (
   }
   return clauses[0];
 };
+
+export const subClausesQuery = async (
+  projectFrameworkId: number,
+  clauseId: number,
+  transaction: Transaction | null = null
+) => {
+  
+  return await sequelize.query(
+    `SELECT scs.id, scs.title, scs.order_no, scs.summary, scs.questions, scs.evidence_examples, sc.status, sc.is_applicable, sc.justification_for_exclusion, sc.implementation_description
+     FROM subclause_struct_iso scs 
+     JOIN subclause_iso sc ON scs.id = sc.subclause_meta_id 
+     WHERE scs.clause_id = :clause_id AND sc.projects_frameworks_id = :projects_frameworks_id 
+     ORDER BY scs.id;`,
+    {
+      replacements: {
+        clause_id: clauseId,
+        projects_frameworks_id: projectFrameworkId,
+      },
+      type: QueryTypes.SELECT,
+      ...(transaction ? { transaction } : {})
+    }
+  );
+}

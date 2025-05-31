@@ -54,10 +54,10 @@ interface ReportProps {
 const GenerateReportFrom: React.FC<ReportProps> = ({
   onGenerate
 }) => {
-  const [values, setValues] = useState<FormValues>(initialState);
+  const { dashboardValues } = useContext(VerifyWiseContext);
+  const [values, setValues] = useState<FormValues>({...initialState, project: dashboardValues.projects[0]?.id || 1});
   const [errors, setErrors] = useState<FormErrors>({});
   const theme = useTheme();
-  const { dashboardValues } = useContext(VerifyWiseContext);
   const [projectFrameworks, setProjectFrameworks] = useState<FrameworkValues[]>([initialFrameworkValue]);  
 
   useEffect(() => {

@@ -98,35 +98,43 @@ export const getReportByIdQuery = async (id: number) => {
 };
 
 export const getAssessmentReportQuery = async (
-  projectFrameworkId: number
-  ) => {
-    const allTopics: TopicStructEUModel[] = await getAllTopicsQuery();
-    const assessmentId = await sequelize.query(
-      `SELECT id FROM assessments WHERE projects_frameworks_id = :projects_frameworks_id`,
-      {
-        replacements: { projects_frameworks_id: projectFrameworkId }
-      }
-    ) as [{ id: number }[], number];
+  projectId: number,
+  frameworkId: number,
+) => {
+  const projectFrameworkIdQuery = await sequelize.query(
+    `SELECT id FROM projects_frameworks WHERE project_id = :project_id AND framework_id = :framework_id`,
+    {
+      replacements: { project_id: projectId, framework_id: frameworkId }
+    }
+  ) as [{ id: number }[], number];
+  const projectFrameworkId = projectFrameworkIdQuery[0][0]?.id;
+  if (!projectFrameworkId) {
+    throw new Error("Project framework id not found");
+  }
+  const assessmentId = await sequelize.query(
+    `SELECT id FROM assessments WHERE projects_frameworks_id = :projects_frameworks_id`,
+    {
+      replacements: { projects_frameworks_id: projectFrameworkId }
+    }
+  ) as [{ id: number }[], number];
 
-    for (const topic of allTopics) {
-      if(topic.id) {
-        const subtopicStruct = await getAllSubTopicsQuery(topic.id); 
-           
-        for (const subtopic of subtopicStruct) {
-          if (subtopic.id && assessmentId) {
-            const questionAnswers = await getAllQuestionsQuery(subtopic.id!, assessmentId[0][0].id);
-            (subtopic.dataValues as any).questions = [];
-            for (let question of questionAnswers) {
-              (subtopic.dataValues as any).questions.push({ ...question });
+  const allTopics: TopicStructEUModel[] = await getAllTopicsQuery();
+  await Promise.all(
+    allTopics.map(async (topic) => {
+      if (topic.id) {
+        const subtopicStruct = await getAllSubTopicsQuery(topic.id);
+        await Promise.all(
+          subtopicStruct.map(async (subtopic) => {
+            if (subtopic.id && assessmentId.length > 0) {
+              const questionAnswers = await getAllQuestionsQuery(subtopic.id!, assessmentId[0][0].id);
+              (subtopic.dataValues as any).questions = questionAnswers.map(q => ({ ...q }));
             }
-          }
-        }
-        (topic.dataValues as any).subtopics = [];
+          }));
         (topic.dataValues as any).subtopics = subtopicStruct.map(s => s.get({ plain: true }));
       }
-    }
-    const allAssessments = allTopics.map((topic) => topic.get({ plain: true }));
-    return allAssessments;
+    }))
+  const allAssessments = allTopics.map((topic) => topic.get({ plain: true }));
+  return allAssessments;
 }
 
 export const getComplianceReportQuery = async (

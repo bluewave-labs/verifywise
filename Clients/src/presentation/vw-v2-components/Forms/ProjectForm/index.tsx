@@ -28,7 +28,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import selectValidation from "../../../../application/validations/selectValidation";
 import { createNewUser } from "../../../../application/repository/entity.repository";
-import VWToast from "../../Toast";
+import CustomizableToast from "../../Toast";
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { useSelector } from "react-redux";
@@ -244,7 +244,7 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
             zIndex: 9999,
           }}
         >
-          <VWToast title="Creating project. Please wait..." />
+          <CustomizableToast title="Creating project. Please wait..." />
         </Stack>
       )}
 

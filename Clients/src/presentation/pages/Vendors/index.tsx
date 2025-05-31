@@ -38,7 +38,7 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import AddNewRisk from "../../components/Modals/NewRisk";
 import CustomizableButton from "../../vw-v2-components/Buttons";
 import VWSkeleton from "../../vw-v2-components/Skeletons";
-import VWToast from "../../vw-v2-components/Toast";
+import CustomizableToast from "../../vw-v2-components/Toast";
 import { Project } from "../../../domain/types/Project";
 import RisksCard from "../../components/Cards/RisksCard";
 import { vwhomeHeading } from "../Home/1.0Home/style";
@@ -683,7 +683,7 @@ const Vendors = () => {
         vendors={vendors}
       />
       {isSubmitting && (
-        <VWToast title="Processing your request. Please wait..." />
+        <CustomizableToast title="Processing your request. Please wait..." />
       )}
     </div>
   );

@@ -16,7 +16,7 @@ import { extractUserToken } from "../../../../application/tools/extractToken";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
-import VWToast from "../../../vw-v2-components/Toast"; // Import VWToast
+import CustomizableToast from "../../../vw-v2-components/Toast"; // Import CustomizableToast
 
 const PasswordForm: React.FC = () => {
   const theme = useTheme();
@@ -40,7 +40,7 @@ const PasswordForm: React.FC = () => {
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] =
     useState<boolean>(false);
   const [loading, _] = useState(false);
-  const [showToast, setShowToast] = useState(false); // State for VWToast visibility
+  const [showToast, setShowToast] = useState(false); // State for CustomizableToast visibility
 
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -139,7 +139,7 @@ const PasswordForm: React.FC = () => {
       return;
     }
 
-    setShowToast(true); // Show VWToast
+    setShowToast(true); // Show CustomizableToast
 
     try {
       await updateEntityById({
@@ -165,7 +165,7 @@ const PasswordForm: React.FC = () => {
         visible: true,
       });
     } finally {
-      setShowToast(false); // Hide VWToast after response
+      setShowToast(false); // Hide CustomizableToast after response
       setTimeout(() => {
         setShowToast(false);
       }, 1000);
@@ -213,7 +213,8 @@ const PasswordForm: React.FC = () => {
           onClick={() => setAlert((prev) => ({ ...prev, visible: false }))}
         />
       )}
-      {showToast && <VWToast />} {/* Show VWToast when showToast is true */}
+      {showToast && <CustomizableToast />}{" "}
+      {/* Show CustomizableToast when showToast is true */}
       {!loading && (
         <Box sx={{ width: "100%", maxWidth: 600 }}>
           <Stack sx={{ marginTop: theme.spacing(20) }}>

@@ -15,7 +15,7 @@ import Popup from "../../../../components/Popup";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import Alert from "../../../../components/Alert";
 import { deleteEntityById } from "../../../../../application/repository/entity.repository";
-import VWToast from "../../../../vw-v2-components/Toast";
+import CustomizableToast from "../../../../vw-v2-components/Toast";
 import VWSkeleton from "../../../../vw-v2-components/Skeletons";
 import allowedRoles from "../../../../../application/constants/permissions";
 import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
@@ -208,7 +208,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
           </Box>
         </Suspense>
       )}
-      {isLoading.loading && <VWToast title={isLoading.message} />}
+      {isLoading.loading && <CustomizableToast title={isLoading.message} />}
       <Stack className="vw-project-risks-row" sx={rowStyle}>
         <RisksCard risksSummary={projectRisksSummary} />
       </Stack>

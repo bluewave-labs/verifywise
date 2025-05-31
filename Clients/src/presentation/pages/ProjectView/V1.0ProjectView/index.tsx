@@ -16,7 +16,7 @@ import VWProjectRisks from "./ProjectRisks";
 import ProjectSettings from "../ProjectSettings";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import ProjectFrameworks from "../ProjectFrameworks";
-import VWToast from '../../../vw-v2-components/Toast';
+import CustomizableToast from "../../../vw-v2-components/Toast";
 import allowedRoles from "../../../../application/constants/permissions";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
@@ -28,7 +28,10 @@ const VWProjectView = () => {
   const { project } = useProjectData({ projectId, refreshKey });
 
   const [value, setValue] = useState("overview");
-  const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: '', visible: false });
+  const [toast, setToast] = useState<{ message: string; visible: boolean }>({
+    message: "",
+    visible: false,
+  });
 
   const handleChange = (_: SyntheticEvent, newValue: string) => {
     setValue(newValue);
@@ -39,14 +42,14 @@ const VWProjectView = () => {
       setRefreshKey((prevKey) => prevKey + 1); // send refresh trigger to projectdata hook
       if (toastMessage) {
         setToast({ message: toastMessage, visible: true });
-        setTimeout(() => setToast({ message: '', visible: false }), 3000);
+        setTimeout(() => setToast({ message: "", visible: false }), 3000);
       }
     }
   };
 
   return (
     <Stack className="vw-project-view" overflow={"hidden"}>
-      {toast.visible && <VWToast title={toast.message} />}
+      {toast.visible && <CustomizableToast title={toast.message} />}
       <Stack className="vw-project-view-header" sx={{ mb: 10 }}>
         {project ? (
           <>
@@ -122,7 +125,10 @@ const VWProjectView = () => {
           <TabPanel value="frameworks" sx={tabPanelStyle}>
             {project ? (
               // Render frameworks content here
-              <ProjectFrameworks project={project} triggerRefresh={handleRefresh} />
+              <ProjectFrameworks
+                project={project}
+                triggerRefresh={handleRefresh}
+              />
             ) : (
               <VWSkeleton variant="rectangular" width="100%" height={400} />
             )}

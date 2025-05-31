@@ -37,7 +37,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
-import VWToast from "../../../vw-v2-components/Toast";
+import CustomizableToast from "../../../vw-v2-components/Toast";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
 import useFrameworks from "../../../../application/hooks/useFrameworks";
 import { Framework } from "../../../../domain/types/Framework";
@@ -680,7 +680,7 @@ const ProjectSettings = React.memo(
 
     return (
       <Stack>
-        {isLoading && <VWToast />}
+        {isLoading && <CustomizableToast />}
         {alert && (
           <Alert
             variant={alert.variant}

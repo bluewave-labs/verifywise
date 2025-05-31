@@ -27,7 +27,7 @@ import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VWSkeleton from "../../../vw-v2-components/Skeletons";
-import VWToast from "../../../vw-v2-components/Toast"; // Import VWToast component
+import CustomizableToast from "../../../vw-v2-components/Toast"; // Import CustomizableToast component
 import useLogout from "../../../../application/hooks/useLogout";
 
 /**
@@ -397,7 +397,8 @@ const ProfileForm: React.FC = () => {
 
   return (
     <Box sx={{ position: "relative", mt: 3, width: { xs: "90%", md: "70%" } }}>
-      {showToast && <VWToast />} {/* Show VWToast when showToast is true */}
+      {showToast && <CustomizableToast />}{" "}
+      {/* Show CustomizableToast when showToast is true */}
       {loading && (
         <VWSkeleton
           variant="rectangular"

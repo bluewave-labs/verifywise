@@ -16,7 +16,7 @@ import ProjectCard from "../../../components/Cards/ProjectCard";
 import { postAutoDrivers } from "../../../../application/repository/entity.repository";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import NoProject from "../../../components/NoProject/NoProject";
-import VWToast from "../../../vw-v2-components/Toast";
+import CustomizableToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 import { logEngine } from "../../../../application/tools/log.engine";
 import ProjectForm from "../../../vw-v2-components/Forms/ProjectForm";
@@ -141,7 +141,7 @@ const Home = () => {
         />
       )}
       {showToastNotification && (
-        <VWToast title="Generating demo data. Please wait, this process may take some time..." />
+        <CustomizableToast title="Generating demo data. Please wait, this process may take some time..." />
       )}
       <Stack className="vwhome-body">
         <Stack sx={vwhomeBody}>

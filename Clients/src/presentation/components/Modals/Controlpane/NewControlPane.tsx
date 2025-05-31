@@ -18,7 +18,7 @@ import { Subcontrol } from "../../../../domain/types/Subcontrol";
 import { Control } from "../../../../domain/types/Control";
 import { FileData } from "../../../../domain/types/File";
 import Alert from "../../Alert";
-import VWToast from "../../../vw-v2-components/Toast";
+import CustomizableToast from "../../../vw-v2-components/Toast";
 import SaveIcon from "@mui/icons-material/Save";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
@@ -361,7 +361,9 @@ const NewControlPane = ({
         </AlertBox>
       )}
 
-      {isSubmitting && <VWToast title="Saving control. Please wait..." />}
+      {isSubmitting && (
+        <CustomizableToast title="Saving control. Please wait..." />
+      )}
 
       <Modal
         id={`${data.id}-modal`}

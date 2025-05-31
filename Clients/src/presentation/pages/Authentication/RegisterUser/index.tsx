@@ -87,10 +87,15 @@ const RegisterUser: React.FC = () => {
       if (isSuccess === 201) {
         setValues(initialState);
         setErrors({});
+        handleAlert({
+          variant: "success",
+          body: "Registration successful. Redirecting to login page...",
+          setAlert,
+        });
         setTimeout(() => {
           navigate("/login");
           setIsSubmitting(false);
-        }, 3000);
+        }, 2000);
       } else {
         logEngine({
           type: "error",

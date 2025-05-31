@@ -19,7 +19,7 @@ import NoProject from "../../../components/NoProject/NoProject";
 import VWToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 import { logEngine } from "../../../../application/tools/log.engine";
-import VWProjectForm from "../../../vw-v2-components/Forms/ProjectForm";
+import ProjectForm from "../../../vw-v2-components/Forms/ProjectForm";
 import { useProjectData } from "../../../../application/hooks/useFetchProjects";
 import { AlertState } from "../../../../application/interfaces/appStates";
 import PageTour from "../../../components/PageTour";
@@ -223,7 +223,7 @@ const Home = () => {
         aria-describedby="modal-description"
       >
         <Box sx={vwhomeCreateModalFrame}>
-          <VWProjectForm onClose={handleProjectFormModalClose} />
+          <ProjectForm onClose={handleProjectFormModalClose} />
         </Box>
       </Modal>
       <PageTour

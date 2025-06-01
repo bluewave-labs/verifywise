@@ -136,7 +136,6 @@ export async function insertMockData() {
           vendor_id: vendor.id,
           risk_description: "Data Security",
           impact_description: "Alice",
-          impact: "Critical",
           likelihood: "Almost certain",
           risk_severity: "Catastrophic",
           action_plan: "Vendor Risk 1 action plan",

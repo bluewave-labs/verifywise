@@ -4,7 +4,7 @@
  * ISO 42001 framework report includse project risk, vendors and vendor risks, annexes and clauses reports
  * @param frameworkId - The IDs of the framework: EU AI Act and ISO 42001
  * @param data - Project metadata including title and owner
- * @returns Promise<any> - Markdown formatted report
+ * @returns Promise<string> - Markdown formatted report
 */
 
 import { getAllFrameworkByIdQuery } from '../../utils/framework.utils';
@@ -19,7 +19,7 @@ export async function getAllReportMarkdown (
   projectFrameworkId: number,
   projectId: number,
   data: ReportBodyData
-) : Promise<any> {
+) : Promise<string> {
   try {
     const framework = await getAllFrameworkByIdQuery(projectFrameworkId);
 
@@ -99,8 +99,11 @@ ${clausesAndAnnexesMarkdown}
 `
         return isoMD;
       }
+    } else {
+      throw new Error(`Framework with ID ${projectFrameworkId} not found`);
     }
   } catch (error){
-    throw new Error(`Error while fetching the project framework data`);    
+    console.error('Error generating all reports markdown:', error);
+    throw new Error(`Failed to generate all reports: ${error instanceof Error ? error.message : 'Unknown error'}`);    
   }
 }

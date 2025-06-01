@@ -31,7 +31,7 @@ type AllCompliances = ControlCategoryStructEUModel & {
 export async function getComplianceMarkdown (
     frameworkId: number,
     data: ReportBodyData
-  ) : Promise<String> {
+  ) : Promise<string> {
     const reportData = await getComplianceReportData(frameworkId);   
   
   const complianceMD = `

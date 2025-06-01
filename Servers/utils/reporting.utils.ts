@@ -25,7 +25,7 @@ export const getProjectRisksReportQuery = async (
       u.name AS risk_owner_name,
       u.surname AS risk_owner_surname
     FROM projectrisks risk
-    JOIN users u ON risk.risk_owner = u.id
+    LEFT JOIN users u ON risk.risk_owner = u.id
     WHERE project_id = :project_id 
     ORDER BY created_at DESC, id ASC
   `;

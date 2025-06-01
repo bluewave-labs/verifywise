@@ -23,7 +23,7 @@ export interface ProjectRiskProps {
 export async function getProjectRiskMarkdown (
     projectId: number,
     data: ReportBodyData
-  ) : Promise<String> {
+  ) : Promise<string> {
   const reportData = await getProjectRiskReportData(projectId);
 
   const projectRiskMD = `
@@ -57,7 +57,7 @@ export async function getProjectRiskReportData (
 
     rows = (reportData.length > 0) 
     ? reportData.map((risk: ProjectRiskProps) => 
-        `| ${risk.risk_name} | ${risk.risk_owner_name} ${risk.risk_owner_surname} | ${risk.risk_severity} | ${risk.likelihood} | ${risk.approval_status} | ${risk.risk_level_autocalculated} | ${risk.deadline.toLocaleDateString()} |`
+        `| ${risk.risk_name} | ${risk.risk_owner_name} ${risk.risk_owner_surname} | ${risk.risk_severity} | ${risk.likelihood} | ${risk.approval_status} | ${risk.risk_level_autocalculated} | ${risk.deadline ? new Date(risk.deadline).toLocaleDateString() : 'N/A'} |`
       ).join('\n') 
     : `| - | - | - | - | - | - | - |`;
     

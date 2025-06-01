@@ -56,7 +56,7 @@ ${reportData}
 */
 export async function getComplianceReportData (
   frameworkId: number
-) : Promise<String> {
+) : Promise<string> {
   let rows: string = ``;
   try {
     const reportData = await getComplianceReportQuery(frameworkId) as AllCompliances[];   

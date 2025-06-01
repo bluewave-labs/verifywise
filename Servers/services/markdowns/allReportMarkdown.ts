@@ -4,11 +4,12 @@
  * ISO 42001 framework report includse project risk, vendors and vendor risks, annexes and clauses reports
  * @param frameworkId - The IDs of the framework: EU AI Act and ISO 42001
  * @param data - Project metadata including title and owner
- * @returns Promise<string> - Markdown formatted report
+ * @returns Promise<any> - Markdown formatted report
 */
 
 import { getAllFrameworkByIdQuery } from '../../utils/framework.utils';
 import { ReportBodyData } from '../reportService';
+import { getClausesAndAnnexesReportData } from './annexesMarkdown';
 import { getAssessmentTrackerReportData } from './assessmentTrackerMarkdown';
 import { getComplianceReportData } from './complianceMarkdown';
 import { getProjectRiskReportData } from './projectRiskMarkdown';
@@ -59,9 +60,8 @@ Assessment tracker report
 ${assessmentReportMarkdown}
 `
         return euAIMD;
-      } else {
-        
-
+      } else {        
+        let clausesAndAnnexesMarkdown = await getClausesAndAnnexesReportData(projectFrameworkId);
         const isoMD = `
 VerifyWise ${framework.name} report
 ========================
@@ -83,6 +83,8 @@ ${vendorRiskReportMarkdown}
 
 Clauses and annexes report
 -------------
+${clausesAndAnnexesMarkdown}
+
 `
         return isoMD;
       }

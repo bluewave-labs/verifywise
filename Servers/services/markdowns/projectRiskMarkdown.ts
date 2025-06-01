@@ -50,7 +50,7 @@ ${reportData}
  */
 export async function getProjectRiskReportData (
   projectId: number
-) : Promise<String> {
+) : Promise<string> {
   let rows: string =``;
   try {
     const reportData = await getProjectRisksReportQuery(projectId) as ProjectRiskProps[];

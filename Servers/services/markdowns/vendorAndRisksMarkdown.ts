@@ -13,7 +13,7 @@ import { ReportBodyData } from "../reportService";
 export async function getVendorReportMarkdown(
     projectId: number,
     data: ReportBodyData
-  ): Promise<any> {
+  ): Promise<string> {
     const vendorReportData = await getVendorReportData(projectId);
     const riskReportData = await getVendorRiskReportData(projectId);
       
@@ -38,7 +38,7 @@ ${riskReportData}
 */
 export async function getVendorReportData(
   projectId: number
-): Promise<String> {
+): Promise<string> {
   let vendorRows: string = ``;
   try {
     const vendorData = await getVendorByProjectIdQuery(projectId);
@@ -76,7 +76,7 @@ ${vendorRows}
 */
 export async function getVendorRiskReportData(
   projectId: number
-): Promise<String> {
+): Promise<string> {
   let riskRows: string = ``;
   try {
     const riskData = await getVendorRisksByProjectIdQuery(projectId);

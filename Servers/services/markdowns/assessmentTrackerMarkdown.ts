@@ -27,7 +27,7 @@ export async function getAssessmentTrackerMarkdown (
   projectId: number,
   frameworkId: number,
   data: ReportBodyData
-) : Promise<String> {
+) : Promise<string> {
   const assessmentReportData = await getAssessmentTrackerReportData(projectId, frameworkId);
 
   const assessmentMD = `
@@ -54,7 +54,7 @@ ${assessmentReportData}
 export async function getAssessmentTrackerReportData (
   projectId: number,
   frameworkId: number
-) : Promise<String> {
+) : Promise<string> {
   let rows: string = ``;
   try {
     const reportData = await getAssessmentReportQuery(projectId, frameworkId) as AllTopics[];

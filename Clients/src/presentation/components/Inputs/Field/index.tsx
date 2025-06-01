@@ -36,7 +36,12 @@ import { forwardRef, useState } from "react";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 import { ForwardedRef } from "react";
-import { FieldProps } from "../../../../domain/interfaces/iWidget";
+import { FieldProps as OriginalFieldProps } from "../../../../domain/interfaces/iWidget";
+
+// Extend FieldProps to add optional rows
+interface FieldProps extends OriginalFieldProps {
+  rows?: number;
+}
 
 const Field = forwardRef(
   (
@@ -57,6 +62,7 @@ const Field = forwardRef(
       disabled,
       width,
       sx,
+      rows,
     }: FieldProps,
     ref: ForwardedRef<HTMLInputElement>
   ) => {
@@ -129,7 +135,7 @@ const Field = forwardRef(
           autoComplete={autoComplete}
           placeholder={placeholder}
           multiline={type === "description"}
-          rows={type === "description" ? 4 : 1}
+          rows={type === "description" ? (rows || 4) : 1}
           value={value}
           onInput={onInput}
           onChange={onChange}

@@ -72,8 +72,8 @@ const initialState = {
   risk_description: "",
   impact_description: "",
   action_owner: "",
-  risk_severity: 1,
-  likelihood: 1,
+  risk_severity: "1",
+  likelihood: "1",
   risk_level: '',
   action_plan: "",
   vendor_id: "",
@@ -163,11 +163,11 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           RISK_SEVERITY_OPTIONS.find(
             (r) => r.name === existingRisk.risk_severity
           )?._id ?? 1
-        ),
+        ).toString(),
         likelihood: Number(
           LIKELIHOOD_OPTIONS.find((r) => r.name === existingRisk.likelihood)
             ?._id ?? 1
-        ),
+        ).toString(),
         risk_level: String(
           RISK_LEVEL_OPTIONS.find((r) => r.name === existingRisk.risk_level)
             ?._id ?? ""

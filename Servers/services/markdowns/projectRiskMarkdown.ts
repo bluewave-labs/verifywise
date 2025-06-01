@@ -8,20 +8,23 @@
 import { getProjectRisksReportQuery } from "../../utils/reporting.utils";
 import { ReportBodyData } from '../reportService';
 
+export interface ProjectRiskProps {
+  risk_owner_name: string;
+  risk_owner_surname: string;
+  deadline: any;
+  risk_level_autocalculated: any;
+  approval_status: any;
+  likelihood: any;
+  risk_severity: any;
+  risk_name: string,
+  risk_owner: string | any
+}
+
 export async function getProjectRiskMarkdown (
     projectId: number,
     data: ReportBodyData
-  ) : Promise<any> {
-  let rows: string;
-  const reportData = await getProjectRisksReportQuery(projectId);
-
-  if (reportData.length > 0) {
-    rows = reportData.map((risk: { risk_name: any; risk_owner: any; risk_severity: any; likelihood: any; approval_status: any; risk_level_autocalculated: any; deadline: { toLocaleDateString: () => any; }; }) => 
-      `| ${risk.risk_name} | ${risk.risk_owner} | ${risk.risk_severity} | ${risk.likelihood} | ${risk.approval_status} | ${risk.risk_level_autocalculated} | ${risk.deadline.toLocaleDateString()} |`
-    ).join('\n');
-  } else {
-    rows = `| - | - | - | - | - | - | - |`
-  }
+  ) : Promise<String> {
+  const reportData = await getProjectRiskReportData(projectId);
 
   const projectRiskMD = `
 VerifyWise project risk report
@@ -37,7 +40,33 @@ Project risk table
 -------------
 | Risk Name | Owner | Severity | Likelihood | Mitigation Status	| Risk Level | Target Date | 
 |----|----|----|----|----|----|----|
-${rows}
+${reportData}
 `
   return projectRiskMD;
+}
+
+/**
+ * Retrieves all project risk data from DB
+ * @param projectId - The ID of the project
+ * @returns Promise<string> - Project risk table
+ */
+export async function getProjectRiskReportData (
+  projectId: number
+) : Promise<String> {
+  let rows: string =``;
+  try {
+    const reportData = await getProjectRisksReportQuery(projectId) as ProjectRiskProps[];
+
+    rows = (reportData.length > 0) 
+    ? reportData.map((risk: ProjectRiskProps) => 
+        `| ${risk.risk_name} | ${risk.risk_owner_name} ${risk.risk_owner_surname} | ${risk.risk_severity} | ${risk.likelihood} | ${risk.approval_status} | ${risk.risk_level_autocalculated} | ${risk.deadline.toLocaleDateString()} |`
+      ).join('\n') 
+    : `| - | - | - | - | - | - | - |`;
+    
+  } catch (error){
+    console.error(error);
+    throw new Error(`Error while fetching the project risk report data`);    
+  }
+
+  return rows;
 }

@@ -66,7 +66,7 @@ export async function getVendorReportData(
         : "| - | - | - | - | - |";
   } catch (error) {
     console.error(error);
-    throw new Error(`Error while fetching the vendor risk report data`);  
+    throw new Error(`Error while fetching the vendor report data`);  
   }
 
   return vendorRows;

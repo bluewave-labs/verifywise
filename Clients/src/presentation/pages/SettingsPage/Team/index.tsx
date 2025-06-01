@@ -218,12 +218,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
     link: string
   ) => {
     console.log("Invitation to ", email, "is ", status);
-
-    // Limit link to 35 characters
-    if (link.length > 35) {
-      link = link.substring(0, 35) + "...";
-    }
-
+    
     setAlert({
       variant: "info",
       body: `You can also copy and use this link to invite a member: ${link}`,

@@ -6,6 +6,7 @@ import { getAssessmentTrackerMarkdown } from './markdowns/assessmentTrackerMarkd
 import { getAnnexesMarkdown } from './markdowns/annexesMarkdown';
 import { getComplianceMarkdown } from './markdowns/complianceMarkdown';
 import { getAllReportMarkdown } from './markdowns/allReportMarkdown';
+import { getClausesMarkdown } from './markdowns/clausesMarkdown';
 
 export interface ReportBodyData {
   projectTitle: string,
@@ -106,11 +107,11 @@ export async function getReportData(
     case ReportType.ALL_REPORT:
       markdownFormattedData = await getAllReportMarkdown(frameworkId, projectId, reportBody)
       break;
+    case ReportType.CLAUSES_REPORT:
+      markdownFormattedData = await getClausesMarkdown(frameworkId, reportBody)
+      break;
     default:
       throw new Error(`Report type "${reportType}" is not supported`);
   }
   return markdownFormattedData;
 }
-  
-
-

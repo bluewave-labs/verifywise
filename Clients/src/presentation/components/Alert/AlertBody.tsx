@@ -13,6 +13,9 @@ const AlertBody: React.FC<AlertBodyProps> = ({ body, textColor }) => {
   const linkMatch = body.match(/https?:\/\/[^\s]+/);
   const link = linkMatch ? linkMatch[0] : null;
 
+  // Limit link to 35 characters
+  const limitedLink = link && link.length > 35 ? link.substring(0, 35) + "..." : link;
+
   const handleCopy = async () => {
     if (link) {
       await navigator.clipboard.writeText(link);
@@ -27,14 +30,7 @@ const AlertBody: React.FC<AlertBodyProps> = ({ body, textColor }) => {
         <>
           {body.split(link)[0]}
           <Box component="span" sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
-            <a
-              href={link}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: textColor, textDecoration: "underline" }}
-            >
-              {link}
-            </a>
+            {limitedLink}
             <IconButton
               size="small"
               onClick={(e) => {

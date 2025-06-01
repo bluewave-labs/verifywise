@@ -8,6 +8,12 @@ import { QueryTypes, Transaction } from "sequelize";
 import { getAllTopicsQuery, getAllSubTopicsQuery, getAllQuestionsQuery, getControlStructByControlCategoryIdForAProjectQuery, getAllControlCategoriesQuery, getControlByIdForProjectQuery, getControlByIdQuery, getSubControlsByIdQuery } from "./eu.utils";
 import { TopicStructEUModel } from "../models/EU/topicStructEU.model";
 import { AnnexStructISOModel } from "../models/ISO-42001/annexStructISO.model";
+import { ClauseStructISOModel } from "../models/ISO-42001/clauseStructISO.model";
+import { AnnexCategoryStructISOModel } from "../models/ISO-42001/annexCategoryStructISO.model";
+import { AnnexCategoryISOModel } from "../models/ISO-42001/annexCategoryISO.model";
+import { ControlEUModel } from "../models/EU/controlEU.model";
+import { ControlStructEUModel } from "../models/EU/controlStructEU.model";
+
 
 /**
  * Retrieves all project risk data from the `projectrisks` table,
@@ -217,4 +223,46 @@ export const getComplianceReportQuery = async (
 
   const AllCompliances = compliances.map((topic) => topic.get({ plain: true }));
   return AllCompliances;
+}
+
+export const getClausesReportQuery = async (
+  projectFrameworkId: number,
+  transaction: Transaction | null = null
+) => {
+  const clauses = (await sequelize.query(
+    `SELECT * FROM clauses_struct_iso ORDER BY id;`,
+    {
+      mapToModel: true,
+      ...(transaction ? { transaction } : {}),
+    }
+  )) as [ClauseStructISOModel[], number];
+
+  for (const clause of clauses[0]) {
+    const subClauses = await subClausesQuery(projectFrameworkId, clause.id, transaction);
+    (clause as any).subClauses = subClauses;
+  }
+  return clauses[0];
+};
+
+export const subClausesQuery = async (
+  projectFrameworkId: number,
+  clauseId: number,
+  transaction: Transaction | null = null
+) => {
+  
+  return await sequelize.query(
+    `SELECT scs.id, scs.title, scs.order_no, scs.summary, sc.status, sc.implementation_description
+     FROM subclauses_struct_iso scs
+     JOIN subclauses_iso sc ON scs.id = sc.subclause_meta_id 
+     WHERE scs.clause_id = :clause_id AND sc.projects_frameworks_id = :projects_frameworks_id
+     ORDER BY scs.id;`,
+    {
+      replacements: {
+        clause_id: clauseId,
+        projects_frameworks_id: projectFrameworkId + 1,
+      },
+      type: QueryTypes.SELECT,
+      ...(transaction ? { transaction } : {})
+    }
+  );
 }

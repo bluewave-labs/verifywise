@@ -259,7 +259,7 @@ export const subClausesQuery = async (
     {
       replacements: {
         clause_id: clauseId,
-        projects_frameworks_id: projectFrameworkId + 1,
+        projects_frameworks_id: projectFrameworkId,
       },
       type: QueryTypes.SELECT,
       ...(transaction ? { transaction } : {})

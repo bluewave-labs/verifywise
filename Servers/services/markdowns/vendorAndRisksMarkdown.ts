@@ -85,7 +85,7 @@ export async function getVendorRiskReportData(
         ? await Promise.all(
             riskData.map(async (risk) => {
               const riskActionOwner = await getUserByIdQuery(risk.action_owner);
-              return `| ${risk.impact} | ${risk.likelihood} | ${risk.risk_severity} | ${riskActionOwner.name} ${riskActionOwner.surname} | ${risk.risk_level} | ${risk.risk_description} |`;
+              return ` | ${risk.likelihood} | ${risk.risk_severity} | ${riskActionOwner.name} ${riskActionOwner.surname} | ${risk.risk_level} | ${risk.risk_description} |`;
             })
           ).then((rows) => rows.join("\n"))
         : "| - | - | - | - | - | - |";

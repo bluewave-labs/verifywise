@@ -89,9 +89,7 @@ const Vendors = () => {
   );
   const [selectedRisk, setSelectedRisk] = useState<ExistingRisk | null>(null);
   const [controller, setController] = useState<AbortController | null>(null);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
-    null
-  );
+  const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
   const [selectedVendorId, setSelectedVendorId] = useState<string>("all");
   const {
     vendorRisksSummary,
@@ -141,7 +139,7 @@ const Vendors = () => {
         const response = await getAllEntities({ routeUrl: "/projects" });
         if (response?.data && response.data.length > 0) {
           setProjects(response.data);
-          setSelectedProjectId(response.data[0].id?.toString() ?? null); // Default to first project as string
+          setSelectedProjectId("all"); // Always default to 'all' after fetching
         }
       } catch (error) {
         console.error("Failed to fetch projects:", error);

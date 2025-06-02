@@ -33,10 +33,10 @@ export const getVendorRiskByIdQuery = async (
 export const createNewVendorRiskQuery = async (vendorRisk: VendorRisk, transaction: Transaction): Promise<VendorRisk> => {
   const result = await sequelize.query(
     `INSERT INTO vendorRisks (
-      vendor_id, order_no, risk_description, impact_description, impact,
+      vendor_id, order_no, risk_description, impact_description,
       likelihood, risk_severity, action_plan, action_owner, risk_level
     ) VALUES (
-      :vendor_id, :order_no, :risk_description, :impact_description, :impact,
+      :vendor_id, :order_no, :risk_description, :impact_description,
       :likelihood, :risk_severity, :action_plan, :action_owner, :risk_level
     ) RETURNING *`,
     {
@@ -45,7 +45,6 @@ export const createNewVendorRiskQuery = async (vendorRisk: VendorRisk, transacti
         order_no: vendorRisk.order_no || null,
         risk_description: vendorRisk.risk_description,
         impact_description: vendorRisk.impact_description,
-        impact: vendorRisk.impact,
         likelihood: vendorRisk.likelihood,
         risk_severity: vendorRisk.risk_severity,
         action_plan: vendorRisk.action_plan,
@@ -71,7 +70,6 @@ export const updateVendorRiskByIdQuery = async (
     "vendor_id",
     "risk_description",
     "impact_description",
-    "impact",
     "likelihood",
     "risk_severity",
     "action_plan",

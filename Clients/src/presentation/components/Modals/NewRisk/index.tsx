@@ -13,11 +13,11 @@
 
 import TabContext from "@mui/lab/TabContext";
 import TabPanel from "@mui/lab/TabPanel";
-import { Box, Modal, Stack, Typography, useTheme } from "@mui/material";
+import { Box, Modal, Stack, Typography, useTheme, Divider } from "@mui/material";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import { ReactComponent as Close } from "../../../assets/icons/close.svg";
-import { Suspense, useContext, useEffect, useState } from "react";
+import { Suspense, useContext, useEffect, useState, lazy, useCallback } from "react";
 import {
   createNewUser,
   updateEntityById,
@@ -29,23 +29,18 @@ import CustomizableToast from "../../../vw-v2-components/Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
-import {
-  riskSeverityItems,
-  likelihoodItems,
-} from "../../AddNewRiskForm/projectRiskValue";
-
 import { RiskCalculator } from "../../../tools/riskCalculator";
-
 import { RiskLikelihood, RiskSeverity } from "../../RiskLevel/riskValues";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import allowedRoles from "../../../../application/constants/permissions";
+import { SelectChangeEvent } from "@mui/material";
+const RiskLevel = lazy(() => import("../../RiskLevel"));
 
 interface ExistingRisk {
   id?: number;
   risk_description: string;
   impact_description: string;
   project_name?: string;
-  impact: string;
   action_owner: string;
   risk_severity: string;
   likelihood: string;
@@ -56,7 +51,6 @@ interface ExistingRisk {
 interface FormErrors {
   risk_description: string;
   impact_description: string;
-  impact: string;
   action_owner: string;
   risk_severity: string;
   likelihood: string;
@@ -77,11 +71,10 @@ interface AddNewRiskProps {
 const initialState = {
   risk_description: "",
   impact_description: "",
-  impact: "",
   action_owner: "",
-  risk_severity: "",
-  likelihood: "",
-  risk_level: "",
+  risk_severity: "1",
+  likelihood: "1",
+  risk_level: '',
   action_plan: "",
   vendor_id: "",
 };
@@ -112,15 +105,6 @@ const RISK_SEVERITY_OPTIONS = [
   { _id: 4, name: RiskSeverity.Major },
   { _id: 5, name: RiskSeverity.Catastrophic },
 ] as const;
-
-const IMPACT_OPTIONS = [
-  { _id: "", name: "Select impact" },
-  { _id: 1, name: "Negligible" },
-  { _id: 2, name: "Minor" },
-  { _id: 3, name: "Moderate" },
-  { _id: 4, name: "Major" },
-  { _id: 5, name: "Critical" },
-];
 
 const AddNewRisk: React.FC<AddNewRiskProps> = ({
   isOpen,
@@ -170,23 +154,20 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
         ...prevValues,
         risk_description: existingRisk.risk_description,
         impact_description: existingRisk.impact_description,
-        impact: String(
-          IMPACT_OPTIONS.find((r) => r.name === existingRisk.impact)?._id ?? ""
-        ),
         action_owner: String(
           formattedUsers?.find(
             (user) => String(user._id) === String(existingRisk.action_owner)
           )?._id || ""
         ),
-        risk_severity: String(
+        risk_severity: Number(
           RISK_SEVERITY_OPTIONS.find(
             (r) => r.name === existingRisk.risk_severity
-          )?._id ?? ""
-        ),
-        likelihood: String(
+          )?._id ?? 1
+        ).toString(),
+        likelihood: Number(
           LIKELIHOOD_OPTIONS.find((r) => r.name === existingRisk.likelihood)
-            ?._id ?? ""
-        ),
+            ?._id ?? 1
+        ).toString(),
         risk_level: String(
           RISK_LEVEL_OPTIONS.find((r) => r.name === existingRisk.risk_level)
             ?._id ?? ""
@@ -258,14 +239,11 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
       newErrors.action_owner =
         "Please select an action owner from the dropdown";
     }
-    if (!values.impact || values.impact === "") {
-      newErrors.impact = "Please select an impact status from the dropdown";
-    }
-    if (!values.risk_severity || values.risk_severity === "") {
+    if (!values.risk_severity || Number(values.risk_severity) < 1) {
       newErrors.risk_severity =
         "Please select a risk severity from the dropdown";
     }
-    if (!values.likelihood || values.likelihood === "") {
+    if (!values.likelihood || Number(values.likelihood) < 1) {
       newErrors.likelihood =
         "Please select a risk likelihood from the dropdown";
     }
@@ -280,10 +258,10 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
 
   const handleOnSave = async () => {
     const selectedLikelihood = LIKELIHOOD_OPTIONS.find(
-      (r) => r._id === values.likelihood
+      (r) => r._id === Number(values.likelihood)
     );
     const selectedSeverity = RISK_SEVERITY_OPTIONS.find(
-      (r) => r._id === values.risk_severity
+      (r) => r._id === Number(values.risk_severity)
     );
 
     // Only call if both are valid (not the "Select ..." option)
@@ -305,8 +283,6 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
       vendor_id: values.vendor_id,
       risk_description: values.risk_description,
       impact_description: values.impact_description,
-      impact:
-        IMPACT_OPTIONS.find((r) => r._id === Number(values.impact))?.name || "",
       action_owner: formattedUsers?.find(
         (user) => String(user._id) === String(values.action_owner)
       )?._id,
@@ -423,145 +399,118 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
     }
   };
 
+  // Add this function to handle RiskLevel select changes, clearing errors as well
+  const handleOnSelectChange = useCallback(
+    (prop: "likelihood" | "riskSeverity") =>
+      (event: SelectChangeEvent<string | number>) => {
+        const key = prop === "riskSeverity" ? "risk_severity" : prop;
+        setValues((prev) => ({
+          ...prev,
+          [key]: event.target.value,
+        }));
+        setErrors((prev) => ({ ...prev, [key]: "" }));
+      },
+    []
+  );
+
   const risksPanel = (
     <TabPanel value="2" sx={{ paddingTop: theme.spacing(15), paddingX: 0 }}>
-      <Stack
-        direction={"row"}
-        justifyContent={"space-between"}
-        marginBottom={theme.spacing(8)}
-      >
-        <Select
-          items={VENDOR_OPTIONS}
-          label="Vendor"
-          placeholder="Select vendor"
-          isHidden={false}
-          id=""
-          onChange={(e) => handleOnChange("vendor_id", e.target.value)}
-          value={values.vendor_id}
-          error={errors.vendor_id}
-          sx={{
-            width: 350,
-          }}
-          isRequired
-          disabled={isEditingDisabled}
-        />
-        <Field
-          label="Risk description"
-          width={350}
-          value={values.risk_description}
-          onChange={(e) => handleOnChange("risk_description", e.target.value)}
-          error={errors.risk_description}
-          isRequired
-          disabled={isEditingDisabled}
-        />
+      <Stack direction="row" spacing={12}>
+        <Stack flex={1} spacing={12}>
+          <Stack direction="row" spacing={6}>
+            <Box flex={1}>
+              <Select
+                items={VENDOR_OPTIONS}
+                label="Vendor"
+                placeholder="Select vendor"
+                isHidden={false}
+                id="vendor_id"
+                onChange={(e) => handleOnChange("vendor_id", e.target.value)}
+                value={values.vendor_id}
+                error={errors.vendor_id}
+                sx={{ width: '100%' }}
+                isRequired
+                disabled={isEditingDisabled}
+              />
+            </Box>
+            <Box flex={1}>
+              <Select
+                items={formattedUsers}
+                label="Action owner"
+                placeholder="Select owner"
+                isHidden={false}
+                id="action_owner"
+                onChange={(e) => handleOnChange("action_owner", e.target.value)}
+                value={values.action_owner || ""}
+                error={errors.action_owner}
+                sx={{ width: '100%' }}
+                isRequired
+                disabled={isEditingDisabled}
+              />
+            </Box>
+          </Stack>
+          <Box>
+            <Field
+              label="Risk description"
+              width="100%"
+              value={values.risk_description}
+              onChange={(e) => handleOnChange("risk_description", e.target.value)}
+              error={errors.risk_description}
+              isRequired
+              disabled={isEditingDisabled}
+              type="description"
+              rows={7}
+            />
+          </Box>
+        </Stack>
+        <Stack flex={1} spacing={12}>
+          <Box>
+            <Field
+              label="Action plan"
+              width="100%"
+              type="description"
+              value={values.action_plan}
+              error={errors.action_plan}
+              onChange={(e) => handleOnChange("action_plan", e.target.value)}
+              isRequired
+              disabled={isEditingDisabled}
+              rows={4}
+            />
+          </Box>
+          <Box>
+            <Field
+              label="Impact description"
+              width="100%"
+              value={values.impact_description}
+              onChange={(e) => handleOnChange("impact_description", e.target.value)}
+              error={errors.impact_description}
+              isRequired
+              disabled={isEditingDisabled}
+              type="description"
+              rows={4}
+            />
+          </Box>
+        </Stack>
       </Stack>
-      <Stack
-        direction={"row"}
-        justifyContent={"space-between"}
-        marginBottom={theme.spacing(8)}
-      >
-        <Select
-          items={IMPACT_OPTIONS}
-          label="Impact"
-          placeholder="Select impact"
-          isHidden={false}
-          id=""
-          onChange={(e) => handleOnChange("impact", e.target.value)}
-          value={values.impact || ""}
-          error={errors.impact}
-          sx={{
-            width: 350,
-          }}
-          isRequired
-          disabled={isEditingDisabled}
-        />
-        <Select
-          items={likelihoodItems}
-          label="Likelihood"
-          placeholder="Select likelihood"
-          isHidden={false}
-          id=""
-          onChange={(e) => handleOnChange("likelihood", e.target.value)}
-          value={values.likelihood || ""}
-          error={errors.likelihood}
-          sx={{
-            width: 350,
-          }}
-          isRequired
-          disabled={isEditingDisabled}
-        />
-      </Stack>
-      <Stack
-        display={"flex"}
-        justifyContent={"space-between"}
-        marginBottom={theme.spacing(8)}
-        flexDirection={"row"}
-      >
-        <Box
-          justifyContent={"space-between"}
-          display={"grid"}
-          gap={theme.spacing(8)}
-        >
-          <Select
-            items={riskSeverityItems}
-            label="Risk severity"
-            placeholder="Select risk severity"
-            isHidden={false}
-            id=""
-            onChange={(e) => handleOnChange("risk_severity", e.target.value)}
-            value={values.risk_severity || ""}
-            error={errors.risk_severity}
-            sx={{
-              width: 350,
-            }}
-            isRequired
-            disabled={isEditingDisabled}
-          />
-
-          <Select
-            items={formattedUsers}
-            label="Action owner"
-            placeholder="Select owner"
-            isHidden={false}
-            id=""
-            onChange={(e) => handleOnChange("action_owner", e.target.value)}
-            value={values.action_owner || ""}
-            error={errors.action_owner}
-            sx={{
-              width: 350,
-            }}
-            isRequired
-            disabled={isEditingDisabled}
-          />
-          <Field
-            label="Impact description"
-            width={350}
-            value={values.impact_description}
-            onChange={(e) =>
-              handleOnChange("impact_description", e.target.value)
-            }
-            error={errors.impact_description}
-            isRequired
-            disabled={isEditingDisabled}
-          />
-        </Box>
-
-        <Field
-          label="Action plan"
-          width={350}
-          type="description"
-          value={values.action_plan}
-          error={errors.action_plan}
-          onChange={(e) => handleOnChange("action_plan", e.target.value)}
-          isRequired
-          disabled={isEditingDisabled}
-        />
-      </Stack>
-      <Stack
-        direction={"row"}
-        justifyContent={"space-between"}
-        marginBottom={theme.spacing(8)}
-      ></Stack>
+      <Divider sx={{ my: 6 }} />
+      <Box mt={4} mb={2}>
+        <Typography fontWeight={600} fontSize={16} mb={2}>
+          Calculate risk level
+        </Typography>
+        <Typography fontSize={13} color="text.secondary" mb={4}>
+          The Risk Level is calculated by multiplying the Likelihood and Severity scores. By assigning these scores, the risk level will be determined based on your inputs.
+        </Typography>
+        <Stack direction="row" spacing={12}>
+          <Suspense fallback={<div>Loading...</div>}>
+            <RiskLevel
+              likelihood={Number(values.likelihood) || 1}
+              riskSeverity={Number(values.risk_severity) || 1}
+              handleOnSelectChange={handleOnSelectChange}
+              disabled={isEditingDisabled}
+            />
+          </Suspense>
+        </Stack>
+      </Box>
     </TabPanel>
   );
 
@@ -601,7 +550,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 800,
+            width: 1000,
             bgcolor: theme.palette.background.main,
             border: 1,
             borderColor: theme.palette.border,
@@ -626,7 +575,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
               fontWeight={600}
               marginBottom={theme.spacing(5)}
             >
-              {existingRisk ? "Edit risk" : "Add new risk"}
+              {existingRisk ? "Edit risk" : "Add a new vendor risk"}
             </Typography>
             <Close style={{ cursor: "pointer" }} onClick={setIsOpen} />
           </Stack>

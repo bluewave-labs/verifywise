@@ -9,11 +9,6 @@ import { getAllTopicsQuery, getAllSubTopicsQuery, getAllQuestionsQuery, getContr
 import { TopicStructEUModel } from "../models/EU/topicStructEU.model";
 import { AnnexStructISOModel } from "../models/ISO-42001/annexStructISO.model";
 import { ClauseStructISOModel } from "../models/ISO-42001/clauseStructISO.model";
-import { AnnexCategoryStructISOModel } from "../models/ISO-42001/annexCategoryStructISO.model";
-import { AnnexCategoryISOModel } from "../models/ISO-42001/annexCategoryISO.model";
-import { ControlEUModel } from "../models/EU/controlEU.model";
-import { ControlStructEUModel } from "../models/EU/controlStructEU.model";
-
 
 /**
  * Retrieves all project risk data from the `projectrisks` table,

@@ -12,8 +12,7 @@ type AllClauses = ClauseStructISOModel & {
 };
 
 export async function getClausesMarkdown(
-  frameworkId: number,
-  data: ReportBodyData
+  frameworkId: number
 ): Promise<string> {
   let rows: string = ``;
   try {
@@ -22,14 +21,14 @@ export async function getClausesMarkdown(
       reportData.length > 0
         ? reportData
             .map((clause) => {
-              const subClauses = clause.subClauses
-                .map((subClause, i) => {
-                  return `  - ${clause.clause_no}.${i + 1} ${subClause.title} <br> Implementation Description: ${subClause.implementation_description} \n`;
-                })
-                .join("\n");
+              const subClauses = clause.subClauses?.length > 0
+              ? clause.subClauses.map((subClause, i) => {
+                const res = `__${clause.clause_no}${i+1}. ${subClause.title}__ <br> Implementation Description: ${subClause.implementation_description}<br>`
+                return `  - ${res}\n`;
+                }).join('\n')
+              : `No data`;
 
-              return `__${clause.title}__\n
-  ${subClauses}\n`;
+              return `__${clause.title}__\n${subClauses}\n`;
             })
             .join("\n")
         : `-`;

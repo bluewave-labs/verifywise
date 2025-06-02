@@ -2,10 +2,13 @@ import { Stack, useTheme, Typography, Box, Divider } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
-import { useState, useRef, useCallback, ChangeEvent } from "react";
+import { useState, useRef, useCallback, ChangeEvent, useEffect } from "react";
 import Avatar from "../../../components/Avatar/VWAvatar/index";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
-import { CreateMyOrganization } from "../../../../application/repository/organization.repository";
+import {
+  CreateMyOrganization,
+  GetMyOrganization,
+} from "../../../../application/repository/organization.repository";
 import CustomizableToast from "../../../vw-v2-components/Toast";
 
 interface OrganizationData {
@@ -27,6 +30,29 @@ const Organization = () => {
   const [showToast, setShowToast] = useState(false);
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    async function fetchOrganization() {
+      try {
+        const organizations = await GetMyOrganization({
+          routeUrl: "/organizations",
+        });
+        if (
+          Array.isArray(organizations.data.data) &&
+          organizations.data.data.length > 0
+        ) {
+          const org = organizations.data.data[0];
+          setOrganizationName(org.name || "");
+          setOrganizationLogo(
+            org.logo || "/placeholder.svg?height=80&width=80"
+          );
+        }
+      } catch (error) {
+        console.error("Failed to fetch organization:", error);
+      }
+    }
+    fetchOrganization();
+  }, []);
 
   const handleOrganizationNameChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {

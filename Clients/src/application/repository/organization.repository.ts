@@ -23,7 +23,7 @@ export async function GetMyOrganization({
       responseType,
     });
     console.log("response", response);
-    return response.data;
+    return response;
   } catch (error) {
     console.error("Error getting organization details:", error);
     throw error;

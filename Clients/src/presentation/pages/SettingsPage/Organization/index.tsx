@@ -4,6 +4,7 @@ import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import { useState, useRef, useCallback, ChangeEvent } from "react";
 import Avatar from "../../../components/Avatar/VWAvatar/index";
+import { checkStringValidation } from "../../../../application/validations/stringValidation";
 
 interface OrganizationData {
   firstname: string;
@@ -13,15 +14,45 @@ interface OrganizationData {
 }
 
 const Organization = () => {
-  const [isSaveDisabled, _] = useState(false);
+  const [isSaveDisabled, setIsSaveDisabled] = useState(true);
   const [organizationName, setOrganizationName] = useState("");
+  const [organizationNameError, setOrganizationNameError] = useState<
+    string | null
+  >(null);
   const [organizationLogo, setOrganizationLogo] = useState<string>(
     "/placeholder.svg?height=80&width=80"
   );
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const handleOrganizationNameChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setOrganizationName(value);
+
+      const validation = checkStringValidation(
+        "Organization name",
+        value,
+        2,
+        50,
+        false,
+        false
+      );
+      setOrganizationNameError(validation.accepted ? null : validation.message);
+      setIsSaveDisabled(!value.trim());
+    },
+    []
+  );
+
   const handleSave = () => {
+    if (!organizationName.trim()) {
+      console.log("Validation error: Organization name is required");
+      return;
+    }
+    if (organizationNameError) {
+      console.log("Validation error:", organizationNameError);
+      return;
+    }
     console.log("Organization Name:", organizationName);
     console.log("Organization Logo:", organizationLogo);
   };
@@ -46,7 +77,11 @@ const Organization = () => {
   }, []);
 
   const organizationData: OrganizationData = {
-    firstname: organizationName,
+    firstname: organizationName
+      .split(" ")
+      .slice(0, 2)
+      .map((word) => word.charAt(0))
+      .join(""),
     lastname: "",
     email: "",
     pathToImage: organizationLogo,
@@ -74,8 +109,9 @@ const Organization = () => {
               id="Organization name"
               label="Organization name"
               value={organizationName}
-              onChange={(e) => setOrganizationName(e.target.value)}
-              sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
+              onChange={handleOrganizationNameChange}
+              sx={{ mb: 2, backgroundColor: "#FFFFFF" }}
+              error={organizationNameError || undefined}
             />
             <CustomizableButton
               variant="contained"
@@ -87,10 +123,11 @@ const Organization = () => {
                   ? "1px solid rgba(0, 0, 0, 0.26)"
                   : "1px solid #13715B",
                 gap: 2,
+                mt: 3,
               }}
               icon={<SaveIcon />}
               onClick={handleSave}
-              isDisabled={isSaveDisabled}
+              isDisabled={isSaveDisabled || !!organizationNameError}
             />
           </Stack>
           <Box

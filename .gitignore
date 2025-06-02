@@ -5,9 +5,10 @@
 .env.dev
 .env.prod
 
-.DS_Store
 __pycache__/
 *.pyc
 venv/
 
 .vscode/settings.json
+
+.DS_Store

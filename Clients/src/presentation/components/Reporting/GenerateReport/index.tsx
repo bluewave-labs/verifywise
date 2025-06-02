@@ -56,12 +56,26 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
       (user: any) => user.id === parseInt(currentProject.owner)
     );
     const currentProjectOwner = owner ? `${owner.name} ${owner.surname}`: "";          
+    let reportTypeLabel = input.report_type;
+    switch(input.report_type){
+      case "Annexes report":
+        reportTypeLabel = "Reference controls group"
+        break;
+      case "Clauses report":
+        reportTypeLabel = "Management system clauses group"
+        break;
+      case "All reports combined in one file":
+        reportTypeLabel = "All reports"
+        break;
+      default:
+        break;
+    }
 
     const body = {
       projectId: input.project,
       projectTitle: currentProject.project_title,
       projectOwner: currentProjectOwner,
-      reportType: input.report_type,
+      reportType: reportTypeLabel,
       reportName: input.report_name,
       frameworkId: input.framework
     }

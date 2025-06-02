@@ -39,7 +39,7 @@ interface DashboardValues {
   users: any[];
 }
 
-const VWBasicTable = ({
+const CustomizableBasicTable = ({
   data,
   paginated = false,
   table,
@@ -199,4 +199,4 @@ const VWBasicTable = ({
   );
 };
 
-export default VWBasicTable;
+export default CustomizableBasicTable;

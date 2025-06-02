@@ -2,7 +2,7 @@ import { Skeleton, Stack, SxProps, Theme } from "@mui/material";
 
 // variants are text | rectangular | circular | rounded
 
-const VWSkeleton = ({
+const CustomizableSkeleton = ({
   variant = "text",
   width,
   maxWidth,
@@ -31,4 +31,4 @@ const VWSkeleton = ({
   );
 };
 
-export default VWSkeleton;
+export default CustomizableSkeleton;

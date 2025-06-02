@@ -3,7 +3,7 @@ import { Stack, Typography } from "@mui/material";
 import { pageHeadingStyle } from "../../Assessment/1.0AssessmentTracker/index.style";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import StatsCard from "../../../components/Cards/StatsCard";
-import VWSkeleton from "../../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 import { ControlCategory as ControlCategoryModel } from "../../../../domain/types/ControlCategory";
 import ControlCategoryTile from "./ControlCategory";
 import PageTour from "../../../components/PageTour";
@@ -23,8 +23,8 @@ const ComplianceTracker = ({ project }: { project: Project }) => {
     useState<ControlCategoryModel[]>();
   const [error, setError] = useState<unknown>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const { componentsVisible, changeComponentVisibility } = useContext(
-    VerifyWiseContext);
+  const { componentsVisible, changeComponentVisibility } =
+    useContext(VerifyWiseContext);
   const [runComplianceTour, setRunComplianceTour] = useState(false);
 
   const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({
@@ -37,11 +37,11 @@ const ComplianceTracker = ({ project }: { project: Project }) => {
     }
   }, [allVisible]);
 
-    useEffect(() => {
-      if (componentsVisible.compliance && componentsVisible.projectFrameworks) {
-        setRunComplianceTour(true);
-      }
-    }, [componentsVisible]);
+  useEffect(() => {
+    if (componentsVisible.compliance && componentsVisible.projectFrameworks) {
+      setRunComplianceTour(true);
+    }
+  }, [componentsVisible]);
 
   // Reset state when project changes
   useEffect(() => {
@@ -52,7 +52,7 @@ const ComplianceTracker = ({ project }: { project: Project }) => {
   }, [currentProjectId]);
 
   const fetchComplianceData = async () => {
-    if (!currentProjectId) return;
+    if (!currentProjectId || !currentProjectFramework) return;
 
     try {
       const response = await getEntityById({
@@ -95,7 +95,7 @@ const ComplianceTracker = ({ project }: { project: Project }) => {
     return (
       <Stack className="compliance-tracker" sx={{ gap: "16px" }}>
         <Typography sx={pageHeadingStyle}>Compliance tracker</Typography>
-        <VWSkeleton
+        <CustomizableSkeleton
           variant="rectangular"
           minWidth={300}
           width="100%"

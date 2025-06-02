@@ -17,7 +17,7 @@ import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
 import { Dayjs } from "dayjs";
 import { useState, useEffect, useContext } from "react";
-import VWButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import useProjectData from "../../../../application/hooks/useProjectData";
@@ -96,8 +96,10 @@ const VWISO42001ClauseDrawerDialog = ({
     projectId: String(project_id) || "0",
   });
 
-  const isEditingDisabled = !allowedRoles.frameworks.edit.includes(userRoleName);
-  const isAuditingDisabled = !allowedRoles.frameworks.audit.includes(userRoleName);
+  const isEditingDisabled =
+    !allowedRoles.frameworks.edit.includes(userRoleName);
+  const isAuditingDisabled =
+    !allowedRoles.frameworks.audit.includes(userRoleName);
 
   // Add state for all form fields
   const [formData, setFormData] = useState({
@@ -246,7 +248,10 @@ const VWISO42001ClauseDrawerDialog = ({
       }
     } catch (error) {
       console.error("Error saving subclause:", error);
-      const errorMessage = error instanceof Error ? error.message : "An error occurred while saving changes";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "An error occurred while saving changes";
       handleAlert({
         variant: "error",
         body: errorMessage,
@@ -576,10 +581,10 @@ const VWISO42001ClauseDrawerDialog = ({
           <Select
             id="Owner"
             label="Owner:"
-            value={parseInt(formData.owner)}
+            value={formData.owner || ""}
             onChange={handleSelectChange("owner")}
             items={projectMembers.map((user) => ({
-              _id: user.id,
+              _id: user.id.toString(),
               name: `${user.name}`,
               email: user.email,
               surname: user.surname,
@@ -592,10 +597,10 @@ const VWISO42001ClauseDrawerDialog = ({
           <Select
             id="Reviewer"
             label="Reviewer:"
-            value={parseInt(formData.reviewer)}
+            value={formData.reviewer || ""}
             onChange={handleSelectChange("reviewer")}
             items={projectMembers.map((user) => ({
-              _id: user.id,
+              _id: user.id.toString(),
               name: `${user.name}`,
               email: user.email,
               surname: user.surname,
@@ -608,10 +613,10 @@ const VWISO42001ClauseDrawerDialog = ({
           <Select
             id="Approver"
             label="Approver:"
-            value={parseInt(formData.approver)}
+            value={formData.approver || ""}
             onChange={handleSelectChange("approver")}
             items={projectMembers.map((user) => ({
-              _id: user.id,
+              _id: user.id.toString(),
               name: `${user.name}`,
               email: user.email,
               surname: user.surname,
@@ -664,7 +669,7 @@ const VWISO42001ClauseDrawerDialog = ({
             padding: "15px 20px",
           }}
         >
-          <VWButton
+          <CustomizableButton
             variant="contained"
             text="Save"
             sx={{
@@ -673,7 +678,7 @@ const VWISO42001ClauseDrawerDialog = ({
               gap: 2,
             }}
             onClick={handleSave}
-            icon={<SaveIcon />}          
+            icon={<SaveIcon />}
           />
         </Stack>
       </Stack>

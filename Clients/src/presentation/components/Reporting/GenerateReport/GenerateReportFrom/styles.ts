@@ -1,10 +1,10 @@
 export const styles = {
   btnWrap: {
     paddingTop: 12,
-    display: 'flex',
-    alignItems: 'flex-end'
+    display: "flex",
+    alignItems: "flex-end",
   },
-  VWButton: {
+  CustomizableButton: {
     width: { xs: "100%", sm: 160 },
     backgroundColor: "#13715B",
     color: "#fff",
@@ -12,9 +12,9 @@ export const styles = {
     gap: 2,
   },
   titleText: {
-    fontSize: 16, 
-    color: "#344054", 
-    fontWeight: "bold"
+    fontSize: 16,
+    color: "#344054",
+    fontWeight: "bold",
   },
   baseText: {
     color: "#344054",
@@ -23,15 +23,14 @@ export const styles = {
   semiTitleText: {
     color: "#344054",
     fontSize: 13,
-    fontWeight: "medium"
-  }
-}
+    fontWeight: "medium",
+  },
+};
 
-
-export const fieldStyle = ( theme:any ) => ({ 
-  fontWeight: 'bold',    
+export const fieldStyle = (theme: any) => ({
+  fontWeight: "bold",
   backgroundColor: theme.palette.background.main,
   "& input": {
     padding: "0 14px",
-  }
+  },
 });

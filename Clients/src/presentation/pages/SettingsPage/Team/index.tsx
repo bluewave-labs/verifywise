@@ -33,30 +33,20 @@ import InviteUserModal from "../../../components/Modals/InviteUser";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import { handleAlert } from "../../../../application/tools/alertUtils";
-import VWButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../vw-v2-components/Buttons";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useRoles } from "../../../../application/hooks/useRoles";
 import { deleteEntityById } from "../../../../application/repository/entity.repository";
-import {
-  updateEntityById,
-} from "../../../../application/repository/entity.repository";
+import { updateEntityById } from "../../../../application/repository/entity.repository";
 const Alert = lazy(() => import("../../../components/Alert"));
-
-// Type definition for team member
-type TeamMember = {
-  id: string;
-  name: string;
-  email: string;
-  roleId: string;  // Keep as string since it comes from API
-};
 
 // Constants for roles
 
 const TABLE_COLUMNS = [
-  { id: 'name', label: 'NAME' },
-  { id: 'email', label: 'EMAIL' },
-  { id: 'role', label: 'ROLE' },
-  { id: 'action', label: 'ACTION' },
+  { id: "name", label: "NAME" },
+  { id: "email", label: "EMAIL" },
+  { id: "role", label: "ROLE" },
+  { id: "action", label: "ACTION" },
 ];
 
 /**
@@ -76,20 +66,22 @@ const TeamManagement: React.FC = (): JSX.Element => {
   } | null>(null);
 
   const roleItems = useMemo(
-    () => roles.map(role => ({ _id: role.id, name: role.name })),
+    () => roles.map((role) => ({ _id: role.id, name: role.name })),
     [roles]
   );
 
   // State management
   const [open, setOpen] = useState(false);
-  const [memberToDelete, setMemberToDelete] = useState<string | null>(null);
+  const [memberToDelete, setMemberToDelete] = useState<number | null>(null);
   const [filter, setFilter] = useState(0);
 
   const [page, setPage] = useState(0); // Current page
-  const { dashboardValues, refreshUsers } = useContext(VerifyWiseContext);
-  const [teamUsers, setTeamUsers] = useState<TeamMember[]>(
-    dashboardValues.users || []
-  );
+  const { dashboardValues, users, userId, refreshUsers } =
+    useContext(VerifyWiseContext);
+
+  // Exclude the current user from the team users list
+  const teamUsers = users;
+
   const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
   const [inviteUserModalOpen, setInviteUserModalOpen] = useState(false);
 
@@ -97,16 +89,17 @@ const TeamManagement: React.FC = (): JSX.Element => {
     try {
       const response = await updateEntityById({
         routeUrl: `/users/${memberId}`,
-        body: { role_id: newRole },
+        body: { roleId: newRole },
       });
 
       if (response.status === 202) {
-        setAlert({
+        handleAlert({
           variant: "success",
-          body: "User's role updated successfully",
+          body: "User role updated successfully.",
+          setAlert,
         });
-        setTimeout(() => setAlert(null), 3000);
-        await refreshUsers();
+
+        refreshUsers();
       } else {
         setAlert({
           variant: "error",
@@ -118,8 +111,9 @@ const TeamManagement: React.FC = (): JSX.Element => {
       console.error("API Error:", error);
       setAlert({
         variant: "error",
-        body: `An error occurred: ${(error as Error).message || "Please try again."
-          }`,
+        body: `An error occurred: ${
+          (error as Error).message || "Please try again."
+        }`,
       });
 
       setTimeout(() => setAlert(null), 3000);
@@ -145,11 +139,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
         body: "User deleted successfully",
         setAlert,
       });
-      if (memberToDelete) {
-        setTeamUsers((members) =>
-          members.filter((member) => Number(member.id) !== memberId)
-        );
-      }
+      refreshUsers();
     } else {
       handleAlert({
         variant: "error",
@@ -174,9 +164,9 @@ const TeamManagement: React.FC = (): JSX.Element => {
     return ({ children }: { children: React.ReactNode }) => (
       <Typography
         sx={{
-          fontSize: '13px',
-          fontFamily: 'Inter, sans-serif',
-          color: '#344054'
+          fontSize: "13px",
+          fontFamily: "Inter, sans-serif",
+          color: "#344054",
         }}
       >
         {children}
@@ -185,20 +175,23 @@ const TeamManagement: React.FC = (): JSX.Element => {
   }, []);
 
   // Role value renderer
-  const renderRoleValue = useCallback((value: string) => {
-    const roleId = value?.toString() || '1';
-    const selectedRole = roles.find(r => r.id.toString() === roleId);
-    return <RoleTypography>{selectedRole?.name || 'Admin'}</RoleTypography>;
-  }, [roles, RoleTypography]);
+  const renderRoleValue = useCallback(
+    (value: string) => {
+      const roleId = value?.toString() || "1";
+      const selectedRole = roles.find((r) => r.id.toString() === roleId);
+      return <RoleTypography>{selectedRole?.name || "Admin"}</RoleTypography>;
+    },
+    [roles, RoleTypography]
+  );
 
   // Filtered team members based on selected role
   const filteredMembers = useMemo(() => {
     return filter === 0
       ? teamUsers
-      : teamUsers.filter((member) => parseInt(member.roleId) === filter);
+      : teamUsers.filter((member) => member.roleId === filter);
   }, [filter, teamUsers]);
 
-  const handleDeleteClick = (memberId: string) => {
+  const handleDeleteClick = (memberId: number) => {
     setMemberToDelete(memberId);
     setOpen(true);
   };
@@ -219,12 +212,16 @@ const TeamManagement: React.FC = (): JSX.Element => {
     setInviteUserModalOpen(true);
   };
 
-  const handleInvitation = (email: string, status: number | string) => {
+  const handleInvitation = (
+    email: string,
+    status: number | string,
+    link: string
+  ) => {
     console.log("Invitation to ", email, "is ", status);
-    handleAlert({
-      variant: status === 200 ? "success" : "error",
-      body: status === 200 ? "Invitation is sent" : "Invitation failed",
-      setAlert,
+    
+    setAlert({
+      variant: "info",
+      body: `You can also copy and use this link to invite a member: ${link}`,
     });
 
     setInviteUserModalOpen(false);
@@ -300,7 +297,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
             </Box>
 
             <Box>
-              <VWButton
+              <CustomizableButton
                 variant="contained"
                 text="Invite team member"
                 sx={{
@@ -374,8 +371,10 @@ const TeamManagement: React.FC = (): JSX.Element => {
                               sx={singleTheme.tableStyles.primary.body.cell}
                             >
                               <Select
-                                value={member.roleId || ""}
-                                onChange={(e) => handleRoleChange(e, member.id)}
+                                value={member.roleId?.toString() || "1"}
+                                onChange={(e) =>
+                                  handleRoleChange(e, member.id.toString())
+                                }
                                 size="small"
                                 displayEmpty
                                 renderValue={renderRoleValue}
@@ -393,6 +392,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                                     padding: "4px 8px",
                                   },
                                 }}
+                                disabled={member.id === userId}
                               >
                                 {roles.map((role) => (
                                   <MenuItem
@@ -419,6 +419,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                               <IconButton
                                 onClick={() => handleDeleteClick(member.id)}
                                 disableRipple
+                                disabled={member.id === userId}
                               >
                                 <DeleteOutlineOutlinedIcon />
                               </IconButton>

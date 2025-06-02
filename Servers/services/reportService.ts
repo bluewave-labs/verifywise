@@ -3,7 +3,10 @@ import { DefaultReportName, ReportType } from "../models/reporting.model";
 import { getProjectRiskMarkdown } from "./markdowns/projectRiskMarkdown";
 import { getVendorReportMarkdown } from "./markdowns/vendorAndRisksMarkdown";
 import { getAssessmentTrackerMarkdown } from './markdowns/assessmentTrackerMarkdown';
+import { getAnnexesMarkdown } from './markdowns/annexesMarkdown';
 import { getComplianceMarkdown } from './markdowns/complianceMarkdown';
+import { getAllReportMarkdown } from './markdowns/allReportMarkdown';
+import { getClausesMarkdown } from './markdowns/clausesMarkdown';
 
 export interface ReportBodyData {
   projectTitle: string,
@@ -95,14 +98,20 @@ export async function getReportData(
     case ReportType.VENDOR_REPORT:
       markdownFormattedData = await getVendorReportMarkdown(projectId, reportBody)
       break;
+    case ReportType.ANNEXES_REPORT:
+      markdownFormattedData = await getAnnexesMarkdown(frameworkId, reportBody)
+      break;
     case ReportType.COMPLIANCE_REPORT:
       markdownFormattedData = await getComplianceMarkdown(frameworkId, reportBody)
+      break;
+    case ReportType.ALL_REPORT:
+      markdownFormattedData = await getAllReportMarkdown(frameworkId, projectId, reportBody)
+      break;
+    case ReportType.CLAUSES_REPORT:
+      markdownFormattedData = await getClausesMarkdown(frameworkId, reportBody)
       break;
     default:
       throw new Error(`Report type "${reportType}" is not supported`);
   }
   return markdownFormattedData;
 }
-  
-
-

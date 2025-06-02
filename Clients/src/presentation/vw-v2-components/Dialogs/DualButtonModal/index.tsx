@@ -1,8 +1,4 @@
-/**
- * This file is currently in use
- */
-
-import VWButton from "../../Buttons";
+import CustomizableButton from "../../Buttons";
 import "./index.css";
 import { Stack, SxProps, Theme, Typography } from "@mui/material";
 
@@ -77,13 +73,13 @@ const DualButtonModal: React.FC<DualButtonModalProps> = ({
             display: "flex",
           }}
         >
-          <VWButton
+          <CustomizableButton
             text={cancelText}
             variant="text"
             sx={{ color: "#344054", px: "32px", width: 120 }}
             onClick={onCancel}
           />
-          <VWButton
+          <CustomizableButton
             text={proceedText}
             color={proceedButtonColor} // these are options : "primary" | "secondary" | "success" | "warning" | "error" | "info";
             variant={proceedButtonVariant} // these are the options : "contained" | "outlined" | "text"

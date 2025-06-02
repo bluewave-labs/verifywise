@@ -3,10 +3,11 @@ FROM python:3.9
 # Set the working directory inside the container
 WORKDIR /app
 
-COPY . .
+# Copy requirements first for better caching
+COPY ./src/requirements.txt requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Install dependencies (assuming you have requirements.txt at root)
-RUN pip install --no-cache-dir -r ./src/requirements.txt
+# Copy the rest of the application
+COPY ./src .
 
-# Set default command (optional — can also be done in docker-compose.yml)
-CMD sh -c "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8000"
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]

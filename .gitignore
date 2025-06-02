@@ -6,3 +6,5 @@
 .env.prod
 
 .vscode/settings.json
+
+.DS_Store

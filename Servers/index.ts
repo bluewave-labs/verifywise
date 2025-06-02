@@ -25,6 +25,11 @@ import reportRoutes from "./routes/reporting.route";
 import frameworks from "./routes/frameworks.route";
 import organizationRoutes from "./routes/organization.route";
 import isoRoutes from "./routes/iso42001.route";
+<<<<<<< HEAD
+=======
+import biasAndFairnessRoutes from "./routes/biasAndFairnessRoutes.route";
+
+>>>>>>> dd46ba14 (initial commit)
 import autoDriverRoutes from "./routes/autoDriver.route";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
@@ -93,6 +98,7 @@ try {
   app.use("/api/eu-ai-act", euRouter);
   app.use("/api/organizations", organizationRoutes);
   app.use("/api/iso-42001", isoRoutes);
+  app.use('/api/bias_and_fairness', biasAndFairnessRoutes());
 
   app.use("/api/reporting", reportRoutes);
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));

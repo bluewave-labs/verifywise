@@ -15,5 +15,5 @@ export const ReportType = Object.freeze({
   COMPLIANCE_REPORT: 'Compliance tracker report',
   CLAUSES_REPORT: 'Management system clauses group',
   ANNEXES_REPORT: 'Reference controls group',
-  ALL_REPORT: 'All report'
+  ALL_REPORT: 'All reports'
 });

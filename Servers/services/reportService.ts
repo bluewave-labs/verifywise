@@ -5,6 +5,7 @@ import { getVendorReportMarkdown } from "./markdowns/vendorAndRisksMarkdown";
 import { getAssessmentTrackerMarkdown } from './markdowns/assessmentTrackerMarkdown';
 import { getAnnexesMarkdown } from './markdowns/annexesMarkdown';
 import { getComplianceMarkdown } from './markdowns/complianceMarkdown';
+import { getAllReportMarkdown } from './markdowns/allReportMarkdown';
 import { getClausesMarkdown } from './markdowns/clausesMarkdown';
 
 export interface ReportBodyData {
@@ -102,6 +103,9 @@ export async function getReportData(
       break;
     case ReportType.COMPLIANCE_REPORT:
       markdownFormattedData = await getComplianceMarkdown(frameworkId, reportBody)
+      break;
+    case ReportType.ALL_REPORT:
+      markdownFormattedData = await getAllReportMarkdown(frameworkId, projectId, reportBody)
       break;
     case ReportType.CLAUSES_REPORT:
       markdownFormattedData = await getClausesMarkdown(frameworkId, reportBody)

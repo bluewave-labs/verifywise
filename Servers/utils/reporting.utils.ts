@@ -1,4 +1,3 @@
-import { ProjectRisk, ProjectRiskModel } from "../models/projectRisk.model";
 import { sequelize } from "../database/db";
 import {
   ProjectsMembers,
@@ -8,8 +7,6 @@ import { FileModel } from "../models/file.model";
 import { QueryTypes, Transaction } from "sequelize";
 import { getAllTopicsQuery, getAllSubTopicsQuery, getAllQuestionsQuery, getControlStructByControlCategoryIdForAProjectQuery, getAllControlCategoriesQuery, getControlByIdForProjectQuery, getControlByIdQuery, getSubControlsByIdQuery } from "./eu.utils";
 import { TopicStructEUModel } from "../models/EU/topicStructEU.model";
-import { getAllAnnexesWithCategoriesQuery, getAnnexCategoriesByIdQuery } from "./iso42001.utils";
-import transaction from "sequelize/types/transaction";
 import { AnnexStructISOModel } from "../models/ISO-42001/annexStructISO.model";
 import { ClauseStructISOModel } from "../models/ISO-42001/clauseStructISO.model";
 import { AnnexCategoryStructISOModel } from "../models/ISO-42001/annexCategoryStructISO.model";
@@ -18,17 +15,30 @@ import { ControlEUModel } from "../models/EU/controlEU.model";
 import { ControlStructEUModel } from "../models/EU/controlStructEU.model";
 
 
+/**
+ * Retrieves all project risk data from the `projectrisks` table,
+ * including the risk owner's name and surname from the `users` table.
+ *
+ * @param projectId - The ID of the project
+ * @returns projectRisks[] with risk_owner's name and surname
+ */
 export const getProjectRisksReportQuery = async (
   projectId: number
-): Promise<ProjectRisk[]> => {
-  const projectRisks = await sequelize.query(
-    "SELECT * FROM projectrisks WHERE project_id = :project_id ORDER BY created_at DESC, id ASC",
-    {
-      replacements: { project_id: projectId },
-      mapToModel: true,
-      model: ProjectRiskModel,
-    }
-  );
+) => {
+  const query = `
+    SELECT 
+      risk.*,       
+      u.name AS risk_owner_name,
+      u.surname AS risk_owner_surname
+    FROM projectrisks risk
+    LEFT JOIN users u ON risk.risk_owner = u.id
+    WHERE project_id = :project_id 
+    ORDER BY created_at DESC, id ASC
+  `;
+  const projectRisks = await sequelize.query(query, {
+    replacements: { project_id: projectId },
+    type: QueryTypes.SELECT,
+  });
   return projectRisks;
 };
 

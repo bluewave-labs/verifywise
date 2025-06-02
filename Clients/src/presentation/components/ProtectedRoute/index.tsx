@@ -4,7 +4,7 @@ import { ComponentType, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { setUserExists } from "../../../application/authentication/authSlice";
 import { getAllEntities } from "../../../application/repository/entity.repository"; // Import the checkUserExists function
-import VWToast from "../../vw-v2-components/Toast";
+import CustomizableToast from "../../vw-v2-components/Toast";
 
 interface ProtectedRouteProps {
   Component: ComponentType<any>;
@@ -55,7 +55,7 @@ const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
   }, [dispatch]);
 
   if (loading) {
-    return <VWToast title="Loading..." />; // Show a loading indicator while checking user existence
+    return <CustomizableToast title="Loading..." />; // Show a loading indicator while checking user existence
   }
 
   // Allow access to RegisterAdmin if no users exist in the database and the current route is "/admin-reg"

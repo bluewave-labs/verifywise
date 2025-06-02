@@ -1,14 +1,9 @@
-import React, {
-  useState,
-  useEffect,
-  useMemo,
-  forwardRef,
-} from "react";
+import React, { useState, useEffect, useMemo, forwardRef } from "react";
 import { Stack, Box, Typography, useTheme, Theme } from "@mui/material";
 import PageTour from "../../components/PageTour";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import FileSteps from "./FileSteps";
-import VWSkeleton from "../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../vw-v2-components/Skeletons";
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import { useUserFilesMetaData } from "../../../application/hooks/useUserFilesMetaData";
 import { useProjectData } from "../../../application/hooks/useFetchProjects";
@@ -16,7 +11,14 @@ import FileTable from "../../components/Table/FileTable/FileTable";
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
 import ProjectFilterDropdown from "../../components/Inputs/Dropdowns/ProjectFilter/ProjectFilterDropdown";
 
-const COLUMN_NAMES = ["File", "Project Name", "Upload Date", "Uploader", "Source", "Action"];
+const COLUMN_NAMES = [
+  "File",
+  "Project Name",
+  "Upload Date",
+  "Uploader",
+  "Source",
+  "Action",
+];
 
 interface Column {
   id: number;
@@ -47,10 +49,7 @@ const FileManager: React.FC = (): JSX.Element => {
   });
 
   // Fetch projects for the dropdown
-  const {
-    projects,
-    loading: loadingProjects,
-  } = useProjectData();
+  const { projects, loading: loadingProjects } = useProjectData();
 
   // State for selected project
   const [selectedProject, setSelectedProject] = useState<string | null>("all");
@@ -62,7 +61,7 @@ const FileManager: React.FC = (): JSX.Element => {
       return filesData;
     }
 
-    return filesData.filter((file) => file.projectId === selectedProject);  
+    return filesData.filter((file) => file.projectId === selectedProject);
   }, [filesData, selectedProject]);
 
   const boxStyles = useMemo(
@@ -97,7 +96,10 @@ const FileManager: React.FC = (): JSX.Element => {
       {loadingProjects || loadingFiles ? (
         <>
           <Typography>Loading projects...</Typography>
-          <VWSkeleton variant="rectangular" sx={filesTablePlaceholder} />
+          <CustomizableSkeleton
+            variant="rectangular"
+            sx={filesTablePlaceholder}
+          />
         </>
       ) : (
         <>

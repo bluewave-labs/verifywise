@@ -20,7 +20,7 @@ services:
     depends_on:
       postgresdb:
         condition: service_healthy
-    image: pharsh4585/verifywise-backend:latest
+    image: ghcr.io/bluewave-labs/verifywise-backend:latest
     pull_policy: always
     ports:
       - $BACKEND_PORT:$BACKEND_PORT
@@ -35,24 +35,19 @@ services:
       - JWT_SECRET=$JWT_SECRET
       - SMTP_HOST=smtp.gmail.com
       - SMTP_PORT=587
-      - FAIRNESS_AND_BIAS_URL=http://bias_and_fairness_backend:$BIAS_AND_FAIRNESS_PORT
+      - FAIRNESS_AND_BIAS_URL=http://bias_and_fairness_backend:8000
   frontend:
     depends_on:
       - backend
-    image: pharsh4585/verifywise-frontend:latest
+    image: ghcr.io/bluewave-labs/verifywise-frontend:latest
     pull_policy: always
-    # ports:
-    #   - $FRONTEND_PORT:80
-    # environment:
-    #   # backend URL
-    #   - VITE_APP_API_BASE_URL=$VITE_APP_API_HOST:$BACKEND_PORT
   bias_and_fairness_backend:
     depends_on:
       - backend
-    image: pharsh4585/verifywise-bias-and-fairness-backend:latest
+    image: ghcr.io/bluewave-labs/verifywise-bias-and-fairness-backend:latest
     # pull_policy: always
     ports:
-      - "${BIAS_AND_FAIRNESS_PORT}"
+      - "8000"
     environment:
       - DB_HOST=postgresdb
       - DB_USER=$DB_USER

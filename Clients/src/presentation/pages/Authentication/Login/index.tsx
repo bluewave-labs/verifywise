@@ -10,7 +10,7 @@ import { logEngine } from "../../../../application/tools/log.engine";
 import { useDispatch } from "react-redux";
 import { setAuthToken } from "../../../../application/authentication/authSlice";
 import { setExpiration } from "../../../../application/authentication/authSlice";
-import VWToast from "../../../vw-v2-components/Toast";
+import CustomizableToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 import { ENV_VARs } from "../../../../../env.vars";
 
@@ -26,7 +26,7 @@ interface FormValues {
 // Initial state for the form
 const initialState: FormValues = {
   email: isDemoApp ? "verifywise@email.com" : "",
-  password: isDemoApp ? "Verifywise#1": "",
+  password: isDemoApp ? "Verifywise#1" : "",
   rememberMe: false,
 };
 
@@ -165,7 +165,7 @@ const Login: React.FC = () => {
       )}
 
       {isSubmitting && (
-        <VWToast title="Processing your request. Please wait..." />
+        <CustomizableToast title="Processing your request. Please wait..." />
       )}
       <Background
         style={{

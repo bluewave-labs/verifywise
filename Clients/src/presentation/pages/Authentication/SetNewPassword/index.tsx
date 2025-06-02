@@ -15,7 +15,7 @@ import { validatePassword } from "../../../../application/validations/formValida
 import type { FormErrors } from "../../../../application/validations/formValidation";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
-import VWSkeleton from "../../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 
 interface ResetPasswordFormValues {
   password: string;
@@ -25,7 +25,7 @@ interface ResetPasswordFormValues {
 interface UserInfo {
   name: string;
   email: string;
-  expire: string | number;  // Allow both string and number since token might provide string
+  expire: string | number; // Allow both string and number since token might provide string
   role?: string;
   id?: any;
   iat?: string;
@@ -47,11 +47,17 @@ const SetNewPassword: React.FC = () => {
   const [values, setValues] = useState<ResetPasswordFormValues>(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isResetInvitationValid, setIsResetInvitationValid] = useState<boolean>(true);
+  const [isResetInvitationValid, setIsResetInvitationValid] =
+    useState<boolean>(true);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
 
   // Password validation
-  const passwordChecks = validatePassword({ ...values, name: "", surname: "", email: "" });
+  const passwordChecks = validatePassword({
+    ...values,
+    name: "",
+    surname: "",
+    email: "",
+  });
 
   // Validate password requirements
   const validatePasswordRequirements = (): string | null => {
@@ -80,20 +86,27 @@ const SetNewPassword: React.FC = () => {
   };
 
   // Handle input field changes
-  const handleChange = useCallback((prop: keyof ResetPasswordFormValues) =>
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setValues(prev => ({ ...prev, [prop]: event.target.value }));
-      setErrors(prev => ({ ...prev, [prop]: "" }));
-    }, []);
+  const handleChange = useCallback(
+    (prop: keyof ResetPasswordFormValues) =>
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        setValues((prev) => ({ ...prev, [prop]: event.target.value }));
+        setErrors((prev) => ({ ...prev, [prop]: "" }));
+      },
+    []
+  );
 
   // Validate reset invitation
-  const checkResetInvitation = useCallback((expDate: string | number): boolean => {
-    const currentTime = new Date().getTime();
-    const expirationTime = typeof expDate === 'string' ? parseInt(expDate, 10) : expDate;
-    const isValid = currentTime < expirationTime;
-    setIsResetInvitationValid(isValid);
-    return isValid;
-  }, []);
+  const checkResetInvitation = useCallback(
+    (expDate: string | number): boolean => {
+      const currentTime = new Date().getTime();
+      const expirationTime =
+        typeof expDate === "string" ? parseInt(expDate, 10) : expDate;
+      const isValid = currentTime < expirationTime;
+      setIsResetInvitationValid(isValid);
+      return isValid;
+    },
+    []
+  );
 
   // Handle form submission
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -109,7 +122,7 @@ const SetNewPassword: React.FC = () => {
 
       const response = await apiServices.post("/users/reset-password", {
         email: userInfo?.email,
-        newPassword: values.password
+        newPassword: values.password,
       });
 
       if (response.status === 202) {
@@ -121,7 +134,9 @@ const SetNewPassword: React.FC = () => {
       }
     } catch (error) {
       console.error("Password reset error:", error);
-      setErrors({ password: error instanceof Error ? error.message : "An error occurred" });
+      setErrors({
+        password: error instanceof Error ? error.message : "An error occurred",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -158,16 +173,16 @@ const SetNewPassword: React.FC = () => {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            justifyContent: "center"
+            justifyContent: "center",
           }}
         >
-          <VWSkeleton 
+          <CustomizableSkeleton
             sx={{
               width: "100%",
               height: "100%",
               position: "absolute",
               top: 0,
-              left: 0
+              left: 0,
             }}
           />
         </Stack>

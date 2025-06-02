@@ -11,12 +11,20 @@ import {
   UpdateMyOrganization,
 } from "../../../../application/repository/organization.repository";
 import CustomizableToast from "../../../vw-v2-components/Toast";
+import Alert from "../../../components/Alert";
 
 interface OrganizationData {
   firstname: string;
   lastname: string;
   email: string;
   pathToImage: string;
+}
+
+interface AlertState {
+  variant: "success" | "info" | "warning" | "error";
+  title?: string;
+  body: string;
+  isToast?: boolean;
 }
 
 const Organization = () => {
@@ -33,34 +41,46 @@ const Organization = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [organizationId, setOrganizationId] = useState<number | null>(null);
   const [organizationExists, setOrganizationExists] = useState(false);
+  const [alert, setAlert] = useState<AlertState | null>(null);
+
+  const fetchOrganization = useCallback(async () => {
+    try {
+      const organizations = await GetMyOrganization({
+        routeUrl: "/organizations",
+      });
+      if (
+        Array.isArray(organizations.data.data) &&
+        organizations.data.data.length > 0
+      ) {
+        const org = organizations.data.data[0];
+        setOrganizationId(org.id);
+        setOrganizationName(org.name || "");
+        setOrganizationLogo(org.logo || "/placeholder.svg?height=80&width=80");
+        setOrganizationExists(true);
+      } else {
+        setOrganizationExists(false);
+        setOrganizationId(null);
+        setOrganizationName("");
+        setOrganizationLogo("/placeholder.svg?height=80&width=80");
+      }
+    } catch (error) {
+      setOrganizationExists(false);
+      setOrganizationId(null);
+      setOrganizationName("");
+      setOrganizationLogo("/placeholder.svg?height=80&width=80");
+    }
+  }, []);
 
   useEffect(() => {
-    async function fetchOrganization() {
-      try {
-        const organizations = await GetMyOrganization({
-          routeUrl: "/organizations",
-        });
-        if (
-          Array.isArray(organizations.data.data) &&
-          organizations.data.data.length > 0
-        ) {
-          const org = organizations.data.data[0];
-          setOrganizationId(org.id);
-          setOrganizationName(org.name || "");
-          setOrganizationLogo(
-            org.logo || "/placeholder.svg?height=80&width=80"
-          );
-          setOrganizationExists(true);
-        } else {
-          setOrganizationExists(false);
-        }
-      } catch (error) {
-        console.error("Failed to fetch organization:", error);
-        setOrganizationExists(false);
-      }
-    }
     fetchOrganization();
-  }, []);
+  }, [fetchOrganization]);
+
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => setAlert(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
 
   const handleOrganizationNameChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
@@ -103,14 +123,30 @@ const Organization = () => {
               : null,
         },
       });
-      console.log("Organization created successfully:", response);
+      setShowToast(false);
+      setAlert({
+        variant: "success",
+        title: "Organization Created",
+        body: "The organization was created successfully.",
+        isToast: false,
+      });
       if (response && response.id) {
         setOrganizationId(response.id);
+        setOrganizationName(response.name || "");
+        setOrganizationLogo(
+          response.logo || "/placeholder.svg?height=80&width=80"
+        );
+        setOrganizationExists(true);
       }
-      setShowToast(false);
+      await fetchOrganization();
     } catch (error) {
-      console.error("Error creating organization:", error);
       setShowToast(false);
+      setAlert({
+        variant: "error",
+        title: "Error",
+        body: "Failed to create organization.",
+        isToast: false,
+      });
     }
   };
 
@@ -137,11 +173,29 @@ const Organization = () => {
               : null,
         },
       });
-      console.log("Organization updated successfully:", response);
       setShowToast(false);
+      setAlert({
+        variant: "success",
+        title: "Organization Updated",
+        body: "The organization was updated successfully.",
+        isToast: false,
+      });
+      if (response && response.id) {
+        setOrganizationId(response.id);
+        setOrganizationName(response.name || "");
+        setOrganizationLogo(
+          response.logo || "/placeholder.svg?height=80&width=80"
+        );
+      }
+      await fetchOrganization();
     } catch (error) {
-      console.error("Error updating organization:", error);
       setShowToast(false);
+      setAlert({
+        variant: "error",
+        title: "Error",
+        body: "Failed to update organization.",
+        isToast: false,
+      });
     }
   };
 
@@ -178,6 +232,15 @@ const Organization = () => {
   return (
     <Stack className="organization-container" sx={{ mt: 3, maxWidth: 790 }}>
       {showToast && <CustomizableToast />}
+      {alert && (
+        <Alert
+          variant={alert.variant}
+          title={alert.title}
+          body={alert.body}
+          isToast={false}
+          onClick={() => setAlert(null)}
+        />
+      )}
       <Stack
         className="organization-form"
         sx={{

@@ -5,6 +5,8 @@ import SaveIcon from "@mui/icons-material/Save";
 import { useState, useRef, useCallback, ChangeEvent } from "react";
 import Avatar from "../../../components/Avatar/VWAvatar/index";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
+import { CreateMyOrganization } from "../../../../application/repository/organization.repository";
+import CustomizableToast from "../../../vw-v2-components/Toast";
 
 interface OrganizationData {
   firstname: string;
@@ -22,6 +24,7 @@ const Organization = () => {
   const [organizationLogo, setOrganizationLogo] = useState<string>(
     "/placeholder.svg?height=80&width=80"
   );
+  const [showToast, setShowToast] = useState(false);
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -44,7 +47,7 @@ const Organization = () => {
     []
   );
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!organizationName.trim()) {
       console.log("Validation error: Organization name is required");
       return;
@@ -53,8 +56,21 @@ const Organization = () => {
       console.log("Validation error:", organizationNameError);
       return;
     }
-    console.log("Organization Name:", organizationName);
-    console.log("Organization Logo:", organizationLogo);
+
+    setShowToast(true);
+    try {
+      const response = await CreateMyOrganization({
+        routeUrl: "/organizations",
+        body: {
+          name: organizationName,
+        },
+      });
+      console.log("Organization created successfully:", response);
+      setShowToast(false);
+    } catch (error) {
+      console.error("Error creating organization:", error);
+      setShowToast(false);
+    }
   };
 
   const handleFileChange = useCallback(
@@ -89,6 +105,7 @@ const Organization = () => {
 
   return (
     <Stack className="organization-container" sx={{ mt: 3, maxWidth: 790 }}>
+      {showToast && <CustomizableToast />}
       <Stack
         className="organization-form"
         sx={{

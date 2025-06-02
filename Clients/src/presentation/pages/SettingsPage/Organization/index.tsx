@@ -8,6 +8,7 @@ import { checkStringValidation } from "../../../../application/validations/strin
 import {
   CreateMyOrganization,
   GetMyOrganization,
+  UpdateMyOrganization,
 } from "../../../../application/repository/organization.repository";
 import CustomizableToast from "../../../vw-v2-components/Toast";
 
@@ -30,6 +31,8 @@ const Organization = () => {
   const [showToast, setShowToast] = useState(false);
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [organizationId, setOrganizationId] = useState<number | null>(null);
+  const [organizationExists, setOrganizationExists] = useState(false);
 
   useEffect(() => {
     async function fetchOrganization() {
@@ -42,13 +45,18 @@ const Organization = () => {
           organizations.data.data.length > 0
         ) {
           const org = organizations.data.data[0];
+          setOrganizationId(org.id);
           setOrganizationName(org.name || "");
           setOrganizationLogo(
             org.logo || "/placeholder.svg?height=80&width=80"
           );
+          setOrganizationExists(true);
+        } else {
+          setOrganizationExists(false);
         }
       } catch (error) {
         console.error("Failed to fetch organization:", error);
+        setOrganizationExists(false);
       }
     }
     fetchOrganization();
@@ -73,7 +81,7 @@ const Organization = () => {
     []
   );
 
-  const handleSave = async () => {
+  const handleCreate = async () => {
     if (!organizationName.trim()) {
       console.log("Validation error: Organization name is required");
       return;
@@ -89,12 +97,50 @@ const Organization = () => {
         routeUrl: "/organizations",
         body: {
           name: organizationName,
+          logo:
+            organizationLogo !== "/placeholder.svg?height=80&width=80"
+              ? organizationLogo
+              : null,
         },
       });
       console.log("Organization created successfully:", response);
+      if (response && response.id) {
+        setOrganizationId(response.id);
+      }
       setShowToast(false);
     } catch (error) {
       console.error("Error creating organization:", error);
+      setShowToast(false);
+    }
+  };
+
+  const handleUpdate = async () => {
+    if (!organizationName.trim()) {
+      console.log("Validation error: Organization name is required");
+      return;
+    }
+    if (organizationNameError) {
+      console.log("Validation error:", organizationNameError);
+      return;
+    }
+    if (!organizationId) return;
+
+    setShowToast(true);
+    try {
+      const response = await UpdateMyOrganization({
+        routeUrl: `/organizations/${organizationId}`,
+        body: {
+          name: organizationName,
+          logo:
+            organizationLogo !== "/placeholder.svg?height=80&width=80"
+              ? organizationLogo
+              : null,
+        },
+      });
+      console.log("Organization updated successfully:", response);
+      setShowToast(false);
+    } catch (error) {
+      console.error("Error updating organization:", error);
       setShowToast(false);
     }
   };
@@ -158,19 +204,36 @@ const Organization = () => {
             />
             <CustomizableButton
               variant="contained"
-              text="Save"
+              text="Create"
               sx={{
                 width: 90,
                 backgroundColor: "#13715B",
-                border: isSaveDisabled
-                  ? "1px solid rgba(0, 0, 0, 0.26)"
-                  : "1px solid #13715B",
+                border: "1px solid #13715B",
+                gap: 2,
+                mt: 3,
+                mr: 2,
+              }}
+              icon={<SaveIcon />}
+              onClick={handleCreate}
+              isDisabled={
+                organizationExists || isSaveDisabled || !!organizationNameError
+              }
+            />
+            <CustomizableButton
+              variant="contained"
+              text="Update"
+              sx={{
+                width: 90,
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
                 gap: 2,
                 mt: 3,
               }}
               icon={<SaveIcon />}
-              onClick={handleSave}
-              isDisabled={isSaveDisabled || !!organizationNameError}
+              onClick={handleUpdate}
+              isDisabled={
+                !organizationId || isSaveDisabled || !!organizationNameError
+              }
             />
           </Stack>
           <Box

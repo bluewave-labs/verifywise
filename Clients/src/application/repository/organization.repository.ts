@@ -53,3 +53,28 @@ export async function CreateMyOrganization({
     throw error;
   }
 }
+
+/**
+ * Updates the current user's organization details.
+ *
+ * @param {RequestParams} params - The parameters for updating the organization.
+ * @returns {Promise<any>} A promise that resolves to the updated organization data.
+ * @throws Will throw an error if the update operation fails.
+ */
+export async function UpdateMyOrganization({
+  routeUrl = "/organizations",
+  body,
+  authToken = getAuthToken(),
+  headers,
+}: RequestParams): Promise<any> {
+  try {
+    const response = await apiServices.patch(routeUrl, body, {
+      headers: { Authorization: `Bearer ${authToken}`, ...headers },
+    });
+    console.log("Organization updated successfully:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating organization:", error);
+    throw error;
+  }
+}

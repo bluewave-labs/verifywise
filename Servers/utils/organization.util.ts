@@ -81,14 +81,12 @@ export const createOrganizationQuery = async (
   transaction: Transaction
 ): Promise<Organization> => {
   const result = await sequelize.query(
-    `INSERT INTO organizations(name, logo, members, projects, created_at) 
-     VALUES (:name, :logo, :members, :projects, :created_at) RETURNING *`,
+    `INSERT INTO organizations(name, logo, created_at) 
+     VALUES (:name, :logo, :created_at) RETURNING *`,
     {
       replacements: {
         name: organization.name,
         logo: organization.logo || null,
-        members: organization.members || [],
-        projects: organization.projects || [],
         created_at: new Date(),
       },
       mapToModel: true,

@@ -2,8 +2,16 @@ import { Stack, useTheme, Typography, Box, Divider } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
-import { useState, useRef, useCallback, ChangeEvent } from "react";
+import { useState, useRef, useCallback, ChangeEvent, useEffect } from "react";
 import Avatar from "../../../components/Avatar/VWAvatar/index";
+import { checkStringValidation } from "../../../../application/validations/stringValidation";
+import {
+  CreateMyOrganization,
+  GetMyOrganization,
+  UpdateMyOrganization,
+} from "../../../../application/repository/organization.repository";
+import CustomizableToast from "../../../vw-v2-components/Toast";
+import Alert from "../../../components/Alert";
 
 interface OrganizationData {
   firstname: string;
@@ -12,18 +20,183 @@ interface OrganizationData {
   pathToImage: string;
 }
 
+interface AlertState {
+  variant: "success" | "info" | "warning" | "error";
+  title?: string;
+  body: string;
+  isToast?: boolean;
+}
+
 const Organization = () => {
-  const [isSaveDisabled, _] = useState(false);
+  const [isSaveDisabled, setIsSaveDisabled] = useState(true);
   const [organizationName, setOrganizationName] = useState("");
+  const [organizationNameError, setOrganizationNameError] = useState<
+    string | null
+  >(null);
   const [organizationLogo, setOrganizationLogo] = useState<string>(
     "/placeholder.svg?height=80&width=80"
   );
+  const [showToast, setShowToast] = useState(false);
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [organizationId, setOrganizationId] = useState<number | null>(null);
+  const [organizationExists, setOrganizationExists] = useState(false);
+  const [alert, setAlert] = useState<AlertState | null>(null);
 
-  const handleSave = () => {
-    console.log("Organization Name:", organizationName);
-    console.log("Organization Logo:", organizationLogo);
+  const fetchOrganization = useCallback(async () => {
+    try {
+      const organizations = await GetMyOrganization({
+        routeUrl: "/organizations",
+      });
+      if (
+        Array.isArray(organizations.data.data) &&
+        organizations.data.data.length > 0
+      ) {
+        const org = organizations.data.data[0];
+        setOrganizationId(org.id);
+        setOrganizationName(org.name || "");
+        setOrganizationLogo(org.logo || "/placeholder.svg?height=80&width=80");
+        setOrganizationExists(true);
+      } else {
+        setOrganizationExists(false);
+        setOrganizationId(null);
+        setOrganizationName("");
+        setOrganizationLogo("/placeholder.svg?height=80&width=80");
+      }
+    } catch (error) {
+      setOrganizationExists(false);
+      setOrganizationId(null);
+      setOrganizationName("");
+      setOrganizationLogo("/placeholder.svg?height=80&width=80");
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchOrganization();
+  }, [fetchOrganization]);
+
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => setAlert(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
+
+  const handleOrganizationNameChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setOrganizationName(value);
+
+      const validation = checkStringValidation(
+        "Organization name",
+        value,
+        2,
+        50,
+        false,
+        false
+      );
+      setOrganizationNameError(validation.accepted ? null : validation.message);
+      setIsSaveDisabled(!value.trim());
+    },
+    []
+  );
+
+  const handleCreate = async () => {
+    if (!organizationName.trim()) {
+      console.log("Validation error: Organization name is required");
+      return;
+    }
+    if (organizationNameError) {
+      console.log("Validation error:", organizationNameError);
+      return;
+    }
+
+    setShowToast(true);
+    try {
+      const response = await CreateMyOrganization({
+        routeUrl: "/organizations",
+        body: {
+          name: organizationName,
+          logo:
+            organizationLogo !== "/placeholder.svg?height=80&width=80"
+              ? organizationLogo
+              : null,
+        },
+      });
+      setShowToast(false);
+      setAlert({
+        variant: "success",
+        title: "Organization Created",
+        body: "The organization was created successfully.",
+        isToast: false,
+      });
+      if (response && response.id) {
+        setOrganizationId(response.id);
+        setOrganizationName(response.name || "");
+        setOrganizationLogo(
+          response.logo || "/placeholder.svg?height=80&width=80"
+        );
+        setOrganizationExists(true);
+      }
+      await fetchOrganization();
+    } catch (error) {
+      setShowToast(false);
+      setAlert({
+        variant: "error",
+        title: "Error",
+        body: "Failed to create organization.",
+        isToast: false,
+      });
+    }
+  };
+
+  const handleUpdate = async () => {
+    if (!organizationName.trim()) {
+      console.log("Validation error: Organization name is required");
+      return;
+    }
+    if (organizationNameError) {
+      console.log("Validation error:", organizationNameError);
+      return;
+    }
+    if (!organizationId) return;
+
+    setShowToast(true);
+    try {
+      const response = await UpdateMyOrganization({
+        routeUrl: `/organizations/${organizationId}`,
+        body: {
+          name: organizationName,
+          logo:
+            organizationLogo !== "/placeholder.svg?height=80&width=80"
+              ? organizationLogo
+              : null,
+        },
+      });
+      setShowToast(false);
+      setAlert({
+        variant: "success",
+        title: "Organization Updated",
+        body: "The organization was updated successfully.",
+        isToast: false,
+      });
+      if (response && response.id) {
+        setOrganizationId(response.id);
+        setOrganizationName(response.name || "");
+        setOrganizationLogo(
+          response.logo || "/placeholder.svg?height=80&width=80"
+        );
+      }
+      await fetchOrganization();
+    } catch (error) {
+      setShowToast(false);
+      setAlert({
+        variant: "error",
+        title: "Error",
+        body: "Failed to update organization.",
+        isToast: false,
+      });
+    }
   };
 
   const handleFileChange = useCallback(
@@ -46,7 +219,11 @@ const Organization = () => {
   }, []);
 
   const organizationData: OrganizationData = {
-    firstname: organizationName,
+    firstname: organizationName
+      .split(" ")
+      .slice(0, 2)
+      .map((word) => word.charAt(0))
+      .join(""),
     lastname: "",
     email: "",
     pathToImage: organizationLogo,
@@ -54,6 +231,16 @@ const Organization = () => {
 
   return (
     <Stack className="organization-container" sx={{ mt: 3, maxWidth: 790 }}>
+      {showToast && <CustomizableToast />}
+      {alert && (
+        <Alert
+          variant={alert.variant}
+          title={alert.title}
+          body={alert.body}
+          isToast={false}
+          onClick={() => setAlert(null)}
+        />
+      )}
       <Stack
         className="organization-form"
         sx={{
@@ -74,23 +261,42 @@ const Organization = () => {
               id="Organization name"
               label="Organization name"
               value={organizationName}
-              onChange={(e) => setOrganizationName(e.target.value)}
-              sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
+              onChange={handleOrganizationNameChange}
+              sx={{ mb: 2, backgroundColor: "#FFFFFF" }}
+              error={organizationNameError || undefined}
             />
             <CustomizableButton
               variant="contained"
-              text="Save"
+              text="Create"
               sx={{
                 width: 90,
                 backgroundColor: "#13715B",
-                border: isSaveDisabled
-                  ? "1px solid rgba(0, 0, 0, 0.26)"
-                  : "1px solid #13715B",
+                border: "1px solid #13715B",
                 gap: 2,
+                mt: 3,
+                mr: 2,
               }}
               icon={<SaveIcon />}
-              onClick={handleSave}
-              isDisabled={isSaveDisabled}
+              onClick={handleCreate}
+              isDisabled={
+                organizationExists || isSaveDisabled || !!organizationNameError
+              }
+            />
+            <CustomizableButton
+              variant="contained"
+              text="Update"
+              sx={{
+                width: 90,
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
+                gap: 2,
+                mt: 3,
+              }}
+              icon={<SaveIcon />}
+              onClick={handleUpdate}
+              isDisabled={
+                !organizationId || isSaveDisabled || !!organizationNameError
+              }
             />
           </Stack>
           <Box

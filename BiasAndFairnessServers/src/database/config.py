@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     db_user: str
@@ -11,4 +11,4 @@ class Settings(BaseSettings):
     def sqlalchemy_database_url(self):
         return f"postgresql://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
 
-settings = Settings()
+settings = Settings() # type: ignore

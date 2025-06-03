@@ -28,7 +28,7 @@ async def lifespan(app_: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 # enable CORS
-origins = [os.environ.get("BACKEND_URL")]
+origins = [os.environ.get("BACKEND_URL") or "http://localhost:3000"]
 
 app.add_middleware(
     CORSMiddleware,

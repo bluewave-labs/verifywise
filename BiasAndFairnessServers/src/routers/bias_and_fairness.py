@@ -10,7 +10,12 @@ async def upload_model(
     target_column: str = Form(...), 
     sensitive_column: str = Form(...), 
 ):
-    return await handle_upload_controller(model, data, target_column, sensitive_column)
+    return await handle_upload_controller(
+        model=model,
+        data=data,
+        target_column=target_column,
+        sensitive_column=sensitive_column
+    )
 
 @router.get("/metrics/{id}")
 async def get_metrics(id: int):

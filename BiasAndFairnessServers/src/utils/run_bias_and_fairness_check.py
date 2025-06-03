@@ -13,7 +13,7 @@ from fairlearn.metrics import (
 from sklearn.metrics import accuracy_score, classification_report
 import json
 
-def analyze_fairness(model_content, data_content, target_column, sensitive_column):
+def analyze_fairness(model_content: bytes, data_content: bytes, target_column: str, sensitive_column: str):
     # Load the trained pipeline model
     model = joblib.load(io.BytesIO(model_content))
 

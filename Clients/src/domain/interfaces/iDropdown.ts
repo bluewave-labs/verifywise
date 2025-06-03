@@ -1,5 +1,5 @@
 export interface ProjectFilterDropdownProps {
   projects: { id: string; name: string }[];
-  selectedProject: string | null;
-  onChange: (projectId: string | null) => void;
+  selectedProject: string | number | null;
+  onChange: (projectId: string | number | null) => void;
 }

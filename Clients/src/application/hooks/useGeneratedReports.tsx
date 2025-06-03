@@ -16,7 +16,7 @@ export interface GeneratedReports {
   filename: string,
   type: string,
   uploaded_time: string,
-  project_id: any,
+  project_id: string | number | null,
   project_title: string,
   source: string,
   uploader_name: string,

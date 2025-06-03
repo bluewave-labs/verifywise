@@ -3,7 +3,7 @@ import { Stack, Box, Typography } from '@mui/material';
 const ReportTable = lazy(() => import('../../../components/Table/ReportTable'));
 import { VerifyWiseContext } from '../../../../application/contexts/VerifyWise.context';
 import { TITLE_OF_COLUMNS } from './constants';
-import useGeneratedReports from '../../../../application/hooks/useGeneratedReports';
+import useGeneratedReports, { GeneratedReports } from '../../../../application/hooks/useGeneratedReports';
 import {styles} from './styles';
 import { deleteEntityById } from '../../../../application/repository/entity.repository';
 import { handleAlert } from '../../../../application/tools/alertUtils';
@@ -22,7 +22,7 @@ const Reports = () => {
     body: string;
   } | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [selectedProject, setSelectedProject] = useState<any>("all");
+  const [selectedProject, setSelectedProject] = useState<string | number | null>("all");
   
   const {
     projects,
@@ -33,7 +33,7 @@ const Reports = () => {
     generatedReports
   } = useGeneratedReports({ projectId, refreshKey });
 
-  const [filterReports, setFilterReports] = useState<any[]>(generatedReports);
+  const [filteredReports, setFilteredReports] = useState<GeneratedReports[]>(generatedReports);
 
   const handleToast = (type: any, message: string) => {
     handleAlert({
@@ -75,7 +75,7 @@ const Reports = () => {
       : generatedReports.filter(
       (report) => String(report?.project_id) === String(selectedProject)
     );
-    setFilterReports(filterReports);
+    setFilteredReports(filterReports);
   }, [selectedProject, generatedReports]);
 
   return (
@@ -111,7 +111,7 @@ const Reports = () => {
           <Suspense fallback={<div>Loading...</div>}>
             <ReportTable
               columns={TITLE_OF_COLUMNS}
-              rows={filterReports}
+              rows={filteredReports}
               removeReport={handleRemoveReport}
               setCurrentPagingation={setCurrentPagingation}
               page={currentPage}

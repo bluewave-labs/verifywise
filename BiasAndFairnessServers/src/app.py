@@ -2,30 +2,17 @@ import os
 import dotenv
 dotenv.load_dotenv()
 
-import logging
 from fastapi import FastAPI
-from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from routers.bias_and_fairness import router as bias_and_fairness
 from alembic.config import Config
 from alembic import command
 
-log = logging.getLogger("uvicorn")
-
 def run_migrations():
     alembic_cfg = Config("alembic.ini")
     command.upgrade(alembic_cfg, "head")
 
-@asynccontextmanager
-async def lifespan(app_: FastAPI):
-    log.info("Starting up...")
-    log.info("run alembic upgrade head...")
-    run_migrations()
-    yield
-    log.info("Shutting down...")
-
-
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(on_startup=[run_migrations])
 
 # enable CORS
 origins = [os.environ.get("BACKEND_URL") or "http://localhost:3000"]

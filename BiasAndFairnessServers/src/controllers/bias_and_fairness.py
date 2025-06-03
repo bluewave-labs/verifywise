@@ -1,9 +1,23 @@
 import json
 from fastapi.responses import JSONResponse
-from crud.bias_and_fairness import upload_model, upload_data, insert_metrics, get_metrics_by_id
+from crud.bias_and_fairness import upload_model, upload_data, insert_metrics, get_metrics_by_id, get_all_metrics_query
 from utils.run_bias_and_fairness_check import analyze_fairness
 from database.db import get_db
 from fastapi import UploadFile
+
+def get_all_metrics():
+    """
+    Retrieve all fairness metrics.
+    """
+    try:
+        with get_db() as db:
+            metrics = get_all_metrics_query(db)
+            return metrics
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Failed to retrieve metrics, {str(e)}"}
+        )
 
 def get_metrics(id: int):
     """
@@ -46,7 +60,7 @@ async def handle_upload(model: UploadFile, data: UploadFile, target_column: str,
             upload_model_record = upload_model(content=model_content, name=model_filename, db=db)
 
             if not upload_model_record:
-                raise Exception("failes to upload model file")
+                raise Exception("failed to upload model file")
 
             upload_data_record = upload_data(
                 content=data_content,

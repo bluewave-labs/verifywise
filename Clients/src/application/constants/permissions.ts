@@ -24,6 +24,11 @@ const allowedRoles = {
         manage: ['Admin', 'Editor'],
         audit: [ 'Auditor']
     },
+    organizations: {
+        view: ['Admin', 'Editor', 'Auditor'],
+        create: ['Admin'],
+        edit: ['Admin'],    
+    },
 }
 
 export default allowedRoles;

@@ -1,6 +1,6 @@
 import { Stack, useTheme, Typography, Box, Divider } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
-import VWButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import { useState, useRef, useCallback, ChangeEvent } from "react";
 import Avatar from "../../../components/Avatar/VWAvatar/index";
@@ -77,7 +77,7 @@ const Organization = () => {
               onChange={(e) => setOrganizationName(e.target.value)}
               sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
             />
-            <VWButton
+            <CustomizableButton
               variant="contained"
               text="Save"
               sx={{

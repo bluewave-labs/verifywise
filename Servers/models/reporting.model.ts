@@ -13,7 +13,7 @@ export const ReportType = Object.freeze({
   VENDOR_REPORT: 'Vendors and risks report',
   ASSESSMENT_REPORT: 'Assessment tracker report',
   COMPLIANCE_REPORT: 'Compliance tracker report',
-  CLAUSES_REPORT: 'Clause report',
-  ANNEXES_REPORT: 'Annexes report',
-  ALL_REPORT: 'All report'
+  CLAUSES_REPORT: 'Management system clauses group',
+  ANNEXES_REPORT: 'Reference controls group',
+  ALL_REPORT: 'All reports'
 });

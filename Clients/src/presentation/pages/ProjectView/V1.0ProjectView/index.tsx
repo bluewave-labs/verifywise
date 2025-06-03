@@ -11,12 +11,12 @@ import { SyntheticEvent, useContext, useState } from "react";
 import TabContext from "@mui/lab/TabContext";
 import VWProjectOverview from "./Overview";
 import { useSearchParams } from "react-router-dom";
-import VWSkeleton from "../../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 import VWProjectRisks from "./ProjectRisks";
 import ProjectSettings from "../ProjectSettings";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import ProjectFrameworks from "../ProjectFrameworks";
-import VWToast from '../../../vw-v2-components/Toast';
+import CustomizableToast from "../../../vw-v2-components/Toast";
 import allowedRoles from "../../../../application/constants/permissions";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
@@ -28,7 +28,10 @@ const VWProjectView = () => {
   const { project } = useProjectData({ projectId, refreshKey });
 
   const [value, setValue] = useState("overview");
-  const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: '', visible: false });
+  const [toast, setToast] = useState<{ message: string; visible: boolean }>({
+    message: "",
+    visible: false,
+  });
 
   const handleChange = (_: SyntheticEvent, newValue: string) => {
     setValue(newValue);
@@ -39,14 +42,14 @@ const VWProjectView = () => {
       setRefreshKey((prevKey) => prevKey + 1); // send refresh trigger to projectdata hook
       if (toastMessage) {
         setToast({ message: toastMessage, visible: true });
-        setTimeout(() => setToast({ message: '', visible: false }), 3000);
+        setTimeout(() => setToast({ message: "", visible: false }), 3000);
       }
     }
   };
 
   return (
     <Stack className="vw-project-view" overflow={"hidden"}>
-      {toast.visible && <VWToast title={toast.message} />}
+      {toast.visible && <CustomizableToast title={toast.message} />}
       <Stack className="vw-project-view-header" sx={{ mb: 10 }}>
         {project ? (
           <>
@@ -60,8 +63,8 @@ const VWProjectView = () => {
           </>
         ) : (
           <>
-            <VWSkeleton variant="text" width="60%" height={32} />
-            <VWSkeleton variant="text" width="80%" height={24} />
+            <CustomizableSkeleton variant="text" width="60%" height={32} />
+            <CustomizableSkeleton variant="text" width="80%" height={24} />
           </>
         )}
       </Stack>
@@ -108,7 +111,11 @@ const VWProjectView = () => {
               <VWProjectOverview project={project} />
             ) : (
               // <></>
-              <VWSkeleton variant="rectangular" width="100%" height={400} />
+              <CustomizableSkeleton
+                variant="rectangular"
+                width="100%"
+                height={400}
+              />
             )}
           </TabPanel>
           <TabPanel value="project-risks" sx={tabPanelStyle}>
@@ -116,15 +123,26 @@ const VWProjectView = () => {
               // Render project risks content here
               <VWProjectRisks />
             ) : (
-              <VWSkeleton variant="rectangular" width="100%" height={400} />
+              <CustomizableSkeleton
+                variant="rectangular"
+                width="100%"
+                height={400}
+              />
             )}
           </TabPanel>
           <TabPanel value="frameworks" sx={tabPanelStyle}>
             {project ? (
               // Render frameworks content here
-              <ProjectFrameworks project={project} triggerRefresh={handleRefresh} />
+              <ProjectFrameworks
+                project={project}
+                triggerRefresh={handleRefresh}
+              />
             ) : (
-              <VWSkeleton variant="rectangular" width="100%" height={400} />
+              <CustomizableSkeleton
+                variant="rectangular"
+                width="100%"
+                height={400}
+              />
             )}
           </TabPanel>
           <TabPanel value="settings" sx={tabPanelStyle}>
@@ -132,7 +150,11 @@ const VWProjectView = () => {
               // Render settings content here
               <ProjectSettings triggerRefresh={handleRefresh} />
             ) : (
-              <VWSkeleton variant="rectangular" width="100%" height={400} />
+              <CustomizableSkeleton
+                variant="rectangular"
+                width="100%"
+                height={400}
+              />
             )}
           </TabPanel>
         </TabContext>

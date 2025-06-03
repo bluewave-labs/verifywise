@@ -36,9 +36,9 @@ import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import AddNewRisk from "../../components/Modals/NewRisk";
-import VWButton from "../../vw-v2-components/Buttons";
-import VWSkeleton from "../../vw-v2-components/Skeletons";
-import VWToast from "../../vw-v2-components/Toast";
+import CustomizableButton from "../../vw-v2-components/Buttons";
+import CustomizableSkeleton from "../../vw-v2-components/Skeletons";
+import CustomizableToast from "../../vw-v2-components/Toast";
 import { Project } from "../../../domain/types/Project";
 import RisksCard from "../../components/Cards/RisksCard";
 import { vwhomeHeading } from "../Home/1.0Home/style";
@@ -89,9 +89,7 @@ const Vendors = () => {
   );
   const [selectedRisk, setSelectedRisk] = useState<ExistingRisk | null>(null);
   const [controller, setController] = useState<AbortController | null>(null);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
-    null
-  );
+  const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
   const [selectedVendorId, setSelectedVendorId] = useState<string>("all");
   const {
     vendorRisksSummary,
@@ -113,8 +111,9 @@ const Vendors = () => {
     countToTrigger: 1,
   });
 
-  const isCreatingDisabled = !allowedRoles.vendors.create.includes(userRoleName)
-  const isDeletingAllowed = allowedRoles.vendors.delete.includes(userRoleName)
+  const isCreatingDisabled =
+    !allowedRoles.vendors.create.includes(userRoleName);
+  const isDeletingAllowed = allowedRoles.vendors.delete.includes(userRoleName);
 
   const createAbortController = () => {
     if (controller) {
@@ -140,7 +139,7 @@ const Vendors = () => {
         const response = await getAllEntities({ routeUrl: "/projects" });
         if (response?.data && response.data.length > 0) {
           setProjects(response.data);
-          setSelectedProjectId(response.data[0].id?.toString() ?? null); // Default to first project as string
+          setSelectedProjectId("all"); // Always default to 'all' after fetching
         }
       } catch (error) {
         console.error("Failed to fetch projects:", error);
@@ -475,7 +474,6 @@ const Vendors = () => {
                 create and manage all vendor risks here.
               </Typography>
             </Stack>
-
           </>
         )}
         <TabContext value={value}>
@@ -494,12 +492,16 @@ const Vendors = () => {
           </Box>
           {value !== "1" &&
             (loadingVendorRisks || isVendorsLoading ? (
-              <VWSkeleton variant="rectangular" width="50%" height={100} />
+              <CustomizableSkeleton
+                variant="rectangular"
+                width="50%"
+                height={100}
+              />
             ) : (
               <RisksCard risksSummary={vendorRisksSummary} />
             ))}
           {isVendorsLoading && value === "1" ? (
-            <VWSkeleton
+            <CustomizableSkeleton
               variant="rectangular"
               width={"15%"}
               height={35}
@@ -507,7 +509,12 @@ const Vendors = () => {
             />
           ) : (
             value === "1" && (
-              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
+              >
                 <Select
                   id="projects"
                   value={selectedProjectId ?? ""}
@@ -526,7 +533,7 @@ const Vendors = () => {
                   }}
                 />
                 <div data-joyride-id="add-new-vendor" ref={refs[0]}>
-                  <VWButton
+                  <CustomizableButton
                     variant="contained"
                     text="Add new vendor"
                     sx={{
@@ -547,7 +554,7 @@ const Vendors = () => {
           )}
 
           {(loadingVendorRisks || isVendorsLoading) && value !== "1" ? (
-            <VWSkeleton
+            <CustomizableSkeleton
               variant="rectangular"
               width={"15%"}
               height={35}
@@ -555,7 +562,12 @@ const Vendors = () => {
             />
           ) : (
             value !== "1" && (
-              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
+              >
                 <Stack direction="row" gap={8} alignItems="center">
                   <Select
                     id="projects"
@@ -592,7 +604,7 @@ const Vendors = () => {
                     }}
                   />
                 </Stack>
-                <VWButton
+                <CustomizableButton
                   variant="contained"
                   text="Add new Risk"
                   sx={{
@@ -612,7 +624,7 @@ const Vendors = () => {
           )}
 
           {isVendorsLoading && value === "1" ? (
-            <VWSkeleton
+            <CustomizableSkeleton
               height={"20vh"}
               minHeight={"20vh"}
               minWidth={260}
@@ -631,7 +643,7 @@ const Vendors = () => {
             </TabPanel>
           )}
           {(loadingVendorRisks || isVendorsLoading) && value !== "1" ? (
-            <VWSkeleton
+            <CustomizableSkeleton
               height={"20vh"}
               minHeight={"20vh"}
               minWidth={260}
@@ -673,7 +685,7 @@ const Vendors = () => {
         vendors={vendors}
       />
       {isSubmitting && (
-        <VWToast title="Processing your request. Please wait..." />
+        <CustomizableToast title="Processing your request. Please wait..." />
       )}
     </div>
   );

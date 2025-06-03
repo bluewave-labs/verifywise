@@ -10,13 +10,9 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import {
-  listItemStyle,
-  subHeadingStyle,
-  topicsListStyle,
-} from "./index.style";
+import { listItemStyle, subHeadingStyle, topicsListStyle } from "./index.style";
 import StatsCard from "../../../components/Cards/StatsCard";
-import VWSkeleton from "../../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 import Questions from "./questions";
 import useAssessmentProgress from "../../../../application/hooks/useAssessmentProgress";
 import useAssessmentTopics from "../../../../application/hooks/useAssessmentTopcis";
@@ -42,7 +38,8 @@ const AssessmentTracker = ({ project }: { project: Project }) => {
       refreshKey,
     });
 
-  const { assessmentTopics, loading: loadingAssessmentTopics } = useAssessmentTopics();
+  const { assessmentTopics, loading: loadingAssessmentTopics } =
+    useAssessmentTopics();
   const { assessmentSubtopics, loading: loadingAssessmentSubtopic } =
     useAssessmentSubtopics({
       activeAssessmentTopicId: assessmentTopics?.[activeTab]?.id,
@@ -136,7 +133,7 @@ const AssessmentTracker = ({ project }: { project: Project }) => {
           ref={refs[0]}
         >
           {loadingAssessmentProgress ? (
-            <VWSkeleton
+            <CustomizableSkeleton
               height={82}
               minHeight={82}
               minWidth={300}
@@ -169,7 +166,7 @@ const AssessmentTracker = ({ project }: { project: Project }) => {
             </Typography>
             <List>
               {loadingAssessmentTopics ? (
-                <VWSkeleton
+                <CustomizableSkeleton
                   height={30}
                   minHeight={30}
                   minWidth={260}
@@ -196,7 +193,7 @@ const AssessmentTracker = ({ project }: { project: Project }) => {
             sx={{ overflowY: "auto" }}
           >
             {loadingAssessmentSubtopic ? (
-              <VWSkeleton
+              <CustomizableSkeleton
                 height={30}
                 minHeight={30}
                 minWidth={260}

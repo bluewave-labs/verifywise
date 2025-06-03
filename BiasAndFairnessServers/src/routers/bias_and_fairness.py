@@ -18,5 +18,5 @@ async def upload_model(
     )
 
 @router.get("/metrics/{id}")
-async def get_metrics(id: int):
-    return await get_metrics_controller(id)
+def get_metrics(id: int):
+    return get_metrics_controller(id)

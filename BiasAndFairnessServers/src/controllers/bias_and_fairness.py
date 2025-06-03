@@ -5,24 +5,19 @@ from utils.run_bias_and_fairness_check import analyze_fairness
 from database.db import get_db
 from fastapi import UploadFile
 
-async def get_metrics(id: int):
+def get_metrics(id: int):
     """
     Retrieve metrics for a given fairness run ID.
     """
     try:
         with get_db() as db:
-            metrics = await get_metrics_by_id(id, db)
+            metrics = get_metrics_by_id(id, db)
             if not metrics:
                 return JSONResponse(
                     status_code=404,
                     content={"error": "Metrics not found"}
                 )
-            return {
-                "model_id": metrics.model_id,
-                "data_id": metrics.data_id,
-                "metrics_id": metrics.metrics_id,
-                "metrics": json.loads(metrics.metrics)
-            }
+            return metrics
     except Exception as e:
         return JSONResponse(
             status_code=500,
@@ -48,12 +43,12 @@ async def handle_upload(model: UploadFile, data: UploadFile, target_column: str,
             if not model_filename or not data_filename:
                 raise ValueError("model or data file name is empty")
 
-            upload_model_record = await upload_model(content=model_content, name=model_filename, db=db)
+            upload_model_record = upload_model(content=model_content, name=model_filename, db=db)
 
             if not upload_model_record:
                 raise Exception("failes to upload model file")
 
-            upload_data_record = await upload_data(
+            upload_data_record = upload_data(
                 content=data_content,
                 name=data_filename,
                 target_column=target_column,
@@ -72,7 +67,7 @@ async def handle_upload(model: UploadFile, data: UploadFile, target_column: str,
                 sensitive_column=sensitive_column
             )
             
-            metrics = await insert_metrics(json.dumps(result), upload_data_record.id, db)
+            metrics = insert_metrics(json.dumps(result), upload_data_record.id, db)
             if not metrics:
                 raise Exception("failed to insert metrics")
             

@@ -55,7 +55,7 @@ const FileManager: React.FC = (): JSX.Element => {
   } = useProjects();
 
   // State for selected project
-  const [selectedProject, setSelectedProject] = useState<string | null>("all");
+  const [selectedProject, setSelectedProject] = useState<string | number | null>("all");
 
   // Fetch files based on selected project
   const { filesData, loading: loadingFiles } = useUserFilesMetaData();

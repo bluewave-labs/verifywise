@@ -1,8 +1,22 @@
-import { Stack, useTheme, Typography, Box, Divider, Tooltip } from "@mui/material";
+import {
+  Stack,
+  useTheme,
+  Typography,
+  Box,
+  Divider,
+  Tooltip,
+} from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
-import { useState, useRef, useCallback, ChangeEvent, useEffect, useContext } from "react";
+import {
+  useState,
+  useRef,
+  useCallback,
+  ChangeEvent,
+  useEffect,
+  useContext,
+} from "react";
 import Avatar from "../../../components/Avatar/VWAvatar/index";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import {
@@ -31,8 +45,10 @@ interface AlertState {
 
 const Organization = () => {
   const { userRoleName } = useContext(VerifyWiseContext);
-  const isEditingDisabled = !allowedRoles.organizations.edit.includes(userRoleName);
-  const isCreatingDisabled = !allowedRoles.organizations.create.includes(userRoleName);
+  const isEditingDisabled =
+    !allowedRoles.organizations.edit.includes(userRoleName);
+  const isCreatingDisabled =
+    !allowedRoles.organizations.create.includes(userRoleName);
   const [isSaveDisabled, setIsSaveDisabled] = useState(true);
   const [organizationName, setOrganizationName] = useState("");
   const [organizationNameError, setOrganizationNameError] = useState<
@@ -47,6 +63,7 @@ const Organization = () => {
   const [organizationId, setOrganizationId] = useState<number | null>(null);
   const [organizationExists, setOrganizationExists] = useState(false);
   const [alert, setAlert] = useState<AlertState | null>(null);
+  const [hasChanges, setHasChanges] = useState(false);
 
   const fetchOrganization = useCallback(async () => {
     try {
@@ -62,17 +79,20 @@ const Organization = () => {
         setOrganizationName(org.name || "");
         setOrganizationLogo(org.logo || "/placeholder.svg?height=80&width=80");
         setOrganizationExists(true);
+        setHasChanges(false);
       } else {
         setOrganizationExists(false);
         setOrganizationId(null);
         setOrganizationName("");
         setOrganizationLogo("/placeholder.svg?height=80&width=80");
+        setHasChanges(false);
       }
     } catch (error) {
       setOrganizationExists(false);
       setOrganizationId(null);
       setOrganizationName("");
       setOrganizationLogo("/placeholder.svg?height=80&width=80");
+      setHasChanges(false);
     }
   }, []);
 
@@ -91,6 +111,7 @@ const Organization = () => {
     (e: ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
       setOrganizationName(value);
+      setHasChanges(true);
 
       const validation = checkStringValidation(
         "Organization name",
@@ -101,7 +122,7 @@ const Organization = () => {
         false
       );
       setOrganizationNameError(validation.accepted ? null : validation.message);
-      setIsSaveDisabled(!value.trim());
+      setIsSaveDisabled(!value.trim() || !validation.accepted);
     },
     []
   );
@@ -142,6 +163,7 @@ const Organization = () => {
           response.logo || "/placeholder.svg?height=80&width=80"
         );
         setOrganizationExists(true);
+        setHasChanges(false);
       }
       await fetchOrganization();
     } catch (error) {
@@ -191,6 +213,7 @@ const Organization = () => {
         setOrganizationLogo(
           response.logo || "/placeholder.svg?height=80&width=80"
         );
+        setHasChanges(false);
       }
       await fetchOrganization();
     } catch (error) {
@@ -210,6 +233,7 @@ const Organization = () => {
       if (file) {
         const newLogoUrl = URL.createObjectURL(file);
         setOrganizationLogo(newLogoUrl);
+        setHasChanges(true);
       }
     },
     []
@@ -221,6 +245,7 @@ const Organization = () => {
 
   const handleDeleteLogo = useCallback((): void => {
     setOrganizationLogo("/placeholder.svg?height=80&width=80");
+    setHasChanges(true);
   }, []);
 
   const organizationData: OrganizationData = {
@@ -270,27 +295,11 @@ const Organization = () => {
               sx={{ mb: 2, backgroundColor: "#FFFFFF" }}
               error={organizationNameError || undefined}
               disabled={isEditingDisabled}
+              placeholder="e.g. My Organization"
             />
             <CustomizableButton
               variant="contained"
-              text="Create"
-              sx={{
-                width: 90,
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-                mt: 3,
-                mr: 2,
-              }}
-              icon={<SaveIcon />}
-              onClick={handleCreate}
-              isDisabled={
-                organizationExists || isSaveDisabled || !!organizationNameError || isCreatingDisabled
-              }
-            />
-            <CustomizableButton
-              variant="contained"
-              text="Update"
+              text="Save"
               sx={{
                 width: 90,
                 backgroundColor: "#13715B",
@@ -299,9 +308,12 @@ const Organization = () => {
                 mt: 3,
               }}
               icon={<SaveIcon />}
-              onClick={handleUpdate}
+              onClick={organizationExists ? handleUpdate : handleCreate}
               isDisabled={
-                !organizationId || isSaveDisabled || !!organizationNameError || isEditingDisabled
+                isSaveDisabled ||
+                !!organizationNameError ||
+                (organizationExists ? isEditingDisabled : isCreatingDisabled) ||
+                (!hasChanges && organizationExists)
               }
             />
           </Stack>
@@ -335,7 +347,7 @@ const Organization = () => {
                 style={{ display: "none" }}
                 accept="image/*"
                 onChange={handleFileChange}
-                disabled={isEditingDisabled}                
+                disabled={isEditingDisabled}
               />
               <Stack
                 direction="row"
@@ -343,14 +355,21 @@ const Organization = () => {
                 alignItems={"center"}
                 sx={{ paddingTop: theme.spacing(10) }}
               >
-                <Tooltip title="Only administrators are permitted to delete the organization's logo." disableHoverListener={!isEditingDisabled}>
+                <Tooltip
+                  title="Only administrators are permitted to delete the organization's logo."
+                  disableHoverListener={!isEditingDisabled}
+                >
                   <span>
                     <Typography
                       sx={{
                         color: "#667085",
                         cursor: isEditingDisabled ? "not-allowed" : "pointer",
                         textDecoration: "none",
-                        "&:hover": { textDecoration: isEditingDisabled ? "none" : "underline" },
+                        "&:hover": {
+                          textDecoration: isEditingDisabled
+                            ? "none"
+                            : "underline",
+                        },
                         fontSize: 13,
                         opacity: isEditingDisabled ? 0.6 : 1,
                       }}
@@ -360,14 +379,21 @@ const Organization = () => {
                     </Typography>
                   </span>
                 </Tooltip>
-                <Tooltip title="Only administrators are permitted to update the organization's logo." disableHoverListener={!isEditingDisabled}>
+                <Tooltip
+                  title="Only administrators are permitted to update the organization's logo."
+                  disableHoverListener={!isEditingDisabled}
+                >
                   <span>
                     <Typography
                       sx={{
                         color: "#13715B",
                         cursor: isEditingDisabled ? "not-allowed" : "pointer",
                         textDecoration: "none",
-                        "&:hover": { textDecoration: isEditingDisabled ? "none" : "underline" },
+                        "&:hover": {
+                          textDecoration: isEditingDisabled
+                            ? "none"
+                            : "underline",
+                        },
                         paddingLeft: theme.spacing(5),
                         fontSize: 13,
                         opacity: isEditingDisabled ? 0.6 : 1,

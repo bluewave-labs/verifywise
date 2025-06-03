@@ -372,7 +372,7 @@ const Organization = () => {
                         fontSize: 13,
                         opacity: isEditingDisabled ? 0.6 : 1,
                       }}
-                      onClick={handleUpdateLogo}
+                      onClick={isEditingDisabled ? undefined : handleUpdateLogo}
                     >
                       Update
                     </Typography>

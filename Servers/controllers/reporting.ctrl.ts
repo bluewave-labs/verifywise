@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { uploadFile } from "../utils/fileUpload.utils";
 import {
-  getReportData,  
+  getReportData,
   getFormattedReportName,
 } from "../services/reportService";
 import {
@@ -168,20 +168,14 @@ export async function deleteGeneratedReportById(
       return res.status(404).json(STATUS_CODE[404]("Report not found"));
     }
 
-    const authorizedUser = await isAuthorizedUser(report.project_id, userId); // check whether the user is authorized to delete the report or not
-
-    if (authorizedUser) {
-      const deletedReport = await deleteReportByIdQuery(reportId, transaction);
-      if (deletedReport) {
-        await transaction.commit();
-        return res.status(200).json(STATUS_CODE[200](deletedReport));
-      }
-      return res.status(204).json(STATUS_CODE[204](deletedReport));
-    } else {
-      return res
-        .status(403)
-        .json(STATUS_CODE[403]("Unauthorized user to delete the report."));
+    const deletedReport = await deleteReportByIdQuery(reportId, transaction);
+    if (deletedReport) {
+      await transaction.commit();
+      return res.status(200).json(STATUS_CODE[200](deletedReport));
     }
+    await transaction.rollback();
+    return res.status(204).json(STATUS_CODE[204](deletedReport));
+
   } catch (error) {
     await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

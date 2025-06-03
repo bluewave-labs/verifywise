@@ -1,6 +1,24 @@
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+def get_all_metrics_query(db: Session):
+    """
+    Retrieve all fairness metrics.
+    """
+    result = db.execute(
+        text("""
+            SELECT 
+                f.id AS model_id,
+                f.name AS model_filename,
+                d.id AS data_id,
+                d.name AS _data_filename,
+                r.id AS metrics_id
+            FROM model_files f JOIN model_data d ON f.id = d.model_id
+                JOIN fairness_runs r ON r.data_id = d.id;""")
+    )
+    rows = result.mappings().all()
+    return rows
+
 def get_metrics_by_id(id: int, db: Session):
     """
     Retrieve metrics for a given fairness run ID.

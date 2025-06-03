@@ -2,15 +2,11 @@ import os
 import dotenv
 dotenv.load_dotenv()
 
-import logging
 from fastapi import FastAPI
-from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from routers.bias_and_fairness import router as bias_and_fairness
 from alembic.config import Config
 from alembic import command
-
-log = logging.getLogger("uvicorn")
 
 def run_migrations():
     alembic_cfg = Config("alembic.ini")

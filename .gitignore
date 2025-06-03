@@ -5,8 +5,8 @@
 .env.dev
 .env.prod
 
-__pycache__/
-*.pyc
+**/__pycache__/
+
 venv/
 
 .vscode/settings.json

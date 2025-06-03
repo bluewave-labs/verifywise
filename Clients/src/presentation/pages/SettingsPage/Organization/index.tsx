@@ -1,8 +1,8 @@
-import { Stack, useTheme, Typography, Box, Divider } from "@mui/material";
+import { Stack, useTheme, Typography, Box, Divider, Tooltip } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
-import { useState, useRef, useCallback, ChangeEvent, useEffect } from "react";
+import { useState, useRef, useCallback, ChangeEvent, useEffect, useContext } from "react";
 import Avatar from "../../../components/Avatar/VWAvatar/index";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import {
@@ -12,6 +12,8 @@ import {
 } from "../../../../application/repository/organization.repository";
 import CustomizableToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import allowedRoles from "../../../../application/constants/permissions";
 
 interface OrganizationData {
   firstname: string;
@@ -28,6 +30,9 @@ interface AlertState {
 }
 
 const Organization = () => {
+  const { userRoleName } = useContext(VerifyWiseContext);
+  const isEditingDisabled = !allowedRoles.organizations.edit.includes(userRoleName);
+  const isCreatingDisabled = !allowedRoles.organizations.create.includes(userRoleName);
   const [isSaveDisabled, setIsSaveDisabled] = useState(true);
   const [organizationName, setOrganizationName] = useState("");
   const [organizationNameError, setOrganizationNameError] = useState<
@@ -264,6 +269,7 @@ const Organization = () => {
               onChange={handleOrganizationNameChange}
               sx={{ mb: 2, backgroundColor: "#FFFFFF" }}
               error={organizationNameError || undefined}
+              disabled={isEditingDisabled}
             />
             <CustomizableButton
               variant="contained"
@@ -279,7 +285,7 @@ const Organization = () => {
               icon={<SaveIcon />}
               onClick={handleCreate}
               isDisabled={
-                organizationExists || isSaveDisabled || !!organizationNameError
+                organizationExists || isSaveDisabled || !!organizationNameError || isCreatingDisabled
               }
             />
             <CustomizableButton
@@ -295,7 +301,7 @@ const Organization = () => {
               icon={<SaveIcon />}
               onClick={handleUpdate}
               isDisabled={
-                !organizationId || isSaveDisabled || !!organizationNameError
+                !organizationId || isSaveDisabled || !!organizationNameError || isEditingDisabled
               }
             />
           </Stack>
@@ -329,6 +335,7 @@ const Organization = () => {
                 style={{ display: "none" }}
                 accept="image/*"
                 onChange={handleFileChange}
+                disabled={isEditingDisabled}                
               />
               <Stack
                 direction="row"
@@ -336,31 +343,41 @@ const Organization = () => {
                 alignItems={"center"}
                 sx={{ paddingTop: theme.spacing(10) }}
               >
-                <Typography
-                  sx={{
-                    color: "#667085",
-                    cursor: "pointer",
-                    textDecoration: "none",
-                    "&:hover": { textDecoration: "underline" },
-                    fontSize: 13,
-                  }}
-                  onClick={handleDeleteLogo}
-                >
-                  Delete
-                </Typography>
-                <Typography
-                  sx={{
-                    color: "#13715B",
-                    cursor: "pointer",
-                    textDecoration: "none",
-                    "&:hover": { textDecoration: "underline" },
-                    paddingLeft: theme.spacing(5),
-                    fontSize: 13,
-                  }}
-                  onClick={handleUpdateLogo}
-                >
-                  Update
-                </Typography>
+                <Tooltip title="Only administrators are permitted to delete the organization's logo." disableHoverListener={!isEditingDisabled}>
+                  <span>
+                    <Typography
+                      sx={{
+                        color: "#667085",
+                        cursor: isEditingDisabled ? "not-allowed" : "pointer",
+                        textDecoration: "none",
+                        "&:hover": { textDecoration: isEditingDisabled ? "none" : "underline" },
+                        fontSize: 13,
+                        opacity: isEditingDisabled ? 0.6 : 1,
+                      }}
+                      onClick={isEditingDisabled ? undefined : handleDeleteLogo}
+                    >
+                      Delete
+                    </Typography>
+                  </span>
+                </Tooltip>
+                <Tooltip title="Only administrators are permitted to update the organization's logo." disableHoverListener={!isEditingDisabled}>
+                  <span>
+                    <Typography
+                      sx={{
+                        color: "#13715B",
+                        cursor: isEditingDisabled ? "not-allowed" : "pointer",
+                        textDecoration: "none",
+                        "&:hover": { textDecoration: isEditingDisabled ? "none" : "underline" },
+                        paddingLeft: theme.spacing(5),
+                        fontSize: 13,
+                        opacity: isEditingDisabled ? 0.6 : 1,
+                      }}
+                      onClick={isEditingDisabled ? undefined : handleUpdateLogo}
+                    >
+                      Update
+                    </Typography>
+                  </span>
+                </Tooltip>
               </Stack>
             </Stack>
           </Box>

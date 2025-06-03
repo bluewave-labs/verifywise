@@ -20,7 +20,7 @@ import CustomizableToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 import { logEngine } from "../../../../application/tools/log.engine";
 import ProjectForm from "../../../vw-v2-components/Forms/ProjectForm";
-import { useProjectData } from "../../../../application/hooks/useFetchProjects";
+import { useProjects } from "../../../../application/hooks/useProjects";
 import { AlertState } from "../../../../application/interfaces/appStates";
 import PageTour from "../../../components/PageTour";
 import HomeSteps from "./HomeSteps";
@@ -43,7 +43,7 @@ const Home = () => {
   const [showToastNotification, setShowToastNotification] =
     useState<boolean>(false);
 
-  const { projects, fetchProjects } = useProjectData();
+  const { projects, fetchProjects } = useProjects();
 
   const [runHomeTour, setRunHomeTour] = useState(false);
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({

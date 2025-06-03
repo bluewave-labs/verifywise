@@ -15,9 +15,12 @@ export interface GeneratedReports {
   id: number;
   filename: string,
   type: string,
-  date: string,
-  generated_by: number,
-  project: string
+  uploaded_time: string,
+  project_id: any,
+  project_title: string,
+  source: string,
+  uploader_name: string,
+  uploader_surname: string
 }
 
 interface UseGeneratedReportsParams {

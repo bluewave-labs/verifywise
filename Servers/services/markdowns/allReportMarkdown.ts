@@ -87,12 +87,12 @@ Project risk report
 -------------
 ${projectReportMarkdown}
 
-## Vendor and vendor risk report
+Vendor and vendor risk report
 -------------
 ${vendorReportMarkdown}
 ${vendorRiskReportMarkdown}
 
-## Clauses and annexes report
+Clauses and annexes report
 -------------
 ${clausesAndAnnexesMarkdown}
 

@@ -1,0 +1,40 @@
+### get all annexes
+
+GET http://localhost:3000/api/iso-42001/annexes/struct/byProjectId/2
+
+### get all annexes
+
+GET http://localhost:3000/api/iso-42001/annexes
+
+### get all annex categories by annex id
+
+GET http://localhost:3000/api/iso-42001/annexes/byProjectId/2
+
+### get all annexes by project id
+
+GET http://localhost:3000/api/iso-42001/annexCategories/byAnnexId/1
+
+### get annex category by id
+
+GET http://localhost:3000/api/iso-42001/annexCategory/byId/1?projectFrameworkId=2
+
+
+###### CLAUSES
+
+### get all clauses
+
+GET http://localhost:3000/api/iso-42001/clauses/struct/byProjectId/2
+
+### get subclause by id
+
+GET http://localhost:3000/api/iso-42001/subClause/byId/1?projectFrameworkId=2
+
+### get subclauses by clause id
+
+GET http://localhost:3000/api/iso-42001/subClauses/byClauseId/1
+
+### get subclause by id
+
+GET http://localhost:3000/api/iso-42001/subClause/byId/1?projectFrameworkId=2
+
+

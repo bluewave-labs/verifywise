@@ -15,7 +15,7 @@ import type {
   FormValues,
   FormErrors,
 } from "../../../../application/validations/formValidation";
-import VWToast from "../../../vw-v2-components/Toast";
+import CustomizableToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 import { useDispatch } from "react-redux";
 import {
@@ -31,14 +31,13 @@ const initialState: FormValues = {
   email: "",
   password: "",
   confirmPassword: "",
-  role: 1,
+  roleId: 1,
 };
 
 const RegisterAdmin: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { dashboardValues } = useContext(VerifyWiseContext);
-  const users = dashboardValues?.users || [];
+  const { users } = useContext(VerifyWiseContext);
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
   // State for form errors
@@ -190,7 +189,7 @@ const RegisterAdmin: React.FC = () => {
         </Suspense>
       )}
       {isSubmitting && (
-        <VWToast title="Processing your request. Please wait..." />
+        <CustomizableToast title="Processing your request. Please wait..." />
       )}
       <Background
         style={{

@@ -15,7 +15,7 @@ import type {
 import useRegisterUser from "../../../../application/hooks/useRegisterUser";
 import { useNavigate } from "react-router-dom";
 import { logEngine } from "../../../../application/tools/log.engine";
-import VWToast from "../../../vw-v2-components/Toast";
+import CustomizableToast from "../../../vw-v2-components/Toast";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { useSearchParams } from "react-router-dom";
 import { handleAlert } from "../../../../application/tools/alertUtils";
@@ -72,7 +72,7 @@ const RegisterUser: React.FC = () => {
       id: "At register level as user",
       firstname: values.name || "",
       lastname: values.surname || "",
-      role: Number(values.role) || 1,
+      roleId: Number(values.roleId) || 1,
     };
     const { isFormValid, errors } = validateForm(values);
     if (!isFormValid) {
@@ -87,10 +87,15 @@ const RegisterUser: React.FC = () => {
       if (isSuccess === 201) {
         setValues(initialState);
         setErrors({});
+        handleAlert({
+          variant: "success",
+          body: "Registration successful. Redirecting to login page...",
+          setAlert,
+        });
         setTimeout(() => {
           navigate("/login");
           setIsSubmitting(false);
-        }, 3000);
+        }, 2000);
       } else {
         logEngine({
           type: "error",
@@ -142,7 +147,7 @@ const RegisterUser: React.FC = () => {
             ...initialState,
             name: userInfo.name ?? "",
             email: userInfo.email ?? "",
-            role: Number(userInfo.role) ?? 1,
+            roleId: Number(userInfo.roleId) ?? 1,
           };
           setValues(userData);
         }
@@ -173,7 +178,7 @@ const RegisterUser: React.FC = () => {
 
       {/* Toast component */}
       {isSubmitting && (
-        <VWToast title="Processing your request. Please wait..." />
+        <CustomizableToast title="Processing your request. Please wait..." />
       )}
       <Background
         style={{

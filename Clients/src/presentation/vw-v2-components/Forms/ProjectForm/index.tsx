@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import { ClearIcon } from "@mui/x-date-pickers/icons";
 import { Suspense, useCallback, useContext, useMemo, useState } from "react";
-import VWButton from "../../Buttons";
+import CustomizableButton from "../../Buttons";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import Field from "../../../components/Inputs/Field";
 import {
@@ -22,12 +22,13 @@ import {
 } from "./style";
 import Select from "../../../components/Inputs/Select";
 import useUsers from "../../../../application/hooks/useUsers";
+import useFrameworks from "../../../../application/hooks/useFrameworks";
 import DatePicker from "../../../components/Inputs/Datepicker";
 import dayjs, { Dayjs } from "dayjs";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import selectValidation from "../../../../application/validations/selectValidation";
 import { createNewUser } from "../../../../application/repository/entity.repository";
-import VWToast from "../../Toast";
+import CustomizableToast from "../../Toast";
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { useSelector } from "react-redux";
@@ -41,14 +42,15 @@ import {
 } from "./constants";
 import { FormValues } from "./constants";
 import { initialState } from "./constants";
-import { VWProjectFormProps } from "./constants";
+import { ProjectFormProps } from "./constants";
 
-const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
+const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
   const theme = useTheme();
   const { setProjects } = useContext(VerifyWiseContext);
   const [values, setValues] = useState<FormValues>(initialState);
   const [errors, setErrors] = useState<FormErrors>({});
   const { users } = useUsers();
+  const { allFrameworks } = useFrameworks({ listOfFrameworks: [] });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [memberRequired, setMemberRequired] = useState<boolean>(false);
   const authState = useSelector(
@@ -189,6 +191,9 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
             last_updated_by: userInfo?.id,
             members: teamMember,
             enable_ai_data_insertion: values.enable_ai_data_insertion,
+            framework: values.monitored_regulations_and_standards.map(
+              (fw) => fw._id
+            ),
           },
         });
 
@@ -239,7 +244,7 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
             zIndex: 9999,
           }}
         >
-          <VWToast title="Creating project. Please wait..." />
+          <CustomizableToast title="Creating project. Please wait..." />
         </Stack>
       )}
 
@@ -346,13 +351,18 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
                 multiple
                 id="users-input"
                 size="small"
-                value={values.members}
+                value={values.members.map((user) => ({
+                  _id: Number(user._id),
+                  name: user.name,
+                  surname: user.surname,
+                  email: user.email,
+                }))}
                 options={
                   users
                     ?.filter(
                       (user) =>
                         !values.members.some(
-                          (selectedUser) => selectedUser._id === user.id
+                          (selectedUser) => selectedUser._id === String(user.id)
                         )
                     )
                     .map((user) => ({
@@ -418,6 +428,94 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
                 </Typography>
               )}
             </Stack>
+            <Stack>
+              <Typography
+                sx={{
+                  fontSize: theme.typography.fontSize,
+                  fontWeight: 500,
+                  mb: 2,
+                }}
+              >
+                Monitored regulations and standards *
+              </Typography>
+              <Autocomplete
+                multiple
+                id="monitored-regulations-and-standards-input"
+                size="small"
+                value={values.monitored_regulations_and_standards}
+                options={allFrameworks.map((fw) => ({
+                  _id: Number(fw.id),
+                  name: fw.name,
+                }))}
+                onChange={handleOnMultiSelect(
+                  "monitored_regulations_and_standards"
+                )}
+                getOptionLabel={(item) => item.name}
+                noOptionsText={
+                  values.monitored_regulations_and_standards.length ===
+                  allFrameworks.length
+                    ? "All regulations selected"
+                    : "No options"
+                }
+                renderOption={(props, option) => {
+                  const isComingSoon = option.name.includes("coming soon");
+                  return (
+                    <Box
+                      component="li"
+                      {...props}
+                      sx={{
+                        opacity: isComingSoon ? 0.5 : 1,
+                        cursor: isComingSoon ? "not-allowed" : "pointer",
+                        "&:hover": {
+                          backgroundColor: isComingSoon
+                            ? "transparent"
+                            : undefined,
+                        },
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: "13px",
+                          color: isComingSoon
+                            ? "text.secondary"
+                            : "text.primary",
+                        }}
+                      >
+                        {option.name}
+                      </Typography>
+                    </Box>
+                  );
+                }}
+                isOptionEqualToValue={(option, value) =>
+                  option._id === value._id
+                }
+                getOptionDisabled={(option) =>
+                  option.name.includes("coming soon")
+                }
+                filterSelectedOptions
+                popupIcon={<KeyboardArrowDown />}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Select regulations and standards"
+                    sx={teamMembersRenderInputStyle}
+                  />
+                )}
+                sx={{
+                  backgroundColor: theme.palette.background.main,
+                  ...teamMembersSxStyle,
+                }}
+                slotProps={teamMembersSlotProps}
+              />
+              {memberRequired && (
+                <Typography
+                  variant="caption"
+                  sx={{ mt: 4, color: "#f04438", fontWeight: 300 }}
+                >
+                  {errors.members}
+                </Typography>
+              )}
+            </Stack>
           </Suspense>
           <DatePicker
             label="Start date"
@@ -460,7 +558,7 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
           justifyContent: "flex-end",
         }}
       >
-        <VWButton
+        <CustomizableButton
           text="Create project"
           sx={createProjectButtonStyle}
           icon={<AddCircleOutlineIcon />}
@@ -471,4 +569,4 @@ const VWProjectForm = ({ sx, onClose }: VWProjectFormProps) => {
   );
 };
 
-export default VWProjectForm;
+export default ProjectForm;

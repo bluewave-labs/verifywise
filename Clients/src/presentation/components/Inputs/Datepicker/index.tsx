@@ -16,6 +16,7 @@ const DatePicker = ({
   date,
   error,
   handleDateChange,
+  disabled=false,
 }: DatePickerProps) => {
   const theme = useTheme();
 
@@ -75,7 +76,7 @@ const DatePicker = ({
         </Typography>
       )}
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <MuiDatePicker
+        <MuiDatePicker        
           className="mui-date-picker"
           sx={{
             ...DatePickerStyle,
@@ -84,6 +85,7 @@ const DatePicker = ({
           value={date ? dayjs(date) : null}
           onChange={(value) => handleDateChange(value)}
           format="MM/DD/YYYY"
+          disabled={disabled}
         />
       </LocalizationProvider>
       {error && (

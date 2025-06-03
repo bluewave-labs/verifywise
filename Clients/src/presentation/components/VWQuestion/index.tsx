@@ -20,6 +20,7 @@ import { FileData } from "../../../domain/types/File";
 import { useSelector } from "react-redux";
 import Button from "../Button";
 import Select from "../Inputs/Select";
+import allowedRoles from "../../../application/constants/permissions";
 
 interface QuestionProps {
   question: Question;
@@ -28,7 +29,7 @@ interface QuestionProps {
 }
 
 /**
- * VWQuestion Component
+ * QuestionFrame Component
  *
  * This component renders a question with its associated details, including the ability to edit the answer,
  * manage evidence files, and display priority levels. It also provides functionality to save updates
@@ -40,15 +41,23 @@ interface QuestionProps {
  * hint, priority level, and evidence files.
  *
  * Usage:
- * <VWQuestion question={questionObject} />
+ * <QuestionFrame question={questionObject} />
  */
-const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps) => {
-  const { userId } = useContext(VerifyWiseContext);
+const QuestionFrame = ({
+  question,
+  setRefreshKey,
+  currentProjectId,
+}: QuestionProps) => {
+  const { userId, userRoleName } = useContext(VerifyWiseContext);
   const [values, setValues] = useState<Question>(question);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
 
   const authToken = useSelector((state: any) => state.auth.authToken);
   const [alert, setAlert] = useState<AlertProps | null>(null);
+
+  const isEditingDisabled = !(allowedRoles?.frameworks?.edit || []).includes(
+    userRoleName
+  );
 
   const STATUS_OPTIONS = [
     { _id: "notStarted", name: "Not started" },
@@ -100,7 +109,7 @@ const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps
 
   const handleSave = async () => {
     console.log(
-      "VWQuestion: Saving answer for question",
+      "QuestionFrame: Saving answer for question",
       question.question_id,
       "project:",
       currentProjectId,
@@ -160,21 +169,17 @@ const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps
     }
     formData.append("delete", JSON.stringify([fileIdNumber]));
     formData.append("question_id", question.question_id?.toString() || "");
-    formData.append("user_id", userId);
+    formData.append("user_id", String(userId));
     if (currentProjectId) {
       formData.append("project_id", currentProjectId.toString());
     }
     try {
-      const response = await apiServices.post(
-        "/files",
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const response = await apiServices.post("/files", formData, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       if (response.status === 201 && response.data) {
         const newEvidenceFiles =
@@ -243,6 +248,7 @@ const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps
               width: 175,
               height: 24,
             }}
+            disabled={isEditingDisabled}
           />
           <Chip
             label={question.priority_level}
@@ -272,6 +278,7 @@ const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps
           },
         }}
         initialContent={question.answer}
+        isEditable={!isEditingDisabled}
       />
       <Stack
         sx={{
@@ -289,7 +296,12 @@ const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps
             gap: 4,
           }}
         >
-          <Button variant="contained" disableRipple onClick={handleSave}>
+          <Button
+            variant="contained"
+            disableRipple
+            onClick={handleSave}
+            disabled={isEditingDisabled}
+          >
             Save
           </Button>
           <Button
@@ -302,6 +314,7 @@ const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps
             }}
             disableRipple
             onClick={() => setIsFileUploadOpen(true)}
+            disabled={isEditingDisabled}
           >
             Add/Remove evidence
           </Button>
@@ -342,4 +355,4 @@ const VWQuestion = ({ question, setRefreshKey, currentProjectId }: QuestionProps
   );
 };
 
-export default VWQuestion;
+export default QuestionFrame;

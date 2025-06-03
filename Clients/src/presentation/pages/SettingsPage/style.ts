@@ -8,9 +8,10 @@ export const tabContainerStyle = {
 export const settingTabStyle = {
   textTransform: "none",
   fontWeight: 400,
-  alignItems: "flex-start",
+  alignItems: "center",
   justifyContent: "flex-end",
   padding: "16px 0 7px",
+  minWidth: "auto",
   minHeight: "20px",
   "&.Mui-selected": {
     color: "#13715B",

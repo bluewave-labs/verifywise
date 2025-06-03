@@ -18,7 +18,7 @@ import { useCallback, useEffect, useState, useContext } from "react";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import { Control } from "../../../../domain/types/Control";
 import { User } from "../../../../domain/types/User";
-import VWSkeleton from "../../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 import NewControlPane from "../../../components/Modals/Controlpane/NewControlPane";
 import Alert from "../../../components/Alert";
 import { StyledTableRow, AlertBox, styles } from "./styles";
@@ -46,8 +46,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   projectId,
   projectFrameworkId,
 }) => {
-  const { dashboardValues } = useContext(VerifyWiseContext);
-  const { users } = dashboardValues;
+  const { users } = useContext(VerifyWiseContext);
   const currentProjectId = projectId;
   const [controls, setControls] = useState<Control[]>([]);
   const [selectedControl, setSelectedControl] = useState<Control | null>(null);
@@ -173,9 +172,9 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   if (loading) {
     return (
       <Stack spacing={2}>
-        <VWSkeleton variant="rectangular" width="100%" height={36} />
-        <VWSkeleton variant="rectangular" width="100%" height={36} />
-        <VWSkeleton variant="rectangular" width="100%" height={36} />
+        <CustomizableSkeleton variant="rectangular" width="100%" height={36} />
+        <CustomizableSkeleton variant="rectangular" width="100%" height={36} />
+        <CustomizableSkeleton variant="rectangular" width="100%" height={36} />
       </Stack>
     );
   }

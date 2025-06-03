@@ -27,32 +27,32 @@ import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
-import ForwardToInboxIcon from '@mui/icons-material/ForwardToInbox';
-import VWButton from "../../../vw-v2-components/Buttons";
+import ForwardToInboxIcon from "@mui/icons-material/ForwardToInbox";
+import CustomizableButton from "../../../vw-v2-components/Buttons";
 import { useRoles } from "../../../../application/hooks/useRoles";
 
 interface InviteUserModalProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  onSendInvite: (email: string, status: number | string) => void;
+  onSendInvite: (email: string, status: number | string, link: string) => void;
 }
 
 interface FormValues {
   name: string;
   email: string;
-  role: string;
+  roleId: string;
 }
 
 interface FormErrors {
   name?: string;
   email?: string;
-  role?: string;
+  roleId?: string;
 }
 
 const initialState: FormValues = {
   name: "",
   email: "",
-  role: "1",
+  roleId: "1",
 };
 
 const InviteUserModal: React.FC<InviteUserModalProps> = ({
@@ -64,10 +64,11 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
   const { roles } = useRoles();
 
   const roleItems = useMemo(
-    () => roles.map(role => ({ 
-      _id: role.id.toString(),
-      name: role.name 
-    })),
+    () =>
+      roles.map((role) => ({
+        _id: role.id.toString(),
+        name: role.name,
+      })),
     [roles]
   );
 
@@ -79,7 +80,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
     if (isOpen && roles.length > 0) {
       setValues({
         ...initialState,
-        role: roles[0].id.toString()
+        roleId: roles[0].id.toString(),
       });
       setErrors({});
     }
@@ -111,9 +112,9 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
       newErrors.email = email.message;
     }
 
-    const role = checkStringValidation("Role", values.role, 1, 64);
-    if (!role.accepted) {
-      newErrors.role = role.message;
+    const roleId = checkStringValidation("Role", values.roleId, 1, 64);
+    if (!roleId.accepted) {
+      newErrors.roleId = roleId.message;
     }
 
     setErrors(newErrors);
@@ -126,14 +127,19 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
         to: values.email,
         email: values.email,
         name: values.name,
-        role: values.role,
+        roleId: values.roleId,
       };
 
       try {
         const response = await apiServices.post("/mail/invite", formData);
-        onSendInvite(values.email, response.status);
+        const data = response.data as { link: string };
+        onSendInvite(values.email, response.status, data.link);
       } catch (error) {
-        onSendInvite(values.email, "error");
+        onSendInvite(
+          values.email,
+          "error",
+          (error as Error).message || "Failed to send invite"
+        );
       } finally {
         setIsOpen(false);
       }
@@ -202,10 +208,10 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
             <Box flexGrow={1}>
               <Select
                 id="role-select"
-                value={values.role}
-                onChange={handleOnSelectChange("role")}
+                value={values.roleId}
+                onChange={handleOnSelectChange("roleId")}
                 items={roleItems}
-                error={errors.role}
+                error={errors.roleId}
                 isRequired
               />
             </Box>
@@ -239,8 +245,8 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
           >
             Cancel
           </Button>
-         
-          <VWButton
+
+          <CustomizableButton
             variant="contained"
             text="Send Invite"
             sx={{

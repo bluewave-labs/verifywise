@@ -8,7 +8,7 @@ The project is divided into three main layers:
 
 ### Presentation (UI)
 
-This layer is responsible for handling user interactions and displaying the application's UI. It includes components, views, and controllers that manage the user interface. The presentation layer communicates with the application layer to perform actions and retrieve data.
+This layer is responsible for handling user interactions and displaying the application's user interface (UI). It includes components, views, and controllers that manage the user interface. The presentation layer communicates with the application layer to perform actions and retrieve data.
 
 ### Application (Business Logic)
 
@@ -22,7 +22,7 @@ The infrastructure layer is responsible for connecting the application to extern
 
 1. **Separation of Concerns**: Each layer has a specific responsibility, making it easier to maintain and update the application without affecting other layers.
 2. **Testability**: The application layer can be tested independently of the presentation and infrastructure layers, ensuring that the business logic is correct and decoupled from the UI and external dependencies.
-3. **Flexibility**: The clean architecture pattern allows for easy substitution of layers without affecting the rest of the application. For example, switching from a Node.js server to a different technology stack.
+3. **Flexibility**: The Clean Architecture pattern allows for easy substitution of layers without affecting the rest of the application (e.g., switching from a Node.js server to a different technology stack).
 4. **Scalability**: The separation of layers enables the application to scale more efficiently, as each layer can be optimized and scaled independently.
 
 ## Implementation Details

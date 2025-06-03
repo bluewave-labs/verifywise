@@ -6,6 +6,7 @@ import {
   Suspense,
   Dispatch,
   SetStateAction,
+  useContext,
 } from "react";
 import {
   Divider,
@@ -24,6 +25,8 @@ import {
   approvalStatusItems,
 } from "../projectRiskValue";
 import { alertState } from "../../../../domain/interfaces/iAlert";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import allowedRoles from "../../../../application/constants/permissions";
 
 // Lazy load components
 const Select = lazy(() => import("../../Inputs/Select"));
@@ -90,7 +93,9 @@ const MitigationSection: FC<MitigationSectionProps> = ({
   migitateErrors,
 }) => {
   const theme = useTheme();
-  // const [values, setValues] = useState<MitigationFormValues>(initialState);
+  const { userRoleName } = useContext(VerifyWiseContext);
+  const isEditingDisabled = !allowedRoles.projectRisks.edit.includes(userRoleName)
+ 
   const [_, setErrors] = useState<MitigationFormErrors>({});
   const [alert, setAlert] = useState<alertState | null>(null);
 
@@ -166,6 +171,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                 }}
                 isRequired
                 error={migitateErrors.mitigationStatus}
+                disabled={isEditingDisabled}
               />
             </Suspense>
             <Suspense fallback={<div>Loading...</div>}>
@@ -178,6 +184,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                 sx={{ backgroundColor: theme.palette.background.main }}
                 isRequired
                 error={migitateErrors.mitigationPlan}
+                disabled={isEditingDisabled}
               />
             </Suspense>
           </Stack>
@@ -200,6 +207,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                 }}
                 isRequired
                 error={migitateErrors.currentRiskLevel}
+                disabled={isEditingDisabled}
               />
             </Suspense>
             <Suspense fallback={<div>Loading...</div>}>
@@ -212,6 +220,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                 sx={{ backgroundColor: theme.palette.background.main }}
                 isRequired
                 error={migitateErrors.implementationStrategy}
+                disabled={isEditingDisabled}
               />
             </Suspense>
           </Stack>
@@ -232,6 +241,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                   }}
                   isRequired
                   error={migitateErrors.deadline}
+                  disabled={isEditingDisabled}
                 />
               </Stack>
             </Suspense>
@@ -251,6 +261,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
             likelihood={mitigationValues.likelihood}
             riskSeverity={mitigationValues.riskSeverity}
             handleOnSelectChange={handleOnSelectChange}
+            disabled={isEditingDisabled}
           />
         </Suspense>
         <Divider />
@@ -279,6 +290,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
               }}
               isRequired
               error={migitateErrors.approver}
+              disabled={isEditingDisabled}
             />
           </Suspense>
           <Suspense fallback={<div>Loading...</div>}>
@@ -299,6 +311,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
               }}
               isRequired
               error={migitateErrors.approvalStatus}
+              disabled={isEditingDisabled}
             />
           </Suspense>
           <Suspense fallback={<div>Loading...</div>}>
@@ -316,6 +329,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
               }}
               isRequired
               error={migitateErrors.dateOfAssessment}
+              disabled={isEditingDisabled}
             />
           </Suspense>
         </Stack>
@@ -328,6 +342,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
             onChange={handleOnTextFieldChange("recommendations")}
             sx={{ backgroundColor: theme.palette.background.main }}
             isOptional
+            disabled={isEditingDisabled}
           />
         </Suspense>
       </Stack>

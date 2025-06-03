@@ -14,6 +14,9 @@ import { createNewUserQuery } from "../utils/user.utils";
 import { User } from "../models/user.model";
 import { Vendor } from "../models/vendor.model";
 
+import { createISOFrameworkQuery } from "../utils/iso42001.utils";
+import { addVendorProjects } from "../utils/vendor.utils";
+
 export async function insertMockData() {
   const transaction = await sequelize.transaction();
   try {
@@ -25,11 +28,12 @@ export async function insertMockData() {
           surname: "Doe",
           email: `john.doe.${Date.now()}@example.com`,
           password_hash: "hashed_password",
-          role: 1,
+          role_id: 1,
           created_at: new Date(Date.now()),
           last_login: new Date(Date.now()),
         },
-        transaction
+        transaction,
+        true // is demo
       )
       let u2 = await createNewUserQuery(
         {
@@ -37,11 +41,12 @@ export async function insertMockData() {
           surname: "Smith",
           email: `alice.smith.${Date.now()}@example.com`,
           password_hash: "hashed_password",
-          role: 2,
+          role_id: 2,
           created_at: new Date(Date.now()),
           last_login: new Date(Date.now()),
         },
-        transaction
+        transaction,
+        true // is demo
       )
       users.push(u1, u2);
     }
@@ -61,7 +66,7 @@ export async function insertMockData() {
           last_updated_by: users[0].id!,
         },
         users.map((user) => user.id!),
-        [1], // frameworks
+        [1, 2], // frameworks
         transaction,
         true // is demo
       )
@@ -120,7 +125,9 @@ export async function insertMockData() {
           transaction,
           true // is demo
         )
-      }
+      } else {
+        await addVendorProjects(vendor.id!, [project.id!], transaction);
+      }      
 
       // ---- no need of is demo
       // create vendor risks
@@ -129,7 +136,6 @@ export async function insertMockData() {
           vendor_id: vendor.id,
           risk_description: "Data Security",
           impact_description: "Alice",
-          impact: "Critical",
           likelihood: "Almost certain",
           risk_severity: "Catastrophic",
           action_plan: "Vendor Risk 1 action plan",
@@ -140,7 +146,8 @@ export async function insertMockData() {
       )
 
       // create eu framework
-      await createEUFrameworkQuery(project.id!, true, transaction)
+      await createEUFrameworkQuery(project.id!, true, transaction, true)
+      await createISOFrameworkQuery(project.id!, true, transaction, true)
     } else {
       // project already exists, delete it and insert a new one
     }

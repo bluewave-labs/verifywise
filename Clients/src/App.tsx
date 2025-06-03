@@ -21,13 +21,16 @@ import { ComponentVisible } from "./application/interfaces/ComponentVisible";
 import { AlertProps } from "./domain/interfaces/iAlert";
 import { setShowAlertCallback } from "./infrastructure/api/customAxios";
 import Alert from "./presentation/components/Alert";
+import useUsers from "./application/hooks/useUsers";
 
 function App() {
   const mode = useSelector((state: AppState) => state.ui?.mode || "light");
   const token = useSelector((state: AppState) => state.auth?.authToken);
+  const userToken = token ? extractUserToken(token) : null;
+  const userRoleName = userToken?.roleName || "";
   const [alert, setAlert] = useState<AlertProps | null>(null);
+  const { users, refreshUsers } = useUsers();
 
-  
   useEffect(() => {
     setShowAlertCallback((alertProps: AlertProps) => {
       setAlert(alertProps);
@@ -49,7 +52,7 @@ function App() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [triggerSidebar, setTriggerSidebar] = useState(false);
 
-  const userId = token ? extractUserToken(token)?.id ?? "1" : "1";
+  const userId = extractUserToken(token)?.id ?? 1;
   const {
     projectStatus,
     loading: loadingProjectStatus,
@@ -94,6 +97,9 @@ function App() {
       setProjects,
       componentsVisible,
       changeComponentVisibility,
+      users,
+      refreshUsers,
+      userRoleName
     }),
     [
       uiValues,
@@ -115,6 +121,9 @@ function App() {
       setProjects,
       componentsVisible,
       changeComponentVisibility,
+      users,
+      refreshUsers,
+      userRoleName
     ]
   );
 

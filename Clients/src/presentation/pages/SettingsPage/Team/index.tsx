@@ -4,7 +4,7 @@ import React, {
   useMemo,
   useContext,
   lazy,
-  Suspense,  
+  Suspense,
 } from "react";
 import {
   Box,
@@ -23,6 +23,7 @@ import {
   useTheme,
   SelectChangeEvent,
   TablePagination,
+  TableFooter,
 } from "@mui/material";
 import GroupsIcon from "@mui/icons-material/Groups";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
@@ -32,31 +33,20 @@ import InviteUserModal from "../../../components/Modals/InviteUser";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import { handleAlert } from "../../../../application/tools/alertUtils";
-import VWButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../vw-v2-components/Buttons";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useRoles } from "../../../../application/hooks/useRoles";
 import { deleteEntityById } from "../../../../application/repository/entity.repository";
-import {
-  getAllEntities,
-  updateEntityById,
-} from "../../../../application/repository/entity.repository";
+import { updateEntityById } from "../../../../application/repository/entity.repository";
 const Alert = lazy(() => import("../../../components/Alert"));
-
-// Type definition for team member
-type TeamMember = {
-  id: string;
-  name: string;
-  email: string;
-  role: string;  // Keep as string since it comes from API
-};
 
 // Constants for roles
 
 const TABLE_COLUMNS = [
-  { id: 'name', label: 'NAME' },
-  { id: 'email', label: 'EMAIL' },
-  { id: 'role', label: 'ROLE' },
-  { id: 'action', label: 'ACTION' },
+  { id: "name", label: "NAME" },
+  { id: "email", label: "EMAIL" },
+  { id: "role", label: "ROLE" },
+  { id: "action", label: "ACTION" },
 ];
 
 /**
@@ -76,62 +66,40 @@ const TeamManagement: React.FC = (): JSX.Element => {
   } | null>(null);
 
   const roleItems = useMemo(
-    () => roles.map(role => ({ _id: role.id, name: role.name })),
+    () => roles.map((role) => ({ _id: role.id, name: role.name })),
     [roles]
   );
 
   // State management
   const [open, setOpen] = useState(false);
-  const [memberToDelete, setMemberToDelete] = useState<string | null>(null);
+  const [memberToDelete, setMemberToDelete] = useState<number | null>(null);
   const [filter, setFilter] = useState(0);
 
   const [page, setPage] = useState(0); // Current page
-  const { dashboardValues, setDashboardValues } = useContext(VerifyWiseContext);
-  const [teamUsers, setTeamUsers] = useState<TeamMember[]>(
-    dashboardValues.users
-  );
+  const { dashboardValues, users, userId, refreshUsers } =
+    useContext(VerifyWiseContext);
+
+  // Exclude the current user from the team users list
+  const teamUsers = users;
+
   const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
   const [inviteUserModalOpen, setInviteUserModalOpen] = useState(false);
-
-    // Add debug log for team users
-  // useEffect(() => {
-  //   console.log('Team Users:', teamUsers);
-  //   console.log('Dashboard Values:', dashboardValues);
-  // }, [teamUsers, dashboardValues]);
-
-  // Handle saving organization name
-  // const handleSaveOrgName = useCallback(() => {
-  //   console.log("Saving organization name:", orgName);
-  // }, [orgName]);
-
-  const fetchUsers = async () => {
-    try {
-      const response = await getAllEntities({ routeUrl: "/users" });
-      if (!response?.data) return;
-      setDashboardValues((prevValues: any) => ({
-        ...prevValues,
-        users: response.data,
-      }));
-      setTeamUsers(response?.data)
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
-  };
 
   const handleUpdateRole = async (memberId: string, newRole: string) => {
     try {
       const response = await updateEntityById({
         routeUrl: `/users/${memberId}`,
-        body: { role: newRole },
+        body: { roleId: newRole },
       });
 
       if (response.status === 202) {
-        setAlert({
+        handleAlert({
           variant: "success",
-          body: "User's role updated successfully",
+          body: "User role updated successfully.",
+          setAlert,
         });
-        setTimeout(() => setAlert(null), 3000);
-        await fetchUsers();
+
+        refreshUsers();
       } else {
         setAlert({
           variant: "error",
@@ -158,24 +126,20 @@ const TeamManagement: React.FC = (): JSX.Element => {
   };
 
   const confirmDelete = async () => {
-    if(!memberToDelete) return;
+    if (!memberToDelete) return;
 
     const memberId = Number(memberToDelete);
 
     const response = await deleteEntityById({
       routeUrl: `/users/${memberId}`,
     });
-    if(response.status === 202) {
+    if (response.status === 202) {
       handleAlert({
         variant: "success",
         body: "User deleted successfully",
         setAlert,
       });
-      if (memberToDelete) {
-        setTeamUsers((members) =>
-          members.filter((member) => Number(member.id) !== memberId)
-        );
-      }
+      refreshUsers();
     } else {
       handleAlert({
         variant: "error",
@@ -200,9 +164,9 @@ const TeamManagement: React.FC = (): JSX.Element => {
     return ({ children }: { children: React.ReactNode }) => (
       <Typography
         sx={{
-          fontSize: '13px',
-          fontFamily: 'Inter, sans-serif',
-          color: '#344054'
+          fontSize: "13px",
+          fontFamily: "Inter, sans-serif",
+          color: "#344054",
         }}
       >
         {children}
@@ -211,20 +175,23 @@ const TeamManagement: React.FC = (): JSX.Element => {
   }, []);
 
   // Role value renderer
-  const renderRoleValue = useCallback((value: string) => {
-    const roleId = value?.toString() || '1';
-    const selectedRole = roles.find(r => r.id.toString() === roleId);
-    return <RoleTypography>{selectedRole?.name || 'Admin'}</RoleTypography>;
-  }, [roles, RoleTypography]);
+  const renderRoleValue = useCallback(
+    (value: string) => {
+      const roleId = value?.toString() || "1";
+      const selectedRole = roles.find((r) => r.id.toString() === roleId);
+      return <RoleTypography>{selectedRole?.name || "Admin"}</RoleTypography>;
+    },
+    [roles, RoleTypography]
+  );
 
   // Filtered team members based on selected role
   const filteredMembers = useMemo(() => {
     return filter === 0
       ? teamUsers
-      : teamUsers.filter((member) => parseInt(member.role) === filter);
+      : teamUsers.filter((member) => member.roleId === filter);
   }, [filter, teamUsers]);
 
-  const handleDeleteClick = (memberId: string) => {
+  const handleDeleteClick = (memberId: number) => {
     setMemberToDelete(memberId);
     setOpen(true);
   };
@@ -240,29 +207,28 @@ const TeamManagement: React.FC = (): JSX.Element => {
     setPage(0);
   };
 
-  // const paginatedMembers = useMemo(() => {
-  //   const startIndex = page * rowsPerPage;
-  //   return filteredMembers.slice(startIndex, startIndex + rowsPerPage);
-  // }, [filteredMembers, page, rowsPerPage]);
-
   const inviteTeamMember = () => {
     console.log("Inviting team member");
     setInviteUserModalOpen(true);
   };
 
-  const handleInvitation = (email: string, status: number | string) => {
+  const handleInvitation = (
+    email: string,
+    status: number | string,
+    link: string
+  ) => {
     console.log("Invitation to ", email, "is ", status);
-    handleAlert({
-      variant: status === 200 ? "success" : "error",
-      body: status === 200 ? "Invitation is sent" : "Invitation failed",
-      setAlert,
+    
+    setAlert({
+      variant: "info",
+      body: `You can also copy and use this link to invite a member: ${link}`,
     });
 
     setInviteUserModalOpen(false);
   };
 
   return (
-    <Stack sx={{ mt: 3, }}>
+    <Stack sx={{ mt: 3 }}>
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
           <Box>
@@ -331,7 +297,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
             </Box>
 
             <Box>
-              <VWButton
+              <CustomizableButton
                 variant="contained"
                 text="Invite team member"
                 sx={{
@@ -345,184 +311,230 @@ const TeamManagement: React.FC = (): JSX.Element => {
             </Box>
           </Stack>
 
-          <TableContainer sx={{ overflowX: "auto" }}>
-            <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>
-              <TableHead sx={{ backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors }}>
-                <TableRow>
-                  {TABLE_COLUMNS.map((column) => (
-                    <TableCell
-                      key={column.id}
-                      sx={{
-                        ...singleTheme.tableStyles.primary.header.cell,
-                        ...(column.id === 'action' && {
-                          position: 'sticky',
-                          right: 0,
-                          backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors,
-                        }),
-                      }}
-                    >
-                      {column.label}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredMembers.length > 0 ? (
-                  filteredMembers
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((member) => (
-                      <TableRow key={member.id} sx={singleTheme.tableStyles.primary.body.row}>
-                        <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                          {member.name}
-                        </TableCell>
-                        <TableCell sx={{...singleTheme.tableStyles.primary.body.cell, textTransform: 'none'}}>
-                          {member.email}
-                        </TableCell>
-                        <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                          <Select
-                            value={member.role || ""}
-                            onChange={(e) => handleRoleChange(e, member.id)}
-                            size="small"
-                            displayEmpty
-                            renderValue={renderRoleValue}
-                            sx={{
-                              minWidth: "120px",
-                              fontSize: '13px',
-                              fontFamily: 'Inter, sans-serif',
-                              color: '#344054',
-                              "& .MuiOutlinedInput-notchedOutline": {
-                                border: "none",
-                              },
-                              "& .MuiSelect-select": {
-                                fontSize: '13px',
-                                fontFamily: 'Inter, sans-serif',
-                                padding: '4px 8px',
-                              }
-                            }}
-                          >
-                            {roles.map((role) => (
-                              <MenuItem 
-                                key={role.id} 
-                                value={role.id.toString()}
-                                sx={{
-                                  fontSize: '13px',
-                                  fontFamily: 'Inter, sans-serif',
-                                }}
-                              >
-                                {role.name}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </TableCell>
+          {/* only render table and pagination if team is loaded  */}
+          {rolesLoading || roles.length === 0 ? null : (
+            <>
+              <TableContainer sx={{ overflowX: "auto" }}>
+                <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>
+                  <TableHead
+                    sx={{
+                      backgroundColor:
+                        singleTheme.tableStyles.primary.header.backgroundColors,
+                    }}
+                  >
+                    <TableRow>
+                      {TABLE_COLUMNS.map((column) => (
                         <TableCell
+                          key={column.id}
                           sx={{
-                            ...singleTheme.tableStyles.primary.body.cell,
-                            position: "sticky",
-                            right: 0,
-                            minWidth: "50px",
+                            ...singleTheme.tableStyles.primary.header.cell,
+                            ...(column.id === "action" && {
+                              position: "sticky",
+                              right: 0,
+                              backgroundColor:
+                                singleTheme.tableStyles.primary.header
+                                  .backgroundColors,
+                            }),
                           }}
                         >
-                          <IconButton
-                            onClick={() => handleDeleteClick(member.id)}
-                            disableRipple
-                          >
-                            <DeleteOutlineOutlinedIcon />
-                          </IconButton>
+                          {column.label}
                         </TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filteredMembers.length > 0 ? (
+                      filteredMembers
+                        .slice(
+                          page * rowsPerPage,
+                          page * rowsPerPage + rowsPerPage
+                        )
+                        .map((member) => (
+                          <TableRow
+                            key={member.id}
+                            sx={singleTheme.tableStyles.primary.body.row}
+                          >
+                            <TableCell
+                              sx={singleTheme.tableStyles.primary.body.cell}
+                            >
+                              {member.name}
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                ...singleTheme.tableStyles.primary.body.cell,
+                                textTransform: "none",
+                              }}
+                            >
+                              {member.email}
+                            </TableCell>
+                            <TableCell
+                              sx={singleTheme.tableStyles.primary.body.cell}
+                            >
+                              <Select
+                                value={member.roleId?.toString() || "1"}
+                                onChange={(e) =>
+                                  handleRoleChange(e, member.id.toString())
+                                }
+                                size="small"
+                                displayEmpty
+                                renderValue={renderRoleValue}
+                                sx={{
+                                  minWidth: "120px",
+                                  fontSize: "13px",
+                                  fontFamily: "Inter, sans-serif",
+                                  color: "#344054",
+                                  "& .MuiOutlinedInput-notchedOutline": {
+                                    border: "none",
+                                  },
+                                  "& .MuiSelect-select": {
+                                    fontSize: "13px",
+                                    fontFamily: "Inter, sans-serif",
+                                    padding: "4px 8px",
+                                  },
+                                }}
+                                disabled={member.id === userId}
+                              >
+                                {roles.map((role) => (
+                                  <MenuItem
+                                    key={role.id}
+                                    value={role.id.toString()}
+                                    sx={{
+                                      fontSize: "13px",
+                                      fontFamily: "Inter, sans-serif",
+                                    }}
+                                  >
+                                    {role.name}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                ...singleTheme.tableStyles.primary.body.cell,
+                                position: "sticky",
+                                right: 0,
+                                minWidth: "50px",
+                              }}
+                            >
+                              <IconButton
+                                onClick={() => handleDeleteClick(member.id)}
+                                disableRipple
+                                disabled={member.id === userId}
+                              >
+                                <DeleteOutlineOutlinedIcon />
+                              </IconButton>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                    ) : (
+                      <TableRow sx={singleTheme.tableStyles.primary.body.row}>
+                        {TABLE_COLUMNS.map((column) => (
+                          <TableCell
+                            key={column.id}
+                            sx={singleTheme.tableStyles.primary.body.cell}
+                          >
+                            -
+                          </TableCell>
+                        ))}
                       </TableRow>
-                    ))
-                ) : (
-                  <TableRow sx={singleTheme.tableStyles.primary.body.row}>
-                    {TABLE_COLUMNS.map((column) => (
-                      <TableCell key={column.id} sx={singleTheme.tableStyles.primary.body.cell}>
-                        -
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                    )}
+                  </TableBody>
+                  <TableFooter>
+                    <TableRow>
+                      <TablePagination
+                        count={
+                          dashboardValues.vendors
+                            ? dashboardValues.vendors.length
+                            : 0
+                        }
+                        page={page}
+                        onPageChange={handleChangePage}
+                        rowsPerPage={rowsPerPage}
+                        rowsPerPageOptions={[5, 10, 15, 25]}
+                        onRowsPerPageChange={handleChangeRowsPerPage}
+                        ActionsComponent={(props) => (
+                          <TablePaginationActions {...props} />
+                        )}
+                        labelRowsPerPage="Rows per page"
+                        labelDisplayedRows={({ page, count }) =>
+                          `Page ${page + 1} of ${Math.max(
+                            0,
+                            Math.ceil(count / rowsPerPage)
+                          )}`
+                        }
+                        slotProps={{
+                          select: {
+                            MenuProps: {
+                              keepMounted: true,
+                              PaperProps: {
+                                className: "pagination-dropdown",
+                                sx: {
+                                  mt: 0,
+                                  mb: theme.spacing(2),
+                                },
+                              },
+                              transformOrigin: {
+                                vertical: "bottom",
+                                horizontal: "left",
+                              },
+                              anchorOrigin: {
+                                vertical: "top",
+                                horizontal: "left",
+                              },
+                              sx: { mt: theme.spacing(-2) },
+                            },
+                            inputProps: { id: "pagination-dropdown" },
+                            IconComponent: SelectorVertical,
+                            sx: {
+                              ml: theme.spacing(4),
+                              mr: theme.spacing(12),
+                              minWidth: theme.spacing(20),
+                              textAlign: "left",
+                              "&.Mui-focused > div": {
+                                backgroundColor: theme.palette.background.main,
+                              },
+                            },
+                          },
+                        }}
+                        sx={{
+                          mt: theme.spacing(6),
+                          color: theme.palette.text.secondary,
+                          "& .MuiSelect-icon": {
+                            width: "24px",
+                            height: "fit-content",
+                          },
+                          "& .MuiSelect-select": {
+                            width: theme.spacing(10),
+                            border: `1px solid ${theme.palette.border.light}`,
+                            padding: theme.spacing(4),
+                          },
+                        }}
+                      />
+                    </TableRow>
+                  </TableFooter>
+                </Table>
+              </TableContainer>
 
-          {open && (
-            <DualButtonModal
-              title="Confirm Delete"
-              body={
-                <Typography fontSize={13}>
-                  Are you sure you want to delete your account? This action is
-                  permanent and cannot be undone.
-                </Typography>
-              }
-              cancelText="Cancel"
-              proceedText="Delete"
-              onCancel={handleClose}
-              onProceed={confirmDelete}
-              proceedButtonColor="error"
-              proceedButtonVariant="contained"
-            />
+              {open && (
+                <DualButtonModal
+                  title="Confirm Delete"
+                  body={
+                    <Typography fontSize={13}>
+                      Are you sure you want to delete your account? This action
+                      is permanent and cannot be undone.
+                    </Typography>
+                  }
+                  cancelText="Cancel"
+                  proceedText="Delete"
+                  onCancel={handleClose}
+                  onProceed={confirmDelete}
+                  proceedButtonColor="error"
+                  proceedButtonVariant="contained"
+                />
+              )}
+            </>
           )}
-
-          <TablePagination
-            count={dashboardValues.vendors ? dashboardValues.vendors.length : 0}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[5, 10, 15, 25]}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            ActionsComponent={(props) => <TablePaginationActions {...props} />}
-            labelRowsPerPage="Rows per page"
-            labelDisplayedRows={({ page, count }) =>
-              `Page ${page + 1} of ${Math.max(
-                0,
-                Math.ceil(count / rowsPerPage)
-              )}`
-            }
-            slotProps={{
-              select: {
-                MenuProps: {
-                  keepMounted: true,
-                  PaperProps: {
-                    className: "pagination-dropdown",
-                    sx: {
-                      mt: 0,
-                      mb: theme.spacing(2),
-                    },
-                  },
-                  transformOrigin: { vertical: "bottom", horizontal: "left" },
-                  anchorOrigin: { vertical: "top", horizontal: "left" },
-                  sx: { mt: theme.spacing(-2) },
-                },
-                inputProps: { id: "pagination-dropdown" },
-                IconComponent: SelectorVertical,
-                sx: {
-                  ml: theme.spacing(4),
-                  mr: theme.spacing(12),
-                  minWidth: theme.spacing(20),
-                  textAlign: "left",
-                  "&.Mui-focused > div": {
-                    backgroundColor: theme.palette.background.main,
-                  },
-                },
-              },
-            }}
-            sx={{
-              mt: theme.spacing(6),
-              color: theme.palette.text.secondary,
-              "& .MuiSelect-icon": {
-                width: "24px",
-                height: "fit-content",
-              },
-              "& .MuiSelect-select": {
-                width: theme.spacing(10),
-                border: `1px solid ${theme.palette.border.light}`,
-                padding: theme.spacing(4),
-              },
-            }}
-          />
-
-          <Box
-            sx={{ display: "flex", justifyContent: "flex-end", mt: 20 }}
-          ></Box>
+          <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 20 }} />
         </Stack>
       </Box>
       {inviteUserModalOpen && (

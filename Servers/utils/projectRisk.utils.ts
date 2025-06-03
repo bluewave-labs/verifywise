@@ -30,6 +30,20 @@ export const getProjectRiskByIdQuery = async (
   return result[0];
 };
 
+export const getNonMitigatedProjectRisksQuery = async (
+  projectId: number
+): Promise<ProjectRisk[]> => {
+  const projectRisks = await sequelize.query(
+    `SELECT pr.* FROM projectrisks pr RIGHT JOIN annexcategories_iso__risks acr ON pr.id = annexcategories_iso__risks.project_risk_id WHERE acr IS NULL;`,
+    {
+      replacements: { project_id: projectId },
+      mapToModel: true,
+      model: ProjectRiskModel
+    }
+  );
+  return projectRisks;
+}
+
 export const createProjectRiskQuery = async (projectRisk: Partial<ProjectRisk>, transaction: Transaction): Promise<ProjectRisk> => {
   const result = await sequelize.query(
     `INSERT INTO projectrisks (

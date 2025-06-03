@@ -7,11 +7,13 @@ import {
   createProjectRisk,
   updateProjectRiskById,
   deleteProjectRiskById,
+  getNonMitigatedProjectRisks,
 } from "../controllers/projectRisks.ctrl";
 
 import authenticateJWT from "../middleware/auth.middleware";
 
 // GET requests
+router.get("/by-projid/non-mitigated/:id", authenticateJWT, getNonMitigatedProjectRisks);
 router.get("/by-projid/:id", authenticateJWT, getAllProjectRisks);
 router.get("/:id", authenticateJWT, getProjectRiskById);
 

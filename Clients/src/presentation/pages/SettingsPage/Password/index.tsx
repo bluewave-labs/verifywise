@@ -13,10 +13,10 @@ import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
-import VWButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
-import VWSkeleton from "../../../vw-v2-components/Skeletons";
-import VWToast from "../../../vw-v2-components/Toast"; // Import VWToast
+import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
+import CustomizableToast from "../../../vw-v2-components/Toast"; // Import CustomizableToast
 
 const PasswordForm: React.FC = () => {
   const theme = useTheme();
@@ -40,7 +40,7 @@ const PasswordForm: React.FC = () => {
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] =
     useState<boolean>(false);
   const [loading, _] = useState(false);
-  const [showToast, setShowToast] = useState(false); // State for VWToast visibility
+  const [showToast, setShowToast] = useState(false); // State for CustomizableToast visibility
 
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -139,61 +139,33 @@ const PasswordForm: React.FC = () => {
       return;
     }
 
-    setShowToast(true); // Show VWToast
+    setShowToast(true); // Show CustomizableToast
 
     try {
-      const response = await updateEntityById({
+      await updateEntityById({
         routeUrl: `/users/chng-pass/${id}`,
         body: { id, currentPassword, newPassword },
       });
-
-      if (response.status === 202) {
-        setCurrentPassword("");
-        setNewPassword("");
-        setConfirmPassword("");
-
-        setAlert({
-          variant: "success",
-          title: "Success",
-          body: "Password updated successfully.",
-          isToast: true,
-          visible: true,
-        });
-      } else if (response.status === 404) {
-        setAlert({
-          variant: "error",
-          title: "Error",
-          body: "User not found.",
-          isToast: true,
-          visible: true,
-        });
-      } else if (response.status === 401) {
-        setAlert({
-          variant: "error",
-          title: "Error",
-          body: "Current password is incorrect.",
-          isToast: true,
-          visible: true,
-        });
-      } else if (response.status === 400) {
-        setAlert({
-          variant: "error",
-          title: "Error",
-          body: "New password cannot be the same as the current password.",
-          isToast: true,
-          visible: true,
-        });
-      }
-    } catch (error) {
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setAlert({
+        variant: "success",
+        title: "Success",
+        body: "Password updated successfully.",
+        isToast: true,
+        visible: true,
+      });
+    } catch (error: any) {
       setAlert({
         variant: "error",
         title: "Error",
-        body: "Failed to update password. Please try again.",
+        body: error.message || "Failed to update password. Please try again.",
         isToast: true,
         visible: true,
       });
     } finally {
-      setShowToast(false); // Hide VWToast after response
+      setShowToast(false); // Hide CustomizableToast after response
       setTimeout(() => {
         setShowToast(false);
       }, 1000);
@@ -223,7 +195,7 @@ const PasswordForm: React.FC = () => {
   return (
     <Box sx={{ mt: 3, width: { xs: "90%", md: "70%" }, position: "relative" }}>
       {loading && (
-        <VWSkeleton
+        <CustomizableSkeleton
           variant="rectangular"
           width="100%"
           height="300px"
@@ -241,7 +213,8 @@ const PasswordForm: React.FC = () => {
           onClick={() => setAlert((prev) => ({ ...prev, visible: false }))}
         />
       )}
-      {showToast && <VWToast />} {/* Show VWToast when showToast is true */}
+      {showToast && <CustomizableToast />}{" "}
+      {/* Show CustomizableToast when showToast is true */}
       {!loading && (
         <Box sx={{ width: "100%", maxWidth: 600 }}>
           <Stack sx={{ marginTop: theme.spacing(20) }}>
@@ -301,7 +274,7 @@ const PasswordForm: React.FC = () => {
                 paddingTop: theme.spacing(5),
               }}
             >
-              <VWButton
+              <CustomizableButton
                 variant="contained"
                 text="Save"
                 sx={{

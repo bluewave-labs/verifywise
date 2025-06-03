@@ -228,7 +228,7 @@ export async function updateQuestionById(
     }
 
     // Update the project's last updated date
-    await updateProjectUpdatedByIdQuery(questionId, "questions", transaction);
+    await updateProjectUpdatedByIdQuery(questionId, "answers", transaction);
     await transaction.commit();
 
     return res.status(202).json(STATUS_CODE[202](question));
@@ -339,8 +339,8 @@ export async function getAllProjectsAssessmentProgress(
             return;
           }
           const { totalAssessments, answeredAssessments } = await countAnswersEUByProjectId(projectFrameworkId);
-          totalNumberOfQuestions = parseInt(totalAssessments);
-          totalNumberOfAnsweredQuestions = parseInt(answeredAssessments);
+          totalNumberOfQuestions += parseInt(totalAssessments);
+          totalNumberOfAnsweredQuestions += parseInt(answeredAssessments);
         })
       );
       return res.status(200).json(
@@ -369,7 +369,6 @@ export async function getAllProjectsComplianceProgress(
     if (projects && projects.length > 0) {
       await Promise.all(
         projects.map(async (project) => {
-          console.log("project", project);
           // [0] assuming that the project has only one EU framework (if it has))
           const projectFrameworkId = (project as unknown as { dataValues: Project }).dataValues.framework?.filter((f) => f.framework_id === 1).map((f) => f.project_framework_id)[0];
           if (!projectFrameworkId) {

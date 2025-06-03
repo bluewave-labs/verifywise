@@ -13,7 +13,7 @@ import {
 import "./index.css";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 
-interface VWMultiSelectProps {
+interface CustomizableMultiSelectProps {
   label: string;
   required?: boolean;
   error?: boolean | string;
@@ -35,7 +35,7 @@ interface VWMultiSelectProps {
   sx?: object;
 }
 
-const VWMultiSelect = ({
+const CustomizableMultiSelect = ({
   label = "This is a multi-select",
   required = false,
   error,
@@ -47,7 +47,7 @@ const VWMultiSelect = ({
   isHidden,
   width,
   sx,
-}: VWMultiSelectProps) => {
+}: CustomizableMultiSelectProps) => {
   const theme = useTheme();
   const itemStyles = {
     fontSize: "var(--env-var-font-size-medium)",
@@ -204,4 +204,4 @@ const VWMultiSelect = ({
   );
 };
 
-export default VWMultiSelect;
+export default CustomizableMultiSelect;

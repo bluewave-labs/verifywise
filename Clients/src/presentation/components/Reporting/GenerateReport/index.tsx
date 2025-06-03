@@ -16,14 +16,16 @@ interface GenerateReportProps {
 interface InputProps {
   report_type: string;
   report_name: string;
-  project: number
+  project: number;
+  framework: number;
 }
 
 const GenerateReportPopup: React.FC<GenerateReportProps> = ({
   onClose
 }) => {
-  const [isReportRequest, setIsReportRequest] = useState<boolean>(false);  
-  const { dashboardValues } = useContext(VerifyWiseContext);
+  const [isReportRequest, setIsReportRequest] = useState<boolean>(false);
+  const [responseStatusCode, setResponseStatusCode] = useState<number>(200);  
+  const { dashboardValues, users } = useContext(VerifyWiseContext);
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
@@ -42,29 +44,46 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
     }, 3000);
   };
 
-  const handleGenerateReport = async (input: InputProps) => {   
-    setIsReportRequest(true);
+  const handleGenerateReport = async (input: InputProps) => {       
     const currentProject = dashboardValues.projects.find((project: { id: number | null; }) => project.id === input.project);         
     
     if (!currentProject) {
       handleToast("error", "Project not found");
       return;
     }
-    
-    const owner = dashboardValues.users.find(
+    setIsReportRequest(true);
+    const owner = users.find(
       (user: any) => user.id === parseInt(currentProject.owner)
     );
     const currentProjectOwner = owner ? `${owner.name} ${owner.surname}`: "";          
+    let reportTypeLabel = input.report_type;
+    switch(input.report_type){
+      case "Annexes report":
+        reportTypeLabel = "Reference controls group"
+        break;      
+      case "Clauses report":
+        reportTypeLabel = "Management system clauses group"
+        break; 
+      case "Clauses and annexes report":
+        reportTypeLabel = "Reference controls group"
+        break;     
+      case "All reports combined in one file":
+        reportTypeLabel = "All reports"
+        break;
+      default:
+        break;
+    }
 
     const body = {
       projectId: input.project,
       projectTitle: currentProject.project_title,
       projectOwner: currentProjectOwner,
-      reportType: input.report_type,
-      reportName: input.report_name
+      reportType: reportTypeLabel,
+      reportName: input.report_name,
+      frameworkId: input.framework
     }
     const reportDownloadResponse = await handleAutoDownload(body);
-
+    setResponseStatusCode(reportDownloadResponse);
     if(reportDownloadResponse === 200){
       handleToast(
         "success", 
@@ -72,7 +91,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
     } else if (reportDownloadResponse === 403) {
       handleToast(
         "warning",
-        "Unauthorized user to download the report."
+        "Access denied: Unauthorized user to download the report."
       );
     } else {
       handleToast(
@@ -110,7 +129,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
         </IconButton>
         {isReportRequest ? 
           <Suspense fallback={<div>Loading...</div>}>
-            <DownloadReportForm />
+            <DownloadReportForm statusCode={responseStatusCode} />
           </Suspense> : 
           <Suspense fallback={<div>Loading...</div>}>
             <GenerateReportFrom 

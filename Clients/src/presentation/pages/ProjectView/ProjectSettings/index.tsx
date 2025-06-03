@@ -15,6 +15,7 @@ import React, {
   useMemo,
   useEffect,
   useRef,
+  useContext,
 } from "react";
 import Field from "../../../components/Inputs/Field";
 import DatePicker from "../../../components/Inputs/Datepicker";
@@ -27,16 +28,21 @@ import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import {
   deleteEntityById,
   updateEntityById,
+  assignFrameworkToProject,
 } from "../../../../application/repository/entity.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import useUsers from "../../../../application/hooks/useUsers";
-import VWButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
-import VWToast from "../../../vw-v2-components/Toast";
-import VWSkeleton from "../../../vw-v2-components/Skeletons";
+import CustomizableToast from "../../../vw-v2-components/Toast";
+import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
+import useFrameworks from "../../../../application/hooks/useFrameworks";
+import { Framework } from "../../../../domain/types/Framework";
+import allowedRoles from "../../../../application/constants/permissions";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -76,6 +82,12 @@ interface FormValues {
   startDate: string;
   riskClassification: number;
   typeOfHighRiskRole: number;
+  monitoredRegulationsAndStandards: {
+    _id: number;
+    name: string;
+    project_framework_id?: number;
+    framework_id?: number;
+  }[];
 }
 
 interface FormErrors {
@@ -86,6 +98,7 @@ interface FormErrors {
   members?: string;
   riskClassification?: string;
   typeOfHighRiskRole?: string;
+  monitoredRegulationsAndStandards?: string;
 }
 
 const initialState: FormValues = {
@@ -96,6 +109,7 @@ const initialState: FormValues = {
   startDate: "",
   riskClassification: 0,
   typeOfHighRiskRole: 0,
+  monitoredRegulationsAndStandards: [{ _id: 1, name: "EU AI Act" }],
 };
 
 const ProjectSettings = React.memo(
@@ -104,6 +118,7 @@ const ProjectSettings = React.memo(
   }: {
     triggerRefresh?: (isUpdate: boolean) => void;
   }) => {
+    const { userRoleName, userId, setProjects } = useContext(VerifyWiseContext);
     const [searchParams] = useSearchParams();
     const projectId = searchParams.get("projectId") ?? "1"; // default project ID is 2
     const theme = useTheme();
@@ -111,6 +126,12 @@ const ProjectSettings = React.memo(
     const { project } = useProjectData({ projectId });
     const navigate = useNavigate();
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isFrameworkRemoveModalOpen, setIsFrameworkRemoveModalOpen] =
+      useState(false);
+    const [frameworkToRemove, setFrameworkToRemove] = useState<{
+      _id: number;
+      name: string;
+    } | null>(null);
     const [values, setValues] = useState<FormValues>(initialState);
     const [errors, setErrors] = useState<FormErrors>({});
     const [alert, setAlert] = useState<{
@@ -122,11 +143,16 @@ const ProjectSettings = React.memo(
     } | null>(null);
     const [memberRequired, setMemberRequired] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [showVWSkeleton, setShowVWSkeleton] = useState<boolean>(false);
+    const [isFrameworkOperationInProgress, setIsFrameworkOperationInProgress] =
+      useState(false);
+    const [showCustomizableSkeleton, setShowCustomizableSkeleton] =
+      useState<boolean>(false);
     const initialValuesRef = useRef<FormValues>({ ...initialState });
     const isModified = useMemo(() => {
       if (!initialValuesRef.current.projectTitle) return false;
-      return (
+
+      // Check all fields except monitoredRegulationsAndStandards
+      const basicFieldsModified =
         values.projectTitle !== initialValuesRef.current.projectTitle ||
         values.goal !== initialValuesRef.current.goal ||
         values.owner !== initialValuesRef.current.owner ||
@@ -136,13 +162,22 @@ const ProjectSettings = React.memo(
         values.riskClassification !==
           initialValuesRef.current.riskClassification ||
         values.typeOfHighRiskRole !==
-          initialValuesRef.current.typeOfHighRiskRole
-      );
-    }, [values]);
+          initialValuesRef.current.typeOfHighRiskRole;
+
+      // Only consider framework changes if we're not in the middle of a framework operation
+      const frameworksModified =
+        !isFrameworkOperationInProgress &&
+        JSON.stringify(values.monitoredRegulationsAndStandards) !==
+          JSON.stringify(
+            initialValuesRef.current.monitoredRegulationsAndStandards
+          );
+
+      return basicFieldsModified || frameworksModified;
+    }, [values, isFrameworkOperationInProgress]);
 
     const isSaveDisabled = useMemo(() => {
-      if (showVWSkeleton) return true;
-
+      if (showCustomizableSkeleton) return true;
+      if (isFrameworkOperationInProgress) return true;
       if (!isModified) return true;
 
       const hasErrors = Object.values(errors).some(
@@ -150,7 +185,12 @@ const ProjectSettings = React.memo(
       );
 
       return hasErrors;
-    }, [isModified, errors, showVWSkeleton]);
+    }, [
+      isModified,
+      errors,
+      showCustomizableSkeleton,
+      isFrameworkOperationInProgress,
+    ]);
 
     useEffect(() => {
       if (project) {
@@ -161,9 +201,29 @@ const ProjectSettings = React.memo(
 
     const { users } = useUsers();
 
+    const { filteredFrameworks: monitoredFrameworks, allFrameworks } =
+      useFrameworks({
+        listOfFrameworks: project?.framework || [],
+      });
+
     useEffect(() => {
-      setShowVWSkeleton(true);
-      if (project) {
+      setShowCustomizableSkeleton(true);
+      if (project && monitoredFrameworks.length > 0) {
+        const frameworksForProject = monitoredFrameworks.map(
+          (fw: Framework) => {
+            const projectFramework = project.framework?.find(
+              (pf) => Number(pf.framework_id) === Number(fw.id)
+            );
+            return {
+              _id: Number(fw.id),
+              name: fw.name,
+              project_framework_id:
+                projectFramework?.project_framework_id || Number(fw.id),
+              framework_id: Number(fw.id),
+            };
+          }
+        );
+
         const returnedData: FormValues = {
           ...initialState,
           projectTitle: project.project_title ?? "",
@@ -185,12 +245,13 @@ const ProjectSettings = React.memo(
                 item.name.toLowerCase() ===
                 project.type_of_high_risk_role.toLowerCase()
             )?._id || 0,
+          monitoredRegulationsAndStandards: frameworksForProject,
         };
         initialValuesRef.current = returnedData;
-        setShowVWSkeleton(false);
+        setShowCustomizableSkeleton(false);
         setValues(returnedData);
       }
-    }, [project]);
+    }, [project, monitoredFrameworks]);
 
     const handleDateChange = useCallback((newDate: Dayjs | null) => {
       if (newDate?.isValid()) {
@@ -227,15 +288,198 @@ const ProjectSettings = React.memo(
 
     const handleOnMultiSelect = useCallback(
       (prop: keyof FormValues) =>
-        (_event: React.SyntheticEvent, newValue: any[]) => {
+        async (_event: React.SyntheticEvent, newValue: any[]) => {
+          if (prop === "monitoredRegulationsAndStandards") {
+            // If removing a framework (newValue has fewer items than current value)
+            if (
+              newValue.length < values.monitoredRegulationsAndStandards.length
+            ) {
+              const removedFramework =
+                values.monitoredRegulationsAndStandards.find(
+                  (fw) => !newValue.some((nv) => nv._id === fw._id)
+                );
+              if (removedFramework) {
+                setIsFrameworkOperationInProgress(true);
+                setFrameworkToRemove(removedFramework);
+                setIsFrameworkRemoveModalOpen(true);
+                // Don't update values state yet
+                return;
+              }
+            }
+            // If adding a framework
+            else if (
+              newValue.length > values.monitoredRegulationsAndStandards.length
+            ) {
+              const addedFramework = newValue.find(
+                (nv) =>
+                  !values.monitoredRegulationsAndStandards.some(
+                    (fw) => fw._id === nv._id
+                  )
+              );
+
+              if (addedFramework) {
+                setIsFrameworkOperationInProgress(true);
+                setIsLoading(true);
+                try {
+                  const response = await assignFrameworkToProject({
+                    frameworkId: addedFramework._id,
+                    projectId: projectId,
+                  });
+
+                  if (response.status === 200 || response.status === 201) {
+                    // Update local state only after successful API call
+                    setValues((prevValues) => ({
+                      ...prevValues,
+                      [prop]: newValue,
+                    }));
+                    // Update initialValuesRef to prevent isModified from becoming true
+                    initialValuesRef.current = {
+                      ...initialValuesRef.current,
+                      [prop]: newValue,
+                    };
+
+                    setAlert({
+                      variant: "success",
+                      body: "Framework added successfully",
+                      isToast: true,
+                      visible: true,
+                    });
+
+                    // Trigger refresh after successful framework addition
+                    triggerRefresh(true);
+                  } else {
+                    setAlert({
+                      variant: "error",
+                      body: "Failed to add framework. Please try again.",
+                      isToast: true,
+                      visible: true,
+                    });
+                    return;
+                  }
+                } catch (error) {
+                  logEngine({
+                    type: "error",
+                    message: "An error occurred while adding the framework.",
+                  });
+                  setAlert({
+                    variant: "error",
+                    body: "An unexpected error occurred. Please try again.",
+                    isToast: true,
+                    visible: true,
+                  });
+                  return;
+                } finally {
+                  setIsLoading(false);
+                  setIsFrameworkOperationInProgress(false);
+                  setTimeout(() => {
+                    setAlert(null);
+                  }, 3000);
+                }
+              }
+            }
+            // If no change in length (e.g., reordering), just update the state
+            else {
+              setValues((prevValues) => ({
+                ...prevValues,
+                [prop]: newValue,
+              }));
+              // Update initialValuesRef to prevent isModified from becoming true
+              initialValuesRef.current = {
+                ...initialValuesRef.current,
+                [prop]: newValue,
+              };
+            }
+          } else {
+            setValues((prevValues) => ({
+              ...prevValues,
+              [prop]: newValue.map((user) => user.id),
+            }));
+            setMemberRequired(false);
+          }
+        },
+      [values.monitoredRegulationsAndStandards, projectId, triggerRefresh]
+    );
+
+    const handleFrameworkRemoveConfirm = useCallback(async () => {
+      if (!frameworkToRemove) return;
+
+      setIsLoading(true);
+      try {
+        const response = await deleteEntityById({
+          routeUrl: `/frameworks/fromProject?frameworkId=${frameworkToRemove._id}&projectId=${projectId}`,
+        });
+
+        if (response.status === 200) {
+          const newFrameworks = values.monitoredRegulationsAndStandards.filter(
+            (fw) => fw._id !== frameworkToRemove._id
+          );
+
+          // Update both values and initialValuesRef
           setValues((prevValues) => ({
             ...prevValues,
-            [prop]: newValue.map((user) => user.id),
+            monitoredRegulationsAndStandards: newFrameworks,
           }));
-          setMemberRequired(false);
-        },
-      []
-    );
+          initialValuesRef.current = {
+            ...initialValuesRef.current,
+            monitoredRegulationsAndStandards: newFrameworks,
+          };
+
+          setAlert({
+            variant: "success",
+            body: "Framework removed successfully",
+            isToast: true,
+            visible: true,
+          });
+
+          // Trigger refresh after successful framework removal
+          triggerRefresh(true);
+        } else if (response.status === 404) {
+          setAlert({
+            variant: "error",
+            body: "Framework not found or could not be removed from the project",
+            isToast: true,
+            visible: true,
+          });
+        } else {
+          setAlert({
+            variant: "error",
+            body: "Failed to remove framework. Please try again.",
+            isToast: true,
+            visible: true,
+          });
+        }
+      } catch (error) {
+        logEngine({
+          type: "error",
+          message: "An error occurred while removing the framework.",
+        });
+        setAlert({
+          variant: "error",
+          body: "An unexpected error occurred. Please try again.",
+          isToast: true,
+          visible: true,
+        });
+      } finally {
+        setIsLoading(false);
+        setIsFrameworkOperationInProgress(false);
+        setIsFrameworkRemoveModalOpen(false);
+        setFrameworkToRemove(null);
+        setTimeout(() => {
+          setAlert(null);
+        }, 3000);
+      }
+    }, [
+      frameworkToRemove,
+      projectId,
+      values.monitoredRegulationsAndStandards,
+      triggerRefresh,
+    ]);
+
+    const handleFrameworkRemoveCancel = useCallback(() => {
+      setIsFrameworkRemoveModalOpen(false);
+      setFrameworkToRemove(null);
+      setIsFrameworkOperationInProgress(false);
+    }, []);
 
     const validateForm = useCallback((): boolean => {
       const newErrors: FormErrors = {};
@@ -290,6 +534,15 @@ const ProjectSettings = React.memo(
         newErrors.typeOfHighRiskRole = typeOfHighRiskRole.message;
       }
 
+      const monitoredRegulationsAndStandards = selectValidation(
+        "Monitored regulations and standards",
+        values.monitoredRegulationsAndStandards.length
+      );
+      if (!monitoredRegulationsAndStandards.accepted) {
+        newErrors.monitoredRegulationsAndStandards =
+          monitoredRegulationsAndStandards.message;
+      }
+
       setErrors(newErrors);
       return Object.keys(newErrors).length === 0;
     }, [values]);
@@ -337,6 +590,9 @@ const ProjectSettings = React.memo(
       const selectedHighRiskRole =
         highRiskRoleItems.find((item) => item._id === values.typeOfHighRiskRole)
           ?.name || "";
+      const selectedRegulations = values.monitoredRegulationsAndStandards.map(
+        (reg) => reg.name
+      );
 
       await updateEntityById({
         routeUrl: `/projects/${projectId}`,
@@ -349,8 +605,13 @@ const ProjectSettings = React.memo(
           ai_risk_classification: selectedRiskClass,
           type_of_high_risk_role: selectedHighRiskRole,
           goal: values.goal,
+          monitored_regulations_and_standards: selectedRegulations,
           last_updated: new Date().toISOString(),
-          last_updated_by: 1,
+          last_updated_by: userId,
+          framework: values.monitoredRegulationsAndStandards.map((fw) => ({
+            project_framework_id: fw._id,
+            framework_id: fw._id,
+          })),
         },
       }).then((response) => {
         if (response.status === 202) {
@@ -396,6 +657,9 @@ const ProjectSettings = React.memo(
           visible: true,
         });
         if (!isError) {
+          setProjects((prevProjects) =>
+            prevProjects.filter((project) => project.id !== Number(projectId))
+          );
           navigate("/");
           setTimeout(() => {
             setAlert(null);
@@ -425,7 +689,7 @@ const ProjectSettings = React.memo(
 
     return (
       <Stack>
-        {isLoading && <VWToast />}
+        {isLoading && <CustomizableToast />}
         {alert && (
           <Alert
             variant={alert.variant}
@@ -435,8 +699,12 @@ const ProjectSettings = React.memo(
             onClick={() => setAlert(null)}
           />
         )}
-        {showVWSkeleton ? (
-          <VWSkeleton variant="rectangular" width="50%" height={200} />
+        {showCustomizableSkeleton ? (
+          <CustomizableSkeleton
+            variant="rectangular"
+            width="50%"
+            height={200}
+          />
         ) : (
           <Stack component="form" onSubmit={handleSubmit} rowGap="15px">
             <Field
@@ -482,6 +750,142 @@ const ProjectSettings = React.memo(
               isRequired
             />
 
+            {/* Only render the monitored regulations and standards section if frameworks are loaded */}
+            {monitoredFrameworks.length > 0 && (
+              <Stack gap="5px" sx={{ mt: "6px" }}>
+                <Typography
+                  sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
+                >
+                  Monitored regulations and standards *
+                </Typography>
+                <Typography sx={{ fontSize: theme.typography.fontSize }}>
+                  Add all monitored regulations and standards of the project.
+                </Typography>
+                <Autocomplete
+                  multiple
+                  id="monitored-regulations-and-standards-input"
+                  size="small"
+                  value={values.monitoredRegulationsAndStandards}
+                  options={allFrameworks.map((fw: Framework) => ({
+                    _id: Number(fw.id),
+                    name: fw.name,
+                  }))}
+                  onChange={handleOnMultiSelect(
+                    "monitoredRegulationsAndStandards"
+                  )}
+                  getOptionLabel={(item: { _id: number; name: string }) =>
+                    item.name
+                  }
+                  noOptionsText={
+                    values.monitoredRegulationsAndStandards.length ===
+                    allFrameworks.length
+                      ? "All regulations selected"
+                      : "No options"
+                  }
+                  renderOption={(
+                    props: any,
+                    option: { _id: number; name: string }
+                  ) => {
+                    const isComingSoon = option.name.includes("coming soon");
+                    return (
+                      <Box
+                        component="li"
+                        {...props}
+                        sx={{
+                          opacity: isComingSoon ? 0.5 : 1,
+                          cursor: isComingSoon ? "not-allowed" : "pointer",
+                          "&:hover": {
+                            backgroundColor: isComingSoon
+                              ? "transparent"
+                              : undefined,
+                          },
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontSize: "13px",
+                            color: isComingSoon
+                              ? "text.secondary"
+                              : "text.primary",
+                          }}
+                        >
+                          {option.name}
+                        </Typography>
+                      </Box>
+                    );
+                  }}
+                  isOptionEqualToValue={(
+                    option: { _id: number },
+                    value: { _id: number }
+                  ) => option._id === value._id}
+                  getOptionDisabled={(option: { name: string }) =>
+                    option.name.includes("coming soon")
+                  }
+                  filterSelectedOptions
+                  popupIcon={<KeyboardArrowDown />}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      placeholder="Select regulations and standards"
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          paddingTop: "3.8px !important",
+                          paddingBottom: "3.8px !important",
+                        },
+                        "& ::placeholder": {
+                          fontSize: "13px",
+                        },
+                      }}
+                    />
+                  )}
+                  sx={{
+                    width: "458px",
+                    backgroundColor: theme.palette.background.main,
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "5px",
+                      "&:hover .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#777",
+                      },
+                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#888",
+                        borderWidth: "1px",
+                      },
+                    },
+                    "& .MuiChip-root": {
+                      "& .MuiChip-deleteIcon": {
+                        display:
+                          values.monitoredRegulationsAndStandards.length === 1
+                            ? "none"
+                            : "flex",
+                      },
+                    },
+                  }}
+                  slotProps={{
+                    paper: {
+                      sx: {
+                        "& .MuiAutocomplete-listbox": {
+                          "& .MuiAutocomplete-option": {
+                            fontSize: "13px",
+                            color: "#1c2130",
+                            paddingLeft: "9px",
+                            paddingRight: "9px",
+                          },
+                          "& .MuiAutocomplete-option.Mui-focused": {
+                            background: "#f9fafb",
+                          },
+                        },
+                        "& .MuiAutocomplete-noOptions": {
+                          fontSize: "13px",
+                          paddingLeft: "9px",
+                          paddingRight: "9px",
+                        },
+                      },
+                    },
+                  }}
+                />
+              </Stack>
+            )}
+
             <DatePicker
               label="Start date"
               date={values.startDate ? dayjs(values.startDate) : null}
@@ -507,6 +911,9 @@ const ProjectSettings = React.memo(
 
             <Autocomplete
               multiple
+              readOnly={
+                !allowedRoles.projects.editTeamMembers.includes(userRoleName)
+              }
               id="users-input"
               size="small"
               value={users.filter((user) =>
@@ -676,7 +1083,7 @@ const ProjectSettings = React.memo(
               isRequired
             />
             <Stack sx={{ width: "100%", maxWidth: 800 }}>
-              <VWButton
+              <CustomizableButton
                 sx={{
                   alignSelf: "flex-end",
                   width: "fit-content",
@@ -717,7 +1124,7 @@ const ProjectSettings = React.memo(
                 that project from our system. This is permanent and
                 non-recoverable.
               </Typography>
-              <VWButton
+              <CustomizableButton
                 sx={{
                   width: { xs: "100%", sm: theme.spacing(80) },
                   mb: theme.spacing(4),
@@ -730,6 +1137,9 @@ const ProjectSettings = React.memo(
                 variant="contained"
                 onClick={handleOpenDeleteDialog}
                 text="Delete project"
+                isDisabled={
+                  !allowedRoles.projects.delete.includes(userRoleName)
+                }
               />
             </Stack>
           </Stack>
@@ -747,6 +1157,25 @@ const ProjectSettings = React.memo(
             proceedText="Delete"
             onCancel={handleCloseDeleteDialog}
             onProceed={handleConfirmDelete}
+            proceedButtonColor="error"
+            proceedButtonVariant="contained"
+            TitleFontSize={0}
+          />
+        )}
+
+        {isFrameworkRemoveModalOpen && (
+          <DualButtonModal
+            title="Confirm Framework Removal"
+            body={
+              <Typography fontSize={13}>
+                Are you sure you want to remove {frameworkToRemove?.name} from
+                the project?
+              </Typography>
+            }
+            cancelText="Cancel"
+            proceedText="Remove"
+            onCancel={handleFrameworkRemoveCancel}
+            onProceed={handleFrameworkRemoveConfirm}
             proceedButtonColor="error"
             proceedButtonVariant="contained"
             TitleFontSize={0}

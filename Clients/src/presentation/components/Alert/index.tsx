@@ -20,6 +20,7 @@ import singleTheme from "../../themes/v1SingleTheme";
 import { AlertProps } from "../../../domain/interfaces/iAlert";
 import { closeIconStyles, iconButtonStyles } from "./style";
 import { CloseIconProps } from "../../../domain/interfaces/iWidget";
+import AlertBody from "./AlertBody";
 
 /**
  * Mapping of alert variants to their respective icons.
@@ -91,9 +92,7 @@ const Alert: React.FC<AlertProps> = ({
         {title && (
           <Typography sx={{ fontWeight: 700, color: text }}>{title}</Typography>
         )}
-        {body && (
-          <Typography sx={{ fontWeight: 400, color: text }}>{body}</Typography>
-        )}
+        {body && <AlertBody body={body} textColor={text} />}
       </Stack>
       {isToast && (
         <IconButton

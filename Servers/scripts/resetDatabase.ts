@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { insertMockData } from "../driver/autoDriver.driver";
+import { QueryTypes } from 'sequelize';
 
 const execAsync = promisify(exec);
 
@@ -52,33 +53,56 @@ async function resetDatabase() {
 
     // Create default admin user
     const password_hash = await bcrypt.hash("Verifywise#1", 10);
-    const admin = {
+    const adminData = {
       name: "VerifyWise",
       surname: "Admin",
       email: "verifywise@email.com",
       password: "Verifywise#1",
       confirmPassword: "Verifywise#1",
-      role: 1,
+      role_id: 1,
       created_at: new Date(),
       last_login: new Date(),
       password_hash
     };
 
-    await createNewUserQuery(admin, transaction);
+    const admin = await createNewUserQuery(adminData, transaction, true);
     await transaction.commit();
     console.log('Default admin user created.');
-    
+
     // Insert mock data (awaiting it to complete)
     await insertMockData();
     console.log('Mock data inserted.');
+
+    // Fetch the first project to get its ID
+    const project = await sequelize.query(
+      'SELECT * FROM projects LIMIT 1',
+      { type: QueryTypes.SELECT }
+    );
+
+    if (!project || project.length === 0) {
+      throw new Error('No projects found in the database.');
+    }
+    const projectId = (project[0] as { id: number }).id;
+    console.log(`Project found with ID: ${projectId}`);
+
+    await sequelize.query(
+      `INSERT INTO projects_members (project_id, user_id, is_demo) VALUES (:project_id, :user_id, :is_demo) RETURNING *`,
+      {
+        replacements: {
+          project_id: projectId, user_id: admin.id, is_demo: true
+        },
+        type: QueryTypes.INSERT,
+      }
+    );
+
     console.log('Database reset successfully.');
-    
+
     process.exit(0);
   } catch (err) {
     await transaction.rollback();
     console.error('Error resetting database:', err);
     process.exit(1);
   }
-} 
+}
 
 resetDatabase();

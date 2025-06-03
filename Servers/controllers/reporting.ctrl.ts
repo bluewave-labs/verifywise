@@ -25,6 +25,8 @@ function mapReportTypeToFileSource(
   | "Compliance tracker report"
   | "Assessment tracker report"
   | "Vendors and risks report"
+  | "Reference controls group"
+  | "Management system clauses group"
   | "All reports" {
   // These values must match the enum_files_source in the database
   switch (reportType) {
@@ -38,6 +40,10 @@ function mapReportTypeToFileSource(
       return "Vendors and risks report";
     case "All reports":
       return "All reports";
+    case "Reference controls group":
+      return "Reference controls group";
+    case "Management system clauses group":
+      return "Management system clauses group";
     default:
       // fallback or throw error
       throw new Error(`Invalid report type for file source: ${reportType}`);
@@ -50,7 +56,16 @@ export async function generateReports(
 ): Promise<any> {
   // const transaction = await sequelize.transaction();
   try {
-    const projectId = parseInt(req.body.projectId);
+    const {
+      projectId: projectIdRaw,
+      reportType,
+      projectTitle,
+      projectOwner,
+      frameworkId: frameworkIdRaw,
+      reportName
+    } = req.body;
+    const projectId = parseInt(projectIdRaw);
+    const frameworkId = parseInt(frameworkIdRaw);
     const userId = req.userId;
     if (isNaN(projectId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid project ID"));
@@ -58,25 +73,21 @@ export async function generateReports(
     if (typeof userId !== "number" || isNaN(userId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid user ID"));
     }
-
     const authorizedUser = await isAuthorizedUser(projectId, userId); // check whether the user is authorized to download the report or not
     const reportData = {
-      projectTitle: req.body.projectTitle,
-      projectOwner: req.body.projectOwner,
+      projectTitle, projectOwner
     };
     if (authorizedUser) {
       const markdownData = getReportData(
         projectId,
-        req.body.reportType,
+        frameworkId,
+        reportType,
         reportData
       );
       const markdownDoc = await marked.parse(await markdownData); // markdown file
       const generatedDoc = await htmlDocx(markdownDoc); // convert markdown to docx
 
-      let defaultFileName = getFormattedReportName(
-        req.body.reportName,
-        req.body.reportType
-      );
+      let defaultFileName = getFormattedReportName(reportName, reportType);
       const docFile = {
         originalname: `${defaultFileName}.docx`,
         buffer: generatedDoc,
@@ -91,7 +102,7 @@ export async function generateReports(
           docFile,
           userId,
           projectId,
-          mapReportTypeToFileSource(req.body.reportType)
+          mapReportTypeToFileSource(reportType)
         );
       } catch (error) {
         console.error("File upload error:", error);
@@ -119,7 +130,7 @@ export async function generateReports(
     } else {
       return res
         .status(403)
-        .json(STATUS_CODE[500]("Unauthorized user to download the report."));
+        .json(STATUS_CODE[403]("Unauthorized user to download the report."));
     }
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

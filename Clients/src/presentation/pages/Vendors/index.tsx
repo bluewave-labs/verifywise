@@ -36,14 +36,15 @@ import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import AddNewRisk from "../../components/Modals/NewRisk";
-import VWButton from "../../vw-v2-components/Buttons";
-import VWSkeleton from "../../vw-v2-components/Skeletons";
-import VWToast from "../../vw-v2-components/Toast";
+import CustomizableButton from "../../vw-v2-components/Buttons";
+import CustomizableSkeleton from "../../vw-v2-components/Skeletons";
+import CustomizableToast from "../../vw-v2-components/Toast";
 import { Project } from "../../../domain/types/Project";
 import RisksCard from "../../components/Cards/RisksCard";
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import useVendorRisks from "../../../application/hooks/useVendorRisks";
 import Select from "../../components/Inputs/Select";
+import allowedRoles from "../../../application/constants/permissions";
 
 interface ExistingRisk {
   id?: number;
@@ -82,15 +83,13 @@ const Vendors = () => {
   const [value, setValue] = useState("1");
   const [projects, setProjects] = useState<Project[]>([]);
   const [vendors, setVendors] = useState<VendorDetails[]>([]);
-  const { dashboardValues } = useContext(VerifyWiseContext);
+  const { users, userRoleName } = useContext(VerifyWiseContext);
   const [selectedVendor, setSelectedVendor] = useState<VendorDetails | null>(
     null
   );
   const [selectedRisk, setSelectedRisk] = useState<ExistingRisk | null>(null);
   const [controller, setController] = useState<AbortController | null>(null);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
-    null
-  );
+  const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
   const [selectedVendorId, setSelectedVendorId] = useState<string>("all");
   const {
     vendorRisksSummary,
@@ -111,6 +110,10 @@ const Vendors = () => {
   const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({
     countToTrigger: 1,
   });
+
+  const isCreatingDisabled =
+    !allowedRoles.vendors.create.includes(userRoleName);
+  const isDeletingAllowed = allowedRoles.vendors.delete.includes(userRoleName);
 
   const createAbortController = () => {
     if (controller) {
@@ -136,7 +139,7 @@ const Vendors = () => {
         const response = await getAllEntities({ routeUrl: "/projects" });
         if (response?.data && response.data.length > 0) {
           setProjects(response.data);
-          setSelectedProjectId(response.data[0].id?.toString() ?? null); // Default to first project as string
+          setSelectedProjectId("all"); // Always default to 'all' after fetching
         }
       } catch (error) {
         console.error("Failed to fetch projects:", error);
@@ -170,18 +173,14 @@ const Vendors = () => {
   }, [selectedProjectId]);
 
   useEffect(() => {
-    fetchVendors();
-    return () => {
-      controller?.abort();
-    };
-  }, [selectedProjectId]);
-
-  useEffect(() => {
-    refetchVendorRisks();
-    return () => {
-      controller?.abort();
-    };
-  }, [selectedProjectId]);
+    if (value === "1") {
+      fetchVendors();
+      return () => {
+        controller?.abort();
+      };
+    }
+    // No fetch on Risks tab
+  }, [selectedProjectId, value]);
 
   useEffect(() => {
     if (allVisible) {
@@ -198,9 +197,6 @@ const Vendors = () => {
       });
 
       if (response.status === 202) {
-        setVendors((prevVendors) =>
-          prevVendors.filter((vendor) => vendor.id !== vendorId)
-        );
         setAlert({
           variant: "success",
           body: "Vendor deleted successfully.",
@@ -224,6 +220,11 @@ const Vendors = () => {
           type: "error",
           message: "Unexpected response. Please try again.",
         });
+        setAlert({
+          variant: "error",
+          body: "Unexpected error. Please try again.",
+        });
+        setTimeout(() => setAlert(null), 3000);
       }
     } catch (error) {
       console.error("Error deleting vendor:", error);
@@ -231,17 +232,30 @@ const Vendors = () => {
         type: "error",
         message: `An error occurred: ${error}`,
       });
+      setAlert({
+        variant: "error",
+        body: "Failed to delete vendor. It may have already been deleted or there was a network error.",
+      });
+      setTimeout(() => setAlert(null), 3000);
     } finally {
       setIsSubmitting(false);
     }
   };
-  const handleDeleteRisk = async (vendorId: number) => {
+  const handleDeleteRisk = async (riskId: number | undefined) => {
+    if (!riskId) {
+      setAlert({
+        variant: "error",
+        body: "Invalid risk ID. Please refresh the page.",
+      });
+      setTimeout(() => setAlert(null), 3000);
+      return;
+    }
     const signal = createAbortController();
     setIsSubmitting(true);
 
     try {
       const response = await deleteEntityById({
-        routeUrl: `/vendorRisks/${vendorId}`,
+        routeUrl: `/vendorRisks/${riskId}`,
         signal,
       });
 
@@ -253,19 +267,24 @@ const Vendors = () => {
         setTimeout(() => {
           setAlert(null);
         }, 3000);
-
         await refetchVendorRisks();
       } else if (response.status === 404) {
         setAlert({
           variant: "error",
           body: "Risk not found.",
         });
+        setTimeout(() => setAlert(null), 3000);
       } else {
         console.error("Unexpected response. Please try again.");
         logEngine({
           type: "error",
           message: "Unexpected response. Please try again.",
         });
+        setAlert({
+          variant: "error",
+          body: "Unexpected error. Please try again.",
+        });
+        setTimeout(() => setAlert(null), 3000);
       }
     } catch (error) {
       console.error("Error deleting Risk:", error);
@@ -273,14 +292,27 @@ const Vendors = () => {
         type: "error",
         message: `An error occurred: ${error}`,
       });
+      setAlert({
+        variant: "error",
+        body: "Failed to delete risk. It may have already been deleted or there was a network error.",
+      });
+      setTimeout(() => setAlert(null), 3000);
     } finally {
       setIsSubmitting(false);
     }
   };
-  const handleEditRisk = async (id: number) => {
+  const handleEditRisk = async (riskId: number | undefined) => {
+    if (!riskId) {
+      setAlert({
+        variant: "error",
+        body: "Invalid risk ID. Please refresh the page.",
+      });
+      setTimeout(() => setAlert(null), 3000);
+      return;
+    }
     try {
       const response = await getEntityById({
-        routeUrl: `/vendorRisks/${id}`,
+        routeUrl: `/vendorRisks/${riskId}`,
       });
       setSelectedRisk(response.data);
       setIsRiskModalOpen(true);
@@ -289,6 +321,11 @@ const Vendors = () => {
         type: "error",
         message: "Failed to update risk data.",
       });
+      setAlert({
+        variant: "error",
+        body: "Could not fetch risk data.",
+      });
+      setTimeout(() => setAlert(null), 3000);
     }
   };
   const handleEditVendor = async (id: number) => {
@@ -303,6 +340,11 @@ const Vendors = () => {
         type: "error",
         message: "Failed to fetch vendor data.",
       });
+      setAlert({
+        variant: "error",
+        body: "Could not fetch vendor data.",
+      });
+      setTimeout(() => setAlert(null), 3000);
     }
   };
   const handleProjectChange = (
@@ -432,7 +474,6 @@ const Vendors = () => {
                 create and manage all vendor risks here.
               </Typography>
             </Stack>
-
           </>
         )}
         <TabContext value={value}>
@@ -451,12 +492,16 @@ const Vendors = () => {
           </Box>
           {value !== "1" &&
             (loadingVendorRisks || isVendorsLoading ? (
-              <VWSkeleton variant="rectangular" width="50%" height={100} />
+              <CustomizableSkeleton
+                variant="rectangular"
+                width="50%"
+                height={100}
+              />
             ) : (
               <RisksCard risksSummary={vendorRisksSummary} />
             ))}
           {isVendorsLoading && value === "1" ? (
-            <VWSkeleton
+            <CustomizableSkeleton
               variant="rectangular"
               width={"15%"}
               height={35}
@@ -464,7 +509,12 @@ const Vendors = () => {
             />
           ) : (
             value === "1" && (
-              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
+              >
                 <Select
                   id="projects"
                   value={selectedProjectId ?? ""}
@@ -483,7 +533,7 @@ const Vendors = () => {
                   }}
                 />
                 <div data-joyride-id="add-new-vendor" ref={refs[0]}>
-                  <VWButton
+                  <CustomizableButton
                     variant="contained"
                     text="Add new vendor"
                     sx={{
@@ -496,6 +546,7 @@ const Vendors = () => {
                       openAddNewVendor();
                       setSelectedVendor(null);
                     }}
+                    isDisabled={isCreatingDisabled}
                   />
                 </div>
               </Stack>
@@ -503,7 +554,7 @@ const Vendors = () => {
           )}
 
           {(loadingVendorRisks || isVendorsLoading) && value !== "1" ? (
-            <VWSkeleton
+            <CustomizableSkeleton
               variant="rectangular"
               width={"15%"}
               height={35}
@@ -511,8 +562,13 @@ const Vendors = () => {
             />
           ) : (
             value !== "1" && (
-              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-                <Stack direction="row" gap={2} alignItems="center">
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
+              >
+                <Stack direction="row" gap={8} alignItems="center">
                   <Select
                     id="projects"
                     value={selectedProjectId ?? ""}
@@ -548,7 +604,7 @@ const Vendors = () => {
                     }}
                   />
                 </Stack>
-                <VWButton
+                <CustomizableButton
                   variant="contained"
                   text="Add new Risk"
                   sx={{
@@ -561,13 +617,14 @@ const Vendors = () => {
                     setSelectedRisk(null);
                     handleRiskModal();
                   }}
+                  isDisabled={isCreatingDisabled}
                 />
               </Stack>
             )
           )}
 
           {isVendorsLoading && value === "1" ? (
-            <VWSkeleton
+            <CustomizableSkeleton
               height={"20vh"}
               minHeight={"20vh"}
               minWidth={260}
@@ -579,14 +636,14 @@ const Vendors = () => {
             <TabPanel value="1" sx={tabPanelStyle}>
               <TableWithPlaceholder
                 vendors={vendors}
-                dashboardValues={dashboardValues}
+                users={users}
                 onDelete={handleDeleteVendor}
                 onEdit={handleEditVendor}
               />
             </TabPanel>
           )}
           {(loadingVendorRisks || isVendorsLoading) && value !== "1" ? (
-            <VWSkeleton
+            <CustomizableSkeleton
               height={"20vh"}
               minHeight={"20vh"}
               minWidth={260}
@@ -597,11 +654,12 @@ const Vendors = () => {
           ) : (
             <TabPanel value="2" sx={tabPanelStyle}>
               <RiskTable
-                dashboardValues={dashboardValues}
+                users={users}
                 vendors={vendors}
                 vendorRisks={vendorRisks}
                 onDelete={handleDeleteRisk}
                 onEdit={handleEditRisk}
+                isDeletingAllowed={isDeletingAllowed}
               />
             </TabPanel>
           )}
@@ -611,7 +669,10 @@ const Vendors = () => {
         isOpen={isOpen}
         setIsOpen={() => setIsOpen(false)}
         value={value}
-        onSuccess={fetchVendors}
+        onSuccess={() => {
+          fetchVendors();
+          refetchVendorRisks();
+        }}
         existingVendor={selectedVendor}
       />
       <AddNewRisk
@@ -624,7 +685,7 @@ const Vendors = () => {
         vendors={vendors}
       />
       {isSubmitting && (
-        <VWToast title="Processing your request. Please wait..." />
+        <CustomizableToast title="Processing your request. Please wait..." />
       )}
     </div>
   );

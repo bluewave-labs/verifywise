@@ -14,7 +14,7 @@ services:
   backend:
     depends_on:
       - postgresdb
-    image: pharsh4585/verifywise-backend:latest
+    image: ghcr.io/bluewave-labs/verifywise-backend:test
     pull_policy: always
     ports:
       - $BACKEND_PORT:$BACKEND_PORT
@@ -32,7 +32,7 @@ services:
   frontend:
     depends_on:
       - backend
-    image: pharsh4585/verifywise-frontend:latest
+    image: ghcr.io/bluewave-labs/verifywise-frontend:test
     pull_policy: always
     # ports:
     #   - $FRONTEND_PORT:80

@@ -36,11 +36,12 @@ import {
 import Alert from "../../Alert";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import VWToast from "../../../vw-v2-components/Toast";
+import CustomizableToast from "../../../vw-v2-components/Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
-import VWButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import { KeyboardArrowDown } from "@mui/icons-material";
+import allowedRoles from "../../../../application/constants/permissions";
 
 export interface VendorDetails {
   id?: number;
@@ -80,7 +81,7 @@ const initialState = {
     reviewStatus: "",
     reviewer: "",
     reviewResult: "",
-    riskStatus: 0,
+    riskStatus: "",
     assignee: "",
     reviewDate: new Date().toISOString(),
   },
@@ -103,6 +104,7 @@ const REVIEW_STATUS_OPTIONS = [
 ];
 
 const RISK_LEVEL_OPTIONS = [
+  { _id: "", name: "Select risk status" },
   { _id: 1, name: "Very high risk" },
   { _id: 2, name: "High risk" },
   { _id: 3, name: "Medium risk" },
@@ -131,10 +133,13 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   const [projectOptions, setProjectOptions] = useState<
     { _id: number; name: string }[]
   >([]);
-  const { dashboardValues } = useContext(VerifyWiseContext);
+  const { dashboardValues, users, userRoleName } =
+    useContext(VerifyWiseContext);
   const { projects } = dashboardValues;
 
-  const formattedUsers = dashboardValues?.users?.map((user: any) => ({
+  const isEditingDisabled = !allowedRoles.vendors.edit.includes(userRoleName);
+
+  const formattedUsers = users?.map((user: any) => ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
   }));
@@ -185,10 +190,11 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               (user: any) => user._id === existingVendor.reviewer
             )?._id || "",
           reviewResult: existingVendor.review_result,
-          riskStatus:
+          riskStatus: String(
             RISK_LEVEL_OPTIONS?.find(
               (s) => s.name === existingVendor.risk_status
-            )?._id || 0,
+            )?._id ?? ""
+          ),
           assignee:
             formattedUsers?.find(
               (user: any) => user._id === existingVendor.assignee
@@ -480,6 +486,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             onChange={(e) => handleOnChange("vendorName", e.target.value)}
             error={errors.vendorName}
             isRequired
+            disabled={isEditingDisabled}
           />
           <Box mt={theme.spacing(8)}>
             <Field // website
@@ -489,6 +496,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               onChange={(e) => handleOnChange("website", e.target.value)}
               error={errors.website}
               isRequired
+              disabled={isEditingDisabled}
             />
           </Box>
         </Stack>
@@ -506,17 +514,28 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             multiple
             id="projects-input"
             size="small"
-            value={projectOptions?.filter(project => 
-              values.vendorDetails.projectIds?.includes(project._id)
-            ) || []}
+            disabled={isEditingDisabled}
+            value={
+              projectOptions?.filter((project) =>
+                values.vendorDetails.projectIds?.includes(project._id)
+              ) || []
+            }
             options={projectOptions || []}
-            noOptionsText={values?.vendorDetails?.projectIds?.length === projectOptions?.length
-              ? "All projects are selected"
-              : "No options"}
+            noOptionsText={
+              values?.vendorDetails?.projectIds?.length ===
+              projectOptions?.length
+                ? "All projects are selected"
+                : "No options"
+            }
             onChange={(_event, newValue: { _id: number; name: string }[]) => {
-              handleOnChange("projectIds", newValue.map(project => project._id));
+              handleOnChange(
+                "projectIds",
+                newValue.map((project) => project._id)
+              );
             }}
-            getOptionLabel={(project: { _id: number; name: string }) => project.name}
+            getOptionLabel={(project: { _id: number; name: string }) =>
+              project.name
+            }
             renderOption={(props, option: { _id: number; name: string }) => {
               const { key, ...optionProps } = props;
               return (
@@ -556,14 +575,14 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               backgroundColor: theme.palette.background.main,
               "& .MuiOutlinedInput-root": {
                 borderRadius: "3px",
-                overflowY:"auto",
+                overflowY: "auto",
                 flexWrap: "wrap",
                 maxHeight: "115px",
                 alignItems: "flex-start",
                 "&:hover": {
                   "& .MuiOutlinedInput-notchedOutline": {
                     border: "none",
-                  }
+                  },
                 },
                 "& .MuiOutlinedInput-notchedOutline": {
                   border: "none",
@@ -571,7 +590,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 "&.Mui-focused": {
                   "& .MuiOutlinedInput-notchedOutline": {
                     border: "none",
-                  }
+                  },
                 },
               },
               "& .MuiAutocomplete-tag": {
@@ -581,7 +600,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
-                }
+                },
               },
               border: `1px solid ${theme.palette.border.dark}`,
               borderRadius: "3px",
@@ -620,6 +639,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           onChange={(e) => handleOnChange("vendorProvides", e.target.value)}
           error={errors.vendorProvides}
           isRequired
+          disabled={isEditingDisabled}
         />
       </Stack>
       <Stack
@@ -636,6 +656,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           }
           error={errors.vendorContactPerson}
           isRequired
+          disabled={isEditingDisabled}
         />
         <Select // reviewStatus
           items={REVIEW_STATUS_OPTIONS}
@@ -650,6 +671,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           }}
           error={errors.reviewStatus}
           isRequired
+          disabled={isEditingDisabled}
         />
         <Select // reviewer
           items={formattedUsers}
@@ -664,6 +686,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             width: 220,
           }}
           isRequired
+          disabled={isEditingDisabled}
         />
       </Stack>
       <Stack
@@ -680,6 +703,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           error={errors.reviewResult}
           onChange={(e) => handleOnChange("reviewResult", e.target.value)}
           isRequired
+          disabled={isEditingDisabled}
         />
       </Stack>
       <Stack
@@ -695,12 +719,13 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           isHidden={false}
           id=""
           onChange={(e) => handleOnChange("riskStatus", e.target.value)}
-          value={values.vendorDetails.riskStatus}
+          value={values.vendorDetails.riskStatus || ""}
           error={errors.riskStatus}
           sx={{
             width: 220,
           }}
           isRequired
+          disabled={isEditingDisabled}
         />
         <Select // assignee (not in the server model!)
           items={formattedUsers}
@@ -715,6 +740,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           }}
           error={errors.assignee}
           isRequired
+          disabled={isEditingDisabled}
         />
         <DatePicker // reviewDate
           label="Review date"
@@ -728,6 +754,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           }
           handleDateChange={handleDateChange}
           isRequired
+          disabled={isEditingDisabled}
         />
       </Stack>
     </TabPanel>
@@ -747,7 +774,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         </Suspense>
       )}
       {isSubmitting && (
-        <VWToast title="Processing your request. Please wait..." />
+        <CustomizableToast title="Processing your request. Please wait..." />
       )}
       <Modal
         open={isOpen}
@@ -799,10 +826,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             </Typography>
             <Close style={{ cursor: "pointer" }} onClick={setIsOpen} />
           </Stack>
-          <Box sx={{ flex: 1, overflow: "auto", marginBottom: theme.spacing(8) }}>
-            <TabContext value={value}>
-              {vendorDetailsPanel}
-            </TabContext>
+          <Box
+            sx={{ flex: 1, overflow: "auto", marginBottom: theme.spacing(8) }}
+          >
+            <TabContext value={value}>{vendorDetailsPanel}</TabContext>
           </Box>
           <Stack
             sx={{
@@ -810,7 +837,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               marginTop: "auto",
             }}
           >
-            <VWButton
+            <CustomizableButton
               variant="contained"
               text="Save"
               sx={{
@@ -820,6 +847,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               }}
               onClick={handleSave}
               icon={<SaveIcon />}
+              isDisabled={isEditingDisabled}
             />
           </Stack>
         </Stack>

@@ -27,7 +27,6 @@ import { apiServices } from "../../../infrastructure/api/networkServices";
 import { useSearchParams } from "react-router-dom";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import dayjs from "dayjs";
-import useUsers from "../../../application/hooks/useUsers";
 import {
   aiLifecyclePhase,
   riskCategoryItems,
@@ -37,7 +36,7 @@ import {
   likelihoodItems,
   riskSeverityItems,
 } from "./projectRiskValue";
-import VWButton from "../../vw-v2-components/Buttons";
+import CustomizableButton from "../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import UpdateIcon from "@mui/icons-material/Update";
 import { AddNewRiskFormProps } from "../../../domain/interfaces/iRiskForm";
@@ -45,10 +44,10 @@ import { ApiResponse } from "../../../domain/interfaces/iResponse";
 import { tabStyle } from "./style";
 import { RiskCalculator } from "../../tools/riskCalculator";
 import { RiskLikelihood, RiskSeverity } from "../RiskLevel/riskValues";
+import allowedRoles from "../../../application/constants/permissions";
 
 const RiskSection = lazy(() => import("./RisksSection"));
 const MitigationSection = lazy(() => import("./MitigationSection"));
-
 
 const riskInitialState: RiskFormValues = {
   riskName: "",
@@ -128,8 +127,11 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
 
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId");
-  const { inputValues } = useContext(VerifyWiseContext);
-  const { users } = useUsers();
+  const { inputValues, users, userRoleName } = useContext(VerifyWiseContext);
+  const isEditingDisabled =
+    !allowedRoles.projectRisks.edit.includes(userRoleName);
+  const isCreatingDisabled =
+    !allowedRoles.projectRisks.create.includes(userRoleName);
 
   useEffect(() => {
     if (popupStatus === "edit") {
@@ -343,11 +345,6 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     setMigitateErrors(newMitigationErrors);
     setRiskErrors(newErrors);
 
-    // return (
-    //   Object.keys(newErrors).length === 0 &&
-    //   Object.keys(newMitigationErrors).length === 0,
-    // ); // Return true if no errors exist
-
     return {
       isValid:
         Object.keys(newErrors).length === 0 &&
@@ -528,7 +525,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
           </TabPanel>
         </Suspense>
         <Box sx={{ display: "flex" }}>
-          <VWButton
+          <CustomizableButton
             sx={{
               alignSelf: "flex-end",
               width: "fit-content",
@@ -548,6 +545,9 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
             variant="contained"
             onClick={riskFormSubmitHandler}
             text={popupStatus === "new" ? "Save" : "Update"}
+            isDisabled={
+              popupStatus === "new" ? isCreatingDisabled : isEditingDisabled
+            }
           />
         </Box>
       </TabContext>

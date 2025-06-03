@@ -77,13 +77,13 @@ export async function generateReports(
       projectTitle, projectOwner
     };
 
-    const markdownData = getReportData(
+    const markdownData = await getReportData(
       projectId,
       frameworkId,
       reportType,
       reportData
     );
-    const markdownDoc = await marked.parse(await markdownData); // markdown file
+    const markdownDoc = await marked.parse(markdownData); // markdown file
     const generatedDoc = await htmlDocx(markdownDoc); // convert markdown to docx
 
     let defaultFileName = getFormattedReportName(reportName, reportType);

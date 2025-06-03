@@ -1,16 +1,9 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback, useMemo } from "react";
 import {
   Box,
   Button,
   Typography,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   Popover,
   Backdrop,
   Dialog,
@@ -19,7 +12,7 @@ import {
   TextField,
   InputLabel,
   MenuItem,
-  Select,
+  SelectChangeEvent,
   IconButton
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
@@ -28,6 +21,9 @@ import { TabContext, TabList, TabPanel } from "@mui/lab";
 import Tab from "@mui/material/Tab";
 import { styles } from "./styles";
 import { useNavigate } from "react-router-dom";
+import FairnessTable from "../../components/Table/FairnessTable";
+import Select from "../../components/Inputs/Select";
+
 
 export default function FairnessDashboard() {
   const [tab, setTab] = useState("uploads");
@@ -35,13 +31,34 @@ export default function FairnessDashboard() {
   const [showBackdrop, setShowBackdrop] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [modelFile, setModelFile] = useState(null);
-  const [datasetFile, setDatasetFile] = useState(null);
+  const [modelFile, setModelFile] = useState<File | null>(null);
+  const [datasetFile, setDatasetFile] = useState<File | null>(null);
   const [targetColumn, setTargetColumn] = useState("");
   const [sensitiveColumn, setSensitiveColumn] = useState("");
-  const [columnOptions, setColumnOptions] = useState([]);
+  const [columnOptions, setColumnOptions] = useState<string[]>([]);
+  const targetColumnItems = useMemo(() => {
+    return columnOptions.map((col) => ({ _id: col, name: col }));
+  }, [columnOptions]);
+  
+  const [page, setPage] = useState(0);
+  const [uploadedModels, setUploadedModels] = useState([
+    { name: "InsuranceTracker", date: "5 May 2025", status: "Pending" },
+    { name: "StockPickerBot", date: "19 April 2025", status: "Completed" },
+  ]);
+
   const buttonRef = useRef(null);
+  const modelInputRef = useRef<HTMLInputElement>(null);
+  const datasetInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+
+  
+  const FAIRNESS_COLUMNS = [
+    { id: 'name', label: 'Name' },
+    { id: 'date', label: 'Last Updated' },
+    { id: 'status', label: 'Status' },
+    { id: 'action', label: 'Action' }
+  ];
+
 
   const handleDotClick = () => {
     if (hasInteracted) return;
@@ -50,47 +67,41 @@ export default function FairnessDashboard() {
     setHasInteracted(true);
   };
 
+  const handleShowDetails = useCallback((model: any) => {
+    if (model?.name) {
+      navigate(`/fairness-results/${model.name}`);
+    } else {
+      console.error("Invalid model:", model);
+    }
+  }, [navigate]);
+  
+
   const handlePopoverClose = () => {
     setAnchorEl(null);
     setShowBackdrop(false);
   };
 
-  const handleOpenDialog = () => setDialogOpen(true);
-  const handleCloseDialog = () => setDialogOpen(false);
-
-  const handleModelUpload = (e) => {
-    setModelFile(e.target.files[0]);
+  const resetForm = () => {
+    setDialogOpen(false);
+    setModelFile(null);
+    setDatasetFile(null);
+    setColumnOptions([]);
+    setTargetColumn("");
+    setSensitiveColumn("");
+    if (modelInputRef.current) modelInputRef.current.value = "";
+    if (datasetInputRef.current) datasetInputRef.current.value = "";
   };
 
-  const handleDatasetUpload = (e) => {
-    const file = e.target.files[0];
-    setDatasetFile(file);
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const text = event.target.result;
-      const firstLine = text.split("\n")[0];
-      const columns = firstLine.split(",").map((col) => col.trim());
-      setColumnOptions(columns);
-    };
-    reader.readAsText(file);
+  const handleRemoveModel = (nameToRemove: string) => {
+    const filtered = uploadedModels.filter(model => model.name !== nameToRemove);
+    setUploadedModels(filtered);
   };
 
   const handleSaveModel = () => {
     if (!modelFile || !datasetFile || !targetColumn || !sensitiveColumn) return;
-    console.log("Model saved:", {
-      modelFile,
-      datasetFile,
-      targetColumn,
-      sensitiveColumn,
-    });
-    setDialogOpen(false);
+    console.log("Model saved:", { modelFile, datasetFile, targetColumn, sensitiveColumn });
+    resetForm();
   };
-
-  const modelEntries = [
-    { name: "InsuranceTracker", date: "5 May 2025", status: "Pending" },
-    { name: "StockPickerBot", date: "19 April 2025", status: "Completed" },
-  ];
 
   return (
     <Stack className="vwhome" gap="20px">
@@ -105,23 +116,32 @@ export default function FairnessDashboard() {
         <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
           <TabList
             onChange={(e, newVal) => setTab(newVal)}
-            aria-label="Fairness Tabs"
-            TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
+            TabIndicatorProps={{ style: { backgroundColor: "#13715B", height: "2px" } }}
+            sx={{
+              minHeight: "24px",
+              "& .MuiTabs-flexContainer": { gap: "24px" },
+              "& .MuiTab-root": {
+                minHeight: "32px",
+                padding: 0,
+                fontSize: "13px",
+                fontWeight: 500,
+                textTransform: "capitalize",
+                color: "#4B5563",
+                fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
+                width: "fit-content",
+                minWidth: "unset",
+              },
+              "& .MuiTab-root.Mui-selected": {
+                color: "#13715B !important",
+                display: "table",
+                minWidth: "unset",
+                width: "fit-content",
+                paddingLeft: 0,
+                paddingRight: 0,
+              },
+            }}
           >
-            <Tab
-              label={
-                <Typography
-                  sx={{
-                    textTransform: "none",
-                    color: tab === "uploads" ? "#13715B" : "#000",
-                    fontWeight: tab === "uploads" ? 600 : 500,
-                  }}
-                >
-                  Uploads
-                </Typography>
-              }
-              value="uploads"
-            />
+            <Tab label="Fairness Checks" value="uploads" disableRipple />
           </TabList>
         </Box>
 
@@ -130,9 +150,8 @@ export default function FairnessDashboard() {
             <Button
               ref={buttonRef}
               variant="contained"
-              size="medium"
               startIcon={<AddCircleOutlineIcon />}
-              onClick={handleOpenDialog}
+              onClick={() => setDialogOpen(true)}
               sx={{
                 backgroundColor: "#13715B",
                 color: "white",
@@ -146,12 +165,10 @@ export default function FairnessDashboard() {
                 minWidth: "64px",
                 position: "relative",
                 zIndex: 2,
-                "&:hover": {
-                  backgroundColor: "#0f604d",
-                },
+                "&:hover": { backgroundColor: "#0f604d" },
               }}
             >
-              Add Model
+              Validate Fairness
             </Button>
             {!hasInteracted && (
               <Box
@@ -183,9 +200,7 @@ export default function FairnessDashboard() {
               disableRestoreFocus
             >
               <Box sx={{ p: 2, maxWidth: 300 }}>
-                <Typography variant="body2">
-                  Click " Model" to start a new fairness validation.
-                </Typography>
+                <Typography variant="body2">Click "Model" to start a new fairness validation.</Typography>
               </Box>
             </Popover>
             <Backdrop
@@ -195,120 +210,87 @@ export default function FairnessDashboard() {
             />
           </Box>
 
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell><strong>Name</strong></TableCell>
-                  <TableCell><strong>Last Updated</strong></TableCell>
-                  <TableCell><strong>Status</strong></TableCell>
-                  <TableCell align="right"><strong>Action</strong></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {modelEntries.map((entry, idx) => (
-                  <TableRow key={idx}>
-                    <TableCell>{entry.name}</TableCell>
-                    <TableCell>{entry.date}</TableCell>
-                    <TableCell>{entry.status}</TableCell>
-                    <TableCell align="right">
-                        <Button
-                        variant="outlined"
-                        onClick={() => navigate(`/fairness-dashboard/${entry.name}`)}
-                        sx={{
-                            textTransform: "none",
-                            fontWeight: 500,
-                            fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
-                        }}
-                        >
-                        Show Details
-                        </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <FairnessTable
+            columns={FAIRNESS_COLUMNS.map(col => col.label)}
+            rows={uploadedModels}
+            page={page}
+            setCurrentPagingation={setPage}
+            removeModel={handleRemoveModel}
+            onShowDetails={handleShowDetails}
+          />
+          
 
-          <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+          <Dialog open={dialogOpen} onClose={resetForm} maxWidth="sm" fullWidth>
             <DialogTitle>
               <Box display="flex" justifyContent="space-between" alignItems="center">
                 <Typography sx={{ fontWeight: 600 }}>Validate Fairness</Typography>
-                <IconButton onClick={handleCloseDialog}>
-                  <CloseIcon />
-                </IconButton>
+                <IconButton onClick={resetForm}><CloseIcon /></IconButton>
               </Box>
             </DialogTitle>
+
             <DialogContent>
               <Stack spacing={2}>
-                <Box>
-                  <InputLabel sx={{ color: "black" }}>Upload Model (.pkl)</InputLabel>
-                  <TextField
-                    type="file"
-                    fullWidth
-                    variant="outlined"
-                    slotProps={{
-                      htmlInput: {
-                        accept: ".pkl",
-                        onChange: handleModelUpload,
-                      },
-                    }}
-                  />
-                </Box>
-
-                <Box>
-                  <InputLabel sx={{ color: "black" }}>Upload Dataset (.csv)</InputLabel>
-                  <TextField
-                    type="file"
-                    fullWidth
-                    variant="outlined"
-                    slotProps={{
-                      htmlInput: {
-                        accept: ".csv",
-                        onChange: handleDatasetUpload,
-                      },
-                    }}
-                  />
-                </Box>
-
-                <Box>
-                  <InputLabel sx={{ color: "black" }}>Target Column</InputLabel>
-                  <Select
-                    fullWidth
+                {[{ label: 'model', accept: '.pkl', file: modelFile, setFile: setModelFile, ref: modelInputRef }, { label: 'dataset', accept: '.csv', file: datasetFile, setFile: setDatasetFile, ref: datasetInputRef }].map(({ label, accept, file, setFile, ref }) => (
+                  <Box key={label}>
+                    <Typography sx={{ fontWeight: 500, mb: 0.5 }}>{`Upload ${label} (${accept})`}</Typography>
+                    <Button
+                      variant="outlined"
+                      component="label"
+                      sx={{ borderColor: "#13715B", color: "#13715B", textTransform: "none", fontWeight: 500, '&:hover': { borderColor: "#0f5f4b", backgroundColor: "#F3F9F8" } }}
+                    >
+                      {`Choose ${label} File`}
+                      <input
+                        type="file"
+                        hidden
+                        accept={accept}
+                        ref={ref}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setFile(file);
+                            if (label === 'dataset') {
+                              const reader = new FileReader();
+                              reader.onload = (event) => {
+                                const text = event.target?.result as string;
+                                const firstLine = text.split("\n")[0];
+                                const columns = firstLine.split(",").map((col) => col.trim());
+                                setColumnOptions(columns);
+                              };
+                              reader.readAsText(file);
+                            }
+                          }
+                        }}
+                      />
+                    </Button>
+                    {file && (
+                      <Box display="flex" alignItems="center" mt={1} px={1} py={0.5} border="1px solid #E5E7EB" borderRadius={1} justifyContent="space-between">
+                        <Typography fontSize="14px">{file.name}</Typography>
+                        <IconButton size="small" onClick={() => { setFile(null); if (ref.current) ref.current.value = ""; }}>{<CloseIcon fontSize="small" />}</IconButton>
+                      </Box>
+                    )}
+                  </Box>
+                ))}
+                
+                <Select
+                    id="target-column"
+                    label="Target column"
+                    placeholder="-- Select --"
                     value={targetColumn}
+                    items={targetColumnItems}
                     onChange={(e) => setTargetColumn(e.target.value)}
-                    displayEmpty
-                  >
-                    <MenuItem value="">-- Select --</MenuItem>
-                    {columnOptions.map((col, idx) => (
-                      <MenuItem key={idx} value={col}>{col}</MenuItem>
-                    ))}
-                  </Select>
-                </Box>
+                />
 
-                <Box>
-                  <InputLabel sx={{ color: "black" }}>Sensitive Column</InputLabel>
-                  <Select
-                    fullWidth
+                <Select
+                    id="sensitive-column"
+                    label="Sensitive Column"
+                    placeholder="-- Select --"
                     value={sensitiveColumn}
+                    items={targetColumnItems}
                     onChange={(e) => setSensitiveColumn(e.target.value)}
-                    displayEmpty
-                  >
-                    <MenuItem value="">-- Select --</MenuItem>
-                    {columnOptions.map((col, idx) => (
-                      <MenuItem key={idx} value={col}>{col}</MenuItem>
-                    ))}
-                  </Select>
-                </Box>
+                />
 
                 <Box display="flex" justifyContent="flex-end">
-                  <Button
-                    variant="contained"
-                    sx={{ backgroundColor: "#13715B", color: "white", textTransform: "none" }}
-                    onClick={handleSaveModel}
-                  >
-                    Upload
-                  </Button>
+                  <Button variant="contained" sx={{ backgroundColor: "#13715B", color: "white", textTransform: "none" }} onClick={handleSaveModel}>Upload</Button>
                 </Box>
               </Stack>
             </DialogContent>

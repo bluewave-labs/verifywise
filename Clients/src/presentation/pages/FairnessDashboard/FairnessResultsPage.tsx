@@ -46,6 +46,30 @@ const dummyMetrics = {
   },
 };
 
+const dummyMetrics2 = {
+    model_name: "InsuranceTracker",
+    created_at: "2025-04-19",
+    accuracy: 0.721,
+    demographic_parity_difference: 0.046,
+    equal_opportunity_difference: 0.035,
+    equalized_odds_difference: 0.065,
+    classification_report: {
+      "<=50K": { precision: 0.68, recall: 0.67, f1_score: 0.68, support: 24760 },
+      ">50K": { precision: 0.71, recall: 0.72, f1_score: 0.71, support: 37141 },
+    },
+    group_metrics: [
+      { group: "White", accuracy: 0.73, selection_rate: 0.78, tpr: 0.67, tnr: 0.89 },
+      { group: "Black", accuracy: 0.70, selection_rate: 0.68, tpr: 0.64, tnr: 0.86 },
+      { group: "Asian", accuracy: 0.75, selection_rate: 0.72, tpr: 0.70, tnr: 0.87 },
+    ],
+    disparity_metrics: {
+      selection_rate_diff: 0.12,
+      tpr_diff: 0.06,
+      tnr_diff: 0.03,
+      equalized_odds_diff: 0.065,
+    },
+  };
+
 const metricDescriptions = {
   accuracy: "Overall correctness of the model's predictions.",
   selection_rate: "Proportion of individuals selected by the model per group.",
@@ -58,8 +82,25 @@ const metricDescriptions = {
 
 export default function FairnessResultsPage() {
   const { modelName } = useParams();
+  console.log("Name of the site: " + modelName);
+  const modelData = {
+    "StockPickerBot": dummyMetrics,
+    "InsuranceTracker": dummyMetrics2, 
+  };
   const navigate = useNavigate();
-  const metrics = dummyMetrics;
+  if (!modelName) {
+    throw new Error("Model name is missing from the URL.");
+  }
+  function getModelData(model_name: string) {
+    if (model_name in modelData) {
+      return modelData[model_name as keyof typeof modelData];
+    }
+    return dummyMetrics;
+  }
+  const metrics = getModelData(modelName);
+  
+  
+  
 
   return (
     <Box p={4}>
@@ -108,7 +149,7 @@ export default function FairnessResultsPage() {
                 series={[{
                   data: metrics.group_metrics.map(g => g[metricKey]),
                   label: metricKey.replace("_", " "),
-                  color: "blue"
+                  color: "gray"
                 }]}
                 width={600}
                 height={300}

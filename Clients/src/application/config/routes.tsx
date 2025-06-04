@@ -47,7 +47,7 @@ export const createRoutes = (
     <Route path="/" element={<VWHome />} />
     <Route path="/project-view" element={<VWProjectView />} />
     <Route path="/fairness-dashboard" element={<FairnessDashboard />} />
-    <Route path="/fairness-results/:modelName" element={<FairnessResultsPage />} />
+    <Route path="/fairness-results/:id" element={<FairnessResultsPage />} />
   </Route>,
   <Route
     key="admin-reg"

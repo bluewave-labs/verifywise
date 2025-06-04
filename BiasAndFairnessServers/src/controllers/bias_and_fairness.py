@@ -59,7 +59,7 @@ async def handle_upload(model: UploadFile, data: UploadFile, target_column: str,
 
             if not upload_data_record:
                 raise Exception("failed to upload data file")
-
+            print("Success")
             result = analyze_fairness(
                 model_content=model_content, 
                 data_content=data_content, 

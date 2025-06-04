@@ -25,7 +25,7 @@ async def lifespan(app_: FastAPI):
     log.info("Shutting down...")
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 
 # enable CORS
 origins = [os.environ.get("BACKEND_URL") or "http://localhost:3000"]

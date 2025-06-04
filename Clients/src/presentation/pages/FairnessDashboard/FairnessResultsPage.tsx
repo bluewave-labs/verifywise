@@ -1,5 +1,6 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -17,58 +18,12 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  CircularProgress,
 } from "@mui/material";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { BarChart } from "@mui/x-charts";
-
-const dummyMetrics = {
-  model_name: "StockPickerBot",
-  created_at: "2025-04-19",
-  accuracy: 0.721,
-  demographic_parity_difference: 0.046,
-  equal_opportunity_difference: 0.035,
-  equalized_odds_difference: 0.065,
-  classification_report: {
-    "<=50K": { precision: 0.68, recall: 0.67, f1_score: 0.68, support: 24760 },
-    ">50K": { precision: 0.71, recall: 0.72, f1_score: 0.71, support: 37141 },
-  },
-  group_metrics: [
-    { group: "White", accuracy: 0.73, selection_rate: 0.78, tpr: 0.67, tnr: 0.89 },
-    { group: "Black", accuracy: 0.70, selection_rate: 0.68, tpr: 0.64, tnr: 0.86 },
-    { group: "Asian", accuracy: 0.75, selection_rate: 0.72, tpr: 0.70, tnr: 0.87 },
-  ],
-  disparity_metrics: {
-    selection_rate_diff: 0.12,
-    tpr_diff: 0.06,
-    tnr_diff: 0.03,
-    equalized_odds_diff: 0.065,
-  },
-};
-
-const dummyMetrics2 = {
-    model_name: "InsuranceTracker",
-    created_at: "2025-04-19",
-    accuracy: 0.721,
-    demographic_parity_difference: 0.046,
-    equal_opportunity_difference: 0.035,
-    equalized_odds_difference: 0.065,
-    classification_report: {
-      "<=50K": { precision: 0.68, recall: 0.67, f1_score: 0.68, support: 24760 },
-      ">50K": { precision: 0.71, recall: 0.72, f1_score: 0.71, support: 37141 },
-    },
-    group_metrics: [
-      { group: "White", accuracy: 0.73, selection_rate: 0.78, tpr: 0.67, tnr: 0.89 },
-      { group: "Black", accuracy: 0.70, selection_rate: 0.68, tpr: 0.64, tnr: 0.86 },
-      { group: "Asian", accuracy: 0.75, selection_rate: 0.72, tpr: 0.70, tnr: 0.87 },
-    ],
-    disparity_metrics: {
-      selection_rate_diff: 0.12,
-      tpr_diff: 0.06,
-      tnr_diff: 0.03,
-      equalized_odds_diff: 0.065,
-    },
-  };
+import { fairnessService } from "../../../infrastructure/api/fairnessService";
 
 const metricDescriptions = {
   accuracy: "Overall correctness of the model's predictions.",
@@ -81,32 +36,55 @@ const metricDescriptions = {
 };
 
 export default function FairnessResultsPage() {
-  const { modelName } = useParams();
-  console.log("Name of the site: " + modelName);
-  const modelData = {
-    "StockPickerBot": dummyMetrics,
-    "InsuranceTracker": dummyMetrics2, 
-  };
+  const { id } = useParams();
+  const [metrics, setMetrics] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  if (!modelName) {
-    throw new Error("Model name is missing from the URL.");
+
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        const data = await fairnessService.getFairnessMetrics(id as string);
+        setMetrics(data);
+      } catch (err) {
+        console.error("Failed to fetch metrics:", err);
+        setError("Failed to fetch metrics.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMetrics();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" mt={6}>
+        <CircularProgress />
+      </Box>
+    );
   }
-  function getModelData(model_name: string) {
-    if (model_name in modelData) {
-      return modelData[model_name as keyof typeof modelData];
-    }
-    return dummyMetrics;
+
+  if (error) {
+    return (
+      <Box display="flex" justifyContent="center" mt={6}>
+        <Typography color="error">{error}</Typography>
+      </Box>
+    );
   }
-  const metrics = getModelData(modelName);
-  
-  
-  
+
+  if (!metrics) {
+    return (
+      <Box display="flex" justifyContent="center" mt={6}>
+        <Typography>No metrics found.</Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box p={4}>
       <Box mb={2} display="flex" alignItems="center">
-        <IconButton onClick={() => navigate("/fairness-dashboard")}
-          sx={{ mr: 2 }}>
+        <IconButton onClick={() => navigate("/fairness-dashboard")} sx={{ mr: 2 }}>
           <ArrowBackIcon />
         </IconButton>
         <Typography variant="h5" fontWeight={600}>
@@ -118,7 +96,8 @@ export default function FairnessResultsPage() {
         <Grid item xs={12} md={6}>
           <Paper elevation={3} sx={{ p: 3, backgroundColor: "#F6FAF9" }}>
             <Typography variant="h6" color="#13715B" gutterBottom>
-                <strong>Overall Fairness Metrics</strong></Typography>
+              <strong>Overall Fairness Metrics</strong>
+            </Typography>
             <Typography>Accuracy: {metrics.accuracy}</Typography>
             <Typography>Demographic Parity Difference: {metrics.demographic_parity_difference}</Typography>
             <Typography>Equal Opportunity Difference: {metrics.equal_opportunity_difference}</Typography>
@@ -130,7 +109,7 @@ export default function FairnessResultsPage() {
           <Grid item xs={12} key={metricKey}>
             <Paper elevation={3} sx={{ p: 3, backgroundColor: "#F6FAF9" }}>
               <Typography variant="h6" color="#13715B" gutterBottom>
-              <strong>{['tpr', 'tnr'].includes(metricKey) ? `Group-wise ${metricKey.toUpperCase()}` : `Group-wise ${metricKey.charAt(0).toUpperCase() + metricKey.slice(1).replace('_', ' ')}`}</strong>
+                <strong>{['tpr', 'tnr'].includes(metricKey) ? `Group-wise ${metricKey.toUpperCase()}` : `Group-wise ${metricKey.charAt(0).toUpperCase() + metricKey.slice(1).replace('_', ' ')}`}</strong>
               </Typography>
               <Accordion sx={{ backgroundColor: "#ffffff" }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -145,9 +124,9 @@ export default function FairnessResultsPage() {
                 </AccordionDetails>
               </Accordion>
               <BarChart
-                xAxis={[{ scaleType: "band", data: metrics.group_metrics.map(g => g.group) }]}
+                xAxis={[{ scaleType: "band", data: metrics.group_metrics?.map(g => g.group) || [] }]}
                 series={[{
-                  data: metrics.group_metrics.map(g => g[metricKey]),
+                  data: metrics.group_metrics?.map(g => g[metricKey]) || [],
                   label: metricKey.replace("_", " "),
                   color: "gray"
                 }]}
@@ -161,18 +140,20 @@ export default function FairnessResultsPage() {
         <Grid item xs={12}>
           <Paper elevation={3} sx={{ p: 3, backgroundColor: "#F6FAF9" }}>
             <Typography variant="h6" color="#13715B" gutterBottom>
-                <strong>Disparity Metrics</strong></Typography>
-            <Typography>Selection Rate Difference: {metrics.disparity_metrics.selection_rate_diff}</Typography>
-            <Typography>True Positive Rate Difference: {metrics.disparity_metrics.tpr_diff}</Typography>
-            <Typography>True Negative Rate Difference: {metrics.disparity_metrics.tnr_diff}</Typography>
-            <Typography>Equalized Odds Difference: {metrics.disparity_metrics.equalized_odds_diff}</Typography>
+              <strong>Disparity Metrics</strong>
+            </Typography>
+            <Typography>Selection Rate Difference: {metrics.disparity_metrics?.selection_rate_diff}</Typography>
+            <Typography>True Positive Rate Difference: {metrics.disparity_metrics?.tpr_diff}</Typography>
+            <Typography>True Negative Rate Difference: {metrics.disparity_metrics?.tnr_diff}</Typography>
+            <Typography>Equalized Odds Difference: {metrics.disparity_metrics?.equalized_odds_diff}</Typography>
           </Paper>
         </Grid>
 
         <Grid item xs={12}>
           <Paper elevation={3} sx={{ p: 3, backgroundColor: "#F6FAF9" }}>
             <Typography variant="h6" color="#13715B" gutterBottom>
-                <strong>Classification Report</strong></Typography>
+              <strong>Classification Report</strong>
+            </Typography>
             <TableContainer>
               <Table>
                 <TableHead>
@@ -185,7 +166,7 @@ export default function FairnessResultsPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {Object.entries(metrics.classification_report).map(([label, values]) => (
+                  {metrics.classification_report && Object.entries(metrics.classification_report).map(([label, values]: any) => (
                     <TableRow key={label}>
                       <TableCell>{label}</TableCell>
                       <TableCell>{values.precision}</TableCell>

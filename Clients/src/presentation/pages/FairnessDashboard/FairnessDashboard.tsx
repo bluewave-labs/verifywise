@@ -23,6 +23,7 @@ import { styles } from "./styles";
 import { useNavigate } from "react-router-dom";
 import FairnessTable from "../../components/Table/FairnessTable";
 import Select from "../../components/Inputs/Select";
+import { fairnessService } from "../../../infrastructure/api/fairnessService";
 
 
 export default function FairnessDashboard() {
@@ -41,10 +42,21 @@ export default function FairnessDashboard() {
   }, [columnOptions]);
   
   const [page, setPage] = useState(0);
+  /*
   const [uploadedModels, setUploadedModels] = useState([
     { name: "InsuranceTracker", date: "5 May 2025", status: "Pending" },
     { name: "StockPickerBot", date: "19 April 2025", status: "Completed" },
   ]);
+  */
+  type FairnessModel = {
+    id: number;
+    name: string;
+    date: string;
+    status: string;
+  };
+  
+  const [uploadedModels, setUploadedModels] = useState<FairnessModel[]>([]);
+  
 
   const buttonRef = useRef(null);
   const modelInputRef = useRef<HTMLInputElement>(null);
@@ -67,6 +79,7 @@ export default function FairnessDashboard() {
     setHasInteracted(true);
   };
 
+  /*
   const handleShowDetails = useCallback((model: any) => {
     if (model?.name) {
       navigate(`/fairness-results/${model.name}`);
@@ -74,7 +87,16 @@ export default function FairnessDashboard() {
       console.error("Invalid model:", model);
     }
   }, [navigate]);
-  
+  */
+
+  const handleShowDetails = useCallback((model: FairnessModel) => {
+    if (model?.id) {
+      navigate(`/fairness-results/${model.id}`);
+    } else {
+      console.error("Invalid model:", model);
+    }
+  }, [navigate]);
+    
 
   const handlePopoverClose = () => {
     setAnchorEl(null);
@@ -97,18 +119,43 @@ export default function FairnessDashboard() {
     setUploadedModels(filtered);
   };
 
-  const handleSaveModel = () => {
+  const handleSaveModel = async () => {
     if (!modelFile || !datasetFile || !targetColumn || !sensitiveColumn) return;
-    console.log("Model saved:", { modelFile, datasetFile, targetColumn, sensitiveColumn });
-    resetForm();
+  
+    try {
+      const result = await fairnessService.uploadFairnessFiles({
+        model: modelFile,
+        data: datasetFile,
+        target_column: targetColumn,
+        sensitive_column: sensitiveColumn,
+      });
+  
+      // Assume the backend returns something like:
+      // { id: "abc123", name: "ModelX", status: "Pending", created_at: "2025-06-03T02:45:00Z" }
+  
+      const newEntry = {
+        id: result.id,
+        name: result.name || modelFile.name,
+        status: result.status || "Pending",
+        date: new Date().toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" }),
+      };
+  
+      setUploadedModels(prev => [...prev, newEntry]);
+      resetForm();
+    } catch (err) {
+      console.error("Failed to upload model:", err);
+    }
   };
+  
+  
+  
 
   return (
     <Stack className="vwhome" gap="20px">
       <Box>
-        <Typography sx={styles.vwHeadingTitle}>Bias and Fairness Dashboard</Typography>
+        <Typography sx={styles.vwHeadingTitle}>Bias & fairness dashboard</Typography>
         <Typography sx={styles.vwSubHeadingTitle}>
-          View previously validated fairness checks or create a new one.
+        This table provides your uploaded models with access to fairness evaluations for each. You can also validate a new model by uploading the model along with its dataset, target column, and sensitive feature.
         </Typography>
       </Box>
 
@@ -141,7 +188,7 @@ export default function FairnessDashboard() {
               },
             }}
           >
-            <Tab label="Fairness Checks" value="uploads" disableRipple />
+            <Tab label="Fairness checks" value="uploads" disableRipple />
           </TabList>
         </Box>
 
@@ -168,7 +215,7 @@ export default function FairnessDashboard() {
                 "&:hover": { backgroundColor: "#0f604d" },
               }}
             >
-              Validate Fairness
+              Validate fairness
             </Button>
             {!hasInteracted && (
               <Box
@@ -232,13 +279,13 @@ export default function FairnessDashboard() {
               <Stack spacing={2}>
                 {[{ label: 'model', accept: '.pkl', file: modelFile, setFile: setModelFile, ref: modelInputRef }, { label: 'dataset', accept: '.csv', file: datasetFile, setFile: setDatasetFile, ref: datasetInputRef }].map(({ label, accept, file, setFile, ref }) => (
                   <Box key={label}>
-                    <Typography sx={{ fontWeight: 500, mb: 0.5 }}>{`Upload ${label} (${accept})`}</Typography>
+                    <Typography sx={{ fontWeight: 500, mb: 0.5 , mt: 3}}>{`Upload ${label} (${accept})`}</Typography>
                     <Button
                       variant="outlined"
                       component="label"
-                      sx={{ borderColor: "#13715B", color: "#13715B", textTransform: "none", fontWeight: 500, '&:hover': { borderColor: "#0f5f4b", backgroundColor: "#F3F9F8" } }}
+                      sx={{ borderColor: "#13715B", color: "#13715B", textTransform: "none", fontWeight: 500, mb:5, '&:hover': { borderColor: "#0f5f4b", backgroundColor: "#F3F9F8" } }}
                     >
-                      {`Choose ${label} File`}
+                      {`Choose ${label} file`}
                       <input
                         type="file"
                         hidden
@@ -271,10 +318,11 @@ export default function FairnessDashboard() {
                   </Box>
                 ))}
                 
-                <Select
+                
+                <Select 
                     id="target-column"
                     label="Target column"
-                    placeholder="-- Select --"
+                    placeholder="Select target"
                     value={targetColumn}
                     items={targetColumnItems}
                     onChange={(e) => setTargetColumn(e.target.value)}
@@ -282,15 +330,15 @@ export default function FairnessDashboard() {
 
                 <Select
                     id="sensitive-column"
-                    label="Sensitive Column"
-                    placeholder="-- Select --"
+                    label="Sensitive column"
+                    placeholder="Select senstive feature"
                     value={sensitiveColumn}
                     items={targetColumnItems}
                     onChange={(e) => setSensitiveColumn(e.target.value)}
                 />
 
                 <Box display="flex" justifyContent="flex-end">
-                  <Button variant="contained" sx={{ backgroundColor: "#13715B", color: "white", textTransform: "none" }} onClick={handleSaveModel}>Upload</Button>
+                  <Button variant="contained" sx={{ backgroundColor: "#13715B", color: "white", textTransform: "none", mt: 8 }} onClick={handleSaveModel}>Upload</Button>
                 </Box>
               </Stack>
             </DialogContent>

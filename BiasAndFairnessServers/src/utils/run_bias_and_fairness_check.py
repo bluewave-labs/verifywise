@@ -43,9 +43,9 @@ def analyze_fairness(model_content: bytes, data_content: bytes, target_column: s
     result = {
         "overall": metric_frame.overall.to_dict(),
         "by_group": {metric: {k: v for k, v in group.items() if k != sensitive_column} for metric, group in metric_frame.by_group.to_dict().items()},
-        "demographic_parity_difference": float(demographic_parity_difference(y, y_pred, sensitive_features=sensitive_feature)),
-        "equal_opportunity_difference": float(equal_opportunity_difference(y, y_pred, sensitive_features=sensitive_feature)),
-        "equalized_odds_difference": float(equalized_odds_difference(y, y_pred, sensitive_features=sensitive_feature))
+        "demographic_parity_difference": demographic_parity_difference(y, y_pred, sensitive_features=sensitive_feature),
+        "equal_opportunity_difference": equal_opportunity_difference(y, y_pred, sensitive_features=sensitive_feature),
+        "equalized_odds_difference": equalized_odds_difference(y, y_pred, sensitive_features=sensitive_feature)
     }
 
     return result

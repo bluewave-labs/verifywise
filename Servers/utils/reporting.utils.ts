@@ -56,6 +56,7 @@ export const getGeneratedReportsQuery = async () => {
     "Project risks report",
     "Compliance tracker report",
     "Assessment tracker report",
+    "Reference controls group",
     "Vendors and risks report",
     "All reports",
   ];
@@ -75,11 +76,10 @@ export const getGeneratedReportsQuery = async () => {
     WHERE report.source IN (:sources)
     ORDER BY uploaded_time DESC, report.id ASC
   `;
-  const reports = await sequelize.query(query, {
+  return await sequelize.query(query, {
     replacements: { sources: validSources },
     type: QueryTypes.SELECT,
   });
-  return reports;
 };
 
 export const deleteReportByIdQuery = async (

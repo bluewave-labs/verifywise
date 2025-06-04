@@ -57,40 +57,40 @@ const ReportTable: React.FC<ReportTableProps> = ({
   return (
     <>
       <TableContainer>
-        <Table
-          sx={{
-            ...singleTheme.tableStyles.primary.frame,
-          }}
-        >
-          <TableHeader columns={columns} />
-          {rows.length !== 0 ? 
-            <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <Table
+            sx={{
+              ...singleTheme.tableStyles.primary.frame,
+            }}
+          >
+            <TableHeader columns={columns} />
+            {rows.length !== 0 ? 
               <ReportTableBody 
                 rows={rows} 
                 onRemoveReport={removeReport}
                 page={page}
                 rowsPerPage={rowsPerPage} 
               /> 
-            </Suspense>
-          : (
-            <>
-              <TableBody>
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    align="center"
-                    sx={emptyData}
-                  >
-                    <img src={placeholderImage} alt="Placeholder" />
-                    <Typography sx={styles.textBase}>
-                      There is currently no data in this table.
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </>
-          )}
-        </Table>
+            : (
+              <>
+                <TableBody>
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      align="center"
+                      sx={emptyData}
+                    >
+                      <img src={placeholderImage} alt="Placeholder" />
+                      <Typography sx={styles.textBase}>
+                        There is currently no data in this table.
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </>
+            )}
+          </Table>
+        </Suspense>
       </TableContainer>
       {rows.length !== 0 &&
         <Stack sx={paginationWrapper}>

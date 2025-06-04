@@ -31,7 +31,7 @@ const Reports = () => {
 
   const {
     generatedReports
-  } = useGeneratedReports({ projectId, refreshKey });
+  } = useGeneratedReports({ projectId, projects, refreshKey });
 
   const [filteredReports, setFilteredReports] = useState<GeneratedReports[]>(generatedReports);
 

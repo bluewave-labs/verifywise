@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { getAllEntities } from "../repository/entity.repository";
 import { Project } from "../../domain/types/Project";
 
-export const useProjectData = () => {
+export const useProjects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 

@@ -84,7 +84,8 @@ export async function getReportData(
     projectId: number,
     frameworkId: number,
     reportType: string,
-    reportBody: ReportBodyData
+    reportBody: ReportBodyData,
+    projectFrameworkId: number
   ) : Promise<any> {
   let markdownFormattedData;
   switch(reportType) {
@@ -98,13 +99,13 @@ export async function getReportData(
       markdownFormattedData = await getVendorReportMarkdown(projectId, reportBody)
       break;
     case ReportType.ANNEXES_REPORT:
-      markdownFormattedData = await getClausesAndAnnexesMarkdown(frameworkId, reportBody)
+      markdownFormattedData = await getClausesAndAnnexesMarkdown(frameworkId, projectFrameworkId, reportBody)
       break;
     case ReportType.COMPLIANCE_REPORT:
       markdownFormattedData = await getComplianceMarkdown(frameworkId, reportBody)
       break;
     case ReportType.ALL_REPORT:
-      markdownFormattedData = await getAllReportMarkdown(frameworkId, projectId, reportBody)
+      markdownFormattedData = await getAllReportMarkdown(frameworkId, projectFrameworkId, projectId, reportBody)
       break;
     default:
       throw new Error(`Report type "${reportType}" is not supported`);

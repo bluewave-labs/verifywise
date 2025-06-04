@@ -61,7 +61,8 @@ export async function generateReports(
       projectTitle,
       projectOwner,
       frameworkId: frameworkIdRaw,
-      reportName
+      reportName,
+      projectFrameworkId
     } = req.body;
     const projectId = parseInt(projectIdRaw);
     const frameworkId = parseInt(frameworkIdRaw);
@@ -81,7 +82,8 @@ export async function generateReports(
       projectId,
       frameworkId,
       reportType,
-      reportData
+      reportData,
+      projectFrameworkId
     );
     const markdownDoc = await marked.parse(markdownData); // markdown file
     const generatedDoc = await htmlDocx(markdownDoc); // convert markdown to docx

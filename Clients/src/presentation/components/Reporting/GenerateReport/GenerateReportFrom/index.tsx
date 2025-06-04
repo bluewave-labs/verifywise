@@ -23,6 +23,7 @@ interface FormValues {
   report_name: string;
   project: number;
   framework: number;
+  project_framework_id: number;
 }
 
 interface FormErrors {
@@ -30,6 +31,7 @@ interface FormErrors {
   report_name?: string;
   project?: string;
   framework?: string;
+  project_framework_id?: string;
 }
 
 const initialState: FormValues = {
@@ -37,6 +39,7 @@ const initialState: FormValues = {
   report_name: "",
   project: 1,
   framework: 1,
+  project_framework_id: 1,
 };
 
 /**
@@ -74,7 +77,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
       )?.framework || "";
     setProjectFrameworks(pfw);
     if (pfw.length > 0) {
-      setValues({ ...values, framework: pfw[0].framework_id });
+      setValues({ ...values, framework: pfw[0].framework_id, project_framework_id: pfw[0].project_framework_id });
     }
   }, [values.project]);
 
@@ -94,6 +97,21 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
     },
     [values, errors]
   );
+
+  const handleFrameworkChange = (event: SelectChangeEvent<string | number>) => {
+    const selectedFrameworkId = Number(event.target.value);
+    const selectedFramework = projectFrameworks.find(
+      (fw) => fw.framework_id === selectedFrameworkId
+    );
+    if (selectedFramework) {
+      setValues({
+        ...values,
+        framework: selectedFramework.framework_id,
+        project_framework_id: selectedFramework.project_framework_id,
+      });
+      setErrors({ ...errors, framework: "" });
+    }
+  };
 
   const handleFormSubmit = () => {
     onGenerate(values);
@@ -137,11 +155,12 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
             label="Framework"
             placeholder="Select framework"
             value={values.framework}
-            onChange={handleOnSelectChange("framework")}
+            onChange={handleFrameworkChange}
             items={
               projectFrameworks?.map((framework) => ({
                 _id: framework.framework_id,
                 name: framework.name,
+                project_framework_id: framework.project_framework_id,
               })) || []
             }
             sx={{

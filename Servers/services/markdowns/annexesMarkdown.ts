@@ -22,10 +22,11 @@ type AllAnnexes = AnnexStructISOModel & {
 };
 
 export async function getClausesAndAnnexesMarkdown (
+  frameworkId: number,
   projectFrameworkId: number,
   data: ReportBodyData
 ) : Promise<string> {
-  const clausesAndAnnexesReportData = await getClausesAndAnnexesReportData(projectFrameworkId);  
+  const clausesAndAnnexesReportData = await getClausesAndAnnexesReportData(frameworkId, projectFrameworkId);  
   
   const markdown = `
 VerifyWise clauses and annexes report
@@ -43,12 +44,13 @@ ${clausesAndAnnexesReportData}
 }
 
 export async function getClausesAndAnnexesReportData (
+  frameworkId: number,
   projectFrameworkId: number
 ) : Promise<string> {
   let annexRows: string = ``;
   let clausesReportData: string = ``;
   try {
-    const annexesReportData = await getAnnexesReportQuery(projectFrameworkId) as AllAnnexes[];    
+    const annexesReportData = await getAnnexesReportQuery(frameworkId) as AllAnnexes[];    
     clausesReportData = await getClausesMarkdown(projectFrameworkId);
 
     if (annexesReportData.length > 0) {

@@ -600,8 +600,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                   whiteSpace: "nowrap",
                 },
               },
-              border: errors.projectIds ? `1px solid ${theme.palette.error.main}` : `1px solid ${theme.palette.border.dark}`,
+              border: errors.projectIds ? `1px solid #f04438` : `1px solid ${theme.palette.border.dark}`,
               borderRadius: "3px",
+              opacity: errors.projectIds ? 0.8 : 1,
             }}
             slotProps={{
               paper: {
@@ -630,7 +631,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             <Typography
               color="error"
               variant="caption"
-              sx={{ mt: 0.5, ml: 1 }}
+              sx={{ mt: 0.5, ml: 1 , color: "#f04438", opacity: 0.8}}
             >
               {errors.projectIds}
             </Typography>

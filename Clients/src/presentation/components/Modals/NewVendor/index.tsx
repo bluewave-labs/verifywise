@@ -309,7 +309,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       Number(values.vendorDetails.reviewStatus) === 0
     ) {
       newErrors.reviewStatus =
-        "Please select a review status from the dropdown";
+        "Please select a status from the dropdown";
     }
     if (
       !values.vendorDetails.reviewer ||

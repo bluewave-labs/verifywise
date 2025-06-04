@@ -552,8 +552,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               <TextField
                 {...params}
                 placeholder="Select projects"
-                error={!!errors.projectIds}
-                helperText={errors.projectIds}
                 required
                 sx={{
                   "& .MuiOutlinedInput-root": {
@@ -602,7 +600,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                   whiteSpace: "nowrap",
                 },
               },
-              border: `1px solid ${theme.palette.border.dark}`,
+              border: errors.projectIds ? `1px solid ${theme.palette.error.main}` : `1px solid ${theme.palette.border.dark}`,
               borderRadius: "3px",
             }}
             slotProps={{
@@ -628,6 +626,15 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               },
             }}
           />
+          {errors.projectIds && (
+            <Typography
+              color="error"
+              variant="caption"
+              sx={{ mt: 0.5, ml: 1 }}
+            >
+              {errors.projectIds}
+            </Typography>
+          )}
         </Stack>
       </Stack>
       <Stack marginBottom={theme.spacing(8)}>

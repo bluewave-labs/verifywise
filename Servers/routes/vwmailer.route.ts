@@ -3,6 +3,7 @@ import { sendEmail } from "../services/emailService";
 import fs from "fs";
 import path from "path";
 import { generateToken } from "../utils/jwt.utils";
+import { frontEndUrl } from "../config/constants";
 
 const router = express.Router();
 
@@ -27,7 +28,7 @@ router.post("/invite", async (req, res) => {
       email: to
     }) as string
 
-    const link = `${req.protocol}://${req.hostname}:${process.env.FRONTEND_PORT}/user-reg?${new URLSearchParams(
+    const link = `${frontEndUrl}/user-reg?${new URLSearchParams(
       { token }
     ).toString()}`
 
@@ -72,7 +73,7 @@ router.post("/reset-password", async (req, res) => {
     }) as string
 
     // Data to be replaced in the template
-    const url = `${req.protocol}://${req.hostname}:${process.env.FRONTEND_PORT}/set-new-password?${new URLSearchParams(
+    const url = `${frontEndUrl}/set-new-password?${new URLSearchParams(
       { token }
     ).toString()}`
 

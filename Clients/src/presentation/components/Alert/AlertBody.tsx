@@ -14,7 +14,7 @@ const AlertBody: React.FC<AlertBodyProps> = ({ body, textColor }) => {
   const link = linkMatch ? linkMatch[0] : null;
 
   // Limit link to 35 characters
-  const limitedLink = link && link.length > 35 ? link.substring(0, 35) + "..." : link;
+  const limitedLink = link && link.length > 25 ? link.substring(0, 25) + "..." : link;
 
   const handleCopy = async () => {
     if (link) {
@@ -39,13 +39,23 @@ const AlertBody: React.FC<AlertBodyProps> = ({ body, textColor }) => {
               }}
               sx={{ paddingLeft: 3 }}
             >
-              {copied ? (
-                <Typography variant="caption" sx={{ color: textColor }}>
-                  Copied!
-                </Typography>
-              ) : (
-                <ContentCopyIcon sx={{ fontSize: 16, color: textColor }} />
-              )}
+              <Box
+                sx={{
+                  width: "50px",
+                  height: "20px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {copied ? (
+                  <Typography variant="caption" sx={{ color: textColor }}>
+                    Copied!
+                  </Typography>
+                ) : (
+                  <ContentCopyIcon sx={{ fontSize: "13px", color: textColor }} />
+                )}
+              </Box>
             </IconButton>
           </Box>
           {body.split(link)[1]}

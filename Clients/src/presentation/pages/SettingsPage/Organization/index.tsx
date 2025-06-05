@@ -1,9 +1,33 @@
-import { Stack, useTheme, Typography, Box, Divider } from "@mui/material";
+import {
+  Stack,
+  useTheme,
+  Typography,
+  Box,
+  Divider,
+  Tooltip,
+  CircularProgress,
+} from "@mui/material";
 import Field from "../../../components/Inputs/Field";
-import VWButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
-import { useState, useRef, useCallback, ChangeEvent } from "react";
+import {
+  useState,
+  useRef,
+  useCallback,
+  ChangeEvent,
+  useEffect,
+  useContext,
+} from "react";
 import Avatar from "../../../components/Avatar/VWAvatar/index";
+import { checkStringValidation } from "../../../../application/validations/stringValidation";
+import {
+  CreateMyOrganization,
+  GetMyOrganization,
+  UpdateMyOrganization,
+} from "../../../../application/repository/organization.repository";
+import Alert from "../../../components/Alert";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import allowedRoles from "../../../../application/constants/permissions";
 
 interface OrganizationData {
   firstname: string;
@@ -12,18 +36,199 @@ interface OrganizationData {
   pathToImage: string;
 }
 
+interface AlertState {
+  variant: "success" | "info" | "warning" | "error";
+  title?: string;
+  body: string;
+  isToast?: boolean;
+}
+
 const Organization = () => {
-  const [isSaveDisabled, _] = useState(false);
+  const { userRoleName } = useContext(VerifyWiseContext);
+  const isEditingDisabled =
+    !allowedRoles.organizations.edit.includes(userRoleName);
+  const isCreatingDisabled =
+    !allowedRoles.organizations.create.includes(userRoleName);
+  const [isSaveDisabled, setIsSaveDisabled] = useState(true);
   const [organizationName, setOrganizationName] = useState("");
+  const [organizationNameError, setOrganizationNameError] = useState<
+    string | null
+  >(null);
   const [organizationLogo, setOrganizationLogo] = useState<string>(
     "/placeholder.svg?height=80&width=80"
   );
+  const [isLoading, setIsLoading] = useState(false);
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [organizationId, setOrganizationId] = useState<number | null>(null);
+  const [organizationExists, setOrganizationExists] = useState(false);
+  const [alert, setAlert] = useState<AlertState | null>(null);
+  const [hasChanges, setHasChanges] = useState(false);
 
-  const handleSave = () => {
-    console.log("Organization Name:", organizationName);
-    console.log("Organization Logo:", organizationLogo);
+  const fetchOrganization = useCallback(async () => {
+    try {
+      const organizations = await GetMyOrganization({
+        routeUrl: "/organizations",
+      });
+      if (
+        Array.isArray(organizations.data.data) &&
+        organizations.data.data.length > 0
+      ) {
+        const org = organizations.data.data[0];
+        setOrganizationId(org.id);
+        setOrganizationName(org.name || "");
+        setOrganizationLogo(org.logo || "/placeholder.svg?height=80&width=80");
+        setOrganizationExists(true);
+        setHasChanges(false);
+      } else {
+        setOrganizationExists(false);
+        setOrganizationId(null);
+        setOrganizationName("");
+        setOrganizationLogo("/placeholder.svg?height=80&width=80");
+        setHasChanges(false);
+      }
+    } catch (error) {
+      setOrganizationExists(false);
+      setOrganizationId(null);
+      setOrganizationName("");
+      setOrganizationLogo("/placeholder.svg?height=80&width=80");
+      setHasChanges(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchOrganization();
+  }, [fetchOrganization]);
+
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => setAlert(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
+
+  const handleOrganizationNameChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setOrganizationName(value);
+      setHasChanges(true);
+
+      const validation = checkStringValidation(
+        "Organization name",
+        value,
+        2,
+        50,
+        false,
+        false
+      );
+      setOrganizationNameError(validation.accepted ? null : validation.message);
+      setIsSaveDisabled(!value.trim() || !validation.accepted);
+    },
+    []
+  );
+
+  const handleCreate = async () => {
+    if (!organizationName.trim()) {
+      console.log("Validation error: Organization name is required");
+      return;
+    }
+    if (organizationNameError) {
+      console.log("Validation error:", organizationNameError);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await CreateMyOrganization({
+        routeUrl: "/organizations",
+        body: {
+          name: organizationName,
+          logo:
+            organizationLogo !== "/placeholder.svg?height=80&width=80"
+              ? organizationLogo
+              : null,
+        },
+      });
+      setAlert({
+        variant: "success",
+        title: "Organization Created",
+        body: "The organization was created successfully.",
+        isToast: false,
+      });
+      if (response && response.id) {
+        setOrganizationId(response.id);
+        setOrganizationName(response.name || "");
+        setOrganizationLogo(
+          response.logo || "/placeholder.svg?height=80&width=80"
+        );
+        setOrganizationExists(true);
+        setHasChanges(false);
+      }
+      await fetchOrganization();
+    } catch (error) {
+      setAlert({
+        variant: "error",
+        title: "Error",
+        body: "Failed to create organization.",
+        isToast: false,
+      });
+    } finally {
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 1500);
+    }
+  };
+
+  const handleUpdate = async () => {
+    if (!organizationName.trim()) {
+      console.log("Validation error: Organization name is required");
+      return;
+    }
+    if (organizationNameError) {
+      console.log("Validation error:", organizationNameError);
+      return;
+    }
+    if (!organizationId) return;
+
+    setIsLoading(true);
+    try {
+      const response = await UpdateMyOrganization({
+        routeUrl: `/organizations/${organizationId}`,
+        body: {
+          name: organizationName,
+          logo:
+            organizationLogo !== "/placeholder.svg?height=80&width=80"
+              ? organizationLogo
+              : null,
+        },
+      });
+      setAlert({
+        variant: "success",
+        title: "Organization Updated",
+        body: "The organization was updated successfully.",
+        isToast: false,
+      });
+      if (response && response.id) {
+        setOrganizationId(response.id);
+        setOrganizationName(response.name || "");
+        setOrganizationLogo(
+          response.logo || "/placeholder.svg?height=80&width=80"
+        );
+        setHasChanges(false);
+      }
+      await fetchOrganization();
+    } catch (error) {
+      setAlert({
+        variant: "error",
+        title: "Error",
+        body: "Failed to update organization.",
+        isToast: false,
+      });
+    } finally {
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 1500);
+    }
   };
 
   const handleFileChange = useCallback(
@@ -32,6 +237,7 @@ const Organization = () => {
       if (file) {
         const newLogoUrl = URL.createObjectURL(file);
         setOrganizationLogo(newLogoUrl);
+        setHasChanges(true);
       }
     },
     []
@@ -43,10 +249,15 @@ const Organization = () => {
 
   const handleDeleteLogo = useCallback((): void => {
     setOrganizationLogo("/placeholder.svg?height=80&width=80");
+    setHasChanges(true);
   }, []);
 
   const organizationData: OrganizationData = {
-    firstname: organizationName,
+    firstname: organizationName
+      .split(" ")
+      .slice(0, 2)
+      .map((word) => word.charAt(0))
+      .join(""),
     lastname: "",
     email: "",
     pathToImage: organizationLogo,
@@ -54,6 +265,15 @@ const Organization = () => {
 
   return (
     <Stack className="organization-container" sx={{ mt: 3, maxWidth: 790 }}>
+      {alert && (
+        <Alert
+          variant={alert.variant}
+          title={alert.title}
+          body={alert.body}
+          isToast={false}
+          onClick={() => setAlert(null)}
+        />
+      )}
       <Stack
         className="organization-form"
         sx={{
@@ -74,23 +294,37 @@ const Organization = () => {
               id="Organization name"
               label="Organization name"
               value={organizationName}
-              onChange={(e) => setOrganizationName(e.target.value)}
-              sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
+              onChange={handleOrganizationNameChange}
+              sx={{ mb: 2, backgroundColor: "#FFFFFF" }}
+              error={organizationNameError || undefined}
+              disabled={isEditingDisabled}
+              placeholder="e.g. My Organization"
             />
-            <VWButton
+            <CustomizableButton
               variant="contained"
               text="Save"
               sx={{
                 width: 90,
                 backgroundColor: "#13715B",
-                border: isSaveDisabled
-                  ? "1px solid rgba(0, 0, 0, 0.26)"
-                  : "1px solid #13715B",
+                border: "1px solid #13715B",
                 gap: 2,
+                mt: 3,
               }}
-              icon={<SaveIcon />}
-              onClick={handleSave}
-              isDisabled={isSaveDisabled}
+              icon={
+                isLoading ? (
+                  <CircularProgress size={20} sx={{ color: "#13715B" }} />
+                ) : (
+                  <SaveIcon />
+                )
+              }
+              onClick={organizationExists ? handleUpdate : handleCreate}
+              isDisabled={
+                isSaveDisabled ||
+                !!organizationNameError ||
+                (organizationExists ? isEditingDisabled : isCreatingDisabled) ||
+                (!hasChanges && organizationExists) ||
+                isLoading
+              }
             />
           </Stack>
           <Box
@@ -123,6 +357,7 @@ const Organization = () => {
                 style={{ display: "none" }}
                 accept="image/*"
                 onChange={handleFileChange}
+                disabled={isEditingDisabled}
               />
               <Stack
                 direction="row"
@@ -130,31 +365,55 @@ const Organization = () => {
                 alignItems={"center"}
                 sx={{ paddingTop: theme.spacing(10) }}
               >
-                <Typography
-                  sx={{
-                    color: "#667085",
-                    cursor: "pointer",
-                    textDecoration: "none",
-                    "&:hover": { textDecoration: "underline" },
-                    fontSize: 13,
-                  }}
-                  onClick={handleDeleteLogo}
+                <Tooltip
+                  title="Only administrators are permitted to delete the organization's logo."
+                  disableHoverListener={!isEditingDisabled}
                 >
-                  Delete
-                </Typography>
-                <Typography
-                  sx={{
-                    color: "#13715B",
-                    cursor: "pointer",
-                    textDecoration: "none",
-                    "&:hover": { textDecoration: "underline" },
-                    paddingLeft: theme.spacing(5),
-                    fontSize: 13,
-                  }}
-                  onClick={handleUpdateLogo}
+                  <span>
+                    <Typography
+                      sx={{
+                        color: "#667085",
+                        cursor: isEditingDisabled ? "not-allowed" : "pointer",
+                        textDecoration: "none",
+                        "&:hover": {
+                          textDecoration: isEditingDisabled
+                            ? "none"
+                            : "underline",
+                        },
+                        fontSize: 13,
+                        opacity: isEditingDisabled ? 0.6 : 1,
+                      }}
+                      onClick={isEditingDisabled ? undefined : handleDeleteLogo}
+                    >
+                      Delete
+                    </Typography>
+                  </span>
+                </Tooltip>
+                <Tooltip
+                  title="Only administrators are permitted to update the organization's logo."
+                  disableHoverListener={!isEditingDisabled}
                 >
-                  Update
-                </Typography>
+                  <span>
+                    <Typography
+                      sx={{
+                        color: "#13715B",
+                        cursor: isEditingDisabled ? "not-allowed" : "pointer",
+                        textDecoration: "none",
+                        "&:hover": {
+                          textDecoration: isEditingDisabled
+                            ? "none"
+                            : "underline",
+                        },
+                        paddingLeft: theme.spacing(5),
+                        fontSize: 13,
+                        opacity: isEditingDisabled ? 0.6 : 1,
+                      }}
+                      onClick={isEditingDisabled ? undefined : handleUpdateLogo}
+                    >
+                      Update
+                    </Typography>
+                  </span>
+                </Tooltip>
               </Stack>
             </Stack>
           </Box>

@@ -155,7 +155,7 @@ const ISO42001Clauses = ({
                 <Stack sx={styles.statusBadge(subClause.status ?? "")}>
                   {subClause.status
                     ? subClause.status.charAt(0).toUpperCase() +
-                      subClause.status.slice(1).toLowerCase()
+                    subClause.status.slice(1).toLowerCase()
                     : "Not started"}
                 </Stack>
               </Stack>

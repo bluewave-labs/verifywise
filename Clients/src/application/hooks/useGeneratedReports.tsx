@@ -10,23 +10,29 @@
 
 import { useEffect, useState } from "react";
 import { getEntityById } from "../repository/entity.repository";
+import { Project } from "../../domain/types/Project";
 
 export interface GeneratedReports {
   id: number;
   filename: string,
   type: string,
-  date: string,
-  generated_by: number,
-  project: string
+  uploaded_time: string,
+  project_id: string | number | null,
+  project_title: string,
+  source: string,
+  uploader_name: string,
+  uploader_surname: string
 }
 
 interface UseGeneratedReportsParams {
   projectId: string;
+  projects: Project[];
   refreshKey?: any;
 }
 
 const useGeneratedReports = ({
   projectId, 
+  projects,
   refreshKey
 } : UseGeneratedReportsParams) => {
   const [generatedReports, setGeneratedReports] = useState<GeneratedReports[]>([]);
@@ -34,6 +40,11 @@ const useGeneratedReports = ({
   const [error, setError] = useState<string | boolean>(false);
 
   useEffect(() => {
+    if(projects.length === 0 ) {
+      setLoadingReports(false);
+      return
+    };
+
     const controller = new AbortController();
     const signal = controller.signal;
     
@@ -63,7 +74,7 @@ const useGeneratedReports = ({
     return () => {
       controller.abort();
     };
-  }, [projectId, refreshKey])
+  }, [projectId, projects, refreshKey])
 
   return{
     generatedReports,

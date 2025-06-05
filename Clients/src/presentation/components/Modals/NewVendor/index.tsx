@@ -36,9 +36,9 @@ import {
 import Alert from "../../Alert";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import VWToast from "../../../vw-v2-components/Toast";
+import CustomizableToast from "../../../vw-v2-components/Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
-import VWButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import { KeyboardArrowDown } from "@mui/icons-material";
 import allowedRoles from "../../../../application/constants/permissions";
@@ -104,7 +104,7 @@ const REVIEW_STATUS_OPTIONS = [
 ];
 
 const RISK_LEVEL_OPTIONS = [
-  { _id: '', name: "Select risk status" },
+  { _id: "", name: "Select risk status" },
   { _id: 1, name: "Very high risk" },
   { _id: 2, name: "High risk" },
   { _id: 3, name: "Medium risk" },
@@ -133,10 +133,11 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   const [projectOptions, setProjectOptions] = useState<
     { _id: number; name: string }[]
   >([]);
-  const { dashboardValues, users, userRoleName } = useContext(VerifyWiseContext);
+  const { dashboardValues, users, userRoleName } =
+    useContext(VerifyWiseContext);
   const { projects } = dashboardValues;
 
-  const isEditingDisabled = !allowedRoles.vendors.edit.includes(userRoleName)
+  const isEditingDisabled = !allowedRoles.vendors.edit.includes(userRoleName);
 
   const formattedUsers = users?.map((user: any) => ({
     _id: user.id,
@@ -189,10 +190,11 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               (user: any) => user._id === existingVendor.reviewer
             )?._id || "",
           reviewResult: existingVendor.review_result,
-          riskStatus:
-            String(RISK_LEVEL_OPTIONS?.find(
+          riskStatus: String(
+            RISK_LEVEL_OPTIONS?.find(
               (s) => s.name === existingVendor.risk_status
-            )?._id ?? ''),
+            )?._id ?? ""
+          ),
           assignee:
             formattedUsers?.find(
               (user: any) => user._id === existingVendor.assignee
@@ -307,7 +309,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       Number(values.vendorDetails.reviewStatus) === 0
     ) {
       newErrors.reviewStatus =
-        "Please select a review status from the dropdown";
+        "Please select a status from the dropdown";
     }
     if (
       !values.vendorDetails.reviewer ||
@@ -494,7 +496,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               onChange={(e) => handleOnChange("website", e.target.value)}
               error={errors.website}
               isRequired
-               disabled={isEditingDisabled}
+              disabled={isEditingDisabled}
             />
           </Box>
         </Stack>
@@ -513,17 +515,27 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             id="projects-input"
             size="small"
             disabled={isEditingDisabled}
-            value={projectOptions?.filter(project => 
-              values.vendorDetails.projectIds?.includes(project._id)
-            ) || []}
+            value={
+              projectOptions?.filter((project) =>
+                values.vendorDetails.projectIds?.includes(project._id)
+              ) || []
+            }
             options={projectOptions || []}
-            noOptionsText={values?.vendorDetails?.projectIds?.length === projectOptions?.length
-              ? "All projects are selected"
-              : "No options"}
+            noOptionsText={
+              values?.vendorDetails?.projectIds?.length ===
+              projectOptions?.length
+                ? "All projects are selected"
+                : "No options"
+            }
             onChange={(_event, newValue: { _id: number; name: string }[]) => {
-              handleOnChange("projectIds", newValue.map(project => project._id));
+              handleOnChange(
+                "projectIds",
+                newValue.map((project) => project._id)
+              );
             }}
-            getOptionLabel={(project: { _id: number; name: string }) => project.name}
+            getOptionLabel={(project: { _id: number; name: string }) =>
+              project.name
+            }
             renderOption={(props, option: { _id: number; name: string }) => {
               const { key, ...optionProps } = props;
               return (
@@ -540,8 +552,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               <TextField
                 {...params}
                 placeholder="Select projects"
-                error={!!errors.projectIds}
-                helperText={errors.projectIds}
                 required
                 sx={{
                   "& .MuiOutlinedInput-root": {
@@ -563,14 +573,14 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               backgroundColor: theme.palette.background.main,
               "& .MuiOutlinedInput-root": {
                 borderRadius: "3px",
-                overflowY:"auto",
+                overflowY: "auto",
                 flexWrap: "wrap",
                 maxHeight: "115px",
                 alignItems: "flex-start",
                 "&:hover": {
                   "& .MuiOutlinedInput-notchedOutline": {
                     border: "none",
-                  }
+                  },
                 },
                 "& .MuiOutlinedInput-notchedOutline": {
                   border: "none",
@@ -578,7 +588,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 "&.Mui-focused": {
                   "& .MuiOutlinedInput-notchedOutline": {
                     border: "none",
-                  }
+                  },
                 },
               },
               "& .MuiAutocomplete-tag": {
@@ -588,10 +598,11 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
-                }
+                },
               },
-              border: `1px solid ${theme.palette.border.dark}`,
+              border: errors.projectIds ? `1px solid #f04438` : `1px solid ${theme.palette.border.dark}`,
               borderRadius: "3px",
+              opacity: errors.projectIds ? 0.8 : 1,
             }}
             slotProps={{
               paper: {
@@ -616,6 +627,15 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               },
             }}
           />
+          {errors.projectIds && (
+            <Typography
+              color="error"
+              variant="caption"
+              sx={{ mt: 0.5, ml: 1 , color: "#f04438", opacity: 0.8}}
+            >
+              {errors.projectIds}
+            </Typography>
+          )}
         </Stack>
       </Stack>
       <Stack marginBottom={theme.spacing(8)}>
@@ -707,7 +727,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           isHidden={false}
           id=""
           onChange={(e) => handleOnChange("riskStatus", e.target.value)}
-          value={values.vendorDetails.riskStatus || ''}
+          value={values.vendorDetails.riskStatus || ""}
           error={errors.riskStatus}
           sx={{
             width: 220,
@@ -762,7 +782,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         </Suspense>
       )}
       {isSubmitting && (
-        <VWToast title="Processing your request. Please wait..." />
+        <CustomizableToast title="Processing your request. Please wait..." />
       )}
       <Modal
         open={isOpen}
@@ -814,10 +834,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             </Typography>
             <Close style={{ cursor: "pointer" }} onClick={setIsOpen} />
           </Stack>
-          <Box sx={{ flex: 1, overflow: "auto", marginBottom: theme.spacing(8) }}>
-            <TabContext value={value}>
-              {vendorDetailsPanel}
-            </TabContext>
+          <Box
+            sx={{ flex: 1, overflow: "auto", marginBottom: theme.spacing(8) }}
+          >
+            <TabContext value={value}>{vendorDetailsPanel}</TabContext>
           </Box>
           <Stack
             sx={{
@@ -825,7 +845,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               marginTop: "auto",
             }}
           >
-            <VWButton
+            <CustomizableButton
               variant="contained"
               text="Save"
               sx={{

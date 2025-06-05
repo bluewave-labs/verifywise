@@ -1,4 +1,4 @@
-import React, { useState, lazy, Suspense, useContext } from 'react'
+import React, { useState, lazy, Suspense, useContext, useRef } from 'react'
 import { IconButton, Box, Stack } from '@mui/material';
 import CloseIcon from "@mui/icons-material/Close";
 import {styles} from './styles';
@@ -31,6 +31,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
     title?: string;
     body: string;
   } | null>(null);
+  const clearTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleToast = (type: any, message: string) => {
     handleAlert({
@@ -38,7 +39,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
       body: message,
       setAlert,
     });
-    setTimeout(() => {
+    clearTimerRef.current = setTimeout(() => {
       setAlert(null);
       onClose();
     }, 3000);
@@ -56,12 +57,29 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
       (user: any) => user.id === parseInt(currentProject.owner)
     );
     const currentProjectOwner = owner ? `${owner.name} ${owner.surname}`: "";          
+    let reportTypeLabel = input.report_type;
+    switch(input.report_type){
+      case "Annexes report":
+        reportTypeLabel = "Reference controls group"
+        break;      
+      case "Clauses report":
+        reportTypeLabel = "Management system clauses group"
+        break; 
+      case "Clauses and annexes report":
+        reportTypeLabel = "Reference controls group"
+        break;     
+      case "All reports combined in one file":
+        reportTypeLabel = "All reports"
+        break;
+      default:
+        break;
+    }
 
     const body = {
       projectId: input.project,
       projectTitle: currentProject.project_title,
       projectOwner: currentProjectOwner,
-      reportType: input.report_type,
+      reportType: reportTypeLabel,
       reportName: input.report_name,
       frameworkId: input.framework
     }
@@ -82,6 +100,14 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
         "Unexpected error occurs while downloading the report."
       );
     }
+  }
+
+  const handleOnCloseModal = () => {
+    if (clearTimerRef.current) {
+      clearTimeout(clearTimerRef.current);
+      clearTimerRef.current = null;
+    }
+    onClose();
   }
 
   return (
@@ -107,7 +133,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
         }}
         component="form"
       >
-        <IconButton onClick={onClose} sx={styles.iconButton}>
+        <IconButton onClick={handleOnCloseModal} sx={styles.iconButton}>
           <CloseIcon sx={styles.closeButton} />
         </IconButton>
         {isReportRequest ? 

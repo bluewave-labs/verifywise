@@ -13,7 +13,7 @@ import {
   removeMemberFromOrganizationQuery,
   removeProjectFromOrganizationQuery,
   updateOrganizationByIdQuery,
-} from "../utils/organization.util";
+} from "../utils/organization.utils";
 
 /**
  * Get all organizations
@@ -117,33 +117,42 @@ export async function createOrganization(
   req: Request,
   res: Response
 ): Promise<any> {
+  console.log("createOrganization", req.body);
   const transaction = await sequelize.transaction();
+  console.log("createOrganization 1");
   try {
     const newOrganization = req.body;
 
+    console.log("createOrganization 2");
     if (!newOrganization.name) {
       await transaction.rollback();
+      console.log("createOrganization 3");
       return res
         .status(400)
         .json(STATUS_CODE[400]("Organization name is required"));
     }
 
+    console.log("createOrganization 4");
     const createdOrganization = await createOrganizationQuery(
       newOrganization,
       transaction
     );
-
+    console.log("createOrganization 5");
     if (createdOrganization) {
       await transaction.commit();
+      console.log("createOrganization 6");
       return res.status(201).json(STATUS_CODE[201](createdOrganization));
     }
-
+    console.log("createOrganization 7");
     await transaction.rollback();
+    console.log("createOrganization 8");
     return res
       .status(400)
       .json(STATUS_CODE[400]("Unable to create organization"));
   } catch (error) {
+    console.log("createOrganization 9", error);
     await transaction.rollback();
+    console.log("createOrganization 10");
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

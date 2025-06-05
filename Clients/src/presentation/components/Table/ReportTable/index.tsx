@@ -8,7 +8,7 @@ import {
   TableRow,
   Typography,
   useTheme,
-  Stack
+  TableFooter
 } from "@mui/material";
 import singleTheme from '../../../themes/v1SingleTheme';
 import placeholderImage from "../../../assets/imgs/empty-state.svg";
@@ -16,7 +16,7 @@ import { ReactComponent as SelectorVertical } from '../../../assets/icons/select
 import TablePaginationActions from '../../TablePagination';
 import TableHeader from '../TableHead';
 const ReportTableBody = lazy(() => import("./TableBody"))
-import {styles, emptyData, paginationWrapper, pagniationStatus, paginationStyle, paginationDropdown, paginationSelect} from './styles'
+import {styles, emptyData, pagniationStatus, paginationStyle, paginationDropdown, paginationSelect} from './styles'
 
 interface ReportTableProps {
   columns: any[];
@@ -57,79 +57,84 @@ const ReportTable: React.FC<ReportTableProps> = ({
   return (
     <>
       <TableContainer>
-        <Table
-          sx={{
-            ...singleTheme.tableStyles.primary.frame,
-          }}
-        >
-          <TableHeader columns={columns} />
-          {rows.length !== 0 ? 
-            <Suspense fallback={<div>Loading...</div>}>
-              <ReportTableBody 
-                rows={rows} 
-                onRemoveReport={removeReport}
-                page={page}
-                rowsPerPage={rowsPerPage} 
-              /> 
-            </Suspense>
-          : (
-            <>
-              <TableBody>
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    align="center"
-                    sx={emptyData}
-                  >
-                    <img src={placeholderImage} alt="Placeholder" />
-                    <Typography sx={styles.textBase}>
-                      There is currently no data in this table.
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </>
-          )}
-        </Table>
-      </TableContainer>
-      {rows.length !== 0 &&
-        <Stack sx={paginationWrapper}>
-          <Typography sx={pagniationStatus}>
-            Showing {getRange} of {rows?.length} project report(s)
-          </Typography>
-          <TablePagination
-            count={rows?.length}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[5, 10, 15, 20, 25]}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            ActionsComponent={(props) => <TablePaginationActions {...props} />}
-            labelRowsPerPage="Project risks per page"
-            labelDisplayedRows={({ page, count }) =>
-              `Page ${page + 1} of ${Math.max(0, Math.ceil(count / rowsPerPage))}`
-            }
-            sx={paginationStyle}
-            slotProps={{
-              select: {
-                MenuProps: {
-                  keepMounted: true,
-                  PaperProps: {
-                    className: "pagination-dropdown",
-                    sx: paginationDropdown,
-                  },
-                  transformOrigin: { vertical: "bottom", horizontal: "left" },
-                  anchorOrigin: { vertical: "top", horizontal: "left" },
-                  sx: { mt: theme.spacing(-2) },
-                },
-                inputProps: { id: "pagination-dropdown" },
-                IconComponent: SelectorVertical,
-                sx: paginationSelect,
-              },
+        <Suspense fallback={<div>Loading...</div>}>
+          <Table
+            sx={{
+              ...singleTheme.tableStyles.primary.frame,
+              ...styles.tableWrapper
             }}
-          />
-        </Stack>
-      }
+          >
+            <TableHeader columns={columns} />
+            {rows.length !== 0 ? 
+              <>
+                <ReportTableBody 
+                  rows={rows} 
+                  onRemoveReport={removeReport}
+                  page={page}
+                  rowsPerPage={rowsPerPage} 
+                /> 
+                {rows.length !== 0 &&
+                  <TableFooter>
+                    <TableRow>
+                      <TableCell sx={pagniationStatus}>
+                        Showing {getRange} of {rows?.length} project report(s)
+                      </TableCell>
+                      <TablePagination
+                        count={rows?.length}
+                        page={page}
+                        onPageChange={handleChangePage}
+                        rowsPerPage={rowsPerPage}
+                        rowsPerPageOptions={[5, 10, 15, 20, 25]}
+                        onRowsPerPageChange={handleChangeRowsPerPage}
+                        ActionsComponent={(props) => <TablePaginationActions {...props} />}
+                        labelRowsPerPage="Reports per page"
+                        labelDisplayedRows={({ page, count }) =>
+                          `Page ${page + 1} of ${Math.max(0, Math.ceil(count / rowsPerPage))}`
+                        }
+                        sx={paginationStyle}
+                        slotProps={{
+                          select: {
+                            MenuProps: {
+                              keepMounted: true,
+                              PaperProps: {
+                                className: "pagination-dropdown",
+                                sx: paginationDropdown,
+                              },
+                              transformOrigin: { vertical: "bottom", horizontal: "left" },
+                              anchorOrigin: { vertical: "top", horizontal: "left" },
+                              sx: { mt: theme.spacing(-2) },
+                            },
+                            inputProps: { id: "pagination-dropdown" },
+                            IconComponent: SelectorVertical,
+                            sx: paginationSelect,
+                          },
+                        }}
+                      />
+                    </TableRow>
+                  </TableFooter>
+                }
+              </>
+            : (
+              <>
+                <TableBody>
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      align="center"
+                      sx={emptyData}
+                    >
+                      <img src={placeholderImage} alt="Placeholder" />
+                      <Typography sx={styles.textBase}>
+                        There is currently no data in this table.
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </>
+            )}
+          </Table>
+        </Suspense>
+      </TableContainer>
     </>
   )
 }

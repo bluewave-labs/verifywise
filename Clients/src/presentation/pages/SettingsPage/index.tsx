@@ -1,12 +1,16 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Tabs, Tab, Stack } from "@mui/material";
 import Profile from "./Profile/index";
 import Password from "./Password/index";
 import TeamManagement from "./Team/index";
 import { settingTabStyle, tabContainerStyle, tabIndicatorStyle } from "./style";
 import Organization from "./Organization";
+import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import allowedRoles from "../../../application/constants/permissions";
 
 export default function ProfilePage() {
+  const { userRoleName } = useContext(VerifyWiseContext);
+  const isTeamManagementDisabled = !allowedRoles.projects.editTeamMembers.includes(userRoleName);
   const [activeTab, setActiveTab] = useState(0);
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
@@ -23,7 +27,7 @@ export default function ProfilePage() {
       >
         <Tab label="Profile" disableRipple sx={settingTabStyle} />
         <Tab label="Password" disableRipple sx={settingTabStyle} />
-        <Tab label="Team" disableRipple sx={settingTabStyle} />
+        <Tab label="Team" disableRipple sx={settingTabStyle} disabled={isTeamManagementDisabled} />
         <Tab label="Organization" disableRipple sx={settingTabStyle} />
       </Tabs>
 

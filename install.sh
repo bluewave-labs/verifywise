@@ -23,16 +23,6 @@ load_env() {
     fi
 }
 
-# Function to check if database has been initialized
-check_db_initialized() {
-    local init_flag_file=".db_initialized"
-    if [ -f "$init_flag_file" ]; then
-        return 0
-    else
-        return 1
-    fi
-}
-
 wait_for_postgres() {
     echo "Waiting for PostgreSQL to be ready..."
     # Get the PostgreSQL container ID
@@ -52,41 +42,6 @@ wait_for_postgres() {
     echo "PostgreSQL is ready!"
 }
 
-# Function to initialize database
-initialize_db() {
-    echo "Initializing database..."
-
-    wait_for_postgres
-    
-    # Get the PostgreSQL container ID
-    PG_CONTAINER=$($DOCKER_COMPOSE_CMD ps | grep postgresdb | grep Up | awk '{print $1}')
-    
-    # Check if SQL files exist
-    if [ ! -f "Servers/SQL_Commands.sql" ]; then
-        echo "Error: Required SQL files (SQL_Commands.sql) not found"
-        exit 1
-    fi
-
-    # Copy SQL files to container
-    echo "Copying SQL files to container..."
-    docker cp ./Servers/SQL_Commands.sql $PG_CONTAINER:/SQL_Commands.sql
-
-    # Execute SQL files inside container
-    echo "Executing SQL_Commands.sql..."
-    docker exec -i $PG_CONTAINER psql -U $DB_USER -d $DB_NAME -f ./SQL_Commands.sql
-
-    if [ $? -eq 0 ]; then
-        touch .db_initialized
-        echo "Database initialized successfully"
-        
-        # Clean up SQL files from container
-        docker exec $PG_CONTAINER rm ./SQL_Commands.sql
-    else
-        echo "Error: Failed to initialize database"
-        exit 1
-    fi
-}
-
 # Main script
 main() {
     detect_docker_compose
@@ -102,13 +57,6 @@ main() {
     else
         load_env .env.prod
         $DOCKER_COMPOSE_CMD -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod up -d
-    fi
-
-    # Check if database needs initialization
-    if ! check_db_initialized; then
-        initialize_db
-    else
-        echo "Database already initialized, skipping initialization"
     fi
 
     # Keep containers running in foreground

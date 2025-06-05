@@ -7,15 +7,15 @@ import singleTheme from "../../themes/v1SingleTheme";
 
 const alertStyles = singleTheme.alertStyles;
 
-type VWAlertProps = {
+type CustomizableAlertProps = {
   title?: string;
   status?: "success" | "info" | "warning" | "error";
 };
 
-const VWAlert = ({
+const CustomizableAlert = ({
   title = "This is a success vwAlert — check it out!",
   status = "success",
-}: VWAlertProps) => {
+}: CustomizableAlertProps) => {
   const { text, bg, border } = alertStyles[status];
 
   return (
@@ -31,4 +31,4 @@ const VWAlert = ({
   );
 };
 
-export default VWAlert;
+export default CustomizableAlert;

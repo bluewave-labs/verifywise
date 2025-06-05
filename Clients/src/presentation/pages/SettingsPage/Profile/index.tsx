@@ -5,6 +5,7 @@ import React, {
   useCallback,
   ChangeEvent,
   useMemo,
+  useContext,
 } from "react";
 import { Box, Divider, Stack, Typography } from "@mui/material";
 import { useTheme } from "@mui/material";
@@ -23,12 +24,13 @@ import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import Alert from "../../../components/Alert"; // Import Alert component
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
-import VWButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
-import VWSkeleton from "../../../vw-v2-components/Skeletons";
-import VWToast from "../../../vw-v2-components/Toast"; // Import VWToast component
+import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
+import CustomizableToast from "../../../vw-v2-components/Toast"; // Import CustomizableToast component
 import useLogout from "../../../../application/hooks/useLogout";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 /**
  * Interface representing a user object.
@@ -55,7 +57,9 @@ const ProfileForm: React.FC = () => {
   const state = store.getState();
   const userData = extractUserToken(state.auth.authToken); // Extract user data from token
   const { id } = userData || {};
-
+  const { userRoleName } = useContext(VerifyWiseContext);
+  const isAdmin = userRoleName === "Admin";
+  console.log("isAdmin : ", isAdmin);
   // State management
   const [firstname, setFirstname] = useState<string>("");
   const [lastname, setLastname] = useState<string>("");
@@ -105,7 +109,7 @@ const ProfileForm: React.FC = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       setLoading(true);
-      try {       
+      try {
         const response = await getEntityById({ routeUrl: `/users/${id}` });
         console.log("response : ", response);
         setFirstname(response.data.name || "");
@@ -163,7 +167,7 @@ const ProfileForm: React.FC = () => {
         }, 3000); // Alert will disappear after 3 seconds
         return;
       }
-   
+
       const updatedUser = {
         name: firstname,
         surname: lastname,
@@ -346,7 +350,7 @@ const ProfileForm: React.FC = () => {
 
   const handleDeleteAccount = useCallback(async () => {
     setShowToast(true); // Show toast when request is sent
-    try {    
+    try {
       await deleteEntityById({ routeUrl: `/users/${Number(id)}` });
       //clear all storage
       await localStorage.removeItem("userId");
@@ -397,15 +401,16 @@ const ProfileForm: React.FC = () => {
 
   return (
     <Box sx={{ position: "relative", mt: 3, width: { xs: "90%", md: "70%" } }}>
-      {showToast && <VWToast />} {/* Show VWToast when showToast is true */}
+      {showToast && <CustomizableToast />}{" "}
+      {/* Show CustomizableToast when showToast is true */}
       {loading && (
-        <VWSkeleton
+        <CustomizableSkeleton
           variant="rectangular"
           width="100%"
           height="300px"
           minWidth={"100%"}
           minHeight={300}
-          sx={{ backgroundColor: "gray", borderRadius: 2 }}
+          sx={{borderRadius: 2 }}
         />
       )}
       {alert.visible && (
@@ -468,17 +473,27 @@ const ProfileForm: React.FC = () => {
             )}
             <Typography
               variant="caption"
-              sx={{ mt: 1, 
-                mb:{ xs: 5, md: 0 },
-                display: "block", color: "#667085" }}
+              sx={{
+                mt: 1,
+                mb: { xs: 5, md: 0 },
+                display: "block",
+                color: "#667085",
+              }}
             >
               This is your current email address — it cannot be changed.
             </Typography>
           </Box>
-          <Box sx={{ width: { xs: "100%", md: "40%" }, 
-          textAlign: { xs: "left", md: "center" },
-          }}>
-            <Stack direction="column" alignItems={{xs: "flex-start", md: "center"}} spacing={2}>
+          <Box
+            sx={{
+              width: { xs: "100%", md: "40%" },
+              textAlign: { xs: "left", md: "center" },
+            }}
+          >
+            <Stack
+              direction="column"
+              alignItems={{ xs: "flex-start", md: "center" }}
+              spacing={2}
+            >
               <Typography
                 fontWeight="600"
                 variant="subtitle1"
@@ -544,7 +559,7 @@ const ProfileForm: React.FC = () => {
             alignItems: "center",
           }}
         >
-          <VWButton
+          <CustomizableButton
             variant="contained"
             text="Save"
             sx={{
@@ -562,13 +577,13 @@ const ProfileForm: React.FC = () => {
       )}
       <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
       {loading && (
-        <VWSkeleton
+        <CustomizableSkeleton
           variant="rectangular"
           width="100%"
           height="200px"
           minWidth={"100%"}
           minHeight={200}
-          sx={{ backgroundColor: "gray", borderRadius: 2 }}
+          sx={{borderRadius: 2 }}
         />
       )}
       {!loading && (
@@ -593,19 +608,20 @@ const ProfileForm: React.FC = () => {
                 alignItems: "center",
               }}
             >
-              <VWButton
+              <CustomizableButton
                 sx={{
                   width: { xs: "100%", sm: theme.spacing(80) },
                   mb: theme.spacing(4),
                   backgroundColor: "#DB504A",
                   color: "#fff",
-                  border: "1px solid #DB504A",
+                  border: `1px solid ${isAdmin ? "#C2C2C2" : "#DB504A"}`,
                   gap: 2,
                 }}
                 icon={<DeleteIcon />}
                 variant="contained"
                 onClick={handleOpenDeleteDialog}
                 text="Delete account"
+                isDisabled={isAdmin}
               />
             </Stack>
           </Stack>

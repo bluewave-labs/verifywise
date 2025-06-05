@@ -8,7 +8,7 @@ import {
   getVendorRiskByIdQuery,
   getVendorRisksByProjectIdQuery,
   updateVendorRiskByIdQuery,
-} from "../utils/vendorRisk.util";
+} from "../utils/vendorRisk.utils";
 import { VendorRisk } from "../models/vendorRisk.model";
 
 export async function getAllVendorRisksAllProjects(

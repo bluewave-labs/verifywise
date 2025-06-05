@@ -8,28 +8,33 @@ import {
   vwhomeCreateModalFrame,
   vwhomeHeading,
 } from "./style";
-import VWButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../vw-v2-components/Buttons";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
-import VWProjectCard from "../../../components/Cards/ProjectCard";
+import ProjectCard from "../../../components/Cards/ProjectCard";
 
 import { postAutoDrivers } from "../../../../application/repository/entity.repository";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import NoProject from "../../../components/NoProject/NoProject";
-import VWToast from "../../../vw-v2-components/Toast";
+import CustomizableToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 import { logEngine } from "../../../../application/tools/log.engine";
-import VWProjectForm from "../../../vw-v2-components/Forms/ProjectForm";
-import { useProjectData } from "../../../../application/hooks/useFetchProjects";
+import ProjectForm from "../../../vw-v2-components/Forms/ProjectForm";
+import { useProjects } from "../../../../application/hooks/useProjects";
 import { AlertState } from "../../../../application/interfaces/appStates";
 import PageTour from "../../../components/PageTour";
 import HomeSteps from "./HomeSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
 import allowedRoles from "../../../../application/constants/permissions";
 
-const VWHome = () => {
-  const { setDashboardValues, componentsVisible, changeComponentVisibility, refreshUsers, userRoleName } =
-    useContext(VerifyWiseContext);
+const Home = () => {
+  const {
+    setDashboardValues,
+    componentsVisible,
+    changeComponentVisibility,
+    refreshUsers,
+    userRoleName,
+  } = useContext(VerifyWiseContext);
   const [alertState, setAlertState] = useState<AlertState>();
   const [isProjectFormModalOpen, setIsProjectFormModalOpen] =
     useState<boolean>(false);
@@ -38,7 +43,7 @@ const VWHome = () => {
   const [showToastNotification, setShowToastNotification] =
     useState<boolean>(false);
 
-  const { projects, fetchProjects } = useProjectData();
+  const { projects, fetchProjects } = useProjects();
 
   const [runHomeTour, setRunHomeTour] = useState(false);
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
@@ -58,7 +63,7 @@ const VWHome = () => {
 
   useEffect(() => {
     const fetchProgressData = async () => {
-      await refreshUsers()
+      await refreshUsers();
 
       await fetchProjects();
     };
@@ -136,14 +141,14 @@ const VWHome = () => {
         />
       )}
       {showToastNotification && (
-        <VWToast title="Generating demo data. Please wait, this process may take some time..." />
+        <CustomizableToast title="Generating demo data. Please wait, this process may take some time..." />
       )}
       <Stack className="vwhome-body">
         <Stack sx={vwhomeBody}>
           <Typography sx={vwhomeHeading}>Projects overview</Typography>
           <Stack sx={vwhomeBodyControls}>
             {projects.length === 0 && (
-              <VWButton
+              <CustomizableButton
                 variant="contained"
                 text="Insert demo data"
                 sx={{
@@ -153,11 +158,13 @@ const VWHome = () => {
                 }}
                 icon={<CloudDownloadIcon />}
                 onClick={() => handleGenerateDemoDataClick()}
-                isDisabled={!allowedRoles.projects.create.includes(userRoleName)}
+                isDisabled={
+                  !allowedRoles.projects.create.includes(userRoleName)
+                }
               />
             )}
             <div data-joyride-id="new-project-button" ref={refs[0]}>
-              <VWButton
+              <CustomizableButton
                 variant="contained"
                 text="New project"
                 sx={{
@@ -167,7 +174,9 @@ const VWHome = () => {
                 }}
                 icon={<AddCircleOutlineIcon />}
                 onClick={() => setIsProjectFormModalOpen(true)}
-                isDisabled={!allowedRoles.projects.create.includes(userRoleName)}
+                isDisabled={
+                  !allowedRoles.projects.create.includes(userRoleName)
+                }
               />
             </div>
           </Stack>
@@ -189,7 +198,7 @@ const VWHome = () => {
                 }}
               >
                 {projects.map((project) => (
-                  <VWProjectCard key={project.id} project={project} />
+                  <ProjectCard key={project.id} project={project} />
                 ))}
               </Box>
             </>
@@ -199,7 +208,7 @@ const VWHome = () => {
                 {projects &&
                   projects.map((project) => (
                     <Box key={project.id} sx={{ gridColumn: "span 1" }}>
-                      <VWProjectCard key={project.id} project={project} />
+                      <ProjectCard key={project.id} project={project} />
                     </Box>
                   ))}
               </Box>
@@ -214,7 +223,7 @@ const VWHome = () => {
         aria-describedby="modal-description"
       >
         <Box sx={vwhomeCreateModalFrame}>
-          <VWProjectForm onClose={handleProjectFormModalClose} />
+          <ProjectForm onClose={handleProjectFormModalClose} />
         </Box>
       </Modal>
       <PageTour
@@ -229,4 +238,4 @@ const VWHome = () => {
   );
 };
 
-export default VWHome;
+export default Home;

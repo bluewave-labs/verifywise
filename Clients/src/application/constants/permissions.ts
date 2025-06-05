@@ -1,7 +1,7 @@
 const allowedRoles = {
     projects: {
         view: ['Admin', 'Editor', 'Auditor'],
-        create: ['Admin', 'Editor', 'Auditor'],
+        create: ['Admin', 'Editor'],
         edit: ['Admin', 'Editor'],
         delete: ['Admin', 'Editor'],
         editTeamMembers: ['Admin'],
@@ -23,6 +23,11 @@ const allowedRoles = {
         edit: ['Admin', 'Editor'],    
         manage: ['Admin', 'Editor'],
         audit: [ 'Auditor']
+    },
+    organizations: {
+        view: ['Admin', 'Editor', 'Auditor'],
+        create: ['Admin'],
+        edit: ['Admin'],    
     },
 }
 

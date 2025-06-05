@@ -38,6 +38,7 @@ import { AnnexStructISOModel } from "../models/ISO-42001/annexStructISO.model";
 import { ClauseStructISOModel } from "../models/ISO-42001/clauseStructISO.model";
 import { SubClauseISOModel } from "../models/ISO-42001/subClauseISO.model";
 import { SubClauseStructISOModel } from "../models/ISO-42001/subClauseStructISO.model";
+import { OrganizationModel } from "../models/organization.model";
 import { TrainingRegistarModel } from "../models/trainingRegistar.model";
 
 dotenv.config();
@@ -89,8 +90,7 @@ const sequelize = new Sequelize(
       AnnexStructISOModel,
       ClauseStructISOModel,
       SubClauseISOModel,
-      SubClauseStructISOModel,
-      TrainingRegistarModel
+      SubClauseStructISOModel
     ]
   }
 ) as Sequelize;

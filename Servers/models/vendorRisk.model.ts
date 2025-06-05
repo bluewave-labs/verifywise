@@ -14,7 +14,6 @@ export type VendorRisk = {
   order_no?: number; // gets assigned from the structure
   risk_description: string;
   impact_description: string;
-  impact: "Negligible" | "Minor" | "Moderate" | "Major" | "Critical";
   likelihood: "Rare" | "Unlikely" | "Possible" | "Likely" | "Almost certain";
   risk_severity: "Negligible" | "Minor" | "Moderate" | "Major" | "Catastrophic";
   action_plan: string;

@@ -61,6 +61,14 @@ interface ReportProps {
   onGenerate: (formValues: any) => void;
 }
 
+const safeNumberConversion = (value: string | number): number => {
+  const num = Number(value);
+  if (isNaN(num)) {
+    throw new Error('Invalid number conversion');
+  }
+  return num;
+};
+
 const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
   const { dashboardValues } = useContext(VerifyWiseContext);
   const [values, setValues] = useState<FormValues>({...initialState, project: dashboardValues.projects[0].id});
@@ -99,7 +107,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
   );
 
   const handleFrameworkChange = (event: SelectChangeEvent<string | number>) => {
-    const selectedFrameworkId = Number(event.target.value);
+    const selectedFrameworkId = safeNumberConversion(event.target.value);
     const selectedFramework = projectFrameworks.find(
       (fw) => fw.framework_id === selectedFrameworkId
     );

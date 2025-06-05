@@ -1,4 +1,4 @@
-import React, { useState, lazy, Suspense, useContext } from 'react'
+import React, { useState, lazy, Suspense, useContext, useRef } from 'react'
 import { IconButton, Box, Stack } from '@mui/material';
 import CloseIcon from "@mui/icons-material/Close";
 import {styles} from './styles';
@@ -31,6 +31,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
     title?: string;
     body: string;
   } | null>(null);
+  const clearTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleToast = (type: any, message: string) => {
     handleAlert({
@@ -38,7 +39,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
       body: message,
       setAlert,
     });
-    setTimeout(() => {
+    clearTimerRef.current = setTimeout(() => {
       setAlert(null);
       onClose();
     }, 3000);
@@ -101,6 +102,14 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
     }
   }
 
+  const handleOnCloseModal = () => {
+    if (clearTimerRef.current) {
+      clearTimeout(clearTimerRef.current);
+      clearTimerRef.current = null;
+    }
+    onClose();
+  }
+
   return (
     <Stack>
       {alert && (
@@ -124,7 +133,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
         }}
         component="form"
       >
-        <IconButton onClick={onClose} sx={styles.iconButton}>
+        <IconButton onClick={handleOnCloseModal} sx={styles.iconButton}>
           <CloseIcon sx={styles.closeButton} />
         </IconButton>
         {isReportRequest ? 

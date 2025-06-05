@@ -112,7 +112,7 @@ const Vendors = () => {
   });
 
   const isCreatingDisabled =
-    !allowedRoles.vendors.create.includes(userRoleName);
+    !allowedRoles.vendors.create.includes(userRoleName) || projects.length === 0;
   const isDeletingAllowed = allowedRoles.vendors.delete.includes(userRoleName);
 
   const createAbortController = () => {

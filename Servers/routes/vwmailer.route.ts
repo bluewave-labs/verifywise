@@ -2,7 +2,7 @@ import express from "express";
 import { sendEmail } from "../services/emailService";
 import fs from "fs";
 import path from "path";
-import { generateToken } from "../utils/jwt.util";
+import { generateToken } from "../utils/jwt.utils";
 
 const router = express.Router();
 

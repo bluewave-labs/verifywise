@@ -9,7 +9,7 @@ import {
   updateControlCategoryByIdQuery,
   deleteControlCategoryByIdQuery,
   getControlCategoryByProjectIdQuery,
-} from "../utils/controlCategory.util";
+} from "../utils/controlCategory.utils";
 import { ControlCategory } from "../models/controlCategory.model";
 import { sequelize } from "../database/db";
 

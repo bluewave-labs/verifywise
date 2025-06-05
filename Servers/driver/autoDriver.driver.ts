@@ -3,13 +3,13 @@ import { Project } from "../models/project.model";
 import {
   getData,
   deleteDemoVendorsData,
-} from "../utils/autoDriver.util";
+} from "../utils/autoDriver.utils";
 import { createEUFrameworkQuery } from "../utils/eu.utils";
 import { sequelize } from "../database/db";
 import { createNewProjectQuery, deleteProjectByIdQuery } from "../utils/project.utils";
 import { createProjectRiskQuery } from "../utils/projectRisk.utils";
 import { createNewVendorQuery } from "../utils/vendor.utils";
-import { createNewVendorRiskQuery } from "../utils/vendorRisk.util";
+import { createNewVendorRiskQuery } from "../utils/vendorRisk.utils";
 import { createNewUserQuery } from "../utils/user.utils";
 import { User } from "../models/user.model";
 import { Vendor } from "../models/vendor.model";

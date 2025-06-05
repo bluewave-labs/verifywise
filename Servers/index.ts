@@ -29,7 +29,7 @@ import isoRoutes from "./routes/iso42001.route";
 import autoDriverRoutes from "./routes/autoDriver.route";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
-import { parseOrigins, testOrigin } from "./utils/parseOrigins";
+import { parseOrigins, testOrigin } from "./utils/parseOrigins.utils";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 

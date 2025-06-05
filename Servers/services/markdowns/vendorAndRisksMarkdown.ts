@@ -7,7 +7,7 @@
 
 import { getUserByIdQuery } from "../../utils/user.utils";
 import { getVendorByProjectIdQuery } from "../../utils/vendor.utils";
-import { getVendorRisksByProjectIdQuery } from "../../utils/vendorRisk.util";
+import { getVendorRisksByProjectIdQuery } from "../../utils/vendorRisk.utils";
 import { ReportBodyData } from "../reportService";
 
 export async function getVendorReportMarkdown(

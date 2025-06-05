@@ -62,7 +62,7 @@ export default function FairnessDashboard() {
           id: item.metrics_id, // use this for "ID" column
           model: item.model_filename,
           dataset: item._data_filename,
-          status: "Pending" // You can update if backend supports "status"
+          status: "Pending" 
         }));
         setUploadedModels(formatted);
       } catch (err) {
@@ -140,8 +140,7 @@ export default function FairnessDashboard() {
         sensitive_column: sensitiveColumn,
       });
   
-      // Assume the backend returns something like:
-      // { id: "abc123", name: "ModelX", status: "Pending", created_at: "2025-06-03T02:45:00Z" }
+      
   
       const newEntry: FairnessModel = {
         id: result.id,
@@ -156,8 +155,6 @@ export default function FairnessDashboard() {
       console.error("Failed to upload model:", err);
     }
   };
-  
-  
   
 
   return (

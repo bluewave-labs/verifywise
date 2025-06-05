@@ -19,20 +19,24 @@ import {
   AccordionSummary,
   AccordionDetails,
   CircularProgress,
+  Tooltip,
 } from "@mui/material";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { BarChart } from "@mui/x-charts";
 import { fairnessService } from "../../../infrastructure/api/fairnessService";
+import singleTheme from "../../themes/v1SingleTheme";
+
 
 const metricDescriptions = {
-  accuracy: "Overall correctness of the model's predictions.",
-  selection_rate: "Proportion of individuals selected by the model per group.",
-  tpr: "True Positive Rate - proportion of positives correctly identified.",
-  tnr: "True Negative Rate - proportion of negatives correctly identified.",
-  demographic_parity_difference: "Difference in selection rates across groups.",
-  equal_opportunity_difference: "Difference in true positive rates across groups.",
-  equalized_odds_difference: "Difference in true and false positive rates across groups.",
+  accuracy: "Overall correctness of the model's predictions",
+  selection_rate: "Proportion of individuals selected by the model",
+  tpr: "True Positive Rate - proportion of positives correctly identified",
+  tnr: "True Negative Rate - proportion of negatives correctly identified",
+  demographic_parity_difference: "Measures how equally outcomes are distributed across groups. Lower is fairer.",
+  equal_opportunity_difference: "Measures gaps in true positive rate (TPR) between groups. Lower means more equal opportunity",
+  equalized_odds_difference: "Difference in true positive and false positive rates between groups. Lower means less bias.",
 };
 
 export default function FairnessResultsPage() {
@@ -88,42 +92,84 @@ export default function FairnessResultsPage() {
         <IconButton onClick={() => navigate("/fairness-dashboard")} sx={{ mr: 2 }}>
           <ArrowBackIcon />
         </IconButton>
-        <Typography variant="h5" fontWeight={600}>
+        <Typography sx={{...singleTheme.textStyles.pageTitle, variant:"h5", fontWeight:600, fontSize:20, mb:2}}>
           Fairness Report Metrics
         </Typography>
       </Box>
 
-      <Grid container spacing={4}>
-        <Grid item xs={12} md={6}>
+        
           <Paper elevation={3} sx={{ p: 3, backgroundColor: "#F6FAF9" }}>
-            <Typography variant="h6" color="#13715B" gutterBottom>
+          <Box display="flex" alignItems="center" mb={1}>
+            <Typography sx={{ ...singleTheme.textStyles.pageTitle, variant: "h6", color: "#13715B", mb:0.35}}>
               <strong>Overall Fairness Metrics</strong>
             </Typography>
-            <Typography>Accuracy: {metrics.overall.accuracy}</Typography>
-            <Typography>Demographic Parity Difference: {metrics.demographic_parity_difference}</Typography>
-            <Typography>Equal Opportunity Difference: {metrics.equal_opportunity_difference}</Typography>
-            <Typography>Equalized Odds Difference: {metrics.equalized_odds_difference}</Typography>
+            <Tooltip title={<div>
+                <div>These metrics evaluate your model’s performance and fairness across all data.</div>
+                <div>Accuracy: {metricDescriptions.accuracy}.</div>
+                <div>Demographic Parity Difference: {metricDescriptions.demographic_parity_difference}</div>
+                <div>Equal Opportunity Difference: {metricDescriptions.equal_opportunity_difference}</div>
+                <div>Equalized Odds Difference: {metricDescriptions.equalized_odds_difference}</div>
+                </div>}>
+                <IconButton size="small" sx={{ ml: 1 }}>
+                <InfoOutlinedIcon fontSize="small" />
+                </IconButton>
+            </Tooltip>
+            </Box>
+            <Typography sx={ singleTheme.textStyles.pageDescription}>
+                Accuracy: {metrics.overall.accuracy.toFixed(4)}
+                </Typography>
+            <Typography sx={ singleTheme.textStyles.pageDescription}>
+                Demographic Parity Difference: {metrics.demographic_parity_difference.toFixed(4)}
+                </Typography>
+            <Typography sx={ singleTheme.textStyles.pageDescription}>
+                Equal Opportunity Difference: {metrics.equal_opportunity_difference.toFixed(4)}
+                </Typography>
+            <Typography sx={ singleTheme.textStyles.pageDescription}>
+                Equalized Odds Difference: {metrics.equalized_odds_difference.toFixed(4)}
+                </Typography>
           </Paper>
-        </Grid>
+          
+
+          <Paper elevation={3} sx={{ p: 3, backgroundColor: "#F6FAF9" }}>
+            <Box display="flex" alignItems="center" mb={1}>
+            <Typography sx={{ ...singleTheme.textStyles.pageTitle, variant: "h6", color: "#13715B", mb:0.35}}>
+              <strong>Disparity Metrics</strong>
+            </Typography>
+            <Tooltip title={<div>
+                <div>Shows the difference between groups for each metric — the smaller the gap, the fairer the model.</div>
+                </div>}>
+                <IconButton size="small" sx={{ ml: 1 }}>
+                <InfoOutlinedIcon fontSize="small" />
+                </IconButton>
+            </Tooltip>
+            </Box>
+            <Typography sx={ singleTheme.textStyles.pageDescription}>
+                Selection Rate Difference: {metrics.overall.selection_rate.toFixed(4)}
+                </Typography>
+            <Typography sx={ singleTheme.textStyles.pageDescription}>
+                True Positive Rate Difference: {metrics.overall.TPR.toFixed(4)}
+                </Typography>
+            <Typography sx={ singleTheme.textStyles.pageDescription}>
+                True Negative Rate Difference: {metrics.overall.TNR.toFixed(4)}
+                </Typography>
+          </Paper>
+        
 
         {["accuracy", "selection_rate", "tpr", "tnr"].map((metricKey) => (
           <Grid item xs={12} key={metricKey}>
             <Paper elevation={3} sx={{ p: 3, backgroundColor: "#F6FAF9" }}>
-              <Typography variant="h6" color="#13715B" gutterBottom>
+                <Box display="flex" alignItems="center" mb={1}>
+              <Typography sx={{ ...singleTheme.textStyles.pageTitle, variant: "h6", color: "#13715B", mb:0.35}}>
                 <strong>{['tpr', 'tnr'].includes(metricKey) ? `Group-wise ${metricKey.toUpperCase()}` : `Group-wise ${metricKey.charAt(0).toUpperCase() + metricKey.slice(1).replace('_', ' ')}`}</strong>
               </Typography>
-              <Accordion sx={{ backgroundColor: "#ffffff" }}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant="body2" color="text.secondary">
-                    What does this mean?
-                  </Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Typography variant="body2">
-                    {metricDescriptions[metricKey]}
-                  </Typography>
-                </AccordionDetails>
-              </Accordion>
+              <Tooltip title={<div>
+                <div>{metricDescriptions[metricKey]} per group.</div>
+                </div>}>
+                <IconButton size="small" sx={{ ml: 1 }}>
+                <InfoOutlinedIcon fontSize="small" />
+                </IconButton>
+            </Tooltip>
+            </Box>
               <BarChart
                 xAxis={[{ scaleType: "band", data: Object.keys(metrics.by_group?.[metricKey === "tpr" ? "TPR" : metricKey === "tnr" ? "TNR" : metricKey] || {}) }]}
                 series={[{
@@ -137,52 +183,9 @@ export default function FairnessResultsPage() {
             </Paper>
           </Grid>
         ))}
-
-        <Grid item xs={12}>
-          <Paper elevation={3} sx={{ p: 3, backgroundColor: "#F6FAF9" }}>
-            <Typography variant="h6" color="#13715B" gutterBottom>
-              <strong>Disparity Metrics</strong>
-            </Typography>
-            <Typography>Selection Rate Difference: {metrics.overall.selection_rate}</Typography>
-            <Typography>True Positive Rate Difference: {metrics.overall.TPR}</Typography>
-            <Typography>True Negative Rate Difference: {metrics.overall.TNR}</Typography>
-          </Paper>
-        </Grid>
-      </Grid>
+        
+      
     </Box>
   );
 }
 
-/*
-<Grid item xs={12}>
-          <Paper elevation={3} sx={{ p: 3, backgroundColor: "#F6FAF9" }}>
-            <Typography variant="h6" color="#13715B" gutterBottom>
-              <strong>Classification Report</strong>
-            </Typography>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Class</TableCell>
-                    <TableCell>Precision</TableCell>
-                    <TableCell>Recall</TableCell>
-                    <TableCell>F1 Score</TableCell>
-                    <TableCell>Support</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {metrics.classification_report && Object.entries(metrics.classification_report).map(([label, values]: any) => (
-                    <TableRow key={label}>
-                      <TableCell>{label}</TableCell>
-                      <TableCell>{values.precision}</TableCell>
-                      <TableCell>{values.recall}</TableCell>
-                      <TableCell>{values.f1_score}</TableCell>
-                      <TableCell>{values.support}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        </Grid>
-*/

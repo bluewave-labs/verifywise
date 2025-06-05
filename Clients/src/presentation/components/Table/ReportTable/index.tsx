@@ -8,7 +8,8 @@ import {
   TableRow,
   Typography,
   useTheme,
-  Stack
+  Stack,
+  TableFooter
 } from "@mui/material";
 import singleTheme from '../../../themes/v1SingleTheme';
 import placeholderImage from "../../../assets/imgs/empty-state.svg";
@@ -61,16 +62,59 @@ const ReportTable: React.FC<ReportTableProps> = ({
           <Table
             sx={{
               ...singleTheme.tableStyles.primary.frame,
+              ...styles.tableWrapper
             }}
           >
             <TableHeader columns={columns} />
             {rows.length !== 0 ? 
-              <ReportTableBody 
-                rows={rows} 
-                onRemoveReport={removeReport}
-                page={page}
-                rowsPerPage={rowsPerPage} 
-              /> 
+              <>
+                <ReportTableBody 
+                  rows={rows} 
+                  onRemoveReport={removeReport}
+                  page={page}
+                  rowsPerPage={rowsPerPage} 
+                /> 
+                {rows.length !== 0 &&
+                  <TableFooter>
+                    <TableRow>
+                      <TableCell sx={pagniationStatus}>
+                        Showing {getRange} of {rows?.length} project report(s)
+                      </TableCell>
+                      <TablePagination
+                        count={rows?.length}
+                        page={page}
+                        onPageChange={handleChangePage}
+                        rowsPerPage={rowsPerPage}
+                        rowsPerPageOptions={[5, 10, 15, 20, 25]}
+                        onRowsPerPageChange={handleChangeRowsPerPage}
+                        ActionsComponent={(props) => <TablePaginationActions {...props} />}
+                        labelRowsPerPage="Reports per page"
+                        labelDisplayedRows={({ page, count }) =>
+                          `Page ${page + 1} of ${Math.max(0, Math.ceil(count / rowsPerPage))}`
+                        }
+                        sx={paginationStyle}
+                        slotProps={{
+                          select: {
+                            MenuProps: {
+                              keepMounted: true,
+                              PaperProps: {
+                                className: "pagination-dropdown",
+                                sx: paginationDropdown,
+                              },
+                              transformOrigin: { vertical: "bottom", horizontal: "left" },
+                              anchorOrigin: { vertical: "top", horizontal: "left" },
+                              sx: { mt: theme.spacing(-2) },
+                            },
+                            inputProps: { id: "pagination-dropdown" },
+                            IconComponent: SelectorVertical,
+                            sx: paginationSelect,
+                          },
+                        }}
+                      />
+                    </TableRow>
+                  </TableFooter>
+                }
+              </>
             : (
               <>
                 <TableBody>
@@ -92,44 +136,6 @@ const ReportTable: React.FC<ReportTableProps> = ({
           </Table>
         </Suspense>
       </TableContainer>
-      {rows.length !== 0 &&
-        <Stack sx={paginationWrapper}>
-          <Typography sx={pagniationStatus}>
-            Showing {getRange} of {rows?.length} project report(s)
-          </Typography>
-          <TablePagination
-            count={rows?.length}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[5, 10, 15, 20, 25]}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            ActionsComponent={(props) => <TablePaginationActions {...props} />}
-            labelRowsPerPage="Project risks per page"
-            labelDisplayedRows={({ page, count }) =>
-              `Page ${page + 1} of ${Math.max(0, Math.ceil(count / rowsPerPage))}`
-            }
-            sx={paginationStyle}
-            slotProps={{
-              select: {
-                MenuProps: {
-                  keepMounted: true,
-                  PaperProps: {
-                    className: "pagination-dropdown",
-                    sx: paginationDropdown,
-                  },
-                  transformOrigin: { vertical: "bottom", horizontal: "left" },
-                  anchorOrigin: { vertical: "top", horizontal: "left" },
-                  sx: { mt: theme.spacing(-2) },
-                },
-                inputProps: { id: "pagination-dropdown" },
-                IconComponent: SelectorVertical,
-                sx: paginationSelect,
-              },
-            }}
-          />
-        </Stack>
-      }
     </>
   )
 }

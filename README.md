@@ -67,7 +67,7 @@ The VerifyWise application has two components: a frontend built with React.js an
 
 Prerequisites: 
 - npm and Docker
-- A running PostgreSQL, preferably as a Docker image
+- A running PostgreSQL, preferably as a Docker image (eg. using `docker pull postgres:latest`)
   
 First, clone the repository to your local machine. Navigate to the Clients directory and install the dependencies:
 

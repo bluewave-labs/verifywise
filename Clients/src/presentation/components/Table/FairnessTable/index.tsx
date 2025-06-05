@@ -91,7 +91,6 @@ import {
                         onShowDetails={onShowDetails}
                         page={page}
                         rowsPerPage={rowsPerPage}
-                        //columns={columns}
                     />    
                     
                 </Suspense>

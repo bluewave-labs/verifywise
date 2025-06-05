@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useMemo } from "react";
+import React, { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import {
   Box,
   Button,
@@ -42,20 +42,37 @@ export default function FairnessDashboard() {
   }, [columnOptions]);
   
   const [page, setPage] = useState(0);
-  /*
-  const [uploadedModels, setUploadedModels] = useState([
-    { name: "InsuranceTracker", date: "5 May 2025", status: "Pending" },
-    { name: "StockPickerBot", date: "19 April 2025", status: "Completed" },
-  ]);
-  */
+
   type FairnessModel = {
     id: number;
-    name: string;
-    date: string;
+    model: string;
+    dataset: string;
     status: string;
+    action?: string; // Optional if you're not storing a real value
   };
   
+  
   const [uploadedModels, setUploadedModels] = useState<FairnessModel[]>([]);
+  
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        const metrics = await fairnessService.getAllFairnessMetrics();
+        const formatted = metrics.map((item: any) => ({
+          id: item.metrics_id, // use this for "ID" column
+          model: item.model_filename,
+          dataset: item._data_filename,
+          status: "Pending" // You can update if backend supports "status"
+        }));
+        setUploadedModels(formatted);
+      } catch (err) {
+        console.error("Failed to fetch metrics:", err);
+      }
+    };
+  
+    fetchMetrics();
+  }, []);
+  
   
 
   const buttonRef = useRef(null);
@@ -63,13 +80,15 @@ export default function FairnessDashboard() {
   const datasetInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
-  
+
   const FAIRNESS_COLUMNS = [
-    { id: 'name', label: 'Name' },
-    { id: 'date', label: 'Last Updated' },
+    { id: 'id', label: 'Check ID' },
+    { id: 'model', label: 'Model' },
+    { id: 'dataset', label: 'Dataset' },
     { id: 'status', label: 'Status' },
-    { id: 'action', label: 'Action' }
+    { id : 'action', label: 'Action'}
   ];
+  
 
 
   const handleDotClick = () => {
@@ -79,15 +98,6 @@ export default function FairnessDashboard() {
     setHasInteracted(true);
   };
 
-  /*
-  const handleShowDetails = useCallback((model: any) => {
-    if (model?.name) {
-      navigate(`/fairness-results/${model.name}`);
-    } else {
-      console.error("Invalid model:", model);
-    }
-  }, [navigate]);
-  */
 
   const handleShowDetails = useCallback((model: FairnessModel) => {
     if (model?.id) {
@@ -114,8 +124,8 @@ export default function FairnessDashboard() {
     if (datasetInputRef.current) datasetInputRef.current.value = "";
   };
 
-  const handleRemoveModel = (nameToRemove: string) => {
-    const filtered = uploadedModels.filter(model => model.name !== nameToRemove);
+  const handleRemoveModel = (idToRemove: number) => {
+    const filtered = uploadedModels.filter(model => model.id !== idToRemove);
     setUploadedModels(filtered);
   };
 
@@ -133,11 +143,11 @@ export default function FairnessDashboard() {
       // Assume the backend returns something like:
       // { id: "abc123", name: "ModelX", status: "Pending", created_at: "2025-06-03T02:45:00Z" }
   
-      const newEntry = {
+      const newEntry: FairnessModel = {
         id: result.id,
-        name: result.name || modelFile.name,
+        model: result.name || modelFile.name,
+        dataset: datasetFile.name,
         status: result.status || "Pending",
-        date: new Date().toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" }),
       };
   
       setUploadedModels(prev => [...prev, newEntry]);

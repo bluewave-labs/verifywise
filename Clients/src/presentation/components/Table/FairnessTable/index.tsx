@@ -70,30 +70,32 @@ import {
           <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>
             <TableHeader columns={columns} />
             {rows.length !== 0 ? (
-              <Suspense
-                fallback={
-                  <TableBody>
-                    <TableRow sx={singleTheme.tableStyles.primary.body.row}>
-                      <TableCell
-                        colSpan={columns.length}
-                        align="center"
-                        sx={singleTheme.tableStyles.primary.body.cell}
-                      >
-                        Loading...
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                }
-              >
-                <FairnessTableBody
-                  rows={rows}
-                  onRemoveModel={removeModel}
-                  onShowDetails={onShowDetails}
-                  page={page}
-                  rowsPerPage={rowsPerPage}
-                  columns={columns}
-                />
-              </Suspense>
+                <Suspense
+                    fallback={
+                    <TableBody>
+                        <TableRow sx={singleTheme.tableStyles.primary.body.row}>
+                        <TableCell
+                            colSpan={columns.length}
+                            align="center"
+                            sx={singleTheme.tableStyles.primary.body.cell}
+                        >
+                            Loading...
+                        </TableCell>
+                        </TableRow>
+                    </TableBody>
+                    }
+                >
+                    <FairnessTableBody
+                        rows={rows}
+                        onRemoveModel={removeModel}
+                        onShowDetails={onShowDetails}
+                        page={page}
+                        rowsPerPage={rowsPerPage}
+                        //columns={columns}
+                    />    
+                    
+                </Suspense>
+             
             ) : (
               <TableBody>
                 <TableRow sx={singleTheme.tableStyles.primary.body.row}>
@@ -112,6 +114,7 @@ import {
             )}
           </Table>
         </TableContainer>
+
   
         {rows.length !== 0 && (
           <Box display="flex" justifyContent="space-between" alignItems="center" sx={paginationWrapper} mt={2}>

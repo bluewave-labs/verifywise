@@ -32,6 +32,18 @@ export const fairnessService = {
    */
   async getFairnessMetrics(id: string): Promise<any> {
     const response = await CustomAxios.get(`/bias_and_fairness/metrics/${id}`);
+  
+    // Fix: parse stringified JSON if needed
+    const raw = response.data;
+    const parsed = typeof raw.metrics === "string" ? JSON.parse(raw.metrics) : raw.metrics;
+    return parsed;
+  },
+
+  /**
+   * Fetches all fairness metrics metadata.
+   */
+  async getAllFairnessMetrics(): Promise<any[]> {
+    const response = await CustomAxios.get("/bias_and_fairness/metrics/all");
     return response.data;
   },
 };

@@ -46,6 +46,7 @@ export default function FairnessResultsPage() {
     const fetchMetrics = async () => {
       try {
         const data = await fairnessService.getFairnessMetrics(id as string);
+        console.log("Fetched metrics:", data);
         setMetrics(data);
       } catch (err) {
         console.error("Failed to fetch metrics:", err);
@@ -88,7 +89,7 @@ export default function FairnessResultsPage() {
           <ArrowBackIcon />
         </IconButton>
         <Typography variant="h5" fontWeight={600}>
-          {metrics.model_name} — Fairness Metrics
+          Fairness Report Metrics
         </Typography>
       </Box>
 
@@ -98,7 +99,7 @@ export default function FairnessResultsPage() {
             <Typography variant="h6" color="#13715B" gutterBottom>
               <strong>Overall Fairness Metrics</strong>
             </Typography>
-            <Typography>Accuracy: {metrics.accuracy}</Typography>
+            <Typography>Accuracy: {metrics.overall.accuracy}</Typography>
             <Typography>Demographic Parity Difference: {metrics.demographic_parity_difference}</Typography>
             <Typography>Equal Opportunity Difference: {metrics.equal_opportunity_difference}</Typography>
             <Typography>Equalized Odds Difference: {metrics.equalized_odds_difference}</Typography>
@@ -124,15 +125,15 @@ export default function FairnessResultsPage() {
                 </AccordionDetails>
               </Accordion>
               <BarChart
-                xAxis={[{ scaleType: "band", data: metrics.group_metrics?.map(g => g.group) || [] }]}
+                xAxis={[{ scaleType: "band", data: Object.keys(metrics.by_group?.[metricKey === "tpr" ? "TPR" : metricKey === "tnr" ? "TNR" : metricKey] || {}) }]}
                 series={[{
-                  data: metrics.group_metrics?.map(g => g[metricKey]) || [],
-                  label: metricKey.replace("_", " "),
-                  color: "gray"
+                    data: Object.values(metrics.by_group?.[metricKey === "tpr" ? "TPR" : metricKey === "tnr" ? "TNR" : metricKey] || {}),
+                    label: metricKey.replace("_", " "),
+                    color: "gray"
                 }]}
                 width={600}
                 height={300}
-              />
+                />
             </Paper>
           </Grid>
         ))}
@@ -142,14 +143,18 @@ export default function FairnessResultsPage() {
             <Typography variant="h6" color="#13715B" gutterBottom>
               <strong>Disparity Metrics</strong>
             </Typography>
-            <Typography>Selection Rate Difference: {metrics.disparity_metrics?.selection_rate_diff}</Typography>
-            <Typography>True Positive Rate Difference: {metrics.disparity_metrics?.tpr_diff}</Typography>
-            <Typography>True Negative Rate Difference: {metrics.disparity_metrics?.tnr_diff}</Typography>
-            <Typography>Equalized Odds Difference: {metrics.disparity_metrics?.equalized_odds_diff}</Typography>
+            <Typography>Selection Rate Difference: {metrics.overall.selection_rate}</Typography>
+            <Typography>True Positive Rate Difference: {metrics.overall.TPR}</Typography>
+            <Typography>True Negative Rate Difference: {metrics.overall.TNR}</Typography>
           </Paper>
         </Grid>
+      </Grid>
+    </Box>
+  );
+}
 
-        <Grid item xs={12}>
+/*
+<Grid item xs={12}>
           <Paper elevation={3} sx={{ p: 3, backgroundColor: "#F6FAF9" }}>
             <Typography variant="h6" color="#13715B" gutterBottom>
               <strong>Classification Report</strong>
@@ -180,7 +185,4 @@ export default function FairnessResultsPage() {
             </TableContainer>
           </Paper>
         </Grid>
-      </Grid>
-    </Box>
-  );
-}
+*/

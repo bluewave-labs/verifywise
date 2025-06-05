@@ -31,6 +31,7 @@ import autoDriverRoutes from "./routes/autoDriver.route";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
 import { parseOrigins, testOrigin } from "./utils/parseOrigins.utils";
+import { frontEndUrl } from "./config/constants";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -44,9 +45,7 @@ const host = process.env.HOST || DEFAULT_HOST;
 
 const port = parseInt(portString, 10); // Convert to number
 
-const DEFAULT_FRONTEND_URL = "http://localhost:8082";
 
-const frontEndUrl = process.env.FRONTEND_URL || DEFAULT_FRONTEND_URL;
 
 try {
   // (async () => {
@@ -59,7 +58,7 @@ try {
   //   await sequelize.sync();
   // })();
 
-  const allowedOrigins = parseOrigins(frontEndUrl);
+  const allowedOrigins = parseOrigins(process.env.ALLOWED_ORIGINS || frontEndUrl);
 
   app.use(
     cors({

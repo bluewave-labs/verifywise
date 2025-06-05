@@ -18,7 +18,7 @@ interface InputProps {
   report_name: string;
   project: number;
   framework: number;
-  project_framework_id: number;
+  projectFrameworkId: number;
 }
 
 const GenerateReportPopup: React.FC<GenerateReportProps> = ({
@@ -82,7 +82,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
       reportType: reportTypeLabel,
       reportName: input.report_name,
       frameworkId: input.framework,
-      projectFrameworkId: input.project_framework_id
+      projectFrameworkId: input.projectFrameworkId
     }
     const reportDownloadResponse = await handleAutoDownload(body);
     setResponseStatusCode(reportDownloadResponse);

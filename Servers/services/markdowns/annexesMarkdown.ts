@@ -50,7 +50,7 @@ export async function getClausesAndAnnexesReportData (
   let annexRows: string = ``;
   let clausesReportData: string = ``;
   try {
-    const annexesReportData = await getAnnexesReportQuery(frameworkId) as AllAnnexes[];    
+    const annexesReportData = await getAnnexesReportQuery(projectFrameworkId) as AllAnnexes[];    
     clausesReportData = await getClausesMarkdown(projectFrameworkId);
 
     if (annexesReportData.length > 0) {

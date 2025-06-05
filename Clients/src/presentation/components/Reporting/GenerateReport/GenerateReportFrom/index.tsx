@@ -23,7 +23,7 @@ interface FormValues {
   report_name: string;
   project: number;
   framework: number;
-  project_framework_id: number;
+  projectFrameworkId: number;
 }
 
 interface FormErrors {
@@ -31,7 +31,7 @@ interface FormErrors {
   report_name?: string;
   project?: string;
   framework?: string;
-  project_framework_id?: string;
+  projectFrameworkId?: string;
 }
 
 const initialState: FormValues = {
@@ -39,7 +39,7 @@ const initialState: FormValues = {
   report_name: "",
   project: 1,
   framework: 1,
-  project_framework_id: 1,
+  projectFrameworkId: 1,
 };
 
 /**
@@ -77,7 +77,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
       )?.framework || "";
     setProjectFrameworks(pfw);
     if (pfw.length > 0) {
-      setValues({ ...values, framework: pfw[0].framework_id, project_framework_id: pfw[0].project_framework_id });
+      setValues({ ...values, framework: pfw[0].framework_id, projectFrameworkId: pfw[0].project_framework_id });
     }
   }, [values.project]);
 
@@ -107,7 +107,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
       setValues({
         ...values,
         framework: selectedFramework.framework_id,
-        project_framework_id: selectedFramework.project_framework_id,
+        projectFrameworkId: selectedFramework.project_framework_id,
       });
       setErrors({ ...errors, framework: "" });
     }
@@ -160,7 +160,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
               projectFrameworks?.map((framework) => ({
                 _id: framework.framework_id,
                 name: framework.name,
-                project_framework_id: framework.project_framework_id,
+                projectFrameworkId: framework.project_framework_id,
               })) || []
             }
             sx={{

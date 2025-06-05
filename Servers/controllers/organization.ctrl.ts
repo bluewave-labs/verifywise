@@ -13,7 +13,7 @@ import {
   removeMemberFromOrganizationQuery,
   removeProjectFromOrganizationQuery,
   updateOrganizationByIdQuery,
-} from "../utils/organization.util";
+} from "../utils/organization.utils";
 
 /**
  * Get all organizations

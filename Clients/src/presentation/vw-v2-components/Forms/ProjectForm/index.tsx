@@ -362,7 +362,7 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
                     ?.filter(
                       (user) =>
                         !values.members.some(
-                          (selectedUser) => selectedUser._id === String(user.id)
+                          (selectedUser) => String(selectedUser._id) === String(user.id)
                         )
                     )
                     .map((user) => ({
@@ -409,7 +409,7 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
                   <TextField
                     {...params}
                     placeholder="Select Users"
-                    error={memberRequired}
+                    error={!!errors.members}
                     sx={teamMembersRenderInputStyle}
                   />
                 )}

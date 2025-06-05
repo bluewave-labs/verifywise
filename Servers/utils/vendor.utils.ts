@@ -1,6 +1,6 @@
 import { Vendor, VendorModel } from "../models/vendor.model";
 import { sequelize } from "../database/db";
-import { deleteVendorRisksForVendorQuery } from "./vendorRisk.util";
+import { deleteVendorRisksForVendorQuery } from "./vendorRisk.utils";
 import { VendorsProjectsModel } from "../models/vendorsProjects.model";
 import { QueryTypes, Sequelize, Transaction } from "sequelize";
 import { updateProjectUpdatedByIdQuery } from "./project.utils";

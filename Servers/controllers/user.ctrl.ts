@@ -23,7 +23,7 @@ import {
   generateRefreshToken,
   generateToken,
   getRefreshTokenPayload,
-} from "../utils/jwt.util";
+} from "../utils/jwt.utils";
 import { UserModel } from "../models/user.model";
 import { sequelize } from "../database/db";
 

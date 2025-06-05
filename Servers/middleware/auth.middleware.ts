@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { getTokenPayload } from "../utils/jwt.util";
+import { getTokenPayload } from "../utils/jwt.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 
 const authenticateJWT = async (

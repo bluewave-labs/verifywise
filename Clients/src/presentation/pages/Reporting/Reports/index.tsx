@@ -1,13 +1,15 @@
-import { useState, useContext, lazy, Suspense } from 'react'
-import { Stack, Box } from '@mui/material';
+import { useState, useContext, lazy, Suspense, useEffect } from 'react'
+import { Stack, Box, Typography } from '@mui/material';
 const ReportTable = lazy(() => import('../../../components/Table/ReportTable'));
 import { VerifyWiseContext } from '../../../../application/contexts/VerifyWise.context';
 import { TITLE_OF_COLUMNS } from './constants';
-import useGeneratedReports from '../../../../application/hooks/useGeneratedReports';
+import useGeneratedReports, { GeneratedReports } from '../../../../application/hooks/useGeneratedReports';
 import {styles} from './styles';
 import { deleteEntityById } from '../../../../application/repository/entity.repository';
 import { handleAlert } from '../../../../application/tools/alertUtils';
 import Alert from '../../../components/Alert';
+import ProjectFilterDropdown from '../../../components/Inputs/Dropdowns/ProjectFilter/ProjectFilterDropdown';
+import { useProjects } from '../../../../application/hooks/useProjects';
 
 const Reports = () => {
   const { dashboardValues } = useContext(VerifyWiseContext);
@@ -20,10 +22,18 @@ const Reports = () => {
     body: string;
   } | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [selectedProject, setSelectedProject] = useState<string | number | null>("all");
+  
+  const {
+    projects,
+    loading: loadingProjects,
+  } = useProjects();
 
   const {
     generatedReports
   } = useGeneratedReports({ projectId, refreshKey });
+
+  const [filteredReports, setFilteredReports] = useState<GeneratedReports[]>(generatedReports);
 
   const handleToast = (type: any, message: string) => {
     handleAlert({
@@ -59,6 +69,15 @@ const Reports = () => {
     setCurrentPage(page)
   }
 
+  useEffect(() => {
+    const filterReports = selectedProject === 'all' 
+      ? generatedReports 
+      : generatedReports.filter(
+      (report) => String(report?.project_id) === String(selectedProject)
+    );
+    setFilteredReports(filterReports);
+  }, [selectedProject, generatedReports]);
+
   return (
     <Stack sx={styles.tableContainer}>
       {alert && (
@@ -74,15 +93,32 @@ const Reports = () => {
           </Box>
         </Suspense>
       )}
-      <Suspense fallback={<div>Loading...</div>}>
-        <ReportTable
-          columns={TITLE_OF_COLUMNS}
-          rows={generatedReports}
-          removeReport={handleRemoveReport}
-          setCurrentPagingation={setCurrentPagingation}
-          page={currentPage}
-        />
-      </Suspense>
+
+      {loadingProjects ? (
+        <>
+          <Typography>Loading projects...</Typography>
+        </>
+      ) : (
+        <>
+          <ProjectFilterDropdown
+            projects={projects.map((project) => ({
+              id: project.id.toString(),
+              name: project.project_title,
+            }))}
+            selectedProject={selectedProject}            
+            onChange={setSelectedProject}
+          />
+          <Suspense fallback={<div>Loading...</div>}>
+            <ReportTable
+              columns={TITLE_OF_COLUMNS}
+              rows={filteredReports}
+              removeReport={handleRemoveReport}
+              setCurrentPagingation={setCurrentPagingation}
+              page={currentPage}
+            />
+          </Suspense>
+        </>
+      )}
     </Stack>
   )
 }

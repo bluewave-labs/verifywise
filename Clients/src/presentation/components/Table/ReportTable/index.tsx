@@ -8,7 +8,6 @@ import {
   TableRow,
   Typography,
   useTheme,
-  Stack,
   TableFooter
 } from "@mui/material";
 import singleTheme from '../../../themes/v1SingleTheme';
@@ -17,7 +16,7 @@ import { ReactComponent as SelectorVertical } from '../../../assets/icons/select
 import TablePaginationActions from '../../TablePagination';
 import TableHeader from '../TableHead';
 const ReportTableBody = lazy(() => import("./TableBody"))
-import {styles, emptyData, paginationWrapper, pagniationStatus, paginationStyle, paginationDropdown, paginationSelect} from './styles'
+import {styles, emptyData, pagniationStatus, paginationStyle, paginationDropdown, paginationSelect} from './styles'
 
 interface ReportTableProps {
   columns: any[];

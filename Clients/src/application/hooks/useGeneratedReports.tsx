@@ -40,8 +40,11 @@ const useGeneratedReports = ({
   const [error, setError] = useState<string | boolean>(false);
 
   useEffect(() => {
-    if(projects.length === 0 ) return;
-    
+    if(projects.length === 0 ) {
+      setLoadingReports(false);
+      return
+    };
+
     const controller = new AbortController();
     const signal = controller.signal;
     

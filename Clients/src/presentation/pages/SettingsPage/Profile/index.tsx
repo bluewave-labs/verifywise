@@ -410,7 +410,7 @@ const ProfileForm: React.FC = () => {
           height="300px"
           minWidth={"100%"}
           minHeight={300}
-          sx={{ backgroundColor: "gray", borderRadius: 2 }}
+          sx={{borderRadius: 2 }}
         />
       )}
       {alert.visible && (
@@ -583,7 +583,7 @@ const ProfileForm: React.FC = () => {
           height="200px"
           minWidth={"100%"}
           minHeight={200}
-          sx={{ backgroundColor: "gray", borderRadius: 2 }}
+          sx={{borderRadius: 2 }}
         />
       )}
       {!loading && (

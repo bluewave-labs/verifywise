@@ -457,16 +457,7 @@ const Vendors = () => {
             )}
 
             <Stack>
-              <Typography
-                variant="h2"
-                component="div"
-                sx={{
-                  pb: 8.5,
-                  color: "#1A1919",
-                  fontSize: 16,
-                  fontWeight: 600,
-                }}
-              >
+              <Typography sx={vwhomeHeading}>
                 Vendor risks list
               </Typography>
               <Typography sx={singleTheme.textStyles.pageDescription}>

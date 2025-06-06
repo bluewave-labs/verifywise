@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Form, UploadFile
-from controllers.bias_and_fairness import handle_upload as handle_upload_controller, get_metrics as get_metrics_controller, get_all_metrics as get_all_metrics_controller
+from controllers.bias_and_fairness import handle_upload as handle_upload_controller, get_metrics as get_metrics_controller, get_all_metrics as get_all_metrics_controller, delete_metrics as delete_metrics_controller
 
 router = APIRouter()
 
@@ -24,3 +24,7 @@ async def get_all_metrics():
 @router.get("/metrics/{id}")
 async def get_metrics(id: int):
     return await get_metrics_controller(id)
+
+@router.delete("/metrics/{id}")
+async def delete_metrics(id: int):
+    return await delete_metrics_controller(id)

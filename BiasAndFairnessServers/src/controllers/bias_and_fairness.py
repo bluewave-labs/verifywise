@@ -1,7 +1,7 @@
 import json
 from fastapi.responses import JSONResponse
 from fastapi import HTTPException
-from crud.bias_and_fairness import upload_model, upload_data, insert_metrics, get_metrics_by_id, get_all_metrics_query
+from crud.bias_and_fairness import upload_model, upload_data, insert_metrics, get_metrics_by_id, get_all_metrics_query, delete_metrics_by_id
 from utils.run_bias_and_fairness_check import analyze_fairness
 from database.db import get_db
 from fastapi import UploadFile
@@ -121,4 +121,29 @@ async def handle_upload(model: UploadFile, data: UploadFile, target_column: str,
         raise HTTPException(
             status_code=500,
             detail=f"Failed to handle upload, {str(e)}"
+        )
+
+async def delete_metrics(id: int):
+    """
+    Delete metrics for a given fairness run ID.
+    """
+    try:
+        async with get_db() as db:
+            delete = await delete_metrics_by_id(id, db)
+            if not delete:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Metrics with ID {id} not found"
+                )
+            await db.commit()
+            return JSONResponse(
+                status_code=204,
+                content=None
+            )
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to delete metrics, {str(e)}"
         )

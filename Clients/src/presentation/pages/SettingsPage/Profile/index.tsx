@@ -56,6 +56,7 @@ interface User {
 const ProfileForm: React.FC = () => {
   const state = store.getState();
   const userData = extractUserToken(state.auth.authToken); // Extract user data from token
+  console.log("userData : ", userData);
   const { id } = userData || {};
   const { userRoleName } = useContext(VerifyWiseContext);
   const isAdmin = userRoleName === "Admin";

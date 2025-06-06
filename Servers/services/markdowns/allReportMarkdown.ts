@@ -68,7 +68,7 @@ ${assessmentReportMarkdown}
 `
         return euAIMD;
       } else {        
-        let clausesAndAnnexesMarkdown = await getClausesAndAnnexesReportData(frameworkId, projectFrameworkId);
+        let clausesAndAnnexesMarkdown = await getClausesAndAnnexesReportData(projectFrameworkId);
         const isoMD = `
 VerifyWise ${framework.name} report
 ========================

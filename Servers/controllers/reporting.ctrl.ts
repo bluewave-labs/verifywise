@@ -17,15 +17,11 @@ const htmlDocx = require("html-to-docx");
 function mapReportTypeToFileSource(
   reportType: string
 ):
-  | "Assessment tracker group"
-  | "Compliance tracker group"
-  | "Report"
-  | "Project risks report"
+  "Project risks report"
   | "Compliance tracker report"
   | "Assessment tracker report"
   | "Vendors and risks report"
-  | "Reference controls group"
-  | "Management system clauses group"
+  | "Clauses and annexes report"
   | "All reports" {
   // These values must match the enum_files_source in the database
   switch (reportType) {
@@ -39,10 +35,8 @@ function mapReportTypeToFileSource(
       return "Vendors and risks report";
     case "All reports":
       return "All reports";
-    case "Reference controls group":
-      return "Reference controls group";
-    case "Management system clauses group":
-      return "Management system clauses group";
+    case "Clauses and annexes report":
+      return "Clauses and annexes report";
     default:
       // fallback or throw error
       throw new Error(`Invalid report type for file source: ${reportType}`);

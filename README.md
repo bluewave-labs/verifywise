@@ -63,7 +63,7 @@ VerifyWise is designed for:
 
 The VerifyWise application has two components: a frontend built with React.js and a backend built with Node.js. At present, you can use `npm` (for development) or Docker (production) to run VerifyWise. A PostgreSQL database is required to run VerifyWise.
 
-### Setup and Run Instructions using npm (for development)
+### Installation instructions using npm (for development)
 
 Prerequisites: 
 - npm and Docker
@@ -90,10 +90,17 @@ Create a .env file in the root directory:
 touch .env
 ```
 
-Copy the contents of .env.dev to the .env file. Make sure to change the JWT_SECRET variable to your liking as this should be unique for each user.
+Copy the contents of .env.dev to the .env file. Make sure to change the JWT_SECRET variable to your liking as this should be unique for each user. 
 
 ```
 cp .env.dev .env
+```
+
+In `.env` file, change FRONTEND_URL and ALLOWED_ORIGINS:
+
+```
+FRONTEND_URL=http://localhost:5173
+ALLOWED_ORIGINS=["http://localhost:5173", "http://localhost:8082"]
 ```
 
 Run the PostgreSQL container with the following command:

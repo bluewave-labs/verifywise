@@ -17,7 +17,6 @@ const VWProjectRisksTableHead = ({ columns }: { columns: any[] }) => {
             key={index}
             style={{
               ...singleTheme.tableStyles.primary.header.cell,
-              paddingLeft: "16px",
               ...(index === columns.length - 1
                 ? {
                   position: "sticky",

@@ -22,10 +22,11 @@ export const tableStyles = {
       cell: {
         color: "#a1afc6",
         fontWeight: 400,
-        paddingLeft: "10px",
+        padding: "12px 10px",
         whiteSpace: "nowrap",
         "&:not(:lastChild)": {
-          minWidth: "fit-content",
+          minWidth: "120px",
+          width: "120px",
         },
       },
     },
@@ -45,11 +46,12 @@ export const tableStyles = {
       },
       cell: {
         fontSize: fontSizes.medium,
-        paddingY: "12px",
+        padding: "12px 10px",
         whiteSpace: "nowrap",
         backgroundColor: "white",
         "&:not(:lastChild)": {
-          minWidth: "fit-content",
+          minWidth: "120px",
+          width: "120px",
         },
       },
     },

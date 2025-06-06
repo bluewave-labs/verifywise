@@ -1,7 +1,9 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
+import asyncio
 from sqlalchemy import pool
+from concurrent.futures import ThreadPoolExecutor
+from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 
@@ -55,28 +57,37 @@ def run_migrations_offline() -> None:
     with context.begin_transaction():
         context.run_migrations()
 
+def do_run_migrations(connection):
+    context.configure(connection=connection, target_metadata=target_metadata)
 
-def run_migrations_online() -> None:
-    """Run migrations in 'online' mode.
+    with context.begin_transaction():
+        context.run_migrations()
 
-    In this scenario we need to create an Engine
+async def run_async_migrations():
+    """In this scenario we need to create an Engine
     and associate a connection with the context.
 
     """
-    connectable = engine_from_config(
+    connectable = async_engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
 
-    with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+    async with connectable.connect() as connection:
+        await connection.run_sync(do_run_migrations)
 
-        with context.begin_transaction():
-            context.run_migrations()
+    await connectable.dispose()
 
+def run_migrations_online():
+    """Run migrations in 'online' mode."""
+    try:
+        asyncio.get_running_loop() # Triggers RuntimeError if no running event loop
+        # Create a separate thread so we can block before returning
+        with ThreadPoolExecutor(1) as pool:
+            pool.submit(lambda: asyncio.run(run_async_migrations()))
+    except RuntimeError:
+        asyncio.run(run_async_migrations())
 
 if context.is_offline_mode():
     run_migrations_offline()

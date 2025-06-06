@@ -8,20 +8,18 @@ from routers.bias_and_fairness import router as bias_and_fairness
 from alembic.config import Config
 from alembic import command
 
+import logging
+logger = logging.getLogger('uvicorn')
+
 def run_migrations():
-    alembic_cfg = Config("alembic.ini")
-    command.upgrade(alembic_cfg, "head")
+    logger.info("Running migrations...")
+    try:
+        alembic_cfg = Config("alembic.ini")
+        command.upgrade(alembic_cfg, "head")
+    except Exception as e:
+        logger.info(f"Error running migrations: {e}")
 
-@asynccontextmanager
-async def lifespan(app_: FastAPI):
-    log.info("Starting up...")
-    log.info("run alembic upgrade head...")
-    run_migrations()
-    yield
-    log.info("Shutting down...")
-
-
-app = FastAPI()
+app = FastAPI(on_startup=[run_migrations])
 
 # enable CORS
 origins = [os.environ.get("BACKEND_URL") or "http://localhost:3000"]

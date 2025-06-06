@@ -25,11 +25,8 @@ import reportRoutes from "./routes/reporting.route";
 import frameworks from "./routes/frameworks.route";
 import organizationRoutes from "./routes/organization.route";
 import isoRoutes from "./routes/iso42001.route";
-<<<<<<< HEAD
-=======
 import biasAndFairnessRoutes from "./routes/biasAndFairnessRoutes.route";
 
->>>>>>> dd46ba14 (initial commit)
 import autoDriverRoutes from "./routes/autoDriver.route";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";

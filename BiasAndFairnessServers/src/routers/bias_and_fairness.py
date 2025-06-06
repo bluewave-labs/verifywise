@@ -18,9 +18,9 @@ async def upload_model(
     )
 
 @router.get("/metrics/all")
-def get_all_metrics():
-    return get_all_metrics_controller()
+async def get_all_metrics():
+    return await get_all_metrics_controller()
 
 @router.get("/metrics/{id}")
-def get_metrics(id: int):
-    return get_metrics_controller(id)
+async def get_metrics(id: int):
+    return await get_metrics_controller(id)

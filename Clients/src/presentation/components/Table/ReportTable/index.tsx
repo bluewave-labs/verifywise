@@ -16,7 +16,7 @@ import { ReactComponent as SelectorVertical } from '../../../assets/icons/select
 import TablePaginationActions from '../../TablePagination';
 import TableHeader from '../TableHead';
 const ReportTableBody = lazy(() => import("./TableBody"))
-import {styles, emptyData, pagniationStatus, paginationStyle, paginationDropdown, paginationSelect} from './styles'
+import {styles, tableWrapper, emptyData, pagniationStatus, paginationStyle, paginationDropdown, paginationSelect} from './styles'
 
 interface ReportTableProps {
   columns: any[];
@@ -61,7 +61,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
           <Table
             sx={{
               ...singleTheme.tableStyles.primary.frame,
-              ...styles.tableWrapper
+              ...tableWrapper
             }}
           >
             <TableHeader columns={columns} />
@@ -74,7 +74,11 @@ const ReportTable: React.FC<ReportTableProps> = ({
                   rowsPerPage={rowsPerPage} 
                 /> 
                 <TableFooter>
-                  <TableRow>
+                  <TableRow sx={{
+                    '& .MuiTableCell-root.MuiTableCell-footer': {
+                      paddingX: theme.spacing(8),
+                      paddingY: theme.spacing(4),
+                    }}}>
                     <TableCell sx={pagniationStatus}>
                       Showing {getRange} of {rows?.length} project report(s)
                     </TableCell>

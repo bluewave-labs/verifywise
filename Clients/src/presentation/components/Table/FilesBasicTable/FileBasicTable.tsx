@@ -1,5 +1,4 @@
 import {
-  Stack,
   Table,
   TableBody,
   TableCell,
@@ -8,7 +7,6 @@ import {
   TableHead,
   TablePagination,
   TableRow,
-  Typography,
   useTheme,
 } from "@mui/material";
 import TablePaginationActions from "../../TablePagination";

@@ -56,11 +56,8 @@ export const styles = {
     color: "#475467"
   },
   tableWrapper: {
-    '& .MuiTableFooter-root': {
-      border: `1px solid transparent`,      
-    },
     '& .MuiTableCell-root.MuiTableCell-footer': {
-      paddingTop: '2.5rem'
+      padding: '6px 12px'
     }
   },
 }

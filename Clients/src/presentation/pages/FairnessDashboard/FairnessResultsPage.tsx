@@ -46,6 +46,12 @@ export default function FairnessResultsPage() {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  const barColors = [
+    "#E6194B", "#3CB44B", "#FFE119", "#4363D8", "#F58231",
+    "#911EB4", "#42D4F4", "#F032E6", "#BFef45", "#FABEBE"
+];
+
+
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
@@ -62,6 +68,7 @@ export default function FairnessResultsPage() {
     fetchMetrics();
   }, [id]);
 
+  
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" mt={6}>
@@ -130,7 +137,7 @@ export default function FairnessResultsPage() {
           </Paper>
           
 
-          <Paper elevation={3} sx={{ p: 3, backgroundColor: "#F6FAF9" }}>
+          <Paper elevation={3} sx={{ p: 3, backgroundColor: "white" }}>
             <Box display="flex" alignItems="center" mb={1}>
             <Typography sx={{ ...singleTheme.textStyles.pageTitle, variant: "h6", color: "#13715B", mb:0.35}}>
               <strong>Disparity metrics</strong>
@@ -157,10 +164,10 @@ export default function FairnessResultsPage() {
 
         {["accuracy", "selection_rate", "tpr", "tnr"].map((metricKey) => (
           <Grid item xs={12} key={metricKey}>
-            <Paper elevation={3} sx={{ p: 3, backgroundColor: "#F6FAF9" }}>
+            <Paper elevation={3} sx={{ p: 3, backgroundColor: "white" }}>
                 <Box display="flex" alignItems="center" mb={1}>
               <Typography sx={{ ...singleTheme.textStyles.pageTitle, variant: "h6", color: "#13715B", mb:0.35}}>
-                <strong>{['tpr', 'tnr'].includes(metricKey) ? `Group-wise ${metricKey.toUpperCase()}` : `Group-wise ${metricKey.charAt(0).toUpperCase() + metricKey.slice(1).replace('_', ' ')}`}</strong>
+                <strong>{['tpr', 'tnr'].includes(metricKey) ? `Group-wise ${metricKey.toUpperCase()}` : `Group-wise ${metricKey.charAt(0) + metricKey.slice(1).replace('_', ' ')}`}</strong>
               </Typography>
               <Tooltip title={<div>
                 <div>{metricDescriptions[metricKey]} per group.</div>
@@ -170,16 +177,30 @@ export default function FairnessResultsPage() {
                 </IconButton>
             </Tooltip>
             </Box>
-              <BarChart
-                xAxis={[{ scaleType: "band", data: Object.keys(metrics.by_group?.[metricKey === "tpr" ? "TPR" : metricKey === "tnr" ? "TNR" : metricKey] || {}) }]}
-                series={[{
+            <BarChart
+                xAxis={[{
+                    scaleType: "band",
+                    data: Object.keys(metrics.by_group?.[metricKey === "tpr" ? "TPR" : metricKey === "tnr" ? "TNR" : metricKey] || {}),
+                    tickLabelStyle: {
+                    angle: 0,
+                    textAnchor: "middle",
+                    fontSize: 12,
+                    width: 80,
+                    wordBreak: 'break-word',
+                    }
+                }]}
+                series={[
+                    {
                     data: Object.values(metrics.by_group?.[metricKey === "tpr" ? "TPR" : metricKey === "tnr" ? "TNR" : metricKey] || {}),
                     label: metricKey.replace("_", " "),
-                    color: "gray"
-                }]}
+                    valueFormatter: (v) => v.toFixed(2),
+                    color: barColors[0],
+                    }
+                ]}
                 width={600}
                 height={300}
                 />
+
             </Paper>
           </Grid>
         ))}

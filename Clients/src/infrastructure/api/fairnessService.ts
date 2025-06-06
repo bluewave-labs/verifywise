@@ -46,4 +46,14 @@ export const fairnessService = {
     const response = await CustomAxios.get("/bias_and_fairness/metrics/all");
     return response.data;
   },
+
+  /**
+   * Deletes a fairness metric.
+   * @param id number type representing metric id
+   */
+  async deleteFairnessCheck(id: number): Promise<void> {
+    await CustomAxios.delete(`/bias_and_fairness/metrics/${id}`);
+  }
+  
+
 };

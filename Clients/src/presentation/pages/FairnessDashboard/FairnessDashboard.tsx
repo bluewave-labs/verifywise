@@ -27,6 +27,9 @@ import { fairnessService } from "../../../infrastructure/api/fairnessService";
 import { tabStyle, tabPanelStyle } from "../Vendors/style";
 
 
+
+
+
 export default function FairnessDashboard() {
   const [tab, setTab] = useState("uploads");
   const [anchorEl, setAnchorEl] = useState(null);
@@ -38,6 +41,8 @@ export default function FairnessDashboard() {
   const [targetColumn, setTargetColumn] = useState("");
   const [sensitiveColumn, setSensitiveColumn] = useState("");
   const [columnOptions, setColumnOptions] = useState<string[]>([]);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [selectedDeleteId, setSelectedDeleteId] = useState<number | null>(null);
   const targetColumnItems = useMemo(() => {
     return columnOptions.map((col) => ({ _id: col, name: col }));
   }, [columnOptions]);
@@ -73,8 +78,6 @@ export default function FairnessDashboard() {
     fetchMetrics();
   }, []);
   
-  
-
   const buttonRef = useRef(null);
   const modelInputRef = useRef<HTMLInputElement>(null);
   const datasetInputRef = useRef<HTMLInputElement>(null);
@@ -89,7 +92,13 @@ export default function FairnessDashboard() {
     { id : 'action', label: 'Action'}
   ];
   
-
+  const [errors, setErrors] = useState({
+    modelFile: false,
+    datasetFile: false,
+    targetColumn: false,
+    sensitiveColumn: false
+  });
+  
 
   const handleDotClick = () => {
     if (hasInteracted) return;
@@ -122,14 +131,46 @@ export default function FairnessDashboard() {
     setSensitiveColumn("");
     if (modelInputRef.current) modelInputRef.current.value = "";
     if (datasetInputRef.current) datasetInputRef.current.value = "";
+    setErrors({
+        modelFile: false,
+        datasetFile: false,
+        targetColumn: false,
+        sensitiveColumn: false
+    });
+      
   };
 
-  const handleRemoveModel = (idToRemove: number) => {
-    const filtered = uploadedModels.filter(model => model.id !== idToRemove);
-    setUploadedModels(filtered);
+  const handleConfirmDelete = (id: number) => {
+    setSelectedDeleteId(id);
+    setConfirmDeleteOpen(true);
   };
+  
+  const confirmDelete = async (id: number) => {
+    if (id === null) return;
+    try {
+      await fairnessService.deleteFairnessCheck(id);
+      const filtered = uploadedModels.filter(model => model.id !== id);
+      setUploadedModels(filtered);
+    } catch (error) {
+      console.error("Failed to delete model:", error);
+    } finally {
+      setConfirmDeleteOpen(false);
+      setSelectedDeleteId(null);
+    }
+  };
+  
 
   const handleSaveModel = async () => {
+    const newErrors = {
+        modelFile: !modelFile,
+        datasetFile: !datasetFile,
+        targetColumn: !targetColumn,
+        sensitiveColumn: !sensitiveColumn
+    };
+    setErrors(newErrors);
+    
+    const hasError = Object.values(newErrors).some(Boolean);
+    if (hasError) return;
     if (!modelFile || !datasetFile || !targetColumn || !sensitiveColumn) return;
   
     try {
@@ -245,8 +286,13 @@ export default function FairnessDashboard() {
             rows={uploadedModels}
             page={page}
             setCurrentPagingation={setPage}
-            removeModel={handleRemoveModel}
+            //removeModel={handleConfirmDelete}
             onShowDetails={handleShowDetails}
+            removeModel={{
+                onTrigger: handleConfirmDelete,
+                onConfirm: confirmDelete
+              }}
+            
           />
           
 
@@ -260,13 +306,20 @@ export default function FairnessDashboard() {
 
             <DialogContent>
               <Stack spacing={2}>
-                {[{ label: 'model', accept: '.pkl', file: modelFile, setFile: setModelFile, ref: modelInputRef }, { label: 'dataset', accept: '.csv', file: datasetFile, setFile: setDatasetFile, ref: datasetInputRef }].map(({ label, accept, file, setFile, ref }) => (
+                {[{ label: 'model', accept: '.pkl', file: modelFile, setFile: setModelFile, ref: modelInputRef, errorKey: 'modelFile'}, { label: 'dataset', accept: '.csv', file: datasetFile, setFile: setDatasetFile, ref: datasetInputRef, errorKey: 'datasetFile' }].map(({ label, accept, file, setFile, ref, errorKey }) => (
                   <Box key={label}>
                     <Typography sx={{ fontWeight: 500, mb: 0.5 , mt: 3}}>{`Upload ${label} (${accept})`}</Typography>
                     <Button
                       variant="outlined"
                       component="label"
-                      sx={{ borderColor: "#13715B", color: "#13715B", textTransform: "none", fontWeight: 500, mb:5, '&:hover': { borderColor: "#0f5f4b", backgroundColor: "#F3F9F8" } }}
+                      sx={{ borderColor:  errors[errorKey] ? "#DB504A" : "#13715B", 
+                        color: "#13715B", 
+                        textTransform: "none", 
+                        fontWeight: 500, 
+                        mb:5, 
+                        '&:hover': { 
+                            borderColor: errors[errorKey] ? "#DB504A" : "#0f5f4b", 
+                            backgroundColor: "#F3F9F8" } }}
                     >
                       {`Choose ${label} file`}
                       <input
@@ -276,9 +329,9 @@ export default function FairnessDashboard() {
                         ref={ref}
                         onChange={(e) => {
                           const file = e.target.files?.[0];
-                          if (file) {
-                            setFile(file);
-                            if (label === 'dataset') {
+                          setFile(file || null);
+                          setErrors((prev) => ({ ...prev, [errorKey]: false }));
+                            if (file && label === 'dataset') {
                               const reader = new FileReader();
                               reader.onload = (event) => {
                                 const text = event.target?.result as string;
@@ -289,9 +342,14 @@ export default function FairnessDashboard() {
                               reader.readAsText(file);
                             }
                           }
-                        }}
+                        }
                       />
                     </Button>
+                    {errors[errorKey] && (
+                        <Typography fontSize={12} color="#DB504A" sx={{ ml: 1 }}>
+                        {`${label.charAt(0).toUpperCase() + label.slice(1)} file is required`}
+                        </Typography>
+                    )}
                     {file && (
                       <Box display="flex" alignItems="center" mt={1} px={1} py={0.5} border="1px solid #E5E7EB" borderRadius={1} justifyContent="space-between">
                         <Typography fontSize="14px">{file.name}</Typography>
@@ -301,24 +359,53 @@ export default function FairnessDashboard() {
                   </Box>
                 ))}
                 
-                
-                <Select 
-                    id="target-column"
-                    label="Target column"
-                    placeholder="Select target"
-                    value={targetColumn}
-                    items={targetColumnItems}
-                    onChange={(e) => setTargetColumn(e.target.value)}
-                />
-
+                <Box sx={{mb: 5}}>
+                    <Select 
+                        id="target-column"
+                        label="Target column"
+                        placeholder="Select target"
+                        value={targetColumn}
+                        items={targetColumnItems}
+                        onChange={(e) => {
+                            setTargetColumn(e.target.value);
+                            setErrors((prev) => ({ ...prev, targetColumn: false }));
+                        }}
+                        error={errors.targetColumn}
+                        sx={{ mb: 1 }}
+                    />
+                </Box>
+                {errors.targetColumn && (
+                    <Typography
+                        variant="caption"
+                        sx={{ color: "#d32f2f", mt: 0.5, ml: 1 }} // match MUI FormHelperText style
+                    >
+                        Target column is required
+                    </Typography>
+                    )}
+                <Box sx={{mb: 5}}>
                 <Select
                     id="sensitive-column"
                     label="Sensitive column"
                     placeholder="Select senstive feature"
                     value={sensitiveColumn}
                     items={targetColumnItems}
-                    onChange={(e) => setSensitiveColumn(e.target.value)}
+                    onChange={(e) => {
+                        setSensitiveColumn(e.target.value);
+                        setErrors((prev) => ({ ...prev, sensitiveColumn: false }));
+                      }}
+                    error={errors.sensitiveColumn}
+                    sx={{ mb: 1 }}
                 />
+                </Box>
+                {errors.sensitiveColumn && (
+                    <Typography
+                        variant="caption"
+                        sx={{ color: "#d32f2f", mt: 0.5, ml: 1 }}
+                    >
+                        Sensitive column is required
+                    </Typography>
+                    )}
+
 
                 <Box display="flex" justifyContent="flex-end">
                   <Button variant="contained" sx={{ backgroundColor: "#13715B", color: "white", textTransform: "none", mt: 8 }} onClick={handleSaveModel}>Upload</Button>

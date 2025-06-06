@@ -30,7 +30,11 @@ import {
   interface FairnessTableProps {
     columns: any[];
     rows: any[];
-    removeModel: (id: number) => void;
+    //removeModel: (id: number) => void;
+    removeModel: {
+        onTrigger: (id: number) => void;       // opens the modal
+        onConfirm: (id: number) => void;       // actually deletes
+      };
     page: number;
     setCurrentPagingation: (pageNo: number) => void;
     onShowDetails: (model: any) => void;

@@ -2,6 +2,8 @@ import { TableBody, TableRow, TableCell, Typography, Box, IconButton } from "@mu
 import singleTheme from '../../../../themes/v1SingleTheme';
 import trash from '../../../../assets/icons/trash-01.svg'
 import Button from '../../../../components/Button/index'
+import { fairnessService } from "@/infrastructure/api/fairnessService";
+import ConfirmableDeleteIconButton from "../../../../components/Modals/ConfirmableDeleteIconButton";
 
 
 interface FairnessTableBodyProps {
@@ -9,7 +11,11 @@ interface FairnessTableBodyProps {
   page: number;
   rowsPerPage: number;
   onShowDetails: (model: any) => void;
-  onRemoveModel: (id: number) => void;
+  //onRemoveModel: (id: number) => void;
+  onRemoveModel: {
+    onTrigger: (id: number) => void;
+    onConfirm: (id: number) => void;
+  };
 }
 
 const FairnessTableBody: React.FC<FairnessTableBodyProps> = ({
@@ -24,7 +30,7 @@ const FairnessTableBody: React.FC<FairnessTableBodyProps> = ({
     {rows
       .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
       .map((row, index) => (
-        <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row}>
+        <TableRow key={row.id} sx={singleTheme.tableStyles.primary.body.row}>
           <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, paddingLeft: "12px", paddingRight: "12px"}}>
             {row.id}
           </TableCell>
@@ -46,9 +52,13 @@ const FairnessTableBody: React.FC<FairnessTableBodyProps> = ({
             </Box>
           </TableCell>
           <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, paddingLeft: "12px", paddingRight: "12px" }}>
-            <IconButton onClick={() => onRemoveModel(row.id)} sx={{ padding: 0, ml: 5}}>
-              <img src={trash} alt="Delete" style={{ width: '20px', height: '20px' }} />
-            </IconButton>
+          <ConfirmableDeleteIconButton
+            id={row.id}
+            onConfirm={() => onRemoveModel.onConfirm(row.id)}
+            title={`Delete this fairness check?`}
+            message={`Are you sure you want to delete fairness check ID ${row.id}? This action is non-recoverable.`}
+            customIcon={<img src={trash} alt="Delete" style={{ width: '20px', height: '20px' }} />}
+          />
           </TableCell>
         </TableRow>
       ))}

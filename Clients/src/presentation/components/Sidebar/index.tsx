@@ -30,6 +30,8 @@ import { ReactComponent as ReportingSvg } from "../../assets/icons/reporting.svg
 import { ReactComponent as Vendors } from "../../assets/icons/building.svg";
 import { ReactComponent as Settings } from "../../assets/icons/setting.svg";
 import { ReactComponent as FileManager } from "../../assets/icons/file.svg";
+import { ReactComponent as Feedback } from "../../assets/icons/feedback.svg";
+import { ReactComponent as Discord } from "../../assets/icons/discord.svg";
 
 /**Adding the training register icon */ 
 import { ReactComponent as TrainingRegister } from "../../assets/icons/training-register.svg";
@@ -97,6 +99,16 @@ const other = [
     icon: <Settings />,
     path: "/setting",
   },
+  {
+    name: "Feedback",
+    icon: <Feedback />,
+    path: "https://github.com/bluewave-labs/verifywise/discussions"
+  },
+  {
+    name: "Ask on Discord",
+    icon: <Discord />,
+    path: "https://discord.gg/d3k3E4uEpR"
+  }
 ];
 
 const DEFAULT_USER: User = {
@@ -461,15 +473,14 @@ useEffect(() => {
               className={
                 location.pathname.includes(item.path) ? "selected-path" : ""
               }
-              onClick={() =>
-                item.path === "support"
-                  ? window.open(
-                    "https://github.com/bluewave-labs/bluewave-uptime/issues",
-                    "_blank",
-                    "noreferrer"
-                  )
-                  : navigate(`${item.path}`)
-              }
+              onClick={() => {
+                if (item.name === "Feedback" || item.name.includes("Discord")) {
+                  window.open(item.path, "_blank", "noreferrer")
+                }
+                else {
+                  navigate(`${item.path}`)
+                }
+              }}
               sx={{
                 gap: theme.spacing(4),
                 borderRadius: theme.shape.borderRadius,

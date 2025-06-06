@@ -53,6 +53,7 @@ export async function insertMockData() {
 
     let projects = (await getData("projects", transaction) as Project[])[0];
     if (!projects) {
+     
       // create project
       const project = await createNewProjectQuery(
         {
@@ -108,6 +109,7 @@ export async function insertMockData() {
       // create vendor
       let vendor = (await getData("vendors", transaction) as Vendor[])[0];
       if (!vendor) {
+        
         vendor = await createNewVendorQuery(
           {
             projects: [project.id],
@@ -125,6 +127,7 @@ export async function insertMockData() {
           transaction,
           true // is demo
         )
+
       } else {
         await addVendorProjects(vendor.id!, [project.id!], transaction);
       }      
@@ -150,11 +153,13 @@ export async function insertMockData() {
       )
 
       // create eu framework
+      
       await createEUFrameworkQuery(project.id!, true, transaction, true)
       await createISOFrameworkQuery(project.id!, true, transaction, true)
     } else {
       // project already exists, delete it and insert a new one
     }
+    
     await transaction.commit();
   } catch (error) {
     await transaction.rollback();

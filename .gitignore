@@ -2,7 +2,7 @@
 # *.override.yml
 .db_initialized
 .history
-.env.dev
-.env.prod
 
 .vscode/settings.json
+
+.DS_Store

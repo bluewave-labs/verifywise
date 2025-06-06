@@ -1,168 +1,292 @@
-import React, { useState, useCallback} from "react";
+import React, { FC, useState, useMemo, useCallback } from "react";
 import {
+  Button,
+  Stack,
+  useTheme,
+  Typography,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
-  TextField,
   Grid,
 } from "@mui/material";
-import { useTheme } from "@mui/material";
-import Field from "../../Inputs/Field";
+import { Suspense, lazy } from "react";
+const Field = lazy(() => import("../../Inputs/Field"));
+const Select = lazy(() => import("../../Inputs/Select"));
 import StatusOfProjectDropDown from "../../Inputs/Dropdowns/StatusOfProject/StatusOfProjectDropDown";
-import VWButton from "../../../vw-v2-components/Buttons";
+
 interface NewTrainingProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  onSuccess?: () => void;
+  onSuccess?: (data: any) => void;
 }
 
-const NewTraining: React.FC<NewTrainingProps> = ({ isOpen, setIsOpen, onSuccess }) => {
+type StatusType = "Planned" | "In Progress" | "Completed";
+
+interface NewTrainingFormValues {
+  training_name: string;
+  duration: number;
+  provider: string;
+  department: string;
+  status: StatusType;
+  numberOfPeople: number;
+  description: string;
+}
+
+interface NewTrainingFormErrors {
+  training_name?: string;
+  duration?: number;
+  provider?: string;
+  department?: string;
+  status?: string;
+  numberOfPeople?: number;
+  description?: string;
+}
+
+const initialState: NewTrainingFormValues = {
+  training_name: "",
+  duration:0,
+  provider: "",
+  department: "",
+  status: "Planned",
+  numberOfPeople: 0,
+  description: "",
+};
+
+const statusOptions = [
+  { _id: "Planned", name: "Planned" },
+  { _id: "In Progress", name: "In Progress" },
+  { _id: "Completed", name: "Completed" },
+];
+
+const NewTraining: FC<NewTrainingProps> = ({ isOpen, setIsOpen, onSuccess }) => {
   const theme = useTheme();
-  const [training_name, setTrainingName] = useState("");
-  const [duration, setDuration] = useState("");
-  const [provider, setProvider] = useState("");
-  const [department, setDepartment] = useState("");
-  //const [status, setStatus] = useState("Planned"); // Default status
-  const [currentProjectStatus, setCurrentProjectStatus] = useState<string | null>(null);
-  const [numberOfPeople, setNumberOfPeople] = useState("");
-  const [description, setDescription] = useState("");
+  const [values, setValues] = useState<NewTrainingFormValues>(initialState);
+  const [errors, setErrors] = useState<NewTrainingFormErrors>({});
+
+  const handleOnTextFieldChange = useCallback(
+    (prop: keyof NewTrainingFormValues) =>
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        setValues({ ...values, [prop]: event.target.value });
+        setErrors({ ...errors, [prop]: "" });
+      },
+    [values, errors]
+  );
+
+  const handleOnSelectChange = useCallback(
+    (prop: keyof NewTrainingFormValues) =>
+      (event: any) => {
+        setValues({ ...values, [prop]: event.target.value });
+        setErrors({ ...errors, [prop]: "" });
+      },
+    [values, errors]
+  );
+
+  const handleStatusChange = useCallback((newStatus: string) => {
+    setValues((prev) => ({ ...prev, status: newStatus as StatusType }));
+    setErrors((prev) => ({ ...prev, status: "" }));
+  }, []);
+
+  const validateForm = (): boolean => {
+    const newErrors: NewTrainingFormErrors = {};
+    if (!values.training_name.trim()) {
+      newErrors.training_name = "Training name is required.";
+    }
+    if (!values.duration.trim() || isNaN(Number(values.duration))) {
+      newErrors.duration = "Duration is required and must be a number.";
+    }
+    if (!values.provider.trim()) {
+      newErrors.provider = "Provider is required.";
+    }
+    if (!values.department.trim()) {
+      newErrors.department = "Department is required.";
+    }
+    if (!values.status) {
+      newErrors.status = "Status is required.";
+    }
+    if (
+      !values.numberOfPeople.trim() ||
+      isNaN(Number(values.numberOfPeople)) ||
+      Number(values.numberOfPeople) < 1
+    ) {
+      newErrors.numberOfPeople = "Number of people is required and must be a positive number.";
+    }
+    if (!values.description.trim() || values.description.length < 10) {
+      newErrors.description = "Description is required and should be at least 10 characters.";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleClose = () => {
     setIsOpen(false);
-    // Optionally reset form fields on cancel
-    setTrainingName("");
-    setDuration("");
-    setProvider("");
-    setDepartment("");
-    setCurrentProjectStatus("Planned");
-    setNumberOfPeople("");
-    setDescription("");
+    setValues(initialState);
+    setErrors({});
   };
 
-  const handleStatusChange = useCallback((newStatus: string) => {
-    setCurrentProjectStatus(newStatus);
-    console.log("Status selected in parent:", newStatus);
-    // You can now use newStatus for form submission or other logic
-  }, []);
-  const handleSubmit = () => {
-    // Add logic to handle new training submission here
-    const newTrainingData = {
-      training_name,
-      duration,
-      provider,
-      department,
-      status,
-      numberOfPeople: Number(numberOfPeople), // Convert to number
-      description,
-    };
-    console.log("New Training Submitted:", newTrainingData);
-    if (onSuccess) {
-      onSuccess();
+  const handleSubmit = (event?: React.FormEvent) => {
+    if (event) event.preventDefault();
+    if (validateForm()) {
+      if (onSuccess) {
+        onSuccess({
+          ...values,
+          duration: Number(values.duration),
+          numberOfPeople: Number(values.numberOfPeople),
+        });
+      }
+      handleClose();
     }
-    handleClose();
   };
+
+  const fieldStyle = useMemo(
+    () => ({
+      backgroundColor: theme.palette.background.main,
+      "& input": {
+        padding: "0 14px",
+      },
+    }),
+    [theme.palette.background.main]
+  );
 
   return (
     <Dialog open={isOpen} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ borderBottom: "1px solid #E0E0E0", paddingBottom: theme.spacing(2) }}>
-        New Training
-      </DialogTitle>
-      <DialogContent sx={{ paddingTop: theme.spacing(3), paddingBottom: theme.spacing(3) }}>
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6}>
-            <Field 
-            type="text"
-            id="training-name"
-            label="Training Name"
-            placeholder="Training Name"
-            value={training_name}
-            onChange={(e) => setTrainingName(e.target.value)}/>
+      <form onSubmit={handleSubmit}>
+        <DialogTitle sx={{ borderBottom: "1px solid #E0E0E0", paddingBottom: theme.spacing(2) }}>
+          New Training
+        </DialogTitle>
+        <DialogContent sx={{ paddingTop: theme.spacing(3), paddingBottom: theme.spacing(3) }}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={6}>
+              <Suspense fallback={<div>Loading...</div>}>
+                <Field
+                  id="training-name"
+                  label="Training Name"
+                  value={values.training_name}
+                  onChange={handleOnTextFieldChange("training_name")}
+                  error={errors.training_name}
+                  isRequired
+                  sx={fieldStyle}
+                />
+              </Suspense>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Suspense fallback={<div>Loading...</div>}>
+                <Field
+                  id="duration"
+                  label="Duration (weeks)"
+                  value={values.duration}
+                  onChange={handleOnTextFieldChange("duration")}
+                  error={errors.duration}
+                  isRequired
+                  sx={fieldStyle}
+                  type="number"
+                />
+              </Suspense>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Suspense fallback={<div>Loading...</div>}>
+                <Field
+                  id="provider"
+                  label="Provider"
+                  value={values.provider}
+                  onChange={handleOnTextFieldChange("provider")}
+                  error={errors.provider}
+                  isRequired
+                  sx={fieldStyle}
+                />
+              </Suspense>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Suspense fallback={<div>Loading...</div>}>
+                <Field
+                  id="department"
+                  label="Department"
+                  value={values.department}
+                  onChange={handleOnTextFieldChange("department")}
+                  error={errors.department}
+                  isRequired
+                  sx={fieldStyle}
+                />
+              </Suspense>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Suspense fallback={<div>Loading...</div>}>
+                <StatusOfProjectDropDown
+                  selectedStatus={values.status}
+                  onChange={handleStatusChange}
+                  error={!!errors.status}
+                />
+                {errors.status && (
+                  <Typography variant="caption" sx={{ color: "#f04438", fontWeight: 300 }}>
+                    {errors.status}
+                  </Typography>
+                )}
+              </Suspense>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Suspense fallback={<div>Loading...</div>}>
+                <Field
+                  id="number-of-people"
+                  label="Number of People"
+                  value={values.numberOfPeople}
+                  onChange={handleOnTextFieldChange("numberOfPeople")}
+                  error={errors.numberOfPeople}
+                  isRequired
+                  sx={fieldStyle}
+                  type="number"
+                />
+              </Suspense>
+            </Grid>
+            <Grid item xs={12}>
+              <Suspense fallback={<div>Loading...</div>}>
+                <Field
+                  id="description"
+                  label="Description"
+                  value={values.description}
+                  onChange={handleOnTextFieldChange("description")}
+                  error={errors.description}
+                  isRequired
+                  sx={{
+                    ...fieldStyle,
+                    "& textarea": {
+                      minHeight: "80px",
+                      fontSize: "14px",
+                    },
+                  }}
+                  multiline
+                  rows={4}
+                  type="description"
+                />
+              </Suspense>
+            </Grid>
           </Grid>
-          <Grid item xs={12} sm={6}>
-            <Field 
-            type="text"
-            id="duration"
-            label="Duration"
-            placeholder="Duration in weeks"
-            value={duration}
-            onChange={(e) => setDuration(e.target.value)}/>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <Field 
-            type="text"
-            id="provider"
-            label="Provider"
-            placeholder="Provider"
-            value={provider}
-            onChange={(e) => setProvider(e.target.value)}/>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <Field 
-            type="text"
-            id="department"
-            label="Department"
-            placeholder="Department"
-            value={department}
-            onChange={(e) => setDepartment(e.target.value)}/>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <StatusOfProjectDropDown
-            
-              selectedStatus={currentProjectStatus ?? "Planned"}
-              onChange={handleStatusChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <Field
-              label="Number of People"
-              variant="outlined"
-              fullWidth
-              type="number"
-              value={numberOfPeople}
-              onChange={(e) => setNumberOfPeople(e.target.value)}
-              sx={{ '& fieldset': { borderRadius: '8px' } }}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <Field
-            type="textField"
-              label="Description"
-              variant="outlined"
-              fullWidth
-              multiline
-              rows={4}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              sx={{ '& fieldset': { borderRadius: '8px' } }}
-            />
-          </Grid>
-        </Grid>
-      </DialogContent>
-      <DialogActions sx={{ borderTop: "1px solid #E0E0E0", paddingTop: theme.spacing(2), justifyContent: "flex-end", paddingRight: theme.spacing(3), paddingBottom: theme.spacing(3) }}>
-        <Button
-          onClick={handleClose}
-          sx={{
-            backgroundColor: "#13715B",
-            border: "1px solid #13715B",
-            gap: 2,
-          }}
-        >
-          Cancel
-        </Button>
-        <VWButton
-          onClick={handleSubmit}
-          variant="contained"
-          sx={{
-            backgroundColor: "#13715B",
-            border: "1px solid #13715B",
-            gap: 2,
-          }}
-        >
-          Create Training
-        </VWButton>
-      </DialogActions>
+        </DialogContent>
+        <DialogActions sx={{ borderTop: "1px solid #E0E0E0", paddingTop: theme.spacing(2), justifyContent: "flex-end", paddingRight: theme.spacing(3), paddingBottom: theme.spacing(3) }}>
+          <Button
+            onClick={handleClose}
+            sx={{
+              backgroundColor: "#13715B",
+              border: "1px solid #13715B",
+              gap: 2,
+              color: "#fff",
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            variant="contained"
+            sx={{
+              backgroundColor: "#13715B",
+              border: "1px solid #13715B",
+              gap: 2,
+              color: "#fff",
+            }}
+          >
+            Create Training
+          </Button>
+        </DialogActions>
+      </form>
     </Dialog>
   );
 };

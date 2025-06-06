@@ -103,6 +103,7 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
                 <TableCell>{row.uploadDate}</TableCell>
                 <TableCell>{row.uploader}</TableCell>
                 <TableCell>{row.source}</TableCell>
+                
                 {/* Add any additional cells here */}
                 <TableCell>
                   <IconButton

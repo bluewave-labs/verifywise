@@ -19,7 +19,7 @@ export type TrainingRegistar = {
     provider: string,
     department: string,
     status: "Planned" | "In Progress" | "Completed",
-    people: number
+    numberOfPeople: number
 }
 
 @Table({
@@ -62,5 +62,5 @@ export class TrainingRegistarModel extends Model<TrainingRegistar>{
     @Column({
         type: DataType.INTEGER, 
     })
-    people!: number;
+    numberOfPeople!: number;
 }

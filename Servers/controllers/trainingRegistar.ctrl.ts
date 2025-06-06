@@ -14,19 +14,15 @@ import { sequelize } from "../database/db";
 
 // get ALL training registry api
 export async function getAllTrainingRegistar(req: Request, res: Response): Promise<any> {
-  console.log("1.");
   try {
     const trainingRegistars = await getAllTrainingRegistarQuery();
-    console.log("2..");
-    console.log("Training Registry",trainingRegistars);
     if (trainingRegistars) {
-      console.log("3.");
+      
       return res.status(200).json(STATUS_CODE[200](trainingRegistars));
     }
-    console.log("4");
+    
     return res.status(204).json(STATUS_CODE[204](trainingRegistars));
   } catch (error) {
-    console.log("5");
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -55,7 +51,7 @@ export async function createNewTrainingRegistar(req: Request, res: Response): Pr
     try{
         const newTrainingRegistar: TrainingRegistar = req.body;
 
-        if(!newTrainingRegistar.training_name||!newTrainingRegistar.duration||!newTrainingRegistar.department||!newTrainingRegistar.people||!newTrainingRegistar.provider||!newTrainingRegistar.status){
+        if(!newTrainingRegistar.training_name||!newTrainingRegistar.duration||!newTrainingRegistar.department||!newTrainingRegistar.numberOfPeople||!newTrainingRegistar.provider||!newTrainingRegistar.status){
             return res.status(400).json(
                 STATUS_CODE[400]({
                 message: "Missing field from Training Registar",
@@ -86,7 +82,7 @@ export async function updateTrainingRegistarById(req: Request, res: Response): P
         const trainingRegistarId = parseInt(req.params.id);
         const updatedTrainingRegistar: TrainingRegistar = req.body;
 
-        if(!updatedTrainingRegistar.training_name||!updatedTrainingRegistar.department||!updatedTrainingRegistar.duration||!updatedTrainingRegistar.people||!updatedTrainingRegistar.provider||!updatedTrainingRegistar.people){
+        if(!updatedTrainingRegistar.training_name||!updatedTrainingRegistar.department||!updatedTrainingRegistar.duration||!updatedTrainingRegistar.numberOfPeople||!updatedTrainingRegistar.provider||!updatedTrainingRegistar.numberOfPeople){
             return res.status(400).json(
         STATUS_CODE[400]({
           message: "All the fields are required to be updated",

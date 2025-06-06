@@ -8,8 +8,8 @@ import {
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
-import VWButton from "../../vw-v2-components/Buttons"; 
-//import VWSkeleton from "../../vw-v2-components/Skeletons"; 
+import CustomizableButton from "../../vw-v2-components/Buttons"; 
+import VWSkeleton from "../../vw-v2-components/Skeletons"; 
 import VWToast from "../../vw-v2-components/Toast"; // Assuming this path is correct
 import Alert from "../../components/Alert"; // Assuming this path is correct
 import { logEngine } from "../../../application/tools/log.engine"; // Assuming this path is correct
@@ -19,7 +19,7 @@ import { getAllEntities } from "../../../application/repository/entity.repositor
 // Import the table and modal components specific to Training
 import TrainingTable, { IAITraining } from "./trainingTable"; // Import IAITraining from TrainingTable
 import NewTraining from "../../../presentation/components/Modals/NewTraining"; // Import the NewTraining modal
-
+import { createTraining } from "../../../application/repository/entity.repository";
 // Mock style for heading, similar to vwhomeHeading
 const trainingPageHeading = {
   fontSize: '24px',
@@ -58,9 +58,7 @@ const Training: React.FC = () => {
     setIsLoading(true);
     try {
       // Simulate API call to fetch training data
-      // In a real app, you'd replace this with your actual API call
       const response = await getAllEntities({ routeUrl: "/training" });
-      console.log("Response ===>", response)
        if (response?.data) {
          setTrainingData(response.data);
        }
@@ -102,17 +100,6 @@ const Training: React.FC = () => {
 
   return (
     <Box className="training-page" sx={{ p: theme.spacing(4), maxWidth: 1400, mx: 'auto' }}>
-      {alert && (
-        <Suspense fallback={<div>Loading Alert...</div>}>
-          <Alert
-            variant={alert.variant}
-            title={alert.title}
-            body={alert.body}
-            isToast={true}
-            onClick={() => setAlert(null)}
-          />
-        </Suspense>
-      )}
 
       <Stack gap={theme.spacing(10)} maxWidth={1400}>
         <Stack>
@@ -124,13 +111,12 @@ const Training: React.FC = () => {
         </Stack>
 
         <Stack direction="row" justifyContent="flex-end" alignItems="center" mb={2}>
-          <VWButton
+          <CustomizableButton
             variant="contained"
           sx={{
             backgroundColor: "#13715B",
             border: "1px solid #13715B",
             gap: 2,
-            
           }}
             text="New training"
             icon={<AddCircleOutlineIcon />}
@@ -146,12 +132,17 @@ const Training: React.FC = () => {
       <NewTraining
         isOpen={isNewTrainingModalOpen}
         setIsOpen={setIsNewTrainingModalOpen}
-        onSuccess={handleTrainingSuccess}
+        onSuccess={async (formData) => {
+      try {
+      await createTraining(formData);
+      // Optionally refetch data or show a toast
+      fetchTrainingData(); // refresh table
+      setAlert({ variant: "success", body: "New training added successfully!" });
+      }catch(error){
+      setAlert({ variant: "error", body: "Failed to add training." });
+        }
+    }}
       />
-
-      {isSubmitting && (
-        <VWToast title="Processing your request. Please wait..." />
-      )}
     </Box>
   );
 };

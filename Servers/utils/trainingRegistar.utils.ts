@@ -20,7 +20,7 @@ export const createNewTrainingRegistarQuery = async (trainingRegistar: TrainingR
                 provider: trainingRegistar.provider,
                 department: trainingRegistar.department,
                 status: trainingRegistar.status,
-                people: trainingRegistar.people
+                people: trainingRegistar.numberOfPeople
             },
             mapToModel: true,
             model: TrainingRegistarModel,
@@ -81,7 +81,7 @@ export const updateTrainingRegistarByIdQuery = async(
         "provider",
         "department",
         "status",
-        "people"
+        "numberOfPeople"
     ].filter(f => {
         if(trainingRegistar[f as keyof TrainingRegistar] !== undefined && trainingRegistar[f as keyof TrainingRegistar]){
             updateTrainingRegistar[f as keyof TrainingRegistar] = trainingRegistar[f as keyof TrainingRegistar];

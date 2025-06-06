@@ -15,7 +15,7 @@ import authenticateJWT from "../middleware/auth.middleware";
 router.get("/",authenticateJWT, getAllTrainingRegistar);
 router.get("/training-id/:id", getTrainingRegistarById);
 // POST, PUT, DELETE requests
-router.post("/", createNewTrainingRegistar);
+router.post("/",authenticateJWT, createNewTrainingRegistar);
 router.patch("/:id",updateTrainingRegistarById);
 router.delete("/:id",deleteTrainingRegistarById);
 

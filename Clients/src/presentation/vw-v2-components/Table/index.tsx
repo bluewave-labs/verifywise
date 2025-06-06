@@ -1,6 +1,5 @@
 import {
   Box,
-  Stack,
   Table,
   TableBody,
   TableCell,

@@ -1,9 +1,8 @@
-import { TableCell, TableHead, TableRow, useTheme } from "@mui/material";
+import { TableCell, TableHead, TableRow } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";
 
 
 const VWProjectRisksTableHead = ({ columns }: { columns: any[] }) => {
-  const theme = useTheme();
   
   return (
     <TableHead

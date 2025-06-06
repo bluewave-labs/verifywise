@@ -59,3 +59,29 @@ async def insert_metrics(metrics: str, data_id: int, db: AsyncSession):
     )
     row = result.fetchone()
     return row
+
+async def delete_metrics_by_id(id: int, db: AsyncSession):
+    """
+    Delete metrics by ID.
+    """
+    result_metrics = await db.execute(
+        text("DELETE FROM fairness_runs WHERE id = :id RETURNING *"),
+        {"id": id}
+    )
+    row_metrics = result_metrics.fetchone()
+    if not row_metrics:
+        return False
+
+    # Delete associated model data and files
+    result_data = await db.execute(
+        text("DELETE FROM model_data WHERE id = :data_id RETURNING model_id"),
+        {"data_id": row_metrics.data_id}
+    )
+    row_data = result_data.fetchone()
+    if row_data:
+        await db.execute(
+            text("DELETE FROM model_files WHERE id = :model_id"),
+            {"model_id": row_data.model_id}
+        )
+        return True
+    return False

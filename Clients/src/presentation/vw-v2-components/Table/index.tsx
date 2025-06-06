@@ -11,7 +11,7 @@ import {
   useTheme,
 } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import TablePaginationActions from "../../components/TablePagination";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
 import placeholderImage from "../../assets/imgs/empty-state.svg";
@@ -40,6 +40,16 @@ const VWProjectRisksTable = ({
 }) => {
   const theme = useTheme();
   const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  // Ensure page is valid when rows are empty
+  const validPage = rows.length === 0 ? 0 : Math.min(page, Math.max(0, Math.ceil(rows.length / rowsPerPage) - 1));
+
+  // Update page if it's invalid
+  useEffect(() => {
+    if (page !== validPage) {
+      setPage(validPage);
+    }
+  }, [rows.length, page, validPage, setPage]);
 
   const getRange = useMemo(() => {
     const start = page * rowsPerPage + 1;
@@ -122,7 +132,7 @@ const VWProjectRisksTable = ({
                   <TablePagination
                     component="div"
                     count={rows?.length}
-                    page={page}
+                    page={validPage}
                     onPageChange={handleChangePage}
                     rowsPerPage={rowsPerPage}
                     rowsPerPageOptions={[5, 10, 15, 20, 25]}

@@ -98,10 +98,10 @@ export default function FairnessResultsPage() {
       </Box>
 
         
-          <Paper elevation={3} sx={{ p: 3, backgroundColor: "#F6FAF9" }}>
+          <Paper elevation={3} sx={{ p: 3, backgroundColor: "white" }}>
           <Box display="flex" alignItems="center" mb={1}>
             <Typography sx={{ ...singleTheme.textStyles.pageTitle, variant: "h6", color: "#13715B", mb:0.35}}>
-              <strong>Overall Fairness Metrics</strong>
+              <strong>Overall fairness metrics</strong>
             </Typography>
             <Tooltip title={<div>
                 <div>These metrics evaluate your model’s performance and fairness across all data.</div>

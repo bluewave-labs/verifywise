@@ -99,7 +99,7 @@ export async function getReportData(
       markdownFormattedData = await getVendorReportMarkdown(projectId, reportBody)
       break;
     case ReportType.ANNEXES_REPORT:
-      markdownFormattedData = await getClausesAndAnnexesMarkdown(frameworkId, projectFrameworkId, reportBody)
+      markdownFormattedData = await getClausesAndAnnexesMarkdown(projectFrameworkId, reportBody)
       break;
     case ReportType.COMPLIANCE_REPORT:
       markdownFormattedData = await getComplianceMarkdown(frameworkId, reportBody)

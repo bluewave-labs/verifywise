@@ -75,10 +75,8 @@ Assessment tracker report
 ${assessmentReportMarkdown}
 `;
         return euAIMD;
-      } else {
-        let clausesAndAnnexesMarkdown = await getClausesAndAnnexesReportData(
-          frameworkId
-        );
+      } else {        
+        let clausesAndAnnexesMarkdown = await getClausesAndAnnexesReportData(projectFrameworkId);
         const isoMD = `
 VerifyWise ${framework.name} report
 ========================

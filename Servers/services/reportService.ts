@@ -32,11 +32,14 @@ export function getFormattedReportName(name: string, type: string) {
     case ReportType.COMPLIANCE_REPORT:
       reportType = DefaultReportName.COMPLIANCE_REPORT;
       break;
-    case ReportType.CLAUSES_REPORT:
-      reportType = DefaultReportName.CLAUSES_REPORT;
-      break;
-    case ReportType.ANNEXES_REPORT:
-      reportType = DefaultReportName.ANNEXES_REPORT;
+    // case ReportType.CLAUSES_REPORT:
+    //   reportType = DefaultReportName.CLAUSES_REPORT;
+    //   break;
+    // case ReportType.ANNEXES_REPORT:
+    //   reportType = DefaultReportName.ANNEXES_REPORT;
+    //   break;
+    case ReportType.CLAUSES_AND_ANNEXES_REPORT:
+      reportType = DefaultReportName.CLAUSES_AND_ANNEXES_REPORT;
       break;
     default:
       reportType = DefaultReportName.ALL_REPORT;
@@ -102,7 +105,7 @@ export async function getReportData(
       markdownFormattedData = await getClausesAndAnnexesMarkdown(projectFrameworkId, reportBody)
       break;
     case ReportType.COMPLIANCE_REPORT:
-      markdownFormattedData = await getComplianceMarkdown(frameworkId, reportBody)
+      markdownFormattedData = await getComplianceMarkdown(projectFrameworkId, reportBody)
       break;
     case ReportType.ALL_REPORT:
       markdownFormattedData = await getAllReportMarkdown(frameworkId, projectFrameworkId, projectId, reportBody)

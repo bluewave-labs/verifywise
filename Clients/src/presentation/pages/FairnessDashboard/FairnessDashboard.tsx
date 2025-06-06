@@ -24,6 +24,7 @@ import { useNavigate } from "react-router-dom";
 import FairnessTable from "../../components/Table/FairnessTable";
 import Select from "../../components/Inputs/Select";
 import { fairnessService } from "../../../infrastructure/api/fairnessService";
+import { tabStyle, tabPanelStyle } from "../Vendors/style";
 
 
 export default function FairnessDashboard() {
@@ -47,7 +48,7 @@ export default function FairnessDashboard() {
     id: number;
     model: string;
     dataset: string;
-    status: string;
+    report?: string;
     action?: string; // Optional if you're not storing a real value
   };
   
@@ -61,8 +62,7 @@ export default function FairnessDashboard() {
         const formatted = metrics.map((item: any) => ({
           id: item.metrics_id, // use this for "ID" column
           model: item.model_filename,
-          dataset: item._data_filename,
-          status: "Pending" 
+          dataset: item.data_filename
         }));
         setUploadedModels(formatted);
       } catch (err) {
@@ -85,7 +85,7 @@ export default function FairnessDashboard() {
     { id: 'id', label: 'Check ID' },
     { id: 'model', label: 'Model' },
     { id: 'dataset', label: 'Dataset' },
-    { id: 'status', label: 'Status' },
+    { id: 'report', label: 'Report' },
     { id : 'action', label: 'Action'}
   ];
   
@@ -145,8 +145,7 @@ export default function FairnessDashboard() {
       const newEntry: FairnessModel = {
         id: result.id,
         model: result.name || modelFile.name,
-        dataset: datasetFile.name,
-        status: result.status || "Pending",
+        dataset: datasetFile.name
       };
   
       setUploadedModels(prev => [...prev, newEntry]);
@@ -171,35 +170,13 @@ export default function FairnessDashboard() {
           <TabList
             onChange={(e, newVal) => setTab(newVal)}
             TabIndicatorProps={{ style: { backgroundColor: "#13715B", height: "2px" } }}
-            sx={{
-              minHeight: "24px",
-              "& .MuiTabs-flexContainer": { gap: "24px" },
-              "& .MuiTab-root": {
-                minHeight: "32px",
-                padding: 0,
-                fontSize: "13px",
-                fontWeight: 500,
-                textTransform: "capitalize",
-                color: "#4B5563",
-                fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
-                width: "fit-content",
-                minWidth: "unset",
-              },
-              "& .MuiTab-root.Mui-selected": {
-                color: "#13715B !important",
-                display: "table",
-                minWidth: "unset",
-                width: "fit-content",
-                paddingLeft: 0,
-                paddingRight: 0,
-              },
-            }}
+            sx={styles.tabList}
           >
-            <Tab label="Fairness checks" value="uploads" disableRipple />
+            <Tab label="Fairness checks" value="uploads" disableRipple sx={{textTransform: 'none !important'}}/>
           </TabList>
         </Box>
 
-        <TabPanel value="uploads" sx={{ px: 0 }}>
+        <TabPanel value="uploads" sx={{tabPanelStyle}}>
           <Box display="flex" justifyContent="flex-end" mb={3} position="relative">
             <Button
               ref={buttonRef}
@@ -219,7 +196,6 @@ export default function FairnessDashboard() {
                 minWidth: "64px",
                 position: "relative",
                 zIndex: 2,
-                "&:hover": { backgroundColor: "#0f604d" },
               }}
             >
               Validate fairness

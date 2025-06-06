@@ -133,7 +133,7 @@ export default function FairnessResultsPage() {
           <Paper elevation={3} sx={{ p: 3, backgroundColor: "#F6FAF9" }}>
             <Box display="flex" alignItems="center" mb={1}>
             <Typography sx={{ ...singleTheme.textStyles.pageTitle, variant: "h6", color: "#13715B", mb:0.35}}>
-              <strong>Disparity Metrics</strong>
+              <strong>Disparity metrics</strong>
             </Typography>
             <Tooltip title={<div>
                 <div>Shows the difference between groups for each metric — the smaller the gap, the fairer the model.</div>

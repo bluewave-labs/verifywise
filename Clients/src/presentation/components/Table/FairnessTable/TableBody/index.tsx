@@ -1,5 +1,8 @@
-import { TableBody, TableRow, TableCell, Button, Typography, Box } from "@mui/material";
+import { TableBody, TableRow, TableCell, Typography, Box, IconButton } from "@mui/material";
 import singleTheme from '../../../../themes/v1SingleTheme';
+import trash from '../../../../assets/icons/trash-01.svg'
+import Button from '../../../../components/Button/index'
+
 
 interface FairnessTableBodyProps {
   rows: any[];
@@ -14,6 +17,7 @@ const FairnessTableBody: React.FC<FairnessTableBodyProps> = ({
   page,
   rowsPerPage,
   onShowDetails,
+  onRemoveModel,
 }) => {
   return (
     <TableBody>
@@ -21,43 +25,30 @@ const FairnessTableBody: React.FC<FairnessTableBodyProps> = ({
       .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
       .map((row, index) => (
         <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row}>
-          <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, paddingLeft: "12px", paddingRight: "12px" }}>
+          <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, paddingLeft: "12px", paddingRight: "12px"}}>
             {row.id}
           </TableCell>
-          <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, paddingLeft: "12px", paddingRight: "12px" }}>
+          <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, paddingLeft: "12px", paddingRight: "12px", textTransform:"none"}}>
             {row.model}
           </TableCell>
-          <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, paddingLeft: "12px", paddingRight: "12px" }}>
+          <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, paddingLeft: "12px", paddingRight: "12px", textTransform:"none" }}>
             {row.dataset}
           </TableCell>
           <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, paddingLeft: "12px", paddingRight: "12px" }}>
-            <Typography
-              sx={{
-                display: "inline-block",
-                padding: "2px 8px",
-                borderRadius: "12px",
-                backgroundColor: row.status === "Completed" ? "#DCFCE7" : "#FEF3C7",
-                color: row.status === "Completed" ? "#166534" : "#92400E",
-                fontWeight: 500,
-                fontSize: "12px",
-                textTransform: "capitalize",
-                width: "fit-content",
-              }}
+          <Box display="flex" justifyContent="left">
+            <Button 
+            onClick={() => onShowDetails(row)}
+            sx={{ml: -2, fontsize:"18 !important"}}
             >
-              {row.status}
-            </Typography>
+              Show
+            </Button>
+
+            </Box>
           </TableCell>
           <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, paddingLeft: "12px", paddingRight: "12px" }}>
-            <Box display="flex" justifyContent="left">
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={() => onShowDetails(row)}
-                sx={{ textTransform: "none", fontSize: "13px", px: 2 }}
-              >
-                Show report
-              </Button>
-            </Box>
+            <IconButton onClick={() => onRemoveModel(row.id)} sx={{ padding: 0, ml: 5}}>
+              <img src={trash} alt="Delete" style={{ width: '20px', height: '20px' }} />
+            </IconButton>
           </TableCell>
         </TableRow>
       ))}

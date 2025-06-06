@@ -4,7 +4,7 @@ import React, {
   Suspense,
   useCallback,
   useContext,
-  useEffect,
+  useMemo,
 } from "react";
 import { Stack, Typography, useTheme, SelectChangeEvent } from "@mui/material";
 import CustomizableButton from "../../../../vw-v2-components/Buttons";
@@ -23,6 +23,7 @@ interface FormValues {
   report_name: string;
   project: number;
   framework: number;
+  projectFrameworkId: number;
 }
 
 interface FormErrors {
@@ -30,6 +31,7 @@ interface FormErrors {
   report_name?: string;
   project?: string;
   framework?: string;
+  projectFrameworkId?: string;
 }
 
 const initialState: FormValues = {
@@ -37,6 +39,7 @@ const initialState: FormValues = {
   report_name: "",
   project: 1,
   framework: 1,
+  projectFrameworkId: 1,
 };
 
 /**
@@ -63,20 +66,6 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
   const [values, setValues] = useState<FormValues>({...initialState, project: dashboardValues.projects[0].id});
   const [errors, setErrors] = useState<FormErrors>({});
   const theme = useTheme();
-  const [projectFrameworks, setProjectFrameworks] = useState<FrameworkValues[]>(
-    [initialFrameworkValue]
-  );
-
-  useEffect(() => {
-    const pfw =
-      dashboardValues.projects.find(
-        (project: { id: string | number }) => project.id === values.project
-      )?.framework || "";
-    setProjectFrameworks(pfw);
-    if (pfw.length > 0) {
-      setValues({ ...values, framework: pfw[0].framework_id });
-    }
-  }, [values.project]);
 
   const handleOnTextFieldChange = useCallback(
     (prop: keyof FormValues) =>
@@ -95,8 +84,31 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
     [values, errors]
   );
 
+  const projectFrameworks = useMemo<FrameworkValues[]>(() => {
+    const selectedProject = dashboardValues.projects.find(
+      (project: { id: string | number }) => project.id === values.project
+    );
+
+    const frameworks = selectedProject?.framework;
+
+    return Array.isArray(frameworks) && frameworks.length > 0
+      ? frameworks
+      : [initialFrameworkValue];
+  }, [dashboardValues.projects, values.project]);
+
+  const projectFrameworkId = useMemo(() => {
+    return (
+      projectFrameworks.find((pf) => pf.framework_id === values.framework)
+        ?.project_framework_id ?? 1
+    );
+  }, [projectFrameworks, values.framework]);
+
   const handleFormSubmit = () => {
-    onGenerate(values);
+    const newValues = {
+      ...values,
+      projectFrameworkId: projectFrameworkId,
+    }
+    onGenerate(newValues);
   };
 
   return (
@@ -142,6 +154,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
               projectFrameworks?.map((framework) => ({
                 _id: framework.framework_id,
                 name: framework.name,
+                projectFrameworkId: framework.project_framework_id,
               })) || []
             }
             sx={{

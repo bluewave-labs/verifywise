@@ -4,7 +4,7 @@ import React, {
   Suspense,
   useCallback,
   useContext,
-  useEffect,
+  useMemo,
 } from "react";
 import { Stack, Typography, useTheme, SelectChangeEvent } from "@mui/material";
 import CustomizableButton from "../../../../vw-v2-components/Buttons";
@@ -61,33 +61,11 @@ interface ReportProps {
   onGenerate: (formValues: any) => void;
 }
 
-const safeNumberConversion = (value: string | number): number => {
-  const num = Number(value);
-  if (isNaN(num)) {
-    throw new Error('Invalid number conversion');
-  }
-  return num;
-};
-
 const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
   const { dashboardValues } = useContext(VerifyWiseContext);
   const [values, setValues] = useState<FormValues>({...initialState, project: dashboardValues.projects[0].id});
   const [errors, setErrors] = useState<FormErrors>({});
   const theme = useTheme();
-  const [projectFrameworks, setProjectFrameworks] = useState<FrameworkValues[]>(
-    [initialFrameworkValue]
-  );
-
-  useEffect(() => {
-    const pfw =
-      dashboardValues.projects.find(
-        (project: { id: string | number }) => project.id === values.project
-      )?.framework || "";
-    setProjectFrameworks(pfw);
-    if (pfw.length > 0) {
-      setValues({ ...values, framework: pfw[0].framework_id, projectFrameworkId: pfw[0].project_framework_id });
-    }
-  }, [values.project]);
 
   const handleOnTextFieldChange = useCallback(
     (prop: keyof FormValues) =>
@@ -106,23 +84,31 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
     [values, errors]
   );
 
-  const handleFrameworkChange = (event: SelectChangeEvent<string | number>) => {
-    const selectedFrameworkId = safeNumberConversion(event.target.value);
-    const selectedFramework = projectFrameworks.find(
-      (fw) => fw.framework_id === selectedFrameworkId
+  const projectFrameworks = useMemo<FrameworkValues[]>(() => {
+    const selectedProject = dashboardValues.projects.find(
+      (project: { id: string | number }) => project.id === values.project
     );
-    if (selectedFramework) {
-      setValues({
-        ...values,
-        framework: selectedFramework.framework_id,
-        projectFrameworkId: selectedFramework.project_framework_id,
-      });
-      setErrors({ ...errors, framework: "" });
-    }
-  };
+
+    const frameworks = selectedProject?.framework;
+
+    return Array.isArray(frameworks) && frameworks.length > 0
+      ? frameworks
+      : [initialFrameworkValue];
+  }, [dashboardValues.projects, values.project]);
+
+  const projectFrameworkId = useMemo(() => {
+    return (
+      projectFrameworks.find((pf) => pf.framework_id === values.framework)
+        ?.project_framework_id ?? 1
+    );
+  }, [projectFrameworks, values.framework]);
 
   const handleFormSubmit = () => {
-    onGenerate(values);
+    const newValues = {
+      ...values,
+      projectFrameworkId: projectFrameworkId,
+    }
+    onGenerate(newValues);
   };
 
   return (
@@ -163,7 +149,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
             label="Framework"
             placeholder="Select framework"
             value={values.framework}
-            onChange={handleFrameworkChange}
+            onChange={handleOnSelectChange("framework")}
             items={
               projectFrameworks?.map((framework) => ({
                 _id: framework.framework_id,

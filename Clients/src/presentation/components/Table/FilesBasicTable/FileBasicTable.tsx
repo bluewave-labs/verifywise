@@ -4,6 +4,7 @@ import {
   TableBody,
   TableCell,
   TableContainer,
+  TableFooter,
   TableHead,
   TablePagination,
   TableRow,
@@ -118,39 +119,42 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
               </TableRow>
             ))}
           </TableBody>
+          {paginated && (
+            <TableFooter>
+              <TableRow
+                sx={{
+                  '& .MuiTableCell-root.MuiTableCell-footer': {
+                    paddingX: theme.spacing(8),
+                    paddingY: theme.spacing(4),
+                  }}}
+              >
+                <TableCell sx={{ 
+                  paddingX: theme.spacing(2),
+                  fontSize: 12,
+                  opacity: 0.7 }}>
+                  Showing {page * rowsPerPage + 1} -
+                  {Math.min(page * rowsPerPage + rowsPerPage, bodyData.length)} of{" "}
+                  {bodyData.length} items
+                </TableCell>
+                <TablePagination
+                  count={bodyData.length}
+                  page={page}
+                  onPageChange={handleChangePage}
+                  rowsPerPage={rowsPerPage}
+                  rowsPerPageOptions={[5, 10, 15, 20, 25]}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                  ActionsComponent={
+                    TablePaginationActions as React.ComponentType<any>
+                  }
+                  labelRowsPerPage="Rows per page"
+                  sx={{ mt: theme.spacing(6) }}
+                />
+              </TableRow>
+            </TableFooter>
+          )}
         </Table>
       </TableContainer>
-      {paginated && (
-        <Stack
-          direction="row"
-          alignItems="center"
-          justifyContent="space-between"
-          px={theme.spacing(4)}
-          sx={{
-            width: "100%",
-            display: "flex",
-          }}
-        >
-          <Typography px={theme.spacing(2)} fontSize={12} sx={{ opacity: 0.7 }}>
-            Showing {page * rowsPerPage + 1} -
-            {Math.min(page * rowsPerPage + rowsPerPage, bodyData.length)} of{" "}
-            {bodyData.length} items
-          </Typography>
-          <TablePagination
-            count={bodyData.length}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[5, 10, 15, 20, 25]}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            ActionsComponent={
-              TablePaginationActions as React.ComponentType<any>
-            }
-            labelRowsPerPage="Rows per page"
-            sx={{ mt: theme.spacing(6) }}
-          />
-        </Stack>
-      )}
+      
     </>
   );
 };

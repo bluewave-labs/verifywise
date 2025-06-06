@@ -73,46 +73,44 @@ const ReportTable: React.FC<ReportTableProps> = ({
                   page={page}
                   rowsPerPage={rowsPerPage} 
                 /> 
-                {rows.length !== 0 &&
-                  <TableFooter>
-                    <TableRow>
-                      <TableCell sx={pagniationStatus}>
-                        Showing {getRange} of {rows?.length} project report(s)
-                      </TableCell>
-                      <TablePagination
-                        count={rows?.length}
-                        page={page}
-                        onPageChange={handleChangePage}
-                        rowsPerPage={rowsPerPage}
-                        rowsPerPageOptions={[5, 10, 15, 20, 25]}
-                        onRowsPerPageChange={handleChangeRowsPerPage}
-                        ActionsComponent={(props) => <TablePaginationActions {...props} />}
-                        labelRowsPerPage="Reports per page"
-                        labelDisplayedRows={({ page, count }) =>
-                          `Page ${page + 1} of ${Math.max(0, Math.ceil(count / rowsPerPage))}`
-                        }
-                        sx={paginationStyle}
-                        slotProps={{
-                          select: {
-                            MenuProps: {
-                              keepMounted: true,
-                              PaperProps: {
-                                className: "pagination-dropdown",
-                                sx: paginationDropdown,
-                              },
-                              transformOrigin: { vertical: "bottom", horizontal: "left" },
-                              anchorOrigin: { vertical: "top", horizontal: "left" },
-                              sx: { mt: theme.spacing(-2) },
+                <TableFooter>
+                  <TableRow>
+                    <TableCell sx={pagniationStatus}>
+                      Showing {getRange} of {rows?.length} project report(s)
+                    </TableCell>
+                    <TablePagination
+                      count={rows?.length}
+                      page={page}
+                      onPageChange={handleChangePage}
+                      rowsPerPage={rowsPerPage}
+                      rowsPerPageOptions={[5, 10, 15, 20, 25]}
+                      onRowsPerPageChange={handleChangeRowsPerPage}
+                      ActionsComponent={(props) => <TablePaginationActions {...props} />}
+                      labelRowsPerPage="Reports per page"
+                      labelDisplayedRows={({ page, count }) =>
+                        `Page ${page + 1} of ${Math.max(0, Math.ceil(count / rowsPerPage))}`
+                      }
+                      sx={paginationStyle}
+                      slotProps={{
+                        select: {
+                          MenuProps: {
+                            keepMounted: true,
+                            PaperProps: {
+                              className: "pagination-dropdown",
+                              sx: paginationDropdown,
                             },
-                            inputProps: { id: "pagination-dropdown" },
-                            IconComponent: SelectorVertical,
-                            sx: paginationSelect,
+                            transformOrigin: { vertical: "bottom", horizontal: "left" },
+                            anchorOrigin: { vertical: "top", horizontal: "left" },
+                            sx: { mt: theme.spacing(-2) },
                           },
-                        }}
-                      />
-                    </TableRow>
-                  </TableFooter>
-                }
+                          inputProps: { id: "pagination-dropdown" },
+                          IconComponent: SelectorVertical,
+                          sx: paginationSelect,
+                        },
+                      }}
+                    />
+                  </TableRow>
+                </TableFooter>
               </>
             : (
               <>

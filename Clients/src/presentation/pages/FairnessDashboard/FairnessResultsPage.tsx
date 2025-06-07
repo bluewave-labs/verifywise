@@ -1,4 +1,3 @@
-import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
@@ -6,23 +5,11 @@ import {
   Typography,
   Grid,
   Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Divider,
-  Button,
   IconButton,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   CircularProgress,
   Tooltip,
 } from "@mui/material";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { BarChart } from "@mui/x-charts";
 import { fairnessService } from "../../../infrastructure/api/fairnessService";
@@ -30,14 +17,14 @@ import singleTheme from "../../themes/v1SingleTheme";
 
 
 const metricDescriptions = {
-  accuracy: "Overall correctness of the model's predictions",
-  selection_rate: "Proportion of individuals selected by the model",
-  tpr: "True Positive Rate - proportion of positives correctly identified",
-  tnr: "True Negative Rate - proportion of negatives correctly identified",
-  demographic_parity_difference: "Measures how equally outcomes are distributed across groups. Lower is fairer.",
-  equal_opportunity_difference: "Measures gaps in true positive rate (TPR) between groups. Lower means more equal opportunity",
-  equalized_odds_difference: "Difference in true positive and false positive rates between groups. Lower means less bias.",
-};
+    accuracy: "Overall correctness of the model's predictions",
+    selection_rate: "Proportion of individuals selected by the model",
+    tpr: "True Positive Rate - proportion of positives correctly identified",
+    tnr: "True Negative Rate - proportion of negatives correctly identified",
+    demographic_parity_difference: "Measures how equally outcomes are distributed across groups. Lower is fairer.",
+    equal_opportunity_difference: "Measures gaps in true positive rate (TPR) between groups. Lower means more equal opportunity",
+    equalized_odds_difference: "Difference in true positive and false positive rates between groups. Lower means less bias.",
+}
 
 export default function FairnessResultsPage() {
   const { id } = useParams();
@@ -49,7 +36,13 @@ export default function FairnessResultsPage() {
   const barColors = [
     "#E6194B", "#3CB44B", "#FFE119", "#4363D8", "#F58231",
     "#911EB4", "#42D4F4", "#F032E6", "#BFef45", "#FABEBE"
-];
+  ];
+
+  type MetricKey = keyof typeof metricDescriptions; // or manually: "accuracy" | "selection_rate" | "tpr" | "tnr" | ...
+
+  const keys: MetricKey[] = ["accuracy", "selection_rate", "tpr", "tnr"];
+
+
 
 
   useEffect(() => {
@@ -104,7 +97,7 @@ export default function FairnessResultsPage() {
         </Typography>
       </Box>
 
-        
+        <Box mb={5}>
           <Paper elevation={3} sx={{ p: 3, backgroundColor: "white" }}>
           <Box display="flex" alignItems="center" mb={1}>
             <Typography sx={{ ...singleTheme.textStyles.pageTitle, variant: "h6", color: "#13715B", mb:0.35}}>
@@ -135,8 +128,9 @@ export default function FairnessResultsPage() {
                 Equalized Odds Difference: {metrics.equalized_odds_difference.toFixed(4)}
                 </Typography>
           </Paper>
+          </Box>
           
-
+           <Box mb={5}>
           <Paper elevation={3} sx={{ p: 3, backgroundColor: "white" }}>
             <Box display="flex" alignItems="center" mb={1}>
             <Typography sx={{ ...singleTheme.textStyles.pageTitle, variant: "h6", color: "#13715B", mb:0.35}}>
@@ -160,10 +154,10 @@ export default function FairnessResultsPage() {
                 True Negative Rate Difference: {metrics.overall.TNR.toFixed(4)}
                 </Typography>
           </Paper>
-        
+          </Box> 
 
-        {["accuracy", "selection_rate", "tpr", "tnr"].map((metricKey) => (
-          <Grid item xs={12} key={metricKey}>
+        {keys.map((metricKey) => (
+          <Box mb={5} key={metricKey}>
             <Paper elevation={3} sx={{ p: 3, backgroundColor: "white" }}>
                 <Box display="flex" alignItems="center" mb={1}>
               <Typography sx={{ ...singleTheme.textStyles.pageTitle, variant: "h6", color: "#13715B", mb:0.35}}>
@@ -193,19 +187,17 @@ export default function FairnessResultsPage() {
                     {
                     data: Object.values(metrics.by_group?.[metricKey === "tpr" ? "TPR" : metricKey === "tnr" ? "TNR" : metricKey] || {}),
                     label: metricKey.replace("_", " "),
-                    valueFormatter: (v) => v.toFixed(2),
+                    valueFormatter: (v) => (v != null ? v.toFixed(2) : "N/A"),
                     color: barColors[0],
                     }
                 ]}
-                width={600}
+                width={700}
                 height={300}
                 />
 
             </Paper>
-          </Grid>
+          </Box>
         ))}
-        
-      
     </Box>
   );
 }

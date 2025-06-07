@@ -1,8 +1,7 @@
-import { TableBody, TableRow, TableCell, Typography, Box, IconButton } from "@mui/material";
+import { TableBody, TableRow, TableCell, Box } from "@mui/material";
 import singleTheme from '../../../../themes/v1SingleTheme';
-import trash from '../../../../assets/icons/trash-01.svg'
-import Button from '../../../../components/Button/index'
-import { fairnessService } from "@/infrastructure/api/fairnessService";
+import trash from '../../../../assets/icons/trash-01.svg';
+import Button from '../../../../components/Button/index';
 import ConfirmableDeleteIconButton from "../../../../components/Modals/ConfirmableDeleteIconButton";
 
 
@@ -11,9 +10,7 @@ interface FairnessTableBodyProps {
   page: number;
   rowsPerPage: number;
   onShowDetails: (model: any) => void;
-  //onRemoveModel: (id: number) => void;
   onRemoveModel: {
-    onTrigger: (id: number) => void;
     onConfirm: (id: number) => void;
   };
 }
@@ -29,7 +26,7 @@ const FairnessTableBody: React.FC<FairnessTableBodyProps> = ({
     <TableBody>
     {rows
       .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-      .map((row, index) => (
+      .map((row) => (
         <TableRow key={row.id} sx={singleTheme.tableStyles.primary.body.row}>
           <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, paddingLeft: "12px", paddingRight: "12px"}}>
             {row.id}

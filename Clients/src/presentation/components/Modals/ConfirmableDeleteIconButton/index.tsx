@@ -6,8 +6,7 @@ import {
   DialogActions,
   Button,
   IconButton,
-  Typography,
-  Box
+  Typography
 } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
 

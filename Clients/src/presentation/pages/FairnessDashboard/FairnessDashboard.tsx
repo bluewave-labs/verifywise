@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useMemo, useEffect } from "react";
+import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import {
   Box,
   Button,
@@ -9,10 +9,6 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  TextField,
-  InputLabel,
-  MenuItem,
-  SelectChangeEvent,
   IconButton
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
@@ -24,10 +20,7 @@ import { useNavigate } from "react-router-dom";
 import FairnessTable from "../../components/Table/FairnessTable";
 import Select from "../../components/Inputs/Select";
 import { fairnessService } from "../../../infrastructure/api/fairnessService";
-import { tabStyle, tabPanelStyle } from "../Vendors/style";
-
-
-
+import { tabPanelStyle } from "../Vendors/style";
 
 
 export default function FairnessDashboard() {
@@ -41,8 +34,6 @@ export default function FairnessDashboard() {
   const [targetColumn, setTargetColumn] = useState("");
   const [sensitiveColumn, setSensitiveColumn] = useState("");
   const [columnOptions, setColumnOptions] = useState<string[]>([]);
-  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
-  const [selectedDeleteId, setSelectedDeleteId] = useState<number | null>(null);
   const targetColumnItems = useMemo(() => {
     return columnOptions.map((col) => ({ _id: col, name: col }));
   }, [columnOptions]);
@@ -84,6 +75,32 @@ export default function FairnessDashboard() {
   const navigate = useNavigate();
 
 
+  const uploadFields: {
+    label: string;
+    accept: string;
+    file: File | null;
+    setFile: (file: File | null) => void;
+    ref: React.RefObject<HTMLInputElement>;
+    errorKey: 'modelFile' | 'datasetFile';
+    }[] = [
+        {
+        label: 'model',
+        accept: '.pkl',
+        file: modelFile,
+        setFile: setModelFile,
+        ref: modelInputRef,
+        errorKey: 'modelFile',
+        },
+        {
+        label: 'dataset',
+        accept: '.csv',
+        file: datasetFile,
+        setFile: setDatasetFile,
+        ref: datasetInputRef,
+        errorKey: 'datasetFile',
+        },
+    ];
+  
   const FAIRNESS_COLUMNS = [
     { id: 'id', label: 'Check ID' },
     { id: 'model', label: 'Model' },
@@ -139,11 +156,6 @@ export default function FairnessDashboard() {
     });
       
   };
-
-  const handleConfirmDelete = (id: number) => {
-    setSelectedDeleteId(id);
-    setConfirmDeleteOpen(true);
-  };
   
   const confirmDelete = async (id: number) => {
     if (id === null) return;
@@ -153,9 +165,6 @@ export default function FairnessDashboard() {
       setUploadedModels(filtered);
     } catch (error) {
       console.error("Failed to delete model:", error);
-    } finally {
-      setConfirmDeleteOpen(false);
-      setSelectedDeleteId(null);
     }
   };
   
@@ -209,7 +218,7 @@ export default function FairnessDashboard() {
       <TabContext value={tab}>
         <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
           <TabList
-            onChange={(e, newVal) => setTab(newVal)}
+            onChange={(_, newVal) => setTab(newVal)}
             TabIndicatorProps={{ style: { backgroundColor: "#13715B", height: "2px" } }}
             sx={styles.tabList}
           >
@@ -286,10 +295,8 @@ export default function FairnessDashboard() {
             rows={uploadedModels}
             page={page}
             setCurrentPagingation={setPage}
-            //removeModel={handleConfirmDelete}
             onShowDetails={handleShowDetails}
             removeModel={{
-                onTrigger: handleConfirmDelete,
                 onConfirm: confirmDelete
               }}
             
@@ -306,20 +313,19 @@ export default function FairnessDashboard() {
 
             <DialogContent>
               <Stack spacing={2}>
-                {[{ label: 'model', accept: '.pkl', file: modelFile, setFile: setModelFile, ref: modelInputRef, errorKey: 'modelFile'}, { label: 'dataset', accept: '.csv', file: datasetFile, setFile: setDatasetFile, ref: datasetInputRef, errorKey: 'datasetFile' }].map(({ label, accept, file, setFile, ref, errorKey }) => (
+                {uploadFields.map(({ label, accept, file, setFile, ref, errorKey }) => (
                   <Box key={label}>
                     <Typography sx={{ fontWeight: 500, mb: 0.5 , mt: 3}}>{`Upload ${label} (${accept})`}</Typography>
                     <Button
                       variant="outlined"
                       component="label"
-                      sx={{ borderColor:  errors[errorKey] ? "#DB504A" : "#13715B", 
+                      sx={{ borderColor:  errors[errorKey] ? "#F04438" : "#13715B", 
                         color: "#13715B", 
                         textTransform: "none", 
                         fontWeight: 500, 
                         mb:5, 
-                        '&:hover': { 
-                            borderColor: errors[errorKey] ? "#DB504A" : "#0f5f4b", 
-                            backgroundColor: "#F3F9F8" } }}
+                        borderOpacity: errors[errorKey] ? 0.8 : 1
+                        }}
                     >
                       {`Choose ${label} file`}
                       <input
@@ -346,7 +352,7 @@ export default function FairnessDashboard() {
                       />
                     </Button>
                     {errors[errorKey] && (
-                        <Typography fontSize={12} color="#DB504A" sx={{ ml: 1 }}>
+                        <Typography fontSize={11} color="#F04438" sx={{ mt: 0.5, ml: 0, lineHeight: 1.5, opacity:0.8}}>
                         {`${label.charAt(0).toUpperCase() + label.slice(1)} file is required`}
                         </Typography>
                     )}
@@ -367,21 +373,14 @@ export default function FairnessDashboard() {
                         value={targetColumn}
                         items={targetColumnItems}
                         onChange={(e) => {
-                            setTargetColumn(e.target.value);
+                            setTargetColumn(e.target.value as string);
                             setErrors((prev) => ({ ...prev, targetColumn: false }));
                         }}
-                        error={errors.targetColumn}
+                        error={errors.targetColumn ? "Target column is required" : ""}
                         sx={{ mb: 1 }}
                     />
                 </Box>
-                {errors.targetColumn && (
-                    <Typography
-                        variant="caption"
-                        sx={{ color: "#d32f2f", mt: 0.5, ml: 1 }} // match MUI FormHelperText style
-                    >
-                        Target column is required
-                    </Typography>
-                    )}
+                
                 <Box sx={{mb: 5}}>
                 <Select
                     id="sensitive-column"
@@ -390,21 +389,13 @@ export default function FairnessDashboard() {
                     value={sensitiveColumn}
                     items={targetColumnItems}
                     onChange={(e) => {
-                        setSensitiveColumn(e.target.value);
+                        setSensitiveColumn(e.target.value as string);
                         setErrors((prev) => ({ ...prev, sensitiveColumn: false }));
                       }}
-                    error={errors.sensitiveColumn}
+                    error={errors.sensitiveColumn ? "Sensitive column is required" : ""}
                     sx={{ mb: 1 }}
                 />
                 </Box>
-                {errors.sensitiveColumn && (
-                    <Typography
-                        variant="caption"
-                        sx={{ color: "#d32f2f", mt: 0.5, ml: 1 }}
-                    >
-                        Sensitive column is required
-                    </Typography>
-                    )}
 
 
                 <Box display="flex" justifyContent="flex-end">

@@ -6,8 +6,7 @@ import {
     TablePagination,
     TableRow,
     Typography,
-    Box,
-    IconButton
+    Box
   } from "@mui/material";
   import { Suspense, lazy, useMemo, useState, useCallback } from "react";
   import TablePaginationActions from "../../TablePagination";
@@ -16,7 +15,6 @@ import {
   import { ReactComponent as SelectorVertical } from '../../../assets/icons/selector-vertical.svg';
   import {
     styles,
-    emptyData,
     paginationWrapper,
     pagniationStatus,
     paginationStyle,
@@ -30,9 +28,7 @@ import {
   interface FairnessTableProps {
     columns: any[];
     rows: any[];
-    //removeModel: (id: number) => void;
     removeModel: {
-        onTrigger: (id: number) => void;       // opens the modal
         onConfirm: (id: number) => void;       // actually deletes
       };
     page: number;

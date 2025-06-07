@@ -187,16 +187,16 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
   const titleEuAct = ["Subcontrols", "Assessments"];
 
   const completedIso42001Numbers = [
-    annexesProgress?.doneAnnexcategories ?? 0,
     clausesProgress?.doneSubclauses ?? 0,
+    annexesProgress?.doneAnnexcategories ?? 0,
   ];
 
   const totalIso42001Numbers = [
-    annexesProgress?.totalAnnexcategories ?? 0,
     clausesProgress?.totalSubclauses ?? 0,
+    annexesProgress?.totalAnnexcategories ?? 0,
   ];
 
-  const titleIso42001 = ["Annexes", "Subclauses"];
+  const titleIso42001 = ["Clauses", "Annexes"];
 
   return (
     <Stack className="vw-project-overview">

@@ -280,7 +280,7 @@ export default function FairnessDashboard() {
               disableRestoreFocus
             >
               <Box sx={{ p: 2, maxWidth: 300 }}>
-                <Typography variant="body2">Click "Model" to start a new fairness validation.</Typography>
+                <Typography variant="body2">Click "Validate Fairness" to start a new fairness validation.</Typography>
               </Box>
             </Popover>
             <Backdrop
@@ -385,7 +385,7 @@ export default function FairnessDashboard() {
                 <Select
                     id="sensitive-column"
                     label="Sensitive column"
-                    placeholder="Select senstive feature"
+                    placeholder="Select sensitive feature"
                     value={sensitiveColumn}
                     items={targetColumnItems}
                     onChange={(e) => {

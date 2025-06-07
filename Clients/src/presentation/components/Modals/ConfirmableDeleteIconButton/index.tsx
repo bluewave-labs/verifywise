@@ -26,7 +26,7 @@ const ConfirmableDeleteIconButton: React.FC<Props> = ({
   customIcon
 }) => {
   const [open, setOpen] = useState(false);
-  const COLOR = "#344054";
+  const COLOR = singleTheme.textStyles.pageDescription.color;
 
   return (
     <>
@@ -58,7 +58,7 @@ const ConfirmableDeleteIconButton: React.FC<Props> = ({
             sx={{
               textTransform: "none",
               fontSize: "14px",
-              color: "#344054",
+              color: COLOR,
               px: 3,
               py: 1.5,
               '&:focus': { outline: 'none' },

@@ -1,3 +1,7 @@
+# VERSION 1.0 DUE 12 JUNE, 2025
+
+[Join our Discord channel](https://discord.com/invite/wWzYzMD6) to get the latest announcement.
+
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/bluewave-labs/verifywise)
 ![](https://img.shields.io/github/license/bluewave-labs/checkmate)
 ![](https://img.shields.io/github/repo-size/bluewave-labs/checkmate)
@@ -50,13 +54,14 @@ VerifyWise is designed for:
 - User registration, authentication, and role-based access control (RBAC) support.
 - Key metrics, visualizations, and real-time reporting capabilities.
 - Major features:
-  - Multiple projects *(complete)*
-  - Compliance tracker and assessment tracker for EU AI Act *(complete)*
-  - ISO 42001 support *(in progress)*
-  - Vendors *(complete)*
-  - Risks *(complete)*
-  - Evidence center *(complete)*
-  - Reports *(in progress)* 
+  - Multiple projects
+  - Compliance tracker and assessment tracker for EU AI Act
+  - ISO 42001 support
+  - Vendors
+  - Risks 
+  - Evidence center
+  - Reports
+  - AI literacy training
   - AI Trust Center *(planning)*
 
 ## Installation
@@ -176,7 +181,7 @@ docker ps  # to confirm
 
 ## Quick links
 
-- This application is currently in the development stage. The designs and workflows are [available for everyone](https://www.figma.com/design/o4xu4PeC5bo1Ii4dyom6vQ/VerifyWise?node-id=0-1&t=Ty2Jh4S8QgHGrqon-1). This link includes 2 pages: dashboard designs and the style guide.
+- The designs and workflows are [available for everyone](https://www.figma.com/design/o4xu4PeC5bo1Ii4dyom6vQ/VerifyWise?node-id=0-1&t=Ty2Jh4S8QgHGrqon-1). This link includes 2 pages: dashboard designs and the style guide.
 
 - The [VerifyWise presentation](https://pitch.com/v/verifywise-democratizing-ai-governance-zhxvh6), including terminology, why we started this project, technology, and roadmap
 

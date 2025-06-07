@@ -10,7 +10,7 @@ import authenticateJWT from "../middleware/auth.middleware";
 import { validateId } from "../validations/id.valid";
 
 // POST, PUT, DELETE requests
-router.post("/generate-report", authenticateJWT, validateId("projectId"), validateId("frameworkId"), generateReports);
+router.post("/generate-report", authenticateJWT, validateId("projectId"), validateId("frameworkId"), validateId("projectFrameworkId"), generateReports);
 router.delete("/:id", authenticateJWT, deleteGeneratedReportById);
 
 // GET request

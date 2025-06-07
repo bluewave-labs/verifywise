@@ -18,6 +18,7 @@ interface InputProps {
   report_name: string;
   project: number;
   framework: number;
+  projectFrameworkId: number;
 }
 
 const GenerateReportPopup: React.FC<GenerateReportProps> = ({
@@ -46,7 +47,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
   };
 
   const handleGenerateReport = async (input: InputProps) => {       
-    const currentProject = dashboardValues.projects.find((project: { id: number | null; }) => project.id === input.project);         
+    const currentProject = dashboardValues.projects.find((project: { id: number | null; }) => project.id === input.project);
     
     if (!currentProject) {
       handleToast("error", "Project not found");
@@ -81,7 +82,8 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
       projectOwner: currentProjectOwner,
       reportType: reportTypeLabel,
       reportName: input.report_name,
-      frameworkId: input.framework
+      frameworkId: input.framework,
+      projectFrameworkId: input.projectFrameworkId
     }
     const reportDownloadResponse = await handleAutoDownload(body);
     setResponseStatusCode(reportDownloadResponse);

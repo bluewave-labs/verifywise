@@ -16,12 +16,13 @@ import { getProjectRiskReportData } from './projectRiskMarkdown';
 import { getVendorReportData, getVendorRiskReportData } from './vendorAndRisksMarkdown';
 
 export async function getAllReportMarkdown (
+  frameworkId: number,
   projectFrameworkId: number,
   projectId: number,
   data: ReportBodyData
 ) : Promise<string> {
   try {
-    const framework = await getAllFrameworkByIdQuery(projectFrameworkId);
+    const framework = await getAllFrameworkByIdQuery(frameworkId);
 
     if (framework) {
       let projectReportMarkdown = await getProjectRiskReportData(projectId);
@@ -29,8 +30,8 @@ export async function getAllReportMarkdown (
       let vendorRiskReportMarkdown = await getVendorRiskReportData(projectId);
 
       if (framework.name === "EU AI Act") { 
-        const complianceReportMarkdown = await getComplianceReportData(projectFrameworkId);
-        const assessmentReportMarkdown = await getAssessmentTrackerReportData(projectId, projectFrameworkId);
+        const complianceReportMarkdown = await getComplianceReportData(frameworkId);
+        const assessmentReportMarkdown = await getAssessmentTrackerReportData(projectId, frameworkId);
 
       const euAIMD = `
 VerifyWise ${framework.name} report
@@ -67,7 +68,7 @@ ${assessmentReportMarkdown}
 `
         return euAIMD;
       } else {        
-        let clausesAndAnnexesMarkdown = await getClausesAndAnnexesReportData(projectFrameworkId);
+        let clausesAndAnnexesMarkdown = await getClausesAndAnnexesReportData(frameworkId, projectFrameworkId);
         const isoMD = `
 VerifyWise ${framework.name} report
 ========================
@@ -100,7 +101,7 @@ ${clausesAndAnnexesMarkdown}
         return isoMD;
       }
     } else {
-      throw new Error(`Framework with ID ${projectFrameworkId} not found`);
+      throw new Error(`Framework with ID ${frameworkId} not found`);
     }
   } catch (error){
     console.error('Error generating all reports markdown:', error);

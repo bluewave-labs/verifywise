@@ -1,22 +1,41 @@
-import React, { useState } from "react";
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useContext,
+  lazy,
+  Suspense,
+} from "react";
 import {
-  Stack,
+  Box,
+  Button,
+  Typography,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
-  TablePagination,
   TableRow,
-  Typography,
-  Paper,
-  useTheme,
   IconButton,
+  Stack,
+  useTheme,
+  TableFooter,
 } from "@mui/material";
-import SettingsIcon from "@mui/icons-material/Settings";
-import DeleteIcon from "@mui/icons-material/Delete";
 import TablePaginationActions from "../../components/TablePagination";
 import "../../components/Table/index.css";
+import singleTheme from "../../themes/v1SingleTheme";
+import { Settings } from "@mui/icons-material";
+//const Alert = lazy(() => import("../../../components/Alert"));
+
+//Constant for table
+const TABLE_COLUMNS = [
+  {id:"training_name", label:"TRAINING NAME"},
+  {id:"duration", label:"DURATION"},
+  {id:"provider", label:"PROVIDER"},
+  {id:"department", label:"DEPARTMENT"},
+  {id:"status", label:"STATUS"},
+  {id:"people", label:"PEOPLE"},
+]
 
 export interface IAITraining {
   id: number;
@@ -39,7 +58,7 @@ interface TrainingTableProps {
 const DEFAULT_ROWS_PER_PAGE = 5;
 
 const StatusBadge: React.FC<{ status: IAITraining['status'] }> = ({ status }) => {
-  const theme = useTheme();
+ // const theme = useTheme();
   let backgroundColor = '';
   let color = '#FFFFFF';
 
@@ -102,30 +121,37 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
     : data;
 
   return (
-    <>
-      <TableContainer component={Paper}>
-        <Table className="training-table" sx={{ minWidth: 650 }}>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ fontWeight: 500 }}>TRAINING NAME</TableCell>
-              <TableCell sx={{ fontWeight: 500 }}>DURATION</TableCell>
-              <TableCell sx={{ fontWeight: 500 }}>PROVIDER</TableCell>
-              <TableCell sx={{ fontWeight: 500 }}>DEPARTMENT</TableCell>
-              <TableCell sx={{ fontWeight: 500 }}>STATUS</TableCell>
-              <TableCell sx={{ fontWeight: 500 }}>PEOPLE</TableCell>
-              <TableCell sx={{ fontWeight: 500 }}>ACTIONS</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {paginatedData.map((training) => (
-              <TableRow
-                key={training.id}
-                sx={{
-                  height: "50px",
-                  "&:hover": { backgroundColor: "#FBFBFB", cursor: "pointer" },
-                }}
-              >
-                <TableCell className="host">{training.training_name}</TableCell>
+    <TableContainer  sx={{ overflowX: "auto" }}>
+      <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>
+        <TableHead
+        sx={{
+          backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors,
+        }}>
+          <TableRow>
+                      {TABLE_COLUMNS.map((column) => (
+                        <TableCell
+                          key={column.id}
+                          sx={{
+                            ...singleTheme.tableStyles.primary.header.cell,
+                            ...(column.id === "action" && {
+                              position: "sticky",
+                              right: 0,
+                              backgroundColor:
+                                singleTheme.tableStyles.primary.header
+                                  .backgroundColors,
+                            }),
+                          }}
+                        >
+                          {column.label}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+        </TableHead>
+        <TableBody>
+          {paginatedData.length > 0 ? (
+            paginatedData.map((training) => (
+              <TableRow key={training.id}>
+                <TableCell>{training.training_name}</TableCell>
                 <TableCell>{training.duration}</TableCell>
                 <TableCell>{training.provider}</TableCell>
                 <TableCell>{training.department}</TableCell>
@@ -136,52 +162,37 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
                 <TableCell>
                   <Stack direction="row" spacing={0.5}>
                     <IconButton aria-label="edit" onClick={() => onEdit && onEdit(training.id.toString())}>
-                      <SettingsIcon sx={{ color: theme.palette.grey[600] }} />
+                      <Settings sx={{ color: theme.palette.grey[600] }}/>
                     </IconButton>
                     <IconButton aria-label="delete" onClick={() => onDelete && onDelete(training.id.toString())}>
-                      <DeleteIcon sx={{ color: theme.palette.error.main }} />
+                      {/* <DeleteIcon sx={{ color: theme.palette.error.main }} /> */}
                     </IconButton>
                   </Stack>
                 </TableCell>
               </TableRow>
-            ))}
-            {data.length === 0 && !isLoading && (
-              <TableRow>
-                <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
-                  No training data available.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      {paginated && (
-        <Stack
-          direction="row"
-          alignItems="center"
-          justifyContent="space-between"
-          px={theme.spacing(4)}
-          sx={{ width: "100%", display: "flex" }}
-        >
-          <Typography px={theme.spacing(2)} fontSize={12} sx={{ opacity: 0.7 }}>
-            Showing {page * rowsPerPage + 1} -{" "}
-            {Math.min(page * rowsPerPage + rowsPerPage, data.length)} of {data.length} items
-          </Typography>
-          <TablePagination
-            component="div"
-            count={data.length}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[5, 10, 15, 25]}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            labelRowsPerPage="Rows per page"
-            sx={{ mt: theme.spacing(6) }}
-            ActionsComponent={TablePaginationActions}
-          />
-        </Stack>
-      )}
-    </>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                No training data available.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+        {paginated && (
+          <TableFooter>
+            <TableRow>
+              <TablePaginationActions
+                count={data.length}
+                page={page}
+                onPageChange={handleChangePage}
+                rowsPerPage={rowsPerPage}
+              />
+            </TableRow>
+          </TableFooter>
+        )}
+      </Table>
+    </TableContainer>
   );
 };
 

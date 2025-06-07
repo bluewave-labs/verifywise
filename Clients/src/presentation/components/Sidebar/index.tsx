@@ -87,7 +87,7 @@ const menu = [
 
   
   {
-    name:"Training Registar",
+    name:"Training Registry",
     icon: <TrainingRegister />,
     path: "/training"
   }

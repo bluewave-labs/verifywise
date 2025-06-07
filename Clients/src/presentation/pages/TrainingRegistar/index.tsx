@@ -20,20 +20,11 @@ import { getAllEntities } from "../../../application/repository/entity.repositor
 import TrainingTable, { IAITraining } from "./trainingTable"; // Import IAITraining from TrainingTable
 import NewTraining from "../../../presentation/components/Modals/NewTraining"; // Import the NewTraining modal
 import { createTraining } from "../../../application/repository/entity.repository";
-// Mock style for heading, similar to vwhomeHeading
-const trainingPageHeading = {
-  fontSize: '24px',
-  fontWeight: 700,
-  color: '#1A1919',
-  marginBottom: '16px',
-};
+import { vwhomeHeading } from "../Home/1.0Home/style";
+import singleTheme from "../../themes/v1SingleTheme";
 
 // Mock style for page description, similar to singleTheme.textStyles.pageDescription
-const trainingPageDescription = {
-  fontSize: '14px',
-  color: '#6B7280',
-  lineHeight: 1.5,
-};
+
 
 const Training: React.FC = () => {
   const theme = useTheme();
@@ -103,8 +94,8 @@ const Training: React.FC = () => {
 
       <Stack gap={theme.spacing(10)} maxWidth={1400}>
         <Stack>
-          <Typography sx={trainingPageHeading}>AI training registry</Typography>
-          <Typography sx={trainingPageDescription}>
+          <Typography sx={vwhomeHeading}>AI training registry</Typography>
+          <Typography sx={singleTheme.textStyles.pageDescription}>
             This registry lists all AI-related training programs available to your organization.
             You can view, add, and manage training details here.
           </Typography>

@@ -12,8 +12,7 @@ import {
 } from "@mui/material";
 import { Suspense, lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
-const Select = lazy(() => import("../../Inputs/Select"));
-import StatusOfProjectDropDown from "../../Inputs/Dropdowns/StatusOfProject/StatusOfProjectDropDown";
+import Select from "../../Inputs/Select";
 
 interface NewTrainingProps {
   isOpen: boolean;
@@ -82,10 +81,18 @@ const NewTraining: FC<NewTrainingProps> = ({ isOpen, setIsOpen, onSuccess }) => 
     [values, errors]
   );
 
-  const handleStatusChange = useCallback((newStatus: string) => {
-    setValues((prev) => ({ ...prev, status: newStatus as StatusType }));
-    setErrors((prev) => ({ ...prev, status: "" }));
-  }, []);
+  // const handleStatusChange = useCallback((newStatus: string) => {
+  //   setValues((prev) => ({ ...prev, status: newStatus as StatusType }));
+  //   setErrors((prev) => ({ ...prev, status: "" }));
+  // }, []);
+const handleOnChange = (field: string, value: string | number) => {
+    setValues((prevValues) => ({
+      ...prevValues,
+      [field]: value,
+    }));
+    setErrors({ ...errors, [field]: "Error setting the Status" });
+  };
+
 
   const validateForm = (): boolean => {
     const newErrors: NewTrainingFormErrors = {};
@@ -105,7 +112,8 @@ const NewTraining: FC<NewTrainingProps> = ({ isOpen, setIsOpen, onSuccess }) => 
       newErrors.status = "Status is required.";
     }
     if (
-      !values.numberOfPeople.trim() ||
+      values.numberOfPeople === undefined ||
+      values.numberOfPeople === null ||
       isNaN(Number(values.numberOfPeople)) ||
       Number(values.numberOfPeople) < 1
     ) {
@@ -160,7 +168,7 @@ const NewTraining: FC<NewTrainingProps> = ({ isOpen, setIsOpen, onSuccess }) => 
               <Suspense fallback={<div>Loading...</div>}>
                 <Field
                   id="training-name"
-                  label="Training Name"
+                  label="Training name"
                   value={values.training_name}
                   onChange={handleOnTextFieldChange("training_name")}
                   error={errors.training_name}
@@ -173,10 +181,10 @@ const NewTraining: FC<NewTrainingProps> = ({ isOpen, setIsOpen, onSuccess }) => 
               <Suspense fallback={<div>Loading...</div>}>
                 <Field
                   id="duration"
-                  label="Duration (weeks)"
-                  value={values.duration}
+                  label="Duration"
+                  value={values.duration.toString()}
                   onChange={handleOnTextFieldChange("duration")}
-                  error={errors.duration}
+                  error={errors.duration ? String(errors.duration) : undefined}
                   isRequired
                   sx={fieldStyle}
                   type="number"
@@ -211,10 +219,15 @@ const NewTraining: FC<NewTrainingProps> = ({ isOpen, setIsOpen, onSuccess }) => 
             </Grid>
             <Grid item xs={12} sm={6}>
               <Suspense fallback={<div>Loading...</div>}>
-                <StatusOfProjectDropDown
-                  selectedStatus={values.status}
-                  onChange={handleStatusChange}
-                  error={!!errors.status}
+                <Select
+                items={statusOptions}
+                value={values.status}
+                error={errors.status}
+                sx={{ width: '100%' }}
+                  id="status"
+                  label="Status"
+                  isRequired
+                  onChange={handleOnSelectChange("status")}
                 />
                 {errors.status && (
                   <Typography variant="caption" sx={{ color: "#f04438", fontWeight: 300 }}>
@@ -228,9 +241,9 @@ const NewTraining: FC<NewTrainingProps> = ({ isOpen, setIsOpen, onSuccess }) => 
                 <Field
                   id="number-of-people"
                   label="Number of People"
-                  value={values.numberOfPeople}
+                  value={values.numberOfPeople.toString()}
                   onChange={handleOnTextFieldChange("numberOfPeople")}
-                  error={errors.numberOfPeople}
+                  error={errors.numberOfPeople ? String(errors.numberOfPeople) : undefined}
                   isRequired
                   sx={fieldStyle}
                   type="number"
@@ -254,7 +267,7 @@ const NewTraining: FC<NewTrainingProps> = ({ isOpen, setIsOpen, onSuccess }) => 
                     },
                   }}
                   multiline
-                  rows={4}
+                  rows={1}
                   type="description"
                 />
               </Suspense>

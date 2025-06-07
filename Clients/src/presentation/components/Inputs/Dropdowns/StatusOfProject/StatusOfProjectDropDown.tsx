@@ -1,5 +1,5 @@
 import React from "react";
-import { Select, MenuItem, FormControl, SelectChangeEvent } from "@mui/material";
+import { Select, MenuItem, FormControl, SelectChangeEvent, Typography } from "@mui/material";
 import { dropdownStyles, inputStyles } from "./style";
 
 interface StatusOption{
@@ -25,6 +25,7 @@ const StatusOfProjectDropDown: React.FC<StatusOfProjectDropDownProps> = ({
             marginBottom: 10,
         }}
         >
+            <Typography>Status</Typography>
             <Select
             id="status-of-project"
             value={selectedStatus || ""}

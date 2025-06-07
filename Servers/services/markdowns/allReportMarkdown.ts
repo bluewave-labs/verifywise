@@ -30,7 +30,7 @@ export async function getAllReportMarkdown (
       let vendorRiskReportMarkdown = await getVendorRiskReportData(projectId);
 
       if (framework.name === "EU AI Act") { 
-        const complianceReportMarkdown = await getComplianceReportData(frameworkId);
+        const complianceReportMarkdown = await getComplianceReportData(projectFrameworkId);
         const assessmentReportMarkdown = await getAssessmentTrackerReportData(projectId, frameworkId);
 
       const euAIMD = `

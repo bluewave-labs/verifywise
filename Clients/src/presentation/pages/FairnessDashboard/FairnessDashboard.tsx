@@ -226,7 +226,7 @@ export default function FairnessDashboard() {
           </TabList>
         </Box>
 
-        <TabPanel value="uploads" sx={{tabPanelStyle}}>
+        <TabPanel value="uploads" sx={tabPanelStyle}>
           <Box display="flex" justifyContent="flex-end" mb={3} position="relative">
             <Button
               ref={buttonRef}

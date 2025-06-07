@@ -61,13 +61,13 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
     let reportTypeLabel = input.report_type;
     switch(input.report_type){
       case "Annexes report":
-        reportTypeLabel = "Annexes report"
+        reportTypeLabel = "Reference controls group"
         break;      
       case "Clauses report":
-        reportTypeLabel = "Clauses report"
+        reportTypeLabel = "Management system clauses group"
         break; 
       case "Clauses and annexes report":
-        reportTypeLabel = "Clauses and annexes report"
+        reportTypeLabel = "Reference controls group"
         break;     
       case "All reports combined in one file":
         reportTypeLabel = "All reports"

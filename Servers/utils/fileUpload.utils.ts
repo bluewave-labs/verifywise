@@ -20,7 +20,7 @@ export const uploadFile = async (
     | "Assessment tracker report"
     | "Vendors and risks report"
     | "All reports"
-    | "Management system clauses group" | "Reference controls group" | "Clauses and annexes report",
+    | "Management system clauses group" | "Reference controls group",
   transaction: Transaction | null = null
 ) => {
   const projectIsDemo = await sequelize.query(

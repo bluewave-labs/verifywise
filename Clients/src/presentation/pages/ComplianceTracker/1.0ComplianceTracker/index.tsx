@@ -140,6 +140,7 @@ const ComplianceTracker = ({ project }: { project: Project }) => {
           />
         </Stack>
       )}
+      <Typography sx={pageHeadingStyle}>Compliance status overview</Typography>
       {controlCategories &&
         controlCategories
           .sort((a, b) => (a.order_no ?? 0) - (b.order_no ?? 0))

@@ -265,13 +265,15 @@ const ProjectSettings = React.memo(
     const handleOnSelectChange = useCallback(
       (prop: keyof FormValues) =>
         (event: SelectChangeEvent<string | number>) => {
-          setValues((prevValues) => ({
-            ...prevValues,
-            [prop]: event.target.value,
-          }));
+          if (prop === "owner") {
+            values.members = values.members.filter(
+              (member) => member !== Number(event.target.value)
+            );
+          }
+          setValues({ ...values ,[prop]: event.target.value});
           setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
         },
-      []
+      [values, errors]
     );
 
     const handleOnTextFieldChange = useCallback(
@@ -645,7 +647,6 @@ const ProjectSettings = React.memo(
         const response = await deleteEntityById({
           routeUrl: `/projects/${projectId}`,
         });
-        console.log(response);
         const isError = response.status === 404 || response.status === 500;
         setAlert({
           variant: isError ? "error" : "success",
@@ -921,7 +922,7 @@ const ProjectSettings = React.memo(
               )}
               options={
                 users
-                  ?.filter((user) => !values.members.includes(Number(user.id)))
+                  ?.filter((user) => user.id !== values.owner && !values.members.includes(Number(user.id)))
                   .map((user) => ({
                     id: user.id,
                     name: user.name,

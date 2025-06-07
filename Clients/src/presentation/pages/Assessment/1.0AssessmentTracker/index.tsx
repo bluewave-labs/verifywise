@@ -10,7 +10,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { listItemStyle, subHeadingStyle, topicsListStyle } from "./index.style";
+import { listItemStyle, pageHeadingStyle, subHeadingStyle, topicsListStyle } from "./index.style";
 import StatsCard from "../../../components/Cards/StatsCard";
 import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 import Questions from "./questions";
@@ -154,7 +154,10 @@ const AssessmentTracker = ({ project }: { project: Project }) => {
             </Typography>
           )}
         </Stack>
-        <Divider sx={{ marginY: 10 }} />
+        <Typography sx={{ ...pageHeadingStyle, mt: 4 }}>
+          Assessments status overview
+        </Typography>
+        <Divider sx={{ marginY: 2 }} />
         <Box sx={{ display: "flex", height: "100vh", paddingX: "8px" }}>
           <Stack sx={topicsListStyle}>
             <Typography

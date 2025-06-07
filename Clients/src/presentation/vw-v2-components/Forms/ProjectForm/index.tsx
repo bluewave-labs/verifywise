@@ -230,6 +230,7 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
         borderRadius: "4px",
         gap: 10,
         ...sx,
+        maxWidth: "760px",
       }}
     >
       {isSubmitting && (

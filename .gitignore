@@ -2,8 +2,6 @@
 # *.override.yml
 .db_initialized
 .history
-.env.dev
-.env.prod
 
 **/__pycache__/
 

@@ -70,7 +70,7 @@ async function resetDatabase() {
     console.log('Default admin user created.');
 
     // Insert mock data (awaiting it to complete)
-    await insertMockData();
+    await insertMockData(admin.id);
     console.log('Mock data inserted.');
 
     // Fetch the first project to get its ID
@@ -85,15 +85,15 @@ async function resetDatabase() {
     const projectId = (project[0] as { id: number }).id;
     console.log(`Project found with ID: ${projectId}`);
 
-    await sequelize.query(
-      `INSERT INTO projects_members (project_id, user_id, is_demo) VALUES (:project_id, :user_id, :is_demo) RETURNING *`,
-      {
-        replacements: {
-          project_id: projectId, user_id: admin.id, is_demo: true
-        },
-        type: QueryTypes.INSERT,
-      }
-    );
+    // await sequelize.query(
+    //   `INSERT INTO projects_members (project_id, user_id, is_demo) VALUES (:project_id, :user_id, :is_demo) RETURNING *`,
+    //   {
+    //     replacements: {
+    //       project_id: projectId, user_id: admin.id, is_demo: true
+    //     },
+    //     type: QueryTypes.INSERT,
+    //   }
+    // );
 
     console.log('Database reset successfully.');
 

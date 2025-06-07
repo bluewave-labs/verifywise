@@ -54,14 +54,13 @@ export const styles = {
   textBase : {
     fontSize: "13px", 
     color: "#475467"
-  },
-  tableWrapper: {
-    '& .MuiTableFooter-root': {
-      border: `1px solid transparent`,      
-    },
-    '& .MuiTableCell-root.MuiTableCell-footer': {
-      paddingTop: '2.5rem'
-    }
-  },
+  }
 }
+
+export const tableWrapper = ( theme:any) => ({
+  '& .MuiTableCell-root.MuiTableCell-footer': {
+    paddingX: theme.spacing(8),
+    paddingY: theme.spacing(4),
+  }
+})
 

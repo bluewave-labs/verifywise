@@ -290,102 +290,85 @@ const RiskTable: React.FC<RiskTableProps> = ({
             {tableHeader}
             {tableBody}
             <TableFooter>
-              <TableRow>
+              <TableRow sx={{
+                  '& .MuiTableCell-root.MuiTableCell-footer': {
+                    paddingX: theme.spacing(8),
+                    paddingY: theme.spacing(4),
+                  }}}>
                 <TableCell
-                  colSpan={titleOfTableColumns.length}
-                  sx={{
-                    background: "transparent",
-                    px: 0,
-                    py: 0,
-                    border: "none",
-                  }}
-                >
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    px={theme.spacing(4)}
-                    sx={{
-                      "& p": {
-                        color: theme.palette.text.tertiary,
-                      },
-                    }}
+                sx={{ 
+                  paddingX: theme.spacing(2),
+                  fontSize: 12,
+                  opacity: 0.7 }}
                   >
-                    <Typography
-                      px={theme.spacing(2)}
-                      fontSize={12}
-                      sx={{ opacity: 0.7 }}
-                    >
-                      Showing {getRange} of {vendorRisks?.length} vendor risk(s)
-                    </Typography>
-                    <TablePagination
-                      count={vendorRisks?.length}
-                      page={page}
-                      onPageChange={handleChangePage}
-                      rowsPerPage={rowsPerPage}
-                      rowsPerPageOptions={[5, 10, 15, 25]}
-                      onRowsPerPageChange={handleChangeRowsPerPage}
-                      ActionsComponent={(props) => (
-                        <TablePaginationActions {...props} />
-                      )}
-                      labelRowsPerPage="Rows per page"
-                      labelDisplayedRows={({ page, count }) =>
-                        `Page ${page + 1} of ${Math.max(
-                          0,
-                          Math.ceil(count / rowsPerPage)
-                        )}`
-                      }
-                      slotProps={{
-                        select: {
-                          MenuProps: {
-                            keepMounted: true,
-                            PaperProps: {
-                              className: "pagination-dropdown",
-                              sx: {
-                                mt: 0,
-                                mb: theme.spacing(2),
-                              },
-                            },
-                            transformOrigin: {
-                              vertical: "bottom",
-                              horizontal: "left",
-                            },
-                            anchorOrigin: {
-                              vertical: "top",
-                              horizontal: "left",
-                            },
-                            sx: { mt: theme.spacing(-2) },
-                          },
-                          inputProps: { id: "pagination-dropdown" },
-                          IconComponent: SelectorVertical,
-                          sx: {
-                            ml: theme.spacing(4),
-                            mr: theme.spacing(12),
-                            minWidth: theme.spacing(20),
-                            textAlign: "left",
-                            "&.Mui-focused > div": {
-                              backgroundColor: theme.palette.background.main,
-                            },
-                          },
-                        },
-                      }}
-                      sx={{
-                        mt: theme.spacing(6),
-                        color: theme.palette.text.secondary,
-                        "& .MuiSelect-icon": {
-                          width: "24px",
-                          height: "fit-content",
-                        },
-                        "& .MuiSelect-select": {
-                          width: theme.spacing(10),
-                          borderRadius: theme.shape.borderRadius,
-                          border: `1px solid ${theme.palette.border.light}`,
-                          padding: theme.spacing(4),
-                        },
-                      }}
-                    />
-                  </Stack>
+                  Showing {getRange} of {vendorRisks?.length} vendor risk(s)
                 </TableCell>
+                <TablePagination
+                  count={vendorRisks?.length}
+                  page={page}
+                  onPageChange={handleChangePage}
+                  rowsPerPage={rowsPerPage}
+                  rowsPerPageOptions={[5, 10, 15, 25]}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                  ActionsComponent={(props) => (
+                    <TablePaginationActions {...props} />
+                  )}
+                  labelRowsPerPage="Rows per page"
+                  labelDisplayedRows={({ page, count }) =>
+                    `Page ${page + 1} of ${Math.max(
+                      0,
+                      Math.ceil(count / rowsPerPage)
+                    )}`
+                  }
+                  slotProps={{
+                    select: {
+                      MenuProps: {
+                        keepMounted: true,
+                        PaperProps: {
+                          className: "pagination-dropdown",
+                          sx: {
+                            mt: 0,
+                            mb: theme.spacing(2),
+                          },
+                        },
+                        transformOrigin: {
+                          vertical: "bottom",
+                          horizontal: "left",
+                        },
+                        anchorOrigin: {
+                          vertical: "top",
+                          horizontal: "left",
+                        },
+                        sx: { mt: theme.spacing(-2) },
+                      },
+                      inputProps: { id: "pagination-dropdown" },
+                      IconComponent: SelectorVertical,
+                      sx: {
+                        ml: theme.spacing(4),
+                        mr: theme.spacing(12),
+                        minWidth: theme.spacing(20),
+                        textAlign: "left",
+                        "&.Mui-focused > div": {
+                          backgroundColor: theme.palette.background.main,
+                        },
+                      },
+                    },
+                  }}
+                  sx={{
+                    mt: theme.spacing(6),
+                    color: theme.palette.text.secondary,
+                    "& .MuiSelect-icon": {
+                      width: "24px",
+                      height: "fit-content",
+                    },
+                    "& .MuiSelect-select": {
+                      width: theme.spacing(10),
+                      borderRadius: theme.shape.borderRadius,
+                      border: `1px solid ${theme.palette.border.light}`,
+                      padding: theme.spacing(4),
+                    },
+                  }}
+                />
               </TableRow>
             </TableFooter>
           </Table>

@@ -17,7 +17,7 @@ import { Vendor } from "../models/vendor.model";
 import { createISOFrameworkQuery } from "../utils/iso42001.utils";
 import { addVendorProjects } from "../utils/vendor.utils";
 
-export async function insertMockData() {
+export async function insertMockData(userId: number | null = null) {
   const transaction = await sequelize.transaction();
   try {
     let users = await getData("users", transaction) as User[];
@@ -53,12 +53,13 @@ export async function insertMockData() {
 
     let projects = (await getData("projects", transaction) as Project[])[0];
     if (!projects) {
+      const owner = userId ?? users[0].id!;
      
       // create project
       const project = await createNewProjectQuery(
         {
           project_title: "AI Compliance Checker",
-          owner: users[0].id!,
+          owner: owner,
           start_date: new Date(Date.now()),
           ai_risk_classification: "High risk",
           type_of_high_risk_role: "Deployer",
@@ -66,7 +67,12 @@ export async function insertMockData() {
           last_updated: new Date(Date.now()),
           last_updated_by: users[0].id!,
         },
-        users.map((user) => user.id!),
+        users.reduce((acc: number[], user) => {
+          if (user.id !== owner) {
+            acc.push(user.id!);
+          }
+          return acc;
+        }, []),
         [1, 2], // frameworks
         transaction,
         true // is demo

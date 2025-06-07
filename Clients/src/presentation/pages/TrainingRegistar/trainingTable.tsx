@@ -1,30 +1,22 @@
 import React, {
   useState,
-  useCallback,
-  useMemo,
-  useContext,
-  lazy,
-  Suspense,
 } from "react";
 import {
-  Box,
-  Button,
-  Typography,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  IconButton,
-  Stack,
   useTheme,
   TableFooter,
 } from "@mui/material";
 import TablePaginationActions from "../../components/TablePagination";
 import "../../components/Table/index.css";
 import singleTheme from "../../themes/v1SingleTheme";
-import { Settings } from "@mui/icons-material";
+import CustomIconButton from "../../components/IconButton";
+import allowedRoles from "../../../application/constants/permissions";
+
 //const Alert = lazy(() => import("../../../components/Alert"));
 
 //Constant for table
@@ -106,8 +98,12 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
   onDelete,
   paginated = true,
 }) => {
-  const theme = useTheme();
-  const [page, setPage] = useState(0);
+  
+  const userRoleName = "Admin";
+
+  // Function to check if the current user can delete trainings
+  const isDeletingAllowed = allowedRoles.training?.delete?.includes(userRoleName)
+  const [page, setPage] = useState(DEFAULT_ROWS_PER_PAGE);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
 
   const handleChangePage = (_: unknown, newPage: number) => setPage(newPage);
@@ -160,14 +156,17 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
                 </TableCell>
                 <TableCell>{training.people}</TableCell>
                 <TableCell>
-                  <Stack direction="row" spacing={0.5}>
-                    <IconButton aria-label="edit" onClick={() => onEdit && onEdit(training.id.toString())}>
-                      <Settings sx={{ color: theme.palette.grey[600] }}/>
-                    </IconButton>
-                    <IconButton aria-label="delete" onClick={() => onDelete && onDelete(training.id.toString())}>
-                      {/* <DeleteIcon sx={{ color: theme.palette.error.main }} /> */}
-                    </IconButton>
-                  </Stack>
+                 {isDeletingAllowed && (
+                    <CustomIconButton
+                      id={training.id}
+                      onDelete={() => onDelete && onDelete(training.id.toString())}
+                      onEdit={() => onEdit && onEdit(training.id.toString())}
+                      onMouseEvent={() => {}}
+                      warningTitle="Delete this training?"
+                      warningMessage="When you delete this training, all data related to this training will be removed. This action is non-recoverable."
+                      type="Training"
+                    />
+                  )}
                 </TableCell>
               </TableRow>
             ))

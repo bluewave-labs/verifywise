@@ -30,6 +30,7 @@ import { ReactComponent as ReportingSvg } from "../../assets/icons/reporting.svg
 import { ReactComponent as Vendors } from "../../assets/icons/building.svg";
 import { ReactComponent as Settings } from "../../assets/icons/setting.svg";
 import { ReactComponent as FileManager } from "../../assets/icons/file.svg";
+import { ReactComponent as FairnessIcon } from "../../assets/icons/fairness-icon.svg";
 import { ReactComponent as Feedback } from "../../assets/icons/feedback.svg";
 import { ReactComponent as Discord } from "../../assets/icons/discord.svg";
 
@@ -44,6 +45,9 @@ import useLogout from "../../../application/hooks/useLogout";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import ReadyToSubscribeBox from "../ReadyToSubscribeBox/ReadyToSubscribeBox";
 import { User } from "../../../domain/types/User";
+
+
+
 
 const menu = [
   {
@@ -66,6 +70,12 @@ const menu = [
     icon: <ReportingSvg />,
     path: "/reporting",
   },
+  {
+    name: "Bias & Fairness",
+    icon: <FairnessIcon />,
+    path: "/fairness-dashboard",
+  }
+  
 ];
 
 const other = [

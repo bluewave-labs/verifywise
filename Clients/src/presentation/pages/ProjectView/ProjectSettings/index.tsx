@@ -43,6 +43,7 @@ import useFrameworks from "../../../../application/hooks/useFrameworks";
 import { Framework } from "../../../../domain/types/Framework";
 import allowedRoles from "../../../../application/constants/permissions";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import { User } from "../../../../domain/types/User";
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -122,6 +123,9 @@ const ProjectSettings = React.memo(
     const [searchParams] = useSearchParams();
     const projectId = searchParams.get("projectId") ?? "1"; // default project ID is 2
     const theme = useTheme();
+    const [isChangeOwnerModalOpen, setIsChangeOwnerModalOpen] = useState(false);
+    const [pendingOwnerId, setPendingOwnerId] = useState<User | null>(null);
+    const [removedOwner, setRemovedOwner] = useState<User | null>(null);
 
     const { project } = useProjectData({ projectId });
     const navigate = useNavigate();
@@ -265,14 +269,49 @@ const ProjectSettings = React.memo(
     const handleOnSelectChange = useCallback(
       (prop: keyof FormValues) =>
         (event: SelectChangeEvent<string | number>) => {
-          setValues((prevValues) => ({
-            ...prevValues,
-            [prop]: event.target.value,
-          }));
+          const selectedValue = Number(event.target.value);
+
+          if (prop === "owner") {
+            if (values.members.includes(selectedValue)) {
+              let oldOwner = null;
+              let newOwnerId = null;
+              for (let user of users) {
+                if (user.id === selectedValue) {
+                  newOwnerId = user;
+                }
+                if (user.id === values.owner) {
+                  oldOwner = user
+                }
+              }
+              setRemovedOwner(oldOwner);
+              setPendingOwnerId(newOwnerId);
+              setIsChangeOwnerModalOpen(true);
+              return;
+            }
+          }
+          setValues({ ...values, [prop]: event.target.value });
           setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
         },
-      []
+      [users, values]
     );
+
+    const handleOwnershipChangeAcknowledge = () => {
+      if (!pendingOwnerId) return;
+      setValues((prevValues) => ({
+        ...prevValues,
+        owner: pendingOwnerId.id,
+        members: values.members.filter(
+          (member) => member !== pendingOwnerId.id)
+        }));
+      setErrors((prevErrors) => ({ ...prevErrors, owner: "" }));
+      setIsChangeOwnerModalOpen(false);
+      setPendingOwnerId(null);
+      setRemovedOwner(null);
+    };
+
+    const handleCloseOwnerChangeDialog = useCallback((): void => {
+      setIsChangeOwnerModalOpen(false);
+    }, []);
 
     const handleOnTextFieldChange = useCallback(
       (prop: keyof FormValues) =>
@@ -645,7 +684,6 @@ const ProjectSettings = React.memo(
         const response = await deleteEntityById({
           routeUrl: `/projects/${projectId}`,
         });
-        console.log(response);
         const isError = response.status === 404 || response.status === 500;
         setAlert({
           variant: isError ? "error" : "success",
@@ -749,6 +787,23 @@ const ProjectSettings = React.memo(
               error={errors.owner}
               isRequired
             />
+            {isChangeOwnerModalOpen && (
+              <DualButtonModal
+                title="Confirm owner change"
+                body={
+                  <Typography fontSize={13}>
+                    You setting ownership from <strong>{removedOwner?.name} {removedOwner?.surname}</strong> to <strong>{pendingOwnerId?.name} {pendingOwnerId?.surname}</strong>. We will remove <strong>{pendingOwnerId?.name} {pendingOwnerId?.surname}</strong> from the members list.
+                  </Typography>
+                }
+                cancelText="Cancel"
+                proceedText="I understand"
+                onCancel={handleCloseOwnerChangeDialog}
+                onProceed={handleOwnershipChangeAcknowledge}
+                proceedButtonColor="primary"
+                proceedButtonVariant="contained"
+                TitleFontSize={0}
+              />
+            )}
 
             {/* Only render the monitored regulations and standards section if frameworks are loaded */}
             {monitoredFrameworks.length > 0 && (
@@ -921,7 +976,7 @@ const ProjectSettings = React.memo(
               )}
               options={
                 users
-                  ?.filter((user) => !values.members.includes(Number(user.id)))
+                  ?.filter((user) => user.id !== values.owner && !values.members.includes(Number(user.id)))
                   .map((user) => ({
                     id: user.id,
                     name: user.name,

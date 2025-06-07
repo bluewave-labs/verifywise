@@ -29,6 +29,12 @@ const allowedRoles = {
         create: ['Admin'],
         edit: ['Admin'],    
     },
+    training: {
+        view: ['Admin', 'Editor', 'Auditor'],
+        create: ['Admin'],
+        edit: ['Admin'], 
+        delete: ['Admin'] 
+    }
 }
 
 export default allowedRoles;

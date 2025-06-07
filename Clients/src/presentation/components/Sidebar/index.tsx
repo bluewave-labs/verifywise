@@ -33,6 +33,9 @@ import { ReactComponent as FileManager } from "../../assets/icons/file.svg";
 import { ReactComponent as Feedback } from "../../assets/icons/feedback.svg";
 import { ReactComponent as Discord } from "../../assets/icons/discord.svg";
 
+/**Adding the training register icon */ 
+import { ReactComponent as TrainingRegister } from "../../assets/icons/training-register.svg";
+
 import Logo from "../../assets/imgs/logo.png";
 
 import Avatar from "../Avatar/VWAvatar";
@@ -66,6 +69,28 @@ const menu = [
     icon: <ReportingSvg />,
     path: "/reporting",
   },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  {
+    name:"Training Registry",
+    icon: <TrainingRegister />,
+    path: "/training"
+  }
 ];
 
 const other = [

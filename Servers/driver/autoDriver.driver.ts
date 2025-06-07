@@ -54,6 +54,7 @@ export async function insertMockData(userId: number | null = null) {
     let projects = (await getData("projects", transaction) as Project[])[0];
     if (!projects) {
       const owner = userId ?? users[0].id!;
+     
       // create project
       const project = await createNewProjectQuery(
         {
@@ -114,6 +115,7 @@ export async function insertMockData(userId: number | null = null) {
       // create vendor
       let vendor = (await getData("vendors", transaction) as Vendor[])[0];
       if (!vendor) {
+        
         vendor = await createNewVendorQuery(
           {
             projects: [project.id],
@@ -131,9 +133,14 @@ export async function insertMockData(userId: number | null = null) {
           transaction,
           true // is demo
         )
+
       } else {
         await addVendorProjects(vendor.id!, [project.id!], transaction);
       }      
+
+      // create association vendors and projects
+      let vendor_project = await addVendorProjects(vendor.id!,projects,transaction);
+
 
       // ---- no need of is demo
       // create vendor risks
@@ -152,11 +159,13 @@ export async function insertMockData(userId: number | null = null) {
       )
 
       // create eu framework
+      
       await createEUFrameworkQuery(project.id!, true, transaction, true)
       await createISOFrameworkQuery(project.id!, true, transaction, true)
     } else {
       // project already exists, delete it and insert a new one
     }
+    
     await transaction.commit();
   } catch (error) {
     await transaction.rollback();

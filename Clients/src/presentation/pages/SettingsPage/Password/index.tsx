@@ -201,7 +201,7 @@ const PasswordForm: React.FC = () => {
           height="300px"
           minWidth={"100%"}
           minHeight={300}
-          sx={{ backgroundColor: "gray", borderRadius: 2 }}
+          sx={{borderRadius: 2 }}
         />
       )}
       {alert.visible && (

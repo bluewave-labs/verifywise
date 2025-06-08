@@ -1,3 +1,7 @@
+# VERSION 1.0 DUE 12 JUNE, 2025
+
+[Join our Discord channel](https://discord.com/invite/wWzYzMD6) to get the latest announcement.
+
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/bluewave-labs/verifywise)
 ![](https://img.shields.io/github/license/bluewave-labs/checkmate)
 ![](https://img.shields.io/github/repo-size/bluewave-labs/checkmate)
@@ -50,36 +54,134 @@ VerifyWise is designed for:
 - User registration, authentication, and role-based access control (RBAC) support.
 - Key metrics, visualizations, and real-time reporting capabilities.
 - Major features:
-  - Multiple projects *(complete)*
-  - Compliance tracker and assessment tracker for EU AI Act *(complete)*
-  - ISO 42001 support *(in progress)*
-  - Vendors *(complete)*
-  - Risks *(complete)*
-  - Evidence center *(complete)*
-  - Reports *(in progress)* 
+  - Multiple projects
+  - Compliance tracker and assessment tracker for EU AI Act
+  - ISO 42001 support
+  - Vendors
+  - Risks 
+  - Evidence center
+  - Reports
+  - AI literacy training
   - AI Trust Center *(planning)*
 
-## Developer setup
+## Installation
 
-The VerifyWise application has two components: a frontend built with React.js and a backend built with Node.js. At present, you can use Docker (recommended) or `npm` to run VerifyWise. 
+The VerifyWise application has two components: a frontend built with React.js and a backend built with Node.js. At present, you can use `npm` (for development) or Docker (production) to run VerifyWise. A PostgreSQL database is required to run VerifyWise.
 
-A PostgreSQL database is required.
+### Installation instructions using npm (for development)
 
-To run a development instance of VerifyWise via `npm`, follow these steps:
+Prerequisites: 
+- npm and Docker
+- A running PostgreSQL, preferably as a Docker image (eg. using `docker pull postgres:latest`)
+  
+First, clone the repository to your local machine. Navigate to the Clients directory and install the dependencies:
 
-1. Create the "verifywise" database in your local PostgreSQL server.
-2. Fork and clone the repository. Navigate to the `Clients` directory.
-3. Run `npm i; npm run dev`
-4. Navigate to the `../Servers` directory.
-5. Copy the `.env.dev` [file](https://github.com/bluewave-labs/verifywise/blob/develop/.env.dev) to this directory, name it `.env`, and modify its contents to match your environment.
-6. Run `npm i; npm run watch`
-7. The application will now be up and running at `http://localhost:5173`. 
+```
+cd Clients
+npm i
+```
 
-Currently the application is in rapid development, so check back here often.
+Navigate back to the `/Servers` directory under root to install the dependencies:
+
+```
+cd ..
+cd Servers
+npm install
+```
+
+Create a .env file in the root directory:
+
+```
+touch .env
+```
+
+Copy the contents of .env.dev to the .env file. Make sure to change the JWT_SECRET variable to your liking as this should be unique for each user. 
+
+```
+cp .env.dev .env
+```
+
+In `.env` file, change FRONTEND_URL and ALLOWED_ORIGINS:
+
+```
+FRONTEND_URL=http://localhost:5173
+ALLOWED_ORIGINS=["http://localhost:5173", "http://localhost:8082"]
+```
+
+Run the PostgreSQL container with the following command:
+
+```
+docker run -d --name mypostgres -p 5432:5432 -e POSTGRES_PASSWORD={env variable password} postgres
+```
+
+Access the PostgreSQL container and create the verifywise database:
+
+```
+docker exec -it mypostgres psql -U postgres
+CREATE DATABASE verifywise;
+```
+
+Navigate to the Servers directory and start the server in watch mode:
+
+```
+cd Servers
+npm run watch
+```
+
+Navigate to the Clients directory and start the client in development mode:
+
+```
+cd Clients
+npm run dev
+```
+
+**Note:** Make sure to replace {env variable password} with the actual password from your environment variables.
+
+### Installation instructions using Docker (production)
+
+First, ensure you have the following installed:
+
+- npm
+- Docker
+- Docker Compose
+
+Create a directory in your desired folder:
+
+```
+mkdir verifywise
+cd verifywise
+```
+
+Download the required files using wget: 
+
+```
+wget https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/docker-compose.prod.yml
+wget https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/install.sh
+wget https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/docker-compose.yml
+wget https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/.env.prod
+```
+
+Make sure to change the JWT_SECRET variable to your liking as this should be unique for each user.
+
+Change the permissions of the install.sh script to make it executable, and then execute it.
+
+```
+chmod +x ./install.sh
+./install.sh
+```
+
+If the install.sh script doesn't work, try the following commands:
+
+```
+docker-compose --env-file .env.prod up -d backend
+docker ps  # to confirm
+docker-compose --env-file .env.prod up -d frontend
+docker ps  # to confirm
+```
 
 ## Quick links
 
-- This application is currently in the development stage. The designs and workflows are [available for everyone](https://www.figma.com/design/o4xu4PeC5bo1Ii4dyom6vQ/VerifyWise?node-id=0-1&t=Ty2Jh4S8QgHGrqon-1). This link includes 2 pages: dashboard designs and the style guide.
+- The designs and workflows are [available for everyone](https://www.figma.com/design/o4xu4PeC5bo1Ii4dyom6vQ/VerifyWise?node-id=0-1&t=Ty2Jh4S8QgHGrqon-1). This link includes 2 pages: dashboard designs and the style guide.
 
 - The [VerifyWise presentation](https://pitch.com/v/verifywise-democratizing-ai-governance-zhxvh6), including terminology, why we started this project, technology, and roadmap
 

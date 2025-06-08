@@ -6,6 +6,8 @@ interface GenerateReportProps {
   projectOwner: string;
   reportType: string;
   reportName: string;
+  frameworkId: number;
+  projectFrameworkId: number;
 }
 
 export const handleDownload = async (fileId: string, fileName: string) => {

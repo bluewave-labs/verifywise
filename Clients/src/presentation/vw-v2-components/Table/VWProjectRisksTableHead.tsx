@@ -3,6 +3,7 @@ import singleTheme from "../../themes/v1SingleTheme";
 
 
 const VWProjectRisksTableHead = ({ columns }: { columns: any[] }) => {
+  
   return (
     <TableHead
       sx={{

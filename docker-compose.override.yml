@@ -5,6 +5,8 @@ services:
     build:
       context: ./Servers
       dockerfile: Dockerfile.dev
+    # volumes:
+    #   - ./Servers/:/app
     env_file:
       - ./.env.dev
 
@@ -12,9 +14,18 @@ services:
     build:
       context: ./Clients
       dockerfile: Dockerfile.dev
+    volumes:
+      - ./Clients/src:/app/src
     ports:
       - $FRONTEND_PORT:$FRONTEND_PORT
     env_file:
       - ./.env.dev
     environment:
       - VITE_APP_PORT=$FRONTEND_PORT
+
+  bias_and_fairness_backend:
+    build:
+      context: ./BiasAndFairnessServers
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./BiasAndFairnessServers/src:/app

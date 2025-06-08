@@ -20,7 +20,7 @@ import { getUserByIdQuery } from "../utils/user.utils";
 import {
   createNewControlCategories,
   getControlCategoryByProjectIdQuery,
-} from "../utils/controlCategory.util";
+} from "../utils/controlCategory.utils";
 import { Project, ProjectModel } from "../models/project.model";
 import { getAllControlsByControlGroupQuery } from "../utils/control.utils";
 import { getAllSubcontrolsByControlIdQuery } from "../utils/subControl.utils";

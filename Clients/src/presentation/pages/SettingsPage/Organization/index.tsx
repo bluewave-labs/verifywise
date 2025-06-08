@@ -5,6 +5,7 @@ import {
   Box,
   Divider,
   Tooltip,
+  CircularProgress,
 } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
@@ -24,7 +25,6 @@ import {
   GetMyOrganization,
   UpdateMyOrganization,
 } from "../../../../application/repository/organization.repository";
-import CustomizableToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import allowedRoles from "../../../../application/constants/permissions";
@@ -57,7 +57,7 @@ const Organization = () => {
   const [organizationLogo, setOrganizationLogo] = useState<string>(
     "/placeholder.svg?height=80&width=80"
   );
-  const [showToast, setShowToast] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [organizationId, setOrganizationId] = useState<number | null>(null);
@@ -137,7 +137,7 @@ const Organization = () => {
       return;
     }
 
-    setShowToast(true);
+    setIsLoading(true);
     try {
       const response = await CreateMyOrganization({
         routeUrl: "/organizations",
@@ -149,7 +149,6 @@ const Organization = () => {
               : null,
         },
       });
-      setShowToast(false);
       setAlert({
         variant: "success",
         title: "Organization Created",
@@ -167,13 +166,16 @@ const Organization = () => {
       }
       await fetchOrganization();
     } catch (error) {
-      setShowToast(false);
       setAlert({
         variant: "error",
         title: "Error",
         body: "Failed to create organization.",
         isToast: false,
       });
+    } finally {
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 1500);
     }
   };
 
@@ -188,7 +190,7 @@ const Organization = () => {
     }
     if (!organizationId) return;
 
-    setShowToast(true);
+    setIsLoading(true);
     try {
       const response = await UpdateMyOrganization({
         routeUrl: `/organizations/${organizationId}`,
@@ -200,7 +202,6 @@ const Organization = () => {
               : null,
         },
       });
-      setShowToast(false);
       setAlert({
         variant: "success",
         title: "Organization Updated",
@@ -217,13 +218,16 @@ const Organization = () => {
       }
       await fetchOrganization();
     } catch (error) {
-      setShowToast(false);
       setAlert({
         variant: "error",
         title: "Error",
         body: "Failed to update organization.",
         isToast: false,
       });
+    } finally {
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 1500);
     }
   };
 
@@ -261,7 +265,6 @@ const Organization = () => {
 
   return (
     <Stack className="organization-container" sx={{ mt: 3, maxWidth: 790 }}>
-      {showToast && <CustomizableToast />}
       {alert && (
         <Alert
           variant={alert.variant}
@@ -307,13 +310,20 @@ const Organization = () => {
                 gap: 2,
                 mt: 3,
               }}
-              icon={<SaveIcon />}
+              icon={
+                isLoading ? (
+                  <CircularProgress size={20} sx={{ color: "#13715B" }} />
+                ) : (
+                  <SaveIcon />
+                )
+              }
               onClick={organizationExists ? handleUpdate : handleCreate}
               isDisabled={
                 isSaveDisabled ||
                 !!organizationNameError ||
                 (organizationExists ? isEditingDisabled : isCreatingDisabled) ||
-                (!hasChanges && organizationExists)
+                (!hasChanges && organizationExists) ||
+                isLoading
               }
             />
           </Stack>

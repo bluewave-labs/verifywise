@@ -56,3 +56,11 @@ export const styles = {
     color: "#475467"
   }
 }
+
+export const tableWrapper = ( theme:any) => ({
+  '& .MuiTableCell-root.MuiTableCell-footer': {
+    paddingX: theme.spacing(8),
+    paddingY: theme.spacing(4),
+  }
+})
+

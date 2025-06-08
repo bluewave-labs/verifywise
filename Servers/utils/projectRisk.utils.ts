@@ -157,6 +157,7 @@ export const deleteProjectRiskByIdQuery = async (
   id: number,
   transaction: Transaction
 ): Promise<Boolean> => {
+  await updateProjectUpdatedByIdQuery(id, "projectrisks", transaction);
   const result = await sequelize.query(
     "DELETE FROM projectrisks WHERE id = :id RETURNING *",
     {
@@ -167,6 +168,5 @@ export const deleteProjectRiskByIdQuery = async (
       transaction
     }
   );
-  await updateProjectUpdatedByIdQuery(id, "projectrisks", transaction);
   return result.length > 0;
 };

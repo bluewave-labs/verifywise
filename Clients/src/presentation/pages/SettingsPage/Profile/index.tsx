@@ -5,6 +5,7 @@ import React, {
   useCallback,
   ChangeEvent,
   useMemo,
+  useContext,
 } from "react";
 import { Box, Divider, Stack, Typography } from "@mui/material";
 import { useTheme } from "@mui/material";
@@ -29,6 +30,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 import CustomizableToast from "../../../vw-v2-components/Toast"; // Import CustomizableToast component
 import useLogout from "../../../../application/hooks/useLogout";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 /**
  * Interface representing a user object.
@@ -54,8 +56,11 @@ interface User {
 const ProfileForm: React.FC = () => {
   const state = store.getState();
   const userData = extractUserToken(state.auth.authToken); // Extract user data from token
+  console.log("userData : ", userData);
   const { id } = userData || {};
-
+  const { userRoleName } = useContext(VerifyWiseContext);
+  const isAdmin = userRoleName === "Admin";
+  console.log("isAdmin : ", isAdmin);
   // State management
   const [firstname, setFirstname] = useState<string>("");
   const [lastname, setLastname] = useState<string>("");
@@ -406,7 +411,7 @@ const ProfileForm: React.FC = () => {
           height="300px"
           minWidth={"100%"}
           minHeight={300}
-          sx={{ backgroundColor: "gray", borderRadius: 2 }}
+          sx={{borderRadius: 2 }}
         />
       )}
       {alert.visible && (
@@ -579,7 +584,7 @@ const ProfileForm: React.FC = () => {
           height="200px"
           minWidth={"100%"}
           minHeight={200}
-          sx={{ backgroundColor: "gray", borderRadius: 2 }}
+          sx={{borderRadius: 2 }}
         />
       )}
       {!loading && (
@@ -610,13 +615,14 @@ const ProfileForm: React.FC = () => {
                   mb: theme.spacing(4),
                   backgroundColor: "#DB504A",
                   color: "#fff",
-                  border: "1px solid #DB504A",
+                  border: `1px solid ${isAdmin ? "#C2C2C2" : "#DB504A"}`,
                   gap: 2,
                 }}
                 icon={<DeleteIcon />}
                 variant="contained"
                 onClick={handleOpenDeleteDialog}
                 text="Delete account"
+                isDisabled={isAdmin}
               />
             </Stack>
           </Stack>

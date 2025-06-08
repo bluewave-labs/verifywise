@@ -25,11 +25,14 @@ import reportRoutes from "./routes/reporting.route";
 import frameworks from "./routes/frameworks.route";
 import organizationRoutes from "./routes/organization.route";
 import isoRoutes from "./routes/iso42001.route";
+import trainingRoutes from "./routes/trainingRegistar.route";
+import biasAndFairnessRoutes from "./routes/biasAndFairnessRoutes.route";
 
 import autoDriverRoutes from "./routes/autoDriver.route";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
-import { parseOrigins, testOrigin } from "./utils/parseOrigins";
+import { parseOrigins, testOrigin } from "./utils/parseOrigins.utils";
+import { frontEndUrl } from "./config/constants";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -43,9 +46,7 @@ const host = process.env.HOST || DEFAULT_HOST;
 
 const port = parseInt(portString, 10); // Convert to number
 
-const DEFAULT_FRONTEND_URL = "http://localhost:8082";
 
-const frontEndUrl = process.env.FRONTEND_URL || DEFAULT_FRONTEND_URL;
 
 try {
   // (async () => {
@@ -58,7 +59,7 @@ try {
   //   await sequelize.sync();
   // })();
 
-  const allowedOrigins = parseOrigins(frontEndUrl);
+  const allowedOrigins = parseOrigins(process.env.ALLOWED_ORIGINS || frontEndUrl);
 
   app.use(
     cors({
@@ -95,6 +96,8 @@ try {
   app.use("/api/eu-ai-act", euRouter);
   app.use("/api/organizations", organizationRoutes);
   app.use("/api/iso-42001", isoRoutes);
+  app.use("/api/training",trainingRoutes);
+  app.use('/api/bias_and_fairness', biasAndFairnessRoutes());
 
   app.use("/api/reporting", reportRoutes);
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));

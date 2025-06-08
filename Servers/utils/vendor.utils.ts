@@ -1,6 +1,6 @@
 import { Vendor, VendorModel } from "../models/vendor.model";
 import { sequelize } from "../database/db";
-import { deleteVendorRisksForVendorQuery } from "./vendorRisk.util";
+import { deleteVendorRisksForVendorQuery } from "./vendorRisk.utils";
 import { VendorsProjectsModel } from "../models/vendorsProjects.model";
 import { QueryTypes, Sequelize, Transaction } from "sequelize";
 import { updateProjectUpdatedByIdQuery } from "./project.utils";
@@ -105,6 +105,7 @@ export const addVendorProjects = async (vendorId: number, projects: number[], tr
 }
 
 export const createNewVendorQuery = async (vendor: Vendor, transaction: Transaction, is_demo: boolean = false): Promise<Vendor> => {
+
   const result = await sequelize.query(
     `INSERT INTO vendors (
         order_no, vendor_name, vendor_provides, assignee, website, vendor_contact_person,
@@ -134,16 +135,16 @@ export const createNewVendorQuery = async (vendor: Vendor, transaction: Transact
       transaction
     }
   );
-
   const createdVendor = result[0] as (VendorModel & { projects: number[] })
   const vendorId = createdVendor.id!;
 
   createdVendor.dataValues["projects"] = []
-
+  
   if (vendor.projects && vendor.projects.length > 0) {
     const vendors_projects = await addVendorProjects(vendorId, vendor.projects, transaction)
     createdVendor.dataValues["projects"] = vendors_projects.map(p => p.project_id)
   }
+  
   await updateProjectUpdatedByIdQuery(vendorId, "vendors", transaction);
   return createdVendor;
 };

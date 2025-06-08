@@ -19,6 +19,7 @@ import VWHome from "../../presentation/pages/Home/1.0Home";
 import VWProjectView from "../../presentation/pages/ProjectView/V1.0ProjectView";
 import PageNotFound from "../../presentation/pages/PageNotFound";
 import ProtectedRoute from "../../presentation/components/ProtectedRoute";
+import Training from "../../presentation/pages/TrainingRegistar";
 
 export const createRoutes = (
   triggerSidebar: boolean,
@@ -43,6 +44,7 @@ export const createRoutes = (
     <Route path="/reporting" element={<Reporting />} />
     <Route path="/" element={<VWHome />} />
     <Route path="/project-view" element={<VWProjectView />} />
+    <Route path="/training" element={<Training />}/>
   </Route>,
   <Route
     key="admin-reg"

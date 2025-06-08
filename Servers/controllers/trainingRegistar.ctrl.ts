@@ -99,42 +99,64 @@ export async function updateTrainingRegistarById(
   req: Request,
   res: Response
 ): Promise<any> {
-  console.log("updateTrainingRegistarById");
+  console.log("updateTrainingRegistarById 1");
   const transaction = await sequelize.transaction();
-
+  console.log("updateTrainingRegistarById 2");
   try {
+    console.log("updateTrainingRegistarById 3");
     const trainingRegistarId = parseInt(req.params.id);
-    const updatedTrainingRegistar: TrainingRegistar = req.body;
-
+    console.log("updateTrainingRegistarById 4");
+    // Map numberOfPeople to people for DB
+    const updatedTrainingRegistar: any = {
+      ...req.body,
+      people: req.body.numberOfPeople,
+    };
+    delete updatedTrainingRegistar.numberOfPeople;
+    console.log("updateTrainingRegistarById 5");
+    console.log("Request body:", updatedTrainingRegistar);
     if (
       !updatedTrainingRegistar.training_name ||
       !updatedTrainingRegistar.department ||
       !updatedTrainingRegistar.duration ||
-      !updatedTrainingRegistar.numberOfPeople ||
+      !updatedTrainingRegistar.people ||
       !updatedTrainingRegistar.provider ||
-      !updatedTrainingRegistar.numberOfPeople
+      !updatedTrainingRegistar.status
     ) {
+      console.log("updateTrainingRegistarById 6");
+      console.log("Validation failed. Missing fields:", {
+        training_name: !updatedTrainingRegistar.training_name,
+        department: !updatedTrainingRegistar.department,
+        duration: !updatedTrainingRegistar.duration,
+        people: !updatedTrainingRegistar.people,
+        provider: !updatedTrainingRegistar.provider,
+        status: !updatedTrainingRegistar.status,
+      });
       return res.status(400).json(
         STATUS_CODE[400]({
           message: "All the fields are required to be updated",
         })
       );
     }
-
+    console.log("updateTrainingRegistarById 7");
+    console.log("Updating training with ID:", trainingRegistarId);
     const trainingRegistar = await updateTrainingRegistarByIdQuery(
       trainingRegistarId,
       updatedTrainingRegistar,
       transaction
     );
-
+    console.log("updateTrainingRegistarById 8");
     if (trainingRegistar) {
       await transaction.commit();
+      console.log("updateTrainingRegistarById 9");
       return res.status(202).json(STATUS_CODE[202](trainingRegistar));
     }
-
+    console.log("updateTrainingRegistarById 10");
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
+    console.log("updateTrainingRegistarById 11");
+    console.log("Error details:", error);
     await transaction.rollback();
+    console.log("updateTrainingRegistarById 12");
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

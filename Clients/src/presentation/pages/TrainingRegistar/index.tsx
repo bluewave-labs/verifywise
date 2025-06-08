@@ -137,6 +137,7 @@ const Training: React.FC = () => {
     try {
       if (selectedTraining) {
         // Update existing training
+        console.log("Updating training with data:", formData);
         await updateEntityById({
           routeUrl: `/training/${selectedTraining.id}`,
           body: formData,

@@ -9,7 +9,6 @@ import {
   Box,
   Stack,
   Typography,
-  useTheme,
   // Included for consistency, though not used in this specific component yet
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
@@ -26,14 +25,14 @@ import { createTraining } from "../../../application/repository/trainingregistar
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import singleTheme from "../../themes/v1SingleTheme";
 
-// Mock style for page description, similar to singleTheme.textStyles.pageDescription
+const Alert = React.lazy(
+  () => import("../../../presentation/components/Alert")
+);
 
 const Training: React.FC = () => {
-  const theme = useTheme();
   const [trainingData, setTrainingData] = useState<IAITraining[]>([]);
   const [isLoading, setIsLoading] = useState(true); // Simulate loading state for the table
   const [isNewTrainingModalOpen, setIsNewTrainingModalOpen] = useState(false); // State for the new training modal
-  const [isSubmitting, setIsSubmitting] = useState(false); // For toast/loading indicator on submission
 
   // Context for user roles/permissions, similar to Vendors component
   const { userRoleName } = useContext(VerifyWiseContext);
@@ -56,15 +55,17 @@ const Training: React.FC = () => {
       if (response?.data) {
         setTrainingData(response.data);
       }
-      setIsLoading(false);
     } catch (error) {
       console.error("Error fetching training data:", error);
       logEngine({
         type: "error",
         message: `Failed to fetch training data: ${error}`,
       });
-      setAlert({ variant: "error", body: "Failed to load training data." });
-      setTimeout(() => setAlert(null), 3000);
+      setAlert({
+        variant: "error",
+        body: "Failed to load training data. Please try again later.",
+      });
+    } finally {
       setIsLoading(false);
     }
   }, []);
@@ -77,14 +78,21 @@ const Training: React.FC = () => {
     setIsNewTrainingModalOpen(true);
   };
 
-  const handleTrainingSuccess = () => {
-    // This function will be called when a new training is successfully added via the modal
-    // You would typically refetch the data here to update the table
-    setIsSubmitting(true);
-    console.log("New training successfully added, refetching data...");
-    fetchTrainingData(); // Refetch data to show the new entry
-    setAlert({ variant: "success", body: "New training added successfully!" });
-    setTimeout(() => setAlert(null), 3000);
+  const handleTrainingSuccess = async (formData: any) => {
+    try {
+      await createTraining("/training", formData);
+      await fetchTrainingData();
+      setAlert({
+        variant: "success",
+        body: "New training added successfully!",
+      });
+      setIsNewTrainingModalOpen(false);
+    } catch (error) {
+      setAlert({
+        variant: "error",
+        body: "Failed to add training. Please try again.",
+      });
+    }
   };
 
   const handleEditTraining = (id: string) => {
@@ -96,11 +104,22 @@ const Training: React.FC = () => {
   };
 
   return (
-    <Box
-      className="training-page"
-      sx={{ p: theme.spacing(4), maxWidth: 1400, mx: "auto" }}
-    >
-      <Stack gap={theme.spacing(10)} maxWidth={1400}>
+    <Stack sx={{ maxWidth: 1400, mx: "auto", p: 4 }}>
+      {alert && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Box mb={2}>
+            <Alert
+              variant={alert.variant}
+              title={alert.title}
+              body={alert.body}
+              isToast={true}
+              onClick={() => setAlert(null)}
+            />
+          </Box>
+        </Suspense>
+      )}
+
+      <Stack gap={4}>
         <Stack>
           <Typography sx={vwhomeHeading}>AI training registry</Typography>
           <Typography sx={singleTheme.textStyles.pageDescription}>
@@ -110,12 +129,7 @@ const Training: React.FC = () => {
           </Typography>
         </Stack>
 
-        <Stack
-          direction="row"
-          justifyContent="flex-end"
-          alignItems="center"
-          mb={2}
-        >
+        <Stack direction="row" justifyContent="flex-end" alignItems="center">
           <CustomizableButton
             variant="contained"
             sx={{
@@ -137,25 +151,12 @@ const Training: React.FC = () => {
         />
       </Stack>
 
-      {/* New Training Modal */}
       <NewTraining
         isOpen={isNewTrainingModalOpen}
         setIsOpen={setIsNewTrainingModalOpen}
-        onSuccess={async (formData) => {
-          try {
-            await createTraining("/training", formData);
-            // Optionally refetch data or show a toast
-            fetchTrainingData(); // refresh table
-            setAlert({
-              variant: "success",
-              body: "New training added successfully!",
-            });
-          } catch (error) {
-            setAlert({ variant: "error", body: "Failed to add training." });
-          }
-        }}
+        onSuccess={handleTrainingSuccess}
       />
-    </Box>
+    </Stack>
   );
 };
 

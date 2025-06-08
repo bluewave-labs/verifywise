@@ -1,17 +1,17 @@
-import { sequelize } from '../database/db';
+import { sequelize } from "../database/db";
 import { createNewUserQuery } from "../utils/user.utils";
-import bcrypt from 'bcrypt';
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import bcrypt from "bcrypt";
+import { exec } from "child_process";
+import { promisify } from "util";
 import { insertMockData } from "../driver/autoDriver.driver";
-import { QueryTypes } from 'sequelize';
+import { QueryTypes } from "sequelize";
 
 const execAsync = promisify(exec);
 
 async function resetDatabase() {
- // const transaction = await sequelize.transaction();
+  const transaction = await sequelize.transaction();
   try {
-    console.log('Resetting database...');
+    console.log("Resetting database...");
 
     // Drop all tables
     await sequelize.query(`
@@ -27,7 +27,7 @@ async function resetDatabase() {
           END LOOP;
       END $$;
     `);
-    console.log('All tables dropped.');
+    console.log("All tables dropped.");
 
     await sequelize.query(`
       DO $$ DECLARE
@@ -45,62 +45,63 @@ async function resetDatabase() {
           END LOOP;
       END $$;
     `);
-    console.log('All enum types dropped.');
+    console.log("All enum types dropped.");
 
     // Run migrations
-    await execAsync('npx sequelize db:migrate');
-    console.log('Migrations applied.');
+    await execAsync("npx sequelize db:migrate");
+    console.log("Migrations applied.");
 
     // Create default admin user
-    // const password_hash = await bcrypt.hash("Verifywise#1", 10);
-    // const adminData = {
-    //   name: "VerifyWise",
-    //   surname: "Admin",
-    //   email: "verifywise@email.com",
-    //   password: "Verifywise#1",
-    //   confirmPassword: "Verifywise#1",
-    //   role_id: 1,
-    //   created_at: new Date(),
-    //   last_login: new Date(),
-    //   password_hash
-    // };
+    const password_hash = await bcrypt.hash("Verifywise#1", 10);
+    const adminData = {
+      name: "VerifyWise",
+      surname: "Admin",
+      email: "verifywise@email.com",
+      password: "Verifywise#1",
+      confirmPassword: "Verifywise#1",
+      role_id: 1,
+      created_at: new Date(),
+      last_login: new Date(),
+      password_hash,
+    };
 
-    // const admin = await createNewUserQuery(adminData, transaction, true);
-    // await transaction.commit();
-    // console.log('Default admin user created.');
+    const admin = await createNewUserQuery(adminData, transaction, true);
+    await transaction.commit();
+    console.log("Default admin user created.");
 
-    // // Insert mock data (awaiting it to complete)
-    // await insertMockData(admin.id);
-    // console.log('Mock data inserted.');
+    // Insert mock data (awaiting it to complete)
+    await insertMockData(admin.id);
+    console.log("Mock data inserted.");
 
-    // // Fetch the first project to get its ID
-    // const project = await sequelize.query(
-    //   'SELECT * FROM projects LIMIT 1',
-    //   { type: QueryTypes.SELECT }
-    // );
+    // Fetch the first project to get its ID
+    const project = await sequelize.query("SELECT * FROM projects LIMIT 1", {
+      type: QueryTypes.SELECT,
+    });
 
-    // if (!project || project.length === 0) {
-    //   throw new Error('No projects found in the database.');
-    // }
-    // const projectId = (project[0] as { id: number }).id;
-    // console.log(`Project found with ID: ${projectId}`);
+    if (!project || project.length === 0) {
+      throw new Error("No projects found in the database.");
+    }
+    const projectId = (project[0] as { id: number }).id;
+    console.log(`Project found with ID: ${projectId}`);
 
-    // await sequelize.query(
-    //   `INSERT INTO projects_members (project_id, user_id, is_demo) VALUES (:project_id, :user_id, :is_demo) RETURNING *`,
-    //   {
-    //     replacements: {
-    //       project_id: projectId, user_id: admin.id, is_demo: true
-    //     },
-    //     type: QueryTypes.INSERT,
-    //   }
-    // );
+    await sequelize.query(
+      `INSERT INTO projects_members (project_id, user_id, is_demo) VALUES (:project_id, :user_id, :is_demo) RETURNING *`,
+      {
+        replacements: {
+          project_id: projectId,
+          user_id: admin.id,
+          is_demo: true,
+        },
+        type: QueryTypes.INSERT,
+      }
+    );
 
-    console.log('Database reset successfully.');
+    console.log("Database reset successfully.");
 
     process.exit(0);
   } catch (err) {
-    //await transaction.rollback();
-    console.error('Error resetting database:', err);
+    await transaction.rollback();
+    console.error("Error resetting database:", err);
     process.exit(1);
   }
 }

@@ -31,6 +31,7 @@ import { AssessmentModel } from "../models/assessment.model";
 import { TopicModel } from "../models/topic.model";
 import { SubtopicModel } from "../models/subtopic.model";
 import { QuestionModel } from "../models/question.model";
+import { createOrganizationQuery, getAllOrganizationsQuery } from "./organization.utils";
 
 /**
  * Retrieves all users from the database.
@@ -89,7 +90,7 @@ export const getUserByEmailQuery = async (email: string): Promise<(User & { role
       }
     );
 
-     if (!userObj) {
+    if (!userObj) {
       // no user found
       return null;
     }
@@ -168,6 +169,14 @@ export const createNewUserQuery = async (
   const { name, surname, email, password_hash, role_id } = user;
   const created_at = new Date();
   const last_login = new Date();
+
+  if (role_id === 1) {
+    const organizations = await getAllOrganizationsQuery(transaction);
+    if (organizations.length === 0) {
+      await createOrganizationQuery({ name: "My Organization" }, transaction);
+      console.log("Created default organization");
+    }
+  }
 
   try {
     const result = await sequelize.query(

@@ -14,14 +14,17 @@ const getUserFilesMetaDataQuery = async (
       : "";
   
     const query = `
-      SELECT f.id, f.filename, f.project_id, f.uploaded_time, f.source, 
-             p.project_title, u.name AS uploader_name, u.surname AS uploader_surname
-      FROM files f
-      JOIN projects_members pm ON pm.project_id = f.project_id
-      JOIN projects p ON p.id = f.project_id
-      JOIN users u ON f.uploaded_by = u.id
-      WHERE (pm.user_id = :userId OR p.owner = :userId) AND f.source::TEXT NOT LIKE '%report%'
-      ORDER BY f.uploaded_time DESC
+      WITH projects_of_user AS (
+        SELECT DISTINCT project_id FROM projects_members WHERE user_id = :userId
+        UNION ALL
+        SELECT id AS project_id FROM projects WHERE owner = :userId
+      ) SELECT f.id, f.filename, f.project_id, f.uploaded_time, f.source, 
+          p.project_title, u.name AS uploader_name, u.surname AS uploader_surname
+        FROM files f JOIN projects_of_user pu ON f.project_id = pu.project_id
+        JOIN projects p ON p.id = pu.project_id
+        JOIN users u ON f.uploaded_by = u.id
+        WHERE f.source::TEXT NOT LIKE '%report%'
+        ORDER BY f.uploaded_time DESC
       ${paginationClause};`;
   
     const replacements: Record<string, number> = { userId };

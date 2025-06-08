@@ -278,41 +278,22 @@ export const assignFrameworkToProject = async ({
   authToken?: string;
 }) => {
   try {
-    const response = await apiServices.post(`/frameworks/toProject?frameworkId=${frameworkId}&projectId=${projectId}`, {}, {
-      headers: {
-        Authorization: `Bearer ${authToken}`,
+    const response = await apiServices.post(
+      `/frameworks/toProject?frameworkId=${frameworkId}&projectId=${projectId}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
       }
-    });
+    );
 
     return {
       status: response.status,
-      data: response.data
+      data: response.data,
     };
   } catch (error) {
-    console.error('Error assigning framework to project:', error);
+    console.error("Error assigning framework to project:", error);
     throw error;
   }
 };
-
-//Add training registry data to the database by sending a "POST" request to "/training"
-/**
- * Adds a new training registry entry to the database.
- *
- * @param {any} data - The training data to be saved.
- * @param {string} [authToken=getAuthToken()] - Optional auth token.
- * @returns {Promise<any>} The response from the API.
- */
-export async function createTraining(
-  data: any,
-  authToken = getAuthToken()
-): Promise<any> {
-  try {
-    const response = await apiServices.post("/training", data, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error creating training:", error);
-    throw error;
-  }
-}

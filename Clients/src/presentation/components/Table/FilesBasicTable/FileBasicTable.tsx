@@ -102,7 +102,6 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
                 <TableCell>{row.uploadDate}</TableCell>
                 <TableCell>{row.uploader}</TableCell>
                 <TableCell>{row.source}</TableCell>
-                
                 {/* Add any additional cells here */}
                 <TableCell>
                   <IconButton
@@ -122,18 +121,22 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
             <TableFooter>
               <TableRow
                 sx={{
-                  '& .MuiTableCell-root.MuiTableCell-footer': {
+                  "& .MuiTableCell-root.MuiTableCell-footer": {
                     paddingX: theme.spacing(8),
                     paddingY: theme.spacing(4),
-                  }}}
+                  },
+                }}
               >
-                <TableCell sx={{ 
-                  paddingX: theme.spacing(2),
-                  fontSize: 12,
-                  opacity: 0.7 }}>
+                <TableCell
+                  sx={{
+                    paddingX: theme.spacing(2),
+                    fontSize: 12,
+                    opacity: 0.7,
+                  }}
+                >
                   Showing {page * rowsPerPage + 1} -
-                  {Math.min(page * rowsPerPage + rowsPerPage, bodyData.length)} of{" "}
-                  {bodyData.length} items
+                  {Math.min(page * rowsPerPage + rowsPerPage, bodyData.length)}{" "}
+                  of {bodyData.length} items
                 </TableCell>
                 <TablePagination
                   count={bodyData.length}
@@ -153,7 +156,6 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
           )}
         </Table>
       </TableContainer>
-      
     </>
   );
 };

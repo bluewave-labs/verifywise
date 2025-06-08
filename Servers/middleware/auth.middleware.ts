@@ -2,8 +2,22 @@ import { NextFunction, Request, Response } from "express";
 import { getTokenPayload } from "../utils/jwt.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 
+// Extend Express Request interface to include userId and role
+// declare global {
+//   namespace Express {
+//     interface Request {
+//       userId?: string;
+//       role?: string;
+//     }
+//   }
+// }
+
+export interface _Request extends Request {
+  role?: string; // Define the type of role
+}
+
 const authenticateJWT = async (
-  req: Request,
+  req: _Request,
   res: Response,
   next: NextFunction
 ): Promise<void | Response> => {
@@ -31,8 +45,9 @@ const authenticateJWT = async (
       return res
         .status(406)
         .json(STATUS_CODE[406]({ message: "Token expired" }));
-    
+
     req.userId = decoded.id;
+    req.role = decoded.roleName;
     next();
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

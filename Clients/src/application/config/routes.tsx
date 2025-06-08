@@ -22,6 +22,7 @@ import ProtectedRoute from "../../presentation/components/ProtectedRoute";
 import FairnessDashboard from "../../presentation/pages/FairnessDashboard/FairnessDashboard";
 import FairnessResultsPage from "../../presentation/pages/FairnessDashboard/FairnessResultsPage";
 
+import Training from "../../presentation/pages/TrainingRegistar";
 
 export const createRoutes = (
   triggerSidebar: boolean,
@@ -48,6 +49,7 @@ export const createRoutes = (
     <Route path="/project-view" element={<VWProjectView />} />
     <Route path="/fairness-dashboard" element={<FairnessDashboard />} />
     <Route path="/fairness-results/:id" element={<FairnessResultsPage />} />
+    <Route path="/training" element={<Training />}/>
   </Route>,
   <Route
     key="admin-reg"

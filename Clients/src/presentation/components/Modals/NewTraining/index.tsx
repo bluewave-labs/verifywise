@@ -1,4 +1,4 @@
-import React, { FC, useState, useMemo, useCallback } from "react";
+import React, { FC, useState, useMemo, useCallback, useEffect } from "react";
 import {
   useTheme,
   Dialog,
@@ -19,6 +19,8 @@ interface NewTrainingProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   onSuccess?: (data: NewTrainingFormValues) => void;
+  initialData?: NewTrainingFormValues;
+  isEdit?: boolean;
 }
 
 type StatusType = "Planned" | "In Progress" | "Completed";
@@ -63,10 +65,20 @@ const NewTraining: FC<NewTrainingProps> = ({
   isOpen,
   setIsOpen,
   onSuccess,
+  initialData,
+  isEdit = false,
 }) => {
   const theme = useTheme();
   const [values, setValues] = useState<NewTrainingFormValues>(initialState);
   const [errors, setErrors] = useState<NewTrainingFormErrors>({});
+
+  useEffect(() => {
+    if (initialData) {
+      setValues(initialData);
+    } else {
+      setValues(initialState);
+    }
+  }, [initialData, isOpen]);
 
   const handleOnTextFieldChange = useCallback(
     (prop: keyof NewTrainingFormValues) =>
@@ -196,7 +208,7 @@ const NewTraining: FC<NewTrainingProps> = ({
                 padding: 0,
               }}
             >
-              New Training
+              {isEdit ? "Edit Training" : "New Training"}
             </DialogTitle>
             <Box
               component="span"
@@ -219,7 +231,7 @@ const NewTraining: FC<NewTrainingProps> = ({
               <CloseIcon />
             </Box>
           </Stack>
-          <DialogContent sx={{ padding: 0 }}>
+          <DialogContent sx={{ p: 0 }}>
             <Grid container spacing={3}>
               <Grid item xs={12} sm={6}>
                 <Suspense fallback={<div>Loading...</div>}>
@@ -335,7 +347,7 @@ const NewTraining: FC<NewTrainingProps> = ({
           >
             <CustomizableButton
               variant="contained"
-              text="Create Training"
+              text={isEdit ? "Update Training" : "Create Training"}
               sx={{
                 backgroundColor: "#13715B",
                 border: "1px solid #13715B",

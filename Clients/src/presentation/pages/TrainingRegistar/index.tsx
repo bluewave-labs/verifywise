@@ -143,7 +143,7 @@ const Training: React.FC = () => {
         setIsOpen={setIsNewTrainingModalOpen}
         onSuccess={async (formData) => {
           try {
-            await createTraining(formData);
+            await createTraining("/training", formData);
             // Optionally refetch data or show a toast
             fetchTrainingData(); // refresh table
             setAlert({

@@ -9,9 +9,9 @@ import { getComplianceReportQuery } from '../../utils/reporting.utils';
 import { ReportBodyData } from '../reportService';
 import { ControlCategoryStructEUModel } from '../../models/EU/controlCategoryStructEU.model';
 import { SubcontrolStructEU, SubcontrolStructEUModel } from '../../models/EU/subControlStructEU.model';
-import { ControlStructEU, ControlStructEUModel } from '../../models/EU/controlStructEU.model';
+import { ControlStructEUModel } from '../../models/EU/controlStructEU.model';
 import { ControlEUModel } from '../../models/EU/controlEU.model';
-import { SubcontrolEU, SubcontrolEUModel } from '../../models/EU/subControlEU.model';
+import { SubcontrolEUModel } from '../../models/EU/subControlEU.model';
 
 type SubControlProps = SubcontrolStructEU & {
   implementation_details: string;
@@ -25,10 +25,6 @@ type ControlProps = {
 
 type SubControlCategory = {
   data: ControlProps
-};
-
-type AllCompliances = ControlCategoryStructEUModel & {
-  subControlCategories: SubControlCategory[];
 };
 
 export async function getComplianceMarkdown(

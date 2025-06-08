@@ -23,7 +23,7 @@ const getUserFilesMetaDataQuery = async (
         FROM files f JOIN projects_of_user pu ON f.project_id = pu.project_id
         JOIN projects p ON p.id = pu.project_id
         JOIN users u ON f.uploaded_by = u.id
-        WHERE f.source::TEXT NOT LIKE '%report%'
+        WHERE f.source::TEXT NOT ILIKE '%report%'
         ORDER BY f.uploaded_time DESC
       ${paginationClause};`;
   

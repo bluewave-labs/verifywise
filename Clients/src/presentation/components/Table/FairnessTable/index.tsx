@@ -6,7 +6,6 @@ import {
     TablePagination,
     TableRow,
     Typography,
-    Box, 
     useTheme,
     TableFooter
   } from "@mui/material";
@@ -17,7 +16,6 @@ import {
   import { ReactComponent as SelectorVertical } from '../../../assets/icons/selector-vertical.svg';
   import {
     styles,
-    paginationWrapper,
     paginationStatus,
     paginationStyle,
     paginationDropdown,

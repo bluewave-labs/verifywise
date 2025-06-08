@@ -33,7 +33,7 @@ import { ReactComponent as FileManager } from "../../assets/icons/file.svg";
 import { ReactComponent as Feedback } from "../../assets/icons/feedback.svg";
 import { ReactComponent as Discord } from "../../assets/icons/discord.svg";
 
-/**Adding the training register icon */ 
+/**Adding the training register icon */
 import { ReactComponent as TrainingRegister } from "../../assets/icons/training-register.svg";
 
 import Logo from "../../assets/imgs/logo.png";
@@ -69,28 +69,11 @@ const menu = [
     icon: <ReportingSvg />,
     path: "/reporting",
   },
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
   {
-    name:"Training Registry",
+    name: "Training Registry",
     icon: <TrainingRegister />,
-    path: "/training"
-  }
+    path: "/training",
+  },
 ];
 
 const other = [
@@ -102,13 +85,13 @@ const other = [
   {
     name: "Feedback",
     icon: <Feedback />,
-    path: "https://github.com/bluewave-labs/verifywise/discussions"
+    path: "https://github.com/bluewave-labs/verifywise/discussions",
   },
   {
     name: "Ask on Discord",
     icon: <Discord />,
-    path: "https://discord.gg/d3k3E4uEpR"
-  }
+    path: "https://discord.gg/d3k3E4uEpR",
+  },
 ];
 
 const DEFAULT_USER: User = {
@@ -126,7 +109,7 @@ interface User_Avatar {
   pathToImage: string;
 }
 
-const Sidebar = () => {  
+const Sidebar = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -135,12 +118,12 @@ const Sidebar = () => {
   const [popup, setPopup] = useState();
   const logout = useLogout();
 
-  const { userId, changeComponentVisibility, users} =
-    useContext(VerifyWiseContext); 
+  const { userId, changeComponentVisibility, users } =
+    useContext(VerifyWiseContext);
 
-const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
-  countToTrigger: 1,
-});
+  const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
+    countToTrigger: 1,
+  });
 
   const user: User = users
     ? users.find((user: User) => user.id === userId) || DEFAULT_USER
@@ -178,11 +161,11 @@ const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
     }
   };
 
-useEffect(() => {
-  if (allVisible) {
-   changeComponentVisibility("sidebar", true);
-  }
-}, [allVisible]);
+  useEffect(() => {
+    if (allVisible) {
+      changeComponentVisibility("sidebar", true);
+    }
+  }, [allVisible]);
 
   return (
     <Stack
@@ -312,7 +295,7 @@ useEffect(() => {
                 }
                 className={
                   location.pathname === item.path ||
-                    customMenuHandler() === item.path
+                  customMenuHandler() === item.path
                     ? "selected-path"
                     : "unselected"
                 }
@@ -324,7 +307,7 @@ useEffect(() => {
                   px: theme.spacing(4),
                   backgroundColor:
                     location.pathname === item.path ||
-                      customMenuHandler() === item.path
+                    customMenuHandler() === item.path
                       ? "#F9F9F9"
                       : "transparent",
 
@@ -475,10 +458,9 @@ useEffect(() => {
               }
               onClick={() => {
                 if (item.name === "Feedback" || item.name.includes("Discord")) {
-                  window.open(item.path, "_blank", "noreferrer")
-                }
-                else {
-                  navigate(`${item.path}`)
+                  window.open(item.path, "_blank", "noreferrer");
+                } else {
+                  navigate(`${item.path}`);
                 }
               }}
               sx={{
@@ -499,17 +481,19 @@ useEffect(() => {
           </Tooltip>
         ))}
       </List>
-      {!collapsed &&
-        <Box sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%',
-          justifyContent: 'flex-end',
-          alignItems: 'center'
-        }}>
+      {!collapsed && (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
+            justifyContent: "flex-end",
+            alignItems: "center",
+          }}
+        >
           <ReadyToSubscribeBox />
         </Box>
-      }
+      )}
       <Divider sx={{ mt: "auto" }} />
       <Stack
         direction="row"
@@ -564,7 +548,7 @@ useEffect(() => {
                 {user.name} {user.surname}
               </Typography>
               <Typography sx={{ textTransform: "capitalize" }}>
-                {ROLES[user.roleId as keyof typeof ROLES]}  
+                {ROLES[user.roleId as keyof typeof ROLES]}
               </Typography>
             </Box>
             <Tooltip title="Controls" disableInteractive>

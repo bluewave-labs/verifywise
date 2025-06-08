@@ -1,23 +1,10 @@
 // styles.ts for FairnessTable
-export const styles = {
-    textBase: {
-      fontSize: "14px",
-      color: "#4B5563",
-      fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
-      fontWeight: 400,
-      textAlign: "center",
-      mt: 2,
-    },
-  };
-  
-  export const emptyData = {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    height: "220px",
-    padding: "1rem",
-  };
+  export const styles = {
+    textBase : {
+      fontSize: "13px", 
+      color: "#475467"
+    }
+  }
   
   export const paginationWrapper = {
     display: "flex",
@@ -28,7 +15,7 @@ export const styles = {
     rowGap: 1,
   };
   
-  export const pagniationStatus = {
+  export const paginationStatus = {
     fontSize: "14px",
     color: "#4B5563",
     fontWeight: 400,
@@ -54,4 +41,9 @@ export const styles = {
     fontSize: "14px",
     padding: "6px 12px",
   }
+
+  export const emptyData = ( theme:any ) => ({
+    padding: theme.spacing(15, 5),
+    paddingBottom: theme.spacing(20),
+  })
   

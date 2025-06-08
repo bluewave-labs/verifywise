@@ -50,22 +50,22 @@ export default function FairnessDashboard() {
   
   
   const [uploadedModels, setUploadedModels] = useState<FairnessModel[]>([]);
+
+  const fetchMetrics = async () => {
+    try {
+      const metrics = await fairnessService.getAllFairnessMetrics();
+      const formatted = metrics.map((item: any) => ({
+        id: item.metrics_id, // use this for "ID" column
+        model: item.model_filename,
+        dataset: item.data_filename
+      }));
+      setUploadedModels(formatted);
+    } catch (err) {
+      console.error("Failed to fetch metrics:", err);
+    }
+  };
   
   useEffect(() => {
-    const fetchMetrics = async () => {
-      try {
-        const metrics = await fairnessService.getAllFairnessMetrics();
-        const formatted = metrics.map((item: any) => ({
-          id: item.metrics_id, // use this for "ID" column
-          model: item.model_filename,
-          dataset: item.data_filename
-        }));
-        setUploadedModels(formatted);
-      } catch (err) {
-        console.error("Failed to fetch metrics:", err);
-      }
-    };
-  
     fetchMetrics();
   }, []);
   
@@ -183,22 +183,14 @@ export default function FairnessDashboard() {
     if (!modelFile || !datasetFile || !targetColumn || !sensitiveColumn) return;
   
     try {
-      const result = await fairnessService.uploadFairnessFiles({
+      await fairnessService.uploadFairnessFiles({
         model: modelFile,
         data: datasetFile,
         target_column: targetColumn,
         sensitive_column: sensitiveColumn,
       });
   
-      
-  
-      const newEntry: FairnessModel = {
-        id: result.id,
-        model: result.name || modelFile.name,
-        dataset: datasetFile.name
-      };
-  
-      setUploadedModels(prev => [...prev, newEntry]);
+      await fetchMetrics(); // Refresh entire fairness model list with IDs
       resetForm();
     } catch (err) {
       console.error("Failed to upload model:", err);
@@ -280,7 +272,7 @@ export default function FairnessDashboard() {
               disableRestoreFocus
             >
               <Box sx={{ p: 2, maxWidth: 300 }}>
-                <Typography variant="body2">Click "Validate Fairness" to start a new fairness validation.</Typography>
+                <Typography variant="body2">Click "Validate fairness" to start a new fairness validation.</Typography>
               </Box>
             </Popover>
             <Backdrop
@@ -306,7 +298,7 @@ export default function FairnessDashboard() {
           <Dialog open={dialogOpen} onClose={resetForm} maxWidth="sm" fullWidth>
             <DialogTitle>
               <Box display="flex" justifyContent="space-between" alignItems="center">
-                <Typography sx={{ fontWeight: 600 }}>Validate Fairness</Typography>
+                <Typography sx={{ fontWeight: 600 }}>Validate fairness</Typography>
                 <IconButton onClick={resetForm}><CloseIcon /></IconButton>
               </Box>
             </DialogTitle>

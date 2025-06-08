@@ -1,16 +1,17 @@
 import {
+  Box,
   Table,
   TableBody,
   TableCell,
   TableContainer, 
-  TableFooter, 
   TablePagination,
   TableRow,
+  TableFooter,
   Typography,
   useTheme,
 } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import TablePaginationActions from "../../components/TablePagination";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
 import placeholderImage from "../../assets/imgs/empty-state.svg";
@@ -40,6 +41,16 @@ const VWProjectRisksTable = ({
   const theme = useTheme();
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
+  // Ensure page is valid when rows are empty
+  const validPage = rows.length === 0 ? 0 : Math.min(page, Math.max(0, Math.ceil(rows.length / rowsPerPage) - 1));
+
+  // Update page if it's invalid
+  useEffect(() => {
+    if (page !== validPage) {
+      setPage(validPage);
+    }
+  }, [rows.length, page, validPage, setPage]);
+
   const getRange = useMemo(() => {
     const start = page * rowsPerPage + 1;
     const end = Math.min(page * rowsPerPage + rowsPerPage, rows?.length ?? 0);
@@ -59,41 +70,69 @@ const VWProjectRisksTable = ({
   );
 
   return (
-    <>
-      <TableContainer>
-        <Table
-          sx={{
-            ...singleTheme.tableStyles.primary.frame,
-          }}
-        >
-          <VWProjectRisksTableHead columns={columns} />
-          {rows.length !== 0 ? (
-            <>
-              <VWProjectRisksTableBody
-                rows={rows}
-                page={page}
-                rowsPerPage={rowsPerPage}
-                setSelectedRow={setSelectedRow}
-                setAnchor={setAnchor}
-                onDeleteRisk={deleteRisk}
-                flashRow={flashRow}
-              />
-              <TableFooter>
-                <TableRow sx={{
-                  '& .MuiTableCell-root.MuiTableCell-footer': {
-                    paddingX: theme.spacing(8),
-                    paddingY: theme.spacing(4),
-                  }}}>
-                  <TableCell sx={{
+    <TableContainer>
+      <Table
+        sx={{
+          ...singleTheme.tableStyles.primary.frame,
+        }}
+      >
+        <VWProjectRisksTableHead columns={columns} />
+        {rows.length !== 0 ? (
+          <VWProjectRisksTableBody
+            rows={rows}
+            page={page}
+            rowsPerPage={rowsPerPage}
+            setSelectedRow={setSelectedRow}
+            setAnchor={setAnchor}
+            onDeleteRisk={deleteRisk}
+            flashRow={flashRow}
+          />
+        ) : (
+          <TableBody>
+            <TableRow>
+              <TableCell
+                colSpan={columns.length}
+                align="center"
+                style={{
+                  padding: theme.spacing(15, 5),
+                  paddingBottom: theme.spacing(20),
+                }}
+              >
+                <img src={placeholderImage} alt="Placeholder" />
+                <Typography sx={{ fontSize: "13px", color: "#475467" }}>
+                  There is currently no data in this table.
+                </Typography>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        )}
+        <TableFooter>
+          <TableRow>
+            <TableCell colSpan={columns.length} sx={{ border: 'none', p: 0 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  paddingX: theme.spacing(4),
+                }}
+              >
+                <Typography
+                  sx={{
                     paddingX: theme.spacing(2),
                     fontSize: 12,
-                    opacity: 0.7
-                  }}>
-                    Showing {getRange} of {rows?.length} project risk(s)
-                  </TableCell>
+                    opacity: 0.7,
+                    color: theme.palette.text.tertiary,
+                  }}
+                >
+                  Showing {getRange} of {rows?.length} project risk(s)
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <TablePagination
+                    component="div"
                     count={rows?.length}
-                    page={page}
+                    page={validPage}
                     onPageChange={handleChangePage}
                     rowsPerPage={rowsPerPage}
                     rowsPerPageOptions={[5, 10, 15, 20, 25]}
@@ -106,15 +145,15 @@ const VWProjectRisksTable = ({
                     sx={{
                       mt: theme.spacing(6),
                       color: theme.palette.text.secondary,
-                      "& .MuiSelect-icon": {
-                        width: "24px",
-                        height: "fit-content",
-                      },
-                      "& .MuiSelect-select": {
+                      "& .MuiTablePagination-select": {
                         width: theme.spacing(10),
                         borderRadius: theme.shape.borderRadius,
                         border: `1px solid ${theme.palette.border.light}`,
                         padding: theme.spacing(4),
+                      },
+                      "& .MuiTablePagination-selectIcon": {
+                        width: "24px",
+                        height: "fit-content",
                       },
                     }}
                     slotProps={{
@@ -146,33 +185,13 @@ const VWProjectRisksTable = ({
                       },
                     }}
                   />
-                </TableRow>
-              </TableFooter>
-            </>
-          ) : (
-            <>
-              <TableBody>
-                <TableRow>
-                  <TableCell
-                    colSpan={8}
-                    align="center"
-                    style={{
-                      padding: theme.spacing(15, 5),
-                      paddingBottom: theme.spacing(20),
-                    }}
-                  >
-                    <img src={placeholderImage} alt="Placeholder" />
-                    <Typography sx={{ fontSize: "13px", color: "#475467" }}>
-                      There is currently no data in this table.
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </>
-          )}
-        </Table>
-      </TableContainer>
-    </>
+                </Box>
+              </Box>
+            </TableCell>
+          </TableRow>
+        </TableFooter>
+      </Table>
+    </TableContainer>
   );
 };
 

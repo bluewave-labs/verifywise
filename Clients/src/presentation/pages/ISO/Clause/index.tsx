@@ -19,6 +19,8 @@ import Alert from "../../../components/Alert";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { styles } from "./styles";
+import { getEntityById } from "../../../../application/repository/entity.repository";
+import StatsCard from "../../../components/Cards/StatsCard";
 
 const ISO42001Clauses = ({
   project,
@@ -43,9 +45,17 @@ const ISO42001Clauses = ({
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const [clauseProgress, setClauseProgress] = useState<{
+    totalSubclauses: number;
+    doneSubclauses: number;
+  }>();
 
   const fetchClauses = useCallback(async () => {
     try {
+      const clauseProgressResponse = await getEntityById({
+        routeUrl: `/iso-42001/clauses/progress/${projectFrameworkId}`,
+      });
+      setClauseProgress(clauseProgressResponse.data);
       const response = await GetClausesByProjectFrameworkId({
         routeUrl: `/iso-42001/clauses/struct/byProjectId/${projectFrameworkId}`,
       });
@@ -172,10 +182,16 @@ const ISO42001Clauses = ({
 
   return (
     <Stack className="iso-42001-clauses">
-      {alert && <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />}
-      <Typography sx={styles.title}>
-        {"Management System Clauses"}
-      </Typography>
+      {alert && (
+        <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
+      )}
+      <StatsCard
+        completed={clauseProgress?.doneSubclauses ?? 0}
+        total={clauseProgress?.totalSubclauses ?? 0}
+        title="Clauses"
+        progressbarColor="#13715B"
+      />
+      <Typography sx={{ ...styles.title, mt: 4 }}>{"Management System Clauses"}</Typography>
       {clauses &&
         clauses.map((clause: ClauseStructISO) => (
           <Stack key={clause.id} sx={styles.container}>

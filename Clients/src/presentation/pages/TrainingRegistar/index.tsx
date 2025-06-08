@@ -249,7 +249,6 @@ const Training: React.FC = () => {
                 department: selectedTraining.department,
                 status: selectedTraining.status,
                 numberOfPeople: selectedTraining.people,
-                description: selectedTraining.description || "",
               }
             : undefined
         }

@@ -32,7 +32,6 @@ interface NewTrainingFormValues {
   department: string;
   status: StatusType;
   numberOfPeople: number;
-  description: string;
 }
 
 interface NewTrainingFormErrors {
@@ -42,7 +41,6 @@ interface NewTrainingFormErrors {
   department?: string;
   status?: string;
   numberOfPeople?: string;
-  description?: string;
 }
 
 const initialState: NewTrainingFormValues = {
@@ -52,7 +50,6 @@ const initialState: NewTrainingFormValues = {
   department: "",
   status: "Planned",
   numberOfPeople: 0,
-  description: "",
 };
 
 const statusOptions = [
@@ -143,11 +140,6 @@ const NewTraining: FC<NewTrainingProps> = ({
     ) {
       newErrors.numberOfPeople =
         "Number of people is required and must be a positive number.";
-    }
-
-    if (!values.description.trim() || values.description.length < 10) {
-      newErrors.description =
-        "Description is required and should be at least 10 characters.";
     }
 
     setErrors(newErrors);
@@ -318,27 +310,6 @@ const NewTraining: FC<NewTrainingProps> = ({
                     isRequired
                     sx={fieldStyle}
                     type="number"
-                  />
-                </Suspense>
-              </Grid>
-              <Grid item xs={12}>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Field
-                    id="description"
-                    label="Description"
-                    value={values.description}
-                    onChange={handleOnTextFieldChange("description")}
-                    error={errors.description}
-                    isRequired
-                    sx={{
-                      ...fieldStyle,
-                      "& textarea": {
-                        minHeight: "80px",
-                        fontSize: "14px",
-                      },
-                    }}
-                    type="description"
-                    rows={4}
                   />
                 </Suspense>
               </Grid>

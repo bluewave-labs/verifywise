@@ -14,8 +14,7 @@ interface DashboardProps {
 }
 
 const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
-  const {
-    token,
+  const {    
     setDashboardValues,
     setProjects,
   } = useContext(VerifyWiseContext);

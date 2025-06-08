@@ -43,6 +43,7 @@ export interface IAITraining {
   department: string;
   status: "Planned" | "In Progress" | "Completed";
   people: number;
+  description?: string;
 }
 
 interface TrainingTableProps {
@@ -162,7 +163,10 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
                   ...singleTheme.tableStyles.primary.body.row,
                   "&:hover": { backgroundColor: "#FBFBFB", cursor: "pointer" },
                 }}
-                onClick={() => onEdit?.(training.id.toString())}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit?.(training.id.toString());
+                }}
               >
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   {training.training_name}
@@ -195,7 +199,9 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
                     <CustomIconButton
                       id={training.id}
                       onDelete={() => onDelete?.(training.id.toString())}
-                      onEdit={() => onEdit?.(training.id.toString())}
+                      onEdit={() => {
+                        onEdit?.(training.id.toString());
+                      }}
                       onMouseEvent={() => {}}
                       warningTitle="Delete this training?"
                       warningMessage="When you delete this training, all data related to this training will be removed. This action is non-recoverable."

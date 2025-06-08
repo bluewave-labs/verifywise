@@ -31,9 +31,11 @@ const Alert = React.lazy(
 
 const Training: React.FC = () => {
   const [trainingData, setTrainingData] = useState<IAITraining[]>([]);
-  const [isLoading, setIsLoading] = useState(true); // Simulate loading state for the table
-  const [isNewTrainingModalOpen, setIsNewTrainingModalOpen] = useState(false); // State for the new training modal
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isNewTrainingModalOpen, setIsNewTrainingModalOpen] = useState(false);
+  const [selectedTrainingId, setSelectedTrainingId] = useState<string | null>(
+    null
+  );
   const [selectedTraining, setSelectedTraining] = useState<IAITraining | null>(
     null
   );
@@ -95,6 +97,42 @@ const Training: React.FC = () => {
     setIsNewTrainingModalOpen(true);
   };
 
+  const handleEditTraining = (id: string) => {
+    setSelectedTrainingId(id);
+    setIsNewTrainingModalOpen(true);
+  };
+
+  // Fetch training data when modal opens with an ID
+  useEffect(() => {
+    const fetchTrainingDetails = async () => {
+      if (selectedTrainingId && isNewTrainingModalOpen) {
+        try {
+          const response = await getEntityById({
+            routeUrl: `/training/training-id/${selectedTrainingId}`,
+          });
+          console.log("Fetching training details:", response);
+          if (response?.data) {
+            setSelectedTraining(response.data);
+          }
+        } catch (error) {
+          console.error("Error fetching training details:", error);
+          setAlert({
+            variant: "error",
+            body: "Failed to load training details. Please try again.",
+          });
+        }
+      }
+    };
+
+    fetchTrainingDetails();
+  }, [selectedTrainingId, isNewTrainingModalOpen]);
+
+  const handleCloseModal = () => {
+    setIsNewTrainingModalOpen(false);
+    setSelectedTraining(null);
+    setSelectedTrainingId(null);
+  };
+
   const handleTrainingSuccess = async (formData: any) => {
     try {
       if (selectedTraining) {
@@ -116,31 +154,13 @@ const Training: React.FC = () => {
         });
       }
       await fetchTrainingData();
-      setIsNewTrainingModalOpen(false);
-      setIsEditModalOpen(false);
-      setSelectedTraining(null);
+      handleCloseModal();
     } catch (error) {
       setAlert({
         variant: "error",
         body: selectedTraining
           ? "Failed to update training. Please try again."
           : "Failed to add training. Please try again.",
-      });
-    }
-  };
-
-  const handleEditTraining = async (id: string) => {
-    try {
-      const response = await getEntityById({ routeUrl: `/training/${id}` });
-      if (response?.data) {
-        setSelectedTraining(response.data);
-        setIsEditModalOpen(true);
-      }
-    } catch (error) {
-      console.error("Error fetching training details:", error);
-      setAlert({
-        variant: "error",
-        body: "Failed to load training details. Please try again.",
       });
     }
   };
@@ -160,12 +180,6 @@ const Training: React.FC = () => {
         body: "Failed to delete training. Please try again.",
       });
     }
-  };
-
-  const handleCloseModal = () => {
-    setIsNewTrainingModalOpen(false);
-    setIsEditModalOpen(false);
-    setSelectedTraining(null);
   };
 
   return (
@@ -223,7 +237,7 @@ const Training: React.FC = () => {
       </Stack>
 
       <NewTraining
-        isOpen={isNewTrainingModalOpen || isEditModalOpen}
+        isOpen={isNewTrainingModalOpen}
         setIsOpen={handleCloseModal}
         onSuccess={handleTrainingSuccess}
         initialData={
@@ -235,7 +249,7 @@ const Training: React.FC = () => {
                 department: selectedTraining.department,
                 status: selectedTraining.status,
                 numberOfPeople: selectedTraining.people,
-                description: "", // This field is not in IAITraining, so we'll set it to empty
+                description: selectedTraining.description || "",
               }
             : undefined
         }

@@ -69,16 +69,25 @@ const NewTraining: FC<NewTrainingProps> = ({
   isEdit = false,
 }) => {
   const theme = useTheme();
-  const [values, setValues] = useState<NewTrainingFormValues>(initialState);
+  const [values, setValues] = useState<NewTrainingFormValues>(
+    initialData || initialState
+  );
   const [errors, setErrors] = useState<NewTrainingFormErrors>({});
 
   useEffect(() => {
     if (initialData) {
       setValues(initialData);
-    } else {
+    } else if (!isEdit) {
       setValues(initialState);
     }
-  }, [initialData, isOpen]);
+  }, [initialData, isEdit]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setValues(initialState);
+      setErrors({});
+    }
+  }, [isOpen]);
 
   const handleOnTextFieldChange = useCallback(
     (prop: keyof NewTrainingFormValues) =>
@@ -147,8 +156,6 @@ const NewTraining: FC<NewTrainingProps> = ({
 
   const handleClose = () => {
     setIsOpen(false);
-    setValues(initialState);
-    setErrors({});
   };
 
   const handleSubmit = (event?: React.FormEvent) => {

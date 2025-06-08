@@ -56,12 +56,11 @@ export async function getVendorReportData(
           ).then((rows) => rows.join("\n"))
         : "| - | - | - | - | - |";
   } catch (error) {
-    console.error(error);
     throw new Error(`Error while fetching the vendor report data`);  
   }
 
   return `
-Vendor risk table
+Vendor table
 -------------
 | Vendor Name | Assignee | Review Status | Risk Status | Review Date |
 |----|----|----|----|----|
@@ -88,18 +87,16 @@ export async function getVendorRiskReportData(
               return ` | ${risk.likelihood} | ${risk.risk_severity} | ${riskActionOwner.name} ${riskActionOwner.surname} | ${risk.risk_level} | ${risk.risk_description} |`;
             })
           ).then((rows) => rows.join("\n"))
-        : "| - | - | - | - | - | - |";
+        : "| - | - | - | - | - |";
   } catch (error) {
-    console.error(error);
     throw new Error(`Error while fetching the vendor risk report data`);  
   }
 
   return `
 Vendor risk table
 -------------
-| Impact | Likelihood | Risk Severity | Action Owner | Risk Level | Risk Description |
-|----|----|----|----|----|----|
+| Likelihood | Risk Severity | Action Owner | Risk Level | Risk Description |
+|----|----|----|----|----|
 ${riskRows}
 `;
 }
-  

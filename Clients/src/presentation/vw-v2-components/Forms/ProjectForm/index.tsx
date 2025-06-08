@@ -89,7 +89,12 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
 
   const handleOnSelectChange = useCallback(
     (prop: keyof FormValues) => (event: SelectChangeEvent<string | number>) => {
-      setValues({ ...values, [prop]: event.target.value });
+      if (prop === "owner") {
+        values.members = values.members.filter(
+          (member) => Number(member._id) !== Number(event.target.value)
+        );
+      }
+      setValues({ ...values,[prop]: event.target.value});
       setErrors({ ...errors, [prop]: "" });
     },
     [values, errors]
@@ -230,6 +235,7 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
         borderRadius: "4px",
         gap: 10,
         ...sx,
+        maxWidth: "760px",
       }}
     >
       {isSubmitting && (
@@ -363,7 +369,7 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
                       (user) =>
                         !values.members.some(
                           (selectedUser) => String(selectedUser._id) === String(user.id)
-                        )
+                        ) && values.owner !== user.id
                     )
                     .map((user) => ({
                       _id: user.id,

@@ -18,6 +18,8 @@ import Alert from "../../../components/Alert";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { styles } from "./styles";
+import { getEntityById } from "../../../../application/repository/entity.repository";
+import StatsCard from "../../../components/Cards/StatsCard";
 
 const ISO42001Annex = ({
   project,
@@ -38,10 +40,18 @@ const ISO42001Annex = ({
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
+  const [annexesProgress, setAnnexesProgress] = useState<{
+    totalAnnexcategories: number;
+    doneAnnexcategories: number;
+  }>();
 
   useEffect(() => {
     const fetchClauses = async () => {
       try {
+        const annexProgressResponse = await getEntityById({
+          routeUrl: `/iso-42001/annexes/progress/${projectFrameworkId}`,
+        });
+        setAnnexesProgress(annexProgressResponse.data);
         const response = await GetAnnexesByProjectFrameworkId({
           routeUrl: `/iso-42001/annexes/struct/byProjectId/${projectFrameworkId}`,
         });
@@ -63,7 +73,6 @@ const ISO42001Annex = ({
     } catch (error) {
       console.error("Error fetching controls:", error);
       setControlsMap((prev) => ({ ...prev, [annexId]: [] }));
-    } finally {
     }
   }, []);
 
@@ -126,7 +135,13 @@ const ISO42001Annex = ({
       {alert && <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />}
       {
         <>
-          <Typography sx={styles.title}>
+          <StatsCard
+            completed={annexesProgress?.doneAnnexcategories ?? 0}
+            total={annexesProgress?.totalAnnexcategories ?? 0}
+            title="Annexes"
+            progressbarColor="#13715B"
+          />
+          <Typography sx={{ ...styles.title, mt: 4 }}>
             Annex A : Reference Controls (Statement of Applicability)
           </Typography>
           {annexes &&

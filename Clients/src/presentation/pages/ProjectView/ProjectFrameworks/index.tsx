@@ -32,8 +32,8 @@ const FRAMEWORK_IDS = {
 } as const;
 
 const TRACKER_TABS = [
-  { label: "Compliance tracker", value: "compliance" },
-  { label: "Assessment tracker", value: "assessment" },
+  { label: "Controls", value: "compliance" },
+  { label: "Assessments", value: "assessment" },
 ] as const;
 
 const ISO_42001_TABS = [

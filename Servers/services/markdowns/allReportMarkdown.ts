@@ -5,34 +5,43 @@
  * @param frameworkId - The IDs of the framework: EU AI Act and ISO 42001
  * @param data - Project metadata including title and owner
  * @returns Promise<string> - Markdown formatted report
-*/
+ */
 
-import { getAllFrameworkByIdQuery } from '../../utils/framework.utils';
-import { ReportBodyData } from '../reportService';
-import { getClausesAndAnnexesReportData } from './annexesMarkdown';
-import { getAssessmentTrackerReportData } from './assessmentTrackerMarkdown';
-import { getComplianceReportData } from './complianceMarkdown';
-import { getProjectRiskReportData } from './projectRiskMarkdown';
-import { getVendorReportData, getVendorRiskReportData } from './vendorAndRisksMarkdown';
+import { getAllFrameworkByIdQuery } from "../../utils/framework.utils";
+import { ReportBodyData } from "../reportService";
+import { getClausesAndAnnexesReportData } from "./annexesMarkdown";
+import { getAssessmentTrackerReportData } from "./assessmentTrackerMarkdown";
+import { getComplianceReportData } from "./complianceMarkdown";
+import { getProjectRiskReportData } from "./projectRiskMarkdown";
+import {
+  getVendorReportData,
+  getVendorRiskReportData,
+} from "./vendorAndRisksMarkdown";
 
-export async function getAllReportMarkdown (
+export async function getAllReportMarkdown(
+  frameworkId: number,
   projectFrameworkId: number,
   projectId: number,
   data: ReportBodyData
-) : Promise<string> {
+): Promise<string> {
   try {
-    const framework = await getAllFrameworkByIdQuery(projectFrameworkId);
+    const framework = await getAllFrameworkByIdQuery(frameworkId);
 
     if (framework) {
       let projectReportMarkdown = await getProjectRiskReportData(projectId);
       let vendorReportMarkdown = await getVendorReportData(projectId);
       let vendorRiskReportMarkdown = await getVendorRiskReportData(projectId);
 
-      if (framework.name === "EU AI Act") { 
-        const complianceReportMarkdown = await getComplianceReportData(projectFrameworkId);
-        const assessmentReportMarkdown = await getAssessmentTrackerReportData(projectId, projectFrameworkId);
+      if (framework.name === "EU AI Act") {
+        const complianceReportMarkdown = await getComplianceReportData(
+          frameworkId
+        );
+        const assessmentReportMarkdown = await getAssessmentTrackerReportData(
+          projectId,
+          frameworkId
+        );
 
-      const euAIMD = `
+        const euAIMD = `
 VerifyWise ${framework.name} report
 ========================
 
@@ -64,10 +73,12 @@ ${complianceReportMarkdown}
 Assessment tracker report
 -------------
 ${assessmentReportMarkdown}
-`
+`;
         return euAIMD;
-      } else {        
-        let clausesAndAnnexesMarkdown = await getClausesAndAnnexesReportData(projectFrameworkId);
+      } else {
+        let clausesAndAnnexesMarkdown = await getClausesAndAnnexesReportData(
+          frameworkId
+        );
         const isoMD = `
 VerifyWise ${framework.name} report
 ========================
@@ -96,14 +107,18 @@ Clauses and annexes report
 -------------
 ${clausesAndAnnexesMarkdown}
 
-`
+`;
         return isoMD;
       }
     } else {
-      throw new Error(`Framework with ID ${projectFrameworkId} not found`);
+      throw new Error(`Framework with ID ${frameworkId} not found`);
     }
-  } catch (error){
-    console.error('Error generating all reports markdown:', error);
-    throw new Error(`Failed to generate all reports: ${error instanceof Error ? error.message : 'Unknown error'}`);    
+  } catch (error) {
+    console.error("Error generating all reports markdown:", error);
+    throw new Error(
+      `Failed to generate all reports: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
   }
 }

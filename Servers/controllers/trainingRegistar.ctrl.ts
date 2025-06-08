@@ -142,22 +142,30 @@ export async function deleteTrainingRegistarById(
   req: Request,
   res: Response
 ): Promise<any> {
+  console.log("ID from the params.id:", req.params.id);
+  console.log("Request body:", req.body);
+  console.log("deleteTrainingRegistarById 1");
   const transaction = await sequelize.transaction();
   try {
     const trainingRegistarId = parseInt(req.params.id);
-
+    console.log("deleteTrainingRegistarById 2");
     const deleteTrainingRegistar = await deleteTrainingRegistarByIdQuery(
       trainingRegistarId,
       transaction
     );
-
+    console.log("deleteTrainingRegistarById 3");
     if (deleteTrainingRegistar) {
+      console.log("deleteTrainingRegistarById 4");
       await transaction.commit();
+      console.log("deleteTrainingRegistarById 5");
       return res.status(202).json(STATUS_CODE[202](deleteTrainingRegistar));
     }
+    console.log("deleteTrainingRegistarById 6");
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
+    console.log("deleteTrainingRegistarById 7");
     await transaction.rollback();
+    console.log("deleteTrainingRegistarById 8");
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

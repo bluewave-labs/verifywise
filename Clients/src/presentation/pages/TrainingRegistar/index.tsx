@@ -168,6 +168,7 @@ const Training: React.FC = () => {
 
   const handleDeleteTraining = async (id: string) => {
     try {
+      console.log("Deleting training with ID:", id);
       await deleteEntityById({ routeUrl: `/training/${id}` });
       await fetchTrainingData();
       setAlert({

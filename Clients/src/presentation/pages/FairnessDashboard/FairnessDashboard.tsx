@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo, useEffect } from "react";
+import { useState, useRef, useCallback, useMemo, useEffect, Suspense } from "react";
 import {
   Box,
   Button,
@@ -21,6 +21,8 @@ import FairnessTable from "../../components/Table/FairnessTable";
 import Select from "../../components/Inputs/Select";
 import { fairnessService } from "../../../infrastructure/api/fairnessService";
 import { tabPanelStyle } from "../Vendors/style";
+import Alert from "../../components/Alert";
+
 
 
 export default function FairnessDashboard() {
@@ -34,6 +36,7 @@ export default function FairnessDashboard() {
   const [targetColumn, setTargetColumn] = useState("");
   const [sensitiveColumn, setSensitiveColumn] = useState("");
   const [columnOptions, setColumnOptions] = useState<string[]>([]);
+
   const targetColumnItems = useMemo(() => {
     return columnOptions.map((col) => ({ _id: col, name: col }));
   }, [columnOptions]);
@@ -60,8 +63,12 @@ export default function FairnessDashboard() {
         dataset: item.data_filename
       }));
       setUploadedModels(formatted);
-    } catch (err) {
-      console.error("Failed to fetch metrics:", err);
+    } catch {
+      setAlert({
+        variant: "error",
+        body: "Failed to fetch metrics. Please try again.",
+      });
+      setTimeout(() => setAlert(null), 8000);
     }
   };
   
@@ -129,7 +136,11 @@ export default function FairnessDashboard() {
     if (model?.id) {
       navigate(`/fairness-results/${model.id}`);
     } else {
-      console.error("Invalid model:", model);
+        setAlert({
+            variant: "error",
+            body: "Invalid model:" + model.id + "Please try again.",
+          });
+          setTimeout(() => setAlert(null), 8000);
     }
   }, [navigate]);
     
@@ -163,8 +174,12 @@ export default function FairnessDashboard() {
       await fairnessService.deleteFairnessCheck(id);
       const filtered = uploadedModels.filter(model => model.id !== id);
       setUploadedModels(filtered);
-    } catch (error) {
-      console.error("Failed to delete model:", error);
+    } catch {
+        setAlert({
+            variant: "error",
+            body: "Failed to delete model. Please try again.",
+          });
+          setTimeout(() => setAlert(null), 8000);
     }
   };
   
@@ -192,10 +207,21 @@ export default function FairnessDashboard() {
   
       await fetchMetrics(); // Refresh entire fairness model list with IDs
       resetForm();
-    } catch (err) {
-      console.error("Failed to upload model:", err);
+    } catch {
+        setAlert({
+            variant: "error",
+            body: "Failed to upload model. Please try again.",
+          });
+          setTimeout(() => setAlert(null), 8000);
     }
   };
+
+  const [alert, setAlert] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    title?: string;
+    body: string;
+  } | null>(null);
+
   
 
   return (
@@ -203,9 +229,20 @@ export default function FairnessDashboard() {
       <Box>
         <Typography sx={styles.vwHeadingTitle}>Bias & fairness dashboard</Typography>
         <Typography sx={styles.vwSubHeadingTitle}>
-        This table provides your uploaded models with access to fairness evaluations for each. You can also validate a new model by uploading the model along with its dataset, target column, and sensitive feature.
+        This table provides your uploaded models with access to fairness evaluations for each. To validate a new model upload the model along with its dataset, target column, and sensitive feature. Currently only supporting classification models, upload a model with preprocessing (e.g. sklearn Pipeline) and a dataset that has been preprocessed to match the model’s expected input format.
         </Typography>
       </Box>
+      {alert && (
+        <Suspense fallback={<div>Loading...</div>}>
+            <Alert
+            variant={alert.variant}
+            title={alert.title}
+            body={alert.body}
+            isToast={true}
+            onClick={() => setAlert(null)}
+            />
+        </Suspense>
+        )}
 
       <TabContext value={tab}>
         <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
@@ -298,7 +335,12 @@ export default function FairnessDashboard() {
           <Dialog open={dialogOpen} onClose={resetForm} maxWidth="sm" fullWidth>
             <DialogTitle>
               <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Box>
                 <Typography sx={{ fontWeight: 600 }}>Validate fairness</Typography>
+                <Typography variant="body2" sx={{ fontSize: "13px", color: "#667085", mt: 0.5 }}>
+                Ensure your model includes preprocessing steps, and your dataset is preprocessed in the same way before upload.
+                </Typography>
+                </Box>
                 <IconButton onClick={resetForm}><CloseIcon /></IconButton>
               </Box>
             </DialogTitle>

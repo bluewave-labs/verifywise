@@ -14,8 +14,7 @@ interface DashboardProps {
 }
 
 const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
-  const {
-    token,
+  const {    
     setDashboardValues,
     setProjects,
   } = useContext(VerifyWiseContext);
@@ -39,8 +38,6 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
 
     fetchProjects();
   }, [setDashboardValues, reloadTrigger, location.pathname]);
-
-  console.log("This is the token in the dashboard :", token);
 
   return (
     <Stack

@@ -112,87 +112,89 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
   };
 
   return (
-    <>
-      <Typography sx={styles.titleText}>Generate Report</Typography>
-      <Typography sx={styles.baseText}>
-        Pick the kind of report you want to create.
-      </Typography>
-      <Stack sx={{ paddingTop: theme.spacing(8) }}>
-        <Suspense fallback={<div>Loading...</div>}>
-          <Select
-            id="project-input"
-            label="Project"
-            placeholder="Select project"
-            value={values.project}
-            onChange={handleOnSelectChange("project")}
-            items={
-              dashboardValues.projects?.map(
-                (project: { id: any; project_title: any }) => ({
-                  _id: project.id,
-                  name: project.project_title,
-                })
-              ) || []
-            }
-            sx={{
-              width: "350px",
-              backgroundColor: theme.palette.background.main,
-            }}
-            error={errors.project}
-            isRequired
-          />
-        </Suspense>
-      </Stack>
-      <Stack sx={{ paddingTop: theme.spacing(8) }}>
-        <Suspense fallback={<div>Loading...</div>}>
-          <Select
-            id="framework-input"
-            label="Framework"
-            placeholder="Select framework"
-            value={values.framework}
-            onChange={handleOnSelectChange("framework")}
-            items={
-              projectFrameworks?.map((framework) => ({
-                _id: framework.framework_id,
-                name: framework.name,
-                projectFrameworkId: framework.project_framework_id,
-              })) || []
-            }
-            sx={{
-              width: "350px",
-              backgroundColor: theme.palette.background.main,
-            }}
-            error={errors.framework}
-            isRequired
-          />
-        </Suspense>
-      </Stack>
+    <Stack sx={{display: 'flex', flexDirection: 'column', height: '100%'}}>
+      <Stack>
+        <Typography sx={styles.titleText}>Generate Report</Typography>
+        <Typography sx={styles.baseText}>
+          Pick the kind of report you want to create.
+        </Typography>
+        <Stack sx={{ paddingTop: theme.spacing(8) }}>
+          <Suspense fallback={<div>Loading...</div>}>
+            <Select
+              id="project-input"
+              label="Project"
+              placeholder="Select project"
+              value={values.project}
+              onChange={handleOnSelectChange("project")}
+              items={
+                dashboardValues.projects?.map(
+                  (project: { id: any; project_title: any }) => ({
+                    _id: project.id,
+                    name: project.project_title,
+                  })
+                ) || []
+              }
+              sx={{
+                width: "350px",
+                backgroundColor: theme.palette.background.main,
+              }}
+              error={errors.project}
+              isRequired
+            />
+          </Suspense>
+        </Stack>
+        <Stack sx={{ paddingTop: theme.spacing(8) }}>
+          <Suspense fallback={<div>Loading...</div>}>
+            <Select
+              id="framework-input"
+              label="Framework"
+              placeholder="Select framework"
+              value={values.framework}
+              onChange={handleOnSelectChange("framework")}
+              items={
+                projectFrameworks?.map((framework) => ({
+                  _id: framework.framework_id,
+                  name: framework.name,
+                  projectFrameworkId: framework.project_framework_id,
+                })) || []
+              }
+              sx={{
+                width: "350px",
+                backgroundColor: theme.palette.background.main,
+              }}
+              error={errors.framework}
+              isRequired
+            />
+          </Suspense>
+        </Stack>
 
-      <Stack sx={{ paddingTop: theme.spacing(8) }}>
-        <Typography sx={styles.semiTitleText}>Report Type *</Typography>
-        <Suspense fallback={<div>Loading...</div>}>
-          <RadioGroup
-            values={
-              values.framework === 1 ? EUAI_REPORT_TYPES : ISO_REPORT_TYPES
-            }
-            defaultValue="Project risks report"
-            onChange={(event) =>
-              setValues({ ...values, report_type: event.target.value })
-            }
-          />
-        </Suspense>
-      </Stack>
-      <Stack sx={{ paddingTop: theme.spacing(4) }}>
-        <Suspense fallback={<div>Loading...</div>}>
-          <Field
-            id="report-name"
-            label="What should we call your report?"
-            width="350px"
-            value={values.report_name}
-            onChange={handleOnTextFieldChange("report_name")}
-            error={errors.report_name}
-            sx={fieldStyle}
-          />
-        </Suspense>
+        <Stack sx={{ paddingTop: theme.spacing(8) }}>
+          <Typography sx={styles.semiTitleText}>Report Type *</Typography>
+          <Suspense fallback={<div>Loading...</div>}>
+            <RadioGroup
+              values={
+                values.framework === 1 ? EUAI_REPORT_TYPES : ISO_REPORT_TYPES
+              }
+              defaultValue="Project risks report"
+              onChange={(event) =>
+                setValues({ ...values, report_type: event.target.value })
+              }
+            />
+          </Suspense>
+        </Stack>
+        <Stack sx={{ paddingTop: theme.spacing(4) }}>
+          <Suspense fallback={<div>Loading...</div>}>
+            <Field
+              id="report-name"
+              label="What should we call your report?"
+              width="350px"
+              value={values.report_name}
+              onChange={handleOnTextFieldChange("report_name")}
+              error={errors.report_name}
+              sx={fieldStyle}
+            />
+          </Suspense>
+        </Stack>
       </Stack>
       <Stack sx={styles.btnWrap}>
         <CustomizableButton
@@ -202,7 +204,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
           onClick={handleFormSubmit}
         />
       </Stack>
-    </>
+    </Stack>
   );
 };
 

@@ -1,24 +1,14 @@
-import {
-  Stack,
-  useTheme,
-  Typography,
-  Box,
-  Divider,
-  Tooltip,
-  CircularProgress,
-} from "@mui/material";
+import { Stack, useTheme, Box, Divider, CircularProgress } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import {
   useState,
-  useRef,
   useCallback,
   ChangeEvent,
   useEffect,
   useContext,
 } from "react";
-import Avatar from "../../../components/Avatar/VWAvatar/index";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import {
   CreateMyOrganization,
@@ -28,13 +18,6 @@ import {
 import Alert from "../../../components/Alert";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import allowedRoles from "../../../../application/constants/permissions";
-
-interface OrganizationData {
-  firstname: string;
-  lastname: string;
-  email: string;
-  pathToImage: string;
-}
 
 interface AlertState {
   variant: "success" | "info" | "warning" | "error";
@@ -54,12 +37,8 @@ const Organization = () => {
   const [organizationNameError, setOrganizationNameError] = useState<
     string | null
   >(null);
-  const [organizationLogo, setOrganizationLogo] = useState<string>(
-    "/placeholder.svg?height=80&width=80"
-  );
   const [isLoading, setIsLoading] = useState(false);
   const theme = useTheme();
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [organizationId, setOrganizationId] = useState<number | null>(null);
   const [organizationExists, setOrganizationExists] = useState(false);
   const [alert, setAlert] = useState<AlertState | null>(null);
@@ -77,21 +56,18 @@ const Organization = () => {
         const org = organizations.data.data[0];
         setOrganizationId(org.id);
         setOrganizationName(org.name || "");
-        setOrganizationLogo(org.logo || "/placeholder.svg?height=80&width=80");
         setOrganizationExists(true);
         setHasChanges(false);
       } else {
         setOrganizationExists(false);
         setOrganizationId(null);
         setOrganizationName("");
-        setOrganizationLogo("/placeholder.svg?height=80&width=80");
         setHasChanges(false);
       }
     } catch (error) {
       setOrganizationExists(false);
       setOrganizationId(null);
       setOrganizationName("");
-      setOrganizationLogo("/placeholder.svg?height=80&width=80");
       setHasChanges(false);
     }
   }, []);
@@ -143,10 +119,6 @@ const Organization = () => {
         routeUrl: "/organizations",
         body: {
           name: organizationName,
-          logo:
-            organizationLogo !== "/placeholder.svg?height=80&width=80"
-              ? organizationLogo
-              : null,
         },
       });
       setAlert({
@@ -158,9 +130,6 @@ const Organization = () => {
       if (response && response.id) {
         setOrganizationId(response.id);
         setOrganizationName(response.name || "");
-        setOrganizationLogo(
-          response.logo || "/placeholder.svg?height=80&width=80"
-        );
         setOrganizationExists(true);
         setHasChanges(false);
       }
@@ -196,10 +165,6 @@ const Organization = () => {
         routeUrl: `/organizations/${organizationId}`,
         body: {
           name: organizationName,
-          logo:
-            organizationLogo !== "/placeholder.svg?height=80&width=80"
-              ? organizationLogo
-              : null,
         },
       });
       setAlert({
@@ -211,9 +176,6 @@ const Organization = () => {
       if (response && response.id) {
         setOrganizationId(response.id);
         setOrganizationName(response.name || "");
-        setOrganizationLogo(
-          response.logo || "/placeholder.svg?height=80&width=80"
-        );
         setHasChanges(false);
       }
       await fetchOrganization();
@@ -229,38 +191,6 @@ const Organization = () => {
         setIsLoading(false);
       }, 1500);
     }
-  };
-
-  const handleFileChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement>): void => {
-      const file = event.target.files?.[0];
-      if (file) {
-        const newLogoUrl = URL.createObjectURL(file);
-        setOrganizationLogo(newLogoUrl);
-        setHasChanges(true);
-      }
-    },
-    []
-  );
-
-  const handleUpdateLogo = useCallback((): void => {
-    fileInputRef.current?.click();
-  }, []);
-
-  const handleDeleteLogo = useCallback((): void => {
-    setOrganizationLogo("/placeholder.svg?height=80&width=80");
-    setHasChanges(true);
-  }, []);
-
-  const organizationData: OrganizationData = {
-    firstname: organizationName
-      .split(" ")
-      .slice(0, 2)
-      .map((word) => word.charAt(0))
-      .join(""),
-    lastname: "",
-    email: "",
-    pathToImage: organizationLogo,
   };
 
   return (
@@ -327,96 +257,6 @@ const Organization = () => {
               }
             />
           </Stack>
-          <Box
-            sx={{
-              textAlign: { xs: "left", md: "center" },
-              pb: theme.spacing(10),
-            }}
-          >
-            <Stack
-              direction="column"
-              alignItems={{ xs: "flex-start", md: "center" }}
-              spacing={2}
-            >
-              <Typography
-                fontWeight="600"
-                variant="subtitle1"
-                color="#344054"
-                pb={theme.spacing(5)}
-              >
-                Organization Logo
-              </Typography>
-              <Avatar
-                user={organizationData}
-                size="large"
-                sx={{ width: 100, height: 100 }}
-              />
-              <input
-                type="file"
-                ref={fileInputRef}
-                style={{ display: "none" }}
-                accept="image/*"
-                onChange={handleFileChange}
-                disabled={isEditingDisabled}
-              />
-              <Stack
-                direction="row"
-                spacing={2}
-                alignItems={"center"}
-                sx={{ paddingTop: theme.spacing(10) }}
-              >
-                <Tooltip
-                  title="Only administrators are permitted to delete the organization's logo."
-                  disableHoverListener={!isEditingDisabled}
-                >
-                  <span>
-                    <Typography
-                      sx={{
-                        color: "#667085",
-                        cursor: isEditingDisabled ? "not-allowed" : "pointer",
-                        textDecoration: "none",
-                        "&:hover": {
-                          textDecoration: isEditingDisabled
-                            ? "none"
-                            : "underline",
-                        },
-                        fontSize: 13,
-                        opacity: isEditingDisabled ? 0.6 : 1,
-                      }}
-                      onClick={isEditingDisabled ? undefined : handleDeleteLogo}
-                    >
-                      Delete
-                    </Typography>
-                  </span>
-                </Tooltip>
-                <Tooltip
-                  title="Only administrators are permitted to update the organization's logo."
-                  disableHoverListener={!isEditingDisabled}
-                >
-                  <span>
-                    <Typography
-                      sx={{
-                        color: "#13715B",
-                        cursor: isEditingDisabled ? "not-allowed" : "pointer",
-                        textDecoration: "none",
-                        "&:hover": {
-                          textDecoration: isEditingDisabled
-                            ? "none"
-                            : "underline",
-                        },
-                        paddingLeft: theme.spacing(5),
-                        fontSize: 13,
-                        opacity: isEditingDisabled ? 0.6 : 1,
-                      }}
-                      onClick={isEditingDisabled ? undefined : handleUpdateLogo}
-                    >
-                      Update
-                    </Typography>
-                  </span>
-                </Tooltip>
-              </Stack>
-            </Stack>
-          </Box>
         </Box>
         <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
       </Stack>

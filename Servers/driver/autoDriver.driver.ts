@@ -1,12 +1,12 @@
 import { Project } from "../models/project.model";
 
-import {
-  getData,
-  deleteDemoVendorsData,
-} from "../utils/autoDriver.utils";
+import { getData, deleteDemoVendorsData } from "../utils/autoDriver.utils";
 import { createEUFrameworkQuery } from "../utils/eu.utils";
 import { sequelize } from "../database/db";
-import { createNewProjectQuery, deleteProjectByIdQuery } from "../utils/project.utils";
+import {
+  createNewProjectQuery,
+  deleteProjectByIdQuery,
+} from "../utils/project.utils";
 import { createProjectRiskQuery } from "../utils/projectRisk.utils";
 import { createNewVendorQuery } from "../utils/vendor.utils";
 import { createNewVendorRiskQuery } from "../utils/vendorRisk.utils";
@@ -20,7 +20,7 @@ import { addVendorProjects } from "../utils/vendor.utils";
 export async function insertMockData(userId: number | null = null) {
   const transaction = await sequelize.transaction();
   try {
-    let users = await getData("users", transaction) as User[];
+    let users = (await getData("users", transaction)) as User[];
     if (users.length < 2) {
       let u1 = await createNewUserQuery(
         {
@@ -34,7 +34,7 @@ export async function insertMockData(userId: number | null = null) {
         },
         transaction,
         true // is demo
-      )
+      );
       let u2 = await createNewUserQuery(
         {
           name: "Alice",
@@ -47,11 +47,11 @@ export async function insertMockData(userId: number | null = null) {
         },
         transaction,
         true // is demo
-      )
+      );
       users.push(u1, u2);
     }
 
-    let projects = (await getData("projects", transaction) as Project[])[0];
+    let projects = ((await getData("projects", transaction)) as Project[])[0];
     if (!projects) {
       const owner = userId ?? users[0].id!;
       // create project
@@ -75,7 +75,7 @@ export async function insertMockData(userId: number | null = null) {
         [1, 2], // frameworks
         transaction,
         true // is demo
-      )
+      );
 
       // ---- no need of is demo
       // create project risks
@@ -85,7 +85,8 @@ export async function insertMockData(userId: number | null = null) {
           risk_name: "Data Privacy Compliance",
           risk_owner: users[0].id!,
           ai_lifecycle_phase: "Monitoring & maintenance",
-          risk_description: "Risk of non-compliance with data privacy regulations.",
+          risk_description:
+            "Risk of non-compliance with data privacy regulations.",
           risk_category: "Cybersecurity risk",
           impact: "High",
           assessment_mapping: "GDPR Compliance Check",
@@ -109,10 +110,10 @@ export async function insertMockData(userId: number | null = null) {
           date_of_assessment: new Date(Date.now()),
         },
         transaction
-      )
+      );
 
       // create vendor
-      let vendor = (await getData("vendors", transaction) as Vendor[])[0];
+      let vendor = ((await getData("vendors", transaction)) as Vendor[])[0];
       if (!vendor) {
         vendor = await createNewVendorQuery(
           {
@@ -130,10 +131,10 @@ export async function insertMockData(userId: number | null = null) {
           },
           transaction,
           true // is demo
-        )
+        );
       } else {
         await addVendorProjects(vendor.id!, [project.id!], transaction);
-      }      
+      }
 
       // ---- no need of is demo
       // create vendor risks
@@ -149,11 +150,11 @@ export async function insertMockData(userId: number | null = null) {
           risk_level: "High risk",
         },
         transaction
-      )
+      );
 
       // create eu framework
-      await createEUFrameworkQuery(project.id!, true, transaction, true)
-      await createISOFrameworkQuery(project.id!, true, transaction, true)
+      await createEUFrameworkQuery(project.id!, true, transaction, true);
+      await createISOFrameworkQuery(project.id!, true, transaction, true);
     } else {
       // project already exists, delete it and insert a new one
     }
@@ -167,12 +168,12 @@ export async function insertMockData(userId: number | null = null) {
 export async function deleteMockData() {
   const transaction = await sequelize.transaction();
   try {
-    const demoProject = await getData("projects", transaction) as Project[];
+    const demoProject = (await getData("projects", transaction)) as Project[];
     for (let project of demoProject) {
       await deleteProjectByIdQuery(project.id!, transaction);
     }
     // delete vendor related data
-    await deleteDemoVendorsData(transaction)
+    await deleteDemoVendorsData(transaction);
     await transaction.commit();
   } catch (error) {
     await transaction.rollback();

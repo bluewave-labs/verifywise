@@ -1,5 +1,6 @@
 export const styles = {
   btnWrap: {
+    marginTop: 'auto',
     paddingTop: 12,
     display: "flex",
     alignItems: "flex-end",

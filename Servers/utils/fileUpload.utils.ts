@@ -14,7 +14,6 @@ export const uploadFile = async (
   source:
     | "Assessment tracker group"
     | "Compliance tracker group"
-    | "Report"
     | "Project risks report"
     | "Compliance tracker report"
     | "Assessment tracker report"

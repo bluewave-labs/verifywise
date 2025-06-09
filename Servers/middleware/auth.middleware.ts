@@ -2,22 +2,15 @@ import { NextFunction, Request, Response } from "express";
 import { getTokenPayload } from "../utils/jwt.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 
-// Extend Express Request interface to include userId and role
-// declare global {
-//   namespace Express {
-//     interface Request {
-//       userId?: string;
-//       role?: string;
-//     }
-//   }
-// }
-
-export interface _Request extends Request {
-  role?: string; // Define the type of role
+declare module 'express' {
+  interface Request {
+    userId?: number; 
+    role?: string;
+  }
 }
 
 const authenticateJWT = async (
-  req: _Request,
+  req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void | Response> => {

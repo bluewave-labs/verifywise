@@ -6,7 +6,6 @@ import { FileModel, FileType } from "../models/file.model";
 import { addFileToAnswerEU } from "../utils/eu.utils";
 import { sequelize } from "../database/db";
 import getUserFilesMetaDataQuery from "../utils/files/getUserFilesMetaData.utils";
-import { _Request } from "../middleware/auth.middleware";
 
 export async function getFileContentById(
   req: Request,
@@ -51,7 +50,7 @@ export async function getFileMetaByProjectId(
   }
 }
 
-export const getUserFilesMetaData = async (req: _Request, res: Response) => {
+export const getUserFilesMetaData = async (req: Request, res: Response) => {
   try {
     const userId = Number(req.userId);
     if (isNaN(userId)) {

@@ -8,7 +8,7 @@ export interface File {
   project_id: number;
   uploaded_by: number;
   uploaded_time: Date;
-  source: "Assessment tracker group" | "Compliance tracker group" | "Report" | "Management system clauses group" | "Reference controls group";
+  source: "Assessment tracker group" | "Compliance tracker group" | "Management system clauses group" | "Reference controls group";
 }
 
 export interface FileType {
@@ -18,7 +18,7 @@ export interface FileType {
   uploaded_by: number;
   uploaded_time: Date;
   type: string;
-  source: "Assessment tracker group" | "Compliance tracker group" | "Report" | "Management system clauses group" | "Reference controls group";
+  source: "Assessment tracker group" | "Compliance tracker group" | "Management system clauses group" | "Reference controls group";
 }
 
 @Table({
@@ -60,9 +60,9 @@ export class FileModel extends Model<File> {
   uploaded_time!: Date;
 
   @Column({
-    type: DataType.ENUM("Assessment tracker group", "Compliance tracker group", "Report", "Management system clauses group", "Reference controls group"),
+    type: DataType.ENUM("Assessment tracker group", "Compliance tracker group", "Management system clauses group", "Reference controls group"),
   })
-  source!: "Assessment tracker group" | "Compliance tracker group" | "Report" | "Management system clauses group" | "Reference controls group";
+  source!: "Assessment tracker group" | "Compliance tracker group" | "Management system clauses group" | "Reference controls group";
 
   @Column({
     type: DataType.STRING

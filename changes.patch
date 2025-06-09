@@ -1,0 +1,2133 @@
+From 88f7c9e241834b2a8e03904ffad047dc00d4a254 Mon Sep 17 00:00:00 2001
+From: EfeAcar6431 <efeacar2705@gmail.com>
+Date: Fri, 23 May 2025 20:12:56 -0400
+Subject: [PATCH 1/3] Fairness added
+
+---
+ .DS_Store                                     | Bin 0 -> 6148 bytes
+ Clients/src/application/config/routes.tsx     |   3 +
+ .../assets/icons/fairness-icon.svg            |   3 +
+ .../presentation/components/Sidebar/index.tsx |  11 ++
+ .../FairnessDashboard/FairnessDashboard.tsx   | 183 ++++++++++++++++++
+ .../pages/FairnessDashboard/styles.ts         |  26 +++
+ 6 files changed, 226 insertions(+)
+ create mode 100644 .DS_Store
+ create mode 100644 Clients/src/presentation/assets/icons/fairness-icon.svg
+ create mode 100644 Clients/src/presentation/pages/FairnessDashboard/FairnessDashboard.tsx
+ create mode 100644 Clients/src/presentation/pages/FairnessDashboard/styles.ts
+
+diff --git a/.DS_Store b/.DS_Store
+new file mode 100644
+index 0000000000000000000000000000000000000000..bf001026a758565611340bf388ed8d6c8f255b74
+GIT binary patch
+literal 6148
+zcmeHK%}T>S5T0$TO({YT3gT(OYsLO(LA->vzJL)usMLlQ4aRI~QgbMUJb=EC590GU
+zv%3MSJ$MqaGqC&3&d+Y<gX|9gi0*9E1gHUkgN;y-vO>tb(p9j*ghI~|K?1R##uGnW
+zG0|T%(YKeO2O$J7hELzGeDu8elQ4*rM&n%+ilvRsvQu`d&aL;LQZE@Mv$#8)UeoA8
+zsnE~$p??{S(?M;!r=nySMB}MW2u5QJxw#6WkxIL27L8(^>lueraVmq_-h6)0Y`2c<
+zve{`a>T-V4YSiUXyR%qSoSpr{)APY&_!OxZL#9C9wQO0;;T4rHbv=92C{)osdh)D1
+znvoe`2ABb6V4WDSr+`ykr=q!5W`G&^5d*Y8NNj|z#mu1II<TYbGx<w|B&gF{f>2s?
+zEoKJMgCa~SqDd9@i6Kln+NF(iEoKHyItaZo&SO{3A1^|$j&`ZTLAVCFX9k#oWd@37
+zSflg*41bxGkNo8n9x(&Vz&~R^l=@!3i$&S9^;>y#)=F%5*hnZYBLxNZrAq(~Xdl_t
+ePUDxPW1MR-Gf1<LU8f`RML-k69W(F?4154k4@}em
+
+literal 0
+HcmV?d00001
+
+diff --git a/Clients/src/application/config/routes.tsx b/Clients/src/application/config/routes.tsx
+index 91b65acc..05f55c16 100644
+--- a/Clients/src/application/config/routes.tsx
++++ b/Clients/src/application/config/routes.tsx
+@@ -19,6 +19,8 @@ import VWHome from "../../presentation/pages/Home/1.0Home";
+ import VWProjectView from "../../presentation/pages/ProjectView/V1.0ProjectView";
+ import PageNotFound from "../../presentation/pages/PageNotFound";
+ import ProtectedRoute from "../../presentation/components/ProtectedRoute";
++import FairnessDashboard from "../../presentation/pages/FairnessDashboard/FairnessDashboard";
++
+ 
+ export const createRoutes = (
+   triggerSidebar: boolean,
+@@ -43,6 +45,7 @@ export const createRoutes = (
+     <Route path="/reporting" element={<Reporting />} />
+     <Route path="/" element={<VWHome />} />
+     <Route path="/project-view" element={<VWProjectView />} />
++    <Route path="/fairness-dashboard" element={<FairnessDashboard />} />
+   </Route>,
+   <Route
+     key="admin-reg"
+diff --git a/Clients/src/presentation/assets/icons/fairness-icon.svg b/Clients/src/presentation/assets/icons/fairness-icon.svg
+new file mode 100644
+index 00000000..ca81b14e
+--- /dev/null
++++ b/Clients/src/presentation/assets/icons/fairness-icon.svg
+@@ -0,0 +1,3 @@
++<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
++<path d="M14.1087 13.9115H13.7224C13.7224 16.3216 15.5895 18.2498 17.8612 18.2498C20.1329 18.2498 22 16.2927 22 13.9115H21.6689H21.6137L18.8361 4.25153H18.9189V3.00789H11.7174L11.7358 0H11.699H11.653H10.3562H10.3102H10.2826L10.301 3.00789H3.0811V4.25153H3.16388L0.395485 13.9115H0.340301H0C0 16.312 1.86706 18.2498 4.1388 18.2498C6.41054 18.2498 8.27759 16.312 8.27759 13.9115H7.8913H7.79933L5.03094 4.25153L10.2734 4.2901V19.3585L10.2642 19.3295V19.3874H4.1204V22H17.8704V19.3777H11.7266V19.3199L11.7174 19.3488V4.2901L16.9599 4.25153L14.1823 13.9115H14.1087ZM6.8888 13.9115H1.3888L4.09281 4.35758L4.1204 4.34794L6.8888 13.9115ZM17.8704 4.3383L17.898 4.34794L20.602 13.9018H15.102L17.8704 4.3383Z" fill="#667085"/>
++</svg>
+diff --git a/Clients/src/presentation/components/Sidebar/index.tsx b/Clients/src/presentation/components/Sidebar/index.tsx
+index bf70dbb2..ad0fc840 100644
+--- a/Clients/src/presentation/components/Sidebar/index.tsx
++++ b/Clients/src/presentation/components/Sidebar/index.tsx
+@@ -30,6 +30,8 @@ import { ReactComponent as ReportingSvg } from "../../assets/icons/reporting.svg
+ import { ReactComponent as Vendors } from "../../assets/icons/building.svg";
+ import { ReactComponent as Settings } from "../../assets/icons/setting.svg";
+ import { ReactComponent as FileManager } from "../../assets/icons/file.svg";
++import { ReactComponent as FairnessIcon } from "../../assets/icons/fairness-icon.svg";
++
+ 
+ import Logo from "../../assets/imgs/logo.png";
+ 
+@@ -43,6 +45,9 @@ import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen"
+ import ReadyToSubscribeBox from "../ReadyToSubscribeBox/ReadyToSubscribeBox";
+ import { User } from "../../../domain/types/User";
+ 
++
++
++
+ const menu = [
+   {
+     name: "Dashboard",
+@@ -64,6 +69,12 @@ const menu = [
+     icon: <ReportingSvg />,
+     path: "/reporting",
+   },
++  {
++    name: "Bias & Fairness",
++    icon: <FairnessIcon />,
++    path: "/fairness-dashboard",
++  }
++  
+ ];
+ 
+ const other = [
+diff --git a/Clients/src/presentation/pages/FairnessDashboard/FairnessDashboard.tsx b/Clients/src/presentation/pages/FairnessDashboard/FairnessDashboard.tsx
+new file mode 100644
+index 00000000..25802230
+--- /dev/null
++++ b/Clients/src/presentation/pages/FairnessDashboard/FairnessDashboard.tsx
+@@ -0,0 +1,183 @@
++import React, { useState, useRef } from "react";
++import {
++  Box,
++  Button,
++  Typography,
++  Stack,
++  Table,
++  TableBody,
++  TableCell,
++  TableContainer,
++  TableHead,
++  TableRow,
++  Paper,
++  Popover,
++  Backdrop,
++} from "@mui/material";
++import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
++import { TabContext, TabList, TabPanel } from "@mui/lab";
++import Tab from "@mui/material/Tab";
++import { styles } from "./styles";
++
++export default function FairnessDashboard() {
++  const [tab, setTab] = useState("uploads");
++  const [anchorEl, setAnchorEl] = useState(null);
++  const [showBackdrop, setShowBackdrop] = useState(false);
++  const [hasInteracted, setHasInteracted] = useState(false);
++  const buttonRef = useRef(null);
++
++  const handleDotClick = () => {
++    if (hasInteracted) return;
++    setAnchorEl(buttonRef.current);
++    setShowBackdrop(true);
++    setHasInteracted(true);
++  };
++
++  const handlePopoverClose = () => {
++    setAnchorEl(null);
++    setShowBackdrop(false);
++  };
++
++  const open = Boolean(anchorEl);
++  const id = open ? "info-popover" : undefined;
++
++  const modelEntries = [
++    { name: "InsuranceTracker", date: "5 May 2025", status: "Pending" },
++    { name: "StockPickerBot", date: "19 April 2025", status: "Completed" },
++  ];
++
++  return (
++    <Stack className="vwhome" gap="20px">
++      <Box>
++        <Typography sx={styles.vwHeadingTitle}>Bias and Fairness Dashboard</Typography>
++        <Typography sx={styles.vwSubHeadingTitle}>
++          View previously validated fairness checks or create a new one.
++        </Typography>
++      </Box>
++
++      <TabContext value={tab}>
++        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
++          <TabList
++            onChange={(e, newVal) => setTab(newVal)}
++            aria-label="Fairness Tabs"
++            TabIndicatorProps={{
++              style: {
++                backgroundColor: "#13715B",
++              },
++            }}
++          >
++            <Tab 
++              label={<Typography sx={{ textTransform: "none", color: tab === "uploads" ? "#13715B" : "#000", fontWeight: tab === "uploads" ? 600 : 500 }}>Uploads</Typography>} 
++              value="uploads" 
++            />
++          </TabList>
++        </Box>
++
++        <TabPanel value="uploads" sx={{ px: 0 }}>
++          <Box display="flex" justifyContent="flex-end" mb={3} position="relative">
++            <Button
++              ref={buttonRef}
++              variant="contained"
++              size="medium"
++              startIcon={<AddCircleOutlineIcon />}
++              sx={{
++                backgroundColor: "#13715B",
++                color: "white",
++                textTransform: "none",
++                fontSize: "0.875rem",
++                fontWeight: 500,
++                padding: "6px 16px",
++                borderRadius: 2,
++                fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
++                lineHeight: 1.75,
++                minWidth: "64px",
++                position: "relative",
++                zIndex: 2,
++                "&:hover": {
++                  backgroundColor: "#0f604d",
++                },
++              }}
++            >
++              Add Model
++            </Button>
++            {!hasInteracted && (
++              <Box
++                onClick={handleDotClick}
++                sx={{
++                  width: 12,
++                  height: 12,
++                  borderRadius: "50%",
++                  backgroundColor: "#1976d2",
++                  position: "absolute",
++                  top: -8,
++                  right: -8,
++                  cursor: "pointer",
++                  zIndex: 3,
++                  animation: "pulse 1.5s infinite",
++                  "@keyframes pulse": {
++                    "0%": { transform: "scale(0.8)", opacity: 1 },
++                    "100%": { transform: "scale(2.4)", opacity: 0 },
++                  },
++                }}
++              />
++            )}
++            <Popover
++              id={id}
++              open={open}
++              anchorEl={anchorEl}
++              onClose={handlePopoverClose}
++              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
++              transformOrigin={{ vertical: "top", horizontal: "right" }}
++              disableRestoreFocus
++            >
++              <Box sx={{ p: 2, maxWidth: 300 }}>
++                <Typography variant="body2">
++                  Click "Add Model" to start a new fairness validation.
++                </Typography>
++              </Box>
++            </Popover>
++            <Backdrop
++              open={showBackdrop}
++              sx={{ zIndex: 1, backgroundColor: "rgba(0, 0, 0, 0.3)" }}
++              onClick={handlePopoverClose}
++            />
++          </Box>
++
++          <TableContainer component={Paper}>
++            <Table>
++              <TableHead>
++                <TableRow>
++                  <TableCell><strong>Name</strong></TableCell>
++                  <TableCell><strong>Last Updated</strong></TableCell>
++                  <TableCell><strong>Status</strong></TableCell>
++                  <TableCell align="right"><strong>Action</strong></TableCell>
++                </TableRow>
++              </TableHead>
++              <TableBody>
++                {modelEntries.map((entry, idx) => (
++                  <TableRow key={idx}>
++                    <TableCell>{entry.name}</TableCell>
++                    <TableCell>{entry.date}</TableCell>
++                    <TableCell>{entry.status}</TableCell>
++                    <TableCell align="right">
++                      <Button
++                        variant="outlined"
++                        sx={{
++                          textTransform: "none",
++                          fontWeight: 500,
++                          fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
++                        }}
++                      >
++                        View Details
++                      </Button>
++                    </TableCell>
++                  </TableRow>
++                ))}
++              </TableBody>
++            </Table>
++          </TableContainer>
++        </TabPanel>
++      </TabContext>
++    </Stack>
++  );
++}
+diff --git a/Clients/src/presentation/pages/FairnessDashboard/styles.ts b/Clients/src/presentation/pages/FairnessDashboard/styles.ts
+new file mode 100644
+index 00000000..714c0a57
+--- /dev/null
++++ b/Clients/src/presentation/pages/FairnessDashboard/styles.ts
+@@ -0,0 +1,26 @@
++export const styles = {
++    vwHeadingTitle: {
++      color: "#1A1919",
++      fontSize: 16,
++      fontWeight: 600,
++      marginBottom: 8,
++    },
++    vwSubHeadingTitle: {
++      color: "#344054",
++      fontSize: 13,
++    },
++    tabDivider: {
++      borderBottom: 1, 
++      borderColor: "divider"
++    },
++    tabList: {
++      minHeight: "20px",
++      "& .MuiTabs-flexContainer": { columnGap: "34px" }
++    },
++    greenButton: {
++      backgroundColor: "#13715B",
++      "&:hover": {
++        backgroundColor: "#0c4e3e",
++      },
++    }
++  }
+\ No newline at end of file
+-- 
+2.39.3 (Apple Git-146)
+
+
+From ca2be730e6b9b9cbebc5cb121d576f4455629b60 Mon Sep 17 00:00:00 2001
+From: EfeAcar6431 <efeacar2705@gmail.com>
+Date: Wed, 28 May 2025 21:25:06 -0400
+Subject: [PATCH 2/3] New version
+
+---
+ .DS_Store                                     | Bin 6148 -> 8196 bytes
+ Clients/package-lock.json                     | 370 +++++++++++++++++-
+ Clients/package.json                          |   1 +
+ Clients/src/application/config/routes.tsx     |   2 +
+ .../assets/icons/fairness-icon.svg            |   4 +-
+ .../FairnessDashboard/FairnessDashboard.tsx   | 177 ++++++++-
+ .../FairnessDashboard/FairnessResultsPage.tsx | 164 ++++++++
+ 7 files changed, 675 insertions(+), 43 deletions(-)
+ create mode 100644 Clients/src/presentation/pages/FairnessDashboard/FairnessResultsPage.tsx
+
+diff --git a/.DS_Store b/.DS_Store
+index bf001026a758565611340bf388ed8d6c8f255b74..6992d364155d01d26d80632b7f9418620057898f 100644
+GIT binary patch
+literal 8196
+zcmeHMTWl0n7(U;$&>2Qxs1ypa>`Da+v|(G?Dx$FMZk79OTY8~Tc6UZPGMy<qv%6qZ
+zQ=hy5CcbDC)HkC(c!@%kS0!p<d>}}a7fnn|yu5ffF){vU&MeRth);&#oMg^F=f9lO
+z|DW$WvuDZ}Lq|bxVyu=iCey{Grc!r}#_jx?(xgCBNfH##n9V%qW=rl!)|%oSD#8kc
+z6$mR3Rv@fESb>|N0`$)2O}@^1Us%IFtUy?S|78XE{t%;!%S0f@h4i-$>ii=BNqz+I
+z8{N}6z>kRqG7-peA^lLAQ=A?Ugd#X%K!lS$#@$IK0y!?E2xk!C48h6>PAKqKr?{B!
+z&X5o??86F#6_{E9PM<24WEL}-arOD#$&%%4cEmDWFCM=LsiJb)^eVYZR^@%^A*Yn~
+zGG4*$$mI9(QJ3Rb+46lRyT>$2gWBArV|y9XHu8ResT<@n&|})VQ|fREw(k0|X<?8R
+zSsBz8j*d32X>Mt4h&8n}jWxtZ*EYu+Vl8Xh#>N!6rf&7R-Ghg$VcR(_QbDjCu$hxm
+zJ25pc%Pl6e7SF39RnF^DIWJ{~s?Ln`^!D}d9T?QKf@|zHtc+(Cja0@n+(B)&OKEP(
+zIrh%HQKa;Ga*kCPw#hOlm$7mMayHs6D{Vd^ymNWSvUWPI>6wn**XtQaJZ|F?O)&NL
+zyH4Iq`jhpVG{5kw=4<R2;lb`6Bkz(_ls9J0kKR?^*nIbWiOx;icVC#T&8b$^nt44%
+z(>1e}(U);^hOL|S!S0f&dqe$HS=%!oGL5{V%t1q!of$SRRM#$8c*mkhMEG2ZDbLbd
+z$eM=>rgv1UlV!0+WJ#SOYo`ZvN^+Z{^BHyD5{WEXF3WqlKAAVD7iu-Ks(}JBT`r{@
+z{F(74MbX@@L-hDXsM^{lE1KSIWwM49sP0`ysx3W5k#V4`*&r*uIcIp7l5vGDl1$06
+z_VIqc@Yam$?HDm^TAQc#z>-L$kL%lY-Owq6g|!Q+BU>WdWbM4%?+#`1#*PwUvaH`F
+z%l^|PJ)fylH$CUFv6~w;(=M6>cX|c_^>STenZR3JqCU7O<Ik^gT_P^V8h@`vSe$jR
+z&1^p#VMp09_AGmuy~|FsGwdAuj9p}3vv1i?>}U21`<?xTO3c7qEW%POM?F@c8Eepj
+zHYBkX+prz|$U%pJgRoFQ5hWbOqj(%o;7J_AGk5_faSAWt6}*YJ@HWok1AK^c_y`yA
+z6~4pw_yND-H~fJ=r3&dbX{Izwib*S^mC`C{y|h8vDD9H^r9o*(WFVCpwy&IFpnsU;
+zq@9BpMqmCo!=#hfW?1yWjhi-aX}xI~_T?<jsoUq)%$pxux^i{PJ@>a?MxFp_8JkyQ
+z-iP@Fa`-U!p)eVuKKaze(Qe{_apVg71RKj7)T%gN<qO>VPPHzoO(Uj=;WD*8s!b=B
+zh~cVeV^oufoMIS{Hmh0%QBUz>TceGt23ZW&s_Rs(l1M0q>(#}o#uPE=h^C?%r<DBf
+z!F@w$f5OhQF9_N{614wD1!T-e49gHFD6dBX?MR`M;Jg#NkVY5wVGsw9C2(7?;ovax
+z7{wStdmNA9DICWMJdNk@JOTU^UL<(Gir4Tu-oa^{!Fzb$2l}V@9G4~mck4vp;+v_!
+zEvECf<=6+wQil7)pj&cOA+oCF=l{;@fB(NFa}SdWD-c#dQ~;H!bgF~yuebL}WQ);t
+zfG*y+-?)%|2zA_r>;2<6$;<yRr2AN4O9XOUNU~7-&p!m*@E3OY{tw^(J}htf?jIVp
+BYi$4k
+
+delta 132
+zcmZp1XfcprU|?W$DortDU=RQ@Ie-{MGjdEU6q~50$jCG?VE1GL8J5ZX0uz`Gjg2NR
+z5(t?rDE@6@gEZ@6b`B0fW}s>y5a0$9t{{yY3%@f@=9jTl00}cPFfc)B77z{OfUE%7
+L%CI?}XAUy}2T>GI
+
+diff --git a/Clients/package-lock.json b/Clients/package-lock.json
+index 1b4f9ce1..27022975 100644
+--- a/Clients/package-lock.json
++++ b/Clients/package-lock.json
+@@ -15,6 +15,7 @@
+         "@mui/lab": "^6.0.0-beta.10",
+         "@mui/material": "^6.1.6",
+         "@mui/styled-engine-sc": "^6.1.0",
++        "@mui/x-charts": "^8.4.0",
+         "@mui/x-date-pickers": "^7.18.0",
+         "@reduxjs/toolkit": "^2.2.7",
+         "@svgr/rollup": "^8.1.0",
+@@ -1544,12 +1545,10 @@
+       }
+     },
+     "node_modules/@babel/runtime": {
+-      "version": "7.26.0",
+-      "resolved": "https://registry.npmjs.org/@babel/runtime/-/runtime-7.26.0.tgz",
+-      "integrity": "sha512-FDSOghenHTiToteC/QRlv2q3DhPZ/oOXTBoirfWNx1Cx3TMVcGWQtMMmQcSvb/JjpNeGzx8Pq/b4fKEJuWm1sw==",
+-      "dependencies": {
+-        "regenerator-runtime": "^0.14.0"
+-      },
++      "version": "7.27.1",
++      "resolved": "https://registry.npmjs.org/@babel/runtime/-/runtime-7.27.1.tgz",
++      "integrity": "sha512-1x3D2xEk2fRo3PAhwQwu5UubzgiVWSXTBfWpVd2Mx2AzRqJuDJCsgaDVZ7HB5iGzDW1Hl1sWN2mFyKjmR9uAog==",
++      "license": "MIT",
+       "engines": {
+         "node": ">=6.9.0"
+       }
+@@ -2669,9 +2668,13 @@
+       }
+     },
+     "node_modules/@mui/types": {
+-      "version": "7.2.19",
+-      "resolved": "https://registry.npmjs.org/@mui/types/-/types-7.2.19.tgz",
+-      "integrity": "sha512-6XpZEM/Q3epK9RN8ENoXuygnqUQxE+siN/6rGRi2iwJPgBUR25mphYQ9ZI87plGh58YoZ5pp40bFvKYOCDJ3tA==",
++      "version": "7.4.2",
++      "resolved": "https://registry.npmjs.org/@mui/types/-/types-7.4.2.tgz",
++      "integrity": "sha512-edRc5JcLPsrlNFYyTPxds+d5oUovuUxnnDtpJUbP6WMeV4+6eaX/mqai1ZIWT62lCOe0nlrON0s9HDiv5en5bA==",
++      "license": "MIT",
++      "dependencies": {
++        "@babel/runtime": "^7.27.1"
++      },
+       "peerDependencies": {
+         "@types/react": "^17.0.0 || ^18.0.0 || ^19.0.0"
+       },
+@@ -2710,6 +2713,123 @@
+         }
+       }
+     },
++    "node_modules/@mui/x-charts": {
++      "version": "8.4.0",
++      "resolved": "https://registry.npmjs.org/@mui/x-charts/-/x-charts-8.4.0.tgz",
++      "integrity": "sha512-XXXt6cHgpTTkLWIImBy0OPD0FwuOdux4AprP/0Zvs0PXuM9D9eeN1piZvo5gjZbPHSsCzIyZzwx9PGncFScgEQ==",
++      "license": "MIT",
++      "dependencies": {
++        "@babel/runtime": "^7.27.1",
++        "@mui/utils": "^7.0.2",
++        "@mui/x-charts-vendor": "8.4.0",
++        "@mui/x-internals": "8.4.0",
++        "bezier-easing": "^2.1.0",
++        "clsx": "^2.1.1",
++        "prop-types": "^15.8.1",
++        "reselect": "^5.1.1",
++        "use-sync-external-store": "^1.5.0"
++      },
++      "engines": {
++        "node": ">=14.0.0"
++      },
++      "peerDependencies": {
++        "@emotion/react": "^11.9.0",
++        "@emotion/styled": "^11.8.1",
++        "@mui/material": "^5.15.14 || ^6.0.0 || ^7.0.0",
++        "@mui/system": "^5.15.14 || ^6.0.0 || ^7.0.0",
++        "react": "^17.0.0 || ^18.0.0 || ^19.0.0",
++        "react-dom": "^17.0.0 || ^18.0.0 || ^19.0.0"
++      },
++      "peerDependenciesMeta": {
++        "@emotion/react": {
++          "optional": true
++        },
++        "@emotion/styled": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/@mui/x-charts-vendor": {
++      "version": "8.4.0",
++      "resolved": "https://registry.npmjs.org/@mui/x-charts-vendor/-/x-charts-vendor-8.4.0.tgz",
++      "integrity": "sha512-0VvwJSeFezJTnjoKg5YUbbI82a60+VZfH2RyqaosmKH516lKYKSCuAFmkj4vUBP6+ZJPZDW5mWI3VhwD4DN6hg==",
++      "license": "MIT AND ISC",
++      "dependencies": {
++        "@babel/runtime": "^7.27.1",
++        "@types/d3-color": "^3.1.3",
++        "@types/d3-delaunay": "^6.0.4",
++        "@types/d3-interpolate": "^3.0.4",
++        "@types/d3-scale": "^4.0.9",
++        "@types/d3-shape": "^3.1.7",
++        "@types/d3-time": "^3.0.4",
++        "@types/d3-timer": "^3.0.2",
++        "d3-color": "^3.1.0",
++        "d3-delaunay": "^6.0.4",
++        "d3-interpolate": "^3.0.1",
++        "d3-scale": "^4.0.2",
++        "d3-shape": "^3.2.0",
++        "d3-time": "^3.1.0",
++        "d3-timer": "^3.0.1",
++        "delaunator": "^5.0.1",
++        "robust-predicates": "^3.0.2"
++      }
++    },
++    "node_modules/@mui/x-charts/node_modules/@mui/utils": {
++      "version": "7.1.0",
++      "resolved": "https://registry.npmjs.org/@mui/utils/-/utils-7.1.0.tgz",
++      "integrity": "sha512-/OM3S8kSHHmWNOP+NH9xEtpYSG10upXeQ0wLZnfDgmgadTAk5F4MQfFLyZ5FCRJENB3eRzltMmaNl6UtDnPovw==",
++      "license": "MIT",
++      "dependencies": {
++        "@babel/runtime": "^7.27.1",
++        "@mui/types": "^7.4.2",
++        "@types/prop-types": "^15.7.14",
++        "clsx": "^2.1.1",
++        "prop-types": "^15.8.1",
++        "react-is": "^19.1.0"
++      },
++      "engines": {
++        "node": ">=14.0.0"
++      },
++      "funding": {
++        "type": "opencollective",
++        "url": "https://opencollective.com/mui-org"
++      },
++      "peerDependencies": {
++        "@types/react": "^17.0.0 || ^18.0.0 || ^19.0.0",
++        "react": "^17.0.0 || ^18.0.0 || ^19.0.0"
++      },
++      "peerDependenciesMeta": {
++        "@types/react": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/@mui/x-charts/node_modules/@mui/x-internals": {
++      "version": "8.4.0",
++      "resolved": "https://registry.npmjs.org/@mui/x-internals/-/x-internals-8.4.0.tgz",
++      "integrity": "sha512-Z7FCahC4MLfTVzEwnKOB7P1fiR9DzFuMzHOPRNaMXc/rsS7unbtBKAG94yvsRzReCyjzZUVA7h37lnQ1DoPKJw==",
++      "license": "MIT",
++      "dependencies": {
++        "@babel/runtime": "^7.27.1",
++        "@mui/utils": "^7.0.2"
++      },
++      "engines": {
++        "node": ">=14.0.0"
++      },
++      "funding": {
++        "type": "opencollective",
++        "url": "https://opencollective.com/mui-org"
++      },
++      "peerDependencies": {
++        "react": "^17.0.0 || ^18.0.0 || ^19.0.0"
++      }
++    },
++    "node_modules/@mui/x-charts/node_modules/react-is": {
++      "version": "19.1.0",
++      "resolved": "https://registry.npmjs.org/react-is/-/react-is-19.1.0.tgz",
++      "integrity": "sha512-Oe56aUPnkHyyDxxkvqtd7KkdQP5uIUfHxd5XTb3wE9d/kRnZLmKbDB0GWk919tdQ+mxxPtG6EAs6RMT6i1qtHg==",
++      "license": "MIT"
++    },
+     "node_modules/@mui/x-date-pickers": {
+       "version": "7.23.0",
+       "resolved": "https://registry.npmjs.org/@mui/x-date-pickers/-/x-date-pickers-7.23.0.tgz",
+@@ -3982,6 +4102,63 @@
+         "node": ">=10.13.0"
+       }
+     },
++    "node_modules/@types/d3-color": {
++      "version": "3.1.3",
++      "resolved": "https://registry.npmjs.org/@types/d3-color/-/d3-color-3.1.3.tgz",
++      "integrity": "sha512-iO90scth9WAbmgv7ogoq57O9YpKmFBbmoEoCHDB2xMBY0+/KVrqAaCDyCE16dUspeOvIxFFRI+0sEtqDqy2b4A==",
++      "license": "MIT"
++    },
++    "node_modules/@types/d3-delaunay": {
++      "version": "6.0.4",
++      "resolved": "https://registry.npmjs.org/@types/d3-delaunay/-/d3-delaunay-6.0.4.tgz",
++      "integrity": "sha512-ZMaSKu4THYCU6sV64Lhg6qjf1orxBthaC161plr5KuPHo3CNm8DTHiLw/5Eq2b6TsNP0W0iJrUOFscY6Q450Hw==",
++      "license": "MIT"
++    },
++    "node_modules/@types/d3-interpolate": {
++      "version": "3.0.4",
++      "resolved": "https://registry.npmjs.org/@types/d3-interpolate/-/d3-interpolate-3.0.4.tgz",
++      "integrity": "sha512-mgLPETlrpVV1YRJIglr4Ez47g7Yxjl1lj7YKsiMCb27VJH9W8NVM6Bb9d8kkpG/uAQS5AmbA48q2IAolKKo1MA==",
++      "license": "MIT",
++      "dependencies": {
++        "@types/d3-color": "*"
++      }
++    },
++    "node_modules/@types/d3-path": {
++      "version": "3.1.1",
++      "resolved": "https://registry.npmjs.org/@types/d3-path/-/d3-path-3.1.1.tgz",
++      "integrity": "sha512-VMZBYyQvbGmWyWVea0EHs/BwLgxc+MKi1zLDCONksozI4YJMcTt8ZEuIR4Sb1MMTE8MMW49v0IwI5+b7RmfWlg==",
++      "license": "MIT"
++    },
++    "node_modules/@types/d3-scale": {
++      "version": "4.0.9",
++      "resolved": "https://registry.npmjs.org/@types/d3-scale/-/d3-scale-4.0.9.tgz",
++      "integrity": "sha512-dLmtwB8zkAeO/juAMfnV+sItKjlsw2lKdZVVy6LRr0cBmegxSABiLEpGVmSJJ8O08i4+sGR6qQtb6WtuwJdvVw==",
++      "license": "MIT",
++      "dependencies": {
++        "@types/d3-time": "*"
++      }
++    },
++    "node_modules/@types/d3-shape": {
++      "version": "3.1.7",
++      "resolved": "https://registry.npmjs.org/@types/d3-shape/-/d3-shape-3.1.7.tgz",
++      "integrity": "sha512-VLvUQ33C+3J+8p+Daf+nYSOsjB4GXp19/S/aGo60m9h1v6XaxjiT82lKVWJCfzhtuZ3yD7i/TPeC/fuKLLOSmg==",
++      "license": "MIT",
++      "dependencies": {
++        "@types/d3-path": "*"
++      }
++    },
++    "node_modules/@types/d3-time": {
++      "version": "3.0.4",
++      "resolved": "https://registry.npmjs.org/@types/d3-time/-/d3-time-3.0.4.tgz",
++      "integrity": "sha512-yuzZug1nkAAaBlBBikKZTgzCeA+k1uy4ZFwWANOfKw5z5LRhV0gNA7gNkKm7HoK+HRN0wX3EkxGk0fpbWhmB7g==",
++      "license": "MIT"
++    },
++    "node_modules/@types/d3-timer": {
++      "version": "3.0.2",
++      "resolved": "https://registry.npmjs.org/@types/d3-timer/-/d3-timer-3.0.2.tgz",
++      "integrity": "sha512-Ps3T8E8dZDam6fUyNiMkekK3XUsaUEik+idO9/YjPtfj2qruF8tFBXS7XhtE4iIXBLxhmLjP3SXpLhVf21I9Lw==",
++      "license": "MIT"
++    },
+     "node_modules/@types/eslint": {
+       "version": "9.6.1",
+       "resolved": "https://registry.npmjs.org/@types/eslint/-/eslint-9.6.1.tgz",
+@@ -4059,9 +4236,10 @@
+       "integrity": "sha512-dISoDXWWQwUquiKsyZ4Ng+HX2KsPL7LyHKHQwgGFEA3IaKac4Obd+h2a/a6waisAoepJlBcx9paWqjA8/HVjCw=="
+     },
+     "node_modules/@types/prop-types": {
+-      "version": "15.7.13",
+-      "resolved": "https://registry.npmjs.org/@types/prop-types/-/prop-types-15.7.13.tgz",
+-      "integrity": "sha512-hCZTSvwbzWGvhqxp/RqVqwU999pBf2vp7hzIjiYOsl8wqOmUxkQ6ddw1cV3l8811+kdUFus/q4d1Y3E3SyEifA=="
++      "version": "15.7.14",
++      "resolved": "https://registry.npmjs.org/@types/prop-types/-/prop-types-15.7.14.tgz",
++      "integrity": "sha512-gNMvNH49DJ7OJYv+KAKn0Xp45p8PLl6zo2YnvDIbTd4J6MER2BmWN49TG7n9LvkyihINxeKW8+3bfS2yDC9dzQ==",
++      "license": "MIT"
+     },
+     "node_modules/@types/react": {
+       "version": "18.3.12",
+@@ -4924,6 +5102,12 @@
+       "integrity": "sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==",
+       "dev": true
+     },
++    "node_modules/bezier-easing": {
++      "version": "2.1.0",
++      "resolved": "https://registry.npmjs.org/bezier-easing/-/bezier-easing-2.1.0.tgz",
++      "integrity": "sha512-gbIqZ/eslnUFC1tjEvtz0sgx+xTK20wDnYMIA27VA04R7w6xxXQPZDbibjA9DTWZRA2CXtwHykkVzlCaAJAZig==",
++      "license": "MIT"
++    },
+     "node_modules/big.js": {
+       "version": "5.2.2",
+       "resolved": "https://registry.npmjs.org/big.js/-/big.js-5.2.2.tgz",
+@@ -5287,6 +5471,130 @@
+       "resolved": "https://registry.npmjs.org/csstype/-/csstype-3.1.3.tgz",
+       "integrity": "sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw=="
+     },
++    "node_modules/d3-array": {
++      "version": "3.2.4",
++      "resolved": "https://registry.npmjs.org/d3-array/-/d3-array-3.2.4.tgz",
++      "integrity": "sha512-tdQAmyA18i4J7wprpYq8ClcxZy3SC31QMeByyCFyRt7BVHdREQZ5lpzoe5mFEYZUWe+oq8HBvk9JjpibyEV4Jg==",
++      "license": "ISC",
++      "dependencies": {
++        "internmap": "1 - 2"
++      },
++      "engines": {
++        "node": ">=12"
++      }
++    },
++    "node_modules/d3-color": {
++      "version": "3.1.0",
++      "resolved": "https://registry.npmjs.org/d3-color/-/d3-color-3.1.0.tgz",
++      "integrity": "sha512-zg/chbXyeBtMQ1LbD/WSoW2DpC3I0mpmPdW+ynRTj/x2DAWYrIY7qeZIHidozwV24m4iavr15lNwIwLxRmOxhA==",
++      "license": "ISC",
++      "engines": {
++        "node": ">=12"
++      }
++    },
++    "node_modules/d3-delaunay": {
++      "version": "6.0.4",
++      "resolved": "https://registry.npmjs.org/d3-delaunay/-/d3-delaunay-6.0.4.tgz",
++      "integrity": "sha512-mdjtIZ1XLAM8bm/hx3WwjfHt6Sggek7qH043O8KEjDXN40xi3vx/6pYSVTwLjEgiXQTbvaouWKynLBiUZ6SK6A==",
++      "license": "ISC",
++      "dependencies": {
++        "delaunator": "5"
++      },
++      "engines": {
++        "node": ">=12"
++      }
++    },
++    "node_modules/d3-format": {
++      "version": "3.1.0",
++      "resolved": "https://registry.npmjs.org/d3-format/-/d3-format-3.1.0.tgz",
++      "integrity": "sha512-YyUI6AEuY/Wpt8KWLgZHsIU86atmikuoOmCfommt0LYHiQSPjvX2AcFc38PX0CBpr2RCyZhjex+NS/LPOv6YqA==",
++      "license": "ISC",
++      "engines": {
++        "node": ">=12"
++      }
++    },
++    "node_modules/d3-interpolate": {
++      "version": "3.0.1",
++      "resolved": "https://registry.npmjs.org/d3-interpolate/-/d3-interpolate-3.0.1.tgz",
++      "integrity": "sha512-3bYs1rOD33uo8aqJfKP3JWPAibgw8Zm2+L9vBKEHJ2Rg+viTR7o5Mmv5mZcieN+FRYaAOWX5SJATX6k1PWz72g==",
++      "license": "ISC",
++      "dependencies": {
++        "d3-color": "1 - 3"
++      },
++      "engines": {
++        "node": ">=12"
++      }
++    },
++    "node_modules/d3-path": {
++      "version": "3.1.0",
++      "resolved": "https://registry.npmjs.org/d3-path/-/d3-path-3.1.0.tgz",
++      "integrity": "sha512-p3KP5HCf/bvjBSSKuXid6Zqijx7wIfNW+J/maPs+iwR35at5JCbLUT0LzF1cnjbCHWhqzQTIN2Jpe8pRebIEFQ==",
++      "license": "ISC",
++      "engines": {
++        "node": ">=12"
++      }
++    },
++    "node_modules/d3-scale": {
++      "version": "4.0.2",
++      "resolved": "https://registry.npmjs.org/d3-scale/-/d3-scale-4.0.2.tgz",
++      "integrity": "sha512-GZW464g1SH7ag3Y7hXjf8RoUuAFIqklOAq3MRl4OaWabTFJY9PN/E1YklhXLh+OQ3fM9yS2nOkCoS+WLZ6kvxQ==",
++      "license": "ISC",
++      "dependencies": {
++        "d3-array": "2.10.0 - 3",
++        "d3-format": "1 - 3",
++        "d3-interpolate": "1.2.0 - 3",
++        "d3-time": "2.1.1 - 3",
++        "d3-time-format": "2 - 4"
++      },
++      "engines": {
++        "node": ">=12"
++      }
++    },
++    "node_modules/d3-shape": {
++      "version": "3.2.0",
++      "resolved": "https://registry.npmjs.org/d3-shape/-/d3-shape-3.2.0.tgz",
++      "integrity": "sha512-SaLBuwGm3MOViRq2ABk3eLoxwZELpH6zhl3FbAoJ7Vm1gofKx6El1Ib5z23NUEhF9AsGl7y+dzLe5Cw2AArGTA==",
++      "license": "ISC",
++      "dependencies": {
++        "d3-path": "^3.1.0"
++      },
++      "engines": {
++        "node": ">=12"
++      }
++    },
++    "node_modules/d3-time": {
++      "version": "3.1.0",
++      "resolved": "https://registry.npmjs.org/d3-time/-/d3-time-3.1.0.tgz",
++      "integrity": "sha512-VqKjzBLejbSMT4IgbmVgDjpkYrNWUYJnbCGo874u7MMKIWsILRX+OpX/gTk8MqjpT1A/c6HY2dCA77ZN0lkQ2Q==",
++      "license": "ISC",
++      "dependencies": {
++        "d3-array": "2 - 3"
++      },
++      "engines": {
++        "node": ">=12"
++      }
++    },
++    "node_modules/d3-time-format": {
++      "version": "4.1.0",
++      "resolved": "https://registry.npmjs.org/d3-time-format/-/d3-time-format-4.1.0.tgz",
++      "integrity": "sha512-dJxPBlzC7NugB2PDLwo9Q8JiTR3M3e4/XANkreKSUxF8vvXKqm1Yfq4Q5dl8budlunRVlUUaDUgFt7eA8D6NLg==",
++      "license": "ISC",
++      "dependencies": {
++        "d3-time": "1 - 3"
++      },
++      "engines": {
++        "node": ">=12"
++      }
++    },
++    "node_modules/d3-timer": {
++      "version": "3.0.1",
++      "resolved": "https://registry.npmjs.org/d3-timer/-/d3-timer-3.0.1.tgz",
++      "integrity": "sha512-ndfJ/JxxMd3nw31uyKoY2naivF+r29V+Lc0svZxe1JvvIRmi8hUsrMvdOwgS1o6uBHmiz91geQ0ylPP0aj1VUA==",
++      "license": "ISC",
++      "engines": {
++        "node": ">=12"
++      }
++    },
+     "node_modules/dayjs": {
+       "version": "1.11.13",
+       "resolved": "https://registry.npmjs.org/dayjs/-/dayjs-1.11.13.tgz",
+@@ -5327,6 +5635,15 @@
+         "node": ">=0.10.0"
+       }
+     },
++    "node_modules/delaunator": {
++      "version": "5.0.1",
++      "resolved": "https://registry.npmjs.org/delaunator/-/delaunator-5.0.1.tgz",
++      "integrity": "sha512-8nvh+XBe96aCESrGOqMp/84b13H9cdKbG5P2ejQCh4d4sK9RL4371qou9drQjMhvnPmhWl5hnmqbEE0fXr9Xnw==",
++      "license": "ISC",
++      "dependencies": {
++        "robust-predicates": "^3.0.2"
++      }
++    },
+     "node_modules/delayed-stream": {
+       "version": "1.0.0",
+       "resolved": "https://registry.npmjs.org/delayed-stream/-/delayed-stream-1.0.0.tgz",
+@@ -6078,6 +6395,15 @@
+         "node": ">=0.8.19"
+       }
+     },
++    "node_modules/internmap": {
++      "version": "2.0.3",
++      "resolved": "https://registry.npmjs.org/internmap/-/internmap-2.0.3.tgz",
++      "integrity": "sha512-5Hh7Y1wQbvY5ooGgPbDaL5iYLAPzMTUrjMulskHLH6wnv/A+1q5rgEaiuqEjB+oxGXIVZs1FF+R/KPN3ZSQYYg==",
++      "license": "ISC",
++      "engines": {
++        "node": ">=12"
++      }
++    },
+     "node_modules/is-arrayish": {
+       "version": "0.2.1",
+       "resolved": "https://registry.npmjs.org/is-arrayish/-/is-arrayish-0.2.1.tgz",
+@@ -7301,11 +7627,6 @@
+         "node": ">=4"
+       }
+     },
+-    "node_modules/regenerator-runtime": {
+-      "version": "0.14.1",
+-      "resolved": "https://registry.npmjs.org/regenerator-runtime/-/regenerator-runtime-0.14.1.tgz",
+-      "integrity": "sha512-dYnhHh0nJoMfnkZs6GmmhFknAGRrLznOu5nc9ML+EJxGvrx6H7teuevqVqCuPcPK//3eDrrjQhehXVx9cnkGdw=="
+-    },
+     "node_modules/regenerator-transform": {
+       "version": "0.15.2",
+       "resolved": "https://registry.npmjs.org/regenerator-transform/-/regenerator-transform-0.15.2.tgz",
+@@ -7393,6 +7714,12 @@
+         "node": ">=0.10.0"
+       }
+     },
++    "node_modules/robust-predicates": {
++      "version": "3.0.2",
++      "resolved": "https://registry.npmjs.org/robust-predicates/-/robust-predicates-3.0.2.tgz",
++      "integrity": "sha512-IXgzBWvWQwE6PrDI05OvmXUIruQTcoMDzRsOd5CDvHCVLcLHMTSYvOK5Cm46kWqlV3yAbuSpBZdJ5oP5OUoStg==",
++      "license": "Unlicense"
++    },
+     "node_modules/rollup": {
+       "version": "4.28.0",
+       "resolved": "https://registry.npmjs.org/rollup/-/rollup-4.28.0.tgz",
+@@ -8035,11 +8362,12 @@
+       }
+     },
+     "node_modules/use-sync-external-store": {
+-      "version": "1.2.2",
+-      "resolved": "https://registry.npmjs.org/use-sync-external-store/-/use-sync-external-store-1.2.2.tgz",
+-      "integrity": "sha512-PElTlVMwpblvbNqQ82d2n6RjStvdSoNe9FG28kNfz3WiXilJm4DdNkEzRhCZuIDwY8U08WVihhGR5iRqAwfDiw==",
++      "version": "1.5.0",
++      "resolved": "https://registry.npmjs.org/use-sync-external-store/-/use-sync-external-store-1.5.0.tgz",
++      "integrity": "sha512-Rb46I4cGGVBmjamjphe8L/UnvJD+uPPtTkNvX5mZgqdbavhI4EbgIWJiIHXJ8bc/i9EQGPRh4DwEURJ552Do0A==",
++      "license": "MIT",
+       "peerDependencies": {
+-        "react": "^16.8.0 || ^17.0.0 || ^18.0.0"
++        "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+       }
+     },
+     "node_modules/validator": {
+diff --git a/Clients/package.json b/Clients/package.json
+index 5821d78a..9f33245f 100644
+--- a/Clients/package.json
++++ b/Clients/package.json
+@@ -18,6 +18,7 @@
+     "@mui/lab": "^6.0.0-beta.10",
+     "@mui/material": "^6.1.6",
+     "@mui/styled-engine-sc": "^6.1.0",
++    "@mui/x-charts": "^8.4.0",
+     "@mui/x-date-pickers": "^7.18.0",
+     "@reduxjs/toolkit": "^2.2.7",
+     "@svgr/rollup": "^8.1.0",
+diff --git a/Clients/src/application/config/routes.tsx b/Clients/src/application/config/routes.tsx
+index 05f55c16..df937343 100644
+--- a/Clients/src/application/config/routes.tsx
++++ b/Clients/src/application/config/routes.tsx
+@@ -20,6 +20,7 @@ import VWProjectView from "../../presentation/pages/ProjectView/V1.0ProjectView"
+ import PageNotFound from "../../presentation/pages/PageNotFound";
+ import ProtectedRoute from "../../presentation/components/ProtectedRoute";
+ import FairnessDashboard from "../../presentation/pages/FairnessDashboard/FairnessDashboard";
++import FairnessResultsPage from "../../presentation/pages/FairnessDashboard/FairnessResultsPage";
+ 
+ 
+ export const createRoutes = (
+@@ -46,6 +47,7 @@ export const createRoutes = (
+     <Route path="/" element={<VWHome />} />
+     <Route path="/project-view" element={<VWProjectView />} />
+     <Route path="/fairness-dashboard" element={<FairnessDashboard />} />
++    <Route path="/fairness-dashboard/:modelId" element={<FairnessResultsPage />} />
+   </Route>,
+   <Route
+     key="admin-reg"
+diff --git a/Clients/src/presentation/assets/icons/fairness-icon.svg b/Clients/src/presentation/assets/icons/fairness-icon.svg
+index ca81b14e..5e06324e 100644
+--- a/Clients/src/presentation/assets/icons/fairness-icon.svg
++++ b/Clients/src/presentation/assets/icons/fairness-icon.svg
+@@ -1,3 +1,3 @@
+-<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+-<path d="M14.1087 13.9115H13.7224C13.7224 16.3216 15.5895 18.2498 17.8612 18.2498C20.1329 18.2498 22 16.2927 22 13.9115H21.6689H21.6137L18.8361 4.25153H18.9189V3.00789H11.7174L11.7358 0H11.699H11.653H10.3562H10.3102H10.2826L10.301 3.00789H3.0811V4.25153H3.16388L0.395485 13.9115H0.340301H0C0 16.312 1.86706 18.2498 4.1388 18.2498C6.41054 18.2498 8.27759 16.312 8.27759 13.9115H7.8913H7.79933L5.03094 4.25153L10.2734 4.2901V19.3585L10.2642 19.3295V19.3874H4.1204V22H17.8704V19.3777H11.7266V19.3199L11.7174 19.3488V4.2901L16.9599 4.25153L14.1823 13.9115H14.1087ZM6.8888 13.9115H1.3888L4.09281 4.35758L4.1204 4.34794L6.8888 13.9115ZM17.8704 4.3383L17.898 4.34794L20.602 13.9018H15.102L17.8704 4.3383Z" fill="#667085"/>
++<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
++<path d="M2 17V16.8498C2 16.5333 2 16.3751 2.02421 16.2209C2.0457 16.084 2.08136 15.9497 2.13061 15.8202C2.18609 15.6743 2.2646 15.5369 2.42162 15.2622L6 9M2 17C2 19.2091 3.79086 21 6 21C8.20914 21 10 19.2091 10 17M2 17V16.8C2 16.52 2 16.38 2.0545 16.273C2.10243 16.1789 2.17892 16.1024 2.273 16.0545C2.37996 16 2.51997 16 2.8 16H9.2C9.48003 16 9.62004 16 9.727 16.0545C9.82108 16.1024 9.89757 16.1789 9.9455 16.273C10 16.38 10 16.52 10 16.8V17M6 9L9.57838 15.2622C9.7354 15.5369 9.81391 15.6743 9.86939 15.8202C9.91864 15.9497 9.9543 16.084 9.97579 16.2209C10 16.3751 10 16.5333 10 16.8498V17M6 9L18 7M14 15V14.8498C14 14.5333 14 14.3751 14.0242 14.2209C14.0457 14.084 14.0814 13.9497 14.1306 13.8202C14.1861 13.6743 14.2646 13.5369 14.4216 13.2622L18 7M14 15C14 17.2091 15.7909 19 18 19C20.2091 19 22 17.2091 22 15M14 15V14.8C14 14.52 14 14.38 14.0545 14.273C14.1024 14.1789 14.1789 14.1024 14.273 14.0545C14.38 14 14.52 14 14.8 14H21.2C21.48 14 21.62 14 21.727 14.0545C21.8211 14.1024 21.8976 14.1789 21.9455 14.273C22 14.38 22 14.52 22 14.8V15M18 7L21.5784 13.2622C21.7354 13.5369 21.8139 13.6743 21.8694 13.8202C21.9186 13.9497 21.9543 14.084 21.9758 14.2209C22 14.3751 22 14.5333 22 14.8498V15M12 3V8" stroke="#667085" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+ </svg>
+diff --git a/Clients/src/presentation/pages/FairnessDashboard/FairnessDashboard.tsx b/Clients/src/presentation/pages/FairnessDashboard/FairnessDashboard.tsx
+index 25802230..f73ad99d 100644
+--- a/Clients/src/presentation/pages/FairnessDashboard/FairnessDashboard.tsx
++++ b/Clients/src/presentation/pages/FairnessDashboard/FairnessDashboard.tsx
+@@ -13,18 +13,35 @@ import {
+   Paper,
+   Popover,
+   Backdrop,
++  Dialog,
++  DialogTitle,
++  DialogContent,
++  TextField,
++  InputLabel,
++  MenuItem,
++  Select,
++  IconButton
+ } from "@mui/material";
+ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
++import CloseIcon from "@mui/icons-material/Close";
+ import { TabContext, TabList, TabPanel } from "@mui/lab";
+ import Tab from "@mui/material/Tab";
+ import { styles } from "./styles";
++import { useNavigate } from "react-router-dom";
+ 
+ export default function FairnessDashboard() {
+   const [tab, setTab] = useState("uploads");
+   const [anchorEl, setAnchorEl] = useState(null);
+   const [showBackdrop, setShowBackdrop] = useState(false);
+   const [hasInteracted, setHasInteracted] = useState(false);
++  const [dialogOpen, setDialogOpen] = useState(false);
++  const [modelFile, setModelFile] = useState(null);
++  const [datasetFile, setDatasetFile] = useState(null);
++  const [targetColumn, setTargetColumn] = useState("");
++  const [sensitiveColumn, setSensitiveColumn] = useState("");
++  const [columnOptions, setColumnOptions] = useState([]);
+   const buttonRef = useRef(null);
++  const navigate = useNavigate();
+ 
+   const handleDotClick = () => {
+     if (hasInteracted) return;
+@@ -38,8 +55,37 @@ export default function FairnessDashboard() {
+     setShowBackdrop(false);
+   };
+ 
+-  const open = Boolean(anchorEl);
+-  const id = open ? "info-popover" : undefined;
++  const handleOpenDialog = () => setDialogOpen(true);
++  const handleCloseDialog = () => setDialogOpen(false);
++
++  const handleModelUpload = (e) => {
++    setModelFile(e.target.files[0]);
++  };
++
++  const handleDatasetUpload = (e) => {
++    const file = e.target.files[0];
++    setDatasetFile(file);
++
++    const reader = new FileReader();
++    reader.onload = (event) => {
++      const text = event.target.result;
++      const firstLine = text.split("\n")[0];
++      const columns = firstLine.split(",").map((col) => col.trim());
++      setColumnOptions(columns);
++    };
++    reader.readAsText(file);
++  };
++
++  const handleSaveModel = () => {
++    if (!modelFile || !datasetFile || !targetColumn || !sensitiveColumn) return;
++    console.log("Model saved:", {
++      modelFile,
++      datasetFile,
++      targetColumn,
++      sensitiveColumn,
++    });
++    setDialogOpen(false);
++  };
+ 
+   const modelEntries = [
+     { name: "InsuranceTracker", date: "5 May 2025", status: "Pending" },
+@@ -60,15 +106,21 @@ export default function FairnessDashboard() {
+           <TabList
+             onChange={(e, newVal) => setTab(newVal)}
+             aria-label="Fairness Tabs"
+-            TabIndicatorProps={{
+-              style: {
+-                backgroundColor: "#13715B",
+-              },
+-            }}
++            TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
+           >
+-            <Tab 
+-              label={<Typography sx={{ textTransform: "none", color: tab === "uploads" ? "#13715B" : "#000", fontWeight: tab === "uploads" ? 600 : 500 }}>Uploads</Typography>} 
+-              value="uploads" 
++            <Tab
++              label={
++                <Typography
++                  sx={{
++                    textTransform: "none",
++                    color: tab === "uploads" ? "#13715B" : "#000",
++                    fontWeight: tab === "uploads" ? 600 : 500,
++                  }}
++                >
++                  Uploads
++                </Typography>
++              }
++              value="uploads"
+             />
+           </TabList>
+         </Box>
+@@ -80,6 +132,7 @@ export default function FairnessDashboard() {
+               variant="contained"
+               size="medium"
+               startIcon={<AddCircleOutlineIcon />}
++              onClick={handleOpenDialog}
+               sx={{
+                 backgroundColor: "#13715B",
+                 color: "white",
+@@ -122,8 +175,7 @@ export default function FairnessDashboard() {
+               />
+             )}
+             <Popover
+-              id={id}
+-              open={open}
++              open={Boolean(anchorEl)}
+               anchorEl={anchorEl}
+               onClose={handlePopoverClose}
+               anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+@@ -132,7 +184,7 @@ export default function FairnessDashboard() {
+             >
+               <Box sx={{ p: 2, maxWidth: 300 }}>
+                 <Typography variant="body2">
+-                  Click "Add Model" to start a new fairness validation.
++                  Click " Model" to start a new fairness validation.
+                 </Typography>
+               </Box>
+             </Popover>
+@@ -160,22 +212,107 @@ export default function FairnessDashboard() {
+                     <TableCell>{entry.date}</TableCell>
+                     <TableCell>{entry.status}</TableCell>
+                     <TableCell align="right">
+-                      <Button
++                        <Button
+                         variant="outlined"
++                        onClick={() => navigate(`/fairness-dashboard/${entry.name}`)}
+                         sx={{
+-                          textTransform: "none",
+-                          fontWeight: 500,
+-                          fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
++                            textTransform: "none",
++                            fontWeight: 500,
++                            fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
+                         }}
+-                      >
+-                        View Details
+-                      </Button>
++                        >
++                        Show Details
++                        </Button>
+                     </TableCell>
+                   </TableRow>
+                 ))}
+               </TableBody>
+             </Table>
+           </TableContainer>
++
++          <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
++            <DialogTitle>
++              <Box display="flex" justifyContent="space-between" alignItems="center">
++                <Typography sx={{ fontWeight: 600 }}>Validate Fairness</Typography>
++                <IconButton onClick={handleCloseDialog}>
++                  <CloseIcon />
++                </IconButton>
++              </Box>
++            </DialogTitle>
++            <DialogContent>
++              <Stack spacing={2}>
++                <Box>
++                  <InputLabel sx={{ color: "black" }}>Upload Model (.pkl)</InputLabel>
++                  <TextField
++                    type="file"
++                    fullWidth
++                    variant="outlined"
++                    slotProps={{
++                      htmlInput: {
++                        accept: ".pkl",
++                        onChange: handleModelUpload,
++                      },
++                    }}
++                  />
++                </Box>
++
++                <Box>
++                  <InputLabel sx={{ color: "black" }}>Upload Dataset (.csv)</InputLabel>
++                  <TextField
++                    type="file"
++                    fullWidth
++                    variant="outlined"
++                    slotProps={{
++                      htmlInput: {
++                        accept: ".csv",
++                        onChange: handleDatasetUpload,
++                      },
++                    }}
++                  />
++                </Box>
++
++                <Box>
++                  <InputLabel sx={{ color: "black" }}>Target Column</InputLabel>
++                  <Select
++                    fullWidth
++                    value={targetColumn}
++                    onChange={(e) => setTargetColumn(e.target.value)}
++                    displayEmpty
++                  >
++                    <MenuItem value="">-- Select --</MenuItem>
++                    {columnOptions.map((col, idx) => (
++                      <MenuItem key={idx} value={col}>{col}</MenuItem>
++                    ))}
++                  </Select>
++                </Box>
++
++                <Box>
++                  <InputLabel sx={{ color: "black" }}>Sensitive Column</InputLabel>
++                  <Select
++                    fullWidth
++                    value={sensitiveColumn}
++                    onChange={(e) => setSensitiveColumn(e.target.value)}
++                    displayEmpty
++                  >
++                    <MenuItem value="">-- Select --</MenuItem>
++                    {columnOptions.map((col, idx) => (
++                      <MenuItem key={idx} value={col}>{col}</MenuItem>
++                    ))}
++                  </Select>
++                </Box>
++
++                <Box display="flex" justifyContent="flex-end">
++                  <Button
++                    variant="contained"
++                    sx={{ backgroundColor: "#13715B", color: "white", textTransform: "none" }}
++                    onClick={handleSaveModel}
++                  >
++                    Upload
++                  </Button>
++                </Box>
++              </Stack>
++            </DialogContent>
++          </Dialog>
+         </TabPanel>
+       </TabContext>
+     </Stack>
+diff --git a/Clients/src/presentation/pages/FairnessDashboard/FairnessResultsPage.tsx b/Clients/src/presentation/pages/FairnessDashboard/FairnessResultsPage.tsx
+new file mode 100644
+index 00000000..41d3eaa3
+--- /dev/null
++++ b/Clients/src/presentation/pages/FairnessDashboard/FairnessResultsPage.tsx
+@@ -0,0 +1,164 @@
++import React from "react";
++import { useParams, useNavigate } from "react-router-dom";
++import {
++  Box,
++  Typography,
++  Grid,
++  Paper,
++  Table,
++  TableBody,
++  TableCell,
++  TableContainer,
++  TableHead,
++  TableRow,
++  Divider,
++  Button,
++  IconButton,
++  Accordion,
++  AccordionSummary,
++  AccordionDetails,
++} from "@mui/material";
++import ArrowBackIcon from '@mui/icons-material/ArrowBack';
++import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
++import { BarChart } from "@mui/x-charts";
++
++const dummyMetrics = {
++  model_name: "StockPickerBot",
++  created_at: "2025-04-19",
++  accuracy: 0.721,
++  demographic_parity_difference: 0.046,
++  equal_opportunity_difference: 0.035,
++  equalized_odds_difference: 0.065,
++  classification_report: {
++    "<=50K": { precision: 0.68, recall: 0.67, f1_score: 0.68, support: 24760 },
++    ">50K": { precision: 0.71, recall: 0.72, f1_score: 0.71, support: 37141 },
++  },
++  group_metrics: [
++    { group: "White", accuracy: 0.73, selection_rate: 0.78, tpr: 0.67, tnr: 0.89 },
++    { group: "Black", accuracy: 0.70, selection_rate: 0.68, tpr: 0.64, tnr: 0.86 },
++    { group: "Asian", accuracy: 0.75, selection_rate: 0.72, tpr: 0.70, tnr: 0.87 },
++  ],
++  disparity_metrics: {
++    selection_rate_diff: 0.12,
++    tpr_diff: 0.06,
++    tnr_diff: 0.03,
++    equalized_odds_diff: 0.065,
++  },
++};
++
++const metricDescriptions = {
++  accuracy: "Overall correctness of the model's predictions.",
++  selection_rate: "Proportion of individuals selected by the model per group.",
++  tpr: "True Positive Rate - proportion of positives correctly identified.",
++  tnr: "True Negative Rate - proportion of negatives correctly identified.",
++  demographic_parity_difference: "Difference in selection rates across groups.",
++  equal_opportunity_difference: "Difference in true positive rates across groups.",
++  equalized_odds_difference: "Difference in true and false positive rates across groups.",
++};
++
++export default function FairnessResultsPage() {
++  const { modelName } = useParams();
++  const navigate = useNavigate();
++  const metrics = dummyMetrics;
++
++  return (
++    <Box p={4}>
++      <Box mb={2} display="flex" alignItems="center">
++        <IconButton onClick={() => navigate("/fairness-dashboard")}
++          sx={{ mr: 2 }}>
++          <ArrowBackIcon />
++        </IconButton>
++        <Typography variant="h5" fontWeight={600}>
++          {metrics.model_name} — Fairness Metrics
++        </Typography>
++      </Box>
++
++      <Grid container spacing={4}>
++        <Grid item xs={12} md={6}>
++          <Paper elevation={3} sx={{ p: 3, backgroundColor: "#F6FAF9" }}>
++            <Typography variant="h6" color="#13715B" gutterBottom>
++                <strong>Overall Fairness Metrics</strong></Typography>
++            <Typography>Accuracy: {metrics.accuracy}</Typography>
++            <Typography>Demographic Parity Difference: {metrics.demographic_parity_difference}</Typography>
++            <Typography>Equal Opportunity Difference: {metrics.equal_opportunity_difference}</Typography>
++            <Typography>Equalized Odds Difference: {metrics.equalized_odds_difference}</Typography>
++          </Paper>
++        </Grid>
++
++        {["accuracy", "selection_rate", "tpr", "tnr"].map((metricKey) => (
++          <Grid item xs={12} key={metricKey}>
++            <Paper elevation={3} sx={{ p: 3, backgroundColor: "#F6FAF9" }}>
++              <Typography variant="h6" color="#13715B" gutterBottom>
++              <strong>{['tpr', 'tnr'].includes(metricKey) ? `Group-wise ${metricKey.toUpperCase()}` : `Group-wise ${metricKey.charAt(0).toUpperCase() + metricKey.slice(1).replace('_', ' ')}`}</strong>
++              </Typography>
++              <Accordion sx={{ backgroundColor: "#ffffff" }}>
++                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
++                  <Typography variant="body2" color="text.secondary">
++                    What does this mean?
++                  </Typography>
++                </AccordionSummary>
++                <AccordionDetails>
++                  <Typography variant="body2">
++                    {metricDescriptions[metricKey]}
++                  </Typography>
++                </AccordionDetails>
++              </Accordion>
++              <BarChart
++                xAxis={[{ scaleType: "band", data: metrics.group_metrics.map(g => g.group) }]}
++                series={[{
++                  data: metrics.group_metrics.map(g => g[metricKey]),
++                  label: metricKey.replace("_", " "),
++                  color: "blue"
++                }]}
++                width={600}
++                height={300}
++              />
++            </Paper>
++          </Grid>
++        ))}
++
++        <Grid item xs={12}>
++          <Paper elevation={3} sx={{ p: 3, backgroundColor: "#F6FAF9" }}>
++            <Typography variant="h6" color="#13715B" gutterBottom>
++                <strong>Disparity Metrics</strong></Typography>
++            <Typography>Selection Rate Difference: {metrics.disparity_metrics.selection_rate_diff}</Typography>
++            <Typography>True Positive Rate Difference: {metrics.disparity_metrics.tpr_diff}</Typography>
++            <Typography>True Negative Rate Difference: {metrics.disparity_metrics.tnr_diff}</Typography>
++            <Typography>Equalized Odds Difference: {metrics.disparity_metrics.equalized_odds_diff}</Typography>
++          </Paper>
++        </Grid>
++
++        <Grid item xs={12}>
++          <Paper elevation={3} sx={{ p: 3, backgroundColor: "#F6FAF9" }}>
++            <Typography variant="h6" color="#13715B" gutterBottom>
++                <strong>Classification Report</strong></Typography>
++            <TableContainer>
++              <Table>
++                <TableHead>
++                  <TableRow>
++                    <TableCell>Class</TableCell>
++                    <TableCell>Precision</TableCell>
++                    <TableCell>Recall</TableCell>
++                    <TableCell>F1 Score</TableCell>
++                    <TableCell>Support</TableCell>
++                  </TableRow>
++                </TableHead>
++                <TableBody>
++                  {Object.entries(metrics.classification_report).map(([label, values]) => (
++                    <TableRow key={label}>
++                      <TableCell>{label}</TableCell>
++                      <TableCell>{values.precision}</TableCell>
++                      <TableCell>{values.recall}</TableCell>
++                      <TableCell>{values.f1_score}</TableCell>
++                      <TableCell>{values.support}</TableCell>
++                    </TableRow>
++                  ))}
++                </TableBody>
++              </Table>
++            </TableContainer>
++          </Paper>
++        </Grid>
++      </Grid>
++    </Box>
++  );
++}
+-- 
+2.39.3 (Apple Git-146)
+
+
+From 62a445226db873370112b097cb3227138f4bb65a Mon Sep 17 00:00:00 2001
+From: EfeAcar6431 <efeacar2705@gmail.com>
+Date: Tue, 3 Jun 2025 00:55:56 -0400
+Subject: [PATCH 3/3] Latest changes to match style of components.
+
+---
+ Clients/src/application/config/routes.tsx     |   2 +-
+ .../Table/FairnessTable/TableBody/index.tsx   |  53 +++
+ .../components/Table/FairnessTable/index.tsx  | 159 +++++++++
+ .../components/Table/FairnessTable/styles.ts  |  57 ++++
+ .../FairnessDashboard/FairnessDashboard.tsx   | 312 +++++++++---------
+ .../FairnessDashboard/FairnessResultsPage.tsx |  45 ++-
+ 6 files changed, 460 insertions(+), 168 deletions(-)
+ create mode 100644 Clients/src/presentation/components/Table/FairnessTable/TableBody/index.tsx
+ create mode 100644 Clients/src/presentation/components/Table/FairnessTable/index.tsx
+ create mode 100644 Clients/src/presentation/components/Table/FairnessTable/styles.ts
+
+diff --git a/Clients/src/application/config/routes.tsx b/Clients/src/application/config/routes.tsx
+index c877dcfb..e455bfb6 100644
+--- a/Clients/src/application/config/routes.tsx
++++ b/Clients/src/application/config/routes.tsx
+@@ -47,7 +47,7 @@ export const createRoutes = (
+     <Route path="/" element={<VWHome />} />
+     <Route path="/project-view" element={<VWProjectView />} />
+     <Route path="/fairness-dashboard" element={<FairnessDashboard />} />
+-    <Route path="/fairness-dashboard/:modelId" element={<FairnessResultsPage />} />
++    <Route path="/fairness-results/:modelName" element={<FairnessResultsPage />} />
+   </Route>,
+   <Route
+     key="admin-reg"
+diff --git a/Clients/src/presentation/components/Table/FairnessTable/TableBody/index.tsx b/Clients/src/presentation/components/Table/FairnessTable/TableBody/index.tsx
+new file mode 100644
+index 00000000..8a93ad37
+--- /dev/null
++++ b/Clients/src/presentation/components/Table/FairnessTable/TableBody/index.tsx
+@@ -0,0 +1,53 @@
++import { TableBody, TableRow, TableCell, Button } from "@mui/material";
++import singleTheme from '../../../../themes/v1SingleTheme';
++
++interface FairnessTableBodyProps {
++  rows: any[];
++  page: number;
++  rowsPerPage: number;
++  onShowDetails: (model: any) => void;
++  onRemoveModel: (id: number) => void;
++}
++
++const FairnessTableBody: React.FC<FairnessTableBodyProps> = ({
++  rows,
++  page,
++  rowsPerPage,
++  onShowDetails,
++}) => {
++  return (
++    <TableBody>
++      {rows
++        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
++        .map((row, index) => (
++          <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row}>
++            <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
++              {row.name}
++            </TableCell>
++            <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
++              {row.lastUpdated}
++            </TableCell>
++            <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
++              {row.status}
++            </TableCell>
++            <TableCell
++              sx={{
++                ...singleTheme.tableStyles.primary.body.cell,
++                textAlign: "right",
++              }}
++            >
++              <Button
++                variant="outlined"
++                color="primary"
++                onClick={() => onShowDetails(row)}
++              >
++                Show Details
++              </Button>
++            </TableCell>
++          </TableRow>
++        ))}
++    </TableBody>
++  );
++};
++
++export default FairnessTableBody;
+diff --git a/Clients/src/presentation/components/Table/FairnessTable/index.tsx b/Clients/src/presentation/components/Table/FairnessTable/index.tsx
+new file mode 100644
+index 00000000..94a78af1
+--- /dev/null
++++ b/Clients/src/presentation/components/Table/FairnessTable/index.tsx
+@@ -0,0 +1,159 @@
++import {
++    Table,
++    TableBody,
++    TableCell,
++    TableContainer,
++    TablePagination,
++    TableRow,
++    Typography,
++    Box,
++    IconButton
++  } from "@mui/material";
++  import { Suspense, lazy, useMemo, useState, useCallback } from "react";
++  import TablePaginationActions from "../../TablePagination";
++  import TableHeader from "../TableHead";
++  import placeholderImage from "../../../assets/imgs/empty-state.svg";
++  import { ReactComponent as SelectorVertical } from '../../../assets/icons/selector-vertical.svg';
++  import {
++    styles,
++    emptyData,
++    paginationWrapper,
++    pagniationStatus,
++    paginationStyle,
++    paginationDropdown,
++    paginationSelect
++  } from "./styles";
++  import singleTheme from '../../../themes/v1SingleTheme';
++  
++  const FairnessTableBody = lazy(() => import("./TableBody"));
++  
++  interface FairnessTableProps {
++    columns: any[];
++    rows: any[];
++    removeModel: (id: number) => void;
++    page: number;
++    setCurrentPagingation: (pageNo: number) => void;
++    onShowDetails: (model: any) => void;
++  }
++  
++  const FairnessTable: React.FC<FairnessTableProps> = ({
++    columns,
++    rows,
++    removeModel,
++    page,
++    setCurrentPagingation,
++    onShowDetails
++  }) => {
++    const [rowsPerPage, setRowsPerPage] = useState(5);
++  
++    const getRange = useMemo(() => {
++      const start = page * rowsPerPage + 1;
++      const end = Math.min(page * rowsPerPage + rowsPerPage, rows?.length ?? 0);
++      return `${start} - ${end}`;
++    }, [page, rowsPerPage, rows?.length]);
++  
++    const handleChangePage = useCallback((_: unknown, newPage: number) => {
++      setCurrentPagingation(newPage);
++    }, [setCurrentPagingation]);
++  
++    const handleChangeRowsPerPage = useCallback(
++      (event: React.ChangeEvent<HTMLInputElement>) => {
++        setRowsPerPage(parseInt(event.target.value, 10));
++        setCurrentPagingation(0);
++      },
++      [setRowsPerPage, setCurrentPagingation]
++    );
++  
++    return (
++      <>
++        <TableContainer sx ={{mt: 10}}>
++          <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>
++            <TableHeader columns={columns} />
++            {rows.length !== 0 ? (
++              <Suspense
++                fallback={
++                  <TableBody>
++                    <TableRow sx={singleTheme.tableStyles.primary.body.row}>
++                      <TableCell
++                        colSpan={columns.length}
++                        align="center"
++                        sx={singleTheme.tableStyles.primary.body.cell}
++                      >
++                        Loading...
++                      </TableCell>
++                    </TableRow>
++                  </TableBody>
++                }
++              >
++                <FairnessTableBody
++                  rows={rows}
++                  onRemoveModel={removeModel}
++                  onShowDetails={onShowDetails}
++                  page={page}
++                  rowsPerPage={rowsPerPage}
++                  columns={columns}
++                />
++              </Suspense>
++            ) : (
++              <TableBody>
++                <TableRow sx={singleTheme.tableStyles.primary.body.row}>
++                  <TableCell
++                    colSpan={columns.length}
++                    align="center"
++                    sx={singleTheme.tableStyles.primary.body.cell}
++                  >
++                    <img src={placeholderImage} alt="Placeholder" />
++                    <Typography sx={{ ...styles.textBase, color: 'text.primary' }}>
++                      There is currently no data in this table.
++                    </Typography>
++                  </TableCell>
++                </TableRow>
++              </TableBody>
++            )}
++          </Table>
++        </TableContainer>
++  
++        {rows.length !== 0 && (
++          <Box display="flex" justifyContent="space-between" alignItems="center" sx={paginationWrapper} mt={2}>
++            <Typography sx={pagniationStatus} color="text.secondary">
++              Showing {getRange} of {rows.length} fairness checks
++            </Typography>
++            <TablePagination
++              count={rows.length}
++              page={page}
++              onPageChange={handleChangePage}
++              rowsPerPage={rowsPerPage}
++              rowsPerPageOptions={[5, 10, 15, 20]}
++              onRowsPerPageChange={handleChangeRowsPerPage}
++              ActionsComponent={(props) => <TablePaginationActions {...props} />}
++              labelRowsPerPage="Fairness checks per page"
++              labelDisplayedRows={({ page, count }) =>
++                `Page ${page + 1} of ${Math.max(0, Math.ceil(count / rowsPerPage))}`
++              }
++              sx={paginationStyle}
++              slotProps={{
++                select: {
++                  MenuProps: {
++                    keepMounted: true,
++                    PaperProps: {
++                      className: "pagination-dropdown",
++                      sx: paginationDropdown,
++                    },
++                    transformOrigin: { vertical: "bottom", horizontal: "left" },
++                    anchorOrigin: { vertical: "top", horizontal: "left" },
++                    sx: { mt: 0 },
++                  },
++                  inputProps: { id: "pagination-dropdown" },
++                  IconComponent: SelectorVertical,
++                  sx: paginationSelect,
++                },
++              }}
++            />
++          </Box>
++        )}
++      </>
++    );
++  };
++  
++  export default FairnessTable;
++  
+\ No newline at end of file
+diff --git a/Clients/src/presentation/components/Table/FairnessTable/styles.ts b/Clients/src/presentation/components/Table/FairnessTable/styles.ts
+new file mode 100644
+index 00000000..347b41d5
+--- /dev/null
++++ b/Clients/src/presentation/components/Table/FairnessTable/styles.ts
+@@ -0,0 +1,57 @@
++// styles.ts for FairnessTable
++export const styles = {
++    textBase: {
++      fontSize: "14px",
++      color: "#4B5563",
++      fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
++      fontWeight: 400,
++      textAlign: "center",
++      mt: 2,
++    },
++  };
++  
++  export const emptyData = {
++    display: "flex",
++    flexDirection: "column",
++    alignItems: "center",
++    justifyContent: "center",
++    height: "220px",
++    padding: "1rem",
++  };
++  
++  export const paginationWrapper = {
++    display: "flex",
++    justifyContent: "space-between",
++    alignItems: "center",
++    mt: 2,
++    flexWrap: "wrap",
++    rowGap: 1,
++  };
++  
++  export const pagniationStatus = {
++    fontSize: "14px",
++    color: "#4B5563",
++    fontWeight: 400,
++  };
++  
++  export const paginationStyle = {
++    '& .MuiTablePagination-toolbar': {
++      paddingLeft: 0,
++      paddingRight: 0,
++    },
++    '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
++      fontSize: "14px",
++    },
++  };
++  
++  export const paginationDropdown = {
++    mt: 1,
++    borderRadius: "8px",
++    boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.05)",
++  };
++  
++  export const paginationSelect = {
++    fontSize: "14px",
++    padding: "6px 12px",
++  }
++  
+\ No newline at end of file
+diff --git a/Clients/src/presentation/pages/FairnessDashboard/FairnessDashboard.tsx b/Clients/src/presentation/pages/FairnessDashboard/FairnessDashboard.tsx
+index f73ad99d..1b1315cc 100644
+--- a/Clients/src/presentation/pages/FairnessDashboard/FairnessDashboard.tsx
++++ b/Clients/src/presentation/pages/FairnessDashboard/FairnessDashboard.tsx
+@@ -1,16 +1,9 @@
+-import React, { useState, useRef } from "react";
++import React, { useState, useRef, useCallback, useMemo } from "react";
+ import {
+   Box,
+   Button,
+   Typography,
+   Stack,
+-  Table,
+-  TableBody,
+-  TableCell,
+-  TableContainer,
+-  TableHead,
+-  TableRow,
+-  Paper,
+   Popover,
+   Backdrop,
+   Dialog,
+@@ -19,7 +12,7 @@ import {
+   TextField,
+   InputLabel,
+   MenuItem,
+-  Select,
++  SelectChangeEvent,
+   IconButton
+ } from "@mui/material";
+ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+@@ -28,6 +21,9 @@ import { TabContext, TabList, TabPanel } from "@mui/lab";
+ import Tab from "@mui/material/Tab";
+ import { styles } from "./styles";
+ import { useNavigate } from "react-router-dom";
++import FairnessTable from "../../components/Table/FairnessTable";
++import Select from "../../components/Inputs/Select";
++
+ 
+ export default function FairnessDashboard() {
+   const [tab, setTab] = useState("uploads");
+@@ -35,14 +31,35 @@ export default function FairnessDashboard() {
+   const [showBackdrop, setShowBackdrop] = useState(false);
+   const [hasInteracted, setHasInteracted] = useState(false);
+   const [dialogOpen, setDialogOpen] = useState(false);
+-  const [modelFile, setModelFile] = useState(null);
+-  const [datasetFile, setDatasetFile] = useState(null);
++  const [modelFile, setModelFile] = useState<File | null>(null);
++  const [datasetFile, setDatasetFile] = useState<File | null>(null);
+   const [targetColumn, setTargetColumn] = useState("");
+   const [sensitiveColumn, setSensitiveColumn] = useState("");
+-  const [columnOptions, setColumnOptions] = useState([]);
++  const [columnOptions, setColumnOptions] = useState<string[]>([]);
++  const targetColumnItems = useMemo(() => {
++    return columnOptions.map((col) => ({ _id: col, name: col }));
++  }, [columnOptions]);
++  
++  const [page, setPage] = useState(0);
++  const [uploadedModels, setUploadedModels] = useState([
++    { name: "InsuranceTracker", date: "5 May 2025", status: "Pending" },
++    { name: "StockPickerBot", date: "19 April 2025", status: "Completed" },
++  ]);
++
+   const buttonRef = useRef(null);
++  const modelInputRef = useRef<HTMLInputElement>(null);
++  const datasetInputRef = useRef<HTMLInputElement>(null);
+   const navigate = useNavigate();
+ 
++  
++  const FAIRNESS_COLUMNS = [
++    { id: 'name', label: 'Name' },
++    { id: 'date', label: 'Last Updated' },
++    { id: 'status', label: 'Status' },
++    { id: 'action', label: 'Action' }
++  ];
++
++
+   const handleDotClick = () => {
+     if (hasInteracted) return;
+     setAnchorEl(buttonRef.current);
+@@ -50,48 +67,42 @@ export default function FairnessDashboard() {
+     setHasInteracted(true);
+   };
+ 
++  const handleShowDetails = useCallback((model: any) => {
++    if (model?.name) {
++      navigate(`/fairness-results/${model.name}`);
++    } else {
++      console.error("Invalid model:", model);
++    }
++  }, [navigate]);
++  
++
+   const handlePopoverClose = () => {
+     setAnchorEl(null);
+     setShowBackdrop(false);
+   };
+ 
+-  const handleOpenDialog = () => setDialogOpen(true);
+-  const handleCloseDialog = () => setDialogOpen(false);
+-
+-  const handleModelUpload = (e) => {
+-    setModelFile(e.target.files[0]);
++  const resetForm = () => {
++    setDialogOpen(false);
++    setModelFile(null);
++    setDatasetFile(null);
++    setColumnOptions([]);
++    setTargetColumn("");
++    setSensitiveColumn("");
++    if (modelInputRef.current) modelInputRef.current.value = "";
++    if (datasetInputRef.current) datasetInputRef.current.value = "";
+   };
+ 
+-  const handleDatasetUpload = (e) => {
+-    const file = e.target.files[0];
+-    setDatasetFile(file);
+-
+-    const reader = new FileReader();
+-    reader.onload = (event) => {
+-      const text = event.target.result;
+-      const firstLine = text.split("\n")[0];
+-      const columns = firstLine.split(",").map((col) => col.trim());
+-      setColumnOptions(columns);
+-    };
+-    reader.readAsText(file);
++  const handleRemoveModel = (nameToRemove: string) => {
++    const filtered = uploadedModels.filter(model => model.name !== nameToRemove);
++    setUploadedModels(filtered);
+   };
+ 
+   const handleSaveModel = () => {
+     if (!modelFile || !datasetFile || !targetColumn || !sensitiveColumn) return;
+-    console.log("Model saved:", {
+-      modelFile,
+-      datasetFile,
+-      targetColumn,
+-      sensitiveColumn,
+-    });
+-    setDialogOpen(false);
++    console.log("Model saved:", { modelFile, datasetFile, targetColumn, sensitiveColumn });
++    resetForm();
+   };
+ 
+-  const modelEntries = [
+-    { name: "InsuranceTracker", date: "5 May 2025", status: "Pending" },
+-    { name: "StockPickerBot", date: "19 April 2025", status: "Completed" },
+-  ];
+-
+   return (
+     <Stack className="vwhome" gap="20px">
+       <Box>
+@@ -105,23 +116,32 @@ export default function FairnessDashboard() {
+         <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+           <TabList
+             onChange={(e, newVal) => setTab(newVal)}
+-            aria-label="Fairness Tabs"
+-            TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
++            TabIndicatorProps={{ style: { backgroundColor: "#13715B", height: "2px" } }}
++            sx={{
++              minHeight: "24px",
++              "& .MuiTabs-flexContainer": { gap: "24px" },
++              "& .MuiTab-root": {
++                minHeight: "32px",
++                padding: 0,
++                fontSize: "13px",
++                fontWeight: 500,
++                textTransform: "capitalize",
++                color: "#4B5563",
++                fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
++                width: "fit-content",
++                minWidth: "unset",
++              },
++              "& .MuiTab-root.Mui-selected": {
++                color: "#13715B !important",
++                display: "table",
++                minWidth: "unset",
++                width: "fit-content",
++                paddingLeft: 0,
++                paddingRight: 0,
++              },
++            }}
+           >
+-            <Tab
+-              label={
+-                <Typography
+-                  sx={{
+-                    textTransform: "none",
+-                    color: tab === "uploads" ? "#13715B" : "#000",
+-                    fontWeight: tab === "uploads" ? 600 : 500,
+-                  }}
+-                >
+-                  Uploads
+-                </Typography>
+-              }
+-              value="uploads"
+-            />
++            <Tab label="Fairness Checks" value="uploads" disableRipple />
+           </TabList>
+         </Box>
+ 
+@@ -130,9 +150,8 @@ export default function FairnessDashboard() {
+             <Button
+               ref={buttonRef}
+               variant="contained"
+-              size="medium"
+               startIcon={<AddCircleOutlineIcon />}
+-              onClick={handleOpenDialog}
++              onClick={() => setDialogOpen(true)}
+               sx={{
+                 backgroundColor: "#13715B",
+                 color: "white",
+@@ -146,12 +165,10 @@ export default function FairnessDashboard() {
+                 minWidth: "64px",
+                 position: "relative",
+                 zIndex: 2,
+-                "&:hover": {
+-                  backgroundColor: "#0f604d",
+-                },
++                "&:hover": { backgroundColor: "#0f604d" },
+               }}
+             >
+-              Add Model
++              Validate Fairness
+             </Button>
+             {!hasInteracted && (
+               <Box
+@@ -183,9 +200,7 @@ export default function FairnessDashboard() {
+               disableRestoreFocus
+             >
+               <Box sx={{ p: 2, maxWidth: 300 }}>
+-                <Typography variant="body2">
+-                  Click " Model" to start a new fairness validation.
+-                </Typography>
++                <Typography variant="body2">Click "Model" to start a new fairness validation.</Typography>
+               </Box>
+             </Popover>
+             <Backdrop
+@@ -195,120 +210,87 @@ export default function FairnessDashboard() {
+             />
+           </Box>
+ 
+-          <TableContainer component={Paper}>
+-            <Table>
+-              <TableHead>
+-                <TableRow>
+-                  <TableCell><strong>Name</strong></TableCell>
+-                  <TableCell><strong>Last Updated</strong></TableCell>
+-                  <TableCell><strong>Status</strong></TableCell>
+-                  <TableCell align="right"><strong>Action</strong></TableCell>
+-                </TableRow>
+-              </TableHead>
+-              <TableBody>
+-                {modelEntries.map((entry, idx) => (
+-                  <TableRow key={idx}>
+-                    <TableCell>{entry.name}</TableCell>
+-                    <TableCell>{entry.date}</TableCell>
+-                    <TableCell>{entry.status}</TableCell>
+-                    <TableCell align="right">
+-                        <Button
+-                        variant="outlined"
+-                        onClick={() => navigate(`/fairness-dashboard/${entry.name}`)}
+-                        sx={{
+-                            textTransform: "none",
+-                            fontWeight: 500,
+-                            fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
+-                        }}
+-                        >
+-                        Show Details
+-                        </Button>
+-                    </TableCell>
+-                  </TableRow>
+-                ))}
+-              </TableBody>
+-            </Table>
+-          </TableContainer>
++          <FairnessTable
++            columns={FAIRNESS_COLUMNS.map(col => col.label)}
++            rows={uploadedModels}
++            page={page}
++            setCurrentPagingation={setPage}
++            removeModel={handleRemoveModel}
++            onShowDetails={handleShowDetails}
++          />
++          
+ 
+-          <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
++          <Dialog open={dialogOpen} onClose={resetForm} maxWidth="sm" fullWidth>
+             <DialogTitle>
+               <Box display="flex" justifyContent="space-between" alignItems="center">
+                 <Typography sx={{ fontWeight: 600 }}>Validate Fairness</Typography>
+-                <IconButton onClick={handleCloseDialog}>
+-                  <CloseIcon />
+-                </IconButton>
++                <IconButton onClick={resetForm}><CloseIcon /></IconButton>
+               </Box>
+             </DialogTitle>
++
+             <DialogContent>
+               <Stack spacing={2}>
+-                <Box>
+-                  <InputLabel sx={{ color: "black" }}>Upload Model (.pkl)</InputLabel>
+-                  <TextField
+-                    type="file"
+-                    fullWidth
+-                    variant="outlined"
+-                    slotProps={{
+-                      htmlInput: {
+-                        accept: ".pkl",
+-                        onChange: handleModelUpload,
+-                      },
+-                    }}
+-                  />
+-                </Box>
+-
+-                <Box>
+-                  <InputLabel sx={{ color: "black" }}>Upload Dataset (.csv)</InputLabel>
+-                  <TextField
+-                    type="file"
+-                    fullWidth
+-                    variant="outlined"
+-                    slotProps={{
+-                      htmlInput: {
+-                        accept: ".csv",
+-                        onChange: handleDatasetUpload,
+-                      },
+-                    }}
+-                  />
+-                </Box>
+-
+-                <Box>
+-                  <InputLabel sx={{ color: "black" }}>Target Column</InputLabel>
+-                  <Select
+-                    fullWidth
++                {[{ label: 'model', accept: '.pkl', file: modelFile, setFile: setModelFile, ref: modelInputRef }, { label: 'dataset', accept: '.csv', file: datasetFile, setFile: setDatasetFile, ref: datasetInputRef }].map(({ label, accept, file, setFile, ref }) => (
++                  <Box key={label}>
++                    <Typography sx={{ fontWeight: 500, mb: 0.5 }}>{`Upload ${label} (${accept})`}</Typography>
++                    <Button
++                      variant="outlined"
++                      component="label"
++                      sx={{ borderColor: "#13715B", color: "#13715B", textTransform: "none", fontWeight: 500, '&:hover': { borderColor: "#0f5f4b", backgroundColor: "#F3F9F8" } }}
++                    >
++                      {`Choose ${label} File`}
++                      <input
++                        type="file"
++                        hidden
++                        accept={accept}
++                        ref={ref}
++                        onChange={(e) => {
++                          const file = e.target.files?.[0];
++                          if (file) {
++                            setFile(file);
++                            if (label === 'dataset') {
++                              const reader = new FileReader();
++                              reader.onload = (event) => {
++                                const text = event.target?.result as string;
++                                const firstLine = text.split("\n")[0];
++                                const columns = firstLine.split(",").map((col) => col.trim());
++                                setColumnOptions(columns);
++                              };
++                              reader.readAsText(file);
++                            }
++                          }
++                        }}
++                      />
++                    </Button>
++                    {file && (
++                      <Box display="flex" alignItems="center" mt={1} px={1} py={0.5} border="1px solid #E5E7EB" borderRadius={1} justifyContent="space-between">
++                        <Typography fontSize="14px">{file.name}</Typography>
++                        <IconButton size="small" onClick={() => { setFile(null); if (ref.current) ref.current.value = ""; }}>{<CloseIcon fontSize="small" />}</IconButton>
++                      </Box>
++                    )}
++                  </Box>
++                ))}
++                
++                <Select
++                    id="target-column"
++                    label="Target column"
++                    placeholder="-- Select --"
+                     value={targetColumn}
++                    items={targetColumnItems}
+                     onChange={(e) => setTargetColumn(e.target.value)}
+-                    displayEmpty
+-                  >
+-                    <MenuItem value="">-- Select --</MenuItem>
+-                    {columnOptions.map((col, idx) => (
+-                      <MenuItem key={idx} value={col}>{col}</MenuItem>
+-                    ))}
+-                  </Select>
+-                </Box>
++                />
+ 
+-                <Box>
+-                  <InputLabel sx={{ color: "black" }}>Sensitive Column</InputLabel>
+-                  <Select
+-                    fullWidth
++                <Select
++                    id="sensitive-column"
++                    label="Sensitive Column"
++                    placeholder="-- Select --"
+                     value={sensitiveColumn}
++                    items={targetColumnItems}
+                     onChange={(e) => setSensitiveColumn(e.target.value)}
+-                    displayEmpty
+-                  >
+-                    <MenuItem value="">-- Select --</MenuItem>
+-                    {columnOptions.map((col, idx) => (
+-                      <MenuItem key={idx} value={col}>{col}</MenuItem>
+-                    ))}
+-                  </Select>
+-                </Box>
++                />
+ 
+                 <Box display="flex" justifyContent="flex-end">
+-                  <Button
+-                    variant="contained"
+-                    sx={{ backgroundColor: "#13715B", color: "white", textTransform: "none" }}
+-                    onClick={handleSaveModel}
+-                  >
+-                    Upload
+-                  </Button>
++                  <Button variant="contained" sx={{ backgroundColor: "#13715B", color: "white", textTransform: "none" }} onClick={handleSaveModel}>Upload</Button>
+                 </Box>
+               </Stack>
+             </DialogContent>
+diff --git a/Clients/src/presentation/pages/FairnessDashboard/FairnessResultsPage.tsx b/Clients/src/presentation/pages/FairnessDashboard/FairnessResultsPage.tsx
+index 41d3eaa3..02102dbd 100644
+--- a/Clients/src/presentation/pages/FairnessDashboard/FairnessResultsPage.tsx
++++ b/Clients/src/presentation/pages/FairnessDashboard/FairnessResultsPage.tsx
+@@ -46,6 +46,30 @@ const dummyMetrics = {
+   },
+ };
+ 
++const dummyMetrics2 = {
++    model_name: "InsuranceTracker",
++    created_at: "2025-04-19",
++    accuracy: 0.721,
++    demographic_parity_difference: 0.046,
++    equal_opportunity_difference: 0.035,
++    equalized_odds_difference: 0.065,
++    classification_report: {
++      "<=50K": { precision: 0.68, recall: 0.67, f1_score: 0.68, support: 24760 },
++      ">50K": { precision: 0.71, recall: 0.72, f1_score: 0.71, support: 37141 },
++    },
++    group_metrics: [
++      { group: "White", accuracy: 0.73, selection_rate: 0.78, tpr: 0.67, tnr: 0.89 },
++      { group: "Black", accuracy: 0.70, selection_rate: 0.68, tpr: 0.64, tnr: 0.86 },
++      { group: "Asian", accuracy: 0.75, selection_rate: 0.72, tpr: 0.70, tnr: 0.87 },
++    ],
++    disparity_metrics: {
++      selection_rate_diff: 0.12,
++      tpr_diff: 0.06,
++      tnr_diff: 0.03,
++      equalized_odds_diff: 0.065,
++    },
++  };
++
+ const metricDescriptions = {
+   accuracy: "Overall correctness of the model's predictions.",
+   selection_rate: "Proportion of individuals selected by the model per group.",
+@@ -58,8 +82,25 @@ const metricDescriptions = {
+ 
+ export default function FairnessResultsPage() {
+   const { modelName } = useParams();
++  console.log("Name of the site: " + modelName);
++  const modelData = {
++    "StockPickerBot": dummyMetrics,
++    "InsuranceTracker": dummyMetrics2, 
++  };
+   const navigate = useNavigate();
+-  const metrics = dummyMetrics;
++  if (!modelName) {
++    throw new Error("Model name is missing from the URL.");
++  }
++  function getModelData(model_name: string) {
++    if (model_name in modelData) {
++      return modelData[model_name as keyof typeof modelData];
++    }
++    return dummyMetrics;
++  }
++  const metrics = getModelData(modelName);
++  
++  
++  
+ 
+   return (
+     <Box p={4}>
+@@ -108,7 +149,7 @@ export default function FairnessResultsPage() {
+                 series={[{
+                   data: metrics.group_metrics.map(g => g[metricKey]),
+                   label: metricKey.replace("_", " "),
+-                  color: "blue"
++                  color: "gray"
+                 }]}
+                 width={600}
+                 height={300}
+-- 
+2.39.3 (Apple Git-146)
+

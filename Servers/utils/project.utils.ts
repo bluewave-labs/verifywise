@@ -1,25 +1,15 @@
 import { Project, ProjectModel } from "../models/project.model";
 import { sequelize } from "../database/db";
-import { AssessmentModel } from "../models/assessment.model";
 import { ProjectsMembersModel } from "../models/projectsMembers.model";
 import { QueryTypes, Transaction } from "sequelize";
 import { VendorsProjectsModel } from "../models/vendorsProjects.model";
 import { VendorModel } from "../models/vendor.model";
 import { VendorRiskModel } from "../models/vendorRisk.model";
 import { ProjectRiskModel } from "../models/projectRisk.model";
-import { TopicModel } from "../models/topic.model";
-import { SubcontrolModel } from "../models/subcontrol.model";
-import { QuestionModel } from "../models/question.model";
-import { ProjectScopeModel } from "../models/projectScope.model";
-import { ControlCategoryModel } from "../models/controlCategory.model";
-import { ControlModel } from "../models/control.model";
-import { SubtopicModel } from "../models/subtopic.model";
 import { FileModel } from "../models/file.model";
-import { table } from "console";
 import { ProjectFrameworksModel } from "../models/projectFrameworks.model";
 import { frameworkDeletionMap } from "../types/framework.type";
 import { Role } from "../models/role.model";
-import { get } from "http";
 
 interface GetUserProjectsOptions {
   userId: number;

@@ -54,7 +54,15 @@ export const getAllTrainingRegistarQuery = async (): Promise<
   );
   // Return all training registars or an empty array if none found
   return Array.isArray(trainingRegistars)
-    ? (trainingRegistars as TrainingRegistar[])
+    ? trainingRegistars.map((model: any) => ({
+        id: model.id,
+        training_name: model.training_name,
+        duration: String(model.duration),
+        provider: model.provider,
+        department: model.department,
+        status: model.status,
+        numberOfPeople: model.numberOfPeople,
+      })) as TrainingRegistar[]
     : [];
 };
 
@@ -75,7 +83,15 @@ export const getTrainingRegistarByIdQuery = async (
   // Return the first training registar or null if none found
   return Array.isArray(trainingRegistarsById) &&
     trainingRegistarsById.length > 0
-    ? (trainingRegistarsById[0] as TrainingRegistar)
+    ? {
+        id: trainingRegistarsById[0].id,
+        training_name: trainingRegistarsById[0].training_name,
+        duration: String(trainingRegistarsById[0].duration),
+        provider: trainingRegistarsById[0].provider,
+        department: trainingRegistarsById[0].department,
+        status: trainingRegistarsById[0].status,
+        numberOfPeople: trainingRegistarsById[0].numberOfPeople,
+      } as TrainingRegistar
     : (null as any);
 };
 
@@ -123,7 +139,15 @@ export const updateTrainingRegistarByIdQuery = async (
 
   // Return the first updated training registar or null if none found
   return Array.isArray(result) && result.length > 0
-    ? (result[0] as TrainingRegistar)
+    ? {
+        id: result[0].id,
+        training_name: result[0].training_name,
+        duration: String(result[0].duration),
+        provider: result[0].provider,
+        department: result[0].department,
+        status: result[0].status,
+        numberOfPeople: result[0].numberOfPeople,
+      } as TrainingRegistar
     : (null as any);
 };
 

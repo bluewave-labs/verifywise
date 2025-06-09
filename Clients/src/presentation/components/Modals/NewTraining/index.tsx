@@ -27,7 +27,7 @@ type StatusType = "Planned" | "In Progress" | "Completed";
 
 interface NewTrainingFormValues {
   training_name: string;
-  duration: number;
+  duration: string;
   provider: string;
   department: string;
   status: StatusType;
@@ -45,7 +45,7 @@ interface NewTrainingFormErrors {
 
 const initialState: NewTrainingFormValues = {
   training_name: "",
-  duration: 0,
+  duration: "",
   provider: "",
   department: "",
   status: "Planned",
@@ -97,7 +97,7 @@ const NewTraining: FC<NewTrainingProps> = ({
   );
 
   const handleOnSelectChange = useCallback(
-    (prop: keyof NewTrainingFormValues) => (event: any) => {
+    (prop: keyof NewTrainingFormValues) => (event: React.ChangeEvent<{ value: unknown }>) => {
       const value = event.target.value;
       setValues((prev) => ({ ...prev, [prop]: value }));
       setErrors((prev) => ({ ...prev, [prop]: "" }));
@@ -113,12 +113,10 @@ const NewTraining: FC<NewTrainingProps> = ({
     }
 
     if (
-      !values.duration ||
-      isNaN(Number(values.duration)) ||
-      Number(values.duration) <= 0
+      !values.duration 
     ) {
       newErrors.duration =
-        "Duration is required and must be a positive number.";
+        "Duration cannot be empty";
     }
 
     if (!values.provider.trim()) {
@@ -156,7 +154,7 @@ const NewTraining: FC<NewTrainingProps> = ({
       if (onSuccess) {
         onSuccess({
           ...values,
-          duration: Number(values.duration),
+          duration: values.duration,
           numberOfPeople: Number(values.numberOfPeople),
         });
       }
@@ -257,12 +255,12 @@ const NewTraining: FC<NewTrainingProps> = ({
                   <Field
                     id="duration"
                     label="Duration"
-                    value={values.duration.toString()}
+                    value={values.duration}
                     onChange={handleOnTextFieldChange("duration")}
                     error={errors.duration}
                     isRequired
                     sx={fieldStyle}
-                    type="number"
+                    type="text"
                   />
                 </Suspense>
               </Grid>

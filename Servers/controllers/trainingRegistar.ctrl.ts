@@ -100,13 +100,17 @@ export async function updateTrainingRegistarById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
+  
   try {
     const trainingRegistarId = parseInt(req.params.id);
+    
     // Map numberOfPeople to people for DB
     const updatedTrainingRegistar: any = {
       ...req.body,
+      duration: req.body.duration.toString(),
       people: req.body.numberOfPeople,
     };
+    console.log(updatedTrainingRegistar);
     delete updatedTrainingRegistar.numberOfPeople;
     if (
       !updatedTrainingRegistar.training_name ||

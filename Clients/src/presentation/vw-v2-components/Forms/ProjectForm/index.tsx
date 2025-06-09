@@ -104,15 +104,14 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
   const handleOnMultiSelect = useCallback(
     (prop: keyof FormValues) =>
       (_event: React.SyntheticEvent, newValue: any[]) => {
-        console.log(values)
         setValues((prevValues) => ({
           ...prevValues,
           [prop]: newValue,
         }));
         if (prop === "members") {
-          setMemberRequired(newValue.length > 0 ? false : true);
+          setMemberRequired(newValue.length === 0);
         } else {
-          setFrameworkRequired(newValue.length > 0 ? false : true);
+          setFrameworkRequired(newValue.length === 0);
         }
       },
     []

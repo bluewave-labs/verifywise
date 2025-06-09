@@ -2,7 +2,7 @@ import { QueryTypes, Transaction } from "sequelize";
 import { sequelize } from "../database/db";
 import { FrameworkModel } from "../models/frameworks.model";
 import { ProjectFrameworksModel } from "../models/projectFrameworks.model";
-import { frameworkAdditionMap, frameworkDeletionMap } from "../types/framework.type";
+import { frameworkAdditionMap, frameworkDeletionMap, frameworkFilesDeletionSourceMap } from "../types/framework.type";
 
 export const getAllFrameworksQuery = async (
 ): Promise<FrameworkModel[]> => {
@@ -82,6 +82,18 @@ export const addFrameworkToProjectQuery = async (
   return true;
 };
 
+const deleteFrameworkEvidenceFiles = async (
+  projectId: number,
+  source: string[],
+): Promise<void> => {
+  await sequelize.query(
+    `DELETE FROM files WHERE project_id = :project_id AND source IN (:source)`,
+    {
+      replacements: { project_id: projectId, source },
+    }
+  )
+}
+
 export const deleteFrameworkFromProjectQuery = async (
   frameworkId: number,
   projectId: number,
@@ -95,11 +107,17 @@ export const deleteFrameworkFromProjectQuery = async (
     return false; // Framework not found in the project
   }
 
+  // delete evidence files for the framework
+  const frameworkFilesDeletionSource = frameworkFilesDeletionSourceMap[frameworkId];
+  if (!frameworkFilesDeletionSource) {
+    return false;
+  }
+  await deleteFrameworkEvidenceFiles(projectId, frameworkFilesDeletionSource);
+
   const frameworkDeletionFunction = frameworkDeletionMap[frameworkId];
   if (!frameworkDeletionFunction) {
     return false;
   }
-
   // call framework deletion function
   const result = await frameworkDeletionFunction(projectId, transaction);
   return result;

@@ -7,8 +7,11 @@
 
 import { getComplianceReportQuery } from '../../utils/reporting.utils';
 import { ReportBodyData } from '../reportService';
-import {ControlCategoryStructEUModel} from '../../models/EU/controlCategoryStructEU.model';
-import { SubcontrolStructEU } from '../../models/EU/subControlStructEU.model';
+import { ControlCategoryStructEUModel } from '../../models/EU/controlCategoryStructEU.model';
+import { SubcontrolStructEU, SubcontrolStructEUModel } from '../../models/EU/subControlStructEU.model';
+import { ControlStructEUModel } from '../../models/EU/controlStructEU.model';
+import { ControlEUModel } from '../../models/EU/controlEU.model';
+import { SubcontrolEUModel } from '../../models/EU/subControlEU.model';
 
 type SubControlProps = SubcontrolStructEU & {
   implementation_details: string;
@@ -24,16 +27,12 @@ type SubControlCategory = {
   data: ControlProps
 };
 
-type AllCompliances = ControlCategoryStructEUModel & {
-  subControlCategories: SubControlCategory[];
-};
+export async function getComplianceMarkdown(
+  projectFrameworkId: number,
+  data: ReportBodyData
+): Promise<string> {
+  const reportData = await getComplianceReportData(projectFrameworkId);
 
-export async function getComplianceMarkdown (
-    frameworkId: number,
-    data: ReportBodyData
-  ) : Promise<string> {
-    const reportData = await getComplianceReportData(frameworkId);   
-  
   const complianceMD = `
 ${data.organizationName || 'VerifyWise'} compliance tracker report
 ========================
@@ -54,26 +53,27 @@ ${reportData}
  * @param frameworkId - The ID of the framework
  * @returns Promise<string> - Compliance tracker data
 */
-export async function getComplianceReportData (
-  frameworkId: number
-) : Promise<string> {
+export async function getComplianceReportData(
+  projectFrameworkId: number
+): Promise<string> {
   let rows: string = ``;
   try {
-    const reportData = await getComplianceReportQuery(frameworkId) as AllCompliances[];   
+    const reportData = await getComplianceReportQuery(projectFrameworkId);
     if (reportData.length > 0) {
-      rows = reportData.map(compliances =>{
-        const  subTopic = compliances.subControlCategories?.length > 0
-          ? compliances.subControlCategories.map((subcc) => {
-            const controlCategoryData = `__${subcc.data.title}__<br> Implementation detail: ${subcc.data.implementation_details}`
-            const questionList = subcc.data.subControls?.length > 0
-              ? subcc.data.subControls.map((subcontrol, j) =>
-                  `    ${j + 1}. __${subcontrol.title}__<br> Implementation detail: ${subcontrol.implementation_details}`).join('\n')
+      rows = reportData.map(_controlCategories => {
+        let controlCategories = _controlCategories.dataValues as (ControlCategoryStructEUModel & { controls: (ControlStructEUModel & ControlEUModel & { subControls: (SubcontrolEUModel & SubcontrolStructEUModel)[] })[] })
+        const controls = controlCategories.controls.length > 0
+          ? controlCategories.controls.map((control) => {
+            const controlCategoryData = `__${control.title}__<br> Implementation detail: ${control.implementation_details}`
+            const subControls = control.subControls?.length > 0
+              ? control.subControls.map((subcontrol, j) =>
+                `    ${j + 1}. __${subcontrol.title}__<br> Implementation detail: ${subcontrol.implementation_details}`).join('\n')
               : `No question for this topic.`;
-            return `  - ${controlCategoryData}\n${questionList}\n`;
-          }).join('\n')          
+            return `  - ${controlCategoryData}\n${subControls}\n`;
+          }).join('\n')
           : `No data`;
-        
-        return `__${compliances?.title}__\n${subTopic}\n`;
+
+        return `__${controlCategories?.title}__\n${controls}\n`;
       }).join('\n');
     } else {
       rows = `-`

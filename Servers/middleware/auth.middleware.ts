@@ -31,8 +31,9 @@ const authenticateJWT = async (
       return res
         .status(406)
         .json(STATUS_CODE[406]({ message: "Token expired" }));
-    
+
     req.userId = decoded.id;
+    req.role = decoded.roleName;
     next();
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

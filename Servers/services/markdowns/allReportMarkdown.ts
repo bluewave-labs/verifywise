@@ -32,14 +32,9 @@ export async function getAllReportMarkdown(
       let vendorReportMarkdown = await getVendorReportData(projectId);
       let vendorRiskReportMarkdown = await getVendorRiskReportData(projectId);
 
-      if (framework.name === "EU AI Act") {
-        const complianceReportMarkdown = await getComplianceReportData(
-          frameworkId
-        );
-        const assessmentReportMarkdown = await getAssessmentTrackerReportData(
-          projectId,
-          frameworkId
-        );
+      if (framework.name === "EU AI Act") { 
+        const complianceReportMarkdown = await getComplianceReportData(projectFrameworkId);
+        const assessmentReportMarkdown = await getAssessmentTrackerReportData(projectId, frameworkId);
 
         const euAIMD = `
 ${data.organizationName || 'VerifyWise'} ${framework.name} report
@@ -75,10 +70,8 @@ Assessment tracker report
 ${assessmentReportMarkdown}
 `;
         return euAIMD;
-      } else {
-        let clausesAndAnnexesMarkdown = await getClausesAndAnnexesReportData(
-          projectFrameworkId
-        );
+      } else {        
+        let clausesAndAnnexesMarkdown = await getClausesAndAnnexesReportData(projectFrameworkId);
         const isoMD = `
 ${data.organizationName || 'VerifyWise'} ${framework.name} report
 ========================

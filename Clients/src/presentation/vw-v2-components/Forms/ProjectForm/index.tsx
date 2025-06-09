@@ -253,9 +253,9 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
         <Stack
           sx={{
             width: "100vw",
-            height: "120vh",
+            height: "100%",
             position: "fixed",
-            top: "-50%",
+            top: "0",
             left: "50%",
             transform: "translateX(-50%)",
             zIndex: 9999,

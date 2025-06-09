@@ -258,18 +258,20 @@ export const deleteAuthorizedVendorProjectsQuery = async ({
 }: DeleteAuthorizedVendorProjectsParams) => {
   // 1. Get user-authorized project IDs
   const userProjects = await getUserProjects({ userId, role, transaction });
-  const userProjectIds = new Set(userProjects.map(p => p.id));
+  const userProjectIds = userProjects.map(p => p.id).filter((value, index, self) => self.indexOf(value) === index);
 
-  // 3. Delete old links (only authorized ones)
-  await sequelize.query(
-    `
-    DELETE FROM vendors_projects 
-    WHERE vendor_id = :vendorId
-      AND project_id IN (:userProjectIds)
-    `,
-    {
-      replacements: { vendorId, userProjectIds: [...userProjectIds] },
-      transaction
-    }
-  );
+  // 2. Delete old links (only authorized ones)
+  if (userProjectIds.length > 0) {
+    await sequelize.query(
+      `
+      DELETE FROM vendors_projects 
+      WHERE vendor_id = :vendorId
+        AND project_id IN (:userProjectIds)
+      `,
+      {
+        replacements: { vendorId, userProjectIds },
+        transaction
+      }
+    );
+  }
 };

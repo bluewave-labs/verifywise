@@ -2,13 +2,6 @@ import { NextFunction, Request, Response } from "express";
 import { getTokenPayload } from "../utils/jwt.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 
-declare module 'express' {
-  interface Request {
-    userId?: number; 
-    role?: string;
-  }
-}
-
 const authenticateJWT = async (
   req: Request,
   res: Response,

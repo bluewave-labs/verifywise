@@ -48,7 +48,7 @@ export const viewProjectButtonStyle = {
 };
 
 export const euAiActChipStyle = {
-  backgroundColor: '#003399',
+  backgroundColor: '#014576',
   color: '#fff',
   fontWeight: 600,
   fontSize: 11,
@@ -58,7 +58,7 @@ export const euAiActChipStyle = {
 };
 
 export const iso42001ChipStyle = {
-  backgroundColor: '#E30613',
+  backgroundColor: '#0ca5af',
   color: '#fff',
   fontWeight: 600,
   fontSize: 11,

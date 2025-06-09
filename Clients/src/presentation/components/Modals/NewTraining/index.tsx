@@ -184,13 +184,19 @@ const NewTraining: FC<NewTrainingProps> = ({
         sx: {
           borderRadius: theme.shape.borderRadius,
           padding: theme.spacing(4),
+
           boxShadow:
             "0px 8px 8px -4px rgba(16, 24, 40, 0.03), 0px 20px 24px -4px rgba(16, 24, 40, 0.08)",
         },
       }}
     >
       <form onSubmit={handleSubmit}>
-        <Stack spacing={4}>
+        <Stack spacing={4}
+        sx={
+          {
+            padding: theme.spacing(8)
+          }
+        }>
           <Stack
             sx={{
               display: "flex",
@@ -218,6 +224,7 @@ const NewTraining: FC<NewTrainingProps> = ({
                 handleClose();
               }}
               sx={{
+                gap: theme.spacing(5),
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -327,6 +334,7 @@ const NewTraining: FC<NewTrainingProps> = ({
               variant="contained"
               text={isEdit ? "Update Training" : "Create Training"}
               sx={{
+                mt: theme.spacing(5),
                 backgroundColor: "#13715B",
                 border: "1px solid #13715B",
                 gap: 2,

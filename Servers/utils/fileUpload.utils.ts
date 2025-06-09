@@ -14,13 +14,12 @@ export const uploadFile = async (
   source:
     | "Assessment tracker group"
     | "Compliance tracker group"
-    | "Report"
     | "Project risks report"
     | "Compliance tracker report"
     | "Assessment tracker report"
     | "Vendors and risks report"
     | "All reports"
-    | "Management system clauses group" | "Reference controls group",
+    | "Management system clauses group" | "Reference controls group" | "Clauses and annexes report",
   transaction: Transaction | null = null
 ) => {
   const projectIsDemo = await sequelize.query(

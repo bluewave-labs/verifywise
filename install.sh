@@ -53,7 +53,7 @@ main() {
     echo "Starting Docker Compose..."
     if [ $ENVIRONMENT == "dev" ]; then
         load_env .env.dev
-        $DOCKER_COMPOSE_CMD --env-file .env.dev up --build -d
+        $DOCKER_COMPOSE_CMD -f docker-compose.yml -f docker-compose.override.yml --env-file .env.dev up --build -d
     else
         load_env .env.prod
         $DOCKER_COMPOSE_CMD -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod up -d

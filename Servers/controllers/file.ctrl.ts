@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { deleteFileById, getFileById, getFileMetadataByProjectId, uploadFile } from "../utils/fileUpload.utils";
 import { addFileToQuestion, RequestWithFile, UploadedFile } from "../utils/question.utils";
-import { FileType } from "../models/file.model";
+import { FileModel, FileType } from "../models/file.model";
 import { addFileToAnswerEU } from "../utils/eu.utils";
 import { sequelize } from "../database/db";
 import getUserFilesMetaDataQuery from "../utils/files/getUserFilesMetaData.utils";
@@ -63,7 +63,7 @@ export const getUserFilesMetaData = async (req: Request, res: Response) => {
     const validPageSize = !isNaN(pageSize) && pageSize > 0 ? pageSize : undefined;
     const offset = validPage !== undefined && validPageSize !== undefined ? (validPage - 1) * validPageSize : undefined;
 
-    const files = await getUserFilesMetaDataQuery(userId, { limit: validPageSize, offset });
+    const files = await getUserFilesMetaDataQuery(req.role || "", userId, { limit: validPageSize, offset });
 
     return res.status(200).send(files);
   } catch (err) {

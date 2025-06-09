@@ -57,6 +57,7 @@ export const getGeneratedReportsQuery = async () => {
     "Compliance tracker report",
     "Assessment tracker report",
     "Reference controls group",
+    "Clauses and annexes report",
     "Vendors and risks report",
     "All reports",
   ];

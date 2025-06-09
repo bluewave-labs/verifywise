@@ -196,6 +196,8 @@ const ProjectSettings = React.memo(
       isFrameworkOperationInProgress,
     ]);
 
+    const [removedFramework, setRemovedFramework] = useState<boolean>(false);
+
     useEffect(() => {
       if (project) {
         initialState.projectTitle = project?.project_title ?? "";
@@ -337,10 +339,11 @@ const ProjectSettings = React.memo(
                 values.monitoredRegulationsAndStandards.find(
                   (fw) => !newValue.some((nv) => nv._id === fw._id)
                 );
+              setRemovedFramework(prop === 'monitoredRegulationsAndStandards')
               if (removedFramework) {
                 setIsFrameworkOperationInProgress(true);
                 setFrameworkToRemove(removedFramework);
-                setIsFrameworkRemoveModalOpen(true);
+                setIsFrameworkRemoveModalOpen(values.monitoredRegulationsAndStandards.length > 1);
                 // Don't update values state yet
                 return;
               }
@@ -503,6 +506,7 @@ const ProjectSettings = React.memo(
         setIsFrameworkOperationInProgress(false);
         setIsFrameworkRemoveModalOpen(false);
         setFrameworkToRemove(null);
+        setRemovedFramework(false);
         setTimeout(() => {
           setAlert(null);
         }, 3000);
@@ -938,6 +942,14 @@ const ProjectSettings = React.memo(
                     },
                   }}
                 />
+                {(removedFramework && values.monitoredRegulationsAndStandards.length === 1) && (
+                  <Typography
+                    variant="caption"
+                    sx={{ color: "warning.main", fontWeight: 300 }}
+                  >
+                    Framework cannot be empty.
+                  </Typography>
+                )}
               </Stack>
             )}
 

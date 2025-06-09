@@ -9,7 +9,8 @@ import { getAllReportMarkdown } from './markdowns/allReportMarkdown';
 
 export interface ReportBodyData {
   projectTitle: string,
-  projectOwner: string
+  projectOwner: string,
+  organizationName: string
 }
 
 /** 

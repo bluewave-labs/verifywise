@@ -18,45 +18,83 @@ import { FileModel } from "../models/file.model";
 import { table } from "console";
 import { ProjectFrameworksModel } from "../models/projectFrameworks.model";
 import { frameworkDeletionMap } from "../types/framework.type";
+import { Role } from "../models/role.model";
+import { get } from "http";
 
-export const getAllProjectsQuery = async (): Promise<Project[]> => {
-  const projects = await sequelize.query(
-    "SELECT * FROM projects ORDER BY created_at DESC, id ASC",
-    {
-      mapToModel: true,
-      model: ProjectModel
-    }
-  );
-  if (projects.length) {
-    for (let project of projects) {
-      const projectFramework = await sequelize.query(
-        `
-          SELECT 
-            pf.id AS project_framework_id, pf.framework_id,
-            f.name AS name
-          FROM projects_frameworks pf
-          JOIN frameworks f ON pf.framework_id = f.id
-          WHERE project_id = :project_id`,
-        {
-          replacements: { project_id: project.id }
-        }
-      ) as [{ project_framework_id: number, framework_id: number, name: string }[], number];
-      (project.dataValues as any)["framework"] = []
-      for (let pf of projectFramework[0]) {
-        (project.dataValues as any)["framework"].push(pf)
-      }
+interface GetUserProjectsOptions {
+  userId: number;
+  role: Role['name'];
+}
 
-      const members = await sequelize.query(
-        "SELECT user_id FROM projects_members WHERE project_id = :project_id",
-        {
-          replacements: { project_id: project.id },
-          mapToModel: true,
-          model: ProjectsMembersModel
-        }
-      );
-      (project.dataValues as any)["members"] = members.map(m => m.user_id)
-    }
+export const getUserProjects = async ({ userId, role }: GetUserProjectsOptions) => {
+  const baseQueryParts: string[] = [
+    "SELECT DISTINCT p.*",
+    "FROM projects p"
+  ];
+
+  const whereConditions: string[] = [];
+  const replacements: { [key: string]: any } = {};
+
+  if (role !== 'Admin') {
+    baseQueryParts.push("LEFT JOIN projects_members pm ON pm.project_id = p.id");
+    whereConditions.push("(p.owner = :userId OR pm.user_id = :userId)");
+    replacements.userId = userId;
   }
+
+  if (whereConditions.length > 0) {
+    baseQueryParts.push("WHERE " + whereConditions.join(" AND "));
+  }
+
+  baseQueryParts.push("ORDER BY p.created_at DESC, p.id ASC");
+
+  const finalQuery = baseQueryParts.join("\n");
+
+  return sequelize.query(finalQuery, {
+    replacements,
+    model: ProjectModel,
+    mapToModel: true,
+  });
+};
+
+export const getAllProjectsQuery = async ({userId, role}: { userId: number; role: Role['name'] }): Promise<Project[]> => {
+
+  if (!userId || !role) {
+    throw new Error("User ID and role are required to fetch projects.");
+  }
+
+  const projects = await getUserProjects({ userId, role});
+
+  if (!projects || projects.length === 0) return [];
+  
+  for (let project of projects) {
+    const projectFramework = await sequelize.query(
+      `
+        SELECT 
+          pf.id AS project_framework_id, pf.framework_id,
+          f.name AS name
+        FROM projects_frameworks pf
+        JOIN frameworks f ON pf.framework_id = f.id
+        WHERE project_id = :project_id`,
+      {
+        replacements: { project_id: project.id }
+      }
+    ) as [{ project_framework_id: number, framework_id: number, name: string }[], number];
+    (project.dataValues as any)["framework"] = []
+    for (let pf of projectFramework[0]) {
+      (project.dataValues as any)["framework"].push(pf)
+    }
+
+    const members = await sequelize.query(
+      "SELECT user_id FROM projects_members WHERE project_id = :project_id",
+      {
+        replacements: { project_id: project.id },
+        mapToModel: true,
+        model: ProjectsMembersModel
+      }
+    );
+    (project.dataValues as any)["members"] = members.map(m => m.user_id)
+  }
+  
   return projects;
 };
 

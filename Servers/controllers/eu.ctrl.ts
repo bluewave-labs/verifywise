@@ -329,7 +329,11 @@ export async function getAllProjectsAssessmentProgress(
   let totalNumberOfQuestions = 0;
   let totalNumberOfAnsweredQuestions = 0;
   try {
-    const projects = await getAllProjectsQuery();
+    const { userId, role } = req; 
+    if (!userId || !role) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    const projects = await getAllProjectsQuery({ userId, role});
     if (projects && projects.length > 0) {
       await Promise.all(
         projects.map(async (project) => {
@@ -364,8 +368,12 @@ export async function getAllProjectsComplianceProgress(
 ) {
   let totalNumberOfSubcontrols = 0;
   let totalNumberOfDoneSubcontrols = 0;
-  try {
-    const projects = await getAllProjectsQuery();
+  try {    
+    const { userId, role } = req; 
+    if (!userId || !role) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    const projects = await getAllProjectsQuery({ userId, role});
     if (projects && projects.length > 0) {
       await Promise.all(
         projects.map(async (project) => {

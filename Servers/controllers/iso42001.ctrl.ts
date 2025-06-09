@@ -392,7 +392,11 @@ export async function getAllProjectsClausesProgress(
   let allSubclauses = 0;
   let allDoneSubclauses = 0;
   try {
-    const projects = await getAllProjectsQuery();
+    const { userId, role } = req; 
+    if (!userId || !role) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    const projects = await getAllProjectsQuery({ userId, role });
     if (projects && projects.length > 0) {
       await Promise.all(
         projects.map(async (project) => {
@@ -428,7 +432,11 @@ export async function getAllProjectsAnnxesProgress(
   let allAnnexcategories = 0;
   let allDoneAnnexcategories = 0;
   try {
-    const projects = await getAllProjectsQuery();
+    const { userId, role } = req; 
+    if (!userId || !role) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    const projects = await getAllProjectsQuery({ userId, role });
     if (projects && projects.length > 0) {
       await Promise.all(
         projects.map(async (project) => {

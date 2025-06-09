@@ -24,9 +24,10 @@ import { get } from "http";
 interface GetUserProjectsOptions {
   userId: number;
   role: Role['name'];
+  transaction?: Transaction;
 }
 
-export const getUserProjects = async ({ userId, role }: GetUserProjectsOptions) => {
+export const getUserProjects = async ({ userId, role, transaction }: GetUserProjectsOptions) => {
   const baseQueryParts: string[] = [
     "SELECT DISTINCT p.*",
     "FROM projects p"
@@ -53,6 +54,8 @@ export const getUserProjects = async ({ userId, role }: GetUserProjectsOptions) 
     replacements,
     model: ProjectModel,
     mapToModel: true,
+    type: QueryTypes.SELECT,
+    transaction
   });
 };
 

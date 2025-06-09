@@ -900,6 +900,9 @@ const ProjectSettings = React.memo(
                   sx={{
                     width: "458px",
                     backgroundColor: theme.palette.background.main,
+                    ".MuiAutocomplete-clearIndicator": {
+                      display: "none",
+                    },
                     "& .MuiOutlinedInput-root": {
                       borderRadius: "5px",
                       "&:hover .MuiOutlinedInput-notchedOutline": {

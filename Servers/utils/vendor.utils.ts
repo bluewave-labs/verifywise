@@ -193,7 +193,7 @@ export const updateVendorByIdQuery = async ({
 
   if (vendor.projects && vendor.projects.length > 0) {
     // Delete old projects first
-    await deleteAuthorizedVendorProjects({
+    await deleteAuthorizedVendorProjectsQuery({
       vendorId: id,
       userId,
       role,
@@ -250,7 +250,7 @@ interface DeleteAuthorizedVendorProjectsParams {
   transaction?: Transaction;
 }
 
-export const deleteAuthorizedVendorProjects = async ({
+export const deleteAuthorizedVendorProjectsQuery = async ({
   vendorId,
   userId,
   role,

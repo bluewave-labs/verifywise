@@ -34,9 +34,7 @@ export const createNewTrainingRegistarQuery = async (
     }
   );
   // Return the created TrainingRegistar instance
-  return Array.isArray(result) && result.length > 0
-    ? (result[0] as TrainingRegistar)
-    : (null as any);
+  return Array.isArray(result)
 };
 
 /**

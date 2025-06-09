@@ -185,7 +185,7 @@ const Training: React.FC = () => {
   };
 
   return (
-    <Stack sx={{ maxWidth: 1400, mx: "auto", p: 4 }}>
+    <Stack className="vwhome" gap={"20px"}>
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
           <Fade in={showAlert} timeout={300}>

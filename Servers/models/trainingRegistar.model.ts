@@ -1,5 +1,5 @@
-import { ForeignKey, Column, DataType, Model, Table } from "sequelize-typescript";
-import { RoleModel } from "./role.model";
+import { Column, DataType, Model, Table } from "sequelize-typescript";
+
 
 /**
  * Training Registry Model:

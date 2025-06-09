@@ -48,10 +48,8 @@ export default function FairnessResultsPage() {
     const fetchMetrics = async () => {
       try {
         const data = await fairnessService.getFairnessMetrics(id as string);
-        //console.log("Fetched metrics:", data);
         setMetrics(data);
-      } catch (err) {
-        console.error("Failed to fetch metrics:", err);
+      } catch {
         setError("Failed to fetch metrics.");
       } finally {
         setLoading(false);

@@ -53,6 +53,7 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
   const { allFrameworks } = useFrameworks({ listOfFrameworks: [] });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [memberRequired, setMemberRequired] = useState<boolean>(false);
+  const [frameworkRequired, setFrameworkRequired] = useState<boolean>(false);
   const authState = useSelector(
     (state: { auth: { authToken: string; userExists: boolean } }) => state.auth
   );
@@ -103,11 +104,16 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
   const handleOnMultiSelect = useCallback(
     (prop: keyof FormValues) =>
       (_event: React.SyntheticEvent, newValue: any[]) => {
+        console.log(values)
         setValues((prevValues) => ({
           ...prevValues,
           [prop]: newValue,
         }));
-        setMemberRequired(false);
+        if (prop === "members") {
+          setMemberRequired(newValue.length > 0 ? false : true);
+        } else {
+          setFrameworkRequired(newValue.length > 0 ? false : true);
+        }
       },
     []
   );
@@ -169,6 +175,11 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
     if (values.members.length === 0) {
       newErrors.members = "At least one team member is required.";
       setMemberRequired(true);
+    }
+
+    if (values.monitored_regulations_and_standards.length === 0) {
+      newErrors.frameworks = "At least one framework is required.";
+      setFrameworkRequired(true);
     }
 
     setErrors(newErrors);
@@ -503,6 +514,7 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
                 renderInput={(params) => (
                   <TextField
                     {...params}
+                    error={!!errors.frameworks}
                     placeholder="Select regulations and standards"
                     sx={teamMembersRenderInputStyle}
                   />
@@ -513,12 +525,12 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
                 }}
                 slotProps={teamMembersSlotProps}
               />
-              {memberRequired && (
+              {frameworkRequired && (
                 <Typography
                   variant="caption"
                   sx={{ mt: 4, color: "#f04438", fontWeight: 300 }}
                 >
-                  {errors.members}
+                  {errors.frameworks}
                 </Typography>
               )}
             </Stack>

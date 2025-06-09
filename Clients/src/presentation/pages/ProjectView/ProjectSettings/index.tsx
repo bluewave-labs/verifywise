@@ -522,6 +522,7 @@ const ProjectSettings = React.memo(
       setIsFrameworkRemoveModalOpen(false);
       setFrameworkToRemove(null);
       setIsFrameworkOperationInProgress(false);
+      setRemovedFramework(false);
     }, []);
 
     const validateForm = useCallback((): boolean => {

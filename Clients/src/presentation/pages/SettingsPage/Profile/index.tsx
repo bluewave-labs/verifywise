@@ -56,11 +56,9 @@ interface User {
 const ProfileForm: React.FC = () => {
   const state = store.getState();
   const userData = extractUserToken(state.auth.authToken); // Extract user data from token
-  console.log("userData : ", userData);
   const { id } = userData || {};
   const { userRoleName } = useContext(VerifyWiseContext);
   const isAdmin = userRoleName === "Admin";
-  console.log("isAdmin : ", isAdmin);
   // State management
   const [firstname, setFirstname] = useState<string>("");
   const [lastname, setLastname] = useState<string>("");
@@ -112,7 +110,6 @@ const ProfileForm: React.FC = () => {
       setLoading(true);
       try {
         const response = await getEntityById({ routeUrl: `/users/${id}` });
-        console.log("response : ", response);
         setFirstname(response.data.name || "");
         setLastname(response.data.surname || "");
         setEmail(response.data.email || "");

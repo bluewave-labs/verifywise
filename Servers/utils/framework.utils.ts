@@ -85,11 +85,13 @@ export const addFrameworkToProjectQuery = async (
 const deleteFrameworkEvidenceFiles = async (
   projectId: number,
   source: string[],
+  transaction: Transaction
 ): Promise<void> => {
   await sequelize.query(
     `DELETE FROM files WHERE project_id = :project_id AND source IN (:source)`,
     {
       replacements: { project_id: projectId, source },
+      transaction
     }
   )
 }
@@ -112,7 +114,7 @@ export const deleteFrameworkFromProjectQuery = async (
   if (!frameworkFilesDeletionSource) {
     return false;
   }
-  await deleteFrameworkEvidenceFiles(projectId, frameworkFilesDeletionSource);
+  await deleteFrameworkEvidenceFiles(projectId, frameworkFilesDeletionSource, transaction);
 
   const frameworkDeletionFunction = frameworkDeletionMap[frameworkId];
   if (!frameworkDeletionFunction) {

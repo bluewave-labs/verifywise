@@ -108,7 +108,6 @@ const TeamManagement: React.FC = (): JSX.Element => {
         setTimeout(() => setAlert(null), 3000);
       }
     } catch (error) {
-      console.error("API Error:", error);
       setAlert({
         variant: "error",
         body: `An error occurred: ${
@@ -208,7 +207,6 @@ const TeamManagement: React.FC = (): JSX.Element => {
   };
 
   const inviteTeamMember = () => {
-    console.log("Inviting team member");
     setInviteUserModalOpen(true);
   };
 

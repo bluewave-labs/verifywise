@@ -12,22 +12,11 @@ import {
   getProjectByIdQuery,
   updateProjectByIdQuery,
 } from "../utils/project.utils";
-import {
-  createNewAssessmentQuery,
-  getAssessmentByProjectIdQuery,
-} from "../utils/assessment.utils";
 import { getUserByIdQuery } from "../utils/user.utils";
-import {
-  createNewControlCategories,
-  getControlCategoryByProjectIdQuery,
-} from "../utils/controlCategory.utils";
+import { getControlCategoryByProjectIdQuery } from "../utils/controlCategory.utils";
 import { Project, ProjectModel } from "../models/project.model";
 import { getAllControlsByControlGroupQuery } from "../utils/control.utils";
 import { getAllSubcontrolsByControlIdQuery } from "../utils/subControl.utils";
-import { getTopicByAssessmentIdQuery } from "../utils/topic.utils";
-import { getSubTopicByTopicIdQuery } from "../utils/subtopic.utils";
-import { getQuestionBySubTopicIdQuery } from "../utils/question.utils";
-import { AssessmentModel } from "../models/assessment.model";
 import { ControlModel } from "../models/control.model";
 import { ControlCategoryModel } from "../models/controlCategory.model";
 import { createEUFrameworkQuery } from "../utils/eu.utils";
@@ -39,7 +28,12 @@ export async function getAllProjects(
   res: Response
 ): Promise<any> {
   try {
-    const projects = (await getAllProjectsQuery()) as ProjectModel[];
+    const { userId, role } = req; 
+    if (!userId || !role) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    
+    const projects = (await getAllProjectsQuery({ userId, role})) as ProjectModel[];
 
     if (projects && projects.length > 0) {
       await Promise.all(
@@ -356,7 +350,11 @@ export async function allProjectsComplianceProgress(
   let totalNumberOfSubcontrols = 0;
   let totalNumberOfDoneSubcontrols = 0;
   try {
-    const projects = await getAllProjectsQuery();
+    const { userId, role } = req; 
+    if (!userId || !role) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    const projects = await getAllProjectsQuery({ userId, role });
     if (projects && projects.length > 0) {
       await Promise.all(
         projects.map(async (project) => {
@@ -387,7 +385,11 @@ export async function allProjectsAssessmentProgress(
   let totalNumberOfQuestions = 0;
   let totalNumberOfAnsweredQuestions = 0;
   try {
-    const projects = await getAllProjectsQuery();
+    const { userId, role } = req; 
+    if (!userId || !role) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    const projects = await getAllProjectsQuery({ userId, role });
     if (projects && projects.length > 0) {
       await Promise.all(
         projects.map(async (project) => {

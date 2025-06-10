@@ -3,7 +3,7 @@ import { sequelize } from "../database/db";
 import { deleteVendorRisksForVendorQuery } from "./vendorRisk.utils";
 import { VendorsProjectsModel } from "../models/vendorsProjects.model";
 import { QueryTypes, Sequelize, Transaction } from "sequelize";
-import { updateProjectUpdatedByIdQuery } from "./project.utils";
+import { getUserProjects, updateProjectUpdatedByIdQuery } from "./project.utils";
 
 export const getAllVendorsQuery = async (): Promise<Vendor[]> => {
   const vendors = await sequelize.query(
@@ -139,21 +139,27 @@ export const createNewVendorQuery = async (vendor: Vendor, transaction: Transact
   const vendorId = createdVendor.id!;
 
   createdVendor.dataValues["projects"] = []
-  
   if (vendor.projects && vendor.projects.length > 0) {
     const vendors_projects = await addVendorProjects(vendorId, vendor.projects, transaction)
     createdVendor.dataValues["projects"] = vendors_projects.map(p => p.project_id)
   }
-  
   await updateProjectUpdatedByIdQuery(vendorId, "vendors", transaction);
   return createdVendor;
 };
 
-export const updateVendorByIdQuery = async (
+export const updateVendorByIdQuery = async ({
+  id,
+  vendor,
+  userId,
+  role,
+  transaction
+}: {
   id: number,
   vendor: Partial<Vendor>,
+  userId: number,
+  role: string,
   transaction: Transaction
-): Promise<Vendor> => {
+}): Promise<Vendor> => {
   const updateVendor: Partial<Record<keyof Vendor, any>> = {};
   const setClause = [
     "vendor_name",
@@ -186,16 +192,13 @@ export const updateVendorByIdQuery = async (
   });
 
   if (vendor.projects && vendor.projects.length > 0) {
-    await sequelize.query(
-      `DELETE FROM vendors_projects WHERE vendor_id = :id`,
-      {
-        replacements: { id },
-        mapToModel: true,
-        model: VendorsProjectsModel,
-        type: QueryTypes.DELETE,
-        transaction,
-      }
-    );
+    // Delete old projects first
+    await deleteAuthorizedVendorProjectsQuery({
+      vendorId: id,
+      userId,
+      role,
+      transaction
+    });
 
     const vendors_projects = await addVendorProjects(id, vendor.projects, transaction)
     result[0].dataValues["projects"] = vendors_projects.map(p => p.project_id)
@@ -238,4 +241,37 @@ export const deleteVendorByIdQuery = async (id: number, transaction: Transaction
     }
   );
   return result.length > 0;
+};
+
+interface DeleteAuthorizedVendorProjectsParams {
+  vendorId: number;
+  userId: number;
+  role: string;
+  transaction?: Transaction;
+}
+
+export const deleteAuthorizedVendorProjectsQuery = async ({
+  vendorId,
+  userId,
+  role,
+  transaction,
+}: DeleteAuthorizedVendorProjectsParams) => {
+  // 1. Get user-authorized project IDs
+  const userProjects = await getUserProjects({ userId, role, transaction });
+  const userProjectIds = userProjects.map(p => p.id).filter((value, index, self) => self.indexOf(value) === index);
+
+  // 2. Delete old links (only authorized ones)
+  if (userProjectIds.length > 0) {
+    await sequelize.query(
+      `
+      DELETE FROM vendors_projects 
+      WHERE vendor_id = :vendorId
+        AND project_id IN (:userProjectIds)
+      `,
+      {
+        replacements: { vendorId, userProjectIds },
+        transaction
+      }
+    );
+  }
 };

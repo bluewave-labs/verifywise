@@ -154,7 +154,7 @@ async function loginUser(req: Request, res: Response): Promise<any> {
           })
         );
       } else {
-        return res.status(403).json(STATUS_CODE[406]("Password mismatch"));
+        return res.status(403).json(STATUS_CODE[403]("Password mismatch"));
       }
     }
 

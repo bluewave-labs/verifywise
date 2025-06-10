@@ -27,7 +27,7 @@ type StatusType = "Planned" | "In Progress" | "Completed";
 
 interface NewTrainingFormValues {
   training_name: string;
-  duration: number;
+  duration: string;
   provider: string;
   department: string;
   status: StatusType;
@@ -45,7 +45,7 @@ interface NewTrainingFormErrors {
 
 const initialState: NewTrainingFormValues = {
   training_name: "",
-  duration: 0,
+  duration: "",
   provider: "",
   department: "",
   status: "Planned",
@@ -112,13 +112,8 @@ const NewTraining: FC<NewTrainingProps> = ({
       newErrors.training_name = "Training name is required.";
     }
 
-    if (
-      !values.duration ||
-      isNaN(Number(values.duration)) ||
-      Number(values.duration) <= 0
-    ) {
-      newErrors.duration =
-        "Duration is required and must be a positive number.";
+    if (!values.duration.trim()) {
+      newErrors.duration = "Duration is required.";
     }
 
     if (!values.provider.trim()) {
@@ -156,8 +151,8 @@ const NewTraining: FC<NewTrainingProps> = ({
       if (onSuccess) {
         onSuccess({
           ...values,
-          duration: Number(values.duration),
           numberOfPeople: Number(values.numberOfPeople),
+          duration: values.duration,
         });
       }
       handleClose();
@@ -191,12 +186,12 @@ const NewTraining: FC<NewTrainingProps> = ({
       }}
     >
       <form onSubmit={handleSubmit}>
-        <Stack spacing={4}
-        sx={
-          {
-            padding: theme.spacing(8)
-          }
-        }>
+        <Stack
+          spacing={4}
+          sx={{
+            padding: theme.spacing(8),
+          }}
+        >
           <Stack
             sx={{
               display: "flex",
@@ -257,12 +252,12 @@ const NewTraining: FC<NewTrainingProps> = ({
                   <Field
                     id="duration"
                     label="Duration"
-                    value={values.duration.toString()}
+                    value={values.duration}
                     onChange={handleOnTextFieldChange("duration")}
                     error={errors.duration}
                     isRequired
                     sx={fieldStyle}
-                    type="number"
+                    type="text"
                   />
                 </Suspense>
               </Grid>
@@ -312,7 +307,15 @@ const NewTraining: FC<NewTrainingProps> = ({
                     id="number-of-people"
                     label="Number of People"
                     value={values.numberOfPeople.toString()}
-                    onChange={handleOnTextFieldChange("numberOfPeople")}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (
+                        value === "" ||
+                        (!isNaN(Number(value)) && Number(value) >= 0)
+                      ) {
+                        handleOnTextFieldChange("numberOfPeople")(e);
+                      }
+                    }}
                     error={errors.numberOfPeople}
                     isRequired
                     sx={fieldStyle}

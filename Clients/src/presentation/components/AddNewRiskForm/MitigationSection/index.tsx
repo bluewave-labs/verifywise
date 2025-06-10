@@ -150,101 +150,129 @@ const MitigationSection: FC<MitigationSectionProps> = ({
           />
         </Suspense>
       )}
-      <Stack component="form" className={styles.popupBody}>
-        <Stack sx={{ flexDirection: "row", columnGap: 12.5, mb: 8 }}>
-          <Stack sx={{ rowGap: 8.5 }}>
-            <Suspense fallback={<div>Loading...</div>}>
-              <Select
-                id="mitigation-status-input"
-                label="Mitigation status"
-                placeholder="Select status"
-                value={
-                  mitigationValues.mitigationStatus === 0
-                    ? ""
-                    : mitigationValues.mitigationStatus
-                }
-                onChange={handleOnSelectChange("mitigationStatus")}
-                items={mitigationStatusItems}
-                sx={{
-                  width: 324,
-                  backgroundColor: theme.palette.background.main,
-                }}
-                isRequired
-                error={migitateErrors.mitigationStatus}
-                disabled={isEditingDisabled}
-              />
-            </Suspense>
-            <Suspense fallback={<div>Loading...</div>}>
-              <Field
-                id="mitigation-plan-input"
-                label="Mitigation plan"
-                type="description"
-                value={mitigationValues.mitigationPlan}
-                onChange={handleOnTextFieldChange("mitigationPlan")}
-                sx={{ backgroundColor: theme.palette.background.main }}
-                isRequired
-                error={migitateErrors.mitigationPlan}
-                disabled={isEditingDisabled}
-              />
-            </Suspense>
-          </Stack>
-          <Stack sx={{ rowGap: 8.5 }}>
-            <Suspense fallback={<div>Loading...</div>}>
-              <Select
-                id="current-risk-level-input"
-                label="Current risk level"
-                placeholder="Select risk level"
-                value={
-                  mitigationValues.currentRiskLevel === 0
-                    ? ""
-                    : mitigationValues.currentRiskLevel
-                }
-                onChange={handleOnSelectChange("currentRiskLevel")}
-                items={riskLevelItems}
-                sx={{
-                  width: 324,
-                  backgroundColor: theme.palette.background.main,
-                }}
-                isRequired
-                error={migitateErrors.currentRiskLevel}
-                disabled={isEditingDisabled}
-              />
-            </Suspense>
-            <Suspense fallback={<div>Loading...</div>}>
-              <Field
-                id="implementation-strategy-input"
-                label="Implementation strategy"
-                type="description"
-                value={mitigationValues.implementationStrategy}
-                onChange={handleOnTextFieldChange("implementationStrategy")}
-                sx={{ backgroundColor: theme.palette.background.main }}
-                isRequired
-                error={migitateErrors.implementationStrategy}
-                disabled={isEditingDisabled}
-              />
-            </Suspense>
-          </Stack>
-          <Stack sx={{ rowGap: 8.5 }}>
-            <Suspense fallback={<div>Loading...</div>}>
-              <Stack style={{ minWidth: "303px" }}>
-                <DatePicker
-                  label="Start date"
-                  date={
-                    mitigationValues.deadline
-                      ? dayjs(mitigationValues.deadline)
-                      : dayjs(new Date())
+      <Stack component="form" className={styles.popupBody} sx={{ 
+        height: "600px", 
+        width: "100%",
+        overflowY: "auto"
+      }}>
+        <Stack sx={{ width: "100%", mb: 10 }}>
+          <Stack sx={{ gap: 8.5 }}>
+            {/* Row 1: Three columns */}
+            <Stack
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-between",
+                flexWrap: "wrap",
+                gap: theme.spacing(8.5),
+              }}
+            >
+              <Suspense fallback={<div>Loading...</div>}> {/* Mitigation Status */}
+                <Select
+                  id="mitigation-status-input"
+                  label="Mitigation status"
+                  placeholder="Select status"
+                  value={
+                    mitigationValues.mitigationStatus === 0
+                      ? ""
+                      : mitigationValues.mitigationStatus
                   }
-                  handleDateChange={(e) => handleDateChange("deadline", e)}
+                  onChange={handleOnSelectChange("mitigationStatus")}
+                  items={mitigationStatusItems}
                   sx={{
-                    width: 130,
-                    "& input": { width: 85 },
+                    width: "325px",
+                    backgroundColor: theme.palette.background.main,
                   }}
                   isRequired
-                  error={migitateErrors.deadline}
+                  error={migitateErrors.mitigationStatus}
                   disabled={isEditingDisabled}
                 />
-              </Stack>
-            </Suspense>
+              </Suspense>
+              <Suspense fallback={<div>Loading...</div>}> {/* Current Risk Level */}
+                <Select
+                  id="current-risk-level-input"
+                  label="Current risk level"
+                  placeholder="Select risk level"
+                  value={
+                    mitigationValues.currentRiskLevel === 0
+                      ? ""
+                      : mitigationValues.currentRiskLevel
+                  }
+                  onChange={handleOnSelectChange("currentRiskLevel")}
+                  items={riskLevelItems}
+                  sx={{
+                    width: "325px",
+                    backgroundColor: theme.palette.background.main,
+                  }}
+                  isRequired
+                  error={migitateErrors.currentRiskLevel}
+                  disabled={isEditingDisabled}
+                />
+              </Suspense>
+              <Suspense fallback={<div>Loading...</div>}> {/* Start Date */}
+                <Stack style={{ width: "325px" }}>
+                  <DatePicker
+                    label="Start date"
+                    date={
+                      mitigationValues.deadline
+                        ? dayjs(mitigationValues.deadline)
+                        : dayjs(new Date())
+                    }
+                    handleDateChange={(e) => handleDateChange("deadline", e)}
+                    sx={{
+                      width: "325px",
+                      "& input": { width: 85 },
+                    }}
+                    isRequired
+                    error={migitateErrors.deadline}
+                    disabled={isEditingDisabled}
+                  />
+                </Stack>
+              </Suspense>
+            </Stack>
+            {/* Row 2: Mitigation Plan and Implementation Strategy */}
+            <Stack
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-between",
+                flexWrap: "wrap",
+                gap: theme.spacing(8.5),
+              }}
+            >
+              <Suspense fallback={<div>Loading...</div>}> {/* Mitigation Plan */}
+                <Field
+                  id="mitigation-plan-input"
+                  label="Mitigation plan"
+                  type="description"
+                  value={mitigationValues.mitigationPlan}
+                  onChange={handleOnTextFieldChange("mitigationPlan")}
+                  sx={{ 
+                    width: "325px",
+                  }}
+                  isRequired
+                  error={migitateErrors.mitigationPlan}
+                  disabled={isEditingDisabled}
+                  placeholder="Write mitigation plan"
+                />
+              </Suspense>
+              <Suspense fallback={<div>Loading...</div>}> {/* Implementation Strategy */}
+                <Field
+                  id="implementation-strategy-input"
+                  label="Implementation strategy"
+                  type="description"
+                  value={mitigationValues.implementationStrategy}
+                  onChange={handleOnTextFieldChange("implementationStrategy")}
+                  sx={{ 
+                    width: "670px",
+                  }}
+                  isRequired
+                  error={migitateErrors.implementationStrategy}
+                  disabled={isEditingDisabled}
+                  placeholder="Write implementation strategy"
+                />
+              </Suspense>
+            </Stack>
           </Stack>
         </Stack>
         <Divider />
@@ -340,7 +368,6 @@ const MitigationSection: FC<MitigationSectionProps> = ({
             type="description"
             value={mitigationValues.recommendations}
             onChange={handleOnTextFieldChange("recommendations")}
-            sx={{ backgroundColor: theme.palette.background.main }}
             isOptional
             disabled={isEditingDisabled}
           />

@@ -4,7 +4,6 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  Grid,
   Stack,
   Box,
 } from "@mui/material";
@@ -179,7 +178,6 @@ const NewTraining: FC<NewTrainingProps> = ({
         sx: {
           borderRadius: theme.shape.borderRadius,
           padding: theme.spacing(4),
-
           boxShadow:
             "0px 8px 8px -4px rgba(16, 24, 40, 0.03), 0px 20px 24px -4px rgba(16, 24, 40, 0.08)",
         },
@@ -187,9 +185,9 @@ const NewTraining: FC<NewTrainingProps> = ({
     >
       <form onSubmit={handleSubmit}>
         <Stack
-          spacing={4}
+          spacing={2}
           sx={{
-            padding: theme.spacing(8),
+            padding: theme.spacing(4),
           }}
         >
           <Stack
@@ -219,7 +217,7 @@ const NewTraining: FC<NewTrainingProps> = ({
                 handleClose();
               }}
               sx={{
-                gap: theme.spacing(5),
+                gap: theme.spacing(2),
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -233,114 +231,125 @@ const NewTraining: FC<NewTrainingProps> = ({
             </Box>
           </Stack>
           <DialogContent sx={{ p: 0 }}>
-            <Grid container spacing={3}>
-              <Grid item xs={12} sm={6}>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Field
-                    id="training-name"
-                    label="Training name"
-                    value={values.training_name}
-                    onChange={handleOnTextFieldChange("training_name")}
-                    error={errors.training_name}
-                    isRequired
-                    sx={fieldStyle}
-                  />
-                </Suspense>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Field
-                    id="duration"
-                    label="Duration"
-                    value={values.duration}
-                    onChange={handleOnTextFieldChange("duration")}
-                    error={errors.duration}
-                    isRequired
-                    sx={fieldStyle}
-                    type="text"
-                  />
-                </Suspense>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Field
-                    id="provider"
-                    label="Provider"
-                    value={values.provider}
-                    onChange={handleOnTextFieldChange("provider")}
-                    error={errors.provider}
-                    isRequired
-                    sx={fieldStyle}
-                  />
-                </Suspense>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Field
-                    id="department"
-                    label="Department"
-                    value={values.department}
-                    onChange={handleOnTextFieldChange("department")}
-                    error={errors.department}
-                    isRequired
-                    sx={fieldStyle}
-                  />
-                </Suspense>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Select
-                    items={statusOptions}
-                    value={values.status}
-                    error={errors.status}
-                    sx={{ width: "100%" }}
-                    id="status"
-                    label="Status"
-                    isRequired
-                    onChange={handleOnSelectChange("status")}
-                  />
-                </Suspense>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Field
-                    id="number-of-people"
-                    label="Number of People"
-                    value={values.numberOfPeople.toString()}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (
-                        value === "" ||
-                        (!isNaN(Number(value)) && Number(value) >= 0)
-                      ) {
-                        handleOnTextFieldChange("numberOfPeople")(e);
-                      }
-                    }}
-                    error={errors.numberOfPeople}
-                    isRequired
-                    sx={fieldStyle}
-                    type="number"
-                  />
-                </Suspense>
-              </Grid>
-            </Grid>
+            <Stack sx={{ gap: "16px" }}>
+              <Stack direction="row" spacing={2} sx={{ gap: "16px" }}>
+                <Box sx={{ width: "50%" }}>
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Field
+                      id="training-name"
+                      label="Training name"
+                      value={values.training_name}
+                      onChange={handleOnTextFieldChange("training_name")}
+                      error={errors.training_name}
+                      isRequired
+                      sx={fieldStyle}
+                      placeholder="Enter training name"
+                    />
+                  </Suspense>
+                </Box>
+                <Box sx={{ width: "50%" }}>
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Field
+                      id="duration"
+                      label="Duration"
+                      value={values.duration}
+                      onChange={handleOnTextFieldChange("duration")}
+                      error={errors.duration}
+                      isRequired
+                      sx={fieldStyle}
+                      type="text"
+                      placeholder="e.g., 2 hours, 3 days"
+                    />
+                  </Suspense>
+                </Box>
+              </Stack>
+              <Stack direction="row" spacing={2} sx={{ gap: "16px" }}>
+                <Box sx={{ width: "50%" }}>
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Field
+                      id="provider"
+                      label="Provider"
+                      value={values.provider}
+                      onChange={handleOnTextFieldChange("provider")}
+                      error={errors.provider}
+                      isRequired
+                      sx={fieldStyle}
+                      placeholder="Enter provider name"
+                    />
+                  </Suspense>
+                </Box>
+                <Box sx={{ width: "50%" }}>
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Field
+                      id="department"
+                      label="Department"
+                      value={values.department}
+                      onChange={handleOnTextFieldChange("department")}
+                      error={errors.department}
+                      isRequired
+                      sx={fieldStyle}
+                      placeholder="Enter department name"
+                    />
+                  </Suspense>
+                </Box>
+              </Stack>
+              <Stack direction="row" spacing={2} sx={{ gap: "16px" }}>
+                <Box sx={{ width: "50%" }}>
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Select
+                      items={statusOptions}
+                      value={values.status}
+                      error={errors.status}
+                      sx={{ width: "100%" }}
+                      id="status"
+                      label="Status"
+                      isRequired
+                      onChange={handleOnSelectChange("status")}
+                      placeholder="Select status"
+                    />
+                  </Suspense>
+                </Box>
+                <Box sx={{ width: "50%" }}>
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Field
+                      id="number-of-people"
+                      label="Number of People"
+                      value={values.numberOfPeople.toString()}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (
+                          value === "" ||
+                          (!isNaN(Number(value)) && Number(value) >= 0)
+                        ) {
+                          handleOnTextFieldChange("numberOfPeople")(e);
+                        }
+                      }}
+                      error={errors.numberOfPeople}
+                      isRequired
+                      sx={fieldStyle}
+                      type="number"
+                      placeholder="Enter number of people"
+                    />
+                  </Suspense>
+                </Box>
+              </Stack>
+            </Stack>
           </DialogContent>
           <Stack
             sx={{
               display: "flex",
               flexDirection: "row",
               justifyContent: "flex-end",
-              mt: 2,
             }}
           >
             <CustomizableButton
               variant="contained"
               text={isEdit ? "Update Training" : "Create Training"}
               sx={{
-                mt: theme.spacing(5),
                 backgroundColor: "#13715B",
                 border: "1px solid #13715B",
                 gap: 2,
+                mt: "16px",
               }}
               onClick={handleSubmit}
               icon={<SaveIcon />}

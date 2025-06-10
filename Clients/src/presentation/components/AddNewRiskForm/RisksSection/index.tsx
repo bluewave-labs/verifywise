@@ -111,7 +111,11 @@ const RiskSection: FC<RiskSectionProps> = ({
           onClick={() => setAlert(null)}
         />
       )}
-      <Stack component="form" className={`AddNewRiskForm ${styles.popupBody}`}>
+      <Stack component="form" className={`AddNewRiskForm ${styles.popupBody}`} sx={{ 
+        height: "600px", 
+        width: "100%",
+        overflowY: "auto"
+      }}>
         <Stack sx={{ width: "100%", mb: 10 }}>
           <Stack sx={{ gap: 8.5 }}>
             {/* Row 1 */}
@@ -269,7 +273,6 @@ const RiskSection: FC<RiskSectionProps> = ({
             value={riskValues.reviewNotes}
             onChange={handleOnTextFieldChange("reviewNotes")}
             sx={{
-              backgroundColor: theme.palette.background.main,
               "& #review-notes-input": {
                 maxHeight: "120px",
               },

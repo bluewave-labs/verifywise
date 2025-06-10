@@ -185,10 +185,20 @@ const Training: React.FC = () => {
   };
 
   return (
-    <Stack sx={{ maxWidth: 1400, mx: "auto", p: 4 }}>
+    <Stack className="vwhome" gap={"20px"}>
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
-          <Fade in={showAlert} timeout={300}>
+          <Fade
+            in={showAlert}
+            timeout={300}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              zIndex: 1000,
+            }}
+          >
             <Box mb={2}>
               <Alert
                 variant={alert.variant}

@@ -30,6 +30,7 @@ import { checkStringValidation } from "../../../../application/validations/strin
 import ForwardToInboxIcon from "@mui/icons-material/ForwardToInbox";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import { useRoles } from "../../../../application/hooks/useRoles";
+import { isValidEmail } from "../../../../application/validations/emailAddress.rule";
 
 interface InviteUserModalProps {
   isOpen: boolean;
@@ -107,9 +108,8 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
       newErrors.name = name.message;
     }
 
-    const email = checkStringValidation("Email", values.email, 1, 64);
-    if (!email.accepted) {
-      newErrors.email = email.message;
+    if (!isValidEmail(values.email)) {
+      newErrors.email = "Invalid email address";
     }
 
     const roleId = checkStringValidation("Role", values.roleId, 1, 64);

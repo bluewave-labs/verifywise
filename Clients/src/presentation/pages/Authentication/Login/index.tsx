@@ -97,7 +97,7 @@ const Login: React.FC = () => {
             body: "User not found. Please try again.",
           });
           setTimeout(() => setAlert(null), 3000);
-        } else if (response.status === 406) {
+        } else if (response.status === 403) {
           logEngine({
             type: "event",
             message: "Invalid password. Please try again.",

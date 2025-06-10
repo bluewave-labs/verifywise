@@ -15,3 +15,8 @@ export const frameworkDeletionMap: Record<number, (id: number, transaction: Tran
   1: deleteProjectFrameworkEUQuery,
   2: deleteProjectFrameworkISOQuery,
 };
+
+export const frameworkFilesDeletionSourceMap: Record<number, string[]> = {
+  1: ["Assessment tracker group", "Compliance tracker group"],
+  2: ["Management system clauses group", "Reference controls group"],
+}

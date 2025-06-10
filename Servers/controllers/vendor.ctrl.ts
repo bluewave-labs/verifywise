@@ -91,6 +91,11 @@ export async function updateVendorById(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   try {
+    const { userId, role } = req;
+     if (!userId || !role) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
     const vendorId = parseInt(req.params.id);
     const updatedVendor: Vendor = req.body;
 
@@ -102,7 +107,7 @@ export async function updateVendorById(
       );
     }
 
-    const vendor = await updateVendorByIdQuery(vendorId, updatedVendor, transaction);
+    const vendor = await updateVendorByIdQuery({ id: vendorId, vendor: updatedVendor, userId, role, transaction });
 
     if (vendor) {
       await transaction.commit();

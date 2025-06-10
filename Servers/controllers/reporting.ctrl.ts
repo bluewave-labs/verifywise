@@ -13,19 +13,16 @@ import {
 import { marked } from "marked";
 import { sequelize } from "../database/db";
 const htmlDocx = require("html-to-docx");
+import { getAllOrganizationsQuery } from "../utils/organization.utils";
 
 function mapReportTypeToFileSource(
   reportType: string
 ):
-  | "Assessment tracker group"
-  | "Compliance tracker group"
-  | "Report"
-  | "Project risks report"
+  "Project risks report"
   | "Compliance tracker report"
   | "Assessment tracker report"
   | "Vendors and risks report"
-  | "Reference controls group"
-  | "Management system clauses group"
+  | "Clauses and annexes report"
   | "All reports" {
   // These values must match the enum_files_source in the database
   switch (reportType) {
@@ -39,10 +36,8 @@ function mapReportTypeToFileSource(
       return "Vendors and risks report";
     case "All reports":
       return "All reports";
-    case "Reference controls group":
-      return "Reference controls group";
-    case "Management system clauses group":
-      return "Management system clauses group";
+    case "Clauses and annexes report":
+      return "Clauses and annexes report";
     default:
       // fallback or throw error
       throw new Error(`Invalid report type for file source: ${reportType}`);
@@ -73,9 +68,14 @@ export async function generateReports(
     if (typeof userId !== "number" || isNaN(userId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid user ID"));
     }
+    const organizations = await getAllOrganizationsQuery();
+    let organizationName = "VerifyWise";
+    if (organizations && organizations.length > 0) {
+      organizationName = organizations[0].name;
+    }
 
     const reportData = {
-      projectTitle, projectOwner
+      projectTitle, projectOwner, organizationName
     };
 
     const markdownData = await getReportData(
@@ -139,7 +139,12 @@ export async function getAllGeneratedReports(
   res: Response
 ): Promise<any> {
   try {
-    const reports = await getGeneratedReportsQuery();
+    const { userId, role } = req;
+     if (!userId || !role) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const reports = await getGeneratedReportsQuery({userId, role});
     if (reports && reports.length > 0) {
       return res.status(200).json(STATUS_CODE[200](reports));
     }

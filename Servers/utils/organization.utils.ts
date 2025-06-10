@@ -34,12 +34,15 @@ import { QueryTypes, Transaction } from "sequelize";
  *
  * @throws {Error} If there is an error executing the SQL query.
  */
-export const getAllOrganizationsQuery = async (): Promise<Organization[]> => {
+export const getAllOrganizationsQuery = async (
+  transaction: Transaction | null = null
+): Promise<Organization[]> => {
   const organizations = await sequelize.query(
     "SELECT * FROM organizations ORDER BY created_at DESC, id ASC",
     {
       mapToModel: true,
       model: OrganizationModel,
+      ...(transaction && { transaction })
     }
   );
   return organizations;

@@ -38,6 +38,7 @@ export interface FormValues {
 export interface FormErrors {
   projectTitle?: string;
   members?: string;
+  frameworks?: string;
   owner?: string;
   startDate?: string;
   riskClassification?: string;

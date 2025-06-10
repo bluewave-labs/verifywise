@@ -1,1 +1,8 @@
 **/__pycache__
+venv/
+.venv/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

@@ -5,7 +5,7 @@ import {
 } from "../models/projectsMembers.model";
 import { FileModel } from "../models/file.model";
 import { QueryTypes, Transaction } from "sequelize";
-import { getAllTopicsQuery, getAllSubTopicsQuery, getAllQuestionsQuery, getControlStructByControlCategoryIdForAProjectQuery, getAllControlCategoriesQuery, getControlByIdForProjectQuery, getControlByIdQuery, getSubControlsByIdQuery } from "./eu.utils";
+import { getAllTopicsQuery, getAllSubTopicsQuery, getAllQuestionsQuery, getControlStructByControlCategoryIdForAProjectQuery, getAllControlCategoriesQuery, getControlByIdForProjectQuery, getControlByIdQuery, getSubControlsByIdQuery, getComplianceEUByProjectIdQuery } from "./eu.utils";
 import { TopicStructEUModel } from "../models/EU/topicStructEU.model";
 import { AnnexStructISOModel } from "../models/ISO-42001/annexStructISO.model";
 import { ClauseStructISOModel } from "../models/ISO-42001/clauseStructISO.model";
@@ -51,17 +51,27 @@ export const getMembersByProjectIdQuery = async (
   return members;
 };
 
-export const getGeneratedReportsQuery = async () => {
+interface GetGeneratedReportsOptions {
+  userId: number;
+  role: string;
+  transaction?: Transaction;
+}
+
+export const getGeneratedReportsQuery = async ({ userId, role, transaction }: GetGeneratedReportsOptions) => {
   const validSources = [
     "Project risks report",
     "Compliance tracker report",
     "Assessment tracker report",
     "Reference controls group",
+    "Clauses and annexes report",
     "Vendors and risks report",
     "All reports",
   ];
-  const query = `
-    SELECT 
+
+  const isAdmin = role === 'Admin';
+
+  const baseQueryParts = [
+    `SELECT 
       report.id, 
       report.filename, 
       report.project_id,  
@@ -72,13 +82,28 @@ export const getGeneratedReportsQuery = async () => {
       u.surname AS uploader_surname
     FROM files report
     JOIN projects p ON report.project_id = p.id
-    JOIN users u ON report.uploaded_by = u.id
-    WHERE report.source IN (:sources)
-    ORDER BY uploaded_time DESC, report.id ASC
+    JOIN users u ON report.uploaded_by = u.id`
+  ];
+
+  const whereConditions = [`report.source IN (:sources)`];
+  const replacements: any = { sources: validSources };
+
+  if (!isAdmin) {
+    baseQueryParts.push(`LEFT JOIN projects_members pm ON pm.project_id = p.id`);
+    whereConditions.push(`(p.owner = :userId OR pm.user_id = :userId)`);
+    replacements.userId = userId;
+  }
+
+  const finalQuery = `
+    ${baseQueryParts.join('\n')}
+    WHERE ${whereConditions.join(' AND ')}
+    ORDER BY report.uploaded_time DESC, report.id ASC
   `;
-  return await sequelize.query(query, {
-    replacements: { sources: validSources },
+
+  return await sequelize.query(finalQuery, {
+    replacements,
     type: QueryTypes.SELECT,
+    transaction
   });
 };
 
@@ -193,31 +218,8 @@ export const annexCategoriesQuery =async (
 export const getComplianceReportQuery = async (
   projectFrameworkId: number
 ) => {
-  const compliances = await getAllControlCategoriesQuery();
-  for(let controlCategory of compliances){
-    if(controlCategory.id && controlCategory.framework_id){
-      const subCategorieStructs = await getControlStructByControlCategoryIdForAProjectQuery(controlCategory.id, controlCategory.framework_id);                              
-      for(const subControlCategory of subCategorieStructs) {
-        if (subControlCategory.id) {
-          const controls = await getControlByIdQuery(subControlCategory.id);
-          if (controls && controls.length > 0) {
-            const control = controls[0];
-            const subControls = await getSubControlsByIdQuery(control.id!);
-            (control as any).subControls = [];
-            for (let subControl of subControls) {
-              (control as any).subControls.push({ ...subControl });
-            }
-            (subControlCategory as any).data = {};
-            (subControlCategory as any).data= control;
-          }
-        }
-      }      
-      (controlCategory.dataValues as any).subControlCategories = subCategorieStructs || []; 
-    }
-  }
-
-  const AllCompliances = compliances.map((topic) => topic.get({ plain: true }));
-  return AllCompliances;
+  const compliances = await getComplianceEUByProjectIdQuery(projectFrameworkId);
+  return compliances;
 }
 
 export const getClausesReportQuery = async (

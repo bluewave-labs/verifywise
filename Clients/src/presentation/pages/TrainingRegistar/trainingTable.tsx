@@ -38,7 +38,7 @@ const TABLE_COLUMNS = [
 export interface IAITraining {
   id: number;
   training_name: string;
-  duration: number;
+  duration: string;
   provider: string;
   department: string;
   status: "Planned" | "In Progress" | "Completed";

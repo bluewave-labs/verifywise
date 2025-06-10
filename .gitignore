@@ -3,6 +3,10 @@
 .db_initialized
 .history
 
+**/__pycache__/
+
+venv/
+
 .vscode/settings.json
 
 .DS_Store

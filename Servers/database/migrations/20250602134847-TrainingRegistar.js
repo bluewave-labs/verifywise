@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
@@ -8,42 +8,44 @@ module.exports = {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
       },
       training_name: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
       },
       duration: {
-        type: Sequelize.INTEGER
+        type: Sequelize.STRING,
       },
       provider: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
       },
       department: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
       },
       status: {
-        type: Sequelize.ENUM('Planned', 'In Progress', 'Completed')
+        type: Sequelize.ENUM("Planned", "In Progress", "Completed"),
       },
       people: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
       },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
-        defaultValue: Sequelize.fn('NOW')
+        defaultValue: Sequelize.fn("NOW"),
       },
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE,
-        defaultValue: Sequelize.fn('NOW')
-      }
+        defaultValue: Sequelize.fn("NOW"),
+      },
     });
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('trainingregistar');
-    await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_trainingregistar_status";');
-  }
+    await queryInterface.dropTable("trainingregistar");
+    await queryInterface.sequelize.query(
+      'DROP TYPE IF EXISTS "enum_trainingregistar_status";'
+    );
+  },
 };

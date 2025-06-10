@@ -18,7 +18,7 @@
 
 We are democratizing AI best practices with an open-source solution that can be hosted on-premises, giving you complete control over your AI governance. 
 
-Please [get in touch](https://tidycal.com/verifywise/info-session) with us to see the latest demo, or [join the waitlist](https://airtable.com/appdK4RIXT5xKd2Zh/pagamLEwP1yvJgP0C/form) to be notified when the release announcement is made.
+Please [get in touch](https://tidycal.com/verifywise/info-session) with us to see the latest demo, or [click here](https://verifywise.ai/see-a-demo-of-verifywise/) to experience the demo yourself.
 
 <img width="1433" alt="VerifyWise" src="https://github.com/user-attachments/assets/268a2c44-01de-4f7b-8e10-1dd4f76e86a8">
 
@@ -36,10 +36,10 @@ VerifyWise is designed for:
 
 ## Why now? 
 
-- **Urgent Need for Regulatory Compliance:** Regulations establish clear rules for AI applications, creating a need for organizations to comply with legal requirements.
-- **Complexity of Compliance:** Companies will require governance tools to help them navigate a changing regulatory landscape. 
-- **Growing Concerns for Ethical AI:** There is a strong push from governments, businesses, and consumers for more ethical and transparent AI systems.
-- **Good Timing with Global AI Expansion:** Launching an open-source AI governance application now aligns with the AI adoption trend across industries (e.g., healthcare, finance), addressing the need for a rapidly deployable governance solution.
+- **Urgent need for regulatory compliance:** Regulations establish clear rules for AI applications, creating a need for organizations to comply with legal requirements.
+- **Complexity of compliance:** Companies will require governance tools to help them navigate a changing regulatory landscape. 
+- **Growing concerns for ethical AI:** There is a strong push from governments, businesses, and consumers for more ethical and transparent AI systems.
+- **Good timing with global AI expansion:** Launching an open-source AI governance application now aligns with the AI adoption trend across industries (e.g., healthcare, finance), addressing the need for a deployable governance solution.
 
 ## Features
 
@@ -47,22 +47,28 @@ VerifyWise is designed for:
 
 - Option to host the application on-premises or in a private cloud
 - Open source with a permissive license (AGPLv3)
-- End-to-end encryption for data in transit and at rest to ensure data security
-- Faster audits using AI-generated answers for compliance and assessment questions.
+- Faster audits using AI-generated answers for compliance and assessment questions
 - Full access to the source code for transparency, security audits, and customization
-- Docker deployment (deployable on render.com and similar platforms)
-- User registration, authentication, and role-based access control (RBAC) support.
-- Key metrics, visualizations, and real-time reporting capabilities.
+- Docker deployment (also deployable on render.com and similar platforms)
+- User registration, authentication, and role-based access control (RBAC) support
 - Major features:
   - Multiple projects
-  - Compliance tracker and assessment tracker for EU AI Act
-  - ISO 42001 support
-  - Vendors
-  - Risks 
+  - Support for EU AI Act and ISO 42001
+  - Vendors & vendor risks
+  - AI project risks
+  - Bias & fairness check of ML systems
   - Evidence center
   - Reports
   - AI literacy training
-  - AI Trust Center *(planning)*
+ 
+## Roadmap 
+
+- More frameworks
+- Mappings between frameworks
+- AI trust center
+- Integration with MIT AI risk repository
+- Automated reports
+- Risk and control mappings
 
 ## Installation
 

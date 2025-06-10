@@ -139,7 +139,12 @@ export async function getAllGeneratedReports(
   res: Response
 ): Promise<any> {
   try {
-    const reports = await getGeneratedReportsQuery();
+    const { userId, role } = req;
+     if (!userId || !role) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const reports = await getGeneratedReportsQuery({userId, role});
     if (reports && reports.length > 0) {
       return res.status(200).json(STATUS_CODE[200](reports));
     }

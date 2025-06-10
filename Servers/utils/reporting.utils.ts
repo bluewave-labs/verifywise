@@ -51,7 +51,13 @@ export const getMembersByProjectIdQuery = async (
   return members;
 };
 
-export const getGeneratedReportsQuery = async () => {
+interface GetGeneratedReportsOptions {
+  userId: number;
+  role: string;
+  transaction?: Transaction;
+}
+
+export const getGeneratedReportsQuery = async ({ userId, role, transaction }: GetGeneratedReportsOptions) => {
   const validSources = [
     "Project risks report",
     "Compliance tracker report",
@@ -61,8 +67,11 @@ export const getGeneratedReportsQuery = async () => {
     "Vendors and risks report",
     "All reports",
   ];
-  const query = `
-    SELECT 
+
+  const isAdmin = role === 'Admin';
+
+  const baseQueryParts = [
+    `SELECT 
       report.id, 
       report.filename, 
       report.project_id,  
@@ -73,13 +82,28 @@ export const getGeneratedReportsQuery = async () => {
       u.surname AS uploader_surname
     FROM files report
     JOIN projects p ON report.project_id = p.id
-    JOIN users u ON report.uploaded_by = u.id
-    WHERE report.source IN (:sources)
-    ORDER BY uploaded_time DESC, report.id ASC
+    JOIN users u ON report.uploaded_by = u.id`
+  ];
+
+  const whereConditions = [`report.source IN (:sources)`];
+  const replacements: any = { sources: validSources };
+
+  if (!isAdmin) {
+    baseQueryParts.push(`LEFT JOIN projects_members pm ON pm.project_id = p.id`);
+    whereConditions.push(`(p.owner = :userId OR pm.user_id = :userId)`);
+    replacements.userId = userId;
+  }
+
+  const finalQuery = `
+    ${baseQueryParts.join('\n')}
+    WHERE ${whereConditions.join(' AND ')}
+    ORDER BY report.uploaded_time DESC, report.id ASC
   `;
-  return await sequelize.query(query, {
-    replacements: { sources: validSources },
+
+  return await sequelize.query(finalQuery, {
+    replacements,
     type: QueryTypes.SELECT,
+    transaction
   });
 };
 

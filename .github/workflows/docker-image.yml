@@ -1,9 +1,8 @@
 name: Build and Push Images to GitHub Container Registry
 
 on:
-  push:
-    branches:
-      - master
+  release:
+    types: [published]
 
 jobs:
   build-and-push:
@@ -19,6 +18,10 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
+
+      - name: Extract Tag Name
+        id: get_tag
+        run: echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
 
       - name: Debug GitHub Token Access
         run: |
@@ -42,7 +45,7 @@ jobs:
           context: ./Clients
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/verifywise-frontend:latest
+          tags: ghcr.io/${{ github.repository_owner }}/verifywise-frontend:${{ env.TAG }}
 
       - name: Build and push Servers image
         uses: docker/build-push-action@v4
@@ -50,7 +53,7 @@ jobs:
           context: ./Servers
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/verifywise-backend:latest
+          tags: ghcr.io/${{ github.repository_owner }}/verifywise-backend:${{ env.TAG }}
 
       - name: Build and push BiasAndFairnessServers image
         uses: docker/build-push-action@v4
@@ -58,4 +61,4 @@ jobs:
           context: ./BiasAndFairnessServers
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/verifywise-bias-and-fairness-backend:latest
+          tags: ghcr.io/${{ github.repository_owner }}/verifywise-bias-and-fairness-backend:${{ env.TAG }}

@@ -64,13 +64,14 @@ interface RiskSectionProps {
  * <RiskSection closePopup={closePopupFunction} status="new" />
  */
 const RiskSection: FC<RiskSectionProps> = ({
-  riskValues, 
+  riskValues,
   setRiskValues,
   riskErrors,
 }) => {
   const theme = useTheme();
   const { userRoleName } = useContext(VerifyWiseContext);
-  const isEditingDisabled = !allowedRoles.projectRisks.edit.includes(userRoleName)
+  const isEditingDisabled =
+    !allowedRoles.projectRisks.edit.includes(userRoleName);
 
   const [_, setErrors] = useState<RiskFormErrors>({});
   const [alert, setAlert] = useState<alertState | null>(null);
@@ -111,11 +112,16 @@ const RiskSection: FC<RiskSectionProps> = ({
           onClick={() => setAlert(null)}
         />
       )}
-      <Stack component="form" className={`AddNewRiskForm ${styles.popupBody}`} sx={{ 
-        height: "600px", 
-        width: "100%",
-        overflowY: "auto"
-      }}>
+      <Stack
+        component="form"
+        className={`AddNewRiskForm ${styles.popupBody}`}
+        sx={{
+          maxHeight: 600,
+          width: "100%",
+          overflowY: "auto",
+          overflowX: "hidden",
+        }}
+      >
         <Stack sx={{ width: "100%", mb: 10 }}>
           <Stack sx={{ gap: 8.5 }}>
             {/* Row 1 */}

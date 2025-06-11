@@ -229,7 +229,7 @@ export default function FairnessDashboard() {
       <Box>
         <Typography sx={styles.vwHeadingTitle}>Bias & fairness dashboard</Typography>
         <Typography sx={styles.vwSubHeadingTitle}>
-        This table provides your uploaded models with access to fairness evaluations for each. To validate a new model upload the model along with its dataset, target column, and sensitive feature. Currently only supporting classification models, upload a model with preprocessing (e.g. sklearn Pipeline) and a dataset that has been preprocessed to match the model’s expected input format.
+        This table displays fairness evaluation results for your uploaded models. To evaluate a new model, upload the model along with its dataset, target column, and at least one sensitive feature. Only classification models are supported at the moment. Make sure your model includes preprocessing steps, such as an sklearn.Pipeline, and that the dataset is already formatted to match the model’s input requirements.
         </Typography>
       </Box>
       {alert && (

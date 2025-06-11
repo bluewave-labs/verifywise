@@ -482,7 +482,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   };
 
   return (
-    <Stack>
+    <Stack className="AddNewRiskForm">
       <TabContext value={value}>
         <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
           <TabList
@@ -509,14 +509,14 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
           </TabList>
         </Box>
         <Suspense fallback={<div>Loading...</div>}>
-          <TabPanel value="risks" sx={{ p: "24px 0 0" }}>
+          <TabPanel value="risks" sx={{ p: "24px 0 0", maxHeight: 550 }}>
             <RiskSection
               riskValues={riskValues}
               setRiskValues={setRiskValues}
               riskErrors={riskErrors}
             />
           </TabPanel>
-          <TabPanel value="mitigation" sx={{ p: "24px 0 0" }}>
+          <TabPanel value="mitigation" sx={{ p: "24px 0 0", maxHeight: 550 }}>
             <MitigationSection
               mitigationValues={mitigationValues}
               setMitigationValues={setMitigationValues}

@@ -94,8 +94,9 @@ const MitigationSection: FC<MitigationSectionProps> = ({
 }) => {
   const theme = useTheme();
   const { userRoleName } = useContext(VerifyWiseContext);
-  const isEditingDisabled = !allowedRoles.projectRisks.edit.includes(userRoleName)
- 
+  const isEditingDisabled =
+    !allowedRoles.projectRisks.edit.includes(userRoleName);
+
   const [_, setErrors] = useState<MitigationFormErrors>({});
   const [alert, setAlert] = useState<alertState | null>(null);
 
@@ -138,7 +139,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
   );
 
   return (
-    <Stack>
+    <Stack sx={{ minHeight: 500, maxHeight: 500 }}>
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
           <Alert
@@ -150,13 +151,18 @@ const MitigationSection: FC<MitigationSectionProps> = ({
           />
         </Suspense>
       )}
-      <Stack component="form" className={styles.popupBody} sx={{ 
-        height: "600px", 
-        width: "100%",
-        overflowY: "auto"
-      }}>
+      <Stack
+        component="form"
+        className={styles.popupBody}
+        sx={{
+          width: "100%",
+          maxHeight: "fit-content",
+          overflowY: "auto",
+          overflowX: "hidden",
+        }}
+      >
         <Stack sx={{ width: "100%", mb: 10 }}>
-          <Stack sx={{ gap: 8.5 }}>
+          <Stack sx={{ gap: 8.5, maxHeight: 400 }}>
             {/* Row 1: Three columns */}
             <Stack
               sx={{
@@ -167,7 +173,9 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                 gap: theme.spacing(8.5),
               }}
             >
-              <Suspense fallback={<div>Loading...</div>}> {/* Mitigation Status */}
+              <Suspense fallback={<div>Loading...</div>}>
+                {" "}
+                {/* Mitigation Status */}
                 <Select
                   id="mitigation-status-input"
                   label="Mitigation status"
@@ -188,7 +196,9 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                   disabled={isEditingDisabled}
                 />
               </Suspense>
-              <Suspense fallback={<div>Loading...</div>}> {/* Current Risk Level */}
+              <Suspense fallback={<div>Loading...</div>}>
+                {" "}
+                {/* Current Risk Level */}
                 <Select
                   id="current-risk-level-input"
                   label="Current risk level"
@@ -209,7 +219,9 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                   disabled={isEditingDisabled}
                 />
               </Suspense>
-              <Suspense fallback={<div>Loading...</div>}> {/* Start Date */}
+              <Suspense fallback={<div>Loading...</div>}>
+                {" "}
+                {/* Start Date */}
                 <Stack style={{ width: "325px" }}>
                   <DatePicker
                     label="Start date"
@@ -240,14 +252,16 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                 gap: theme.spacing(8.5),
               }}
             >
-              <Suspense fallback={<div>Loading...</div>}> {/* Mitigation Plan */}
+              <Suspense fallback={<div>Loading...</div>}>
+                {" "}
+                {/* Mitigation Plan */}
                 <Field
                   id="mitigation-plan-input"
                   label="Mitigation plan"
                   type="description"
                   value={mitigationValues.mitigationPlan}
                   onChange={handleOnTextFieldChange("mitigationPlan")}
-                  sx={{ 
+                  sx={{
                     width: "325px",
                   }}
                   isRequired
@@ -256,14 +270,16 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                   placeholder="Write mitigation plan"
                 />
               </Suspense>
-              <Suspense fallback={<div>Loading...</div>}> {/* Implementation Strategy */}
+              <Suspense fallback={<div>Loading...</div>}>
+                {" "}
+                {/* Implementation Strategy */}
                 <Field
                   id="implementation-strategy-input"
                   label="Implementation strategy"
                   type="description"
                   value={mitigationValues.implementationStrategy}
                   onChange={handleOnTextFieldChange("implementationStrategy")}
-                  sx={{ 
+                  sx={{
                     width: "670px",
                   }}
                   isRequired

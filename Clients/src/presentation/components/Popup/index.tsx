@@ -38,7 +38,7 @@ const Popup: FC<PopupProps> = ({
       borderRadius: 2,
       border: "1px solid #175CD3",
       "&:hover": { boxShadow: "none", backgroundColor: "#175CD3 " },
-      display: "none"
+      display: "none",
     },
     closePopupButton: {
       position: "absolute",
@@ -54,10 +54,11 @@ const Popup: FC<PopupProps> = ({
       position: "relative",
       backgroundColor: theme.palette.background.alt,
       borderRadius: 2,
-      pt: 14.5,
-      pb: 17,
-      pl: 19,
-      pr: 22.5,
+      pt: 15,
+      pb: 15,
+      pl: 15,
+      pr: 15,
+      maxHeight: 650,
       width: "fit-content",
       overflow: "auto",
     },
@@ -88,6 +89,7 @@ const Popup: FC<PopupProps> = ({
         {openPopupButtonName}
       </Button>
       <BasePopup
+        className="Popup"
         id={id}
         open={open}
         anchor={anchor}
@@ -104,7 +106,7 @@ const Popup: FC<PopupProps> = ({
           justifyContent: "center",
         }}
       >
-        <Stack sx={styles.popupContent}>
+        <Stack sx={styles.popupContent} className="PopupContent">
           <Typography
             variant="h1"
             component="div"

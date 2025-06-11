@@ -1,4 +1,3 @@
-# VERSION 1.0 DUE 12 JUNE, 2025
 
 [Join our Discord channel](https://discord.com/invite/wWzYzMD6) to get the latest announcement.
 

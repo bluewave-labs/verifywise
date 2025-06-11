@@ -102,7 +102,7 @@ const RiskSection: FC<RiskSectionProps> = ({
   );
 
   return (
-    <Stack>
+    <Stack sx={{ minHeight: 500, maxHeight: 500 }}>
       {alert && (
         <Alert
           variant={alert.variant}

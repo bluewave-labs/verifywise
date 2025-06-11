@@ -139,7 +139,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
   );
 
   return (
-    <Stack sx={{ maxHeight: 500 }}>
+    <Stack sx={{ minHeight: 500, maxHeight: 500 }}>
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
           <Alert
@@ -155,8 +155,8 @@ const MitigationSection: FC<MitigationSectionProps> = ({
         component="form"
         className={styles.popupBody}
         sx={{
-          maxHeight: 400,
           width: "100%",
+          maxHeight: "fit-content",
           overflowY: "auto",
           overflowX: "hidden",
         }}

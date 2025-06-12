@@ -103,10 +103,6 @@ export default function FairnessResultsPage() {
                 </Typography>
                 <Tooltip title={<div>
                     <div>These metrics evaluate your model’s performance and fairness across all data.</div>
-                    <div>Accuracy: {metricDescriptions.accuracy}.</div>
-                    <div>Demographic Parity Difference: {metricDescriptions.demographic_parity_difference}</div>
-                    <div>Equal Opportunity Difference: {metricDescriptions.equal_opportunity_difference}</div>
-                    <div>Equalized Odds Difference: {metricDescriptions.equalized_odds_difference}</div>
                     </div>}>
                     <IconButton size="small" sx={{ ml: 1 }}>
                     <InfoOutlinedIcon fontSize="small" />

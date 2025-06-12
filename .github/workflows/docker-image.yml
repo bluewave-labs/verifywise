@@ -45,7 +45,9 @@ jobs:
           context: ./Clients
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/verifywise-frontend:${{ env.TAG }}
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/verifywise-frontend:${{ env.TAG }}
+            ghcr.io/${{ github.repository_owner }}/verifywise-frontend:latest
 
       - name: Build and push Servers image
         uses: docker/build-push-action@v4
@@ -53,7 +55,9 @@ jobs:
           context: ./Servers
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/verifywise-backend:${{ env.TAG }}
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/verifywise-backend:${{ env.TAG }}
+            ghcr.io/${{ github.repository_owner }}/verifywise-backend:latest
 
       - name: Build and push BiasAndFairnessServers image
         uses: docker/build-push-action@v4
@@ -61,4 +65,6 @@ jobs:
           context: ./BiasAndFairnessServers
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/verifywise-bias-and-fairness-backend:${{ env.TAG }}
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/verifywise-bias-and-fairness-backend:${{ env.TAG }}
+            ghcr.io/${{ github.repository_owner }}/verifywise-bias-and-fairness-backend:latest

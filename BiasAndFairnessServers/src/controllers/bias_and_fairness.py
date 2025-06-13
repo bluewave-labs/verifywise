@@ -68,6 +68,7 @@ async def get_upload_status(job_id: int):
     value = await get_job_status(job_id)
     if value is None:
         return Response(status_code=204)
+    await delete_job_status(job_id)
     return JSONResponse(
         status_code=200,
         content=value,

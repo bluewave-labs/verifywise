@@ -15,13 +15,13 @@ interface FairnessTableBodyProps {
   };
 }
 
-const StatusBadge: React.FC<{ status: "Pending" | "In Progress" | "Completed" }> = ({
+const StatusBadge: React.FC<{ status: "In Progress" | "Completed" | "Failed" }> = ({
   status,
 }) => {
   const statusStyles = {
-    Pending: { bg: "#bbdefb", color: "#1976d2" },
-    "In Progress": { bg: "#fff9c4", color: "#fbc02d" },
-    Completed: { bg: "#c8e6c9", color: "#388e3c" },
+    "In Progress": { bg: "#fff9c4", color: "#fbc02d", border: "1px solid #fbc02d" },
+    Completed: { bg: "#c8e6c9", color: "#388e3c", border: "1px solid #388e3c" },
+    Failed: { bg: "#ffcdd2", color: "#d32f2f", border: "1px solid #d32f2f" },
   };
 
   const style = statusStyles[status] || { bg: "#e0e0e0", color: "#424242" };
@@ -37,6 +37,7 @@ const StatusBadge: React.FC<{ status: "Pending" | "In Progress" | "Completed" }>
         fontSize: "0.75rem",
         textTransform: "uppercase",
         display: "inline-block",
+        border: style.border,
       }}
     >
       {status}
@@ -67,7 +68,7 @@ const FairnessTableBody: React.FC<FairnessTableBodyProps> = ({
           <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, paddingLeft: "12px", paddingRight: "12px", textTransform:"none" }}>
             {row.dataset}
           </TableCell>
-          <TableCell>
+          <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, paddingLeft: "12px", paddingRight: "12px", textTransform:"none" }}>
             <Box sx={{ width: "50%" }}>
               <StatusBadge status={row.status} />
             </Box>

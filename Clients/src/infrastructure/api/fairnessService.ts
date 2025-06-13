@@ -40,13 +40,13 @@ export const fairnessService = {
       },
     });
 
-    setUploadedModels((prevModels) => [      
+    setUploadedModels((prevModels) => [
       ...prevModels,
       {
         id: `###__${response.data.job_id}`,
         model: response.data.model_filename,
         dataset: response.data.data_filename,
-        status: "Processing"
+        status: "In Progress",
       }]);
     await this.getFairnessUploadStatus(response.data.job_id, setUploadedModels);
   },
@@ -62,11 +62,16 @@ export const fairnessService = {
       setUploadedModels((prevModels) => {
         return prevModels.map((model) => {
           if (model.id === `###__${jobId}`) {
+            if (response.data.status === "Failed") {
+              setTimeout(() => {
+                setUploadedModels((prevModels) => prevModels.filter((model) => model.id !== `###__${jobId}`));
+              }, 10000);
+            }
             return {
-              id: response.data.metrics_id,
+              id: response.data.status === "Failed" ? model.id : response.data.metrics_id,
               model: response.data.model_filename,
               dataset: response.data.data_filename,
-              status: 'Completed',
+              status: response.data.status,
             };
           }
           return model;

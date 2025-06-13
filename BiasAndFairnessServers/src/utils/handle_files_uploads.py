@@ -62,13 +62,18 @@ async def process_files(
 
             await transaction.commit()
             status = {
-                "status": "success",
+                "status": "Completed",
                 "model_filename": model_filename,
                 "data_filename": data_filename,
                 "metrics_id": metrics.id,
                 "metrics": result
             }
     except Exception as e:
-        status = {"status": "failed", "error": str(e)}
+        status = {
+            "status": "Failed", 
+            "error": str(e), 
+            "model_filename": model_filename or "***",
+            "data_filename": data_filename or "***"
+        }
 
     await set_job_status(job_id, status)

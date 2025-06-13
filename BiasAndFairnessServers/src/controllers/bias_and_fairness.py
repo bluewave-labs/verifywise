@@ -1,10 +1,14 @@
+import io
+import asyncio
 import json
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi import HTTPException
 from crud.bias_and_fairness import upload_model, upload_data, insert_metrics, get_metrics_by_id, get_all_metrics_query, delete_metrics_by_id
 from utils.run_bias_and_fairness_check import analyze_fairness
+from utils.handle_files_uploads import process_files
 from database.db import get_db
-from fastapi import UploadFile
+from fastapi import UploadFile, BackgroundTasks
+from database.redis import get_next_job_id, get_job_status, delete_job_status
 
 async def get_all_metrics():
     """
@@ -60,67 +64,39 @@ async def get_metrics(id: int):
             detail=f"Failed to retrieve metrics, {str(e)}"
         )
 
-async def handle_upload(model: UploadFile, data: UploadFile, target_column: str, sensitive_column: str):
+async def get_upload_status(job_id: int):
+    value = await get_job_status(job_id)
+    if value is None:
+        return Response(status_code=204)
+    await delete_job_status(job_id)
+    return JSONResponse(
+        status_code=200,
+        content=value,
+        media_type="application/json"
+    )
+
+async def handle_upload(background_tasks: BackgroundTasks, model: UploadFile, data: UploadFile, target_column: str, sensitive_column: str):
     """
     Handle file upload from the client.
     """
-    try:
-        async with get_db() as db:
-            transaction = await db.begin()
-
-            model_content = await model.read()
-            model_filename = model.filename
-            data_content = await data.read()
-            data_filename = data.filename
-
-            if not model_content or not data_content:
-                raise ValueError("model or data file is empty")
-            if not model_filename or not data_filename:
-                raise ValueError("model or data file name is empty")
-
-            upload_model_record = await upload_model(content=model_content, name=model_filename, db=db)
-
-            if not upload_model_record:
-                raise Exception("failed to upload model file")
-
-            upload_data_record = await upload_data(
-                content=data_content,
-                name=data_filename,
-                target_column=target_column,
-                sensitive_column=sensitive_column,
-                model_id=upload_model_record.id,
-                db=db
-            )
-
-            if not upload_data_record:
-                raise Exception("failed to upload data file")
-            result = analyze_fairness(
-                model_content=model_content, 
-                data_content=data_content, 
-                target_column=target_column, 
-                sensitive_column=sensitive_column
-            )
-            
-            metrics = await insert_metrics(json.dumps(result), upload_data_record.id, db)
-            if not metrics:
-                raise Exception("failed to insert metrics")
-            
-            await transaction.commit()
-
-            return JSONResponse(
-                status_code=200,
-                content={
-                    "model_id": upload_model_record.id,
-                    "data_id": upload_data_record.id,
-                    "metrics_id": metrics.id,
-                    "metrics": result
-                }
-            )
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to handle upload, {str(e)}"
-        )
+    job_id = await get_next_job_id()
+    response = JSONResponse(status_code=202, content={
+        "message": "Processing started", 
+        "job_id": job_id,
+        "model_filename": model.filename.replace(".gz", "") if model.filename else "",
+        "data_filename": data.filename.replace(".gz", "") if data.filename else ""
+    }, media_type="application/json")
+    model_ = {
+        "filename": model.filename,
+        "content": await model.read()
+    }
+    data_ = {
+        "filename": data.filename,
+        "content": await data.read()
+    }
+    # create a job ID or use a unique identifier for the task
+    background_tasks.add_task(process_files, job_id, model_, data_, target_column, sensitive_column)
+    return response
 
 async def delete_metrics(id: int):
     """
@@ -135,10 +111,7 @@ async def delete_metrics(id: int):
                     detail=f"Metrics with ID {id} not found"
                 )
             await db.commit()
-            return JSONResponse(
-                status_code=204,
-                content=None
-            )
+            return Response(status_code=204)
     except HTTPException as he:
         raise he
     except Exception as e:

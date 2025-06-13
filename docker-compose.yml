@@ -16,6 +16,11 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+  redis:
+    image: redis:7
+    ports:
+      - "6379"
+    restart: unless-stopped
   backend:
     depends_on:
       postgresdb:
@@ -44,6 +49,7 @@ services:
   bias_and_fairness_backend:
     depends_on:
       - backend
+      - redis
     image: ghcr.io/bluewave-labs/verifywise-bias-and-fairness-backend:latest
     # pull_policy: always
     ports:
@@ -55,6 +61,7 @@ services:
       - DB_PASSWORD=$DB_PASSWORD
       - DB_NAME=$DB_NAME
       - BACKEND_URL=http://backend:$BACKEND_PORT
+      - REDIS_URL=redis://redis:6379/0
 
 volumes:
   db:

@@ -80,7 +80,7 @@ async def handle_upload(background_tasks: BackgroundTasks, model: UploadFile, da
     Handle file upload from the client.
     """
     job_id = await get_next_job_id()
-    response = JSONResponse(status_code=201, content={
+    response = JSONResponse(status_code=202, content={
         "message": "Processing started", 
         "job_id": job_id,
         "model_filename": model.filename.replace(".gz", "") if model.filename else "",
@@ -95,7 +95,7 @@ async def handle_upload(background_tasks: BackgroundTasks, model: UploadFile, da
         "content": await data.read()
     }
     # create a job ID or use a unique identifier for the task
-    background_tasks.add_task(process_files, job_id, model_, data_, target_column, sensitive_column, db=get_db())
+    background_tasks.add_task(process_files, job_id, model_, data_, target_column, sensitive_column)
     return response
 
 async def delete_metrics(id: int):

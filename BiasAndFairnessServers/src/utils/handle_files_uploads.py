@@ -16,7 +16,6 @@ async def process_files(
     data: dict[str, typing.Union[bytes, str]],
     target_column: str,
     sensitive_column: str,
-    db,
 ):
     try:
         async with get_db() as db:

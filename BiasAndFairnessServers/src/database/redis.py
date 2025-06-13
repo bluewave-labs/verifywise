@@ -12,6 +12,12 @@ async def get_redis():
         redis = await aioredis.from_url(REDIS_URL, decode_responses=True)
     return redis
 
+async def _close_redis():
+    global redis
+    if redis:
+        await redis.close()
+        redis = None
+
 async def get_next_job_id():
     r = await get_redis()
     # Use Redis INCR to generate unique job IDs
@@ -21,7 +27,7 @@ async def get_next_job_id():
 async def set_job_status(job_id: int, status: dict):
     r = await get_redis()
     # Store job status JSON serialized
-    await r.set(f"job_status:{job_id}", json.dumps(status))
+    await r.set(f"job_status:{job_id}", json.dumps(status), ex=3600)
 
 async def get_job_status(job_id: int):
     r = await get_redis()

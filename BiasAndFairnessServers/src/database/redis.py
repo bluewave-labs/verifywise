@@ -12,7 +12,7 @@ async def get_redis():
         redis = await aioredis.from_url(REDIS_URL, decode_responses=True)
     return redis
 
-async def _close_redis():
+async def close_redis():
     global redis
     if redis:
         await redis.close()

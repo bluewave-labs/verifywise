@@ -65,7 +65,7 @@ export const fairnessService = {
             if (response.data.status === "Failed") {
               setTimeout(() => {
                 setUploadedModels((prevModels) => prevModels.filter((model) => model.id !== `###__${jobId}`));
-              }, 10000);
+              }, 60000);
             }
             return {
               id: response.data.status === "Failed" ? model.id : response.data.metrics_id,

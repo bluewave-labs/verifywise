@@ -19,7 +19,7 @@ def run_migrations():
     except Exception as e:
         logger.info(f"Error running migrations: {e}")
 
-app = FastAPI(on_startup=[run_migrations])
+app = FastAPI()
 
 # enable CORS
 origins = [os.environ.get("BACKEND_URL") or "http://localhost:3000"]

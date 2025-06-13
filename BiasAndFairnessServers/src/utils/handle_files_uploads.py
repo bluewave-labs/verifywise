@@ -7,8 +7,6 @@ from utils.run_bias_and_fairness_check import analyze_fairness
 from database.db import get_db
 from database.redis import set_job_status
 
-app = FastAPI()
-
 @typing.no_type_check
 async def process_files(
     job_id: int,
@@ -26,11 +24,18 @@ async def process_files(
             model_filename = model["filename"].replace(".gz", "")
             data_filename = data["filename"].replace(".gz", "")
 
-            model_content = gzip.decompress(model["content"]) if model["content"] else None
-            data_content = gzip.decompress(data["content"]) if data["content"] else None
-
             if not model["content"] or not data["content"]:
                 raise ValueError("model or data file is empty")
+
+            model_bytes = model["content"]
+            data_bytes  = data["content"]
+
+            model_content = (
+                gzip.decompress(model_bytes) if model["filename"].endswith(".gz") else model_bytes
+            )
+            data_content = (
+                gzip.decompress(data_bytes) if data["filename"].endswith(".gz") else data_bytes
+            )
 
             upload_model_record = await upload_model(content=model_content, name=model_filename, db=db)
 
@@ -71,8 +76,8 @@ async def process_files(
         status = {
             "status": "Failed", 
             "error": str(e), 
-            "model_filename": model_filename or "***",
-            "data_filename": data_filename or "***"
+            "model_filename": locals().get("model_filename", "***"),
+            "data_filename": locals().get("data_filename", "***")
         }
 
     await set_job_status(job_id, status)

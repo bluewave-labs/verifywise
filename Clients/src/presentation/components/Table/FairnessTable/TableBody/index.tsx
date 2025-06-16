@@ -20,8 +20,8 @@ const StatusBadge: React.FC<{ status: "In Progress" | "Completed" | "Failed" }> 
 }) => {
   const statusStyles = {
     "In Progress": { bg: "#fff9c4", color: "#fbc02d", border: "1px solid #fbc02d" },
-    Completed: { bg: "#c8e6c9", color: "#388e3c", border: "1px solid #388e3c" },
-    Failed: { bg: "#ffcdd2", color: "#d32f2f", border: "1px solid #d32f2f" },
+    "Completed": { bg: "#c8e6c9", color: "#388e3c", border: "1px solid #388e3c" },
+    "Failed": { bg: "#ffcdd2", color: "#d32f2f", border: "1px solid #d32f2f" },
   };
 
   const style = statusStyles[status] || { bg: "#e0e0e0", color: "#424242" };

@@ -72,7 +72,7 @@ try {
   );
   app.use(helmet()); // Use helmet for security headers
   app.use((req, res, next) => {
-    if (req.url.startsWith('/upload')) {
+    if (req.url.includes('/upload')) {
       // Let the proxy handle the raw body
       return next();
     }

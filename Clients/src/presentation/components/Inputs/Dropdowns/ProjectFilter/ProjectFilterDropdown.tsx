@@ -9,30 +9,36 @@ const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
   onChange,
 }) => {
   return (
-    <FormControl
-      sx={{
-        ...inputStyles,
-        marginBottom: 10,
-      }}
-    >
-      <Select
-        id="project-filter"
-        value={selectedProject || ""}
-        onChange={(e) => onChange(e.target.value)}
-        displayEmpty
+    <>
+      <FormControl
         sx={{
           ...inputStyles,
-          ...dropdownStyles,
+          marginBottom: 10,
         }}
-      >     
-        <MenuItem value="all">All projects</MenuItem>
-        {projects.map((project) => (
-          <MenuItem key={project.id} value={project.id}>
-            {project.name}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
+        disabled={projects.length === 0}
+      >
+        <Select
+          id="project-filter"
+          value={selectedProject || ""}
+          onChange={(e) => onChange(e.target.value)}
+          displayEmpty
+          sx={{
+            ...inputStyles,
+            ...dropdownStyles,
+          }}
+        >     
+          {projects.length > 0 ? 
+            <MenuItem value="all">All projects</MenuItem> : 
+            <MenuItem value="all">No project available</MenuItem>
+          }
+          {projects.map((project) => (
+            <MenuItem key={project.id} value={project.id}>
+              {project.name}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    </>
   );
 };
 

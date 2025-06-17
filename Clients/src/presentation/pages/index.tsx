@@ -1,5 +1,4 @@
 import { Stack } from "@mui/material";
-import Guider from "../components/Helpers/Guider";
 
 const Playground = () => {
   return (
@@ -13,8 +12,7 @@ const Playground = () => {
         minHeight: "100vh",
         padding: "20px",
       }}
-    >
-    </Stack>
+    ></Stack>
   );
 };
 

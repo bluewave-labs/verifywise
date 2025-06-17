@@ -5,6 +5,7 @@ dotenv.load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers.bias_and_fairness import router as bias_and_fairness
+from database.redis import close_redis
 from alembic.config import Config
 from alembic import command
 
@@ -19,7 +20,10 @@ def run_migrations():
     except Exception as e:
         logger.info(f"Error running migrations: {e}")
 
-app = FastAPI(on_startup=[run_migrations])
+async def shutdown_redis():
+    await close_redis()
+
+app = FastAPI(on_startup=[run_migrations], on_shutdown=[shutdown_redis])
 
 # enable CORS
 origins = [os.environ.get("BACKEND_URL") or "http://localhost:3000"]

@@ -16,6 +16,7 @@ interface Props {
   title?: string;
   message?: string;
   customIcon?: React.ReactNode; // e.g., your <img src={trash} ... />
+  disabled?: boolean;
 }
 
 const ConfirmableDeleteIconButton: React.FC<Props> = ({
@@ -23,14 +24,15 @@ const ConfirmableDeleteIconButton: React.FC<Props> = ({
   onConfirm,
   title = "Delete this item?",
   message = "This action is non-recoverable.",
-  customIcon
+  customIcon,
+  disabled = false
 }) => {
   const [open, setOpen] = useState(false);
   const COLOR = singleTheme.textStyles.pageDescription.color;
 
   return (
     <>
-      <IconButton onClick={() => setOpen(true)} sx={{ padding: 0, ml: 5 }}>
+      <IconButton disabled={disabled} onClick={() => setOpen(true)} sx={{ padding: 0, ml: 5 }}>
         {customIcon}
       </IconButton>
       <Dialog open={open} onClose={() => setOpen(false)}>

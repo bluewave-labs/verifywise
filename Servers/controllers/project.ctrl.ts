@@ -50,6 +50,8 @@ export async function getAllProjects(
         })
       );
       return res.status(200).json(STATUS_CODE[200](projects));
+    }else {      
+      return res.status(200).json(STATUS_CODE[200](projects));
     }
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -370,7 +372,7 @@ export async function allProjectsComplianceProgress(
           allDonesubControls: totalNumberOfDoneSubcontrols,
         })
       );
-    } else {
+    } else {      
       return res.status(404).json(STATUS_CODE[404](projects));
     }
   } catch (error) {

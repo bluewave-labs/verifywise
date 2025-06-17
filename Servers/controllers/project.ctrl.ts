@@ -53,6 +53,7 @@ export async function getAllProjects(
     }else {      
       return res.status(200).json(STATUS_CODE[200](projects));
     }
+    return res.status(200).json(STATUS_CODE[200](projects));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

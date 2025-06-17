@@ -113,6 +113,7 @@ const Reports = () => {
             }))}
             selectedProject={selectedProject}            
             onChange={setSelectedProject}
+            sx={{marginBottom: '20px'}}
           />
           <Suspense fallback={<div>Loading...</div>}>
             <ReportTable

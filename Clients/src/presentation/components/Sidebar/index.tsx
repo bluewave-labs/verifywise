@@ -473,6 +473,7 @@ const Sidebar = () => {
                 }
               }}
               sx={{
+                height: "37px",
                 gap: theme.spacing(4),
                 borderRadius: theme.shape.borderRadius,
                 px: theme.spacing(4),

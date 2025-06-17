@@ -6,13 +6,13 @@ Currently, the recommended method for installing VerifyWise is via Docker. A dev
 
 ## Installing VerifyWise via Docker
 
-To use VerifyWise via Docker, you will need a `.env` file and a `docker-compose.yml` file.
+To use VerifyWise via Docker, you will need a `.env.prod` file and an `install.sh` file.
 
 ### Docker setup
 
 To set up VerifyWise in Docker, do the following:
 
-1. From the root of our [GitHub repository](https://github.com/bluewave-labs/verifywise), download `.env`, `docker-compose.yml`, and `SQL_Commands.sql`.
+1. From the root of our [GitHub repository](https://github.com/bluewave-labs/verifywise), download `.env.prod` and an `install.sh` file.
 2. Move all the downloaded files to the directory where your VerifyWise container will be running. This directory will be referred to as your working directory from now on.
 3. Start your local Docker instance.
 4. In your working directory, open a bash terminal.

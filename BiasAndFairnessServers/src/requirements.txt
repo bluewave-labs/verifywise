@@ -6,7 +6,6 @@ async-timeout==5.0.1
 asyncpg==0.30.0
 cffi==1.17.1
 click==8.1.8
-cryptography==45.0.3
 exceptiongroup==1.3.0
 fairlearn==0.12.0
 fastapi==0.115.12

@@ -25,7 +25,7 @@ services:
     depends_on:
       postgresdb:
         condition: service_healthy
-    image: ghcr.io/bluewave-labs/verifywise-backend:latest
+    image: pharsh4585/vw-backend:test
     pull_policy: always
     ports:
       - $BACKEND_PORT:$BACKEND_PORT

@@ -160,10 +160,8 @@ cd verifywise
 Download the required files using wget: 
 
 ```
-wget https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/docker-compose.prod.yml
-wget https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/install.sh
-wget https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/docker-compose.yml
-wget https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/.env.prod
+curl -O https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/install.sh
+curl -O https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/.env.prod
 ```
 
 Make sure to change the JWT_SECRET variable to your liking as this should be unique for each user.
@@ -193,5 +191,3 @@ docker ps  # to confirm
 ## Security
 
 If you find a vulnerability, please report it [here](https://github.com/bluewave-labs/verifywise/security/advisories/new).
-
-

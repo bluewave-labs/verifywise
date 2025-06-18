@@ -345,15 +345,14 @@ const NewTraining: FC<NewTrainingProps> = ({
                }}>
                   <Suspense fallback={<div>Loading...</div>}>
                     <Field
-                      id="department"
+                      id="description"
                       label="Description"
                       type="description"
                        value={values.description}
                       onChange={handleOnTextFieldChange("description")}
                       error={errors.description}
                       isRequired
-                      sx={{fieldStyle
-                      }}
+                      sx={{fieldStyle}}
                       placeholder="Description of the AI training"
                     />
                   </Suspense>

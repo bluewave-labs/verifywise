@@ -9,6 +9,6 @@ module.exports = {
 
   async down (queryInterface, Sequelize) {
     await queryInterface.sequelize.query(`ALTER TABLE "trainingregistar"
-    DROP COLUMN "description;"`);
+    DROP COLUMN "description";`);
   }
 };

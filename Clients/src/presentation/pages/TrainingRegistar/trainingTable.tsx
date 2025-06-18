@@ -43,7 +43,7 @@ export interface IAITraining {
   department: string;
   status: "Planned" | "In Progress" | "Completed";
   people: number;
-  description?: string;
+  description: string;
 }
 
 interface TrainingTableProps {

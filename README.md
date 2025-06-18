@@ -82,6 +82,7 @@ Prerequisites:
 First, clone the repository to your local machine. Navigate to the Clients directory and install the dependencies:
 
 ```
+git clone https://github.com/bluewave-labs/verifywise.git
 cd Clients
 npm i
 ```
@@ -100,7 +101,7 @@ Create a .env file in the root directory:
 touch .env
 ```
 
-Copy the contents of .env.dev to the .env file. Make sure to change the JWT_SECRET variable to your liking as this should be unique for each user. 
+Copy the contents of .env.dev to the .env file. Make sure to change the JWT_SECRET variable to your liking. 
 
 ```
 cp .env.dev .env
@@ -160,22 +161,28 @@ cd verifywise
 Download the required files using wget: 
 
 ```
-wget https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/docker-compose.prod.yml
-wget https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/install.sh
-wget https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/docker-compose.yml
-wget https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/.env.prod
+curl -O https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/install.sh
+curl -O https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/.env.prod
 ```
 
-Make sure to change the JWT_SECRET variable to your liking as this should be unique for each user.
+Make sure to change the JWT_SECRET variable to your liking, and change `localhost` to the IP of the server. An example is shown below:
 
-Change the permissions of the install.sh script to make it executable, and then execute it.
+```
+BACKEND_URL=http://64.23.242.4:3000
+FRONTEND_URL=http://64.23.242.4:8080 
+ALLOWED_ORIGINS=["http://64.23.242.4:5173", "http://64.23.242.4:8080"]
+```
+
+Change the permissions of the `install.sh` script to make it executable, and then execute it.
 
 ```
 chmod +x ./install.sh
 ./install.sh
 ```
 
-If the install.sh script doesn't work, try the following commands:
+Now the server is running on the IP and the port you defined in .env.prod file (8080 by default).
+
+If the install.sh script doesn't work for some reason, try the following commands:
 
 ```
 docker-compose --env-file .env.prod up -d backend
@@ -183,6 +190,14 @@ docker ps  # to confirm
 docker-compose --env-file .env.prod up -d frontend
 docker ps  # to confirm
 ```
+
+If you want to re-run install.sh for some reason (e.g want to change a configuration in .env.prod file), first stop all Docker containers before starting a new one:
+
+```
+docker-compose --env-file .env.prod down
+./install.sh
+```
+
 
 ## Quick links
 
@@ -193,5 +208,3 @@ docker ps  # to confirm
 ## Security
 
 If you find a vulnerability, please report it [here](https://github.com/bluewave-labs/verifywise/security/advisories/new).
-
-

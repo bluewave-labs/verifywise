@@ -230,7 +230,7 @@ const QuestionFrame = ({
           {question.question}
           {question.hint && (
             <Box component="span" ml={2}>
-              <Tooltip title={question.hint} sx={{ fontSize: 12 }}>
+              <Tooltip title={question.hint} sx={{ fontSize: 13 }}>
                 <InfoOutlinedIcon fontSize="inherit" />
               </Tooltip>
             </Box>

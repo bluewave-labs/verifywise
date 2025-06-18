@@ -22,8 +22,16 @@ import Select from "../../components/Inputs/Select";
 import { fairnessService } from "../../../infrastructure/api/fairnessService";
 import { tabPanelStyle } from "../Vendors/style";
 import Alert from "../../components/Alert";
+import CustomizableToast from "../../vw-v2-components/Toast";
 
-
+export type FairnessModel = {
+  id: number | string; // Use number or string based on your backend response
+  model: string;
+  dataset: string;
+  status: string;
+  report?: string;
+  action?: string; // Optional if you're not storing a real value
+};
 
 export default function FairnessDashboard() {
   const [tab, setTab] = useState("uploads");
@@ -36,20 +44,13 @@ export default function FairnessDashboard() {
   const [targetColumn, setTargetColumn] = useState("");
   const [sensitiveColumn, setSensitiveColumn] = useState("");
   const [columnOptions, setColumnOptions] = useState<string[]>([]);
+  const [showToastNotification, setShowToastNotification] = useState(false);
 
   const targetColumnItems = useMemo(() => {
     return columnOptions.map((col) => ({ _id: col, name: col }));
   }, [columnOptions]);
   
   const [page, setPage] = useState(0);
-
-  type FairnessModel = {
-    id: number;
-    model: string;
-    dataset: string;
-    report?: string;
-    action?: string; // Optional if you're not storing a real value
-  };
   
   
   const [uploadedModels, setUploadedModels] = useState<FairnessModel[]>([]);
@@ -60,7 +61,8 @@ export default function FairnessDashboard() {
       const formatted = metrics.map((item: any) => ({
         id: item.metrics_id, // use this for "ID" column
         model: item.model_filename,
-        dataset: item.data_filename
+        dataset: item.data_filename,
+        status: 'Completed', // Assuming all fetched metrics are completed
       }));
       setUploadedModels(formatted);
     } catch {
@@ -112,6 +114,7 @@ export default function FairnessDashboard() {
     { id: 'id', label: 'Check ID' },
     { id: 'model', label: 'Model' },
     { id: 'dataset', label: 'Dataset' },
+    { id: 'status', label: 'Status' },
     { id: 'report', label: 'Report' },
     { id : 'action', label: 'Action'}
   ];
@@ -197,15 +200,16 @@ export default function FairnessDashboard() {
     if (hasError) return;
     if (!modelFile || !datasetFile || !targetColumn || !sensitiveColumn) return;
   
+    setShowToastNotification(true);
     try {
       await fairnessService.uploadFairnessFiles({
         model: modelFile,
         data: datasetFile,
         target_column: targetColumn,
         sensitive_column: sensitiveColumn,
-      });
-  
-      await fetchMetrics(); // Refresh entire fairness model list with IDs
+      }, setUploadedModels);
+
+      // await fetchMetrics(); // Refresh entire fairness model list with IDs
       resetForm();
     } catch {
         setAlert({
@@ -213,6 +217,8 @@ export default function FairnessDashboard() {
             body: "Failed to upload model. Please try again.",
           });
           setTimeout(() => setAlert(null), 8000);
+    } finally{
+        setShowToastNotification(false);
     }
   };
 
@@ -229,7 +235,7 @@ export default function FairnessDashboard() {
       <Box>
         <Typography sx={styles.vwHeadingTitle}>Bias & fairness dashboard</Typography>
         <Typography sx={styles.vwSubHeadingTitle}>
-        This table provides your uploaded models with access to fairness evaluations for each. To validate a new model upload the model along with its dataset, target column, and sensitive feature. Currently only supporting classification models, upload a model with preprocessing (e.g. sklearn Pipeline) and a dataset that has been preprocessed to match the model’s expected input format.
+        This table displays fairness evaluation results for your uploaded models. To evaluate a new model, upload the model along with its dataset, target column, and at least one sensitive feature. Only classification models are supported at the moment. Make sure your model includes preprocessing steps, such as an sklearn.Pipeline, and that the dataset is already formatted to match the model’s input requirements.
         </Typography>
       </Box>
       {alert && (
@@ -344,7 +350,6 @@ export default function FairnessDashboard() {
                 <IconButton onClick={resetForm}><CloseIcon /></IconButton>
               </Box>
             </DialogTitle>
-
             <DialogContent>
               <Stack spacing={2}>
                 {uploadFields.map(({ label, accept, file, setFile, ref, errorKey }) => (
@@ -385,6 +390,14 @@ export default function FairnessDashboard() {
                         }
                       />
                     </Button>
+                    <Typography
+                      sx={{ 
+                          fontWeight: 200, 
+                          fontSize: "12px", 
+                          color: "#667085",
+                        }}
+                      >
+                      {`Max file size: 200MB`}</Typography>
                     {errors[errorKey] && (
                         <Typography fontSize={11} color="#F04438" sx={{ mt: 0.5, ml: 0, lineHeight: 1.5, opacity:0.8}}>
                         {`${label.charAt(0).toUpperCase() + label.slice(1)} file is required`}
@@ -398,7 +411,6 @@ export default function FairnessDashboard() {
                     )}
                   </Box>
                 ))}
-                
                 <Box sx={{mb: 5}}>
                     <Select 
                         id="target-column"
@@ -440,6 +452,9 @@ export default function FairnessDashboard() {
           </Dialog>
         </TabPanel>
       </TabContext>
+      {showToastNotification && (
+        <CustomizableToast title="Uploading the model. Please wait, this process may take some time..." />
+      )}
     </Stack>
   );
 }

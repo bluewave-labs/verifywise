@@ -71,7 +71,13 @@ try {
     })
   );
   app.use(helmet()); // Use helmet for security headers
-  app.use(express.json());
+  app.use((req, res, next) => {
+    if (req.url.includes('/upload')) {
+      // Let the proxy handle the raw body
+      return next();
+    }
+    express.json()(req, res, next);
+  });
   app.use(cookieParser());
 
   // Routes
@@ -96,7 +102,7 @@ try {
   app.use("/api/eu-ai-act", euRouter);
   app.use("/api/organizations", organizationRoutes);
   app.use("/api/iso-42001", isoRoutes);
-  app.use("/api/training",trainingRoutes);
+  app.use("/api/training", trainingRoutes);
   app.use('/api/bias_and_fairness', biasAndFairnessRoutes());
 
   app.use("/api/reporting", reportRoutes);

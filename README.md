@@ -78,11 +78,12 @@ The VerifyWise application has two components: a frontend built with React.js an
 Prerequisites: 
 - npm and Docker
 - A running PostgreSQL, preferably as a Docker image (eg. using `docker pull postgres:latest`)
-  
-First, clone the repository to your local machine. Navigate to the Clients directory and install the dependencies:
+
+First, clone the repository to your local machine and go to verifywise directory. Then, navigate to the Clients directory and install the dependencies:
 
 ```
 git clone https://github.com/bluewave-labs/verifywise.git
+cd verifywise
 cd Clients
 npm i
 ```
@@ -95,10 +96,10 @@ cd Servers
 npm install
 ```
 
-Create a .env file in the root directory:
+Go to the root directory:
 
 ```
-touch .env
+cd ..
 ```
 
 Copy the contents of .env.dev to the .env file. Make sure to change the JWT_SECRET variable to your liking. 

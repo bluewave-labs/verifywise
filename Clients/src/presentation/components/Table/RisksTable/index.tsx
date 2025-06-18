@@ -20,7 +20,7 @@ import IconButton from "../../IconButton";
 import TablePaginationActions from "../../TablePagination";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
 import { RISK_LABELS } from "../../RiskLevel/constants";
-import { VendorDetails } from '../../../pages/Vendors';
+import { VendorDetails } from "../../../pages/Vendors";
 import { VendorRisk } from "../../../../domain/types/VendorRisk";
 
 const titleOfTableColumns = [
@@ -96,7 +96,10 @@ const RiskTable: React.FC<RiskTableProps> = ({
   }, [page, rowsPerPage, vendorRisks?.length ?? 0]);
 
   // Group risks by id so each risk appears only once, and collect all project titles
-  const groupedRisks: Record<number, VendorRisk & { project_titles: string[] }> = {}
+  const groupedRisks: Record<
+    number,
+    VendorRisk & { project_titles: string[] }
+  > = {};
   vendorRisks?.forEach((row: VendorRisk & { project_title?: string }) => {
     const key = row.risk_id!;
     if (!groupedRisks[key]) {
@@ -130,12 +133,12 @@ const RiskTable: React.FC<RiskTableProps> = ({
                 ...(cell === "risk level" ? {} : {}),
                 ...(index === titleOfTableColumns.length - 1
                   ? {
-                    position: "sticky",
-                    right: 0,
-                    zIndex: 10,
-                    backgroundColor:
-                      singleTheme.tableStyles.primary.header.backgroundColors,
-                  }
+                      position: "sticky",
+                      right: 0,
+                      zIndex: 10,
+                      backgroundColor:
+                        singleTheme.tableStyles.primary.header.backgroundColors,
+                    }
                   : {}),
               }}
             >
@@ -161,17 +164,31 @@ const RiskTable: React.FC<RiskTableProps> = ({
                 onClick={() => onEdit(row.risk_id!)}
               >
                 <TableCell sx={cellStyle}>{row.risk_description}</TableCell>
-                <TableCell sx={cellStyle}>{
-                  formattedVendors?.find(
-                    (vendor: any) => vendor._id === row.vendor_id
-                  )?.name
-                }</TableCell>
-                <TableCell sx={{ ...cellStyle, maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <TableCell sx={cellStyle}>
+                  {
+                    formattedVendors?.find(
+                      (vendor: any) => vendor._id === row.vendor_id
+                    )?.name
+                  }
+                </TableCell>
+                <TableCell
+                  sx={{
+                    ...cellStyle,
+                    maxWidth: 200,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
                   {(() => {
-                    const projects = (row.project_titles as string).split(',').map(p => p.trim());
+                    const projects = (row.project_titles as string)
+                      .split(",")
+                      .map((p) => p.trim());
                     const displayCount = 1;
                     const showMore = projects.length > displayCount;
-                    const displayed = projects.slice(0, displayCount).join(', ');
+                    const displayed = projects
+                      .slice(0, displayCount)
+                      .join(", ");
                     const moreCount = projects.length - displayCount;
                     return (
                       <Tooltip
@@ -184,31 +201,52 @@ const RiskTable: React.FC<RiskTableProps> = ({
                         }
                         arrow
                         placement="top"
+                        sx={{ fontSize: 13 }}
                       >
-                        <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer', width: '100%' }}>
-                          <span style={{
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                            maxWidth: 150,
-                            display: 'inline-block',
-                            verticalAlign: 'middle',
-                          }}>
+                        <Box
+                          component="span"
+                          sx={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            cursor: "pointer",
+                            width: "100%",
+                          }}
+                        >
+                          <span
+                            style={{
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                              maxWidth: 150,
+                              display: "inline-block",
+                              verticalAlign: "middle",
+                            }}
+                          >
                             {displayed}
                           </span>
                           {showMore && (
-                            <span style={{ color: '#888', marginLeft: 4, fontWeight: 500 }}>+{moreCount}</span>
+                            <span
+                              style={{
+                                color: "#888",
+                                marginLeft: 4,
+                                fontWeight: 500,
+                              }}
+                            >
+                              +{moreCount}
+                            </span>
                           )}
                         </Box>
                       </Tooltip>
                     );
                   })()}
                 </TableCell>
-                <TableCell sx={cellStyle}>{
-                  formattedUsers?.find(
-                    (user: any) => user._id === row.action_owner
-                  )?.name
-                }</TableCell>
+                <TableCell sx={cellStyle}>
+                  {
+                    formattedUsers?.find(
+                      (user: any) => user._id === row.action_owner
+                    )?.name
+                  }
+                </TableCell>
                 <TableCell sx={cellStyle}>{row.risk_severity}</TableCell>
                 <TableCell sx={cellStyle}>{row.likelihood}</TableCell>
                 <TableCell sx={cellStyle}>
@@ -237,17 +275,17 @@ const RiskTable: React.FC<RiskTableProps> = ({
                     minWidth: "50px",
                   }}
                 >
-                  { isDeletingAllowed &&
+                  {isDeletingAllowed && (
                     <IconButton
                       id={row.risk_id!}
                       onDelete={() => onDelete(row.risk_id!)}
                       onEdit={() => onEdit(row.risk_id!)}
-                      onMouseEvent={() => { }}
+                      onMouseEvent={() => {}}
                       warningTitle="Delete this risk?"
                       warningMessage="This action is non-recoverable."
                       type="Risk"
                     />
-                  }
+                  )}
                 </TableCell>
               </TableRow>
             ))}
@@ -290,17 +328,21 @@ const RiskTable: React.FC<RiskTableProps> = ({
             {tableHeader}
             {tableBody}
             <TableFooter>
-              <TableRow sx={{
-                  '& .MuiTableCell-root.MuiTableCell-footer': {
+              <TableRow
+                sx={{
+                  "& .MuiTableCell-root.MuiTableCell-footer": {
                     paddingX: theme.spacing(8),
                     paddingY: theme.spacing(4),
-                  }}}>
+                  },
+                }}
+              >
                 <TableCell
-                sx={{ 
-                  paddingX: theme.spacing(2),
-                  fontSize: 12,
-                  opacity: 0.7 }}
-                  >
+                  sx={{
+                    paddingX: theme.spacing(2),
+                    fontSize: 12,
+                    opacity: 0.7,
+                  }}
+                >
                   Showing {getRange} of {vendorRisks?.length} vendor risk(s)
                 </TableCell>
                 <TablePagination

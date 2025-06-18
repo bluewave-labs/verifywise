@@ -165,7 +165,13 @@ curl -O https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/insta
 curl -O https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/.env.prod
 ```
 
-Make sure to change the JWT_SECRET variable to your liking.
+Make sure to change the JWT_SECRET variable to your liking, and change `localhost` to the IP of the server. An example is shown below:
+
+```
+BACKEND_URL=http://64.23.242.4:3000
+FRONTEND_URL=http://64.23.242.4:8080 
+ALLOWED_ORIGINS=["http://64.23.242.4:5173", "http://64.23.242.4:8080"]
+```
 
 Change the permissions of the `install.sh` script to make it executable, and then execute it.
 
@@ -174,7 +180,9 @@ chmod +x ./install.sh
 ./install.sh
 ```
 
-If the install.sh script doesn't work, try the following commands:
+Now the server is running on the IP and the port you defined in .env.prod file (8080 by default).
+
+If the install.sh script doesn't work for some reason, try the following commands:
 
 ```
 docker-compose --env-file .env.prod up -d backend
@@ -183,7 +191,13 @@ docker-compose --env-file .env.prod up -d frontend
 docker ps  # to confirm
 ```
 
-Now the server is running on the IP and the port you defined in .env.prod file (8080 by default).
+If you want to re-run install.sh for some reason (e.g want to change a configuration in .env.prod file), first stop all Docker containers before starting a new one:
+
+```
+docker-compose --env-file .env.prod down
+./install.sh
+```
+
 
 ## Quick links
 

@@ -82,6 +82,7 @@ Prerequisites:
 First, clone the repository to your local machine. Navigate to the Clients directory and install the dependencies:
 
 ```
+git clone https://github.com/bluewave-labs/verifywise.git
 cd Clients
 npm i
 ```

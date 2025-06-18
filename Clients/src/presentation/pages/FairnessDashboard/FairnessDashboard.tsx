@@ -349,7 +349,6 @@ export default function FairnessDashboard() {
                 <IconButton onClick={resetForm}><CloseIcon /></IconButton>
               </Box>
             </DialogTitle>
-
             <DialogContent>
               <Stack spacing={2}>
                 {uploadFields.map(({ label, accept, file, setFile, ref, errorKey }) => (
@@ -390,6 +389,14 @@ export default function FairnessDashboard() {
                         }
                       />
                     </Button>
+                    <Typography
+                      sx={{ 
+                          fontWeight: 200, 
+                          fontSize: "12px", 
+                          color: "#667085",
+                        }}
+                      >
+                      {`Max file size: 200MB`}</Typography>
                     {errors[errorKey] && (
                         <Typography fontSize={11} color="#F04438" sx={{ mt: 0.5, ml: 0, lineHeight: 1.5, opacity:0.8}}>
                         {`${label.charAt(0).toUpperCase() + label.slice(1)} file is required`}
@@ -403,7 +410,6 @@ export default function FairnessDashboard() {
                     )}
                   </Box>
                 ))}
-                
                 <Box sx={{mb: 5}}>
                     <Select 
                         id="target-column"

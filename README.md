@@ -183,6 +183,8 @@ docker-compose --env-file .env.prod up -d frontend
 docker ps  # to confirm
 ```
 
+Now the server is running on the IP and the port you defined in .env.prod file (8080 by default).
+
 ## Quick links
 
 - The designs and workflows are [available for everyone](https://www.figma.com/design/o4xu4PeC5bo1Ii4dyom6vQ/VerifyWise?node-id=0-1&t=Ty2Jh4S8QgHGrqon-1). This link includes 2 pages: dashboard designs and the style guide.

@@ -38,6 +38,7 @@ export const fairnessService = {
       headers: {
         "Content-Type": "multipart/form-data",
       },
+      timeout: 150000, // 2.5 minutes timeout
     });
 
     setUploadedModels((prevModels) => [

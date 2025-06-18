@@ -332,7 +332,7 @@ const ProjectCard: FC<ProjectCardProps> = React.memo(
         </Stack>
         {/* View Project Button */}
         <Stack sx={{ mt: "auto" }}>
-          <Tooltip title="View project details">
+          <Tooltip title="View project details" sx={{ fontSize: 13 }}>
             <CustomizableButton
               variant="outlined"
               onClick={() =>

@@ -87,7 +87,12 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           { title: "Bullets", icon: <FormatListBulleted />, action: "bullets" },
           { title: "Numbers", icon: <FormatListNumbered />, action: "numbers" },
         ].map(({ title, icon, action }) => (
-          <Tooltip key={action} title={title} aria-label={title}>
+          <Tooltip
+            key={action}
+            title={title}
+            aria-label={title}
+            sx={{ fontSize: 13 }}
+          >
             <IconButton
               onClick={() => applyFormatting(action)}
               disableRipple

@@ -12,6 +12,7 @@ import {
   Box,
   Tooltip,
   TableFooter,
+  Chip,
 } from "@mui/material";
 import { useCallback, useMemo, useState } from "react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
@@ -250,21 +251,24 @@ const RiskTable: React.FC<RiskTableProps> = ({
                 <TableCell sx={cellStyle}>{row.risk_severity}</TableCell>
                 <TableCell sx={cellStyle}>{row.likelihood}</TableCell>
                 <TableCell sx={cellStyle}>
-                  <Box
-                    sx={{
-                      backgroundColor:
-                        Object.values(RISK_LABELS).find(
-                          (risk) => risk.text === row.risk_level
-                        )?.color || "transparent",
-                      borderRadius: theme.shape.borderRadius,
-                      padding: "8px",
-                      textAlign: "center",
-                      justifyContent: "center",
-                      color: "white",
-                    }}
-                  >
-                    {row.risk_level}
-                  </Box>
+                  {row.risk_level ? (
+                    <Chip
+                      label={row.risk_level}
+                      size="small"
+                      sx={{
+                        backgroundColor:
+                          Object.values(RISK_LABELS).find(
+                            (risk) => risk.text === row.risk_level
+                          )?.color || "transparent",
+                        color: 'white',
+                        fontWeight: 500,
+                        borderRadius: theme.shape.borderRadius,
+                        height: 24,
+                      }}
+                    />
+                  ) : (
+                    "-"
+                  )}
                 </TableCell>
                 <TableCell
                   sx={{

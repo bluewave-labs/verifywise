@@ -12,6 +12,27 @@ detect_docker_compose() {
     fi
 }
 
+# Function to check and download Docker Compose files
+check_and_download_compose_files() {
+    if [ ! -f "docker-compose.yml" ]; then
+        echo "docker-compose.yml not found. Downloading..."
+        curl -fS --output docker-compose.yml https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/docker-compose.yml
+        if [ $? -ne 0 ]; then
+            echo "Error: Failed to download docker-compose.yml. Please check your internet connection or the URL."
+            exit 1
+        fi
+    fi
+
+    if [ ! -f "docker-compose.prod.yml" ]; then
+        echo "docker-compose.prod.yml not found. Downloading..."
+        curl -fS --output docker-compose.prod.yml https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/docker-compose.prod.yml
+        if [ $? -ne 0 ]; then
+            echo "Error: Failed to download docker-compose.prod.yml. Please check your internet connection or the URL."
+            exit 1
+        fi
+    fi
+}
+
 # Function to read environment variables from .env file
 load_env() {
     ENV_FILE=$1
@@ -48,6 +69,9 @@ main() {
 
     ENVIRONMENT=${1:-prod}
     echo "Running in $ENVIRONMENT mode"
+
+    # Check and download Docker Compose files if needed
+    check_and_download_compose_files
 
     # Start Docker Compose
     echo "Starting Docker Compose..."

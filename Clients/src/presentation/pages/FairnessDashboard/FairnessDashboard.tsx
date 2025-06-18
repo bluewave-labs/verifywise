@@ -22,8 +22,16 @@ import Select from "../../components/Inputs/Select";
 import { fairnessService } from "../../../infrastructure/api/fairnessService";
 import { tabPanelStyle } from "../Vendors/style";
 import Alert from "../../components/Alert";
+import CustomizableToast from "../../vw-v2-components/Toast";
 
-
+export type FairnessModel = {
+  id: number | string; // Use number or string based on your backend response
+  model: string;
+  dataset: string;
+  status: string;
+  report?: string;
+  action?: string; // Optional if you're not storing a real value
+};
 
 export default function FairnessDashboard() {
   const [tab, setTab] = useState("uploads");
@@ -36,20 +44,13 @@ export default function FairnessDashboard() {
   const [targetColumn, setTargetColumn] = useState("");
   const [sensitiveColumn, setSensitiveColumn] = useState("");
   const [columnOptions, setColumnOptions] = useState<string[]>([]);
+  const [showToastNotification, setShowToastNotification] = useState(false);
 
   const targetColumnItems = useMemo(() => {
     return columnOptions.map((col) => ({ _id: col, name: col }));
   }, [columnOptions]);
   
   const [page, setPage] = useState(0);
-
-  type FairnessModel = {
-    id: number;
-    model: string;
-    dataset: string;
-    report?: string;
-    action?: string; // Optional if you're not storing a real value
-  };
   
   
   const [uploadedModels, setUploadedModels] = useState<FairnessModel[]>([]);
@@ -60,7 +61,8 @@ export default function FairnessDashboard() {
       const formatted = metrics.map((item: any) => ({
         id: item.metrics_id, // use this for "ID" column
         model: item.model_filename,
-        dataset: item.data_filename
+        dataset: item.data_filename,
+        status: 'Completed', // Assuming all fetched metrics are completed
       }));
       setUploadedModels(formatted);
     } catch {
@@ -112,6 +114,7 @@ export default function FairnessDashboard() {
     { id: 'id', label: 'Check ID' },
     { id: 'model', label: 'Model' },
     { id: 'dataset', label: 'Dataset' },
+    { id: 'status', label: 'Status' },
     { id: 'report', label: 'Report' },
     { id : 'action', label: 'Action'}
   ];
@@ -204,9 +207,9 @@ export default function FairnessDashboard() {
         data: datasetFile,
         target_column: targetColumn,
         sensitive_column: sensitiveColumn,
-      });
-  
-      await fetchMetrics(); // Refresh entire fairness model list with IDs
+      }, setUploadedModels);
+
+      // await fetchMetrics(); // Refresh entire fairness model list with IDs
       resetForm();
     } catch {
         setAlert({
@@ -217,7 +220,6 @@ export default function FairnessDashboard() {
     } finally{
         setShowToastNotification(false);
     }
-    
   };
 
   const [alert, setAlert] = useState<{
@@ -444,6 +446,9 @@ export default function FairnessDashboard() {
           </Dialog>
         </TabPanel>
       </TabContext>
+      {showToastNotification && (
+        <CustomizableToast title="Uploading the model. Please wait, this process may take some time..." />
+      )}
     </Stack>
   );
 }

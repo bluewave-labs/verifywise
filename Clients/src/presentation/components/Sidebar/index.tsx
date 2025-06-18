@@ -49,9 +49,6 @@ import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen"
 import ReadyToSubscribeBox from "../ReadyToSubscribeBox/ReadyToSubscribeBox";
 import { User } from "../../../domain/types/User";
 
-
-
-
 const menu = [
   {
     name: "Dashboard",
@@ -280,6 +277,7 @@ const Sidebar = () => {
         {menu.map((item) =>
           item.path ? (
             <Tooltip
+              sx={{ fontSize: 13 }}
               key={item.path}
               placement="right"
               title={collapsed ? item.name : ""}
@@ -332,6 +330,7 @@ const Sidebar = () => {
           ) : collapsed ? (
             <React.Fragment key={item.name}>
               <Tooltip
+                sx={{ fontSize: 13 }}
                 placement="right"
                 title={collapsed ? item.name : ""}
                 slotProps={{
@@ -441,6 +440,7 @@ const Sidebar = () => {
       >
         {other.map((item) => (
           <Tooltip
+            sx={{ fontSize: 13 }}
             key={item.path}
             placement="right"
             title={collapsed ? item.name : ""}
@@ -473,6 +473,7 @@ const Sidebar = () => {
                 }
               }}
               sx={{
+                height: "37px",
                 gap: theme.spacing(4),
                 borderRadius: theme.shape.borderRadius,
                 px: theme.spacing(4),
@@ -516,6 +517,7 @@ const Sidebar = () => {
         {collapsed ? (
           <>
             <Tooltip
+              sx={{ fontSize: 13 }}
               title="Options"
               slotProps={{
                 popper: {
@@ -560,7 +562,7 @@ const Sidebar = () => {
                 {ROLES[user.roleId as keyof typeof ROLES]}
               </Typography>
             </Box>
-            <Tooltip title="Controls" disableInteractive>
+            <Tooltip title="Controls" disableInteractive sx={{ fontSize: 13 }}>
               <IconButton
                 disableRipple={
                   theme.components?.MuiIconButton?.defaultProps?.disableRipple

@@ -14,7 +14,7 @@ import CustomizableToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 import { ENV_VARs } from "../../../../../env.vars";
 
-const isDemoApp = ENV_VARs.IS_DEMO_APP;
+const isDemoApp = ENV_VARs.IS_DEMO_APP || false;
 
 // Define the shape of form values
 interface FormValues {
@@ -35,6 +35,8 @@ const Login: React.FC = () => {
   const dispatch = useDispatch();
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
+
+  const loginText = isDemoApp ? "Click on Sign in button directly to continue" : "Log in to your account";
 
   //disabled overlay state/modal
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -201,7 +203,7 @@ const Login: React.FC = () => {
             <span style={{ color: singleTheme.textColors.theme }}>Wise</span>
           </Typography>
           <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>
-            Log in to your account
+            {loginText}
           </Typography>
           <Stack sx={{ gap: theme.spacing(7.5) }}>
             <Field

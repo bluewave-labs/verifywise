@@ -16,10 +16,10 @@ export const dropdownStyles = {
   },
   "&.Mui-focused": {
     "& .MuiOutlinedInput-notchedOutline": {
-      borderColor: "rgba(0, 0, 0, 0.23)",
+      border: '1px solid #d0d5dd',
     },
   },
   "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(0, 0, 0, 0.23)",
+    border: '1px solid #d0d5dd',
   },
 };

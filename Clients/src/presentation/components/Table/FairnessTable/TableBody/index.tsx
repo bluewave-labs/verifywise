@@ -15,6 +15,37 @@ interface FairnessTableBodyProps {
   };
 }
 
+const StatusBadge: React.FC<{ status: "In Progress" | "Completed" | "Failed" }> = ({
+  status,
+}) => {
+  const statusStyles = {
+    "In Progress": { bg: "#fff9c4", color: "#fbc02d", border: "1px solid #fbc02d" },
+    "Completed": { bg: "#c8e6c9", color: "#388e3c", border: "1px solid #388e3c" },
+    "Failed": { bg: "#ffcdd2", color: "#d32f2f", border: "1px solid #d32f2f" },
+  };
+
+  const style = statusStyles[status] || { bg: "#e0e0e0", color: "#424242" };
+
+  return (
+    <span
+      style={{
+        backgroundColor: style.bg,
+        color: style.color,
+        padding: "4px 8px",
+        borderRadius: 8,
+        fontWeight: 600,
+        fontSize: "0.75rem",
+        textTransform: "uppercase",
+        display: "inline-block",
+        border: style.border,
+      }}
+    >
+      {status}
+    </span>
+  );
+};
+
+
 const FairnessTableBody: React.FC<FairnessTableBodyProps> = ({
   rows,
   page,
@@ -38,7 +69,7 @@ const FairnessTableBody: React.FC<FairnessTableBodyProps> = ({
             {row.dataset}
           </TableCell>
           <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, paddingLeft: "12px", paddingRight: "12px", textTransform:"none" }}>
-            <Box sx={{ width: "30%", ml:-5 }}>
+            <Box sx={{ width: "50%", ml:-4 }}>
               <StatusBadge status={row.status} />
             </Box>
           </TableCell>
@@ -63,6 +94,7 @@ const FairnessTableBody: React.FC<FairnessTableBodyProps> = ({
           </TableCell>
           <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, paddingLeft: "12px", paddingRight: "12px" }}>
           <ConfirmableDeleteIconButton
+            disabled={row.status !== "Completed"}
             id={row.id}
             onConfirm={() => onRemoveModel.onConfirm(row.id)}
             title={`Delete this fairness check?`}

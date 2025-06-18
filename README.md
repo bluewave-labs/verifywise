@@ -101,7 +101,7 @@ Create a .env file in the root directory:
 touch .env
 ```
 
-Copy the contents of .env.dev to the .env file. Make sure to change the JWT_SECRET variable to your liking as this should be unique for each user. 
+Copy the contents of .env.dev to the .env file. Make sure to change the JWT_SECRET variable to your liking. 
 
 ```
 cp .env.dev .env
@@ -165,9 +165,9 @@ curl -O https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/insta
 curl -O https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/.env.prod
 ```
 
-Make sure to change the JWT_SECRET variable to your liking as this should be unique for each user.
+Make sure to change the JWT_SECRET variable to your liking.
 
-Change the permissions of the install.sh script to make it executable, and then execute it.
+Change the permissions of the `install.sh` script to make it executable, and then execute it.
 
 ```
 chmod +x ./install.sh

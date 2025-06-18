@@ -3,7 +3,6 @@ import {
   TableCell,
   TableRow,
   useTheme,
-  Box,
   Chip,
 } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";

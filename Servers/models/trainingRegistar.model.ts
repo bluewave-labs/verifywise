@@ -19,6 +19,7 @@ export type TrainingRegistar = {
   department: string;
   status: "Planned" | "In Progress" | "Completed";
   numberOfPeople: number;
+  description: string;
 };
 
 @Table({
@@ -60,4 +61,9 @@ export class TrainingRegistarModel extends Model<TrainingRegistar> {
     type: DataType.INTEGER,
   })
   numberOfPeople!: number;
+
+  @Column({
+    type:DataType.STRING,
+  })
+  description!: string;
 }

@@ -29,7 +29,7 @@ const FairnessTableBody: React.FC<FairnessTableBodyProps> = ({
       .map((row) => (
         <TableRow key={row.id} sx={singleTheme.tableStyles.primary.body.row}>
           <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, paddingLeft: "12px", paddingRight: "12px", textTransform:"none", width:"20%"}}>
-            {row.id}
+          {row.status === "In Progress" ? "Pending..." : row.id}
           </TableCell>
           <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, paddingLeft: "12px", paddingRight: "12px", textTransform:"none"}}>
             {row.model}
@@ -37,11 +37,24 @@ const FairnessTableBody: React.FC<FairnessTableBodyProps> = ({
           <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, paddingLeft: "12px", paddingRight: "12px", textTransform:"none" }}>
             {row.dataset}
           </TableCell>
+          <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, paddingLeft: "12px", paddingRight: "12px", textTransform:"none" }}>
+            <Box sx={{ width: "30%", ml:-5 }}>
+              <StatusBadge status={row.status} />
+            </Box>
+          </TableCell>
           <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, paddingLeft: "12px", paddingRight: "12px" }}>
           <Box display="flex" justifyContent="left">
             <Button 
             onClick={() => onShowDetails(row)}
-            sx={{ml: -2, fontsize:"18 !important"}}
+            sx={{
+              ml: -2,
+              fontSize: "18 !important",
+              backgroundColor: "#13715B", // keep your styling
+              color: "white",
+              textTransform: "none",
+              opacity: row.status !== "Completed" ? 0.5 : 1,
+              pointerEvents: row.status !== "Completed" ? "none" : "auto",
+            }}
             >
               Show
             </Button>

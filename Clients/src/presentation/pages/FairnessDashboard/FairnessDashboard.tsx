@@ -197,6 +197,7 @@ export default function FairnessDashboard() {
     if (hasError) return;
     if (!modelFile || !datasetFile || !targetColumn || !sensitiveColumn) return;
   
+    setShowToastNotification(true);
     try {
       await fairnessService.uploadFairnessFiles({
         model: modelFile,
@@ -213,7 +214,10 @@ export default function FairnessDashboard() {
             body: "Failed to upload model. Please try again.",
           });
           setTimeout(() => setAlert(null), 8000);
+    } finally{
+        setShowToastNotification(false);
     }
+    
   };
 
   const [alert, setAlert] = useState<{

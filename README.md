@@ -2,13 +2,13 @@
 [Join our Discord channel](https://discord.com/invite/wWzYzMD6) to get the latest announcement.
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/bluewave-labs/verifywise)
-![](https://img.shields.io/github/license/bluewave-labs/checkmate)
-![](https://img.shields.io/github/repo-size/bluewave-labs/checkmate)
-![](https://img.shields.io/github/commit-activity/m/bluewave-labs/checkmate)
-![](https://img.shields.io/github/last-commit/bluewave-labs/checkmate)
-![](https://img.shields.io/github/languages/top/bluewave-labs/checkmate)
-![](https://img.shields.io/github/issues/bluewave-labs/checkmate)
-![](https://img.shields.io/github/issues-pr/bluewave-labs/checkmate)
+![](https://img.shields.io/github/license/bluewave-labs/verifywise)
+![](https://img.shields.io/github/repo-size/bluewave-labs/verifywise)
+![](https://img.shields.io/github/commit-activity/m/bluewave-labs/verifywise)
+![](https://img.shields.io/github/last-commit/bluewave-labs/verifywise)
+![](https://img.shields.io/github/languages/top/bluewave-labs/verifywise)
+![](https://img.shields.io/github/issues/bluewave-labs/verifywise)
+![](https://img.shields.io/github/issues-pr/bluewave-labs/verifywise)
 
 <img src="https://github.com/user-attachments/assets/27640e05-0180-4b3d-ad80-3914d00d0eb2">
 

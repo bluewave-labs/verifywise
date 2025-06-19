@@ -1,15 +1,29 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+cleanup() {
+  red "⚠️ Cleaning up services..."
+  kill "$TAIL_REACT" "$TAIL_EXPRESS" "$TAIL_FASTAPI" 2>/dev/null
+  kill "$REACT_PID" "$EXPRESS_PID" "$FASTAPI_PID" 2>/dev/null
+  exit 1
+}
+
+trap cleanup INT TERM EXIT
 
 # === Utility for colored messages ===
-green() { echo -e "\033[1;32m$1\033[0m"; }
-red()   { echo -e "\033[1;31m$1\033[0m"; }
+green() { printf '\033[1;32m%s\033[0m\n' "$1"; }
+red()   { printf '\033[1;31m%s\033[0m\n' "$1"; }
 
 echo "🧹 Clearing previous logs..."
-> react.log && > express.log && > fastapi.log
+> react.log && : > express.log && : > fastapi.log
 
 # === Free ports (5173, 3000, 8000) ===
+command -v lsof >/dev/null 2>&1 || {
+  red "❌ lsof is not installed. Please install it to continue."
+  exit 1
+}
+
 for port in 5173 3000 8000; do
-  pid=$(lsof -ti :$port)
+  pid=$(lsof -ti :$port 2>/dev/null || pkill -f ":$port")
   if [ -n "$pid" ]; then
     red "🛑 Port $port in use (PID $pid). Killing..."
     kill -9 $pid
@@ -31,7 +45,7 @@ EXPRESS_PID=$!
 green "▶️ Express → http://localhost:3000"
 
 # === Start FastAPI ===
-(cd BiasAndFairnessServers && source .venv/bin/activate && uvicorn app:app --reload --port 8000 --app-dir src >> ../fastapi.log 2>&1) &
+(cd BiasAndFairnessServers/src && source .venv/bin/activate && uvicorn app:app --reload --port 8000 --app-dir src >> ../fastapi.log 2>&1) &
 FASTAPI_PID=$!
 green "▶️ FastAPI → http://localhost:8000"
 
@@ -54,5 +68,5 @@ wait -n $REACT_PID $EXPRESS_PID $FASTAPI_PID
 
 # If any service exits, stop tails and others
 red "⚠️ One of the services has stopped. Cleaning up..."
-kill $TAIL_REACT $TAIL_EXPRESS $TAIL_FASTAPI
+kill "$TAIL_REACT" "$TAIL_EXPRESS" "$TAIL_FASTAPI"
 kill $REACT_PID $EXPRESS_PID $FASTAPI_PID 2>/dev/null

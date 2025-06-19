@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 
+CLEANED_UP=false
+
 cleanup() {
+  if [ "$CLEANED_UP" = true ]; then return; fi
+  CLEANED_UP=true
+
   red "⚠️ Cleaning up services..."
   kill "$TAIL_REACT" "$TAIL_EXPRESS" "$TAIL_FASTAPI" 2>/dev/null
   kill "$REACT_PID" "$EXPRESS_PID" "$FASTAPI_PID" 2>/dev/null
@@ -14,7 +19,7 @@ green() { printf '\033[1;32m%s\033[0m\n' "$1"; }
 red()   { printf '\033[1;31m%s\033[0m\n' "$1"; }
 
 echo "🧹 Clearing previous logs..."
-> react.log && : > express.log && : > fastapi.log
+: > react.log && : > express.log && : > fastapi.log
 
 # === Free ports (5173, 3000, 8000) ===
 command -v lsof >/dev/null 2>&1 || {
@@ -45,7 +50,7 @@ EXPRESS_PID=$!
 green "▶️ Express → http://localhost:3000"
 
 # === Start FastAPI ===
-(cd BiasAndFairnessServers/src && source .venv/bin/activate && uvicorn app:app --reload --port 8000 --app-dir src >> ../fastapi.log 2>&1) &
+(cd BiasAndFairnessServers/src && source .venv/bin/activate && uvicorn app:app --reload --port 8000  >> ../fastapi.log 2>&1) &
 FASTAPI_PID=$!
 green "▶️ FastAPI → http://localhost:8000"
 
@@ -67,6 +72,4 @@ TAIL_FASTAPI=$!
 wait -n $REACT_PID $EXPRESS_PID $FASTAPI_PID
 
 # If any service exits, stop tails and others
-red "⚠️ One of the services has stopped. Cleaning up..."
-kill "$TAIL_REACT" "$TAIL_EXPRESS" "$TAIL_FASTAPI"
-kill $REACT_PID $EXPRESS_PID $FASTAPI_PID 2>/dev/null
+cleanup

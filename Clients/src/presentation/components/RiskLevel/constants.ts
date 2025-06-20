@@ -57,3 +57,11 @@ export enum Severity {
   Catastrophic = 5,
 }
 
+export const RISK_COLOR_BY_TEXT: Record<string, string> = Object.values(RISK_LABELS).reduce(
+  (acc, { text, color }) => {
+    acc[text] = color;
+    return acc;
+  },
+  {} as Record<string, string>
+);
+

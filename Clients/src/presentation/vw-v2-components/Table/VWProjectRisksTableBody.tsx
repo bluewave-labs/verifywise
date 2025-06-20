@@ -9,7 +9,7 @@ import singleTheme from "../../themes/v1SingleTheme";
 import { useContext } from "react";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import { RISK_LABELS } from "../../components/RiskLevel/constants";
+import { RISK_COLOR_BY_TEXT } from "../../components/RiskLevel/constants";
 import IconButton from "../../components/IconButton";
 import { formatDate } from "../../tools/isoDateToString";
 import allowedRoles from "../../../application/constants/permissions";
@@ -54,6 +54,19 @@ const VWProjectRisksTableBody = ({
       ? `${currentUser.name} ${currentUser.surname}`
       : "";
     return fullName.length > 30 ? `${fullName.slice(0, 30)}...` : fullName;
+  };
+
+  const getMitigationStatusColor = (status: string) => {
+    const statusColors: Record<string, string> = {
+      'Not Started': '#A0AEC0',
+      'In Progress': '#3182CE',
+      'Completed': '#38A169',
+      'On Hold': '#ED8936',
+      'Deferred': '#D69E2E',
+      'Canceled': '#E53E3E',
+      'Requires review': '#805AD5',
+    };
+    return statusColors[status] || '#B0B0B0'; // fallback to grey if status not found
   };
 
   return (
@@ -114,7 +127,7 @@ const VWProjectRisksTableBody = ({
                     label={row.mitigation_status}
                     size="small"
                     sx={{
-                      backgroundColor: '#B0B0B0',
+                      backgroundColor: getMitigationStatusColor(row.mitigation_status),
                       color: 'white',
                       fontWeight: 500,
                       borderRadius: theme.shape.borderRadius,
@@ -131,24 +144,26 @@ const VWProjectRisksTableBody = ({
                   backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
                 }}
               >
-                {row.risk_level_autocalculated ? (
-                  <Chip
-                    label={row.risk_level_autocalculated}
-                    size="small"
-                    sx={{
-                      backgroundColor:
-                        Object.values(RISK_LABELS).find(
-                          (risk) => risk.text === row.risk_level_autocalculated
-                        )?.color || "transparent",
-                      color: 'white',
-                      fontWeight: 500,
-                      borderRadius: theme.shape.borderRadius,
-                      height: 24,
-                    }}
-                  />
-                ) : (
-                  "-"
-                )}
+                {(() => {
+                  const riskLevel = row.risk_level_autocalculated;
+                  const riskColor = RISK_COLOR_BY_TEXT[riskLevel] || "transparent";
+                  
+                  return riskLevel ? (
+                    <Chip
+                      label={riskLevel}
+                      size="small"
+                      sx={{
+                        backgroundColor: riskColor,
+                        color: 'white',
+                        fontWeight: 500,
+                        borderRadius: theme.shape.borderRadius,
+                        height: 24,
+                      }}
+                    />
+                  ) : (
+                    "-"
+                  );
+                })()}
               </TableCell>
               <TableCell
                 sx={cellStyle}

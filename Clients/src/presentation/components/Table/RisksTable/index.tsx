@@ -20,7 +20,7 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import IconButton from "../../IconButton";
 import TablePaginationActions from "../../TablePagination";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
-import { RISK_LABELS } from "../../RiskLevel/constants";
+import { RISK_COLOR_BY_TEXT } from "../../RiskLevel/constants";
 import { VendorDetails } from "../../../pages/Vendors";
 import { VendorRisk } from "../../../../domain/types/VendorRisk";
 
@@ -251,24 +251,26 @@ const RiskTable: React.FC<RiskTableProps> = ({
                 <TableCell sx={cellStyle}>{row.risk_severity}</TableCell>
                 <TableCell sx={cellStyle}>{row.likelihood}</TableCell>
                 <TableCell sx={cellStyle}>
-                  {row.risk_level ? (
-                    <Chip
-                      label={row.risk_level}
-                      size="small"
-                      sx={{
-                        backgroundColor:
-                          Object.values(RISK_LABELS).find(
-                            (risk) => risk.text === row.risk_level
-                          )?.color || "transparent",
-                        color: 'white',
-                        fontWeight: 500,
-                        borderRadius: theme.shape.borderRadius,
-                        height: 24,
-                      }}
-                    />
-                  ) : (
-                    "-"
-                  )}
+                  {(() => {
+                    const riskLevel = row.risk_level;
+                    const riskColor = RISK_COLOR_BY_TEXT[riskLevel] || "transparent";
+                    
+                    return riskLevel ? (
+                      <Chip
+                        label={riskLevel}
+                        size="small"
+                        sx={{
+                          backgroundColor: riskColor,
+                          color: 'white',
+                          fontWeight: 500,
+                          borderRadius: theme.shape.borderRadius,
+                          height: 24,
+                        }}
+                      />
+                    ) : (
+                      "-"
+                    );
+                  })()}
                 </TableCell>
                 <TableCell
                   sx={{

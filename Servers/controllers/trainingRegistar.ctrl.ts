@@ -67,8 +67,7 @@ export async function createNewTrainingRegistar(
       !newTrainingRegistar.department ||
       !newTrainingRegistar.numberOfPeople ||
       !newTrainingRegistar.provider ||
-      !newTrainingRegistar.status ||
-      !newTrainingRegistar.description
+      !newTrainingRegistar.status
     ) {
       return res.status(400).json(
         STATUS_CODE[400]({
@@ -115,8 +114,7 @@ export async function updateTrainingRegistarById(
       !updatedTrainingRegistar.duration ||
       !updatedTrainingRegistar.people ||
       !updatedTrainingRegistar.provider ||
-      !updatedTrainingRegistar.status ||
-      !updatedTrainingRegistar.description
+      !updatedTrainingRegistar.status
     ) {
       return res.status(400).json(
         STATUS_CODE[400]({

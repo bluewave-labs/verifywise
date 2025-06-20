@@ -139,10 +139,6 @@ const NewTraining: FC<NewTrainingProps> = ({
         "Number of people is required and must be a positive number.";
     }
 
-    if(!values.description){
-      newErrors.description = "Description not set";
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -266,7 +262,7 @@ const NewTraining: FC<NewTrainingProps> = ({
                       isRequired
                       sx={fieldStyle}
                       type="text"
-                      placeholder="e.g., 2 hours, 3 days, 2 months"
+                      placeholder="e.g., 2 hours, 3 days"
                     />
                   </Suspense>
                 </Box>
@@ -351,8 +347,7 @@ const NewTraining: FC<NewTrainingProps> = ({
                        value={values.description}
                       onChange={handleOnTextFieldChange("description")}
                       error={errors.description}
-                      isRequired
-                      sx={{fieldStyle}}
+                      sx={fieldStyle}
                       placeholder="Description of the AI training"
                     />
                   </Suspense>

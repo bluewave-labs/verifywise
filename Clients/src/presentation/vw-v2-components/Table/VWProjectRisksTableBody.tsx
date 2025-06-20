@@ -9,7 +9,8 @@ import singleTheme from "../../themes/v1SingleTheme";
 import { useContext } from "react";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import { RISK_LABELS } from "../../components/RiskLevel/constants";
+import { RISK_COLOR_BY_TEXT } from "../../components/RiskLevel/constants";
+import { getMitigationStatusColor } from "../../constants/statusColors";
 import IconButton from "../../components/IconButton";
 import { formatDate } from "../../tools/isoDateToString";
 import allowedRoles from "../../../application/constants/permissions";
@@ -114,7 +115,7 @@ const VWProjectRisksTableBody = ({
                     label={row.mitigation_status}
                     size="small"
                     sx={{
-                      backgroundColor: '#B0B0B0',
+                      backgroundColor: getMitigationStatusColor(row.mitigation_status),
                       color: 'white',
                       fontWeight: 500,
                       borderRadius: theme.shape.borderRadius,
@@ -131,24 +132,26 @@ const VWProjectRisksTableBody = ({
                   backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
                 }}
               >
-                {row.risk_level_autocalculated ? (
-                  <Chip
-                    label={row.risk_level_autocalculated}
-                    size="small"
-                    sx={{
-                      backgroundColor:
-                        Object.values(RISK_LABELS).find(
-                          (risk) => risk.text === row.risk_level_autocalculated
-                        )?.color || "transparent",
-                      color: 'white',
-                      fontWeight: 500,
-                      borderRadius: theme.shape.borderRadius,
-                      height: 24,
-                    }}
-                  />
-                ) : (
-                  "-"
-                )}
+                {(() => {
+                  const riskLevel = row.risk_level_autocalculated;
+                  const riskColor = RISK_COLOR_BY_TEXT[riskLevel] || "transparent";
+                  
+                  return riskLevel ? (
+                    <Chip
+                      label={riskLevel}
+                      size="small"
+                      sx={{
+                        backgroundColor: riskColor,
+                        color: 'white',
+                        fontWeight: 500,
+                        borderRadius: theme.shape.borderRadius,
+                        height: 24,
+                      }}
+                    />
+                  ) : (
+                    "-"
+                  );
+                })()}
               </TableCell>
               <TableCell
                 sx={cellStyle}

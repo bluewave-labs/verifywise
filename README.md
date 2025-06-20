@@ -1,5 +1,5 @@
 
-[Join our Discord channel](https://discord.com/invite/wWzYzMD6) to get the latest announcement.
+[Join our Discord channel](https://discord.com/invite/d3k3E4uEpR) to get the latest announcement.
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/bluewave-labs/verifywise)
 ![](https://img.shields.io/github/license/bluewave-labs/verifywise)

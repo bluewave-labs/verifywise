@@ -2,13 +2,13 @@
 [Join our Discord channel](https://discord.com/invite/wWzYzMD6) to get the latest announcement.
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/bluewave-labs/verifywise)
-![](https://img.shields.io/github/license/bluewave-labs/checkmate)
-![](https://img.shields.io/github/repo-size/bluewave-labs/checkmate)
-![](https://img.shields.io/github/commit-activity/m/bluewave-labs/checkmate)
-![](https://img.shields.io/github/last-commit/bluewave-labs/checkmate)
-![](https://img.shields.io/github/languages/top/bluewave-labs/checkmate)
-![](https://img.shields.io/github/issues/bluewave-labs/checkmate)
-![](https://img.shields.io/github/issues-pr/bluewave-labs/checkmate)
+![](https://img.shields.io/github/license/bluewave-labs/verifywise)
+![](https://img.shields.io/github/repo-size/bluewave-labs/verifywise)
+![](https://img.shields.io/github/commit-activity/m/bluewave-labs/verifywise)
+![](https://img.shields.io/github/last-commit/bluewave-labs/verifywise)
+![](https://img.shields.io/github/languages/top/bluewave-labs/verifywise)
+![](https://img.shields.io/github/issues/bluewave-labs/verifywise)
+![](https://img.shields.io/github/issues-pr/bluewave-labs/verifywise)
 
 <img src="https://github.com/user-attachments/assets/27640e05-0180-4b3d-ad80-3914d00d0eb2">
 
@@ -73,7 +73,7 @@ VerifyWise is designed for:
 
 The VerifyWise application has two components: a frontend built with React.js and a backend built with Node.js. At present, you can use `npm` (for development) or Docker (production) to run VerifyWise. A PostgreSQL database is required to run VerifyWise.
 
-### Installation instructions using npm (for development)
+### Installation using npm (for development)
 
 Prerequisites: 
 - npm and Docker
@@ -144,7 +144,7 @@ npm run dev
 
 **Note:** Make sure to replace {env variable password} with the actual password from your environment variables.
 
-### Installation instructions using Docker (production)
+### Installation using Docker (production)
 
 First, ensure you have the following installed:
 
@@ -196,6 +196,81 @@ If you want to re-run install.sh for some reason (e.g want to change a configura
 
 ```
 docker-compose --env-file .env.prod down
+./install.sh
+```
+
+### Installing SSL
+
+Here are the steps to enable SSL on your system. 
+
+1. Make sure to point domain to VM IP
+
+2. Install Nginx:
+
+```
+sudo apt update
+sudo apt install nginx -y
+```
+
+3. Create a config file  (`/etc/nginx/sites-available/verifywise`) with the following content. Change the domain name accordingly.
+
+```
+server {
+    server_name domainname.com;
+    
+    client_max_body_size 200M;
+
+    location / {
+        proxy_pass http://localhost:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    location /api/ {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+ }
+```
+
+4. Enable the config:
+
+```
+sudo ln -s /etc/nginx/sites-available/verifywise /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+5. Install Certbot for SSL:
+
+```
+sudo apt install certbot python3-certbot-nginx -y
+```
+
+6. Obtain SSL certificate. Change the domain name accordingly.
+
+```
+sudo certbot --nginx -d domainname.com
+```
+
+7. Update the `.env.prod` to point to correct domain. Change the domain name accordingly.
+
+```
+BACKEND_URL=https://domainname.com/api
+FRONTEND_URL=https://domainname.com
+ALLOWED_ORIGINS=["https://domainname.com:5173", "https://domainname.com"]
+```
+
+8. Restart the application
+
+```
 ./install.sh
 ```
 

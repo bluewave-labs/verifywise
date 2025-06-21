@@ -18,6 +18,7 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import { formatDate } from "../../../tools/isoDateToString";
 import TablePaginationActions from "../../TablePagination";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import RiskChip from "../../RiskLevel/RiskChip";
 import { VendorDetails } from "../../../pages/Vendors";
 import { User } from "../../../../domain/types/User";
 import allowedRoles from "../../../../application/constants/permissions";
@@ -143,7 +144,9 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
                   }
                 </TableCell>
                 <TableCell sx={cellStyle}>{row.review_status}</TableCell>
-                <TableCell sx={cellStyle}>{row.risk_status}</TableCell>
+                <TableCell sx={cellStyle}>
+                  <RiskChip label={row.risk_status} type="severity" />
+                </TableCell>
                 <TableCell sx={cellStyle}>
                   {row.review_date
                     ? formatDate(row.review_date.toString())

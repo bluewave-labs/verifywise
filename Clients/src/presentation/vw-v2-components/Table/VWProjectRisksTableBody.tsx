@@ -9,8 +9,8 @@ import singleTheme from "../../themes/v1SingleTheme";
 import { useContext } from "react";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import { RISK_COLOR_BY_TEXT } from "../../components/RiskLevel/constants";
 import { getMitigationStatusColor } from "../../constants/statusColors";
+import RiskChip from "../../components/RiskLevel/RiskChip";
 import IconButton from "../../components/IconButton";
 import { formatDate } from "../../tools/isoDateToString";
 import allowedRoles from "../../../application/constants/permissions";
@@ -94,7 +94,7 @@ const VWProjectRisksTableBody = ({
                   backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
                 }}
               >
-                {row.severity ? row.severity : "-"}
+                <RiskChip label={row.severity} type="severity" />
               </TableCell>
               <TableCell
                 sx={cellStyle}
@@ -132,26 +132,7 @@ const VWProjectRisksTableBody = ({
                   backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
                 }}
               >
-                {(() => {
-                  const riskLevel = row.risk_level_autocalculated;
-                  const riskColor = RISK_COLOR_BY_TEXT[riskLevel] || "transparent";
-                  
-                  return riskLevel ? (
-                    <Chip
-                      label={riskLevel}
-                      size="small"
-                      sx={{
-                        backgroundColor: riskColor,
-                        color: 'white',
-                        fontWeight: 500,
-                        borderRadius: theme.shape.borderRadius,
-                        height: 24,
-                      }}
-                    />
-                  ) : (
-                    "-"
-                  );
-                })()}
+                <RiskChip label={row.risk_level_autocalculated} type="risk-level" />
               </TableCell>
               <TableCell
                 sx={cellStyle}

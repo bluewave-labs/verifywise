@@ -57,11 +57,23 @@ export enum Severity {
   Catastrophic = 5,
 }
 
-export const RISK_COLOR_BY_TEXT: Record<string, string> = Object.values(RISK_LABELS).reduce(
-  (acc, { text, color }) => {
-    acc[text] = color;
-    return acc;
-  },
-  {} as Record<string, string>
-);
+export const SEVERITY_COLOR_LOOKUP: Record<string, string> = Object.entries(RISK_LABELS).reduce((acc, [key, val]) => {
+  acc[key.toLowerCase()] = val.color;
+  acc[val.text.toLowerCase()] = val.color;
+  return acc;
+}, {} as Record<string, string>);
+
+export const getSeverityColorByText = (severity: string): string => {
+  if (!severity) return '#B0B0B0';
+  const color = SEVERITY_COLOR_LOOKUP[severity.toLowerCase().trim()];
+  return color ?? '#B0B0B0';
+};
+
+// Reusable chip style object to avoid repetitive styling
+export const getRiskChipStyle = (theme: any) => ({
+  color: 'white',
+  fontWeight: 500,
+  borderRadius: theme.shape.borderRadius,
+  height: 24,
+});
 

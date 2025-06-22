@@ -248,11 +248,11 @@ const RiskTable: React.FC<RiskTableProps> = ({
                   }
                 </TableCell>
                 <TableCell sx={cellStyle}>
-                  <RiskChip label={row.risk_severity} type="severity" />
+                  <RiskChip label={row.risk_severity} />
                 </TableCell>
                 <TableCell sx={cellStyle}>{row.likelihood}</TableCell>
                 <TableCell sx={cellStyle}>
-                  <RiskChip label={row.risk_level} type="risk-level" />
+                  <RiskChip label={row.risk_level} />
                 </TableCell>
                 <TableCell
                   sx={{

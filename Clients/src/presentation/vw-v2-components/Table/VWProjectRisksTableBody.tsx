@@ -94,7 +94,7 @@ const VWProjectRisksTableBody = ({
                   backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
                 }}
               >
-                <RiskChip label={row.severity} type="severity" />
+                <RiskChip label={row.severity} />
               </TableCell>
               <TableCell
                 sx={cellStyle}
@@ -132,7 +132,7 @@ const VWProjectRisksTableBody = ({
                   backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
                 }}
               >
-                <RiskChip label={row.risk_level_autocalculated} type="risk-level" />
+                <RiskChip label={row.risk_level_autocalculated} />
               </TableCell>
               <TableCell
                 sx={cellStyle}

@@ -57,55 +57,20 @@ export enum Severity {
   Catastrophic = 5,
 }
 
-export const RISK_COLOR_BY_TEXT: Record<string, string> = Object.values(RISK_LABELS).reduce(
-  (acc, { text, color }) => {
-    acc[text] = color;
-    return acc;
-  },
-  {} as Record<string, string>
-);
+export const SEVERITY_COLOR_LOOKUP: Record<string, string> = Object.entries(RISK_LABELS).reduce((acc, [key, val]) => {
+  acc[key.toLowerCase()] = val.color;
+  acc[val.text.toLowerCase()] = val.color;
+  return acc;
+}, {} as Record<string, string>);
 
 export const getSeverityColorByText = (severity: string): string => {
   if (!severity) return '#B0B0B0';
-  
-  // Normalize the input to lowercase for case-insensitive comparison
-  const normalizedSeverity = severity.toLowerCase().trim();
-  
-  // Direct mapping using RISK_LABELS colors
-  switch (normalizedSeverity) {
-    // Severity values
-    case 'negligible':
-      return RISK_LABELS.negligible.color;
-    case 'minor':
-      return RISK_LABELS.minor.color;
-    case 'moderate':
-      return RISK_LABELS.moderate.color;
-    case 'major':
-      return RISK_LABELS.major.color;
-    case 'catastrophic':
-      return RISK_LABELS.catastrophic.color;
-    
-    // Risk level values
-    case 'very low risk':
-    case 'no risk':
-      return RISK_LABELS.noRisk.color;
-    case 'low risk':
-      return RISK_LABELS.low.color;
-    case 'medium risk':
-      return RISK_LABELS.medium.color;
-    case 'high risk':
-      return RISK_LABELS.high.color;
-    case 'very high risk':
-      return RISK_LABELS.critical.color;
-    
-    default:
-      return '#B0B0B0';
-  }
+  const color = SEVERITY_COLOR_LOOKUP[severity.toLowerCase().trim()];
+  return color ?? '#B0B0B0';
 };
 
 // Reusable chip style object to avoid repetitive styling
-export const getRiskChipStyle = (backgroundColor: string, theme: any) => ({
-  backgroundColor,
+export const getRiskChipStyle = (theme: any) => ({
   color: 'white',
   fontWeight: 500,
   borderRadius: theme.shape.borderRadius,

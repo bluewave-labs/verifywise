@@ -145,7 +145,7 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
                 </TableCell>
                 <TableCell sx={cellStyle}>{row.review_status}</TableCell>
                 <TableCell sx={cellStyle}>
-                  <RiskChip label={row.risk_status} type="severity" />
+                  <RiskChip label={row.risk_status} />
                 </TableCell>
                 <TableCell sx={cellStyle}>
                   {row.review_date

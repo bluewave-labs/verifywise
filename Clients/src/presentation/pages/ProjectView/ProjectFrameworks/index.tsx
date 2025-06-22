@@ -47,9 +47,11 @@ type ISO42001Tab = (typeof ISO_42001_TABS)[number]["value"];
 const ProjectFrameworks = ({
   project,
   triggerRefresh,
+  initialFrameworkId,
 }: {
   project: Project;
   triggerRefresh?: (isTrigger: boolean, toastMessage?: string) => void;
+  initialFrameworkId?: number;
 }) => {
   const {
     filteredFrameworks,
@@ -68,6 +70,7 @@ const ProjectFrameworks = ({
     "compliance"
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   const { changeComponentVisibility, userRoleName } =
     useContext(VerifyWiseContext);
@@ -102,9 +105,18 @@ const ProjectFrameworks = ({
   );
 
   useEffect(() => {
-    if (!loading && projectFrameworks.length > 0) {
+    if (!loading && projectFrameworks.length > 0 && !hasInitialized) {
       const validIds = projectFrameworks.map((fw: Framework) => Number(fw.id));
-      if (!selectedFrameworkId || !validIds.includes(selectedFrameworkId)) {
+      
+      // If initialFrameworkId is provided and valid, use it
+      if (initialFrameworkId && validIds.includes(initialFrameworkId)) {
+        setSelectedFrameworkId(initialFrameworkId);
+        setTracker(
+          initialFrameworkId === FRAMEWORK_IDS.ISO_42001 ? "clauses" : "compliance"
+        );
+      }
+      // Otherwise, use the default logic
+      else if (!selectedFrameworkId || !validIds.includes(selectedFrameworkId)) {
         const initialFramework = projectFrameworks[0];
         setSelectedFrameworkId(Number(initialFramework.id));
         setTracker(
@@ -113,8 +125,10 @@ const ProjectFrameworks = ({
             : "compliance"
         );
       }
+      
+      setHasInitialized(true);
     }
-  }, [loading, projectFrameworks, selectedFrameworkId]);
+  }, [loading, projectFrameworks, selectedFrameworkId, initialFrameworkId, hasInitialized]);
 
   const handleFrameworkChange = (frameworkId: number) => {
     setSelectedFrameworkId(frameworkId);

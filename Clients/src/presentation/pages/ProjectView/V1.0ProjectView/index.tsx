@@ -7,7 +7,8 @@ import {
 } from "./style";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
-import { SyntheticEvent, useContext, useState } from "react";
+import { SyntheticEvent, useContext, useState, useEffect } from "react";
+import React from "react";
 import TabContext from "@mui/lab/TabContext";
 import VWProjectOverview from "./Overview";
 import { useSearchParams } from "react-router-dom";
@@ -24,14 +25,24 @@ const VWProjectView = () => {
   const { userRoleName } = useContext(VerifyWiseContext);
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") ?? "1";
+  const tabParam = searchParams.get("tab");
+  const frameworkParam = searchParams.get("framework");
   const [refreshKey, setRefreshKey] = useState(0);
   const { project } = useProjectData({ projectId, refreshKey });
 
-  const [value, setValue] = useState("overview");
+  // Initialize tab value from URL parameter or default to "overview"
+  const [value, setValue] = useState(tabParam || "overview");
   const [toast, setToast] = useState<{ message: string; visible: boolean }>({
     message: "",
     visible: false,
   });
+
+  // Update tab value when URL parameter changes
+  useEffect(() => {
+    if (tabParam) {
+      setValue(tabParam);
+    }
+  }, [tabParam]);
 
   const handleChange = (_: SyntheticEvent, newValue: string) => {
     setValue(newValue);
@@ -136,6 +147,7 @@ const VWProjectView = () => {
               <ProjectFrameworks
                 project={project}
                 triggerRefresh={handleRefresh}
+                initialFrameworkId={frameworkParam ? parseInt(frameworkParam) : undefined}
               />
             ) : (
               <CustomizableSkeleton

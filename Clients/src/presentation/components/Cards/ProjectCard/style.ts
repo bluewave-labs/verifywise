@@ -55,6 +55,25 @@ export const euAiActChipStyle = {
   height: 28,
   borderRadius: 2,
   mb: 1,
+  textTransform: 'none',
+  minWidth: 'auto',
+  padding: '0 6px 0 10px',
+  boxShadow: 'none',
+  '&:hover': {
+    backgroundColor: '#014576',
+    boxShadow: 'none',
+  },
+  '&:active': {
+    backgroundColor: '#014576',
+    boxShadow: 'none',
+  },
+  '&:focus': {
+    backgroundColor: '#014576',
+    boxShadow: 'none',
+  },
+  '& .MuiButton-endIcon': {
+    marginLeft: '4px',
+  },
 };
 
 export const iso42001ChipStyle = {
@@ -65,4 +84,23 @@ export const iso42001ChipStyle = {
   height: 28,
   borderRadius: 2,
   mb: 1,
+  textTransform: 'none',
+  minWidth: 'auto',
+  padding: '0 6px 0 10px',
+  boxShadow: 'none',
+  '&:hover': {
+    backgroundColor: '#0ca5af',
+    boxShadow: 'none',
+  },
+  '&:active': {
+    backgroundColor: '#0ca5af',
+    boxShadow: 'none',
+  },
+  '&:focus': {
+    backgroundColor: '#0ca5af',
+    boxShadow: 'none',
+  },
+  '& .MuiButton-endIcon': {
+    marginLeft: '4px',
+  },
 };

@@ -1,4 +1,5 @@
-import { Stack, Typography, Tooltip, Chip } from "@mui/material";
+import { Stack, Typography, Tooltip, Button } from "@mui/material";
+import NorthEastIcon from "@mui/icons-material/NorthEast";
 import ProgressBar from "../../ProjectCard/ProgressBar";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import {
@@ -113,20 +114,40 @@ const useProjectProgress = (
   };
 };
 
-// Reusable FrameworkChip component
-const FrameworkChip = ({
+// Reusable FrameworkButton component
+const FrameworkButton = ({
   label,
   type,
+  onClick,
 }: {
   label: string;
   type: "eu" | "iso";
-}) => (
-  <Chip
-    label={label}
-    sx={type === "eu" ? euAiActChipStyle : iso42001ChipStyle}
-    size="small"
-  />
-);
+  onClick: () => void;
+}) => {
+  const tooltipText = type === "eu" 
+    ? "EU AI Act: View and complete requirements for EU's AI Act. Answer compliance questions and track your progress."
+    : "ISO 42001: Work through ISO/IEC 42001 requirements. Fill out clauses, annexes, and assessments to build your AI management system";
+
+  return (
+    <Tooltip title={tooltipText} arrow placement="top">
+      <Button
+        variant="contained"
+        onClick={onClick}
+        sx={{
+          ...(type === "eu" ? euAiActChipStyle : iso42001ChipStyle),
+          cursor: 'pointer',
+          '&:hover': {
+            opacity: 0.9,
+          },
+        }}
+        size="small"
+        endIcon={<NorthEastIcon />}
+      >
+        {label}
+      </Button>
+    </Tooltip>
+  );
+};
 
 /**
  * ProjectCard component displays project information in a card format
@@ -164,6 +185,15 @@ const ProjectCard: FC<ProjectCardProps> = React.memo(
       [users, project.owner]
     );
 
+    // Navigation handlers for framework buttons
+    const handleFrameworkClick = (frameworkId: number) => {
+      navigate("/project-view", {
+        projectId: project.id.toString(),
+        tab: "frameworks",
+        framework: frameworkId.toString(),
+      });
+    };
+
     if (isLoading) {
       return <ProjectCardSkeleton />;
     }
@@ -186,10 +216,18 @@ const ProjectCard: FC<ProjectCardProps> = React.memo(
             className="project-card-frameworks"
           >
             {projectFrameworkId && (
-              <FrameworkChip label="EU AI Act" type="eu" />
+              <FrameworkButton 
+                label="EU AI Act" 
+                type="eu" 
+                onClick={() => handleFrameworkClick(1)}
+              />
             )}
             {projectFrameworkId2 && (
-              <FrameworkChip label="ISO 42001" type="iso" />
+              <FrameworkButton 
+                label="ISO 42001" 
+                type="iso" 
+                onClick={() => handleFrameworkClick(2)}
+              />
             )}
           </Stack>
         </Stack>

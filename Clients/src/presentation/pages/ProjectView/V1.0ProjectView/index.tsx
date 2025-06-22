@@ -8,7 +8,6 @@ import {
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import { SyntheticEvent, useContext, useState, useEffect } from "react";
-import React from "react";
 import TabContext from "@mui/lab/TabContext";
 import VWProjectOverview from "./Overview";
 import { useSearchParams } from "react-router-dom";

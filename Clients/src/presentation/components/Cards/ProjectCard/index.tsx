@@ -1,4 +1,4 @@
-import { Stack, Typography, Tooltip, Chip, Button } from "@mui/material";
+import { Stack, Typography, Tooltip, Button } from "@mui/material";
 import NorthEastIcon from "@mui/icons-material/NorthEast";
 import ProgressBar from "../../ProjectCard/ProgressBar";
 import CustomizableButton from "../../../vw-v2-components/Buttons";

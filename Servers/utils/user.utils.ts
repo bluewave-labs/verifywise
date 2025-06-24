@@ -47,7 +47,6 @@ import {
  * @example
  * // Example usage:
  * getAllUsersQuery().then(users => {
- *   console.log(users);
  * }).catch(error => {
  *   console.error(error);
  * });
@@ -126,7 +125,6 @@ export const getUserByEmailQuery = async (
  * const userId = "12345";
  * getUserByIdQuery(userId)
  *   .then(user => {
- *     console.log(user);
  *   })
  *   .catch(error => {
  *     console.error(error);
@@ -158,7 +156,6 @@ export const getUserByIdQuery = async (id: number): Promise<UserModel> => {
  *   created_at: new Date(),
  *   last_login: new Date()
  * });
- * console.log(newUser);
  * ```
  *
  * @throws Will throw an error if the database query fails.
@@ -168,21 +165,17 @@ export const createNewUserQuery = async (
   transaction: Transaction,
   is_demo: boolean = false
 ): Promise<UserModel> => {
-  console.log("user ctrl createNewUserQuery 1");
   const { name, surname, email, password_hash, role_id } = user;
   const created_at = new Date();
   const last_login = new Date();
 
   if (role_id === 1) {
-    console.log("user ctrl createNewUserQuery 2");
     const organizations = await getAllOrganizationsQuery(transaction);
     if (organizations.length === 0) {
       await createOrganizationQuery({ name: "My Organization" }, transaction);
-      console.log("Created default organization");
     }
   }
 
-  console.log("user ctrl createNewUserQuery 3");
   try {
     const result = await sequelize.query(
       `INSERT INTO users (name, surname, email, password_hash, role_id, created_at, last_login, is_demo)
@@ -204,11 +197,9 @@ export const createNewUserQuery = async (
         transaction,
       }
     );
-    console.log("user ctrl createNewUserQuery 4");
 
     return result[0];
   } catch (error) {
-    console.log("user ctrl createNewUserQuery 5");
     console.error("Error creating new user:", error);
     throw error;
   }
@@ -260,7 +251,6 @@ export const resetPasswordQuery = async (
  *   role_id: 1,
  *   last_login: new Date()
  * });
- * console.log(updatedUser);
  */
 export const updateUserByIdQuery = async (
   id: number,
@@ -383,7 +373,6 @@ export const deleteUserByIdQuery = async (
  *
  * @example
  * const userExists = await checkUserExistsQuery();
- * console.log(userExists); // true or false
  *
  * @throws {Error} If there is an error executing the SQL query.
  */

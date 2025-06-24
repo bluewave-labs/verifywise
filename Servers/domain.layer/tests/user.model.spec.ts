@@ -10,6 +10,40 @@ jest.mock("bcrypt", () => ({
   compare: jest.fn().mockResolvedValue(true),
 }));
 
+// Mock Sequelize Model to avoid initialization issues
+jest.mock("sequelize-typescript", () => ({
+  Column: jest.fn(),
+  DataType: {
+    INTEGER: "INTEGER",
+    STRING: "STRING",
+    DATE: "DATE",
+    BOOLEAN: "BOOLEAN",
+  },
+  ForeignKey: jest.fn(),
+  Model: class MockModel {
+    constructor(data?: any) {
+      if (data) {
+        Object.assign(this, data);
+      }
+    }
+
+    get(options?: any) {
+      return this;
+    }
+  },
+  Table: jest.fn(),
+}));
+
+// Create a test-specific UserModel that extends the mock Model
+class TestUserModel extends UserModel {
+  constructor(data?: any) {
+    super();
+    if (data) {
+      Object.assign(this, data);
+    }
+  }
+}
+
 describe("UserModel", () => {
   // Test data
   const validUserData = {
@@ -36,7 +70,7 @@ describe("UserModel", () => {
   describe("createNewUser", () => {
     it("should create a new user with valid data", async () => {
       // Arrange & Act
-      const user = await UserModel.createNewUser(
+      const user = await TestUserModel.createNewUser(
         validUserData.name,
         validUserData.surname,
         validUserData.email,
@@ -59,7 +93,7 @@ describe("UserModel", () => {
     it("should throw ValidationException for invalid email", async () => {
       // Arrange & Act & Assert
       await expect(
-        UserModel.createNewUser(
+        TestUserModel.createNewUser(
           validUserData.name,
           validUserData.surname,
           "invalid-email",
@@ -72,7 +106,7 @@ describe("UserModel", () => {
     it("should throw ValidationException for invalid password", async () => {
       // Arrange & Act & Assert
       await expect(
-        UserModel.createNewUser(
+        TestUserModel.createNewUser(
           validUserData.name,
           validUserData.surname,
           validUserData.email,
@@ -85,7 +119,7 @@ describe("UserModel", () => {
     it("should throw ValidationException for invalid role_id", async () => {
       // Arrange & Act & Assert
       await expect(
-        UserModel.createNewUser(
+        TestUserModel.createNewUser(
           validUserData.name,
           validUserData.surname,
           validUserData.email,
@@ -99,7 +133,7 @@ describe("UserModel", () => {
   describe("validateUserData", () => {
     it("should pass validation with valid data", async () => {
       // Arrange
-      const user = new UserModel();
+      const user = new TestUserModel();
       user.name = validUserData.name;
       user.surname = validUserData.surname;
       user.email = validUserData.email;
@@ -111,7 +145,7 @@ describe("UserModel", () => {
 
     it("should throw ValidationException for empty name", async () => {
       // Arrange
-      const user = new UserModel();
+      const user = new TestUserModel();
       user.name = "";
       user.surname = validUserData.surname;
       user.email = validUserData.email;
@@ -125,7 +159,7 @@ describe("UserModel", () => {
 
     it("should throw ValidationException for empty surname", async () => {
       // Arrange
-      const user = new UserModel();
+      const user = new TestUserModel();
       user.name = validUserData.name;
       user.surname = "";
       user.email = validUserData.email;
@@ -141,7 +175,7 @@ describe("UserModel", () => {
   describe("comparePassword", () => {
     it("should return true for correct password", async () => {
       // Arrange
-      const user = new UserModel();
+      const user = new TestUserModel();
       user.password_hash = "hashed_password_123";
 
       // Act
@@ -155,11 +189,11 @@ describe("UserModel", () => {
   describe("updatePassword", () => {
     it("should update password with valid new password", async () => {
       // Arrange
-      const user = new UserModel();
+      const user = new TestUserModel();
       user.password_hash = "old_hash";
 
       // Act
-      await user.updatePassword("NewSecurePass123");
+      await user.updatePassword("NewSecurePass123!");
 
       // Assert
       expect(user.password_hash).toBe("hashed_password_123");
@@ -167,7 +201,7 @@ describe("UserModel", () => {
 
     it("should throw ValidationException for invalid new password", async () => {
       // Arrange
-      const user = new UserModel();
+      const user = new TestUserModel();
 
       // Act & Assert
       await expect(user.updatePassword("weak")).rejects.toThrow(
@@ -179,7 +213,7 @@ describe("UserModel", () => {
   describe("canPerformAdminAction", () => {
     it("should return true for admin user", () => {
       // Arrange
-      const user = new UserModel();
+      const user = new TestUserModel();
       user.id = 1;
       user.role_id = 1; // Admin role
       user.is_demo = false;
@@ -193,7 +227,7 @@ describe("UserModel", () => {
 
     it("should throw BusinessLogicException for demo user", () => {
       // Arrange
-      const user = new UserModel();
+      const user = new TestUserModel();
       user.id = 1;
       user.role_id = 1; // Admin role
       user.is_demo = true;
@@ -208,7 +242,7 @@ describe("UserModel", () => {
   describe("canModifyUser", () => {
     it("should return true when admin modifies any user", () => {
       // Arrange
-      const adminUser = new UserModel();
+      const adminUser = new TestUserModel();
       adminUser.id = 1;
       adminUser.role_id = 1; // Admin role
       adminUser.is_demo = false;
@@ -222,7 +256,7 @@ describe("UserModel", () => {
 
     it("should return true when user modifies themselves", () => {
       // Arrange
-      const regularUser = new UserModel();
+      const regularUser = new TestUserModel();
       regularUser.id = 5;
       regularUser.role_id = 2; // Regular user role
       regularUser.is_demo = false;
@@ -236,7 +270,7 @@ describe("UserModel", () => {
 
     it("should return false when regular user modifies another user", () => {
       // Arrange
-      const regularUser = new UserModel();
+      const regularUser = new TestUserModel();
       regularUser.id = 5;
       regularUser.role_id = 2; // Regular user role
       regularUser.is_demo = false;
@@ -250,7 +284,7 @@ describe("UserModel", () => {
 
     it("should throw BusinessLogicException for demo user", () => {
       // Arrange
-      const demoUser = new UserModel();
+      const demoUser = new TestUserModel();
       demoUser.id = 1;
       demoUser.is_demo = true;
 
@@ -262,7 +296,7 @@ describe("UserModel", () => {
   describe("isDemoUser", () => {
     it("should return true for demo user", () => {
       // Arrange
-      const user = new UserModel();
+      const user = new TestUserModel();
       user.is_demo = true;
 
       // Act
@@ -274,7 +308,7 @@ describe("UserModel", () => {
 
     it("should return false for non-demo user", () => {
       // Arrange
-      const user = new UserModel();
+      const user = new TestUserModel();
       user.is_demo = false;
 
       // Act
@@ -286,7 +320,7 @@ describe("UserModel", () => {
 
     it("should return false when is_demo is undefined", () => {
       // Arrange
-      const user = new UserModel();
+      const user = new TestUserModel();
       user.is_demo = undefined;
 
       // Act
@@ -300,7 +334,7 @@ describe("UserModel", () => {
   describe("isAdmin", () => {
     it("should return true for admin user", () => {
       // Arrange
-      const user = new UserModel();
+      const user = new TestUserModel();
       user.role_id = 1;
 
       // Act
@@ -312,7 +346,7 @@ describe("UserModel", () => {
 
     it("should return false for non-admin user", () => {
       // Arrange
-      const user = new UserModel();
+      const user = new TestUserModel();
       user.role_id = 2;
 
       // Act
@@ -326,7 +360,7 @@ describe("UserModel", () => {
   describe("updateLastLogin", () => {
     it("should update last_login to current date", () => {
       // Arrange
-      const user = new UserModel();
+      const user = new TestUserModel();
       const oldDate = new Date("2023-01-01");
       user.last_login = oldDate;
 
@@ -342,7 +376,7 @@ describe("UserModel", () => {
   describe("toSafeJSON", () => {
     it("should return user data without password_hash", () => {
       // Arrange
-      const user = new UserModel();
+      const user = new TestUserModel();
       user.id = 1;
       user.name = "John";
       user.surname = "Doe";
@@ -378,7 +412,7 @@ describe("UserModel", () => {
   describe("toJSON", () => {
     it("should return formatted user data", () => {
       // Arrange
-      const user = new UserModel();
+      const user = new TestUserModel();
       user.id = 1;
       user.name = "John";
       user.surname = "Doe";

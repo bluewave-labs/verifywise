@@ -15,15 +15,20 @@ export function passwordValidation(password: string): {
   isMinLength: boolean;
   isMaxLength: boolean;
 } {
-  const passwordRegex = /[!@#$%^&*(),.?":{}|<>]/;
   const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
   const minLength = 8;
   const maxLength = 20;
 
-  const isValid = passwordRegex.test(password);
-  const hasSpecialChar = specialCharRegex.test(password);
+  // Check for required criteria: lowercase, uppercase, digit, and minimum length
+  const hasLowercase = /[a-z]/.test(password);
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasDigit = /\d/.test(password);
   const isMinLength = password.length >= minLength;
   const isMaxLength = password.length <= maxLength;
+  const hasSpecialChar = specialCharRegex.test(password);
+
+  // Password is valid if it has lowercase, uppercase, digit, and meets minimum length
+  const isValid = hasLowercase && hasUppercase && hasDigit && isMinLength;
 
   return { isValid, hasSpecialChar, isMinLength, isMaxLength };
 }

@@ -11,7 +11,6 @@ import { createProjectRiskQuery } from "../utils/projectRisk.utils";
 import { createNewVendorQuery } from "../utils/vendor.utils";
 import { createNewVendorRiskQuery } from "../utils/vendorRisk.utils";
 import { createNewUserQuery } from "../utils/user.utils";
-import { IUser } from "../domain.layer/interfaces/user.type";
 import { UserModel } from "../domain.layer/models/user/user.model";
 
 import { createISOFrameworkQuery } from "../utils/iso42001.utils";

@@ -16,7 +16,7 @@
  * @module utils/user.utils
  */
 
-import { User, UserModel } from "../models/user.model";
+import { User, UserModel } from "../domain.layer/user/user.model";
 import { sequelize } from "../database/db";
 import { QueryTypes, Transaction } from "sequelize";
 import { ProjectModel } from "../models/project.model";
@@ -31,7 +31,10 @@ import { AssessmentModel } from "../models/assessment.model";
 import { TopicModel } from "../models/topic.model";
 import { SubtopicModel } from "../models/subtopic.model";
 import { QuestionModel } from "../models/question.model";
-import { createOrganizationQuery, getAllOrganizationsQuery } from "./organization.utils";
+import {
+  createOrganizationQuery,
+  getAllOrganizationsQuery,
+} from "./organization.utils";
 
 /**
  * Retrieves all users from the database.
@@ -74,7 +77,9 @@ export const getAllUsersQuery = async (): Promise<User[]> => {
  *
  * @throws {Error} If there is an error executing the SQL query.
  */
-export const getUserByEmailQuery = async (email: string): Promise<(User & { role_name: string | null }) | null> => {
+export const getUserByEmailQuery = async (
+  email: string
+): Promise<(User & { role_name: string | null }) | null> => {
   try {
     const [userObj] = await sequelize.query(
       `
@@ -129,14 +134,11 @@ export const getUserByEmailQuery = async (email: string): Promise<(User & { role
  * ```
  */
 export const getUserByIdQuery = async (id: number): Promise<User> => {
-  const user = await sequelize.query(
-    "SELECT * FROM users WHERE id = :id",
-    {
-      replacements: { id },
-      mapToModel: true,
-      model: UserModel,
-    }
-  );
+  const user = await sequelize.query("SELECT * FROM users WHERE id = :id", {
+    replacements: { id },
+    mapToModel: true,
+    model: UserModel,
+  });
   return user[0];
 };
 
@@ -184,12 +186,19 @@ export const createNewUserQuery = async (
         VALUES (:name, :surname, :email, :password_hash, :role_id, :created_at, :last_login, :is_demo) RETURNING *`,
       {
         replacements: {
-          name, surname, email, password_hash, role_id, created_at, last_login, is_demo
+          name,
+          surname,
+          email,
+          password_hash,
+          role_id,
+          created_at,
+          last_login,
+          is_demo,
         },
         mapToModel: true,
         model: UserModel,
         // type: QueryTypes.INSERT
-        transaction
+        transaction,
       }
     );
 
@@ -219,12 +228,12 @@ export const resetPasswordQuery = async (
     {
       replacements: {
         password_hash: newPassword,
-        email
+        email,
       },
       mapToModel: true,
       model: UserModel,
       // type: QueryTypes.UPDATE
-      transaction
+      transaction,
     }
   );
   return result[0];
@@ -254,18 +263,15 @@ export const updateUserByIdQuery = async (
   transaction: Transaction
 ): Promise<User> => {
   const updateUser: Partial<Record<keyof User, any>> = {};
-  const setClause = [
-    "name",
-    "surname",
-    "email",
-    "role_id",
-    "last_login",
-  ].filter(f => {
-    if (user[f as keyof User] !== undefined && user[f as keyof User]) {
-      updateUser[f as keyof User] = user[f as keyof User]
-      return true
-    }
-  }).map(f => `${f} = :${f}`).join(", ");
+  const setClause = ["name", "surname", "email", "role_id", "last_login"]
+    .filter((f) => {
+      if (user[f as keyof User] !== undefined && user[f as keyof User]) {
+        updateUser[f as keyof User] = user[f as keyof User];
+        return true;
+      }
+    })
+    .map((f) => `${f} = :${f}`)
+    .join(", ");
 
   const query = `UPDATE users SET ${setClause} WHERE id = :id RETURNING *;`;
 
@@ -293,28 +299,47 @@ export const updateUserByIdQuery = async (
  *
  * @throws {Error} If the query fails or the user does not exist.
  */
-export const deleteUserByIdQuery = async (id: number, transaction: Transaction): Promise<Boolean> => {
+export const deleteUserByIdQuery = async (
+  id: number,
+  transaction: Transaction
+): Promise<Boolean> => {
   const usersFK = [
-    { table: "projects", model: ProjectModel, fields: ["owner", "last_updated_by"] },
+    {
+      table: "projects",
+      model: ProjectModel,
+      fields: ["owner", "last_updated_by"],
+    },
     { table: "vendors", model: VendorModel, fields: ["assignee", "reviewer"] },
-    { table: "controls", model: ControlModel, fields: ["approver", "owner", "reviewer"] },
-    { table: "subcontrols", model: SubcontrolModel, fields: ["approver", "owner", "reviewer"] },
-    { table: "projectrisks", model: ProjectRiskModel, fields: ["risk_owner", "risk_approval"] },
+    {
+      table: "controls",
+      model: ControlModel,
+      fields: ["approver", "owner", "reviewer"],
+    },
+    {
+      table: "subcontrols",
+      model: SubcontrolModel,
+      fields: ["approver", "owner", "reviewer"],
+    },
+    {
+      table: "projectrisks",
+      model: ProjectRiskModel,
+      fields: ["risk_owner", "risk_approval"],
+    },
     { table: "vendorrisks", model: VendorRiskModel, fields: ["action_owner"] },
-    { table: "files", model: FileModel, fields: ["uploaded_by"] }
-  ]
+    { table: "files", model: FileModel, fields: ["uploaded_by"] },
+  ];
 
   for (let entry of usersFK) {
     await Promise.all(
-      entry.fields.map(async f => {
+      entry.fields.map(async (f) => {
         await sequelize.query(
           `UPDATE ${entry.table} SET ${f} = :x WHERE ${f} = :id`,
           {
             replacements: { x: null, id },
             // type: QueryTypes.UPDATE
-            transaction
+            transaction,
           }
-        )
+        );
       })
     );
   }
@@ -324,7 +349,7 @@ export const deleteUserByIdQuery = async (id: number, transaction: Transaction):
     {
       replacements: { user_id: id },
       type: QueryTypes.DELETE,
-      transaction
+      transaction,
     }
   );
   const result = await sequelize.query(
@@ -334,7 +359,7 @@ export const deleteUserByIdQuery = async (id: number, transaction: Transaction):
       mapToModel: true,
       model: UserModel,
       type: QueryTypes.DELETE,
-      transaction
+      transaction,
     }
   );
   return result.length > 0;
@@ -359,7 +384,7 @@ export const checkUserExistsQuery = async (): Promise<boolean> => {
     const result = await sequelize.query<{ count: number }>(
       "SELECT COUNT(*) FROM users",
       {
-        type: QueryTypes.SELECT
+        type: QueryTypes.SELECT,
       }
     );
     return result[0].count > 0;
@@ -375,7 +400,7 @@ export const getUserProjects = async (id: number) => {
     {
       replacements: { id },
       mapToModel: true,
-      model: ProjectModel
+      model: ProjectModel,
     }
   );
   return result;
@@ -387,7 +412,7 @@ export const getControlCategoriesForProject = async (id: number) => {
     {
       replacements: { project_id: id },
       mapToModel: true,
-      model: ControlCategoryModel
+      model: ControlCategoryModel,
     }
   );
   return result;
@@ -399,7 +424,7 @@ export const getControlForControlCategory = async (id: number) => {
     {
       replacements: { control_category_id: id },
       mapToModel: true,
-      model: ControlModel
+      model: ControlModel,
     }
   );
   return result;
@@ -411,7 +436,7 @@ export const getSubControlForControl = async (id: number) => {
     {
       replacements: { control_id: id },
       mapToModel: true,
-      model: SubcontrolModel
+      model: SubcontrolModel,
     }
   );
   return result;
@@ -423,7 +448,7 @@ export const getAssessmentsForProject = async (id: number) => {
     {
       replacements: { project_id: id },
       mapToModel: true,
-      model: AssessmentModel
+      model: AssessmentModel,
     }
   );
   return result;
@@ -435,7 +460,7 @@ export const getTopicsForAssessment = async (id: number) => {
     {
       replacements: { assessment_id: id },
       mapToModel: true,
-      model: TopicModel
+      model: TopicModel,
     }
   );
   return result;
@@ -447,7 +472,7 @@ export const getSubTopicsForTopic = async (id: number) => {
     {
       replacements: { topic_id: id },
       mapToModel: true,
-      model: SubtopicModel
+      model: SubtopicModel,
     }
   );
   return result;
@@ -459,7 +484,7 @@ export const getQuestionsForSubTopic = async (id: number) => {
     {
       replacements: { subtopic_id: id },
       mapToModel: true,
-      model: QuestionModel
+      model: QuestionModel,
     }
   );
   return result;

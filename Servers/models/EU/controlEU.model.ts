@@ -1,7 +1,14 @@
-import { Column, DataType, ForeignKey, Model, Table, Validate } from "sequelize-typescript";
+import {
+  Column,
+  DataType,
+  ForeignKey,
+  Model,
+  Table,
+  Validate,
+} from "sequelize-typescript";
 // import { SubcontrolEU } from "./subcontrolEU.model";
 import { ControlCategoryStructEUModel } from "./controlCategoryStructEU.model";
-import { UserModel } from "../user.model";
+import { UserModel } from "../../domain.layer/user/user.model";
 import { SubcontrolEU } from "./subControlEU.model";
 import { ProjectFrameworksModel } from "../projectFrameworks.model";
 import { StatusCompliance, STATUSES_COMPLIANCE } from "../../types/status.type";
@@ -30,7 +37,7 @@ export type ControlEU = {
 };
 
 @Table({
-  tableName: "controls_eu"
+  tableName: "controls_eu",
 })
 export class ControlEUModel extends Model<ControlEU> {
   @Column({
@@ -53,7 +60,11 @@ export class ControlEUModel extends Model<ControlEU> {
   approver?: number;
 
   @Column({
-    type: DataType.ENUM("Acceptable risk", "Residual risk", "Unacceptable risk"),
+    type: DataType.ENUM(
+      "Acceptable risk",
+      "Residual risk",
+      "Unacceptable risk"
+    ),
   })
   risk_review?: "Acceptable risk" | "Residual risk" | "Unacceptable risk";
 
@@ -94,12 +105,12 @@ export class ControlEUModel extends Model<ControlEU> {
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
-    defaultValue: false
+    defaultValue: false,
   })
   is_demo?: boolean;
 
   @Column({
-    type: DataType.DATE
+    type: DataType.DATE,
   })
   created_at?: Date;
 }

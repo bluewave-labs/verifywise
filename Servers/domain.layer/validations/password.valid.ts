@@ -15,8 +15,8 @@ export function passwordValidation(password: string): {
   isMinLength: boolean;
   isMaxLength: boolean;
 } {
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
-  const specialCharRegex = /[^a-zA-Z\d]/;
+  const passwordRegex = /[!@#$%^&*(),.?":{}|<>]/;
+  const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
   const minLength = 8;
   const maxLength = 20;
 

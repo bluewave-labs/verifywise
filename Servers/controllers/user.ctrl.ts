@@ -24,7 +24,7 @@ import {
   generateToken,
   getRefreshTokenPayload,
 } from "../utils/jwt.utils";
-import { UserModel } from "../domain.layer/user/user.model";
+import { UserModel } from "../domain.layer/models/user/user.model";
 import { sequelize } from "../database/db";
 
 async function getAllUsers(req: Request, res: Response): Promise<any> {

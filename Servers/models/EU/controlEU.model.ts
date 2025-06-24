@@ -8,7 +8,7 @@ import {
 } from "sequelize-typescript";
 // import { SubcontrolEU } from "./subcontrolEU.model";
 import { ControlCategoryStructEUModel } from "./controlCategoryStructEU.model";
-import { UserModel } from "../../domain.layer/user/user.model";
+import { UserModel } from "../../domain.layer/models/user/user.model";
 import { SubcontrolEU } from "./subControlEU.model";
 import { ProjectFrameworksModel } from "../projectFrameworks.model";
 import { StatusCompliance, STATUSES_COMPLIANCE } from "../../types/status.type";

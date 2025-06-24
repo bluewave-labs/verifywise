@@ -16,7 +16,7 @@
  * @module utils/user.utils
  */
 
-import { User, UserModel } from "../domain.layer/user/user.model";
+import { User, UserModel } from "../domain.layer/models/user/user.model";
 import { sequelize } from "../database/db";
 import { QueryTypes, Transaction } from "sequelize";
 import { ProjectModel } from "../models/project.model";

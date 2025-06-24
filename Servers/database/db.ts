@@ -13,7 +13,7 @@ import { QuestionModel } from "../models/question.model";
 import { SubcontrolModel } from "../models/subcontrol.model";
 import { SubtopicModel } from "../models/subtopic.model";
 import { TopicModel } from "../models/topic.model";
-import { UserModel } from "../domain.layer/user/user.model";
+import { UserModel } from "../domain.layer/models/user/user.model";
 import { VendorModel } from "../models/vendor.model";
 import { VendorRiskModel } from "../models/vendorRisk.model";
 import { VendorsProjectsModel } from "../models/vendorsProjects.model";

@@ -19,7 +19,7 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { RoleModel } from "../../models/role.model";
+import { RoleModel } from "../../../models/role.model";
 
 export type User = {
   id?: number;

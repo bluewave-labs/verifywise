@@ -6,7 +6,7 @@ import {
   Table,
 } from "sequelize-typescript";
 import { ControlModel } from "./control.model";
-import { UserModel } from "../domain.layer/user/user.model";
+import { UserModel } from "../domain.layer/models/user/user.model";
 
 /*
 

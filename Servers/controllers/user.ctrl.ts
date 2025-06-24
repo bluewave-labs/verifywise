@@ -83,35 +83,24 @@ async function getUserById(req: Request, res: Response) {
 }
 
 async function createNewUser(req: Request, res: Response) {
-  console.log("user ctrl createNewUser 1");
   const transaction = await sequelize.transaction();
-  console.log("user ctrl createNewUser 2");
   try {
     const { name, surname, email, password, roleId } = req.body;
-    console.log("user ctrl createNewUser 3");
     const existingUser = await getUserByEmailQuery(email);
-    console.log("user ctrl createNewUser 4");
     if (existingUser) {
-      console.log("user ctrl createNewUser 5");
       return res.status(409).json(STATUS_CODE[409](existingUser));
     }
-    console.log("user ctrl createNewUser 6");
     const user = (await createNewUserQuery(
       await UserModel.createNewUser(name, surname, email, password, roleId),
       transaction
     )) as UserModel;
-    console.log("user ctrl createNewUser 7");
     if (user) {
-      console.log("user ctrl createNewUser 8");
       await transaction.commit();
       const { password_hash: _, ...safeUser } = user.get({ plain: true });
-      console.log("user ctrl createNewUser 9");
       return res.status(201).json(STATUS_CODE[201](safeUser));
     }
-    console.log("user ctrl createNewUser 10");
     return res.status(400).json(STATUS_CODE[400](user));
   } catch (error) {
-    console.log("user ctrl createNewUser 11");
     await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -294,7 +283,6 @@ async function checkUserExists(
   res: Response
 ): Promise<Response> {
   try {
-    console.log("checkUserExists");
     const userExists = await checkUserExistsQuery();
     return res.status(200).json(userExists);
   } catch (error) {
@@ -382,7 +370,6 @@ async function calculateProgress(
       allDoneSubControls,
     });
   } catch (error) {
-    console.log(error);
     return res.status(500).json({ message: "Internal server error" });
   }
 }

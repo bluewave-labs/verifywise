@@ -76,13 +76,16 @@ export class UserModel extends Model<UserModel> {
     password: string,
     role_id: number
   ): Promise<UserModel> {
+    console.log("user ctrl createNewUser Model 1");
     // Validate email
     if (!emailValidation(email)) {
       throw new ValidationException("Invalid email format", "email", email);
     }
+    console.log("user ctrl createNewUser Model 2");
 
     // Validate password
     const passwordValidationResult = passwordValidation(password);
+    console.log("passwordValidationResult : ", passwordValidationResult);
     if (!passwordValidationResult.isValid) {
       throw new ValidationException(
         "Password must contain at least one lowercase letter, one uppercase letter, one digit, and be at least 8 characters long",
@@ -91,14 +94,17 @@ export class UserModel extends Model<UserModel> {
         { metadata: { validationDetails: passwordValidationResult } }
       );
     }
+    console.log("user ctrl createNewUser Model 3");
 
     // Validate role_id
     if (!numberValidation(role_id, 1)) {
       throw new ValidationException("Invalid role_id", "role_id", role_id);
     }
+    console.log("user ctrl createNewUser Model 4");
 
     // Hash the password
     const password_hash = await bcrypt.hash(password, 10);
+    console.log("user ctrl createNewUser Model 5");
 
     // Create and return the user model instance
     const user = new UserModel();
@@ -111,6 +117,7 @@ export class UserModel extends Model<UserModel> {
     user.last_login = new Date();
     user.is_demo = false;
 
+    console.log("user ctrl createNewUser Model 6");
     return user;
   }
 

@@ -29,7 +29,7 @@ export async function insertMockData(userId: number | null = null) {
           "John",
           "Doe",
           `john.doe.${Date.now()}@example.com`,
-          "hashed_password",
+          "MyJH4rTm!@.45L0wm",
           1
         ),
         transaction,
@@ -40,7 +40,7 @@ export async function insertMockData(userId: number | null = null) {
           "Alice",
           "Smith",
           `alice.smith.${Date.now()}@example.com`,
-          "hashed_password",
+          "MyJH4rTm!@.45L0wm",
           2
         ),
         transaction,

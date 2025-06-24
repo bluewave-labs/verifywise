@@ -41,10 +41,6 @@ const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
         const userExists = response ?? false;
 
         dispatch(setUserExists(userExists));
-
-        // console.log("No auth token found, redirecting to login");
-        // console.log("Current location:", location.pathname);
-        // console.log("Auth state:", authState);
       } catch (error) {
         console.error("Error checking if user exists:", error);
       } finally {
@@ -82,9 +78,6 @@ const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
     (!authState.authToken || authState.authToken.trim() === "") &&
     !isPublicRoute
   ) {
-    // console.log("No auth token found, redirecting to login");
-    // console.log("Current location:", location.pathname);
-    // console.log("Auth state:", authState);
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 

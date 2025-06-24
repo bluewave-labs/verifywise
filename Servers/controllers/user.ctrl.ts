@@ -93,18 +93,8 @@ async function createNewUser(req: Request, res: Response) {
       return res.status(409).json(STATUS_CODE[409](existingUser));
     }
 
-    const password_hash = await bcrypt.hash(password, 10);
-
     const user = (await createNewUserQuery(
-      {
-        name,
-        surname,
-        email,
-        password_hash,
-        role_id: roleId,
-        created_at,
-        last_login,
-      },
+      await UserModel.createNewUser(name, surname, email, password, roleId),
       transaction
     )) as UserModel;
 

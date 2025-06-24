@@ -19,6 +19,7 @@ import CustomizableToast from "../../../../vw-v2-components/Toast";
 import CustomizableSkeleton from "../../../../vw-v2-components/Skeletons";
 import allowedRoles from "../../../../../application/constants/permissions";
 import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
+import AddNewRiskMITModal from "../../../../components/AddNewRiskMITForm";
 
 const TITLE_OF_COLUMNS = [
   "RISK NAME", // value from risk tab
@@ -67,6 +68,8 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
   const [showCustomizableSkeleton, setShowCustomizableSkeleton] =
     useState<boolean>(false);
   const [currentRow, setCurrentRow] = useState<number | null>(null);
+  const [anchor, setAnchor] = useState<null | HTMLElement>(null);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
   const fetchProjectRisks = useCallback(async () => {
     try {
@@ -98,10 +101,13 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
    *
    */
 
-  const [anchor, setAnchor] = useState<null | HTMLElement>(null);
   const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
     setAnchor(anchor ? null : event.currentTarget);
     setSelectedRow([]);
+  };
+
+  const handleAIModalOpen = () => {
+    setIsAIModalOpen(true);
   };
 
   const handleLoading = (message: string) => {
@@ -237,7 +243,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
                 border: "1px solid #13715B",
                 gap: 2,
               }}
-              onClick={() => {}}
+              onClick={handleAIModalOpen}
               icon={<AddCircleOutlineIcon />}
               isDisabled={
                 !allowedRoles.projectRisks.create.includes(userRoleName)
@@ -315,6 +321,10 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
           />
         )}
       </Stack>
+      <AddNewRiskMITModal
+        isOpen={isAIModalOpen}
+        setIsOpen={setIsAIModalOpen}
+      />
     </Stack>
   );
 };

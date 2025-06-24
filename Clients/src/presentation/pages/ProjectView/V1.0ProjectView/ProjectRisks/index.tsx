@@ -221,32 +221,43 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
         }}
       >
         <Stack
-          sx={{
-            width: "100%",
-            maxWidth: 1400,
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-between",
-          }}
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
         >
           <Typography sx={{ fontSize: 16, fontWeight: 600, color: "#1A1919" }}>
             Project risks
           </Typography>
-
-          <CustomizableButton
-            variant="contained"
-            text="Add new risk"
-            sx={{
-              backgroundColor: "#13715B",
-              border: "1px solid #13715B",
-              gap: 2,
-            }}
-            onClick={handleOpenOrClose}
-            icon={<AddCircleOutlineIcon />}
-            isDisabled={
-              !allowedRoles.projectRisks.create.includes(userRoleName)
-            }
-          />
+          <Stack direction="row" gap={10}>
+            <CustomizableButton
+              variant="contained"
+              text="Insert from AI risks database"
+              sx={{
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
+                gap: 2,
+              }}
+              onClick={() => {}}
+              icon={<AddCircleOutlineIcon />}
+              isDisabled={
+                !allowedRoles.projectRisks.create.includes(userRoleName)
+              }
+            />
+            <CustomizableButton
+              variant="contained"
+              text="Add new risk"
+              sx={{
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
+                gap: 2,
+              }}
+              onClick={handleOpenOrClose}
+              icon={<AddCircleOutlineIcon />}
+              isDisabled={
+                !allowedRoles.projectRisks.create.includes(userRoleName)
+              }
+            />
+          </Stack>
         </Stack>
 
         {selectedRow.length > 0 && anchor ? (

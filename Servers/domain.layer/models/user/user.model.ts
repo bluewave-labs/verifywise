@@ -12,7 +12,6 @@ import { passwordValidation } from "../../validations/password.valid";
 import {
   ValidationException,
   BusinessLogicException,
-  ConflictException,
 } from "../../exceptions/custom.exception";
 import bcrypt from "bcrypt";
 

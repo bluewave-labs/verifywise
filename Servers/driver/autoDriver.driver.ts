@@ -11,40 +11,38 @@ import { createProjectRiskQuery } from "../utils/projectRisk.utils";
 import { createNewVendorQuery } from "../utils/vendor.utils";
 import { createNewVendorRiskQuery } from "../utils/vendorRisk.utils";
 import { createNewUserQuery } from "../utils/user.utils";
-import { User } from "../domain.layer/models/user/user.model";
-import { Vendor } from "../models/vendor.model";
+import { IUser } from "../domain.layer/interfaces/user.type";
+import { UserModel } from "../domain.layer/models/user/user.model";
 
 import { createISOFrameworkQuery } from "../utils/iso42001.utils";
 import { addVendorProjects } from "../utils/vendor.utils";
+import { Vendor } from "../models/vendor.model";
 
 export async function insertMockData(userId: number | null = null) {
   const transaction = await sequelize.transaction();
   try {
-    let users = (await getData("users", transaction)) as User[];
+    let users = (await getData("users", transaction)) as UserModel[];
+    console.log("insertMockData users ", users);
     if (users.length < 2) {
       let u1 = await createNewUserQuery(
-        {
-          name: "John",
-          surname: "Doe",
-          email: `john.doe.${Date.now()}@example.com`,
-          password_hash: "hashed_password",
-          role_id: 1,
-          created_at: new Date(Date.now()),
-          last_login: new Date(Date.now()),
-        },
+        await UserModel.createNewUser(
+          "John",
+          "Doe",
+          `john.doe.${Date.now()}@example.com`,
+          "hashed_password",
+          1
+        ),
         transaction,
         true // is demo
       );
       let u2 = await createNewUserQuery(
-        {
-          name: "Alice",
-          surname: "Smith",
-          email: `alice.smith.${Date.now()}@example.com`,
-          password_hash: "hashed_password",
-          role_id: 2,
-          created_at: new Date(Date.now()),
-          last_login: new Date(Date.now()),
-        },
+        await UserModel.createNewUser(
+          "Alice",
+          "Smith",
+          `alice.smith.${Date.now()}@example.com`,
+          "hashed_password",
+          2
+        ),
         transaction,
         true // is demo
       );

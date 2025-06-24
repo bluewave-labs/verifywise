@@ -16,7 +16,7 @@
  * @module utils/user.utils
  */
 
-import { User, UserModel } from "../domain.layer/models/user/user.model";
+import { UserModel } from "../domain.layer/models/user/user.model";
 import { sequelize } from "../database/db";
 import { QueryTypes, Transaction } from "sequelize";
 import { ProjectModel } from "../models/project.model";
@@ -54,7 +54,7 @@ import {
  *
  * @throws {Error} If there is an error executing the SQL query.
  */
-export const getAllUsersQuery = async (): Promise<User[]> => {
+export const getAllUsersQuery = async (): Promise<UserModel[]> => {
   const users = await sequelize.query(
     "SELECT * FROM users ORDER BY created_at DESC, id ASC",
     {
@@ -79,7 +79,7 @@ export const getAllUsersQuery = async (): Promise<User[]> => {
  */
 export const getUserByEmailQuery = async (
   email: string
-): Promise<(User & { role_name: string | null }) | null> => {
+): Promise<(UserModel & { role_name: string | null }) | null> => {
   try {
     const [userObj] = await sequelize.query(
       `
@@ -100,7 +100,7 @@ export const getUserByEmailQuery = async (
       return null;
     }
 
-    const user = userObj as User & { role_name: string | null };
+    const user = userObj as UserModel & { role_name: string | null };
 
     if (!user.role_name) {
       console.warn(`User ${email} has no assigned role`);
@@ -133,7 +133,7 @@ export const getUserByEmailQuery = async (
  *   });
  * ```
  */
-export const getUserByIdQuery = async (id: number): Promise<User> => {
+export const getUserByIdQuery = async (id: number): Promise<UserModel> => {
   const user = await sequelize.query("SELECT * FROM users WHERE id = :id", {
     replacements: { id },
     mapToModel: true,
@@ -164,10 +164,10 @@ export const getUserByIdQuery = async (id: number): Promise<User> => {
  * @throws Will throw an error if the database query fails.
  */
 export const createNewUserQuery = async (
-  user: Omit<User, "id">,
+  user: Omit<UserModel, "id">,
   transaction: Transaction,
   is_demo: boolean = false
-): Promise<User> => {
+): Promise<UserModel> => {
   const { name, surname, email, password_hash, role_id } = user;
   const created_at = new Date();
   const last_login = new Date();
@@ -222,7 +222,7 @@ export const resetPasswordQuery = async (
   email: string,
   newPassword: string,
   transaction: Transaction
-): Promise<User> => {
+): Promise<UserModel> => {
   const result = await sequelize.query(
     `UPDATE users SET password_hash = :password_hash WHERE email = :email RETURNING *`,
     {
@@ -259,14 +259,17 @@ export const resetPasswordQuery = async (
  */
 export const updateUserByIdQuery = async (
   id: number,
-  user: Partial<User>,
+  user: Partial<UserModel>,
   transaction: Transaction
-): Promise<User> => {
-  const updateUser: Partial<Record<keyof User, any>> = {};
+): Promise<UserModel> => {
+  const updateUser: Partial<Record<keyof UserModel, any>> = {};
   const setClause = ["name", "surname", "email", "role_id", "last_login"]
     .filter((f) => {
-      if (user[f as keyof User] !== undefined && user[f as keyof User]) {
-        updateUser[f as keyof User] = user[f as keyof User];
+      if (
+        user[f as keyof UserModel] !== undefined &&
+        user[f as keyof UserModel]
+      ) {
+        updateUser[f as keyof UserModel] = user[f as keyof UserModel];
         return true;
       }
     })

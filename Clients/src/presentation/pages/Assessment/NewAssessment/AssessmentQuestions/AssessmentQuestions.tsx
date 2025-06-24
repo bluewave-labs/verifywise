@@ -116,12 +116,6 @@ const AssessmentQuestions = ({
                   const cleanedContent =
                     " " + content.replace(/^<p>/, "").replace(/<\/p>$/, "");
 
-                  console.log("Question details:", {
-                    evidenceFileRequired: question.evidenceFileRequired,
-                    isRequired: question.isRequired,
-                    evidenceFiles: question.evidenceFiles,
-                  });
-
                   handleAssessmentChange({
                     activeTab,
                     subtopicId: subtopic.id,

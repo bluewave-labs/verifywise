@@ -26,7 +26,6 @@ interface ApiResponse<T> {
 const handleError = (error: any) => {
   try {
     if (axios.isAxiosError(error)) {
-      console.log("error : ", error);
       // Use backend message if available, otherwise fallback to generic
       const errorMessage = error.response?.data?.message || error.message;
 
@@ -55,7 +54,6 @@ const logRequest = (
   params?: any,
   data?: any
 ) => {
-  console.log("endpoint: ", endpoint);
   console.log(`[API Request] ${method.toUpperCase()} ${endpoint}`, {
     params,
     data,

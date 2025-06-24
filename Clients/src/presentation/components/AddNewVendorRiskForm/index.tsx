@@ -162,15 +162,12 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({
         // "description": values.riskDescription
       };
 
-      console.log(formData);
-
       if (popupStatus !== "new") {
         try {
           const response = await apiServices.put(
             "/vendorRisks/" + inputValues.id,
             formData
           );
-          console.log(response);
           if (response.status === 202) {
             onSuccess();
             closePopup();
@@ -189,10 +186,8 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({
           });
         }
       } else {
-        console.log(formData);
         try {
           const response = await apiServices.post("/vendorRisks", formData);
-          console.log(response);
           if (response.status === 201) {
             onSuccess();
             closePopup();

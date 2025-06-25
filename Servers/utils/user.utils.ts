@@ -30,7 +30,7 @@ import { ControlCategoryModel } from "../domain.layer/models/controlCategory/con
 import { AssessmentModel } from "../domain.layer/models/assessment/assessment.model";
 import { TopicModel } from "../models/topic.model";
 import { SubtopicModel } from "../models/subtopic.model";
-import { QuestionModel } from "../models/question.model";
+import { QuestionModel } from "../domain.layer/models/question/question.model";
 import {
   createOrganizationQuery,
   getAllOrganizationsQuery,

@@ -26,20 +26,19 @@ import {
 } from "../utils/jwt.utils";
 import { UserModel } from "../domain.layer/models/user/user.model";
 import { sequelize } from "../database/db";
+import {
+  ValidationException,
+  BusinessLogicException,
+} from "../domain.layer/exceptions/custom.exception";
 
 async function getAllUsers(req: Request, res: Response): Promise<any> {
   try {
     const users = (await getAllUsersQuery()) as UserModel[];
 
-    if (users) {
-      return res.status(200).json(
-        STATUS_CODE[200](
-          users.map((user) => {
-            const { password_hash, ...safeUser } = user.get({ plain: true });
-            return safeUser;
-          })
-        )
-      );
+    if (users && users.length > 0) {
+      return res
+        .status(200)
+        .json(STATUS_CODE[200](users.map((user) => user.toSafeJSON())));
     }
 
     return res.status(204).json(STATUS_CODE[204](users));
@@ -56,8 +55,7 @@ async function getUserByEmail(req: Request, res: Response) {
     };
 
     if (user) {
-      const { password_hash, ...safeUser } = user.get({ plain: true });
-      return res.status(200).json(STATUS_CODE[200](safeUser));
+      return res.status(200).json(STATUS_CODE[200](user.toSafeJSON()));
     }
 
     return res.status(404).json(STATUS_CODE[404](user));
@@ -72,8 +70,7 @@ async function getUserById(req: Request, res: Response) {
     const user = (await getUserByIdQuery(id)) as UserModel;
 
     if (user) {
-      const { password_hash, ...safeUser } = user.get({ plain: true });
-      return res.status(200).json(STATUS_CODE[200](safeUser));
+      return res.status(200).json(STATUS_CODE[200](user.toSafeJSON()));
     }
 
     return res.status(404).json(STATUS_CODE[404](user));
@@ -86,22 +83,58 @@ async function createNewUser(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
   try {
     const { name, surname, email, password, roleId } = req.body;
+
+    // Check if user already exists
     const existingUser = await getUserByEmailQuery(email);
     if (existingUser) {
-      return res.status(409).json(STATUS_CODE[409](existingUser));
+      await transaction.rollback();
+      return res
+        .status(409)
+        .json(STATUS_CODE[409]("User with this email already exists"));
     }
+
+    // Create user using the enhanced UserModel method
+    const userModel = await UserModel.createNewUser(
+      name,
+      surname,
+      email,
+      password,
+      roleId
+    );
+
+    // Validate user data before saving
+    await userModel.validateUserData();
+
+    // Check email uniqueness
+    const isEmailUnique = await UserModel.validateEmailUniqueness(email);
+    if (!isEmailUnique) {
+      await transaction.rollback();
+      return res.status(409).json(STATUS_CODE[409]("Email already exists"));
+    }
+
     const user = (await createNewUserQuery(
-      await UserModel.createNewUser(name, surname, email, password, roleId),
+      userModel,
       transaction
     )) as UserModel;
+
     if (user) {
       await transaction.commit();
-      const { password_hash: _, ...safeUser } = user.get({ plain: true });
-      return res.status(201).json(STATUS_CODE[201](safeUser));
+      return res.status(201).json(STATUS_CODE[201](user.toSafeJSON()));
     }
-    return res.status(400).json(STATUS_CODE[400](user));
+
+    await transaction.rollback();
+    return res.status(400).json(STATUS_CODE[400]("Failed to create user"));
   } catch (error) {
     await transaction.rollback();
+
+    if (error instanceof ValidationException) {
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof BusinessLogicException) {
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -109,25 +142,49 @@ async function createNewUser(req: Request, res: Response) {
 async function loginUser(req: Request, res: Response): Promise<any> {
   try {
     const { email, password } = req.body;
-    const user = await getUserByEmailQuery(email);
 
-    if (user) {
-      const passwordIsMatched = await bcrypt.compare(
-        password,
-        user.password_hash
-      );
+    const userData = await getUserByEmailQuery(email);
+
+    if (userData) {
+      // Ensure we have a proper UserModel instance
+      let user: UserModel;
+      if (userData instanceof UserModel) {
+        user = userData;
+      } else {
+        // Create a new UserModel instance from the data
+        user = new UserModel();
+        Object.assign(user, userData);
+      }
+
+      // Try password comparison with fallback
+      let passwordIsMatched = false;
+      try {
+        // First try the UserModel method
+        passwordIsMatched = await user.comparePassword(password);
+      } catch (modelError) {
+        // Fallback to direct bcrypt comparison
+        passwordIsMatched = await bcrypt.compare(
+          password,
+          userData.password_hash
+        );
+      }
 
       if (passwordIsMatched) {
+        // Update last login timestamp
+        user.updateLastLogin();
+
         const token = generateToken({
-          id: user!.id,
+          id: user.id,
           email: email,
-          roleName: user.role_name,
+          roleName: (userData as any).role_name,
         });
+
         const refreshToken = generateRefreshToken({
-          id: user!.id,
+          id: user.id,
           email: email,
-          roleName: user.role_name,
+          roleName: (userData as any).role_name,
         });
+
         res.cookie("refresh_token", refreshToken, {
           httpOnly: true,
           path: "/api/users",
@@ -135,6 +192,7 @@ async function loginUser(req: Request, res: Response): Promise<any> {
           secure: process.env.NODE_ENV === "production",
           sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         });
+
         return res.status(202).json(
           STATUS_CODE[202]({
             token,
@@ -198,22 +256,32 @@ async function resetPassword(req: Request, res: Response) {
     };
 
     if (user) {
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
-      user.dataValues.password_hash = hashedPassword;
+      // Use the enhanced UserModel method for password update
+      await user.updatePassword(newPassword);
+
       const updatedUser = (await resetPasswordQuery(
         email,
-        hashedPassword,
+        user.password_hash,
         transaction
       )) as UserModel;
-      const { password_hash, ...safeUser } = updatedUser.get({ plain: true });
-      await transaction.commit();
 
-      return res.status(202).json(STATUS_CODE[202](safeUser));
+      await transaction.commit();
+      return res.status(202).json(STATUS_CODE[202](updatedUser.toSafeJSON()));
     }
 
-    return res.status(404).json(STATUS_CODE[404](user));
+    await transaction.rollback();
+    return res.status(404).json(STATUS_CODE[404]("User not found"));
   } catch (error) {
     await transaction.rollback();
+
+    if (error instanceof ValidationException) {
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof BusinessLogicException) {
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -227,26 +295,45 @@ async function updateUserById(req: Request, res: Response) {
     const user = await getUserByIdQuery(id);
 
     if (user) {
+      // Use the enhanced UserModel method for profile updates
+      await user.updateCurrentUser({
+        name,
+        surname,
+        email,
+      });
+
+      // Validate user data before saving
+      await user.validateUserData();
+
       const updatedUser = (await updateUserByIdQuery(
         id,
         {
-          name: name ?? user.name,
-          surname: surname ?? user.surname,
-          email: email ?? user.email,
+          name: user.name,
+          surname: user.surname,
+          email: user.email,
           role_id: roleId ?? user.role_id,
           last_login: last_login ?? user.last_login,
         },
         transaction
       )) as UserModel;
-      const { password_hash, ...safeUser } = updatedUser.get({ plain: true });
-      await transaction.commit();
 
-      return res.status(202).json(STATUS_CODE[202](safeUser));
+      await transaction.commit();
+      return res.status(202).json(STATUS_CODE[202](updatedUser.toSafeJSON()));
     }
 
-    return res.status(404).json(STATUS_CODE[404]({}));
+    await transaction.rollback();
+    return res.status(404).json(STATUS_CODE[404]("User not found"));
   } catch (error) {
     await transaction.rollback();
+
+    if (error instanceof ValidationException) {
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof BusinessLogicException) {
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -258,13 +345,22 @@ async function deleteUserById(req: Request, res: Response) {
     const user = await getUserByIdQuery(id);
 
     if (user) {
+      // Check if user can be deleted (demo users, etc.)
+      if (user.isDemoUser()) {
+        await transaction.rollback();
+        return res
+          .status(403)
+          .json(STATUS_CODE[403]("Demo users cannot be deleted"));
+      }
+
       const deletedUser = await deleteUserByIdQuery(id, transaction);
       await transaction.commit();
 
       return res.status(202).json(STATUS_CODE[202](deletedUser));
     }
 
-    return res.status(404).json(STATUS_CODE[404]({}));
+    await transaction.rollback();
+    return res.status(404).json(STATUS_CODE[404]("User not found"));
   } catch (error) {
     await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -383,45 +479,88 @@ async function ChangePassword(req: Request, res: Response) {
     const user = await getUserByIdQuery(id);
 
     if (!user) {
+      await transaction.rollback();
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Check if the current password is correct
-    const passwordIsMatched = await bcrypt.compare(
-      currentPassword,
-      user.password_hash
-    );
-    if (!passwordIsMatched) {
-      return res.status(401).json({ message: "Incorrect current password" });
-    }
+    // Use the enhanced UserModel method for password update with current password verification
+    await user.updatePassword(newPassword, currentPassword);
 
-    // Check if the new password is not the same as the current password
-    const newPasswordIsMatched = await bcrypt.compare(
-      newPassword,
-      user.password_hash
-    );
-    if (newPasswordIsMatched) {
-      return res.status(400).json({
-        message: "New password cannot be the same as the current password",
-      });
-    }
-
-    // Hash the new password and update the user's password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    user.password_hash = hashedPassword;
+    // Update the user in the database
     const updatedUser = (await resetPasswordQuery(
       user.email,
-      hashedPassword,
+      user.password_hash,
       transaction
     )) as UserModel;
-    const { password_hash, ...safeUser } = updatedUser.get({ plain: true });
-    await transaction.commit();
 
-    return res
-      .status(202)
-      .json({ message: "Password updated", data: safeUser });
+    await transaction.commit();
+    return res.status(202).json({
+      message: "Password updated successfully",
+      data: updatedUser.toSafeJSON(),
+    });
   } catch (error) {
     await transaction.rollback();
+
+    if (error instanceof ValidationException) {
+      return res.status(400).json({ message: error.message });
+    }
+
+    if (error instanceof BusinessLogicException) {
+      return res.status(403).json({ message: error.message });
+    }
+
+    return res.status(500).json({ message: (error as Error).message });
+  }
+}
+
+// New function to update user role
+async function updateUserRole(req: Request, res: Response) {
+  const transaction = await sequelize.transaction();
+  try {
+    const { id } = req.params;
+    const { newRoleId } = req.body;
+    const currentUserId = (req as any).user?.id; // From JWT token
+
+    // Fetch the target user
+    const targetUser = await getUserByIdQuery(parseInt(id));
+    if (!targetUser) {
+      await transaction.rollback();
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Fetch the current user (admin performing the action)
+    const currentUser = await getUserByIdQuery(currentUserId);
+    if (!currentUser) {
+      await transaction.rollback();
+      return res.status(404).json({ message: "Current user not found" });
+    }
+
+    // Use the enhanced UserModel method for role update
+    await targetUser.updateRole(newRoleId, currentUser);
+
+    // Update the user in the database
+    const updatedUser = (await updateUserByIdQuery(
+      parseInt(id),
+      { role_id: targetUser.role_id },
+      transaction
+    )) as UserModel;
+
+    await transaction.commit();
+    return res.status(202).json({
+      message: "User role updated successfully",
+      data: updatedUser.toSafeJSON(),
+    });
+  } catch (error) {
+    await transaction.rollback();
+
+    if (error instanceof ValidationException) {
+      return res.status(400).json({ message: error.message });
+    }
+
+    if (error instanceof BusinessLogicException) {
+      return res.status(403).json({ message: error.message });
+    }
+
     return res.status(500).json({ message: (error as Error).message });
   }
 }
@@ -439,4 +578,5 @@ export {
   calculateProgress,
   ChangePassword,
   refreshAccessToken,
+  updateUserRole,
 };

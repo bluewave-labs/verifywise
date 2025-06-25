@@ -16,7 +16,7 @@ import {
   getSubControlsByIdQuery,
   getComplianceEUByProjectIdQuery,
 } from "./eu.utils";
-import { TopicStructEUModel } from "../models/EU/topicStructEU.model";
+import { TopicStructEUModel } from "../domain.layer/frameworks/EU-AI-Act/topicStructEU.model";
 import { AnnexStructISOModel } from "../models/ISO-42001/annexStructISO.model";
 import { ClauseStructISOModel } from "../models/ISO-42001/clauseStructISO.model";
 

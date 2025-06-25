@@ -1,4 +1,11 @@
-import { Column, DataType, ForeignKey, Model, Table, Validate } from "sequelize-typescript";
+import {
+  Column,
+  DataType,
+  ForeignKey,
+  Model,
+  Table,
+  Validate,
+} from "sequelize-typescript";
 import { ControlCategoryStructEUModel } from "./controlCategoryStructEU.model";
 
 /*
@@ -17,7 +24,7 @@ export type ControlStructEU = {
 };
 
 @Table({
-  tableName: "controls"
+  tableName: "controls",
 })
 export class ControlStructEUModel extends Model<ControlStructEU> {
   @Column({
@@ -56,8 +63,7 @@ export class ControlStructEUModel extends Model<ControlStructEU> {
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
-    defaultValue: false
+    defaultValue: false,
   })
   is_demo?: boolean;
-
 }

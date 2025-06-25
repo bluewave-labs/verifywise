@@ -1,4 +1,10 @@
-import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
+import {
+  Column,
+  DataType,
+  ForeignKey,
+  Model,
+  Table,
+} from "sequelize-typescript";
 import { SubtopicStructEUModel } from "./subTopicStructEU.model";
 
 /*
@@ -21,7 +27,7 @@ export type QuestionStructEU = {
 };
 
 @Table({
-  tableName: "questions"
+  tableName: "questions",
 })
 export class QuestionStructEUModel extends Model<QuestionStructEU> {
   @Column({
@@ -32,56 +38,55 @@ export class QuestionStructEUModel extends Model<QuestionStructEU> {
   id?: number;
 
   @Column({
-    type: DataType.INTEGER
+    type: DataType.INTEGER,
   })
   order_no?: number;
 
   @Column({
-    type: DataType.STRING
+    type: DataType.STRING,
   })
   question!: string;
 
   @Column({
-    type: DataType.STRING
+    type: DataType.STRING,
   })
   hint!: string;
 
   @Column({
-    type: DataType.ENUM("high priority", "medium priority", "low priority")
+    type: DataType.ENUM("high priority", "medium priority", "low priority"),
   })
   priority_level!: "high priority" | "medium priority" | "low priority";
 
   @Column({
-    type: DataType.STRING
+    type: DataType.STRING,
   })
   answer_type!: string;
 
   @Column({
-    type: DataType.STRING
+    type: DataType.STRING,
   })
   input_type!: string;
 
   @Column({
-    type: DataType.BOOLEAN
+    type: DataType.BOOLEAN,
   })
   evidence_required!: boolean;
 
   @Column({
-    type: DataType.BOOLEAN
+    type: DataType.BOOLEAN,
   })
   is_required!: boolean;
 
   @ForeignKey(() => SubtopicStructEUModel)
   @Column({
-    type: DataType.NUMBER
+    type: DataType.NUMBER,
   })
   subtopic_id!: number;
 
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
-    defaultValue: false
+    defaultValue: false,
   })
   is_demo?: boolean;
-
 }

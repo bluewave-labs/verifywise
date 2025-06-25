@@ -1,20 +1,26 @@
 import { QueryTypes, Transaction } from "sequelize";
 import { sequelize } from "../database/db";
-import { AnswerEU, AnswerEUModel } from "../models/EU/answerEU.model";
+import {
+  AnswerEU,
+  AnswerEUModel,
+} from "../domain.layer/frameworks/EU-AI-Act/answerEU.model";
 import {
   AssessmentEU,
   AssessmentEUModel,
-} from "../models/EU/assessmentEU.model";
-import { ControlCategoryStructEUModel } from "../models/EU/controlCategoryStructEU.model";
-import { ControlEU, ControlEUModel } from "../models/EU/controlEU.model";
-import { ControlStructEUModel } from "../models/EU/controlStructEU.model";
-import { QuestionStructEUModel } from "../models/EU/questionStructEU.model";
+} from "../domain.layer/frameworks/EU-AI-Act/assessmentEU.model";
+import { ControlCategoryStructEUModel } from "../domain.layer/frameworks/EU-AI-Act/controlCategoryStructEU.model";
+import {
+  ControlEU,
+  ControlEUModel,
+} from "../domain.layer/frameworks/EU-AI-Act/controlEU.model";
+import { ControlStructEUModel } from "../domain.layer/frameworks/EU-AI-Act/controlStructEU.model";
+import { QuestionStructEUModel } from "../domain.layer/frameworks/EU-AI-Act/questionStructEU.model";
 import {
   SubcontrolEU,
   SubcontrolEUModel,
-} from "../models/EU/subControlEU.model";
-import { SubtopicStructEUModel } from "../models/EU/subTopicStructEU.model";
-import { TopicStructEUModel } from "../models/EU/topicStructEU.model";
+} from "../domain.layer/frameworks/EU-AI-Act/subControlEU.model";
+import { SubtopicStructEUModel } from "../domain.layer/frameworks/EU-AI-Act/subTopicStructEU.model";
+import { TopicStructEUModel } from "../domain.layer/frameworks/EU-AI-Act/topicStructEU.model";
 import { ProjectScopeModel } from "../domain.layer/models/projectScope/projectScope.model";
 import { Topics } from "../structures/EU-AI-Act/assessment-tracker/topics.struct";
 import { ControlCategories } from "../structures/EU-AI-Act/compliance-tracker/controlCategories.struct";

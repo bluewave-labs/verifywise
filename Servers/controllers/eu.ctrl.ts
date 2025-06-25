@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { ControlEU } from "../models/EU/controlEU.model";
+import { ControlEU } from "../domain.layer/frameworks/EU-AI-Act/controlEU.model";
 import { FileType } from "../domain.layer/models/file/file.model";
 import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
 import {
@@ -8,7 +8,7 @@ import {
 } from "../utils/project.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import { QuestionStructEU } from "../models/EU/questionStructEU.model";
+import { QuestionStructEU } from "../domain.layer/frameworks/EU-AI-Act/questionStructEU.model";
 import {
   countAnswersEUByProjectId,
   countSubControlsEUByProjectId,
@@ -26,7 +26,7 @@ import {
   updateQuestionEUByIdQuery,
   updateSubcontrolEUByIdQuery,
 } from "../utils/eu.utils";
-import { AnswerEU } from "../models/EU/answerEU.model";
+import { AnswerEU } from "../domain.layer/frameworks/EU-AI-Act/answerEU.model";
 import { sequelize } from "../database/db";
 import {
   Project,

@@ -5,8 +5,8 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { ProjectModel } from "../../domain.layer/models/project/project.model";
-import { ProjectFrameworksModel } from "../../domain.layer/models/projectFrameworks/projectFrameworks.model";
+import { ProjectModel } from "../../models/project/project.model";
+import { ProjectFrameworksModel } from "../../models/projectFrameworks/projectFrameworks.model";
 
 /*
 

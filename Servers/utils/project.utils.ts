@@ -3,7 +3,7 @@ import {
   ProjectModel,
 } from "../domain.layer/models/project/project.model";
 import { sequelize } from "../database/db";
-import { ProjectsMembersModel } from "../models/projectsMembers.model";
+import { ProjectsMembersModel } from "../domain.layer/models/projectsMembers/projectsMembers.model";
 import { QueryTypes, Transaction } from "sequelize";
 import { VendorsProjectsModel } from "../models/vendorsProjects.model";
 import { VendorModel } from "../models/vendor.model";

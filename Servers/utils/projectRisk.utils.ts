@@ -1,4 +1,7 @@
-import { ProjectRisk, ProjectRiskModel } from "../models/projectRisk.model";
+import {
+  ProjectRisk,
+  ProjectRiskModel,
+} from "../domain.layer/models/projectRisks/projectRisk.model";
 import { sequelize } from "../database/db";
 import { QueryTypes, Transaction } from "sequelize";
 import { updateProjectUpdatedByIdQuery } from "./project.utils";
@@ -11,7 +14,7 @@ export const getAllProjectRisksQuery = async (
     {
       replacements: { project_id: projectId },
       mapToModel: true,
-      model: ProjectRiskModel
+      model: ProjectRiskModel,
     }
   );
   return projectRisks;
@@ -20,11 +23,12 @@ export const getAllProjectRisksQuery = async (
 export const getProjectRiskByIdQuery = async (
   id: number
 ): Promise<ProjectRisk | null> => {
-  const result = await sequelize.query("SELECT * FROM projectrisks WHERE id = :id",
+  const result = await sequelize.query(
+    "SELECT * FROM projectrisks WHERE id = :id",
     {
       replacements: { id },
       mapToModel: true,
-      model: ProjectRiskModel
+      model: ProjectRiskModel,
     }
   );
   return result[0];
@@ -38,13 +42,16 @@ export const getNonMitigatedProjectRisksQuery = async (
     {
       replacements: { project_id: projectId },
       mapToModel: true,
-      model: ProjectRiskModel
+      model: ProjectRiskModel,
     }
   );
   return projectRisks;
-}
+};
 
-export const createProjectRiskQuery = async (projectRisk: Partial<ProjectRisk>, transaction: Transaction): Promise<ProjectRisk> => {
+export const createProjectRiskQuery = async (
+  projectRisk: Partial<ProjectRisk>,
+  transaction: Transaction
+): Promise<ProjectRisk> => {
   const result = await sequelize.query(
     `INSERT INTO projectrisks (
       project_id, risk_name, risk_owner, ai_lifecycle_phase, risk_description,
@@ -92,10 +99,14 @@ export const createProjectRiskQuery = async (projectRisk: Partial<ProjectRisk>, 
       mapToModel: true,
       model: ProjectRiskModel,
       // type: QueryTypes.INSERT
-      transaction
+      transaction,
     }
   );
-  await updateProjectUpdatedByIdQuery(result[0].id!, "projectrisks", transaction);
+  await updateProjectUpdatedByIdQuery(
+    result[0].id!,
+    "projectrisks",
+    transaction
+  );
   return result[0];
 };
 
@@ -131,12 +142,19 @@ export const updateProjectRiskByIdQuery = async (
     "risk_approval",
     "approval_status",
     "date_of_assessment",
-  ].filter(f => {
-    if (projectRisk[f as keyof ProjectRisk] !== undefined && projectRisk[f as keyof ProjectRisk]) {
-      updateProjectRisk[f as keyof ProjectRisk] = projectRisk[f as keyof ProjectRisk]
-      return true
-    }
-  }).map(f => `${f} = :${f}`).join(", ");
+  ]
+    .filter((f) => {
+      if (
+        projectRisk[f as keyof ProjectRisk] !== undefined &&
+        projectRisk[f as keyof ProjectRisk]
+      ) {
+        updateProjectRisk[f as keyof ProjectRisk] =
+          projectRisk[f as keyof ProjectRisk];
+        return true;
+      }
+    })
+    .map((f) => `${f} = :${f}`)
+    .join(", ");
 
   const query = `UPDATE projectrisks SET ${setClause} WHERE id = :id RETURNING *;`;
 
@@ -147,7 +165,7 @@ export const updateProjectRiskByIdQuery = async (
     mapToModel: true,
     model: ProjectRiskModel,
     // type: QueryTypes.UPDATE,
-    transaction
+    transaction,
   });
   await updateProjectUpdatedByIdQuery(id, "projectrisks", transaction);
   return result[0];
@@ -165,7 +183,7 @@ export const deleteProjectRiskByIdQuery = async (
       mapToModel: true,
       model: ProjectRiskModel,
       type: QueryTypes.DELETE,
-      transaction
+      transaction,
     }
   );
   return result.length > 0;

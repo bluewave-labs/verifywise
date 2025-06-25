@@ -1,17 +1,34 @@
 import { Request, Response } from "express";
 import { sequelize } from "../database/db";
-import { SubClauseISO } from "../models/ISO-42001/subClauseISO.model";
+import { SubClauseISO } from "../domain.layer/frameworks/ISO-42001/subClauseISO.model";
 import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import { countAnnexCategoriesISOByProjectId, countSubClausesISOByProjectId, deleteAnnexCategoriesISOByProjectIdQuery, deleteSubClausesISOByProjectIdQuery, getAllAnnexesQuery, getAllAnnexesWithCategoriesQuery, getAllClausesQuery, getAllClausesWithSubClauseQuery, getAnnexCategoriesByAnnexIdQuery, getAnnexCategoryByIdForProjectQuery, getAnnexesByProjectIdQuery, getClausesByProjectIdQuery, getSubClauseByIdForProjectQuery, getSubClausesByClauseIdQuery, updateAnnexCategoryQuery, updateSubClauseQuery } from "../utils/iso42001.utils";
-import { FileType } from "../models/file.model";
-import { AnnexCategoryISO } from "../models/ISO-42001/annexCategoryISO.model";
+import {
+  countAnnexCategoriesISOByProjectId,
+  countSubClausesISOByProjectId,
+  deleteAnnexCategoriesISOByProjectIdQuery,
+  deleteSubClausesISOByProjectIdQuery,
+  getAllAnnexesQuery,
+  getAllAnnexesWithCategoriesQuery,
+  getAllClausesQuery,
+  getAllClausesWithSubClauseQuery,
+  getAnnexCategoriesByAnnexIdQuery,
+  getAnnexCategoryByIdForProjectQuery,
+  getAnnexesByProjectIdQuery,
+  getClausesByProjectIdQuery,
+  getSubClauseByIdForProjectQuery,
+  getSubClausesByClauseIdQuery,
+  updateAnnexCategoryQuery,
+  updateSubClauseQuery,
+} from "../utils/iso42001.utils";
+import { FileType } from "../domain.layer/models/file/file.model";
+import { AnnexCategoryISO } from "../domain.layer/frameworks/ISO-42001/annexCategoryISO.model";
 import {
   getAllProjectsQuery,
   updateProjectUpdatedByIdQuery,
 } from "../utils/project.utils";
-import { Project } from "../models/project.model";
+import { Project } from "../domain.layer/models/project/project.model";
 
 export async function getAllClauses(req: Request, res: Response): Promise<any> {
   try {
@@ -35,7 +52,10 @@ export async function getAllClausesStructForProject(
   }
 }
 
-export async function getAllAnnexesStructForProject(req: Request, res: Response): Promise<any> {
+export async function getAllAnnexesStructForProject(
+  req: Request,
+  res: Response
+): Promise<any> {
   const projectFrameworkId = parseInt(req.params.id);
   try {
     const annexes = await getAllAnnexesWithCategoriesQuery(projectFrameworkId);
@@ -392,9 +412,9 @@ export async function getAllProjectsClausesProgress(
   let allSubclauses = 0;
   let allDoneSubclauses = 0;
   try {
-    const { userId, role } = req; 
+    const { userId, role } = req;
     if (!userId || !role) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(401).json({ message: "Unauthorized" });
     }
     const projects = await getAllProjectsQuery({ userId, role });
     if (projects && projects.length > 0) {
@@ -432,9 +452,9 @@ export async function getAllProjectsAnnxesProgress(
   let allAnnexcategories = 0;
   let allDoneAnnexcategories = 0;
   try {
-    const { userId, role } = req; 
+    const { userId, role } = req;
     if (!userId || !role) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(401).json({ message: "Unauthorized" });
     }
     const projects = await getAllProjectsQuery({ userId, role });
     if (projects && projects.length > 0) {

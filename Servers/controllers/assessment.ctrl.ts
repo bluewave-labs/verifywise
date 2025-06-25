@@ -27,9 +27,12 @@ import {
   updateQuestionByIdQuery,
   UploadedFile,
 } from "../utils/question.utils";
-import { Assessment, AssessmentModel } from "../models/assessment.model";
-import { TopicModel } from "../models/topic.model";
-import { SubtopicModel } from "../models/subtopic.model";
+import {
+  Assessment,
+  AssessmentModel,
+} from "../domain.layer/models/assessment/assessment.model";
+import { TopicModel } from "../domain.layer/models/topic/topic.model";
+import { SubtopicModel } from "../domain.layer/models/subtopic/subtopic.model";
 import { sequelize } from "../database/db";
 
 export async function getAllAssessments(

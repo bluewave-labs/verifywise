@@ -19,18 +19,18 @@
 import { UserModel } from "../domain.layer/models/user/user.model";
 import { sequelize } from "../database/db";
 import { QueryTypes, Transaction } from "sequelize";
-import { ProjectModel } from "../models/project.model";
-import { VendorModel } from "../models/vendor.model";
-import { ControlModel } from "../models/control.model";
-import { SubcontrolModel } from "../models/subcontrol.model";
-import { ProjectRiskModel } from "../models/projectRisk.model";
-import { VendorRiskModel } from "../models/vendorRisk.model";
-import { FileModel } from "../models/file.model";
-import { ControlCategoryModel } from "../models/controlCategory.model";
-import { AssessmentModel } from "../models/assessment.model";
-import { TopicModel } from "../models/topic.model";
-import { SubtopicModel } from "../models/subtopic.model";
-import { QuestionModel } from "../models/question.model";
+import { ProjectModel } from "../domain.layer/models/project/project.model";
+import { VendorModel } from "../domain.layer/models/vendor/vendor.model";
+import { ControlModel } from "../domain.layer/models/control/control.model";
+import { SubcontrolModel } from "../domain.layer/models/subcontrol/subcontrol.model";
+import { ProjectRiskModel } from "../domain.layer/models/projectRisks/projectRisk.model";
+import { VendorRiskModel } from "../domain.layer/models/vendorRisk/vendorRisk.model";
+import { FileModel } from "../domain.layer/models/file/file.model";
+import { ControlCategoryModel } from "../domain.layer/models/controlCategory/controlCategory.model";
+import { AssessmentModel } from "../domain.layer/models/assessment/assessment.model";
+import { TopicModel } from "../domain.layer/models/topic/topic.model";
+import { SubtopicModel } from "../domain.layer/models/subtopic/subtopic.model";
+import { QuestionModel } from "../domain.layer/models/question/question.model";
 import {
   createOrganizationQuery,
   getAllOrganizationsQuery,

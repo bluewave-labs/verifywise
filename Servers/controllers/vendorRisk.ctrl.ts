@@ -9,7 +9,7 @@ import {
   getVendorRisksByProjectIdQuery,
   updateVendorRiskByIdQuery,
 } from "../utils/vendorRisk.utils";
-import { VendorRisk } from "../models/vendorRisk.model";
+import { VendorRisk } from "../domain.layer/models/vendorRisk/vendorRisk.model";
 
 export async function getAllVendorRisksAllProjects(
   req: Request,

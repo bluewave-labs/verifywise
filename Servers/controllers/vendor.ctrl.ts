@@ -9,7 +9,7 @@ import {
   getVendorByProjectIdQuery,
   updateVendorByIdQuery,
 } from "../utils/vendor.utils";
-import { Vendor } from "../models/vendor.model";
+import { Vendor } from "../domain.layer/models/vendor/vendor.model";
 import { sequelize } from "../database/db";
 
 export async function getAllVendors(req: Request, res: Response): Promise<any> {
@@ -42,7 +42,10 @@ export async function getVendorById(req: Request, res: Response): Promise<any> {
   }
 }
 
-export async function getVendorByProjectId(req: Request, res: Response): Promise<any> {
+export async function getVendorByProjectId(
+  req: Request,
+  res: Response
+): Promise<any> {
   try {
     const vendorId = parseInt(req.params.id);
 
@@ -92,8 +95,8 @@ export async function updateVendorById(
   const transaction = await sequelize.transaction();
   try {
     const { userId, role } = req;
-     if (!userId || !role) {
-      return res.status(401).json({ message: 'Unauthorized' });
+    if (!userId || !role) {
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
     const vendorId = parseInt(req.params.id);
@@ -107,7 +110,13 @@ export async function updateVendorById(
       );
     }
 
-    const vendor = await updateVendorByIdQuery({ id: vendorId, vendor: updatedVendor, userId, role, transaction });
+    const vendor = await updateVendorByIdQuery({
+      id: vendorId,
+      vendor: updatedVendor,
+      userId,
+      role,
+      transaction,
+    });
 
     if (vendor) {
       await transaction.commit();

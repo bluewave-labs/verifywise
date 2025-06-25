@@ -1,7 +1,7 @@
 import {
   TrainingRegistar,
   TrainingRegistarModel,
-} from "../models/trainingRegistar.model";
+} from "../domain.layer/models/trainingRegistar/trainingRegistar.model";
 import { sequelize } from "../database/db";
 import { QueryTypes, Sequelize, Transaction } from "sequelize";
 
@@ -27,7 +27,7 @@ export const createNewTrainingRegistarQuery = async (
         department: trainingRegistar.department,
         status: trainingRegistar.status,
         people: trainingRegistar.numberOfPeople,
-        description: trainingRegistar.description
+        description: trainingRegistar.description,
       },
       mapToModel: true,
       model: TrainingRegistarModel,
@@ -35,7 +35,7 @@ export const createNewTrainingRegistarQuery = async (
     }
   );
   // Return the created TrainingRegistar instance
-  return Array.isArray(result)
+  return Array.isArray(result);
 };
 
 /**
@@ -97,7 +97,7 @@ export const updateTrainingRegistarByIdQuery = async (
     "department",
     "status",
     "numberOfPeople",
-    "description"
+    "description",
   ]
     .filter((f) => {
       if (

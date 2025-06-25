@@ -1,4 +1,4 @@
-import { Project } from "../models/project.model";
+import { Project } from "../domain.layer/models/project/project.model";
 
 import { getData, deleteDemoVendorsData } from "../utils/autoDriver.utils";
 import { createEUFrameworkQuery } from "../utils/eu.utils";
@@ -15,7 +15,7 @@ import { UserModel } from "../domain.layer/models/user/user.model";
 
 import { createISOFrameworkQuery } from "../utils/iso42001.utils";
 import { addVendorProjects } from "../utils/vendor.utils";
-import { Vendor } from "../models/vendor.model";
+import { Vendor } from "../domain.layer/models/vendor/vendor.model";
 
 export async function insertMockData(userId: number | null = null) {
   const transaction = await sequelize.transaction();

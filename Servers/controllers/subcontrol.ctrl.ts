@@ -9,7 +9,7 @@ import {
   updateSubcontrolByIdQuery,
 } from "../utils/subControl.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
-import { Subcontrol } from "../models/subcontrol.model";
+import { Subcontrol } from "../domain.layer/models/subcontrol/subcontrol.model";
 import { sequelize } from "../database/db";
 
 export async function getAllSubcontrols(
@@ -54,11 +54,12 @@ export async function createNewSubcontrol(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   try {
-    const subcontrol: Subcontrol & { user_id: number, project_id: number } = req.body;
+    const subcontrol: Subcontrol & { user_id: number; project_id: number } =
+      req.body;
 
     const controlIdFK = subcontrol.control_id;
-    const project_id = subcontrol.project_id
-    const user_id = subcontrol.user_id
+    const project_id = subcontrol.project_id;
+    const user_id = subcontrol.user_id;
     const newSubcontrol = await createNewSubcontrolQuery(
       controlIdFK,
       subcontrol,
@@ -74,7 +75,7 @@ export async function createNewSubcontrol(
         req.files as {
           [key: string]: UploadedFile[];
         }
-      ).feedbackFiles,
+      ).feedbackFiles
     );
 
     if (newSubcontrol) {
@@ -96,7 +97,10 @@ export async function updateSubcontrolById(
   const transaction = await sequelize.transaction();
   try {
     const subcontrolId = parseInt(req.params.id);
-    const subcontrol: Partial<Subcontrol> & { user_id: number, project_id: number } = req.body;
+    const subcontrol: Partial<Subcontrol> & {
+      user_id: number;
+      project_id: number;
+    } = req.body;
 
     const updatedSubcontrol = await updateSubcontrolByIdQuery(
       subcontrolId,
@@ -124,7 +128,10 @@ export async function deleteSubcontrolById(
   try {
     const subcontrolId = parseInt(req.params.id);
 
-    const deletedSubcontrol = await deleteSubcontrolByIdQuery(subcontrolId, transaction);
+    const deletedSubcontrol = await deleteSubcontrolByIdQuery(
+      subcontrolId,
+      transaction
+    );
 
     if (deletedSubcontrol) {
       await transaction.commit();

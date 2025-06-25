@@ -14,9 +14,12 @@ import {
   updateSubcontrolByIdQuery,
 } from "../utils/subControl.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
-import { Control, ControlModel } from "../models/control.model";
+import {
+  Control,
+  ControlModel,
+} from "../domain.layer/models/control/control.model";
 import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
-import { FileType } from "../models/file.model";
+import { FileType } from "../domain.layer/models/file/file.model";
 import { updateProjectUpdatedByIdQuery } from "../utils/project.utils";
 import { sequelize } from "../database/db";
 
@@ -84,7 +87,11 @@ export async function updateControlById(
     const controlId = parseInt(req.params.id);
     const updatedControl: Control = req.body;
 
-    const control = await updateControlByIdQuery(controlId, updatedControl, transaction);
+    const control = await updateControlByIdQuery(
+      controlId,
+      updatedControl,
+      transaction
+    );
 
     if (control) {
       await transaction.commit();
@@ -135,19 +142,23 @@ export async function saveControls(
     };
 
     // now we need to create the control for the control category, and use the control category id as the foreign key
-    const control: any = await updateControlByIdQuery(controlId, {
-      title: Control.title,
-      description: Control.description,
-      order_no: Control.order_no,
-      status: Control.status,
-      approver: Control.approver,
-      risk_review: Control.risk_review,
-      owner: Control.owner,
-      reviewer: Control.reviewer,
-      due_date: Control.due_date,
-      implementation_details: Control.implementation_details,
-      control_category_id: Control.control_category_id,
-    }, transaction);
+    const control: any = await updateControlByIdQuery(
+      controlId,
+      {
+        title: Control.title,
+        description: Control.description,
+        order_no: Control.order_no,
+        status: Control.status,
+        approver: Control.approver,
+        risk_review: Control.risk_review,
+        owner: Control.owner,
+        reviewer: Control.reviewer,
+        due_date: Control.due_date,
+        implementation_details: Control.implementation_details,
+        control_category_id: Control.control_category_id,
+      },
+      transaction
+    );
 
     const filesToDelete = JSON.parse(Control.delete || "[]") as number[];
     for (let f of filesToDelete) {
@@ -233,7 +244,7 @@ export async function saveControls(
           transaction,
           evidenceUploadedFiles,
           feedbackUploadedFiles,
-          filesToDelete,
+          filesToDelete
         );
         subControlResp.push(subcontrolToSave);
       }

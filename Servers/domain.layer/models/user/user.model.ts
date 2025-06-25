@@ -5,7 +5,7 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { RoleModel } from "../../../models/role.model";
+import { RoleModel } from "../role/role.model";
 import { emailValidation } from "../../validations/email.valid";
 import { numberValidation } from "../../validations/number.valid";
 import { passwordValidation } from "../../validations/password.valid";

@@ -1,15 +1,37 @@
 import { Request, Response } from "express";
-import { ControlEU } from "../models/EU/controlEU.model";
-import { FileType } from "../models/file.model";
+import { ControlEU } from "../domain.layer/frameworks/EU-AI-Act/controlEU.model";
+import { FileType } from "../domain.layer/models/file/file.model";
 import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
-import { getAllProjectsQuery, updateProjectUpdatedByIdQuery } from "../utils/project.utils";
+import {
+  getAllProjectsQuery,
+  updateProjectUpdatedByIdQuery,
+} from "../utils/project.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import { QuestionStructEU } from "../models/EU/questionStructEU.model";
-import { countAnswersEUByProjectId, countSubControlsEUByProjectId, deleteAssessmentEUByProjectIdQuery, deleteComplianeEUByProjectIdQuery, getAllControlCategoriesQuery, getAllTopicsQuery, getAssessmentsEUByProjectIdQuery, getComplianceEUByProjectIdQuery, getControlByIdForProjectQuery, getControlStructByControlCategoryIdForAProjectQuery, getControlStructByControlCategoryIdQuery, getTopicByIdForProjectQuery, updateControlEUByIdQuery, updateQuestionEUByIdQuery, updateSubcontrolEUByIdQuery } from "../utils/eu.utils";
-import { AnswerEU } from "../models/EU/answerEU.model";
+import { QuestionStructEU } from "../domain.layer/frameworks/EU-AI-Act/questionStructEU.model";
+import {
+  countAnswersEUByProjectId,
+  countSubControlsEUByProjectId,
+  deleteAssessmentEUByProjectIdQuery,
+  deleteComplianeEUByProjectIdQuery,
+  getAllControlCategoriesQuery,
+  getAllTopicsQuery,
+  getAssessmentsEUByProjectIdQuery,
+  getComplianceEUByProjectIdQuery,
+  getControlByIdForProjectQuery,
+  getControlStructByControlCategoryIdForAProjectQuery,
+  getControlStructByControlCategoryIdQuery,
+  getTopicByIdForProjectQuery,
+  updateControlEUByIdQuery,
+  updateQuestionEUByIdQuery,
+  updateSubcontrolEUByIdQuery,
+} from "../utils/eu.utils";
+import { AnswerEU } from "../domain.layer/frameworks/EU-AI-Act/answerEU.model";
 import { sequelize } from "../database/db";
-import { Project, ProjectModel } from "../models/project.model";
+import {
+  Project,
+  ProjectModel,
+} from "../domain.layer/models/project/project.model";
 
 export async function getAssessmentsByProjectId(
   req: Request,
@@ -17,11 +39,12 @@ export async function getAssessmentsByProjectId(
 ): Promise<any> {
   try {
     const projectFrameworkId = parseInt(req.params.id);
-    const assessments = await getAssessmentsEUByProjectIdQuery(projectFrameworkId);
+    const assessments = await getAssessmentsEUByProjectIdQuery(
+      projectFrameworkId
+    );
     // send calculated progress
     return res.status(200).json(STATUS_CODE[200](assessments));
-  }
-  catch (error) {
+  } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -32,29 +55,30 @@ export async function getCompliancesByProjectId(
 ): Promise<any> {
   try {
     const projectFrameworkId = parseInt(req.params.id);
-    const complainces = await getComplianceEUByProjectIdQuery(projectFrameworkId);
+    const complainces = await getComplianceEUByProjectIdQuery(
+      projectFrameworkId
+    );
     // send calculated progress
     return res.status(200).json(STATUS_CODE[200](complainces));
-  }
-  catch (error) {
+  } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
-export async function getTopicById(
-  req: Request,
-  res: Response
-): Promise<any> {
+export async function getTopicById(req: Request, res: Response): Promise<any> {
   try {
     const topicId = parseInt(req.query.topicId as string);
     const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
     if (isNaN(topicId) || isNaN(projectFrameworkId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid query parameters"));
-    };
-    const topic = await getTopicByIdForProjectQuery(topicId, projectFrameworkId);
+    }
+    const topic = await getTopicByIdForProjectQuery(
+      topicId,
+      projectFrameworkId
+    );
     if (topic) {
       return res.status(200).json(STATUS_CODE[200](topic));
-    };
+    }
     return res.status(404).json(STATUS_CODE[404](topic));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -70,11 +94,14 @@ export async function getControlById(
     const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
     if (isNaN(controlId) || isNaN(projectFrameworkId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid query parameters"));
-    };
-    const topic = await getControlByIdForProjectQuery(controlId, projectFrameworkId);
+    }
+    const topic = await getControlByIdForProjectQuery(
+      controlId,
+      projectFrameworkId
+    );
     if (topic) {
       return res.status(200).json(STATUS_CODE[200](topic));
-    };
+    }
     return res.status(404).json(STATUS_CODE[404](topic));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -96,15 +123,19 @@ export async function saveControls(
     };
 
     // now we need to create the control for the control category, and use the control category id as the foreign key
-    const control: any = await updateControlEUByIdQuery(controlId, {
-      status: Control.status,
-      approver: Control.approver,
-      risk_review: Control.risk_review,
-      owner: Control.owner,
-      reviewer: Control.reviewer,
-      due_date: Control.due_date,
-      implementation_details: Control.implementation_details
-    }, transaction);
+    const control: any = await updateControlEUByIdQuery(
+      controlId,
+      {
+        status: Control.status,
+        approver: Control.approver,
+        risk_review: Control.risk_review,
+        owner: Control.owner,
+        reviewer: Control.reviewer,
+        due_date: Control.due_date,
+        implementation_details: Control.implementation_details,
+      },
+      transaction
+    );
 
     const filesToDelete = JSON.parse(Control.delete || "[]") as number[];
     for (let f of filesToDelete) {
@@ -189,8 +220,8 @@ export async function saveControls(
           transaction
         );
         if (subcontrolToSave) {
-          subControlResp.push(subcontrolToSave)
-        };
+          subControlResp.push(subcontrolToSave);
+        }
       }
     }
     const response = {
@@ -245,7 +276,10 @@ export async function deleteAssessmentsByProjectId(
   const transaction = await sequelize.transaction();
   try {
     const projectFrameworkId = parseInt(req.params.id);
-    const result = await deleteAssessmentEUByProjectIdQuery(projectFrameworkId, transaction);
+    const result = await deleteAssessmentEUByProjectIdQuery(
+      projectFrameworkId,
+      transaction
+    );
 
     if (result) {
       await transaction.commit();
@@ -266,7 +300,10 @@ export async function deleteCompliancesByProjectId(
   const transaction = await sequelize.transaction();
   try {
     const projectFrameworkId = parseInt(req.params.id);
-    const result = await deleteComplianeEUByProjectIdQuery(projectFrameworkId, transaction);
+    const result = await deleteComplianeEUByProjectIdQuery(
+      projectFrameworkId,
+      transaction
+    );
 
     if (result) {
       await transaction.commit();
@@ -280,7 +317,10 @@ export async function deleteCompliancesByProjectId(
   }
 }
 
-export async function getProjectAssessmentProgress(req: Request, res: Response) {
+export async function getProjectAssessmentProgress(
+  req: Request,
+  res: Response
+) {
   const projectFrameworkId = parseInt(req.params.id);
   try {
     // const project = await getProjectByIdQuery(projectId);
@@ -289,7 +329,8 @@ export async function getProjectAssessmentProgress(req: Request, res: Response) 
     // } else {
     //   return res.status(404).json(STATUS_CODE[404](project));
     // }
-    const { totalAssessments, answeredAssessments } = await countAnswersEUByProjectId(projectFrameworkId);
+    const { totalAssessments, answeredAssessments } =
+      await countAnswersEUByProjectId(projectFrameworkId);
     return res.status(200).json(
       STATUS_CODE[200]({
         totalQuestions: parseInt(totalAssessments),
@@ -301,7 +342,10 @@ export async function getProjectAssessmentProgress(req: Request, res: Response) 
   }
 }
 
-export async function getProjectComplianceProgress(req: Request, res: Response) {
+export async function getProjectComplianceProgress(
+  req: Request,
+  res: Response
+) {
   const projectFrameworkId = parseInt(req.params.id);
   try {
     // const project = await getProjectByIdQuery(projectId);
@@ -310,7 +354,8 @@ export async function getProjectComplianceProgress(req: Request, res: Response) 
     // } else {
     //   return res.status(404).json(STATUS_CODE[404](project));
     // }
-    const { totalSubcontrols, doneSubcontrols } = await countSubControlsEUByProjectId(projectFrameworkId);
+    const { totalSubcontrols, doneSubcontrols } =
+      await countSubControlsEUByProjectId(projectFrameworkId);
     return res.status(200).json(
       STATUS_CODE[200]({
         allsubControls: parseInt(totalSubcontrols),
@@ -329,20 +374,25 @@ export async function getAllProjectsAssessmentProgress(
   let totalNumberOfQuestions = 0;
   let totalNumberOfAnsweredQuestions = 0;
   try {
-    const { userId, role } = req; 
+    const { userId, role } = req;
     if (!userId || !role) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(401).json({ message: "Unauthorized" });
     }
-    const projects = await getAllProjectsQuery({ userId, role});
+    const projects = await getAllProjectsQuery({ userId, role });
     if (projects && projects.length > 0) {
       await Promise.all(
         projects.map(async (project) => {
           // calculating assessments
-          const projectFrameworkId = (project as unknown as { dataValues: Project }).dataValues.framework?.filter((f) => f.framework_id === 1).map((f) => f.project_framework_id)[0];
+          const projectFrameworkId = (
+            project as unknown as { dataValues: Project }
+          ).dataValues.framework
+            ?.filter((f) => f.framework_id === 1)
+            .map((f) => f.project_framework_id)[0];
           if (!projectFrameworkId) {
             return;
           }
-          const { totalAssessments, answeredAssessments } = await countAnswersEUByProjectId(projectFrameworkId);
+          const { totalAssessments, answeredAssessments } =
+            await countAnswersEUByProjectId(projectFrameworkId);
           totalNumberOfQuestions += parseInt(totalAssessments);
           totalNumberOfAnsweredQuestions += parseInt(answeredAssessments);
         })
@@ -361,28 +411,32 @@ export async function getAllProjectsAssessmentProgress(
   }
 }
 
-
 export async function getAllProjectsComplianceProgress(
   req: Request,
   res: Response
 ) {
   let totalNumberOfSubcontrols = 0;
   let totalNumberOfDoneSubcontrols = 0;
-  try {    
-    const { userId, role } = req; 
+  try {
+    const { userId, role } = req;
     if (!userId || !role) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(401).json({ message: "Unauthorized" });
     }
-    const projects = await getAllProjectsQuery({ userId, role});
+    const projects = await getAllProjectsQuery({ userId, role });
     if (projects && projects.length > 0) {
       await Promise.all(
         projects.map(async (project) => {
           // [0] assuming that the project has only one EU framework (if it has))
-          const projectFrameworkId = (project as unknown as { dataValues: Project }).dataValues.framework?.filter((f) => f.framework_id === 1).map((f) => f.project_framework_id)[0];
+          const projectFrameworkId = (
+            project as unknown as { dataValues: Project }
+          ).dataValues.framework
+            ?.filter((f) => f.framework_id === 1)
+            .map((f) => f.project_framework_id)[0];
           if (!projectFrameworkId) {
             return;
           }
-          const { totalSubcontrols, doneSubcontrols } = await countSubControlsEUByProjectId(projectFrameworkId);
+          const { totalSubcontrols, doneSubcontrols } =
+            await countSubControlsEUByProjectId(projectFrameworkId);
           totalNumberOfSubcontrols += parseInt(totalSubcontrols);
           totalNumberOfDoneSubcontrols += parseInt(doneSubcontrols);
         })
@@ -420,17 +474,17 @@ export async function getControlsByControlCategoryId(
   try {
     const controlCategoryId = parseInt(req.params.id);
     const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
-    const controls = await getControlStructByControlCategoryIdForAProjectQuery(controlCategoryId, projectFrameworkId);
+    const controls = await getControlStructByControlCategoryIdForAProjectQuery(
+      controlCategoryId,
+      projectFrameworkId
+    );
     return res.status(200).json(controls);
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
-export async function getAllTopics(
-  req: Request,
-  res: Response
-): Promise<any> {
+export async function getAllTopics(req: Request, res: Response): Promise<any> {
   try {
     const topics = await getAllTopicsQuery();
     return res.status(200).json(topics);

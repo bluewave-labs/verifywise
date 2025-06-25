@@ -1,16 +1,19 @@
 import { QueryTypes, Transaction } from "sequelize";
 import { sequelize } from "../database/db";
-import { FrameworkModel } from "../models/frameworks.model";
-import { ProjectFrameworksModel } from "../models/projectFrameworks.model";
-import { frameworkAdditionMap, frameworkDeletionMap, frameworkFilesDeletionSourceMap } from "../types/framework.type";
+import { FrameworkModel } from "../domain.layer/models/frameworks/frameworks.model";
+import { ProjectFrameworksModel } from "../domain.layer/models/projectFrameworks/projectFrameworks.model";
+import {
+  frameworkAdditionMap,
+  frameworkDeletionMap,
+  frameworkFilesDeletionSourceMap,
+} from "../types/framework.type";
 
-export const getAllFrameworksQuery = async (
-): Promise<FrameworkModel[]> => {
+export const getAllFrameworksQuery = async (): Promise<FrameworkModel[]> => {
   const frameworks = await sequelize.query(
     "SELECT * FROM frameworks ORDER BY created_at DESC, id ASC;",
     {
       mapToModel: true,
-      model: FrameworkModel
+      model: FrameworkModel,
     }
   );
   for (let framework of frameworks) {
@@ -19,7 +22,7 @@ export const getAllFrameworksQuery = async (
       {
         replacements: { frameworkId: framework.id },
         mapToModel: true,
-        model: ProjectFrameworksModel
+        model: ProjectFrameworksModel,
       }
     );
     (framework as any).projects = frameworkProjects;
@@ -35,7 +38,7 @@ export const getAllFrameworkByIdQuery = async (
     {
       replacements: { id },
       mapToModel: true,
-      model: FrameworkModel
+      model: FrameworkModel,
     }
   );
   const framework = result[0];
@@ -44,7 +47,7 @@ export const getAllFrameworkByIdQuery = async (
     {
       replacements: { frameworkId: framework.id },
       mapToModel: true,
-      model: ProjectFrameworksModel
+      model: ProjectFrameworksModel,
     }
   );
   (framework as any).projects = frameworkProjects;
@@ -56,10 +59,10 @@ export const addFrameworkToProjectQuery = async (
   projectId: number,
   transaction: Transaction
 ): Promise<boolean> => {
-  const [[{ exists }]] = await sequelize.query(
+  const [[{ exists }]] = (await sequelize.query(
     "SELECT EXISTS (SELECT 1 FROM projects_frameworks WHERE project_id = :projectId AND framework_id = :frameworkId) AS exists;",
     { replacements: { projectId, frameworkId }, transaction }
-  ) as [[{ exists: boolean }], number];
+  )) as [[{ exists: boolean }], number];
   if (exists) {
     return false; // Framework already added
   }
@@ -70,10 +73,10 @@ export const addFrameworkToProjectQuery = async (
   }
 
   // add the framework to the project
-  const result = await sequelize.query(
+  const result = (await sequelize.query(
     "INSERT INTO projects_frameworks (project_id, framework_id) VALUES (:projectId, :frameworkId) RETURNING *;",
     { replacements: { projectId, frameworkId }, transaction }
-  ) as [ProjectFrameworksModel[], number];
+  )) as [ProjectFrameworksModel[], number];
   if (!result[0]?.length) {
     return false;
   }
@@ -91,30 +94,35 @@ const deleteFrameworkEvidenceFiles = async (
     `DELETE FROM files WHERE project_id = :project_id AND source IN (:source)`,
     {
       replacements: { project_id: projectId, source },
-      transaction
+      transaction,
     }
-  )
-}
+  );
+};
 
 export const deleteFrameworkFromProjectQuery = async (
   frameworkId: number,
   projectId: number,
   transaction: Transaction
 ): Promise<boolean> => {
-  const [[{ exists }]] = await sequelize.query(
+  const [[{ exists }]] = (await sequelize.query(
     "SELECT EXISTS (SELECT 1 FROM projects_frameworks WHERE project_id = :projectId AND framework_id = :frameworkId) AS exists;",
     { replacements: { projectId, frameworkId }, transaction }
-  ) as [[{ exists: boolean }], number];
+  )) as [[{ exists: boolean }], number];
   if (!exists) {
     return false; // Framework not found in the project
   }
 
   // delete evidence files for the framework
-  const frameworkFilesDeletionSource = frameworkFilesDeletionSourceMap[frameworkId];
+  const frameworkFilesDeletionSource =
+    frameworkFilesDeletionSourceMap[frameworkId];
   if (!frameworkFilesDeletionSource) {
     return false;
   }
-  await deleteFrameworkEvidenceFiles(projectId, frameworkFilesDeletionSource, transaction);
+  await deleteFrameworkEvidenceFiles(
+    projectId,
+    frameworkFilesDeletionSource,
+    transaction
+  );
 
   const frameworkDeletionFunction = frameworkDeletionMap[frameworkId];
   if (!frameworkDeletionFunction) {
@@ -123,4 +131,4 @@ export const deleteFrameworkFromProjectQuery = async (
   // call framework deletion function
   const result = await frameworkDeletionFunction(projectId, transaction);
   return result;
-}
+};

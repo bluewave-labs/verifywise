@@ -22,7 +22,7 @@ import {
   updateAnnexCategoryQuery,
   updateSubClauseQuery,
 } from "../utils/iso42001.utils";
-import { FileType } from "../models/file.model";
+import { FileType } from "../domain.layer/models/file/file.model";
 import { AnnexCategoryISO } from "../models/ISO-42001/annexCategoryISO.model";
 import {
   getAllProjectsQuery,

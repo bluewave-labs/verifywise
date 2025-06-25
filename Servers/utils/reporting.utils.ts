@@ -3,7 +3,7 @@ import {
   ProjectsMembers,
   ProjectsMembersModel,
 } from "../domain.layer/models/projectsMembers/projectsMembers.model";
-import { FileModel } from "../models/file.model";
+import { FileModel } from "../domain.layer/models/file/file.model";
 import { QueryTypes, Transaction } from "sequelize";
 import {
   getAllTopicsQuery,

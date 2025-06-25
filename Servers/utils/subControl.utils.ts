@@ -6,7 +6,7 @@ import { sequelize } from "../database/db";
 import { UploadedFile } from "./question.utils";
 import { uploadFile } from "./fileUpload.utils";
 import { QueryTypes, Transaction } from "sequelize";
-import { FileType } from "../models/file.model";
+import { FileType } from "../domain.layer/models/file/file.model";
 
 export const getAllSubcontrolsQuery = async (): Promise<Subcontrol[]> => {
   const subcontrols = await sequelize.query(

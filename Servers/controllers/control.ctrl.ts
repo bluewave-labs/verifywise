@@ -19,7 +19,7 @@ import {
   ControlModel,
 } from "../domain.layer/models/control/control.model";
 import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
-import { FileType } from "../models/file.model";
+import { FileType } from "../domain.layer/models/file/file.model";
 import { updateProjectUpdatedByIdQuery } from "../utils/project.utils";
 import { sequelize } from "../database/db";
 

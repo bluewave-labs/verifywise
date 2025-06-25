@@ -4,7 +4,7 @@ import { RoleModel } from "../domain.layer/models/role/role.model";
 import { AssessmentModel } from "../domain.layer/models/assessment/assessment.model";
 import { ControlModel } from "../domain.layer/models/control/control.model";
 import { ControlCategoryModel } from "../domain.layer/models/controlCategory/controlCategory.model";
-import { FileModel } from "../models/file.model";
+import { FileModel } from "../domain.layer/models/file/file.model";
 import { ProjectModel } from "../domain.layer/models/project/project.model";
 import { ProjectRiskModel } from "../domain.layer/models/projectRisks/projectRisk.model";
 import { ProjectScopeModel } from "../domain.layer/models/projectScope/projectScope.model";

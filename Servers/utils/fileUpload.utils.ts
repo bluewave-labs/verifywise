@@ -1,6 +1,6 @@
 import { UploadedFile } from "./question.utils";
 import { sequelize } from "../database/db";
-import { FileModel } from "../models/file.model";
+import { FileModel } from "../domain.layer/models/file/file.model";
 import { QueryTypes, Transaction } from "sequelize";
 import { ProjectModel } from "../domain.layer/models/project/project.model";
 

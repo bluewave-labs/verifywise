@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { ControlEU } from "../models/EU/controlEU.model";
-import { FileType } from "../models/file.model";
+import { FileType } from "../domain.layer/models/file/file.model";
 import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
 import {
   getAllProjectsQuery,

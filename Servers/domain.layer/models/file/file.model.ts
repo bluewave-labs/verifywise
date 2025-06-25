@@ -5,8 +5,8 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { UserModel } from "../domain.layer/models/user/user.model";
-import { ProjectModel } from "../domain.layer/models/project/project.model";
+import { UserModel } from "../user/user.model";
+import { ProjectModel } from "../project/project.model";
 
 export interface File {
   filename: string;

@@ -7,8 +7,8 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { ProjectModel } from "../domain.layer/models/project/project.model";
-import { UserModel } from "../domain.layer/models/user/user.model";
+import { ProjectModel } from "../project/project.model";
+import { UserModel } from "../user/user.model";
 
 export type ProjectRisk = {
   id?: number;

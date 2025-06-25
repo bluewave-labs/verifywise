@@ -7,7 +7,7 @@ import { ControlCategoryModel } from "../domain.layer/models/controlCategory/con
 import { FileModel } from "../models/file.model";
 import { ProjectModel } from "../domain.layer/models/project/project.model";
 import { ProjectRiskModel } from "../domain.layer/models/projectRisks/projectRisk.model";
-import { ProjectScopeModel } from "../models/projectScope.model";
+import { ProjectScopeModel } from "../domain.layer/models/projectScope/projectScope.model";
 import { ProjectsMembersModel } from "../models/projectsMembers.model";
 import { QuestionModel } from "../models/question.model";
 import { SubcontrolModel } from "../models/subcontrol.model";

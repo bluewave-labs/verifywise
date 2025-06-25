@@ -1,4 +1,4 @@
-import { ProjectScope } from "../models/projectScope.model";
+import { ProjectScope } from "./projectScope.model";
 
 export const projectScopes = (assessmentId1: number): ProjectScope[] => {
   return [
@@ -29,5 +29,5 @@ export const projectScopes = (assessmentId1: number): ProjectScope[] => {
       technologyDocumentation: "technology-documentation-v2.docx",
     },
     // Additional project scope data...
-  ]
+  ];
 };

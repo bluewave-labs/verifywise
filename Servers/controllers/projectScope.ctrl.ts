@@ -9,7 +9,7 @@ import {
   updateProjectScopeByIdQuery,
 } from "../utils/projectScope.utils";
 import { sequelize } from "../database/db";
-import { ProjectScope } from "../models/projectScope.model";
+import { ProjectScope } from "../domain.layer/models/projectScope/projectScope.model";
 
 export async function getAllProjectScopes(
   req: Request,
@@ -55,7 +55,10 @@ export async function createProjectScope(
   try {
     const projectScope = req.body as Partial<ProjectScope>;
 
-    const createdProjectScope = await createProjectScopeQuery(projectScope, transaction);
+    const createdProjectScope = await createProjectScopeQuery(
+      projectScope,
+      transaction
+    );
 
     if (createdProjectScope) {
       await transaction.commit();
@@ -105,7 +108,8 @@ export async function deleteProjectScopeById(
     const projectScopeId = parseInt(req.params.id);
 
     const deletedProjectScope = await deleteProjectScopeByIdQuery(
-      projectScopeId, transaction
+      projectScopeId,
+      transaction
     );
 
     if (deletedProjectScope) {

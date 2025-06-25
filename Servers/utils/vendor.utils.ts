@@ -4,7 +4,7 @@ import {
 } from "../domain.layer/models/vendor/vendor.model";
 import { sequelize } from "../database/db";
 import { deleteVendorRisksForVendorQuery } from "./vendorRisk.utils";
-import { VendorsProjectsModel } from "../models/vendorsProjects.model";
+import { VendorsProjectsModel } from "../domain.layer/models/vendorsProjects/vendorsProjects.model";
 import { QueryTypes, Sequelize, Transaction } from "sequelize";
 import {
   getUserProjects,

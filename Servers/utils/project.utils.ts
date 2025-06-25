@@ -5,7 +5,7 @@ import {
 import { sequelize } from "../database/db";
 import { ProjectsMembersModel } from "../domain.layer/models/projectsMembers/projectsMembers.model";
 import { QueryTypes, Transaction } from "sequelize";
-import { VendorsProjectsModel } from "../models/vendorsProjects.model";
+import { VendorsProjectsModel } from "../domain.layer/models/vendorsProjects/vendorsProjects.model";
 import { VendorModel } from "../domain.layer/models/vendor/vendor.model";
 import { VendorRiskModel } from "../domain.layer/models/vendorRisk/vendorRisk.model";
 import { ProjectRiskModel } from "../domain.layer/models/projectRisks/projectRisk.model";

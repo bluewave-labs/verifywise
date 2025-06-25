@@ -1,4 +1,7 @@
-import { Project, ProjectModel } from "../models/project.model";
+import {
+  Project,
+  ProjectModel,
+} from "../domain.layer/models/project/project.model";
 import { sequelize } from "../database/db";
 import { ProjectsMembersModel } from "../models/projectsMembers.model";
 import { QueryTypes, Transaction } from "sequelize";

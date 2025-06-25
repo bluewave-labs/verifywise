@@ -6,7 +6,7 @@ import {
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
-import { ProjectModel } from "./project.model";
+import { ProjectModel } from "../domain.layer/models/project/project.model";
 import { UserModel } from "../domain.layer/models/user/user.model";
 
 export type ProjectsMembers = {

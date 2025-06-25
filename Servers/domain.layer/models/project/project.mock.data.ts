@@ -1,4 +1,4 @@
-import { Project } from "../models/project.model";
+import { Project } from "./project.model";
 
 // Sample mock data for Project
 const mockProjects = (user1: number, user2: number): Project[] => {
@@ -24,8 +24,8 @@ const mockProjects = (user1: number, user2: number): Project[] => {
       goal: "Analyze and optimize dataset usage",
       last_updated: new Date("2024-09-12"),
       last_updated_by: user2,
-    }
-  ]
+    },
+  ];
 };
 
 // Export the mock data for use in other files

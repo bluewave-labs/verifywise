@@ -1,6 +1,12 @@
-import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
+import {
+  Column,
+  DataType,
+  ForeignKey,
+  Model,
+  Table,
+} from "sequelize-typescript";
 import { ControlEU } from "./controlEU.model";
-import { ProjectModel } from "../project.model";
+import { ProjectModel } from "../../domain.layer/models/project/project.model";
 import { FrameworkModel } from "../frameworks.model";
 
 /*
@@ -18,7 +24,7 @@ export type ControlCategoryStructEU = {
 };
 
 @Table({
-  tableName: "control_categories"
+  tableName: "control_categories",
 })
 export class ControlCategoryStructEUModel extends Model<ControlCategoryStructEU> {
   @Column({
@@ -41,7 +47,7 @@ export class ControlCategoryStructEUModel extends Model<ControlCategoryStructEU>
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
-    defaultValue: false
+    defaultValue: false,
   })
   is_demo?: boolean;
 
@@ -50,5 +56,4 @@ export class ControlCategoryStructEUModel extends Model<ControlCategoryStructEU>
     type: DataType.INTEGER,
   })
   framework_id?: number;
-
 }

@@ -5,7 +5,7 @@ import { AssessmentModel } from "../models/assessment.model";
 import { ControlModel } from "../models/control.model";
 import { ControlCategoryModel } from "../models/controlCategory.model";
 import { FileModel } from "../models/file.model";
-import { ProjectModel } from "../models/project.model";
+import { ProjectModel } from "../domain.layer/models/project/project.model";
 import { ProjectRiskModel } from "../models/projectRisk.model";
 import { ProjectScopeModel } from "../models/projectScope.model";
 import { ProjectsMembersModel } from "../models/projectsMembers.model";

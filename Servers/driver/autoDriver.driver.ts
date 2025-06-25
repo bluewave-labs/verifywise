@@ -1,4 +1,4 @@
-import { Project } from "../models/project.model";
+import { Project } from "../domain.layer/models/project/project.model";
 
 import { getData, deleteDemoVendorsData } from "../utils/autoDriver.utils";
 import { createEUFrameworkQuery } from "../utils/eu.utils";

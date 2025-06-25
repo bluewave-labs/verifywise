@@ -1,6 +1,12 @@
-import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
+import {
+  Column,
+  DataType,
+  ForeignKey,
+  Model,
+  Table,
+} from "sequelize-typescript";
 import { Control } from "./control.model";
-import { ProjectModel } from "./project.model";
+import { ProjectModel } from "../domain.layer/models/project/project.model";
 
 /*
 
@@ -18,7 +24,7 @@ export type ControlCategory = {
 };
 
 @Table({
-  tableName: "control_categories"
+  tableName: "control_categories",
 })
 export class ControlCategoryModel extends Model<ControlCategory> {
   @Column({
@@ -47,12 +53,12 @@ export class ControlCategoryModel extends Model<ControlCategory> {
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
-    defaultValue: false
+    defaultValue: false,
   })
   is_demo?: boolean;
 
   @Column({
-    type: DataType.DATE
+    type: DataType.DATE,
   })
   created_at?: Date;
 }

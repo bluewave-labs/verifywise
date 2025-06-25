@@ -2,7 +2,7 @@ import { UploadedFile } from "./question.utils";
 import { sequelize } from "../database/db";
 import { FileModel } from "../models/file.model";
 import { QueryTypes, Transaction } from "sequelize";
-import { ProjectModel } from "../models/project.model";
+import { ProjectModel } from "../domain.layer/models/project/project.model";
 
 const sanitizeFilename = (name: string) =>
   name.replace(/[^a-zA-Z0-9-_\.]/g, "_");
@@ -19,7 +19,9 @@ export const uploadFile = async (
     | "Assessment tracker report"
     | "Vendors and risks report"
     | "All reports"
-    | "Management system clauses group" | "Reference controls group" | "Clauses and annexes report",
+    | "Management system clauses group"
+    | "Reference controls group"
+    | "Clauses and annexes report",
   transaction: Transaction | null = null
 ) => {
   const projectIsDemo = await sequelize.query(

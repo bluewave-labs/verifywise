@@ -19,7 +19,7 @@
 import { UserModel } from "../domain.layer/models/user/user.model";
 import { sequelize } from "../database/db";
 import { QueryTypes, Transaction } from "sequelize";
-import { ProjectModel } from "../models/project.model";
+import { ProjectModel } from "../domain.layer/models/project/project.model";
 import { VendorModel } from "../models/vendor.model";
 import { ControlModel } from "../models/control.model";
 import { SubcontrolModel } from "../models/subcontrol.model";

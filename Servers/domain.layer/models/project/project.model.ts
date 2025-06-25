@@ -7,7 +7,7 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { UserModel } from "../domain.layer/models/user/user.model";
+import { UserModel } from "../user/user.model";
 
 export type Project = {
   id?: number;

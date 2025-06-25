@@ -49,7 +49,6 @@ const useRegisterUser = () => {
         isSuccess: response.status,
       };
     } catch (error) {
-      console.log(error);
       logEngine({
         type: "error",
         message: `An error occurred: ${

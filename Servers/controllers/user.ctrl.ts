@@ -24,7 +24,7 @@ import {
   generateToken,
   getRefreshTokenPayload,
 } from "../utils/jwt.utils";
-import { UserModel } from "../models/user.model";
+import { UserModel } from "../domain.layer/models/user/user.model";
 import { sequelize } from "../database/db";
 
 async function getAllUsers(req: Request, res: Response): Promise<any> {
@@ -51,7 +51,9 @@ async function getAllUsers(req: Request, res: Response): Promise<any> {
 async function getUserByEmail(req: Request, res: Response) {
   try {
     const email = req.params.email;
-    const user = (await getUserByEmailQuery(email)) as UserModel & { role_name: string };
+    const user = (await getUserByEmailQuery(email)) as UserModel & {
+      role_name: string;
+    };
 
     if (user) {
       const { password_hash, ...safeUser } = user.get({ plain: true });
@@ -83,35 +85,20 @@ async function getUserById(req: Request, res: Response) {
 async function createNewUser(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
   try {
-    const { name, surname, email, password, roleId, created_at, last_login } =
-      req.body;
+    const { name, surname, email, password, roleId } = req.body;
     const existingUser = await getUserByEmailQuery(email);
-
     if (existingUser) {
       return res.status(409).json(STATUS_CODE[409](existingUser));
     }
-
-    const password_hash = await bcrypt.hash(password, 10);
-
     const user = (await createNewUserQuery(
-      {
-        name,
-        surname,
-        email,
-        password_hash,
-        role_id: roleId,
-        created_at,
-        last_login,
-      },
+      await UserModel.createNewUser(name, surname, email, password, roleId),
       transaction
     )) as UserModel;
-
     if (user) {
       await transaction.commit();
       const { password_hash: _, ...safeUser } = user.get({ plain: true });
       return res.status(201).json(STATUS_CODE[201](safeUser));
     }
-
     return res.status(400).json(STATUS_CODE[400](user));
   } catch (error) {
     await transaction.rollback();
@@ -134,12 +121,12 @@ async function loginUser(req: Request, res: Response): Promise<any> {
         const token = generateToken({
           id: user!.id,
           email: email,
-          roleName: user.role_name
+          roleName: user.role_name,
         });
         const refreshToken = generateRefreshToken({
           id: user!.id,
           email: email,
-          roleName: user.role_name
+          roleName: user.role_name,
         });
         res.cookie("refresh_token", refreshToken, {
           httpOnly: true,
@@ -188,7 +175,7 @@ async function refreshAccessToken(req: Request, res: Response): Promise<any> {
     const newAccessToken = generateToken({
       id: decoded.id,
       email: decoded.email,
-      roleName: decoded.roleName
+      roleName: decoded.roleName,
     });
 
     return res.status(200).json(
@@ -206,7 +193,9 @@ async function resetPassword(req: Request, res: Response) {
   try {
     const { email, newPassword } = req.body;
 
-    const user = (await getUserByEmailQuery(email)) as UserModel & { role_name: string };
+    const user = (await getUserByEmailQuery(email)) as UserModel & {
+      role_name: string;
+    };
 
     if (user) {
       const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -294,7 +283,6 @@ async function checkUserExists(
   res: Response
 ): Promise<Response> {
   try {
-    console.log("checkUserExists");
     const userExists = await checkUserExistsQuery();
     return res.status(200).json(userExists);
   } catch (error) {
@@ -382,7 +370,6 @@ async function calculateProgress(
       allDoneSubControls,
     });
   } catch (error) {
-    console.log(error);
     return res.status(500).json({ message: "Internal server error" });
   }
 }

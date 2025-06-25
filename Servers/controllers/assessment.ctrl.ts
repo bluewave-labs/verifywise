@@ -32,7 +32,7 @@ import {
   AssessmentModel,
 } from "../domain.layer/models/assessment/assessment.model";
 import { TopicModel } from "../models/topic.model";
-import { SubtopicModel } from "../models/subtopic.model";
+import { SubtopicModel } from "../domain.layer/models/subtopic/subtopic.model";
 import { sequelize } from "../database/db";
 
 export async function getAllAssessments(

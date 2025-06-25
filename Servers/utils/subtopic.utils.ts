@@ -1,4 +1,7 @@
-import { Subtopic, SubtopicModel } from "../models/subtopic.model";
+import {
+  Subtopic,
+  SubtopicModel,
+} from "../domain.layer/models/subtopic/subtopic.model";
 import { sequelize } from "../database/db";
 import { createNewQuestionsQuery } from "./question.utils";
 import { Question } from "../domain.layer/models/question/question.model";

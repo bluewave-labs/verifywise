@@ -1,5 +1,11 @@
-import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
-import { TopicModel } from "./topic.model";
+import {
+  Column,
+  DataType,
+  ForeignKey,
+  Model,
+  Table,
+} from "sequelize-typescript";
+import { TopicModel } from "../../../models/topic.model";
 
 /*
 
@@ -16,7 +22,7 @@ export type Subtopic = {
 };
 
 @Table({
-  tableName: "subtopics"
+  tableName: "subtopics",
 })
 export class SubtopicModel extends Model<Subtopic> {
   @Column({
@@ -27,31 +33,30 @@ export class SubtopicModel extends Model<Subtopic> {
   id?: number;
 
   @Column({
-    type: DataType.STRING
+    type: DataType.STRING,
   })
   title!: string;
 
   @Column({
-    type: DataType.INTEGER
+    type: DataType.INTEGER,
   })
   order_no?: number;
 
   @ForeignKey(() => TopicModel)
   @Column({
-    type: DataType.INTEGER
+    type: DataType.INTEGER,
   })
   topic_id!: number;
 
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
-    defaultValue: false
+    defaultValue: false,
   })
   is_demo?: boolean;
 
   @Column({
-    type: DataType.DATE
+    type: DataType.DATE,
   })
   created_at?: Date;
 }
-

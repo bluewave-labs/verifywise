@@ -1,12 +1,6 @@
-import {
-  Column,
-  DataType,
-  ForeignKey,
-  Model,
-  Table,
-} from "sequelize-typescript";
+import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
 import { ControlModel } from "./control.model";
-import { UserModel } from "../domain.layer/models/user/user.model";
+import { UserModel } from "./user.model";
 
 /*
 
@@ -35,7 +29,7 @@ export type Subcontrol = {
 };
 
 @Table({
-  tableName: "subcontrols",
+  tableName: "subcontrols"
 })
 export class SubcontrolModel extends Model<Subcontrol> {
   @Column({
@@ -46,109 +40,93 @@ export class SubcontrolModel extends Model<Subcontrol> {
   id?: number;
 
   @Column({
-    type: DataType.STRING,
+    type: DataType.STRING
   })
   title!: string;
 
   @Column({
-    type: DataType.STRING,
+    type: DataType.STRING
   })
   description!: string;
 
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.INTEGER
   })
   order_no?: number;
 
   @Column({
-    type: DataType.ENUM("Waiting", "In progress", "Done"),
+    type: DataType.ENUM("Waiting", "In progress", "Done")
   })
   status?: "Waiting" | "In progress" | "Done";
 
   @ForeignKey(() => UserModel)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.INTEGER
   })
   approver?: number;
 
   @Column({
-    type: DataType.ENUM(
-      "Acceptable risk",
-      "Residual risk",
-      "Unacceptable risk"
-    ),
+    type: DataType.ENUM("Acceptable risk", "Residual risk", "Unacceptable risk")
   })
   risk_review?: "Acceptable risk" | "Residual risk" | "Unacceptable risk";
 
   @ForeignKey(() => UserModel)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.INTEGER
   })
   owner?: number;
 
   @ForeignKey(() => UserModel)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.INTEGER
   })
   reviewer?: number;
 
   @Column({
-    type: DataType.DATE,
+    type: DataType.DATE
   })
   due_date?: Date;
 
   @Column({
-    type: DataType.STRING,
+    type: DataType.STRING
   })
   implementation_details?: string;
 
   @Column({
-    type: DataType.STRING,
+    type: DataType.STRING
   })
   evidence_description?: string;
 
   @Column({
-    type: DataType.STRING,
+    type: DataType.STRING
   })
   feedback_description?: string;
 
   @Column({
-    type: DataType.JSONB,
+    type: DataType.JSONB
   })
-  evidence_files?: {
-    id: string;
-    fileName: string;
-    project_id: number;
-    uploaded_by: number;
-    uploaded_time: Date;
-  }[];
+  evidence_files?: { id: string, fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[];
 
   @Column({
-    type: DataType.JSONB,
+    type: DataType.JSONB
   })
-  feedback_files?: {
-    id: string;
-    fileName: string;
-    project_id: number;
-    uploaded_by: number;
-    uploaded_time: Date;
-  }[];
+  feedback_files?: { id: string, fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[];
 
   @ForeignKey(() => ControlModel)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.INTEGER
   })
   control_id!: number;
 
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
-    defaultValue: false,
+    defaultValue: false
   })
   is_demo?: boolean;
 
   @Column({
-    type: DataType.DATE,
+    type: DataType.DATE
   })
   created_at?: Date;
 }

@@ -11,37 +11,40 @@ import { createProjectRiskQuery } from "../utils/projectRisk.utils";
 import { createNewVendorQuery } from "../utils/vendor.utils";
 import { createNewVendorRiskQuery } from "../utils/vendorRisk.utils";
 import { createNewUserQuery } from "../utils/user.utils";
-import { UserModel } from "../domain.layer/models/user/user.model";
+import { User } from "../models/user.model";
+import { Vendor } from "../models/vendor.model";
 
 import { createISOFrameworkQuery } from "../utils/iso42001.utils";
 import { addVendorProjects } from "../utils/vendor.utils";
-import { Vendor } from "../models/vendor.model";
 
 export async function insertMockData(userId: number | null = null) {
   const transaction = await sequelize.transaction();
   try {
-    let users = (await getData("users", transaction)) as UserModel[];
-    console.log("insertMockData users ", users);
+    let users = (await getData("users", transaction)) as User[];
     if (users.length < 2) {
       let u1 = await createNewUserQuery(
-        await UserModel.createNewUser(
-          "John",
-          "Doe",
-          `john.doe.${Date.now()}@example.com`,
-          "MyJH4rTm!@.45L0wm",
-          1
-        ),
+        {
+          name: "John",
+          surname: "Doe",
+          email: `john.doe.${Date.now()}@example.com`,
+          password_hash: "hashed_password",
+          role_id: 1,
+          created_at: new Date(Date.now()),
+          last_login: new Date(Date.now()),
+        },
         transaction,
         true // is demo
       );
       let u2 = await createNewUserQuery(
-        await UserModel.createNewUser(
-          "Alice",
-          "Smith",
-          `alice.smith.${Date.now()}@example.com`,
-          "MyJH4rTm!@.45L0wm",
-          2
-        ),
+        {
+          name: "Alice",
+          surname: "Smith",
+          email: `alice.smith.${Date.now()}@example.com`,
+          password_hash: "hashed_password",
+          role_id: 2,
+          created_at: new Date(Date.now()),
+          last_login: new Date(Date.now()),
+        },
         transaction,
         true // is demo
       );

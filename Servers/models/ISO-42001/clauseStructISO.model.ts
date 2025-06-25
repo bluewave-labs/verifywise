@@ -1,5 +1,11 @@
-import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
-import { FrameworkModel } from "../frameworks.model";
+import {
+  Column,
+  DataType,
+  ForeignKey,
+  Model,
+  Table,
+} from "sequelize-typescript";
+import { FrameworkModel } from "../../domain.layer/models/frameworks/frameworks.model";
 import { SubClauseISO } from "./subClauseISO.model";
 import { SubClauseStructISO } from "./subClauseStructISO.model";
 
@@ -8,11 +14,11 @@ export type ClauseStructISO = {
   title: string; // gets assigned from the structure
   clause_no: number; // gets assigned from the structure
   framework_id?: number; // gets assigned from the structure
-  subclauses: (Partial<SubClauseISO & SubClauseStructISO>)[]
+  subclauses: Partial<SubClauseISO & SubClauseStructISO>[];
 };
 
 @Table({
-  tableName: "clause_struct_iso"
+  tableName: "clause_struct_iso",
 })
 export class ClauseStructISOModel extends Model<ClauseStructISO> {
   @Column({
@@ -23,19 +29,18 @@ export class ClauseStructISOModel extends Model<ClauseStructISO> {
   id!: number;
 
   @Column({
-    type: DataType.STRING
+    type: DataType.STRING,
   })
   title!: string;
 
   @Column({
-    type: DataType.INTEGER
+    type: DataType.INTEGER,
   })
   clause_no!: number;
 
   @ForeignKey(() => FrameworkModel)
   @Column({
-    type: DataType.INTEGER
+    type: DataType.INTEGER,
   })
   framework_id?: number;
-
 }

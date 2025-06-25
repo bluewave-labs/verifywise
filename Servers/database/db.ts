@@ -19,7 +19,7 @@ import { VendorRiskModel } from "../domain.layer/models/vendorRisk/vendorRisk.mo
 import { VendorsProjectsModel } from "../domain.layer/models/vendorsProjects/vendorsProjects.model";
 import dbConfig from "./config/config";
 import { Dialect } from "sequelize";
-import { FrameworkModel } from "../models/frameworks.model";
+import { FrameworkModel } from "../domain.layer/models/frameworks/frameworks.model";
 import { ProjectFrameworksModel } from "../models/projectFrameworks.model";
 import { TopicStructEUModel } from "../models/EU/topicStructEU.model";
 import { SubtopicStructEUModel } from "../models/EU/subTopicStructEU.model";

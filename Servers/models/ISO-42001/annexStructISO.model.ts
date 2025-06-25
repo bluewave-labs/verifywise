@@ -1,5 +1,11 @@
-import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
-import { FrameworkModel } from "../frameworks.model";
+import {
+  Column,
+  DataType,
+  ForeignKey,
+  Model,
+  Table,
+} from "sequelize-typescript";
+import { FrameworkModel } from "../../domain.layer/models/frameworks/frameworks.model";
 import { AnnexCategoryISO } from "./annexCategoryISO.model";
 import { AnnexCategoryStructISO } from "./annexCategoryStructISO.model";
 
@@ -8,11 +14,11 @@ export type AnnexStructISO = {
   title: string; // gets assigned from the structure
   annex_no?: number; // gets assigned from the structure
   framework_id?: number; // gets assigned from the structure
-  annexcategories: (Partial<AnnexCategoryISO & AnnexCategoryStructISO>)[]
-}
+  annexcategories: Partial<AnnexCategoryISO & AnnexCategoryStructISO>[];
+};
 
 @Table({
-  tableName: "annex_struct_iso"
+  tableName: "annex_struct_iso",
 })
 export class AnnexStructISOModel extends Model<AnnexStructISO> {
   @Column({
@@ -23,18 +29,18 @@ export class AnnexStructISOModel extends Model<AnnexStructISO> {
   id!: number;
 
   @Column({
-    type: DataType.STRING
+    type: DataType.STRING,
   })
   title!: string;
 
   @Column({
-    type: DataType.INTEGER
+    type: DataType.INTEGER,
   })
   annex_no?: number;
 
   @ForeignKey(() => FrameworkModel)
   @Column({
-    type: DataType.INTEGER
+    type: DataType.INTEGER,
   })
   framework_id?: number;
 }

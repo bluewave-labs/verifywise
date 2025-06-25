@@ -1,5 +1,11 @@
-import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
-import { FrameworkModel } from "../frameworks.model";
+import {
+  Column,
+  DataType,
+  ForeignKey,
+  Model,
+  Table,
+} from "sequelize-typescript";
+import { FrameworkModel } from "../../domain.layer/models/frameworks/frameworks.model";
 
 /*
 
@@ -15,7 +21,7 @@ export type TopicStructEU = {
 };
 
 @Table({
-  tableName: "topics"
+  tableName: "topics",
 })
 export class TopicStructEUModel extends Model<TopicStructEU> {
   @Column({
@@ -26,26 +32,25 @@ export class TopicStructEUModel extends Model<TopicStructEU> {
   id?: number;
 
   @Column({
-    type: DataType.STRING
+    type: DataType.STRING,
   })
   title!: string;
 
   @Column({
-    type: DataType.INTEGER
+    type: DataType.INTEGER,
   })
   order_no?: number;
 
   @ForeignKey(() => FrameworkModel)
   @Column({
-    type: DataType.INTEGER
+    type: DataType.INTEGER,
   })
   framework_id?: number;
 
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
-    defaultValue: false
+    defaultValue: false,
   })
   is_demo?: boolean;
-
 }

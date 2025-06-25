@@ -39,7 +39,7 @@ import { ClauseStructISOModel } from "../models/ISO-42001/clauseStructISO.model"
 import { SubClauseISOModel } from "../models/ISO-42001/subClauseISO.model";
 import { SubClauseStructISOModel } from "../models/ISO-42001/subClauseStructISO.model";
 import { OrganizationModel } from "../domain.layer/models/organization/organization.model";
-import { TrainingRegistarModel } from "../models/trainingRegistar.model";
+import { TrainingRegistarModel } from "../domain.layer/models/trainingRegistar/trainingRegistar.model";
 
 dotenv.config();
 

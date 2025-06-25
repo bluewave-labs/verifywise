@@ -63,7 +63,7 @@ export class TrainingRegistarModel extends Model<TrainingRegistar> {
   numberOfPeople!: number;
 
   @Column({
-    type:DataType.STRING,
+    type: DataType.STRING,
   })
   description!: string;
 }

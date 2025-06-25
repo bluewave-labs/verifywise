@@ -1,4 +1,7 @@
-import { Subcontrol, SubcontrolModel } from "../models/subcontrol.model";
+import {
+  Subcontrol,
+  SubcontrolModel,
+} from "../domain.layer/models/subcontrol/subcontrol.model";
 import { sequelize } from "../database/db";
 import { UploadedFile } from "./question.utils";
 import { uploadFile } from "./fileUpload.utils";
@@ -10,7 +13,7 @@ export const getAllSubcontrolsQuery = async (): Promise<Subcontrol[]> => {
     "SELECT * FROM subcontrols ORDER BY created_at DESC, id ASC",
     {
       mapToModel: true,
-      model: SubcontrolModel
+      model: SubcontrolModel,
     }
   );
   return subcontrols;
@@ -24,7 +27,7 @@ export const getAllSubcontrolsByControlIdQuery = async (
     {
       replacements: { id: controlId },
       mapToModel: true,
-      model: SubcontrolModel
+      model: SubcontrolModel,
     }
   );
   return subcontrols;
@@ -38,7 +41,7 @@ export const getSubcontrolByIdQuery = async (
     {
       replacements: { id },
       mapToModel: true,
-      model: SubcontrolModel
+      model: SubcontrolModel,
     }
   );
   return result[0];
@@ -51,12 +54,18 @@ export const createNewSubcontrolQuery = async (
   user_id: number,
   transaction: Transaction,
   evidenceFiles?: UploadedFile[],
-  feedbackFiles?: UploadedFile[],
+  feedbackFiles?: UploadedFile[]
 ): Promise<Subcontrol> => {
   let uploadedEvidenceFiles: FileType[] = [];
   await Promise.all(
     evidenceFiles!.map(async (file) => {
-      const uploadedFile = await uploadFile(file, user_id, project_id, "Compliance tracker group", transaction);
+      const uploadedFile = await uploadFile(
+        file,
+        user_id,
+        project_id,
+        "Compliance tracker group",
+        transaction
+      );
       uploadedEvidenceFiles.push({
         id: uploadedFile.id!.toString(),
         fileName: uploadedFile.filename,
@@ -64,7 +73,7 @@ export const createNewSubcontrolQuery = async (
         uploaded_by: uploadedFile.uploaded_by,
         uploaded_time: uploadedFile.uploaded_time,
         type: uploadedFile.type,
-        source: uploadedFile.source
+        source: uploadedFile.source,
       });
     })
   );
@@ -72,7 +81,13 @@ export const createNewSubcontrolQuery = async (
   let uploadedFeedbackFiles: FileType[] = [];
   await Promise.all(
     feedbackFiles!.map(async (file) => {
-      const uploadedFile = await uploadFile(file, user_id, project_id, "Compliance tracker group", transaction);
+      const uploadedFile = await uploadFile(
+        file,
+        user_id,
+        project_id,
+        "Compliance tracker group",
+        transaction
+      );
       uploadedFeedbackFiles.push({
         id: uploadedFile.id!.toString(),
         fileName: uploadedFile.filename,
@@ -80,7 +95,7 @@ export const createNewSubcontrolQuery = async (
         uploaded_by: uploadedFile.uploaded_by,
         uploaded_time: uploadedFile.uploaded_time,
         type: uploadedFile.type,
-        source: uploadedFile.source
+        source: uploadedFile.source,
       });
     })
   );
@@ -118,7 +133,7 @@ export const createNewSubcontrolQuery = async (
       mapToModel: true,
       model: SubcontrolModel,
       // type: QueryTypes.INSERT
-      transaction
+      transaction,
     }
   );
   return result[0];
@@ -128,9 +143,21 @@ export const updateSubcontrolByIdQuery = async (
   id: number,
   subcontrol: Partial<Subcontrol>,
   transaction: Transaction,
-  evidenceUploadedFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[] = [],
-  feedbackUploadedFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[] = [],
-  deletedFiles: number[] = [],
+  evidenceUploadedFiles: {
+    id: string;
+    fileName: string;
+    project_id: number;
+    uploaded_by: number;
+    uploaded_time: Date;
+  }[] = [],
+  feedbackUploadedFiles: {
+    id: string;
+    fileName: string;
+    project_id: number;
+    uploaded_by: number;
+    uploaded_time: Date;
+  }[] = [],
+  deletedFiles: number[] = []
 ): Promise<Subcontrol | null> => {
   const files = await sequelize.query(
     `SELECT evidence_files, feedback_files FROM subcontrols WHERE id = :id`,
@@ -138,24 +165,39 @@ export const updateSubcontrolByIdQuery = async (
       replacements: { id },
       mapToModel: true,
       model: SubcontrolModel,
-      transaction
+      transaction,
     }
   );
 
-  let currentEvidenceFiles = (files[0].evidence_files ? files[0].evidence_files : []) as {
-    id: string; fileName: string; project_id: number; uploaded_by: number; uploaded_time: Date;
-  }[]
-  let currentFeedbackFiles = (files[0].feedback_files ? files[0].feedback_files : []) as {
-    id: string; fileName: string; project_id: number; uploaded_by: number; uploaded_time: Date;
-  }[]
+  let currentEvidenceFiles = (
+    files[0].evidence_files ? files[0].evidence_files : []
+  ) as {
+    id: string;
+    fileName: string;
+    project_id: number;
+    uploaded_by: number;
+    uploaded_time: Date;
+  }[];
+  let currentFeedbackFiles = (
+    files[0].feedback_files ? files[0].feedback_files : []
+  ) as {
+    id: string;
+    fileName: string;
+    project_id: number;
+    uploaded_by: number;
+    uploaded_time: Date;
+  }[];
 
-  currentEvidenceFiles = currentEvidenceFiles.filter(f => !deletedFiles.includes(parseInt(f.id)));
+  currentEvidenceFiles = currentEvidenceFiles.filter(
+    (f) => !deletedFiles.includes(parseInt(f.id))
+  );
   currentEvidenceFiles = currentEvidenceFiles.concat(evidenceUploadedFiles);
   console.log(currentEvidenceFiles, evidenceUploadedFiles);
 
-  currentFeedbackFiles = currentFeedbackFiles.filter(f => !deletedFiles.includes(parseInt(f.id)));
+  currentFeedbackFiles = currentFeedbackFiles.filter(
+    (f) => !deletedFiles.includes(parseInt(f.id))
+  );
   currentFeedbackFiles = currentFeedbackFiles.concat(feedbackUploadedFiles);
-
 
   const updateSubControl: Partial<Record<keyof Subcontrol, any>> = {};
   const setClause = [
@@ -172,22 +214,31 @@ export const updateSubcontrolByIdQuery = async (
     "feedback_description",
     "evidence_files",
     "feedback_files",
-  ].filter(f => {
-    if (f == 'evidence_files' && currentEvidenceFiles.length > 0) {
-      updateSubControl['evidence_files'] = JSON.stringify(currentEvidenceFiles);
-      return true;
-    }
-    if (f == 'feedback_files' && currentFeedbackFiles.length > 0) {
-      updateSubControl['feedback_files'] = JSON.stringify(currentFeedbackFiles);
-      return true;
-    }
-    if (subcontrol[f as keyof Subcontrol] !== undefined && subcontrol[f as keyof Subcontrol]) {
-      updateSubControl[f as keyof Subcontrol] = subcontrol[f as keyof Subcontrol]
-      return true
-    }
-  }).map(f => {
-    return `${f} = :${f}`
-  }).join(", ");
+  ]
+    .filter((f) => {
+      if (f == "evidence_files" && currentEvidenceFiles.length > 0) {
+        updateSubControl["evidence_files"] =
+          JSON.stringify(currentEvidenceFiles);
+        return true;
+      }
+      if (f == "feedback_files" && currentFeedbackFiles.length > 0) {
+        updateSubControl["feedback_files"] =
+          JSON.stringify(currentFeedbackFiles);
+        return true;
+      }
+      if (
+        subcontrol[f as keyof Subcontrol] !== undefined &&
+        subcontrol[f as keyof Subcontrol]
+      ) {
+        updateSubControl[f as keyof Subcontrol] =
+          subcontrol[f as keyof Subcontrol];
+        return true;
+      }
+    })
+    .map((f) => {
+      return `${f} = :${f}`;
+    })
+    .join(", ");
 
   const query = `UPDATE subcontrols SET ${setClause} WHERE id = :id RETURNING *;`;
 
@@ -215,7 +266,7 @@ export const deleteSubcontrolByIdQuery = async (
       mapToModel: true,
       model: SubcontrolModel,
       type: QueryTypes.DELETE,
-      transaction
+      transaction,
     }
   );
   return result.length > 0;
@@ -234,35 +285,40 @@ export const createNewSubControlsQuery = async (
   enable_ai_data_insertion: boolean,
   transaction: Transaction
 ) => {
-  let query =
-    `INSERT INTO subcontrols(
+  let query = `INSERT INTO subcontrols(
       title, description, control_id, order_no, implementation_details,
       evidence_description, feedback_description, status
     ) VALUES (
       :title, :description, :control_id, :order_no, :implementation_details,
       :evidence_description, :feedback_description, :status
     ) RETURNING *`;
-  let createdSubControls: Subcontrol[] = []
+  let createdSubControls: Subcontrol[] = [];
   for (let subControl of subControls) {
-    const result = await sequelize.query(query,
-      {
-        replacements: {
-          title: subControl.title,
-          description: subControl.description,
-          control_id: controlId,
-          order_no: subControl.order_no,
-          implementation_details: enable_ai_data_insertion ? subControl.implementation_details : null,
-          evidence_description: enable_ai_data_insertion && subControl.evidence_description ? subControl.evidence_description : null,
-          feedback_description: enable_ai_data_insertion && subControl.feedback_description ? subControl.feedback_description : null,
-          status: enable_ai_data_insertion ? 'Waiting' : null
-        },
-        mapToModel: true,
-        model: SubcontrolModel,
-        // type: QueryTypes.INSERT
-        transaction
-      }
-    )
-    createdSubControls = createdSubControls.concat(result)
+    const result = await sequelize.query(query, {
+      replacements: {
+        title: subControl.title,
+        description: subControl.description,
+        control_id: controlId,
+        order_no: subControl.order_no,
+        implementation_details: enable_ai_data_insertion
+          ? subControl.implementation_details
+          : null,
+        evidence_description:
+          enable_ai_data_insertion && subControl.evidence_description
+            ? subControl.evidence_description
+            : null,
+        feedback_description:
+          enable_ai_data_insertion && subControl.feedback_description
+            ? subControl.feedback_description
+            : null,
+        status: enable_ai_data_insertion ? "Waiting" : null,
+      },
+      mapToModel: true,
+      model: SubcontrolModel,
+      // type: QueryTypes.INSERT
+      transaction,
+    });
+    createdSubControls = createdSubControls.concat(result);
   }
-  return createdSubControls
+  return createdSubControls;
 };

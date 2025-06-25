@@ -22,7 +22,7 @@ import { QueryTypes, Transaction } from "sequelize";
 import { ProjectModel } from "../domain.layer/models/project/project.model";
 import { VendorModel } from "../models/vendor.model";
 import { ControlModel } from "../domain.layer/models/control/control.model";
-import { SubcontrolModel } from "../models/subcontrol.model";
+import { SubcontrolModel } from "../domain.layer/models/subcontrol/subcontrol.model";
 import { ProjectRiskModel } from "../domain.layer/models/projectRisks/projectRisk.model";
 import { VendorRiskModel } from "../models/vendorRisk.model";
 import { FileModel } from "../models/file.model";

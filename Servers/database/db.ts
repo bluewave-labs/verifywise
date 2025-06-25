@@ -10,7 +10,7 @@ import { ProjectRiskModel } from "../domain.layer/models/projectRisks/projectRis
 import { ProjectScopeModel } from "../domain.layer/models/projectScope/projectScope.model";
 import { ProjectsMembersModel } from "../domain.layer/models/projectsMembers/projectsMembers.model";
 import { QuestionModel } from "../domain.layer/models/question/question.model";
-import { SubcontrolModel } from "../models/subcontrol.model";
+import { SubcontrolModel } from "../domain.layer/models/subcontrol/subcontrol.model";
 import { SubtopicModel } from "../models/subtopic.model";
 import { TopicModel } from "../models/topic.model";
 import { UserModel } from "../domain.layer/models/user/user.model";

@@ -137,6 +137,8 @@ const RisksView: FC<RisksViewProps> = memo(
       [risksTableCols, risksTableRows]
     );
 
+    console.log("tableData", tableData);
+
     const [selectedRow, setSelectedRow] = useState<ProjectRisk>();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [riskData1, setRiskData] = useState<ProjectRisk[] | VendorRisk[]>([]);
@@ -157,6 +159,7 @@ const RisksView: FC<RisksViewProps> = memo(
     };
 
     const handleSuccess = () => {
+      console.log("create vendor is success!");
       handleAlert({
         variant: "success",
         body: title + " risk created successfully",
@@ -183,6 +186,7 @@ const RisksView: FC<RisksViewProps> = memo(
             ? `/projectRisks/by-projid/${projectId}`
             : `/vendorRisks/by-projid/${projectId}`;
         const response = await getAllEntities({ routeUrl: url });
+        console.log("response :::: > ", response);
         setRiskData(response.data);
       } catch (error) {
         console.error("Error fetching vendor risks:", error);

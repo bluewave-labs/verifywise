@@ -36,9 +36,7 @@ const Login: React.FC = () => {
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
 
-  const loginText = isDemoApp
-    ? "Click on Sign in button directly to continue"
-    : "Log in to your account";
+  const loginText = isDemoApp ? "Click on Sign in button directly to continue" : "Log in to your account";
 
   //disabled overlay state/modal
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,6 +57,7 @@ const Login: React.FC = () => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
+    console.log("Submitting form...", isSubmitting);
 
     await loginUser({
       routeUrl: "/users/login",
@@ -242,6 +241,7 @@ const Login: React.FC = () => {
                 value={values.rememberMe ? "true" : "false"}
                 onChange={(e) => {
                   setValues({ ...values, rememberMe: e.target.checked });
+                  console.log(values);
                 }}
                 size="small"
               />

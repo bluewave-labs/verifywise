@@ -22,8 +22,10 @@ export async function GetMyOrganization({
       signal,
       responseType,
     });
+    console.log("response", response);
     return response;
   } catch (error) {
+    console.error("Error getting organization details:", error);
     throw error;
   }
 }
@@ -44,8 +46,10 @@ export async function CreateMyOrganization({
     const response = await apiServices.post(routeUrl, body, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
+    console.log("Organization created successfully:", response.data);
     return response.data;
   } catch (error) {
+    console.error("Error creating organization:", error);
     throw error;
   }
 }
@@ -67,8 +71,10 @@ export async function UpdateMyOrganization({
     const response = await apiServices.patch(routeUrl, body, {
       headers: { Authorization: `Bearer ${authToken}`, ...headers },
     });
+    console.log("Organization updated successfully:", response.data);
     return response.data;
   } catch (error) {
+    console.error("Error updating organization:", error);
     throw error;
   }
 }

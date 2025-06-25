@@ -135,7 +135,10 @@ const ProjectView = () => {
           <Button
             variant="contained"
             color="primary"
-            onClick={() => {}}
+            onClick={() => {
+              console.log("redirect to create new project");
+              //add naviagtion to new project
+            }}
             sx={{
               textTransform: "none",
               borderRadius: "4px",

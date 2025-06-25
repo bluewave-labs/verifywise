@@ -632,6 +632,7 @@ const VWISO42001ClauseDrawerDialog = ({
             date={date}
             handleDateChange={(newDate) => {
               setDate(newDate);
+              console.log("Updated due date:", newDate);
             }}
             disabled={isEditingDisabled}
           />

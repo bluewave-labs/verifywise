@@ -20,6 +20,9 @@ export async function createNewUser({
   const response = await apiServices.post(routeUrl, body, {
     headers: { Authorization: `Bearer ${authToken}` },
   });
+  console.log(
+    `The entity with the following details is created: ${response.data}`
+  );
   return response;
 }
 
@@ -89,8 +92,12 @@ export async function updateEntityById({
     const response = await apiServices.patch(routeUrl, body, {
       headers: { Authorization: `Bearer ${authToken}`, ...headers },
     });
+    console.log(
+      `The entity with the following details is updated: ${response.data}`
+    );
     return response;
   } catch (error) {
+    console.error("Error updating user by ID:", error);
     throw error;
   }
 }
@@ -110,6 +117,9 @@ export async function deleteEntityById({
     const response = await apiServices.delete(routeUrl, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
+    console.log(
+      `The entity with the following details is removed: ${response}`
+    );
     return response;
   } catch (error) {
     console.error("Error deleting user by ID:", error);
@@ -128,6 +138,7 @@ export async function getAllEntities({
   routeUrl,
   authToken = getAuthToken(),
 }: RequestParams): Promise<any> {
+  console.log("getAllEntities, routeUrl : ", routeUrl);
   try {
     const response = await apiServices.get(routeUrl, {
       headers: { Authorization: `Bearer ${authToken}` },
@@ -154,6 +165,7 @@ export async function checkUserExists({
     const response = await apiServices.get(routeUrl, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
+    console.log("response :::> ", response);
     return response.data;
   } catch (error) {
     console.error("Error checking if user exists:", error);

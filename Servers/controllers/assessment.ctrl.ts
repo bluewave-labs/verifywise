@@ -82,11 +82,7 @@ export async function createAssessment(
         })
       );
     }
-    const createdAssessment = await createNewAssessmentQuery(
-      newAssessment,
-      false,
-      transaction
-    );
+    const createdAssessment = await createNewAssessmentQuery(newAssessment, false, transaction);
 
     if (createdAssessment) {
       await transaction.commit();
@@ -141,10 +137,7 @@ export async function deleteAssessmentById(
   const transaction = await sequelize.transaction();
   try {
     const assessmentId = parseInt(req.params.id);
-    const deletedAssessment = await deleteAssessmentByIdQuery(
-      assessmentId,
-      transaction
-    );
+    const deletedAssessment = await deleteAssessmentByIdQuery(assessmentId, transaction);
 
     if (deletedAssessment) {
       await transaction.commit();
@@ -161,16 +154,10 @@ export async function deleteAssessmentById(
 export async function getAnswers(req: Request, res: Response): Promise<any> {
   try {
     const assessmentId = parseInt(req.params.id);
-    const assessment = (await getAssessmentByIdQuery(
-      assessmentId
-    )) as AssessmentModel;
-    const topics = (await getTopicByAssessmentIdQuery(
-      assessment!.id!
-    )) as TopicModel[];
+    const assessment = await getAssessmentByIdQuery(assessmentId) as AssessmentModel;
+    const topics = await getTopicByAssessmentIdQuery(assessment!.id!) as TopicModel[];
     for (let topic of topics) {
-      const subTopics = (await getSubTopicByTopicIdQuery(
-        topic.id!
-      )) as SubtopicModel[];
+      const subTopics = await getSubTopicByTopicIdQuery(topic.id!) as SubtopicModel[];
 
       for (let subTopic of subTopics) {
         const questions = await getQuestionBySubTopicIdQuery(subTopic.id!);
@@ -190,6 +177,7 @@ export async function getAssessmentByProjectId(req: Request, res: Response) {
   const projectId = parseInt(req.params.id);
   try {
     const assessments = await getAssessmentByProjectIdQuery(projectId);
+    console.log("assessment: ", assessments);
     if (assessments && assessments.length !== 0) {
       return res.status(200).json(STATUS_CODE[200](assessments));
     } else {

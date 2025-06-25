@@ -1,11 +1,5 @@
-import {
-  Column,
-  DataType,
-  ForeignKey,
-  Model,
-  Table,
-} from "sequelize-typescript";
-import { UserModel } from "../../domain.layer/models/user/user.model";
+import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
+import { UserModel } from "../user.model";
 import { SubClauseStructISOModel } from "./subClauseStructISO.model";
 import { ProjectFrameworksModel } from "../projectFrameworks.model";
 import { Status, STATUSES } from "../../types/status.type";
@@ -24,10 +18,10 @@ export type SubClauseISO = {
   projects_frameworks_id: number;
   created_at: Date;
   is_demo?: boolean;
-};
+}
 
 @Table({
-  tableName: "subclause_iso",
+  tableName: "subclause_iso"
 })
 export class SubClauseISOModel extends Model<SubClauseISO> {
   @Column({
@@ -38,69 +32,69 @@ export class SubClauseISOModel extends Model<SubClauseISO> {
   id?: number;
 
   @Column({
-    type: DataType.STRING,
+    type: DataType.STRING
   })
   implementation_description!: string;
 
   @Column({
-    type: DataType.JSONB,
+    type: DataType.JSONB
   })
   evidence_links!: Object[];
 
   @Column({
-    type: DataType.ENUM(...STATUSES),
+    type: DataType.ENUM(...STATUSES)
   })
   staus!: Status;
 
   @ForeignKey(() => UserModel)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.INTEGER
   })
   owner!: number;
 
   @ForeignKey(() => UserModel)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.INTEGER
   })
   reviewer!: number;
 
   @ForeignKey(() => UserModel)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.INTEGER
   })
   approver!: number;
 
   @Column({
-    type: DataType.DATE,
+    type: DataType.DATE
   })
   due_date!: Date;
 
   @Column({
-    type: DataType.STRING,
+    type: DataType.STRING
   })
   auditor_feedback!: string;
 
   @ForeignKey(() => SubClauseStructISOModel)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.INTEGER
   })
   subclause_meta_id!: number;
 
   @ForeignKey(() => ProjectFrameworksModel)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.INTEGER
   })
   projects_frameworks_id!: number;
 
   @Column({
     type: DataType.DATE,
-    defaultValue: DataType.NOW,
+    defaultValue: DataType.NOW
   })
   created_at!: Date;
 
   @Column({
     type: DataType.BOOLEAN,
-    defaultValue: false,
+    defaultValue: false
   })
   is_demo?: boolean;
 }

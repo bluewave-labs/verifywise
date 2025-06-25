@@ -1,11 +1,5 @@
-import {
-  Column,
-  DataType,
-  ForeignKey,
-  Model,
-  Table,
-} from "sequelize-typescript";
-import { UserModel } from "../domain.layer/models/user/user.model";
+import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
+import { UserModel } from "./user.model";
 import { ProjectModel } from "./project.model";
 
 export interface File {
@@ -14,11 +8,7 @@ export interface File {
   project_id: number;
   uploaded_by: number;
   uploaded_time: Date;
-  source:
-    | "Assessment tracker group"
-    | "Compliance tracker group"
-    | "Management system clauses group"
-    | "Reference controls group";
+  source: "Assessment tracker group" | "Compliance tracker group" | "Management system clauses group" | "Reference controls group";
 }
 
 export interface FileType {
@@ -28,15 +18,11 @@ export interface FileType {
   uploaded_by: number;
   uploaded_time: Date;
   type: string;
-  source:
-    | "Assessment tracker group"
-    | "Compliance tracker group"
-    | "Management system clauses group"
-    | "Reference controls group";
+  source: "Assessment tracker group" | "Compliance tracker group" | "Management system clauses group" | "Reference controls group";
 }
 
 @Table({
-  tableName: "files",
+  tableName: "files"
 })
 export class FileModel extends Model<File> {
   @Column({
@@ -47,55 +33,46 @@ export class FileModel extends Model<File> {
   id?: number;
 
   @Column({
-    type: DataType.STRING,
+    type: DataType.STRING
   })
   filename!: string;
 
   @Column({
-    type: DataType.BLOB,
+    type: DataType.BLOB
   })
   content!: Buffer;
 
   @ForeignKey(() => ProjectModel)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.INTEGER
   })
   project_id!: number;
 
   @ForeignKey(() => UserModel)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.INTEGER
   })
   uploaded_by!: number;
 
   @Column({
-    type: DataType.DATE,
+    type: DataType.DATE
   })
   uploaded_time!: Date;
 
   @Column({
-    type: DataType.ENUM(
-      "Assessment tracker group",
-      "Compliance tracker group",
-      "Management system clauses group",
-      "Reference controls group"
-    ),
+    type: DataType.ENUM("Assessment tracker group", "Compliance tracker group", "Management system clauses group", "Reference controls group"),
   })
-  source!:
-    | "Assessment tracker group"
-    | "Compliance tracker group"
-    | "Management system clauses group"
-    | "Reference controls group";
+  source!: "Assessment tracker group" | "Compliance tracker group" | "Management system clauses group" | "Reference controls group";
 
   @Column({
-    type: DataType.STRING,
+    type: DataType.STRING
   })
   type!: string;
 
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
-    defaultValue: false,
+    defaultValue: false
   })
   is_demo?: boolean;
 }

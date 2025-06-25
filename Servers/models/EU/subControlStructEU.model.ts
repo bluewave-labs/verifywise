@@ -1,12 +1,6 @@
-import {
-  Column,
-  DataType,
-  ForeignKey,
-  Model,
-  Table,
-} from "sequelize-typescript";
+import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
 import { ControlEUModel } from "./controlEU.model";
-import { UserModel } from "../../domain.layer/models/user/user.model";
+import { UserModel } from "../user.model";
 
 /*
 
@@ -23,7 +17,7 @@ export type SubcontrolStructEU = {
 };
 
 @Table({
-  tableName: "subcontrols",
+  tableName: "subcontrols"
 })
 export class SubcontrolStructEUModel extends Model<SubcontrolStructEU> {
   @Column({
@@ -34,30 +28,30 @@ export class SubcontrolStructEUModel extends Model<SubcontrolStructEU> {
   id?: number;
 
   @Column({
-    type: DataType.STRING,
+    type: DataType.STRING
   })
   title!: string;
 
   @Column({
-    type: DataType.STRING,
+    type: DataType.STRING
   })
   description!: string;
 
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.INTEGER
   })
   order_no?: number;
 
   @ForeignKey(() => ControlEUModel)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.INTEGER
   })
   control_id!: number;
 
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
-    defaultValue: false,
+    defaultValue: false
   })
   is_demo?: boolean;
 }

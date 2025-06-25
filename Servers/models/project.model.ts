@@ -1,13 +1,7 @@
 // this model will be replaced by the one inside structures/new-mock-data/projects.mock.ts directory
 
-import {
-  Column,
-  DataType,
-  ForeignKey,
-  Model,
-  Table,
-} from "sequelize-typescript";
-import { UserModel } from "../domain.layer/models/user/user.model";
+import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
+import { UserModel } from "./user.model";
 
 export type Project = {
   id?: number;
@@ -16,12 +10,12 @@ export type Project = {
   start_date: Date;
   ai_risk_classification: "High risk" | "Limited risk" | "Minimal risk";
   type_of_high_risk_role:
-    | "Deployer"
-    | "Provider"
-    | "Distributor"
-    | "Importer"
-    | "Product manufacturer"
-    | "Authorized representative";
+  | "Deployer"
+  | "Provider"
+  | "Distributor"
+  | "Importer"
+  | "Product manufacturer"
+  | "Authorized representative";
   goal: string;
   last_updated: Date;
   last_updated_by: number;
@@ -40,7 +34,7 @@ export type Project = {
 };
 
 @Table({
-  tableName: "projects",
+  tableName: "projects"
 })
 export class ProjectModel extends Model<Project> {
   @Column({
@@ -72,17 +66,9 @@ export class ProjectModel extends Model<Project> {
   ai_risk_classification!: "High risk" | "Limited risk" | "Minimal risk";
 
   @Column({
-    type: DataType.ENUM(
-      "Deployer",
-      "Provider",
-      "Distributor",
-      "Importer",
-      "Product manufacturer",
-      "Authorized representative"
-    ),
+    type: DataType.ENUM("Deployer", "Provider", "Distributor", "Importer", "Product manufacturer", "Authorized representative"),
   })
-  type_of_high_risk_role!:
-    | "Deployer"
+  type_of_high_risk_role!: | "Deployer"
     | "Provider"
     | "Distributor"
     | "Importer"
@@ -108,12 +94,12 @@ export class ProjectModel extends Model<Project> {
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
-    defaultValue: false,
+    defaultValue: false
   })
   is_demo?: boolean;
 
   @Column({
-    type: DataType.DATE,
+    type: DataType.DATE
   })
   created_at?: Date;
 }

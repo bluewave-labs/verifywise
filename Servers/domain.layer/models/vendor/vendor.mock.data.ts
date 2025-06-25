@@ -1,9 +1,6 @@
-import { Vendor } from "../models/vendor.model";
+import { Vendor } from "./vendor.model";
 
-export const vendors = (
-  userId1: number,
-  userId2: number
-): Vendor[] => {
+export const vendors = (userId1: number, userId2: number): Vendor[] => {
   return [
     {
       id: 1,
@@ -65,5 +62,5 @@ export const vendors = (
       risk_status: "Very low risk",
       review_date: new Date("2023-08-01"),
     },
-  ]
+  ];
 };

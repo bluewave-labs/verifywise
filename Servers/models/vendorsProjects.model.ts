@@ -6,7 +6,7 @@ import {
   Table,
 } from "sequelize-typescript";
 import { ProjectModel } from "../domain.layer/models/project/project.model";
-import { VendorModel } from "./vendor.model";
+import { VendorModel } from "../domain.layer/models/vendor/vendor.model";
 
 export type VendorsProjects = {
   vendor_id: number;

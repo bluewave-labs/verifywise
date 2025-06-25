@@ -5,7 +5,7 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { AssessmentModel } from "../domain.layer/models/assessment/assessment.model";
+import { AssessmentModel } from "../assessment/assessment.model";
 
 /*
 

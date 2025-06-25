@@ -5,7 +5,7 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { TopicModel } from "../../../models/topic.model";
+import { TopicModel } from "../topic/topic.model";
 
 /*
 

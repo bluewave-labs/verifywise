@@ -1,4 +1,7 @@
-import { Control, ControlModel } from "../models/control.model";
+import {
+  Control,
+  ControlModel,
+} from "../domain.layer/models/control/control.model";
 import { sequelize } from "../database/db";
 import { createNewSubControlsQuery } from "./subControl.utils";
 import { Model, QueryTypes, Transaction } from "sequelize";
@@ -8,7 +11,7 @@ export const getAllControlsQuery = async (): Promise<Control[]> => {
     "SELECT * FROM controls ORDER BY created_at DESC, id ASC",
     {
       mapToModel: true,
-      model: ControlModel
+      model: ControlModel,
     }
   );
   return controls;
@@ -22,7 +25,7 @@ export const getControlByIdQuery = async (
     {
       mapToModel: true,
       model: ControlModel,
-      replacements: { id: id }
+      replacements: { id: id },
     }
   );
   return result[0];
@@ -36,7 +39,7 @@ export const getAllControlsByControlGroupQuery = async (
     {
       replacements: { control_category_id: controlGroupId },
       mapToModel: true,
-      model: ControlModel
+      model: ControlModel,
     }
   );
   return controls;
@@ -56,10 +59,10 @@ export const getControlByIdAndControlTitleAndControlDescriptionQuery = async (
       replacements: {
         control_category_id: id,
         control_title: controlTitle,
-        control_description: controlDescription
+        control_description: controlDescription,
       },
       mapToModel: true,
-      model: ControlModel
+      model: ControlModel,
     }
   );
   return result[0];
@@ -117,13 +120,19 @@ export const updateControlByIdQuery = async (
     "owner",
     "reviewer",
     "due_date",
-    "implementation_details"
-  ].filter(f => {
-    if (control[f as keyof Control] !== undefined && control[f as keyof Control]) {
-      updateControl[f as keyof Control] = control[f as keyof Control]
-      return true
-    }
-  }).map(f => `${f} = :${f}`).join(", ");
+    "implementation_details",
+  ]
+    .filter((f) => {
+      if (
+        control[f as keyof Control] !== undefined &&
+        control[f as keyof Control]
+      ) {
+        updateControl[f as keyof Control] = control[f as keyof Control];
+        return true;
+      }
+    })
+    .map((f) => `${f} = :${f}`)
+    .join(", ");
 
   const query = `UPDATE controls SET ${setClause} WHERE id = :id RETURNING *;`;
 
@@ -190,8 +199,10 @@ export const createNewControlsQuery = async (
         description: controlStruct.description,
         order_no: controlStruct.order_no,
         control_category_id: controlCategoryId,
-        implementation_details: enable_ai_data_insertion ? controlStruct.implementation_details : null,
-        status: enable_ai_data_insertion ? 'Waiting' : null
+        implementation_details: enable_ai_data_insertion
+          ? controlStruct.implementation_details
+          : null,
+        status: enable_ai_data_insertion ? "Waiting" : null,
       },
       mapToModel: true,
       model: ControlModel,

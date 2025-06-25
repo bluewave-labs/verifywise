@@ -21,7 +21,7 @@ import { sequelize } from "../database/db";
 import { QueryTypes, Transaction } from "sequelize";
 import { ProjectModel } from "../domain.layer/models/project/project.model";
 import { VendorModel } from "../models/vendor.model";
-import { ControlModel } from "../models/control.model";
+import { ControlModel } from "../domain.layer/models/control/control.model";
 import { SubcontrolModel } from "../models/subcontrol.model";
 import { ProjectRiskModel } from "../models/projectRisk.model";
 import { VendorRiskModel } from "../models/vendorRisk.model";

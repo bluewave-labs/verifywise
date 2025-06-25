@@ -1,6 +1,13 @@
-import { Column, DataType, ForeignKey, Model, Table, Validate } from "sequelize-typescript";
-import { Subcontrol } from "./subcontrol.model";
-import { ControlCategoryModel } from "./controlCategory.model";
+import {
+  Column,
+  DataType,
+  ForeignKey,
+  Model,
+  Table,
+  Validate,
+} from "sequelize-typescript";
+import { Subcontrol } from "../../../models/subcontrol.model";
+import { ControlCategoryModel } from "../../../models/controlCategory.model";
 
 /*
 
@@ -28,7 +35,7 @@ export type Control = {
 };
 
 @Table({
-  tableName: "controls"
+  tableName: "controls",
 })
 export class ControlModel extends Model<Control> {
   @Column({
@@ -65,7 +72,11 @@ export class ControlModel extends Model<Control> {
   approver?: number;
 
   @Column({
-    type: DataType.ENUM("Acceptable risk", "Residual risk", "Unacceptable risk"),
+    type: DataType.ENUM(
+      "Acceptable risk",
+      "Residual risk",
+      "Unacceptable risk"
+    ),
   })
   risk_review?: "Acceptable risk" | "Residual risk" | "Unacceptable risk";
 
@@ -98,12 +109,12 @@ export class ControlModel extends Model<Control> {
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
-    defaultValue: false
+    defaultValue: false,
   })
   is_demo?: boolean;
 
   @Column({
-    type: DataType.DATE
+    type: DataType.DATE,
   })
   created_at?: Date;
 }

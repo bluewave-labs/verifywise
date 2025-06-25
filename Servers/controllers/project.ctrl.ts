@@ -20,7 +20,7 @@ import {
 } from "../domain.layer/models/project/project.model";
 import { getAllControlsByControlGroupQuery } from "../utils/control.utils";
 import { getAllSubcontrolsByControlIdQuery } from "../utils/subControl.utils";
-import { ControlModel } from "../models/control.model";
+import { ControlModel } from "../domain.layer/models/control/control.model";
 import { ControlCategoryModel } from "../models/controlCategory.model";
 import { createEUFrameworkQuery } from "../utils/eu.utils";
 import { sequelize } from "../database/db";

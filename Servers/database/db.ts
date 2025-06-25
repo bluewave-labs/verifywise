@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 import { Sequelize } from "sequelize-typescript";
 import { RoleModel } from "../domain.layer/models/role/role.model";
 import { AssessmentModel } from "../domain.layer/models/assessment/assessment.model";
-import { ControlModel } from "../models/control.model";
+import { ControlModel } from "../domain.layer/models/control/control.model";
 import { ControlCategoryModel } from "../models/controlCategory.model";
 import { FileModel } from "../models/file.model";
 import { ProjectModel } from "../domain.layer/models/project/project.model";

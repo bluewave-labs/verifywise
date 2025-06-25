@@ -1,4 +1,10 @@
-import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
+import {
+  Column,
+  DataType,
+  ForeignKey,
+  Model,
+  Table,
+} from "sequelize-typescript";
 import { AnnexStructISOModel } from "./annexStructISO.model";
 
 export type AnnexCategoryStructISO = {
@@ -9,10 +15,10 @@ export type AnnexCategoryStructISO = {
   sub_id: number;
   order_no?: number;
   annex_id?: number;
-}
+};
 
 @Table({
-  tableName: "annexcategory_struct_iso"
+  tableName: "annexcategory_struct_iso",
 })
 export class AnnexCategoryStructISOModel extends Model<AnnexCategoryStructISO> {
   @Column({
@@ -23,33 +29,33 @@ export class AnnexCategoryStructISOModel extends Model<AnnexCategoryStructISO> {
   id!: number;
 
   @Column({
-    type: DataType.STRING
+    type: DataType.STRING,
   })
   title!: string;
 
   @Column({
-    type: DataType.STRING
+    type: DataType.STRING,
   })
   description!: string;
 
   @Column({
-    type: DataType.STRING
+    type: DataType.STRING,
   })
   guidance!: string;
 
   @Column({
-    type: DataType.INTEGER
+    type: DataType.INTEGER,
   })
   sub_id!: number;
 
   @Column({
-    type: DataType.INTEGER
+    type: DataType.INTEGER,
   })
   order_no?: number;
 
   @ForeignKey(() => AnnexStructISOModel)
   @Column({
-    type: DataType.INTEGER
+    type: DataType.INTEGER,
   })
   annex_id?: number;
 }

@@ -1,18 +1,18 @@
 import { QueryTypes, Transaction } from "sequelize";
 import { sequelize } from "../database/db";
-import { ClauseStructISOModel } from "../models/ISO-42001/clauseStructISO.model";
-import { SubClauseStructISOModel } from "../models/ISO-42001/subClauseStructISO.model";
+import { ClauseStructISOModel } from "../domain.layer/frameworks/ISO-42001/clauseStructISO.model";
+import { SubClauseStructISOModel } from "../domain.layer/frameworks/ISO-42001/subClauseStructISO.model";
 import {
   SubClauseISO,
   SubClauseISOModel,
-} from "../models/ISO-42001/subClauseISO.model";
-import { AnnexStructISOModel } from "../models/ISO-42001/annexStructISO.model";
+} from "../domain.layer/frameworks/ISO-42001/subClauseISO.model";
+import { AnnexStructISOModel } from "../domain.layer/frameworks/ISO-42001/annexStructISO.model";
 import {
   AnnexCategoryISO,
   AnnexCategoryISOModel,
-} from "../models/ISO-42001/annexCategoryISO.model";
-import { AnnexCategoryStructISOModel } from "../models/ISO-42001/annexCategoryStructISO.model";
-import { AnnexCategoryISORisksModel } from "../models/ISO-42001/annexCategoryISORIsks.model";
+} from "../domain.layer/frameworks/ISO-42001/annexCategoryISO.model";
+import { AnnexCategoryStructISOModel } from "../domain.layer/frameworks/ISO-42001/annexCategoryStructISO.model";
+import { AnnexCategoryISORisksModel } from "../domain.layer/frameworks/ISO-42001/annexCategoryISORIsks.model";
 import { ProjectFrameworksModel } from "../domain.layer/models/projectFrameworks/projectFrameworks.model";
 import { Clauses } from "../structures/ISO-42001/clauses/clauses.struct";
 import { Annex } from "../structures/ISO-42001/annex/annex.struct";

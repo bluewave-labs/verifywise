@@ -1,4 +1,10 @@
-import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
+import {
+  Column,
+  DataType,
+  ForeignKey,
+  Model,
+  Table,
+} from "sequelize-typescript";
 import { ClauseStructISOModel } from "./clauseStructISO.model";
 
 export type SubClauseStructISO = {
@@ -9,10 +15,10 @@ export type SubClauseStructISO = {
   questions: string[];
   evidence_examples: string[];
   clause_id?: number;
-}
+};
 
 @Table({
-  tableName: "subclause_struct_iso"
+  tableName: "subclause_struct_iso",
 })
 export class SubClauseStructISOModel extends Model<SubClauseStructISO> {
   @Column({
@@ -23,33 +29,33 @@ export class SubClauseStructISOModel extends Model<SubClauseStructISO> {
   id!: number;
 
   @Column({
-    type: DataType.STRING
+    type: DataType.STRING,
   })
   title!: string;
 
   @Column({
-    type: DataType.INTEGER
+    type: DataType.INTEGER,
   })
   order_no!: number;
 
   @Column({
-    type: DataType.STRING
+    type: DataType.STRING,
   })
   summary!: string;
 
   @Column({
-    type: DataType.ARRAY(DataType.STRING)
+    type: DataType.ARRAY(DataType.STRING),
   })
   questions!: string[];
 
   @Column({
-    type: DataType.ARRAY(DataType.STRING)
+    type: DataType.ARRAY(DataType.STRING),
   })
   evidence_examples!: string[];
 
   @ForeignKey(() => ClauseStructISOModel)
   @Column({
-    type: DataType.INTEGER
+    type: DataType.INTEGER,
   })
   clause_id!: number;
 }

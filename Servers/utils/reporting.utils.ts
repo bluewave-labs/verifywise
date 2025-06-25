@@ -17,8 +17,8 @@ import {
   getComplianceEUByProjectIdQuery,
 } from "./eu.utils";
 import { TopicStructEUModel } from "../domain.layer/frameworks/EU-AI-Act/topicStructEU.model";
-import { AnnexStructISOModel } from "../models/ISO-42001/annexStructISO.model";
-import { ClauseStructISOModel } from "../models/ISO-42001/clauseStructISO.model";
+import { AnnexStructISOModel } from "../domain.layer/frameworks/ISO-42001/annexStructISO.model";
+import { ClauseStructISOModel } from "../domain.layer/frameworks/ISO-42001/clauseStructISO.model";
 
 /**
  * Retrieves all project risk data from the `projectrisks` table,

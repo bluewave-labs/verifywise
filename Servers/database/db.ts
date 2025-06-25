@@ -31,13 +31,13 @@ import { SubcontrolStructEUModel } from "../domain.layer/frameworks/EU-AI-Act/su
 import { ControlEUModel } from "../domain.layer/frameworks/EU-AI-Act/controlEU.model";
 import { SubcontrolEUModel } from "../domain.layer/frameworks/EU-AI-Act/subControlEU.model";
 import { AssessmentEUModel } from "../domain.layer/frameworks/EU-AI-Act/assessmentEU.model";
-import { AnnexCategoryISOModel } from "../models/ISO-42001/annexCategoryISO.model";
-import { AnnexCategoryISORisksModel } from "../models/ISO-42001/annexCategoryISORIsks.model";
-import { AnnexCategoryStructISOModel } from "../models/ISO-42001/annexCategoryStructISO.model";
-import { AnnexStructISOModel } from "../models/ISO-42001/annexStructISO.model";
-import { ClauseStructISOModel } from "../models/ISO-42001/clauseStructISO.model";
-import { SubClauseISOModel } from "../models/ISO-42001/subClauseISO.model";
-import { SubClauseStructISOModel } from "../models/ISO-42001/subClauseStructISO.model";
+import { AnnexCategoryISOModel } from "../domain.layer/frameworks/ISO-42001/annexCategoryISO.model";
+import { AnnexCategoryISORisksModel } from "../domain.layer/frameworks/ISO-42001/annexCategoryISORIsks.model";
+import { AnnexCategoryStructISOModel } from "../domain.layer/frameworks/ISO-42001/annexCategoryStructISO.model";
+import { AnnexStructISOModel } from "../domain.layer/frameworks/ISO-42001/annexStructISO.model";
+import { ClauseStructISOModel } from "../domain.layer/frameworks/ISO-42001/clauseStructISO.model";
+import { SubClauseISOModel } from "../domain.layer/frameworks/ISO-42001/subClauseISO.model";
+import { SubClauseStructISOModel } from "../domain.layer/frameworks/ISO-42001/subClauseStructISO.model";
 import { OrganizationModel } from "../domain.layer/models/organization/organization.model";
 import { TrainingRegistarModel } from "../domain.layer/models/trainingRegistar/trainingRegistar.model";
 

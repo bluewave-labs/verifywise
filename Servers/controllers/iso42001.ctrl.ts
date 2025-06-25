@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { sequelize } from "../database/db";
-import { SubClauseISO } from "../models/ISO-42001/subClauseISO.model";
+import { SubClauseISO } from "../domain.layer/frameworks/ISO-42001/subClauseISO.model";
 import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
@@ -23,7 +23,7 @@ import {
   updateSubClauseQuery,
 } from "../utils/iso42001.utils";
 import { FileType } from "../domain.layer/models/file/file.model";
-import { AnnexCategoryISO } from "../models/ISO-42001/annexCategoryISO.model";
+import { AnnexCategoryISO } from "../domain.layer/frameworks/ISO-42001/annexCategoryISO.model";
 import {
   getAllProjectsQuery,
   updateProjectUpdatedByIdQuery,

@@ -5,7 +5,7 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { ProjectRiskModel } from "../../domain.layer/models/projectRisks/projectRisk.model";
+import { ProjectRiskModel } from "../../models/projectRisks/projectRisk.model";
 import { AnnexCategoryISOModel } from "./annexCategoryISO.model";
 
 export type AnnexCategoryISORisks = {

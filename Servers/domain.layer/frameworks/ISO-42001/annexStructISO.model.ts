@@ -5,7 +5,7 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { FrameworkModel } from "../../domain.layer/models/frameworks/frameworks.model";
+import { FrameworkModel } from "../../models/frameworks/frameworks.model";
 import { AnnexCategoryISO } from "./annexCategoryISO.model";
 import { AnnexCategoryStructISO } from "./annexCategoryStructISO.model";
 

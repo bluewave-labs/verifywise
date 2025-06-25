@@ -7,7 +7,7 @@ import {
   Validate,
 } from "sequelize-typescript";
 import { Subcontrol } from "../../../models/subcontrol.model";
-import { ControlCategoryModel } from "../../../models/controlCategory.model";
+import { ControlCategoryModel } from "../controlCategory/controlCategory.model";
 
 /*
 

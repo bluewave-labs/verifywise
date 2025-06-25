@@ -10,7 +10,7 @@ import {
   deleteControlCategoryByIdQuery,
   getControlCategoryByProjectIdQuery,
 } from "../utils/controlCategory.utils";
-import { ControlCategory } from "../models/controlCategory.model";
+import { ControlCategory } from "../domain.layer/models/controlCategory/controlCategory.model";
 import { sequelize } from "../database/db";
 
 export async function getAllControlCategories(
@@ -63,7 +63,8 @@ export async function createControlCategory(
   try {
     const newControlCategory: ControlCategory = req.body;
     const createdControlCategory = await createControlCategoryQuery(
-      newControlCategory, transaction
+      newControlCategory,
+      transaction
     );
     await transaction.commit();
     return res.status(201).json(createdControlCategory);
@@ -102,7 +103,8 @@ export async function deleteControlCategoryById(
   try {
     const controlCategoryId = parseInt(req.params.id);
     const deletedControlCategory = await deleteControlCategoryByIdQuery(
-      controlCategoryId, transaction
+      controlCategoryId,
+      transaction
     );
     await transaction.commit();
     return res.status(202).json(deletedControlCategory);

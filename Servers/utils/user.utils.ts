@@ -26,7 +26,7 @@ import { SubcontrolModel } from "../models/subcontrol.model";
 import { ProjectRiskModel } from "../models/projectRisk.model";
 import { VendorRiskModel } from "../models/vendorRisk.model";
 import { FileModel } from "../models/file.model";
-import { ControlCategoryModel } from "../models/controlCategory.model";
+import { ControlCategoryModel } from "../domain.layer/models/controlCategory/controlCategory.model";
 import { AssessmentModel } from "../domain.layer/models/assessment/assessment.model";
 import { TopicModel } from "../models/topic.model";
 import { SubtopicModel } from "../models/subtopic.model";

@@ -19,7 +19,7 @@ import { ProjectScopeModel } from "../domain.layer/models/projectScope/projectSc
 import { Topics } from "../structures/EU-AI-Act/assessment-tracker/topics.struct";
 import { ControlCategories } from "../structures/EU-AI-Act/compliance-tracker/controlCategories.struct";
 import { deleteHelper } from "./project.utils";
-import { ProjectFrameworksModel } from "../models/projectFrameworks.model";
+import { ProjectFrameworksModel } from "../domain.layer/models/projectFrameworks/projectFrameworks.model";
 import { STATUSES_ANSWERS, STATUSES_COMPLIANCE } from "../types/status.type";
 
 const getDemoAnswers = (): String[] => {

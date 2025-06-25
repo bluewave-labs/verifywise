@@ -20,7 +20,7 @@ import { VendorsProjectsModel } from "../domain.layer/models/vendorsProjects/ven
 import dbConfig from "./config/config";
 import { Dialect } from "sequelize";
 import { FrameworkModel } from "../domain.layer/models/frameworks/frameworks.model";
-import { ProjectFrameworksModel } from "../models/projectFrameworks.model";
+import { ProjectFrameworksModel } from "../domain.layer/models/projectFrameworks/projectFrameworks.model";
 import { TopicStructEUModel } from "../models/EU/topicStructEU.model";
 import { SubtopicStructEUModel } from "../models/EU/subTopicStructEU.model";
 import { QuestionStructEUModel } from "../models/EU/questionStructEU.model";

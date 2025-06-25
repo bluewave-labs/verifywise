@@ -7,7 +7,7 @@ import {
 } from "sequelize-typescript";
 import { UserModel } from "../../domain.layer/models/user/user.model";
 import { SubClauseStructISOModel } from "./subClauseStructISO.model";
-import { ProjectFrameworksModel } from "../projectFrameworks.model";
+import { ProjectFrameworksModel } from "../../domain.layer/models/projectFrameworks/projectFrameworks.model";
 import { Status, STATUSES } from "../../types/status.type";
 
 export type SubClauseISO = {

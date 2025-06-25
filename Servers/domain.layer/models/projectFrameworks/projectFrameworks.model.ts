@@ -5,8 +5,8 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { ProjectModel } from "../domain.layer/models/project/project.model";
-import { FrameworkModel } from "../domain.layer/models/frameworks/frameworks.model";
+import { ProjectModel } from "../project/project.model";
+import { FrameworkModel } from "../frameworks/frameworks.model";
 
 export type ProjectFrameworks = {
   framework_id: number;

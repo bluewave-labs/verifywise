@@ -6,7 +6,7 @@ import {
   Table,
 } from "sequelize-typescript";
 import { UserModel } from "../../domain.layer/models/user/user.model";
-import { ProjectFrameworksModel } from "../projectFrameworks.model";
+import { ProjectFrameworksModel } from "../../domain.layer/models/projectFrameworks/projectFrameworks.model";
 import { AnnexCategoryStructISOModel } from "./annexCategoryStructISO.model";
 import { Status, STATUSES } from "../../types/status.type";
 

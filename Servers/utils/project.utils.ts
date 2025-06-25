@@ -10,7 +10,7 @@ import { VendorModel } from "../domain.layer/models/vendor/vendor.model";
 import { VendorRiskModel } from "../domain.layer/models/vendorRisk/vendorRisk.model";
 import { ProjectRiskModel } from "../domain.layer/models/projectRisks/projectRisk.model";
 import { FileModel } from "../domain.layer/models/file/file.model";
-import { ProjectFrameworksModel } from "../models/projectFrameworks.model";
+import { ProjectFrameworksModel } from "../domain.layer/models/projectFrameworks/projectFrameworks.model";
 import { frameworkDeletionMap } from "../types/framework.type";
 import { Role } from "../domain.layer/models/role/role.model";
 

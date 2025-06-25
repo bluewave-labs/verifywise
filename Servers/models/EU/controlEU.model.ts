@@ -10,7 +10,7 @@ import {
 import { ControlCategoryStructEUModel } from "./controlCategoryStructEU.model";
 import { UserModel } from "../../domain.layer/models/user/user.model";
 import { SubcontrolEU } from "./subControlEU.model";
-import { ProjectFrameworksModel } from "../projectFrameworks.model";
+import { ProjectFrameworksModel } from "../../domain.layer/models/projectFrameworks/projectFrameworks.model";
 import { StatusCompliance, STATUSES_COMPLIANCE } from "../../types/status.type";
 
 /*

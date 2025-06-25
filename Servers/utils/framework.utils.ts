@@ -1,7 +1,7 @@
 import { QueryTypes, Transaction } from "sequelize";
 import { sequelize } from "../database/db";
 import { FrameworkModel } from "../domain.layer/models/frameworks/frameworks.model";
-import { ProjectFrameworksModel } from "../models/projectFrameworks.model";
+import { ProjectFrameworksModel } from "../domain.layer/models/projectFrameworks/projectFrameworks.model";
 import {
   frameworkAdditionMap,
   frameworkDeletionMap,

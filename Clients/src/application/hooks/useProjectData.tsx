@@ -30,7 +30,6 @@ const useProjectData = ({
   const { selectedProjectId } = dashboardValues;
 
   useEffect(() => {
-    console.log("is key refresh", refreshKey);
     if (!projectId) {
       setError("No project ID provided");
       setIsLoading(false);

@@ -1,5 +1,11 @@
-import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
-import { AssessmentModel } from "./assessment.model";
+import {
+  Column,
+  DataType,
+  ForeignKey,
+  Model,
+  Table,
+} from "sequelize-typescript";
+import { AssessmentModel } from "../domain.layer/models/assessment/assessment.model";
 
 /*
 
@@ -16,7 +22,7 @@ export type Topic = {
 };
 
 @Table({
-  tableName: "topics"
+  tableName: "topics",
 })
 export class TopicModel extends Model<Topic> {
   @Column({
@@ -27,30 +33,30 @@ export class TopicModel extends Model<Topic> {
   id?: number;
 
   @Column({
-    type: DataType.STRING
+    type: DataType.STRING,
   })
   title!: string;
 
   @Column({
-    type: DataType.INTEGER
+    type: DataType.INTEGER,
   })
   order_no?: number;
 
   @ForeignKey(() => AssessmentModel)
   @Column({
-    type: DataType.INTEGER
+    type: DataType.INTEGER,
   })
   assessment_id!: number;
 
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
-    defaultValue: false
+    defaultValue: false,
   })
   is_demo?: boolean;
 
   @Column({
-    type: DataType.DATE
+    type: DataType.DATE,
   })
   created_at?: Date;
 }

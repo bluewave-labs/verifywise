@@ -30,6 +30,7 @@ export async function GetAnnexesByProjectFrameworkId({
     signal,
     responseType,
   });
+  console.log("GetAnnexesByProjectFrameworkId response", response);
   return {
     status: response.status,
     data: response.data,

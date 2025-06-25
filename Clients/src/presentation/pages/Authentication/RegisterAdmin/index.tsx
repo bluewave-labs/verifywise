@@ -73,6 +73,7 @@ const RegisterAdmin: React.FC = () => {
     setIsSubmitting(true);
 
     const { isFormValid, errors } = validateForm(values);
+    console.log(isFormValid);
     if (!isFormValid) {
       setErrors(errors);
       setIsSubmitting(false);
@@ -180,7 +181,9 @@ const RegisterAdmin: React.FC = () => {
             isToast={true}
             onClick={() => {
               setAlert(null);
+              console.log("Before /login");
               navigate("/login");
+              console.log("After /login");
             }}
           />
         </Suspense>

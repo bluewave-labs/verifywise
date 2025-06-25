@@ -108,6 +108,14 @@ const QuestionFrame = ({
   const [uppy] = useState(createUppy(createUppyProps));
 
   const handleSave = async () => {
+    console.log(
+      "QuestionFrame: Saving answer for question",
+      question.question_id,
+      "project:",
+      currentProjectId,
+      "values:",
+      values
+    );
     try {
       const response = await updateEntityById({
         routeUrl: `/eu-ai-act/saveAnswer/${question.answer_id}`,
@@ -116,6 +124,7 @@ const QuestionFrame = ({
       if (response.status === 202) {
         setValues(response.data.data);
         setRefreshKey();
+        console.log("Question updated successfully:", response.data);
         handleAlert({
           variant: "success",
           body: "Question updated successfully",

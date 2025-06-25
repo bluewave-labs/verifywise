@@ -124,10 +124,12 @@ const RegisterUser: React.FC = () => {
   const checkValidInvitation = (expDate: any) => {
     let todayDate = new Date();
     let currentTime = todayDate.getTime();
+    console.log(currentTime);
 
     if (currentTime < expDate) {
       setIsInvitationValid(true);
     } else {
+      console.log("The link has expired already.");
       setIsInvitationValid(false);
     }
     return isInvitationValid;
@@ -136,6 +138,7 @@ const RegisterUser: React.FC = () => {
   useEffect(() => {
     if (userToken !== null) {
       const userInfo = extractUserToken(userToken);
+      console.log(userInfo);
       if (userInfo !== null) {
         const isValidLink = checkValidInvitation(userInfo?.expire);
 

@@ -76,8 +76,10 @@ const ISO42001Clauses = ({
       const response = await GetSubClausesById({
         routeUrl: `/iso-42001/subClauses/byClauseId/${clauseId}`,
       });
+      console.log("/iso-42001/subClauses/byClauseId/ -- > response", response);
       setSubClausesMap((prev) => ({ ...prev, [clauseId]: response.data }));
     } catch (error) {
+      console.error("Error fetching subclauses:", error);
       setSubClausesMap((prev) => ({ ...prev, [clauseId]: [] }));
     } finally {
       setLoadingSubClauses((prev) => ({ ...prev, [clauseId]: false }));
@@ -106,17 +108,11 @@ const ISO42001Clauses = ({
     setSelectedClause(null);
   };
 
-  const handleSaveSuccess = async (
-    success: boolean,
-    message?: string,
-    savedSubClauseId?: number
-  ) => {
+  const handleSaveSuccess = async (success: boolean, message?: string, savedSubClauseId?: number) => {
     // Show appropriate toast message
     handleAlert({
       variant: success ? "success" : "error",
-      body:
-        message ||
-        (success ? "Changes saved successfully" : "Failed to save changes"),
+      body: message || (success ? "Changes saved successfully" : "Failed to save changes"),
       setAlert,
     });
 
@@ -169,14 +165,16 @@ const ISO42001Clauses = ({
                 <Stack sx={styles.statusBadge(subClause.status ?? "")}>
                   {subClause.status
                     ? subClause.status.charAt(0).toUpperCase() +
-                      subClause.status.slice(1).toLowerCase()
+                    subClause.status.slice(1).toLowerCase()
                     : "Not started"}
                 </Stack>
               </Stack>
             )
           )
         ) : (
-          <Stack sx={styles.noSubClausesContainer}>No subclauses found</Stack>
+          <Stack sx={styles.noSubClausesContainer}>
+            No subclauses found
+          </Stack>
         )}
       </AccordionDetails>
     );
@@ -193,9 +191,7 @@ const ISO42001Clauses = ({
         title="Clauses"
         progressbarColor="#13715B"
       />
-      <Typography sx={{ ...styles.title, mt: 4 }}>
-        {"Management System Clauses"}
-      </Typography>
+      <Typography sx={{ ...styles.title, mt: 4 }}>{"Management System Clauses"}</Typography>
       {clauses &&
         clauses.map((clause: ClauseStructISO) => (
           <Stack key={clause.id} sx={styles.container}>
@@ -206,9 +202,7 @@ const ISO42001Clauses = ({
               onChange={handleAccordionChange(clause.id ?? 0)}
             >
               <AccordionSummary sx={styles.accordionSummary}>
-                <ExpandMoreIcon
-                  sx={styles.expandIcon(expanded === clause.id)}
-                />
+                <ExpandMoreIcon sx={styles.expandIcon(expanded === clause.id)} />
                 <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>
                   {clause.title}
                 </Typography>
@@ -225,9 +219,7 @@ const ISO42001Clauses = ({
           clause={selectedClause}
           projectFrameworkId={projectFrameworkId}
           project_id={project.id}
-          onSaveSuccess={(success, message) =>
-            handleSaveSuccess(success, message, selectedSubClause?.id)
-          }
+          onSaveSuccess={(success, message) => handleSaveSuccess(success, message, selectedSubClause?.id)}
           index={selectedIndex}
         />
       )}

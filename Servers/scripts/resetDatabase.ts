@@ -5,7 +5,6 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import { insertMockData } from "../driver/autoDriver.driver";
 import { QueryTypes } from "sequelize";
-import { UserModel } from "../domain.layer/models/user/user.model";
 
 const execAsync = promisify(exec);
 
@@ -66,17 +65,7 @@ async function resetDatabase() {
       password_hash,
     };
 
-    const admin = await createNewUserQuery(
-      await UserModel.createNewUser(
-        "VerifyWise",
-        "Admin",
-        "verifywise@email.com",
-        "MyJH4rTm!@.45L0wm",
-        1
-      ),
-      transaction,
-      true
-    );
+    const admin = await createNewUserQuery(adminData, transaction, true);
     await transaction.commit();
     console.log("Default admin user created.");
 

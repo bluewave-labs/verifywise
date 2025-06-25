@@ -179,6 +179,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
   const [anchor, setAnchor] = useState<null | HTMLElement>(null);
   const handleOpenOrClose = useCallback(
     (event: React.MouseEvent<HTMLElement>) => {
+      console.log("handleOpenOrClose called");
       setAnchor(anchor ? null : event.currentTarget);
     },
     [anchor]

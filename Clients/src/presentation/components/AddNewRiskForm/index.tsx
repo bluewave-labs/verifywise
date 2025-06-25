@@ -119,6 +119,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   const [value, setValue] = useState("risks");
   const handleChange = useCallback(
     (_: React.SyntheticEvent, newValue: string) => {
+      console.log(newValue);
       setValue(newValue);
     },
     []

@@ -7,6 +7,7 @@ const SmallStatsCard = ({
   rate = 60,
   progress = "90/100",
 }) => {
+  console.log("attributeTitle: ", attributeTitle, " rate: ", rate);
   return (
     <Stack className="small-stats-card" sx={smallStatsCardStyle}>
       <Stack className="small-stats-card-header" sx={smallStatsCardHeader}>

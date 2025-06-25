@@ -5,8 +5,8 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { VendorModel } from "../domain.layer/models/vendor/vendor.model";
-import { UserModel } from "../domain.layer/models/user/user.model";
+import { VendorModel } from "../vendor/vendor.model";
+import { UserModel } from "../user/user.model";
 
 /*
 
@@ -20,6 +20,7 @@ export type VendorRisk = {
   order_no?: number; // gets assigned from the structure
   risk_description: string;
   impact_description: string;
+  impact?: "Negligible" | "Minor" | "Moderate" | "Major" | "Critical";
   likelihood: "Rare" | "Unlikely" | "Possible" | "Likely" | "Almost certain";
   risk_severity: "Negligible" | "Minor" | "Moderate" | "Major" | "Catastrophic";
   action_plan: string;

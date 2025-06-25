@@ -7,7 +7,7 @@ import { ProjectsMembersModel } from "../domain.layer/models/projectsMembers/pro
 import { QueryTypes, Transaction } from "sequelize";
 import { VendorsProjectsModel } from "../models/vendorsProjects.model";
 import { VendorModel } from "../domain.layer/models/vendor/vendor.model";
-import { VendorRiskModel } from "../models/vendorRisk.model";
+import { VendorRiskModel } from "../domain.layer/models/vendorRisk/vendorRisk.model";
 import { ProjectRiskModel } from "../domain.layer/models/projectRisks/projectRisk.model";
 import { FileModel } from "../models/file.model";
 import { ProjectFrameworksModel } from "../models/projectFrameworks.model";

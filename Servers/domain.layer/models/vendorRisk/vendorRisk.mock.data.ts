@@ -1,4 +1,4 @@
-import { VendorRisk } from "../models/vendorRisk.model";
+import { VendorRisk } from "./vendorRisk.model";
 
 // Sample mock data for VendorRisk
 const mockVendorRisks = (

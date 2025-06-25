@@ -24,7 +24,7 @@ import { VendorModel } from "../domain.layer/models/vendor/vendor.model";
 import { ControlModel } from "../domain.layer/models/control/control.model";
 import { SubcontrolModel } from "../domain.layer/models/subcontrol/subcontrol.model";
 import { ProjectRiskModel } from "../domain.layer/models/projectRisks/projectRisk.model";
-import { VendorRiskModel } from "../models/vendorRisk.model";
+import { VendorRiskModel } from "../domain.layer/models/vendorRisk/vendorRisk.model";
 import { FileModel } from "../models/file.model";
 import { ControlCategoryModel } from "../domain.layer/models/controlCategory/controlCategory.model";
 import { AssessmentModel } from "../domain.layer/models/assessment/assessment.model";

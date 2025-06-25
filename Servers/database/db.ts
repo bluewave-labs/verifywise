@@ -15,7 +15,7 @@ import { SubtopicModel } from "../domain.layer/models/subtopic/subtopic.model";
 import { TopicModel } from "../domain.layer/models/topic/topic.model";
 import { UserModel } from "../domain.layer/models/user/user.model";
 import { VendorModel } from "../domain.layer/models/vendor/vendor.model";
-import { VendorRiskModel } from "../models/vendorRisk.model";
+import { VendorRiskModel } from "../domain.layer/models/vendorRisk/vendorRisk.model";
 import { VendorsProjectsModel } from "../models/vendorsProjects.model";
 import dbConfig from "./config/config";
 import { Dialect } from "sequelize";

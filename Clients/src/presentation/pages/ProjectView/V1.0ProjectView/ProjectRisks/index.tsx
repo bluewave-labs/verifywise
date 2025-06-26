@@ -19,6 +19,7 @@ import CustomizableToast from "../../../../vw-v2-components/Toast";
 import CustomizableSkeleton from "../../../../vw-v2-components/Skeletons";
 import allowedRoles from "../../../../../application/constants/permissions";
 import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
+import AddNewRiskMITModal from "../../../../components/AddNewRiskMITForm";
 
 const TITLE_OF_COLUMNS = [
   "RISK NAME", // value from risk tab
@@ -67,6 +68,8 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
   const [showCustomizableSkeleton, setShowCustomizableSkeleton] =
     useState<boolean>(false);
   const [currentRow, setCurrentRow] = useState<number | null>(null);
+  const [anchor, setAnchor] = useState<null | HTMLElement>(null);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
   const fetchProjectRisks = useCallback(async () => {
     try {
@@ -98,10 +101,13 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
    *
    */
 
-  const [anchor, setAnchor] = useState<null | HTMLElement>(null);
   const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
     setAnchor(anchor ? null : event.currentTarget);
     setSelectedRow([]);
+  };
+
+  const handleAIModalOpen = () => {
+    setIsAIModalOpen(true);
   };
 
   const handleLoading = (message: string) => {
@@ -221,32 +227,43 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
         }}
       >
         <Stack
-          sx={{
-            width: "100%",
-            maxWidth: 1400,
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-between",
-          }}
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
         >
           <Typography sx={{ fontSize: 16, fontWeight: 600, color: "#1A1919" }}>
             Project risks
           </Typography>
-
-          <CustomizableButton
-            variant="contained"
-            text="Add new risk"
-            sx={{
-              backgroundColor: "#13715B",
-              border: "1px solid #13715B",
-              gap: 2,
-            }}
-            onClick={handleOpenOrClose}
-            icon={<AddCircleOutlineIcon />}
-            isDisabled={
-              !allowedRoles.projectRisks.create.includes(userRoleName)
-            }
-          />
+          <Stack direction="row" gap={10}>
+            <CustomizableButton
+              variant="contained"
+              text="Insert from AI risks database"
+              sx={{
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
+                gap: 2,
+              }}
+              onClick={handleAIModalOpen}
+              icon={<AddCircleOutlineIcon />}
+              isDisabled={
+                !allowedRoles.projectRisks.create.includes(userRoleName)
+              }
+            />
+            <CustomizableButton
+              variant="contained"
+              text="Add new risk"
+              sx={{
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
+                gap: 2,
+              }}
+              onClick={handleOpenOrClose}
+              icon={<AddCircleOutlineIcon />}
+              isDisabled={
+                !allowedRoles.projectRisks.create.includes(userRoleName)
+              }
+            />
+          </Stack>
         </Stack>
 
         {selectedRow.length > 0 && anchor ? (
@@ -304,6 +321,10 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
           />
         )}
       </Stack>
+      <AddNewRiskMITModal
+        isOpen={isAIModalOpen}
+        setIsOpen={setIsAIModalOpen}
+      />
     </Stack>
   );
 };

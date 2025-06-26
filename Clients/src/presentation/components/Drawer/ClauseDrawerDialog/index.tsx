@@ -585,8 +585,8 @@ const VWISO42001ClauseDrawerDialog = ({
             onClose={() => setIsLinkedRisksModalOpen(false)}
             PaperProps={{
               sx: {
-                width: '960px',
-                maxWidth: '960px',
+                width: '1100px',
+                maxWidth: '1100px',
                 minHeight: '350px'
               },
             }}

@@ -160,13 +160,7 @@ const RiskTableBody: React.FC<TableProps> = ({
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [checkedRows, setCheckedRows] = useState<number[]>([]);
-  const theme = useTheme();
-  
-  const getRange = useMemo(() => {
-    const start = page * rowsPerPage + 1;
-    const end = Math.min(page * rowsPerPage + rowsPerPage, rows?.length ?? 0);
-    return `${start} - ${end}`;
-  }, [page, rowsPerPage, rows?.length ?? 0]);
+  const theme = useTheme();  
 
   const handleChangePage = useCallback((_: unknown, newPage: number) => {
     setCurrentPagingation(newPage);

@@ -45,9 +45,11 @@ const Organization = () => {
   const [alert, setAlert] = useState<AlertState | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
 
-  //logo 
+  //logo
   const [organizationLogo, setOrganizationLogo] = useState<File | null>(null);
- const [organizationLogoUrl, setOrganizationLogoUrl] = useState<string | null>(null);
+  const [organizationLogoUrl, setOrganizationLogoUrl] = useState<string | null>(
+    null
+  );
 
   const fetchOrganization = useCallback(async () => {
     try {
@@ -166,11 +168,16 @@ const Organization = () => {
 
     setIsLoading(true);
     try {
+      const formData = new FormData();
+      formData.append("name", organizationName);
+      if (organizationLogo) {
+        formData.append("logo", organizationLogo);
+      }
+
       const response = await UpdateMyOrganization({
         routeUrl: `/organizations/${organizationId}`,
-        body: {
-          name: organizationName,
-        },
+        body: formData,
+        headers:{},
       });
       setAlert({
         variant: "success",
@@ -262,19 +269,17 @@ const Organization = () => {
               }
             />
             {/* logo upload and update */}
-            <FileUploadModal 
-            uploadProps={{
-            open: true,
-            onFileChanged: (file:File)=>{
-              setOrganizationLogo(file);
-              setOrganizationLogoUrl(URL.createObjectURL(file));
-              setHasChanges(true);
-            },
-            allowedFileTypes:["image/png", "image/jpeg", "image/jpg"]
-            // uploadEnndpoint={`/organizations/${organizationId}/logo`}
-
-            }}
-          
+            <FileUploadModal
+              uploadProps={{
+                open: true,
+                onFileChanged: (file: File) => {
+                  setOrganizationLogo(file);
+                  setOrganizationLogoUrl(URL.createObjectURL(file));
+                  setHasChanges(true);
+                },
+                allowedFileTypes: ["image/png", "image/jpeg", "image/jpg"],
+                // uploadEnndpoint={`/organizations/${organizationId}/logo`}
+              }}
             />
           </Stack>
         </Box>

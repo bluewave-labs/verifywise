@@ -29,8 +29,17 @@ interface LinkedRisksModalProps {
   onClose: () => void;
 }
 
+interface Risk {
+  id: number;
+  risk_name: string;
+  risk_description: string;
+  risk_severity: string;
+  likelihood: string;
+  risk_category: string;
+}
+
 interface TableProps {
-  rows: any[];
+  rows: Risk[];
   page: number;
   setCurrentPagingation: (pageNo: number) => void;
 }
@@ -39,7 +48,11 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
   onClose
 }) => {
   const [searchParams] = useSearchParams();
-  const projectId = parseInt(searchParams.get("projectId") ?? "0");  
+  const projectId = useMemo(() => {
+    const id = searchParams.get("projectId");
+    const parsedId = id ? parseInt(id, 10) : 0;
+    return isNaN(parsedId) ? 0 : parsedId;
+  }, [searchParams]);  
   const { projectRisks } = useProjectRisks({ projectId });  
   const [currentPage, setCurrentPage] = useState(0);
   const [searchInput, setSearchInput] = useState<string>("");
@@ -174,11 +187,11 @@ const RiskTableBody: React.FC<TableProps> = ({
     [setRowsPerPage, setCurrentPagingation]
   );
 
-  const handleRowClick = (index: number) => {
+  const handleRowClick = (riskId: number) => {
     setCheckedRows((prev) =>
-      prev.includes(index)
-        ? prev.filter((i) => i !== index)
-        : [...prev, index]
+      prev.includes(riskId)
+        ? prev.filter((i) => i !== riskId)
+        : [...prev, riskId]
     );
   };
 
@@ -188,14 +201,14 @@ const RiskTableBody: React.FC<TableProps> = ({
         {rows &&
           rows
           .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((row: any, index: number) => (
-              <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row} onClick={() => handleRowClick(index)}>
+            .map((row: Risk, index: number) => (
+              <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row} onClick={() => handleRowClick(row.id)}>
                 <TableCell sx={cellStyle}>
                   <MuiCheckbox
                     size="small"
                     id="auto-fill"
-                    checked={checkedRows.includes(index)}
-                    onChange={() => handleRowClick(index)}
+                    checked={checkedRows.includes(row.id)}
+                    onChange={() => handleRowClick(row.id)}
                     onClick={(e) => e.stopPropagation()}  
                     checkedIcon={<CheckboxFilled />}
                     icon={<CheckboxOutline />}

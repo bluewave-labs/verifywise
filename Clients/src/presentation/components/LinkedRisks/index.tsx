@@ -17,7 +17,6 @@ import {
   tableWrapper,
   emptyData,
   styles,
-  pagniationStatus, 
   paginationStyle, 
   paginationDropdown, 
   paginationSelect

@@ -107,9 +107,3 @@ export const paginationWrapper = ( theme:any ) => ({
     color: theme.palette.text.tertiary,
   },
 })
-
-export const pagniationStatus = ( theme:any ) => ({
-  paddingX: theme.spacing(2),
-  fontSize: 12,
-  opacity: 0.7,
-})

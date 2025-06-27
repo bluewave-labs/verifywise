@@ -589,7 +589,7 @@ const VWISO42001AnnexDrawerDialog = ({
             <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
           )}
 
-<Stack direction="row" spacing={2}>
+          <Stack direction="row" spacing={2}>
             <Button
               variant="contained"
               sx={{

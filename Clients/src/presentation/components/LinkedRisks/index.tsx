@@ -223,7 +223,7 @@ const RiskTableBody: React.FC<TableProps> = ({
                   />
                 </TableCell>
                 <TableCell sx={cellStyle}>
-                  {index + 1}
+                  {page * rowsPerPage + index + 1}
                 </TableCell>
                 <TableCell>
                   {row.risk_name ? row.risk_name : '-'}

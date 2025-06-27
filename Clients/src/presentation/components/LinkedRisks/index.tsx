@@ -50,7 +50,7 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
   }
 
   const handleFormSubmit = () => {
-
+    onClose();
   }
 
   const handleOnTextFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {

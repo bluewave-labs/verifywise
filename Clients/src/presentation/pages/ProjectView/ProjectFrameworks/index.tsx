@@ -25,6 +25,7 @@ import {
 import ISO42001Annex from "../../ISO/Annex";
 import ISO42001Clauses from "../../ISO/Clause";
 import allowedRoles from "../../../../application/constants/permissions";
+import TabFilterBar from "../../../components/TabFilterBar";
 
 const FRAMEWORK_IDS = {
   EU_AI_ACT: 1,
@@ -154,6 +155,16 @@ const ProjectFrameworks = ({
   const isEUAIAct = Number(selectedFrameworkId) === FRAMEWORK_IDS.EU_AI_ACT;
   const tabs = isISO42001 ? ISO_42001_TABS : TRACKER_TABS;
 
+  const [statusFilter, setStatusFilter] = useState("");
+  const [applicabilityFilter, setApplicabilityFilter] = useState("");
+
+  useEffect(() => {
+  setStatusFilter("");
+  setApplicabilityFilter("");
+  }, [tracker]);
+
+
+
   return (
     <Box sx={containerStyle}>
       <Box sx={headerContainerStyle}>
@@ -188,6 +199,17 @@ const ProjectFrameworks = ({
           Manage frameworks
         </Button>
       </Box>
+      <TabFilterBar
+  statusFilter={statusFilter}
+  onStatusChange={setStatusFilter}
+  applicabilityFilter={applicabilityFilter}
+  onApplicabilityChange={setApplicabilityFilter}
+  showStatusFilter={
+    (isISO42001 && (tracker === "clauses" || tracker === "annexes")) ||
+    (isEUAIAct && (tracker === "compliance" || tracker === "assessment"))
+  }
+  showApplicabilityFilter={isISO42001 && tracker === "annexes"}
+/>
 
       <AddFrameworkModal
         open={isModalOpen}
@@ -237,6 +259,7 @@ const ProjectFrameworks = ({
                 projectFrameworkId={
                   projectFrameworksMap.get(Number(selectedFrameworkId))!
                 }
+                statusFilter={statusFilter}
               />
             </TabPanel>
             <TabPanel value="annexes" sx={tabPanelStyle}>

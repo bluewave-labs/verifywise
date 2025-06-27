@@ -43,6 +43,7 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
   const projectId = parseInt(searchParams.get("projectId") ?? "0");  
   const { projectRisks } = useProjectRisks({ projectId });  
   const [currentPage, setCurrentPage] = useState(0);
+  const [searchInput, setSearchInput] = useState<string>("");
 
   const setCurrentPagingation = (page: number) => {
     setCurrentPage(page)
@@ -52,60 +53,89 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
 
   }
 
+  const handleOnTextFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchInput(event.target.value);
+  };  
+
+  const filteredRisks = projectRisks.filter(risk =>
+    risk.risk_name.toLowerCase().includes(searchInput.toLowerCase())
+  );
+
   return (
     <Stack sx={styles.container}>
-      <Stack sx={styles.headingSection}>
-        <Typography sx={ styles.textTitle }>Link a risk from risk database</Typography>
-        <ClearIcon
-          sx={ styles.clearIconStyle }
-          onClick={onClose}
-        />
-      </Stack>
-      <Stack sx={styles.searchInputWrapper}>
-        <Typography sx={{ fontSize: 13, color: "#344054", mr: 8 }}>Search from the risk database:</Typography>
-        <Stack>
-          <Field
-            id="risk-input"
-            width="350px"
-            sx={textfieldStyle}
+      <Stack>
+        <Stack sx={styles.headingSection}>
+          <Typography sx={ styles.textTitle }>Link a risk from risk database</Typography>
+          <ClearIcon
+            sx={ styles.clearIconStyle }
+            onClick={onClose}
           />
         </Stack>
-      </Stack>
-      <Stack>
-        <TableContainer>
-          <Table
-            sx={{
-              ...singleTheme.tableStyles.primary.frame,
-              ...tableWrapper
-            }}
-          >
-            <TableHeader columns={TITLE_OF_COLUMNS} />
-            {projectRisks.length > 0 ? 
-              <>
-                <RiskTableBody 
-                  rows={projectRisks} 
-                  setCurrentPagingation={setCurrentPagingation}
-                  page={currentPage}
-                />
-              </> 
-              : <>
-                <TableBody>
-                  <TableRow>
-                    <TableCell
-                      colSpan={TITLE_OF_COLUMNS.length}
-                      align="center"
-                      sx={emptyData}
-                    >
-                      <img src={placeholderImage} alt="Placeholder" />
-                      <Typography sx={styles.textBase}>
-                        There is currently no risk in this project.
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </>}
-          </Table>
-        </TableContainer>
+        <Stack 
+          component="form"
+          sx={styles.searchInputWrapper}>
+          <Typography sx={{ fontSize: 13, color: "#344054", mr: 8 }}>Search from the risk database:</Typography>
+          <Stack>
+            <Field
+              id="risk-input"
+              width="350px"
+              sx={textfieldStyle}
+              value={searchInput}
+              onChange={handleOnTextFieldChange}
+            />
+          </Stack>
+        </Stack>
+        <Stack>
+          <TableContainer>
+            <Table
+              sx={{
+                ...singleTheme.tableStyles.primary.frame,
+                ...tableWrapper
+              }}
+            >
+              <TableHeader columns={TITLE_OF_COLUMNS} />
+              {projectRisks.length > 0 ? 
+                <>
+                  {filteredRisks.length > 0 ? 
+                    <RiskTableBody 
+                      rows={filteredRisks} 
+                      setCurrentPagingation={setCurrentPagingation}
+                      page={currentPage}
+                    />
+                  : <>
+                    <TableRow>
+                      <TableCell
+                        colSpan={TITLE_OF_COLUMNS.length}
+                        align="center"
+                        sx={emptyData}
+                      >
+                        <img src={placeholderImage} alt="Placeholder" />
+                        <Typography sx={styles.textBase}>
+                          No risks found in database
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  </>}
+                </> 
+                : <>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell
+                        colSpan={TITLE_OF_COLUMNS.length}
+                        align="center"
+                        sx={emptyData}
+                      >
+                        <img src={placeholderImage} alt="Placeholder" />
+                        <Typography sx={styles.textBase}>
+                          There is currently no risk in this project.
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </>}
+            </Table>
+          </TableContainer>
+        </Stack>
       </Stack>
       <Stack sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end'}}>
         <Button 
@@ -213,9 +243,6 @@ const RiskTableBody: React.FC<TableProps> = ({
             paddingX: theme.spacing(8),
             paddingY: theme.spacing(4),
           }}}>
-          {/* <TableCell sx={pagniationStatus}>
-            Showing {getRange} of {rows?.length} project report(s)
-          </TableCell> */}
           <TablePagination
             count={rows?.length}
             page={page}

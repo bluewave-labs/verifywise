@@ -32,18 +32,22 @@ export const styles = {
     backgroundColor: "#FCFCFD",
     padding: 10,
     borderRadius: "4px",
-    gap: 10
+    gap: 10,
+    justifyContent: "space-between",
+    minHeight: "520px"
   },
   headingSection: {
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-between",
-    width: '100%'
+    width: '100%',
+    marginBottom: "20px"
   },
   searchInputWrapper: {
     display: "flex",
     flexDirection: "row",
-    alignItems: "center"
+    alignItems: "center",
+    marginBottom: "24px"
   },
   clearIconStyle: {
     color: "#98A2B3", 

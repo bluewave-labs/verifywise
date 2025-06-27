@@ -587,7 +587,7 @@ const VWISO42001ClauseDrawerDialog = ({
               sx: {
                 width: '1100px',
                 maxWidth: '1100px',
-                minHeight: '350px'
+                minHeight: '520px'
               },
             }}
           >

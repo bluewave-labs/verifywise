@@ -18,6 +18,7 @@ import {
 import Alert from "../../../components/Alert";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import allowedRoles from "../../../../application/constants/permissions";
+import FileUploadModal from "../../../components/Modals/FileUpload";
 
 interface AlertState {
   variant: "success" | "info" | "warning" | "error";
@@ -43,6 +44,10 @@ const Organization = () => {
   const [organizationExists, setOrganizationExists] = useState(false);
   const [alert, setAlert] = useState<AlertState | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
+
+  //logo 
+  const [organizationLogo, setOrganizationLogo] = useState<File | null>(null);
+ const [organizationLogoUrl, setOrganizationLogoUrl] = useState<string | null>(null);
 
   const fetchOrganization = useCallback(async () => {
     try {
@@ -255,6 +260,21 @@ const Organization = () => {
                 (!hasChanges && organizationExists) ||
                 isLoading
               }
+            />
+            {/* logo upload and update */}
+            <FileUploadModal 
+            uploadProps={{
+            open: true,
+            onFileChanged: (file:File)=>{
+              setOrganizationLogo(file);
+              setOrganizationLogoUrl(URL.createObjectURL(file));
+              setHasChanges(true);
+            },
+            allowedFileTypes:["image/png", "image/jpeg", "image/jpg"]
+            // uploadEnndpoint={`/organizations/${organizationId}/logo`}
+
+            }}
+          
             />
           </Stack>
         </Box>

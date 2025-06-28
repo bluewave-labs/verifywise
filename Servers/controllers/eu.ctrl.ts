@@ -20,7 +20,6 @@ import {
   getComplianceEUByProjectIdQuery,
   getControlByIdForProjectQuery,
   getControlStructByControlCategoryIdForAProjectQuery,
-  getControlStructByControlCategoryIdQuery,
   getTopicByIdForProjectQuery,
   updateControlEUByIdQuery,
   updateQuestionEUByIdQuery,
@@ -28,10 +27,7 @@ import {
 } from "../utils/eu.utils";
 import { AnswerEU } from "../domain.layer/frameworks/EU-AI-Act/answerEU.model";
 import { sequelize } from "../database/db";
-import {
-  Project,
-  ProjectModel,
-} from "../domain.layer/models/project/project.model";
+import { IProjectAttributes } from "../domain.layer/interfaces/i.project";
 
 export async function getAssessmentsByProjectId(
   req: Request,
@@ -384,7 +380,7 @@ export async function getAllProjectsAssessmentProgress(
         projects.map(async (project) => {
           // calculating assessments
           const projectFrameworkId = (
-            project as unknown as { dataValues: Project }
+            project as unknown as { dataValues: IProjectAttributes }
           ).dataValues.framework
             ?.filter((f) => f.framework_id === 1)
             .map((f) => f.project_framework_id)[0];
@@ -428,7 +424,7 @@ export async function getAllProjectsComplianceProgress(
         projects.map(async (project) => {
           // [0] assuming that the project has only one EU framework (if it has))
           const projectFrameworkId = (
-            project as unknown as { dataValues: Project }
+            project as unknown as { dataValues: IProjectAttributes }
           ).dataValues.framework
             ?.filter((f) => f.framework_id === 1)
             .map((f) => f.project_framework_id)[0];

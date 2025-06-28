@@ -11,6 +11,7 @@ import RiskChip from '../RiskLevel/RiskChip';
 import { ReactComponent as CheckboxOutline } from "../../assets/icons/checkbox-outline.svg";
 import { ReactComponent as CheckboxFilled } from "../../assets/icons/checkbox-filled.svg";
 import { ReactComponent as SelectorVertical } from '../../assets/icons/selector-vertical.svg'
+import { ProjectRisk } from '../../../domain/types/ProjectRisk';
 
 import {
   textfieldStyle,
@@ -29,17 +30,8 @@ interface LinkedRisksModalProps {
   onClose: () => void;
 }
 
-interface Risk {
-  id: number;
-  risk_name: string;
-  risk_description: string;
-  risk_severity: string;
-  likelihood: string;
-  risk_category: string;
-}
-
 interface TableProps {
-  rows: Risk[];
+  rows: ProjectRisk[];
   page: number;
   setCurrentPagingation: (pageNo: number) => void;
 }
@@ -48,11 +40,8 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
   onClose
 }) => {
   const [searchParams] = useSearchParams();
-  const projectId = useMemo(() => {
-    const id = searchParams.get("projectId");
-    const parsedId = id ? parseInt(id, 10) : 0;
-    return isNaN(parsedId) ? 0 : parsedId;
-  }, [searchParams]);  
+  const pId = searchParams.get("projectId");
+  const projectId = parseInt(pId ?? "0");
   const { projectRisks } = useProjectRisks({ projectId });  
   const [currentPage, setCurrentPage] = useState(0);
   const [searchInput, setSearchInput] = useState<string>("");
@@ -201,7 +190,7 @@ const RiskTableBody: React.FC<TableProps> = ({
         {rows &&
           rows
           .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((row: Risk, index: number) => (
+            .map((row: ProjectRisk, index: number) => (
               <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row} onClick={() => handleRowClick(row.id)}>
                 <TableCell sx={cellStyle}>
                   <MuiCheckbox

@@ -79,6 +79,25 @@ export class ProjectModel
   })
   created_at?: Date;
 
+  static async CreateNewProject(
+    projectAttributes: Partial<IProjectAttributes>
+  ) {
+    // Convert Partial<IProjectAttributes> to Optional<ProjectModel, NullishPropertiesOf<ProjectModel>>
+    const attributes = projectAttributes as any;
+    return await ProjectModel.create(attributes);
+  }
+
+  static async UpdateProject(
+    projectId: number,
+    projectAttributes: Partial<IProjectAttributes>
+  ) {
+    return await ProjectModel.update(projectAttributes, {
+      where: {
+        id: projectId,
+      },
+    });
+  }
+
   constructor(init?: Partial<IProjectAttributes>) {
     super();
     Object.assign(this, init);

@@ -22,6 +22,7 @@ import { AlertProps } from "./domain/interfaces/iAlert";
 import { setShowAlertCallback } from "./infrastructure/api/customAxios";
 import Alert from "./presentation/components/Alert";
 import useUsers from "./application/hooks/useUsers";
+import { Organization } from "./application/contexts/VerifyWise.context";
 
 function App() {
   const mode = useSelector((state: AppState) => state.ui?.mode || "light");
@@ -30,6 +31,9 @@ function App() {
   const userRoleName = userToken?.roleName || "";
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const { users, refreshUsers } = useUsers();
+  const [organizationData, setOrganizationData] = useState<Organization | null>(
+    null
+  );
 
   useEffect(() => {
     setShowAlertCallback((alertProps: AlertProps) => {
@@ -99,7 +103,9 @@ function App() {
       changeComponentVisibility,
       users,
       refreshUsers,
-      userRoleName
+      userRoleName,
+      organizationData,
+      setOrganizationData,
     }),
     [
       uiValues,
@@ -123,7 +129,9 @@ function App() {
       changeComponentVisibility,
       users,
       refreshUsers,
-      userRoleName
+      userRoleName,
+      organizationData,
+      setOrganizationData,
     ]
   );
 

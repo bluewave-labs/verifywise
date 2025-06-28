@@ -4,6 +4,12 @@ import { Project } from "../../domain/types/Project";
 import { ComponentVisible } from "../../application/interfaces/ComponentVisible";
 import { User } from "../../domain/types/User";
 
+export interface Organization {
+  id:number;
+  name:string;
+  logo?:string;
+}
+
 interface VerifyWiseContextProps {
   uiValues: any;
   setUiValues: (values: any) => void;
@@ -30,6 +36,10 @@ interface VerifyWiseContextProps {
   users: User[];
   refreshUsers: () => void;
   userRoleName: string;
+  organizationData: Organization | null;
+  setOrganizationData: React.Dispatch<
+    React.SetStateAction<Organization | null>
+  >;
 }
 
 const VerifyWiseContext = createContext<VerifyWiseContextProps>({
@@ -55,6 +65,8 @@ const VerifyWiseContext = createContext<VerifyWiseContextProps>({
   users: [],
   refreshUsers: () => {},
   userRoleName: "",
+  organizationData: null,
+  setOrganizationData: () => {},
 });
 
 export { VerifyWiseContext };

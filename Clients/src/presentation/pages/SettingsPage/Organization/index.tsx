@@ -1,4 +1,12 @@
-import { Stack, useTheme, Box, Divider, CircularProgress } from "@mui/material";
+import {
+  Stack,
+  useTheme,
+  Box,
+  Divider,
+  CircularProgress,
+  Button,
+  Typography,
+} from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
@@ -28,7 +36,8 @@ interface AlertState {
 }
 
 const Organization = () => {
-  const { userRoleName } = useContext(VerifyWiseContext);
+  const { userRoleName, organizationData, setOrganizationData } =
+    useContext(VerifyWiseContext);
   const isEditingDisabled =
     !allowedRoles.organizations.edit.includes(userRoleName);
   const isCreatingDisabled =
@@ -50,6 +59,7 @@ const Organization = () => {
   const [organizationLogoUrl, setOrganizationLogoUrl] = useState<string | null>(
     null
   );
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   const fetchOrganization = useCallback(async () => {
     try {
@@ -63,21 +73,36 @@ const Organization = () => {
         const org = organizations.data.data[0];
         setOrganizationId(org.id);
         setOrganizationName(org.name || "");
+        setOrganizationLogoUrl(org.logo || null);
         setOrganizationExists(true);
         setHasChanges(false);
+
+        if (setOrganizationData) {
+          setOrganizationData(org);
+        }
       } else {
         setOrganizationExists(false);
         setOrganizationId(null);
         setOrganizationName("");
+        setOrganizationLogoUrl(null);
         setHasChanges(false);
+
+        if (setOrganizationData) {
+          setOrganizationData(null);
+        }
       }
     } catch (error) {
       setOrganizationExists(false);
       setOrganizationId(null);
       setOrganizationName("");
+      setOrganizationLogoUrl(null);
       setHasChanges(false);
+
+      if (setOrganizationData) {
+        setOrganizationData(null);
+      }
     }
-  }, []);
+  }, [setOrganizationData]);
 
   useEffect(() => {
     fetchOrganization();
@@ -122,11 +147,16 @@ const Organization = () => {
 
     setIsLoading(true);
     try {
+      const formData = new FormData();
+      formData.append("name", organizationName);
+      if (organizationLogo) {
+        formData.append("logo", organizationLogo);
+      }
+
       const response = await CreateMyOrganization({
         routeUrl: "/organizations",
-        body: {
-          name: organizationName,
-        },
+        body: formData,
+        headers: {},
       });
       setAlert({
         variant: "success",
@@ -177,7 +207,7 @@ const Organization = () => {
       const response = await UpdateMyOrganization({
         routeUrl: `/organizations/${organizationId}`,
         body: formData,
-        headers:{},
+        headers: {},
       });
       setAlert({
         variant: "success",
@@ -188,7 +218,12 @@ const Organization = () => {
       if (response && response.id) {
         setOrganizationId(response.id);
         setOrganizationName(response.name || "");
+        setOrganizationLogoUrl(response.logo || null);
         setHasChanges(false);
+
+        if (setOrganizationData) {
+          setOrganizationData(response);
+        }
       }
       await fetchOrganization();
     } catch (error) {
@@ -196,6 +231,51 @@ const Organization = () => {
         variant: "error",
         title: "Error",
         body: "Failed to update organization.",
+        isToast: false,
+      });
+    } finally {
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 1500);
+    }
+  };
+
+  const handleDeleteLogo = async () => {
+    if (!organizationId) return;
+
+    setIsLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("name", organizationName);
+      formData.append("logo", "");
+
+      await UpdateMyOrganization({
+        routeUrl: `/organizations/${organizationId}`,
+        body: formData,
+        headers: {},
+      });
+      setOrganizationLogo(null);
+      setOrganizationLogoUrl(null);
+      setHasChanges(false);
+
+      if (setOrganizationData && organizationData) {
+        const updatedOrg = { ...organizationData, logo: undefined };
+        setOrganizationData(updatedOrg);
+      }
+
+      setAlert({
+        variant: "success",
+        title: "Logo Deleted",
+        body: "The organization logo was deleted successfully.",
+        isToast: false,
+      });
+
+      await fetchOrganization();
+    } catch (error) {
+      setAlert({
+        variant: "error",
+        title: "Error",
+        body: "Failed to delete logo.",
         isToast: false,
       });
     } finally {
@@ -268,23 +348,166 @@ const Organization = () => {
                 isLoading
               }
             />
-            {/* logo upload and update */}
-            <FileUploadModal
-              uploadProps={{
-                open: true,
-                onFileChanged: (file: File) => {
-                  setOrganizationLogo(file);
-                  setOrganizationLogoUrl(URL.createObjectURL(file));
-                  setHasChanges(true);
-                },
-                allowedFileTypes: ["image/png", "image/jpeg", "image/jpg"],
-                // uploadEnndpoint={`/organizations/${organizationId}/logo`}
-              }}
-            />
+          </Stack>
+          {/* logo display and actions */}
+          <Stack
+            sx={{
+              width: { xs: "100%", md: "50%" },
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+            }}
+          >
+            <Typography variant="subtitle1" sx={{ mb: 1 }}>
+              Organization Logo
+            </Typography>
+
+            {organizationLogoUrl ? (
+              <img
+                src={organizationLogoUrl}
+                alt="Organization Logo"
+                style={{
+                  width: 120,
+                  height: 120,
+                  objectFit: "cover",
+                  border: "2px solid #e0e0e0",
+                  borderRadius: "50%",
+                  marginBottom: 16,
+                }}
+              />
+            ) : (
+              <Box
+                sx={{
+                  width: 120,
+                  height: 120,
+                  border: "2px dashed #ccc",
+                  borderRadius: "50%",
+                  marginBottom: 16,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#888",
+                  backgroundColor: "#f9f9f9",
+                }}
+              >
+                No Logo
+              </Box>
+            )}
+
+            {/* Buttons */}
+            <Stack direction="row" spacing={2}>
+              <Button
+                color="primary"
+                size="small"
+                onClick={handleDeleteLogo}
+                disabled={!organizationLogoUrl || isLoading}
+                sx={{
+                  color: "#000000",
+                  border: "1px solid #e0e0e0",
+                  "&:hover": {
+                    backgroundColor: "#f5f5f5",
+                    border: "1px solid #d0d0d0",
+                  },
+                  "&:disabled": {
+                    color: "#ccc",
+                    border: "1px solid #e0e0e0",
+                  },
+                }}
+              >
+                Delete
+              </Button>
+              <Button
+                color="primary"
+                onClick={() => setIsUploadModalOpen(true)}
+                size="small"
+                disabled={isLoading}
+                sx={{
+                  backgroundColor: "#0f604d",
+                  color: "white",
+                  "&:hover": {
+                    backgroundColor: "#0d5043",
+                  },
+                  "&:disabled": {
+                    backgroundColor: "#ccc",
+                  },
+                }}
+              >
+                Update
+              </Button>
+            </Stack>
           </Stack>
         </Box>
         <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
       </Stack>
+      {/* File Upload Modal */}
+      {/* <FileUploadModal
+        uploadProps={{
+          open: isUploadModalOpen,
+          onClose: () => setIsUploadModalOpen(false),
+          onFileChanged: (file: File) => {
+            console.log("file selected:", file);
+            setOrganizationLogo(file);
+            setOrganizationLogoUrl(URL.createObjectURL(file));
+            setHasChanges(true);
+            setIsUploadModalOpen(false);
+          },
+          allowedFileTypes: [
+            "image/png",
+            "image/jpeg",
+            "image/jpg",
+            "image/gif",
+          ],
+        }}
+      /> */}
+      {/* temorary simple input for testing  */}
+      {isUploadModalOpen && (
+        <Box
+          sx={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+          }}
+          onClick={() => setIsUploadModalOpen(false)}
+        >
+          <Box
+            sx={{
+              backgroundColor: "white",
+              padding: 4,
+              borderRadius: 2,
+              minWidth: 300,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Typography variant="h6" gutterBottom>
+              Upload Logo
+            </Typography>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  console.log("file selected:", file);
+                  setOrganizationLogo(file);
+                  setOrganizationLogoUrl(URL.createObjectURL(file));
+                  setHasChanges(true);
+                  setIsUploadModalOpen(false);
+                }
+              }}
+            />
+            <Button onClick={() => setIsUploadModalOpen(false)} sx={{ mt: 2 }}>
+              Cancel
+            </Button>
+          </Box>
+        </Box>
+      )}
     </Stack>
   );
 };

@@ -1,5 +1,3 @@
-import { Project } from "../domain.layer/models/project/project.model";
-
 import { getData, deleteDemoVendorsData } from "../utils/autoDriver.utils";
 import { createEUFrameworkQuery } from "../utils/eu.utils";
 import { sequelize } from "../database/db";
@@ -16,6 +14,9 @@ import { UserModel } from "../domain.layer/models/user/user.model";
 import { createISOFrameworkQuery } from "../utils/iso42001.utils";
 import { addVendorProjects } from "../utils/vendor.utils";
 import { Vendor } from "../domain.layer/models/vendor/vendor.model";
+import { ProjectModel } from "../domain.layer/models/project/project.model";
+import { HighRiskRole } from "../domain.layer/enums/high-risk-role.enum";
+import { AiRiskClassification } from "../domain.layer/enums/ai-risk-classification.enum";
 
 export async function insertMockData(userId: number | null = null) {
   const transaction = await sequelize.transaction();
@@ -48,7 +49,9 @@ export async function insertMockData(userId: number | null = null) {
       users.push(u1, u2);
     }
 
-    let projects = ((await getData("projects", transaction)) as Project[])[0];
+    let projects = (
+      (await getData("projects", transaction)) as ProjectModel[]
+    )[0];
     if (!projects) {
       const owner = userId ?? users[0].id!;
       // create project
@@ -57,8 +60,8 @@ export async function insertMockData(userId: number | null = null) {
           project_title: "AI Compliance Checker",
           owner: owner,
           start_date: new Date(Date.now()),
-          ai_risk_classification: "High risk",
-          type_of_high_risk_role: "Deployer",
+          ai_risk_classification: AiRiskClassification.HIGH_RISK,
+          type_of_high_risk_role: HighRiskRole.DEPLOYER,
           goal: "To ensure compliance with AI governance standards",
           last_updated: new Date(Date.now()),
           last_updated_by: users[0].id!,
@@ -165,7 +168,10 @@ export async function insertMockData(userId: number | null = null) {
 export async function deleteMockData() {
   const transaction = await sequelize.transaction();
   try {
-    const demoProject = (await getData("projects", transaction)) as Project[];
+    const demoProject = (await getData(
+      "projects",
+      transaction
+    )) as ProjectModel[];
     for (let project of demoProject) {
       await deleteProjectByIdQuery(project.id!, transaction);
     }

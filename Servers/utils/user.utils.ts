@@ -165,7 +165,7 @@ export const createNewUserQuery = async (
   transaction: Transaction,
   is_demo: boolean = false
 ): Promise<UserModel> => {
-  const { name, surname, email, password_hash, role_id } = user;
+  const { name, surname, email, password_hash, role_id, organization_id } = user;
   const created_at = new Date();
   const last_login = new Date();
 
@@ -178,8 +178,8 @@ export const createNewUserQuery = async (
 
   try {
     const result = await sequelize.query(
-      `INSERT INTO users (name, surname, email, password_hash, role_id, created_at, last_login, is_demo)
-        VALUES (:name, :surname, :email, :password_hash, :role_id, :created_at, :last_login, :is_demo) RETURNING *`,
+      `INSERT INTO users (name, surname, email, password_hash, role_id, created_at, last_login, is_demo, organization_id)
+        VALUES (:name, :surname, :email, :password_hash, :role_id, :created_at, :last_login, :is_demo, :organization_id) RETURNING *`,
       {
         replacements: {
           name,
@@ -190,6 +190,7 @@ export const createNewUserQuery = async (
           created_at,
           last_login,
           is_demo,
+          organization_id
         },
         mapToModel: true,
         model: UserModel,

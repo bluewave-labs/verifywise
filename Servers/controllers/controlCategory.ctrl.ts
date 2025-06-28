@@ -18,7 +18,7 @@ export async function getAllControlCategories(
   res: Response
 ): Promise<any> {
   try {
-    const controlCategories = await getAllControlCategoriesQuery();
+    const controlCategories = await getAllControlCategoriesQuery(req.tenantId!);
     return res.status(200).json(controlCategories);
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -32,7 +32,7 @@ export async function getControlCategoryById(
   try {
     const controlCategoryId = parseInt(req.params.id);
     const controlCategory = await getControlCategoryByIdQuery(
-      controlCategoryId
+      controlCategoryId, req.tenantId!
     );
     return res.status(200).json(controlCategory);
   } catch (error) {
@@ -47,7 +47,7 @@ export async function getControlCategoryByProjectId(
   try {
     const projectId = parseInt(req.params.id);
     const controlCategories = await getControlCategoryByProjectIdQuery(
-      projectId
+      projectId, req.tenantId!
     );
     return res.status(200).json(controlCategories);
   } catch (error) {
@@ -64,6 +64,7 @@ export async function createControlCategory(
     const newControlCategory: ControlCategory = req.body;
     const createdControlCategory = await createControlCategoryQuery(
       newControlCategory,
+      req.tenantId!,
       transaction
     );
     await transaction.commit();
@@ -85,6 +86,7 @@ export async function updateControlCategoryById(
     const updatedControlCategory = await updateControlCategoryByIdQuery(
       controlCategoryId,
       updatedControlCategoryData,
+      req.tenantId!,
       transaction
     );
     await transaction.commit();
@@ -104,6 +106,7 @@ export async function deleteControlCategoryById(
     const controlCategoryId = parseInt(req.params.id);
     const deletedControlCategory = await deleteControlCategoryByIdQuery(
       controlCategoryId,
+      req.tenantId!,
       transaction
     );
     await transaction.commit();

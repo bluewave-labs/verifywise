@@ -68,7 +68,7 @@ export async function generateReports(
     if (typeof userId !== "number" || isNaN(userId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid user ID"));
     }
-    const organizations = await getAllOrganizationsQuery();
+    const organizations = await getAllOrganizationsQuery(req.tenantId!);
     let organizationName = "VerifyWise";
     if (organizations && organizations.length > 0) {
       organizationName = organizations[0].name;
@@ -83,7 +83,8 @@ export async function generateReports(
       frameworkId,
       reportType,
       reportData,
-      projectFrameworkId
+      projectFrameworkId,
+      req.tenantId!
     );
     const markdownDoc = await marked.parse(markdownData); // markdown file
     const generatedDoc = await htmlDocx(markdownDoc); // convert markdown to docx
@@ -103,7 +104,8 @@ export async function generateReports(
         docFile,
         userId,
         projectId,
-        mapReportTypeToFileSource(reportType)
+        mapReportTypeToFileSource(reportType),
+        req.tenantId!
       );
     } catch (error) {
       console.error("File upload error:", error);
@@ -144,7 +146,7 @@ export async function getAllGeneratedReports(
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const reports = await getGeneratedReportsQuery({userId, role});
+    const reports = await getGeneratedReportsQuery({userId, role}, req.tenantId!);
     if (reports && reports.length > 0) {
       return res.status(200).json(STATUS_CODE[200](reports));
     }
@@ -170,12 +172,12 @@ export async function deleteGeneratedReportById(
       return res.status(400).json(STATUS_CODE[400]("Invalid user ID"));
     }
 
-    const report = await getReportByIdQuery(reportId); // get report detail
+    const report = await getReportByIdQuery(reportId, req.tenantId!); // get report detail
     if (!report) {
       return res.status(404).json(STATUS_CODE[404]("Report not found"));
     }
 
-    const deletedReport = await deleteReportByIdQuery(reportId, transaction);
+    const deletedReport = await deleteReportByIdQuery(reportId, req.tenantId!, transaction);
     if (deletedReport) {
       await transaction.commit();
       return res.status(200).json(STATUS_CODE[200](deletedReport));

@@ -16,7 +16,7 @@ export async function getAllProjectScopes(
   res: Response
 ): Promise<any> {
   try {
-    const projectScopes = await getAllProjectScopesQuery();
+    const projectScopes = await getAllProjectScopesQuery(req.tenantId!);
 
     if (projectScopes) {
       return res.status(200).json(STATUS_CODE[200](projectScopes));
@@ -35,7 +35,7 @@ export async function getProjectScopeById(
   try {
     const projectScopeId = parseInt(req.params.id);
 
-    const projectScope = await getProjectScopeByIdQuery(projectScopeId);
+    const projectScope = await getProjectScopeByIdQuery(projectScopeId, req.tenantId!);
 
     if (projectScope) {
       return res.status(200).json(STATUS_CODE[200](projectScope));
@@ -57,6 +57,7 @@ export async function createProjectScope(
 
     const createdProjectScope = await createProjectScopeQuery(
       projectScope,
+      req.tenantId!,
       transaction
     );
 
@@ -84,6 +85,7 @@ export async function updateProjectScopeById(
     const updatedProjectScope = await updateProjectScopeByIdQuery(
       projectScopeId,
       projectScope,
+      req.tenantId!,
       transaction
     );
 
@@ -109,6 +111,7 @@ export async function deleteProjectScopeById(
 
     const deletedProjectScope = await deleteProjectScopeByIdQuery(
       projectScopeId,
+      req.tenantId!,
       transaction
     );
 

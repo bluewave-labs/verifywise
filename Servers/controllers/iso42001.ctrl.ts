@@ -32,7 +32,7 @@ import { Project } from "../domain.layer/models/project/project.model";
 
 export async function getAllClauses(req: Request, res: Response): Promise<any> {
   try {
-    const clauses = await getAllClausesQuery();
+    const clauses = await getAllClausesQuery(req.tenantId!);
     return res.status(200).json(clauses);
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -45,7 +45,7 @@ export async function getAllClausesStructForProject(
 ): Promise<any> {
   const projectFrameworkId = parseInt(req.params.id);
   try {
-    const clauses = await getAllClausesWithSubClauseQuery(projectFrameworkId);
+    const clauses = await getAllClausesWithSubClauseQuery(projectFrameworkId, req.tenantId!);
     return res.status(200).json(clauses);
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -58,7 +58,7 @@ export async function getAllAnnexesStructForProject(
 ): Promise<any> {
   const projectFrameworkId = parseInt(req.params.id);
   try {
-    const annexes = await getAllAnnexesWithCategoriesQuery(projectFrameworkId);
+    const annexes = await getAllAnnexesWithCategoriesQuery(projectFrameworkId, req.tenantId!);
     return res.status(200).json(annexes);
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -67,7 +67,7 @@ export async function getAllAnnexesStructForProject(
 
 export async function getAllAnnexes(req: Request, res: Response): Promise<any> {
   try {
-    const annexes = await getAllAnnexesQuery();
+    const annexes = await getAllAnnexesQuery(req.tenantId!);
     return res.status(200).json(annexes);
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -80,7 +80,7 @@ export async function getSubClausesByClauseId(
 ): Promise<any> {
   try {
     const clauseId = parseInt(req.params.id);
-    const subClauses = await getSubClausesByClauseIdQuery(clauseId);
+    const subClauses = await getSubClausesByClauseIdQuery(clauseId, req.tenantId!);
     if (subClauses) {
       return res.status(200).json(STATUS_CODE[200](subClauses));
     }
@@ -96,7 +96,7 @@ export async function getAnnexCategoriesByAnnexId(
 ): Promise<any> {
   try {
     const annexId = parseInt(req.params.id);
-    const annexCategories = await getAnnexCategoriesByAnnexIdQuery(annexId);
+    const annexCategories = await getAnnexCategoriesByAnnexIdQuery(annexId, req.tenantId!);
     if (annexCategories) {
       return res.status(200).json(STATUS_CODE[200](annexCategories));
     }
@@ -115,7 +115,8 @@ export async function getSubClauseById(
     const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
     const subClause = await getSubClauseByIdForProjectQuery(
       subClauseId,
-      projectFrameworkId
+      projectFrameworkId,
+      req.tenantId!
     );
     if (subClause) {
       return res.status(200).json(STATUS_CODE[200](subClause));
@@ -135,7 +136,8 @@ export async function getAnnexCategoryById(
     const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
     const annexCategory = await getAnnexCategoryByIdForProjectQuery(
       annexCategoryId,
-      projectFrameworkId
+      projectFrameworkId,
+      req.tenantId!
     );
     if (annexCategory) {
       return res.status(200).json(STATUS_CODE[200](annexCategory));
@@ -152,7 +154,7 @@ export async function getClausesByProjectId(
 ): Promise<any> {
   try {
     const projectFrameworkId = parseInt(req.params.id);
-    const subClauses = await getClausesByProjectIdQuery(projectFrameworkId);
+    const subClauses = await getClausesByProjectIdQuery(projectFrameworkId, req.tenantId!);
     if (subClauses) {
       return res.status(200).json(STATUS_CODE[200](subClauses));
     }
@@ -169,7 +171,8 @@ export async function getAnnexesByProjectId(
   try {
     const projectFrameworkId = parseInt(req.params.id);
     const annexCategories = await getAnnexesByProjectIdQuery(
-      projectFrameworkId
+      projectFrameworkId,
+      req.tenantId!
     );
     if (annexCategories) {
       return res.status(200).json(STATUS_CODE[200](annexCategories));
@@ -254,11 +257,12 @@ export async function saveClauses(
       subClause,
       uploadedFiles,
       filesToDelete,
+      req.tenantId!,
       transaction
     );
 
     // Update the project's last updated date
-    await updateProjectUpdatedByIdQuery(subClauseId, "subclauses", transaction);
+    await updateProjectUpdatedByIdQuery(subClauseId, "subclauses", req.tenantId!, transaction);
     await transaction.commit();
 
     return res.status(200).json(STATUS_CODE[200](updatedSubClause));
@@ -299,6 +303,7 @@ export async function saveAnnexes(
       annexCategory,
       uploadedFiles,
       filesToDelete,
+      req.tenantId!,
       transaction
     );
 
@@ -306,6 +311,7 @@ export async function saveAnnexes(
     await updateProjectUpdatedByIdQuery(
       annexCategoryId,
       "annexcategories",
+      req.tenantId!,
       transaction
     );
     await transaction.commit();
@@ -326,6 +332,7 @@ export async function deleteManagementSystemClauses(
     const projectFrameworkId = parseInt(req.params.id);
     const result = await deleteSubClausesISOByProjectIdQuery(
       projectFrameworkId,
+      req.tenantId!,
       transaction
     );
 
@@ -351,6 +358,7 @@ export async function deleteReferenceControls(
     const projectFrameworkId = parseInt(req.params.id);
     const result = await deleteAnnexCategoriesISOByProjectIdQuery(
       projectFrameworkId,
+      req.tenantId!,
       transaction
     );
 
@@ -374,7 +382,7 @@ export async function getProjectClausesProgress(
   const projectFrameworkId = parseInt(req.params.id);
   try {
     const { totalSubclauses, doneSubclauses } =
-      await countSubClausesISOByProjectId(projectFrameworkId);
+      await countSubClausesISOByProjectId(projectFrameworkId, req.tenantId!);
     return res.status(200).json(
       STATUS_CODE[200]({
         totalSubclauses: parseInt(totalSubclauses),
@@ -393,7 +401,7 @@ export async function getProjectAnnxesProgress(
   const projectFrameworkId = parseInt(req.params.id);
   try {
     const { totalAnnexcategories, doneAnnexcategories } =
-      await countAnnexCategoriesISOByProjectId(projectFrameworkId);
+      await countAnnexCategoriesISOByProjectId(projectFrameworkId, req.tenantId!);
     return res.status(200).json(
       STATUS_CODE[200]({
         totalAnnexcategories: parseInt(totalAnnexcategories),
@@ -416,7 +424,7 @@ export async function getAllProjectsClausesProgress(
     if (!userId || !role) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-    const projects = await getAllProjectsQuery({ userId, role });
+    const projects = await getAllProjectsQuery({ userId, role }, req.tenantId!);
     if (projects && projects.length > 0) {
       await Promise.all(
         projects.map(async (project) => {
@@ -429,7 +437,7 @@ export async function getAllProjectsClausesProgress(
             return;
           }
           const { totalSubclauses, doneSubclauses } =
-            await countSubClausesISOByProjectId(projectFrameworkId);
+            await countSubClausesISOByProjectId(projectFrameworkId, req.tenantId!);
           allSubclauses += parseInt(totalSubclauses);
           allDoneSubclauses += parseInt(doneSubclauses);
         })
@@ -456,7 +464,7 @@ export async function getAllProjectsAnnxesProgress(
     if (!userId || !role) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-    const projects = await getAllProjectsQuery({ userId, role });
+    const projects = await getAllProjectsQuery({ userId, role }, req.tenantId!);
     if (projects && projects.length > 0) {
       await Promise.all(
         projects.map(async (project) => {
@@ -469,7 +477,7 @@ export async function getAllProjectsAnnxesProgress(
             return;
           }
           const { totalAnnexcategories, doneAnnexcategories } =
-            await countAnnexCategoriesISOByProjectId(projectFrameworkId);
+            await countAnnexCategoriesISOByProjectId(projectFrameworkId, req.tenantId!);
           allAnnexcategories += parseInt(totalAnnexcategories);
           allDoneAnnexcategories += parseInt(doneAnnexcategories);
         })

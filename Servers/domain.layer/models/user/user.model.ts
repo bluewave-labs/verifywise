@@ -14,6 +14,7 @@ import {
   BusinessLogicException,
 } from "../../exceptions/custom.exception";
 import bcrypt from "bcrypt";
+import { OrganizationModel } from "../organization/organization.model";
 
 @Table({
   tableName: "users",
@@ -69,12 +70,20 @@ export class UserModel extends Model<UserModel> {
   })
   is_demo?: boolean;
 
+  @ForeignKey(() => OrganizationModel)
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+  })
+  organization_id?: number;
+
   static async createNewUser(
     name: string,
     surname: string,
     email: string,
     password: string,
-    role_id: number
+    role_id: number,
+    organization_id: number
   ): Promise<UserModel> {
     // Validate email
     if (!emailValidation(email)) {
@@ -96,6 +105,10 @@ export class UserModel extends Model<UserModel> {
     if (!numberValidation(role_id, 1)) {
       throw new ValidationException("Invalid role_id", "role_id", role_id);
     }
+    // Validate organization_id
+    if (!numberValidation(organization_id, 1)) {
+      throw new ValidationException("Invalid organization_id", "organization_id", organization_id);
+    }
 
     // Hash the password
     const password_hash = await bcrypt.hash(password, 10);
@@ -110,6 +123,7 @@ export class UserModel extends Model<UserModel> {
     user.created_at = new Date();
     user.last_login = new Date();
     user.is_demo = false;
+    user.organization_id = organization_id;
 
     return user;
   }
@@ -218,6 +232,14 @@ export class UserModel extends Model<UserModel> {
         "Valid role_id is required",
         "role_id",
         this.role_id
+      );
+    }
+
+    if (this.organization_id && !numberValidation(this.organization_id, 1)) {
+      throw new ValidationException(
+        "Valid organization_id is required",
+        "organization_id",
+        this.organization_id
       );
     }
   }

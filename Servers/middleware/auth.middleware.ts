@@ -44,6 +44,7 @@ const authenticateJWT = async (
     
     req.userId = decoded.id;
     req.role = decoded.roleName;
+    req.tenantId = decoded.organizationId
     next();
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

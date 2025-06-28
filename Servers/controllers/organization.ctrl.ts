@@ -14,6 +14,7 @@ import {
   removeProjectFromOrganizationQuery,
   updateOrganizationByIdQuery,
 } from "../utils/organization.utils";
+import { invite } from "./vwmailer.ctrl";
 
 /**
  * Get all organizations
@@ -119,7 +120,12 @@ export async function createOrganization(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   try {
-    const newOrganization = req.body;
+    const newOrganization = req.body as {
+      name: string;
+      logo: string;
+      userEmail: string;
+      userName: string;
+    };
 
     if (!newOrganization.name) {
       await transaction.rollback();
@@ -133,8 +139,17 @@ export async function createOrganization(
       transaction
     );
     if (createdOrganization) {
+      const organization_id = createdOrganization.id!;
+      // create schema
       await transaction.commit();
-      return res.status(201).json(STATUS_CODE[201](createdOrganization));
+      const resp = await invite(req, res, {
+        to: newOrganization.userEmail,
+        name: newOrganization.userName,
+        roleId: 1,
+        organizationId: organization_id,
+      })
+      return resp;
+      // return res.status(201).json(STATUS_CODE[201](createdOrganization));
     }
     await transaction.rollback();
     return res

@@ -24,15 +24,15 @@ export const getUserProjects = async ({
   userId,
   role,
   transaction,
-}: GetUserProjectsOptions) => {
-  const baseQueryParts: string[] = ["SELECT DISTINCT p.*", "FROM projects p"];
+}: GetUserProjectsOptions, tenant: string | null = null) => {
+  const baseQueryParts: string[] = [`SELECT DISTINCT p.*", "FROM ${tenant}.projects p`];
 
   const whereConditions: string[] = [];
   const replacements: { [key: string]: any } = {};
 
   if (role !== "Admin") {
     baseQueryParts.push(
-      "LEFT JOIN projects_members pm ON pm.project_id = p.id"
+      `LEFT JOIN ${tenant}.projects_members pm ON pm.project_id = p.id`
     );
     whereConditions.push("(p.owner = :userId OR pm.user_id = :userId)");
     replacements.userId = userId;
@@ -61,12 +61,12 @@ export const getAllProjectsQuery = async ({
 }: {
   userId: number;
   role: Role["name"];
-}): Promise<Project[]> => {
+}, tenant: string | null = null): Promise<Project[]> => {
   if (!userId || !role) {
     throw new Error("User ID and role are required to fetch projects.");
   }
 
-  const projects = await getUserProjects({ userId, role });
+  const projects = await getUserProjects({ userId, role }, tenant);
 
   if (!projects || projects.length === 0) return [];
 
@@ -76,8 +76,8 @@ export const getAllProjectsQuery = async ({
         SELECT 
           pf.id AS project_framework_id, pf.framework_id,
           f.name AS name
-        FROM projects_frameworks pf
-        JOIN frameworks f ON pf.framework_id = f.id
+        FROM ${tenant}.projects_frameworks pf
+        JOIN ${tenant}.frameworks f ON pf.framework_id = f.id
         WHERE project_id = :project_id`,
       {
         replacements: { project_id: project.id },
@@ -92,7 +92,7 @@ export const getAllProjectsQuery = async ({
     }
 
     const members = await sequelize.query(
-      "SELECT user_id FROM projects_members WHERE project_id = :project_id",
+      `SELECT user_id FROM ${tenant}.projects_members WHERE project_id = :project_id`,
       {
         replacements: { project_id: project.id },
         mapToModel: true,
@@ -152,15 +152,16 @@ export const getProjectByIdQuery = async (
 };
 
 export const countSubControlsByProjectId = async (
-  project_id: number
+  project_id: number,
+  tenant: string | null = null
 ): Promise<{
   totalSubcontrols: string;
   doneSubcontrols: string;
 }> => {
   const result = await sequelize.query(
     `SELECT COUNT(*) AS "totalSubcontrols", COUNT(CASE WHEN sc.status = 'Done' THEN 1 END) AS "doneSubcontrols" FROM
-      controlcategories cc JOIN controls c ON cc.id = c.control_category_id
-        JOIN subcontrols sc ON c.id = sc.control_id WHERE cc.project_id = :project_id`,
+      ${tenant}.controlcategories cc JOIN ${tenant}.controls c ON cc.id = c.control_category_id
+        JOIN ${tenant}.subcontrols sc ON c.id = sc.control_id WHERE cc.project_id = :project_id`,
     {
       replacements: { project_id },
       type: QueryTypes.SELECT,
@@ -173,16 +174,17 @@ export const countSubControlsByProjectId = async (
 };
 
 export const countAnswersByProjectId = async (
-  project_id: number
+  project_id: number,
+  tenant: string | null = null
 ): Promise<{
   totalAssessments: string;
   answeredAssessments: string;
 }> => {
   const result = await sequelize.query(
     `SELECT COUNT(*) AS "totalAssessments", COUNT(CASE WHEN q.status = 'Done' THEN 1 END) AS "answeredAssessments" FROM
-      assessments a JOIN topics t ON a.id = t.assessment_id
-        JOIN subtopics st ON t.id = st.topic_id
-          JOIN questions q ON st.id = q.subtopic_id WHERE a.project_id = :project_id`,
+      ${tenant}.assessments a JOIN ${tenant}.topics t ON a.id = t.assessment_id
+        JOIN ${tenant}.subtopics st ON t.id = st.topic_id
+          JOIN ${tenant}.questions q ON st.id = q.subtopic_id WHERE a.project_id = :project_id`,
     {
       replacements: { project_id },
       type: QueryTypes.SELECT,

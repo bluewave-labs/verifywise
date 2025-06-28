@@ -28,7 +28,7 @@ export async function getAllControls(
   res: Response
 ): Promise<any> {
   try {
-    const controls = await getAllControlsQuery();
+    const controls = await getAllControlsQuery(req.tenantId!);
 
     if (controls) {
       return res.status(200).json(STATUS_CODE[200](controls));
@@ -47,7 +47,7 @@ export async function getControlById(
   try {
     const controlId = parseInt(req.params.id);
 
-    const control = await getControlByIdQuery(controlId);
+    const control = await getControlByIdQuery(controlId, req.tenantId!);
 
     if (control) {
       return res.status(200).json(STATUS_CODE[200](control));
@@ -64,7 +64,7 @@ export async function createControl(req: Request, res: Response): Promise<any> {
   try {
     const newControl: Control = req.body;
 
-    const createdControl = await createNewControlQuery(newControl, transaction);
+    const createdControl = await createNewControlQuery(newControl, req.tenantId!, transaction);
 
     if (createdControl) {
       await transaction.commit();
@@ -90,6 +90,7 @@ export async function updateControlById(
     const control = await updateControlByIdQuery(
       controlId,
       updatedControl,
+      req.tenantId!,
       transaction
     );
 
@@ -113,7 +114,7 @@ export async function deleteControlById(
   try {
     const controlId = parseInt(req.params.id);
 
-    const control = await deleteControlByIdQuery(controlId, transaction);
+    const control = await deleteControlByIdQuery(controlId, req.tenantId!, transaction);
 
     if (control) {
       await transaction.commit();
@@ -157,6 +158,7 @@ export async function saveControls(
         implementation_details: Control.implementation_details,
         control_category_id: Control.control_category_id,
       },
+      req.tenantId!,
       transaction
     );
 
@@ -241,10 +243,11 @@ export async function saveControls(
             feedback_description: subcontrol.feedback_description,
             control_id: subcontrol.control_id,
           },
+          req.tenantId!,
           transaction,
           evidenceUploadedFiles,
           feedbackUploadedFiles,
-          filesToDelete
+          filesToDelete,
         );
         subControlResp.push(subcontrolToSave);
       }
@@ -253,7 +256,7 @@ export async function saveControls(
       ...{ control, subControls: subControlResp },
     };
     // Update the project's last updated date
-    await updateProjectUpdatedByIdQuery(controlId, "controls", transaction);
+    await updateProjectUpdatedByIdQuery(controlId, "controls", req.tenantId!, transaction);
 
     await transaction.commit();
 
@@ -271,10 +274,10 @@ export async function getComplianceById(
   const control_id = req.params.id;
   try {
     const control = (await getControlByIdQuery(
-      parseInt(control_id)
+      parseInt(control_id), req.tenantId!
     )) as ControlModel;
     if (control && control.id) {
-      const subControls = await getAllSubcontrolsByControlIdQuery(control.id);
+      const subControls = await getAllSubcontrolsByControlIdQuery(control.id, req.tenantId!);
       control.dataValues.subControls = subControls;
       return res.status(200).json(STATUS_CODE[200](control));
     } else {
@@ -292,11 +295,11 @@ export async function getControlsByControlCategoryId(
   try {
     const controlCategoryId = parseInt(req.params.id);
     const controls = (await getAllControlsByControlGroupQuery(
-      controlCategoryId
+      controlCategoryId, req.tenantId!
     )) as ControlModel[];
     for (const control of controls) {
       if (control && control.id !== undefined) {
-        const subControls = await getAllSubcontrolsByControlIdQuery(control.id);
+        const subControls = await getAllSubcontrolsByControlIdQuery(control.id, req.tenantId!);
         let numberOfSubcontrols = 0;
         let numberOfDoneSubcontrols = 0;
 

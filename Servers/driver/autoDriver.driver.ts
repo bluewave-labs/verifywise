@@ -16,11 +16,13 @@ import { UserModel } from "../domain.layer/models/user/user.model";
 import { createISOFrameworkQuery } from "../utils/iso42001.utils";
 import { addVendorProjects } from "../utils/vendor.utils";
 import { Vendor } from "../domain.layer/models/vendor/vendor.model";
+import { Organization } from "../domain.layer/models/organization/organization.model";
 
 export async function insertMockData(userId: number | null = null) {
   const transaction = await sequelize.transaction();
   try {
     let users = (await getData("users", transaction)) as UserModel[];
+    let organizations = (await getData("organizations", transaction)) as Organization[];
     console.log("insertMockData users ", users);
     if (users.length < 2) {
       let u1 = await createNewUserQuery(
@@ -29,7 +31,8 @@ export async function insertMockData(userId: number | null = null) {
           "Doe",
           `john.doe.${Date.now()}@example.com`,
           "MyJH4rTm!@.45L0wm",
-          1
+          1,
+          organizations[0].id!
         ),
         transaction,
         true // is demo
@@ -40,7 +43,8 @@ export async function insertMockData(userId: number | null = null) {
           "Smith",
           `alice.smith.${Date.now()}@example.com`,
           "MyJH4rTm!@.45L0wm",
-          2
+          2,
+          organizations[0].id!
         ),
         transaction,
         true // is demo

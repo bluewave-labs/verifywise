@@ -9,7 +9,7 @@ export async function getAllFrameworks(
   res: Response
 ): Promise<any> {
   try {
-    const frameworks = await getAllFrameworksQuery();
+    const frameworks = await getAllFrameworksQuery(req.tenantId!);
 
     if (frameworks) {
       return res.status(200).json(STATUS_CODE[200](frameworks));
@@ -28,7 +28,7 @@ export async function getFrameworkById(
   try {
     const frameworkId = parseInt(req.params.id);
 
-    const framework = await getAllFrameworkByIdQuery(frameworkId);
+    const framework = await getAllFrameworkByIdQuery(frameworkId, req.tenantId!);
 
     if (framework) {
       return res.status(200).json(STATUS_CODE[200](framework));
@@ -50,7 +50,7 @@ export async function addFrameworkToProject(
     const projectId = parseInt(req.query.projectId as string);
 
     // Assuming you have a function to add the framework to the project
-    const result = await addFrameworkToProjectQuery(frameworkId, projectId, transaction);
+    const result = await addFrameworkToProjectQuery(frameworkId, projectId, req.tenantId!, transaction);
 
     if (result) {
       await transaction.commit();
@@ -75,7 +75,7 @@ export async function deleteFrameworkFromProject(
     const projectId = parseInt(req.query.projectId as string);
 
     // Assuming you have a function to delete the framework from the project
-    const result = await deleteFrameworkFromProjectQuery(frameworkId, projectId, transaction);
+    const result = await deleteFrameworkFromProjectQuery(frameworkId, projectId, req.tenantId!, transaction);
 
     if (result) {
       await transaction.commit();

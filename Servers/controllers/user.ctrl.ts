@@ -30,6 +30,7 @@ import {
   ValidationException,
   BusinessLogicException,
 } from "../domain.layer/exceptions/custom.exception";
+import { getTenantHash } from "../tools/getTenantHash";
 
 async function getAllUsers(req: Request, res: Response): Promise<any> {
   try {
@@ -82,7 +83,7 @@ async function getUserById(req: Request, res: Response) {
 async function createNewUser(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
   try {
-    const { name, surname, email, password, roleId } = req.body;
+    const { name, surname, email, password, roleId, organization_id } = req.body;
 
     // Check if user already exists
     const existingUser = await getUserByEmailQuery(email);
@@ -99,7 +100,8 @@ async function createNewUser(req: Request, res: Response) {
       surname,
       email,
       password,
-      roleId
+      roleId,
+      organization_id
     );
 
     // Validate user data before saving
@@ -177,6 +179,7 @@ async function loginUser(req: Request, res: Response): Promise<any> {
           id: user.id,
           email: email,
           roleName: (userData as any).role_name,
+          organizationId: getTenantHash((userData as any).organization_id.toString()),
         });
 
         const refreshToken = generateRefreshToken({

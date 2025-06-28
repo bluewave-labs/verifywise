@@ -17,7 +17,7 @@ export async function getAllSubtopics(
   res: Response
 ): Promise<any> {
   try {
-    const subtopics = await getAllSubtopicsQuery();
+    const subtopics = await getAllSubtopicsQuery(req.tenantId!);
 
     if (subtopics) {
       return res.status(200).json(STATUS_CODE[200](subtopics));
@@ -36,7 +36,7 @@ export async function getSubtopicById(
   try {
     const subtopicId = parseInt(req.params.id);
 
-    const subtopic = await getSubtopicByIdQuery(subtopicId);
+    const subtopic = await getSubtopicByIdQuery(subtopicId, req.tenantId!);
 
     if (subtopic) {
       return res.status(200).json(STATUS_CODE[200](subtopic));
@@ -56,6 +56,7 @@ export async function createNewSubtopic(
   try {
     const subtopic = await createNewSubtopicQuery(
       req.body as Subtopic,
+      req.tenantId!,
       transaction
     );
 
@@ -82,6 +83,7 @@ export async function updateSubtopicById(
     const subtopic = await updateSubtopicByIdQuery(
       subtopicId,
       req.body as Subtopic,
+      req.tenantId!,
       transaction
     );
 
@@ -105,7 +107,7 @@ export async function deleteSubtopicById(
   try {
     const subtopicId = parseInt(req.params.id);
 
-    const subtopic = await deleteSubtopicByIdQuery(subtopicId, transaction);
+    const subtopic = await deleteSubtopicByIdQuery(subtopicId, req.tenantId!, transaction);
 
     if (subtopic) {
       await transaction.commit();
@@ -129,7 +131,7 @@ export async function getSubtopicByTopicId(
       return res.status(400).json(STATUS_CODE[400]("Invalid topic ID"));
     }
 
-    const subtopics = await getSubTopicByTopicIdQuery(topicId);
+    const subtopics = await getSubTopicByTopicIdQuery(topicId, req.tenantId!);
 
     if (subtopics && subtopics.length !== 0) {
       return res.status(200).json(STATUS_CODE[200](subtopics));

@@ -82,7 +82,7 @@ export const getUserFilesMetaData = async (req: Request, res: Response) => {
     const files = await getUserFilesMetaDataQuery(req.role || "", userId, {
       limit: validPageSize,
       offset,
-    });
+    }, req.tenantId!);
 
     return res.status(200).send(files);
   } catch (err) {
@@ -106,7 +106,7 @@ export async function postFileContent(
 
     const filesToDelete = JSON.parse(body.delete) as number[];
     for (let fileToDelete of filesToDelete) {
-      await deleteFileById(fileToDelete, transaction);
+      await deleteFileById(fileToDelete, req.tenantId!, transaction);
     }
 
     const questionId = parseInt(body.question_id);
@@ -117,6 +117,7 @@ export async function postFileContent(
         body.user_id,
         body.project_id,
         "Assessment tracker group",
+        req.tenantId!,
         transaction
       );
       uploadedFiles.push({
@@ -135,6 +136,7 @@ export async function postFileContent(
       body.project_id,
       uploadedFiles,
       filesToDelete,
+      req.tenantId!,
       transaction
     );
     await transaction.commit();

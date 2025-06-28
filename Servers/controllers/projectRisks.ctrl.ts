@@ -18,7 +18,7 @@ export async function getAllProjectRisks(
 ): Promise<any> {
   try {
     const projectId = parseInt(req.params.id);
-    const projectRisks = await getAllProjectRisksQuery(projectId);
+    const projectRisks = await getAllProjectRisksQuery(projectId, req.tenantId!);
 
     if (projectRisks) {
       return res.status(200).json(STATUS_CODE[200](projectRisks));
@@ -37,7 +37,7 @@ export async function getProjectRiskById(
   try {
     const projectRiskId = parseInt(req.params.id);
 
-    const projectRisk = await getProjectRiskByIdQuery(projectRiskId);
+    const projectRisk = await getProjectRiskByIdQuery(projectRiskId, req.tenantId!);
 
     if (projectRisk) {
       return res.status(200).json(STATUS_CODE[200](projectRisk));
@@ -55,7 +55,7 @@ export async function getNonMitigatedProjectRisks(
 ): Promise<any> {
   try {
     const projectId = parseInt(req.params.id);
-    const projectRisks = await getNonMitigatedProjectRisksQuery(projectId);
+    const projectRisks = await getNonMitigatedProjectRisksQuery(projectId, req.tenantId!);
     return res.status(204).json(STATUS_CODE[200](projectRisks));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -72,6 +72,7 @@ export async function createProjectRisk(
 
     const newProjectRisk = await createProjectRiskQuery(
       projectRisk,
+      req.tenantId!,
       transaction
     );
 
@@ -99,6 +100,7 @@ export async function updateProjectRiskById(
     const updatedProjectRisk = await updateProjectRiskByIdQuery(
       projectRiskId,
       projectRisk,
+      req.tenantId!,
       transaction
     );
 
@@ -124,6 +126,7 @@ export async function deleteProjectRiskById(
 
     const deletedProjectRisk = await deleteProjectRiskByIdQuery(
       projectRiskId,
+      req.tenantId!,
       transaction
     );
 

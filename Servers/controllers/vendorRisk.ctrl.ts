@@ -16,7 +16,7 @@ export async function getAllVendorRisksAllProjects(
   res: Response
 ): Promise<any> {
   try {
-    const risks = await getAllVendorRisksAllProjectsQuery();
+    const risks = await getAllVendorRisksAllProjectsQuery(req.tenantId!);
     return res.status(200).json(STATUS_CODE[200](risks));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -29,7 +29,7 @@ export async function getAllVendorRisks(
 ): Promise<any> {
   try {
     const projectId = parseInt(req.params.id);
-    const vendorRisks = await getVendorRisksByProjectIdQuery(projectId);
+    const vendorRisks = await getVendorRisksByProjectIdQuery(projectId, req.tenantId!);
 
     if (vendorRisks) {
       return res.status(200).json(STATUS_CODE[200](vendorRisks));
@@ -48,7 +48,7 @@ export async function getVendorRiskById(
   try {
     const vendorRiskId = parseInt(req.params.id);
 
-    const vendorRisk = await getVendorRiskByIdQuery(vendorRiskId);
+    const vendorRisk = await getVendorRiskByIdQuery(vendorRiskId, req.tenantId!);
 
     if (vendorRisk) {
       return res.status(200).json(STATUS_CODE[200](vendorRisk));
@@ -70,6 +70,7 @@ export async function createVendorRisk(
 
     const createdVendorRisk = await createNewVendorRiskQuery(
       newVendorRisk,
+      req.tenantId!,
       transaction
     );
 
@@ -97,6 +98,7 @@ export async function updateVendorRiskById(
     const vendorRisk = await updateVendorRiskByIdQuery(
       vendorRiskId,
       updatedVendorRisk,
+      req.tenantId!,
       transaction
     );
 
@@ -122,6 +124,7 @@ export async function deleteVendorRiskById(
 
     const deletedVendorRisk = await deleteVendorRiskByIdQuery(
       vendorRiskId,
+      req.tenantId!,
       transaction
     );
 

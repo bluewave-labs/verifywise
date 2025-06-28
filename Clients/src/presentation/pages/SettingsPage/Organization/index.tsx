@@ -26,7 +26,7 @@ import {
 import Alert from "../../../components/Alert";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import allowedRoles from "../../../../application/constants/permissions";
-import FileUploadModal from "../../../components/Modals/FileUpload";
+// import FileUploadModal from "../../../components/Modals/FileUpload";
 
 interface AlertState {
   variant: "success" | "info" | "warning" | "error";

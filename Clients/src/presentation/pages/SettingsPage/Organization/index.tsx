@@ -1,4 +1,4 @@
-import { Stack, useTheme, Box, Divider, CircularProgress, Typography, Avatar, IconButton } from "@mui/material";
+import { Stack, useTheme, Box, Divider, CircularProgress, Typography, Avatar} from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
@@ -19,7 +19,6 @@ import Alert from "../../../components/Alert";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import allowedRoles from "../../../../application/constants/permissions";
 import FileUploadModal from "../../../components/Modals/FileUpload";
-import CameraAltIcon from "@mui/icons-material/CameraAlt";
 
 interface AlertState {
   variant: "success" | "info" | "warning" | "error";
@@ -49,7 +48,7 @@ const Organization = () => {
   //logo
     const [organizationLogo, setOrganizationLogo] = useState<string>("");
     const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
-    const [isLogoUploading, setIsLogoUploading] = useState(false);
+    // const [isLogoUploading, setIsLogoUploading] = useState(false);
 
   const fetchOrganization = useCallback(async () => {
     try {

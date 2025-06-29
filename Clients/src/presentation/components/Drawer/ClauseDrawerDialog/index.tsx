@@ -554,46 +554,6 @@ const VWISO42001ClauseDrawerDialog = ({
             <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
           )}
           <LinkedRisksSection />
-          {/* <>
-            <Stack direction="row" spacing={2}>
-              <Button
-                variant="contained"
-                sx={{
-                  mt: 2,
-                  borderRadius: 2,
-                  width: 155,
-                  height: 25,
-                  fontSize: 11,
-                  border: "1px solid #D0D5DD",
-                  backgroundColor: "white",
-                  color: "#344054",
-                }}
-                disableRipple={
-                  theme.components?.MuiButton?.defaultProps?.disableRipple
-                }
-                onClick={() => setIsLinkedRisksModalOpen(true)}
-                disabled={isEditingDisabled}
-              >
-                Add/Remove risks
-              </Button>
-            </Stack>
-
-            <Dialog 
-              open={isLinkedRisksModalOpen} 
-              onClose={() => setIsLinkedRisksModalOpen(false)}
-              PaperProps={{
-                sx: {
-                  width: '1100px',
-                  maxWidth: '1100px',
-                  minHeight: '520px'
-                },
-              }}
-            >
-              <Suspense fallback={"loading..."}>
-                <LinkedRisksPopup onClose={() => setIsLinkedRisksModalOpen(false)} />
-              </Suspense>
-            </Dialog>
-          </> */}
           
         </Stack>
         <Divider />

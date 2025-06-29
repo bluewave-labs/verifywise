@@ -28,7 +28,7 @@ import {
   getAllProjectsQuery,
   updateProjectUpdatedByIdQuery,
 } from "../utils/project.utils";
-import { Project } from "../domain.layer/models/project/project.model";
+import { IProjectAttributes } from "../domain.layer/interfaces/i.project";
 
 export async function getAllClauses(req: Request, res: Response): Promise<any> {
   try {
@@ -421,7 +421,7 @@ export async function getAllProjectsClausesProgress(
       await Promise.all(
         projects.map(async (project) => {
           const projectFrameworkId = (
-            project as unknown as { dataValues: Project }
+            project as unknown as { dataValues: IProjectAttributes }
           ).dataValues.framework
             ?.filter((f) => f.framework_id === 2)
             .map((f) => f.project_framework_id)[0];
@@ -461,7 +461,7 @@ export async function getAllProjectsAnnxesProgress(
       await Promise.all(
         projects.map(async (project) => {
           const projectFrameworkId = (
-            project as unknown as { dataValues: Project }
+            project as unknown as { dataValues: IProjectAttributes }
           ).dataValues.framework
             ?.filter((f) => f.framework_id === 2)
             .map((f) => f.project_framework_id)[0];

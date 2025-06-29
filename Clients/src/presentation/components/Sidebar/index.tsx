@@ -115,6 +115,45 @@ interface User_Avatar {
   pathToImage: string;
 }
 
+const useOrganizationLogo = () => {
+  const [logoUrl, setLogoUrl] = useState<string>("");
+
+  useEffect(() => {
+    const updateLogo = () => {
+      // should be retrieving current org ID from context
+      const keys = Object.keys(localStorage).filter((key) =>
+        key.startsWith("org-logo-")
+      );
+      if (keys.length > 0) {
+        const storedLogo = localStorage.getItem(keys[0]); 
+        setLogoUrl(storedLogo || "");
+      }
+    };
+
+    updateLogo();
+
+  
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "org-logo-updated") {
+        setLogoUrl(e.newValue || "");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    
+    const handleLogoUpdate = () => updateLogo();
+    window.addEventListener("org-logo-updated", handleLogoUpdate);
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("org-logo-updated", handleLogoUpdate);
+    };
+  }, []);
+
+  return logoUrl;
+};
+
+
 const Sidebar = () => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -130,6 +169,7 @@ const Sidebar = () => {
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
     countToTrigger: 1,
   });
+    const organizationLogo = useOrganizationLogo();
 
   const user: User = users
     ? users.find((user: User) => user.id === userId) || DEFAULT_USER
@@ -207,7 +247,24 @@ const Sidebar = () => {
           className="app-title"
         >
           <RouterLink to="/">
-            <img src={Logo} alt="Logo" width={32} height={30} />
+            {organizationLogo ? (
+              <Avatar
+                user={{
+                  firstname: "",
+                  lastname: "",
+                  email: "",
+                  pathToImage: organizationLogo,
+                } as User_Avatar}
+                size="small"
+                sx={{
+                  width: 32,
+                  height: 32,
+                  border: `1px solid ${theme.palette.border.light}`,
+                }}
+              />
+            ) : (
+              <img src={Logo} alt="Logo" width={32} height={30} />
+            )}
           </RouterLink>
           <MuiLink
             component={RouterLink}

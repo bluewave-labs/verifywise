@@ -1,4 +1,4 @@
-import { Stack, useTheme, Box, Divider, CircularProgress } from "@mui/material";
+import { Stack, useTheme, Box, Divider, CircularProgress, Typography, Avatar, IconButton } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
@@ -18,6 +18,8 @@ import {
 import Alert from "../../../components/Alert";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import allowedRoles from "../../../../application/constants/permissions";
+import FileUploadModal from "../../../components/Modals/FileUpload";
+import CameraAltIcon from "@mui/icons-material/CameraAlt";
 
 interface AlertState {
   variant: "success" | "info" | "warning" | "error";
@@ -44,6 +46,11 @@ const Organization = () => {
   const [alert, setAlert] = useState<AlertState | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
 
+  //logo
+    const [organizationLogo, setOrganizationLogo] = useState<string>("");
+    const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
+    // const [isLogoUploading, setIsLogoUploading] = useState(false);
+
   const fetchOrganization = useCallback(async () => {
     try {
       const organizations = await GetMyOrganization({
@@ -56,18 +63,24 @@ const Organization = () => {
         const org = organizations.data.data[0];
         setOrganizationId(org.id);
         setOrganizationName(org.name || "");
+
+        const storedLogo = localStorage.getItem(`org-logo-${org.id}`);
+        setOrganizationLogo(storedLogo || org.logo || "");
+
         setOrganizationExists(true);
         setHasChanges(false);
       } else {
         setOrganizationExists(false);
         setOrganizationId(null);
         setOrganizationName("");
+          setOrganizationLogo("");
         setHasChanges(false);
       }
     } catch (error) {
       setOrganizationExists(false);
       setOrganizationId(null);
       setOrganizationName("");
+       setOrganizationLogo("");
       setHasChanges(false);
     }
   }, []);
@@ -103,6 +116,63 @@ const Organization = () => {
     []
   );
 
+const handleLogoUploadSuccess = useCallback(
+  (file: any) => {
+    // change needed: should be the uploaded file URL from the server
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const logoUrl = e.target?.result as string;
+      setOrganizationLogo(logoUrl);
+
+      if (organizationId) {
+        localStorage.setItem(`org-logo-${organizationId}`, logoUrl);
+      }
+
+      window.dispatchEvent(
+        new StorageEvent("storage", {
+          key: "org-logo-updated",
+          newValue: logoUrl,
+        })
+      );
+
+      setHasChanges(true);
+      setAlert({
+        variant: "success",
+        title: "Logo Updated",
+        body: "Organization logo has been updated successfully.",
+        isToast: false,
+      });
+    };
+    reader.readAsDataURL(file);
+    setIsFileUploadOpen(false);
+  },
+  [organizationId]
+);
+ const handleLogoUploadError = useCallback((message: string) => {
+   setAlert({
+     variant: "error",
+     title: "Upload Error",
+     body: message || "Failed to upload logo.",
+     isToast: false,
+   });
+   setIsFileUploadOpen(false);
+ }, []);
+
+ const fileUploadProps = {
+   open: isFileUploadOpen,
+   onClose: () => setIsFileUploadOpen(false),
+   onSuccess: handleLogoUploadSuccess,
+   onError: handleLogoUploadError,
+   allowedFileTypes: ["image/jpeg", "image/png", "image/gif", "image/webp"],
+   onFileChanged: (file: File) => {
+     if (file.size > 5 * 1024 * 1024) {
+       handleLogoUploadError("File size must be less than 5MB");
+       return;
+     }
+     handleLogoUploadSuccess(file);
+   },
+ };
+
   const handleCreate = async () => {
     if (!organizationName.trim()) {
       console.log("Validation error: Organization name is required");
@@ -127,6 +197,10 @@ const Organization = () => {
         body: "The organization was created successfully.",
         isToast: false,
       });
+
+       if (response && response.id && organizationLogo) {
+         localStorage.setItem(`org-logo-${response.id}`, organizationLogo);
+       }
       if (response && response.id) {
         setOrganizationId(response.id);
         setOrganizationName(response.name || "");
@@ -173,6 +247,16 @@ const Organization = () => {
         body: "The organization was updated successfully.",
         isToast: false,
       });
+
+      if (organizationLogo && organizationId) {
+        localStorage.setItem(`org-logo-${organizationId}`, organizationLogo);
+        window.dispatchEvent(
+          new StorageEvent("storage", {
+            key: "org-logo-updated",
+            newValue: organizationLogo,
+          })
+        );
+      }
       if (response && response.id) {
         setOrganizationId(response.id);
         setOrganizationName(response.name || "");
@@ -257,9 +341,61 @@ const Organization = () => {
               }
             />
           </Stack>
+          {/* Logo Upload Section */}
+          <Stack
+            sx={{ width: { xs: "100%", md: "55%" }, mb: { xs: 3, md: 0 } }}
+          >
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              Organization Logo
+            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+              <Box sx={{ position: "relative" }}>
+                <Avatar
+                  src={organizationLogo}
+                  sx={{
+                    width: 80,
+                    height: 80,
+                    fontSize: "2rem",
+                    bgcolor: theme.palette.primary.main,
+                    border: `3px solid ${theme.palette.border.light}`,
+                  }}
+                >
+                  {organizationName.charAt(0).toUpperCase()}
+                </Avatar>
+                <IconButton
+                  onClick={() => setIsFileUploadOpen(true)}
+                  disabled={isEditingDisabled}
+                  sx={{
+                    position: "absolute",
+                    bottom: -5,
+                    right: -5,
+                    bgcolor: theme.palette.background.paper,
+                    border: `2px solid ${theme.palette.border.light}`,
+                    width: 32,
+                    height: 32,
+                    "&:hover": {
+                      bgcolor: theme.palette.action.hover,
+                    },
+                  }}
+                >
+                  <CameraAltIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+              </Box>
+              <Stack>
+                <Typography variant="body2" color="text.secondary">
+                  Upload a logo for your organization
+                </Typography>
+                <Typography variant="caption" color="text.disabled">
+                  Recommended: Square image, max 5MB
+                </Typography>
+              </Stack>
+            </Box>
+          </Stack>
         </Box>
         <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
       </Stack>
+      {/* File Upload Modal */}
+      <FileUploadModal uploadProps={fileUploadProps} />
     </Stack>
   );
 };

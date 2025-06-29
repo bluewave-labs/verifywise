@@ -36,6 +36,7 @@ interface ControlsTableProps {
   flashRow?: number | null;
   projectId: number;
   projectFrameworkId: number;
+  statusFilter?: string;
 }
 
 const ControlsTable: React.FC<ControlsTableProps> = ({
@@ -45,6 +46,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   onComplianceUpdate,
   projectId,
   projectFrameworkId,
+  statusFilter,
 }) => {
   const { users } = useContext(VerifyWiseContext);
   const currentProjectId = projectId;
@@ -76,6 +78,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
     const subControlsResponse = await getEntityById({
       routeUrl: `eu-ai-act/controlById?controlId=${id}&projectFrameworkId=${projectFrameworkId}`,
     });
+    console.log("Sub-controls: ", subControlsResponse);
     setSelectedControl(subControlsResponse.data);
     setSelectedRow(id);
     setModalOpen(true);
@@ -121,7 +124,6 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
     }, 1000);
     handleCloseModal();
   };
-
   useEffect(() => {
     const fetchControls = async () => {
       if (!currentProjectId) return;
@@ -131,7 +133,16 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
         const response = await getEntityById({
           routeUrl: `/eu-ai-act/controls/byControlCategoryId/${controlCategoryId}?projectFrameworkId=${projectFrameworkId}`,
         });
-        setControls(response);
+
+        console.log("Status filter: ", statusFilter);
+        const filteredControls = response.filter((control: Control) => {
+          return (
+            control.status?.toLowerCase() === statusFilter ||
+            statusFilter === ""
+          );
+        });
+
+        setControls(filteredControls);
       } catch (err) {
         setError(err);
       } finally {
@@ -140,7 +151,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
     };
 
     fetchControls();
-  }, [controlCategoryId, currentProjectId, refreshTrigger]);
+  }, [controlCategoryId, currentProjectId, refreshTrigger, statusFilter]);
 
   const getProgressColor = useCallback((value: number) => {
     if (value <= 10) return "#FF4500"; // 0-10%

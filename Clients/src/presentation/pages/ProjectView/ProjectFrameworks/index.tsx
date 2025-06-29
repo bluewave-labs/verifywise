@@ -108,16 +108,21 @@ const ProjectFrameworks = ({
   useEffect(() => {
     if (!loading && projectFrameworks.length > 0 && !hasInitialized) {
       const validIds = projectFrameworks.map((fw: Framework) => Number(fw.id));
-      
+
       // If initialFrameworkId is provided and valid, use it
       if (initialFrameworkId && validIds.includes(initialFrameworkId)) {
         setSelectedFrameworkId(initialFrameworkId);
         setTracker(
-          initialFrameworkId === FRAMEWORK_IDS.ISO_42001 ? "clauses" : "compliance"
+          initialFrameworkId === FRAMEWORK_IDS.ISO_42001
+            ? "clauses"
+            : "compliance"
         );
       }
       // Otherwise, use the default logic
-      else if (!selectedFrameworkId || !validIds.includes(selectedFrameworkId)) {
+      else if (
+        !selectedFrameworkId ||
+        !validIds.includes(selectedFrameworkId)
+      ) {
         const initialFramework = projectFrameworks[0];
         setSelectedFrameworkId(Number(initialFramework.id));
         setTracker(
@@ -126,10 +131,16 @@ const ProjectFrameworks = ({
             : "compliance"
         );
       }
-      
+
       setHasInitialized(true);
     }
-  }, [loading, projectFrameworks, selectedFrameworkId, initialFrameworkId, hasInitialized]);
+  }, [
+    loading,
+    projectFrameworks,
+    selectedFrameworkId,
+    initialFrameworkId,
+    hasInitialized,
+  ]);
 
   const handleFrameworkChange = (frameworkId: number) => {
     setSelectedFrameworkId(frameworkId);
@@ -155,15 +166,36 @@ const ProjectFrameworks = ({
   const isEUAIAct = Number(selectedFrameworkId) === FRAMEWORK_IDS.EU_AI_ACT;
   const tabs = isISO42001 ? ISO_42001_TABS : TRACKER_TABS;
 
-  const [statusFilter, setStatusFilter] = useState("");
-  const [applicabilityFilter, setApplicabilityFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [applicabilityFilter, setApplicabilityFilter] = useState("all");
+
+  const iso42001StatusOptions = [
+    { value: "not started", label: "Not Started" },
+    { value: "in progress", label: "In Progress" },
+    { value: "implemented", label: "Implemented" },
+    { value: "awaiting approval", label: "Awaiting Approval" },
+    { value: "awaiting review", label: "Awaiting Review" },
+    { value: "draft", label: "Draft" },
+    { value: "audited", label: "Audited" },
+    { value: "needs rework", label: "Needs Rework" },
+  ];
+
+  const euAIActStatusOptions = [
+    { value: "waiting", label: "Waiting" },
+    { value: "in progress", label: "In Progress" },
+    { value: "done", label: "Done" },
+  ];
+
+  const statusOptions = isISO42001
+    ? iso42001StatusOptions
+    : isEUAIAct
+    ? euAIActStatusOptions
+    : [];
 
   useEffect(() => {
-  setStatusFilter("");
-  setApplicabilityFilter("");
+    setStatusFilter("");
+    setApplicabilityFilter("");
   }, [tracker]);
-
-
 
   return (
     <Box sx={containerStyle}>
@@ -200,16 +232,17 @@ const ProjectFrameworks = ({
         </Button>
       </Box>
       <TabFilterBar
-  statusFilter={statusFilter}
-  onStatusChange={setStatusFilter}
-  applicabilityFilter={applicabilityFilter}
-  onApplicabilityChange={setApplicabilityFilter}
-  showStatusFilter={
-    (isISO42001 && (tracker === "clauses" || tracker === "annexes")) ||
-    (isEUAIAct && (tracker === "compliance" || tracker === "assessment"))
-  }
-  showApplicabilityFilter={isISO42001 && tracker === "annexes"}
-/>
+        statusFilter={statusFilter}
+        onStatusChange={setStatusFilter}
+        applicabilityFilter={applicabilityFilter}
+        onApplicabilityChange={setApplicabilityFilter}
+        showStatusFilter={
+          (isISO42001 && (tracker === "clauses" || tracker === "annexes")) ||
+          (isEUAIAct && (tracker === "compliance" || tracker === "assessment"))
+        }
+        showApplicabilityFilter={isISO42001 && tracker === "annexes"}
+        statusOptions={statusOptions}
+      />
 
       <AddFrameworkModal
         open={isModalOpen}
@@ -277,7 +310,10 @@ const ProjectFrameworks = ({
         ) : isEUAIAct ? (
           <>
             <TabPanel value="compliance" sx={tabPanelStyle}>
-              <ComplianceTracker project={project} />
+              <ComplianceTracker
+                project={project}
+                statusFilter={statusFilter}
+              />
             </TabPanel>
             <TabPanel value="assessment" sx={tabPanelStyle}>
               <AssessmentTracker project={project} />

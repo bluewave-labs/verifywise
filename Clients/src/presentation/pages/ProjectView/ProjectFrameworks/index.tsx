@@ -269,6 +269,8 @@ const ProjectFrameworks = ({
                 projectFrameworkId={
                   projectFrameworksMap.get(Number(selectedFrameworkId))!
                 }
+                statusFilter={statusFilter}
+                applicabilityFilter={applicabilityFilter}
               />
             </TabPanel>
           </>

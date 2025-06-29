@@ -61,9 +61,9 @@ const TabFilterBar = ({
             label="Applicability"
             sx={{ minWidth: 150 }}
           >
-            <MenuItem value="">All</MenuItem>
-            <MenuItem value="applicable">Applicable</MenuItem>
-            <MenuItem value="not_applicable">Not Applicable</MenuItem>
+            <MenuItem value="all">All</MenuItem>
+            <MenuItem value="true">Applicable</MenuItem>
+            <MenuItem value="false">Not Applicable</MenuItem>
           </Select>
         </FormControl>
       )}

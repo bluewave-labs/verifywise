@@ -33,7 +33,7 @@ router.get("/:id/members", authenticateJWT, getOrganizationMembers);
 router.get("/:id/projects", authenticateJWT, getOrganizationProjects);
 
 // POST requests
-router.post("/", authenticateJWT, createOrganization);
+router.post("/", createOrganization);
 router.post("/:id/members", authenticateJWT, addMemberToOrganization);
 router.post("/:id/projects", authenticateJWT, addProjectToOrganization);
 

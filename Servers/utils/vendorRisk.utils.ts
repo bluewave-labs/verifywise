@@ -6,10 +6,11 @@ import { sequelize } from "../database/db";
 import { QueryTypes, Transaction } from "sequelize";
 
 export const getVendorRisksByProjectIdQuery = async (
-  projectId: number
+  projectId: number,
+  tenant: string
 ): Promise<VendorRisk[]> => {
   const vendorRisks = await sequelize.query(
-    "SELECT * FROM vendorRisks WHERE vendor_id IN (SELECT vendor_id FROM vendors_projects WHERE project_id = :project_id) ORDER BY created_at DESC, id ASC;",
+    `SELECT * FROM ${tenant}.vendorRisks WHERE vendor_id IN (SELECT vendor_id FROM ${tenant}.vendors_projects WHERE project_id = :project_id) ORDER BY created_at DESC, id ASC;`,
     {
       replacements: { project_id: projectId },
       mapToModel: true,
@@ -20,10 +21,11 @@ export const getVendorRisksByProjectIdQuery = async (
 };
 
 export const getVendorRiskByIdQuery = async (
-  id: number
+  id: number,
+  tenant: string
 ): Promise<VendorRisk | null> => {
   const result = await sequelize.query(
-    "SELECT * FROM vendorRisks WHERE id = :id ORDER BY created_at DESC, id ASC",
+    `SELECT * FROM ${tenant}.vendorRisks WHERE id = :id ORDER BY created_at DESC, id ASC`,
     {
       replacements: { id },
       mapToModel: true,
@@ -35,10 +37,11 @@ export const getVendorRiskByIdQuery = async (
 
 export const createNewVendorRiskQuery = async (
   vendorRisk: VendorRisk,
+  tenant: string,
   transaction: Transaction
 ): Promise<VendorRisk> => {
   const result = await sequelize.query(
-    `INSERT INTO vendorRisks (
+    `INSERT INTO ${tenant}.vendorRisks (
       vendor_id, order_no, risk_description, impact_description,
       likelihood, risk_severity, action_plan, action_owner, risk_level
     ) VALUES (
@@ -69,6 +72,7 @@ export const createNewVendorRiskQuery = async (
 export const updateVendorRiskByIdQuery = async (
   id: number,
   vendorRisk: Partial<VendorRisk>,
+  tenant: string,
   transaction: Transaction
 ): Promise<VendorRisk | null> => {
   const updateVendorRisk: Partial<Record<keyof VendorRisk, any>> = {};
@@ -95,7 +99,7 @@ export const updateVendorRiskByIdQuery = async (
     .map((f) => `${f} = :${f}`)
     .join(", ");
 
-  const query = `UPDATE vendorrisks SET ${setClause} WHERE id = :id RETURNING *;`;
+  const query = `UPDATE ${tenant}.vendorrisks SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateVendorRisk.id = id;
 
@@ -112,10 +116,11 @@ export const updateVendorRiskByIdQuery = async (
 
 export const deleteVendorRiskByIdQuery = async (
   id: number,
+  tenant: string,
   transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
-    "DELETE FROM vendorRisks WHERE id = :id RETURNING id",
+    `DELETE FROM ${tenant}.vendorRisks WHERE id = :id RETURNING id`,
     {
       replacements: { id },
       mapToModel: true,
@@ -129,10 +134,11 @@ export const deleteVendorRiskByIdQuery = async (
 
 export const deleteVendorRisksForVendorQuery = async (
   vendorId: number,
+  tenant: string,
   transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
-    `DELETE FROM vendorrisks WHERE vendor_id = :vendor_id RETURNING id`,
+    `DELETE FROM ${tenant}.vendorrisks WHERE vendor_id = :vendor_id RETURNING id`,
     {
       replacements: { vendor_id: vendorId },
       mapToModel: true,
@@ -144,7 +150,9 @@ export const deleteVendorRisksForVendorQuery = async (
   return result.length > 0;
 };
 
-export const getAllVendorRisksAllProjectsQuery = async () => {
+export const getAllVendorRisksAllProjectsQuery = async (
+  tenant: string
+) => {
   const risks = await sequelize.query(
     `SELECT 
       vendorRisks.id AS risk_id,
@@ -152,10 +160,10 @@ export const getAllVendorRisksAllProjectsQuery = async () => {
       vendors.*, 
       vendors_projects.*, 
       projects.project_title
-    FROM vendorRisks
-    JOIN vendors ON vendorRisks.vendor_id = vendors.id
-    JOIN vendors_projects ON vendors.id = vendors_projects.vendor_id
-    JOIN projects ON vendors_projects.project_id = projects.id
+    FROM ${tenant}.vendorRisks
+    JOIN ${tenant}.vendors ON vendorRisks.vendor_id = vendors.id
+    JOIN ${tenant}.vendors_projects ON vendors.id = vendors_projects.vendor_id
+    JOIN ${tenant}.projects ON vendors_projects.project_id = projects.id
     ORDER BY vendors_projects.project_id, vendors.id, vendorRisks.id`,
     {
       mapToModel: true,

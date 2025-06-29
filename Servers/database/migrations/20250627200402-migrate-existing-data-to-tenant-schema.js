@@ -11,16 +11,16 @@ module.exports = {
       `, { transaction });
       const tenantHash = getTenantHash(organization_id[0][0].id);
       await queryInterface.sequelize.query(`
-        CREATE SCHEMA IF NOT EXISTS ${tenantHash};
+        CREATE SCHEMA IF NOT EXISTS "${tenantHash}";
       `, { transaction });
 
-      // await Promise.all([
-      //   `ALTER TABLE projects SET SCHEMA ${tenantHash};`,
-      //   `ALTER TABLE vendors SET SCHEMA ${tenantHash};`,
-      //   `ALTER TABLE frameworks SET SCHEMA ${tenantHash};`,
-      //   `ALTER TABLE model_files SET SCHEMA ${tenantHash};`,
-      //   `ALTER TABLE trainingregistar SET SCHEMA ${tenantHash};`,
-      // ].map(query => queryInterface.sequelize.query(query, { transaction })));
+      await Promise.all([
+        `ALTER TABLE projects SET SCHEMA ${tenantHash};`,
+        `ALTER TABLE vendors SET SCHEMA ${tenantHash};`,
+        `ALTER TABLE frameworks SET SCHEMA ${tenantHash};`,
+        `ALTER TABLE model_files SET SCHEMA ${tenantHash};`,
+        `ALTER TABLE trainingregistar SET SCHEMA ${tenantHash};`,
+      ].map(query => queryInterface.sequelize.query(query, { transaction })));
 
       for (let query of [
         `ALTER TABLE projects_members DROP CONSTRAINT IF EXISTS projects_members_project_id_fkey;`,

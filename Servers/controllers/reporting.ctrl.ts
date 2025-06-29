@@ -68,7 +68,7 @@ export async function generateReports(
     if (typeof userId !== "number" || isNaN(userId)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid user ID"));
     }
-    const organizations = await getAllOrganizationsQuery(req.tenantId!);
+    const organizations = await getAllOrganizationsQuery();
     let organizationName = "VerifyWise";
     if (organizations && organizations.length > 0) {
       organizationName = organizations[0].name;

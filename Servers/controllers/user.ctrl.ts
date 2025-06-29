@@ -83,7 +83,7 @@ async function getUserById(req: Request, res: Response) {
 async function createNewUser(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
   try {
-    const { name, surname, email, password, roleId, organization_id } = req.body;
+    const { name, surname, email, password, roleId, organizationId } = req.body;
 
     // Check if user already exists
     const existingUser = await getUserByEmailQuery(email);
@@ -101,7 +101,7 @@ async function createNewUser(req: Request, res: Response) {
       email,
       password,
       roleId,
-      organization_id
+      organizationId
     );
 
     // Validate user data before saving

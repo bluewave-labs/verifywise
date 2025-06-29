@@ -17,6 +17,7 @@ export interface FormValues {
   password: string;
   confirmPassword: string;
   roleId?: number;  // Optional role property
+  organizationId?: number; // Optional organization property
 }
 
 // Define the shape of form errors

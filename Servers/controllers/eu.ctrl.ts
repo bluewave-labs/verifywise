@@ -142,7 +142,7 @@ export async function saveControls(
 
     const filesToDelete = JSON.parse(Control.delete || "[]") as number[];
     for (let f of filesToDelete) {
-      await deleteFileById(f, transaction);
+      await deleteFileById(f, req.tenantId!, transaction);
     }
 
     // now we need to iterate over subcontrols inside the control, and create a subcontrol for each subcontrol
@@ -163,6 +163,7 @@ export async function saveControls(
             Control.user_id,
             Control.project_id,
             "Compliance tracker group",
+            req.tenantId!,
             transaction
           );
           evidenceUploadedFiles.push({
@@ -183,6 +184,7 @@ export async function saveControls(
             Control.user_id,
             Control.project_id,
             "Compliance tracker group",
+            req.tenantId!,
             transaction
           );
           feedbackUploadedFiles.push({

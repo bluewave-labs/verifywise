@@ -4,9 +4,11 @@ import { createNewSubTopicsQuery } from "./subtopic.utils";
 import { Topics } from "../structures/EU-AI-Act/assessment-tracker/topics.struct";
 import { QueryTypes, Transaction } from "sequelize";
 
-export const getAllTopicsQuery = async (): Promise<Topic[]> => {
+export const getAllTopicsQuery = async (
+  tenant: string
+): Promise<Topic[]> => {
   const topics = await sequelize.query(
-    "SELECT * FROM topics ORDER BY created_at DESC, id ASC",
+    `SELECT * FROM ${tenant}.topics ORDER BY created_at DESC, id ASC`,
     {
       mapToModel: true,
       model: TopicModel,
@@ -15,8 +17,8 @@ export const getAllTopicsQuery = async (): Promise<Topic[]> => {
   return topics;
 };
 
-export const getTopicByIdQuery = async (id: number): Promise<Topic | null> => {
-  const result = await sequelize.query("SELECT * FROM topics WHERE id = :id", {
+export const getTopicByIdQuery = async (id: number, tenant: string): Promise<Topic | null> => {
+  const result = await sequelize.query(`SELECT * FROM ${tenant}.topics WHERE id = :id`, {
     replacements: { id },
     mapToModel: true,
     model: TopicModel,
@@ -26,10 +28,11 @@ export const getTopicByIdQuery = async (id: number): Promise<Topic | null> => {
 
 export const createNewTopicQuery = async (
   topic: Topic,
+  tenant: string,
   transaction: Transaction
 ): Promise<Topic> => {
   const result = await sequelize.query(
-    `INSERT INTO topics (assessment_id, title) VALUES (:assessment_id, :title) RETURNING *`,
+    `INSERT INTO ${tenant}.topics (assessment_id, title) VALUES (:assessment_id, :title) RETURNING *`,
     {
       replacements: {
         assessment_id: topic.assessment_id,
@@ -47,6 +50,7 @@ export const createNewTopicQuery = async (
 export const updateTopicByIdQuery = async (
   id: number,
   topic: Partial<Topic>,
+  tenant: string,
   transaction: Transaction
 ): Promise<Topic | null> => {
   const updateTopic: Partial<Record<keyof Topic, any>> = {};
@@ -60,7 +64,7 @@ export const updateTopicByIdQuery = async (
     .map((f) => `${f} = :${f}`)
     .join(", ");
 
-  const query = `UPDATE topics SET ${setClause} WHERE id = :id RETURNING *;`;
+  const query = `UPDATE ${tenant}.topics SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateTopic.id = id;
 
@@ -77,10 +81,11 @@ export const updateTopicByIdQuery = async (
 
 export const deleteTopicByIdQuery = async (
   id: number,
+  tenant: string,
   transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
-    `DELETE FROM topics WHERE id = :id RETURNING *`,
+    `DELETE FROM ${tenant}.topics WHERE id = :id RETURNING *`,
     {
       replacements: { id },
       mapToModel: true,
@@ -93,10 +98,11 @@ export const deleteTopicByIdQuery = async (
 };
 
 export const getTopicByAssessmentIdQuery = async (
-  assessmentId: number
+  assessmentId: number,
+  tenant: string
 ): Promise<Topic[]> => {
   const result = await sequelize.query(
-    `SELECT * FROM topics WHERE assessment_id = :assessment_id ORDER BY created_at DESC, id ASC`,
+    `SELECT * FROM ${tenant}.topics WHERE assessment_id = :assessment_id ORDER BY created_at DESC, id ASC`,
     {
       replacements: { assessment_id: assessmentId },
       mapToModel: true,
@@ -109,11 +115,12 @@ export const getTopicByAssessmentIdQuery = async (
 export const createNewTopicsQuery = async (
   assessmentId: number,
   enable_ai_data_insertion: boolean,
+  tenant: string,
   transaction: Transaction
 ) => {
   const createdTopics = [];
   let query =
-    "INSERT INTO topics(assessment_id, title, order_no) VALUES (:assessment_id, :title, :order_no) RETURNING *;";
+    `INSERT INTO ${tenant}.topics(assessment_id, title, order_no) VALUES (:assessment_id, :title, :order_no) RETURNING *;`;
   for (let topicStruct of Topics) {
     const result = await sequelize.query(query, {
       replacements: {
@@ -131,6 +138,7 @@ export const createNewTopicsQuery = async (
       topic_id,
       topicStruct.subtopics,
       enable_ai_data_insertion,
+      tenant,
       transaction
     );
     createdTopics.push({ ...result[0].dataValues, subTopics });

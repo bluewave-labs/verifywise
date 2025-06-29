@@ -225,12 +225,12 @@ export async function getProjectStatsById(
   const project: any = await getProjectByIdQuery(projectId, req.tenantId!);
 
   const project_owner = project.owner; // (A user's id) Now, we get the user by this
-  const ownerUser: any = getUserByIdQuery(project_owner, req.tenantId!);
+  const ownerUser: any = getUserByIdQuery(project_owner);
 
   const project_last_updated = project.last_updated;
 
   const project_last_updated_by = project.last_updated_by;
-  const userWhoUpdated: any = getUserByIdQuery(project_last_updated_by, req.tenantId!);
+  const userWhoUpdated: any = getUserByIdQuery(project_last_updated_by);
 
   const overviewDetails = {
     user: {

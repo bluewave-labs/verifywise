@@ -186,11 +186,12 @@ export async function getAnnexesByProjectId(
 // helper function to delete files
 async function deleteFiles(
   filesToDelete: number[],
+  tenant: string,
   transaction: any
 ): Promise<void> {
   await Promise.all(
     filesToDelete.map(async (fileId) => {
-      await deleteFileById(fileId, transaction);
+      await deleteFileById(fileId, tenant, transaction);
     })
   );
 }
@@ -201,6 +202,7 @@ async function uploadFiles(
   userId: number,
   projectFrameworkId: number,
   source: "Management system clauses group" | "Reference controls group",
+  tenant: string,
   transaction: any
 ): Promise<FileType[]> {
   let uploadedFiles: FileType[] = [];
@@ -211,6 +213,7 @@ async function uploadFiles(
         userId,
         projectFrameworkId,
         source,
+        tenant,
         transaction
       );
 
@@ -242,13 +245,14 @@ export async function saveClauses(
     };
 
     const filesToDelete = JSON.parse(subClause.delete || "[]") as number[];
-    await deleteFiles(filesToDelete, transaction);
+    await deleteFiles(filesToDelete, req.tenantId!, transaction);
 
     let uploadedFiles = await uploadFiles(
       req.files! as UploadedFile[],
       subClause.user_id,
       subClause.project_id,
       "Management system clauses group",
+      req.tenantId!,
       transaction
     );
 
@@ -288,13 +292,14 @@ export async function saveAnnexes(
     };
 
     const filesToDelete = JSON.parse(annexCategory.delete || "[]") as number[];
-    await deleteFiles(filesToDelete, transaction);
+    await deleteFiles(filesToDelete, req.tenantId!, transaction);
 
     let uploadedFiles = await uploadFiles(
       req.files! as UploadedFile[],
       annexCategory.user_id,
       annexCategory.project_id,
       "Reference controls group",
+      req.tenantId!,
       transaction
     );
 

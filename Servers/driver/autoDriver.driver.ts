@@ -18,11 +18,10 @@ import { addVendorProjects } from "../utils/vendor.utils";
 import { Vendor } from "../domain.layer/models/vendor/vendor.model";
 import { Organization } from "../domain.layer/models/organization/organization.model";
 
-export async function insertMockData(userId: number | null = null) {
+export async function insertMockData(tenant: string, userId: number | null = null) {
   const transaction = await sequelize.transaction();
   try {
-    let users = (await getData("users", transaction)) as UserModel[];
-    let organizations = (await getData("organizations", transaction)) as Organization[];
+    let users = (await getData("users", "public", transaction)) as UserModel[];
     console.log("insertMockData users ", users);
     if (users.length < 2) {
       let u1 = await createNewUserQuery(
@@ -32,7 +31,7 @@ export async function insertMockData(userId: number | null = null) {
           `john.doe.${Date.now()}@example.com`,
           "MyJH4rTm!@.45L0wm",
           1,
-          organizations[0].id!
+          users[0].organization_id!
         ),
         transaction,
         true // is demo
@@ -44,7 +43,7 @@ export async function insertMockData(userId: number | null = null) {
           `alice.smith.${Date.now()}@example.com`,
           "MyJH4rTm!@.45L0wm",
           2,
-          organizations[0].id!
+          users[0].organization_id!
         ),
         transaction,
         true // is demo
@@ -52,7 +51,7 @@ export async function insertMockData(userId: number | null = null) {
       users.push(u1, u2);
     }
 
-    let projects = ((await getData("projects", transaction)) as Project[])[0];
+    let projects = ((await getData("projects", tenant, transaction)) as Project[])[0];
     if (!projects) {
       const owner = userId ?? users[0].id!;
       // create project
@@ -74,6 +73,7 @@ export async function insertMockData(userId: number | null = null) {
           return acc;
         }, []),
         [1, 2], // frameworks
+        tenant,
         transaction,
         true // is demo
       );
@@ -110,11 +110,12 @@ export async function insertMockData(userId: number | null = null) {
           approval_status: "In Progress",
           date_of_assessment: new Date(Date.now()),
         },
+        tenant,
         transaction
       );
 
       // create vendor
-      let vendor = ((await getData("vendors", transaction)) as Vendor[])[0];
+      let vendor = ((await getData("vendors", tenant, transaction)) as Vendor[])[0];
       if (!vendor) {
         vendor = await createNewVendorQuery(
           {
@@ -130,11 +131,12 @@ export async function insertMockData(userId: number | null = null) {
             risk_status: "Very high risk",
             review_date: new Date(Date.now()),
           },
+          tenant,
           transaction,
           true // is demo
         );
       } else {
-        await addVendorProjects(vendor.id!, [project.id!], transaction);
+        await addVendorProjects(vendor.id!, [project.id!], tenant, transaction);
       }
 
       // ---- no need of is demo
@@ -150,12 +152,13 @@ export async function insertMockData(userId: number | null = null) {
           action_owner: users[0].id!,
           risk_level: "High risk",
         },
+        tenant,
         transaction
       );
 
       // create eu framework
-      await createEUFrameworkQuery(project.id!, true, transaction, true);
-      await createISOFrameworkQuery(project.id!, true, transaction, true);
+      await createEUFrameworkQuery(project.id!, true, tenant, transaction, true);
+      await createISOFrameworkQuery(project.id!, true, tenant, transaction, true);
     } else {
       // project already exists, delete it and insert a new one
     }
@@ -166,15 +169,15 @@ export async function insertMockData(userId: number | null = null) {
   }
 }
 
-export async function deleteMockData() {
+export async function deleteMockData(tenant: string) {
   const transaction = await sequelize.transaction();
   try {
-    const demoProject = (await getData("projects", transaction)) as Project[];
+    const demoProject = (await getData("projects", tenant, transaction)) as Project[];
     for (let project of demoProject) {
-      await deleteProjectByIdQuery(project.id!, transaction);
+      await deleteProjectByIdQuery(project.id!, tenant, transaction);
     }
     // delete vendor related data
-    await deleteDemoVendorsData(transaction);
+    await deleteDemoVendorsData(tenant, transaction);
     await transaction.commit();
   } catch (error) {
     await transaction.rollback();

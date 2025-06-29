@@ -7,10 +7,11 @@ import { QueryTypes, Transaction } from "sequelize";
 import { updateProjectUpdatedByIdQuery } from "./project.utils";
 
 export const getAllProjectRisksQuery = async (
-  projectId: number
+  projectId: number,
+  tenant: string
 ): Promise<ProjectRisk[]> => {
   const projectRisks = await sequelize.query(
-    "SELECT * FROM projectrisks WHERE project_id = :project_id ORDER BY created_at DESC, id ASC",
+    `SELECT * FROM ${tenant}.projectrisks WHERE project_id = :project_id ORDER BY created_at DESC, id ASC`,
     {
       replacements: { project_id: projectId },
       mapToModel: true,
@@ -21,10 +22,11 @@ export const getAllProjectRisksQuery = async (
 };
 
 export const getProjectRiskByIdQuery = async (
-  id: number
+  id: number,
+  tenant: string
 ): Promise<ProjectRisk | null> => {
   const result = await sequelize.query(
-    "SELECT * FROM projectrisks WHERE id = :id",
+    `SELECT * FROM ${tenant}.projectrisks WHERE id = :id`,
     {
       replacements: { id },
       mapToModel: true,
@@ -35,10 +37,11 @@ export const getProjectRiskByIdQuery = async (
 };
 
 export const getNonMitigatedProjectRisksQuery = async (
-  projectId: number
+  projectId: number,
+  tenant: string
 ): Promise<ProjectRisk[]> => {
   const projectRisks = await sequelize.query(
-    `SELECT pr.* FROM projectrisks pr RIGHT JOIN annexcategories_iso__risks acr ON pr.id = annexcategories_iso__risks.project_risk_id WHERE acr IS NULL;`,
+    `SELECT pr.* FROM ${tenant}.projectrisks pr RIGHT JOIN ${tenant}.annexcategories_iso__risks acr ON pr.id = annexcategories_iso__risks.project_risk_id WHERE acr IS NULL;`,
     {
       replacements: { project_id: projectId },
       mapToModel: true,
@@ -50,10 +53,11 @@ export const getNonMitigatedProjectRisksQuery = async (
 
 export const createProjectRiskQuery = async (
   projectRisk: Partial<ProjectRisk>,
+  tenant: string,
   transaction: Transaction
 ): Promise<ProjectRisk> => {
   const result = await sequelize.query(
-    `INSERT INTO projectrisks (
+    `INSERT INTO ${tenant}.projectrisks (
       project_id, risk_name, risk_owner, ai_lifecycle_phase, risk_description,
       risk_category, impact, assessment_mapping, controls_mapping, likelihood,
       severity, risk_level_autocalculated, review_notes, mitigation_status,
@@ -105,6 +109,7 @@ export const createProjectRiskQuery = async (
   await updateProjectUpdatedByIdQuery(
     result[0].id!,
     "projectrisks",
+    tenant,
     transaction
   );
   return result[0];
@@ -113,6 +118,7 @@ export const createProjectRiskQuery = async (
 export const updateProjectRiskByIdQuery = async (
   id: number,
   projectRisk: Partial<ProjectRisk>,
+  tenant: string,
   transaction: Transaction
 ): Promise<ProjectRisk | null> => {
   const updateProjectRisk: Partial<Record<keyof ProjectRisk, any>> = {};
@@ -156,7 +162,7 @@ export const updateProjectRiskByIdQuery = async (
     .map((f) => `${f} = :${f}`)
     .join(", ");
 
-  const query = `UPDATE projectrisks SET ${setClause} WHERE id = :id RETURNING *;`;
+  const query = `UPDATE ${tenant}.projectrisks SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateProjectRisk.id = id;
 
@@ -167,15 +173,16 @@ export const updateProjectRiskByIdQuery = async (
     // type: QueryTypes.UPDATE,
     transaction,
   });
-  await updateProjectUpdatedByIdQuery(id, "projectrisks", transaction);
+  await updateProjectUpdatedByIdQuery(id, "projectrisks", tenant, transaction);
   return result[0];
 };
 
 export const deleteProjectRiskByIdQuery = async (
   id: number,
+  tenant: string,
   transaction: Transaction
 ): Promise<Boolean> => {
-  await updateProjectUpdatedByIdQuery(id, "projectrisks", transaction);
+  await updateProjectUpdatedByIdQuery(id, "projectrisks", tenant, transaction);
   const result = await sequelize.query(
     "DELETE FROM projectrisks WHERE id = :id RETURNING *",
     {

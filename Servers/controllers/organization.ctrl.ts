@@ -15,6 +15,7 @@ import {
   updateOrganizationByIdQuery,
 } from "../utils/organization.utils";
 import { invite } from "./vwmailer.ctrl";
+import { createNewTenant } from "../scripts/createNewTenant";
 
 /**
  * Get all organizations
@@ -139,8 +140,8 @@ export async function createOrganization(
       transaction
     );
     if (createdOrganization) {
-      const organization_id = createdOrganization.id!;
-      // create schema
+      const organization_id = createdOrganization.id!;      
+      await createNewTenant(organization_id, transaction)
       await transaction.commit();
       const resp = await invite(req, res, {
         to: newOrganization.userEmail,

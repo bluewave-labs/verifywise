@@ -6,9 +6,11 @@ import { sequelize } from "../database/db";
 import { createNewTopicsQuery } from "./topic.utils";
 import { QueryTypes, Transaction } from "sequelize";
 
-export const getAllAssessmentsQuery = async (): Promise<Assessment[]> => {
+export const getAllAssessmentsQuery = async (
+  tenant: string
+): Promise<Assessment[]> => {
   const assessments = await sequelize.query(
-    "SELECT * FROM assessments ORDER BY created_at DESC, id ASC",
+    `SELECT * FROM ${tenant}.assessments ORDER BY created_at DESC, id ASC`,
     {
       mapToModel: true,
       model: AssessmentModel,
@@ -18,10 +20,11 @@ export const getAllAssessmentsQuery = async (): Promise<Assessment[]> => {
 };
 
 export const getAssessmentByIdQuery = async (
-  id: number
+  id: number,
+  tenant: string
 ): Promise<Assessment | null> => {
   const result = await sequelize.query(
-    "SELECT * FROM assessments WHERE id = :id",
+    `SELECT * FROM ${tenant}.assessments WHERE id = :id`,
     {
       replacements: { id: id },
       mapToModel: true,
@@ -32,10 +35,11 @@ export const getAssessmentByIdQuery = async (
 };
 
 export const getAssessmentByProjectIdQuery = async (
-  projectId: number
+  projectId: number,
+  tenant: string
 ): Promise<Assessment[]> => {
   const result = await sequelize.query(
-    "SELECT * FROM assessments WHERE project_id = :project_id ORDER BY created_at DESC, id ASC",
+    `SELECT * FROM ${tenant}.assessments WHERE project_id = :project_id ORDER BY created_at DESC, id ASC`,
     {
       replacements: { project_id: projectId },
       mapToModel: true,
@@ -48,10 +52,11 @@ export const getAssessmentByProjectIdQuery = async (
 export const createNewAssessmentQuery = async (
   assessment: Assessment,
   enable_ai_data_insertion: boolean,
+  tenant: string,
   transaction: Transaction
 ): Promise<Object> => {
   const result = await sequelize.query(
-    `INSERT INTO assessments (project_id) VALUES (:project_id) RETURNING *`,
+    `INSERT INTO ${tenant}.assessments (project_id) VALUES (:project_id) RETURNING *`,
     {
       replacements: { project_id: assessment.project_id },
       mapToModel: true,
@@ -62,6 +67,7 @@ export const createNewAssessmentQuery = async (
   const topics = await createNewTopicsQuery(
     result[0].id!,
     enable_ai_data_insertion,
+    tenant,
     transaction
   );
   return { assessment: result[0], topics };
@@ -70,10 +76,11 @@ export const createNewAssessmentQuery = async (
 export const updateAssessmentByIdQuery = async (
   id: number,
   assessment: Partial<Assessment>,
+  tenant: string,
   transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
-    `UPDATE assessments SET project_id = :project_id WHERE id = :id RETURNING *`,
+    `UPDATE ${tenant}.assessments SET project_id = :project_id WHERE id = :id RETURNING *`,
     {
       replacements: {
         project_id: assessment.project_id,
@@ -90,10 +97,11 @@ export const updateAssessmentByIdQuery = async (
 
 export const deleteAssessmentByIdQuery = async (
   id: number,
+  tenant: string,
   transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
-    `DELETE FROM assessments WHERE id = :id RETURNING *`,
+    `DELETE FROM ${tenant}.assessments WHERE id = :id RETURNING *`,
     {
       replacements: { id: id },
       mapToModel: true,

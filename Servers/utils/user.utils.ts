@@ -132,7 +132,7 @@ export const getUserByEmailQuery = async (
  * ```
  */
 export const getUserByIdQuery = async (id: number): Promise<UserModel> => {
-  const user = await sequelize.query("SELECT * FROM users WHERE id = :id", {
+  const user = await sequelize.query("SELECT * FROM public.users WHERE id = :id", {
     replacements: { id },
     mapToModel: true,
     model: UserModel,

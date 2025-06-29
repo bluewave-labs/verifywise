@@ -27,7 +27,7 @@ const LinkedRisksTableBody: React.FC<TableProps> = ({
 }) => {
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [checkedRows, setCheckedRows] = useState<number[]>([]);
+  const [checkedRows, setCheckedRows] = useState<ProjectRisk[]>([]);
   const theme = useTheme();  
 
   const handleChangePage = useCallback((_: unknown, newPage: number) => {
@@ -42,11 +42,11 @@ const LinkedRisksTableBody: React.FC<TableProps> = ({
     [setRowsPerPage, setCurrentPagingation]
   );
 
-  const handleRowClick = (riskId: number) => {
+  const handleRowClick = (riskData: ProjectRisk) => {
     setCheckedRows((prev) =>
-      prev.includes(riskId)
-        ? prev.filter((i) => i !== riskId)
-        : [...prev, riskId]
+      prev.find(data => data.id === riskData.id)
+        ? prev.filter((risk) => risk.id !== riskData.id)
+        : [...prev, riskData]
     );
   };
 
@@ -57,13 +57,13 @@ const LinkedRisksTableBody: React.FC<TableProps> = ({
           rows
           .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
             .map((row: ProjectRisk, index: number) => (
-              <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row} onClick={() => handleRowClick(row.id)}>
+              <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row} onClick={() => handleRowClick(row)}>
                 <TableCell sx={cellStyle}>
                   <MuiCheckbox
                     size="small"
                     id="auto-fill"
-                    checked={checkedRows.includes(row.id)}
-                    onChange={() => handleRowClick(row.id)}
+                    checked={checkedRows.some(risk => risk.id === row.id)}
+                    onChange={() => handleRowClick(row)}
                     onClick={(e) => e.stopPropagation()}  
                     checkedIcon={<CheckboxFilled />}
                     icon={<CheckboxOutline />}

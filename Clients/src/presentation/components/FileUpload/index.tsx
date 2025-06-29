@@ -24,7 +24,6 @@ const FileUploadComponent = ({
   onClose,
   onHeightChange,
   onSuccess,
-  onError,
   onFileChanged,
   topicId = 0,
   assessmentsValues = [],

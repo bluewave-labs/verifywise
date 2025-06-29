@@ -23,12 +23,17 @@ import DeleteIcon from "@mui/icons-material/Delete";
 const FileUploadComponent = ({
   onClose,
   onHeightChange,
+  onSuccess,
+  onError,
+  onFileChanged,
   topicId = 0,
   assessmentsValues = [],
   setAssessmentsValue,
   allowedFileTypes,
 }: FileUploadProps) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
+
+    const isLogoUpload = !assessmentsValues || assessmentsValues.length === 0;
 
   const [fileList, setFileList] = useState<FileProps[]>(
     assessmentsValues[topicId]?.file || []
@@ -68,7 +73,7 @@ const FileUploadComponent = ({
       return;
     }
     // Prevent duplicate files
-    if (newFile) {
+    if (newFile && !isLogoUpload) {
       const fileExists = fileList.some(
         (f: FileProps) => f.name === newFile.name || f.size === newFile.size
       );
@@ -76,6 +81,19 @@ const FileUploadComponent = ({
         console.warn(`File ${newFile.name} already exists.`);
         return;
       }
+    }
+
+    if (isLogoUpload) {
+      if (onFileChanged) {
+        onFileChanged(newFile);
+      }
+      if (onSuccess) {
+        onSuccess(newFile);
+      }
+      if (onClose) {
+        onClose();
+      }
+      return;
     }
     // Update the file list
     const updatedList: FileProps[] = [...fileList, newFile];
@@ -89,6 +107,7 @@ const FileUploadComponent = ({
 
   const handleUploadClick = () => {
     if (
+      !isLogoUpload &&
       assessmentsValues != null &&
       topicId != null &&
       assessmentsValues[topicId] != null &&
@@ -110,6 +129,13 @@ const FileUploadComponent = ({
     }
   };
 
+  const getSupportedFormatsText = () => {
+    if (allowedFileTypes?.some((type) => type.startsWith("image/"))) {
+      return "JPG, PNG, GIF, WebP";
+    }
+    return "PDF";
+  };
+
   return (
     <>
       <Stack
@@ -124,7 +150,7 @@ const FileUploadComponent = ({
           variant="h6"
           sx={{ fontWeight: 600, fontSize: "16px", pb: 2 }}
         >
-          Upload a new file
+          {isLogoUpload ? "Upload organization logo" : "Upload a new file"}
         </Typography>
 
         <DragDropArea uploadedFilesCount={fileList.length}>
@@ -141,10 +167,24 @@ const FileUploadComponent = ({
                 <span style={{ color: "#3b82f6" }}>Click to upload</span> or
                 drag and drop
               </Typography>
+              {isLogoUpload && (
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mt: 1, display: "block" }}
+                >
+                  Recommended: Square image, max 5MB
+                </Typography>
+              )}
             </div>
-            <input type="file" value="" onChange={onFileDrop} />
+            <input
+              type="file"
+              value=""
+              onChange={onFileDrop}
+              accept={allowedFileTypes?.join(",")}
+            />
           </div>
-          {fileList.length > 0 && (
+          {!isLogoUpload && fileList.length > 0 && (
             <Stack sx={fileListStyleFrame}>
               <List>
                 {fileList.map((file, index) => (
@@ -168,18 +208,28 @@ const FileUploadComponent = ({
             </Stack>
           )}
         </DragDropArea>
-        <Stack direction="row" justifyContent="space-between" sx={{ mt: 2 }}>
-          <Typography variant="caption" sx={{ fontSize: "12px" }}>
-            Supported formats: PDF
-          </Typography>
-          <Button
-            variant="contained"
-            sx={{ marginTop: "8px", width: "100px", height: "34px" }}
-            onClick={handleUploadClick}
+        {!isLogoUpload && (
+          <Stack direction="row" justifyContent="space-between" sx={{ mt: 2 }}>
+            <Typography variant="caption" sx={{ fontSize: "12px" }}>
+              Supported formats: {getSupportedFormatsText()}
+            </Typography>
+            <Button
+              variant="contained"
+              sx={{ marginTop: "8px", width: "100px", height: "34px" }}
+              onClick={handleUploadClick}
+            >
+              Save
+            </Button>
+          </Stack>
+        )}
+        {isLogoUpload && (
+          <Typography
+            variant="caption"
+            sx={{ fontSize: "12px", textAlign: "center" }}
           >
-            Save
-          </Button>
-        </Stack>
+            Supported formats: {getSupportedFormatsText()}
+          </Typography>
+        )}
       </Stack>
     </>
   );

@@ -49,7 +49,7 @@ const Organization = () => {
   //logo
     const [organizationLogo, setOrganizationLogo] = useState<string>("");
     const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
-    // const [isLogoUploading, setIsLogoUploading] = useState(false);
+    const [isLogoUploading, setIsLogoUploading] = useState(false);
 
   const fetchOrganization = useCallback(async () => {
     try {
@@ -73,14 +73,14 @@ const Organization = () => {
         setOrganizationExists(false);
         setOrganizationId(null);
         setOrganizationName("");
-          setOrganizationLogo("");
+        setOrganizationLogo("");
         setHasChanges(false);
       }
     } catch (error) {
       setOrganizationExists(false);
       setOrganizationId(null);
       setOrganizationName("");
-       setOrganizationLogo("");
+      setOrganizationLogo("");
       setHasChanges(false);
     }
   }, []);
@@ -117,12 +117,13 @@ const Organization = () => {
   );
 
 const handleLogoUploadSuccess = useCallback(
-  (file: any) => {
+  (file: File) => {
     // change needed: should be the uploaded file URL from the server
     const reader = new FileReader();
     reader.onload = (e) => {
       const logoUrl = e.target?.result as string;
       setOrganizationLogo(logoUrl);
+      setHasChanges(true);
 
       if (organizationId) {
         localStorage.setItem(`org-logo-${organizationId}`, logoUrl);
@@ -135,7 +136,6 @@ const handleLogoUploadSuccess = useCallback(
         })
       );
 
-      setHasChanges(true);
       setAlert({
         variant: "success",
         title: "Logo Updated",
@@ -155,22 +155,37 @@ const handleLogoUploadSuccess = useCallback(
      body: message || "Failed to upload logo.",
      isToast: false,
    });
-   setIsFileUploadOpen(false);
  }, []);
+
+ const handleDeleteLogo = () => {
+   setOrganizationLogo("");
+   setHasChanges(true);
+
+   if (organizationId) {
+     localStorage.removeItem(`org-logo-${organizationId}`);
+     window.dispatchEvent(
+       new StorageEvent("storage", {
+         key: "org-logo-updated",
+         newValue: "",
+       })
+     );
+   }
+
+   setAlert({
+     variant: "success",
+     title: "Logo Deleted",
+     body: "Organization logo has been removed successfully.",
+     isToast: false,
+   });
+ };
 
  const fileUploadProps = {
    open: isFileUploadOpen,
    onClose: () => setIsFileUploadOpen(false),
    onSuccess: handleLogoUploadSuccess,
    onError: handleLogoUploadError,
+   onFileChanged: handleLogoUploadSuccess,
    allowedFileTypes: ["image/jpeg", "image/png", "image/gif", "image/webp"],
-   onFileChanged: (file: File) => {
-     if (file.size > 5 * 1024 * 1024) {
-       handleLogoUploadError("File size must be less than 5MB");
-       return;
-     }
-     handleLogoUploadSuccess(file);
-   },
  };
 
   const handleCreate = async () => {
@@ -198,9 +213,9 @@ const handleLogoUploadSuccess = useCallback(
         isToast: false,
       });
 
-       if (response && response.id && organizationLogo) {
-         localStorage.setItem(`org-logo-${response.id}`, organizationLogo);
-       }
+      if (response && response.id && organizationLogo) {
+        localStorage.setItem(`org-logo-${response.id}`, organizationLogo);
+      }
       if (response && response.id) {
         setOrganizationId(response.id);
         setOrganizationName(response.name || "");
@@ -298,9 +313,11 @@ const handleLogoUploadSuccess = useCallback(
           sx={{
             display: "flex",
             justifyContent: "space-between",
+            alignItems: "flex-start",
             flexDirection: { xs: "column", md: "row" },
             mb: 3,
             width: "100%",
+            gap: 4,
           }}
         >
           <Stack sx={{ width: { xs: "100%", md: "40%" } }}>
@@ -341,55 +358,77 @@ const handleLogoUploadSuccess = useCallback(
               }
             />
           </Stack>
-          {/* Logo Upload Section */}
+          {/* Logo upload section */}
           <Stack
-            sx={{ width: { xs: "100%", md: "55%" }, mb: { xs: 3, md: 0 } }}
+            sx={{ 
+              width: { xs: "100%", md: "45%" }, 
+              flex:1,
+              alignItems:"flex-end",
+              mt: { xs: 4, md: 0 } }}
           >
-            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+            <Typography variant="h6" sx={{ 
+              mb: 3, 
+              fontWeight: 600,
+              width:"100%",
+              textAlign:"right" }}>
               Organization Logo
             </Typography>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-              <Box sx={{ position: "relative" }}>
-                <Avatar
-                  src={organizationLogo}
+            <Stack alignItems="center" spacing={2}>
+              {/* Logo */}
+              <Avatar
+                src={organizationLogo}
+                sx={{
+                  width: 120,
+                  height: 120,
+                  fontSize: "3rem",
+                  bgcolor: "#13715B",
+                  border: `3px solid ${theme.palette.border.light}`,
+                  mb:2,
+                }}
+              >
+                {organizationName.charAt(0).toUpperCase() || "O"}
+              </Avatar>
+              {/* Action Buttons */}
+              <Stack direction="row" spacing={3}>
+                <Typography
+                  onClick={handleDeleteLogo}
                   sx={{
-                    width: 80,
-                    height: 80,
-                    fontSize: "2rem",
-                    bgcolor: theme.palette.primary.main,
-                    border: `3px solid ${theme.palette.border.light}`,
+                    color: "#667085",
+                    cursor:
+                      organizationLogo && !isEditingDisabled
+                        ? "pointer"
+                        : "default",
+                    textDecoration: "none",
+                    "&:hover":
+                      organizationLogo && !isEditingDisabled
+                        ? { textDecoration: "underline" }
+                        : {},
+                    fontSize: 14,
+                    opacity: organizationLogo && !isEditingDisabled ? 1 : 0.5,
                   }}
                 >
-                  {organizationName.charAt(0).toUpperCase()}
-                </Avatar>
-                <IconButton
-                  onClick={() => setIsFileUploadOpen(true)}
-                  disabled={isEditingDisabled}
-                  sx={{
-                    position: "absolute",
-                    bottom: -5,
-                    right: -5,
-                    bgcolor: theme.palette.background.paper,
-                    border: `2px solid ${theme.palette.border.light}`,
-                    width: 32,
-                    height: 32,
-                    "&:hover": {
-                      bgcolor: theme.palette.action.hover,
-                    },
-                  }}
-                >
-                  <CameraAltIcon sx={{ fontSize: 16 }} />
-                </IconButton>
-              </Box>
-              <Stack>
-                <Typography variant="body2" color="text.secondary">
-                  Upload a logo for your organization
+                  Delete
                 </Typography>
-                <Typography variant="caption" color="text.disabled">
-                  Recommended: Square image, max 5MB
+                <Typography
+                  onClick={() =>
+                    !isEditingDisabled && setIsFileUploadOpen(true)
+                  }
+                  sx={{
+                    color: "#13715B",
+                    cursor: !isEditingDisabled ? "pointer" : "default",
+                    textDecoration: "none",
+                    "&:hover": !isEditingDisabled
+                      ? { textDecoration: "underline" }
+                      : {},
+                    fontSize: 14,
+                    fontWeight: 500,
+                    opacity: !isEditingDisabled ? 1 : 0.5,
+                  }}
+                >
+                  Update
                 </Typography>
               </Stack>
-            </Box>
+            </Stack>
           </Stack>
         </Box>
         <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />

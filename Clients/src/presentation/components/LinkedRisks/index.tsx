@@ -58,6 +58,7 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
               sx={textfieldStyle}
               value={searchInput}
               onChange={handleOnTextFieldChange}
+              disabled={projectRisks.length === 0}
             />
           </Stack>
         </Stack>

@@ -207,7 +207,7 @@ export const getAnnexesReportQuery = async (
   transaction: Transaction | null = null
 ) => {
   const annexes = (await sequelize.query(
-    `SELECT * FROM "${tenant}".annex_struct_iso ORDER BY id;`,
+    `SELECT * FROM public.annex_struct_iso ORDER BY id;`,
     {
       mapToModel: true,
       ...(transaction ? { transaction } : {}),
@@ -234,7 +234,7 @@ export const annexCategoriesQuery = async (
 ) => {
   const annexCategories = await sequelize.query(
     `SELECT acs.id, acs.title, acs.description, acs.order_no, ac.status, ac.is_applicable, ac.justification_for_exclusion, ac.implementation_description 
-       FROM "${tenant}".annexcategories_struct_iso acs 
+       FROM public.annexcategories_struct_iso acs 
        JOIN "${tenant}".annexcategories_iso ac ON acs.id = ac.annexcategory_meta_id 
        WHERE acs.annex_id = :id AND ac.projects_frameworks_id = :projects_frameworks_id 
        ORDER BY acs.id;`,
@@ -262,7 +262,7 @@ export const getClausesReportQuery = async (
   transaction: Transaction | null = null
 ) => {
   const clauses = (await sequelize.query(
-    `SELECT * FROM "${tenant}".clauses_struct_iso ORDER BY id;`,
+    `SELECT * FROM public.clauses_struct_iso ORDER BY id;`,
     {
       mapToModel: true,
       ...(transaction ? { transaction } : {}),
@@ -289,7 +289,7 @@ export const subClausesQuery = async (
 ) => {
   return await sequelize.query(
     `SELECT scs.id, scs.title, scs.order_no, scs.summary, sc.status, sc.implementation_description
-     FROM "${tenant}".subclauses_struct_iso scs
+     FROM public.subclauses_struct_iso scs
      JOIN "${tenant}".subclauses_iso sc ON scs.id = sc.subclause_meta_id 
      WHERE scs.clause_id = :clause_id AND sc.projects_frameworks_id = :projects_frameworks_id
      ORDER BY scs.id;`,

@@ -21,7 +21,6 @@ export async function insertMockData(tenant: string, organization: number, userI
   const transaction = await sequelize.transaction();
   try {
     let users = (await getData("users", "public", transaction)) as UserModel[];
-    console.log("insertMockData users ", users);
     if (users.length < 2) {
       let u1 = await createNewUserQuery(
         await UserModel.createNewUser(

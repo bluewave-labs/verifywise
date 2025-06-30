@@ -12,7 +12,7 @@ export const getAllFrameworksQuery = async (
   tenant: string
 ): Promise<FrameworkModel[]> => {
   const frameworks = await sequelize.query(
-    `SELECT * FROM ${tenant}.frameworks ORDER BY created_at DESC, id ASC;`,
+    `SELECT * FROM public.frameworks ORDER BY created_at DESC, id ASC;`,
     {
       mapToModel: true,
       model: FrameworkModel,
@@ -20,7 +20,7 @@ export const getAllFrameworksQuery = async (
   );
   for (let framework of frameworks) {
     const frameworkProjects = await sequelize.query(
-      `SELECT * FROM ${tenant}.projects_frameworks WHERE framework_id = :frameworkId`,
+      `SELECT * FROM "${tenant}".projects_frameworks WHERE framework_id = :frameworkId`,
       {
         replacements: { frameworkId: framework.id },
         mapToModel: true,
@@ -37,7 +37,7 @@ export const getAllFrameworkByIdQuery = async (
   tenant: string
 ): Promise<FrameworkModel | null> => {
   const result = await sequelize.query(
-    `SELECT * FROM ${tenant}.frameworks WHERE id = :id ORDER BY created_at DESC, id ASC`,
+    `SELECT * FROM public.frameworks WHERE id = :id ORDER BY created_at DESC, id ASC`,
     {
       replacements: { id },
       mapToModel: true,
@@ -46,7 +46,7 @@ export const getAllFrameworkByIdQuery = async (
   );
   const framework = result[0];
   const frameworkProjects = await sequelize.query(
-    `SELECT * FROM ${tenant}.projects_frameworks WHERE framework_id = :frameworkId`,
+    `SELECT * FROM "${tenant}".projects_frameworks WHERE framework_id = :frameworkId`,
     {
       replacements: { frameworkId: framework.id },
       mapToModel: true,
@@ -64,7 +64,7 @@ export const addFrameworkToProjectQuery = async (
   transaction: Transaction
 ): Promise<boolean> => {
   const [[{ exists }]] = (await sequelize.query(
-    `SELECT EXISTS (SELECT 1 FROM ${tenant}.projects_frameworks WHERE project_id = :projectId AND framework_id = :frameworkId) AS exists;`,
+    `SELECT EXISTS (SELECT 1 FROM "${tenant}".projects_frameworks WHERE project_id = :projectId AND framework_id = :frameworkId) AS exists;`,
     { replacements: { projectId, frameworkId }, transaction }
   )) as [[{ exists: boolean }], number];
   if (exists) {
@@ -78,7 +78,7 @@ export const addFrameworkToProjectQuery = async (
 
   // add the framework to the project
   const result = (await sequelize.query(
-    `INSERT INTO ${tenant}.projects_frameworks (project_id, framework_id) VALUES (:projectId, :frameworkId) RETURNING *;`,
+    `INSERT INTO "${tenant}".projects_frameworks (project_id, framework_id) VALUES (:projectId, :frameworkId) RETURNING *;`,
     { replacements: { projectId, frameworkId }, transaction }
   )) as [ProjectFrameworksModel[], number];
   if (!result[0]?.length) {
@@ -96,7 +96,7 @@ const deleteFrameworkEvidenceFiles = async (
   transaction: Transaction
 ): Promise<void> => {
   await sequelize.query(
-    `DELETE FROM ${tenant}.files WHERE project_id = :project_id AND source IN (:source)`,
+    `DELETE FROM "${tenant}".files WHERE project_id = :project_id AND source IN (:source)`,
     {
       replacements: { project_id: projectId, source },
       transaction,
@@ -111,7 +111,7 @@ export const deleteFrameworkFromProjectQuery = async (
   transaction: Transaction
 ): Promise<boolean> => {
   const [[{ exists }]] = (await sequelize.query(
-    `SELECT EXISTS (SELECT 1 FROM ${tenant}.projects_frameworks WHERE project_id = :projectId AND framework_id = :frameworkId) AS exists;`,
+    `SELECT EXISTS (SELECT 1 FROM "${tenant}".projects_frameworks WHERE project_id = :projectId AND framework_id = :frameworkId) AS exists;`,
     { replacements: { projectId, frameworkId }, transaction }
   )) as [[{ exists: boolean }], number];
   if (!exists) {

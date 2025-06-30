@@ -10,7 +10,7 @@ export const getAllAssessmentsQuery = async (
   tenant: string
 ): Promise<Assessment[]> => {
   const assessments = await sequelize.query(
-    `SELECT * FROM ${tenant}.assessments ORDER BY created_at DESC, id ASC`,
+    `SELECT * FROM "${tenant}".assessments ORDER BY created_at DESC, id ASC`,
     {
       mapToModel: true,
       model: AssessmentModel,
@@ -24,7 +24,7 @@ export const getAssessmentByIdQuery = async (
   tenant: string
 ): Promise<Assessment | null> => {
   const result = await sequelize.query(
-    `SELECT * FROM ${tenant}.assessments WHERE id = :id`,
+    `SELECT * FROM "${tenant}".assessments WHERE id = :id`,
     {
       replacements: { id: id },
       mapToModel: true,
@@ -39,7 +39,7 @@ export const getAssessmentByProjectIdQuery = async (
   tenant: string
 ): Promise<Assessment[]> => {
   const result = await sequelize.query(
-    `SELECT * FROM ${tenant}.assessments WHERE project_id = :project_id ORDER BY created_at DESC, id ASC`,
+    `SELECT * FROM "${tenant}".assessments WHERE project_id = :project_id ORDER BY created_at DESC, id ASC`,
     {
       replacements: { project_id: projectId },
       mapToModel: true,
@@ -56,7 +56,7 @@ export const createNewAssessmentQuery = async (
   transaction: Transaction
 ): Promise<Object> => {
   const result = await sequelize.query(
-    `INSERT INTO ${tenant}.assessments (project_id) VALUES (:project_id) RETURNING *`,
+    `INSERT INTO "${tenant}".assessments (project_id) VALUES (:project_id) RETURNING *`,
     {
       replacements: { project_id: assessment.project_id },
       mapToModel: true,
@@ -80,7 +80,7 @@ export const updateAssessmentByIdQuery = async (
   transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
-    `UPDATE ${tenant}.assessments SET project_id = :project_id WHERE id = :id RETURNING *`,
+    `UPDATE "${tenant}".assessments SET project_id = :project_id WHERE id = :id RETURNING *`,
     {
       replacements: {
         project_id: assessment.project_id,
@@ -101,7 +101,7 @@ export const deleteAssessmentByIdQuery = async (
   transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
-    `DELETE FROM ${tenant}.assessments WHERE id = :id RETURNING *`,
+    `DELETE FROM "${tenant}".assessments WHERE id = :id RETURNING *`,
     {
       replacements: { id: id },
       mapToModel: true,

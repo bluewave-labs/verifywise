@@ -13,7 +13,7 @@ export const getAllQuestionsQuery = async (
   (Question & { evidence_files: Object[] })[]
 > => {
   const questions = await sequelize.query(
-    `SELECT * FROM ${tenant}.questions ORDER BY created_at DESC, id ASC`,
+    `SELECT * FROM "${tenant}".questions ORDER BY created_at DESC, id ASC`,
     {
       mapToModel: true,
       model: QuestionModel,
@@ -39,7 +39,7 @@ export const getQuestionByIdQuery = async (
   tenant: string
 ): Promise<Question & { evidence_files: Object[] }> => {
   const result = await sequelize.query(
-    `SELECT * FROM ${tenant}.questions WHERE id = :id`,
+    `SELECT * FROM "${tenant}".questions WHERE id = :id`,
     {
       replacements: { id },
       mapToModel: true,
@@ -61,10 +61,10 @@ export const getQuestionByIdQuery = async (
 
 export interface RequestWithFile extends Request {
   files?:
-    | UploadedFile[]
-    | {
-        [key: string]: UploadedFile[];
-      };
+  | UploadedFile[]
+  | {
+    [key: string]: UploadedFile[];
+  };
 }
 
 export interface UploadedFile {
@@ -80,7 +80,7 @@ export const createNewQuestionQuery = async (
   transaction: Transaction
 ): Promise<Question> => {
   const result = await sequelize.query(
-    `INSERT INTO ${tenant}.questions (
+    `INSERT INTO "${tenant}".questions (
       subtopic_id, question, answer_type, evidence_required,
       hint, is_required, priority_level, answer
     ) VALUES (
@@ -122,7 +122,7 @@ export const addFileToQuestion = async (
 ): Promise<Question> => {
   // get the existing evidence files
   const evidenceFilesResult = await sequelize.query(
-    `SELECT evidence_files FROM ${tenant}.questions WHERE id = :id`,
+    `SELECT evidence_files FROM "${tenant}".questions WHERE id = :id`,
     {
       replacements: { id },
       mapToModel: true,
@@ -154,7 +154,7 @@ export const addFileToQuestion = async (
 
   // update
   const result = await sequelize.query(
-    `UPDATE ${tenant}.questions SET evidence_files = :evidence_files WHERE id = :id RETURNING *;`,
+    `UPDATE "${tenant}".questions SET evidence_files = :evidence_files WHERE id = :id RETURNING *;`,
     {
       replacements: {
         evidence_files: JSON.stringify(evidenceFiles),
@@ -189,7 +189,7 @@ export const updateQuestionByIdQuery = async (
     .map((f) => `${f} = :${f}`)
     .join(", ");
 
-  const query = `UPDATE ${tenant}.questions SET ${setClause} WHERE id = :id RETURNING *;`;
+  const query = `UPDATE "${tenant}".questions SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateQuestion.id = id;
 
@@ -210,7 +210,7 @@ export const deleteQuestionByIdQuery = async (
   transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
-    `DELETE FROM ${tenant}.questions WHERE id = :id RETURNING *`,
+    `DELETE FROM "${tenant}".questions WHERE id = :id RETURNING *`,
     {
       replacements: { id },
       mapToModel: true,
@@ -234,7 +234,7 @@ export const getQuestionBySubTopicIdQuery = async (
   tenant: string
 ): Promise<Question[]> => {
   const result = await sequelize.query(
-    `SELECT * FROM ${tenant}.questions WHERE subtopic_id = :subtopic_id ORDER BY created_at DESC, id ASC`,
+    `SELECT * FROM "${tenant}".questions WHERE subtopic_id = :subtopic_id ORDER BY created_at DESC, id ASC`,
     {
       replacements: { subtopic_id: subTopicId },
       mapToModel: true,
@@ -249,7 +249,7 @@ export const getQuestionByTopicIdQuery = async (
   tenant: string
 ): Promise<Question[]> => {
   const result = await sequelize.query(
-    `SELECT * FROM ${tenant}.questions WHERE subtopic_id IN (SELECT id FROM subtopics WHERE topic_id = :topic_id) ORDER BY created_at DESC, id ASC;`,
+    `SELECT * FROM "${tenant}".questions WHERE subtopic_id IN (SELECT id FROM subtopics WHERE topic_id = :topic_id) ORDER BY created_at DESC, id ASC;`,
     {
       replacements: { topic_id: topicId },
       mapToModel: true,
@@ -279,7 +279,7 @@ export const createNewQuestionsQuery = async (
   transaction: Transaction
 ) => {
   let query = `
-    INSERT INTO ${tenant}.questions(
+    INSERT INTO "${tenant}".questions(
       subtopic_id, question, answer_type, evidence_required,
       hint, is_required, priority_level, answer, order_no, input_type
     ) VALUES (

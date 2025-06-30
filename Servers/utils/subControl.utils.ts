@@ -12,7 +12,7 @@ export const getAllSubcontrolsQuery = async (
   tenant: string
 ): Promise<Subcontrol[]> => {
   const subcontrols = await sequelize.query(
-    `SELECT * FROM ${tenant}.subcontrols ORDER BY created_at DESC, id ASC`,
+    `SELECT * FROM "${tenant}".subcontrols ORDER BY created_at DESC, id ASC`,
     {
       mapToModel: true,
       model: SubcontrolModel,
@@ -26,7 +26,7 @@ export const getAllSubcontrolsByControlIdQuery = async (
   tenant: string
 ): Promise<Subcontrol[]> => {
   const subcontrols = await sequelize.query(
-    `SELECT * FROM ${tenant}.subcontrols WHERE control_id = :id ORDER BY created_at DESC, id ASC`,
+    `SELECT * FROM "${tenant}".subcontrols WHERE control_id = :id ORDER BY created_at DESC, id ASC`,
     {
       replacements: { id: controlId },
       mapToModel: true,
@@ -41,7 +41,7 @@ export const getSubcontrolByIdQuery = async (
   tenant: string
 ): Promise<Subcontrol | null> => {
   const result = await sequelize.query(
-    `SELECT * FROM ${tenant}.subcontrols WHERE id = :id`,
+    `SELECT * FROM "${tenant}".subcontrols WHERE id = :id`,
     {
       replacements: { id },
       mapToModel: true,
@@ -168,7 +168,7 @@ export const updateSubcontrolByIdQuery = async (
   deletedFiles: number[] = []
 ): Promise<Subcontrol | null> => {
   const files = await sequelize.query(
-    `SELECT evidence_files, feedback_files FROM ${tenant}.subcontrols WHERE id = :id`,
+    `SELECT evidence_files, feedback_files FROM "${tenant}".subcontrols WHERE id = :id`,
     {
       replacements: { id },
       mapToModel: true,
@@ -248,7 +248,7 @@ export const updateSubcontrolByIdQuery = async (
     })
     .join(", ");
 
-  const query = `UPDATE ${tenant}.subcontrols SET ${setClause} WHERE id = :id RETURNING *;`;
+  const query = `UPDATE "${tenant}".subcontrols SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateSubControl.id = id;
 
@@ -269,7 +269,7 @@ export const deleteSubcontrolByIdQuery = async (
   transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
-    `DELETE FROM ${tenant}.subcontrols WHERE id = :id RETURNING *`,
+    `DELETE FROM "${tenant}".subcontrols WHERE id = :id RETURNING *`,
     {
       replacements: { id },
       mapToModel: true,
@@ -295,7 +295,7 @@ export const createNewSubControlsQuery = async (
   tenant: string,
   transaction: Transaction
 ) => {
-  let query = `INSERT INTO ${tenant}.subcontrols(
+  let query = `INSERT INTO "${tenant}".subcontrols(
       title, description, control_id, order_no, implementation_details,
       evidence_description, feedback_description, status
     ) VALUES (

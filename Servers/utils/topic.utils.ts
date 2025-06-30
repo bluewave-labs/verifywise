@@ -8,7 +8,7 @@ export const getAllTopicsQuery = async (
   tenant: string
 ): Promise<Topic[]> => {
   const topics = await sequelize.query(
-    `SELECT * FROM ${tenant}.topics ORDER BY created_at DESC, id ASC`,
+    `SELECT * FROM "${tenant}".topics ORDER BY created_at DESC, id ASC`,
     {
       mapToModel: true,
       model: TopicModel,
@@ -18,7 +18,7 @@ export const getAllTopicsQuery = async (
 };
 
 export const getTopicByIdQuery = async (id: number, tenant: string): Promise<Topic | null> => {
-  const result = await sequelize.query(`SELECT * FROM ${tenant}.topics WHERE id = :id`, {
+  const result = await sequelize.query(`SELECT * FROM "${tenant}".topics WHERE id = :id`, {
     replacements: { id },
     mapToModel: true,
     model: TopicModel,
@@ -32,7 +32,7 @@ export const createNewTopicQuery = async (
   transaction: Transaction
 ): Promise<Topic> => {
   const result = await sequelize.query(
-    `INSERT INTO ${tenant}.topics (assessment_id, title) VALUES (:assessment_id, :title) RETURNING *`,
+    `INSERT INTO "${tenant}".topics (assessment_id, title) VALUES (:assessment_id, :title) RETURNING *`,
     {
       replacements: {
         assessment_id: topic.assessment_id,
@@ -64,7 +64,7 @@ export const updateTopicByIdQuery = async (
     .map((f) => `${f} = :${f}`)
     .join(", ");
 
-  const query = `UPDATE ${tenant}.topics SET ${setClause} WHERE id = :id RETURNING *;`;
+  const query = `UPDATE "${tenant}".topics SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateTopic.id = id;
 
@@ -85,7 +85,7 @@ export const deleteTopicByIdQuery = async (
   transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
-    `DELETE FROM ${tenant}.topics WHERE id = :id RETURNING *`,
+    `DELETE FROM "${tenant}".topics WHERE id = :id RETURNING *`,
     {
       replacements: { id },
       mapToModel: true,
@@ -102,7 +102,7 @@ export const getTopicByAssessmentIdQuery = async (
   tenant: string
 ): Promise<Topic[]> => {
   const result = await sequelize.query(
-    `SELECT * FROM ${tenant}.topics WHERE assessment_id = :assessment_id ORDER BY created_at DESC, id ASC`,
+    `SELECT * FROM "${tenant}".topics WHERE assessment_id = :assessment_id ORDER BY created_at DESC, id ASC`,
     {
       replacements: { assessment_id: assessmentId },
       mapToModel: true,
@@ -120,7 +120,7 @@ export const createNewTopicsQuery = async (
 ) => {
   const createdTopics = [];
   let query =
-    `INSERT INTO ${tenant}.topics(assessment_id, title, order_no) VALUES (:assessment_id, :title, :order_no) RETURNING *;`;
+    `INSERT INTO "${tenant}".topics(assessment_id, title, order_no) VALUES (:assessment_id, :title, :order_no) RETURNING *;`;
   for (let topicStruct of Topics) {
     const result = await sequelize.query(query, {
       replacements: {

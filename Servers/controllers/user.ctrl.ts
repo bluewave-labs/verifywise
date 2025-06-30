@@ -29,8 +29,10 @@ import { sequelize } from "../database/db";
 import {
   ValidationException,
   BusinessLogicException,
+  ConflictException,
 } from "../domain.layer/exceptions/custom.exception";
 import { getTenantHash } from "../tools/getTenantHash";
+import { Transaction } from "sequelize";
 
 async function getAllUsers(req: Request, res: Response): Promise<any> {
   try {
@@ -80,44 +82,55 @@ async function getUserById(req: Request, res: Response) {
   }
 }
 
+async function createNewUserWrapper(
+  body: {
+    name: string;
+    surname: string;
+    email: string;
+    password: string;
+    roleId: number;
+    organizationId: number;
+  },
+  transaction: Transaction
+) {
+  const { name, surname, email, password, roleId, organizationId } = body;
+
+  // Check if user already exists
+  const existingUser = await getUserByEmailQuery(email);
+  if (existingUser) {
+    throw new ConflictException("User with this email already exists",)
+  }
+
+  // Create user using the enhanced UserModel method
+  const userModel = await UserModel.createNewUser(
+    name,
+    surname,
+    email,
+    password,
+    roleId,
+    organizationId
+  );
+
+  // Validate user data before saving
+  await userModel.validateUserData();
+
+  // Check email uniqueness
+  const isEmailUnique = await UserModel.validateEmailUniqueness(email);
+  if (!isEmailUnique) {
+    throw new ConflictException("Email already exists");
+  }
+
+  const user = (await createNewUserQuery(
+    userModel,
+    transaction
+  )) as UserModel;
+  return user;
+}
+
 async function createNewUser(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
   try {
-    const { name, surname, email, password, roleId, organizationId } = req.body;
-
-    // Check if user already exists
-    const existingUser = await getUserByEmailQuery(email);
-    if (existingUser) {
-      await transaction.rollback();
-      return res
-        .status(409)
-        .json(STATUS_CODE[409]("User with this email already exists"));
-    }
-
-    // Create user using the enhanced UserModel method
-    const userModel = await UserModel.createNewUser(
-      name,
-      surname,
-      email,
-      password,
-      roleId,
-      organizationId
-    );
-
-    // Validate user data before saving
-    await userModel.validateUserData();
-
-    // Check email uniqueness
-    const isEmailUnique = await UserModel.validateEmailUniqueness(email);
-    if (!isEmailUnique) {
-      await transaction.rollback();
-      return res.status(409).json(STATUS_CODE[409]("Email already exists"));
-    }
-
-    const user = (await createNewUserQuery(
-      userModel,
-      transaction
-    )) as UserModel;
+    const user = await createNewUserWrapper(req.body, transaction);
 
     if (user) {
       await transaction.commit();
@@ -128,6 +141,10 @@ async function createNewUser(req: Request, res: Response) {
     return res.status(400).json(STATUS_CODE[400]("Failed to create user"));
   } catch (error) {
     await transaction.rollback();
+
+    if (error instanceof ConflictException) {
+      return res.status(409).json(STATUS_CODE[409](error.message));
+    }
 
     if (error instanceof ValidationException) {
       return res.status(400).json(STATUS_CODE[400](error.message));
@@ -179,7 +196,8 @@ async function loginUser(req: Request, res: Response): Promise<any> {
           id: user.id,
           email: email,
           roleName: (userData as any).role_name,
-          organizationId: getTenantHash((userData as any).organization_id.toString()),
+          tenantId: getTenantHash((userData as any).organization_id.toString()),
+          organizationId: (userData as any).organization_id,
         });
 
         const refreshToken = generateRefreshToken({
@@ -572,6 +590,7 @@ export {
   getAllUsers,
   getUserByEmail,
   getUserById,
+  createNewUserWrapper,
   createNewUser,
   loginUser,
   resetPassword,

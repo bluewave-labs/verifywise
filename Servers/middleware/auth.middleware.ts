@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { getTokenPayload } from "../utils/jwt.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
+import { getTenantHash } from "../tools/getTenantHash";
 
 const authenticateJWT = async (
   req: Request,
@@ -41,10 +42,15 @@ const authenticateJWT = async (
     ) {
       return res.status(400).json({ message: 'Invalid token' });
     }
-    
+
+    if (decoded.tenantId !== getTenantHash(decoded.organizationId)) {
+      return res.status(400).json({ message: 'Invalid token' });
+    }
+
     req.userId = decoded.id;
     req.role = decoded.roleName;
-    req.tenantId = decoded.organizationId
+    req.tenantId = decoded.tenantId;
+    req.organizationId = decoded.organizationId;
     next();
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

@@ -16,6 +16,8 @@ import {
 } from "../utils/organization.utils";
 import { invite } from "./vwmailer.ctrl";
 import { createNewTenant } from "../scripts/createNewTenant";
+import { createNewUserQuery } from "../utils/user.utils";
+import { createNewUserWrapper } from "./user.ctrl";
 
 /**
  * Get all organizations
@@ -121,14 +123,16 @@ export async function createOrganization(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   try {
-    const newOrganization = req.body as {
+    const body = req.body as {
       name: string;
       logo: string;
       userEmail: string;
       userName: string;
+      userSurname: string;
+      userPassword: string;
     };
 
-    if (!newOrganization.name) {
+    if (!body.name) {
       await transaction.rollback();
       return res
         .status(400)
@@ -136,21 +140,28 @@ export async function createOrganization(
     }
 
     const createdOrganization = await createOrganizationQuery(
-      newOrganization,
+      {
+        name: body.name,
+        logo: body.logo,
+      },
       transaction
     );
     if (createdOrganization) {
       const organization_id = createdOrganization.id!;      
-      await createNewTenant(organization_id, transaction)
+      await createNewTenant(organization_id, transaction);
+      const user = await createNewUserWrapper(
+        {
+          email: body.userEmail,
+          name: body.userName,
+          surname: body.userSurname,
+          password: body.userPassword,
+          roleId: 1, // Assuming 1 is the default role ID for Admin
+          organizationId: organization_id,
+        },
+        transaction
+      )
       await transaction.commit();
-      const resp = await invite(req, res, {
-        to: newOrganization.userEmail,
-        name: newOrganization.userName,
-        roleId: 1,
-        organizationId: organization_id,
-      })
-      return resp;
-      // return res.status(201).json(STATUS_CODE[201](createdOrganization));
+      return res.status(201).json(STATUS_CODE[201](user.toSafeJSON()));
     }
     await transaction.rollback();
     return res

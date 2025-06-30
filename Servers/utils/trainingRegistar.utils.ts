@@ -15,7 +15,7 @@ export const createNewTrainingRegistarQuery = async (
   transaction: Transaction
 ) => {
   const result = await sequelize.query(
-    `INSERT INTO ${tenant}.trainingregistar (
+    `INSERT INTO "${tenant}".trainingregistar (
             training_name, duration, provider, department, status, people, description
         ) VALUES (
             :training_name, :duration, :provider, :department, :status, :people, :description
@@ -50,7 +50,7 @@ export const getAllTrainingRegistarQuery = async (
   TrainingRegistar[]
 > => {
   const trainingRegistars = await sequelize.query(
-    `SELECT * FROM ${tenant}.trainingregistar ORDER BY id ASC`,
+    `SELECT * FROM "${tenant}".trainingregistar ORDER BY id ASC`,
     {
       mapToModel: true,
       model: TrainingRegistarModel,
@@ -69,7 +69,7 @@ export const getTrainingRegistarByIdQuery = async (
   id: number, tenant: string
 ): Promise<TrainingRegistar> => {
   const trainingRegistarsById = await sequelize.query(
-    `SELECT * FROM ${tenant}.trainingregistar WHERE id = :id`,
+    `SELECT * FROM "${tenant}".trainingregistar WHERE id = :id`,
     {
       replacements: { id },
       mapToModel: true,
@@ -116,7 +116,7 @@ export const updateTrainingRegistarByIdQuery = async (
     .map((f) => `${f} = :${f}`)
     .join(", ");
 
-  const query = `UPDATE ${tenant}.trainingregistar SET ${setClause} WHERE id = :id RETURNING *;`;
+  const query = `UPDATE "${tenant}".trainingregistar SET ${setClause} WHERE id = :id RETURNING *;`;
   updateTrainingRegistar.id = id;
 
   const result = await sequelize.query(query, {
@@ -143,7 +143,7 @@ export const deleteTrainingRegistarByIdQuery = async (
   transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
-    `DELETE FROM ${tenant}.trainingregistar WHERE id = :id RETURNING id`,
+    `DELETE FROM "${tenant}".trainingregistar WHERE id = :id RETURNING id`,
     {
       replacements: { id },
       mapToModel: true,

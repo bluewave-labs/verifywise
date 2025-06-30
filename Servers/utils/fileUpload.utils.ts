@@ -26,7 +26,7 @@ export const uploadFile = async (
   transaction: Transaction | null = null
 ) => {
   const projectIsDemo = await sequelize.query(
-    `SELECT is_demo FROM ${tenant}.projects WHERE id = :id`,
+    `SELECT is_demo FROM "${tenant}".projects WHERE id = :id`,
     {
       replacements: { id: project_id },
       mapToModel: true,
@@ -35,7 +35,7 @@ export const uploadFile = async (
     }
   );
   const is_demo = projectIsDemo[0].is_demo || false;
-  const query = `INSERT INTO ${tenant}.files
+  const query = `INSERT INTO "${tenant}".files
     (
       filename, content, type, project_id, uploaded_by, uploaded_time, is_demo, source
     )
@@ -62,7 +62,7 @@ export const uploadFile = async (
 };
 
 export const deleteFileById = async (id: number, tenant: string, transaction: Transaction) => {
-  const query = `DELETE FROM ${tenant}.files WHERE id = :id`;
+  const query = `DELETE FROM "${tenant}".files WHERE id = :id`;
   const result = await sequelize.query(query, {
     replacements: { id },
     mapToModel: true,
@@ -74,7 +74,7 @@ export const deleteFileById = async (id: number, tenant: string, transaction: Tr
 };
 
 export const getFileById = async (id: number, tenant: string) => {
-  const query = `SELECT * FROM ${tenant}.files WHERE id = :id`;
+  const query = `SELECT * FROM "${tenant}".files WHERE id = :id`;
   const result = await sequelize.query(query, {
     replacements: { id },
     mapToModel: true,
@@ -92,7 +92,7 @@ export const getFileMetadataByProjectId = async (project_id: number, tenant: str
   f.source,
   u.name AS uploader_name,
   u.surname AS uploader_surname 
-    FROM ${tenant}.files f
+    FROM "${tenant}".files f
   JOIN public.users u ON f.uploaded_by = u.id
     WHERE project_id = :project_id 
     ORDER BY uploaded_time DESC, id ASC`;

@@ -13,8 +13,8 @@ const getUserFilesMetaDataQuery = async (
     limit !== undefined && offset !== undefined
       ? "LIMIT :limit OFFSET :offset"
       : limit !== undefined
-      ? "LIMIT :limit"
-      : "";
+        ? "LIMIT :limit"
+        : "";
 
   let query = null;
   const replacements: Record<string, number> = {};
@@ -23,7 +23,7 @@ const getUserFilesMetaDataQuery = async (
     query = `
       SELECT f.id, f.filename, f.project_id, f.uploaded_time, f.source, 
         p.project_title, u.name AS uploader_name, u.surname AS uploader_surname
-      FROM ${tenant}.files f JOIN projects p ON p.id = f.project_id
+      FROM "${tenant}".files f JOIN projects p ON p.id = f.project_id
       JOIN public.users u ON f.uploaded_by = u.id
       WHERE f.source::TEXT NOT ILIKE '%report%'
       ORDER BY f.uploaded_time DESC
@@ -32,13 +32,13 @@ const getUserFilesMetaDataQuery = async (
   } else {
     query = `
       WITH projects_of_user AS (
-        SELECT DISTINCT project_id FROM ${tenant}.projects_members WHERE user_id = :userId
+        SELECT DISTINCT project_id FROM "${tenant}".projects_members WHERE user_id = :userId
         UNION ALL
-        SELECT id AS project_id FROM ${tenant}.projects WHERE owner = :userId
+        SELECT id AS project_id FROM "${tenant}".projects WHERE owner = :userId
       ) SELECT f.id, f.filename, f.project_id, f.uploaded_time, f.source, 
           p.project_title, u.name AS uploader_name, u.surname AS uploader_surname
-        FROM ${tenant}.files f JOIN projects_of_user pu ON f.project_id = pu.project_id
-        JOIN ${tenant}.projects p ON p.id = pu.project_id
+        FROM "${tenant}".files f JOIN projects_of_user pu ON f.project_id = pu.project_id
+        JOIN "${tenant}".projects p ON p.id = pu.project_id
         JOIN public.users u ON f.uploaded_by = u.id
         WHERE f.source::TEXT NOT ILIKE '%report%'
         ORDER BY f.uploaded_time DESC

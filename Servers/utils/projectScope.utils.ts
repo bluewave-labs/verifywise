@@ -9,7 +9,7 @@ export const getAllProjectScopesQuery = async (
   tenant: string
 ): Promise<ProjectScope[]> => {
   const projectScopes = await sequelize.query(
-    `SELECT * FROM ${tenant}.projectscopes ORDER BY created_at DESC, id ASC`,
+    `SELECT * FROM "${tenant}".projectscopes ORDER BY created_at DESC, id ASC`,
     {
       mapToModel: true,
       model: ProjectScopeModel,
@@ -23,7 +23,7 @@ export const getProjectScopeByIdQuery = async (
   tenant: string
 ): Promise<ProjectScope | null> => {
   const result = await sequelize.query(
-    `SELECT * FROM ${tenant}.projectscopes WHERE id = :id`,
+    `SELECT * FROM "${tenant}".projectscopes WHERE id = :id`,
     {
       replacements: { id },
       mapToModel: true,
@@ -39,7 +39,7 @@ export const createProjectScopeQuery = async (
   transaction: Transaction
 ): Promise<ProjectScope> => {
   const result = await sequelize.query(
-    `INSERT INTO ${tenant}.projectscopes (
+    `INSERT INTO "${tenant}".projectscopes (
       assessment_id, describe_ai_environment, is_new_ai_technology,
       uses_personal_data, project_scope_documents, technology_type,
       has_ongoing_monitoring, unintended_outcomes, technology_documentation
@@ -100,7 +100,7 @@ export const updateProjectScopeByIdQuery = async (
     .map((f) => `${f} = :${f}`)
     .join(", ");
 
-  const query = `UPDATE ${tenant}.projectscopes SET ${setClause} WHERE id = :id RETURNING *;`;
+  const query = `UPDATE "${tenant}".projectscopes SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateProjectScope.id = id;
 
@@ -121,7 +121,7 @@ export const deleteProjectScopeByIdQuery = async (
   transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
-    `DELETE FROM ${tenant}.projectscopes WHERE id = :id RETURNING *`,
+    `DELETE FROM "${tenant}".projectscopes WHERE id = :id RETURNING *`,
     {
       replacements: { id },
       mapToModel: true,

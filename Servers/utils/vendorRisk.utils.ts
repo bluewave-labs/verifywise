@@ -10,7 +10,7 @@ export const getVendorRisksByProjectIdQuery = async (
   tenant: string
 ): Promise<VendorRisk[]> => {
   const vendorRisks = await sequelize.query(
-    `SELECT * FROM ${tenant}.vendorRisks WHERE vendor_id IN (SELECT vendor_id FROM ${tenant}.vendors_projects WHERE project_id = :project_id) ORDER BY created_at DESC, id ASC;`,
+    `SELECT * FROM "${tenant}".vendorRisks WHERE vendor_id IN (SELECT vendor_id FROM "${tenant}".vendors_projects WHERE project_id = :project_id) ORDER BY created_at DESC, id ASC;`,
     {
       replacements: { project_id: projectId },
       mapToModel: true,
@@ -25,7 +25,7 @@ export const getVendorRiskByIdQuery = async (
   tenant: string
 ): Promise<VendorRisk | null> => {
   const result = await sequelize.query(
-    `SELECT * FROM ${tenant}.vendorRisks WHERE id = :id ORDER BY created_at DESC, id ASC`,
+    `SELECT * FROM "${tenant}".vendorRisks WHERE id = :id ORDER BY created_at DESC, id ASC`,
     {
       replacements: { id },
       mapToModel: true,
@@ -41,7 +41,7 @@ export const createNewVendorRiskQuery = async (
   transaction: Transaction
 ): Promise<VendorRisk> => {
   const result = await sequelize.query(
-    `INSERT INTO ${tenant}.vendorRisks (
+    `INSERT INTO "${tenant}".vendorRisks (
       vendor_id, order_no, risk_description, impact_description,
       likelihood, risk_severity, action_plan, action_owner, risk_level
     ) VALUES (
@@ -99,7 +99,7 @@ export const updateVendorRiskByIdQuery = async (
     .map((f) => `${f} = :${f}`)
     .join(", ");
 
-  const query = `UPDATE ${tenant}.vendorrisks SET ${setClause} WHERE id = :id RETURNING *;`;
+  const query = `UPDATE "${tenant}".vendorrisks SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateVendorRisk.id = id;
 
@@ -120,7 +120,7 @@ export const deleteVendorRiskByIdQuery = async (
   transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
-    `DELETE FROM ${tenant}.vendorRisks WHERE id = :id RETURNING id`,
+    `DELETE FROM "${tenant}".vendorRisks WHERE id = :id RETURNING id`,
     {
       replacements: { id },
       mapToModel: true,
@@ -138,7 +138,7 @@ export const deleteVendorRisksForVendorQuery = async (
   transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
-    `DELETE FROM ${tenant}.vendorrisks WHERE vendor_id = :vendor_id RETURNING id`,
+    `DELETE FROM "${tenant}".vendorrisks WHERE vendor_id = :vendor_id RETURNING id`,
     {
       replacements: { vendor_id: vendorId },
       mapToModel: true,
@@ -160,10 +160,10 @@ export const getAllVendorRisksAllProjectsQuery = async (
       vendors.*, 
       vendors_projects.*, 
       projects.project_title
-    FROM ${tenant}.vendorRisks
-    JOIN ${tenant}.vendors ON vendorRisks.vendor_id = vendors.id
-    JOIN ${tenant}.vendors_projects ON vendors.id = vendors_projects.vendor_id
-    JOIN ${tenant}.projects ON vendors_projects.project_id = projects.id
+    FROM "${tenant}".vendorRisks
+    JOIN "${tenant}".vendors ON vendorRisks.vendor_id = vendors.id
+    JOIN "${tenant}".vendors_projects ON vendors.id = vendors_projects.vendor_id
+    JOIN "${tenant}".projects ON vendors_projects.project_id = projects.id
     ORDER BY vendors_projects.project_id, vendors.id, vendorRisks.id`,
     {
       mapToModel: true,

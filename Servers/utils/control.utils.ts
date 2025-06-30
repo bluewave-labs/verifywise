@@ -10,7 +10,7 @@ export const getAllControlsQuery = async (
   tenant: string
 ): Promise<Control[]> => {
   const controls = await sequelize.query(
-    `SELECT * FROM ${tenant}.controls ORDER BY created_at DESC, id ASC`,
+    `SELECT * FROM "${tenant}".controls ORDER BY created_at DESC, id ASC`,
     {
       mapToModel: true,
       model: ControlModel,
@@ -24,7 +24,7 @@ export const getControlByIdQuery = async (
   tenant: string
 ): Promise<Control | null> => {
   const result = await sequelize.query(
-    `SELECT * FROM ${tenant}.controls WHERE id = :id`,
+    `SELECT * FROM "${tenant}".controls WHERE id = :id`,
     {
       mapToModel: true,
       model: ControlModel,
@@ -39,7 +39,7 @@ export const getAllControlsByControlGroupQuery = async (
   tenant: string
 ): Promise<Control[]> => {
   const controls = await sequelize.query(
-    `SELECT * FROM ${tenant}.controls WHERE control_category_id = :control_category_id ORDER BY created_at DESC, id ASC`,
+    `SELECT * FROM "${tenant}".controls WHERE control_category_id = :control_category_id ORDER BY created_at DESC, id ASC`,
     {
       replacements: { control_category_id: controlGroupId },
       mapToModel: true,
@@ -78,7 +78,7 @@ export const createNewControlQuery = async (
   transaction: Transaction
 ): Promise<Control> => {
   const result = await sequelize.query(
-    `INSERT INTO ${tenant}.controls (
+    `INSERT INTO "${tenant}".controls (
       title, description, order_no, 
       status, approver, risk_review, 
       owner, reviewer, due_date, 
@@ -140,7 +140,7 @@ export const updateControlByIdQuery = async (
     .map((f) => `${f} = :${f}`)
     .join(", ");
 
-  const query = `UPDATE ${tenant}.controls SET ${setClause} WHERE id = :id RETURNING *;`;
+  const query = `UPDATE "${tenant}".controls SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateControl.id = id;
 
@@ -160,7 +160,7 @@ export const deleteControlByIdQuery = async (
   transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
-    `DELETE FROM ${tenant}.controls WHERE id = :id RETURNING *`,
+    `DELETE FROM "${tenant}".controls WHERE id = :id RETURNING *`,
     {
       replacements: { id },
       mapToModel: true,
@@ -193,7 +193,7 @@ export const createNewControlsQuery = async (
   transaction: Transaction
 ) => {
   const createdControls = [];
-  let query = `INSERT INTO ${tenant}.controls(
+  let query = `INSERT INTO "${tenant}".controls(
     title, description, order_no, control_category_id,
     implementation_details, status
   ) VALUES (

@@ -4,7 +4,7 @@ import { VendorModel } from "../domain.layer/models/vendor/vendor.model";
 
 export async function getData(tableName: string, tenant: string, transaction: Transaction) {
   const result = await sequelize.query(
-    `SELECT * FROM ${tenant}.${tableName} WHERE is_demo;`,
+    `SELECT * FROM "${tenant}".${tableName} WHERE is_demo;`,
     { transaction }
   );
   return result[0];
@@ -20,7 +20,7 @@ export async function insertData(
 
 export async function deleteDemoVendorsData(tenant: string, transaction: Transaction) {
   const result = await sequelize.query(
-    `SELECT id FROM ${tenant}.vendors WHERE is_demo;`,
+    `SELECT id FROM "${tenant}".vendors WHERE is_demo;`,
     {
       mapToModel: true,
       model: VendorModel,
@@ -31,7 +31,7 @@ export async function deleteDemoVendorsData(tenant: string, transaction: Transac
   await Promise.all(
     result.map(async (r) => {
       await sequelize.query(
-        `DELETE FROM ${tenant}.vendors_projects WHERE vendor_id = :vendor_id`,
+        `DELETE FROM "${tenant}".vendors_projects WHERE vendor_id = :vendor_id`,
         {
           replacements: { vendor_id: r.id },
           transaction,
@@ -42,7 +42,7 @@ export async function deleteDemoVendorsData(tenant: string, transaction: Transac
   await Promise.all(
     result.map(async (r) => {
       await sequelize.query(
-        `DELETE FROM ${tenant}.vendorrisks WHERE vendor_id = :vendor_id`,
+        `DELETE FROM "${tenant}".vendorrisks WHERE vendor_id = :vendor_id`,
         {
           replacements: { vendor_id: r.id },
           transaction,
@@ -50,5 +50,5 @@ export async function deleteDemoVendorsData(tenant: string, transaction: Transac
       );
     })
   );
-  await sequelize.query(`DELETE FROM ${tenant}.vendors WHERE is_demo;`, { transaction });
+  await sequelize.query(`DELETE FROM "${tenant}".vendors WHERE is_demo;`, { transaction });
 }

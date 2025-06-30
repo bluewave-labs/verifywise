@@ -106,81 +106,9 @@ module.exports = {
       };
 
       for (let query of [
-        `ALTER TABLE controlcategories_struct_eu SET SCHEMA "${tenantHash}";`,
-      ]) {
-        await queryInterface.sequelize.query(query, { transaction });
-      };
-
-      for (let query of [
-        `ALTER TABLE controls_struct_eu DROP CONSTRAINT IF EXISTS controls_struct_eu_control_category_id_fkey;`,
-        `ALTER TABLE controls_struct_eu ADD CONSTRAINT controls_struct_eu_control_category_id_fkey FOREIGN KEY (control_category_id) REFERENCES "${tenantHash}".controlcategories_struct_eu(id) ON DELETE CASCADE;`,
-        `ALTER TABLE controls_struct_eu SET SCHEMA "${tenantHash}";`,
-      ]) {
-        await queryInterface.sequelize.query(query, { transaction });
-      };
-
-      for (let query of [
-        `ALTER TABLE subcontrols_struct_eu DROP CONSTRAINT IF EXISTS subcontrols_struct_eu_control_id_fkey;`,
-        `ALTER TABLE subcontrols_struct_eu ADD CONSTRAINT subcontrols_struct_eu_control_id_fkey FOREIGN KEY (control_id) REFERENCES "${tenantHash}".controls_struct_eu(id) ON DELETE CASCADE;`,
-        `ALTER TABLE subcontrols_struct_eu SET SCHEMA "${tenantHash}";`,
-      ]) {
-        await queryInterface.sequelize.query(query, { transaction });
-      };
-
-      for (let query of [
-        `ALTER TABLE topics_struct_eu SET SCHEMA "${tenantHash}";`,
-      ]) {
-        await queryInterface.sequelize.query(query, { transaction });
-      };
-
-      for (let query of [
-        `ALTER TABLE subtopics_struct_eu DROP CONSTRAINT IF EXISTS subtopics_struct_eu_topic_id_fkey;`,
-        `ALTER TABLE subtopics_struct_eu ADD CONSTRAINT subtopics_struct_eu_topic_id_fkey FOREIGN KEY (topic_id) REFERENCES "${tenantHash}".topics_struct_eu(id) ON DELETE CASCADE;`,
-        `ALTER TABLE subtopics_struct_eu SET SCHEMA "${tenantHash}";`,
-      ]) {
-        await queryInterface.sequelize.query(query, { transaction });
-      };
-
-      for (let query of [
-        `ALTER TABLE questions_struct_eu DROP CONSTRAINT IF EXISTS questions_struct_eu_subtopic_id_fkey;`,
-        `ALTER TABLE questions_struct_eu ADD CONSTRAINT questions_struct_eu_subtopic_id_fkey FOREIGN KEY (subtopic_id) REFERENCES "${tenantHash}".subtopics_struct_eu(id) ON DELETE CASCADE;`,
-        `ALTER TABLE questions_struct_eu SET SCHEMA "${tenantHash}";`,
-      ]) {
-        await queryInterface.sequelize.query(query, { transaction });
-      };
-
-      for (let query of [
-        `ALTER TABLE clauses_struct_iso SET SCHEMA "${tenantHash}";`,
-      ]) {
-        await queryInterface.sequelize.query(query, { transaction });
-      };
-
-      for (let query of [
-        `ALTER TABLE subclauses_struct_iso DROP CONSTRAINT IF EXISTS subclauses_struct_iso_clause_id_fkey;`,
-        `ALTER TABLE subclauses_struct_iso ADD CONSTRAINT subclauses_struct_iso_clause_id_fkey FOREIGN KEY (clause_id) REFERENCES "${tenantHash}".clauses_struct_iso(id) ON DELETE CASCADE;`,
-        `ALTER TABLE subclauses_struct_iso SET SCHEMA "${tenantHash}";`,
-      ]) {
-        await queryInterface.sequelize.query(query, { transaction });
-      };
-
-      for (let query of [
-        `ALTER TABLE annex_struct_iso SET SCHEMA "${tenantHash}";`,
-      ]) {
-        await queryInterface.sequelize.query(query, { transaction });
-      };
-
-      for (let query of [
-        `ALTER TABLE annexcategories_struct_iso DROP CONSTRAINT IF EXISTS annexcategories_struct_iso_annex_id_fkey;`,
-        `ALTER TABLE annexcategories_struct_iso ADD CONSTRAINT annexcategories_struct_iso_annex_id_fkey FOREIGN KEY (annex_id) REFERENCES "${tenantHash}".annex_struct_iso(id) ON DELETE CASCADE;`,
-        `ALTER TABLE annexcategories_struct_iso SET SCHEMA "${tenantHash}";`,
-      ]) {
-        await queryInterface.sequelize.query(query, { transaction });
-      };
-
-      for (let query of [
         `ALTER TABLE controls_eu DROP CONSTRAINT IF EXISTS controls_eu_control_meta_id_fkey;`,
         `ALTER TABLE controls_eu DROP CONSTRAINT IF EXISTS controls_eu_projects_frameworks_id_fkey;`,
-        `ALTER TABLE controls_eu ADD CONSTRAINT controls_eu_control_meta_id_fkey FOREIGN KEY (control_meta_id) REFERENCES "${tenantHash}".controls_struct_eu(id) ON DELETE CASCADE;`,
+        `ALTER TABLE controls_eu ADD CONSTRAINT controls_eu_control_meta_id_fkey FOREIGN KEY (control_meta_id) REFERENCES public.controls_struct_eu(id) ON DELETE CASCADE;`,
         `ALTER TABLE controls_eu ADD CONSTRAINT controls_eu_projects_frameworks_id_fkey FOREIGN KEY (projects_frameworks_id) REFERENCES "${tenantHash}".projects_frameworks(id) ON DELETE CASCADE;`,
         `ALTER TABLE controls_eu SET SCHEMA "${tenantHash}";`,
       ]) {
@@ -191,7 +119,7 @@ module.exports = {
         `ALTER TABLE subcontrols_eu DROP CONSTRAINT IF EXISTS subcontrols_eu_control_id_fkey;`,
         `ALTER TABLE subcontrols_eu DROP CONSTRAINT IF EXISTS subcontrols_eu_subcontrol_meta_id_fkey;`,
         `ALTER TABLE subcontrols_eu ADD CONSTRAINT subcontrols_eu_control_id_fkey FOREIGN KEY (control_id) REFERENCES "${tenantHash}".controls_eu(id) ON DELETE CASCADE;`,
-        `ALTER TABLE subcontrols_eu ADD CONSTRAINT subcontrols_eu_subcontrol_meta_id_fkey FOREIGN KEY (subcontrol_meta_id) REFERENCES "${tenantHash}".subcontrols_struct_eu(id) ON DELETE CASCADE;`,
+        `ALTER TABLE subcontrols_eu ADD CONSTRAINT subcontrols_eu_subcontrol_meta_id_fkey FOREIGN KEY (subcontrol_meta_id) REFERENCES public.subcontrols_struct_eu(id) ON DELETE CASCADE;`,
         `ALTER TABLE subcontrols_eu SET SCHEMA "${tenantHash}";`,
       ]) {
         await queryInterface.sequelize.query(query, { transaction });
@@ -201,7 +129,7 @@ module.exports = {
         `ALTER TABLE answers_eu DROP CONSTRAINT IF EXISTS answers_eu_assessment_id_fkey;`,
         `ALTER TABLE answers_eu DROP CONSTRAINT IF EXISTS answers_eu_question_id_fkey;`,
         `ALTER TABLE answers_eu ADD CONSTRAINT answers_eu_assessment_id_fkey FOREIGN KEY (assessment_id) REFERENCES "${tenantHash}".assessments(id) ON DELETE CASCADE;`,
-        `ALTER TABLE answers_eu ADD CONSTRAINT answers_eu_question_id_fkey FOREIGN KEY (question_id) REFERENCES "${tenantHash}".questions_struct_eu(id) ON DELETE CASCADE;`,
+        `ALTER TABLE answers_eu ADD CONSTRAINT answers_eu_question_id_fkey FOREIGN KEY (question_id) REFERENCES public.questions_struct_eu(id) ON DELETE CASCADE;`,
         `ALTER TABLE answers_eu SET SCHEMA "${tenantHash}";`,
       ]) {
         await queryInterface.sequelize.query(query, { transaction });
@@ -211,7 +139,7 @@ module.exports = {
         `ALTER TABLE subclauses_iso DROP CONSTRAINT IF EXISTS subclauses_iso_projects_frameworks_id_fkey;`,
         `ALTER TABLE subclauses_iso DROP CONSTRAINT IF EXISTS subclauses_iso_subclause_meta_id_fkey;`,
         `ALTER TABLE subclauses_iso ADD CONSTRAINT subclauses_iso_projects_frameworks_id_fkey FOREIGN KEY (projects_frameworks_id) REFERENCES "${tenantHash}".projects_frameworks(id) ON DELETE CASCADE;`,
-        `ALTER TABLE subclauses_iso ADD CONSTRAINT subclauses_iso_subclause_meta_id_fkey FOREIGN KEY (subclause_meta_id) REFERENCES "${tenantHash}".subclauses_struct_iso(id) ON DELETE CASCADE;`,
+        `ALTER TABLE subclauses_iso ADD CONSTRAINT subclauses_iso_subclause_meta_id_fkey FOREIGN KEY (subclause_meta_id) REFERENCES public.subclauses_struct_iso(id) ON DELETE CASCADE;`,
         `ALTER TABLE subclauses_iso SET SCHEMA "${tenantHash}";`,
       ]) {
         await queryInterface.sequelize.query(query, { transaction });
@@ -220,7 +148,7 @@ module.exports = {
       for (let query of [
         `ALTER TABLE annexcategories_iso DROP CONSTRAINT IF EXISTS annexcategories_iso_annexcategory_meta_id_fkey;`,
         `ALTER TABLE annexcategories_iso DROP CONSTRAINT IF EXISTS annexcategories_iso_projects_frameworks_id_fkey;`,
-        `ALTER TABLE annexcategories_iso ADD CONSTRAINT annexcategories_iso_annexcategory_meta_id_fkey FOREIGN KEY (annexcategory_meta_id) REFERENCES "${tenantHash}".annexcategories_struct_iso(id) ON DELETE CASCADE;`,
+        `ALTER TABLE annexcategories_iso ADD CONSTRAINT annexcategories_iso_annexcategory_meta_id_fkey FOREIGN KEY (annexcategory_meta_id) REFERENCES public.annexcategories_struct_iso(id) ON DELETE CASCADE;`,
         `ALTER TABLE annexcategories_iso ADD CONSTRAINT annexcategories_iso_projects_frameworks_id_fkey FOREIGN KEY (projects_frameworks_id) REFERENCES "${tenantHash}".projects_frameworks(id) ON DELETE CASCADE;`,
         `ALTER TABLE annexcategories_iso SET SCHEMA "${tenantHash}";`,
       ]) {

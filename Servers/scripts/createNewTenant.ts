@@ -266,140 +266,6 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         ON UPDATE NO ACTION ON DELETE CASCADE
     );`, { transaction });
 
-    await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".controlcategories_struct_eu
-    (
-      id serial NOT NULL,
-      title text NOT NULL,
-      order_no integer,
-      framework_id integer NOT NULL,
-      CONSTRAINT controlcategories_struct_eu_pkey PRIMARY KEY (id),
-      CONSTRAINT controlcategories_struct_eu_framework_id_fkey FOREIGN KEY (framework_id)
-        REFERENCES public.frameworks (id) MATCH SIMPLE
-        ON UPDATE NO ACTION ON DELETE CASCADE
-    );`, { transaction });
-
-    await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".controls_struct_eu
-    (
-      id serial NOT NULL,
-      title text NOT NULL,
-      description text NOT NULL,
-      order_no integer,
-      control_category_id integer NOT NULL,
-      CONSTRAINT controls_struct_eu_pkey PRIMARY KEY (id),
-      CONSTRAINT controls_struct_eu_control_category_id_fkey FOREIGN KEY (control_category_id)
-        REFERENCES "${tenantHash}".controlcategories_struct_eu (id) MATCH SIMPLE
-        ON UPDATE NO ACTION ON DELETE CASCADE
-    );`, { transaction });
-
-    await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".subcontrols_struct_eu
-    (
-      id serial NOT NULL,
-      title text NOT NULL,
-      description text NOT NULL,
-      order_no integer,
-      control_id integer NOT NULL,
-      CONSTRAINT subcontrols_struct_eu_pkey PRIMARY KEY (id),
-      CONSTRAINT subcontrols_struct_eu_control_id_fkey FOREIGN KEY (control_id)
-        REFERENCES "${tenantHash}".controls_struct_eu (id) MATCH SIMPLE
-        ON UPDATE NO ACTION ON DELETE CASCADE
-    );`, { transaction });
-
-    await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".topics_struct_eu
-    (
-      id serial NOT NULL,
-      title text,
-      order_no integer,
-      framework_id integer NOT NULL,
-      CONSTRAINT topics_struct_eu_pkey PRIMARY KEY (id),
-      CONSTRAINT topics_struct_eu_framework_id_fkey FOREIGN KEY (framework_id)
-        REFERENCES public.frameworks (id) MATCH SIMPLE
-        ON UPDATE NO ACTION ON DELETE CASCADE
-    );`, { transaction });
-
-    await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".subtopics_struct_eu
-    (
-      id serial NOT NULL,
-      title text NOT NULL,
-      order_no integer,
-      topic_id integer NOT NULL,
-      CONSTRAINT subtopics_struct_eu_pkey PRIMARY KEY (id),
-      CONSTRAINT subtopics_struct_eu_topic_id_fkey FOREIGN KEY (topic_id)
-        REFERENCES "${tenantHash}".topics_struct_eu (id) MATCH SIMPLE
-        ON UPDATE NO ACTION ON DELETE CASCADE
-    );`, { transaction });
-
-    await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".questions_struct_eu
-    (
-      id serial NOT NULL,
-      order_no integer,
-      question text NOT NULL,
-      hint text NOT NULL,
-      priority_level enum_questions_priority_level NOT NULL,
-      answer_type character varying(255) NOT NULL,
-      input_type character varying(255) NOT NULL,
-      evidence_required boolean NOT NULL,
-      is_required boolean NOT NULL,
-      subtopic_id integer NOT NULL,
-      CONSTRAINT questions_struct_eu_pkey PRIMARY KEY (id),
-      CONSTRAINT questions_struct_eu_subtopic_id_fkey FOREIGN KEY (subtopic_id)
-        REFERENCES "${tenantHash}".subtopics_struct_eu (id) MATCH SIMPLE
-        ON UPDATE NO ACTION ON DELETE CASCADE
-    );`, { transaction });
-
-    await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".clauses_struct_iso
-    (
-      id serial NOT NULL,
-      title character varying(255) NOT NULL,
-      clause_no integer NOT NULL,
-      framework_id integer,
-      CONSTRAINT clauses_struct_iso_pkey PRIMARY KEY (id),
-      CONSTRAINT clauses_struct_iso_framework_id_fkey FOREIGN KEY (framework_id)
-        REFERENCES public.frameworks (id) MATCH SIMPLE
-        ON UPDATE NO ACTION ON DELETE CASCADE
-    );`, { transaction });
-
-    await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".subclauses_struct_iso
-    (
-      id serial NOT NULL,
-      title character varying(255) NOT NULL,
-      order_no integer NOT NULL,
-      summary text,
-      questions text[],
-      evidence_examples text[],
-      clause_id integer,
-      CONSTRAINT subclauses_struct_iso_pkey PRIMARY KEY (id),
-      CONSTRAINT subclauses_struct_iso_clause_id_fkey FOREIGN KEY (clause_id)
-        REFERENCES "${tenantHash}".clauses_struct_iso (id) MATCH SIMPLE
-        ON UPDATE NO ACTION ON DELETE CASCADE
-    );`, { transaction });
-
-    await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".annex_struct_iso
-    (
-      id serial NOT NULL,
-      title character varying(255) NOT NULL,
-      annex_no integer NOT NULL,
-      framework_id integer,
-      CONSTRAINT annex_struct_iso_pkey PRIMARY KEY (id),
-      CONSTRAINT annex_struct_iso_framework_id_fkey FOREIGN KEY (framework_id)
-        REFERENCES public.frameworks (id) MATCH SIMPLE
-        ON UPDATE NO ACTION ON DELETE CASCADE
-    );`, { transaction });
-
-    await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".annexcategories_struct_iso
-    (
-      id serial NOT NULL,
-      title character varying(255) NOT NULL,
-      description text,
-      guidance text,
-      sub_id integer,
-      order_no integer NOT NULL,
-      annex_id integer,
-      CONSTRAINT annexcategories_struct_iso_pkey PRIMARY KEY (id),
-      CONSTRAINT annexcategories_struct_iso_annex_id_fkey FOREIGN KEY (annex_id)
-        REFERENCES "${tenantHash}".annex_struct_iso (id) MATCH SIMPLE
-        ON UPDATE NO ACTION ON DELETE CASCADE
-    );`, { transaction });
-
     await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".controls_eu
     (
       id serial NOT NULL,
@@ -425,7 +291,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         REFERENCES public.users (id) MATCH SIMPLE
         ON UPDATE NO ACTION ON DELETE SET NULL,
       CONSTRAINT controls_eu_control_meta_id_fkey FOREIGN KEY (control_meta_id)
-        REFERENCES "${tenantHash}".controls_struct_eu (id) MATCH SIMPLE
+        REFERENCES public.controls_struct_eu (id) MATCH SIMPLE
         ON UPDATE NO ACTION ON DELETE CASCADE,
       CONSTRAINT controls_eu_projects_frameworks_id_fkey FOREIGN KEY (projects_frameworks_id)
         REFERENCES "${tenantHash}".projects_frameworks (id) MATCH SIMPLE
@@ -464,7 +330,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         REFERENCES "${tenantHash}".controls_eu (id) MATCH SIMPLE
         ON UPDATE NO ACTION ON DELETE CASCADE,
       CONSTRAINT subcontrols_eu_subcontrol_meta_id_fkey FOREIGN KEY (subcontrol_meta_id)
-        REFERENCES "${tenantHash}".subcontrols_struct_eu (id) MATCH SIMPLE
+        REFERENCES public.subcontrols_struct_eu (id) MATCH SIMPLE
         ON UPDATE NO ACTION ON DELETE CASCADE
     );`, { transaction });
 
@@ -484,7 +350,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         REFERENCES "${tenantHash}".assessments (id) MATCH SIMPLE
         ON UPDATE NO ACTION ON DELETE CASCADE,
       CONSTRAINT answers_eu_question_id_fkey FOREIGN KEY (question_id)
-        REFERENCES "${tenantHash}".questions_struct_eu (id) MATCH SIMPLE
+        REFERENCES public.questions_struct_eu (id) MATCH SIMPLE
         ON UPDATE NO ACTION ON DELETE CASCADE
     );`, { transaction });
 
@@ -514,7 +380,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         REFERENCES public.users (id) MATCH SIMPLE
         ON UPDATE NO ACTION ON DELETE SET NULL,
       CONSTRAINT subclauses_iso_subclause_meta_id_fkey FOREIGN KEY (subclause_meta_id)
-        REFERENCES "${tenantHash}".subclauses_struct_iso (id) MATCH SIMPLE
+        REFERENCES public.subclauses_struct_iso (id) MATCH SIMPLE
         ON UPDATE NO ACTION ON DELETE CASCADE,
       CONSTRAINT subclauses_iso_projects_frameworks_id_fkey FOREIGN KEY (projects_frameworks_id)
         REFERENCES "${tenantHash}".projects_frameworks (id) MATCH SIMPLE
@@ -552,7 +418,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         REFERENCES "${tenantHash}".projects_frameworks (id) MATCH SIMPLE
         ON UPDATE NO ACTION ON DELETE CASCADE,
       CONSTRAINT annexcategories_iso_annexcategory_meta_id_fkey FOREIGN KEY (annexcategory_meta_id)
-        REFERENCES "${tenantHash}".annexcategories_struct_iso (id) MATCH SIMPLE
+        REFERENCES public.annexcategories_struct_iso (id) MATCH SIMPLE
         ON UPDATE NO ACTION ON DELETE CASCADE
     );`, { transaction });
 

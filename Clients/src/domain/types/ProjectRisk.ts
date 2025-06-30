@@ -14,7 +14,7 @@ export type ProjectRisk = {
     | "Monitoring & maintenance"
     | "Decommissioning & retirement";
   risk_description: string;
-  risk_category:
+  risk_category: (
     | "Strategic risk"
     | "Operational risk"
     | "Compliance risk"
@@ -29,7 +29,8 @@ export type ProjectRisk = {
     | "Geopolitical risk"
     | "Fraud risk"
     | "Data privacy risk"
-    | "Health and safety risk";
+    | "Health and safety risk"
+  )[];
   impact: string;
   assessment_mapping: string;
   controls_mapping: string;

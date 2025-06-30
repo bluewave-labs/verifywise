@@ -7,6 +7,7 @@ const VALIDATION_RULES = {
   NAME: { min: 2, max: 50 },
   PASSWORD: { min: 8, max: 16 },
   EMAIL: { min: 0, max: 128 },
+  ORGANIZATION_NAME: { min: 2, max: 50 },
 } as const;
 
 // Define the shape of form values
@@ -20,6 +21,12 @@ export interface FormValues {
   organizationId?: number; // Optional organization property
 }
 
+// Define the shape of organization form values for multi-tenant
+export interface OrganizationFormValues {
+  organizationName: string;
+  organizationEmail: string;
+}
+
 // Define the shape of form errors
 export interface FormErrors {
   name?: string;
@@ -29,9 +36,20 @@ export interface FormErrors {
   confirmPassword?: string;
 }
 
+// Define the shape of organization form errors
+export interface OrganizationFormErrors {
+  organizationName?: string;
+  organizationEmail?: string;
+}
+
 interface ValidationResult {
   isFormValid: boolean;
   errors: FormErrors;
+}
+
+interface OrganizationValidationResult {
+  isFormValid: boolean;
+  errors: OrganizationFormErrors;
 }
 
 interface PasswordValidationResult {
@@ -87,7 +105,6 @@ export const validateForm = (values: FormValues): ValidationResult => {
   if (!email.accepted) {
     newErrors.email = email.message;
   }
-  
 
   // Validate password
   const password = checkStringValidation(
@@ -125,5 +142,48 @@ export const validatePassword = (
     specialChar: PASSWORD_REGEX.test(values.password),
     uppercase: /[A-Z]/.test(values.password),
     number: /[0-9]/.test(values.password),
+  };
+};
+
+/**
+ * Validates organization form input values for multi-tenant mode
+ * @param values Organization form values to validate
+ * @returns Validation result containing isFormValid flag and any errors
+ */
+export const validateOrganizationForm = (
+  values: OrganizationFormValues
+): OrganizationValidationResult => {
+  const newErrors: OrganizationFormErrors = {};
+
+  // Validate organization name
+  const organizationName = checkStringValidation(
+    "Organization name",
+    values.organizationName,
+    VALIDATION_RULES.ORGANIZATION_NAME.min,
+    VALIDATION_RULES.ORGANIZATION_NAME.max
+  );
+  if (!organizationName.accepted) {
+    newErrors.organizationName = organizationName.message;
+  }
+
+  // Validate organization email
+  const organizationEmail = checkStringValidation(
+    "Organization email",
+    values.organizationEmail,
+    VALIDATION_RULES.EMAIL.min,
+    VALIDATION_RULES.EMAIL.max,
+    false,
+    false,
+    false,
+    false,
+    "email"
+  );
+  if (!organizationEmail.accepted) {
+    newErrors.organizationEmail = organizationEmail.message;
+  }
+
+  return {
+    isFormValid: Object.keys(newErrors).length === 0,
+    errors: newErrors,
   };
 };

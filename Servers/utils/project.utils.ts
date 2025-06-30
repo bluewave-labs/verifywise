@@ -1,7 +1,4 @@
-import {
-  Project,
-  ProjectModel,
-} from "../domain.layer/models/project/project.model";
+import { ProjectModel } from "../domain.layer/models/project/project.model";
 import { sequelize } from "../database/db";
 import { ProjectsMembersModel } from "../domain.layer/models/projectsMembers/projectsMembers.model";
 import { QueryTypes, Transaction } from "sequelize";
@@ -13,6 +10,7 @@ import { FileModel } from "../domain.layer/models/file/file.model";
 import { ProjectFrameworksModel } from "../domain.layer/models/projectFrameworks/projectFrameworks.model";
 import { frameworkDeletionMap } from "../types/framework.type";
 import { Role } from "../domain.layer/models/role/role.model";
+import { IProjectAttributes } from "../domain.layer/interfaces/i.project";
 
 interface GetUserProjectsOptions {
   userId: number;
@@ -61,7 +59,7 @@ export const getAllProjectsQuery = async ({
 }: {
   userId: number;
   role: Role["name"];
-}, tenant: string): Promise<Project[]> => {
+}, tenant: string): Promise<IProjectAttributes[]> => {
   if (!userId || !role) {
     throw new Error("User ID and role are required to fetch projects.");
   }
@@ -108,7 +106,7 @@ export const getAllProjectsQuery = async ({
 export const getProjectByIdQuery = async (
   id: number,
   tenant: string
-): Promise<Project | null> => {
+): Promise<IProjectAttributes | null> => {
   const result = await sequelize.query(
     `SELECT * FROM "${tenant}".projects WHERE id = :id`,
     {
@@ -198,13 +196,13 @@ export const countAnswersByProjectId = async (
 };
 
 export const createNewProjectQuery = async (
-  project: Partial<Project>,
+  project: Partial<ProjectModel>,
   members: number[],
   frameworks: number[],
   tenant: string,
   transaction: Transaction,
   isDemo: boolean = false
-): Promise<Project> => {
+): Promise<ProjectModel> => {
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".projects (
       project_title, owner, start_date, ai_risk_classification, 
@@ -314,11 +312,11 @@ export const updateProjectUpdatedByIdQuery = async (
 
 export const updateProjectByIdQuery = async (
   id: number,
-  project: Partial<Project>,
+  project: Partial<ProjectModel>,
   members: number[],
   tenant: string,
   transaction: Transaction
-): Promise<(Project & { members: number[] }) | null> => {
+): Promise<(IProjectAttributes & { members: number[] }) | null> => {
   const _currentMembers = await sequelize.query(
     `SELECT user_id FROM "${tenant}".projects_members WHERE project_id = :project_id`,
     {
@@ -358,7 +356,7 @@ export const updateProjectByIdQuery = async (
     );
   }
 
-  const updateProject: Partial<Record<keyof Project, any>> = {};
+  const updateProject: Partial<Record<keyof ProjectModel, any>> = {};
   const setClause = [
     "project_title",
     "owner",
@@ -371,10 +369,11 @@ export const updateProjectByIdQuery = async (
   ]
     .filter((f) => {
       if (
-        project[f as keyof Project] !== undefined &&
-        project[f as keyof Project]
+        project[f as keyof ProjectModel] !== undefined &&
+        project[f as keyof ProjectModel]
       ) {
-        updateProject[f as keyof Project] = project[f as keyof Project];
+        updateProject[f as keyof ProjectModel] =
+          project[f as keyof ProjectModel];
         return true;
       }
     })

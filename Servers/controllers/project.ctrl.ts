@@ -14,10 +14,7 @@ import {
 } from "../utils/project.utils";
 import { getUserByIdQuery } from "../utils/user.utils";
 import { getControlCategoryByProjectIdQuery } from "../utils/controlCategory.utils";
-import {
-  Project,
-  ProjectModel,
-} from "../domain.layer/models/project/project.model";
+import { ProjectModel } from "../domain.layer/models/project/project.model";
 import { getAllControlsByControlGroupQuery } from "../utils/control.utils";
 import { getAllSubcontrolsByControlIdQuery } from "../utils/subControl.utils";
 import { ControlModel } from "../domain.layer/models/control/control.model";
@@ -25,6 +22,7 @@ import { ControlCategoryModel } from "../domain.layer/models/controlCategory/con
 import { createEUFrameworkQuery } from "../utils/eu.utils";
 import { sequelize } from "../database/db";
 import { createISOFrameworkQuery } from "../utils/iso42001.utils";
+import { IProjectAttributes } from "../domain.layer/interfaces/i.project";
 
 export async function getAllProjects(
   req: Request,
@@ -39,7 +37,7 @@ export async function getAllProjects(
     const projects = (await getAllProjectsQuery({
       userId,
       role,
-    }, req.tenantId!)) as ProjectModel[];
+    }, req.tenantId!)) as IProjectAttributes[];
 
     if (projects && projects.length > 0) {
       // await Promise.all(
@@ -90,7 +88,7 @@ export async function getProjectById(
 export async function createProject(req: Request, res: Response): Promise<any> {
   const transaction = await sequelize.transaction();
   try {
-    const newProject: Partial<Project> & {
+    const newProject: Partial<ProjectModel> & {
       members: number[];
       framework: number[];
       enable_ai_data_insertion: boolean;
@@ -159,7 +157,8 @@ export async function updateProjectById(
   const transaction = await sequelize.transaction();
   try {
     const projectId = parseInt(req.params.id);
-    const updatedProject: Partial<Project> & { members?: number[] } = req.body;
+    const updatedProject: Partial<ProjectModel> & { members?: number[] } =
+      req.body;
     const members = updatedProject.members || [];
 
     delete updatedProject.members;

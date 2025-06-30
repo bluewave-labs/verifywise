@@ -23,7 +23,7 @@ const getUserFilesMetaDataQuery = async (
     query = `
       SELECT f.id, f.filename, f.project_id, f.uploaded_time, f.source, 
         p.project_title, u.name AS uploader_name, u.surname AS uploader_surname
-      FROM "${tenant}".files f JOIN projects p ON p.id = f.project_id
+      FROM "${tenant}".files f JOIN "${tenant}".projects p ON p.id = f.project_id
       JOIN public.users u ON f.uploaded_by = u.id
       WHERE f.source::TEXT NOT ILIKE '%report%'
       ORDER BY f.uploaded_time DESC

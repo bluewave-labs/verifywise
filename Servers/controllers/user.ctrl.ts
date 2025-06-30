@@ -36,7 +36,9 @@ import { Transaction } from "sequelize";
 
 async function getAllUsers(req: Request, res: Response): Promise<any> {
   try {
-    const users = (await getAllUsersQuery()) as UserModel[];
+    const users = (await getAllUsersQuery(
+      req.organizationId!
+    )) as UserModel[];
 
     if (users && users.length > 0) {
       return res

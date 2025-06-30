@@ -27,7 +27,7 @@ import {
 import authenticateJWT from "../middleware/auth.middleware";
 
 // GET requests
-router.get("/", authenticateJWT, getAllOrganizations);
+// router.get("/", authenticateJWT, getAllOrganizations);
 router.get("/:id", authenticateJWT, getOrganizationById);
 router.get("/:id/members", authenticateJWT, getOrganizationMembers);
 router.get("/:id/projects", authenticateJWT, getOrganizationProjects);
@@ -41,7 +41,7 @@ router.post("/:id/projects", authenticateJWT, addProjectToOrganization);
 router.patch("/:id", authenticateJWT, updateOrganizationById);
 
 // DELETE requests
-router.delete("/:id", authenticateJWT, deleteOrganizationById);
+// router.delete("/:id", authenticateJWT, deleteOrganizationById);
 router.delete(
   "/:id/members/:memberId",
   authenticateJWT,

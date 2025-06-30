@@ -53,10 +53,13 @@ import {
  *
  * @throws {Error} If there is an error executing the SQL query.
  */
-export const getAllUsersQuery = async (): Promise<UserModel[]> => {
+export const getAllUsersQuery = async (
+  organization_id: number
+): Promise<UserModel[]> => {
   const users = await sequelize.query(
-    "SELECT * FROM users ORDER BY created_at DESC, id ASC",
+    "SELECT * FROM users WHERE organization_id = :organization_id ORDER BY created_at DESC, id ASC",
     {
+      replacements: { organization_id }, // Assuming you want to fetch users without filtering by organization
       mapToModel: true,
       model: UserModel,
     }

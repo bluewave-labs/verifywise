@@ -204,6 +204,8 @@ async function loginUser(req: Request, res: Response): Promise<any> {
           id: user.id,
           email: email,
           roleName: (userData as any).role_name,
+          tenantId: getTenantHash((userData as any).organization_id.toString()),
+          organizationId: (userData as any).organization_id,
         });
 
         res.cookie("refresh_token", refreshToken, {
@@ -255,6 +257,8 @@ async function refreshAccessToken(req: Request, res: Response): Promise<any> {
       id: decoded.id,
       email: decoded.email,
       roleName: decoded.roleName,
+      tenantId: decoded.tenantId,
+      organizationId: decoded.organizationId,
     });
 
     return res.status(200).json(

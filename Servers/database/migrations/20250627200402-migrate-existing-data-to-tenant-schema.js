@@ -17,7 +17,6 @@ module.exports = {
       await Promise.all([
         `ALTER TABLE projects SET SCHEMA ${tenantHash};`,
         `ALTER TABLE vendors SET SCHEMA ${tenantHash};`,
-        `ALTER TABLE frameworks SET SCHEMA ${tenantHash};`,
         `ALTER TABLE model_files SET SCHEMA ${tenantHash};`,
         `ALTER TABLE trainingregistar SET SCHEMA ${tenantHash};`,
       ].map(query => queryInterface.sequelize.query(query, { transaction })));
@@ -57,9 +56,7 @@ module.exports = {
       };
 
       for (let query of [
-        `ALTER TABLE projects_frameworks DROP CONSTRAINT IF EXISTS projects_frameworks_framework_id_fkey;`,
         `ALTER TABLE projects_frameworks DROP CONSTRAINT IF EXISTS projects_frameworks_project_id_fkey;`,
-        `ALTER TABLE projects_frameworks ADD CONSTRAINT projects_frameworks_framework_id_fkey FOREIGN KEY (framework_id) REFERENCES ${tenantHash}.frameworks(id) ON DELETE CASCADE;`,
         `ALTER TABLE projects_frameworks ADD CONSTRAINT projects_frameworks_project_id_fkey FOREIGN KEY (project_id) REFERENCES ${tenantHash}.projects(id) ON DELETE CASCADE;`,
         `ALTER TABLE projects_frameworks SET SCHEMA ${tenantHash};`,
       ]) {
@@ -109,8 +106,6 @@ module.exports = {
       };
 
       for (let query of [
-        `ALTER TABLE controlcategories_struct_eu DROP CONSTRAINT IF EXISTS controlcategories_struct_eu_framework_id_fkey;`,
-        `ALTER TABLE controlcategories_struct_eu ADD CONSTRAINT controlcategories_struct_eu_framework_id_fkey FOREIGN KEY (framework_id) REFERENCES ${tenantHash}.frameworks(id) ON DELETE CASCADE;`,
         `ALTER TABLE controlcategories_struct_eu SET SCHEMA ${tenantHash};`,
       ]) {
         await queryInterface.sequelize.query(query, { transaction });
@@ -133,8 +128,6 @@ module.exports = {
       };
 
       for (let query of [
-        `ALTER TABLE topics_struct_eu DROP CONSTRAINT IF EXISTS topics_struct_eu_framework_id_fkey;`,
-        `ALTER TABLE topics_struct_eu ADD CONSTRAINT topics_struct_eu_framework_id_fkey FOREIGN KEY (framework_id) REFERENCES ${tenantHash}.frameworks(id) ON DELETE CASCADE;`,
         `ALTER TABLE topics_struct_eu SET SCHEMA ${tenantHash};`,
       ]) {
         await queryInterface.sequelize.query(query, { transaction });
@@ -157,8 +150,6 @@ module.exports = {
       };
 
       for (let query of [
-        `ALTER TABLE clauses_struct_iso DROP CONSTRAINT IF EXISTS clauses_struct_iso_framework_id_fkey;`,
-        `ALTER TABLE clauses_struct_iso ADD CONSTRAINT clauses_struct_iso_framework_id_fkey FOREIGN KEY (framework_id) REFERENCES ${tenantHash}.frameworks(id) ON DELETE CASCADE;`,
         `ALTER TABLE clauses_struct_iso SET SCHEMA ${tenantHash};`,
       ]) {
         await queryInterface.sequelize.query(query, { transaction });
@@ -173,8 +164,6 @@ module.exports = {
       };
 
       for (let query of [
-        `ALTER TABLE annex_struct_iso DROP CONSTRAINT IF EXISTS annex_struct_iso_framework_id_fkey;`,
-        `ALTER TABLE annex_struct_iso ADD CONSTRAINT annex_struct_iso_framework_id_fkey FOREIGN KEY (framework_id) REFERENCES ${tenantHash}.frameworks(id) ON DELETE CASCADE;`,
         `ALTER TABLE annex_struct_iso SET SCHEMA ${tenantHash};`,
       ]) {
         await queryInterface.sequelize.query(query, { transaction });

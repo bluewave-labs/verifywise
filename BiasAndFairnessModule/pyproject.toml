@@ -1,7 +1,7 @@
 [project]
 name = "biasandfairnessmodule"
 version = "0.1.0"
-description = "Add your description here"
+description = "Experimental module for evaluating bias and fairness in Large Language Models"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

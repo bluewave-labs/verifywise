@@ -87,7 +87,7 @@ export async function insertMockData(userId: number | null = null) {
           ai_lifecycle_phase: "Monitoring & maintenance",
           risk_description:
             "Risk of non-compliance with data privacy regulations.",
-          risk_category: "Cybersecurity risk",
+          risk_category: ["Cybersecurity risk"],
           impact: "High",
           assessment_mapping: "GDPR Compliance Check",
           controls_mapping: "Data Access Controls",

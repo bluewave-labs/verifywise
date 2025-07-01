@@ -28,7 +28,7 @@ import { deleteHelper } from "./project.utils";
 import { ProjectFrameworksModel } from "../domain.layer/models/projectFrameworks/projectFrameworks.model";
 import { STATUSES_ANSWERS, STATUSES_COMPLIANCE } from "../types/status.type";
 
-const getDemoAnswers = (): String[] => {
+const getDemoAnswers = (): string[] => {
   const answers = [];
   for (let topic of Topics) {
     for (let subTopic of topic.subtopics) {
@@ -535,7 +535,7 @@ export const createNewAnswersEUQuery = async (
   transaction: Transaction,
   is_mock_data: boolean
 ) => {
-  let demoAnswers: String[] = [];
+  let demoAnswers: string[] = [];
   if (enable_ai_data_insertion) demoAnswers = getDemoAnswers();
   const questions = await sequelize.query(
     `SELECT * FROM public.questions_struct_eu ORDER BY id;`,

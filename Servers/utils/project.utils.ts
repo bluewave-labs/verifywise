@@ -498,7 +498,7 @@ export const deleteProjectByIdQuery = async (
   id: number,
   tenant: string,
   transaction: Transaction
-): Promise<Boolean> => {
+): Promise<boolean> => {
   const frameworks = await sequelize.query(
     `SELECT framework_id FROM "${tenant}".projects_frameworks WHERE project_id = :project_id`,
     {

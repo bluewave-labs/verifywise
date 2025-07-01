@@ -249,7 +249,7 @@ export const getQuestionByTopicIdQuery = async (
   tenant: string
 ): Promise<Question[]> => {
   const result = await sequelize.query(
-    `SELECT * FROM "${tenant}".questions WHERE subtopic_id IN (SELECT id FROM subtopics WHERE topic_id = :topic_id) ORDER BY created_at DESC, id ASC;`,
+    `SELECT * FROM "${tenant}".questions WHERE subtopic_id IN (SELECT id FROM "${tenant}".subtopics WHERE topic_id = :topic_id) ORDER BY created_at DESC, id ASC;`,
     {
       replacements: { topic_id: topicId },
       mapToModel: true,

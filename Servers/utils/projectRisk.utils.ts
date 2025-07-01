@@ -41,7 +41,7 @@ export const getNonMitigatedProjectRisksQuery = async (
   tenant: string
 ): Promise<ProjectRisk[]> => {
   const projectRisks = await sequelize.query(
-    `SELECT pr.* FROM "${tenant}".projectrisks pr RIGHT JOIN "${tenant}".annexcategories_iso__risks acr ON pr.id = annexcategories_iso__risks.project_risk_id WHERE acr IS NULL;`,
+    `SELECT pr.* FROM "${tenant}".projectrisks pr RIGHT JOIN "${tenant}".annexcategories_iso__risks acr ON pr.id = acr.project_risk_id WHERE acr IS NULL;`,
     {
       replacements: { project_id: projectId },
       mapToModel: true,
@@ -184,7 +184,7 @@ export const deleteProjectRiskByIdQuery = async (
 ): Promise<Boolean> => {
   await updateProjectUpdatedByIdQuery(id, "projectrisks", tenant, transaction);
   const result = await sequelize.query(
-    "DELETE FROM projectrisks WHERE id = :id RETURNING *",
+    `DELETE FROM "${tenant}".projectrisks WHERE id = :id RETURNING *`,
     {
       replacements: { id },
       mapToModel: true,

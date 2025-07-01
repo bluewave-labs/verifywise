@@ -15,6 +15,7 @@ import Alert from "../../../components/Alert";
 import { ENV_VARs } from "../../../../../env.vars";
 
 const isDemoApp = ENV_VARs.IS_DEMO_APP || false;
+const isMultiTenant = ENV_VARs.IS_MULTI_TENANT || false;
 
 // Define the shape of form values
 interface FormValues {
@@ -269,6 +270,34 @@ const Login: React.FC = () => {
             >
               Sign in
             </Button>
+            {isMultiTenant && (
+              <Stack
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: theme.spacing(1),
+                }}
+              >
+                <Typography
+                  sx={{ fontSize: 14, color: theme.palette.text.secondary }}
+                >
+                  Don't have an organization?
+                </Typography>
+                <Typography
+                  sx={{
+                    color: theme.palette.primary.main,
+                    fontSize: 14,
+                    fontWeight: "bold",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => navigate("/register")}
+                >
+                  Register
+                </Typography>
+              </Stack>
+            )}
           </Stack>
         </Stack>
       </form>

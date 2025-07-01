@@ -78,7 +78,6 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
     const subControlsResponse = await getEntityById({
       routeUrl: `eu-ai-act/controlById?controlId=${id}&projectFrameworkId=${projectFrameworkId}`,
     });
-    console.log("Sub-controls: ", subControlsResponse);
     setSelectedControl(subControlsResponse.data);
     setSelectedRow(id);
     setModalOpen(true);
@@ -134,7 +133,6 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
           routeUrl: `/eu-ai-act/controls/byControlCategoryId/${controlCategoryId}?projectFrameworkId=${projectFrameworkId}`,
         });
 
-        console.log("Status filter: ", statusFilter);
         const filteredControls = response.filter((control: Control) => {
           return (
             control.status?.toLowerCase() === statusFilter ||

@@ -80,7 +80,6 @@ const ComplianceTracker = ({
       const response = await getEntityById({
         routeUrl: `/eu-ai-act/controlCategories`,
       });
-      console.log("Control categories: ", response);
       setControlCategories(response);
     } catch (err) {
       console.error(

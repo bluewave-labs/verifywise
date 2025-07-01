@@ -70,7 +70,7 @@ const TabFilterBar = ({
 
         {statusFilter && (
           <Typography variant="body2" sx={{ color: "gray", mt: 1, ml: 10 }}>
-            Showing:
+            Showing
             {statusFilter &&
               ` Status: ${
                 statusFilter[0].toUpperCase() + statusFilter.slice(1)

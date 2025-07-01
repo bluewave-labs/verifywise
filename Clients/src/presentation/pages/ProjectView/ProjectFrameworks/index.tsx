@@ -25,7 +25,7 @@ import {
 import ISO42001Annex from "../../ISO/Annex";
 import ISO42001Clauses from "../../ISO/Clause";
 import allowedRoles from "../../../../application/constants/permissions";
-import TabFilterBar from "../../../components/TabFilterBar";
+import TabFilterBar from "../../../components/FrameworkFilter/TabFilterBar";
 
 const FRAMEWORK_IDS = {
   EU_AI_ACT: 1,
@@ -186,10 +186,18 @@ const ProjectFrameworks = ({
     { value: "done", label: "Done" },
   ];
 
+  const euAIActAssessmentsOptions = [
+    { value: "not started", label: "Not started" },
+    { value: "in progress", label: "In Progress" },
+    { value: "done", label: "Done" },
+  ];
+
   const statusOptions = isISO42001
     ? iso42001StatusOptions
     : isEUAIAct
-    ? euAIActStatusOptions
+    ? tracker === "compliance"
+      ? euAIActStatusOptions
+      : euAIActAssessmentsOptions
     : [];
 
   useEffect(() => {
@@ -316,7 +324,10 @@ const ProjectFrameworks = ({
               />
             </TabPanel>
             <TabPanel value="assessment" sx={tabPanelStyle}>
-              <AssessmentTracker project={project} />
+              <AssessmentTracker
+                project={project}
+                statusFilter={statusFilter}
+              />
             </TabPanel>
           </>
         ) : null}

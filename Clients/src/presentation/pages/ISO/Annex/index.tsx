@@ -59,7 +59,6 @@ const ISO42001Annex = ({
         const response = await GetAnnexesByProjectFrameworkId({
           routeUrl: `/iso-42001/annexes/struct/byProjectId/${projectFrameworkId}`,
         });
-        console.log("ANNEXES: ", response.data);
         setAnnexes(response.data);
       } catch (error) {
         console.error("Error fetching annexes:", error);
@@ -75,7 +74,6 @@ const ISO42001Annex = ({
         routeUrl: `/iso-42001/annexCategories/byAnnexId/${annexId}`,
       })) as { data: Partial<AnnexCategoryISO & AnnexCategoryStructISO>[] };
 
-      console.log("Controls: ", response.data);
       setControlsMap((prev) => ({ ...prev, [annexId]: response.data }));
     } catch (error) {
       console.error("Error fetching controls:", error);

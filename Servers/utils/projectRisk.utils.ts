@@ -66,7 +66,7 @@ export const createProjectRiskQuery = async (
       final_risk_level, risk_approval, approval_status, date_of_assessment
     ) VALUES (
       :project_id, :risk_name, :risk_owner, :ai_lifecycle_phase, :risk_description,
-      :risk_category, :impact, :assessment_mapping, :controls_mapping, :likelihood,
+      ARRAY[:risk_category], :impact, :assessment_mapping, :controls_mapping, :likelihood,
       :severity, :risk_level_autocalculated, :review_notes, :mitigation_status,
       :current_risk_level, :deadline, :mitigation_plan, :implementation_strategy,
       :mitigation_evidence_document, :likelihood_mitigation, :risk_severity,
@@ -159,7 +159,12 @@ export const updateProjectRiskByIdQuery = async (
         return true;
       }
     })
-    .map((f) => `${f} = :${f}`)
+    .map((f) => {
+      if (f === "risk_category") {
+        return `${f} = ARRAY[:${f}]`;
+      }
+      return `${f} = :${f}`;
+    })
     .join(", ");
 
   const query = `UPDATE "${tenant}".projectrisks SET ${setClause} WHERE id = :id RETURNING *;`;

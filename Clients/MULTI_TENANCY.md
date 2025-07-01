@@ -14,7 +14,7 @@ When multi-tenancy is enabled, the application changes its authentication flow t
 
 ### Environment Variables
 
-To enable multi-tenancy, set the following environment variable:
+To enable multi-tenancy, create you `.env.local` file inside `/Clients` folder and set the following environment variable:
 
 ```bash
 VITE_IS_MULTI_TENANT=true

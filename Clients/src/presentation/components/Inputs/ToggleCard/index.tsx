@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Stack, Typography, FormControlLabel, useTheme } from "@mui/material";
+import { Box, Stack, FormControlLabel, useTheme } from "@mui/material";
 import Toggle from "../Toggle";
 import { CardActive, CardDisabled, getFormControlLabelStyles } from "../../../pages/AITrustCenter/Overview/styles";
 

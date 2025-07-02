@@ -44,7 +44,6 @@ export const PrivacyFields = styled(Box)(({ theme }) => ({
 }));
 
 export const styles = {
-  
   description: {
     color: 'text.secondary',
     mb: 4,
@@ -67,18 +66,43 @@ export const styles = {
     fontSize: 13,
     mt: 2,
   },
+
+  checkbox: {
+    "& .MuiCheckbox-root": {
+      color: '#13715B',
+      '&.Mui-checked': {
+        color: '#13715B',
+      },
+      '&:hover': {
+        backgroundColor: 'rgba(19, 113, 91, 0.04)',
+      },
+    },
+  },
+
   badge: {
     background: 'background.accent',
     borderRadius: 2,
-    p: 1,
+    p: 0,
+    m: 0,
+    mr: 0,
+    minWidth: 160,
+    flex: '0 0 160px',
     fontWeight: 500,
+    "& .MuiFormControlLabel-label": {
+      fontSize: 13,
+    },
   },
+
+
+
   textField: {
     minWidth: 458,
     background: 'background.default',
     borderRadius: 2,
     height: 34,
+    fontSize: 13,
   },
+
   saveButton: {
     mt: 3,
     width: 120,
@@ -95,6 +119,10 @@ export const styles = {
       border: '1px solid #13715B',
       boxShadow: 'none',
     },
+  },
+
+  badgesContainer: {
+    maxWidth: 700,
   },
 }; 
 

@@ -2,26 +2,28 @@ import React from "react";
 import { Box, Typography, Stack, Checkbox, FormControlLabel, useTheme } from "@mui/material";
 import Toggle from '../../../components/Inputs/Toggle';
 import ToggleCard from '../../../components/Inputs/ToggleCard';
-import { getFormControlLabelStyles } from './styles';
 import CustomizableButton from '../../../vw-v2-components/Buttons';
+import Field from '../../../components/Inputs/Field';
 import { 
   SectionPaper, 
   PrivacyFields, 
-  styles 
-} from './styles.ts';
-import Field from '../../../components/Inputs/Field';
+  styles,
+  getFormControlLabelStyles 
+} from './styles';
 
 const AITrustCenterOverview: React.FC = () => {
   const theme = useTheme();
   const formControlLabelStyles = getFormControlLabelStyles(theme);
 
-  // Local state for toggles (for demonstration)
+  // Local state for toggles
   const [purposeChecked, setPurposeChecked] = React.useState(true);
   const [statementChecked, setStatementChecked] = React.useState(false);
   const [missionChecked, setMissionChecked] = React.useState(true);
   const [backgroundChecked, setBackgroundChecked] = React.useState(false);
   const [coreBenefitsChecked, setCoreBenefitsChecked] = React.useState(false);
 
+  const complianceBadges = ['SOC2 Type I', 'SOC2 Type II', 'ISO 27001', 'ISO 42001', 'CCPA', 'HIPAA', 'GDPR'];
+  
   return (
     <Box>
       <Typography sx={styles.description}>
@@ -81,18 +83,18 @@ const AITrustCenterOverview: React.FC = () => {
           Compliance badges for certifications and standards (e.g., EU AI Act, NIST, SOC2, ISO 27001, GDPR).
         </Typography>
         <Box
-          display="grid"
-          gridTemplateColumns="repeat(4, 1fr)"
-          gap={2}
-          mt={2}
-          sx={{ maxWidth: 800 }}
+          display="flex"
+          flexWrap="wrap"
+          rowGap={0.5}
+          mt={1}
+          sx={styles.badgesContainer}
         >
-          {['SOC2 Type I', 'SOC2 Type II', 'ISO 27001', 'ISO 42001', 'CCPA', 'HIPAA', 'GDPR'].map((badge) => (
+          {complianceBadges.map((badge) => (
             <FormControlLabel
               key={badge}
               control={<Checkbox defaultChecked />}
               label={badge}
-              sx={styles.badge}
+              sx={{ ...styles.badge, ...styles.checkbox }}
             />
           ))}
         </Box>
@@ -143,38 +145,39 @@ const AITrustCenterOverview: React.FC = () => {
         </Typography>
         <PrivacyFields>
           <Stack direction="column" spacing={2} sx={{ width: '100%' }}>
-            <Stack direction="row" alignItems="center" spacing={2} sx={{ width: '100%' }}>
-              <Box sx={{ flex: 1 }}>
-                <FormControlLabel control={<Checkbox defaultChecked />} label="Terms of service" sx={{ ...styles.textField }} />
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                <Field placeholder="" width={458} sx={styles.textField} />
-              </Box>
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ width: '100%' }}>
+              <FormControlLabel 
+                control={<Checkbox defaultChecked />} 
+                label="Terms of service" 
+                sx={{ mr: 2, minWidth: 160, "& .MuiFormControlLabel-label": { fontSize: 13 }, ...styles.checkbox }} 
+              />
+              <Field placeholder="" width={458} sx={styles.textField} />
             </Stack>
-            <Stack direction="row" alignItems="center" spacing={2} sx={{ width: '100%' }}>
-              <Box sx={{ flex: 1 }}>
-                <FormControlLabel control={<Checkbox defaultChecked />} label="Privacy policy" sx={{ width: '100%' }} />
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                <Field placeholder="" width={458} sx={styles.textField} />
-              </Box>
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ width: '100%' }}>
+              <FormControlLabel 
+                control={<Checkbox defaultChecked />} 
+                label="Privacy policy" 
+                sx={{ mr: 2, minWidth: 160, "& .MuiFormControlLabel-label": { fontSize: 13 }, ...styles.checkbox }} 
+              />
+              <Field placeholder="" width={458} sx={styles.textField} />
             </Stack>
-            <Stack direction="row" alignItems="center" spacing={2} sx={{ width: '100%' }}>
-              <Box sx={{ flex: 1 }}>
-                <FormControlLabel control={<Checkbox defaultChecked />} label="Company email" sx={{ width: '100%' }} />
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                <Field placeholder="" width={458} sx={styles.textField} />
-              </Box>
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ width: '100%' }}>
+              <FormControlLabel 
+                control={<Checkbox defaultChecked />} 
+                label="Company email" 
+                sx={{ mr: 2, minWidth: 160, "& .MuiFormControlLabel-label": { fontSize: 13 }, ...styles.checkbox }} 
+              />
+              <Field placeholder="" width={458} sx={styles.textField} />
             </Stack>
           </Stack>
         </PrivacyFields>
-        <CustomizableButton
-          text="Save"
-          variant="contained"
-          sx={styles.saveButton}
-        />
       </SectionPaper>
+      
+      <CustomizableButton
+        text="Save"
+        variant="contained"
+        sx={styles.saveButton}
+      />
     </Box>
   );
 };

@@ -112,7 +112,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       risk_owner integer,
       ai_lifecycle_phase enum_projectrisks_ai_lifecycle_phase NOT NULL,
       risk_description text NOT NULL,
-      risk_category enum_projectrisks_risk_category NOT NULL,
+      risk_category TEXT[] NOT NULL,
       impact character varying(255) NOT NULL,
       assessment_mapping text NOT NULL,
       controls_mapping text NOT NULL,

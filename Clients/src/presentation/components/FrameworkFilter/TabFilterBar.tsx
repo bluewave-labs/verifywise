@@ -1,12 +1,5 @@
-import {
-  Box,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  Typography,
-} from "@mui/material";
-
+import { Box, Stack, Typography } from "@mui/material";
+import Select from "../Inputs/Select";
 interface TabFilterBarProps {
   statusFilter?: string;
   onStatusChange?: (val: string) => void;
@@ -24,71 +17,66 @@ const TabFilterBar = ({
   onApplicabilityChange,
   showStatusFilter,
   showApplicabilityFilter,
-  statusOptions,
+  statusOptions = [],
 }: TabFilterBarProps) => {
+  const mapToSelectItems = (options: { label: string; value: string }[]) =>
+    options.map((opt) => ({ _id: opt.value, name: opt.label }));
+
   return (
     <Box
       sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 2, mt: 8 }}
     >
       <Box
-        sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "center" }}
+        sx={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}
       >
         {showStatusFilter && (
-          <FormControl size="small">
-            <InputLabel>Filter by Status</InputLabel>
-            <Select
-              value={statusFilter ?? ""}
-              onChange={(e) => onStatusChange?.(e.target.value)}
-              label="Filter by Status"
-              sx={{ minWidth: 150 }}
-            >
-              <MenuItem value="">All</MenuItem>
-              {statusOptions?.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Select
+            id="status-filter"
+            placeholder="All"
+            value={statusFilter ?? ""}
+            onChange={(e) => onStatusChange?.(e.target.value as string)}
+            items={[
+              { _id: "", name: "All" },
+              ...mapToSelectItems(statusOptions),
+            ]}
+            getOptionValue={(item) => item._id}
+          />
         )}
 
         {showApplicabilityFilter && (
-          <FormControl size="small">
-            <InputLabel>Applicability</InputLabel>
-            <Select
-              value={applicabilityFilter ?? ""}
-              onChange={(e) => onApplicabilityChange?.(e.target.value)}
-              label="Applicability"
-              sx={{ minWidth: 150 }}
-            >
-              <MenuItem value="all">All</MenuItem>
-              <MenuItem value="true">Applicable</MenuItem>
-              <MenuItem value="false">Not Applicable</MenuItem>
-            </Select>
-          </FormControl>
+          <Select
+            id="applicability-filter"
+            placeholder="All"
+            value={applicabilityFilter ?? "all"}
+            onChange={(e) => onApplicabilityChange?.(e.target.value as string)}
+            items={[
+              { _id: "all", name: "All" },
+              { _id: "true", name: "Applicable" },
+              { _id: "false", name: "Not Applicable" },
+            ]}
+            getOptionValue={(item) => item._id}
+          />
         )}
 
-        {statusFilter && (
-          <Typography variant="body2" sx={{ color: "gray", mt: 1, ml: 10 }}>
-            Showing
-            {statusFilter &&
-              ` Status: ${
-                statusFilter[0].toUpperCase() + statusFilter.slice(1)
-              }`}
-          </Typography>
-        )}
-
-        {applicabilityFilter && (
-          <Typography variant="body2" sx={{ color: "gray", mt: 1, ml: 10 }}>
-            {applicabilityFilter !== "all" && (
-              <>
-                {" Applicability: "}
+        {(statusFilter ||
+          applicabilityFilter === "true" ||
+          applicabilityFilter === "false") && (
+          <Stack direction="row" spacing={10}>
+            {statusFilter && (
+              <Typography variant="body2" sx={{ color: "gray" }}>
+                Showing: {statusFilter[0].toUpperCase() + statusFilter.slice(1)}
+              </Typography>
+            )}
+            {(applicabilityFilter === "true" ||
+              applicabilityFilter === "false") && (
+              <Typography variant="body2" sx={{ color: "gray" }}>
+                Showing:{" "}
                 {applicabilityFilter === "true"
                   ? "Applicable"
                   : "Not Applicable"}
-              </>
+              </Typography>
             )}
-          </Typography>
+          </Stack>
         )}
       </Box>
     </Box>

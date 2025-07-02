@@ -167,7 +167,7 @@ const ProjectFrameworks = ({
   const tabs = isISO42001 ? ISO_42001_TABS : TRACKER_TABS;
 
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [applicabilityFilter, setApplicabilityFilter] = useState("all");
+  const [applicabilityFilter, setApplicabilityFilter] = useState<string>("all");
 
   const iso42001StatusOptions = [
     { value: "not started", label: "Not Started" },

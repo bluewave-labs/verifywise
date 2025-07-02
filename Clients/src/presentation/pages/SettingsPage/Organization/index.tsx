@@ -42,7 +42,6 @@ const Organization = () => {
     setOrganizationLogo,
     organizationId,
     setOrganizationId,
-    organizationName: contextOrgName,
     setOrganizationName: setContextOrgName,
   } = useContext(VerifyWiseContext);
 

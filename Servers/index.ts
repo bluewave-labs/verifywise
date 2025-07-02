@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
+import path from "path";
 // import { checkAndCreateTables } from "./database/db";
 
 import assessmentRoutes from "./routes/assessment.route";
@@ -79,6 +80,7 @@ try {
     express.json()(req, res, next);
   });
   app.use(cookieParser());
+  app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
   // Routes
   app.use("/api/users", userRoutes);

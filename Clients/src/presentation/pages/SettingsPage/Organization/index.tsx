@@ -1,4 +1,12 @@
-import { Stack, useTheme, Box, Divider, CircularProgress, Typography, Avatar} from "@mui/material";
+import {
+  Stack,
+  useTheme,
+  Box,
+  Divider,
+  CircularProgress,
+  Typography,
+  Avatar,
+} from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
@@ -28,27 +36,36 @@ interface AlertState {
 }
 
 const Organization = () => {
-  const { userRoleName } = useContext(VerifyWiseContext);
+  const {
+    userRoleName,
+    organizationLogo,
+    setOrganizationLogo,
+    organizationId,
+    setOrganizationId,
+    organizationName: contextOrgName,
+    setOrganizationName: setContextOrgName,
+  } = useContext(VerifyWiseContext);
+
   const isEditingDisabled =
     !allowedRoles.organizations.edit.includes(userRoleName);
   const isCreatingDisabled =
     !allowedRoles.organizations.create.includes(userRoleName);
+
   const [isSaveDisabled, setIsSaveDisabled] = useState(true);
   const [organizationName, setOrganizationName] = useState("");
   const [organizationNameError, setOrganizationNameError] = useState<
     string | null
   >(null);
   const [isLoading, setIsLoading] = useState(false);
-  const theme = useTheme();
-  const [organizationId, setOrganizationId] = useState<number | null>(null);
+  // const [organizationId, setOrganizationId] = useState<number | null>(null);
   const [organizationExists, setOrganizationExists] = useState(false);
   const [alert, setAlert] = useState<AlertState | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
 
   //logo
-    const [organizationLogo, setOrganizationLogo] = useState<string>("");
-    const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
-    // const [isLogoUploading, setIsLogoUploading] = useState(false);
+  const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
+
+  const theme = useTheme();
 
   const fetchOrganization = useCallback(async () => {
     try {
@@ -62,16 +79,15 @@ const Organization = () => {
         const org = organizations.data.data[0];
         setOrganizationId(org.id);
         setOrganizationName(org.name || "");
-
-        const storedLogo = localStorage.getItem(`org-logo-${org.id}`);
-        setOrganizationLogo(storedLogo || org.logo || "");
-
+        setContextOrgName(org.name || "");
+        setOrganizationLogo(org.logo || "");
         setOrganizationExists(true);
         setHasChanges(false);
       } else {
         setOrganizationExists(false);
         setOrganizationId(null);
         setOrganizationName("");
+        setContextOrgName("");
         setOrganizationLogo("");
         setHasChanges(false);
       }
@@ -79,10 +95,11 @@ const Organization = () => {
       setOrganizationExists(false);
       setOrganizationId(null);
       setOrganizationName("");
+      setContextOrgName("");
       setOrganizationLogo("");
       setHasChanges(false);
     }
-  }, []);
+  }, [setOrganizationId, setOrganizationLogo, setContextOrgName]);
 
   useEffect(() => {
     fetchOrganization();
@@ -115,77 +132,95 @@ const Organization = () => {
     []
   );
 
-const handleLogoUploadSuccess = useCallback(
-  (file: File) => {
-    // change needed: should be the uploaded file URL from the server
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const logoUrl = e.target?.result as string;
-      setOrganizationLogo(logoUrl);
-      setHasChanges(true);
+  const handleLogoUploadSuccess = useCallback(
+    async (file: File) => {
+      console.log("File received:", file);
+      console.log("File type:", typeof file);
+      console.log("File properties:", Object.keys(file));
 
-      if (organizationId) {
-        localStorage.setItem(`org-logo-${organizationId}`, logoUrl);
+      if (!organizationId) return;
+      try {
+        const formData = new FormData();
+        formData.append("name", organizationName);
+        formData.append("logo", file);
+
+        console.log("FormData contents:"); 
+        for (let [key, value] of formData.entries()) {
+          console.log(key, value); 
+        }
+
+        const response = await UpdateMyOrganization({
+          routeUrl: `/organizations/${organizationId}`,
+          body: formData,
+        });
+
+        setOrganizationLogo(response.data.logo);
+        setContextOrgName(response.data.name);
+
+        setAlert({
+          variant: "success",
+          title: "Logo Updated",
+          body: "Organization logo has been updated successfully.",
+          isToast: false,
+        });
+      } catch (error) {
+        console.error("Logo upload error:", error);
+        setAlert({
+          variant: "error",
+          title: "Upload Error",
+          body: "Failed to upload logo. Please try again.",
+          isToast: false,
+        });
       }
+    },
 
-      window.dispatchEvent(
-        new StorageEvent("storage", {
-          key: "org-logo-updated",
-          newValue: logoUrl,
-        })
-      );
+    [organizationId, organizationName, setOrganizationLogo, setContextOrgName]
+  );
+
+  const handleLogoUploadError = useCallback((message: string) => {
+    setAlert({
+      variant: "error",
+      title: "Upload Error",
+      body: message || "Failed to upload logo.",
+      isToast: false,
+    });
+  }, []);
+
+  const handleDeleteLogo = async () => {
+    if (!organizationId) return;
+
+    try {
+      await UpdateMyOrganization({
+        routeUrl: `/organizations/${organizationId}`,
+        body: { logo: "" },
+      });
+
+      setOrganizationLogo("");
 
       setAlert({
         variant: "success",
-        title: "Logo Updated",
-        body: "Organization logo has been updated successfully.",
+        title: "Logo Deleted",
+        body: "Organization logo has been removed successfully.",
         isToast: false,
       });
-    };
-    reader.readAsDataURL(file);
-    setIsFileUploadOpen(false);
-  },
-  [organizationId]
-);
- const handleLogoUploadError = useCallback((message: string) => {
-   setAlert({
-     variant: "error",
-     title: "Upload Error",
-     body: message || "Failed to upload logo.",
-     isToast: false,
-   });
- }, []);
+    } catch (error) {
+      setAlert({
+        variant: "error",
+        title: "Error",
+        body: "Failed to delete logo. Please try again.",
+        isToast: false,
+      });
+    }
+  };
 
- const handleDeleteLogo = () => {
-   setOrganizationLogo("");
-   setHasChanges(true);
-
-   if (organizationId) {
-     localStorage.removeItem(`org-logo-${organizationId}`);
-     window.dispatchEvent(
-       new StorageEvent("storage", {
-         key: "org-logo-updated",
-         newValue: "",
-       })
-     );
-   }
-
-   setAlert({
-     variant: "success",
-     title: "Logo Deleted",
-     body: "Organization logo has been removed successfully.",
-     isToast: false,
-   });
- };
-
- const fileUploadProps = {
-   open: isFileUploadOpen,
-   onClose: () => setIsFileUploadOpen(false),
-   onSuccess: handleLogoUploadSuccess,
-   onError: handleLogoUploadError,
-   onFileChanged: handleLogoUploadSuccess,
-   allowedFileTypes: ["image/jpeg", "image/png", "image/gif", "image/webp"],
- };
+  const fileUploadProps = {
+    open: isFileUploadOpen,
+    onClose: () => setIsFileUploadOpen(false),
+    onSuccess: handleLogoUploadSuccess,
+    onError: handleLogoUploadError,
+    onFileChanged: handleLogoUploadSuccess,
+    allowedFileTypes: ["image/jpeg", "image/png", "image/gif", "image/webp"],
+  };
 
   const handleCreate = async () => {
     if (!organizationName.trim()) {
@@ -212,12 +247,10 @@ const handleLogoUploadSuccess = useCallback(
         isToast: false,
       });
 
-      if (response && response.id && organizationLogo) {
-        localStorage.setItem(`org-logo-${response.id}`, organizationLogo);
-      }
       if (response && response.id) {
         setOrganizationId(response.id);
         setOrganizationName(response.name || "");
+        setContextOrgName(response.name || "");
         setOrganizationExists(true);
         setHasChanges(false);
       }
@@ -262,18 +295,10 @@ const handleLogoUploadSuccess = useCallback(
         isToast: false,
       });
 
-      if (organizationLogo && organizationId) {
-        localStorage.setItem(`org-logo-${organizationId}`, organizationLogo);
-        window.dispatchEvent(
-          new StorageEvent("storage", {
-            key: "org-logo-updated",
-            newValue: organizationLogo,
-          })
-        );
-      }
       if (response && response.id) {
         setOrganizationId(response.id);
         setOrganizationName(response.name || "");
+        setContextOrgName(response.name || "");
         setHasChanges(false);
       }
       await fetchOrganization();
@@ -359,74 +384,76 @@ const handleLogoUploadSuccess = useCallback(
           </Stack>
           {/* Logo upload section */}
           <Stack
-            sx={{ 
-              width: { xs: "100%", md: "45%" }, 
-              flex:1,
-              alignItems:"flex-end",
-              mt: { xs: 4, md: 0 } }}
+            sx={{
+              width: { xs: "100%", md: "45%" },
+              flex: 1,
+              alignItems: "flex-end",
+              mt: { xs: 4, md: 0 },
+            }}
           >
-            <Typography variant="h6" sx={{ 
-              mb: 3, 
-              fontWeight: 600,
-              width:"100%",
-              textAlign:"right" }}>
+            <Typography
+              variant="h6"
+              sx={{
+                mb: 3,
+                fontWeight: 600,
+                width: "100%",
+                textAlign: "right",
+              }}
+            >
               Organization Logo
             </Typography>
-            <Stack alignItems="center" spacing={2}>
-              {/* Logo */}
-              <Avatar
-                src={organizationLogo}
+
+            {/* Logo */}
+            <Avatar
+              src={organizationLogo}
+              sx={{
+                width: 120,
+                height: 120,
+                fontSize: "3rem",
+                bgcolor: "#13715B",
+                border: `3px solid ${theme.palette.border.light}`,
+                mb: 2,
+              }}
+            >
+              {organizationName.charAt(0).toUpperCase() || "O"}
+            </Avatar>
+            {/* Action Buttons */}
+            <Stack direction="row" spacing={3}>
+              <Typography
+                onClick={handleDeleteLogo}
                 sx={{
-                  width: 120,
-                  height: 120,
-                  fontSize: "3rem",
-                  bgcolor: "#13715B",
-                  border: `3px solid ${theme.palette.border.light}`,
-                  mb:2,
-                }}
-              >
-                {organizationName.charAt(0).toUpperCase() || "O"}
-              </Avatar>
-              {/* Action Buttons */}
-              <Stack direction="row" spacing={3}>
-                <Typography
-                  onClick={handleDeleteLogo}
-                  sx={{
-                    color: "#667085",
-                    cursor:
-                      organizationLogo && !isEditingDisabled
-                        ? "pointer"
-                        : "default",
-                    textDecoration: "none",
-                    "&:hover":
-                      organizationLogo && !isEditingDisabled
-                        ? { textDecoration: "underline" }
-                        : {},
-                    fontSize: 14,
-                    opacity: organizationLogo && !isEditingDisabled ? 1 : 0.5,
-                  }}
-                >
-                  Delete
-                </Typography>
-                <Typography
-                  onClick={() =>
-                    !isEditingDisabled && setIsFileUploadOpen(true)
-                  }
-                  sx={{
-                    color: "#13715B",
-                    cursor: !isEditingDisabled ? "pointer" : "default",
-                    textDecoration: "none",
-                    "&:hover": !isEditingDisabled
+                  color: "#667085",
+                  cursor:
+                    organizationLogo && !isEditingDisabled
+                      ? "pointer"
+                      : "default",
+                  textDecoration: "none",
+                  "&:hover":
+                    organizationLogo && !isEditingDisabled
                       ? { textDecoration: "underline" }
                       : {},
-                    fontSize: 14,
-                    fontWeight: 500,
-                    opacity: !isEditingDisabled ? 1 : 0.5,
-                  }}
-                >
-                  Update
-                </Typography>
-              </Stack>
+                  fontSize: 14,
+                  opacity: organizationLogo && !isEditingDisabled ? 1 : 0.5,
+                }}
+              >
+                Delete
+              </Typography>
+              <Typography
+                onClick={() => !isEditingDisabled && setIsFileUploadOpen(true)}
+                sx={{
+                  color: "#13715B",
+                  cursor: !isEditingDisabled ? "pointer" : "default",
+                  textDecoration: "none",
+                  "&:hover": !isEditingDisabled
+                    ? { textDecoration: "underline" }
+                    : {},
+                  fontSize: 14,
+                  fontWeight: 500,
+                  opacity: !isEditingDisabled ? 1 : 0.5,
+                }}
+              >
+                Update
+              </Typography>
             </Stack>
           </Stack>
         </Box>

@@ -52,6 +52,11 @@ function App() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [triggerSidebar, setTriggerSidebar] = useState(false);
 
+  //organization logo state management 
+    const [organizationLogo, setOrganizationLogo] = useState<string>("");
+    const [organizationId, setOrganizationId] = useState<number | null>(null);
+    const [organizationName, setOrganizationName] = useState<string>("");
+
   const userId = extractUserToken(token)?.id ?? 1;
   const {
     projectStatus,
@@ -100,6 +105,12 @@ function App() {
       users,
       refreshUsers,
       userRoleName,
+      organizationLogo,
+      setOrganizationLogo,
+      organizationId,
+      setOrganizationId,
+      organizationName,
+      setOrganizationName,
     }),
     [
       uiValues,
@@ -124,6 +135,12 @@ function App() {
       users,
       refreshUsers,
       userRoleName,
+      organizationLogo,
+      setOrganizationLogo,
+      organizationId,
+      setOrganizationId,
+      organizationName,
+      setOrganizationName,
     ]
   );
 

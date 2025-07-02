@@ -30,6 +30,12 @@ interface VerifyWiseContextProps {
   users: User[];
   refreshUsers: () => void;
   userRoleName: string;
+  organizationLogo:string;
+  setOrganizationLogo: (logo:string) => void;
+  organizationId:number | null;
+  setOrganizationId: (id:number | null) => void;
+  organizationName:string;
+  setOrganizationName: (name:string) => void;
 }
 
 const VerifyWiseContext = createContext<VerifyWiseContextProps>({
@@ -55,6 +61,12 @@ const VerifyWiseContext = createContext<VerifyWiseContextProps>({
   users: [],
   refreshUsers: () => {},
   userRoleName: "",
+  organizationLogo: "",
+  setOrganizationLogo: () => {},
+  organizationId: null,
+  setOrganizationId: () => {},
+  organizationName: "",
+  setOrganizationName: () => {},
 });
 
 export { VerifyWiseContext };

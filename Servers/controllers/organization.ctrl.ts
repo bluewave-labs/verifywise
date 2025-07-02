@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { sequelize } from "../database/db";
+import fs from "fs";
+import path from "path";
 import {
   addMemberToOrganizationQuery,
   addProjectToOrganizationQuery,
@@ -14,6 +16,22 @@ import {
   removeProjectFromOrganizationQuery,
   updateOrganizationByIdQuery,
 } from "../utils/organization.utils";
+
+/**
+ *Interface for file upload
+ * @param req Express request object with organization ID and logo file
+ * @param res Express response object
+ * @returns Response with uploaded logo or error
+ */
+interface FileUploadRequest extends Request {
+  file?: {
+    fieldname: string;
+    originalname: string;
+    mimetype: string;
+    size: number;
+    buffer: Buffer;
+  };
+}
 
 /**
  * Get all organizations
@@ -234,13 +252,69 @@ export async function addProjectToOrganization(
  * @returns Response with updated organization or error
  */
 export async function updateOrganizationById(
-  req: Request,
+  req: FileUploadRequest,
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   try {
     const organizationId = parseInt(req.params.id);
-    const updatedOrganization = req.body;
+    let updatedOrganization = req.body;
+    console.log("Backend ID:", organizationId);
+    console.log("Backend body:", req.body);
+    console.log("Backend file:", req.file);
+
+    // Handle file upload if it exists
+    if (req.file) {
+      const logoFile = req.file;
+
+      console.log(
+        "Backend file received:",
+        logoFile.originalname,
+        logoFile.size,
+        logoFile.mimetype
+      );
+
+      //validate the file type
+      if (!logoFile.mimetype.startsWith("image/")) {
+        await transaction.rollback();
+        return res
+          .status(400)
+          .json(STATUS_CODE[400]("Only image files are allowed"));
+      }
+      //validate the file size
+      if (logoFile.size > 5 * 1024 * 1024) {
+        await transaction.rollback();
+        return res
+          .status(400)
+          .json(STATUS_CODE[400]("File must be less than 5MB"));
+      }
+
+      //creates unique file name
+      const fileExtension = logoFile.mimetype.split("/")[1];
+      const fileName = `org-${organizationId}-logo-${Date.now()}.${fileExtension}`;
+      const filePath = path.join(__dirname, "../uploads/logos", fileName);
+
+      console.log("saving file to:", filePath);
+
+      //creates uploads directory if there isnt one
+      const uploadDir = path.dirname(filePath);
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      //save the file to directory
+      fs.writeFileSync(filePath, logoFile.buffer);
+
+      //store URL in database
+      updatedOrganization.logo = `/uploads/logos/${fileName}`;
+
+      console.log(
+        "Backend file saved successfully, URL is:",
+        updatedOrganization.logo
+      );
+    }
+
+    console.log("Backend update data:", updatedOrganization);
 
     const organization = await updateOrganizationByIdQuery(
       organizationId,
@@ -250,6 +324,7 @@ export async function updateOrganizationById(
 
     if (organization) {
       await transaction.commit();
+      console.log("Backend updated successfully:", organization);
       return res.status(200).json(STATUS_CODE[200](organization));
     }
 
@@ -257,6 +332,7 @@ export async function updateOrganizationById(
     return res.status(404).json(STATUS_CODE[404]("Organization not found"));
   } catch (error) {
     await transaction.rollback();
+    console.error("Backend error in updateOrganizationById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

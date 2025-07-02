@@ -63,9 +63,18 @@ const FileUploadComponent = ({
   const onFileDrop = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newFile: File | undefined = e.target.files?.[0];
 
+    console.log("FileUploadModal - Raw file from input:", newFile); 
+    console.log("FileUploadModal - File type:", typeof newFile); 
+
     if (!newFile) {
+      console.log("No file selected");
       return;
     }
+    console.log("FileUploadModal - File details:", {
+      name: newFile.name,
+      size: newFile.size,
+      type: newFile.type,
+    });
 
     if (!allowedFileTypes?.includes(newFile.type)) {
       console.error(`invalid file type: ${newFile.type}`);
@@ -83,6 +92,8 @@ const FileUploadComponent = ({
     }
 
     if (isLogoUpload) {
+      console.log("FileUploadModal - Calling callbacks with file:", newFile); 
+
       if (onFileChanged) {
         onFileChanged(newFile);
       }

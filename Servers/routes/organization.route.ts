@@ -9,6 +9,8 @@
 
 import express from "express";
 const router = express.Router();
+const multer = require("multer");
+const upload = multer({storage: multer.memoryStorage()});
 
 import {
   createOrganization,
@@ -38,7 +40,7 @@ router.post("/:id/members", authenticateJWT, addMemberToOrganization);
 router.post("/:id/projects", authenticateJWT, addProjectToOrganization);
 
 // PATCH requests
-router.patch("/:id", authenticateJWT, updateOrganizationById);
+router.patch("/:id", authenticateJWT, upload.single("logo"), updateOrganizationById);
 
 // DELETE requests
 router.delete("/:id", authenticateJWT, deleteOrganizationById);

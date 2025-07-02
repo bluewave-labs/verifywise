@@ -43,9 +43,7 @@ const initialOrganizationState: OrganizationFormValues = {
   organizationEmail: "",
 };
 
-const RegisterAdmin: React.FC<{ multiTenant: boolean }> = ({
-  multiTenant = false,
-}) => {
+const RegisterMultiTenant: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { users } = useContext(VerifyWiseContext);
@@ -55,15 +53,15 @@ const RegisterAdmin: React.FC<{ multiTenant: boolean }> = ({
   // State for form errors
   const [errors, setErrors] = useState<FormErrors>({});
 
-  // State for organization form values (multi-tenant)
+  // State for organization form values
   const [organizationValues, setOrganizationValues] =
     useState<OrganizationFormValues>(initialOrganizationState);
   // State for organization form errors
   const [organizationErrors, setOrganizationErrors] =
     useState<OrganizationFormErrors>({});
 
-  // State to track which form to show (for multi-tenant)
-  const [showOrganizationForm, setShowOrganizationForm] = useState(multiTenant);
+  // State to track which form to show
+  const [showOrganizationForm, setShowOrganizationForm] = useState(true);
 
   //state for overlay modal
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -129,10 +127,8 @@ const RegisterAdmin: React.FC<{ multiTenant: boolean }> = ({
       return;
     }
 
-    // If multi-tenant, include organization data in the request
-    const requestBody = multiTenant
-      ? { ...values, organization: organizationValues }
-      : values;
+    // Include organization data in the request
+    const requestBody = { ...values, organization: organizationValues };
 
     await createNewUser({
       routeUrl: "/users/register",
@@ -141,15 +137,13 @@ const RegisterAdmin: React.FC<{ multiTenant: boolean }> = ({
       .then((response) => {
         setValues(initialState);
         setErrors({});
-        if (multiTenant) {
-          setOrganizationValues(initialOrganizationState);
-          setOrganizationErrors({});
-        }
+        setOrganizationValues(initialOrganizationState);
+        setOrganizationErrors({});
 
         if (response.status === 201) {
           logEngine({
             type: "info",
-            message: "Account created successfully.",
+            message: "Organization and account created successfully.",
             users,
           });
           setTimeout(() => {
@@ -172,11 +166,14 @@ const RegisterAdmin: React.FC<{ multiTenant: boolean }> = ({
         } else if (response.status === 409) {
           logEngine({
             type: "event",
-            message: "Account already exists.",
+            message: "Organization or account already exists.",
             users,
           });
           setIsSubmitting(false);
-          setAlert({ variant: "error", body: "Account already exists." });
+          setAlert({
+            variant: "error",
+            body: "Organization or account already exists.",
+          });
           setTimeout(() => setAlert(null), 3000);
         } else if (response.status === 500) {
           logEngine({
@@ -258,8 +255,8 @@ const RegisterAdmin: React.FC<{ multiTenant: boolean }> = ({
         }}
       />
 
-      {/* Organization form for multi-tenant */}
-      {multiTenant && showOrganizationForm && (
+      {/* Organization form */}
+      {showOrganizationForm && (
         <form onSubmit={handleOrganizationSubmit}>
           <Stack
             className="org-form"
@@ -284,6 +281,18 @@ const RegisterAdmin: React.FC<{ multiTenant: boolean }> = ({
             </Typography>
             <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>
               Create your organization
+            </Typography>
+            <Typography
+              sx={{
+                color: theme.palette.primary.main,
+                fontSize: 14,
+                fontWeight: "bold",
+                cursor: "pointer",
+                textAlign: "center",
+              }}
+              onClick={() => navigate("/login")}
+            >
+              ← Back to Login
             </Typography>
             <Stack sx={{ gap: theme.spacing(7.5) }}>
               <Field
@@ -319,7 +328,7 @@ const RegisterAdmin: React.FC<{ multiTenant: boolean }> = ({
       )}
 
       {/* User registration form */}
-      {(!multiTenant || !showOrganizationForm) && (
+      {!showOrganizationForm && (
         <form onSubmit={handleSubmit}>
           <Stack
             className="reg-admin-form"
@@ -343,9 +352,19 @@ const RegisterAdmin: React.FC<{ multiTenant: boolean }> = ({
               <span style={{ color: singleTheme.textColors.theme }}>Wise</span>
             </Typography>
             <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>
-              {multiTenant
-                ? "Create admin account"
-                : "Create VerifyWise admin account"}
+              Create admin account
+            </Typography>
+            <Typography
+              sx={{
+                color: theme.palette.primary.main,
+                fontSize: 14,
+                fontWeight: "bold",
+                cursor: "pointer",
+                textAlign: "center",
+              }}
+              onClick={() => navigate("/login")}
+            >
+              ← Back to Login
             </Typography>
             <Stack sx={{ gap: theme.spacing(7.5) }}>
               <Field
@@ -434,4 +453,4 @@ const RegisterAdmin: React.FC<{ multiTenant: boolean }> = ({
   );
 };
 
-export default RegisterAdmin;
+export default RegisterMultiTenant;

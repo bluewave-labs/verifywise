@@ -1,5 +1,3 @@
-// this model will be replaced by the one inside structures/new-mock-data/projects.mock.ts directory
-
 import {
   Column,
   DataType,
@@ -8,41 +6,18 @@ import {
   Table,
 } from "sequelize-typescript";
 import { UserModel } from "../user/user.model";
-
-export type Project = {
-  id?: number;
-  project_title: string;
-  owner: number;
-  start_date: Date;
-  ai_risk_classification: "High risk" | "Limited risk" | "Minimal risk";
-  type_of_high_risk_role:
-    | "Deployer"
-    | "Provider"
-    | "Distributor"
-    | "Importer"
-    | "Product manufacturer"
-    | "Authorized representative";
-  goal: string;
-  last_updated: Date;
-  last_updated_by: number;
-  created_at?: Date;
-  // vendors: string[];
-  framework?: {
-    project_framework_id: number;
-    framework_id: number;
-  }[]; // FK to the projectFrameworks table
-
-  // statistical fields
-  doneSubcontrols?: number;
-  totalSubcontrols?: number;
-  answeredAssessments?: number;
-  totalAssessments?: number;
-};
+import { IProjectAttributes } from "../../interfaces/i.project";
+import { AiRiskClassification } from "../../enums/ai-risk-classification.enum";
+import { HighRiskRole } from "../../enums/high-risk-role.enum";
 
 @Table({
   tableName: "projects",
+  timestamps: true,
 })
-export class ProjectModel extends Model<Project> {
+export class ProjectModel
+  extends Model<ProjectModel>
+  implements IProjectAttributes
+{
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,
@@ -67,27 +42,14 @@ export class ProjectModel extends Model<Project> {
   start_date!: Date;
 
   @Column({
-    type: DataType.ENUM("High risk", "Limited risk", "Minimal risk"),
+    type: DataType.ENUM(...Object.values(AiRiskClassification)),
   })
-  ai_risk_classification!: "High risk" | "Limited risk" | "Minimal risk";
+  ai_risk_classification!: AiRiskClassification;
 
   @Column({
-    type: DataType.ENUM(
-      "Deployer",
-      "Provider",
-      "Distributor",
-      "Importer",
-      "Product manufacturer",
-      "Authorized representative"
-    ),
+    type: DataType.ENUM(...Object.values(HighRiskRole)),
   })
-  type_of_high_risk_role!:
-    | "Deployer"
-    | "Provider"
-    | "Distributor"
-    | "Importer"
-    | "Product manufacturer"
-    | "Authorized representative";
+  type_of_high_risk_role!: HighRiskRole;
 
   @Column({
     type: DataType.STRING,
@@ -116,4 +78,28 @@ export class ProjectModel extends Model<Project> {
     type: DataType.DATE,
   })
   created_at?: Date;
+
+  static async CreateNewProject(
+    projectAttributes: Partial<IProjectAttributes>
+  ) {
+    // Convert Partial<IProjectAttributes> to Optional<ProjectModel, NullishPropertiesOf<ProjectModel>>
+    const attributes = projectAttributes as any;
+    return await ProjectModel.create(attributes);
+  }
+
+  static async UpdateProject(
+    projectId: number,
+    projectAttributes: Partial<IProjectAttributes>
+  ) {
+    return await ProjectModel.update(projectAttributes, {
+      where: {
+        id: projectId,
+      },
+    });
+  }
+
+  constructor(init?: Partial<IProjectAttributes>) {
+    super();
+    Object.assign(this, init);
+  }
 }

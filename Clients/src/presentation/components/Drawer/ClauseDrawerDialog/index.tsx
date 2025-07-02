@@ -16,7 +16,7 @@ import { FileData } from "../../../../domain/types/File";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
 import { Dayjs } from "dayjs";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext} from "react";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
@@ -32,6 +32,7 @@ import {
   updateEntityById,
 } from "../../../../application/repository/entity.repository";
 import allowedRoles from "../../../../application/constants/permissions";
+import LinkedRisksSection from "../Sections/LinkedRisksSection";
 
 export const inputStyles = {
   minWidth: 200,
@@ -538,7 +539,9 @@ const VWISO42001ClauseDrawerDialog = ({
               )}
             </Stack>
           </Stack>
-          <Dialog open={isFileUploadOpen} onClose={closeFileUploadModal}>
+
+          
+          <Dialog open={isFileUploadOpen} onClose={closeFileUploadModal} >
             <UppyUploadFile
               uppy={uppy}
               files={[...evidenceFiles, ...uploadFiles]}
@@ -550,6 +553,8 @@ const VWISO42001ClauseDrawerDialog = ({
           {alert && (
             <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
           )}
+          <LinkedRisksSection />
+          
         </Stack>
         <Divider />
         <Stack

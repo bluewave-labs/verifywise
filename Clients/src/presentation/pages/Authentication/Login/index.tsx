@@ -298,34 +298,6 @@ const Login: React.FC = () => {
                 Register here
               </Typography>
             </Stack>
-            {isMultiTenant && (
-              <Stack
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  gap: theme.spacing(1),
-                }}
-              >
-                <Typography
-                  sx={{ fontSize: 14, color: theme.palette.text.secondary }}
-                >
-                  Don't have an organization?
-                </Typography>
-                <Typography
-                  sx={{
-                    color: theme.palette.primary.main,
-                    fontSize: 14,
-                    fontWeight: "bold",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => navigate("/register")}
-                >
-                  Register
-                </Typography>
-              </Stack>
-            )}
           </Stack>
         </Stack>
       </form>

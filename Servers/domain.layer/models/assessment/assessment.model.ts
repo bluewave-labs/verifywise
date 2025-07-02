@@ -8,10 +8,7 @@ import {
 import { ProjectModel } from "../project/project.model";
 import { IAssessment } from "../../interfaces/i.assessment";
 import { numberValidation } from "../../validations/number.valid";
-import {
-  ValidationException,
-  BusinessLogicException,
-} from "../../exceptions/custom.exception";
+import { ValidationException } from "../../exceptions/custom.exception";
 
 @Table({
   tableName: "assessments",

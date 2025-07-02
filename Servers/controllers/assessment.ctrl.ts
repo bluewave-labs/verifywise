@@ -27,10 +27,7 @@ import {
   updateQuestionByIdQuery,
   UploadedFile,
 } from "../utils/question.utils";
-import {
-  Assessment,
-  AssessmentModel,
-} from "../domain.layer/models/assessment/assessment.model";
+import { AssessmentModel } from "../domain.layer/models/assessment/assessment.model";
 import { TopicModel } from "../domain.layer/models/topic/topic.model";
 import { SubtopicModel } from "../domain.layer/models/subtopic/subtopic.model";
 import { sequelize } from "../database/db";
@@ -76,7 +73,7 @@ export async function createAssessment(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   try {
-    const newAssessment: Assessment = req.body;
+    const newAssessment: AssessmentModel = req.body;
 
     if (!newAssessment.project_id) {
       return res.status(400).json(
@@ -110,7 +107,7 @@ export async function updateAssessmentById(
   const transaction = await sequelize.transaction();
   try {
     const assessmentId = parseInt(req.params.id);
-    const updatedAssessment: Assessment = req.body;
+    const updatedAssessment: AssessmentModel = req.body;
 
     if (!updatedAssessment.project_id) {
       return res.status(400).json(

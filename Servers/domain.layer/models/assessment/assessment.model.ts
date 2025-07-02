@@ -7,16 +7,10 @@ import {
 } from "sequelize-typescript";
 import { ProjectModel } from "../project/project.model";
 
-export type Assessment = {
-  id?: number;
-  project_id: number;
-  created_at?: Date;
-};
-
 @Table({
   tableName: "assessments",
 })
-export class AssessmentModel extends Model<Assessment> {
+export class AssessmentModel extends Model<AssessmentModel> {
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,

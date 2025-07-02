@@ -25,6 +25,7 @@ import {
 import ISO42001Annex from "../../ISO/Annex";
 import ISO42001Clauses from "../../ISO/Clause";
 import allowedRoles from "../../../../application/constants/permissions";
+import TabFilterBar from "../../../components/FrameworkFilter/TabFilterBar";
 
 const FRAMEWORK_IDS = {
   EU_AI_ACT: 1,
@@ -107,16 +108,21 @@ const ProjectFrameworks = ({
   useEffect(() => {
     if (!loading && projectFrameworks.length > 0 && !hasInitialized) {
       const validIds = projectFrameworks.map((fw: Framework) => Number(fw.id));
-      
+
       // If initialFrameworkId is provided and valid, use it
       if (initialFrameworkId && validIds.includes(initialFrameworkId)) {
         setSelectedFrameworkId(initialFrameworkId);
         setTracker(
-          initialFrameworkId === FRAMEWORK_IDS.ISO_42001 ? "clauses" : "compliance"
+          initialFrameworkId === FRAMEWORK_IDS.ISO_42001
+            ? "clauses"
+            : "compliance"
         );
       }
       // Otherwise, use the default logic
-      else if (!selectedFrameworkId || !validIds.includes(selectedFrameworkId)) {
+      else if (
+        !selectedFrameworkId ||
+        !validIds.includes(selectedFrameworkId)
+      ) {
         const initialFramework = projectFrameworks[0];
         setSelectedFrameworkId(Number(initialFramework.id));
         setTracker(
@@ -125,10 +131,16 @@ const ProjectFrameworks = ({
             : "compliance"
         );
       }
-      
+
       setHasInitialized(true);
     }
-  }, [loading, projectFrameworks, selectedFrameworkId, initialFrameworkId, hasInitialized]);
+  }, [
+    loading,
+    projectFrameworks,
+    selectedFrameworkId,
+    initialFrameworkId,
+    hasInitialized,
+  ]);
 
   const handleFrameworkChange = (frameworkId: number) => {
     setSelectedFrameworkId(frameworkId);
@@ -153,6 +165,45 @@ const ProjectFrameworks = ({
   const isISO42001 = Number(selectedFrameworkId) === FRAMEWORK_IDS.ISO_42001;
   const isEUAIAct = Number(selectedFrameworkId) === FRAMEWORK_IDS.EU_AI_ACT;
   const tabs = isISO42001 ? ISO_42001_TABS : TRACKER_TABS;
+
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [applicabilityFilter, setApplicabilityFilter] = useState<string>("all");
+
+  const iso42001StatusOptions = [
+    { value: "not started", label: "Not Started" },
+    { value: "in progress", label: "In Progress" },
+    { value: "implemented", label: "Implemented" },
+    { value: "awaiting approval", label: "Awaiting Approval" },
+    { value: "awaiting review", label: "Awaiting Review" },
+    { value: "draft", label: "Draft" },
+    { value: "audited", label: "Audited" },
+    { value: "needs rework", label: "Needs Rework" },
+  ];
+
+  const euAIActStatusOptions = [
+    { value: "waiting", label: "Waiting" },
+    { value: "in progress", label: "In Progress" },
+    { value: "done", label: "Done" },
+  ];
+
+  const euAIActAssessmentsOptions = [
+    { value: "not started", label: "Not started" },
+    { value: "in progress", label: "In Progress" },
+    { value: "done", label: "Done" },
+  ];
+
+  const statusOptions = isISO42001
+    ? iso42001StatusOptions
+    : isEUAIAct
+    ? tracker === "compliance"
+      ? euAIActStatusOptions
+      : euAIActAssessmentsOptions
+    : [];
+
+  useEffect(() => {
+    setStatusFilter("");
+    setApplicabilityFilter("");
+  }, [tracker]);
 
   return (
     <Box sx={containerStyle}>
@@ -188,6 +239,18 @@ const ProjectFrameworks = ({
           Manage frameworks
         </Button>
       </Box>
+      <TabFilterBar
+        statusFilter={statusFilter}
+        onStatusChange={setStatusFilter}
+        applicabilityFilter={applicabilityFilter}
+        onApplicabilityChange={setApplicabilityFilter}
+        showStatusFilter={
+          (isISO42001 && (tracker === "clauses" || tracker === "annexes")) ||
+          (isEUAIAct && (tracker === "compliance" || tracker === "assessment"))
+        }
+        showApplicabilityFilter={isISO42001 && tracker === "annexes"}
+        statusOptions={statusOptions}
+      />
 
       <AddFrameworkModal
         open={isModalOpen}
@@ -237,6 +300,7 @@ const ProjectFrameworks = ({
                 projectFrameworkId={
                   projectFrameworksMap.get(Number(selectedFrameworkId))!
                 }
+                statusFilter={statusFilter}
               />
             </TabPanel>
             <TabPanel value="annexes" sx={tabPanelStyle}>
@@ -246,16 +310,24 @@ const ProjectFrameworks = ({
                 projectFrameworkId={
                   projectFrameworksMap.get(Number(selectedFrameworkId))!
                 }
+                statusFilter={statusFilter}
+                applicabilityFilter={applicabilityFilter}
               />
             </TabPanel>
           </>
         ) : isEUAIAct ? (
           <>
             <TabPanel value="compliance" sx={tabPanelStyle}>
-              <ComplianceTracker project={project} />
+              <ComplianceTracker
+                project={project}
+                statusFilter={statusFilter}
+              />
             </TabPanel>
             <TabPanel value="assessment" sx={tabPanelStyle}>
-              <AssessmentTracker project={project} />
+              <AssessmentTracker
+                project={project}
+                statusFilter={statusFilter}
+              />
             </TabPanel>
           </>
         ) : null}

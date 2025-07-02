@@ -309,7 +309,7 @@ export const getControlStructByControlCategoryIdForAProjectQuery = async (
   projectFrameworkId: number
 ) => {
   const controlsStruct = (await sequelize.query(
-    `SELECT cs.*, c.id AS control_id, c.owner FROM controls_struct_eu cs JOIN controls_eu c ON cs.id = c.control_meta_id
+    `SELECT cs.*, c.id AS control_id, c.owner, c.status FROM controls_struct_eu cs JOIN controls_eu c ON cs.id = c.control_meta_id
       WHERE cs.control_category_id = :control_category_id AND c.projects_frameworks_id = :projects_frameworks_id;`,
     {
       replacements: {

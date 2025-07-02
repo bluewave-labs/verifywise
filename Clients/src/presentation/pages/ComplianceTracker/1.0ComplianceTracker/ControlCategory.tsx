@@ -27,6 +27,7 @@ interface ControlCategoryProps {
   onComplianceUpdate?: () => void;
   projectId: number;
   projectFrameworkId: number;
+  statusFilter?: string;
 }
 
 const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
@@ -34,6 +35,7 @@ const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
   onComplianceUpdate,
   projectId,
   projectFrameworkId,
+  statusFilter,
 }) => {
   const [expanded, setExpanded] = useState<number | false>(false);
 
@@ -93,6 +95,7 @@ const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
             onComplianceUpdate={onComplianceUpdate}
             projectId={projectId}
             projectFrameworkId={projectFrameworkId}
+            statusFilter={statusFilter}
           />
         </AccordionDetails>
       </Accordion>

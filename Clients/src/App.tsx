@@ -22,7 +22,7 @@ import { AlertProps } from "./domain/interfaces/iAlert";
 import { setShowAlertCallback } from "./infrastructure/api/customAxios";
 import Alert from "./presentation/components/Alert";
 import useUsers from "./application/hooks/useUsers";
-
+import { LocaleSwitcher } from "lingo.dev/react/client";
 function App() {
   const mode = useSelector((state: AppState) => state.ui?.mode || "light");
   const token = useSelector((state: AppState) => state.auth?.authToken);
@@ -137,6 +137,7 @@ function App() {
         <PersistGate loading={null} persistor={persistor}>
           <VerifyWiseContext.Provider value={contextValues}>
             <ThemeProvider theme={mode === "light" ? light : dark}>
+              <LocaleSwitcher locales={["en", "es", "fr", "de"]} />
               <CssBaseline />
               {alert && (
                 <Alert

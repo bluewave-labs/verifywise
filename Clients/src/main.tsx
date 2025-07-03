@@ -7,12 +7,15 @@ import { persistor, store } from "./application/redux/store.ts";
 import { PersistGate } from "redux-persist/integration/react";
 // import { StyledEngineProvider } from "@mui/material";
 import { BrowserRouter as Router } from "react-router-dom";
+import { LingoProviderWrapper, loadDictionary } from "lingo.dev/react/client";
 
 createRoot(document.getElementById("root")!).render(
   <Provider store={store}>
     <PersistGate loading={null} persistor={persistor}>
-      <Router>
+      <Router>      
+           <LingoProviderWrapper loadDictionary={(locale) => loadDictionary(locale)}>
         <App />
+        </LingoProviderWrapper>
       </Router>
     </PersistGate>
   </Provider>

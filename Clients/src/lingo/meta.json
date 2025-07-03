@@ -1,0 +1,4129 @@
+{
+  "version": 0.1,
+  "files": {
+    "presentation/components/AddNewRiskForm/index.tsx": {
+      "scopes": {
+        "28/0/init/body/16/argument/1/1/1-aria-label": {
+          "type": "attribute",
+          "hash": "7954d4e532d7a9012bc78f29078e3180",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Add new risk tabs"
+        },
+        "28/0/init/body/16/argument/1/1/1/1-label": {
+          "type": "attribute",
+          "hash": "02c846a277e1b8fc6cbb81c9da07a943",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Risks"
+        },
+        "28/0/init/body/16/argument/1/1/1/3-label": {
+          "type": "attribute",
+          "hash": "dad16160e184ab5875fa02cf47d438f3",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Mitigation"
+        },
+        "28/0/init/body/16/argument/1/3/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        }
+      }
+    },
+    "presentation/components/AddNewRiskMITForm/index.tsx": {
+      "scopes": {
+        "6/0/init/body/6/argument/1/1/1": {
+          "type": "element",
+          "hash": "1bfb273a80ef2306f268f1f8abaef023",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Add a new risk from risk database"
+        },
+        "6/0/init/body/6/argument/1/3/1": {
+          "type": "element",
+          "hash": "cb2070c3786102478001d5488eb1fdc3",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Search from the risk database:"
+        },
+        "6/0/init/body/6/argument/1/5/1/1/3/expression/right/1/1/1-alt": {
+          "type": "attribute",
+          "hash": "88c2c168aff12ca70148fcb5f6b4c7b1",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Placeholder"
+        },
+        "6/0/init/body/6/argument/1/5/1/1/3/expression/right/1/1/3": {
+          "type": "element",
+          "hash": "8c8a060f8dfeab87820999c40b34ab22",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "No risks found in database"
+        },
+        "6/0/init/body/6/argument/1/7/1": {
+          "type": "element",
+          "hash": "60c180f5cb379f71ef9e9b02087fafa1",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Use selected risk and edit"
+        }
+      }
+    },
+    "presentation/components/AddNewVendorRiskForm/index.tsx": {
+      "scopes": {
+        "18/0/init/body/15/argument/1/expression/right/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "18/0/init/body/15/argument/3/1/1-label": {
+          "type": "attribute",
+          "hash": "876745d12604991a1dbaeda6217bb260",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Vendor name"
+        },
+        "18/0/init/body/15/argument/3/1/3-label": {
+          "type": "attribute",
+          "hash": "743475366e0c289cb465391096de06f3",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Action owner"
+        },
+        "18/0/init/body/15/argument/3/1/3-placeholder": {
+          "type": "attribute",
+          "hash": "2f1e48c41e97eff65b541e121d0bf3e5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Select owner"
+        },
+        "18/0/init/body/15/argument/3/1/5-label": {
+          "type": "attribute",
+          "hash": "59c6a938b435c8852cf160af4d1aa72b",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Risk name"
+        },
+        "18/0/init/body/15/argument/3/1/5-placeholder": {
+          "type": "attribute",
+          "hash": "8bedc80ac1d9f6321c3ee83204525ead",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Type in the risk"
+        },
+        "18/0/init/body/15/argument/3/1/7-label": {
+          "type": "attribute",
+          "hash": "21fe81f3f2a3bd123e3b1f763e306c2b",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Review date"
+        },
+        "18/0/init/body/15/argument/3/3/1-label": {
+          "type": "attribute",
+          "hash": "4772121f0d5fc64a5a68fd8475046518",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Risk description"
+        },
+        "18/0/init/body/15/argument/3/5/1/expression/alternate": {
+          "type": "element",
+          "hash": "079fc039262fd31b10532929685c2d1b",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Update"
+        },
+        "18/0/init/body/15/argument/3/5/1/expression/consequent": {
+          "type": "element",
+          "hash": "f7a2929f33bc420195e59ac5a8bcd454",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Save"
+        }
+      }
+    },
+    "presentation/components/Alert/AlertBody.tsx": {
+      "scopes": {
+        "4/0/init/body/5/argument/1/expression/consequent/3/3/1/1/expression/consequent": {
+          "type": "element",
+          "hash": "b6623d8f97cc3de1b6f802c8d0d1f4a8",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Copied!"
+        }
+      }
+    },
+    "presentation/components/Cards/ProjectCard/index.tsx": {
+      "scopes": {
+        "14/0/init/body/1/1": {
+          "type": "element",
+          "hash": "d054fb97263f60a2eb21db62e11de38e",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "14/0/init/body/3/1/3": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "14/0/init/body/3/3/3": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "20/0/init/0/body/8/argument/13/1-title": {
+          "type": "attribute",
+          "hash": "be7bdcc0b592d90b7f637e9dc77b72f9",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "View project details"
+        },
+        "20/0/init/0/body/8/argument/3/3/1/expression/right-label": {
+          "type": "attribute",
+          "hash": "92fc14d8ce0eec9d0922e9da81df5b4e",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "EU AI Act"
+        },
+        "20/0/init/0/body/8/argument/3/3/3/expression/right-label": {
+          "type": "attribute",
+          "hash": "999433422bf17e484747c804bf870cf9",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "ISO 42001"
+        },
+        "20/0/init/0/body/8/argument/9/1/1": {
+          "type": "element",
+          "hash": "029a5fe8b6a9244591ebf4875a00ebcd",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Project owner"
+        },
+        "20/0/init/0/body/8/argument/9/3/1": {
+          "type": "element",
+          "hash": "e1c731316d903fa762f5c302fa907756",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Last updated"
+        }
+      }
+    },
+    "presentation/components/Cards/RisksCard/index.tsx": {
+      "scopes": {
+        "3/0/init/body/1/argument/1/1": {
+          "type": "element",
+          "hash": "369d28fe1008d4dc5d8e3a9845776922",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Very High"
+        },
+        "3/0/init/body/1/argument/3/1": {
+          "type": "element",
+          "hash": "dabe777f3b670e9407e46c186197d188",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "High"
+        },
+        "3/0/init/body/1/argument/5/1": {
+          "type": "element",
+          "hash": "43983f2178fb28aacaef6c5f41282c4a",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Medium"
+        },
+        "3/0/init/body/1/argument/7/1": {
+          "type": "element",
+          "hash": "97359f18d6648e0980854c5e68bb0969",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Low"
+        },
+        "3/0/init/body/1/argument/9/1": {
+          "type": "element",
+          "hash": "6b9a79ec2315454d5f2ff7c41dbd16eb",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Very Low"
+        }
+      }
+    },
+    "presentation/components/Cards/TeamCard/index.tsx": {
+      "scopes": {
+        "2/0/init/body/0/argument/3/expression/alternate": {
+          "type": "element",
+          "hash": "8af15ae19e9d6c5275bf21e058d74cea",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "No member has been asigned to the project"
+        }
+      }
+    },
+    "presentation/components/CreateDemoData/index.tsx": {
+      "scopes": {
+        "4/0/init/body/0/argument/1-title": {
+          "type": "attribute",
+          "hash": "601ab65406eae0f2fa02bd36c8728e70",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Do you want to create demo data?"
+        },
+        "4/0/init/body/0/argument/1/openingElement/2/value/expression/1": {
+          "type": "element",
+          "hash": "39f5bd6ee8ea20b077be311ee695d6eb",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "If you accept, we’ll generate demo (mock) data for you, allowing you to explore and get a hands-on understanding of how VerifyWise works. We highly recommend this option."
+        },
+        "4/0/init/body/0/argument/1/openingElement/2/value/expression/3": {
+          "type": "element",
+          "hash": "e3a39f2d586ae77a77abc77c1cf2ce88",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "This option will create 2 projects and 2 users. You’ll be able to remove them later."
+        }
+      }
+    },
+    "presentation/components/DemoBanner/DemoAppBanner.tsx": {
+      "scopes": {
+        "2/0/init/body/1/argument/1": {
+          "type": "element",
+          "hash": "66045c582006367c23b0672599771f19",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "You're viewing a public demo of the VerifyWise AI governance platform. Feel free to explore using demo data, but please don't enter any personal or company information."
+        }
+      }
+    },
+    "presentation/components/Drawer/AnnexDrawerDialog/index.tsx": {
+      "scopes": {
+        "28/0/init/body/26/consequent/0/argument/1/3": {
+          "type": "element",
+          "hash": "2213118d4419e0b2952fc59a7ceffc83",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading annex category data..."
+        },
+        "28/0/init/body/27/argument/1/13/1-label": {
+          "type": "attribute",
+          "hash": "6eddeb13a4e7ccb25e21ec3f665dbcdf",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Status:"
+        },
+        "28/0/init/body/27/argument/1/13/11/1": {
+          "type": "element",
+          "hash": "f798107a878381c22afaba8d0beb7836",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Auditor Feedback:"
+        },
+        "28/0/init/body/27/argument/1/13/11/3-placeholder": {
+          "type": "attribute",
+          "hash": "3d14090dbd16c48e44bde194cf546c92",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Enter any feedback from the internal or external audits..."
+        },
+        "28/0/init/body/27/argument/1/13/3-label": {
+          "type": "attribute",
+          "hash": "20de10b823f885dcf0986886b8c0f49c",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Owner:"
+        },
+        "28/0/init/body/27/argument/1/13/5-label": {
+          "type": "attribute",
+          "hash": "71d73d414454dcecaee4793fef9b8188",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Reviewer:"
+        },
+        "28/0/init/body/27/argument/1/13/7-label": {
+          "type": "attribute",
+          "hash": "d17b9421f2b57ffce0c0b088b6259312",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Approver:"
+        },
+        "28/0/init/body/27/argument/1/13/9-label": {
+          "type": "attribute",
+          "hash": "1efa5e6d0076e08311613e19e04f65fe",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Due date:"
+        },
+        "28/0/init/body/27/argument/1/5/1/1/1": {
+          "type": "element",
+          "hash": "8b69e465cfb1ce46ec9e77b5706a557d",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Guidance:"
+        },
+        "28/0/init/body/27/argument/1/5/3/1": {
+          "type": "element",
+          "hash": "7fa15c83b65e98b4f4fdfc8b0faa5c0f",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Applicability:"
+        },
+        "28/0/init/body/27/argument/1/5/3/3/1-label": {
+          "type": "attribute",
+          "hash": "502fcd3b9aa355935cfa787859fd5077",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Applicable"
+        },
+        "28/0/init/body/27/argument/1/5/3/3/3-label": {
+          "type": "attribute",
+          "hash": "42dc1f2b1cbfdc5eb66f4cd0c51457b3",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Not Applicable"
+        },
+        "28/0/init/body/27/argument/1/5/5/1": {
+          "type": "element",
+          "hash": "0ad1d1590e78622ffb013a0e450b6b80",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "<expression/>:"
+        },
+        "28/0/init/body/27/argument/1/5/5/3-placeholder": {
+          "type": "attribute",
+          "hash": "13105cc08a769de843dfb5c61a8c3c90",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Required if control is not applicable..."
+        },
+        "28/0/init/body/27/argument/1/9/1/1": {
+          "type": "element",
+          "hash": "6f3366a8d4852b4fbe38293600be5d39",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Implementation Description:"
+        },
+        "28/0/init/body/27/argument/1/9/1/3-placeholder": {
+          "type": "attribute",
+          "hash": "546d7e60e58e0bb5ef23565e721515aa",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Describe how this requirement is implemented"
+        },
+        "28/0/init/body/27/argument/1/9/3/1": {
+          "type": "element",
+          "hash": "67b445f8cb2d4ff62fcffc05c1708317",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Add/Remove evidence"
+        },
+        "28/0/init/body/27/argument/1/9/9/1": {
+          "type": "element",
+          "hash": "0242b807380fa93686fcd48c0b8c2acd",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Add/Remove risks"
+        }
+      }
+    },
+    "presentation/components/Drawer/ClauseDrawerDialog/index.tsx": {
+      "scopes": {
+        "23/0/init/body/26/consequent/0/argument/1/3": {
+          "type": "element",
+          "hash": "8bcfd4f37cbb64e4ed9d81af694a0ea6",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading subclause data..."
+        },
+        "23/0/init/body/30/argument/1/13/1-label": {
+          "type": "attribute",
+          "hash": "6eddeb13a4e7ccb25e21ec3f665dbcdf",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Status:"
+        },
+        "23/0/init/body/30/argument/1/13/11/1": {
+          "type": "element",
+          "hash": "f798107a878381c22afaba8d0beb7836",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Auditor Feedback:"
+        },
+        "23/0/init/body/30/argument/1/13/11/3-placeholder": {
+          "type": "attribute",
+          "hash": "3d14090dbd16c48e44bde194cf546c92",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Enter any feedback from the internal or external audits..."
+        },
+        "23/0/init/body/30/argument/1/13/3-label": {
+          "type": "attribute",
+          "hash": "20de10b823f885dcf0986886b8c0f49c",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Owner:"
+        },
+        "23/0/init/body/30/argument/1/13/5-label": {
+          "type": "attribute",
+          "hash": "71d73d414454dcecaee4793fef9b8188",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Reviewer:"
+        },
+        "23/0/init/body/30/argument/1/13/7-label": {
+          "type": "attribute",
+          "hash": "d17b9421f2b57ffce0c0b088b6259312",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Approver:"
+        },
+        "23/0/init/body/30/argument/1/13/9-label": {
+          "type": "attribute",
+          "hash": "1efa5e6d0076e08311613e19e04f65fe",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Due date:"
+        },
+        "23/0/init/body/30/argument/1/5/1/1/1": {
+          "type": "element",
+          "hash": "5a232f23aff58c21aec60f6b5e52dca2",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Requirement Summary:"
+        },
+        "23/0/init/body/30/argument/1/5/1/3": {
+          "type": "element",
+          "hash": "74af1ce7609afd101461c8d54383339e",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Key Questions:"
+        },
+        "23/0/init/body/30/argument/1/5/1/7": {
+          "type": "element",
+          "hash": "b8d11363adf356a7ecce0a8bfaa36f45",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Evidence Examples:"
+        },
+        "23/0/init/body/30/argument/1/9/1/1": {
+          "type": "element",
+          "hash": "6f3366a8d4852b4fbe38293600be5d39",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Implementation Description:"
+        },
+        "23/0/init/body/30/argument/1/9/1/3-placeholder": {
+          "type": "attribute",
+          "hash": "546d7e60e58e0bb5ef23565e721515aa",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Describe how this requirement is implemented"
+        },
+        "23/0/init/body/30/argument/1/9/3/1": {
+          "type": "element",
+          "hash": "67b445f8cb2d4ff62fcffc05c1708317",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Add/Remove evidence"
+        }
+      }
+    },
+    "presentation/components/Drawer/Sections/LinkedRisksSection/index.tsx": {
+      "scopes": {
+        "3/body/2/argument/1/1": {
+          "type": "element",
+          "hash": "b568fbaf25395fbe35d5eb8f2e6ae183",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Add/Remove risks"
+        }
+      }
+    },
+    "presentation/components/Inputs/Datepicker/index.tsx": {
+      "scopes": {
+        "8/0/init/body/1/argument/1/expression/right/3/expression/consequent": {
+          "type": "element",
+          "hash": "bf73ab1f211bba6dae3deb933b5ca9fa",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "*"
+        }
+      }
+    },
+    "presentation/components/Inputs/Dropdowns/ProjectFilter/ProjectFilterDropdown.tsx": {
+      "scopes": {
+        "5/0/init/body/1/argument/1/1/1/expression/alternate": {
+          "type": "element",
+          "hash": "113da854ae1d95379f42a16404040567",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "No project available"
+        },
+        "5/0/init/body/1/argument/1/1/1/expression/consequent": {
+          "type": "element",
+          "hash": "9328bf65820a4ddcfe84cfcb83197bfd",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "All projects"
+        }
+      }
+    },
+    "presentation/components/Inputs/Dropdowns/index.tsx": {
+      "scopes": {
+        "12/0/init/body/14/argument/1/1-label": {
+          "type": "attribute",
+          "hash": "6eddeb13a4e7ccb25e21ec3f665dbcdf",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Status:"
+        },
+        "12/0/init/body/14/argument/1/3-label": {
+          "type": "attribute",
+          "hash": "d17b9421f2b57ffce0c0b088b6259312",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Approver:"
+        },
+        "12/0/init/body/14/argument/1/5-label": {
+          "type": "attribute",
+          "hash": "210c11fdbb69270f2d62abb9b6e18199",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Risk review:"
+        },
+        "12/0/init/body/14/argument/5/1-label": {
+          "type": "attribute",
+          "hash": "20de10b823f885dcf0986886b8c0f49c",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Owner:"
+        },
+        "12/0/init/body/14/argument/5/3-label": {
+          "type": "attribute",
+          "hash": "71d73d414454dcecaee4793fef9b8188",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Reviewer:"
+        },
+        "12/0/init/body/14/argument/5/5-label": {
+          "type": "attribute",
+          "hash": "1efa5e6d0076e08311613e19e04f65fe",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Due date:"
+        },
+        "12/0/init/body/14/argument/7": {
+          "type": "element",
+          "hash": "c4eb4cbe8a900677af0bef7f2ec4d1c0",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Implementation details:"
+        }
+      }
+    },
+    "presentation/components/Inputs/Field/index.tsx": {
+      "scopes": {
+        "7/0/init/0/body/2/argument/1/expression/right/3/expression/consequent": {
+          "type": "element",
+          "hash": "72e0b2091667d7cbe1613cf92c1a9c95",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "*"
+        },
+        "7/0/init/0/body/2/argument/3/openingElement/14/value/expression/0/value/right/1": {
+          "type": "element",
+          "hash": "5735d00b1e1fee7178fc80f135ce1544",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "<expression/>://"
+        },
+        "7/0/init/0/body/2/argument/3/openingElement/14/value/expression/1/value/right/1-aria-label": {
+          "type": "attribute",
+          "hash": "a5cdd500faa1bf3cd4110ba26d244b53",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "toggle password visibility"
+        }
+      }
+    },
+    "presentation/components/Inputs/Select/index.tsx": {
+      "scopes": {
+        "4/0/init/body/3/argument/1/expression/right/3/expression/right": {
+          "type": "element",
+          "hash": "bf73ab1f211bba6dae3deb933b5ca9fa",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "*"
+        }
+      }
+    },
+    "presentation/components/Modals/Basic/index.tsx": {
+      "scopes": {
+        "3/0/init/body/1/argument/1/5/1": {
+          "type": "element",
+          "hash": "806df1c96f83121893c2a72a5ca8e443",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Cancel"
+        }
+      }
+    },
+    "presentation/components/Modals/ComplianceFeedback/ComplianceFeedback.tsx": {
+      "scopes": {
+        "11/0/init/body/8/argument/3/1": {
+          "type": "element",
+          "hash": "e03ef65a1762fda533ca82e3849f0fba",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Add/Remove evidence"
+        }
+      }
+    },
+    "presentation/components/Modals/Controlpane/NewControlPane.tsx": {
+      "scopes": {
+        "19/0/init/body/23/argument/3/expression/right-title": {
+          "type": "attribute",
+          "hash": "14d04a0d7473271f2db26d87d20748ea",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Saving control. Please wait..."
+        }
+      }
+    },
+    "presentation/components/Modals/InviteUser/index.tsx": {
+      "scopes": {
+        "14/0/init/body/10/argument/1/1": {
+          "type": "element",
+          "hash": "1d092f751d4bedf1bb6de3c3013c0f4f",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Invite new team member"
+        },
+        "14/0/init/body/10/argument/1/3": {
+          "type": "element",
+          "hash": "bb572a2525ff15a69ad69ee80a4d3ef4",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "When you add a new team member, they will get access to all monitors."
+        },
+        "14/0/init/body/10/argument/1/5/1-placeholder": {
+          "type": "attribute",
+          "hash": "9368b5a047572b6051f334af5aa76819",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Name"
+        },
+        "14/0/init/body/10/argument/1/5/3-placeholder": {
+          "type": "attribute",
+          "hash": "e7f34943a0c2fb849db1839ff6ef5cb5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Email"
+        },
+        "14/0/init/body/10/argument/1/7/1": {
+          "type": "element",
+          "hash": "806df1c96f83121893c2a72a5ca8e443",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Cancel"
+        }
+      }
+    },
+    "presentation/components/Modals/NewRisk/index.tsx": {
+      "scopes": {
+        "28/0/init/body/19/0/init/1/1/1/1/1-label": {
+          "type": "attribute",
+          "hash": "bbc0e9cd82533803f5dda3eeee443ef1",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Vendor"
+        },
+        "28/0/init/body/19/0/init/1/1/1/1/1-placeholder": {
+          "type": "attribute",
+          "hash": "e2c7cea1e0fee63e93085228256fd5fd",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Select vendor"
+        },
+        "28/0/init/body/19/0/init/1/1/1/3/1-label": {
+          "type": "attribute",
+          "hash": "743475366e0c289cb465391096de06f3",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Action owner"
+        },
+        "28/0/init/body/19/0/init/1/1/1/3/1-placeholder": {
+          "type": "attribute",
+          "hash": "2f1e48c41e97eff65b541e121d0bf3e5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Select owner"
+        },
+        "28/0/init/body/19/0/init/1/1/3/1-label": {
+          "type": "attribute",
+          "hash": "4772121f0d5fc64a5a68fd8475046518",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Risk description"
+        },
+        "28/0/init/body/19/0/init/1/3/1/1-label": {
+          "type": "attribute",
+          "hash": "e90ac44ec67bb68bc3f3c0ffb86ff410",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Action plan"
+        },
+        "28/0/init/body/19/0/init/1/3/3/1-label": {
+          "type": "attribute",
+          "hash": "981c2bc66583682491f7bd00f28b83d7",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Impact description"
+        },
+        "28/0/init/body/19/0/init/5/1": {
+          "type": "element",
+          "hash": "0120fb8fb7963de7d1770fd22b3623be",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Calculate risk level"
+        },
+        "28/0/init/body/19/0/init/5/3": {
+          "type": "element",
+          "hash": "47ce46398b78bca2c095d8f3a55e3f4f",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "The Risk Level is calculated by multiplying the Likelihood and Severity scores. By assigning these scores, the risk level will be determined based on your inputs."
+        },
+        "28/0/init/body/19/0/init/5/5/1/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "28/0/init/body/20/argument/1/expression/right/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "28/0/init/body/20/argument/3/expression/right-title": {
+          "type": "attribute",
+          "hash": "86f2718e92f9cb94a36f229762373510",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Processing your request. Please wait..."
+        }
+      }
+    },
+    "presentation/components/Modals/NewTraining/index.tsx": {
+      "scopes": {
+        "14/0/init/body/11/argument/1/1/3/1/1/1/1/1-label": {
+          "type": "attribute",
+          "hash": "dfd543b5fc339fbdf3c97cff39de387d",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Training name"
+        },
+        "14/0/init/body/11/argument/1/1/3/1/1/1/1/1-placeholder": {
+          "type": "attribute",
+          "hash": "6fa97b1e73134899cb7a9068aa9d7644",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Enter training name"
+        },
+        "14/0/init/body/11/argument/1/1/3/1/1/1/1/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "14/0/init/body/11/argument/1/1/3/1/1/3/1/1-label": {
+          "type": "attribute",
+          "hash": "bf6ed0974fdd4eb9d8bd3f4f8c4bd5ae",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Duration"
+        },
+        "14/0/init/body/11/argument/1/1/3/1/1/3/1/1-placeholder": {
+          "type": "attribute",
+          "hash": "0b107ce765bc00c790280891cdafdac4",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "e.g., 2 hours, 3 days"
+        },
+        "14/0/init/body/11/argument/1/1/3/1/1/3/1/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "14/0/init/body/11/argument/1/1/3/1/3/1/1/1-label": {
+          "type": "attribute",
+          "hash": "d7bb643922dba7960bfb99ec1d746bdd",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Provider"
+        },
+        "14/0/init/body/11/argument/1/1/3/1/3/1/1/1-placeholder": {
+          "type": "attribute",
+          "hash": "fa1d8a5ea3250e84c8caa1328e58ff8a",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Enter provider name"
+        },
+        "14/0/init/body/11/argument/1/1/3/1/3/1/1/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "14/0/init/body/11/argument/1/1/3/1/3/3/1/1-label": {
+          "type": "attribute",
+          "hash": "041e99da53cc8758ae334f14ef04a89f",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Department"
+        },
+        "14/0/init/body/11/argument/1/1/3/1/3/3/1/1-placeholder": {
+          "type": "attribute",
+          "hash": "c1fe8b35a0c30619de83792bc09836e3",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Enter department name"
+        },
+        "14/0/init/body/11/argument/1/1/3/1/3/3/1/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "14/0/init/body/11/argument/1/1/3/1/5/1/1/1-label": {
+          "type": "attribute",
+          "hash": "4e1fcce15854d824919b4a582c697c90",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Status"
+        },
+        "14/0/init/body/11/argument/1/1/3/1/5/1/1/1-placeholder": {
+          "type": "attribute",
+          "hash": "b9676de6a2f03b150ae86ed413ca5741",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Select status"
+        },
+        "14/0/init/body/11/argument/1/1/3/1/5/1/1/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "14/0/init/body/11/argument/1/1/3/1/5/3/1/1-label": {
+          "type": "attribute",
+          "hash": "8c96382d20f0590d8c551a1c2a0511d6",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Number of people"
+        },
+        "14/0/init/body/11/argument/1/1/3/1/5/3/1/1-placeholder": {
+          "type": "attribute",
+          "hash": "1c39dfaaa3958c55b18ce0fa8e4f50c2",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Enter number of people"
+        },
+        "14/0/init/body/11/argument/1/1/3/1/5/3/1/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "14/0/init/body/11/argument/1/1/3/1/7/1/1-label": {
+          "type": "attribute",
+          "hash": "e17686a22ffad04cc7bb70524ed4478b",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Description"
+        },
+        "14/0/init/body/11/argument/1/1/3/1/7/1/1-placeholder": {
+          "type": "attribute",
+          "hash": "8301d59e0d8c8a3ef282524902dec6f0",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Description of the AI training"
+        },
+        "14/0/init/body/11/argument/1/1/3/1/7/1/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        }
+      }
+    },
+    "presentation/components/Modals/NewVendor/index.tsx": {
+      "scopes": {
+        "25/0/init/body/22/0/init/1/1/1-label": {
+          "type": "attribute",
+          "hash": "876745d12604991a1dbaeda6217bb260",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Vendor name"
+        },
+        "25/0/init/body/22/0/init/1/1/3/1-label": {
+          "type": "attribute",
+          "hash": "da6a6168f21a28ccf2eb29a033d16bd4",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Website"
+        },
+        "25/0/init/body/22/0/init/1/3/1": {
+          "type": "element",
+          "hash": "b909537853da270e066b4adba4470737",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Projects*"
+        },
+        "25/0/init/body/22/0/init/1/3/3/openingElement/12/value/expression/body-placeholder": {
+          "type": "attribute",
+          "hash": "970574f3be6fbb3931ab573757a848a6",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Select projects"
+        },
+        "25/0/init/body/22/0/init/3/1-label": {
+          "type": "attribute",
+          "hash": "7ba87ce9b162e9583a8c77d27c03505c",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "What does the vendor provide?"
+        },
+        "25/0/init/body/22/0/init/5/1-label": {
+          "type": "attribute",
+          "hash": "c8bbd4dce890036b351c451de3a84fc6",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Vendor contact person"
+        },
+        "25/0/init/body/22/0/init/5/3-label": {
+          "type": "attribute",
+          "hash": "fe8047049cf1b687d4918aeccb0830e4",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Review status"
+        },
+        "25/0/init/body/22/0/init/5/3-placeholder": {
+          "type": "attribute",
+          "hash": "1508715b2419737eccf02eab242fad52",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Select review status"
+        },
+        "25/0/init/body/22/0/init/5/5-label": {
+          "type": "attribute",
+          "hash": "882ff4831ea1d7d9eeb7d19575006be8",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Reviewer"
+        },
+        "25/0/init/body/22/0/init/5/5-placeholder": {
+          "type": "attribute",
+          "hash": "cd42c3b2ef314b114bc8190c9b7e171b",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Select reviewer"
+        },
+        "25/0/init/body/22/0/init/7/1-label": {
+          "type": "attribute",
+          "hash": "63fbc2b0ce3e7c10e623b3ba141113eb",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Review result"
+        },
+        "25/0/init/body/22/0/init/9/1-label": {
+          "type": "attribute",
+          "hash": "3f751145af7dc7487ce49c5736172a8f",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Risk status"
+        },
+        "25/0/init/body/22/0/init/9/1-placeholder": {
+          "type": "attribute",
+          "hash": "1538b71c1b813dc9640e89e4724365e5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Select risk status"
+        },
+        "25/0/init/body/22/0/init/9/3-label": {
+          "type": "attribute",
+          "hash": "82c91a06e72a2326f5bde78432726136",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Assignee"
+        },
+        "25/0/init/body/22/0/init/9/3-placeholder": {
+          "type": "attribute",
+          "hash": "f0d31c44a08283df44720a1029846d22",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Select person"
+        },
+        "25/0/init/body/22/0/init/9/5-label": {
+          "type": "attribute",
+          "hash": "21fe81f3f2a3bd123e3b1f763e306c2b",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Review date"
+        },
+        "25/0/init/body/23/argument/1/expression/right/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "25/0/init/body/23/argument/3/expression/right-title": {
+          "type": "attribute",
+          "hash": "86f2718e92f9cb94a36f229762373510",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Processing your request. Please wait..."
+        }
+      }
+    },
+    "presentation/components/NoProject/NoProject.tsx": {
+      "scopes": {
+        "4/0/init/body/1/argument/1/1-alt": {
+          "type": "attribute",
+          "hash": "71ae605291b5a29a1c47e0c47c4787c9",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Empty project state"
+        }
+      }
+    },
+    "presentation/components/ProtectedRoute/index.tsx": {
+      "scopes": {
+        "8/0/init/body/7/consequent/0/argument-title": {
+          "type": "attribute",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        }
+      }
+    },
+    "presentation/components/ReadyToSubscribeBox/ReadyToSubscribeBox.tsx": {
+      "scopes": {
+        "4/0/init/body/4/argument/1/1": {
+          "type": "element",
+          "hash": "11b390ec496659516f997397af52aa38",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Ready to subscribe?"
+        },
+        "4/0/init/body/4/argument/1/3": {
+          "type": "element",
+          "hash": "4e5b5d539efdba9447c8d77e748c8f90",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Unlock the full potential of VerifyWise AI governance with our premium features."
+        },
+        "4/0/init/body/4/argument/1/5": {
+          "type": "element",
+          "hash": "7858971b7170f026167d317b25e858a0",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "View plans"
+        }
+      }
+    },
+    "presentation/components/Reporting/ReportOverviewHeader/index.tsx": {
+      "scopes": {
+        "3/0/init/body/0/argument/1": {
+          "type": "element",
+          "hash": "97bf64946f8f76632eab6fb8767b16d7",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Reporting"
+        },
+        "3/0/init/body/0/argument/3": {
+          "type": "element",
+          "hash": "001ca9b7a731f48dc0a8d5e1ba00a05e",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Want a report? We'll create one using the info from your Compliance, Assessment, and Vendor/Risk sections."
+        }
+      }
+    },
+    "presentation/components/RiskLevel/RiskChip.tsx": {
+      "scopes": {
+        "5/0/init/0/body/1/consequent/0/argument": {
+          "type": "element",
+          "hash": "ccc26acd514d8f23f4874a17f57c26c9",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "-"
+        }
+      }
+    },
+    "presentation/components/RiskLevel/index.tsx": {
+      "scopes": {
+        "9/0/init/body/4/argument/1-label": {
+          "type": "attribute",
+          "hash": "56be2e02a6a17fc204823c479c555fc1",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Likelihood"
+        },
+        "9/0/init/body/4/argument/1-placeholder": {
+          "type": "attribute",
+          "hash": "b2141618fb14417ab5152155ef75d6f4",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Select likelihood of risk to happen"
+        },
+        "9/0/init/body/4/argument/3-label": {
+          "type": "attribute",
+          "hash": "3b0e9f1c3ec0fd759f8f6b64ecf448c1",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Risk severity"
+        },
+        "9/0/init/body/4/argument/3-placeholder": {
+          "type": "attribute",
+          "hash": "e6a55a068376ee0fb25300e4d524c849",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Select risk severity"
+        },
+        "9/0/init/body/4/argument/5/1": {
+          "type": "element",
+          "hash": "7442d4591d9b63d06bcc7e393868a8e8",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Risk level"
+        }
+      }
+    },
+    "presentation/components/Risks/index.tsx": {
+      "scopes": {
+        "4/0/init/body/2/argument/1/1": {
+          "type": "element",
+          "hash": "a9dac730a08d994c1917cd8d38f8c1ff",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Very high risks"
+        },
+        "4/0/init/body/2/argument/3/1": {
+          "type": "element",
+          "hash": "96192e99786947fbf7a781d77beb78ed",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "High risks"
+        },
+        "4/0/init/body/2/argument/5/1": {
+          "type": "element",
+          "hash": "54a0fde1e5475287b784d1ea34928af3",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Medium risks"
+        },
+        "4/0/init/body/2/argument/7/1": {
+          "type": "element",
+          "hash": "188437486f75b8741b5f131a2dd5dc81",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Low risks"
+        },
+        "4/0/init/body/2/argument/9/1": {
+          "type": "element",
+          "hash": "ae7c7ea94187e2be030528553621ea1c",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Very low risks"
+        }
+      }
+    },
+    "presentation/components/Sidebar/index.tsx": {
+      "scopes": {
+        "34/0/init/body/17/argument/1/1/1/1-alt": {
+          "type": "attribute",
+          "hash": "47fa6b3978c1c06acc29b6cae393b0c9",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Logo"
+        },
+        "34/0/init/body/17/argument/1/1/3/1": {
+          "type": "element",
+          "hash": "19bb6bbd0dc47567b330641cf0c17804",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Verify<element:span>Wise</element:span>"
+        },
+        "34/0/init/body/17/argument/19/1/expression/alternate/5-title": {
+          "type": "attribute",
+          "hash": "d81790084152d5e4edfb0760f14cde82",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Controls"
+        },
+        "34/0/init/body/17/argument/19/1/expression/consequent/1-title": {
+          "type": "attribute",
+          "hash": "59156082418d80acb211f973b1218f11",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Options"
+        },
+        "34/0/init/body/17/argument/19/3/3": {
+          "type": "element",
+          "hash": "a474f50f8354e641381a9c814ca8a4cc",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "<element:LogoutSvg></element:LogoutSvg> Log out"
+        }
+      }
+    },
+    "presentation/components/Table/FairnessTable/index.tsx": {
+      "scopes": {
+        "10/0/init/body/5/argument/1/1/1/3/expression/alternate/1/1/1-alt": {
+          "type": "attribute",
+          "hash": "88c2c168aff12ca70148fcb5f6b4c7b1",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Placeholder"
+        },
+        "10/0/init/body/5/argument/1/1/1/3/expression/alternate/1/1/3": {
+          "type": "element",
+          "hash": "3f6b80a43ed7451d58a1865e34ead081",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "There is currently no data in this table."
+        },
+        "10/0/init/body/5/argument/1/1/1/3/expression/consequent/3/1/1": {
+          "type": "element",
+          "hash": "75b1581bef23c214f81f0134da89db5f",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Showing {getRange} of {rows.length} rows"
+        },
+        "10/0/init/body/5/argument/1/1/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        }
+      }
+    },
+    "presentation/components/Table/FileTable/FileTable.tsx": {
+      "scopes": {
+        "10/0/init/body/4/0/init/0/body/0/body/2/argument/consequent/1/value/3-alt": {
+          "type": "attribute",
+          "hash": "8b928fb3b68d93ccda40bed22261e796",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Sort"
+        },
+        "9/0/init/body/1-alt": {
+          "type": "attribute",
+          "hash": "50962258be9246e6109647a7d9b773c7",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "No files available"
+        },
+        "9/0/init/body/3": {
+          "type": "element",
+          "hash": "3c69572a075a7367f28d426d752b43a2",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "There are currently no pieces of evidence or other documents uploaded."
+        }
+      }
+    },
+    "presentation/components/Table/FilesBasicTable/FileBasicTable.tsx": {
+      "scopes": {
+        "10/0/init/body/7/argument/1/1/5/expression/right/1/1": {
+          "type": "element",
+          "hash": "5078e4dd61ad552505cb5d944156d924",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Showing <expression/> -<function:Math.min/>  of {bodyData.length} items"
+        }
+      }
+    },
+    "presentation/components/Table/ReportTable/index.tsx": {
+      "scopes": {
+        "10/0/init/body/5/argument/1/1/1/3/expression/alternate/1/1/1/1-alt": {
+          "type": "attribute",
+          "hash": "88c2c168aff12ca70148fcb5f6b4c7b1",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Placeholder"
+        },
+        "10/0/init/body/5/argument/1/1/1/3/expression/alternate/1/1/1/3": {
+          "type": "element",
+          "hash": "bbebb88da42f320b4fe41003fcfc93e4",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "There is currently no data in this table."
+        },
+        "10/0/init/body/5/argument/1/1/1/3/expression/consequent/3/1/1": {
+          "type": "element",
+          "hash": "e32d6d0ba8455be2af900351b5ee3112",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Showing {getRange} of <expression/> project report(s)"
+        },
+        "10/0/init/body/5/argument/1/1/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        }
+      }
+    },
+    "presentation/components/Table/RisksTable/index.tsx": {
+      "scopes": {
+        "12/0/init/body/15/0/init/0/body/1/expression/right/0/body/5/1/expression/callee/body/5/argument/1/3/expression/right": {
+          "type": "element",
+          "hash": "89383b58e0cdc37d565845857bde5dec",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "+{moreCount}"
+        },
+        "12/0/init/body/16/argument/3/expression/alternate/1/5/1/1": {
+          "type": "element",
+          "hash": "ecb821b93506a8afd731f39bc9f7bdc2",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Showing {getRange} of <expression/> vendor risk(s)"
+        },
+        "12/0/init/body/16/argument/3/expression/consequent/1-alt": {
+          "type": "attribute",
+          "hash": "88c2c168aff12ca70148fcb5f6b4c7b1",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Placeholder"
+        },
+        "12/0/init/body/16/argument/3/expression/consequent/3": {
+          "type": "element",
+          "hash": "523596a986e944cfc00ce268887d1788",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "There is currently no data in this table."
+        }
+      }
+    },
+    "presentation/components/Table/WithPlaceholder/index.tsx": {
+      "scopes": {
+        "15/0/init/body/14/argument/1/expression/alternate/1/5/1/1": {
+          "type": "element",
+          "hash": "14299429c16a3e1c21e72ffa0ca90c99",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Showing {getRange} of <expression/> vendor(s)"
+        },
+        "15/0/init/body/14/argument/1/expression/consequent/1-alt": {
+          "type": "attribute",
+          "hash": "88c2c168aff12ca70148fcb5f6b4c7b1",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Placeholder"
+        },
+        "15/0/init/body/14/argument/1/expression/consequent/3": {
+          "type": "element",
+          "hash": "523596a986e944cfc00ce268887d1788",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "There is currently no data in this table."
+        }
+      }
+    },
+    "presentation/components/Table/index.tsx": {
+      "scopes": {
+        "10/0/init/body/11/argument/3/expression/right/1": {
+          "type": "element",
+          "hash": "272990bf59e79c21ddee17bcf8c05276",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Showing <expression/> - <function:Math.min/> of {data.rows.length} items"
+        }
+      }
+    },
+    "presentation/components/TablePagination/index.tsx": {
+      "scopes": {
+        "7/0/init/body/4/argument/1-aria-label": {
+          "type": "attribute",
+          "hash": "2f9d91a10cd1c2e9d149eac63a4e8122",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "first page"
+        },
+        "7/0/init/body/4/argument/3-aria-label": {
+          "type": "attribute",
+          "hash": "06bfab7b910c279ef128fda264d3f184",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "previous page"
+        },
+        "7/0/init/body/4/argument/5-aria-label": {
+          "type": "attribute",
+          "hash": "7c91b84e24f48c96a1608465d0c70ad3",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "next page"
+        },
+        "7/0/init/body/4/argument/7-aria-label": {
+          "type": "attribute",
+          "hash": "bf1672c26dd9bf1f85e9050a7ca30ac0",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "last page"
+        }
+      }
+    },
+    "presentation/components/VWQuestion/index.tsx": {
+      "scopes": {
+        "21/0/init/body/15/argument/5/1/1": {
+          "type": "element",
+          "hash": "5e8c62ddaad4ff4e4b011305580adcb6",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Save"
+        },
+        "21/0/init/body/15/argument/5/1/3": {
+          "type": "element",
+          "hash": "f48fc6f8e9d1fbf2f37575adc0a2669a",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Add/Remove evidence"
+        }
+      }
+    },
+    "presentation/pages/Assessment/1.0AssessmentTracker/index.tsx": {
+      "scopes": {
+        "13/0/init/body/14/consequent/0/argument/1": {
+          "type": "element",
+          "hash": "f021fffd4accff2b5cf8c3b7b3184d56",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Please select a project to view assessments"
+        },
+        "13/0/init/body/15/argument/3/1/1/expression/alternate/alternate": {
+          "type": "element",
+          "hash": "d01708c9dbc41d9ae2b355004cd950da",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Unable to fetch statistical values from the server"
+        },
+        "13/0/init/body/15/argument/3/1/1/expression/alternate/consequent-title": {
+          "type": "attribute",
+          "hash": "38d08215fd7a8026077c7b64eea6bb59",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Questions"
+        },
+        "13/0/init/body/15/argument/3/3": {
+          "type": "element",
+          "hash": "e96130d22d02dfbd5e71fafa947eab1f",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Assessments status overview"
+        },
+        "13/0/init/body/15/argument/3/7/1/1": {
+          "type": "element",
+          "hash": "78989bb42d4ceeb171bbda912281ae88",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "High risk conformity assessment"
+        },
+        "13/0/init/body/15/argument/3/7/1/3/1/expression/alternate/alternate": {
+          "type": "element",
+          "hash": "62174fac0c4df2b841dad72c6cca2ad2",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Unable to get topics"
+        },
+        "13/0/init/body/15/argument/3/7/5/1/expression/alternate/alternate": {
+          "type": "element",
+          "hash": "8507521652c50b4b47d2a739d4016223",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Unable to get subtopics"
+        }
+      }
+    },
+    "presentation/pages/Authentication/ForgotPassword/index.tsx": {
+      "scopes": {
+        "13/0/init/body/10/argument/5/1/3/1": {
+          "type": "element",
+          "hash": "99dfe43fb2d632030841e5ac8121bfd0",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Forgot password?"
+        },
+        "13/0/init/body/10/argument/5/1/3/3": {
+          "type": "element",
+          "hash": "1f5c8438a4c154485c054a7e74d7d34b",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "No worries, we'll send you reset instructions."
+        },
+        "13/0/init/body/10/argument/5/1/5/1-label": {
+          "type": "attribute",
+          "hash": "e7f34943a0c2fb849db1839ff6ef5cb5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Email"
+        },
+        "13/0/init/body/10/argument/5/1/5/1-placeholder": {
+          "type": "attribute",
+          "hash": "39931962707c99b99a5a073ab579396b",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Enter your email"
+        },
+        "13/0/init/body/10/argument/5/1/5/3": {
+          "type": "element",
+          "hash": "df8cff9808c6311369e9c0f36b05301c",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Reset password"
+        },
+        "13/0/init/body/10/argument/5/1/7/1/3": {
+          "type": "element",
+          "hash": "0fe9ba7c8aa07d9fa820aed448490cff",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Back to log in"
+        }
+      }
+    },
+    "presentation/pages/Authentication/Login/index.tsx": {
+      "scopes": {
+        "18/0/init/body/10/argument/1/expression/right/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "18/0/init/body/10/argument/3/expression/right-title": {
+          "type": "attribute",
+          "hash": "86f2718e92f9cb94a36f229762373510",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Processing your request. Please wait..."
+        },
+        "18/0/init/body/10/argument/7/1/1": {
+          "type": "element",
+          "hash": "8ca8c19a2ebfcea5bbfbcb83b6e06a02",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Verify<element:span>Wise</element:span>"
+        },
+        "18/0/init/body/10/argument/7/1/5/1-label": {
+          "type": "attribute",
+          "hash": "e7f34943a0c2fb849db1839ff6ef5cb5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Email"
+        },
+        "18/0/init/body/10/argument/7/1/5/1-placeholder": {
+          "type": "attribute",
+          "hash": "3ebb891babbf51ef23fa8bf9e2882bc5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "name.surname@companyname.com"
+        },
+        "18/0/init/body/10/argument/7/1/5/3-label": {
+          "type": "attribute",
+          "hash": "223a61cf906ab9c40d22612c588dff48",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Password"
+        },
+        "18/0/init/body/10/argument/7/1/5/3-placeholder": {
+          "type": "attribute",
+          "hash": "ea4fdd034522dead21bae0c0abb52eae",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Enter your password"
+        },
+        "18/0/init/body/10/argument/7/1/5/5/1-label": {
+          "type": "attribute",
+          "hash": "cea09cc6610fd2ff07d7fcbdcaa060a7",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Remember for 30 days"
+        },
+        "18/0/init/body/10/argument/7/1/5/5/3": {
+          "type": "element",
+          "hash": "35983950f7cf0f74d13a15a92c78d993",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Forgot password"
+        },
+        "18/0/init/body/10/argument/7/1/5/7": {
+          "type": "element",
+          "hash": "ac1672621fafb4bfb0a446027ab0750e",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Sign in"
+        }
+      }
+    },
+    "presentation/pages/Authentication/RegisterAdmin/index.tsx": {
+      "scopes": {
+        "18/0/init/body/18/argument/1/expression/right/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/1": {
+          "type": "element",
+          "hash": "19bb6bbd0dc47567b330641cf0c17804",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Verify<element:span>Wise</element:span>"
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/5/1-label": {
+          "type": "attribute",
+          "hash": "9368b5a047572b6051f334af5aa76819",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Name"
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/5/1-placeholder": {
+          "type": "attribute",
+          "hash": "b00c01deec0af9a441331a5134210de1",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Your name"
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/5/13": {
+          "type": "element",
+          "hash": "c6678ac9cec63cb8b578e6078657e8cf",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Get started"
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/5/3-label": {
+          "type": "attribute",
+          "hash": "650fda04a1441de29c6cf56322d0d5d2",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Surname"
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/5/3-placeholder": {
+          "type": "attribute",
+          "hash": "29d7f582770f544ac4e16caeb768ed6f",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Your surname"
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/5/5-label": {
+          "type": "attribute",
+          "hash": "e7f34943a0c2fb849db1839ff6ef5cb5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Email"
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/5/5-placeholder": {
+          "type": "attribute",
+          "hash": "3ebb891babbf51ef23fa8bf9e2882bc5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "name.surname@companyname.com"
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/5/7-label": {
+          "type": "attribute",
+          "hash": "223a61cf906ab9c40d22612c588dff48",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Password"
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/5/7-placeholder": {
+          "type": "attribute",
+          "hash": "3c5df02455af46684285bbf665317812",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Create a password"
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/5/9-label": {
+          "type": "attribute",
+          "hash": "b5cdb861d8deb598b0613d48098b82b6",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Confirm password"
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/5/9-placeholder": {
+          "type": "attribute",
+          "hash": "224b4aa56991875af1df9d3b102de647",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Confirm your password"
+        },
+        "18/0/init/body/18/argument/3/expression/right-title": {
+          "type": "attribute",
+          "hash": "86f2718e92f9cb94a36f229762373510",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Processing your request. Please wait..."
+        },
+        "18/0/init/body/18/argument/9/expression/right/1/1": {
+          "type": "element",
+          "hash": "19bb6bbd0dc47567b330641cf0c17804",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Verify<element:span>Wise</element:span>"
+        },
+        "18/0/init/body/18/argument/9/expression/right/1/3": {
+          "type": "element",
+          "hash": "c46eea5122c34ff77d1a8964a634dee9",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Create your organization"
+        },
+        "18/0/init/body/18/argument/9/expression/right/1/5/1-label": {
+          "type": "attribute",
+          "hash": "e69fb0acbe75358352890a6f04e4b9c0",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Organization name"
+        },
+        "18/0/init/body/18/argument/9/expression/right/1/5/1-placeholder": {
+          "type": "attribute",
+          "hash": "728e3eec14360459b0d5480ccde7cd83",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Your organization name"
+        },
+        "18/0/init/body/18/argument/9/expression/right/1/5/3-label": {
+          "type": "attribute",
+          "hash": "dd01da3c9e73671d8c4dad9fd3980721",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Organization email"
+        },
+        "18/0/init/body/18/argument/9/expression/right/1/5/3-placeholder": {
+          "type": "attribute",
+          "hash": "ad2c0b3a98e8ca4288d615a6e526d9df",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "admin@organization.com"
+        },
+        "18/0/init/body/18/argument/9/expression/right/1/5/5": {
+          "type": "element",
+          "hash": "88755e30e03d6b2055d0a17b93cda461",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Next"
+        }
+      }
+    },
+    "presentation/pages/Authentication/RegisterUser/index.tsx": {
+      "scopes": {
+        "18/0/init/body/16/argument/1/expression/right/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "18/0/init/body/16/argument/5/expression/right-title": {
+          "type": "attribute",
+          "hash": "86f2718e92f9cb94a36f229762373510",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Processing your request. Please wait..."
+        },
+        "18/0/init/body/16/argument/9/1/1": {
+          "type": "element",
+          "hash": "8ca8c19a2ebfcea5bbfbcb83b6e06a02",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Verify<element:span>Wise</element:span>"
+        },
+        "18/0/init/body/16/argument/9/1/3/expression/alternate": {
+          "type": "element",
+          "hash": "7370021b2e634ff346cf436d96287976",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "This invitation link is expired. You need to be invited again to gain access to the dashboard"
+        },
+        "18/0/init/body/16/argument/9/1/3/expression/consequent": {
+          "type": "element",
+          "hash": "8ebea0eadcd0b8be1a79a752177e5666",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Create VerifyWise user account"
+        },
+        "18/0/init/body/16/argument/9/1/5/1-label": {
+          "type": "attribute",
+          "hash": "9368b5a047572b6051f334af5aa76819",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Name"
+        },
+        "18/0/init/body/16/argument/9/1/5/1-placeholder": {
+          "type": "attribute",
+          "hash": "b00c01deec0af9a441331a5134210de1",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Your name"
+        },
+        "18/0/init/body/16/argument/9/1/5/13": {
+          "type": "element",
+          "hash": "d8168511f34a0e7471082fcda6514db0",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Get started"
+        },
+        "18/0/init/body/16/argument/9/1/5/3-label": {
+          "type": "attribute",
+          "hash": "650fda04a1441de29c6cf56322d0d5d2",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Surname"
+        },
+        "18/0/init/body/16/argument/9/1/5/3-placeholder": {
+          "type": "attribute",
+          "hash": "29d7f582770f544ac4e16caeb768ed6f",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Your surname"
+        },
+        "18/0/init/body/16/argument/9/1/5/5-label": {
+          "type": "attribute",
+          "hash": "e7f34943a0c2fb849db1839ff6ef5cb5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Email"
+        },
+        "18/0/init/body/16/argument/9/1/5/5-placeholder": {
+          "type": "attribute",
+          "hash": "3ebb891babbf51ef23fa8bf9e2882bc5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "name.surname@companyname.com"
+        },
+        "18/0/init/body/16/argument/9/1/5/7-label": {
+          "type": "attribute",
+          "hash": "223a61cf906ab9c40d22612c588dff48",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Password"
+        },
+        "18/0/init/body/16/argument/9/1/5/7-placeholder": {
+          "type": "attribute",
+          "hash": "3c5df02455af46684285bbf665317812",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Create a password"
+        },
+        "18/0/init/body/16/argument/9/1/5/9-label": {
+          "type": "attribute",
+          "hash": "b5cdb861d8deb598b0613d48098b82b6",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Confirm password"
+        },
+        "18/0/init/body/16/argument/9/1/5/9-placeholder": {
+          "type": "attribute",
+          "hash": "224b4aa56991875af1df9d3b102de647",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Confirm your password"
+        }
+      }
+    },
+    "presentation/pages/Authentication/ResetPassword/index.tsx": {
+      "scopes": {
+        "11/0/init/body/7/argument/3/expression/right/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "11/0/init/body/7/argument/5/3/1": {
+          "type": "element",
+          "hash": "92f444e38a6999c9ac88b0a5c37c74e2",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Check your email"
+        },
+        "11/0/init/body/7/argument/5/3/3": {
+          "type": "element",
+          "hash": "1317e97577bce1266bab80be4b2595df",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "We sent a password reset link to <element:span>{values.email}</element:span>"
+        },
+        "11/0/init/body/7/argument/5/5/1": {
+          "type": "element",
+          "hash": "97ac2f5be3c8c336ad30667f76489213",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Didn't receive the email? <element:span>Click to resend</element:span>"
+        },
+        "11/0/init/body/7/argument/5/7/1/3": {
+          "type": "element",
+          "hash": "9181ec650b220b33c9e2308e81423c37",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Back to log in"
+        }
+      }
+    },
+    "presentation/pages/Authentication/ResetPasswordContinue/index.tsx": {
+      "scopes": {
+        "5/0/init/body/2/argument/3/3/1": {
+          "type": "element",
+          "hash": "125b049480ba0cc1e2d8377faece6c9e",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Password reset"
+        },
+        "5/0/init/body/2/argument/3/3/3": {
+          "type": "element",
+          "hash": "5d070dbdce809a31e378ef07a35ff691",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Your password has been successfully reset. Click below to log in."
+        },
+        "5/0/init/body/2/argument/3/5": {
+          "type": "element",
+          "hash": "0323bc47ed0e283ffb245679c75fc16f",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Continue"
+        }
+      }
+    },
+    "presentation/pages/Authentication/SetNewPassword/index.tsx": {
+      "scopes": {
+        "17/0/init/body/16/argument/5/1/3/1": {
+          "type": "element",
+          "hash": "29a2935dc0d07edd4c24ddd1efaf76a5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Set new password"
+        },
+        "17/0/init/body/16/argument/5/1/5/1-label": {
+          "type": "attribute",
+          "hash": "223a61cf906ab9c40d22612c588dff48",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Password"
+        },
+        "17/0/init/body/16/argument/5/1/5/1-placeholder": {
+          "type": "attribute",
+          "hash": "5ee7cd1a4a7fe6fb896e8a0c4b2d7255",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "••••••••"
+        },
+        "17/0/init/body/16/argument/5/1/5/3-label": {
+          "type": "attribute",
+          "hash": "b5cdb861d8deb598b0613d48098b82b6",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Confirm password"
+        },
+        "17/0/init/body/16/argument/5/1/5/3-placeholder": {
+          "type": "attribute",
+          "hash": "5ee7cd1a4a7fe6fb896e8a0c4b2d7255",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "••••••••"
+        },
+        "17/0/init/body/16/argument/5/1/5/7": {
+          "type": "element",
+          "hash": "df8cff9808c6311369e9c0f36b05301c",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Reset password"
+        },
+        "17/0/init/body/16/argument/5/1/7/1/3": {
+          "type": "element",
+          "hash": "0fe9ba7c8aa07d9fa820aed448490cff",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Back to log in"
+        }
+      }
+    },
+    "presentation/pages/ComplianceTracker/1.0ComplianceTracker/ControlsTable.tsx": {
+      "scopes": {
+        "12/0/init/body/22/consequent/0/argument": {
+          "type": "element",
+          "hash": "8c868b727ac914e82819a28f50a63fff",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Error loading controls"
+        },
+        "12/0/init/body/23/argument/3/1/3/1/expression/0/body/1/argument/1/1": {
+          "type": "element",
+          "hash": "e1d00f60452cfb58b8df95d7cd488782",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "{controlCategoryIndex}.<expression/> {control.title} <element:Typography><expression/></element:Typography>"
+        }
+      }
+    },
+    "presentation/pages/ComplianceTracker/1.0ComplianceTracker/index.tsx": {
+      "scopes": {
+        "14/0/init/body/15/consequent/0/argument/1": {
+          "type": "element",
+          "hash": "3e2a6b85e4477117e037aa55893f9293",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Compliance tracker"
+        },
+        "14/0/init/body/16/consequent/0/argument": {
+          "type": "element",
+          "hash": "37a7d258d319b6ef5eef2313873438d3",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Error loading compliance data"
+        },
+        "14/0/init/body/17/consequent/0/argument/1": {
+          "type": "element",
+          "hash": "3e2a6b85e4477117e037aa55893f9293",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Compliance tracker"
+        },
+        "14/0/init/body/17/consequent/0/argument/3": {
+          "type": "element",
+          "hash": "2143967aca68a176f8a1e7a49a5036e6",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Please select a project to view compliance data"
+        },
+        "14/0/init/body/18/argument/3/expression/right/1-title": {
+          "type": "attribute",
+          "hash": "458a6a282819618657adfa86e9702ac8",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Subcontrols"
+        },
+        "14/0/init/body/18/argument/5": {
+          "type": "element",
+          "hash": "668c0e0644880d6f29578a0cd481e0e5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Compliance status overview"
+        }
+      }
+    },
+    "presentation/pages/FairnessDashboard/FairnessDashboard.tsx": {
+      "scopes": {
+        "15/declaration/body/30/argument/1/1": {
+          "type": "element",
+          "hash": "36a77e30c0252663961bee3b6107a87a",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Bias & fairness dashboard"
+        },
+        "15/declaration/body/30/argument/1/3": {
+          "type": "element",
+          "hash": "1f25a23b5193307a2782830af22f2f41",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "This table displays fairness evaluation results for your uploaded models. To evaluate a new model, upload the model along with its dataset, target column, and at least one sensitive feature. Only classification models are supported at the moment. Make sure your model includes preprocessing steps, such as an sklearn.Pipeline, and that the dataset is already formatted to match the model’s input requirements."
+        },
+        "15/declaration/body/30/argument/3/expression/right/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "15/declaration/body/30/argument/5/1/1/1-label": {
+          "type": "attribute",
+          "hash": "5f00727e2ec3871c330f7aeed58a3647",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Fairness checks"
+        },
+        "15/declaration/body/30/argument/5/3/1/1": {
+          "type": "element",
+          "hash": "626b9fe5c8c67c7df7c5e5cfec76e685",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Validate fairness"
+        },
+        "15/declaration/body/30/argument/5/3/1/5/1/1": {
+          "type": "element",
+          "hash": "26057b14b4bdbe56bf62c025c6c05e6e",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Click \"Validate fairness\" to start a new fairness validation."
+        },
+        "15/declaration/body/30/argument/5/3/5/1/1/1/1": {
+          "type": "element",
+          "hash": "0bf09c9263b3186952a23acd10de74ea",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Validate fairness"
+        },
+        "15/declaration/body/30/argument/5/3/5/1/1/1/3": {
+          "type": "element",
+          "hash": "e77761a1771b05f335552e05fca5b2f3",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Ensure your model includes preprocessing steps, and your dataset is preprocessed in the same way before upload."
+        },
+        "15/declaration/body/30/argument/5/3/5/3/1/3/1-label": {
+          "type": "attribute",
+          "hash": "22297f5daca676e931866de185023c89",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Target column"
+        },
+        "15/declaration/body/30/argument/5/3/5/3/1/3/1-placeholder": {
+          "type": "attribute",
+          "hash": "dedf66d021f6ce584818f98fcfd02a76",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Select target"
+        },
+        "15/declaration/body/30/argument/5/3/5/3/1/5/1-label": {
+          "type": "attribute",
+          "hash": "e0f75a2f4464d7bfc9cfd19d0b2e968c",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Sensitive column"
+        },
+        "15/declaration/body/30/argument/5/3/5/3/1/5/1-placeholder": {
+          "type": "attribute",
+          "hash": "46c728d0d01a4e2d468defe1d613036c",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Select sensitive feature"
+        },
+        "15/declaration/body/30/argument/5/3/5/3/1/7/1": {
+          "type": "element",
+          "hash": "4a6c84aa16db0f4e5697f49b45257bc7",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Upload"
+        },
+        "15/declaration/body/30/argument/7/expression/right-title": {
+          "type": "attribute",
+          "hash": "9151de1a1f43e91910899ca3102c67a8",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Uploading the model. Please wait, this process may take some time..."
+        }
+      }
+    },
+    "presentation/pages/FairnessDashboard/FairnessResultsPage.tsx": {
+      "scopes": {
+        "9/declaration/body/11/consequent/0/argument/1": {
+          "type": "element",
+          "hash": "e10176487507d56d7a11afd38cf24b0e",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "No metrics found."
+        },
+        "9/declaration/body/12/argument/1/3": {
+          "type": "element",
+          "hash": "cda89a09b8c24411b7a481dbb76e9e5b",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Fairness report metrics"
+        },
+        "9/declaration/body/12/argument/3/1/1/1/1/1": {
+          "type": "element",
+          "hash": "be9e0ff5d5364b7f88f7ed56027eaf6e",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Overall fairness metrics"
+        },
+        "9/declaration/body/12/argument/3/1/1/1/3/openingElement/0/value/expression/1": {
+          "type": "element",
+          "hash": "0083ce8e90b892c93ceb43439aa20bef",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "These metrics evaluate your model’s performance and fairness across all data."
+        },
+        "9/declaration/body/12/argument/3/1/1/3": {
+          "type": "element",
+          "hash": "ab9e533978d049d1f3b969d246b03824",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Accuracy: <function:metrics.overall.accuracy.toFixed/>"
+        },
+        "9/declaration/body/12/argument/3/1/1/5": {
+          "type": "element",
+          "hash": "f595bbd260b7f4ca6b61425d719e6f02",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Demographic Parity Difference: <function:metrics.demographic_parity_difference.toFixed/>"
+        },
+        "9/declaration/body/12/argument/3/1/1/7": {
+          "type": "element",
+          "hash": "4cf7af7c48aac9a86a2ae6d18bc29541",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Equal Opportunity Difference: <function:metrics.equal_opportunity_difference.toFixed/>"
+        },
+        "9/declaration/body/12/argument/3/1/1/9": {
+          "type": "element",
+          "hash": "383de682e4c6cd038e4f42108c178a58",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Equalized Odds Difference: <function:metrics.equalized_odds_difference.toFixed/>"
+        },
+        "9/declaration/body/12/argument/5/1/1/1/1/1": {
+          "type": "element",
+          "hash": "385f06fa3160e439166ffee49330d14a",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Disparity metrics"
+        },
+        "9/declaration/body/12/argument/5/1/1/1/3/openingElement/0/value/expression/1": {
+          "type": "element",
+          "hash": "ca2fb770ae7edb50b1d8ba102cb6fb02",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Shows the difference between groups for each metric — the smaller the gap, the fairer the model."
+        },
+        "9/declaration/body/12/argument/5/1/1/3": {
+          "type": "element",
+          "hash": "d089dcd11a26108caa79c57ff4cff898",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Selection Rate Difference: <function:metrics.overall.selection_rate.toFixed/>"
+        },
+        "9/declaration/body/12/argument/5/1/1/5": {
+          "type": "element",
+          "hash": "43e4638f688185eac87eca1d47a8715a",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "True Positive Rate Difference: <function:metrics.overall.TPR.toFixed/>"
+        },
+        "9/declaration/body/12/argument/5/1/1/7": {
+          "type": "element",
+          "hash": "5b15d0e932a5405464356c3270cf94e2",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "True Negative Rate Difference: <function:metrics.overall.TNR.toFixed/>"
+        },
+        "9/declaration/body/12/argument/7/expression/0/body/1/1/1/3/openingElement/0/value/expression/1": {
+          "type": "element",
+          "hash": "748e109bb1979b73d2dd51131ca138bc",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "{metricDescriptions[metricKey]} per group."
+        }
+      }
+    },
+    "presentation/pages/FileManager/index.tsx": {
+      "scopes": {
+        "15/0/init/body/9/argument/7/expression/consequent/1": {
+          "type": "element",
+          "hash": "ef9bf3840ada3be5dd42b8a871043f20",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading projects..."
+        },
+        "16/0/init/0/body/1": {
+          "type": "element",
+          "hash": "ef7a5f82d2f3c84d649dbe1e05c9d8d1",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Evidences & documents"
+        },
+        "16/0/init/0/body/3": {
+          "type": "element",
+          "hash": "9757dd5304e75137aae77afc4fe2e3a4",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "This table lists all the files uploaded to the system."
+        }
+      }
+    },
+    "presentation/pages/Home/1.0Home/index.tsx": {
+      "scopes": {
+        "20/0/init/body/13/argument/3/expression/right-title": {
+          "type": "attribute",
+          "hash": "8bc7eea0af344485bd2ddf244f11469d",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Generating demo data. Please wait, this process may take some time..."
+        },
+        "20/0/init/body/13/argument/5/1/1": {
+          "type": "element",
+          "hash": "395583037d8b09faeb85be7abea9e169",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Projects overview"
+        }
+      }
+    },
+    "presentation/pages/Home/index.tsx": {
+      "scopes": {
+        "22/0/init/body/14/0/init/0/body/0/argument/1/3/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "22/0/init/body/15/0/init/0/body/0/argument/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "22/0/init/body/20/argument/1/expression/right/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "22/0/init/body/20/argument/3/expression/consequent/3/1": {
+          "type": "element",
+          "hash": "7b14db2ecbb43dea0e1890070f1e28d6",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Projects overview"
+        },
+        "22/0/init/body/20/argument/3/expression/consequent/5/expression/consequent": {
+          "type": "element",
+          "hash": "251cf8c53c09d88aaf21c3b9b279ebe5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Projects are loading..."
+        }
+      }
+    },
+    "presentation/pages/ISO/Annex/index.tsx": {
+      "scopes": {
+        "16/0/init/body/18/argument/3/expression/1-title": {
+          "type": "attribute",
+          "hash": "daf615bfbe993e12067cb5522b396052",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Annexes"
+        },
+        "16/0/init/body/18/argument/3/expression/3": {
+          "type": "element",
+          "hash": "5befb78c4621c325acea1f13932c2dab",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Annex A : Reference Controls (Statement of Applicability)"
+        },
+        "16/0/init/body/18/argument/3/expression/5/expression/right/0/body/1/3/1/expression/0/body/1/1": {
+          "type": "element",
+          "hash": "5dd79eb296a9cf7d0628165a06a308ff",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "<expression/>.{annex.annex_no}.<expression/> {control.title}"
+        }
+      }
+    },
+    "presentation/pages/ISO/Clause/index.tsx": {
+      "scopes": {
+        "16/0/init/body/19/body/2/argument/1/expression/alternate/alternate": {
+          "type": "element",
+          "hash": "7407f634340501f3b16c9b8f76bdf3c0",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "No subclauses found"
+        },
+        "16/0/init/body/20/argument/3-title": {
+          "type": "attribute",
+          "hash": "462579754cf0f9dab85e687c243a6ed5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Clauses"
+        }
+      }
+    },
+    "presentation/pages/PageNotFound/index.tsx": {
+      "scopes": {
+        "4/body/2/argument/3/1": {
+          "type": "element",
+          "hash": "5d1a43a767d3c804c0ed850645328910",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "404 | Page not found"
+        },
+        "4/body/2/argument/3/3/3": {
+          "type": "element",
+          "hash": "42e3e784652c9a70704829de189459d7",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Back to home"
+        }
+      }
+    },
+    "presentation/pages/ProjectView/AddNewFramework/index.tsx": {
+      "scopes": {
+        "13/0/init/body/7/argument/1/11/1": {
+          "type": "element",
+          "hash": "486189d8ac1d5c6d36f8787b0caa415c",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Done"
+        },
+        "13/0/init/body/7/argument/1/15/expression/right-title": {
+          "type": "attribute",
+          "hash": "4d21e725093ba79328dcedc0f092ab3f",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Processing..."
+        },
+        "13/0/init/body/7/argument/1/17/expression/right-title": {
+          "type": "attribute",
+          "hash": "da9426894aa3f7db6168e818a500ac3c",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Confirm Framework Removal"
+        },
+        "13/0/init/body/7/argument/1/17/expression/right/openingElement/1/value/expression": {
+          "type": "element",
+          "hash": "521c2c990937c43ca64893ed1bea783a",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Are you sure you want to remove {frameworkToRemove.name} from the project?"
+        },
+        "13/0/init/body/7/argument/1/3/1": {
+          "type": "element",
+          "hash": "f1cf7d20e75be7c8dceb67e091d7d858",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "AI Frameworks"
+        },
+        "13/0/init/body/7/argument/1/3/3-aria-label": {
+          "type": "attribute",
+          "hash": "36529315c0638124086c5b05a834687f",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Close modal"
+        },
+        "13/0/init/body/7/argument/1/7/1": {
+          "type": "element",
+          "hash": "1c1474a086f0127cf9640a5585afb069",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Add or remove AI frameworks to your platform. Selected frameworks will be integrated into your compliance workflow."
+        },
+        "13/0/init/body/7/argument/1/7/3/1/expression/0/body/2/argument/1/3/expression/right": {
+          "type": "element",
+          "hash": "8390b7e98b1bf844d586b9451c1ed260",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "<element:CheckIcon></element:CheckIcon> Added"
+        },
+        "13/0/init/body/7/argument/1/7/3/1/expression/0/body/2/argument/5/1/expression/alternate": {
+          "type": "element",
+          "hash": "d3cfbb553d76fee861c2e0130e8b228e",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Add"
+        },
+        "13/0/init/body/7/argument/1/7/3/1/expression/0/body/2/argument/5/1/expression/consequent": {
+          "type": "element",
+          "hash": "d3020237f2079cd52e5a741266cb6263",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Remove"
+        }
+      }
+    },
+    "presentation/pages/ProjectView/Overview/index.tsx": {
+      "scopes": {
+        "12/0/init/0/body/7/0/init/0/body/1": {
+          "type": "element",
+          "hash": "e45b48a4ce9ffba5f26e515a5b67a74a",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "{label} status"
+        },
+        "12/0/init/0/body/7/0/init/0/body/5": {
+          "type": "element",
+          "hash": "00eb87243fe0f717d1c9f36123d3ad8e",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "{progress} {label}<expression/> completed"
+        },
+        "12/0/init/0/body/9/argument/1/expression/right": {
+          "type": "element",
+          "hash": "d97c90bd33518b4345a5474e626cb742",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Project are loading..."
+        },
+        "12/0/init/0/body/9/argument/5/1/1": {
+          "type": "element",
+          "hash": "9c0b3aeca046c3ebd3bdc352edc83e88",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Owner"
+        },
+        "12/0/init/0/body/9/argument/5/3/1": {
+          "type": "element",
+          "hash": "e1c731316d903fa762f5c302fa907756",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Last updated"
+        },
+        "12/0/init/0/body/9/argument/5/5/1": {
+          "type": "element",
+          "hash": "c7cd019c8bdba10945b7e141ab635502",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Last updated by"
+        },
+        "12/0/init/0/body/9/argument/9/1": {
+          "type": "element",
+          "hash": "1ae71930274a54c69ab3cb63904d7864",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Project risks"
+        }
+      }
+    },
+    "presentation/pages/ProjectView/ProjectFrameworks/index.tsx": {
+      "scopes": {
+        "24/0/init/body/13/consequent/0/argument/3": {
+          "type": "element",
+          "hash": "e2528ce3b55a7274389dc19d53e70788",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Retry"
+        },
+        "24/0/init/body/17/argument/1/3": {
+          "type": "element",
+          "hash": "504de5075caf9738189a65a1183321c8",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Manage frameworks"
+        }
+      }
+    },
+    "presentation/pages/ProjectView/ProjectSettings/index.tsx": {
+      "scopes": {
+        "33/0/init/0/body/42/argument/5/expression/alternate/1-label": {
+          "type": "attribute",
+          "hash": "c7d1ebac9ba3641777c86e97acf347b6",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Project title"
+        },
+        "33/0/init/0/body/42/argument/5/expression/alternate/11/expression/right/1": {
+          "type": "element",
+          "hash": "147d50424138211ec5f616cf916ea10e",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Monitored regulations and standards *"
+        },
+        "33/0/init/0/body/42/argument/5/expression/alternate/11/expression/right/3": {
+          "type": "element",
+          "hash": "994433c369e3a33683ecbd73202b5d85",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Add all monitored regulations and standards of the project."
+        },
+        "33/0/init/0/body/42/argument/5/expression/alternate/11/expression/right/5/openingElement/13/value/expression/body-placeholder": {
+          "type": "attribute",
+          "hash": "cea082ae04404b893dacf3ecb2d42cab",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Select regulations and standards"
+        },
+        "33/0/init/0/body/42/argument/5/expression/alternate/11/expression/right/7/expression/right": {
+          "type": "element",
+          "hash": "b48c552b1f41f102437355fcd9ffcc32",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Framework cannot be empty."
+        },
+        "33/0/init/0/body/42/argument/5/expression/alternate/13-label": {
+          "type": "attribute",
+          "hash": "881de78c79b56f5ceb9b7103bf23cb2c",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Start date"
+        },
+        "33/0/init/0/body/42/argument/5/expression/alternate/15/1": {
+          "type": "element",
+          "hash": "d3d4297b704410656c345927da889b90",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Team members *"
+        },
+        "33/0/init/0/body/42/argument/5/expression/alternate/15/3": {
+          "type": "element",
+          "hash": "bd3ad4795cc5cd4147bf05871d111332",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Add all team members of the project. Only those who are added will be able to see the project."
+        },
+        "33/0/init/0/body/42/argument/5/expression/alternate/17/openingElement/11/value/expression/body-placeholder": {
+          "type": "attribute",
+          "hash": "11ce8f5ca4c5b61222401bfcc32d0046",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Select Users"
+        },
+        "33/0/init/0/body/42/argument/5/expression/alternate/21/1": {
+          "type": "element",
+          "hash": "7178704ef0250f06cef8fff0cd2a33bb",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "AI risk classification"
+        },
+        "33/0/init/0/body/42/argument/5/expression/alternate/21/3": {
+          "type": "element",
+          "hash": "47a16c867c30226b7b659a6bf81d9a9e",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "To define the AI risk classification,<element:Link>please see this link</element:Link>"
+        },
+        "33/0/init/0/body/42/argument/5/expression/alternate/25/1": {
+          "type": "element",
+          "hash": "165965b06adab8cd0830e523eb19bd2a",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Type of high risk role"
+        },
+        "33/0/init/0/body/42/argument/5/expression/alternate/25/3": {
+          "type": "element",
+          "hash": "a28b761fdb90de53ca30c4ad9c447139",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "If you are not sure about the high risk role,<element:Link>please see this link</element:Link>"
+        },
+        "33/0/init/0/body/42/argument/5/expression/alternate/29/7": {
+          "type": "element",
+          "hash": "e6b2255c686583fbfcc84128e402029d",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Delete project"
+        },
+        "33/0/init/0/body/42/argument/5/expression/alternate/29/9": {
+          "type": "element",
+          "hash": "51dfeca01886d2cb88098538161fd975",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Note that deleting a project will remove all data related to that project from our system. This is permanent and non-recoverable."
+        },
+        "33/0/init/0/body/42/argument/5/expression/alternate/3-label": {
+          "type": "attribute",
+          "hash": "e118264c529709e47f7e0015be057025",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Goal"
+        },
+        "33/0/init/0/body/42/argument/5/expression/alternate/5-label": {
+          "type": "attribute",
+          "hash": "9c0b3aeca046c3ebd3bdc352edc83e88",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Owner"
+        },
+        "33/0/init/0/body/42/argument/5/expression/alternate/7/expression/right-title": {
+          "type": "attribute",
+          "hash": "0aaaefb5c0f14e3ec8fea824ab9c6e32",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Confirm owner change"
+        },
+        "33/0/init/0/body/42/argument/5/expression/alternate/7/expression/right/openingElement/1/value/expression": {
+          "type": "element",
+          "hash": "b175f2c416984ac5a9dffcc224d21b9b",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "You setting ownership from <element:strong><expression/> <expression/></element:strong> to <element:strong><expression/> <expression/></element:strong>. We will remove <element:strong><expression/> <expression/></element:strong> from the members list."
+        },
+        "33/0/init/0/body/42/argument/7/expression/right-title": {
+          "type": "attribute",
+          "hash": "862f9aec241062ae796c6e8924553fa4",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Confirm Delete"
+        },
+        "33/0/init/0/body/42/argument/7/expression/right/openingElement/1/value/expression": {
+          "type": "element",
+          "hash": "80f692a585ae68c0a0caed5d0ceb0969",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Are you sure you want to delete the project?"
+        },
+        "33/0/init/0/body/42/argument/9/expression/right-title": {
+          "type": "attribute",
+          "hash": "da9426894aa3f7db6168e818a500ac3c",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Confirm Framework Removal"
+        },
+        "33/0/init/0/body/42/argument/9/expression/right/openingElement/1/value/expression": {
+          "type": "element",
+          "hash": "521c2c990937c43ca64893ed1bea783a",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Are you sure you want to remove <expression/> from the project?"
+        }
+      }
+    },
+    "presentation/pages/ProjectView/RisksView/index.tsx": {
+      "scopes": {
+        "16/0/init/0/body/14/argument/1/expression/right/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "16/0/init/0/body/14/argument/5/1": {
+          "type": "element",
+          "hash": "394d4b3798e31f8fe5f18701924d3c24",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "{title} risks"
+        }
+      }
+    },
+    "presentation/pages/ProjectView/V1.0ProjectView/Overview/index.tsx": {
+      "scopes": {
+        "17/0/init/body/11/consequent/0/argument": {
+          "type": "element",
+          "hash": "e311d2652391257b81b496d3e3fdf612",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "No project selected"
+        },
+        "17/0/init/body/21/argument/1/1/expression/consequent/1-title": {
+          "type": "attribute",
+          "hash": "9c0b3aeca046c3ebd3bdc352edc83e88",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Owner"
+        },
+        "17/0/init/body/21/argument/1/1/expression/consequent/3-title": {
+          "type": "attribute",
+          "hash": "e1c731316d903fa762f5c302fa907756",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Last updated"
+        },
+        "17/0/init/body/21/argument/1/1/expression/consequent/5/expression/alternate/1-title": {
+          "type": "attribute",
+          "hash": "c7cd019c8bdba10945b7e141ab635502",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Last updated by"
+        },
+        "17/0/init/body/21/argument/1/1/expression/consequent/5/expression/consequent/1-title": {
+          "type": "attribute",
+          "hash": "c7cd019c8bdba10945b7e141ab635502",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Last updated by"
+        },
+        "17/0/init/body/21/argument/3/1/expression/consequent/1-title": {
+          "type": "attribute",
+          "hash": "e118264c529709e47f7e0015be057025",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Goal"
+        },
+        "17/0/init/body/21/argument/3/1/expression/consequent/3-title": {
+          "type": "attribute",
+          "hash": "d148d3e9f3d013feddc4f41bb620ec28",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Team members"
+        },
+        "17/0/init/body/21/argument/5/1/expression/consequent/1/expression/right/1": {
+          "type": "element",
+          "hash": "f7610a3d7c554fa84da0e1eb810285eb",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "EU AI Act Completion Status"
+        },
+        "17/0/init/body/21/argument/5/1/expression/consequent/3/expression/right/1": {
+          "type": "element",
+          "hash": "457080560a9634ad0a8c347fa7417d52",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "ISO 42001 Completion Status"
+        },
+        "17/0/init/body/21/argument/9/1/expression/consequent/1": {
+          "type": "element",
+          "hash": "8464cafc0564633a5f0cda9ebd3287b0",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Project risks"
+        }
+      }
+    },
+    "presentation/pages/ProjectView/V1.0ProjectView/ProjectRisks/index.tsx": {
+      "scopes": {
+        "25/0/init/body/25/argument/1/expression/right/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "25/0/init/body/25/argument/9/1/1": {
+          "type": "element",
+          "hash": "945bd5124645378a7c09307f635baca1",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Project risks"
+        }
+      }
+    },
+    "presentation/pages/ProjectView/V1.0ProjectView/index.tsx": {
+      "scopes": {
+        "16/0/init/body/12/argument/3/1/expression/consequent/1": {
+          "type": "element",
+          "hash": "84545bb1383b76fcd83c9fe81c61d570",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "{project.project_title} project view"
+        },
+        "16/0/init/body/12/argument/3/1/expression/consequent/3": {
+          "type": "element",
+          "hash": "4be77d7114c7347fd9d56b3c10686ba0",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "This project includes all the governance process status of the {project.project_title} project"
+        },
+        "16/0/init/body/12/argument/5/1/1/1/1-label": {
+          "type": "attribute",
+          "hash": "30c54e4dc4ce599b87d94be34a8617f5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Overview"
+        },
+        "16/0/init/body/12/argument/5/1/1/1/3-label": {
+          "type": "attribute",
+          "hash": "8464cafc0564633a5f0cda9ebd3287b0",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Project risks"
+        },
+        "16/0/init/body/12/argument/5/1/1/1/5-label": {
+          "type": "attribute",
+          "hash": "6bb275cfa18a6981beb86f1598b9d4bd",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Frameworks"
+        },
+        "16/0/init/body/12/argument/5/1/1/1/7-label": {
+          "type": "attribute",
+          "hash": "8df6777277469c1fd88cc18dde2f1cc3",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Settings"
+        }
+      }
+    },
+    "presentation/pages/ProjectView/index.tsx": {
+      "scopes": {
+        "14/0/init/body/12/consequent/0/argument": {
+          "type": "element",
+          "hash": "df3c8a6baf9e84daf5ee059f6ad7bdce",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading project risks..."
+        },
+        "14/0/init/body/13/consequent/0/argument": {
+          "type": "element",
+          "hash": "e7b8887754f7d023b122d273b438baa2",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Error fetching project risks. {errorFetchingProjectRisks}"
+        },
+        "14/0/init/body/14/consequent/0/argument": {
+          "type": "element",
+          "hash": "cf886789b830028341f4dd3c24cf4eb0",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Error fetching vendor risks. {errorFetchingVendorRisks}"
+        },
+        "14/0/init/body/15/argument/1/expression/alternate/1": {
+          "type": "element",
+          "hash": "fa07efe3c866566d9d614ae7b4185724",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "{project.project_title} project overview"
+        },
+        "14/0/init/body/15/argument/1/expression/alternate/3": {
+          "type": "element",
+          "hash": "516831a1f0bf569e482dc0fc6ab3aaf4",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "This project includes all the governance process status of the {project.project_title} project."
+        },
+        "14/0/init/body/15/argument/1/expression/alternate/5/1/1/1-aria-label": {
+          "type": "attribute",
+          "hash": "87d7842d0f6a9424c9a587b8d5cee791",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "project view tabs"
+        },
+        "14/0/init/body/15/argument/1/expression/alternate/5/1/1/1/1-label": {
+          "type": "attribute",
+          "hash": "30c54e4dc4ce599b87d94be34a8617f5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Overview"
+        },
+        "14/0/init/body/15/argument/1/expression/alternate/5/1/1/1/3-label": {
+          "type": "attribute",
+          "hash": "8464cafc0564633a5f0cda9ebd3287b0",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Project risks"
+        },
+        "14/0/init/body/15/argument/1/expression/alternate/5/1/1/1/5-label": {
+          "type": "attribute",
+          "hash": "8df6777277469c1fd88cc18dde2f1cc3",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Settings"
+        },
+        "14/0/init/body/15/argument/1/expression/alternate/5/1/7/1-title": {
+          "type": "attribute",
+          "hash": "e13002ec4570f3fcc2f050f5ce974294",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Project"
+        },
+        "14/0/init/body/15/argument/1/expression/consequent/11": {
+          "type": "element",
+          "hash": "2a8a0ba3c1fda1e260d86733836623f5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "New Project"
+        },
+        "14/0/init/body/15/argument/1/expression/consequent/3/1-alt": {
+          "type": "attribute",
+          "hash": "262ec1db7d3ad828740714cee643bd08",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "No project found"
+        },
+        "14/0/init/body/15/argument/1/expression/consequent/7": {
+          "type": "element",
+          "hash": "e5f98bba343b611b2d7f7b82d302c8f6",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "No projects found. Create a new project to start with."
+        }
+      }
+    },
+    "presentation/pages/Reporting/GenerateReport/ReportStatus/index.tsx": {
+      "scopes": {
+        "4/0/init/body/0/argument/1/expression/alternate": {
+          "type": "element",
+          "hash": "13dc38d5382e5e4fb11b5077a9648b37",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Clicking on this link will generate a report in Microsoft Word file you can modify."
+        },
+        "4/0/init/body/0/argument/1/expression/consequent": {
+          "type": "element",
+          "hash": "115d85e58e895c0d39e9988577835434",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "There is no report to download."
+        }
+      }
+    },
+    "presentation/pages/Reporting/Reports/index.tsx": {
+      "scopes": {
+        "13/0/init/body/14/argument/1/expression/right/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "13/0/init/body/14/argument/3/expression/alternate/3/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "13/0/init/body/14/argument/3/expression/consequent/1": {
+          "type": "element",
+          "hash": "ef9bf3840ada3be5dd42b8a871043f20",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading projects..."
+        }
+      }
+    },
+    "presentation/pages/Reporting/index.tsx": {
+      "scopes": {
+        "8/0/init/body/2/argument/3/1/1/1/1-label": {
+          "type": "attribute",
+          "hash": "4ab556084efd542e7da41373a5f3f3d4",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Generate a report"
+        },
+        "8/0/init/body/2/argument/3/1/1/1/3-label": {
+          "type": "attribute",
+          "hash": "aba89369d4614205e5502a5196d11440",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Reports generated"
+        }
+      }
+    },
+    "presentation/pages/SettingsPage/Organization/index.tsx": {
+      "scopes": {
+        "11/0/init/body/18/argument/3/1/1/1-label": {
+          "type": "attribute",
+          "hash": "e69fb0acbe75358352890a6f04e4b9c0",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Organization name"
+        },
+        "11/0/init/body/18/argument/3/1/1/1-placeholder": {
+          "type": "attribute",
+          "hash": "97924493ffdb002034a173f4c314eba3",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "e.g. My Organization"
+        }
+      }
+    },
+    "presentation/pages/SettingsPage/Password/index.tsx": {
+      "scopes": {
+        "13/0/init/body/21/argument/10/expression/right/1/1-label": {
+          "type": "attribute",
+          "hash": "6fd6e34a5137a2432dda7add98083964",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Current password"
+        },
+        "13/0/init/body/21/argument/10/expression/right/1/13": {
+          "type": "element",
+          "hash": "1e8940aa2f5f864fc6234e4efb2dac3c",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Password must contain at least eight characters and must include an uppercase letter, a lowercase letter, a number, and a symbol."
+        },
+        "13/0/init/body/21/argument/10/expression/right/1/5-label": {
+          "type": "attribute",
+          "hash": "c3e35b0671004c7bbd9fa9b9654744d7",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "New password"
+        },
+        "13/0/init/body/21/argument/10/expression/right/1/9-label": {
+          "type": "attribute",
+          "hash": "abc65b22a7a60d4cadbb37e806bcc4af",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Confirm new password"
+        },
+        "13/0/init/body/21/argument/12/expression/right-title": {
+          "type": "attribute",
+          "hash": "a4a52917d3dab4821230d4d5f3e2f584",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Confirm Save"
+        },
+        "13/0/init/body/21/argument/12/expression/right/openingElement/1/value/expression": {
+          "type": "element",
+          "hash": "a1a62a9ddd4b085f506ba08b84027cf9",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Are you sure you want to save the changes?"
+        }
+      }
+    },
+    "presentation/pages/SettingsPage/Profile/index.tsx": {
+      "scopes": {
+        "22/0/init/body/34/argument/10/expression/right/1/1-label": {
+          "type": "attribute",
+          "hash": "9368b5a047572b6051f334af5aa76819",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Name"
+        },
+        "22/0/init/body/34/argument/10/expression/right/1/13": {
+          "type": "element",
+          "hash": "96b358e52063e830e3c284d71e7fa2dc",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "This is your current email address — it cannot be changed."
+        },
+        "22/0/init/body/34/argument/10/expression/right/1/5-label": {
+          "type": "attribute",
+          "hash": "650fda04a1441de29c6cf56322d0d5d2",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Surname"
+        },
+        "22/0/init/body/34/argument/10/expression/right/1/9-label": {
+          "type": "attribute",
+          "hash": "e7f34943a0c2fb849db1839ff6ef5cb5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Email"
+        },
+        "22/0/init/body/34/argument/10/expression/right/3/1/1": {
+          "type": "element",
+          "hash": "98772513c02e0eb59dfe3945c96bb0e9",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Your photo"
+        },
+        "22/0/init/body/34/argument/10/expression/right/3/1/7/1": {
+          "type": "element",
+          "hash": "4c637359dd8fc7200822312116659bde",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Delete"
+        },
+        "22/0/init/body/34/argument/10/expression/right/3/1/7/3": {
+          "type": "element",
+          "hash": "2b8c61dbf6cccbf859e0306294f7649e",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Update"
+        },
+        "22/0/init/body/34/argument/18/expression/right/1/1": {
+          "type": "element",
+          "hash": "d6f0c3d8a53df9f3077d9c0a06c5e3d5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Delete account"
+        },
+        "22/0/init/body/34/argument/18/expression/right/1/3": {
+          "type": "element",
+          "hash": "d1abe662b3e090147d4a80376783d94d",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Note that deleting your account will remove all data from our system. This is permanent and non-recoverable."
+        },
+        "22/0/init/body/34/argument/20/expression/right-title": {
+          "type": "attribute",
+          "hash": "862f9aec241062ae796c6e8924553fa4",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Confirm Delete"
+        },
+        "22/0/init/body/34/argument/20/expression/right/openingElement/1/value/expression": {
+          "type": "element",
+          "hash": "5a17631e71b6aa7ad7d703370b313e3a",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Are you sure you want to delete your account? This action is permanent and cannot be undone."
+        }
+      }
+    },
+    "presentation/pages/SettingsPage/Team/index.tsx": {
+      "scopes": {
+        "17/0/init/body/24/argument/1/expression/right/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "17/0/init/body/24/argument/3/1": {
+          "type": "element",
+          "hash": "e8293a3bfebccae008608794e7d63425",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Team members"
+        },
+        "17/0/init/body/24/argument/3/3/1/1/1/expression/consequent": {
+          "type": "element",
+          "hash": "09e1b4d396508a029380445824a2dc26",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading roles..."
+        },
+        "17/0/init/body/24/argument/3/3/5/expression/alternate/1/1/3/1/expression/alternate/1/expression/0/body": {
+          "type": "element",
+          "hash": "942fd6194b1da559bd415512847b1977",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "-"
+        },
+        "17/0/init/body/24/argument/3/3/5/expression/alternate/3/expression/right-title": {
+          "type": "attribute",
+          "hash": "862f9aec241062ae796c6e8924553fa4",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Confirm Delete"
+        },
+        "17/0/init/body/24/argument/3/3/5/expression/alternate/3/expression/right/openingElement/1/value/expression": {
+          "type": "element",
+          "hash": "e07ad32295acb2d421371f107ce11073",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Are you sure you want to delete your account? This action is permanent and cannot be undone."
+        }
+      }
+    },
+    "presentation/pages/SettingsPage/index.tsx": {
+      "scopes": {
+        "9/declaration/body/4/argument/1/1-label": {
+          "type": "attribute",
+          "hash": "d7878693f91303a438852d617f6d35df",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Profile"
+        },
+        "9/declaration/body/4/argument/1/3-label": {
+          "type": "attribute",
+          "hash": "223a61cf906ab9c40d22612c588dff48",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Password"
+        },
+        "9/declaration/body/4/argument/1/5-label": {
+          "type": "attribute",
+          "hash": "c621ea9404a37af289def443b309bf1b",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Team"
+        },
+        "9/declaration/body/4/argument/1/7-label": {
+          "type": "attribute",
+          "hash": "3dc8489af7e74121f65ce6d9677bc94d",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Organization"
+        }
+      }
+    },
+    "presentation/pages/TrainingRegistar/index.tsx": {
+      "scopes": {
+        "13/0/init/body/18/argument/1/expression/right/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "13/0/init/body/18/argument/3/1/1": {
+          "type": "element",
+          "hash": "e649a3c0b768da7a80632f6863dec1c1",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "AI training registry"
+        },
+        "13/0/init/body/18/argument/3/1/3": {
+          "type": "element",
+          "hash": "cb147742871007572fffeeb7a3be411d",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "This registry lists all AI-related training programs available to your organization. You can view, add, and manage training details here."
+        }
+      }
+    },
+    "presentation/pages/TrainingRegistar/trainingTable.tsx": {
+      "scopes": {
+        "16/0/init/body/10/consequent/0/argument/1": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "16/0/init/body/11/consequent/0/argument/1-alt": {
+          "type": "attribute",
+          "hash": "88c2c168aff12ca70148fcb5f6b4c7b1",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Placeholder"
+        },
+        "16/0/init/body/11/consequent/0/argument/3": {
+          "type": "element",
+          "hash": "46f2eef2c9b4a4d95e85c6bd51bb95ea",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "There is currently no data in this table."
+        },
+        "16/0/init/body/12/argument/1/5/expression/right/1/1": {
+          "type": "element",
+          "hash": "d452d2c8f93ddf2dea41fbdc6a20a35b",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Showing {getRange} of <expression/> training(s)"
+        },
+        "16/0/init/body/9/0/init/0/body/1/expression/alternate/1": {
+          "type": "element",
+          "hash": "c805a8c7cf9966cdca90c4dd0fcc2717",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "No training data available."
+        }
+      }
+    },
+    "presentation/pages/Vendors/index.tsx": {
+      "scopes": {
+        "31/0/init/body/36/argument/3/1/expression/alternate/1/expression/right/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "31/0/init/body/36/argument/3/1/expression/alternate/3/1": {
+          "type": "element",
+          "hash": "f1bfad26a1613ea725bf32a4c3f1f1cc",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Vendor risks list"
+        },
+        "31/0/init/body/36/argument/3/1/expression/alternate/3/3": {
+          "type": "element",
+          "hash": "3c9aa5a54d085320c752159548c8e509",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "This table includes a list of risks related to a vendor. You can create and manage all vendor risks here."
+        },
+        "31/0/init/body/36/argument/3/1/expression/consequent/1/expression/right/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "31/0/init/body/36/argument/3/1/expression/consequent/3/1": {
+          "type": "element",
+          "hash": "e0fbd95f8970b51421108a5f8b1adc8c",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Vendor list"
+        },
+        "31/0/init/body/36/argument/3/1/expression/consequent/3/3": {
+          "type": "element",
+          "hash": "8ef15a7a4c8587a6438321d0df0ac6f6",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "This table includes a list of external entities that provides AI-related products, services, or components. You can create and manage all vendors here."
+        },
+        "31/0/init/body/36/argument/3/3/1/1/1-label": {
+          "type": "attribute",
+          "hash": "30393d50db2ab40731f6eeb38cbe6e85",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Vendors"
+        },
+        "31/0/init/body/36/argument/3/3/1/1/3-label": {
+          "type": "attribute",
+          "hash": "02c846a277e1b8fc6cbb81c9da07a943",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Risks"
+        },
+        "31/0/init/body/36/argument/9/expression/right-title": {
+          "type": "attribute",
+          "hash": "86f2718e92f9cb94a36f229762373510",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Processing your request. Please wait..."
+        }
+      }
+    },
+    "presentation/vw-v2-components/Forms/ProjectForm/index.tsx": {
+      "scopes": {
+        "26/0/init/body/19/argument/1/expression/right/1-title": {
+          "type": "attribute",
+          "hash": "9f9474bbfeddaa890292b8cb09a8524b",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Creating project. Please wait..."
+        },
+        "26/0/init/body/19/argument/3/1/1": {
+          "type": "element",
+          "hash": "280f14915c259bbcda5d92b125c3c6b2",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Create new project"
+        },
+        "26/0/init/body/19/argument/3/1/3": {
+          "type": "element",
+          "hash": "815b7d4f8996582aec37e2698a3149f5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Create a new project from scratch by filling in the following."
+        },
+        "26/0/init/body/19/argument/5/1/1-label": {
+          "type": "attribute",
+          "hash": "c7d1ebac9ba3641777c86e97acf347b6",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Project title"
+        },
+        "26/0/init/body/19/argument/5/1/3-label": {
+          "type": "attribute",
+          "hash": "9c0b3aeca046c3ebd3bdc352edc83e88",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Owner"
+        },
+        "26/0/init/body/19/argument/5/1/3-placeholder": {
+          "type": "attribute",
+          "hash": "2f1e48c41e97eff65b541e121d0bf3e5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Select owner"
+        },
+        "26/0/init/body/19/argument/5/1/5-label": {
+          "type": "attribute",
+          "hash": "c488f76f745bd1973add9fb1a24fe095",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "AI risk classification"
+        },
+        "26/0/init/body/19/argument/5/1/5-placeholder": {
+          "type": "attribute",
+          "hash": "d68a0fb9afd0817dc31b3e9cb11855cb",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Select an option"
+        },
+        "26/0/init/body/19/argument/5/1/7-label": {
+          "type": "attribute",
+          "hash": "0eb21de62edaee1d853d9b3aa352d55b",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Type of high risk role"
+        },
+        "26/0/init/body/19/argument/5/1/7-placeholder": {
+          "type": "attribute",
+          "hash": "d68a0fb9afd0817dc31b3e9cb11855cb",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Select an option"
+        },
+        "26/0/init/body/19/argument/5/3/1/1/1": {
+          "type": "element",
+          "hash": "d3d4297b704410656c345927da889b90",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Team members *"
+        },
+        "26/0/init/body/19/argument/5/3/1/1/3/openingElement/11/value/expression/body-placeholder": {
+          "type": "attribute",
+          "hash": "11ce8f5ca4c5b61222401bfcc32d0046",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Select Users"
+        },
+        "26/0/init/body/19/argument/5/3/1/3/1": {
+          "type": "element",
+          "hash": "2d65e4a49d5c65e3844f56589fb8deaa",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Monitored regulations and standards *"
+        },
+        "26/0/init/body/19/argument/5/3/1/3/3/openingElement/13/value/expression/body-placeholder": {
+          "type": "attribute",
+          "hash": "cea082ae04404b893dacf3ecb2d42cab",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Select regulations and standards"
+        },
+        "26/0/init/body/19/argument/5/3/1/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "26/0/init/body/19/argument/5/3/3-label": {
+          "type": "attribute",
+          "hash": "881de78c79b56f5ceb9b7103bf23cb2c",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Start date"
+        },
+        "26/0/init/body/19/argument/5/3/5-label": {
+          "type": "attribute",
+          "hash": "e118264c529709e47f7e0015be057025",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Goal"
+        },
+        "26/0/init/body/19/argument/7/1-label": {
+          "type": "attribute",
+          "hash": "530941392dc666d97598f5c95d331f63",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Enable this option to automatically fill in the Compliance Tracker and Assessment Tracker questions with AI-generated answers, helping you save time. You can review and edit these answers anytime."
+        }
+      }
+    },
+    "presentation/vw-v2-components/Inputs/FileUpload/DeleteFileModal.tsx": {
+      "scopes": {
+        "3/0/init/body/1/argument-title": {
+          "type": "attribute",
+          "hash": "862f9aec241062ae796c6e8924553fa4",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Confirm Delete"
+        },
+        "3/0/init/body/1/argument/openingElement/1/value/expression": {
+          "type": "element",
+          "hash": "ceee4a1841f386f0294c39db76919afc",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Are you sure you want to delete the file {fileName}?"
+        }
+      }
+    },
+    "presentation/vw-v2-components/Inputs/FileUpload/index.tsx": {
+      "scopes": {
+        "13/0/init/body/8/argument/5/expression/right/1": {
+          "type": "element",
+          "hash": "a0f3b74672cc8119d7d2f0ad22c2bc4a",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Attached Files"
+        },
+        "13/0/init/body/8/argument/9": {
+          "type": "element",
+          "hash": "8a99cbec7a57fe360bd867406e452e56",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "I am done"
+        }
+      }
+    },
+    "presentation/vw-v2-components/Table/index.tsx": {
+      "scopes": {
+        "8/0/init/body/7/argument/1/3/expression/alternate/1/1/1-alt": {
+          "type": "attribute",
+          "hash": "88c2c168aff12ca70148fcb5f6b4c7b1",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Placeholder"
+        },
+        "8/0/init/body/7/argument/1/3/expression/alternate/1/1/3": {
+          "type": "element",
+          "hash": "2c9bac804da3cd8a2877f7bd159f59f4",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "There is currently no data in this table."
+        },
+        "8/0/init/body/7/argument/1/5/1/1/1/1": {
+          "type": "element",
+          "hash": "51b0b60f397e6557b93fa2f355a2e08d",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Showing {getRange} of <expression/> project risk(s)"
+        }
+      }
+    }
+  }
+}

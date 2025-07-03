@@ -292,7 +292,7 @@ const Login: React.FC = () => {
                   cursor: "pointer",
                 }}
                 onClick={() =>
-                  navigate(isMultiTenant ? "/register" : "/admin-reg")
+                  navigate("/register")
                 }
               >
                 Register here

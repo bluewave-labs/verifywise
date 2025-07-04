@@ -19,7 +19,8 @@ We are democratizing AI best practices with an open-source solution that can be 
 
 Please [get in touch](https://tidycal.com/verifywise/info-session) with us to see the latest demo, or [click here](https://verifywise.ai/see-a-demo-of-verifywise/) to experience the demo yourself.
 
-<img width="1433" alt="VerifyWise" src="https://github.com/user-attachments/assets/268a2c44-01de-4f7b-8e10-1dd4f76e86a8">
+![SCR-20250619-jrmy-2-scaled](https://github.com/user-attachments/assets/1fc614e4-76f3-45a4-b2e4-8cb5a29dfd38)
+
 
 ## Who is it for?
 

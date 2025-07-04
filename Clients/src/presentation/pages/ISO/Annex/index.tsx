@@ -24,10 +24,14 @@ import StatsCard from "../../../components/Cards/StatsCard";
 const ISO42001Annex = ({
   project,
   projectFrameworkId,
+  statusFilter,
+  applicabilityFilter,
 }: {
   project: Project;
   framework_id: number;
   projectFrameworkId: number;
+  statusFilter?: string;
+  applicabilityFilter?: string;
 }) => {
   const [expanded, setExpanded] = useState<number | false>(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -69,6 +73,7 @@ const ISO42001Annex = ({
       const response = (await GetAnnexCategoriesById({
         routeUrl: `/iso-42001/annexCategories/byAnnexId/${annexId}`,
       })) as { data: Partial<AnnexCategoryISO & AnnexCategoryStructISO>[] };
+
       setControlsMap((prev) => ({ ...prev, [annexId]: response.data }));
     } catch (error) {
       console.error("Error fetching controls:", error);
@@ -158,34 +163,51 @@ const ISO42001Annex = ({
                     {annex.title}
                   </AccordionSummary>
                   <AccordionDetails sx={{ padding: 0 }}>
-                    {annex.annexCategories.map((control, index: number) => (
-                      <Stack
-                        key={control.id}
-                        onClick={() =>
-                          handleControlClick("A", annex, control, index)
-                        }
-                        sx={styles.controlRow(
-                          annex.annexCategories.length - 1 === index,
-                          flashingRowId === control.id
-                        )}
-                      >
-                        <Stack>
-                          <Typography sx={styles.controlTitle}>
-                            {"A"}.{annex.annex_no}.{index + 1}{" "}
-                            {control.title}
-                          </Typography>
-                          <Typography sx={styles.controlDescription}>
-                            {control.description}
-                          </Typography>
-                        </Stack>
-                        <Stack sx={styles.statusBadge(control.status || "")}>
-                          {control.status
-                            ? control.status.charAt(0).toUpperCase() +
-                              control.status.slice(1).toLowerCase()
-                            : "Not started"}
-                        </Stack>
-                      </Stack>
-                    ))}
+                    {annex.annexCategories
+  .map((control, index) => ({ control, index }))
+.filter(({ control }) => {
+  const statusMatches = statusFilter
+    ? control.status?.toLowerCase() === statusFilter.toLowerCase()
+    : true;
+
+const applicabilityMatches =
+  applicabilityFilter?.toLowerCase() === "all"
+    ? true
+    : applicabilityFilter?.toLowerCase() === "true"
+    ? control.is_applicable === true
+    : applicabilityFilter?.toLowerCase() === "false"
+    ? control.is_applicable === false
+    : true;
+
+
+  return statusMatches && applicabilityMatches;
+})
+
+  .map(({ control, index }) => (
+    <Stack
+      key={control.id}
+      onClick={() => handleControlClick("A", annex, control, index)}
+      sx={styles.controlRow(
+        annex.annexCategories.length - 1 === index,
+        flashingRowId === control.id
+      )}
+    >
+      <Stack>
+        <Typography sx={styles.controlTitle}>
+          {"A"}.{annex.annex_no}.{index + 1} {control.title}
+        </Typography>
+        <Typography sx={styles.controlDescription}>
+          {control.description}
+        </Typography>
+      </Stack>
+      <Stack sx={styles.statusBadge(control.status || "")}>
+        {control.status
+          ? control.status.charAt(0).toUpperCase() + control.status.slice(1).toLowerCase()
+          : "Not started"}
+      </Stack>
+    </Stack>
+  ))}
+
                   </AccordionDetails>
                 </Accordion>
               </Stack>

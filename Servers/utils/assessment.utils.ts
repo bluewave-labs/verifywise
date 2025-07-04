@@ -1,14 +1,11 @@
-import {
-  Assessment,
-  AssessmentModel,
-} from "../domain.layer/models/assessment/assessment.model";
+import { AssessmentModel } from "../domain.layer/models/assessment/assessment.model";
 import { sequelize } from "../database/db";
 import { createNewTopicsQuery } from "./topic.utils";
 import { QueryTypes, Transaction } from "sequelize";
 
 export const getAllAssessmentsQuery = async (
   tenant: string
-): Promise<Assessment[]> => {
+): Promise<AssessmentModel[]> => {
   const assessments = await sequelize.query(
     `SELECT * FROM "${tenant}".assessments ORDER BY created_at DESC, id ASC`,
     {
@@ -22,7 +19,7 @@ export const getAllAssessmentsQuery = async (
 export const getAssessmentByIdQuery = async (
   id: number,
   tenant: string
-): Promise<Assessment | null> => {
+): Promise<AssessmentModel | null> => {
   const result = await sequelize.query(
     `SELECT * FROM "${tenant}".assessments WHERE id = :id`,
     {
@@ -37,7 +34,7 @@ export const getAssessmentByIdQuery = async (
 export const getAssessmentByProjectIdQuery = async (
   projectId: number,
   tenant: string
-): Promise<Assessment[]> => {
+): Promise<AssessmentModel[]> => {
   const result = await sequelize.query(
     `SELECT * FROM "${tenant}".assessments WHERE project_id = :project_id ORDER BY created_at DESC, id ASC`,
     {
@@ -50,7 +47,7 @@ export const getAssessmentByProjectIdQuery = async (
 };
 
 export const createNewAssessmentQuery = async (
-  assessment: Assessment,
+  assessment: AssessmentModel,
   enable_ai_data_insertion: boolean,
   tenant: string,
   transaction: Transaction
@@ -75,7 +72,7 @@ export const createNewAssessmentQuery = async (
 
 export const updateAssessmentByIdQuery = async (
   id: number,
-  assessment: Partial<Assessment>,
+  assessment: Partial<AssessmentModel>,
   tenant: string,
   transaction: Transaction
 ): Promise<Boolean> => {

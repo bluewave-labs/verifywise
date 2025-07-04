@@ -324,7 +324,7 @@ export const getAllAnnexesWithCategoriesQuery = async (
 
   for (let annex of annexes[0]) {
     const annexCategories = (await sequelize.query(
-      `SELECT acs.id, acs.title, acs.description, acs.order_no, ac.status FROM public.annexcategories_struct_iso acs JOIN "${tenant}".annexcategories_iso ac ON acs.id = ac.annexcategory_meta_id WHERE acs.annex_id = :id AND ac.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
+      `SELECT acs.id, acs.title, acs.description, acs.order_no, ac.status, ac.is_applicable FROM public.annexcategories_struct_iso acs JOIN "${tenant}".annexcategories_iso ac ON acs.id = ac.annexcategory_meta_id WHERE acs.annex_id = :id AND ac.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
       {
         replacements: {
           id: annex.id,

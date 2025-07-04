@@ -3,12 +3,10 @@ import { Request, Response } from "express";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 
 import {
-  createNewAssessmentQuery,
   deleteAssessmentByIdQuery,
   getAllAssessmentsQuery,
   getAssessmentByIdQuery,
   getAssessmentByProjectIdQuery,
-  updateAssessmentByIdQuery,
 } from "../utils/assessment.utils";
 import {
   createNewTopicQuery,
@@ -27,13 +25,11 @@ import {
   updateQuestionByIdQuery,
   UploadedFile,
 } from "../utils/question.utils";
-import {
-  Assessment,
-  AssessmentModel,
-} from "../domain.layer/models/assessment/assessment.model";
+import { AssessmentModel } from "../domain.layer/models/assessment/assessment.model";
 import { TopicModel } from "../domain.layer/models/topic/topic.model";
 import { SubtopicModel } from "../domain.layer/models/subtopic/subtopic.model";
 import { sequelize } from "../database/db";
+import { ValidationException } from "../domain.layer/exceptions/custom.exception";
 
 export async function getAllAssessments(
   req: Request,
@@ -76,29 +72,47 @@ export async function createAssessment(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   try {
-    const newAssessment: Assessment = req.body;
+    const assessmentData = req.body;
 
-    if (!newAssessment.project_id) {
+    // Validate required fields
+    if (!assessmentData.project_id) {
       return res.status(400).json(
         STATUS_CODE[400]({
-          message: "projectId is required",
+          message: "project_id is required",
+          field: "project_id",
         })
       );
     }
-    const createdAssessment = await createNewAssessmentQuery(
-      newAssessment,
-      false,
-      transaction
+
+    // Use AssessmentModel's CreateNewAssessment method
+    const createdAssessment = await AssessmentModel.CreateNewAssessment(
+      assessmentData
     );
 
     if (createdAssessment) {
       await transaction.commit();
-      return res.status(201).json(STATUS_CODE[201](createdAssessment));
+      return res.status(201).json(
+        STATUS_CODE[201]({
+          message: "Assessment created successfully",
+          assessment: createdAssessment.toSafeJSON(),
+        })
+      );
     }
 
-    return res.status(503).json(STATUS_CODE[503]({}));
+    await transaction.rollback();
+    return res.status(503).json(
+      STATUS_CODE[503]({
+        message: "Failed to create assessment",
+      })
+    );
   } catch (error) {
     await transaction.rollback();
+    console.error("Error creating assessment:", error);
+
+    if (error instanceof ValidationException) {
+      return res.status(400).json(STATUS_CODE[400](error));
+    }
+
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -110,29 +124,57 @@ export async function updateAssessmentById(
   const transaction = await sequelize.transaction();
   try {
     const assessmentId = parseInt(req.params.id);
-    const updatedAssessment: Assessment = req.body;
+    const assessmentData = req.body;
 
-    if (!updatedAssessment.project_id) {
+    if (isNaN(assessmentId)) {
       return res.status(400).json(
         STATUS_CODE[400]({
-          message: "projectId is required",
+          message: "Invalid assessment ID provided",
+          field: "id",
+          value: req.params.id,
         })
       );
     }
-    const assessment = await updateAssessmentByIdQuery(
-      assessmentId,
-      updatedAssessment,
-      transaction
-    );
 
-    if (assessment) {
-      await transaction.commit();
-      return res.status(202).json(STATUS_CODE[202](assessment));
+    // Validate required fields
+    if (!assessmentData.project_id) {
+      return res.status(400).json(
+        STATUS_CODE[400]({
+          message: "project_id is required",
+          field: "project_id",
+        })
+      );
     }
 
-    return res.status(404).json(STATUS_CODE[404]({}));
+    // Use AssessmentModel's UpdateAssessment method
+    const [updatedCount, updatedAssessments] =
+      await AssessmentModel.UpdateAssessment(assessmentId, assessmentData);
+
+    if (updatedCount > 0 && updatedAssessments.length > 0) {
+      await transaction.commit();
+      return res.status(202).json(
+        STATUS_CODE[202]({
+          message: "Assessment updated successfully",
+          assessment: updatedAssessments[0].toSafeJSON(),
+        })
+      );
+    }
+
+    await transaction.rollback();
+    return res.status(404).json(
+      STATUS_CODE[404]({
+        message: "Assessment not found or no changes made",
+        assessmentId: assessmentId,
+      })
+    );
   } catch (error) {
     await transaction.rollback();
+    console.error("Error updating assessment:", error);
+
+    if (error instanceof ValidationException) {
+      return res.status(400).json(STATUS_CODE[400](error));
+    }
+
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

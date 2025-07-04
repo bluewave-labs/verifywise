@@ -24,22 +24,7 @@ export type ProjectRisk = {
     | "Monitoring & maintenance"
     | "Decommissioning & retirement";
   risk_description: string;
-  risk_category:
-    | "Strategic risk"
-    | "Operational risk"
-    | "Compliance risk"
-    | "Financial risk"
-    | "Cybersecurity risk"
-    | "Reputational risk"
-    | "Legal risk"
-    | "Technological risk"
-    | "Third-party/vendor risk"
-    | "Environmental risk"
-    | "Human resources risk"
-    | "Geopolitical risk"
-    | "Fraud risk"
-    | "Data privacy risk"
-    | "Health and safety risk";
+  risk_category: string[];
   impact: string;
   assessment_mapping: string;
   controls_mapping: string;
@@ -140,40 +125,9 @@ export class ProjectRiskModel extends Model<ProjectRisk> {
   risk_description!: string;
 
   @Column({
-    type: DataType.ENUM(
-      "Strategic risk",
-      "Operational risk",
-      "Compliance risk",
-      "Financial risk",
-      "Cybersecurity risk",
-      "Reputational risk",
-      "Legal risk",
-      "Technological risk",
-      "Third-party/vendor risk",
-      "Environmental risk",
-      "Human resources risk",
-      "Geopolitical risk",
-      "Fraud risk",
-      "Data privacy risk",
-      "Health and safety risk"
-    ),
+    type: DataType.ARRAY(DataType.STRING),
   })
-  risk_category!:
-    | "Strategic risk"
-    | "Operational risk"
-    | "Compliance risk"
-    | "Financial risk"
-    | "Cybersecurity risk"
-    | "Reputational risk"
-    | "Legal risk"
-    | "Technological risk"
-    | "Third-party/vendor risk"
-    | "Environmental risk"
-    | "Human resources risk"
-    | "Geopolitical risk"
-    | "Fraud risk"
-    | "Data privacy risk"
-    | "Health and safety risk";
+  risk_category!: string[];
 
   @Column({
     type: DataType.STRING,

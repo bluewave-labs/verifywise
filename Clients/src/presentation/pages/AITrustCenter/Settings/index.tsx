@@ -10,8 +10,6 @@ const COLOR_SWATCHES = [
   '#F3F3F6', '#E9E6F7', '#E6F0FA', '#E6F7F2', '#FBE6F7', '#FBE6E6',
 ];
 
-const DEFAULT_LOGO = 'https://via.placeholder.com/120x48?text=Logo';
-
 const AITrustCenterSettings: React.FC = () => {
   const styles = useStyles();
   const [logo, setLogo] = useState<string | null>(null);
@@ -56,19 +54,29 @@ const AITrustCenterSettings: React.FC = () => {
       {/* Appearance Card */}
       <Box sx={styles.card}>
         <Typography sx={styles.sectionTitle}>Appearance</Typography>
-        <Typography sx={styles.sectionDescription}>
-          Configure how your AI Trust Center page will look.
-        </Typography>
-        {/* Logo Row */}
-        <Box sx={styles.row}>
-          <Box sx={styles.logoBox}>
-            <img
-              src={logo || DEFAULT_LOGO}
-              alt="Company Logo"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 2 }}
-            />
+        {/* Company Logo Row */}
+        <Box sx={{display: 'flex', alignItems: 'flex-start', mb: 20 }}>
+          <Box sx={{flex: 0.5 }}>
+            <Typography sx={{ fontSize: 13, fontWeight: 500 }}>Company logo</Typography>
+            <Typography sx={{ fontSize: 12, color: '#888'}}>
+              This logo will be shown in the AI Trust Center page
+            </Typography>
           </Box>
-          <Box sx={styles.logoActions}>
+          <Box sx={{display: 'flex', alignItems: 'center', gap: 2}}>
+            <Box sx={{
+              width: 120,
+              height: 36,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 2,
+              background: 'linear-gradient(90deg, #a18cd1 0%, #fbc2eb 100%)',
+              color: '#333',
+              fontWeight: 600,
+              fontSize: 16,
+              boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
+            }}>
+            </Box>
             <MUIButton
               variant="outlined"
               component="label"
@@ -93,52 +101,35 @@ const AITrustCenterSettings: React.FC = () => {
           </Box>
         </Box>
         {/* Header Color Row */}
-        <Box sx={styles.colorSwatchRow}>
-
-          <Box>
-            <Stack direction="column" gap={1}>
-              <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
-                Header color
-              </Typography>
-              <Typography sx={{ fontSize: 12 }}>
-                Select or customize your header color
-              </Typography>
-            </Stack>
+        <Box sx={{display: 'flex', alignItems: 'flex-start', mb: 20 }}>
+          <Box sx={{ flex: 0.64 }}>
+            <Typography sx={{ fontSize: 13, fontWeight: 500 }}>Header color</Typography>
+            <Typography sx={{ fontSize: 12, color: '#888', mt: 0.5 }}>
+              Select or customize your top header color
+            </Typography>
           </Box>
-
-          <Box>
-            <Stack direction="column" gap={2}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 5, direction: 'row' }}>
-                {COLOR_SWATCHES.map((color) => (
-                  <Box key={color} sx={styles.colorSwatch(color, headerColor === color)} onClick={() => handleColorSwatch(color)} />
-                ))}
-              </Box>
-
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, direction: 'row' }}>
-                <Typography sx={{ fontSize: 13, fontWeight: 500, mb: 0.5 }}>Custom color:</Typography>
-                <input type="color" value={customColor} onChange={handleCustomColor} style={{ ...styles.customColorInput, padding: 0, border: 'none', background: 'none' }} />
-                <Box sx={styles.colorSwatch(customColor, headerColor === customColor)}
-                  style={{ display: 'inline-block', marginLeft: 8, verticalAlign: 'middle' }}
-                  onClick={() => handleColorSwatch(customColor)}
-                />
-              </Box>
-            </Stack>
+          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start'}}>
+            <Box sx={{...styles.customColorRow, gap: 15}}>
+              <Typography sx={styles.customColorLabel}>Custom color:</Typography>
+              <input
+                type="text"
+                value={customColor}
+                onChange={handleCustomColor}
+                style={styles.customColorInput}
+              />
+              <Box sx={styles.customColorCircle(customColor)} />
+            </Box>
           </Box>
         </Box>
-
-
-        <Box sx={styles.colorSwatchRow}>
+        {/* Trust Center Title Row */}
+        <Box sx={{display: 'flex', alignItems: 'flex-start', mb: 20 }}>
           <Box sx={{ flex: 0.5 }}>
-            <Stack direction="column" gap={1}>
-              <Typography sx={{ fontSize: 14, fontWeight: 500 }}>
-                Trust center title
-              </Typography>
-              <Typography sx={{ fontSize: 12 }}>
-                This title will be shown on the top of the page.
-              </Typography>
-            </Stack>
+            <Typography sx={{ fontSize: 13, fontWeight: 500 }}>Trust center title</Typography>
+            <Typography sx={{ fontSize: 12, color: '#888', mt: 0.5 }}>
+              This title will be shown in the AI Trust Center page
+            </Typography>
           </Box>
-          <Box>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Field
               placeholder="Company's AI Trust Center"
               value={trustTitle}
@@ -163,19 +154,10 @@ const AITrustCenterSettings: React.FC = () => {
           </Stack>
           <Toggle checked={enableLastUpdated} onChange={(_, checked) => setEnableLastUpdated(checked)} />
         </Box>
-        <Box sx={{ ...styles.toggleRow}}>
-          <Stack direction="column" gap={1} sx={{ flex: 0.5 }}>
-            <Typography sx={styles.toggleLabel}>Enable last updated</Typography>
-            <Typography sx={{ color: '#888', fontWeight: 400, fontSize: 12 }}>
-              If enabled, the last updated time will be shown
-            </Typography>
-          </Stack>
-          <Toggle checked={enableLastUpdated} onChange={(_, checked) => setEnableLastUpdated(checked)} />
-        </Box>
       </Box>
 
       {/* Save Button Row */}
-      <Stack sx={{ width: "100%", maxWidth: 800 }}>
+      <Stack>
         <CustomizableButton
           sx={{
             alignSelf: "flex-end",

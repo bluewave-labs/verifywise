@@ -1,5 +1,5 @@
 import { Button, Stack, Typography, useTheme } from "@mui/material";
-import React, { Suspense, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Checkbox from "../../../components/Inputs/Checkbox";
 import Field from "../../../components/Inputs/Field";
@@ -13,9 +13,9 @@ import { setExpiration } from "../../../../application/authentication/authSlice"
 import CustomizableToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 import { ENV_VARs } from "../../../../../env.vars";
+import CustomAxios from "../../../../infrastructure/api/customAxios";
 
 const isDemoApp = ENV_VARs.IS_DEMO_APP || false;
-const isMultiTenant = ENV_VARs.IS_MULTI_TENANT || false;
 
 // Define the shape of form values
 interface FormValues {
@@ -36,6 +36,17 @@ const Login: React.FC = () => {
   const dispatch = useDispatch();
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
+  const [isMultiTenant, setIsMultiTenant] = useState(true);
+
+  useEffect(() => {
+    const fetchOrganizationCount = async () => {
+      const response = await CustomAxios.get("/organizations/exists")
+      if (response.data.data.exists && window.location.host !== "app.verifywise.ai") {
+        setIsMultiTenant(false);
+      }
+    }
+    fetchOrganizationCount()
+  }, []);
 
   const loginText = isDemoApp
     ? "Click on Sign in button directly to continue"
@@ -270,7 +281,7 @@ const Login: React.FC = () => {
             >
               Sign in
             </Button>
-            <Stack
+            {isMultiTenant && <Stack
               sx={{
                 display: "flex",
                 flexDirection: "row",
@@ -297,35 +308,7 @@ const Login: React.FC = () => {
               >
                 Register here
               </Typography>
-            </Stack>
-            {isMultiTenant && (
-              <Stack
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  gap: theme.spacing(1),
-                }}
-              >
-                <Typography
-                  sx={{ fontSize: 14, color: theme.palette.text.secondary }}
-                >
-                  Don't have an organization?
-                </Typography>
-                <Typography
-                  sx={{
-                    color: theme.palette.primary.main,
-                    fontSize: 14,
-                    fontWeight: "bold",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => navigate("/register")}
-                >
-                  Register
-                </Typography>
-              </Stack>
-            )}
+            </Stack>}
           </Stack>
         </Stack>
       </form>

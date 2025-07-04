@@ -10,6 +10,7 @@ import {
   getOrganizationByIdQuery,
   getOrganizationMembersQuery,
   getOrganizationProjectsQuery,
+  getOrganizationsExistsQuery,
   removeMemberFromOrganizationQuery,
   removeProjectFromOrganizationQuery,
   updateOrganizationByIdQuery,
@@ -38,6 +39,18 @@ export async function getAllOrganizations(
     }
 
     return res.status(204).json(STATUS_CODE[204]([]));
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getOrganizationsExists(
+  req: Request,
+  res: Response
+): Promise<any> {
+  try {
+    const organizationsExists = await getOrganizationsExistsQuery();
+    return res.status(200).json(STATUS_CODE[200](organizationsExists));
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -147,7 +160,7 @@ export async function createOrganization(
       transaction
     );
     if (createdOrganization) {
-      const organization_id = createdOrganization.id!;      
+      const organization_id = createdOrganization.id!;
       await createNewTenant(organization_id, transaction);
       const user = await createNewUserWrapper(
         {
@@ -162,11 +175,12 @@ export async function createOrganization(
       )
       await transaction.commit();
       return res.status(201).json(STATUS_CODE[201](user.toSafeJSON()));
+    } else {
+      await transaction.rollback();
+      return res
+        .status(400)
+        .json(STATUS_CODE[400]("Unable to create organization"));
     }
-    await transaction.rollback();
-    return res
-      .status(400)
-      .json(STATUS_CODE[400]("Unable to create organization"));
   } catch (error) {
     await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

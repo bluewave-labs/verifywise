@@ -51,6 +51,13 @@ export const getAllOrganizationsQuery = async (
   return organizations;
 };
 
+export const getOrganizationsExistsQuery = async () => {
+  const result = await sequelize.query(
+    "SELECT COUNT(*) > 0 AS exists FROM public.organizations"
+  ) as [{ exists: boolean }[], number];
+  return result[0][0];
+}
+
 /**
  * Retrieves an organization from the database by its unique identifier.
  *

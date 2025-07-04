@@ -143,6 +143,19 @@ export const getUserByIdQuery = async (id: number): Promise<UserModel> => {
   return user[0];
 };
 
+export const doesUserBelongsToOrganizationQuery = async (
+  userId: number,
+  organizationId: number
+) => {
+  const result = await sequelize.query(
+    "SELECT COUNT(*) > 0 AS belongs FROM public.users WHERE id = :userId AND organization_id = :organizationId",
+    {
+      replacements: { userId, organizationId }
+    }
+  ) as [{ belongs: boolean }[], number];
+  return result[0][0];
+};
+
 /**
  * Creates a new user in the database.
  *

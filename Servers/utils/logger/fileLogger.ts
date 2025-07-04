@@ -4,15 +4,13 @@ import path from 'path';
 
 const { combine, timestamp, printf, colorize } = format;
 const isDev = process.env.NODE_ENV !== 'production';
-//const logDir = path.resolve(process.cwd(), 'logs');
-
 
 const logFormat = printf(({ level, message, timestamp }) => {
   return `${timestamp} [${level}]: ${message}`;
 });
 
 const rotatingFileTransport = new DailyRotateFile({
-  filename: path.join(__dirname, '../../../logs/app-%DATE%.log'),
+  filename: path.join(process.cwd(), 'logs/app-%DATE%.log'),
   datePattern: 'YYYY-MM-DD',
   maxSize: '10m',
   maxFiles: '14d',

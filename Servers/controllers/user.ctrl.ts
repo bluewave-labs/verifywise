@@ -357,9 +357,7 @@ async function updateUserById(req: Request, res: Response) {
   const { name, surname, email, roleId, last_login } = req.body;
 
   logStructured('processing', `updating user ID ${id}`, 'updateUserById', 'user.ctrl.ts');
-  logger.debug(`✏️ Update requested for user ID ${id}`);
-
-  console.log(`email:`, email)
+  logger.debug(`✏️ Update requested for user ID ${id}`); 
 
   try {
     const user = await getUserByIdQuery(id);

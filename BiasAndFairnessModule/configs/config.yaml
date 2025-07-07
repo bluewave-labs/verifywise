@@ -17,9 +17,9 @@ model:
   # Closed source model configuration (for API-based models)
   closed_source:
     enabled: false
-    api_endpoint: ""
+    api_endpoint: null
     api_key_env_var: "MODEL_API_KEY"
-    timeout_seconds: 30
+    timeout_seconds: 15
 
 # Metrics Configuration
 metrics:
@@ -38,16 +38,3 @@ metrics:
       - name: "accuracy"
       - name: "precision"
 
-
-# Output Configuration
-output:
-  save_results: true
-  output_dir: "results"
-  save_format: ["json", "csv"]
-  generate_report: true
-  
-# Logging Configuration
-logging:
-  level: "INFO"
-  save_logs: true
-  log_file: "bias_fairness.log"

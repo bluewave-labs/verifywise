@@ -5,7 +5,7 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { Control } from "../control/control.model";
+import { IControl } from "../../interfaces/i.control";
 import { ProjectModel } from "../project/project.model";
 
 /*
@@ -19,7 +19,7 @@ export type ControlCategory = {
   project_id: number; // FK to the project table
   title: string; // gets assigned from the structure
   order_no?: number; // gets assigned from the structure
-  controls?: Control[];
+  controls?: IControl[];
   created_at?: Date;
 };
 

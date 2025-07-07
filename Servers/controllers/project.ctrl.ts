@@ -23,6 +23,7 @@ import { createEUFrameworkQuery } from "../utils/eu.utils";
 import { sequelize } from "../database/db";
 import { createISOFrameworkQuery } from "../utils/iso42001.utils";
 import { IProjectAttributes } from "../domain.layer/interfaces/i.project";
+import { IControl } from "../domain.layer/interfaces/i.control";
 
 export async function getAllProjects(
   req: Request,
@@ -288,17 +289,17 @@ export async function getCompliances(req: Request, res: Response) {
         if (category) {
           const controls = (await getAllControlsByControlGroupQuery(
             category.id
-          )) as ControlModel[];
+          )) as IControl[];
           for (const control of controls) {
             if (control && control.id) {
               const subControls = await getAllSubcontrolsByControlIdQuery(
                 control.id
               );
-              control.dataValues.numberOfSubcontrols = subControls.length;
-              control.dataValues.numberOfDoneSubcontrols = subControls.filter(
+              control.numberOfSubcontrols = subControls.length;
+              control.numberOfDoneSubcontrols = subControls.filter(
                 (subControl) => subControl.status === "Done"
               ).length;
-              control.dataValues.subControls = subControls;
+              control.subControls = subControls;
             }
           }
           category.dataValues.controls = controls;

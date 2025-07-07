@@ -6,32 +6,43 @@ type LogState = 'processing' | 'successful' | 'error';
 type EventType = 'Create' | 'Read' | 'Update' | 'Delete' | 'Error';
 
 export function logProcessing(
+  logState: LogState = 'processing',
   description: string,
   functionName: string,
   fileName: string
 ): void {
-  logStructured('processing', description, functionName, fileName);
+  logStructured(logState, description, functionName, fileName);
   logger.debug(`🔄 ${description}`);
 }
 
 export async function logSuccess(
+  logState: LogState = 'successful',
   eventType: EventType,
   description: string,
   functionName: string,
   fileName: string
 ): Promise<void> {
-  logStructured('successful', description, functionName, fileName);
+  logStructured(logState, description, functionName, fileName);
   logger.debug(`✅ ${description}`);
-  await logEvent(eventType, description);
+  try {
+    await logEvent(eventType, description);
+  } catch (error) {
+    console.error('Failed to log success event to database:', error);
+  }
 }
 
 export async function logFailure(
+  logState: LogState = 'error',
   description: string,
   functionName: string,
   fileName: string,
   error: Error
 ): Promise<void> {
-  logStructured('error', description, functionName, fileName);
+  logStructured(logState, description, functionName, fileName);
   logger.error(`❌ ${description}:`, error);
-  await logEvent('Error', `${description}: ${error.message}`);
+  try {
+    await logEvent('Error', `${description}: ${error.message}`);
+  } catch (dbError) {
+    console.error('Failed to log failure event to database:', dbError);
+  }
 }

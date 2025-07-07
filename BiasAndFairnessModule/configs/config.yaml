@@ -1,0 +1,53 @@
+# Dataset Configuration
+dataset:
+  name: "adult-census-income"
+  source: "scikit-learn/adult-census-income"
+  platform: "huggingface"
+  protected_attributes:
+    - "sex"
+    - "race"
+  target_column: "income"
+  sampling:
+    enabled: true
+    n_samples: 5000  # Number of samples to use for quick experiments
+    random_seed: 42
+
+# Model Configuration
+model:  
+  # Closed source model configuration (for API-based models)
+  closed_source:
+    enabled: false
+    api_endpoint: ""
+    api_key_env_var: "MODEL_API_KEY"
+    timeout_seconds: 30
+
+# Metrics Configuration
+metrics:
+  # Disparity metrics for fairness evaluation
+  disparity:
+    enabled: true
+    metrics:
+      - name: "demographic_parity"
+      - name: "equal_opportunity"
+      - name: "disparate_impact"
+
+  # Performance metrics
+  performance:
+    enabled: true
+    metrics:
+      - name: "accuracy"
+      - name: "precision"
+
+
+# Output Configuration
+output:
+  save_results: true
+  output_dir: "results"
+  save_format: ["json", "csv"]
+  generate_report: true
+  
+# Logging Configuration
+logging:
+  level: "INFO"
+  save_logs: true
+  log_file: "bias_fairness.log"

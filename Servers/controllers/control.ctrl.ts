@@ -14,14 +14,12 @@ import {
   updateSubcontrolByIdQuery,
 } from "../utils/subControl.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
-import {
-  Control,
-  ControlModel,
-} from "../domain.layer/models/control/control.model";
+import { ControlModel } from "../domain.layer/models/control/control.model";
 import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
 import { FileType } from "../domain.layer/models/file/file.model";
 import { updateProjectUpdatedByIdQuery } from "../utils/project.utils";
 import { sequelize } from "../database/db";
+import { IControl } from "../domain.layer/interfaces/i.control";
 
 export async function getAllControls(
   req: Request,
@@ -62,7 +60,7 @@ export async function getControlById(
 export async function createControl(req: Request, res: Response): Promise<any> {
   const transaction = await sequelize.transaction();
   try {
-    const newControl: Control = req.body;
+    const newControl: ControlModel = req.body;
 
     const createdControl = await createNewControlQuery(newControl, transaction);
 
@@ -85,7 +83,7 @@ export async function updateControlById(
   const transaction = await sequelize.transaction();
   try {
     const controlId = parseInt(req.params.id);
-    const updatedControl: Control = req.body;
+    const updatedControl: ControlModel = req.body;
 
     const control = await updateControlByIdQuery(
       controlId,
@@ -134,7 +132,7 @@ export async function saveControls(
   const transaction = await sequelize.transaction();
   try {
     const controlId = parseInt(req.params.id);
-    const Control = req.body as Control & {
+    const Control = req.body as ControlModel & {
       subControls: string;
       user_id: number;
       project_id: number;
@@ -272,10 +270,10 @@ export async function getComplianceById(
   try {
     const control = (await getControlByIdQuery(
       parseInt(control_id)
-    )) as ControlModel;
+    )) as IControl;
     if (control && control.id) {
       const subControls = await getAllSubcontrolsByControlIdQuery(control.id);
-      control.dataValues.subControls = subControls;
+      control.subControls = subControls;
       return res.status(200).json(STATUS_CODE[200](control));
     } else {
       return res.status(404).json(STATUS_CODE[404]("Control not found"));
@@ -293,7 +291,7 @@ export async function getControlsByControlCategoryId(
     const controlCategoryId = parseInt(req.params.id);
     const controls = (await getAllControlsByControlGroupQuery(
       controlCategoryId
-    )) as ControlModel[];
+    )) as IControl[];
     for (const control of controls) {
       if (control && control.id !== undefined) {
         const subControls = await getAllSubcontrolsByControlIdQuery(control.id);
@@ -307,9 +305,9 @@ export async function getControlsByControlCategoryId(
           }
         }
 
-        control.dataValues.numberOfSubcontrols = numberOfSubcontrols;
-        control.dataValues.numberOfDoneSubcontrols = numberOfDoneSubcontrols;
-        control.dataValues.subControls = subControls;
+        control.numberOfSubcontrols = numberOfSubcontrols;
+        control.numberOfDoneSubcontrols = numberOfDoneSubcontrols;
+        control.subControls = subControls;
       }
     }
     return res.status(200).json(STATUS_CODE[200](controls));

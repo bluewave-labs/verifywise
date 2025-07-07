@@ -6,14 +6,14 @@ import Field from '../../../components/Inputs/Field';
 import CustomizableButton from '../../../vw-v2-components/Buttons';
 import SaveIcon from '@mui/icons-material/Save';
 
-const COLOR_SWATCHES = [
-  '#F3F3F6', '#E9E6F7', '#E6F0FA', '#E6F7F2', '#FBE6F7', '#FBE6E6',
-];
+// const COLOR_SWATCHES = [
+//   '#F3F3F6', '#E9E6F7', '#E6F0FA', '#E6F7F2', '#FBE6F7', '#FBE6E6',
+// ];
 
 const AITrustCenterSettings: React.FC = () => {
   const styles = useStyles();
-  const [logo, setLogo] = useState<string | null>(null);
-  const [headerColor, setHeaderColor] = useState(COLOR_SWATCHES[2]);
+  // const [logo, setLogo] = useState<string | null>(null);
+  // const [headerColor, setHeaderColor] = useState(COLOR_SWATCHES[2]);
   const [customColor, setCustomColor] = useState('#2C6392');
   const [trustTitle, setTrustTitle] = useState('');
   const [enableLastUpdated, setEnableLastUpdated] = useState(true);
@@ -24,24 +24,24 @@ const AITrustCenterSettings: React.FC = () => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (ev) => setLogo(ev.target?.result as string);
+      // reader.onload = (ev) => setLogo(ev.target?.result as string);
       reader.readAsDataURL(file);
     }
   };
 
   const handleRemoveLogo = () => {
-    setLogo(null);
+    // setLogo(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleColorSwatch = (color: string) => {
-    setHeaderColor(color);
-    setCustomColor(color);
-  };
+  // const handleColorSwatch = (color: string) => {
+    // setHeaderColor(color);
+    // setCustomColor(color);
+  // };
 
   const handleCustomColor = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCustomColor(e.target.value);
-    setHeaderColor(e.target.value);
+    // setHeaderColor(e.target.value);
   };
 
   const handleSubmit = (e: any) => {

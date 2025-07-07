@@ -4,6 +4,9 @@ import {
   Typography,
   useTheme,
   SelectChangeEvent,
+  Autocomplete,
+  Box,
+  TextField,
 } from "@mui/material";
 import {
   FC,
@@ -23,6 +26,7 @@ import styles from "../styles.module.css";
 import useUsers from "../../../../application/hooks/useUsers";
 import { aiLifecyclePhase, riskCategoryItems } from "../projectRiskValue";
 import { alertState } from "../../../../domain/interfaces/iAlert";
+import { KeyboardArrowDown } from "@mui/icons-material";
 import allowedRoles from "../../../../application/constants/permissions";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
@@ -83,6 +87,18 @@ const RiskSection: FC<RiskSectionProps> = ({
         setRiskValues((prevValues) => ({
           ...prevValues,
           [prop]: event.target.value,
+        }));
+        setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
+      },
+    []
+  );
+
+  const handleOnMultiselectChange = useCallback(
+    (prop: keyof RiskFormValues) =>
+      (event: React.SyntheticEvent, newValue: { _id: number; name: string }[]) => {
+        setRiskValues((prevValues) => ({
+          ...prevValues,
+          [prop]: newValue.map(item => item._id),
         }));
         setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
       },
@@ -215,21 +231,82 @@ const RiskSection: FC<RiskSectionProps> = ({
                     disabled={isEditingDisabled}
                   />
                 </Stack>
-                <Select
-                  id="risk-category-input"
-                  label="Risk category"
-                  placeholder="Select category"
-                  value={
-                    riskValues.riskCategory === 0 ? "" : riskValues.riskCategory
-                  }
-                  onChange={handleOnSelectChange("riskCategory")}
-                  items={riskCategoryItems}
-                  isRequired
-                  error={riskErrors.riskCategory}
+                <Typography sx={{ fontSize: theme.typography.fontSize, fontWeight: 500 }}>
+                  Risk categories *
+                </Typography>
+                <Autocomplete
+                  multiple
+                  readOnly={isEditingDisabled}
+                  id="risk-categories-input"
+                  size="small"
+                  value={riskCategoryItems.filter(
+                    (category) => riskValues.riskCategory.includes(category._id)
+                  )}
+                  options={riskCategoryItems}
+                  getOptionLabel={(category) => `${category.name}`}
+                  renderOption={(props, option) => {
+                    const { key, ...optionProps } = props;
+                    return (
+                      <Box key={key} component="li" {...optionProps}>
+                        <Typography sx={{ fontSize: "13px" }}>
+                          {option.name}
+                        </Typography>
+                      </Box>
+                    );
+                  }}
+                  popupIcon={<KeyboardArrowDown />}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      placeholder="Select Risk Categories"
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          paddingTop: "3.8px !important",
+                          paddingBottom: "3.8px !important",
+                        },
+                        "& ::placeholder": {
+                          fontSize: "13px",
+                        },
+                      }}
+                    />
+                  )}
+                  onChange={handleOnMultiselectChange("riskCategory")}
                   sx={{
                     width: "325px",
+                    backgroundColor: theme.palette.background.main,
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "5px",
+                      "&:hover .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#777",
+                      },
+                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#888",
+                        borderWidth: "1px",
+                      },
+                    },
                   }}
-                  disabled={isEditingDisabled}
+                  slotProps={{
+                    paper: {
+                      sx: {
+                        "& .MuiAutocomplete-listbox": {
+                          "& .MuiAutocomplete-option": {
+                            fontSize: "13px",
+                            color: "#1c2130",
+                            paddingLeft: "9px",
+                            paddingRight: "9px",
+                          },
+                          "& .MuiAutocomplete-option.Mui-focused": {
+                            background: "#f9fafb",
+                          },
+                        },
+                        "& .MuiAutocomplete-noOptions": {
+                          fontSize: "13px",
+                          paddingLeft: "9px",
+                          paddingRight: "9px",
+                        },
+                      },
+                    },
+                  }}
                 />
               </Stack>
               <Field

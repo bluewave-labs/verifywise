@@ -1,0 +1,17 @@
+[project]
+name = "biasandfairnessmodule"
+version = "0.1.0"
+description = "Experimental module for evaluating bias and fairness in Large Language Models"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "black>=25.1.0",
+    "flake8>=7.3.0",
+    "isort>=6.0.1",
+    "mypy>=1.16.1",
+    "pylint>=3.3.7",
+]
+
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"

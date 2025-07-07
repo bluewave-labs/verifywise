@@ -59,7 +59,9 @@ const TrustCenterResources: React.FC = () => {
     ]);
     setAddModalOpen(false);
   };
-  // const handleEditResource = (resourceId: number) => {};
+  const handleEditResource = (resourceId: number) => {
+    console.log('edit resource', resourceId);
+  };
   const handleDeleteResource = (resourceId: number) => {
     setResources(resources.filter(resource => resource.id !== resourceId));
   };

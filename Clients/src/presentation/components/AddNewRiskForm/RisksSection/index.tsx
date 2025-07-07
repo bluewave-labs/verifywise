@@ -95,7 +95,7 @@ const RiskSection: FC<RiskSectionProps> = ({
 
   const handleOnMultiselectChange = useCallback(
     (prop: keyof RiskFormValues) =>
-      (event: React.SyntheticEvent, newValue: { _id: number; name: string }[]) => {
+      (_event: React.SyntheticEvent, newValue: { _id: number; name: string }[]) => {
         setRiskValues((prevValues) => ({
           ...prevValues,
           [prop]: newValue.map(item => item._id),

@@ -10,6 +10,7 @@ dependencies = [
     "isort>=6.0.1",
     "mypy>=1.16.1",
     "pylint>=3.3.7",
+    "types-pyyaml>=6.0.12.20250516",
 ]
 
 [build-system]

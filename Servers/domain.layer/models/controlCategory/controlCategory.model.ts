@@ -5,28 +5,16 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { IControl } from "../../interfaces/i.control";
 import { ProjectModel } from "../project/project.model";
-
-/*
-
-This is the new ControlCategory model(Schema) and will be replaced with the new one.
-Please align other files with this
-
-*/
-export type ControlCategory = {
-  id?: number; //automatically created by database
-  project_id: number; // FK to the project table
-  title: string; // gets assigned from the structure
-  order_no?: number; // gets assigned from the structure
-  controls?: IControl[];
-  created_at?: Date;
-};
+import { IControlCategory } from "../../interfaces/i.controlCategory";
 
 @Table({
   tableName: "control_categories",
 })
-export class ControlCategoryModel extends Model<ControlCategory> {
+export class ControlCategoryModel
+  extends Model<ControlCategoryModel>
+  implements IControlCategory
+{
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,

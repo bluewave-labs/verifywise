@@ -1,16 +1,20 @@
 import { Model, Column, DataType, Table } from "sequelize-typescript";
+import { IFramework } from "../../interfaces/i.framework";
 
 export interface Framework {
   id?: number;
   name: string;
   description: string;
   created_at: Date;
-};
+}
 
 @Table({
-  tableName: "frameworks"
+  tableName: "frameworks",
 })
-export class FrameworkModel extends Model<Framework> {
+export class FrameworkModel
+  extends Model<FrameworkModel>
+  implements IFramework
+{
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,
@@ -19,17 +23,17 @@ export class FrameworkModel extends Model<Framework> {
   id?: number;
 
   @Column({
-    type: DataType.STRING
+    type: DataType.STRING,
   })
   name!: string;
 
   @Column({
-    type: DataType.STRING
+    type: DataType.STRING,
   })
   description!: string;
 
   @Column({
-    type: DataType.DATE
+    type: DataType.DATE,
   })
   created_at!: Date;
-};
+}

@@ -8,7 +8,7 @@ export const checkMultiTenancy = async (req: Request, res: Response, next: NextF
   if (
     (
       process.env.MULTI_TENANCY_ENABLED === "true" &&
-      requestOrigin === "app.verifywise.ai"
+      requestOrigin?.includes("app.verifywise.ai")
     ) || !organizationExists.exists
   ) {
     next();

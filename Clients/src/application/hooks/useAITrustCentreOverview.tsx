@@ -97,6 +97,8 @@ export const useAITrustCentreOverview = (): UseAITrustCentreOverviewReturn => {
     try {
       const response = await updateAITrustCentreOverview(overviewData);
       console.log('Update response:', response);
+      // Refetch the data from the database to ensure we have the latest state
+      await fetchOverview();
     } catch (err: any) {
       setError(err.message || 'Failed to update AI Trust Centre overview');
       console.error('Error updating AI Trust Centre overview:', err);
@@ -104,7 +106,7 @@ export const useAITrustCentreOverview = (): UseAITrustCentreOverviewReturn => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fetchOverview]);
 
   // Fetch data on mount
   useEffect(() => {

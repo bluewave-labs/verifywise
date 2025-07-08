@@ -58,53 +58,28 @@ const AITrustCenterOverview: React.FC = () => {
       // The actual data is nested under data.data
       const apiData = (data as any).data || data;
       
-      // Merge API data with existing form data instead of completely overwriting
+      // Use API data directly, but fallback to existing form data for missing fields
       setFormData(prevFormData => {
         const newFormData = {
           intro: { 
             ...prevFormData.intro, 
             ...(apiData.intro || {}),
-            // Only update boolean values if they exist in API data
-            intro_visible: apiData.intro?.intro_visible !== undefined ? apiData.intro.intro_visible : prevFormData.intro.intro_visible,
-            purpose_visible: apiData.intro?.purpose_visible !== undefined ? apiData.intro.purpose_visible : prevFormData.intro.purpose_visible,
-            our_statement_visible: apiData.intro?.our_statement_visible !== undefined ? apiData.intro.our_statement_visible : prevFormData.intro.our_statement_visible,
-            our_mission_visible: apiData.intro?.our_mission_visible !== undefined ? apiData.intro.our_mission_visible : prevFormData.intro.our_mission_visible,
           },
           compliance_badges: { 
             ...prevFormData.compliance_badges, 
             ...(apiData.compliance_badges || {}),
-            // Only update boolean values if they exist in API data
-            badges_visible: apiData.compliance_badges?.badges_visible !== undefined ? apiData.compliance_badges.badges_visible : prevFormData.compliance_badges.badges_visible,
-            SOC2_Type_I: apiData.compliance_badges?.SOC2_Type_I !== undefined ? apiData.compliance_badges.SOC2_Type_I : prevFormData.compliance_badges.SOC2_Type_I,
-            SOC2_Type_II: apiData.compliance_badges?.SOC2_Type_II !== undefined ? apiData.compliance_badges.SOC2_Type_II : prevFormData.compliance_badges.SOC2_Type_II,
-            ISO_27001: apiData.compliance_badges?.ISO_27001 !== undefined ? apiData.compliance_badges.ISO_27001 : prevFormData.compliance_badges.ISO_27001,
-            ISO_42001: apiData.compliance_badges?.ISO_42001 !== undefined ? apiData.compliance_badges.ISO_42001 : prevFormData.compliance_badges.ISO_42001,
-            CCPA: apiData.compliance_badges?.CCPA !== undefined ? apiData.compliance_badges.CCPA : prevFormData.compliance_badges.CCPA,
-            GDPR: apiData.compliance_badges?.GDPR !== undefined ? apiData.compliance_badges.GDPR : prevFormData.compliance_badges.GDPR,
-            HIPAA: apiData.compliance_badges?.HIPAA !== undefined ? apiData.compliance_badges.HIPAA : prevFormData.compliance_badges.HIPAA,
-            EU_AI_Act: apiData.compliance_badges?.EU_AI_Act !== undefined ? apiData.compliance_badges.EU_AI_Act : prevFormData.compliance_badges.EU_AI_Act,
           },
           company_info: { 
             ...prevFormData.company_info, 
             ...(apiData.company_info || {}),
-            // Only update boolean values if they exist in API data
-            company_info_visible: apiData.company_info?.company_info_visible !== undefined ? apiData.company_info.company_info_visible : prevFormData.company_info.company_info_visible,
-            background_visible: apiData.company_info?.background_visible !== undefined ? apiData.company_info.background_visible : prevFormData.company_info.background_visible,
-            core_benefit_visible: apiData.company_info?.core_benefit_visible !== undefined ? apiData.company_info.core_benefit_visible : prevFormData.company_info.core_benefit_visible,
-            compliance_doc_visible: apiData.company_info?.compliance_doc_visible !== undefined ? apiData.company_info.compliance_doc_visible : prevFormData.company_info.compliance_doc_visible,
           },
           terms_and_contact: { 
             ...prevFormData.terms_and_contact, 
             ...(apiData.terms_and_contact || {}),
-            // Only update boolean values if they exist in API data
-            is_visible: apiData.terms_and_contact?.is_visible !== undefined ? apiData.terms_and_contact.is_visible : prevFormData.terms_and_contact.is_visible,
-            has_terms_of_service: apiData.terms_and_contact?.has_terms_of_service !== undefined ? apiData.terms_and_contact.has_terms_of_service : prevFormData.terms_and_contact.has_terms_of_service,
-            has_privacy_policy: apiData.terms_and_contact?.has_privacy_policy !== undefined ? apiData.terms_and_contact.has_privacy_policy : prevFormData.terms_and_contact.has_privacy_policy,
-            has_company_email: apiData.terms_and_contact?.has_company_email !== undefined ? apiData.terms_and_contact.has_company_email : prevFormData.terms_and_contact.has_company_email,
           },
         };
         
-        console.log('Merged form data:', newFormData);
+        console.log('Updated form data from API:', newFormData);
         return newFormData;
       });
     }

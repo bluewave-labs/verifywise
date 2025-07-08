@@ -108,7 +108,7 @@ export const getAITrustCentreOverviewQuery = async (organizationId: number) => {
   try {
     // Get intro data
     const [introResults] = await sequelize.query(
-      `SELECT * FROM ai_trust_center_intro WHERE organization_id = :organizationId`,
+      `SELECT * FROM ai_trust_center_intro WHERE organization_id = :organizationId ORDER BY id ASC LIMIT 1`,
       {
         replacements: { organizationId },
       }
@@ -116,7 +116,7 @@ export const getAITrustCentreOverviewQuery = async (organizationId: number) => {
 
     // Get compliance badges data
     const [complianceBadgesResults] = await sequelize.query(
-      `SELECT * FROM ai_trust_center_compliance_badges WHERE organization_id = :organizationId`,
+      `SELECT * FROM ai_trust_center_compliance_badges WHERE organization_id = :organizationId ORDER BY id ASC LIMIT 1`,
       {
         replacements: { organizationId },
       }
@@ -124,7 +124,7 @@ export const getAITrustCentreOverviewQuery = async (organizationId: number) => {
 
     // Get company info data
     const [companyInfoResults] = await sequelize.query(
-      `SELECT * FROM ai_trust_center_company_info WHERE organization_id = :organizationId`,
+      `SELECT * FROM ai_trust_center_company_info WHERE organization_id = :organizationId ORDER BY id ASC LIMIT 1`,
       {
         replacements: { organizationId },
       }
@@ -132,7 +132,7 @@ export const getAITrustCentreOverviewQuery = async (organizationId: number) => {
 
     // Get terms and contact data
     const [termsAndContactResults] = await sequelize.query(
-      `SELECT * FROM ai_trust_center_terms_and_contact WHERE organization_id = :organizationId`,
+      `SELECT * FROM ai_trust_center_terms_and_contact WHERE organization_id = :organizationId ORDER BY id ASC LIMIT 1`,
       {
         replacements: { organizationId },
       }

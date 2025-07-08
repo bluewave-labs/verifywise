@@ -79,6 +79,21 @@ export async function updateAITrustCentreOverview(
       );
     }
 
+    // Check if data exists for this organization
+    const organizationId = 1; // Default organization ID
+    const existingData = await getAITrustCentreOverviewQuery(organizationId);
+    
+    let result;
+    if (!existingData) {
+      // No existing data, create new records
+      console.log('No existing data found, creating new records');
+      result = await createAITrustCentreOverviewQuery(overviewData, transaction);
+    } else {
+      // Existing data found, update records
+      console.log('Existing data found, updating records');
+      result = await updateAITrustCentreOverviewQuery(overviewData, transaction);
+    }
+
     // Validate intro section
     if (overviewData.intro) {
       if (typeof overviewData.intro.intro_visible !== 'boolean') {
@@ -209,8 +224,6 @@ export async function updateAITrustCentreOverview(
         );
       }
     }
-
-    const result = await updateAITrustCentreOverviewQuery(overviewData, transaction);
 
     if (result) {
       await transaction.commit();

@@ -10,7 +10,7 @@ import {
   deleteControlCategoryByIdQuery,
   getControlCategoryByProjectIdQuery,
 } from "../utils/controlCategory.utils";
-import { ControlCategory } from "../domain.layer/models/controlCategory/controlCategory.model";
+import { ControlCategoryModel } from "../domain.layer/models/controlCategory/controlCategory.model";
 import { sequelize } from "../database/db";
 
 export async function getAllControlCategories(
@@ -61,7 +61,7 @@ export async function createControlCategory(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   try {
-    const newControlCategory: ControlCategory = req.body;
+    const newControlCategory: ControlCategoryModel = req.body;
     const createdControlCategory = await createControlCategoryQuery(
       newControlCategory,
       transaction
@@ -81,7 +81,7 @@ export async function updateControlCategoryById(
   const transaction = await sequelize.transaction();
   try {
     const controlCategoryId = parseInt(req.params.id);
-    const updatedControlCategoryData: Partial<ControlCategory> = req.body;
+    const updatedControlCategoryData: Partial<ControlCategoryModel> = req.body;
     const updatedControlCategory = await updateControlCategoryByIdQuery(
       controlCategoryId,
       updatedControlCategoryData,

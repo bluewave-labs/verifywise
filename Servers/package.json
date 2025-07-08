@@ -55,6 +55,7 @@
     "@types/nodemailer": "^6.4.17",
     "@types/pg": "^8.11.10",
     "@types/swagger-ui-express": "^4.1.6",
+    "@types/winston": "^2.4.4",
     "@types/yamljs": "^0.2.34",
     "jest": "^30.0.2",
     "nodemon": "^3.1.7",

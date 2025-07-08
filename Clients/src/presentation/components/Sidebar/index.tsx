@@ -31,16 +31,12 @@ import { ReactComponent as Vendors } from "../../assets/icons/building.svg";
 import { ReactComponent as Settings } from "../../assets/icons/setting.svg";
 import { ReactComponent as FileManager } from "../../assets/icons/file.svg";
 import { ReactComponent as FairnessIcon } from "../../assets/icons/fairness-icon.svg";
-<<<<<<< HEAD
 import { ReactComponent as Feedback } from "../../assets/icons/feedback.svg";
 import { ReactComponent as Discord } from "../../assets/icons/discord.svg";
 import { ReactComponent as AITrustCenter } from "../../assets/icons/aiTrustCenter.svg";
 
 /**Adding the training register icon */
 import { ReactComponent as TrainingRegister } from "../../assets/icons/training-register.svg";
-=======
-
->>>>>>> develop
 
 import Logo from "../../assets/imgs/logo.png";
 

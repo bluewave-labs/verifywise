@@ -1,14 +1,9 @@
-<<<<<<< HEAD
 import { TableBody, TableRow, TableCell, Box } from "@mui/material";
 import singleTheme from '../../../../themes/v1SingleTheme';
 import trash from '../../../../assets/icons/trash-02.svg';
 import Button from '../../../../components/Button/index';
 import ConfirmableDeleteIconButton from "../../../../components/Modals/ConfirmableDeleteIconButton";
 
-=======
-import { TableBody, TableRow, TableCell, Button } from "@mui/material";
-import singleTheme from '../../../../themes/v1SingleTheme';
->>>>>>> develop
 
 interface FairnessTableBodyProps {
   rows: any[];

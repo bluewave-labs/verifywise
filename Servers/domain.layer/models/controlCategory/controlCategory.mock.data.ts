@@ -1,9 +1,9 @@
-import { ControlCategory } from "./controlCategory.model";
+import { IControlCategory } from "../../interfaces/i.controlCategory";
 
 export const ControlCategories = (
   projectId1: number,
   projectId2: number
-): ControlCategory[] => {
+): IControlCategory[] => {
   return [
     { order_no: 1, title: "AI literacy", project_id: projectId1 },
     {

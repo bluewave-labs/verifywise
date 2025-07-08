@@ -19,7 +19,10 @@ function feedback(accepted: boolean, message: string) {
  * @returns An object with `accepted` set to `true` if the value passes all validations,
  *          otherwise an object with `accepted` set to `false` and a `message` indicating the reason.
  */
-function selectValidation(title: string, value: number): {accepted: boolean; message: string} {
+function selectValidation(title: string, value: number | number[]): {accepted: boolean; message: string} {
+    if (Array.isArray(value)) {
+        return feedback(false, `${title} is required.`);
+    }
     if (value === 0) {
         return feedback(false, `${title} is required.`);
     }

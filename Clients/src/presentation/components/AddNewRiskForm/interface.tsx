@@ -5,7 +5,7 @@ export type ProjectRisk = {
   actionOwner: number;
   aiLifecyclePhase: number | string;
   riskDescription: string;
-  riskCategory: number | string;
+  riskCategory: number[] | string[];
   potentialImpact: string;
   assessmentMapping: number;
   controlsMapping: number;
@@ -30,7 +30,7 @@ export interface RiskFormValues {
   actionOwner: number;
   aiLifecyclePhase: number;
   riskDescription: string;
-  riskCategory: number;
+  riskCategory: number[];
   potentialImpact: string;
   assessmentMapping: number;
   controlsMapping: number;
@@ -45,7 +45,7 @@ export interface RiskFormErrors {
   actionOwner?: string;
   aiLifecyclePhase?: string;
   riskDescription?: string;
-  riskCategory?: string;
+  riskCategory?: string[];
   potentialImpact?: string;
   assessmentMapping?: string;
   controlsMapping?: string;

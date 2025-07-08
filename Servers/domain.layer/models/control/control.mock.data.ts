@@ -1,10 +1,10 @@
-import { Control } from "./control.model";
+import { IControl } from "../../interfaces/i.control";
 
 export const mockControls = (
   controlCategoryIds: number[],
   userId1: number,
   userId2: number
-): Control[] => {
+): IControl[] => {
   return [
     {
       title: "AI Literacy and Responsible AI Training",

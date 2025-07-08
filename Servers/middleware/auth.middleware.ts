@@ -3,6 +3,7 @@ import { getTokenPayload } from "../utils/jwt.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { getTenantHash } from "../tools/getTenantHash";
 import { doesUserBelongsToOrganizationQuery } from "../utils/user.utils";
+import { asyncLocalStorage } from '../utils/context/context';
 
 const authenticateJWT = async (
   req: Request,
@@ -57,7 +58,11 @@ const authenticateJWT = async (
     req.role = decoded.roleName;
     req.tenantId = decoded.tenantId;
     req.organizationId = decoded.organizationId;
-    next();
+
+    // Initialize AsyncLocalStorage context here
+    asyncLocalStorage.run({ userId: decoded.id }, () => {
+      next();
+    });
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

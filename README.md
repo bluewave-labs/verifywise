@@ -97,16 +97,11 @@ cd Servers
 npm install
 ```
 
-Go to the root directory:
+Go to the root directory and copy the contents of .env.dev to the .env file. Make sure to change the JWT_SECRET variable to your liking. 
 
 ```
 cd ..
-```
-
-Copy the contents of .env.dev to the .env file. Make sure to change the JWT_SECRET variable to your liking. 
-
-```
-cp .env.dev .env
+cp .env.dev Servers/.env
 ```
 
 In `.env` file, change FRONTEND_URL and ALLOWED_ORIGINS:

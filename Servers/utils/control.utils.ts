@@ -1,14 +1,12 @@
-import {
-  Control,
-  ControlModel,
-} from "../domain.layer/models/control/control.model";
+import { ControlModel } from "../domain.layer/models/control/control.model";
 import { sequelize } from "../database/db";
 import { createNewSubControlsQuery } from "./subControl.utils";
 import { Model, QueryTypes, Transaction } from "sequelize";
+import { IControl } from "../domain.layer/interfaces/i.control";
 
 export const getAllControlsQuery = async (
   tenant: string
-): Promise<Control[]> => {
+): Promise<IControl[]> => {
   const controls = await sequelize.query(
     `SELECT * FROM "${tenant}".controls ORDER BY created_at DESC, id ASC`,
     {
@@ -22,7 +20,7 @@ export const getAllControlsQuery = async (
 export const getControlByIdQuery = async (
   id: number,
   tenant: string
-): Promise<Control | null> => {
+): Promise<IControl | null> => {
   const result = await sequelize.query(
     `SELECT * FROM "${tenant}".controls WHERE id = :id`,
     {
@@ -37,7 +35,7 @@ export const getControlByIdQuery = async (
 export const getAllControlsByControlGroupQuery = async (
   controlGroupId: any,
   tenant: string
-): Promise<Control[]> => {
+): Promise<IControl[]> => {
   const controls = await sequelize.query(
     `SELECT * FROM "${tenant}".controls WHERE control_category_id = :control_category_id ORDER BY created_at DESC, id ASC`,
     {
@@ -53,7 +51,7 @@ export const getControlByIdAndControlTitleAndControlDescriptionQuery = async (
   id: number,
   controlTitle: string,
   controlDescription: string
-): Promise<Control | null> => {
+): Promise<IControl | null> => {
   const result = await sequelize.query(
     `SELECT * FROM controls WHERE
       control_category_id = : control_category_id 
@@ -73,10 +71,10 @@ export const getControlByIdAndControlTitleAndControlDescriptionQuery = async (
 };
 
 export const createNewControlQuery = async (
-  control: Partial<Control>,
+  control: Partial<ControlModel>,
   tenant: string,
   transaction: Transaction
-): Promise<Control> => {
+): Promise<ControlModel> => {
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".controls (
       title, description, order_no, 
@@ -112,11 +110,11 @@ export const createNewControlQuery = async (
 
 export const updateControlByIdQuery = async (
   id: number,
-  control: Partial<Control>,
+  control: Partial<ControlModel>,
   tenant: string,
   transaction: Transaction
-): Promise<Control> => {
-  const updateControl: Partial<Record<keyof Control, any>> = {};
+): Promise<ControlModel> => {
+  const updateControl: Partial<Record<keyof ControlModel, any>> = {};
   const setClause = [
     "title",
     "description",
@@ -130,10 +128,11 @@ export const updateControlByIdQuery = async (
   ]
     .filter((f) => {
       if (
-        control[f as keyof Control] !== undefined &&
-        control[f as keyof Control]
+        control[f as keyof ControlModel] !== undefined &&
+        control[f as keyof ControlModel]
       ) {
-        updateControl[f as keyof Control] = control[f as keyof Control];
+        updateControl[f as keyof ControlModel] =
+          control[f as keyof ControlModel];
         return true;
       }
     })

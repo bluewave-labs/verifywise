@@ -1,4 +1,3 @@
-import { AssessmentModel } from "../models/assessment/assessment.model";
 import { ValidationException } from "../exceptions/custom.exception";
 import { IAssessment } from "../interfaces/i.assessment";
 
@@ -324,35 +323,74 @@ describe("AssessmentModel", () => {
     });
 
     it("should return correct age for assessment with created_at", () => {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
+      // Use a fixed date to avoid timezone and timing issues
+      const fixedDate = new Date("2024-01-01T12:00:00.000Z");
       const assessment = new TestAssessmentModel({
         ...validData,
-        created_at: yesterday,
+        created_at: fixedDate,
       });
-      expect(assessment.getAgeInDays()).toBe(1);
+
+      // Mock the current date to ensure consistent results
+      const originalDate = global.Date;
+      const mockDate = new Date("2024-01-02T12:00:00.000Z");
+      global.Date = jest.fn(() => mockDate) as any;
+      global.Date.UTC = originalDate.UTC;
+      global.Date.parse = originalDate.parse;
+      global.Date.now = originalDate.now;
+
+      try {
+        expect(assessment.getAgeInDays()).toBe(1);
+      } finally {
+        global.Date = originalDate;
+      }
     });
   });
 
   describe("isRecent", () => {
     it("should return true for recent assessment", () => {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
+      // Use a fixed date to avoid timezone and timing issues
+      const fixedDate = new Date("2024-01-01T12:00:00.000Z");
       const assessment = new TestAssessmentModel({
         ...validData,
-        created_at: yesterday,
+        created_at: fixedDate,
       });
-      expect(assessment.isRecent(7)).toBe(true);
+
+      // Mock the current date to ensure consistent results
+      const originalDate = global.Date;
+      const mockDate = new Date("2024-01-02T12:00:00.000Z");
+      global.Date = jest.fn(() => mockDate) as any;
+      global.Date.UTC = originalDate.UTC;
+      global.Date.parse = originalDate.parse;
+      global.Date.now = originalDate.now;
+
+      try {
+        expect(assessment.isRecent(7)).toBe(true);
+      } finally {
+        global.Date = originalDate;
+      }
     });
 
     it("should return false for old assessment", () => {
-      const oldDate = new Date();
-      oldDate.setDate(oldDate.getDate() - 10);
+      // Use a fixed date to avoid timezone and timing issues
+      const oldDate = new Date("2024-01-01T12:00:00.000Z");
       const assessment = new TestAssessmentModel({
         ...validData,
         created_at: oldDate,
       });
-      expect(assessment.isRecent(7)).toBe(false);
+
+      // Mock the current date to ensure consistent results
+      const originalDate = global.Date;
+      const mockDate = new Date("2024-01-15T12:00:00.000Z");
+      global.Date = jest.fn(() => mockDate) as any;
+      global.Date.UTC = originalDate.UTC;
+      global.Date.parse = originalDate.parse;
+      global.Date.now = originalDate.now;
+
+      try {
+        expect(assessment.isRecent(7)).toBe(false);
+      } finally {
+        global.Date = originalDate;
+      }
     });
   });
 

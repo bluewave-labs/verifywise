@@ -32,7 +32,6 @@ const CustomModal: React.FC<CustomModalProps> = ({
   content,
   subControlTlts,
 }) => {
-  console.log("🚀 ~ tittttttttle:", title);
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<number>(0); // State to track active tab
 
@@ -224,10 +223,12 @@ const CustomModal: React.FC<CustomModalProps> = ({
               feedback=""
               onChange={(e) => console.log(e.target.value)}
               files={[]}
-              deletedFilesIds={[]} 
+              deletedFilesIds={[]}
               onDeletedFilesChange={(ids) => console.log("Deleted Files:", ids)} // Add a handler
-              uploadFiles={[]} 
-              onUploadFilesChange={(files) => console.log("Uploaded Files:", files)} // Add a handler
+              uploadFiles={[]}
+              onUploadFilesChange={(files) =>
+                console.log("Uploaded Files:", files)
+              } // Add a handler
             />
           )}
         </Box>

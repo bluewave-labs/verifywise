@@ -13,7 +13,13 @@ import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.c
 import { ComplianceData } from "../../../../domain/interfaces/iCompliance";
 import { Project } from "../../../../domain/types/Project";
 
-const ComplianceTracker = ({ project }: { project: Project }) => {
+const ComplianceTracker = ({
+  project,
+  statusFilter,
+}: {
+  project: Project;
+  statusFilter?: string;
+}) => {
   const currentProjectId = project?.id;
   const currentProjectFramework = project.framework.filter(
     (p) => p.framework_id === 1
@@ -156,6 +162,7 @@ const ComplianceTracker = ({ project }: { project: Project }) => {
                   onComplianceUpdate={fetchComplianceData}
                   projectId={currentProjectId}
                   projectFrameworkId={currentProjectFramework}
+                  statusFilter={statusFilter}
                 />
               </div>
             ) : (
@@ -165,6 +172,7 @@ const ComplianceTracker = ({ project }: { project: Project }) => {
                 onComplianceUpdate={fetchComplianceData}
                 projectId={currentProjectId}
                 projectFrameworkId={currentProjectFramework}
+                statusFilter={statusFilter}
               />
             )
           )}

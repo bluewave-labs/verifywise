@@ -3,13 +3,14 @@ import {
   TableCell,
   TableRow,
   useTheme,
-  Box,
+  Chip,
 } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";
 import { useContext } from "react";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import { RISK_LABELS } from "../../components/RiskLevel/constants";
+import { getMitigationStatusColor } from "../../constants/statusColors";
+import RiskChip from "../../components/RiskLevel/RiskChip";
 import IconButton from "../../components/IconButton";
 import { formatDate } from "../../tools/isoDateToString";
 import allowedRoles from "../../../application/constants/permissions";
@@ -93,7 +94,7 @@ const VWProjectRisksTableBody = ({
                   backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
                 }}
               >
-                {row.severity ? row.severity : "-"}
+                <RiskChip label={row.severity} />
               </TableCell>
               <TableCell
                 sx={cellStyle}
@@ -109,11 +110,21 @@ const VWProjectRisksTableBody = ({
                   backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
                 }}
               >
-                {row.mitigation_plan
-                  ? row.mitigation_plan.length > 30
-                    ? `${row.mitigation_plan.slice(0, 30)}...`
-                    : row.mitigation_plan
-                  : "-"}
+                {row.mitigation_status ? (
+                  <Chip
+                    label={row.mitigation_status}
+                    size="small"
+                    sx={{
+                      backgroundColor: getMitigationStatusColor(row.mitigation_status),
+                      color: 'white',
+                      fontWeight: 500,
+                      borderRadius: theme.shape.borderRadius,
+                      height: 24,
+                    }}
+                  />
+                ) : (
+                  "-"
+                )}
               </TableCell>
               <TableCell
                 sx={cellStyle}
@@ -121,31 +132,7 @@ const VWProjectRisksTableBody = ({
                   backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
                 }}
               >
-                {row.mitigation_status ? row.mitigation_status : "-"}
-              </TableCell>
-              <TableCell
-                sx={cellStyle}
-                style={{
-                  backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
-                }}
-              >
-                <Box
-                  sx={{
-                    backgroundColor:
-                      Object.values(RISK_LABELS).find(
-                        (risk) => risk.text === row.risk_level_autocalculated
-                      )?.color || "transparent",
-                    borderRadius: theme.shape.borderRadius,
-                    padding: "8px",
-                    textAlign: "center",
-                    justifyContent: "center",
-                    color: "white",
-                  }}
-                >
-                  {row.risk_level_autocalculated
-                    ? row.risk_level_autocalculated
-                    : "-"}
-                </Box>
+                <RiskChip label={row.risk_level_autocalculated} />
               </TableCell>
               <TableCell
                 sx={cellStyle}

@@ -10,7 +10,12 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { listItemStyle, pageHeadingStyle, subHeadingStyle, topicsListStyle } from "./index.style";
+import {
+  listItemStyle,
+  pageHeadingStyle,
+  subHeadingStyle,
+  topicsListStyle,
+} from "./index.style";
 import StatsCard from "../../../components/Cards/StatsCard";
 import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 import Questions from "./questions";
@@ -21,8 +26,15 @@ import PageTour from "../../../components/PageTour";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
 import AssessmentSteps from "./AssessmentSteps";
 import { Project } from "../../../../domain/types/Project";
+import { Question } from "../../../../domain/types/Question";
 
-const AssessmentTracker = ({ project }: { project: Project }) => {
+const AssessmentTracker = ({
+  project,
+  statusFilter,
+}: {
+  project: Project;
+  statusFilter?: string;
+}) => {
   const theme = useTheme();
   const [refreshKey, setRefreshKey] = useState(false);
   const currentProjectId = project?.id;
@@ -65,6 +77,19 @@ const AssessmentTracker = ({ project }: { project: Project }) => {
   const handleListItemClick = useCallback((index: number) => {
     setActiveTab(index);
   }, []);
+
+  // Filter subtopics based on the statusFilter, if provided
+  const filteredSubtopics = assessmentSubtopics
+    ? assessmentSubtopics.map((subtopic: any) => ({
+        ...subtopic,
+        questions: subtopic.questions.filter(
+          (question: Question) =>
+            !statusFilter ||
+            statusFilter === "all" ||
+            question.status.toLowerCase() === statusFilter
+        ),
+      }))
+    : [];
 
   const topicsList = useCallback(
     (topic: any, index: number) => (
@@ -204,8 +229,8 @@ const AssessmentTracker = ({ project }: { project: Project }) => {
                 maxWidth={300}
                 variant="rectangular"
               />
-            ) : assessmentSubtopics ? (
-              assessmentSubtopics.map((subtopic: any, index: number) => (
+            ) : filteredSubtopics ? (
+              filteredSubtopics.map((subtopic: any, index: number) => (
                 <div key={`subtopic-${subtopic.id || index}`}>
                   <Questions
                     currentProjectId={currentProjectId}

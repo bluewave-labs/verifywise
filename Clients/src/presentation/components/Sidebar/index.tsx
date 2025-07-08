@@ -34,6 +34,7 @@ import { ReactComponent as FairnessIcon } from "../../assets/icons/fairness-icon
 <<<<<<< HEAD
 import { ReactComponent as Feedback } from "../../assets/icons/feedback.svg";
 import { ReactComponent as Discord } from "../../assets/icons/discord.svg";
+import { ReactComponent as AITrustCenter } from "../../assets/icons/aiTrustCenter.svg";
 
 /**Adding the training register icon */
 import { ReactComponent as TrainingRegister } from "../../assets/icons/training-register.svg";
@@ -86,6 +87,11 @@ const menu = [
     name: "Training Registry",
     icon: <TrainingRegister />,
     path: "/training",
+  },
+  {
+    name: "AI Trust Center",
+    icon: <AITrustCenter />,
+    path: "/ai-trust-center",
   },
 ];
 

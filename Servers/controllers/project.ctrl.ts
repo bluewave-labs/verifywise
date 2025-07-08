@@ -14,43 +14,49 @@ import {
 } from "../utils/project.utils";
 import { getUserByIdQuery } from "../utils/user.utils";
 import { getControlCategoryByProjectIdQuery } from "../utils/controlCategory.utils";
-import { Project, ProjectModel } from "../models/project.model";
+import { ProjectModel } from "../domain.layer/models/project/project.model";
 import { getAllControlsByControlGroupQuery } from "../utils/control.utils";
 import { getAllSubcontrolsByControlIdQuery } from "../utils/subControl.utils";
-import { ControlModel } from "../models/control.model";
-import { ControlCategoryModel } from "../models/controlCategory.model";
 import { createEUFrameworkQuery } from "../utils/eu.utils";
 import { sequelize } from "../database/db";
 import { createISOFrameworkQuery } from "../utils/iso42001.utils";
+import { IProjectAttributes } from "../domain.layer/interfaces/i.project";
+import { IControl } from "../domain.layer/interfaces/i.control";
+import { IControlCategory } from "../domain.layer/interfaces/i.controlCategory";
 
 export async function getAllProjects(
   req: Request,
   res: Response
 ): Promise<any> {
   try {
-    const { userId, role } = req; 
+    const { userId, role } = req;
     if (!userId || !role) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(401).json({ message: "Unauthorized" });
     }
-    
-    const projects = (await getAllProjectsQuery({ userId, role})) as ProjectModel[];
+
+    const projects = (await getAllProjectsQuery({
+      userId,
+      role,
+    })) as IProjectAttributes[];
 
     if (projects && projects.length > 0) {
       await Promise.all(
         projects.map(async (project) => {
           // calculating compliances
-          const { totalSubcontrols, doneSubcontrols } = await countSubControlsByProjectId(project.id!);
-          project.dataValues.totalSubcontrols = parseInt(totalSubcontrols);
-          project.dataValues.doneSubcontrols = parseInt(doneSubcontrols);
+          const { totalSubcontrols, doneSubcontrols } =
+            await countSubControlsByProjectId(project.id!);
+          project.totalSubcontrols = parseInt(totalSubcontrols);
+          project.doneSubcontrols = parseInt(doneSubcontrols);
 
           // calculating assessments
-          const { totalAssessments, answeredAssessments } = await countAnswersByProjectId(project.id!);
-          project.dataValues.totalAssessments = parseInt(totalAssessments);
-          project.dataValues.answeredAssessments = parseInt(answeredAssessments);
+          const { totalAssessments, answeredAssessments } =
+            await countAnswersByProjectId(project.id!);
+          project.totalAssessments = parseInt(totalAssessments);
+          project.answeredAssessments = parseInt(answeredAssessments);
         })
       );
       return res.status(200).json(STATUS_CODE[200](projects));
-    }else {      
+    } else {
       return res.status(200).json(STATUS_CODE[200](projects));
     }
     return res.status(200).json(STATUS_CODE[200](projects));
@@ -81,7 +87,7 @@ export async function getProjectById(
 export async function createProject(req: Request, res: Response): Promise<any> {
   const transaction = await sequelize.transaction();
   try {
-    const newProject: Partial<Project> & {
+    const newProject: Partial<ProjectModel> & {
       members: number[];
       framework: number[];
       enable_ai_data_insertion: boolean;
@@ -104,21 +110,21 @@ export async function createProject(req: Request, res: Response): Promise<any> {
       newProject.framework,
       transaction
     );
-    const frameworks: { [key: string]: Object } = {}
+    const frameworks: { [key: string]: Object } = {};
     for (const framework of newProject.framework) {
       if (framework === 1) {
         const eu = await createEUFrameworkQuery(
           createdProject.id!,
           newProject.enable_ai_data_insertion,
           transaction
-        )
+        );
         frameworks["eu"] = eu;
       } else if (framework === 2) {
         const iso42001 = await createISOFrameworkQuery(
           createdProject.id!,
           newProject.enable_ai_data_insertion, // false
           transaction
-        )
+        );
         frameworks["iso42001"] = iso42001;
       }
     }
@@ -128,7 +134,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
       return res.status(201).json(
         STATUS_CODE[201]({
           project: createdProject,
-          frameworks
+          frameworks,
         })
       );
     }
@@ -147,7 +153,8 @@ export async function updateProjectById(
   const transaction = await sequelize.transaction();
   try {
     const projectId = parseInt(req.params.id);
-    const updatedProject: Partial<Project> & { members?: number[] } = req.body;
+    const updatedProject: Partial<ProjectModel> & { members?: number[] } =
+      req.body;
     const members = updatedProject.members || [];
 
     delete updatedProject.members;
@@ -276,25 +283,25 @@ export async function getCompliances(req: Request, res: Response) {
     if (project) {
       const controlCategories = (await getControlCategoryByProjectIdQuery(
         project.id!
-      )) as ControlCategoryModel[];
+      )) as IControlCategory[];
       for (const category of controlCategories) {
         if (category) {
           const controls = (await getAllControlsByControlGroupQuery(
             category.id
-          )) as ControlModel[];
+          )) as IControl[];
           for (const control of controls) {
             if (control && control.id) {
               const subControls = await getAllSubcontrolsByControlIdQuery(
                 control.id
               );
-              control.dataValues.numberOfSubcontrols = subControls.length;
-              control.dataValues.numberOfDoneSubcontrols = subControls.filter(
+              control.numberOfSubcontrols = subControls.length;
+              control.numberOfDoneSubcontrols = subControls.filter(
                 (subControl) => subControl.status === "Done"
               ).length;
-              control.dataValues.subControls = subControls;
+              control.subControls = subControls;
             }
           }
-          category.dataValues.controls = controls;
+          category.controls = controls;
         }
       }
       return res.status(200).json(STATUS_CODE[200](controlCategories));
@@ -311,7 +318,8 @@ export async function projectComplianceProgress(req: Request, res: Response) {
   try {
     const project = await getProjectByIdQuery(projectId);
     if (project) {
-      const { totalSubcontrols, doneSubcontrols } = await countSubControlsByProjectId(project.id!);
+      const { totalSubcontrols, doneSubcontrols } =
+        await countSubControlsByProjectId(project.id!);
       return res.status(200).json(
         STATUS_CODE[200]({
           allsubControls: totalSubcontrols,
@@ -331,7 +339,8 @@ export async function projectAssessmentProgress(req: Request, res: Response) {
   try {
     const project = await getProjectByIdQuery(projectId);
     if (project) {
-      const { totalAssessments, answeredAssessments } = await countAnswersByProjectId(project.id!);
+      const { totalAssessments, answeredAssessments } =
+        await countAnswersByProjectId(project.id!);
       return res.status(200).json(
         STATUS_CODE[200]({
           totalQuestions: totalAssessments,
@@ -353,16 +362,17 @@ export async function allProjectsComplianceProgress(
   let totalNumberOfSubcontrols = 0;
   let totalNumberOfDoneSubcontrols = 0;
   try {
-    const { userId, role } = req; 
+    const { userId, role } = req;
     if (!userId || !role) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(401).json({ message: "Unauthorized" });
     }
     const projects = await getAllProjectsQuery({ userId, role });
     if (projects && projects.length > 0) {
       await Promise.all(
         projects.map(async (project) => {
           // calculating compliances
-          const { totalSubcontrols, doneSubcontrols } = await countSubControlsByProjectId(project.id!);
+          const { totalSubcontrols, doneSubcontrols } =
+            await countSubControlsByProjectId(project.id!);
           totalNumberOfSubcontrols += parseInt(totalSubcontrols);
           totalNumberOfDoneSubcontrols += parseInt(doneSubcontrols);
         })
@@ -373,7 +383,7 @@ export async function allProjectsComplianceProgress(
           allDonesubControls: totalNumberOfDoneSubcontrols,
         })
       );
-    } else {      
+    } else {
       return res.status(404).json(STATUS_CODE[404](projects));
     }
   } catch (error) {
@@ -388,16 +398,17 @@ export async function allProjectsAssessmentProgress(
   let totalNumberOfQuestions = 0;
   let totalNumberOfAnsweredQuestions = 0;
   try {
-    const { userId, role } = req; 
+    const { userId, role } = req;
     if (!userId || !role) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(401).json({ message: "Unauthorized" });
     }
     const projects = await getAllProjectsQuery({ userId, role });
     if (projects && projects.length > 0) {
       await Promise.all(
         projects.map(async (project) => {
           // // calculating assessments
-          const { totalAssessments, answeredAssessments } = await countAnswersByProjectId(project.id!);
+          const { totalAssessments, answeredAssessments } =
+            await countAnswersByProjectId(project.id!);
           totalNumberOfQuestions = parseInt(totalAssessments);
           totalNumberOfAnsweredQuestions = parseInt(answeredAssessments);
         })

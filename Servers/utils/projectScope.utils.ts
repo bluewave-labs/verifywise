@@ -1,4 +1,7 @@
-import { ProjectScope, ProjectScopeModel } from "../models/projectScope.model";
+import {
+  ProjectScope,
+  ProjectScopeModel,
+} from "../domain.layer/models/projectScope/projectScope.model";
 import { sequelize } from "../database/db";
 import { QueryTypes, Transaction } from "sequelize";
 
@@ -7,7 +10,7 @@ export const getAllProjectScopesQuery = async (): Promise<ProjectScope[]> => {
     "SELECT * FROM projectscopes ORDER BY created_at DESC, id ASC",
     {
       mapToModel: true,
-      model: ProjectScopeModel
+      model: ProjectScopeModel,
     }
   );
   return projectScopes;
@@ -21,13 +24,16 @@ export const getProjectScopeByIdQuery = async (
     {
       replacements: { id },
       mapToModel: true,
-      model: ProjectScopeModel
+      model: ProjectScopeModel,
     }
   );
   return result[0];
 };
 
-export const createProjectScopeQuery = async (projectScope: Partial<ProjectScope>, transaction: Transaction): Promise<ProjectScope> => {
+export const createProjectScopeQuery = async (
+  projectScope: Partial<ProjectScope>,
+  transaction: Transaction
+): Promise<ProjectScope> => {
   const result = await sequelize.query(
     `INSERT INTO projectscopes (
       assessment_id, describe_ai_environment, is_new_ai_technology,
@@ -53,7 +59,7 @@ export const createProjectScopeQuery = async (projectScope: Partial<ProjectScope
       mapToModel: true,
       model: ProjectScopeModel,
       // type: QueryTypes.INSERT
-      transaction
+      transaction,
     }
   );
   return result[0];
@@ -75,12 +81,19 @@ export const updateProjectScopeByIdQuery = async (
     "has_ongoing_monitoring",
     "unintended_outcomes",
     "technology_documentation",
-  ].filter(f => {
-    if (projectScope[f as keyof ProjectScope] !== undefined && projectScope[f as keyof ProjectScope]) {
-      updateProjectScope[f as keyof ProjectScope] = projectScope[f as keyof ProjectScope]
-      return true
-    }
-  }).map(f => `${f} = :${f}`).join(", ");
+  ]
+    .filter((f) => {
+      if (
+        projectScope[f as keyof ProjectScope] !== undefined &&
+        projectScope[f as keyof ProjectScope]
+      ) {
+        updateProjectScope[f as keyof ProjectScope] =
+          projectScope[f as keyof ProjectScope];
+        return true;
+      }
+    })
+    .map((f) => `${f} = :${f}`)
+    .join(", ");
 
   const query = `UPDATE projectscopes SET ${setClause} WHERE id = :id RETURNING *;`;
 
@@ -91,7 +104,7 @@ export const updateProjectScopeByIdQuery = async (
     mapToModel: true,
     model: ProjectScopeModel,
     // type: QueryTypes.UPDATE,
-    transaction
+    transaction,
   });
 
   return result[0];
@@ -108,7 +121,7 @@ export const deleteProjectScopeByIdQuery = async (
       mapToModel: true,
       model: ProjectScopeModel,
       type: QueryTypes.DELETE,
-      transaction
+      transaction,
     }
   );
   return result.length > 0;

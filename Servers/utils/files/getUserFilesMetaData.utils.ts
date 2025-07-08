@@ -1,5 +1,5 @@
 import { sequelize } from "../../database/db";
-import { FileModel } from "../../models/file.model";
+import { FileModel } from "../../domain.layer/models/file/file.model";
 
 const getUserFilesMetaDataQuery = async (
   role: string,
@@ -8,9 +8,10 @@ const getUserFilesMetaDataQuery = async (
 ): Promise<FileModel[]> => {
   const { limit, offset } = options ?? {}; // Default to empty object
 
-  const paginationClause = limit !== undefined && offset !== undefined
-    ? "LIMIT :limit OFFSET :offset"
-    : limit !== undefined
+  const paginationClause =
+    limit !== undefined && offset !== undefined
+      ? "LIMIT :limit OFFSET :offset"
+      : limit !== undefined
       ? "LIMIT :limit"
       : "";
 
@@ -41,7 +42,7 @@ const getUserFilesMetaDataQuery = async (
         WHERE f.source::TEXT NOT ILIKE '%report%'
         ORDER BY f.uploaded_time DESC
       ${paginationClause};`;
-      replacements.userId = userId;
+    replacements.userId = userId;
   }
 
   if (limit !== undefined) replacements.limit = limit;
@@ -59,5 +60,4 @@ const getUserFilesMetaDataQuery = async (
   }
 };
 
-
-export default getUserFilesMetaDataQuery
+export default getUserFilesMetaDataQuery;

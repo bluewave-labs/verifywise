@@ -99,7 +99,7 @@ function App() {
       changeComponentVisibility,
       users,
       refreshUsers,
-      userRoleName
+      userRoleName,
     }),
     [
       uiValues,
@@ -123,7 +123,7 @@ function App() {
       changeComponentVisibility,
       users,
       refreshUsers,
-      userRoleName
+      userRoleName,
     ]
   );
 

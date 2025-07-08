@@ -20,7 +20,10 @@
  * @module utils/organization.util
  */
 
-import { Organization, OrganizationModel } from "../models/organization.model";
+import {
+  Organization,
+  OrganizationModel,
+} from "../domain.layer/models/organization/organization.model";
 import { sequelize } from "../database/db";
 import { QueryTypes, Transaction } from "sequelize";
 
@@ -42,7 +45,7 @@ export const getAllOrganizationsQuery = async (
     {
       mapToModel: true,
       model: OrganizationModel,
-      ...(transaction && { transaction })
+      ...(transaction && { transaction }),
     }
   );
   return organizations;

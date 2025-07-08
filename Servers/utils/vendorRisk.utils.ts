@@ -1,4 +1,7 @@
-import { VendorRisk, VendorRiskModel } from "../models/vendorRisk.model";
+import {
+  VendorRisk,
+  VendorRiskModel,
+} from "../domain.layer/models/vendorRisk/vendorRisk.model";
 import { sequelize } from "../database/db";
 import { QueryTypes, Transaction } from "sequelize";
 
@@ -10,7 +13,7 @@ export const getVendorRisksByProjectIdQuery = async (
     {
       replacements: { project_id: projectId },
       mapToModel: true,
-      model: VendorRiskModel
+      model: VendorRiskModel,
     }
   );
   return vendorRisks;
@@ -24,13 +27,16 @@ export const getVendorRiskByIdQuery = async (
     {
       replacements: { id },
       mapToModel: true,
-      model: VendorRiskModel
+      model: VendorRiskModel,
     }
   );
   return result[0];
 };
 
-export const createNewVendorRiskQuery = async (vendorRisk: VendorRisk, transaction: Transaction): Promise<VendorRisk> => {
+export const createNewVendorRiskQuery = async (
+  vendorRisk: VendorRisk,
+  transaction: Transaction
+): Promise<VendorRisk> => {
   const result = await sequelize.query(
     `INSERT INTO vendorRisks (
       vendor_id, order_no, risk_description, impact_description,
@@ -54,7 +60,7 @@ export const createNewVendorRiskQuery = async (vendorRisk: VendorRisk, transacti
       mapToModel: true,
       model: VendorRiskModel,
       // type: QueryTypes.INSERT
-      transaction
+      transaction,
     }
   );
   return result[0];
@@ -75,12 +81,19 @@ export const updateVendorRiskByIdQuery = async (
     "action_plan",
     "action_owner",
     "risk_level",
-  ].filter(f => {
-    if (vendorRisk[f as keyof VendorRisk] !== undefined && vendorRisk[f as keyof VendorRisk]) {
-      updateVendorRisk[f as keyof VendorRisk] = vendorRisk[f as keyof VendorRisk]
-      return true
-    }
-  }).map(f => `${f} = :${f}`).join(", ");
+  ]
+    .filter((f) => {
+      if (
+        vendorRisk[f as keyof VendorRisk] !== undefined &&
+        vendorRisk[f as keyof VendorRisk]
+      ) {
+        updateVendorRisk[f as keyof VendorRisk] =
+          vendorRisk[f as keyof VendorRisk];
+        return true;
+      }
+    })
+    .map((f) => `${f} = :${f}`)
+    .join(", ");
 
   const query = `UPDATE vendorrisks SET ${setClause} WHERE id = :id RETURNING *;`;
 
@@ -91,7 +104,7 @@ export const updateVendorRiskByIdQuery = async (
     mapToModel: true,
     model: VendorRiskModel,
     // type: QueryTypes.UPDATE,
-    transaction
+    transaction,
   });
 
   return result[0];
@@ -127,9 +140,9 @@ export const deleteVendorRisksForVendorQuery = async (
       type: QueryTypes.UPDATE,
       transaction,
     }
-  )
+  );
   return result.length > 0;
-}
+};
 
 export const getAllVendorRisksAllProjectsQuery = async () => {
   const risks = await sequelize.query(
@@ -152,4 +165,3 @@ export const getAllVendorRisksAllProjectsQuery = async () => {
   );
   return risks;
 };
-

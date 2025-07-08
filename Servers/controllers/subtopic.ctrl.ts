@@ -9,7 +9,7 @@ import {
   getSubTopicByTopicIdQuery,
   updateSubtopicByIdQuery,
 } from "../utils/subtopic.utils";
-import { Subtopic } from "../models/subtopic.model";
+import { Subtopic } from "../domain.layer/models/subtopic/subtopic.model";
 import { sequelize } from "../database/db";
 
 export async function getAllSubtopics(
@@ -54,7 +54,10 @@ export async function createNewSubtopic(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   try {
-    const subtopic = await createNewSubtopicQuery(req.body as Subtopic, transaction);
+    const subtopic = await createNewSubtopicQuery(
+      req.body as Subtopic,
+      transaction
+    );
 
     if (subtopic) {
       await transaction.commit();

@@ -24,172 +24,265 @@ import {
   generateToken,
   getRefreshTokenPayload,
 } from "../utils/jwt.utils";
-import { UserModel } from "../models/user.model";
+import { UserModel } from "../domain.layer/models/user/user.model";
 import { sequelize } from "../database/db";
+import {
+  ValidationException,
+  BusinessLogicException,
+} from "../domain.layer/exceptions/custom.exception";
+import logger, { logStructured } from "../utils/logger/fileLogger";
+import { logEvent } from "../utils/logger/dbLogger";
 
 async function getAllUsers(req: Request, res: Response): Promise<any> {
+  logStructured('processing', 'starting getAllUsers', 'getAllUsers', 'user.ctrl.ts');
+  logger.debug('🔍 Fetching all users');
+
   try {
     const users = (await getAllUsersQuery()) as UserModel[];
 
-    if (users) {
-      return res.status(200).json(
-        STATUS_CODE[200](
-          users.map((user) => {
-            const { password_hash, ...safeUser } = user.get({ plain: true });
-            return safeUser;
-          })
-        )
-      );
+    if (users && users.length > 0) {
+      await logEvent('Read', `Retrieved ${users.length} users`);
+      return res
+        .status(200)
+        .json(STATUS_CODE[200](users.map((user) => user.toSafeJSON())));
     }
 
+    logStructured('successful', 'no users found', 'getAllUsers', 'user.ctrl.ts');
+    await logEvent('Read', 'No users found');
     return res.status(204).json(STATUS_CODE[204](users));
   } catch (error) {
+    logStructured('error', 'failed to retrieve users', 'getAllUsers', 'user.ctrl.ts');
+    await logEvent('Error', `Failed to retrieve users: ${(error as Error).message}`);
+    logger.error('❌ Error in getAllUsers:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 async function getUserByEmail(req: Request, res: Response) {
+  const email = req.params.email;
+  logStructured('processing', `fetching user by email: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
+  logger.debug(`🔍 Looking up user with email: ${email}`);
+
   try {
-    const email = req.params.email;
-    const user = (await getUserByEmailQuery(email)) as UserModel & { role_name: string };
+    const user = (await getUserByEmailQuery(email)) as UserModel & {
+      role_name: string;
+    };
 
     if (user) {
-      const { password_hash, ...safeUser } = user.get({ plain: true });
-      return res.status(200).json(STATUS_CODE[200](safeUser));
+      logStructured('successful', `user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
+      await logEvent('Read', `User retrieved by email: ${email}`);
+      return res.status(200).json(STATUS_CODE[200](user.toSafeJSON()));
     }
 
+    logStructured('successful', `no user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
+    await logEvent('Read', `No user found with email: ${email}`);
     return res.status(404).json(STATUS_CODE[404](user));
   } catch (error) {
+    logStructured('error', `failed to fetch user: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
+    await logEvent('Error', `Failed to retrieve user by email: ${email}`);
+    logger.error('❌ Error in getUserByEmail:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 async function getUserById(req: Request, res: Response) {
+  const id = parseInt(req.params.id);
+  logStructured('processing', `fetching user by ID: ${id}`, 'getUserById', 'user.ctrl.ts');
+  logger.debug(`🔍 Looking up user with ID: ${id}`);
+
   try {
-    const id = parseInt(req.params.id);
     const user = (await getUserByIdQuery(id)) as UserModel;
 
     if (user) {
-      const { password_hash, ...safeUser } = user.get({ plain: true });
-      return res.status(200).json(STATUS_CODE[200](safeUser));
+      logStructured('successful', `user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');
+      await logEvent('Read', `User retrieved by ID: ${id}`);
+      return res.status(200).json(STATUS_CODE[200](user.toSafeJSON()));
     }
 
+    logStructured('successful', `no user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');
+    await logEvent('Read', `No user found with ID: ${id}`);
     return res.status(404).json(STATUS_CODE[404](user));
   } catch (error) {
+    logStructured('error', `failed to fetch user: ID ${id}`, 'getUserById', 'user.ctrl.ts');
+    await logEvent('Error', `Failed to retrieve user by ID: ${id}`);
+    logger.error('❌ Error in getUserById:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 async function createNewUser(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
-  try {
-    const { name, surname, email, password, roleId, created_at, last_login } =
-      req.body;
-    const existingUser = await getUserByEmailQuery(email);
+  const { name, surname, email, password, roleId } = req.body;
 
+  logStructured('processing', `starting user creation for ${email}`, 'createNewUser', 'user.ctrl.ts');
+  logger.debug(`🛠️ Creating user: ${email}`);
+
+  try {
+    const existingUser = await getUserByEmailQuery(email);
     if (existingUser) {
-      return res.status(409).json(STATUS_CODE[409](existingUser));
+      logStructured('error', `user already exists: ${email}`, 'createNewUser', 'user.ctrl.ts');
+      await logEvent('Error', `Attempted to create duplicate user: ${email}`);
+      await transaction.rollback();
+      return res
+        .status(409)
+        .json(STATUS_CODE[409]('User with this email already exists'));
     }
 
-    const password_hash = await bcrypt.hash(password, 10);
+    const userModel = await UserModel.createNewUser(name, surname, email, password, roleId);
+    await userModel.validateUserData();
 
-    const user = (await createNewUserQuery(
-      {
-        name,
-        surname,
-        email,
-        password_hash,
-        role_id: roleId,
-        created_at,
-        last_login,
-      },
-      transaction
-    )) as UserModel;
+    const isEmailUnique = await UserModel.validateEmailUniqueness(email);
+    if (!isEmailUnique) {
+      logStructured('error', `email not unique: ${email}`, 'createNewUser', 'user.ctrl.ts');
+      await logEvent('Error', `Email not unique during creation: ${email}`);
+      await transaction.rollback();
+      return res.status(409).json(STATUS_CODE[409]('Email already exists'));
+    }
+
+    const user = (await createNewUserQuery(userModel, transaction)) as UserModel;
 
     if (user) {
       await transaction.commit();
-      const { password_hash: _, ...safeUser } = user.get({ plain: true });
-      return res.status(201).json(STATUS_CODE[201](safeUser));
+      logStructured('successful', `user created: ${email}`, 'createNewUser', 'user.ctrl.ts');
+      await logEvent('Create', `User created: ${email}`);
+      return res.status(201).json(STATUS_CODE[201](user.toSafeJSON()));
     }
 
-    return res.status(400).json(STATUS_CODE[400](user));
+    logStructured('error', `failed to create user: ${email}`, 'createNewUser', 'user.ctrl.ts');
+    await logEvent('Error', `User creation failed: ${email}`);
+    await transaction.rollback();
+    return res.status(400).json(STATUS_CODE[400]('Failed to create user'));
   } catch (error) {
     await transaction.rollback();
+
+    if (error instanceof ValidationException) {
+      logStructured('error', `validation failed: ${error.message}`, 'createNewUser', 'user.ctrl.ts');
+      await logEvent('Error', `Validation error during user creation: ${error.message}`);
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof BusinessLogicException) {
+      logStructured('error', `business logic error: ${error.message}`, 'createNewUser', 'user.ctrl.ts');
+      await logEvent('Error', `Business logic error during user creation: ${error.message}`);
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
+    logStructured('error', `unexpected error: ${email}`, 'createNewUser', 'user.ctrl.ts');
+    await logEvent('Error', `Unexpected error during user creation: ${(error as Error).message}`);
+    logger.error('❌ Error in createNewUser:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 async function loginUser(req: Request, res: Response): Promise<any> {
-  try {
-    const { email, password } = req.body;
-    const user = await getUserByEmailQuery(email);
+  const { email, password } = req.body;
 
-    if (user) {
-      const passwordIsMatched = await bcrypt.compare(
-        password,
-        user.password_hash
-      );
+  logStructured('processing', `attempting login for ${email}`, 'loginUser', 'user.ctrl.ts');
+  logger.debug(`🔐 Login attempt for ${email}`);
+
+  try {
+    const userData = await getUserByEmailQuery(email);
+
+    if (userData) {
+      let user: UserModel;
+      if (userData instanceof UserModel) {
+        user = userData;
+      } else {
+        user = new UserModel();
+        Object.assign(user, userData);
+      }
+
+      let passwordIsMatched = false;
+      try {
+        passwordIsMatched = await user.comparePassword(password);
+      } catch (modelError) {
+        passwordIsMatched = await bcrypt.compare(password, userData.password_hash);
+      }
 
       if (passwordIsMatched) {
+        user.updateLastLogin();
+
         const token = generateToken({
-          id: user!.id,
+          id: user.id,
           email: email,
-          roleName: user.role_name
+          roleName: (userData as any).role_name,
         });
+
         const refreshToken = generateRefreshToken({
-          id: user!.id,
+          id: user.id,
           email: email,
-          roleName: user.role_name
+          roleName: (userData as any).role_name,
         });
-        res.cookie("refresh_token", refreshToken, {
+
+        res.cookie('refresh_token', refreshToken, {
           httpOnly: true,
-          path: "/api/users",
-          expires: new Date(Date.now() + 1 * 3600 * 1000 * 24 * 30), // 30 days
-          secure: process.env.NODE_ENV === "production",
-          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+          path: '/api/users',
+          expires: new Date(Date.now() + 1 * 3600 * 1000 * 24 * 30),
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         });
+
+        logStructured('successful', `login successful for ${email}`, 'loginUser', 'user.ctrl.ts');        
+        await logEvent('Read', `User logged in: ${email}`, user.id);
+
         return res.status(202).json(
           STATUS_CODE[202]({
             token,
           })
         );
       } else {
-        return res.status(403).json(STATUS_CODE[403]("Password mismatch"));
+        logStructured('error', `password mismatch for ${email}`, 'loginUser', 'user.ctrl.ts');
+        await logEvent('Error', `Password mismatch for ${email}`);
+        return res.status(403).json(STATUS_CODE[403]('Password mismatch'));
       }
     }
 
+    logStructured('error', `user not found: ${email}`, 'loginUser', 'user.ctrl.ts');
+    await logEvent('Error', `Login failed — user not found: ${email}`);
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
+    logStructured('error', `unexpected error during login: ${email}`, 'loginUser', 'user.ctrl.ts');
+    await logEvent('Error', `Unexpected login error for ${email}: ${(error as Error).message}`);
+    logger.error('❌ Error in loginUser:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 async function refreshAccessToken(req: Request, res: Response): Promise<any> {
+  logStructured('processing', 'attempting token refresh', 'refreshAccessToken', 'user.ctrl.ts');
+  logger.debug('🔁 Refresh token requested');
+
   try {
     const refreshToken = req.cookies.refresh_token;
 
     if (!refreshToken) {
-      return res
-        .status(400)
-        .json(STATUS_CODE[400]("Refresh token is required"));
+      logStructured('error', 'missing refresh token', 'refreshAccessToken', 'user.ctrl.ts');
+      await logEvent('Error', 'Refresh token missing in request');
+      return res.status(400).json(STATUS_CODE[400]('Refresh token is required'));
     }
 
     const decoded = getRefreshTokenPayload(refreshToken);
 
     if (!decoded) {
-      return res.status(401).json(STATUS_CODE[401]("Invalid refresh token"));
+      logStructured('error', 'invalid refresh token', 'refreshAccessToken', 'user.ctrl.ts');
+      await logEvent('Error', 'Invalid refresh token used');
+      return res.status(401).json(STATUS_CODE[401]('Invalid refresh token'));
     }
 
-    if (decoded.expire < Date.now())
-      return res
-        .status(406)
-        .json(STATUS_CODE[406]({ message: "Token expired" }));
+    if (decoded.expire < Date.now()) {
+      logStructured('error', 'refresh token expired', 'refreshAccessToken', 'user.ctrl.ts');
+      await logEvent('Error', `Expired refresh token used by ${decoded.email}`);
+      return res.status(406).json(STATUS_CODE[406]({ message: 'Token expired' }));
+    }
 
     const newAccessToken = generateToken({
       id: decoded.id,
       email: decoded.email,
-      roleName: decoded.roleName
+      roleName: decoded.roleName,
     });
+
+    logStructured('successful', `token refreshed for ${decoded.email}`, 'refreshAccessToken', 'user.ctrl.ts');
+    await logEvent('Read', `Access token refreshed for ${decoded.email}`);
 
     return res.status(200).json(
       STATUS_CODE[200]({
@@ -197,87 +290,162 @@ async function refreshAccessToken(req: Request, res: Response): Promise<any> {
       })
     );
   } catch (error) {
+    logStructured('error', 'unexpected error during token refresh', 'refreshAccessToken', 'user.ctrl.ts');
+    await logEvent('Error', `Unexpected error during token refresh: ${(error as Error).message}`);
+    logger.error('❌ Error in refreshAccessToken:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 async function resetPassword(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
-  try {
-    const { email, newPassword } = req.body;
+  const { email, newPassword } = req.body;
 
-    const user = (await getUserByEmailQuery(email)) as UserModel & { role_name: string };
+  logStructured('processing', `resetting password for ${email}`, 'resetPassword', 'user.ctrl.ts');
+  logger.debug(`🔁 Password reset requested for ${email}`);
+
+  try {
+    const user = (await getUserByEmailQuery(email)) as UserModel & {
+      role_name: string;
+    };
 
     if (user) {
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
-      user.dataValues.password_hash = hashedPassword;
+      await user.updatePassword(newPassword);
+
       const updatedUser = (await resetPasswordQuery(
         email,
-        hashedPassword,
+        user.password_hash,
         transaction
       )) as UserModel;
-      const { password_hash, ...safeUser } = updatedUser.get({ plain: true });
-      await transaction.commit();
 
-      return res.status(202).json(STATUS_CODE[202](safeUser));
+      await transaction.commit();
+      logStructured('successful', `password reset for ${email}`, 'resetPassword', 'user.ctrl.ts');
+      await logEvent('Update', `Password reset for user: ${email}`);
+
+      return res.status(202).json(STATUS_CODE[202](updatedUser.toSafeJSON()));
     }
 
-    return res.status(404).json(STATUS_CODE[404](user));
+    logStructured('error', `user not found: ${email}`, 'resetPassword', 'user.ctrl.ts');
+    await logEvent('Error', `Password reset failed — user not found: ${email}`);
+    await transaction.rollback();
+    return res.status(404).json(STATUS_CODE[404]('User not found'));
   } catch (error) {
     await transaction.rollback();
+
+    if (error instanceof ValidationException) {
+      logStructured('error', `validation error: ${error.message}`, 'resetPassword', 'user.ctrl.ts');
+      await logEvent('Error', `Validation error during password reset: ${error.message}`);
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof BusinessLogicException) {
+      logStructured('error', `business logic error: ${error.message}`, 'resetPassword', 'user.ctrl.ts');
+      await logEvent('Error', `Business logic error during password reset: ${error.message}`);
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
+    logStructured('error', `unexpected error for ${email}`, 'resetPassword', 'user.ctrl.ts');
+    await logEvent('Error', `Unexpected error during password reset for ${email}: ${(error as Error).message}`);
+    logger.error('❌ Error in resetPassword:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 async function updateUserById(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
-  try {
-    const id = parseInt(req.params.id);
-    const { name, surname, email, roleId, last_login } = req.body;
+  const id = parseInt(req.params.id);
+  const { name, surname, email, roleId, last_login } = req.body;
 
+  logStructured('processing', `updating user ID ${id}`, 'updateUserById', 'user.ctrl.ts');
+  logger.debug(`✏️ Update requested for user ID ${id}`); 
+
+  try {
     const user = await getUserByIdQuery(id);
 
     if (user) {
+      await user.updateCurrentUser({ name, surname, email });
+      await user.validateUserData();
+
       const updatedUser = (await updateUserByIdQuery(
         id,
         {
-          name: name ?? user.name,
-          surname: surname ?? user.surname,
-          email: email ?? user.email,
+          name: user.name,
+          surname: user.surname,
+          email: user.email,
           role_id: roleId ?? user.role_id,
           last_login: last_login ?? user.last_login,
         },
         transaction
       )) as UserModel;
-      const { password_hash, ...safeUser } = updatedUser.get({ plain: true });
-      await transaction.commit();
 
-      return res.status(202).json(STATUS_CODE[202](safeUser));
+      await transaction.commit();
+      logStructured('successful', `user updated: ID ${id}`, 'updateUserById', 'user.ctrl.ts');
+      await logEvent('Update', `User updated: ID ${id}, email: ${updatedUser.email}`);
+      return res.status(202).json(STATUS_CODE[202](updatedUser.toSafeJSON()));
     }
 
-    return res.status(404).json(STATUS_CODE[404]({}));
+    logStructured('error', `user not found: ID ${id}`, 'updateUserById', 'user.ctrl.ts');
+    await logEvent('Error', `Update failed — user not found: ID ${id}`);
+    await transaction.rollback();
+    return res.status(404).json(STATUS_CODE[404]('User not found'));
   } catch (error) {
     await transaction.rollback();
+
+    if (error instanceof ValidationException) {
+      logStructured('error', `validation error: ${error.message}`, 'updateUserById', 'user.ctrl.ts');
+      await logEvent('Error', `Validation error during update: ${error.message}`);
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof BusinessLogicException) {
+      logStructured('error', `business logic error: ${error.message}`, 'updateUserById', 'user.ctrl.ts');
+      await logEvent('Error', `Business logic error during update: ${error.message}`);
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
+    logStructured('error', `unexpected error for user ID ${id}`, 'updateUserById', 'user.ctrl.ts');
+    await logEvent('Error', `Unexpected error during update for user ID ${id}: ${(error as Error).message}`);
+    logger.error('❌ Error in updateUserById:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 async function deleteUserById(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
+  const id = parseInt(req.params.id);
+
+  logStructured('processing', `attempting to delete user ID ${id}`, 'deleteUserById', 'user.ctrl.ts');
+  logger.debug(`🗑️ Delete request for user ID ${id}`);
+
   try {
-    const id = parseInt(req.params.id);
     const user = await getUserByIdQuery(id);
 
     if (user) {
+      if (user.isDemoUser()) {
+        logStructured('error', `attempted to delete demo user ID ${id}`, 'deleteUserById', 'user.ctrl.ts');
+        await logEvent('Error', `Blocked deletion of demo user ID ${id}`);
+        await transaction.rollback();
+        return res.status(403).json(STATUS_CODE[403]('Demo users cannot be deleted'));
+      }
+
       const deletedUser = await deleteUserByIdQuery(id, transaction);
       await transaction.commit();
+
+      logStructured('successful', `user deleted: ID ${id}`, 'deleteUserById', 'user.ctrl.ts');
+      await logEvent('Delete', `User deleted: ID ${id}, email: ${user.email}`);
 
       return res.status(202).json(STATUS_CODE[202](deletedUser));
     }
 
-    return res.status(404).json(STATUS_CODE[404]({}));
+    logStructured('error', `user not found: ID ${id}`, 'deleteUserById', 'user.ctrl.ts');
+    await logEvent('Error', `Delete failed — user not found: ID ${id}`);
+    await transaction.rollback();
+    return res.status(404).json(STATUS_CODE[404]('User not found'));
   } catch (error) {
     await transaction.rollback();
+    logStructured('error', `unexpected error deleting user ID ${id}`, 'deleteUserById', 'user.ctrl.ts');
+    await logEvent('Error', `Unexpected error during delete for user ID ${id}: ${(error as Error).message}`);
+    logger.error('❌ Error in deleteUserById:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -293,12 +461,19 @@ async function checkUserExists(
   _req: Request,
   res: Response
 ): Promise<Response> {
+  logStructured('processing', 'checking if any user exists', 'checkUserExists', 'user.ctrl.ts');
+  logger.debug('🔍 Checking for existing users');
+
   try {
-    console.log("checkUserExists");
     const userExists = await checkUserExistsQuery();
+
+    logStructured('successful', `user existence check: ${userExists}`, 'checkUserExists', 'user.ctrl.ts');  
+
     return res.status(200).json(userExists);
   } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+    logStructured('error', 'failed to check user existence', 'checkUserExists', 'user.ctrl.ts');  
+    logger.error('❌ Error in checkUserExists:', error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
 }
 
@@ -307,6 +482,9 @@ async function calculateProgress(
   res: Response
 ): Promise<Response> {
   const id = parseInt(req.params.id);
+  logStructured('processing', `calculating progress for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');
+  logger.debug(`📊 Starting progress calculation for user ID ${id}`);
+
   try {
     const userProjects = await getUserProjects(id);
 
@@ -321,18 +499,14 @@ async function calculateProgress(
     for (const userProject of userProjects) {
       let totalSubControls = 0;
       let doneSubControls = 0;
-      const controlcategories = await getControlCategoriesForProject(
-        userProject.id!
-      );
+      const controlcategories = await getControlCategoriesForProject(userProject.id!);
       for (const controlcategory of controlcategories) {
-        const controls = await getControlForControlCategory(
-          controlcategory.id!
-        );
+        const controls = await getControlForControlCategory(controlcategory.id!);
         for (const control of controls) {
           const subControls = await getSubControlForControl(control.id!);
           for (const subControl of subControls) {
             totalSubControls++;
-            if (subControl.status === "Done") {
+            if (subControl.status === 'Done') {
               doneSubControls++;
             }
           }
@@ -373,6 +547,9 @@ async function calculateProgress(
       });
     }
 
+    logStructured('successful', `progress calculated for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');
+    await logEvent('Read', `Progress calculated for user ID ${id}`);
+
     return res.status(200).json({
       assessmentsMetadata,
       controlsMetadata,
@@ -382,63 +559,132 @@ async function calculateProgress(
       allDoneSubControls,
     });
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({ message: "Internal server error" });
+    logStructured('error', `failed to calculate progress for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');
+    await logEvent('Error', `Progress calculation failed for user ID ${id}: ${(error as Error).message}`);
+    logger.error('❌ Error in calculateProgress:', error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
 }
 
 async function ChangePassword(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
-  try {
-    const { id, currentPassword, newPassword } = req.body;
+  const { id, currentPassword, newPassword } = req.body;
 
-    // Fetch the user by ID
+  logStructured('processing', `attempting password change for user ID ${id}`, 'ChangePassword', 'user.ctrl.ts');
+  logger.debug(`🔐 Password change requested for user ID ${id}`);
+
+  try {
     const user = await getUserByIdQuery(id);
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      logStructured('error', `user not found: ID ${id}`, 'ChangePassword', 'user.ctrl.ts');
+      await logEvent('Error', `Password change failed — user not found: ID ${id}`);
+      await transaction.rollback();
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    // Check if the current password is correct
-    const passwordIsMatched = await bcrypt.compare(
-      currentPassword,
-      user.password_hash
-    );
-    if (!passwordIsMatched) {
-      return res.status(401).json({ message: "Incorrect current password" });
-    }
+    await user.updatePassword(newPassword, currentPassword);
 
-    // Check if the new password is not the same as the current password
-    const newPasswordIsMatched = await bcrypt.compare(
-      newPassword,
-      user.password_hash
-    );
-    if (newPasswordIsMatched) {
-      return res.status(400).json({
-        message: "New password cannot be the same as the current password",
-      });
-    }
-
-    // Hash the new password and update the user's password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    user.password_hash = hashedPassword;
     const updatedUser = (await resetPasswordQuery(
       user.email,
-      hashedPassword,
+      user.password_hash,
       transaction
     )) as UserModel;
-    const { password_hash, ...safeUser } = updatedUser.get({ plain: true });
-    await transaction.commit();
 
-    return res
-      .status(202)
-      .json({ message: "Password updated", data: safeUser });
+    await transaction.commit();
+    logStructured('successful', `password changed for user ID ${id}`, 'ChangePassword', 'user.ctrl.ts');
+    await logEvent('Update', `Password changed for user ID ${id}`);
+
+    return res.status(202).json({
+      message: 'Password updated successfully',
+      data: updatedUser.toSafeJSON(),
+    });
   } catch (error) {
     await transaction.rollback();
+
+    if (error instanceof ValidationException) {
+      logStructured('error', `validation error: ${error.message}`, 'ChangePassword', 'user.ctrl.ts');
+      await logEvent('Error', `Validation error during password change: ${error.message}`);
+      return res.status(400).json({ message: error.message });
+    }
+
+    if (error instanceof BusinessLogicException) {
+      logStructured('error', `business logic error: ${error.message}`, 'ChangePassword', 'user.ctrl.ts');
+      await logEvent('Error', `Business logic error during password change: ${error.message}`);
+      return res.status(403).json({ message: error.message });
+    }
+
+    logStructured('error', `unexpected error for user ID ${id}`, 'ChangePassword', 'user.ctrl.ts');
+    await logEvent('Error', `Unexpected error during password change for user ID ${id}: ${(error as Error).message}`);
+    logger.error('❌ Error in ChangePassword:', error);
     return res.status(500).json({ message: (error as Error).message });
   }
 }
 
+// New function to update user role
+async function updateUserRole(req: Request, res: Response) {
+  const transaction = await sequelize.transaction();
+  const { id } = req.params;
+  const { newRoleId } = req.body;
+  const currentUserId = (req as any).user?.id;
+
+  logStructured('processing', `updating role for user ID ${id}`, 'updateUserRole', 'user.ctrl.ts');
+  logger.debug(`🔧 Role update requested for user ID ${id} by admin ID ${currentUserId}`);
+
+  try {
+    const targetUser = await getUserByIdQuery(parseInt(id));
+    if (!targetUser) {
+      logStructured('error', `target user not found: ID ${id}`, 'updateUserRole', 'user.ctrl.ts');
+      await logEvent('Error', `Role update failed — target user not found: ID ${id}`);
+      await transaction.rollback();
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const currentUser = await getUserByIdQuery(currentUserId);
+    if (!currentUser) {
+      logStructured('error', `admin user not found: ID ${currentUserId}`, 'updateUserRole', 'user.ctrl.ts');
+      await logEvent('Error', `Role update failed — admin user not found: ID ${currentUserId}`);
+      await transaction.rollback();
+      return res.status(404).json({ message: 'Current user not found' });
+    }
+
+    await targetUser.updateRole(newRoleId, currentUser);
+
+    const updatedUser = (await updateUserByIdQuery(
+      parseInt(id),
+      { role_id: targetUser.role_id },
+      transaction
+    )) as UserModel;
+
+    await transaction.commit();
+    logStructured('successful', `role updated for user ID ${id}`, 'updateUserRole', 'user.ctrl.ts');
+    await logEvent('Update', `User role updated: ID ${id}, new role ID: ${newRoleId}, by admin ID: ${currentUserId}`);
+
+    return res.status(202).json({
+      message: 'User role updated successfully',
+      data: updatedUser.toSafeJSON(),
+    });
+  } catch (error) {
+    await transaction.rollback();
+
+    if (error instanceof ValidationException) {
+      logStructured('error', `validation error: ${error.message}`, 'updateUserRole', 'user.ctrl.ts');
+      await logEvent('Error', `Validation error during role update: ${error.message}`);
+      return res.status(400).json({ message: error.message });
+    }
+
+    if (error instanceof BusinessLogicException) {
+      logStructured('error', `business logic error: ${error.message}`, 'updateUserRole', 'user.ctrl.ts');
+      await logEvent('Error', `Business logic error during role update: ${error.message}`);
+      return res.status(403).json({ message: error.message });
+    }
+
+    logStructured('error', `unexpected error for user ID ${id}`, 'updateUserRole', 'user.ctrl.ts');
+    await logEvent('Error', `Unexpected error during role update for user ID ${id}: ${(error as Error).message}`);
+    logger.error('❌ Error in updateUserRole:', error);
+    return res.status(500).json({ message: (error as Error).message });
+  }
+}
 export {
   getAllUsers,
   getUserByEmail,
@@ -452,4 +698,5 @@ export {
   calculateProgress,
   ChangePassword,
   refreshAccessToken,
+  updateUserRole,
 };

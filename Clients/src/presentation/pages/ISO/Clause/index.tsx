@@ -25,10 +25,12 @@ import StatsCard from "../../../components/Cards/StatsCard";
 const ISO42001Clauses = ({
   project,
   projectFrameworkId,
+  statusFilter,
 }: {
   project: Project;
   framework_id: number;
   projectFrameworkId: number;
+  statusFilter?: string;
 }) => {
   const [expanded, setExpanded] = useState<number | false>(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -56,6 +58,7 @@ const ISO42001Clauses = ({
         routeUrl: `/iso-42001/clauses/progress/${projectFrameworkId}`,
       });
       setClauseProgress(clauseProgressResponse.data);
+
       const response = await GetClausesByProjectFrameworkId({
         routeUrl: `/iso-42001/clauses/struct/byProjectId/${projectFrameworkId}`,
       });
@@ -70,28 +73,46 @@ const ISO42001Clauses = ({
     fetchClauses();
   }, [fetchClauses, refreshTrigger]);
 
-  const fetchSubClauses = useCallback(async (clauseId: number) => {
-    setLoadingSubClauses((prev) => ({ ...prev, [clauseId]: true }));
-    try {
-      const response = await GetSubClausesById({
-        routeUrl: `/iso-42001/subClauses/byClauseId/${clauseId}`,
-      });
-      console.log("/iso-42001/subClauses/byClauseId/ -- > response", response);
-      setSubClausesMap((prev) => ({ ...prev, [clauseId]: response.data }));
-    } catch (error) {
-      console.error("Error fetching subclauses:", error);
-      setSubClausesMap((prev) => ({ ...prev, [clauseId]: [] }));
-    } finally {
-      setLoadingSubClauses((prev) => ({ ...prev, [clauseId]: false }));
-    }
-  }, []);
+  const fetchSubClauses = useCallback(
+    async (clauseId: number, clauseSubClausesWithStatus: any[]) => {
+      setLoadingSubClauses((prev) => ({ ...prev, [clauseId]: true }));
+      try {
+        const response = await GetSubClausesById({
+          routeUrl: `/iso-42001/subClauses/byClauseId/${clauseId}`,
+        });
+
+        const detailedSubClauses = response.data;
+
+        const mergedSubClauses = detailedSubClauses.map((detailed: any) => {
+          const match = clauseSubClausesWithStatus.find(
+            (s) => s.id === detailed.id
+          );
+          return {
+            ...detailed,
+            status: match?.status ?? "Not started",
+          };
+        });
+
+        setSubClausesMap((prev) => ({ ...prev, [clauseId]: mergedSubClauses }));
+      } catch (error) {
+        console.error("Error fetching detailed subclauses:", error);
+        setSubClausesMap((prev) => ({ ...prev, [clauseId]: [] }));
+      } finally {
+        setLoadingSubClauses((prev) => ({ ...prev, [clauseId]: false }));
+      }
+    },
+    []
+  );
 
   const handleAccordionChange =
     (panel: number) => async (_: React.SyntheticEvent, isExpanded: boolean) => {
       setExpanded(isExpanded ? panel : false);
 
       if (isExpanded && !subClausesMap[panel]) {
-        await fetchSubClauses(panel);
+        const clause = clauses.find((c) => c.id === panel);
+        if (clause) {
+          await fetchSubClauses(panel, clause.subClauses);
+        }
       }
     };
 
@@ -108,28 +129,30 @@ const ISO42001Clauses = ({
     setSelectedClause(null);
   };
 
-  const handleSaveSuccess = async (success: boolean, message?: string, savedSubClauseId?: number) => {
-    // Show appropriate toast message
+  const handleSaveSuccess = async (
+    success: boolean,
+    message?: string,
+    savedSubClauseId?: number
+  ) => {
     handleAlert({
       variant: success ? "success" : "error",
-      body: message || (success ? "Changes saved successfully" : "Failed to save changes"),
+      body:
+        message ||
+        (success ? "Changes saved successfully" : "Failed to save changes"),
       setAlert,
     });
 
-    // If save was successful, refresh the data and trigger flash animation
     if (success && savedSubClauseId) {
-      // Set the flashing row ID
       setFlashingRowId(savedSubClauseId);
-      // Clear the flashing state after animation
-      setTimeout(() => {
-        setFlashingRowId(null);
-      }, 2000); // 2 seconds animation
+      setTimeout(() => setFlashingRowId(null), 2000);
 
-      // If there's an expanded clause, refresh its subclauses
       if (expanded !== false) {
-        await fetchSubClauses(expanded);
+        const clause = clauses.find((c) => c.id === expanded);
+        if (clause) {
+          await fetchSubClauses(expanded, clause.subClauses);
+        }
       }
-      // Trigger a refresh of the clauses
+
       setRefreshTrigger((prev) => prev + 1);
     }
   };
@@ -138,14 +161,21 @@ const ISO42001Clauses = ({
     const subClauses = subClausesMap[clause.id ?? 0] || [];
     const isLoading = loadingSubClauses[clause.id ?? 0];
 
+    const filteredSubClauses =
+      statusFilter && statusFilter !== ""
+        ? subClauses.filter(
+            (sc) => sc.status?.toLowerCase() === statusFilter.toLowerCase()
+          )
+        : subClauses;
+
     return (
       <AccordionDetails sx={{ padding: 0 }}>
         {isLoading ? (
           <Stack sx={styles.loadingContainer}>
             <CircularProgress size={24} />
           </Stack>
-        ) : clause.subClauses.length > 0 ? (
-          clause.subClauses.map(
+        ) : filteredSubClauses.length > 0 ? (
+          filteredSubClauses.map(
             (
               subClause: Partial<SubClauseISO & SubClauseStructISO>,
               index: number
@@ -154,7 +184,7 @@ const ISO42001Clauses = ({
                 key={subClause.id}
                 onClick={() => handleSubClauseClick(clause, subClause, index)}
                 sx={styles.subClauseRow(
-                  subClauses.length - 1 === index,
+                  filteredSubClauses.length - 1 === index,
                   flashingRowId === subClause.id
                 )}
               >
@@ -165,7 +195,7 @@ const ISO42001Clauses = ({
                 <Stack sx={styles.statusBadge(subClause.status ?? "")}>
                   {subClause.status
                     ? subClause.status.charAt(0).toUpperCase() +
-                    subClause.status.slice(1).toLowerCase()
+                      subClause.status.slice(1).toLowerCase()
                     : "Not started"}
                 </Stack>
               </Stack>
@@ -173,7 +203,7 @@ const ISO42001Clauses = ({
           )
         ) : (
           <Stack sx={styles.noSubClausesContainer}>
-            No subclauses found
+            No matching subclauses
           </Stack>
         )}
       </AccordionDetails>
@@ -191,7 +221,9 @@ const ISO42001Clauses = ({
         title="Clauses"
         progressbarColor="#13715B"
       />
-      <Typography sx={{ ...styles.title, mt: 4 }}>{"Management System Clauses"}</Typography>
+      <Typography sx={{ ...styles.title, mt: 4 }}>
+        {"Management System Clauses"}
+      </Typography>
       {clauses &&
         clauses.map((clause: ClauseStructISO) => (
           <Stack key={clause.id} sx={styles.container}>
@@ -202,7 +234,9 @@ const ISO42001Clauses = ({
               onChange={handleAccordionChange(clause.id ?? 0)}
             >
               <AccordionSummary sx={styles.accordionSummary}>
-                <ExpandMoreIcon sx={styles.expandIcon(expanded === clause.id)} />
+                <ExpandMoreIcon
+                  sx={styles.expandIcon(expanded === clause.id)}
+                />
                 <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>
                   {clause.title}
                 </Typography>
@@ -219,7 +253,9 @@ const ISO42001Clauses = ({
           clause={selectedClause}
           projectFrameworkId={projectFrameworkId}
           project_id={project.id}
-          onSaveSuccess={(success, message) => handleSaveSuccess(success, message, selectedSubClause?.id)}
+          onSaveSuccess={(success, message) =>
+            handleSaveSuccess(success, message, selectedSubClause?.id)
+          }
           index={selectedIndex}
         />
       )}

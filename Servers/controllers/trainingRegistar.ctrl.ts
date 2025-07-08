@@ -9,7 +9,7 @@ import {
   deleteTrainingRegistarByIdQuery,
 } from "../utils/trainingRegistar.utils";
 
-import { TrainingRegistar } from "../models/trainingRegistar.model";
+import { TrainingRegistar } from "../domain.layer/models/trainingRegistar/trainingRegistar.model";
 import { sequelize } from "../database/db";
 
 // get ALL training registry api

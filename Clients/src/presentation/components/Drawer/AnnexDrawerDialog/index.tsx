@@ -15,7 +15,7 @@ import Field from "../../Inputs/Field";
 import { inputStyles } from "../ClauseDrawerDialog";
 import DatePicker from "../../Inputs/Datepicker";
 import Select from "../../Inputs/Select";
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect, lazy, Suspense } from "react";
 import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
@@ -35,6 +35,9 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import Uppy from "@uppy/core";
 import allowedRoles from "../../../../application/constants/permissions";
+const LinkedRisksPopup = lazy(
+  () => import("../../LinkedRisks")
+);
 
 interface Control {
   id: number;
@@ -73,6 +76,7 @@ const VWISO42001AnnexDrawerDialog = ({
   const [fetchedAnnex, setFetchedAnnex] = useState<AnnexCategoryISO>();
   const [isLoading, setIsLoading] = useState(false);
   const [projectMembers, setProjectMembers] = useState<User[]>([]);
+  const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] = useState<boolean>(false);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
   const [evidenceFiles, setEvidenceFiles] = useState<FileData[]>([]);
   const [evidenceFilesDeleteCount, setEvidenceFilesDeleteCount] = useState(0);
@@ -584,6 +588,46 @@ const VWISO42001AnnexDrawerDialog = ({
           {alert && (
             <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
           )}
+
+          <Stack direction="row" spacing={2}>
+            <Button
+              variant="contained"
+              sx={{
+                mt: 2,
+                borderRadius: 2,
+                width: 155,
+                height: 25,
+                fontSize: 11,
+                border: "1px solid #D0D5DD",
+                backgroundColor: "white",
+                color: "#344054",
+              }}
+              disableRipple={
+                theme.components?.MuiButton?.defaultProps?.disableRipple
+              }
+              onClick={() => setIsLinkedRisksModalOpen(true)}
+              disabled={isEditingDisabled}
+            >
+              Add/Remove risks
+            </Button>
+          </Stack>
+
+          <Dialog 
+            open={isLinkedRisksModalOpen} 
+            onClose={() => setIsLinkedRisksModalOpen(false)}
+            PaperProps={{
+              sx: {
+                width: '1100px',
+                maxWidth: '1100px',
+                minHeight: '520px'
+              },
+            }}
+          >
+            <Suspense fallback={"loading..."}>
+              <LinkedRisksPopup onClose={() => setIsLinkedRisksModalOpen(false)} />
+            </Suspense>
+          </Dialog>
+          
         </Stack>
         <Divider />
         <Stack

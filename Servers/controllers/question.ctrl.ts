@@ -12,7 +12,7 @@ import {
   getQuestionBySubTopicIdQuery,
   getQuestionByTopicIdQuery,
 } from "../utils/question.utils";
-import { Question } from "../models/question.model";
+import { Question } from "../domain.layer/models/question/question.model";
 import { updateProjectUpdatedByIdQuery } from "../utils/project.utils";
 import { sequelize } from "../database/db";
 
@@ -75,7 +75,8 @@ export async function createQuestion(
     }
 
     const createdQuestion = await createNewQuestionQuery(
-      newQuestion, transaction
+      newQuestion,
+      transaction
     );
 
     if (createdQuestion) {
@@ -129,7 +130,10 @@ export async function deleteQuestionById(
   try {
     const questionId = parseInt(req.params.id);
 
-    const deletedQuestion = await deleteQuestionByIdQuery(questionId, transaction);
+    const deletedQuestion = await deleteQuestionByIdQuery(
+      questionId,
+      transaction
+    );
 
     if (deletedQuestion) {
       await transaction.commit();

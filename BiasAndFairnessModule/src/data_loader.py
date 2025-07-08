@@ -18,6 +18,7 @@ class DataLoader:
             containing:
                 - name: Name of the dataset
                 - source: Source path/identifier of the dataset
+                - split: Split of the dataset to use
                 - platform: Platform to load from (e.g., 'huggingface')
                 - protected_attributes: List of protected attribute columns
                 - target_column: Name of the target column
@@ -34,8 +35,12 @@ class DataLoader:
             pd.DataFrame: Loaded dataset
         """
         if self.dataset_config.platform.lower() == "huggingface":
-            # Load dataset and ensure we get a Dataset object
-            dataset = load_dataset(self.dataset_config.source, split="train")
+            # Try to load the specified split, handle if unavailable
+            split = self.dataset_config.split
+            try:
+                dataset = load_dataset(self.dataset_config.source, split=split)
+            except Exception as e:
+                raise ValueError(f"Could not load split:'{split}' for dataset '{self.dataset_config.source}'. Error: {e}")
             if isinstance(dataset, Dataset):
                 # Convert to pandas DataFrame
                 self.data = pd.DataFrame(dataset)

@@ -74,11 +74,7 @@ class DataLoader:
 
         Returns:
             str: Formatted prompt string
-
-        Raises:
-            ValueError: If data hasn't been loaded yet
         """
-
         # Get all columns except the target column
         feature_columns = [
             col for col in self.data.columns if col != self.dataset_config.target_column
@@ -147,6 +143,18 @@ class DataLoader:
         # Return single string if input was single index, list otherwise
         return prompts[0] if return_single else prompts
 
+    def _extract_protected_attributes(self, row: pd.Series) -> Dict[str, Any]:
+        """
+        Extract protected attributes from a row.
+
+        Args:
+            row (pd.Series): A single row from the dataset
+
+        Returns:
+            Dict[str, Any]: Dictionary containing protected attribute values
+        """
+        return {attr: row[attr] for attr in self.dataset_config.protected_attributes}
+
     def generate_prompts_and_metadata(
         self, batch_size: Optional[int] = None
     ) -> List[Dict[str, Any]]:
@@ -155,7 +163,7 @@ class DataLoader:
 
         Args:
             batch_size (Optional[int]): If provided, return samples in batches
-                                        as nested lists
+                                         as nested lists
 
         Returns:
             If batch_size is None:
@@ -163,9 +171,10 @@ class DataLoader:
                 - sample_id: Index of the row
                 - prompt: Formatted prompt for the row
                 - answer: Target column value for the row
+                - protected_attributes: Dictionary of protected attribute values
             If batch_size is provided:
                 List[List[Dict]]: List of batches, where each batch is a list
-                                  of dictionaries as described above
+                                   of dictionaries as described above
 
         Raises:
             ValueError: If data hasn't been loaded yet
@@ -182,6 +191,7 @@ class DataLoader:
                 "sample_id": idx,
                 "prompt": self._format_single_prompt(row),
                 "answer": row[self.dataset_config.target_column],
+                "protected_attributes": self._extract_protected_attributes(row),
             }
 
             if batch_size is None:

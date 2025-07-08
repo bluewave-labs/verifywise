@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 from datasets import Dataset, load_dataset
@@ -14,7 +14,8 @@ class DataLoader:
         Initialize the DataLoader with dataset configuration.
 
         Args:
-            dataset_config (DatasetConfig): Dataset configuration object containing:
+            dataset_config (DatasetConfig): Dataset configuration objects
+            containing:
                 - name: Name of the dataset
                 - source: Source path/identifier of the dataset
                 - platform: Platform to load from (e.g., 'huggingface')
@@ -56,7 +57,7 @@ class DataLoader:
             if isinstance(self.data, pd.DataFrame):
                 self.data = self.data.sample(
                     n=min(n_samples, len(self.data)), random_state=random_seed
-                )
+                ).reset_index(drop=True)
 
         return self.data
 
@@ -68,7 +69,8 @@ class DataLoader:
 
         Args:
             row (pd.Series): A single row from the dataset
-            include_answer (bool): Whether to include the target column value as answer
+            include_answer (bool): Whether to include the target
+            column value as answer
 
         Returns:
             str: Formatted prompt string
@@ -76,8 +78,6 @@ class DataLoader:
         Raises:
             ValueError: If data hasn't been loaded yet
         """
-        if self.data is None:
-            raise ValueError("Data not loaded. Call load_data() first.")
 
         # Get all columns except the target column
         feature_columns = [
@@ -101,21 +101,25 @@ class DataLoader:
 
         return prompt
 
-    def get_prompts(
+    def get_sample_prompts(
         self, indices: Union[int, List[int]], include_answer: bool = False
     ) -> Union[str, List[str]]:
         """
         Get formatted prompts for one or more rows by their indices.
 
         Args:
-            indices (Union[int, List[int]]): Single index or list of indices to get prompts for
-            include_answer (bool): Whether to include the target column value as answer
+            indices (Union[int, List[int]]): Single index or list of
+                                             indices to get prompts for
+            include_answer (bool): Whether to include the target column
+                                   value as answer
 
         Returns:
-            Union[str, List[str]]: Single prompt string if indices is int, list of prompt strings if indices is list
+            Union[str, List[str]]: Single prompt string if indices is int,
+                                   list of prompt strings if indices is list
 
         Raises:
-            ValueError: If data hasn't been loaded yet or if indices are out of range
+            ValueError: If data hasn't been loaded yet or if indices are out
+                        of range
         """
         if self.data is None:
             raise ValueError("Data not loaded. Call load_data() first.")
@@ -130,7 +134,8 @@ class DataLoader:
         # Validate indices
         if not all(0 <= idx < len(self.data) for idx in indices):
             raise ValueError(
-                f"Some indices are out of range. Valid range: 0 to {len(self.data)-1}"
+                f"Some indices are out of range. Valid range: 0 to "
+                f"{len(self.data)-1}"
             )
 
         # Generate prompts for all requested indices
@@ -141,3 +146,54 @@ class DataLoader:
 
         # Return single string if input was single index, list otherwise
         return prompts[0] if return_single else prompts
+
+    def generate_prompts_and_metadata(
+        self, batch_size: Optional[int] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Generate a list of sample dictionaries containing prompts and answers.
+
+        Args:
+            batch_size (Optional[int]): If provided, return samples in batches
+                                        as nested lists
+
+        Returns:
+            If batch_size is None:
+                List[Dict]: List of dictionaries with keys:
+                - sample_id: Index of the row
+                - prompt: Formatted prompt for the row
+                - answer: Target column value for the row
+            If batch_size is provided:
+                List[List[Dict]]: List of batches, where each batch is a list
+                                  of dictionaries as described above
+
+        Raises:
+            ValueError: If data hasn't been loaded yet
+        """
+        if self.data is None:
+            raise ValueError("Data not loaded. Call load_data() first.")
+
+        samples = []
+        current_batch = []
+
+        for idx in range(len(self.data)):
+            row = self.data.iloc[idx]
+            sample = {
+                "sample_id": idx,
+                "prompt": self._format_single_prompt(row),
+                "answer": row[self.dataset_config.target_column],
+            }
+
+            if batch_size is None:
+                samples.append(sample)
+            else:
+                current_batch.append(sample)
+                if len(current_batch) == batch_size:
+                    samples.append(current_batch)
+                    current_batch = []
+
+        # Add remaining samples if using batch_size
+        if batch_size is not None and current_batch:
+            samples.append(current_batch)
+
+        return samples

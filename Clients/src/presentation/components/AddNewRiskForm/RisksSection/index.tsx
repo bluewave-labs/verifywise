@@ -77,7 +77,7 @@ const RiskSection: FC<RiskSectionProps> = ({
   const isEditingDisabled =
     !allowedRoles.projectRisks.edit.includes(userRoleName);
 
-  const [_, setErrors] = useState<RiskFormErrors>({});
+  const [, setErrors] = useState<RiskFormErrors>({});
   const [alert, setAlert] = useState<alertState | null>(null);
   const { users } = useUsers();
 
@@ -282,6 +282,14 @@ const RiskSection: FC<RiskSectionProps> = ({
                       "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                         borderColor: "#888",
                         borderWidth: "1px",
+                      },
+                    },
+                    "& .MuiChip-root": {
+                      "& .MuiChip-deleteIcon": {
+                        display:
+                          riskValues.riskCategory.length === 1
+                            ? "none"
+                            : "flex",
                       },
                     },
                   }}

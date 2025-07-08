@@ -21,7 +21,10 @@ function feedback(accepted: boolean, message: string) {
  */
 function selectValidation(title: string, value: number | number[]): {accepted: boolean; message: string} {
     if (Array.isArray(value)) {
-        return feedback(false, `${title} is required.`);
+        if (value.length === 0) {
+            return feedback(false, `${title} is required.`);
+        }
+        return feedback(true, "Success");
     }
     if (value === 0) {
         return feedback(false, `${title} is required.`);

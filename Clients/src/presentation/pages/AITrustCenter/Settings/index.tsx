@@ -54,15 +54,22 @@ const AITrustCenterSettings: React.FC = () => {
       {/* Appearance Card */}
       <Box sx={styles.card}>
         <Typography sx={styles.sectionTitle}>Appearance</Typography>
-        {/* Company Logo Row */}
-        <Box sx={{display: 'flex', alignItems: 'flex-start', mb: 20 }}>
-          <Box sx={{flex: 0.5 }}>
+        <Box sx={{
+          display: 'grid',
+          gridTemplateColumns: '220px 1fr',
+          rowGap: '50px',
+          columnGap: '250px',
+          alignItems: 'center',
+          mt: 2
+        }}>
+          {/* Company Logo Row */}
+          <Box>
             <Typography sx={{ fontSize: 13, fontWeight: 500 }}>Company logo</Typography>
-            <Typography sx={{ fontSize: 12, color: '#888'}}>
+            <Typography sx={{ fontSize: 12, color: '#888', whiteSpace: 'nowrap' }}>
               This logo will be shown in the AI Trust Center page
             </Typography>
           </Box>
-          <Box sx={{display: 'flex', alignItems: 'center', gap: 2}}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Box sx={{
               width: 120,
               height: 36,
@@ -99,44 +106,38 @@ const AITrustCenterSettings: React.FC = () => {
               Remove
             </MUIButton>
           </Box>
-        </Box>
-        {/* Header Color Row */}
-        <Box sx={{display: 'flex', alignItems: 'flex-start', mb: 20 }}>
-          <Box sx={{ flex: 0.64 }}>
+
+          {/* Header Color Row */}
+          <Box>
             <Typography sx={{ fontSize: 13, fontWeight: 500 }}>Header color</Typography>
-            <Typography sx={{ fontSize: 12, color: '#888', mt: 0.5 }}>
+            <Typography sx={{ fontSize: 12, color: '#888', whiteSpace: 'nowrap' }}>
               Select or customize your top header color
             </Typography>
           </Box>
-          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start'}}>
-            <Box sx={{...styles.customColorRow, gap: 15}}>
-              <Typography sx={styles.customColorLabel}>Custom color:</Typography>
-              <input
-                type="text"
-                value={customColor}
-                onChange={handleCustomColor}
-                style={styles.customColorInput}
-              />
-              <Box sx={styles.customColorCircle(customColor)} />
-            </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Typography sx={styles.customColorLabel}>Custom color:</Typography>
+            <input
+              type="text"
+              value={customColor}
+              onChange={handleCustomColor}
+              style={styles.customColorInput}
+            />
+            <Box sx={styles.customColorCircle(customColor)} />
           </Box>
-        </Box>
-        {/* Trust Center Title Row */}
-        <Box sx={{display: 'flex', alignItems: 'flex-start', mb: 20 }}>
-          <Box sx={{ flex: 0.5 }}>
+
+          {/* Trust Center Title Row */}
+          <Box sx={{ mb: 20 }}>
             <Typography sx={{ fontSize: 13, fontWeight: 500 }}>Trust center title</Typography>
-            <Typography sx={{ fontSize: 12, color: '#888', mt: 0.5 }}>
+            <Typography sx={{ fontSize: 12, color: '#888', whiteSpace: 'nowrap' }}>
               This title will be shown in the AI Trust Center page
             </Typography>
           </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Field
-              placeholder="Company's AI Trust Center"
-              value={trustTitle}
-              onChange={e => setTrustTitle(e.target.value)}
-              sx={styles.trustTitleInput}
-            />
-          </Box>
+          <Field
+            placeholder="Company's AI Trust Center"
+            value={trustTitle}
+            onChange={e => setTrustTitle(e.target.value)}
+            sx={styles.trustTitleInput}
+          />
         </Box>
       </Box>
 

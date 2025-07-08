@@ -103,6 +103,7 @@ export const useStyles = () => {
       width: 340,
       fontSize: 13,
       marginTop: 0,
+      mb: 20,
     },
     toggleRow: {
       display: 'flex',

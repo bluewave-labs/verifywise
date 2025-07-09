@@ -210,6 +210,8 @@ const AITrustCenterOverview: React.FC = () => {
           >
             <TextField
               multiline
+              minRows={3}
+              maxRows={8}
               placeholder="Include a section to summarize the purpose of the Trust Center. Clearly communicate the company's commitment to responsible AI use, data privacy, and ethical AI practices."
               value={formData.intro.purpose_text || ''}
               onChange={(e) => handleFieldChange('intro', 'purpose_text', e.target.value)}
@@ -218,6 +220,21 @@ const AITrustCenterOverview: React.FC = () => {
                 '& .MuiInputBase-input': {
                   ...TEXT_FIELD_STYLES['& .MuiInputBase-input'],
                   ...styles.cardText,
+                  overflowY: 'auto',
+                  '&::-webkit-scrollbar': {
+                    width: '8px',
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    background: '#f1f1f1',
+                    borderRadius: '4px',
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    background: '#c1c1c1',
+                    borderRadius: '4px',
+                    '&:hover': {
+                      background: '#a8a8a8',
+                    },
+                  },
                 }
               }}
               variant="outlined"
@@ -231,6 +248,8 @@ const AITrustCenterOverview: React.FC = () => {
           >
             <TextField
               multiline
+              minRows={3}
+              maxRows={8}
               placeholder="Provide a brief statement about the company's AI applications and their significance. Mention the main objectives, like data security, ethical AI, and trust-building with customers."
               value={formData.intro.our_statement_text || ''}
               onChange={(e) => handleFieldChange('intro', 'our_statement_text', e.target.value)}
@@ -239,6 +258,21 @@ const AITrustCenterOverview: React.FC = () => {
                 '& .MuiInputBase-input': {
                   ...TEXT_FIELD_STYLES['& .MuiInputBase-input'],
                   ...styles.cardText,
+                  overflowY: 'auto',
+                  '&::-webkit-scrollbar': {
+                    width: '8px',
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    background: '#f1f1f1',
+                    borderRadius: '4px',
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    background: '#c1c1c1',
+                    borderRadius: '4px',
+                    '&:hover': {
+                      background: '#a8a8a8',
+                    },
+                  },
                 }
               }}
               variant="outlined"
@@ -252,6 +286,8 @@ const AITrustCenterOverview: React.FC = () => {
           >
             <TextField
               multiline
+              minRows={3}
+              maxRows={8}
               placeholder="Input a mission statement reflecting your values related to AI governance and ethics."
               value={formData.intro.our_mission_text || ''}
               onChange={(e) => handleFieldChange('intro', 'our_mission_text', e.target.value)}
@@ -260,6 +296,21 @@ const AITrustCenterOverview: React.FC = () => {
                 '& .MuiInputBase-input': {
                   ...TEXT_FIELD_STYLES['& .MuiInputBase-input'],
                   ...styles.cardText,
+                  overflowY: 'auto',
+                  '&::-webkit-scrollbar': {
+                    width: '8px',
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    background: '#f1f1f1',
+                    borderRadius: '4px',
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    background: '#c1c1c1',
+                    borderRadius: '4px',
+                    '&:hover': {
+                      background: '#a8a8a8',
+                    },
+                  },
                 }
               }}
               variant="outlined"
@@ -331,6 +382,8 @@ const AITrustCenterOverview: React.FC = () => {
           >
             <TextField
               multiline
+              minRows={3}
+              maxRows={8}
               placeholder="Explain your company, what you do, and why trust in AI is essential to you."
               value={formData.company_info.background_text || ''}
               onChange={(e) => handleFieldChange('company_info', 'background_text', e.target.value)}
@@ -339,6 +392,21 @@ const AITrustCenterOverview: React.FC = () => {
                 '& .MuiInputBase-input': {
                   ...TEXT_FIELD_STYLES['& .MuiInputBase-input'],
                   ...styles.cardText,
+                  overflowY: 'auto',
+                  '&::-webkit-scrollbar': {
+                    width: '8px',
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    background: '#f1f1f1',
+                    borderRadius: '4px',
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    background: '#c1c1c1',
+                    borderRadius: '4px',
+                    '&:hover': {
+                      background: '#a8a8a8',
+                    },
+                  },
                 }
               }}
               variant="outlined"
@@ -352,6 +420,8 @@ const AITrustCenterOverview: React.FC = () => {
           >
             <TextField
               multiline
+              minRows={3}
+              maxRows={8}
               placeholder="Explain key benefits like efficiency, security, customer support, and ethical AI practices. You can also detail your AI offering functionality, use cases, and benefits to users."
               value={formData.company_info.core_benefit_text || ''}
               onChange={(e) => handleFieldChange('company_info', 'core_benefit_text', e.target.value)}
@@ -360,6 +430,21 @@ const AITrustCenterOverview: React.FC = () => {
                 '& .MuiInputBase-input': {
                   ...TEXT_FIELD_STYLES['& .MuiInputBase-input'],
                   ...styles.cardText,
+                  overflowY: 'auto',
+                  '&::-webkit-scrollbar': {
+                    width: '8px',
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    background: '#f1f1f1',
+                    borderRadius: '4px',
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    background: '#c1c1c1',
+                    borderRadius: '4px',
+                    '&:hover': {
+                      background: '#a8a8a8',
+                    },
+                  },
                 }
               }}
               variant="outlined"
@@ -373,6 +458,8 @@ const AITrustCenterOverview: React.FC = () => {
           >
             <TextField
               multiline
+              minRows={3}
+              maxRows={8}
               placeholder="Access our comprehensive compliance documentation and certifications."
               value={formData.company_info.compliance_doc_text || ''}
               onChange={(e) => handleFieldChange('company_info', 'compliance_doc_text', e.target.value)}
@@ -381,6 +468,21 @@ const AITrustCenterOverview: React.FC = () => {
                 '& .MuiInputBase-input': {
                   ...TEXT_FIELD_STYLES['& .MuiInputBase-input'],
                   ...styles.cardText,
+                  overflowY: 'auto',
+                  '&::-webkit-scrollbar': {
+                    width: '8px',
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    background: '#f1f1f1',
+                    borderRadius: '4px',
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    background: '#c1c1c1',
+                    borderRadius: '4px',
+                    '&:hover': {
+                      background: '#a8a8a8',
+                    },
+                  },
                 }
               }}
               variant="outlined"

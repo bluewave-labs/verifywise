@@ -17,13 +17,12 @@ import { getControlCategoryByProjectIdQuery } from "../utils/controlCategory.uti
 import { ProjectModel } from "../domain.layer/models/project/project.model";
 import { getAllControlsByControlGroupQuery } from "../utils/control.utils";
 import { getAllSubcontrolsByControlIdQuery } from "../utils/subControl.utils";
-import { ControlModel } from "../domain.layer/models/control/control.model";
-import { ControlCategoryModel } from "../domain.layer/models/controlCategory/controlCategory.model";
 import { createEUFrameworkQuery } from "../utils/eu.utils";
 import { sequelize } from "../database/db";
 import { createISOFrameworkQuery } from "../utils/iso42001.utils";
 import { IProjectAttributes } from "../domain.layer/interfaces/i.project";
 import { IControl } from "../domain.layer/interfaces/i.control";
+import { IControlCategory } from "../domain.layer/interfaces/i.controlCategory";
 
 export async function getAllProjects(
   req: Request,
@@ -289,7 +288,7 @@ export async function getCompliances(req: Request, res: Response) {
     if (project) {
       const controlCategories = (await getControlCategoryByProjectIdQuery(
         project.id!, req.tenantId!
-      )) as ControlCategoryModel[];
+      )) as IControlCategory[];
       for (const category of controlCategories) {
         if (category) {
           const controls = (await getAllControlsByControlGroupQuery(
@@ -307,7 +306,7 @@ export async function getCompliances(req: Request, res: Response) {
               control.subControls = subControls;
             }
           }
-          category.dataValues.controls = controls;
+          category.controls = controls;
         }
       }
       return res.status(200).json(STATUS_CODE[200](controlCategories));

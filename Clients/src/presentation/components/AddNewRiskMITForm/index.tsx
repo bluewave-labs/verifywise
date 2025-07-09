@@ -18,6 +18,8 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import placeholderImage from "../../assets/imgs/empty-state.svg";
 import riskData from "../../assets/MITAIRISKDB.json";
+import { Likelihood, Severity } from "../RiskLevel/constants";
+import { riskCategoryItems } from "../AddNewRiskForm/projectRiskValue";
 
 const TITLE_OF_COLUMNS = [
   "",
@@ -29,13 +31,30 @@ const TITLE_OF_COLUMNS = [
   "CATEGORY",
 ];
 
+interface AddNewRiskMITModalProps {
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+  onRiskSelected?: (riskData: {
+    riskName: string;
+    actionOwner: number;
+    aiLifecyclePhase: number;
+    riskDescription: string;
+    riskCategory: number[];
+    potentialImpact: string;
+    assessmentMapping: number;
+    controlsMapping: number;
+    likelihood: number;
+    riskSeverity: number;
+    riskLevel: number;
+    reviewNotes: string;
+  }) => void;
+}
+
 const AddNewRiskMITModal = ({
   isOpen,
   setIsOpen,
-}: {
-  isOpen: boolean;
-  setIsOpen: (open: boolean) => void;
-}) => {
+  onRiskSelected,
+}: AddNewRiskMITModalProps) => {
   const theme = useTheme();
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -55,6 +74,84 @@ const AddNewRiskMITModal = ({
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
+  };
+
+  const mapSeverity = (severity: string): Severity => {
+    switch (severity.toLowerCase()) {
+      case "negligible":
+        return Severity.Negligible;
+      case "minor":
+        return Severity.Minor;
+      case "moderate":
+        return Severity.Moderate;
+      case "major":
+        return Severity.Major;
+      case "catastrophic":
+        return Severity.Catastrophic;
+      default:
+        return Severity.Moderate;
+    }
+  };
+
+  const mapLikelihood = (likelihood: string): Likelihood => {
+    switch (likelihood.toLowerCase()) {
+      case "rare":
+        return Likelihood.Rare;
+      case "unlikely":
+        return Likelihood.Unlikely;
+      case "possible":
+        return Likelihood.Possible;
+      case "likely":
+        return Likelihood.Likely;
+      case "almost certain":
+        return Likelihood.AlmostCertain;
+      default:
+        return Likelihood.Possible;
+    }
+  };
+
+  const mapRiskCategories = (riskCategories: string): number[] => {
+    const categories = riskCategories.split(';').map(cat => cat.trim());
+    const mappedCategories: number[] = [];
+    
+    categories.forEach(category => {
+      const matchedCategory = riskCategoryItems.find(
+        item => item.name.toLowerCase() === category.toLowerCase()
+      );
+      if (matchedCategory) {
+        mappedCategories.push(matchedCategory._id);
+      }
+    });
+    
+    return mappedCategories.length > 0 ? mappedCategories : [1];
+  };
+
+  const handleUseSelectedRisk = () => {
+    if (selectedId === null) return;
+
+    const selectedRisk = riskData.find((risk) => risk.Id === selectedId);
+    if (!selectedRisk) return;
+
+    const mappedRiskData = {
+      riskName: selectedRisk.Summary,
+      actionOwner: 0,
+      aiLifecyclePhase: 0, 
+      riskDescription: selectedRisk.Description,
+      riskCategory: mapRiskCategories(selectedRisk["Risk Category"]),
+      potentialImpact: "", 
+      assessmentMapping: 0, 
+      controlsMapping: 0, 
+      likelihood: mapLikelihood(selectedRisk.Likelihood),
+      riskSeverity: mapSeverity(selectedRisk["Risk Severity"]),
+      riskLevel: 0, 
+      reviewNotes: `Imported from MIT AI Risk Database - Category: ${selectedRisk["Risk Category"]}`,
+    };
+
+    if (onRiskSelected) {
+      onRiskSelected(mappedRiskData);
+    }
+
+    handleClose();
   };
 
   return (
@@ -193,7 +290,7 @@ const AddNewRiskMITModal = ({
           <Button
             variant="contained"
             sx={{ fontWeight: 400, fontSize: 13, backgroundColor: "#13715B" }}
-            onClick={() => {}}
+            onClick={handleUseSelectedRisk}
             disabled={selectedId === null}
           >
             Use selected risk and edit

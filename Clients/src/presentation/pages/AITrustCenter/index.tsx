@@ -7,7 +7,6 @@ import Tab from '@mui/material/Tab';
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import TrustCenterResources from "./Resources";
 import AITrustCenterSubprocessors from "./Subprocessors";
-import AITrustCenterControls from "./Controls";
 import AITrustCenterSettings from "./Settings";
 import AITrustCenterOverview from "./Overview";
 import { 
@@ -62,12 +61,6 @@ const AITrustCenter: React.FC = () => {
               />
               <Tab
                 sx={aiTrustCenterTabStyle}
-                label="Controls"
-                value="controls"
-                disableRipple
-              />
-              <Tab
-                sx={aiTrustCenterTabStyle}
                 label="Settings"
                 value="settings"
                 disableRipple
@@ -91,9 +84,6 @@ const AITrustCenter: React.FC = () => {
           </TabPanel>
           <TabPanel value="subprocessors" sx={aiTrustCenterTabPanelStyle}>
             <AITrustCenterSubprocessors />
-          </TabPanel>
-          <TabPanel value="controls" sx={aiTrustCenterTabPanelStyle}>
-            <AITrustCenterControls />
           </TabPanel>
           <TabPanel value="settings" sx={aiTrustCenterTabPanelStyle}>
             <AITrustCenterSettings />

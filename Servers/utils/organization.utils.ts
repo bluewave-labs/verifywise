@@ -20,10 +20,7 @@
  * @module utils/organization.util
  */
 
-import {
-  Organization,
-  OrganizationModel,
-} from "../domain.layer/models/organization/organization.model";
+import { OrganizationModel } from "../domain.layer/models/organization/organization.model";
 import { sequelize } from "../database/db";
 import { QueryTypes, Transaction } from "sequelize";
 
@@ -39,7 +36,7 @@ import { QueryTypes, Transaction } from "sequelize";
  */
 export const getAllOrganizationsQuery = async (
   transaction: Transaction | null = null
-): Promise<Organization[]> => {
+): Promise<OrganizationModel[]> => {
   const organizations = await sequelize.query(
     "SELECT * FROM organizations ORDER BY created_at DESC, id ASC",
     {
@@ -68,7 +65,7 @@ export const getOrganizationsExistsQuery = async () => {
  */
 export const getOrganizationByIdQuery = async (
   id: number
-): Promise<Organization | null> => {
+): Promise<OrganizationModel | null> => {
   const result = await sequelize.query(
     "SELECT * FROM organizations WHERE id = :id",
     {
@@ -90,9 +87,9 @@ export const getOrganizationByIdQuery = async (
  * @throws Will throw an error if the database query fails.
  */
 export const createOrganizationQuery = async (
-  organization: Partial<Organization>,
+  organization: Partial<OrganizationModel>,
   transaction: Transaction
-): Promise<Organization> => {
+): Promise<OrganizationModel> => {
   const result = await sequelize.query(
     `INSERT INTO organizations(name, logo, created_at) 
      VALUES (:name, :logo, :created_at) RETURNING *`,
@@ -122,17 +119,17 @@ export const createOrganizationQuery = async (
  */
 export const updateOrganizationByIdQuery = async (
   id: number,
-  organization: Partial<Organization>,
+  organization: Partial<OrganizationModel>,
   transaction: Transaction
-): Promise<Organization | null> => {
-  const updateOrg: Partial<Record<keyof Organization, any>> = {};
+): Promise<OrganizationModel | null> => {
+  const updateOrg: Partial<Record<keyof OrganizationModel, any>> = {};
   const updateFields = ["name", "logo", "members", "projects"];
 
   const setClause = updateFields
     .filter((field) => {
-      if (organization[field as keyof Organization] !== undefined) {
-        updateOrg[field as keyof Organization] =
-          organization[field as keyof Organization];
+      if (organization[field as keyof OrganizationModel] !== undefined) {
+        updateOrg[field as keyof OrganizationModel] =
+          organization[field as keyof OrganizationModel];
         return true;
       }
       return false;
@@ -228,7 +225,7 @@ export const addMemberToOrganizationQuery = async (
   id: number,
   memberId: number,
   transaction: Transaction
-): Promise<Organization | null> => {
+): Promise<OrganizationModel | null> => {
   const organization = await getOrganizationByIdQuery(id);
   if (!organization) return null;
 
@@ -266,7 +263,7 @@ export const removeMemberFromOrganizationQuery = async (
   id: number,
   memberId: number,
   transaction: Transaction
-): Promise<Organization | null> => {
+): Promise<OrganizationModel | null> => {
   const organization = await getOrganizationByIdQuery(id);
   if (!organization) return null;
 
@@ -304,7 +301,7 @@ export const addProjectToOrganizationQuery = async (
   id: number,
   projectId: number,
   transaction: Transaction
-): Promise<Organization | null> => {
+): Promise<OrganizationModel | null> => {
   const organization = await getOrganizationByIdQuery(id);
   if (!organization) return null;
 
@@ -342,7 +339,7 @@ export const removeProjectFromOrganizationQuery = async (
   id: number,
   projectId: number,
   transaction: Transaction
-): Promise<Organization | null> => {
+): Promise<OrganizationModel | null> => {
   const organization = await getOrganizationByIdQuery(id);
   if (!organization) return null;
 

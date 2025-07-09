@@ -1,16 +1,14 @@
-import {
-  ControlCategory,
-  ControlCategoryModel,
-} from "../domain.layer/models/controlCategory/controlCategory.model";
+import { ControlCategoryModel } from "../domain.layer/models/controlCategory/controlCategory.model";
 import { sequelize } from "../database/db";
 import { createNewControlsQuery } from "./control.utils";
 import { ControlCategories } from "../structures/EU-AI-Act/compliance-tracker/controlCategories.struct";
 import { QueryTypes, Transaction } from "sequelize";
+import { IControlCategory } from "../domain.layer/interfaces/i.controlCategory";
 
 export const getAllControlCategoriesQuery = async (
   tenant: string
 ): Promise<
-  ControlCategory[]
+  ControlCategoryModel[]
 > => {
   const controlCategories = await sequelize.query(
     `SELECT * FROM "${tenant}".controlcategories ORDER BY created_at DESC, id ASC`,
@@ -25,7 +23,7 @@ export const getAllControlCategoriesQuery = async (
 export const getControlCategoryByIdQuery = async (
   id: number,
   tenant: string
-): Promise<ControlCategory | null> => {
+): Promise<IControlCategory | null> => {
   const result = await sequelize.query(
     `SELECT * FROM "${tenant}".controlcategories WHERE id = :id`,
     {
@@ -40,7 +38,7 @@ export const getControlCategoryByIdQuery = async (
 export const getControlCategoryByTitleAndProjectIdQuery = async (
   title: string,
   projectId: number
-): Promise<ControlCategory | null> => {
+): Promise<IControlCategory | null> => {
   const result = await sequelize.query(
     "SELECT * FROM controlcategories WHERE title = :title AND project_id = :project_id",
     {
@@ -55,7 +53,7 @@ export const getControlCategoryByTitleAndProjectIdQuery = async (
 export const getControlCategoryByProjectIdQuery = async (
   projectId: number,
   tenant: string
-): Promise<ControlCategory[]> => {
+): Promise<IControlCategory[]> => {
   const result = await sequelize.query(
     `SELECT * FROM "${tenant}".controlcategories WHERE project_id = :project_id ORDER BY created_at DESC, id ASC`,
     {
@@ -68,10 +66,10 @@ export const getControlCategoryByProjectIdQuery = async (
 };
 
 export const createControlCategoryQuery = async (
-  controlCategory: ControlCategory,
+  controlCategory: ControlCategoryModel,
   tenant: string,
   transaction: Transaction
-): Promise<ControlCategory> => {
+): Promise<ControlCategoryModel> => {
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".controlcategories (
       project_id, title, order_no
@@ -93,19 +91,21 @@ export const createControlCategoryQuery = async (
 
 export const updateControlCategoryByIdQuery = async (
   id: number,
-  controlCategory: Partial<ControlCategory>,
+  controlCategory: Partial<ControlCategoryModel>,
   tenant: string,
   transaction: Transaction
-): Promise<ControlCategory | null> => {
-  const updateControlCategory: Partial<Record<keyof ControlCategory, any>> = {};
+): Promise<ControlCategoryModel | null> => {
+  const updateControlCategory: Partial<
+    Record<keyof ControlCategoryModel, any>
+  > = {};
   const setClause = ["title"]
     .filter((f) => {
       if (
-        controlCategory[f as keyof ControlCategory] !== undefined &&
-        controlCategory[f as keyof ControlCategory]
+        controlCategory[f as keyof ControlCategoryModel] !== undefined &&
+        controlCategory[f as keyof ControlCategoryModel]
       ) {
-        updateControlCategory[f as keyof ControlCategory] =
-          controlCategory[f as keyof ControlCategory];
+        updateControlCategory[f as keyof ControlCategoryModel] =
+          controlCategory[f as keyof ControlCategoryModel];
         return true;
       }
     })

@@ -143,11 +143,11 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
     const newVendor: Vendor = req.body;
 
     if (!newVendor.vendor_name || !newVendor.vendor_provides) {
-      await logSuccess({
-        eventType: 'Create',
-        description: 'Missing vendorName or vendorProvides',
+      await logFailure({
+        description: 'Validation failed: Missing vendorName or vendorProvides',
         functionName: 'createVendor',
         fileName: 'vendor.ctrl.ts',
+        error: new Error('Missing required fields'),
       });
       return res.status(400).json(
         STATUS_CODE[400]({
@@ -203,11 +203,11 @@ export async function updateVendorById(
   try {
     const { userId, role } = req;
     if (!userId || !role) {
-      await logSuccess({
-        eventType: 'Update',
-        description: 'Unauthorized access attempt',
+      await logFailure({
+        description: 'Unauthorized access attempt to update vendor',
         functionName: 'updateVendorById',
         fileName: 'vendor.ctrl.ts',
+        error: new Error('Unauthorized'),
       });
       return res.status(401).json({ message: "Unauthorized" });
     }

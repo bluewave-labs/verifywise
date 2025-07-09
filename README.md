@@ -286,7 +286,7 @@ Ensure you have following things:
 4. Add the provided `DNS Records` on your DNS config on your DNS provider
 
 5. Verify the DNS Records on Resend
-![verification]()
+![verification](https://github.com/user-attachments/assets/b50dd353-0ba0-4740-96ae-a26cc6c9e11e)
 
 6. Update the `EMAIL_ID` in **env** file to `no-reply@your-domain`
 

@@ -1,18 +1,23 @@
-import { Question, QuestionModel } from "../models/question.model";
+import {
+  Question,
+  QuestionModel,
+} from "../domain.layer/models/question/question.model";
 import { sequelize } from "../database/db";
 import { deleteFileById, getFileById } from "./fileUpload.utils";
 import { Request } from "express";
 import { QueryTypes, Transaction } from "sequelize";
 
-export const getAllQuestionsQuery = async (): Promise<(Question & { evidence_files: Object[] })[]> => {
+export const getAllQuestionsQuery = async (): Promise<
+  (Question & { evidence_files: Object[] })[]
+> => {
   const questions = await sequelize.query(
     "SELECT * FROM questions ORDER BY created_at DESC, id ASC",
     {
       mapToModel: true,
-      model: QuestionModel
+      model: QuestionModel,
     }
   );
-  const questionsUpdated = await Promise.all(
+  const questionsUpdated = (await Promise.all(
     questions.map(async (question) => {
       let evidenceFiles: Object[] = [];
       await Promise.all(
@@ -23,7 +28,7 @@ export const getAllQuestionsQuery = async (): Promise<(Question & { evidence_fil
       );
       return { ...question.dataValues, evidence_files: evidenceFiles };
     })
-  ) as (QuestionModel & { evidence_files: string[] })[];
+  )) as (QuestionModel & { evidence_files: string[] })[];
   return questionsUpdated;
 };
 
@@ -35,7 +40,7 @@ export const getQuestionByIdQuery = async (
     {
       replacements: { id },
       mapToModel: true,
-      model: QuestionModel
+      model: QuestionModel,
     }
   );
   let evidenceFiles: Object[] = [];
@@ -45,15 +50,18 @@ export const getQuestionByIdQuery = async (
       evidenceFiles.push({ id: f.id, filename: f.fileName });
     })
   );
-  return { ...result[0].dataValues, evidence_files: evidenceFiles } as (QuestionModel & { evidence_files: string[] });
+  return {
+    ...result[0].dataValues,
+    evidence_files: evidenceFiles,
+  } as QuestionModel & { evidence_files: string[] };
 };
 
 export interface RequestWithFile extends Request {
   files?:
-  | UploadedFile[]
-  | {
-    [key: string]: UploadedFile[];
-  };
+    | UploadedFile[]
+    | {
+        [key: string]: UploadedFile[];
+      };
 }
 
 export interface UploadedFile {
@@ -89,7 +97,7 @@ export const createNewQuestionQuery = async (
       mapToModel: true,
       model: QuestionModel,
       // type: QueryTypes.INSERT
-      transaction
+      transaction,
     }
   );
   return result[0];
@@ -97,7 +105,13 @@ export const createNewQuestionQuery = async (
 
 export const addFileToQuestion = async (
   id: number,
-  uploadedFiles: { id: string; fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[],
+  uploadedFiles: {
+    id: string;
+    fileName: string;
+    project_id: number;
+    uploaded_by: number;
+    uploaded_time: Date;
+  }[],
   deletedFiles: number[],
   transaction: Transaction
 ): Promise<Question> => {
@@ -108,37 +122,47 @@ export const addFileToQuestion = async (
       replacements: { id },
       mapToModel: true,
       model: QuestionModel,
-      transaction
+      transaction,
     }
-  )
+  );
 
   // convert to list of objects
   let evidenceFiles = (
-    evidenceFilesResult[0].evidence_files ?
-      evidenceFilesResult[0].evidence_files : []
-  ) as { id: string, fileName: string, project_id: number, uploaded_by: number, uploaded_time: Date }[]
+    evidenceFilesResult[0].evidence_files
+      ? evidenceFilesResult[0].evidence_files
+      : []
+  ) as {
+    id: string;
+    fileName: string;
+    project_id: number;
+    uploaded_by: number;
+    uploaded_time: Date;
+  }[];
 
   // remove the deleted file ids
-  evidenceFiles = evidenceFiles.filter(f => !deletedFiles.includes(parseInt(f.id)))
+  evidenceFiles = evidenceFiles.filter(
+    (f) => !deletedFiles.includes(parseInt(f.id))
+  );
 
   // combine the files lists
-  evidenceFiles = evidenceFiles.concat(uploadedFiles)
+  evidenceFiles = evidenceFiles.concat(uploadedFiles);
 
   // update
   const result = await sequelize.query(
     `UPDATE questions SET evidence_files = :evidence_files WHERE id = :id RETURNING *;`,
     {
       replacements: {
-        evidence_files: JSON.stringify(evidenceFiles), id
+        evidence_files: JSON.stringify(evidenceFiles),
+        id,
       },
       mapToModel: true,
       model: QuestionModel,
       // type: QueryTypes.UPDATE
-      transaction
+      transaction,
     }
-  )
+  );
   return result[0];
-}
+};
 
 export const updateQuestionByIdQuery = async (
   id: number,
@@ -146,18 +170,18 @@ export const updateQuestionByIdQuery = async (
   transaction: Transaction
 ): Promise<Question | null> => {
   const updateQuestion: Partial<Record<keyof Question, any>> = {};
-  const setClause = [
-    "answer",
-    "status"
-  ].filter(f => {
-    if (question[f as keyof Question] !== undefined) {
-      updateQuestion[f as keyof Question] = question[f as keyof Question]
-      if (f === "answer" && !question[f]) {
-        updateQuestion[f as keyof Question] = ""
+  const setClause = ["answer", "status"]
+    .filter((f) => {
+      if (question[f as keyof Question] !== undefined) {
+        updateQuestion[f as keyof Question] = question[f as keyof Question];
+        if (f === "answer" && !question[f]) {
+          updateQuestion[f as keyof Question] = "";
+        }
+        return true;
       }
-      return true
-    }
-  }).map(f => `${f} = :${f}`).join(", ");
+    })
+    .map((f) => `${f} = :${f}`)
+    .join(", ");
 
   const query = `UPDATE questions SET ${setClause} WHERE id = :id RETURNING *;`;
 
@@ -168,7 +192,7 @@ export const updateQuestionByIdQuery = async (
     mapToModel: true,
     model: QuestionModel,
     // type: QueryTypes.UPDATE,
-    transaction
+    transaction,
   });
 
   return result[0];
@@ -185,7 +209,7 @@ export const deleteQuestionByIdQuery = async (
       mapToModel: true,
       model: QuestionModel,
       type: QueryTypes.DELETE,
-      transaction
+      transaction,
     }
   );
   if (result.length) {
@@ -252,7 +276,7 @@ export const createNewQuestionsQuery = async (
       :subtopic_id, :question, :answer_type, :evidence_required,
       :hint, :is_required, :priority_level, :answer, :order_no, :input_type
     ) RETURNING *`;
-  let createdQuestions: Question[] = []
+  let createdQuestions: Question[] = [];
   for (let question of questions) {
     const result = await sequelize.query(query, {
       replacements: {
@@ -270,9 +294,9 @@ export const createNewQuestionsQuery = async (
       mapToModel: true,
       model: QuestionModel,
       // type: QueryTypes.INSERT
-      transaction
-    })
-    createdQuestions = createdQuestions.concat(result)
+      transaction,
+    });
+    createdQuestions = createdQuestions.concat(result);
   }
   return createdQuestions;
 };

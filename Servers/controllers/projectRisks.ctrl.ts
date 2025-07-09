@@ -9,7 +9,7 @@ import {
   getProjectRiskByIdQuery,
   updateProjectRiskByIdQuery,
 } from "../utils/projectRisk.utils";
-import { ProjectRisk } from "../models/projectRisk.model";
+import { ProjectRisk } from "../domain.layer/models/projectRisks/projectRisk.model";
 import { sequelize } from "../database/db";
 
 export async function getAllProjectRisks(
@@ -70,7 +70,10 @@ export async function createProjectRisk(
   try {
     const projectRisk: Partial<ProjectRisk> = req.body;
 
-    const newProjectRisk = await createProjectRiskQuery(projectRisk, transaction);
+    const newProjectRisk = await createProjectRiskQuery(
+      projectRisk,
+      transaction
+    );
 
     if (newProjectRisk) {
       await transaction.commit();
@@ -119,7 +122,10 @@ export async function deleteProjectRiskById(
   try {
     const projectRiskId = parseInt(req.params.id);
 
-    const deletedProjectRisk = await deleteProjectRiskByIdQuery(projectRiskId, transaction);
+    const deletedProjectRisk = await deleteProjectRiskByIdQuery(
+      projectRiskId,
+      transaction
+    );
 
     if (deletedProjectRisk) {
       await transaction.commit();

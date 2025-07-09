@@ -54,7 +54,7 @@ const riskInitialState: RiskFormValues = {
   actionOwner: 0,
   aiLifecyclePhase: 0,
   riskDescription: "",
-  riskCategory: 1,
+  riskCategory: [1],
   potentialImpact: "",
   assessmentMapping: 0,
   controlsMapping: 0,
@@ -119,7 +119,6 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   const [value, setValue] = useState("risks");
   const handleChange = useCallback(
     (_: React.SyntheticEvent, newValue: string) => {
-      console.log(newValue);
       setValue(newValue);
     },
     []
@@ -145,10 +144,9 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
           aiLifecyclePhase.find(
             (item) => item.name === inputValues.ai_lifecycle_phase
           )?._id ?? 1,
-        riskCategory:
-          riskCategoryItems.find(
-            (item) => item.name === inputValues.risk_category
-          )?._id ?? 1,
+        riskCategory: inputValues.risk_category.map((category: string) =>
+          riskCategoryItems.find((item) => item.name === category)?._id ?? 1
+        ),
         potentialImpact: inputValues.impact ?? "",
         assessmentMapping: inputValues.assessment_mapping,
         controlsMapping: inputValues.controlsMapping,
@@ -262,13 +260,15 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     if (!aiLifecyclePhase.accepted) {
       newErrors.aiLifecyclePhase = aiLifecyclePhase.message;
     }
-    const riskCategory = selectValidation(
-      "Risk category",
-      riskValues.riskCategory
-    );
-    if (!riskCategory.accepted) {
-      newErrors.riskCategory = riskCategory.message;
-    }
+    riskValues.riskCategory.forEach((category) => {
+      const riskCategory = selectValidation(
+        "Risk category",
+        category
+      );
+      if (!riskCategory.accepted) {
+        newErrors.riskCategory = [riskCategory.message];
+      }
+    });
 
     const mitigationPlan = checkStringValidation(
       "Mitigation plan",
@@ -405,9 +405,9 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
             (item) => item._id === riskValues.aiLifecyclePhase
           )?.name || "",
         risk_description: riskValues.riskDescription,
-        risk_category:
-          riskCategoryItems.find((item) => item._id === riskValues.riskCategory)
-            ?.name || "",
+        risk_category: riskValues.riskCategory.map((category) =>
+          riskCategoryItems.find((item) => item._id === category)?.name
+        ),
         impact: riskValues.potentialImpact,
         assessment_mapping: riskValues.assessmentMapping,
         controls_mapping: riskValues.controlsMapping,

@@ -1,7 +1,7 @@
 import {
   TrainingRegistar,
   TrainingRegistarModel,
-} from "../models/trainingRegistar.model";
+} from "../domain.layer/models/trainingRegistar/trainingRegistar.model";
 import { sequelize } from "../database/db";
 import { QueryTypes, Sequelize, Transaction } from "sequelize";
 
@@ -15,9 +15,9 @@ export const createNewTrainingRegistarQuery = async (
 ) => {
   const result = await sequelize.query(
     `INSERT INTO trainingregistar (
-            training_name, duration, provider, department, status, people
+            training_name, duration, provider, department, status, people, description
         ) VALUES (
-            :training_name, :duration, :provider, :department, :status, :people 
+            :training_name, :duration, :provider, :department, :status, :people, :description
         ) RETURNING *`,
     {
       replacements: {
@@ -27,6 +27,7 @@ export const createNewTrainingRegistarQuery = async (
         department: trainingRegistar.department,
         status: trainingRegistar.status,
         people: trainingRegistar.numberOfPeople,
+        description: trainingRegistar.description,
       },
       mapToModel: true,
       model: TrainingRegistarModel,
@@ -34,7 +35,7 @@ export const createNewTrainingRegistarQuery = async (
     }
   );
   // Return the created TrainingRegistar instance
-  return Array.isArray(result)
+  return Array.isArray(result);
 };
 
 /**
@@ -96,6 +97,7 @@ export const updateTrainingRegistarByIdQuery = async (
     "department",
     "status",
     "numberOfPeople",
+    "description",
   ]
     .filter((f) => {
       if (

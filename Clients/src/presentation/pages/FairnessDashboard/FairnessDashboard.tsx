@@ -58,6 +58,12 @@ export default function FairnessDashboard() {
   const fetchMetrics = async () => {
     try {
       const metrics = await fairnessService.getAllFairnessMetrics();
+
+      if (!metrics || metrics.length === 0) {
+        setUploadedModels([]);  // Show empty table
+        return; // Don't raise error
+      }
+      
       const formatted = metrics.map((item: any) => ({
         id: item.metrics_id, // use this for "ID" column
         model: item.model_filename,

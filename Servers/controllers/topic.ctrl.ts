@@ -14,7 +14,7 @@ import {
   RequestWithFile,
 } from "../utils/question.utils";
 import { createNewSubtopicQuery } from "../utils/subtopic.utils";
-import { Topic } from "../models/topic.model";
+import { Topic } from "../domain.layer/models/topic/topic.model";
 import { sequelize } from "../database/db";
 
 export async function getAllTopics(req: Request, res: Response): Promise<any> {
@@ -78,7 +78,11 @@ export async function updateTopicById(
     const topicId = parseInt(req.params.id);
     const updatedTopic: Topic = req.body;
 
-    const topic = await updateTopicByIdQuery(topicId, updatedTopic, transaction);
+    const topic = await updateTopicByIdQuery(
+      topicId,
+      updatedTopic,
+      transaction
+    );
 
     if (topic) {
       await transaction.commit();

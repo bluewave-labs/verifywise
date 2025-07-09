@@ -212,8 +212,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
 
   const handleInvitation = (
     email: string,
-    status: number | string,
-    link: string
+    status: number | string
   ) => {
     console.log("Invitation to ", email, "is ", status);
     

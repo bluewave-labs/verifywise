@@ -35,7 +35,7 @@ import { isValidEmail } from "../../../../application/validations/emailAddress.r
 interface InviteUserModalProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  onSendInvite: (email: string, status: number | string, link: string) => void;
+  onSendInvite: (email: string, status: number | string) => void;
 }
 
 interface FormValues {
@@ -132,14 +132,9 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
 
       try {
         const response = await apiServices.post("/mail/invite", formData);
-        const data = response.data as { link: string };
-        onSendInvite(values.email, response.status, data.link);
+        onSendInvite(values.email, response.status);
       } catch (error) {
-        onSendInvite(
-          values.email,
-          "error",
-          (error as Error).message || "Failed to send invite"
-        );
+        onSendInvite(values.email, -1);
       } finally {
         setIsOpen(false);
       }

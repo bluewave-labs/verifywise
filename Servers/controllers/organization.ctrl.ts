@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { sequelize } from "../database/db";
+import { OrganizationModel } from "../domain.layer/models/organization/organization.model";
 import {
   addMemberToOrganizationQuery,
   addProjectToOrganizationQuery,
@@ -14,6 +15,10 @@ import {
   removeProjectFromOrganizationQuery,
   updateOrganizationByIdQuery,
 } from "../utils/organization.utils";
+import {
+  ValidationException,
+  BusinessLogicException,
+} from "../domain.layer/exceptions/custom.exception";
 
 /**
  * Get all organizations
@@ -119,29 +124,47 @@ export async function createOrganization(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   try {
-    const newOrganization = req.body;
+    const { name, logo, members, projects, is_demo } = req.body;
 
-    if (!newOrganization.name) {
-      await transaction.rollback();
-      return res
-        .status(400)
-        .json(STATUS_CODE[400]("Organization name is required"));
-    }
+    // Use the OrganizationModel's createNewOrganization method with validation
+    const organizationModel = await OrganizationModel.createNewOrganization(
+      name,
+      logo,
+      members,
+      projects,
+      is_demo
+    );
 
+    // Validate the organization data before saving
+    await organizationModel.validateOrganizationData();
+
+    // Use the utility query function for database operation
     const createdOrganization = await createOrganizationQuery(
-      newOrganization,
+      organizationModel,
       transaction
     );
+
     if (createdOrganization) {
       await transaction.commit();
       return res.status(201).json(STATUS_CODE[201](createdOrganization));
     }
+
     await transaction.rollback();
     return res
       .status(400)
       .json(STATUS_CODE[400]("Unable to create organization"));
   } catch (error) {
     await transaction.rollback();
+
+    // Handle specific validation errors
+    if (error instanceof ValidationException) {
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof BusinessLogicException) {
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -240,23 +263,48 @@ export async function updateOrganizationById(
   const transaction = await sequelize.transaction();
   try {
     const organizationId = parseInt(req.params.id);
-    const updatedOrganization = req.body;
+    const updateData = req.body;
 
-    const organization = await updateOrganizationByIdQuery(
+    // Find the organization by ID with validation
+    const organization = await OrganizationModel.findByIdWithValidation(
+      organizationId
+    );
+
+    // Check if organization can be modified (e.g., not a demo organization)
+    organization.canBeModified();
+
+    // Update the organization using the model's update method
+    await organization.updateOrganization(updateData);
+
+    // Validate the updated organization data
+    await organization.validateOrganizationData();
+
+    // Use the utility query function for database operation
+    const updatedOrganization = await updateOrganizationByIdQuery(
       organizationId,
-      updatedOrganization,
+      organization,
       transaction
     );
 
-    if (organization) {
+    if (updatedOrganization) {
       await transaction.commit();
-      return res.status(200).json(STATUS_CODE[200](organization));
+      return res.status(200).json(STATUS_CODE[200](updatedOrganization));
     }
 
     await transaction.rollback();
     return res.status(404).json(STATUS_CODE[404]("Organization not found"));
   } catch (error) {
     await transaction.rollback();
+
+    // Handle specific validation and business logic errors
+    if (error instanceof ValidationException) {
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof BusinessLogicException) {
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

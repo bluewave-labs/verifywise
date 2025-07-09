@@ -12,20 +12,15 @@
  */
 
 import { Column, DataType, Model, Table } from "sequelize-typescript";
-
-export type Organization = {
-  id?: number;
-  name: string;
-  logo?: string;
-  members?: number[]; // IDs of users
-  projects?: number[]; // IDs of projects
-  created_at?: Date;
-};
+import { IOrganization } from "../../interfaces/i.organization";
 
 @Table({
   tableName: "organizations",
 })
-export class OrganizationModel extends Model<Organization> {
+export class OrganizationModel
+  extends Model<OrganizationModel>
+  implements IOrganization
+{
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,

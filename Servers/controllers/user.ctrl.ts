@@ -222,7 +222,7 @@ async function loginUser(req: Request, res: Response): Promise<any> {
           sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         });
 
-        logStructured('successful', `login successful for ${email}`, 'loginUser', 'user.ctrl.ts');        
+        logStructured('successful', `login successful for ${email}`, 'loginUser', 'user.ctrl.ts');
         await logEvent('Read', `User logged in: ${email}`, user.id);
 
         return res.status(202).json(
@@ -305,9 +305,10 @@ async function resetPassword(req: Request, res: Response) {
   logger.debug(`🔁 Password reset requested for ${email}`);
 
   try {
-    const user = (await getUserByEmailQuery(email)) as UserModel & {
+    const _user = (await getUserByEmailQuery(email)) as UserModel & {
       role_name: string;
     };
+    const user = await UserModel.createNewUser(_user.name, _user.surname, _user.email, _user.password_hash, _user.role_id)
 
     if (user) {
       await user.updatePassword(newPassword);
@@ -357,7 +358,7 @@ async function updateUserById(req: Request, res: Response) {
   const { name, surname, email, roleId, last_login } = req.body;
 
   logStructured('processing', `updating user ID ${id}`, 'updateUserById', 'user.ctrl.ts');
-  logger.debug(`✏️ Update requested for user ID ${id}`); 
+  logger.debug(`✏️ Update requested for user ID ${id}`);
 
   try {
     const user = await getUserByIdQuery(id);
@@ -467,11 +468,11 @@ async function checkUserExists(
   try {
     const userExists = await checkUserExistsQuery();
 
-    logStructured('successful', `user existence check: ${userExists}`, 'checkUserExists', 'user.ctrl.ts');  
+    logStructured('successful', `user existence check: ${userExists}`, 'checkUserExists', 'user.ctrl.ts');
 
     return res.status(200).json(userExists);
   } catch (error) {
-    logStructured('error', 'failed to check user existence', 'checkUserExists', 'user.ctrl.ts');  
+    logStructured('error', 'failed to check user existence', 'checkUserExists', 'user.ctrl.ts');
     logger.error('❌ Error in checkUserExists:', error);
     return res.status(500).json({ message: 'Internal server error' });
   }

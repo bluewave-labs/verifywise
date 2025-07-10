@@ -270,6 +270,26 @@ ALLOWED_ORIGINS=["https://domainname.com:5173", "https://domainname.com"]
 ./install.sh
 ```
 
+### Integrating Resend (for email invitations)
+
+Ensure you have following things:
+> 1. You have created an account on [resend](https://resend.com/)
+> 
+> 2. You have your app domain pointing to your server on DNS
+
+1. Create an [API Key](https://resend.com/api-keys) with `Sending Access`
+
+2. Add the API Key to `RESEND_API_KEY` in the **.env.dev** or **.env.prod** based on your environment
+
+3. Add a [new domain](https://resend.com/domains) pointing to your doamin name
+
+4. Add the provided `DNS Records` on your DNS config on your DNS provider
+
+5. Verify the DNS Records on Resend
+![verification](https://github.com/user-attachments/assets/b50dd353-0ba0-4740-96ae-a26cc6c9e11e)
+
+6. Update the `EMAIL_ID` in **env** file to `no-reply@your-domain`
+
 
 ## Quick links
 

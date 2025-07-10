@@ -31,6 +31,9 @@ class DatasetConfig(BaseModel):
     source: str = Field(
         ..., description="Source of the dataset (e.g., huggingface path)"
     )
+    split: str = Field(
+        default="train", description="Split of the dataset to use"
+    )
     platform: str = Field(
         default="huggingface", description="Platform where the dataset is hosted"
     )

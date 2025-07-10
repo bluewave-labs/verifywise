@@ -1,0 +1,12 @@
+model:
+  type: huggingface
+  name: distilgpt2
+
+dataset:
+  type: huggingface
+  name: crows_pairs
+
+metrics:
+  - toxicity
+  - stereotype
+  - holistic_bias

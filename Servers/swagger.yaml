@@ -4347,7 +4347,7 @@ paths:
        - JWTAuth: []
       responses:
         "200":
-          description: list all the trainnig modules
+          description: list all the training modules
           content:
             application/json:
               schema:
@@ -4396,11 +4396,14 @@ paths:
               schema:
                 type: object
                 properties:
-                  message: ok
+                  message:
+                    type: string
+                    example: Training successfully created
                 data:
                 type: object
                 items:
                   $ref: 
+
         
         "500":
           description: Error creating new training (internal server error)
@@ -4423,6 +4426,72 @@ paths:
         - JWTAuth: []
       parameters:
         - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the role
+      responses:
+        "200":
+           decription: get one training data depending on the id
+           content:
+             application/json:
+               schema:
+                 type: object
+                 properties:
+                   message:
+                     type: string
+                     example: ok
+                 data:
+                   $ref:
+        
+        "404":
+           description: no content to display
+           content:
+              application/json:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: not found
+                  data:
+                    type: object
+        "500":
+            description: internal server error
+            content:
+              application/json:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: internal server error
+                  error:
+                    type: object
+
+  /training/{id}:
+    patch:
+      tags: [training]
+      security:
+       - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: update the training data of one particular instance
+      response:
+        "202":
+          description: training data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: salut!
+
 
 components:
   securitySchemes:

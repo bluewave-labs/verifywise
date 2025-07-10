@@ -1,14 +1,12 @@
-import {
-  ProjectRisk,
-  ProjectRiskModel,
-} from "../domain.layer/models/projectRisks/projectRisk.model";
+import { ProjectRiskModel } from "../domain.layer/models/projectRisks/projectRisk.model";
 import { sequelize } from "../database/db";
 import { QueryTypes, Transaction } from "sequelize";
 import { updateProjectUpdatedByIdQuery } from "./project.utils";
+import { IProjectRisk } from "../domain.layer/interfaces/I.projectRisk";
 
 export const getAllProjectRisksQuery = async (
   projectId: number
-): Promise<ProjectRisk[]> => {
+): Promise<IProjectRisk[]> => {
   const projectRisks = await sequelize.query(
     "SELECT * FROM projectrisks WHERE project_id = :project_id ORDER BY created_at DESC, id ASC",
     {
@@ -22,7 +20,7 @@ export const getAllProjectRisksQuery = async (
 
 export const getProjectRiskByIdQuery = async (
   id: number
-): Promise<ProjectRisk | null> => {
+): Promise<IProjectRisk | null> => {
   const result = await sequelize.query(
     "SELECT * FROM projectrisks WHERE id = :id",
     {
@@ -36,7 +34,7 @@ export const getProjectRiskByIdQuery = async (
 
 export const getNonMitigatedProjectRisksQuery = async (
   projectId: number
-): Promise<ProjectRisk[]> => {
+): Promise<IProjectRisk[]> => {
   const projectRisks = await sequelize.query(
     `SELECT pr.* FROM projectrisks pr RIGHT JOIN annexcategories_iso__risks acr ON pr.id = annexcategories_iso__risks.project_risk_id WHERE acr IS NULL;`,
     {
@@ -49,9 +47,9 @@ export const getNonMitigatedProjectRisksQuery = async (
 };
 
 export const createProjectRiskQuery = async (
-  projectRisk: Partial<ProjectRisk>,
+  projectRisk: Partial<ProjectRiskModel>,
   transaction: Transaction
-): Promise<ProjectRisk> => {
+): Promise<ProjectRiskModel> => {
   const result = await sequelize.query(
     `INSERT INTO projectrisks (
       project_id, risk_name, risk_owner, ai_lifecycle_phase, risk_description,
@@ -112,10 +110,10 @@ export const createProjectRiskQuery = async (
 
 export const updateProjectRiskByIdQuery = async (
   id: number,
-  projectRisk: Partial<ProjectRisk>,
+  projectRisk: Partial<ProjectRiskModel>,
   transaction: Transaction
-): Promise<ProjectRisk | null> => {
-  const updateProjectRisk: Partial<Record<keyof ProjectRisk, any>> = {};
+): Promise<ProjectRiskModel | null> => {
+  const updateProjectRisk: Partial<Record<keyof ProjectRiskModel, any>> = {};
   const setClause = [
     "project_id",
     "risk_name",
@@ -145,11 +143,11 @@ export const updateProjectRiskByIdQuery = async (
   ]
     .filter((f) => {
       if (
-        projectRisk[f as keyof ProjectRisk] !== undefined &&
-        projectRisk[f as keyof ProjectRisk]
+        projectRisk[f as keyof ProjectRiskModel] !== undefined &&
+        projectRisk[f as keyof ProjectRiskModel]
       ) {
-        updateProjectRisk[f as keyof ProjectRisk] =
-          projectRisk[f as keyof ProjectRisk];
+        updateProjectRisk[f as keyof ProjectRiskModel] =
+          projectRisk[f as keyof ProjectRiskModel];
         return true;
       }
     })

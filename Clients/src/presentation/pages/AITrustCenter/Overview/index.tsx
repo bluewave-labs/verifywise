@@ -184,9 +184,9 @@ const AITrustCenterOverview: React.FC = () => {
         </Alert>
       )}
 
-      <Typography sx={styles.description}>
+      {/* <Typography sx={styles.description}>
         This section serves as a comprehensive, user-friendly introduction to the company's AI practices, establishing a foundation of trust your customers. Users immediately understand the company's commitment to AI governance, security, and compliance, and have a clear path to further resources or contact if they have additional questions.
-      </Typography>
+      </Typography> */}
       
       <SectionPaper>
         <Stack direction="row" justifyContent="space-between" alignItems="center">

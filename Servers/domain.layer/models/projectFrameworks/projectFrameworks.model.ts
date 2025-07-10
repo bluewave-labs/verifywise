@@ -7,16 +7,15 @@ import {
 } from "sequelize-typescript";
 import { ProjectModel } from "../project/project.model";
 import { FrameworkModel } from "../frameworks/frameworks.model";
-
-export type ProjectFrameworks = {
-  framework_id: number;
-  project_id: number;
-};
+import { IProjectFrameworks } from "../../interfaces/i.projectFramework";
 
 @Table({
   tableName: "project_frameworks",
 })
-export class ProjectFrameworksModel extends Model<ProjectFrameworks> {
+export class ProjectFrameworksModel
+  extends Model<ProjectFrameworksModel>
+  implements IProjectFrameworks
+{
   @ForeignKey(() => FrameworkModel)
   @Column({
     type: DataType.INTEGER,

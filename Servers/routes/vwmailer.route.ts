@@ -43,12 +43,12 @@ router.post("/reset-password", async (req, res) => {
     const info = await sendEmail(
       to,
       "Password reset request",
-      "Please use the link to reset your password.",
+      // "Please use the link to reset your password.",
       template,
       data
     );
 
-    console.log("Message sent: %s", info.messageId);
+    console.log("Message sent");
     return res.status(200).json({ message: "Email sent successfully" });
   } catch (error) {
     console.error("Error sending email:", error);

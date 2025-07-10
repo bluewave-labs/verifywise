@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
+import path from "path";
+import fs from "fs/promises";
 import { generateToken } from "../utils/jwt.utils";
 import { frontEndUrl } from "../config/constants";
+import { sendEmail } from "../services/emailService";
 
 export const invite = async (req: Request, res: Response, body: {
   to: string;
@@ -16,11 +19,11 @@ export const invite = async (req: Request, res: Response, body: {
 
   try {
     // Read the MJML template file
-    // const templatePath = path.resolve(
-    //   __dirname,
-    //   "../templates/account-creation-email.mjml"
-    // );
-    // const template = fs.readFileSync(templatePath, "utf8");
+    const templatePath = path.resolve(
+      __dirname,
+      "../templates/account-creation-email.mjml"
+    );
+    const template = await fs.readFile(templatePath, "utf8");
 
     const token = generateToken({
       name,
@@ -37,16 +40,23 @@ export const invite = async (req: Request, res: Response, body: {
     const data = { name, link };
 
     // Send the email
-    // const info = await sendEmail(
-    //   to,
-    //   "Create your account",
-    //   "Please use the link to create your account.",
-    //   template,
-    //   data
-    // );
-    //  console.log("Message sent: %s", info.messageId);
-    return res.status(200).json({ link });
+    const info = await sendEmail(
+      to,
+      "Create your account",
+      // "Please use the link to create your account.",
+      template,
+      data
+    );
 
+    if (info.error) {
+      console.error("Error sending email:", info.error);
+      return res.status(500).json({
+        error: info.error.name,
+        details: info.error.message
+      });
+    } else {
+      return res.status(200).json({ message: "Email sent successfully" });
+    }
   } catch (error) {
     console.error("Error sending email:", error);
     return res.status(500).json({ error: "Failed to send email", details: (error as Error).message });

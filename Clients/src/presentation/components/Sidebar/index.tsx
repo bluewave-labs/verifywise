@@ -50,6 +50,9 @@ import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen"
 import ReadyToSubscribeBox from "../ReadyToSubscribeBox/ReadyToSubscribeBox";
 import { User } from "../../../domain/types/User";
 
+
+
+
 const menu = [
   {
     name: "Dashboard",

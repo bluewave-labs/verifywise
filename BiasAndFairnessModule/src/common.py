@@ -2,7 +2,6 @@ import os
 from typing import Dict
 
 import yaml
-from yaml.loader import SafeLoader
 
 
 def read_yaml(file_path: str) -> Dict:
@@ -24,7 +23,7 @@ def read_yaml(file_path: str) -> Dict:
 
     with open(file_path, "r") as f:
         try:
-            content = yaml.load(f, Loader=SafeLoader)
+            content = yaml.safe_load(f)
 
             if not isinstance(content, dict):
                 raise TypeError(

@@ -1,5 +1,3 @@
-// projectRisk.model.ts
-
 import {
   Column,
   DataType,

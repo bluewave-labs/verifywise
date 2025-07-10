@@ -9,7 +9,7 @@ import {
   getProjectRiskByIdQuery,
   updateProjectRiskByIdQuery,
 } from "../utils/projectRisk.utils";
-import { ProjectRisk } from "../domain.layer/models/projectRisks/projectRisk.model";
+import { ProjectRiskModel } from "../domain.layer/models/projectRisks/projectRisk.model";
 import { sequelize } from "../database/db";
 
 export async function getAllProjectRisks(
@@ -68,7 +68,7 @@ export async function createProjectRisk(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   try {
-    const projectRisk: Partial<ProjectRisk> = req.body;
+    const projectRisk: Partial<ProjectRiskModel> = req.body;
 
     const newProjectRisk = await createProjectRiskQuery(
       projectRisk,
@@ -94,7 +94,7 @@ export async function updateProjectRiskById(
   const transaction = await sequelize.transaction();
   try {
     const projectRiskId = parseInt(req.params.id);
-    const projectRisk: Partial<ProjectRisk> = req.body;
+    const projectRisk: Partial<ProjectRiskModel> = req.body;
 
     const updatedProjectRisk = await updateProjectRiskByIdQuery(
       projectRiskId,

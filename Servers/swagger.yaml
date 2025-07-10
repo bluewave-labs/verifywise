@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Compliance Management API
-  description: API documentation for the compliance management application
+  description: API documentation for Verifywise AI compliance management application
   version: 1.0.0
 
 servers:
@@ -11,6 +11,7 @@ servers:
 paths:
   /assessments:
     get:
+      summary: Returns a list of all the assessments
       tags: [assessments]
       security:
         - JWTAuth: []
@@ -52,6 +53,7 @@ paths:
                 error:
                   type: object
     post:
+      summary: On creating assessments and posting it
       tags: [assessments]
       security:
         - JWTAuth: []
@@ -4336,6 +4338,91 @@ paths:
                   example: internal server error
                 error:
                   type: object
+  
+  /training:
+    get:
+      summary: Routes to all the training modules
+      tags: [training]
+      security:
+       - JWTAuth: []
+      responses:
+        "200":
+          description: list all the trainnig modules
+          content:
+            application/json:
+              schema:
+               type: object
+               properties:
+                 message:
+                   type: string
+                   example: ok
+                 data:
+                  type: object
+                  items:
+                    $ref:
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+        "500":
+          description: internal server error
+          content:
+            appliction/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    
+    post:
+      summary: Creates new training registar
+      tags: [training]
+      security:
+       - JWTAuth: []
+      responses:
+        "201":
+          description: create new training registar
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: ok
+                data:
+                type: object
+                items:
+                  $ref: 
+        
+        "500":
+          description: Error creating new training (internal server error)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: internal server error
+
+                  error:
+                    type: object
+
+  /training/training-id/{id}:
+    get:
+      tags: [training]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
 
 components:
   securitySchemes:

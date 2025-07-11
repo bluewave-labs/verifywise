@@ -1,11 +1,11 @@
-import { ProjectRisk } from "./projectRisk.model";
+import { IProjectRisk } from "../../interfaces/I.projectRisk";
 
 // Sample mock data for ProjectRisk
 const mockProjectRisks = (
   projectId1: number,
   userId1: number,
   userId2: number
-): ProjectRisk[] => {
+): IProjectRisk[] => {
   return [
     // Project risk for the first project
     {

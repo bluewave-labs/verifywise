@@ -50,28 +50,20 @@ export const COMPLIANCE_BADGES = [
   { key: 'EU_AI_Act', label: 'EU AI Act' },
 ];
 
-export const TEXT_FIELD_STYLES = {
-  width: '100%',
-  height: '100%',
-  '& .MuiOutlinedInput-root': {
-    border: 'none',
-    backgroundColor: 'transparent',
-    height: '100%',
-    '& fieldset': {
-      border: 'none',
-    },
-    '&:hover fieldset': {
-      border: 'none',
-    },
-    '&.Mui-focused fieldset': {
-      border: 'none',
-    },
-  },
-  '& .MuiInputBase-input': {
-    padding: 0,
-    height: '100% !important',
-    resize: 'none',
-  }
-};
+export const SUCCESS_MESSAGE = 'AI Trust Centre data saved successfully!';
 
-export const SUCCESS_MESSAGE = 'AI Trust Centre data saved successfully!'; 
+// Constants for form sections
+export const FORM_SECTIONS = {
+  INTRO: 'intro',
+  COMPLIANCE_BADGES: 'compliance_badges',
+  COMPANY_INFO: 'company_info',
+  TERMS_AND_CONTACT: 'terms_and_contact',
+} as const;
+
+// Constants for toggle fields
+export const TOGGLE_FIELDS = {
+  INTRO_VISIBLE: 'intro_visible',
+  BADGES_VISIBLE: 'badges_visible',
+  COMPANY_INFO_VISIBLE: 'company_info_visible',
+  IS_VISIBLE: 'is_visible',
+} as const; 

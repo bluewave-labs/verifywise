@@ -8,31 +8,80 @@ import CustomizableButton from '../../../vw-v2-components/Buttons';
 import { Modal, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 
-const initialSubprocessors = [
-  { id: 1, company: 'Google', url: 'https://google.com', purpose: 'We use Gemini', location: 'San Francisco' },
-  { id: 2, company: 'Meta', url: 'https://meta.com', purpose: 'We use their OS LLM', location: 'San Francisco' },
-  { id: 3, company: 'Microsoft', url: 'https://microsoft.com', purpose: 'We use their Azure AI foundry', location: 'Redmond' },
-  { id: 4, company: 'Nvidia', url: 'https://nvidia.com', purpose: 'We use their AI services', location: 'Santa Clara' },
-];
+import {
+  INITIAL_SUBPROCESSORS,
+  TABLE_COLUMNS,
+  WARNING_MESSAGES
+} from './constants';
 
-const columns = [
-  { id: 'company', label: 'COMPANY NAME' },
-  { id: 'url', label: 'URL' },
-  { id: 'purpose', label: 'PURPOSE' },
-  { id: 'location', label: 'LOCATION' },
-  { id: 'action', label: 'ACTION' },
-];
+// Helper component for Subprocessor Table Row
+const SubprocessorTableRow: React.FC<{
+  subprocessor: any;
+  enabled: boolean;
+  onDelete: (id: number) => void;
+  onEdit: (id: number) => void;
+}> = ({ subprocessor, enabled, onDelete, onEdit }) => {
+  const styles = useStyles();
+  
+  return (
+    <TableRow key={subprocessor.id}>
+      <TableCell>
+        <Typography sx={styles.tableDataCell}>{subprocessor.company}</Typography>
+      </TableCell>
+      <TableCell>
+        <Typography sx={styles.tableDataCell}>{subprocessor.url}</Typography>
+      </TableCell>
+      <TableCell>
+        <Typography sx={styles.tableDataCell}>{subprocessor.purpose}</Typography>
+      </TableCell>
+      <TableCell>
+        <Typography sx={styles.tableDataCell}>{subprocessor.location}</Typography>
+      </TableCell>
+      <TableCell>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <IconButtonComponent
+            id={subprocessor.id}
+            onDelete={() => onDelete(subprocessor.id)}
+            onEdit={() => onEdit(subprocessor.id)}
+            onMouseEvent={() => {}}
+            type="file"
+            warningTitle={WARNING_MESSAGES.deleteTitle}
+            warningMessage={WARNING_MESSAGES.deleteMessage}
+          />
+        </Box>
+      </TableCell>
+    </TableRow>
+  );
+};
+
+// Helper component for Modal Field
+const ModalField: React.FC<{
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  enabled: boolean;
+}> = ({ label, value, onChange, enabled }) => (
+  <Field
+    label={label}
+    value={value}
+    onChange={e => enabled && onChange(e.target.value)}
+    sx={{ width: '100%' }}
+    disabled={!enabled}
+  />
+);
 
 const AITrustCenterSubprocessors: React.FC = () => {
   const styles = useStyles();
   const [enabled, setEnabled] = useState(true);
-  const [subprocessors, setSubprocessors] = useState(initialSubprocessors);
+  const [subprocessors, setSubprocessors] = useState(INITIAL_SUBPROCESSORS);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState({ company: '', purpose: '', url: '', location: '' });
 
   const handleToggle = () => setEnabled((prev) => !prev);
+  
   const handleEdit = (id: number) => {
+    if (!enabled) return;
     const sp = subprocessors.find((s) => s.id === id);
     if (sp) {
       setForm({ company: sp.company, purpose: sp.purpose, url: sp.url, location: sp.location });
@@ -40,21 +89,27 @@ const AITrustCenterSubprocessors: React.FC = () => {
       setEditModalOpen(true);
     }
   };
-  const handleDelete = (id: number) => setSubprocessors(subprocessors.filter(sp => sp.id !== id));
-  const handleMouseEvent = (_: React.SyntheticEvent) => {};
+  
+  const handleDelete = (id: number) => {
+    if (!enabled) return;
+    setSubprocessors(subprocessors.filter(sp => sp.id !== id));
+  };
+  
   const handleModalClose = () => {
     setEditModalOpen(false);
     setEditId(null);
   };
+  
   const handleFormChange = (field: string, value: string) => {
+    if (!enabled) return;
     setForm((prev) => ({ ...prev, [field]: value }));
   };
+  
   const handleEditSave = () => {
-    if (editId !== null) {
-      setSubprocessors((prev) => prev.map(sp => sp.id === editId ? { ...sp, ...form } : sp));
-      setEditModalOpen(false);
-      setEditId(null);
-    }
+    if (!enabled || editId === null) return;
+    setSubprocessors((prev) => prev.map(sp => sp.id === editId ? { ...sp, ...form } : sp));
+    setEditModalOpen(false);
+    setEditId(null);
   };
 
   return (
@@ -73,114 +128,77 @@ const AITrustCenterSubprocessors: React.FC = () => {
           </Box>
         </Box>
         <Box sx={{ position: 'relative' }}>
-          <TableContainer component={Paper} sx={{ boxShadow: 'none', opacity: enabled ? 1 : 0.5, pointerEvents: enabled ? 'auto' : 'none' }}>
+          <TableContainer component={Paper} sx={{ 
+            ...styles.tableContainer,
+            opacity: enabled ? 1 : 0.5, 
+            pointerEvents: enabled ? 'auto' : 'none' 
+          }}>
             <Table>
               <TableHead>
                 <TableRow>
-                  {columns.map((col) => (
-                    <TableCell key={col.id} sx={{ fontWeight: 600, fontSize: 13 }}>{col.label}</TableCell>
+                  {TABLE_COLUMNS.map((col) => (
+                    <TableCell key={col.id} sx={styles.tableCell}>{col.label}</TableCell>
                   ))}
                 </TableRow>
               </TableHead>
               <TableBody>
                 {subprocessors.map((sp) => (
-                  <TableRow key={sp.id}>
-                    <TableCell>
-                      <Typography sx={{ fontSize: 13, color: '#475467' }}>{sp.company}</Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography sx={{ fontSize: 13, color: '#475467' }}>{sp.url}</Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography sx={{ fontSize: 13, color: '#475467' }}>{sp.purpose}</Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography sx={{ fontSize: 13, color: '#475467' }}>{sp.location}</Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <IconButtonComponent
-                          id={sp.id}
-                          onDelete={() => handleDelete(sp.id)}
-                          onEdit={() => handleEdit(sp.id)}
-                          onMouseEvent={handleMouseEvent}
-                          type="file"
-                          warningTitle="Are you sure you want to remove this subprocessor?"
-                          warningMessage="If you delete this subprocessor, it will be removed from the table and won't be visible in the public AI Trust Center."
-                        />
-                      </Box>
-                    </TableCell>
-                  </TableRow>
+                  <SubprocessorTableRow
+                    key={sp.id}
+                    subprocessor={sp}
+                    enabled={enabled}
+                    onDelete={handleDelete}
+                    onEdit={handleEdit}
+                  />
                 ))}
               </TableBody>
             </Table>
           </TableContainer>
-          {!enabled && (
-            <Box sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              bgcolor: 'rgba(255,255,255,0.6)',
-              zIndex: 2,
-              pointerEvents: 'auto',
-              borderRadius: 2,
-            }} />
-          )}
+          {!enabled && <Box sx={styles.overlay} />}
         </Box>
+        
         {/* Edit Subprocessor Modal */}
         <Modal open={editModalOpen} onClose={handleModalClose}>
-          <Box sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            bgcolor: '#fff',
-            borderRadius: 2,
-            boxShadow: 3,
-            p: 6,
-            minWidth: 350,
-            maxWidth: 400,
-            width: '100%',
-            outline: 'none',
-          }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-              <Typography fontWeight={600} fontSize={16}>Edit subprocessor</Typography>
+          <Box sx={styles.modal}>
+            <Box sx={styles.modalHeader}>
+              <Typography sx={styles.modalTitle}>Edit subprocessor</Typography>
               <IconButton onClick={handleModalClose} sx={{ p: 0 }}>
                 <CloseIcon />
               </IconButton>
             </Box>
             <Stack spacing={3}>
-              <Field
+              <ModalField
                 label="Company name"
                 value={form.company}
-                onChange={e => handleFormChange('company', e.target.value)}
-                sx={{ width: '100%' }}
+                onChange={(value) => handleFormChange('company', value)}
+                enabled={enabled}
               />
-              <Field
+              <ModalField
                 label="Purpose"
                 value={form.purpose}
-                onChange={e => handleFormChange('purpose', e.target.value)}
-                sx={{ width: '100%' }}
+                onChange={(value) => handleFormChange('purpose', value)}
+                enabled={enabled}
               />
-              <Field
+              <ModalField
                 label="URL"
                 value={form.url}
-                onChange={e => handleFormChange('url', e.target.value)}
-                sx={{ width: '100%' }}
+                onChange={(value) => handleFormChange('url', value)}
+                enabled={enabled}
               />
-              <Field
+              <ModalField
                 label="Location"
                 value={form.location}
-                onChange={e => handleFormChange('location', e.target.value)}
-                sx={{ width: '100%' }}
+                onChange={(value) => handleFormChange('location', value)}
+                enabled={enabled}
               />
               <CustomizableButton
-                sx={{ mt: 2, alignSelf: 'flex-end', backgroundColor: '#13715B', border: '1px solid #13715B', color: '#fff', borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
+                sx={{
+                  ...styles.modalButton,
+                  ...(enabled ? {} : styles.modalButtonDisabled)
+                }}
                 variant="contained"
                 onClick={handleEditSave}
-                isDisabled={false}
+                isDisabled={!enabled}
                 text="Edit subprocessor"
               />
             </Stack>

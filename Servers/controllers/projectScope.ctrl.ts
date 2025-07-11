@@ -9,7 +9,7 @@ import {
   updateProjectScopeByIdQuery,
 } from "../utils/projectScope.utils";
 import { sequelize } from "../database/db";
-import { ProjectScope } from "../domain.layer/models/projectScope/projectScope.model";
+import { ProjectScopeModel } from "../domain.layer/models/projectScope/projectScope.model";
 
 export async function getAllProjectScopes(
   req: Request,
@@ -53,7 +53,7 @@ export async function createProjectScope(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   try {
-    const projectScope = req.body as Partial<ProjectScope>;
+    const projectScope = req.body as Partial<ProjectScopeModel>;
 
     const createdProjectScope = await createProjectScopeQuery(
       projectScope,
@@ -79,7 +79,7 @@ export async function updateProjectScopeById(
   const transaction = await sequelize.transaction();
   try {
     const projectScopeId = parseInt(req.params.id);
-    const projectScope = req.body as Partial<ProjectScope>;
+    const projectScope = req.body as Partial<ProjectScopeModel>;
 
     const updatedProjectScope = await updateProjectScopeByIdQuery(
       projectScopeId,

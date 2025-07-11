@@ -1,4 +1,4 @@
-import { Role, RoleModel } from "../domain.layer/models/role/role.model";
+import { RoleModel } from "../domain.layer/models/role/role.model";
 import { sequelize } from "../database/db";
 import { QueryTypes, Transaction } from "sequelize";
 import { IRoleAttributes } from "../domain.layer/interfaces/i.role";
@@ -47,12 +47,12 @@ export const updateRoleByIdQuery = async (
   id: number,
   role: Partial<RoleModel>,
   transaction: Transaction
-): Promise<Role | null> => {
-  const updateRole: Partial<Record<keyof Role, any>> = {};
+): Promise<RoleModel | null> => {
+  const updateRole: Partial<Record<keyof IRoleAttributes, any>> = {};
   const setClause = ["name", "description"]
     .filter((f) => {
-      if (role[f as keyof Role] !== undefined && role[f as keyof Role]) {
-        updateRole[f as keyof Role] = role[f as keyof Role];
+      if (role[f as keyof IRoleAttributes] !== undefined && role[f as keyof IRoleAttributes]) {
+        updateRole[f as keyof IRoleAttributes] = role[f as keyof IRoleAttributes];
         return true;
       }
     })

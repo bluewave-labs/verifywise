@@ -9,12 +9,12 @@ import { ProjectRiskModel } from "../domain.layer/models/projectRisks/projectRis
 import { FileModel } from "../domain.layer/models/file/file.model";
 import { ProjectFrameworksModel } from "../domain.layer/models/projectFrameworks/projectFrameworks.model";
 import { frameworkDeletionMap } from "../types/framework.type";
-import { Role } from "../domain.layer/models/role/role.model";
 import { IProjectAttributes } from "../domain.layer/interfaces/i.project";
+import { IRoleAttributes } from "../domain.layer/interfaces/i.role";
 
 interface GetUserProjectsOptions {
   userId: number;
-  role: Role["name"];
+  role: IRoleAttributes["name"];
   transaction?: Transaction;
 }
 
@@ -58,7 +58,7 @@ export const getAllProjectsQuery = async ({
   role,
 }: {
   userId: number;
-  role: Role["name"];
+  role: IRoleAttributes["name"];
 }): Promise<IProjectAttributes[]> => {
   if (!userId || !role) {
     throw new Error("User ID and role are required to fetch projects.");

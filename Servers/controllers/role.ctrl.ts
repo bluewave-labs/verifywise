@@ -10,6 +10,7 @@ import {
 } from "../utils/role.utils";
 import { sequelize } from "../database/db";
 import { RoleModel } from "../domain.layer/models/role/role.model";
+import { ValidationException } from "../domain.layer/exceptions/custom.exception";
 
 export async function getAllRoles(req: Request, res: Response): Promise<any> {
   try {
@@ -60,6 +61,11 @@ export async function createRole(req: Request, res: Response): Promise<any> {
     return res.status(503).json(STATUS_CODE[503]({}));
   } catch (error) {
     await transaction.rollback();
+
+    if (error instanceof ValidationException) {
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -75,9 +81,8 @@ export async function updateRoleById(
       name: string;
       description: string;
     } = req.body;
-    const roleObj = await RoleModel.createRole(updatedRole.name, updatedRole.description)
 
-    const role = await updateRoleByIdQuery(roleId, roleObj, transaction);
+    const role = await updateRoleByIdQuery(roleId, updatedRole, transaction);
 
     if (role) {
       await transaction.commit();

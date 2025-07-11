@@ -1,17 +1,27 @@
 import { ValidationException } from "../exceptions/custom.exception";
+
+jest.mock("sequelize-typescript", () => ({
+  __esModule: true,
+  Column: jest.fn(),
+  DataType: {
+    INTEGER: "INTEGER",
+    STRING: "STRING",
+    DATE: "DATE",
+    BOOLEAN: "BOOLEAN",
+  },
+  ForeignKey: jest.fn(),
+  Table: jest.fn(),
+  Model: class MockModel {
+    static isInitialized = true;
+    constructor(data?: any) { }
+    static init() { }
+  },
+}));
+
 import { RoleModel } from "../models/role/role.model";
 
-jest.mock("../models/role/role.model", () => {
-  const mockConstructor = Object.getPrototypeOf(RoleModel);
-  mockConstructor.constructor = jest.fn().mockImplementation(function (this: any, data?: any) {
-    if (data) {
-      Object.assign(this, data);
-    }
-  })
-  return { RoleModel: mockConstructor }
-})
-
 describe("RoleModel", () => {
+  expect.assertions(4);
   const validRoleData = {
     name: "Admin",
     description: "Administrator role with full access",
@@ -30,7 +40,6 @@ describe("RoleModel", () => {
     try {
       await RoleModel.createRole("", validRoleData.description)
     } catch (error) {
-      console.log((error as ValidationException).message);
       expect(error).toBeInstanceOf(ValidationException);
       expect((error as ValidationException).message).toBe("Role name is required");
     }
